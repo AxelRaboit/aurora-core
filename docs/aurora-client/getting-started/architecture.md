@@ -11,15 +11,15 @@ les extensions, les modules propres au projet, les overrides.
 aurora-client/
 ├── src/                    # Code PHP client
 │   ├── Module/             # TOUT le code client (extensions + modules propres)
-│   │   ├── Core/           #   Extensions d'entités Aurora\Core\*
-│   │   │   └── Agency/     #     e.g. {Entity,Dto,Manager,Serializer}
-│   │   ├── Crm/            #   Extensions d'entités Aurora\Module\Crm\*
-│   │   └── Tracking/       #   Module métier propre au client
+│   │   ├── Platform/       #   ex. extensions d'entités Aurora\Module\Platform\*
+│   │   │   └── Agency/     #     ex. {Entity,Dto,Manager,Serializer} (illustratif)
+│   │   ├── Crm/            #   ex. extensions d'entités Aurora\Module\Crm\*
+│   │   └── Tracking/       #   ex. module métier propre au client (illustratif)
 │   ├── Service/            # Services cross-modules stateless (rare)
 │   └── EventListener/      # Listeners globaux (rare)
 ├── assets/client/          # Assets Vue côté client
 │   ├── Module/             # Composants pour les modules client
-│   │   └── Tracking/       # Composants du module Tracking
+│   │   └── Tracking/       # ex. composants d'un module client
 │   ├── Overrides/          # Composants qui remplacent des composants Aurora
 │   └── locales/            # Traductions Vue-only (en.js, fr.js)
 ├── templates/              # Templates Twig qui surchargent Aurora

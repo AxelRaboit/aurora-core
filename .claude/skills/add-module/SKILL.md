@@ -1,6 +1,6 @@
 ---
 name: add-module
-description: Scaffold a new Aurora module from scratch. Reads the templates under `.claude/skills/add-module/templates/`, fills placeholders, writes files, and handles the smart edits (`ModuleParameterEnum` case insertion for core, `aliases.js` entry for core, context-appropriate Lucide icon, polished FR/EN translation labels). Use when the user asks to "create", "add", "scaffold", "ajouter", "créer", "générer" a new module ("nouveau module"). Stops short of entity scaffolding (defers to `/add-entity`).
+description: Scaffold a new Aurora module from scratch. Reads the templates under `.claude/skills/add-module/templates/`, fills placeholders, writes files, and handles the smart edits (a CORE module is generated as a self-contained Composer package — `composer.json` + `Aurora<X>Bundle` + `config/services.php` + its OWN `<X>ModuleParameterEnum` + provider — then registered in `config/bundles.php` and excluded from the central `services.yaml` glob; plus the `aliases.js` entry, context-appropriate Lucide icon, polished FR/EN translation labels). Use when the user asks to "create", "add", "scaffold", "ajouter", "créer", "générer" a new module ("nouveau module"). Stops short of entity scaffolding (defers to `/add-entity`).
 scope: shared
 ---
 
@@ -8,8 +8,19 @@ scope: shared
 
 Scaffold a new Aurora module. The skill is the **only** entry point —
 the previous `aurora:make:module` CLI wizard was removed to prevent
-drift (devs running it bare were skipping the `ModuleParameterEnum`
-patch, the `aliases.js` append, the icon swap, the label polish).
+drift (devs running it bare were skipping the package wiring, the
+`aliases.js` append, the icon swap, the label polish).
+
+> **Monorepo-split convention (since 2026-05-30).** A CORE business
+> module is a **self-contained Composer package** : `axelraboit/aurora-<kebab>`
+> with its own `composer.json`, `Aurora<X>Bundle` (extends
+> `AbstractAuroraModuleBundle`), `config/services.php`, and — crucially —
+> its **own** `<X>ModuleParameterEnum` + `<X>ModuleParameterProvider`. The
+> central `ModuleParameterEnum` (`src/Module/Configuration/Setting/Enum/`) is
+> now **core-infra only** (General/Platform/Configuration/Media/Ged) and
+> **must not** receive new business-module cases. Reference modules to mirror :
+> `src/Module/Notes/` (sub-toggles) and `src/Module/Tools/` (leaf). This is
+> what makes a module à-la-carte installable (`make split-module`).
 
 The shape of every generated file lives in
 `.claude/skills/add-module/templates/*.tpl`. The skill reads each
@@ -38,7 +49,8 @@ sequence prefix, asset path, and which `Module.*.php.tpl` /
 | Namespace prefix | `Aurora\Module\<X>` | `App\Module\<X>` |
 | Sequence prefix (entity later) | `seq_core_<entity>_id` | `seq_app_<entity>_id` |
 | Asset path | `src/Module/<X>/assets/` | `src/Module/<X>/assets/` (same since 0.5) |
-| Toggle storage | `ModuleParameterEnum::<X>Backend` enum case | `<X>Context::BACKEND_KEY` const |
+| Toggle storage | own `<X>ModuleParameterEnum::Backend` case (package-local) | `<X>Context::BACKEND_KEY` const |
+| Package shape | full Composer package (composer.json + bundle + services.php + enum + provider) | lives in the client app — no package, no bundle |
 | Templates root for skill reads | `vendor/axelraboit/aurora/.claude/skills/add-module/templates/` (when running from a client) OR `.claude/skills/add-module/templates/` (core) | same |
 
 ## Required inputs (ask upfront if missing)
@@ -77,8 +89,15 @@ Compute these from the module name and the user's answers :
 | `{{ICON}}` | user input | `award` |
 | `{{PRIORITY}}` | user input as string | `'60'` |
 | `{{NAMESPACE}}` | `Aurora\Module\<X>` (core) or `App\Module\<X>` (client) | `Aurora\Module\Loyalty` |
-| `{{MODULE_TOGGLE_LITERAL}}` | `ModuleParameterEnum::<X>Backend` (core) / `<X>Context::BACKEND_KEY` (client) / `null` (no-toggle) | `ModuleParameterEnum::LoyaltyBackend` |
-| `{{MODULE_TOGGLE_USE}}` | matching `use` clause (one extra line) or empty string | `use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;\n` |
+| `{{MODULE_TOGGLE_LITERAL}}` | `<X>ModuleParameterEnum::Backend->value` (core) / `<X>Context::BACKEND_KEY` (client) / `null` (no-toggle) | `LoyaltyModuleParameterEnum::Backend->value` |
+| `{{MODULE_TOGGLE_USE}}` | empty for CORE (the `ConfigurationTabProvider` lives in the SAME `…\Setting` namespace as the enum) / `use <NAMESPACE>\<X>Context;\n` for client | `` (empty, core) |
+| `{{SERVICES_EXTRA_USE}}` | extra `use` lines for `config/services.php`, one per `--with-*` flag, else empty | see Step 2b |
+| `{{SERVICES_EXTRA_INSTANCEOF}}` | extra `instanceof()->tag()` lines for `config/services.php`, else empty | see Step 2b |
+
+> **Core toggle literal is now `->value` (a string).** The per-module enum
+> (`<X>ModuleParameterEnum`) does NOT satisfy the central `ModuleParameterEnum`
+> type-hint, so the `ConfigurationTab(moduleToggle: …)` arg takes the string
+> key, matching the real modules (`CrmModuleParameterEnum::Backend->value`).
 
 ## Step 2 — Pick the right template variants
 
@@ -99,12 +118,39 @@ Settings (only when `--with-settings`, both core + client share these) :
 - `SettingEnum.php.tpl`
 - `ConfigurationTabProvider.php.tpl`
 
+**Package shape (CORE + togglable only — the monorepo-split files)** :
+- `composer.json.tpl`
+- `Bundle.php.tpl`
+- `services.php.tpl`
+- `ModuleParameterEnum.php.tpl`
+- `ModuleParameterProvider.php.tpl`
+
+> These five are what make the module a standalone `axelraboit/aurora-<kebab>`
+> package. Skip them ONLY for `--no-toggle` core-infra modules (Dev-style) that
+> stay wired centrally by `AuroraBundle` — those keep their cases in the
+> central `ModuleParameterEnum` and need no bundle. Client modules don't get
+> these either (the client app wires its own bundles/services).
+
 Always :
 - `Controller.php.tpl`
 - `index.html.twig.tpl`
 - `App.vue.tpl`
 - `messages.fr.yaml.tpl`
 - `messages.en.yaml.tpl`
+
+### Step 2b — `config/services.php` extra tags (per `--with-*` flag)
+
+`services.php.tpl` always tags `ModuleInterface` (`aurora.module`) and
+`ApplicationParameterProviderInterface` (`aurora.application_parameter_provider`).
+Fill the two placeholders from the flags (else both empty) :
+
+| Flag | `{{SERVICES_EXTRA_USE}}` adds | `{{SERVICES_EXTRA_INSTANCEOF}}` adds |
+|---|---|---|
+| `--with-settings` | `use Aurora\Module\Configuration\Setting\Configuration\ConfigurationTabProviderInterface;\n` | `    $services->instanceof(ConfigurationTabProviderInterface::class)->tag('aurora.configuration_tab_provider');\n` |
+| `--with-frontend` | `use Aurora\Core\Frontend\Contract\FrontendInterface;\n` | `    $services->instanceof(FrontendInterface::class)->tag('aurora.front');\n` |
+
+Mirror the real packages : `Tools/config/services.php` (2 base tags, no
+extras) vs `Notes/config/services.php` (adds the ConfigurationTab tag).
 
 ## Step 3 — Read, substitute, write
 
@@ -129,6 +175,15 @@ For each chosen template :
 | `App.vue.tpl` | `src/Module/<Module>/assets/backend/<Module>App.vue` |
 | `messages.fr.yaml.tpl` | `src/Module/<Module>/translations/messages.fr.yaml` |
 | `messages.en.yaml.tpl` | `src/Module/<Module>/translations/messages.en.yaml` |
+| `composer.json.tpl` *(core togglable)* | `src/Module/<Module>/composer.json` |
+| `Bundle.php.tpl` *(core togglable)* | `src/Module/<Module>/Aurora<Module>Bundle.php` |
+| `services.php.tpl` *(core togglable)* | `src/Module/<Module>/config/services.php` |
+| `ModuleParameterEnum.php.tpl` *(core togglable)* | `src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php` |
+| `ModuleParameterProvider.php.tpl` *(core togglable)* | `src/Module/<Module>/Setting/<Module>ModuleParameterProvider.php` |
+
+> The `Aurora<Module>Bundle.php` lives at the module **root** (not in a
+> sub-dir) — `AbstractAuroraModuleBundle::moduleDir()` derives the module path
+> from the bundle file's location.
 
 ## Step 4 — The smart post-edits (Claude-only work)
 
@@ -136,28 +191,37 @@ These are NOT templates — they're context-sensitive edits to existing
 files. The previous CLI wizard merely printed hints about them; that's
 exactly the gap this skill closes.
 
-### 4a. Patch `ModuleParameterEnum` (CORE + togglable only)
+### 4a. Register the package bundle + exclude from the central glob (CORE + togglable)
 
-File: `src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php`.
+The toggle definitions are NO LONGER a patch to the central
+`ModuleParameterEnum` — they live in the generated
+`<Module>ModuleParameterEnum` (Step 3). Two central files still need a
+one-line edit so the package is wired:
 
-Add:
+**1. `config/bundles.php`** — register the bundle (alongside the other
+`Aurora<X>Bundle` lines, alphabetical) :
 
 ```php
-// Top-level case (near other *Backend cases)
-case <Module>Backend = 'modules_<module_id>_backend';
+Aurora\Module\<Module>\Aurora<Module>Bundle::class => ['all' => true],
 ```
 
-Then extend five `match ($this)` expressions :
-- `getLabel()` → `'backend.modules.<module_id>_backend'`
-- `getDescription()` → `'backend.modules.<module_id>_backend_description'`
-- `getModuleId()` → `'<module_id>'` (top-level toggle only)
-- `getDefaultValue()` → `'1'`
-- `getType()` → `'boolean'`
-- `getGroup()` → `'modules'`
-- `getPlaceholder()` → default arm already returns `null` (no change)
+**2. `config/services.yaml`** — exclude the module dir from the central
+`Aurora\: resource` glob (it now self-registers via its own
+`config/services.php`), in the `exclude:` list :
 
-If `--with-frontend` was used, also add `<Module>Frontend = 'modules_<module_id>_frontend'`
-with the same arms.
+```yaml
+- '../src/Module/<Module>/'
+```
+
+> Without the exclusion you get a double-registration; without the bundle
+> line the module contributes nothing (Doctrine mappings, Twig namespace,
+> translations and `resolve_target_entities` all come from the bundle).
+
+If `--with-frontend` was used, add a `Frontend` case to the generated
+`<Module>ModuleParameterEnum` (mirror `src/Module/Photo/Setting/PhotoModuleParameterEnum.php`):
+a `case Frontend = 'modules_<module_id>_frontend';` plus its `getLabel()` /
+`getDescription()` arms and a `getCascadeRequires()` arm pointing at
+`self::Backend->value`.
 
 Run afterwards:
 
@@ -165,7 +229,8 @@ Run afterwards:
 make sf CMD="aurora:application-parameter"
 ```
 
-…which seeds the new toggle row in `core_settings` (default `'1'` = ON).
+…which seeds the new toggle row(s) in `core_settings` (default `'1'` = ON)
+via the generated `<Module>ModuleParameterProvider`.
 
 ### 4b. Append to `aliases.js` (CORE only)
 

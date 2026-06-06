@@ -1,12 +1,15 @@
 # Étendre Agency de bout en bout (pilote)
 
-Ce guide reproduit le **câblage complet** mis en place côté aurora-client pour
-ajouter un champ `code` à l'entité `Agency` d'Aurora Core, **avec persistance,
-validation, sérialisation, affichage dans le tableau backoffice et saisie dans
-le formulaire de création/édition** — sans toucher à `vendor/aurora/`.
+Ce guide déroule, sur un **exemple générique**, le **câblage complet** à mettre
+en place côté aurora-client pour ajouter un champ `code` à l'entité `Agency`
+d'Aurora Core, **avec persistance, validation, sérialisation, affichage dans le
+tableau backoffice et saisie dans le formulaire de création/édition** — sans
+toucher à `vendor/aurora/`. L'extension `Agency` n'est qu'un support pédagogique :
+elle **n'est pas forcément présente** dans ton projet ; les chemins
+`src/Module/Platform/Agency/…` indiquent *où* écrire chaque couche.
 
-C'est le pilote du pattern d'extensibilité (Sylius-style) qui sera étendu aux
-autres entités au fur et à mesure des besoins.
+C'est le pilote du pattern d'extensibilité (Sylius-style), transposable à
+n'importe quelle entité Aurora.
 
 ---
 

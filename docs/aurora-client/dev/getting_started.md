@@ -86,7 +86,7 @@ mon-projet/
 │   ├── Module/                 # App\Module\* — TOUT le code client
 │   │   ├── Core/               #   Extensions d'entités Aurora\Core\*
 │   │   │   └── Agency/         #     Entity/ Dto/ Manager/ Serializer/
-│   │   ├── Tracking/           #   Module client autonome (ex. fourni par le template)
+│   │   ├── Tracking/           #   ex. module client autonome (illustratif — non fourni)
 │   │   └── …
 │   ├── Service/                # App\Service\* — helpers transverses (rare)
 │   ├── EventListener/          # App\EventListener\* — listeners globaux (rare)
@@ -220,9 +220,11 @@ Exemple : un module `Tracking` non-existant dans aurora-core.
    App\Module\Tracking\TrackingModule:
        tags: [aurora.module]
    ```
-4. Voir le module `Tracking` fourni par le template (`src/Module/Tracking/`)
-   pour un exemple complet : entité custom, NavSection, NavPermission,
-   `ModuleToggle` pour le panel "Accès modules".
+4. Pour un exemple complet (entité custom, NavSection, NavPermission,
+   `ModuleToggle` pour le panel "Accès modules"), voir
+   [`../extending/add_module.md`](../extending/add_module.md) — il déroule un
+   module d'exemple `Tracking` de bout en bout. C'est un exemple générique,
+   pas un module fourni par défaut.
 
 Référence canonique côté core : [`../../aurora-core/dev/add_module.md`](../../aurora-core/dev/add_module.md).
 
@@ -243,19 +245,19 @@ pour assigner la permission.
 
 ---
 
-## 8. Nettoyer le template (showcase → projet réel)
+## 8. Point de départ propre
 
-Le template `aurora-client` ship avec un module de démo (`Tracking`, override
-d'`Agency`, migrations showcase). Pour repartir d'une base propre, supprimer
-manuellement à la racine du nouveau projet :
+Le template `aurora-client` démarre **propre** : `src/Module/` ne contient
+aucun module métier, juste de quoi accrocher les tiens. Les exemples utilisés
+dans cette doc (module `Tracking`, extension `Agency` + champ `code`) sont des
+supports pédagogiques génériques — ils **ne sont pas livrés** dans le template ;
+suis les guides pour les reconstruire si tu veux les voir en action :
 
-- `src/Module/Tracking/` (module de démo)
-- `src/Entity/Agency.php`, `src/Dto/AgencyInput*.php`, `src/Manager/AgencyManager.php`, `src/Serializer/AgencySerializer.php` (extension showcase)
-- `src/Overrides/` (Vue showcase d'override Aurora — supprimer entièrement si tu n'override pas Aurora)
-- `src/Module/Tracking/templates/` et `templates/Core/` (Twig showcase)
-- `migrations/*.php` (puis `make migrate` pour repartir de la migration aurora-core)
+- module client from scratch → [`../extending/add_module.md`](../extending/add_module.md)
+- extension d'entité Aurora → [`../extending/extend_module.md`](../extending/extend_module.md)
 
-Ensuite : `make fixtures` (ou `migrate` puis seeders du nouveau projet).
+Pour amorcer la base : `make migrate` puis `make fixtures` (ou les seeders du
+projet).
 
 ---
 

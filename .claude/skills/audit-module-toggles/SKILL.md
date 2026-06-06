@@ -1,6 +1,6 @@
 ---
 name: audit-module-toggles
-description: Audit every Aurora module against the module-toggle convention — does each one declare a `ModuleParameterEnum` case (or a client `getToggles()`), implement `ModuleToggleProviderInterface`, gate `getNavSections()` on `<Module>Context::isBackendEnabled()`, expose `getCatalogNavSections()` unfiltered, register every NavItem as a sub-toggle, and gate its `ConfigurationTab` via `moduleToggle:`? Use when the user asks to "check", "audit", "vérifier", "valider" the toggle wiring; or to find which modules are missing from `/dev/dashboard/modules` ("quels modules sont mal câblés ?", "tous les modules ont-ils les toggles ?"). Read-only — reports gaps and points at `/register-module-toggle` for the fix.
+description: Audit every Aurora module against the module-toggle convention — does each one declare its OWN `<Module>ModuleParameterEnum` + `<Module>ModuleParameterProvider`, implement `ModuleToggleProviderInterface`, gate `getNavSections()` on `<Module>Context::isBackendEnabled()`, expose `getCatalogNavSections()` unfiltered, register every NavItem as a sub-toggle, and gate its `ConfigurationTab` via `moduleToggle:`? Use when the user asks to "check", "audit", "vérifier", "valider" the toggle wiring; or to find which modules are missing from `/dev/dashboard/modules` ("quels modules sont mal câblés ?", "tous les modules ont-ils les toggles ?"). Read-only — reports gaps and points at `/register-module-toggle` for the fix.
 scope: shared
 ---
 
@@ -13,9 +13,17 @@ module-toggle convention introduced by:
   `getToggles(): list<ModuleToggle>` on the module class.
 - `Aurora\Core\Module\Toggle\ModuleToggle` — value object the registry
   collects to render `/dev/dashboard/modules`.
-- `Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum` — central
-  enum that carries the cascade graph, labels, descriptions, and
-  `getModuleId()` for core modules.
+- `<Module>ModuleParameterEnum` (in `src/Module/<Module>/Setting/`) — the
+  module's **own** toggle enum carrying its cascade graph, labels,
+  descriptions, and `getModuleId()`. **Monorepo-split (since 2026-05-30):**
+  business modules NO LONGER use the central
+  `Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum` — that one is
+  core-infra only (General/Platform/Configuration/Media/Ged). Both core and
+  client business modules now have the same shape; only the namespace differs
+  (`Aurora\Module\X` vs `App\Module\X`).
+- `<Module>ModuleParameterProvider implements ApplicationParameterProviderInterface`
+  — yields the enum cases to `aurora:application-parameter` so the rows aren't
+  flagged obsolete. Missing provider ⇒ the toggles get wiped on next sync.
 - `Aurora\Module\Configuration\Setting\Configuration\ConfigurationTab::$moduleToggle`
   — optional field that hides a Settings tab when its owning module is
   disabled.
@@ -70,35 +78,39 @@ the module has no settings tab).
 
 ### 2. Toggle enum / provider wiring
 
-For **core modules** (in aurora-core source):
+Post-split, **core and client business modules have the same shape** — own
+enum + own provider. Only the namespace prefix differs.
 
-4. `ModuleParameterEnum::<Module>Backend` case exists. Grep the enum
-   file: `case <Module>Backend = 'modules_<module_id>_backend';`.
-5. `getLabel()`, `getDescription()`, `getModuleId()` all return non-null
-   for `<Module>Backend`. Confirm by inspecting the `match ($this) {…}`
-   arms.
-6. **For each NavItem** in `getCatalogNavSections()`, a matching
-   sub-module case exists in `ModuleParameterEnum`. The convention is
-   `<Module><SubName> = 'modules_<module_id>_<sub_id>'`, with:
-   - `getParentCase()` returning `self::<Module>Backend`
-   - `getCascadeRequires()` returning `self::<Module>Backend->value`
-
-For **client modules** (in the current project's `App\Module\`):
-
-7. A client enum (e.g. `<Module>ModuleParameterEnum`) implements
-   `ApplicationParameterEnumInterface`, with cases mirroring the same
-   shape as `ModuleParameterEnum` (one top-level `<Module>Backend` +
-   one per NavItem).
-8. The module's `<Module>ApplicationParameterProvider` (or equivalent)
-   yields the enum cases via `getParameters()` so
-   `aurora:application-parameter` seeds them.
+4. `src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php` exists and
+   implements `ApplicationParameterEnumInterface`, with a top-level case
+   `case Backend = 'modules_<module_id>_backend';`. **Fail if the module's
+   toggle still lives in the central `ModuleParameterEnum`** (a business
+   module there is the #1 post-split regression).
+5. `getLabel()`, `getDescription()` have an arm for `Backend`, and
+   `getModuleId()` returns `'<module_id>'` for `Backend` (null otherwise).
+   Confirm via the `match ($this) {…}` arms.
+6. **For each NavItem** in `getCatalogNavSections()`, a matching sub-module
+   case exists in the enum. The convention is
+   `case <SubName> = 'modules_<module_id>_<sub_id>';`, with:
+   - `getCascadeRequires()` returning `self::Backend->value`
+   - `getDisplayParent()` returning `self::Backend->value`
+7. `src/Module/<Module>/Setting/<Module>ModuleParameterProvider.php` exists,
+   implements `ApplicationParameterProviderInterface`, and its
+   `getParameters()` does `yield from <Module>ModuleParameterEnum::cases();`.
+   Without it the toggle rows get wiped on the next
+   `aurora:application-parameter` sync.
+8. *(Packaged modules only — those with a `config/services.php`)* the
+   provider is tagged. The base `config/services.php` always tags
+   `ApplicationParameterProviderInterface` → `aurora.application_parameter_provider`,
+   so this is satisfied automatically; flag only if the module ships a
+   `config/services.php` that omits that `instanceof()` line.
 
 ### 3. Context + nav gating
 
 9. `src/Module/<Module>/<Module>Context.php` exists.
 10. `<Module>Context::isBackendEnabled(): bool` exists and reads
-    `ModuleAccessChecker::isEnabled(<Module>Backend)` — not hardcoded
-    `return true`.
+    `ModuleAccessChecker::isEnabled(<Module>ModuleParameterEnum::Backend->value)`
+    — passing `->value` (string), not hardcoded `return true`.
 11. `<Module>Module::getNavSections()` short-circuits on
     `!$<module>Context->isBackendEnabled()` (returns `[]`).
 12. **Per NavItem**, `getNavSections()` checks the matching sub-toggle
@@ -110,9 +122,9 @@ For **client modules** (in the current project's `App\Module\`):
 ### 4. `getToggles()` method
 
 14. `<Module>Module::getToggles()` exists and returns a list of
-    `ModuleToggle` instances (one per enum case the module owns).
-    Cross-check: the count must match the number of `<Module>*` cases
-    discovered in step 4–6 (or 7 for client modules).
+    `ModuleToggle` instances built from `<Module>ModuleParameterEnum::<Case>->toToggle()`
+    (one per enum case the module owns). Cross-check: the count must match
+    the number of cases discovered in steps 4–6.
 
 ### 5. Translations
 
@@ -132,10 +144,11 @@ For **client modules** (in the current project's `App\Module\`):
 18. Find `src/Module/<Module>/Setting/<Module>ConfigurationTabProvider.php`.
     If absent, skip with `⏭️ no settings tab` — that's fine.
 19. If present, the provider's module-owned tab(s) must declare
-    `moduleToggle:`:
-    - Core modules: `moduleToggle: ModuleParameterEnum::<Module>Backend`.
-    - Client modules: `moduleToggle: '<setting_key>'` (string form,
-      since the client enum doesn't share a base class).
+    `moduleToggle:` with the string key — both core and client modules now
+    use `<Module>ModuleParameterEnum::Backend->value` (mirrors
+    `CrmConfigurationTabProvider`). A bare string `'<setting_key>'` is also
+    acceptable. Flag only a missing/`null` `moduleToggle:` on a module-owned
+    tab.
 20. The shared `sequences` tab (if contributed) MUST leave
     `moduleToggle: null`. It's cross-module by design.
 
@@ -144,13 +157,18 @@ For **client modules** (in the current project's `App\Module\`):
 End with a single Markdown table summarizing every module:
 
 ```
-| Module           | Toggle | Context | Nav gate | getToggles | Trans | Settings tab |
-|------------------|--------|---------|----------|------------|-------|--------------|
-| Crm              | ✅      | ✅       | ✅        | ✅          | ✅     | ✅            |
-| Editorial        | ✅      | ✅       | ⚠️ partial | ✅          | ✅     | ⏭️ no tab    |
-| Project          | ❌ no `<Module>Backend` case | … |
+| Module           | Enum | Provider | Context | Nav gate | getToggles | Trans | Settings tab |
+|------------------|------|----------|---------|----------|------------|-------|--------------|
+| Crm              | ✅    | ✅        | ✅       | ✅        | ✅          | ✅     | ✅            |
+| Editorial        | ✅    | ✅        | ✅       | ⚠️ partial | ✅          | ✅     | ⏭️ no tab    |
+| Project          | ❌ toggle still in central `ModuleParameterEnum` | … |
 | Configuration    | ⏭️ skipped (always-on infra) |
 ```
+
+The **Enum** column = the module's own `<Module>ModuleParameterEnum` (a
+business module still using the central enum fails here). The **Provider**
+column = `<Module>ModuleParameterProvider` exists and yields the cases
+(missing ⇒ rows wiped on next sync).
 
 Below the table, list each `❌` and `⚠️` with:
 - The exact file + line (or "missing file") that's wrong

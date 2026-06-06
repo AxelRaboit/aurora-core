@@ -594,8 +594,9 @@ src/Module/ClientHr/ClientHrPermissionsModule.php         → id 'hr'
 
 `ModuleToggleProviderInterface::getToggles()` retourne des `ModuleToggle`
 pour exposer un module au panel "Accès aux modules par user". Exemple
-complet dans `src/Module/Tracking/TrackingModule.php` du template client
-(cf. [`add_module.md` §4](add_module.md#4-cas-2--module-avec-toggles--context-class)).
+complet : le module d'exemple `Tracking` déroulé dans
+[`add_module.md` §5](add_module.md#5-cas-2--module-avec-toggles--context-class)
+(générique — pas un module fourni dans le template).
 Doc core : [`../../aurora-core/dev/per_user_module_access.md`](../../aurora-core/dev/per_user_module_access.md).
 
 ### 9.6 Sync après chaque ajout

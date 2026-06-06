@@ -287,8 +287,8 @@ release officielle.
   template hérité fonctionne tel quel **si** aurora-core est public.
   Si aurora-core est privé chez vous, configurer le PAT
   `AURORA_CORE_READ_TOKEN` (cf. [`../../aurora-client/deployment/github_actions_ci.md`](../../aurora-client/deployment/github_actions_ci.md) §Annexe).
-- **Tracking laissé en place** : aurora-client embarque le module
-  Tracking (demo). Si le nouveau client ne s'en sert pas, le retirer
-  en suivant la checklist de
+- **Retirer un module client** : si le projet hérité contient un module dont
+  le nouveau client ne se sert pas (exemple reconstruit depuis la doc, reliquat
+  d'un ancien template), le retirer en suivant la checklist de
   [`../../aurora-client/getting-started/setup.md`](../../aurora-client/getting-started/setup.md)
-  §"Checklist — retirer un module showcase".
+  §"Checklist — retirer un module client".

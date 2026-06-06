@@ -2,18 +2,18 @@
 
 ## Ce qu'est aurora-client
 
-Aurora-client remplit **deux rôles simultanés** :
+Aurora-client est le **template de départ** d'un projet client Aurora : un
+squelette propre qui consomme `axelraboit/aurora` via Composer et dans lequel
+on construit le domaine propre au projet. On clone le dépôt et on ajoute ses
+modules et extensions par-dessus, sans toucher à `vendor/`.
 
-1. **Projet de démonstration** — il illustre concrètement toutes les façons
-   d'étendre Aurora Core : extension d'entité existante (Agency + champ `code`),
-   module client from scratch (Tracking), override de composant Vue, frontend
-   public. Chaque feature présente dans aurora-client est volontairement simple
-   — elle montre le pattern, pas une vraie application métier.
-
-2. **Template de départ** — quand un nouveau projet client Aurora démarre, il
-   part d'aurora-client. On clone le dépôt, on adapte ou supprime ce qui est
-   spécifique à la démo (module Tracking, extension Agency), et on construit
-   le domaine propre au projet.
+> **Modules d'exemple dans cette doc.** Les guides ci-dessous s'appuient sur
+> deux exemples génériques pour illustrer les patterns : un **module client
+> from scratch** (`Tracking`) et une **extension d'entité Aurora** (`Agency`
+> + champ `code`). Ce sont des supports pédagogiques — ils **ne sont pas
+> forcément présents** dans le template ; les chemins `src/Module/Tracking/…`
+> ou `src/Module/Platform/Agency/…` montrent simplement *où* ce code irait si
+> tu suivais l'exemple.
 
 ---
 

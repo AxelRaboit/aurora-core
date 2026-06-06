@@ -204,7 +204,9 @@ Ensuite :
 
 1. Mettre à jour `composer.json` (name, description).
 2. Mettre à jour `.env` (`APP_NAME`, `DATABASE_URL`).
-3. Supprimer le code showcase qui ne te sert pas (cf. checklist ci-dessous).
+3. Si ton point de départ contient des modules dont tu n'as pas besoin
+   (exemples scaffoldés, reliquat d'un ancien template), les retirer
+   (cf. checklist ci-dessous).
 4. Setup DB fresh — **ne pas faire `make install-dev` directement** sur
    un fresh clone (cf. note ci-dessous).
 5. `git commit -m "chore: init project from aurora-client template"`.
@@ -215,7 +217,12 @@ Ensuite :
 > public/*` en cleanup, recrée-le après. Détails dans
 > [`../dev/assets_vue.md`](../dev/assets_vue.md) §Symlink.
 
-### Checklist — retirer un module showcase (Tracking, Agency, autres)
+### Checklist — retirer un module client
+
+> Le template démarre **propre** (aucun module métier livré). Cette checklist
+> sert quand tu retires un module que tu as scaffolté, un exemple que tu as
+> reconstruit en suivant la doc (`Tracking`, extension `Agency`…), ou un
+> reliquat hérité d'un ancien template.
 
 Pour chaque module à retirer :
 

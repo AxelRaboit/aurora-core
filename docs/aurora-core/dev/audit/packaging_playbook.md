@@ -173,6 +173,18 @@ git push aurora-tools split-tools:main
 > (rejoue l'historique) mais sans dépendance binaire. Suffisant pour le POC ;
 > `splitsh-lite` reste reco pour le rollout (vitesse + idempotence des hashes).
 
+**Runbook au quotidien** — `bin/split-modules.sh` (subtree split + `push -f` par
+URL, aucun remote git permanent), wrappé par le Makefile :
+
+```bash
+make split-module REPO=aurora-crm        # un module précis
+make split-module REPO=aurora-commerce   # Ecommerce + Erp combinés
+make split-modules                       # les 12 packages d'un coup
+```
+
+Pousse ce qui est **committé** (pas le working tree) sur la branche `master` du
+repo cible ; les repos GitHub doivent exister au préalable.
+
 ## 4. Ordre d'extraction (du plus simple au plus dur)
 
 1. **POC** : `aurora-tools` (leaf pur, petit) — ✅ **fait** (2026-05-30) :

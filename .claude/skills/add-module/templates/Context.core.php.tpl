@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace {{NAMESPACE}};
 
 use Aurora\Core\Module\Service\ModuleAccessChecker;
-use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
+use {{NAMESPACE}}\Setting\{{MODULE}}ModuleParameterEnum;
 
 /**
  * Toggle façade for the "{{MODULE_LABEL}}" module. Every consumer (route
@@ -18,6 +18,6 @@ final readonly class {{MODULE}}Context
 
     public function isBackendEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::{{MODULE}}Backend);
+        return $this->moduleAccessChecker->isEnabled({{MODULE}}ModuleParameterEnum::Backend->value);
     }
 }

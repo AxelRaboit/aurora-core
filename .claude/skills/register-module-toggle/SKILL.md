@@ -1,6 +1,6 @@
 ---
 name: register-module-toggle
-description: Register a module (and its sub-modules) in the `/dev/dashboard/modules` admin panel by wiring `ModuleParameterEnum` cases, a `<Module>Context`, and the `ModuleToggleProviderInterface` on the module class. Use when the user asks "why does my module not show up in /dev/dashboard/modules", "the module is missing from the modules dashboard", "register Notes in the toggle dashboard", "expose toggles for <Module>", or when a fresh module/sub-module needs to become user-toggleable. Idempotent — re-running on an already-registered module is a no-op.
+description: Register a module (and its sub-modules) in the `/dev/dashboard/modules` admin panel by wiring its OWN `<Module>ModuleParameterEnum` + `<Module>ModuleParameterProvider`, a `<Module>Context`, and the `ModuleToggleProviderInterface` on the module class. Use when the user asks "why does my module not show up in /dev/dashboard/modules", "the module is missing from the modules dashboard", "register Notes in the toggle dashboard", "expose toggles for <Module>", or when a fresh module/sub-module needs to become user-toggleable. Idempotent — re-running on an already-registered module is a no-op.
 scope: shared
 ---
 
@@ -14,6 +14,18 @@ This skill targets a module that already exists in `src/Module/<Module>/`
 (or `src/Core/<Module>/` for core modules) but is **missing from the
 dashboard** — typically because it was scaffolded without
 `ModuleToggleProviderInterface` and without a `<Module>Context`.
+
+> **Monorepo-split convention (since 2026-05-30).** Each business module
+> owns its toggles in its **own** `<Module>ModuleParameterEnum` (under
+> `src/Module/<Module>/Setting/`) + a `<Module>ModuleParameterProvider` —
+> NOT the central `ModuleParameterEnum` (`src/Module/Configuration/Setting/Enum/`),
+> which is now core-infra only (General/Platform/Configuration/Media/Ged).
+> Mirror `src/Module/Notes/Setting/NotesModuleParameterEnum.php` (sub-toggles)
+> or `src/Module/Photo/Setting/PhotoModuleParameterEnum.php` (frontend case).
+> The provider is what keeps the toggle rows from being wiped by
+> `aurora:application-parameter`. If the module is a standalone package, its
+> `config/services.php` tags the provider; in the monorepo the central
+> `_instanceof` does. Either way `getParameters()` must `yield from` the cases.
 
 > **For a brand-new module** that needs scaffolding from scratch with
 > toggles wired upfront, use `/add-module` instead. This skill is for
@@ -49,36 +61,118 @@ Symptoms that should trigger this skill:
 
 ## What gets generated/edited
 
-### 1. Add cases to `ModuleParameterEnum`
+### 1. Create the module's own `<Module>ModuleParameterEnum` + provider
 
-File: `src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php`
+File: `src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php`
+(create it — do **not** touch the central `ModuleParameterEnum`).
 
-Insert near the matching section (top-level under "Top-level modules —
-backend", sub-modules grouped at the bottom under `// Sub-modules — <Module>`).
+Mirror `NotesModuleParameterEnum` exactly. Case names are **short**
+(`Backend`, `<Sub1>`, …) and the stored VALUE keeps the legacy key
+(`modules_<module_id>_backend`) so no settings migration is needed :
 
 ```php
-// Top-level
-case <Module>Backend = 'modules_<module_id>_backend';
+<?php
 
-// Sub-modules — <Module>
-case <Module><Sub1> = 'modules_<module_id>_<sub1_id>';
-case <Module><Sub2> = 'modules_<module_id>_<sub2_id>';
+declare(strict_types=1);
+
+namespace Aurora\Module\<Module>\Setting;
+
+use Aurora\Core\Module\Toggle\ModuleToggle;
+use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
+
+enum <Module>ModuleParameterEnum: string implements ApplicationParameterEnumInterface
+{
+    private const string GROUP = 'modules';
+
+    case Backend = 'modules_<module_id>_backend';
+    case <Sub1> = 'modules_<module_id>_<sub1_id>';
+    // ... one case per sub-module
+
+    public function getKey(): string { return $this->value; }
+
+    public function getLabel(): string
+    {
+        return match ($this) {
+            self::Backend => 'backend.modules.<module_id>_backend',
+            self::<Sub1> => 'backend.nav.<sub1_route_id>',   // reuse the NavItem key
+        };
+    }
+
+    public function getDescription(): string
+    {
+        return match ($this) {
+            self::Backend => 'backend.modules.<module_id>_backend_description',
+            self::<Sub1> => 'backend.nav.<sub1_route_id>_description',
+        };
+    }
+
+    public function getDefaultValue(): string { return '1'; }
+    public function getType(): string { return 'bool'; }
+    public function getGroup(): string { return self::GROUP; }
+    public function getPlaceholder(): ?string { return null; }
+
+    /** Module identifier for the top-level toggle, null for sub-toggles. */
+    private function getModuleId(): ?string
+    {
+        return self::Backend === $this ? '<module_id>' : null;
+    }
+
+    /** Cascade dependency (parent that must be ON), null for the top-level. */
+    private function getCascadeRequires(): ?string
+    {
+        return self::Backend === $this ? null : self::Backend->value;
+    }
+
+    /** Structural parent for dashboard grouping, null for the top-level. */
+    private function getDisplayParent(): ?string
+    {
+        return self::Backend === $this ? null : self::Backend->value;
+    }
+
+    public function toToggle(): ModuleToggle
+    {
+        return new ModuleToggle(
+            key: $this->value,
+            labelKey: $this->getLabel(),
+            descriptionKey: $this->getDescription(),
+            parentKey: $this->getCascadeRequires(),
+            moduleId: $this->getModuleId(),
+            displayParentKey: $this->getDisplayParent(),
+        );
+    }
+}
 ```
 
-Wire the **5 match arms** (5 separate `Edit` calls, each appending to
-the existing `default => null` or `default => '…'` arms):
+> The match arms (`getLabel` / `getDescription`) must be **exhaustive** —
+> one arm per case, no `default`. That is the forcing function : adding a
+> sub-module case without its arms is a compile error.
 
-| Method | Top-level | Sub-modules |
-|---|---|---|
-| `getLabel()` | `'backend.modules.<module_id>_backend'` | reuse existing `'backend.nav.<route_id>'` |
-| `getDescription()` | `'backend.modules.<module_id>_backend_description'` | reuse existing `'backend.nav.<route_id>_description'` |
-| `getParentCase()` | n/a (already returns `null` via `default`) | `self::<Module><Sub1>, self::<Module><Sub2> => self::<Module>Backend` |
-| `getCascadeRequires()` | n/a (top-level only — leave to `default`) | `self::<Module><Sub1> => self::<Module>Backend->value` (one per sub) |
-| `getModuleId()` | `self::<Module>Backend => '<module_id>'` | n/a (returns `null` via `default`) |
+Then create the provider (so `aurora:application-parameter` doesn't flag
+the rows obsolete and wipe them) :
 
-> The `_backend` suffix on the key is the convention for top-level
-> toggles. Do not omit it (`modules_notes` would clash with the namespace
-> of sub-module keys like `modules_notes_post_it`).
+File: `src/Module/<Module>/Setting/<Module>ModuleParameterProvider.php`
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace Aurora\Module\<Module>\Setting;
+
+use Aurora\Module\Configuration\Setting\Provider\ApplicationParameterProviderInterface;
+
+final readonly class <Module>ModuleParameterProvider implements ApplicationParameterProviderInterface
+{
+    public function getParameters(): iterable
+    {
+        yield from <Module>ModuleParameterEnum::cases();
+    }
+}
+```
+
+> The `_backend` suffix on the top-level key is mandatory (`modules_notes`
+> would clash with the namespace of sub-module keys like
+> `modules_notes_post_it`).
 
 ### 2. Create `<Module>Context.php`
 
@@ -95,7 +189,7 @@ declare(strict_types=1);
 namespace Aurora\Module\<Module>;
 
 use Aurora\Core\Module\Service\ModuleAccessChecker;
-use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
+use Aurora\Module\<Module>\Setting\<Module>ModuleParameterEnum;
 
 final readonly class <Module>Context
 {
@@ -103,17 +197,21 @@ final readonly class <Module>Context
 
     public function isBackendEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::<Module>Backend);
+        return $this->moduleAccessChecker->isEnabled(<Module>ModuleParameterEnum::Backend->value);
     }
 
     public function is<Sub1>Enabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::<Module><Sub1>);
+        return $this->moduleAccessChecker->isEnabled(<Module>ModuleParameterEnum::<Sub1>->value);
     }
 
     // ... one method per sub-module
 }
 ```
+
+> Pass `->value` (a string). The per-module enum does not satisfy the
+> central `ModuleParameterEnum` type-hint, and `ModuleAccessChecker::isEnabled()`
+> accepts `ModuleParameterEnum|string`.
 
 ### 3. Refactor `<Module>Module.php`
 
@@ -167,12 +265,15 @@ it shows *all* available items regardless of current toggle state).
 public function getToggles(): array
 {
     return [
-        ModuleParameterEnum::<Module>Backend->toToggle(),
-        ModuleParameterEnum::<Module><Sub1>->toToggle(),
+        <Module>ModuleParameterEnum::Backend->toToggle(),
+        <Module>ModuleParameterEnum::<Sub1>->toToggle(),
         // ... one per sub-module
     ];
 }
 ```
+
+(Add `use Aurora\Module\<Module>\Setting\<Module>ModuleParameterEnum;` to
+`<Module>Module.php`.)
 
 ### 4. Add translations
 
@@ -228,8 +329,13 @@ for changing visibility.
 - `ModuleToggleRegistry` collects toggles from every service implementing
   `ModuleToggleProviderInterface` (tagged automatically) — no manual
   registration needed.
-- The dashboard reads `ModuleParameterEnum::cases()` so the new enum
-  cases show up immediately after `aurora:application-parameter`.
+- The dashboard reads the toggles returned by every `getToggles()`, so the
+  new `<Module>ModuleParameterEnum` cases show up immediately after
+  `aurora:application-parameter` seeds their rows.
+- `<Module>ModuleParameterProvider` is auto-tagged
+  `aurora.application_parameter_provider` — by the module's own
+  `config/services.php` if it's a package, else by the central `_instanceof`.
+  Without the provider, the sync command would flag the rows obsolete.
 
 ## Boundaries
 
@@ -243,14 +349,18 @@ for changing visibility.
   visible UI) shouldn't appear in the panel.
 - **Do not modify `getCatalogNavSections()`.** It's the picker UI — must
   show everything regardless of toggle state.
-- **Always pair `getParentCase()` and `getCascadeRequires()`** for the
-  same sub-module — they encode the visual hierarchy and the cascade
-  rule respectively, and the dashboard cross-references both.
+- **Always pair `getCascadeRequires()` and `getDisplayParent()`** for the
+  same sub-module — they encode the cascade rule and the visual hierarchy
+  respectively, and the dashboard cross-references both.
+- **Never touch the central `ModuleParameterEnum`.** Business-module
+  toggles live in the module's own `<Module>ModuleParameterEnum`. The
+  central enum is core-infra only.
 
 ## Output to the user
 
 End with a summary listing :
-- The 4 enum cases added (with their keys)
+- The new `<Module>ModuleParameterEnum` + `<Module>ModuleParameterProvider`
+  (with the enum case keys)
 - The new `<Module>Context.php` file
 - The `<Module>Module.php` edits (interface + constructor + gating + getToggles)
 - The trans keys added (label + description)

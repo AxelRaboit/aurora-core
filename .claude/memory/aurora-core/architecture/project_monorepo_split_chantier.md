@@ -14,6 +14,15 @@ packages sur GitHub (branches `master`, `dev-master`), install à la carte prouv
 Découplage complet (graphe étoile + cat-F). Détail dans la table « État » + les
 findings ci-dessous.
 
+> **Outillage aligné (2026-05-31)** : les skills de scaffolding `/add-module`,
+> `/register-module-toggle`, `/audit-module-toggles`, `/add-submodule` + la doc
+> `docs/aurora-core/dev/add_module.md` génèrent/attendent désormais la forme
+> packagée (per-module `<Module>ModuleParameterEnum` + provider +
+> `Aurora<Module>Bundle` + `composer.json`/`config/services.php`, bundle
+> enregistré dans `bundles.php` + module exclu du glob central). Avant ça ils
+> patchaient encore l'enum `ModuleParameterEnum` central (monde monolithique).
+> Cf. [[architecture_module_parameter_enum]].
+
 > Les docs de **planning** du chantier (audits 9/11 phases, workplan J0-J6,
 > snapshots inventory/dependency_graph/baseline/coupling/package_layout,
 > compte-rendu POC) ont été **supprimés** une fois le chantier terminé (voir git
@@ -35,7 +44,9 @@ findings ci-dessous.
 - **[`decoupling_strategy.md`](../../../../docs/aurora-core/dev/audit/decoupling_strategy.md)** —
   le **pourquoi** : graphe en étoile, taxonomie cat A-E, fusion commerce.
 - **[`packaging_playbook.md`](../../../../docs/aurora-core/dev/audit/packaging_playbook.md)** —
-  le **comment** : anatomie d'un package + findings ; runbook = `bin/split-modules.sh`.
+  le **comment** : anatomie d'un package + findings ; runbook = `bin/split-modules.sh`
+  (wrappé : `make split-module REPO=aurora-crm` pour un module, `make split-modules`
+  pour tous).
 - **[`installing_modules.md`](../../../../docs/aurora-client/getting-started/installing_modules.md)** —
   l'**adoption client** à la carte + kit `.claude/client_template/`.
 

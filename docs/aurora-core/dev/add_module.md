@@ -31,57 +31,65 @@ commence par le cas 1 — tu pourras ajouter les autres au fur et à mesure.
 
 ---
 
-## 2. Scaffolding rapide avec `aurora:make:module`
+## 2. Scaffolding rapide avec le skill `/add-module`
 
-**Le chemin recommandé** pour créer un nouveau module. La commande génère
-tout le squelette du **Cas 1 + Cas 2 (toggle backend par défaut)**, et
-peut empiler les cas 4 et 5 via des flags. Le cas 3 (entités CRUD) reste
-manuel — déféré à `/add-entity` ou `bin/console make:entity`.
+**Le chemin recommandé** pour créer un nouveau module. L'ancien wizard CLI
+`aurora:make:module` a été **retiré** (il laissait passer des oublis : patch
+toggles, append `aliases.js`, icône, polish des labels). Le skill Claude Code
+[`.claude/skills/add-module/`](../../../.claude/skills/add-module/SKILL.md) est
+désormais le **seul** point d'entrée. Il génère le **Cas 1 + Cas 2 (toggle
+backend par défaut)** et empile les cas 4 et 5 via des flags. Le cas 3 (entités
+CRUD) reste déféré à `/add-entity`.
 
 ### 2.1 Utilisation
 
-```bash
-# Module minimal togglable (cas 1 + 2 — défaut)
-php bin/console aurora:make:module Loyalty
+Invoquer `/add-module` et donner le nom du module (PascalCase) + les options :
 
-# Module avec frontend public (cas 4)
-php bin/console aurora:make:module Loyalty --with-frontend
-
-# Module avec onglet Settings (cas 5)
-php bin/console aurora:make:module Loyalty --with-settings
-
-# Tout combiné
-php bin/console aurora:make:module Loyalty --with-frontend --with-settings
-
-# Module infra-only (always-on, pas de toggle backend) — Dev-style
-php bin/console aurora:make:module DevTools --no-toggle
-```
-
-| Flag | Effet |
+| Option | Effet |
 |---|---|
-| _(aucun)_ | Cas 1 + Cas 2 : module togglable depuis l'admin "Modules access" panel |
-| `--no-toggle` | Opt-out du toggle backend ; le module est always-on (réservé aux infras type Dev) |
+| _(défaut)_ | Cas 1 + Cas 2 : module togglable depuis l'admin "Modules access" panel |
+| `--no-toggle` | Opt-out du toggle backend ; le module est always-on (réservé aux infras type Dev — reste câblé centralement par `AuroraBundle`) |
 | `--with-frontend` | Cas 4 : ajoute `<X>FrontendDescriptor.php` (pages publiques) |
 | `--with-settings` | Cas 5 : ajoute `Setting/<X>SettingEnum.php` + `<X>ConfigurationTabProvider.php` |
 
-La commande **auto-détecte le contexte** (core vs client) en lisant
+Le skill **auto-détecte le contexte** (core vs client) en lisant
 `composer.json` (`"name": "axelraboit/aurora"` → core, sinon client).
 
-### 2.2 Fichiers générés (défaut, cas 1 + 2)
+### 2.2 Fichiers générés (CORE togglable, cas 1 + 2)
+
+Depuis le **monorepo-split (2026-05-30)**, un module métier CORE est un
+**package Composer autonome** (`axelraboit/aurora-<kebab>`) :
 
 ```
-src/Module/<Module>/<Module>Module.php          # implements ModuleInterface + ModuleToggleProviderInterface
-src/Module/<Module>/<Module>Context.php          # isBackendEnabled() + BACKEND_KEY (client)
+src/Module/<Module>/<Module>Module.php                       # ModuleInterface + ModuleToggleProviderInterface
+src/Module/<Module>/<Module>Context.php                      # isBackendEnabled() → <Module>ModuleParameterEnum::Backend->value
+src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php   # ← les toggles du module (PAS l'enum central)
+src/Module/<Module>/Setting/<Module>ModuleParameterProvider.php  # yield les cases à aurora:application-parameter
+src/Module/<Module>/Aurora<Module>Bundle.php                 # extends AbstractAuroraModuleBundle (RTE + mappings)
+src/Module/<Module>/composer.json                            # axelraboit/aurora-<kebab>
+src/Module/<Module>/config/services.php                      # tags instanceof + load (file-scoped)
 src/Module/<Module>/Controller/Backend/<Module>Controller.php
 src/Module/<Module>/templates/backend/index.html.twig
 src/Module/<Module>/translations/messages.{fr,en}.yaml
 src/Module/<Module>/assets/backend/<Module>App.vue
-aliases.js                                       # core only : append @<kebab>
 ```
 
-Plus, si **client**, trois fichiers de config sont auto-patchés (aurora-core
-ne peut pas auto-découvrir les modules client — son glob ne voit que
-`vendor/.../src/Module/*`) :
+Plus **deux éditions centrales** (les seules lignes manuelles côté core) :
+
+```
+config/bundles.php     # enregistrer Aurora<Module>Bundle::class => ['all' => true]
+config/services.yaml   # exclure '../src/Module/<Module>/' du glob Aurora\: resource
+aliases.js             # append "@<kebab>": moduleAlias("<Module>")
+```
+
+> **Référence** : modules réels `src/Module/Notes/` (sous-toggles) et
+> `src/Module/Tools/` (leaf, contient Vault). Un module `--no-toggle`
+> core-infra (Dev-style) **ne reçoit pas** le package shape : il reste dans
+> `AuroraBundle` et garde ses éventuelles cases dans l'enum central.
+
+Si **client**, pas de package : le module vit dans l'app cliente, qui câble
+ses propres `bundles.php`/`services.yaml`. Trois fichiers de config sont
+auto-patchés (aurora-core ne peut pas auto-découvrir les modules client) :
 
 ```
 config/packages/twig.yaml         # ajout namespace @<Module>
@@ -89,52 +97,26 @@ config/packages/framework.yaml    # ajout path translations pour Symfony Twig |t
 config/services.yaml              # ajout path translations pour DumpJsTranslationsCommand (vue-i18n)
 ```
 
-L'icône du NavItem est **hardcodée à `flame`** (le seul prompt sur l'icône
-serait friction inutile — change la string dans `<Module>Module.php` après
-scaffold si tu veux autre chose, en piochant dans
-`src/Core/assets/backend/sidemenu/composables/useSidemenuNav.js` ICON_MAP).
-
-### 2.3 Prompts interactifs
-
-Si tu lances la commande sans `--no-interaction`, deux confirmations :
-- **Public-facing pages?** → équivalent à `--with-frontend`
-- **Own tab in /backend/configuration/settings?** → équivalent à `--with-settings`
-
-Puis trois inputs :
-- **Display label** (défaut = nom du module en PascalCase) — texte libre pour la nav
-- **NavSection priority** (défaut = 60) — plus bas = plus haut dans le sidemenu
-
-### 2.4 Next steps après scaffold
-
-La commande imprime à la fin un récap de commandes à lancer **sans
-quoi le module ne sera pas opérationnel** :
+### 2.3 Next steps après scaffold
 
 ```bash
-# Si cas 2 (défaut) côté core : enregistrer le toggle dans ModuleParameterEnum
-# (voir doc cas 2 plus bas — étape manuelle qu'on n'automatise pas pour PHPStan)
-
-make sf CMD="aurora:application-parameter"   # core only, sync l'enum case en BDD
+make sf CMD="aurora:application-parameter"   # seed les toggle rows (via le provider du module)
 make sf CMD="aurora:privileges:sync"         # enregistre la permission <module>.use
 make sf CMD="aurora:menus:sync"              # enregistre le NavItem
 make translation                             # dump JSON traductions pour vue-i18n
 make cc                                      # clear cache (Twig + Symfony)
 ```
 
-### 2.5 Limites de la commande
+### 2.4 Étapes complémentaires après scaffold
 
-- **Refondre un module existant** : la commande refuse si `src/Module/<X>/`
-  existe déjà — édition manuelle nécessaire (ou suppression du module avant
-  de relancer le scaffold).
-
-### 2.6 Étapes complémentaires après scaffold
-
-Le maker ne couvre **que** Cas 1, 2, 4, 5 — pas le contenu métier. Pour
+Le skill ne couvre **que** Cas 1, 2, 4, 5 — pas le contenu métier. Pour
 aller plus loin :
 
-- **Ajouter une entité CRUD** (cas 3) : lancer `/add-entity` (skill Claude
-  Code) en ciblant le module fraîchement scaffolddé.
-- **Ajouter une sous-feature togglable** à un module existant (Vault.Safe +
-  Vault.PasswordGenerator) : lancer `/add-submodule` plutôt que de
+- **Ajouter une entité CRUD** (cas 3) : lancer `/add-entity` en ciblant le
+  module fraîchement scaffoldé (il ajoute une ligne dans le
+  `Aurora<Module>Bundle::resolveTargetEntities()`).
+- **Ajouter une sous-feature togglable** à un module existant (Tools.Vault +
+  Tools.PasswordGenerator) : lancer `/add-submodule` plutôt que de
   re-scaffolder.
 
 ---
@@ -228,10 +210,10 @@ final class MyModuleController extends AbstractController
 {% endblock %}
 ```
 
-- Le namespace `@MyModule` est auto-monté par `AuroraBundle` à partir de
-  `src/Module/<Module>/templates/` — templates co-localisés avec le code PHP
-  du module (parallèle à `assets/` et `translations/`). Vérifié dans
-  `AuroraBundle.php` (boucle sur `$moduleDirs`).
+- Le namespace `@MyModule` est auto-monté par le bundle du module
+  (`Aurora<Module>Bundle::prependExtension`, via `AbstractAuroraModuleBundle`)
+  à partir de `src/Module/<Module>/templates/` — templates co-localisés avec le
+  code PHP du module (parallèle à `assets/` et `translations/`).
 - `vue_component('<module_id_lowercase>/<path>', props)` : le helper Twig
   résout vers le composant Vue chargé via le glob `src/Module/**/assets/**/*.vue`
   (le `**` accepte les feature folders intermédiaires — cf. règle de
@@ -289,22 +271,29 @@ const { /* ... */ } = useMyFeature();
 
 ---
 
-## 4. Auto-découverte — zéro wiring manuel
+## 4. Auto-découverte — wiring après le split
 
-Vérifié dans `AuroraBundle.php` (Symfony 7) et `config/services.yaml`.
+Depuis le monorepo-split, chaque module métier porte son propre
+`Aurora<Module>Bundle` (extends `AbstractAuroraModuleBundle`) qui `prepend`
+ses mappings Doctrine, son namespace Twig, ses paths de traduction et son
+`resolve_target_entities`. Le module est **exclu** du glob central
+`Aurora\: resource` et auto-enregistre ses services via son propre
+`config/services.php`.
 
 | Chose | Mécanisme | Source |
 |---|---|---|
-| Service Symfony | `Aurora\: resource: '../src/'` | `config/services.yaml:27` |
-| Tag `aurora.module` | `_instanceof: Aurora\Core\Module\Contract\ModuleInterface: tags: [aurora.module]` | `config/services.yaml:30-36` |
-| Namespace Twig `@MyModule` | glob `src/Module/*` + `src/Module/MyModule/templates/` | `AuroraBundle.php` (`prependExtension`) |
-| Paths traductions | glob `src/Module/*/translations/` | `AuroraBundle.php` (`prependExtension`, bloc `framework.translator.paths`) |
-| `DumpJsTranslationsCommand` | même glob | idem |
-| Composants Vue | glob `import.meta.glob('./Module/**/*.vue')` + lowercase | `src/Core/assets/app.js:33,57-65` |
+| Service Symfony | `config/services.php` du module (`$services->load(...)`) | `src/Module/<Module>/config/services.php` |
+| Tag `aurora.module` | `instanceof(ModuleInterface::class)->tag('aurora.module')` (file-scoped) | idem (et le `_instanceof` central pour les modules core-infra) |
+| Namespace Twig `@MyModule` | `prependExtension` du bundle module | `AbstractAuroraModuleBundle::prependExtension` |
+| Paths traductions | `prependExtension` (depth 1 + 2) | idem |
+| `resolve_target_entities` | `Aurora<Module>Bundle::resolveTargetEntities()` | le bundle du module |
+| Composants Vue | glob `src/Module/**/*.vue` (+ découverte des `vendor/axelraboit/aurora-*` une fois splitté) | `src/Core/assets/app.js` + `vite-plugin-aurora-modules.js` |
 
-**Seul wiring manuel restant** : `resolve_target_entities` dans
-`AuroraBundle.php` — uniquement si le module a des entités Doctrine
-(cf. cas 3).
+**Wiring manuel restant** (2 lignes centrales par module + 1 par entité) :
+- `config/bundles.php` : enregistrer `Aurora<Module>Bundle`
+- `config/services.yaml` : exclure `../src/Module/<Module>/` du glob central
+- `Aurora<Module>Bundle::resolveTargetEntities()` : 1 ligne par entité Doctrine
+  (cf. cas 3) — **remplace** l'ancien `AuroraBundle::$resolve_target_entities`.
 
 ---
 
@@ -321,44 +310,61 @@ et tous les services concernés. Permet de garder les `if (! $context->isXEnable
 **hors** du `<Module>Module.php`.
 
 ```php
-// src/Module/Vault/VaultContext.php
-namespace Aurora\Module\Vault;
+// src/Module/Tools/ToolsContext.php
+namespace Aurora\Module\Tools;
 
 use Aurora\Core\Module\Service\ModuleAccessChecker;
-use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
+use Aurora\Module\Tools\Setting\ToolsModuleParameterEnum;
 
-final readonly class VaultContext
+final readonly class ToolsContext
 {
     public function __construct(private ModuleAccessChecker $moduleAccessChecker) {}
 
     public function isBackendEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::VaultBackend);
+        return $this->moduleAccessChecker->isEnabled(ToolsModuleParameterEnum::Backend->value);
     }
 
-    public function isSafeEnabled(): bool
+    public function isVaultEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::VaultSafe);
+        return $this->moduleAccessChecker->isEnabled(ToolsModuleParameterEnum::Vault->value);
     }
 
     public function isPasswordGeneratorEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::VaultPasswordGenerator);
+        return $this->moduleAccessChecker->isEnabled(ToolsModuleParameterEnum::PasswordGenerator->value);
     }
 }
 ```
 
-### 5.2 `ModuleParameterEnum` — déclarer les toggles
+> Passer `->value` (string) : le `<Module>ModuleParameterEnum` ne satisfait pas
+> le type-hint de l'enum central, et `ModuleAccessChecker::isEnabled()` accepte
+> `ModuleParameterEnum|string`.
 
-Ajouter les cases dans `src/Core/Setting/Enum/ModuleParameterEnum.php` :
+### 5.2 `<Module>ModuleParameterEnum` + provider — déclarer les toggles
+
+Depuis le split, chaque module métier porte ses toggles dans son **propre**
+enum `src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php` (PAS l'enum
+central `Configuration/Setting/Enum/ModuleParameterEnum.php`, désormais
+core-infra only) :
+- Cases courtes (`Backend`, `<Sub>`), la **valeur** garde la clé legacy
+  `modules_<module>_<feature>` (pas de migration BDD).
 - Convention clés : `<module>_<feature>` (pas `_enabled` à la fin —
   cf. [`architecture_module_parameter_enum.md`](../../../.claude/memory/aurora-core/architecture/architecture_module_parameter_enum.md))
-- Définir le parent dans le cascade graph (ex. `VaultSafe.parent = VaultBackend`)
+- Cascade encodée dans `getCascadeRequires()` (→ `self::Backend->value`) et
+  hiérarchie d'affichage dans `getDisplayParent()`.
+- Un `<Module>ModuleParameterProvider` (implements
+  `ApplicationParameterProviderInterface`) `yield from
+  <Module>ModuleParameterEnum::cases()` pour que `aurora:application-parameter`
+  seed les rows sans les flaguer obsolètes.
+
+Mirror canonique : `src/Module/Tools/Setting/ToolsModuleParameterEnum.php`.
 
 ### 5.3 `<Module>Module` avec `ModuleToggleProviderInterface`
 
 ```php
-// src/Module/Vault/VaultModule.php (extrait)
+// Exemple illustratif (module fictif "Vault" à sous-features). En vrai,
+// Vault est un sous-module de Tools — cf. src/Module/Tools/ToolsModule.php.
 final readonly class VaultModule implements ModuleInterface, ModuleToggleProviderInterface
 {
     public function __construct(private VaultContext $vaultContext) {}
@@ -412,9 +418,9 @@ final readonly class VaultModule implements ModuleInterface, ModuleToggleProvide
     public function getToggles(): array
     {
         return [
-            ModuleParameterEnum::VaultBackend->toToggle(),
-            ModuleParameterEnum::VaultSafe->toToggle(),
-            ModuleParameterEnum::VaultPasswordGenerator->toToggle(),
+            VaultModuleParameterEnum::Backend->toToggle(),
+            VaultModuleParameterEnum::Safe->toToggle(),
+            VaultModuleParameterEnum::PasswordGenerator->toToggle(),
         ];
     }
 }
@@ -424,14 +430,17 @@ final readonly class VaultModule implements ModuleInterface, ModuleToggleProvide
 - `ModuleToggleProviderInterface::getToggles(): list<ModuleToggle>` — agrégé
   par `ModuleToggleRegistry` et consommé par `ModuleAccessChecker` (global +
   per-user + cascade) et `UsersViewBuilder` (picker UI).
-- `ModuleToggle` : `{key, labelKey, descriptionKey, parent?}` — le `parent`
-  matérialise la cascade (un enfant est OFF si le parent est OFF).
+- Chaque toggle vient de `<Module>ModuleParameterEnum::<Case>->toToggle()` — le
+  `ModuleToggle` (`{key, labelKey, descriptionKey, parentKey, moduleId,
+  displayParentKey}`) est construit dans `toToggle()`, la cascade
+  (`parentKey`) sortant de `getCascadeRequires()`.
 - **Aurora-client peut implémenter `ModuleToggleProviderInterface` sans patch
   sur core** pour brancher ses propres toggles.
 
 ### 5.4 Précédent canonique
 
-Voir `src/Module/Vault/VaultModule.php` (en commit courant). Avant la fusion
+Voir `src/Module/Tools/ToolsModule.php` (Vault + PasswordGenerator) + son
+`src/Module/Tools/Setting/ToolsModuleParameterEnum.php`. Avant la fusion
 PasswordGenerator → Vault (commit `dee99658`), le pattern était documenté via
 un module standalone PasswordGenerator (commit `167aafa`) — historiquement
 utile mais plus représentatif aujourd'hui : **Vault est l'exemple à jour**.
@@ -453,14 +462,20 @@ Doc canonique : [`entity_extensibility_convention.md`](entity_extensibility_conv
 
 ### 6.2 `resolve_target_entities`
 
-Une seule ligne manuelle à ajouter par entité dans
-`AuroraBundle::$resolve_target_entities` (lignes 233-319 environ) :
+Une seule ligne manuelle à ajouter par entité dans le **bundle du module**
+`Aurora<Module>Bundle::resolveTargetEntities()` (et non plus l'ancien
+`AuroraBundle::$resolve_target_entities` central, retiré pour les modules
+métier depuis le split) :
 
 ```php
-public static array $resolve_target_entities = [
-    // …
-    MyEntityInterface::class => MyEntity::class,
-];
+// src/Module/<Module>/Aurora<Module>Bundle.php
+protected function resolveTargetEntities(): array
+{
+    return [
+        // …
+        MyEntityInterface::class => MyEntity::class,
+    ];
+}
 ```
 
 **Note** : Doctrine `resolve_target_entities` ne s'applique qu'aux **relations
@@ -507,7 +522,7 @@ Pour un module qui expose des pages publiques (pas que back-office), créer
 namespace Aurora\Module\Photo;
 
 use Aurora\Core\Frontend\Contract\FrontendInterface;
-use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
+use Aurora\Module\Photo\Setting\PhotoModuleParameterEnum;
 
 final class PhotoFrontendDescriptor implements FrontendInterface
 {
@@ -515,7 +530,7 @@ final class PhotoFrontendDescriptor implements FrontendInterface
     public function getLabel(): string            { return 'Photo'; }
     public function getHomeRoute(): string        { return 'frontend_gallery'; }
     public function getPriority(): int            { return 3; }
-    public function getModuleSettingKey(): string { return ModuleParameterEnum::PhotoFrontend->value; }
+    public function getModuleSettingKey(): string { return PhotoModuleParameterEnum::Frontend->value; }
     public function getRoutePrefixes(): array     { return ['frontend_gallery']; }
 }
 ```
@@ -523,8 +538,8 @@ final class PhotoFrontendDescriptor implements FrontendInterface
 **Règles :**
 - Convention nom : `<Module>FrontendDescriptor` à la racine `src/Module/<Module>/`
   (symétrie avec les autres modules : Ged, Photo, Editorial, Ecommerce).
-- `getModuleSettingKey()` pointe vers l'enum `ModuleParameterEnum::<Module>Frontend`
-  — toggle dédié frontend, distinct du toggle backend.
+- `getModuleSettingKey()` pointe vers `<Module>ModuleParameterEnum::Frontend->value`
+  (enum propre au module) — toggle dédié frontend, distinct du toggle backend.
 - `FrontendRouteGateSubscriber` 404 automatiquement les routes du frontend
   désactivé (matche par `getRoutePrefixes()`).
 
@@ -588,8 +603,8 @@ final readonly class MyModuleConfigurationTabProvider implements ConfigurationTa
   exemple concret est plus parlant que la description seule (préfixe,
   email, template SEO…).
 - Pour gater l'onglet sur l'état du module : passer
-  `moduleToggle: ModuleParameterEnum::<Module>Backend` sur le
-  `ConfigurationTab` du module (ou la clé string pour un toggle client).
+  `moduleToggle: <Module>ModuleParameterEnum::Backend->value` (string) sur le
+  `ConfigurationTab` du module — cf. `CrmConfigurationTabProvider`.
   L'onglet disparaît automatiquement quand le module est désactivé
   dans `/dev/dashboard/modules`. Les onglets partagés (`sequences`)
   laissent `moduleToggle: null`.
@@ -628,22 +643,25 @@ Choisir une icône, ajouter l'import + l'entrée `'kebab-name': IconComponent`.
 Pour un module **avec entités CRUD + frontend + settings + sous-features
 togglables** (cas le plus complet) :
 
-> **Raccourci** : `php bin/console aurora:make:module <Module>` couvre les
-> étapes 1, 2, 7, 8, 9, 11 (et 12-13 avec `--with-frontend` / `--with-settings`).
-> Cf. section 2 ci-dessus pour les détails. La checklist ci-dessous reste la
-> référence si tu construis à la main ou complètes après scaffold.
+> **Raccourci** : le skill `/add-module` couvre les étapes 1, 2, 3, 7, 8, 9,
+> 11, 14a (et 12-13 avec `--with-frontend` / `--with-settings`). Cf. section 2
+> ci-dessus. La checklist ci-dessous reste la référence si tu construis à la
+> main ou complètes après scaffold.
 
 1. [ ] `src/Module/<Module>/<Module>Module.php` (`ModuleInterface` +
    `ModuleToggleProviderInterface` par défaut)
 2. [ ] `src/Module/<Module>/<Module>Context.php` (à la racine du folder
    du module — pas sous `Service/` depuis 0.4 ; cf.
    [`pattern_core_submodules_split.md`](../../../.claude/memory/aurora-core/architecture/pattern_core_submodules_split.md))
-3. [ ] Ajouter les cases dans
-   `src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php`
-   (avec cascade graph parent/enfant)
+3. [ ] `src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php` +
+   `<Module>ModuleParameterProvider.php` (toggles propres au module, cascade
+   via `getCascadeRequires()` — **pas** l'enum central)
+3bis. [ ] Package shape : `Aurora<Module>Bundle.php` + `composer.json` +
+   `config/services.php` ; enregistrer le bundle dans `config/bundles.php` +
+   exclure `../src/Module/<Module>/` du glob de `config/services.yaml`
 4. [ ] Entités : `Entity/<Name>Interface` + `Abstract<Name>` (MappedSuperclass) +
    `<Name>` non-`final` avec sequence `seq_core_<entity>_id`
-5. [ ] Ajouter au `resolve_target_entities` de `AuroraBundle.php` (une ligne
+5. [ ] Ajouter au `Aurora<Module>Bundle::resolveTargetEntities()` (une ligne
    par entité)
 6. [ ] DTO + Manager + Serializer + Repository (convention 5 couches —
    cf. [`entity_extensibility_convention.md`](entity_extensibility_convention.md))

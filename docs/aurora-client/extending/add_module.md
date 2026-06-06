@@ -17,8 +17,10 @@ sous `src/Module/<Module>/` avec namespace `App\Module\<Module>\`.
 > - Pour étendre une entité Aurora plutôt que créer un module client : voir
 >   [`extending_aurora.md`](../../aurora-core/dev/extending_aurora.md)
 
-Guide utilise **Tracking** comme exemple canonique vérifié contre le code
-réel d'aurora-client (`src/Module/Tracking/`).
+Le guide utilise un module d'exemple **Tracking** pour illustrer chaque étape.
+C'est un exemple **générique** — il n'est pas (forcément) présent dans ton
+projet ; les chemins `src/Module/Tracking/…` montrent simplement *où* le code
+irait si tu suivais l'exemple.
 
 ---
 
@@ -380,7 +382,8 @@ make translation
 
 Quand le module a plusieurs sous-features activables séparément (backend on/off,
 frontend on/off, etc.), suivre le pattern **`ModuleToggleProviderInterface`
-+ `<Module>Context`**. Référence : `src/Module/Tracking/` dans aurora-client.
++ `<Module>Context`**. Les snippets ci-dessous déroulent le module d'exemple
+`Tracking` (générique, non fourni).
 
 ### 5.1 `<Module>Context` — façade ModuleAccessChecker
 
@@ -1013,7 +1016,7 @@ Mémoire référence : [`pattern_configuration_tab_provider.md`](../../../.claud
 ## 9. Checklist finale — module complet
 
 Pour un module client **avec entités CRUD + toggles + frontend public** (cas
-le plus complet, équivalent Tracking) :
+le plus complet, comme le module d'exemple `Tracking`) :
 
 > **Raccourci** : `php bin/console aurora:make:module <Module> --with-frontend --with-settings`
 > couvre les étapes 2, 3, 11, 12, 13, 14, 15 + auto-patche les 3 fichiers de

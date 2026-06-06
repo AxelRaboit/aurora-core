@@ -22,7 +22,7 @@ Same detection as `/add-module` (composer.json check). Adapts :
 
 | | CORE | CLIENT |
 |---|---|---|
-| Toggle key | `ModuleParameterEnum::<Parent><Sub>` enum case | constant on `<Parent>Context` (`app_<parent>_<sub>`) |
+| Toggle key | new `case <Sub>` in the parent's own `<Parent>ModuleParameterEnum` (business module) — central `ModuleParameterEnum` only for core-infra parents | constant on `<Parent>Context` (`app_<parent>_<sub>`) |
 | Sub-folder | `src/Core/<Parent>/<Sub>/` or `src/Module/<Parent>/<Sub>/` | `src/Module/<Parent>/<Sub>/` (assuming `<Parent>` is a client module — for extending an Aurora module, use `/extend-aurora-entity` instead) |
 | Sequence prefix (if entity) | `seq_core_<sub>_id` | `seq_app_<sub>_id` |
 | Asset path | `src/Module/<Parent>/assets/backend/<sub>/` or `src/Core/assets/<parent>/<sub>/` | `src/Module/<Parent>/assets/backend/<sub>/` (co-located since 0.5) |
@@ -82,21 +82,39 @@ final readonly class <Parent>Context
 }
 ```
 
-**CORE** (enum case in `ModuleParameterEnum`) :
+**CORE** — monorepo-split: add the case to the parent's **own**
+`<Parent>ModuleParameterEnum`, NOT the central enum.
 
 ```php
-// src/Core/Configuration/Setting/Enum/ModuleParameterEnum.php (since 0.4.0)
-case <Parent><Sub> = 'modules_<parent_id>_<sub_id>';
+// src/Module/<Parent>/Setting/<Parent>ModuleParameterEnum.php
+case <Sub> = 'modules_<parent_id>_<sub_id>';
 ```
 
-Then on the Context :
+Then extend the enum's exhaustive `match ($this)` arms for the new case :
+- `getLabel()` → `'backend.modules.<parent_id>_<sub_id>'` (or the reused NavItem key)
+- `getDescription()` → `'…_<sub_id>_description'`
+- `getCascadeRequires()` / `getDisplayParent()` : if the enum uses the generic
+  ternary form (`self::Backend === $this ? null : self::Backend->value`, as in
+  `NotesModuleParameterEnum`) the new sub-case cascades automatically — no
+  change. If it uses a `match` (as in `PhotoModuleParameterEnum`), add a
+  `self::<Sub>` arm returning `self::Backend->value`.
+
+Then on the Context (pass `->value`) :
 
 ```php
+use Aurora\Module\<Parent>\Setting\<Parent>ModuleParameterEnum;
+
 public function is<Sub>Enabled(): bool
 {
-    return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::<Parent><Sub>);
+    return $this->moduleAccessChecker->isEnabled(<Parent>ModuleParameterEnum::<Sub>->value);
 }
 ```
+
+> **Core-infra parents only** (Configuration / Platform / Media / General /
+> Dev — the modules still wired by the central `ModuleParameterEnum`) keep
+> their sub-cases in `src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php`.
+> Detect: if `src/Module/<Parent>/Setting/<Parent>ModuleParameterEnum.php`
+> exists, use the per-module enum; otherwise the parent is core-infra.
 
 > **No `_enabled` suffix on the key** (cf.
 > `.claude/memory/aurora-core/architecture/architecture_module_parameter_enum.md`).
@@ -167,26 +185,38 @@ public function getCatalogNavSections(): array
 
 #### d) Add the ModuleToggle in `getToggles()`
 
+**CORE** — just add the enum case's `->toToggle()` (the cascade is encoded
+inside the enum via `getCascadeRequires()`/`getDisplayParent()`, so nothing to
+wire by hand) :
+
 ```php
 public function getToggles(): array
 {
     return [
-        // existing toggles…
-        new ModuleToggle(
-            key: <Parent>Context::<SUB>_KEY,                    // CLIENT
-            // OR ModuleParameterEnum::<Parent><Sub>->getKey() // CORE
-            labelKey: 'backend.modules.<parent_id>_<sub_id>',
-            descriptionKey: 'backend.modules.<parent_id>_<sub_id>_description',
-            parentKey: <Parent>Context::BACKEND_KEY,            // ← cascade : disable parent → disable sub
-        ),
+        <Parent>ModuleParameterEnum::Backend->toToggle(),
+        // existing sub-toggles…
+        <Parent>ModuleParameterEnum::<Sub>->toToggle(),       // ← NEW
     ];
 }
 ```
 
-> **`parentKey` is the cascade glue.** When the user disables the parent
-> module from the picker, all its sub-modules cascade-off automatically.
-> Always wire to `BACKEND_KEY` (or to another sub-key if there's a deeper
-> hierarchy — rare).
+**CLIENT** — construct the `ModuleToggle` manually (no per-module enum), wiring
+`parentKey` to the parent's `BACKEND_KEY` :
+
+```php
+new ModuleToggle(
+    key: <Parent>Context::<SUB>_KEY,
+    labelKey: 'backend.modules.<parent_id>_<sub_id>',
+    descriptionKey: 'backend.modules.<parent_id>_<sub_id>_description',
+    parentKey: <Parent>Context::BACKEND_KEY,                  // ← cascade : disable parent → disable sub
+),
+```
+
+> **The cascade glue is `parentKey`.** When the user disables the parent
+> module from the picker, all its sub-modules cascade-off automatically. Core
+> encodes it in the enum's `getCascadeRequires()` (→ `self::Backend->value`);
+> client passes `BACKEND_KEY` explicitly. Always wire to the parent's backend
+> key (or a deeper sub-key for nested hierarchies — rare).
 
 ### 3. Scaffold the sub-module folder + files
 
@@ -271,7 +301,8 @@ make sf CMD="aurora:menus:sync"
 # Re-generate frontend translation bundle
 make translation
 
-# Sync settings (creates the new ModuleParameterEnum case in core_settings if CORE)
+# Sync settings (seeds the new <Parent>ModuleParameterEnum case in core_settings
+# — the parent's <Parent>ModuleParameterProvider already yields all its cases)
 make sf CMD="aurora:application-parameter"
 
 # Clear cache (mandatory after #[AsAlias] / DI / new toggle)

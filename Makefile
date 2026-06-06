@@ -346,6 +346,14 @@ ft: ## Fix, test, build assets, then migrate-check
 ftl: ## Light: fix + test + migrate-check (no asset build)
 	make fix && make test && make migrate-check
 
+# === Packaging / Monorepo split ===
+split-module: ## Split + push one module to its own GitHub repo (usage: make split-module REPO=aurora-crm)
+	@test -n "$(REPO)" || (echo "❌ Usage: make split-module REPO=aurora-crm (or aurora-commerce, aurora-tools, …)" && exit 1)
+	bin/split-modules.sh "$(REPO)"
+
+split-modules: ## Split + push every module to its own GitHub repo (the 12 module packages)
+	bin/split-modules.sh
+
 # === Claude Memory ===
 sync-claude-memory: ## Sync .claude/memory/ + docs/aurora-{core,client}/ into the global Claude memory for this project
 	@DEST="$(HOME)/.claude/projects/$$(pwd | sed 's|/|-|g')/memory"; \

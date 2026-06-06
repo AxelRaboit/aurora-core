@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace {{NAMESPACE}};
 
 use Aurora\Core\Frontend\Contract\FrontendInterface;
-use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
+use {{NAMESPACE}}\Setting\{{MODULE}}ModuleParameterEnum;
 
 final class {{MODULE}}FrontendDescriptor implements FrontendInterface
 {
@@ -31,7 +31,7 @@ final class {{MODULE}}FrontendDescriptor implements FrontendInterface
 
     public function getModuleSettingKey(): string
     {
-        return ModuleParameterEnum::{{MODULE}}Frontend->value;
+        return {{MODULE}}ModuleParameterEnum::Frontend->value;
     }
 
     public function getRoutePrefixes(): array

@@ -1,6 +1,6 @@
 # Architecture & Décisions
 
-- [architecture_module_parameter_enum.md](architecture_module_parameter_enum.md) — `ModuleParameterEnum` séparé d'`ApplicationParameterEnum` : cascade graph, convention clés sans `_enabled`
+- [architecture_module_parameter_enum.md](architecture_module_parameter_enum.md) — toggles modules : depuis le split, chaque module a son `<Module>ModuleParameterEnum` + provider ; l'enum central est core-infra only ; câblage `->value`, scaffolding via skills
 - [pattern_core_submodules_split.md](pattern_core_submodules_split.md) — Core est 5 `<Name>Module.php` (GeneralModule/PlatformModule/MediaModule/ConfigurationModule/DevModule), pas un god-class. Pattern "1 module = 1 section = 1 toggle root = 1 context" uniforme avec les modules métier
 - [pattern_configuration_tab_provider.md](pattern_configuration_tab_provider.md) — `ConfigurationTabProviderInterface` + `SettingDefinitionRegistry` : un module contribue ses onglets dans la page Settings sans patcher le core
 - [pattern_domain_events_cross_module.md](pattern_domain_events_cross_module.md) — Core dispatche des events mutables, les modules écoutent. Jamais d'import `Core → Module`
@@ -25,4 +25,4 @@
 - [decision_personal_finance_transfer_legs_guard.md](decision_personal_finance_transfer_legs_guard.md) — les transactions avec `transferId` ne peuvent être éditées/supprimées que via `PersonalFinanceTransferService` ; le Manager CRUD lève `DomainException`
 - [reference_module_vocabulary.md](reference_module_vocabulary.md) — vocabulaire de référence : module / section / sous-module / NavItem / sous-domaine / entité (exemple Ecommerce ; sous-module ≠ NavItem)
 - [project_url_namespacing_backlog.md](project_url_namespacing_backlog.md) — décision "namespace TOUTES les routes backend par module" (path + nom, y compris auth/core) + backlog par module (Editorial ✅, reste à faire) + méthode rodée + dette nav-translations dans Editorial/Menu
-- [project_monorepo_split_chantier.md](project_monorepo_split_chantier.md) — chantier exploratoire (2026-05) : split aurora-core en monorepo de N packages Composer (core + billing/crm/ecommerce/…). 3 docs structurent : audit core + audit client + workplan (7 jalons, 3 gates). Statut : audit à démarrer
+- [project_monorepo_split_chantier.md](project_monorepo_split_chantier.md) — split aurora-core en monorepo de 13 packages Composer (core + 12 modules en étoile). Statut : ✅ TERMINÉ et validé end-to-end (2026-05-30). Scaffolding aligné (skills + add_module.md)
