@@ -32,8 +32,12 @@ services:
         exclude:
             # Fixtures extend doctrine/doctrine-fixtures-bundle's Fixture (a dev
             # dependency, absent in prod). Loaded dev/test-only via when@dev
-            # below so a client's --no-dev build never compiles them.
+            # below so a client's --no-dev build never compiles them. Ged is a
+            # core module (loaded by this glob, not a standalone bundle), so its
+            # DataFixtures need the same gating; the extracted modules handle it
+            # in their own services.php + AbstractAuroraModuleBundle.
             - '../src/Core/DataFixtures/'
+            - '../src/Module/Ged/DataFixtures/'
             - '../src/Module/Tools/'
             - '../src/Module/Crm/'
             - '../src/Module/Hr/'
@@ -177,6 +181,8 @@ when@dev:
             autoconfigure: true
         Aurora\Core\DataFixtures\:
             resource: '../src/Core/DataFixtures/'
+        Aurora\Module\Ged\DataFixtures\:
+            resource: '../src/Module/Ged/DataFixtures/'
 
 when@test:
     services:
@@ -185,5 +191,7 @@ when@test:
             autoconfigure: true
         Aurora\Core\DataFixtures\:
             resource: '../src/Core/DataFixtures/'
+        Aurora\Module\Ged\DataFixtures\:
+            resource: '../src/Module/Ged/DataFixtures/'
 
 
