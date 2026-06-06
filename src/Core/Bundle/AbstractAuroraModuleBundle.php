@@ -68,6 +68,23 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
         if (is_file($servicesFile)) {
             $container->import($servicesFile);
         }
+
+        // Dev/test only: register this module's DataFixtures as autoconfigured
+        // services so `doctrine:fixtures:load` discovers them. Guarded by
+        // class_exists so a prod (--no-dev) build never compiles fixture
+        // classes — doctrine/doctrine-fixtures-bundle is a dev dependency, so
+        // its Fixture base class is absent in prod. The module's own
+        // services.php excludes DataFixtures to avoid a double registration.
+        $env = (string) $builder->getParameter('kernel.environment');
+        $fixturesDir = $this->moduleDir().'/DataFixtures';
+        if (in_array($env, ['dev', 'test'], true)
+            && is_dir($fixturesDir)
+            && class_exists(\Doctrine\Bundle\FixturesBundle\Fixture::class)
+        ) {
+            $container->services()
+                ->defaults()->autowire()->autoconfigure()
+                ->load('Aurora\\Module\\'.$this->moduleName().'\\DataFixtures\\', $fixturesDir.'/');
+        }
     }
 
     public function prependExtension(ContainerConfigurator $container, ContainerBuilder $builder): void
