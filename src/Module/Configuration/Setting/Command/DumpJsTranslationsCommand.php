@@ -125,6 +125,23 @@ final class DumpJsTranslationsCommand extends Command
             $dirs[] = Path::makeRelative($absolutePath, $this->auroraDir);
         }
 
+        // À-la-carte install: extracted modules ship as sibling Composer
+        // packages (vendor/axelraboit/aurora-<module>), so their translations
+        // live OUTSIDE $auroraDir. Discover them when $auroraDir is itself a
+        // vendored package (its parent is the `axelraboit` vendor dir) — the
+        // gate keeps standalone aurora-core (modules under src/Module) from
+        // globbing unrelated sibling projects.
+        if ('axelraboit' === basename(dirname($this->auroraDir))) {
+            $vendorNamespaceDir = dirname($this->auroraDir);
+            $siblings = array_merge(
+                glob(Path::join($vendorNamespaceDir, 'aurora-*/translations'), GLOB_ONLYDIR) ?: [],
+                glob(Path::join($vendorNamespaceDir, 'aurora-*/*/translations'), GLOB_ONLYDIR) ?: [],
+            );
+            foreach ($siblings as $absolutePath) {
+                $dirs[] = Path::makeRelative($absolutePath, $this->auroraDir);
+            }
+        }
+
         return $dirs;
     }
 
