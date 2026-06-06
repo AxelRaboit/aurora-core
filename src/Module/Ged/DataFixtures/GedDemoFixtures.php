@@ -7,13 +7,12 @@ namespace Aurora\Module\Ged\DataFixtures;
 use Aurora\Core\DataFixtures\AppFixtures;
 use Aurora\Core\Storage\Enum\MimeTypeEnum;
 use Aurora\Core\Storage\Service\PdfThumbnailGenerator;
-use Aurora\Module\Billing\Invoice\Entity\Invoice;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Service\SettingsService;
+use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolder;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTag;
-use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -43,6 +42,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         private readonly SettingsService $settingsManager,
         private readonly Filesystem $fs = new Filesystem(),
     ) {}
+
     public static function getGroups(): array
     {
         return ['demo'];

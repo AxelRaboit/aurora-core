@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Aurora\Core\DataFixtures;
 
+use Aurora\Core\Locale\Enum\LocaleEnum;
 use Aurora\Module\Platform\Agency\Entity\Agency;
 use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
 use Aurora\Module\Platform\Service\Entity\Service;
 use Aurora\Module\Platform\Service\Entity\ServiceInterface;
-use Aurora\Core\Locale\Enum\LocaleEnum;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Doctrine\Bundle\FixturesBundle\Fixture;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Core\Bundle;
 
+use Doctrine\Bundle\FixturesBundle\Fixture;
 use Override;
 use ReflectionClass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -79,7 +80,7 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
         $fixturesDir = $this->moduleDir().'/DataFixtures';
         if (in_array($env, ['dev', 'test'], true)
             && is_dir($fixturesDir)
-            && class_exists(\Doctrine\Bundle\FixturesBundle\Fixture::class)
+            && class_exists(Fixture::class)
         ) {
             $container->services()
                 ->defaults()->autowire()->autoconfigure()
