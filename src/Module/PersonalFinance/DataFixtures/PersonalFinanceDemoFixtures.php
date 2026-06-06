@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aurora\Module\PersonalFinance\DataFixtures;
 
-use Aurora\Core\DataFixtures\AppFixtures;
 use Aurora\Core\DataFixtures\CoreDemoFixtures;
 use Aurora\Module\PersonalFinance\Budget\Entity\PersonalFinanceBudget;
 use Aurora\Module\PersonalFinance\Budget\Entity\PersonalFinanceBudgetInterface;

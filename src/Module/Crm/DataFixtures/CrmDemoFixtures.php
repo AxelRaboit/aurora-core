@@ -13,8 +13,6 @@ use Aurora\Module\Crm\Deal\Entity\Deal;
 use Aurora\Module\Crm\Deal\Enum\DealStageEnum;
 use Aurora\Module\Dev\Audit\Entity\AbstractAuditLog;
 use Aurora\Module\Dev\Audit\Entity\AuditLog;
-use Aurora\Module\Ecommerce\Order\Entity\Order;
-use Aurora\Module\Editorial\Form\Entity\Form;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;

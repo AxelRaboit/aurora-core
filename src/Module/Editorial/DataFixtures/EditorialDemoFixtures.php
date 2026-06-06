@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\DataFixtures;
 
-use Aurora\Core\DataFixtures\AppFixtures;
 use Aurora\Core\DataFixtures\CoreDemoFixtures;
-use Aurora\Module\Crm\Contact\Entity\Contact;
 use Aurora\Module\Editorial\Comment\Entity\Comment;
 use Aurora\Module\Editorial\Comment\Enum\CommentStatusEnum;
 use Aurora\Module\Editorial\Form\Entity\Form;
