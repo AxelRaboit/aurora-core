@@ -55,7 +55,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
     public function getDependencies(): array
     {
-        return [CoreDemoFixtures::class, GedDemoFixtures::class];
+        return [CoreDemoFixtures::class, GedDemoFixtures::class, EditorialBootstrapFixtures::class];
     }
 
     public function load(ObjectManager $manager): void
@@ -72,7 +72,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             $media[] = $this->getReference(GedDemoFixtures::mediaRef($i), Document::class);
         }
 
-        $articleType = $this->createEditorialBootstrap($manager);
+        $articleType = $this->getReference(EditorialBootstrapFixtures::articleTypeRef(), PostType::class);
         $terms = $this->createTaxonomies($manager, $articleType);
         $posts = $this->createEditorial($manager, $articleType, $media, $users, $terms);
         $this->createComments($manager, $posts);
@@ -80,64 +80,6 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $this->createMenuItems($manager, $media);
 
         $manager->flush();
-    }
-
-    private function createEditorialBootstrap(EntityManagerInterface $em): PostType
-    {
-        $pageType = new PostType()
-            ->setSlug('page')
-            ->setLabel('Pages')
-            ->setIcon('file')
-            ->setHasArchive(false)
-            ->setIsBuiltIn(true)
-            ->setSupports(['blocks', 'thumbnail', 'excerpt']);
-
-        $articleType = new PostType()
-            ->setSlug('article')
-            ->setLabel('Articles')
-            ->setIcon('file-text')
-            ->setHasArchive(true)
-            ->setIsBuiltIn(true)
-            ->setSupports(['blocks', 'thumbnail', 'excerpt']);
-
-        $em->persist($pageType);
-        $em->persist($articleType);
-
-        $taxonomyLabels = [
-            'tag' => ['fr' => 'Étiquette', 'en' => 'Tag'],
-            'category' => ['fr' => 'Catégorie', 'en' => 'Category'],
-        ];
-
-        foreach ($taxonomyLabels as $slug => $labels) {
-            $taxonomy = new Taxonomy()
-                ->setSlug($slug)
-                ->setHierarchical('category' === $slug)
-                ->setIsBuiltIn(true);
-
-            foreach ($labels as $locale => $label) {
-                $taxonomy->translate($locale)->setLabel($label);
-            }
-
-            $pageType->addTaxonomy($taxonomy);
-            $articleType->addTaxonomy($taxonomy);
-
-            $em->persist($taxonomy);
-
-            if ('tag' === $slug) {
-                foreach (['Nouveauté' => 'nouveaute', 'Tutoriel' => 'tutoriel'] as $name => $termSlug) {
-                    $term = new TaxonomyTerm()->setTaxonomy($taxonomy);
-                    foreach (array_keys($labels) as $locale) {
-                        $term->translate($locale)->setName($name)->setSlug($termSlug);
-                    }
-
-                    $em->persist($term);
-                }
-            }
-        }
-
-        $em->flush();
-
-        return $articleType;
     }
 
     private function createTaxonomies(EntityManagerInterface $em, ?PostType $postType): array
