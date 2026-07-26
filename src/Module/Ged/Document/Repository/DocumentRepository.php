@@ -117,6 +117,20 @@ class DocumentRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * @return array<string, int> map of mime_type => document count
+     */
+    public function countGroupedByMimeType(): array
+    {
+        $rows = $this->createQueryBuilder('d')
+            ->select('d.mimeType AS mimeType, COUNT(d.id) AS cnt')
+            ->groupBy('d.mimeType')
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_column($rows, 'cnt', 'mimeType');
+    }
+
+    /**
      * @return array<int, int> map of folder_id => document count
      */
     public function countGroupedByFolders(): array
