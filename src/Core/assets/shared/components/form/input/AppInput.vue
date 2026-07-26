@@ -68,7 +68,7 @@ defineExpose({
                 :placeholder="placeholder"
                 :required="required"
                 class="block w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-primary placeholder-muted focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition"
-                :class="[{ 'border-red-500 focus:border-red-500 focus:ring-red-500': error }, toggleable ? 'pr-10' : '', $slots.prefix ? 'pl-8' : '']"
+                :class="[{ 'border-red-500 focus:border-red-500 focus:ring-red-500': error }, (toggleable || $slots.suffix) ? 'pr-10' : '', $slots.prefix ? 'pl-8' : '']"
                 v-on:input="$emit('update:modelValue', $event.target.value)"
             >
             <button
@@ -80,6 +80,9 @@ defineExpose({
                 <Eye v-if="!revealed" class="w-4 h-4" :stroke-width="2" />
                 <EyeOff v-else class="w-4 h-4" :stroke-width="2" />
             </button>
+            <div v-else-if="$slots.suffix" class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted">
+                <slot name="suffix" />
+            </div>
         </div>
         <p v-if="error" class="text-xs text-red-500">{{ t(error, error) }}</p>
     </div>

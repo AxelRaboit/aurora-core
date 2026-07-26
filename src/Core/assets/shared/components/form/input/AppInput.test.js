@@ -47,4 +47,13 @@ describe("AppInput", () => {
         expect(wrapper.emitted("update:modelValue")).toBeTruthy();
         expect(wrapper.emitted("update:modelValue")[0][0]).toBe("hello");
     });
+
+    it("renders suffix slot content and pads the input for it", () => {
+        const wrapper = mount(AppInput, {
+            slots: { suffix: "<button>lock</button>" },
+            global: { plugins: [i18n] },
+        });
+        expect(wrapper.find("button").exists()).toBe(true);
+        expect(wrapper.find("input").classes()).toContain("pr-10");
+    });
 });
