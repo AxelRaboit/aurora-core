@@ -20,12 +20,11 @@ import { isRef } from "vue";
  * id not in the map falls back to the accent palette (Aurora default).
  */
 const SECTION_THEMES = {
-    general: makeTheme("slate"),
+    general: makeTheme("sky"),
     platform: makeTheme("indigo"),
-    configuration: makeTheme("zinc"),
+    configuration: makeTheme("fuchsia"),
     editorial: makeTheme("rose"),
     ged: makeTheme("lime"),
-    media: makeTheme("pink"),
     dev: makeTheme("orange"),
 };
 
