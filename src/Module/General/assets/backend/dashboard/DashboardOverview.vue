@@ -34,7 +34,7 @@ const { postsByMonthData } = useDashboardCharts(stats);
         </div>
 
         <template v-else>
-            <div class="inline-flex p-1 bg-surface-2 border border-line rounded-lg gap-1 max-w-full overflow-x-auto scrollbar-thin">
+            <div v-if="visibleModules.length > 1" class="inline-flex p-1 bg-surface-2 border border-line rounded-lg gap-1 max-w-full overflow-x-auto scrollbar-thin">
                 <AppTab
                     v-for="module in visibleModules"
                     :key="module.id"
