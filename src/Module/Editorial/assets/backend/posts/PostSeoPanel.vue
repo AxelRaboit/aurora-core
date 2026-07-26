@@ -165,49 +165,6 @@ async function selectOgFromLibrary() {
                     v-model="translation.noindex"
                     :label="t('backend.posts.seo.noindex')"
                 />
-
-                <div>
-                    <label class="block text-xs text-secondary uppercase tracking-wide mb-1.5">
-                        {{ t("backend.posts.seo.og_image") }}
-                    </label>
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                        <div class="w-full h-40 sm:w-24 sm:h-16 rounded-md border border-line bg-surface-2 overflow-hidden shrink-0 flex items-center justify-center">
-                            <img
-                                v-if="translation.ogImageUrl"
-                                :src="translation.ogImageUrl"
-                                class="w-full h-full object-cover"
-                                :style="{ objectPosition: translation.ogImageFocalPosition ?? '50% 50%' }"
-                                alt=""
-                            >
-                            <ImagePlus v-else class="w-6 h-6 sm:w-5 sm:h-5 text-muted" :stroke-width="2" />
-                        </div>
-                        <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2">
-                            <AppFilePickerButton
-                                ref="ogInputRef"
-                                accept="image/*"
-                                variant="secondary"
-                                size="sm"
-                                :loading="uploadingOg"
-                                class="w-full sm:w-auto"
-                                v-on:change="uploadOgImage"
-                            >
-                                <Upload class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.seo.og_image_upload") }}
-                            </AppFilePickerButton>
-                            <AppButton variant="ghost" size="sm" class="w-full sm:w-auto" v-on:click="selectOgFromLibrary">
-                                <ImagePlus class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.select_from_library") }}
-                            </AppButton>
-                            <AppButton
-                                v-if="translation.ogImageUrl"
-                                variant="ghost"
-                                size="sm"
-                                class="w-full sm:w-auto"
-                                v-on:click="removeOgImage"
-                            >
-                                <X class="w-3.5 h-3.5" :stroke-width="2" />
-                            </AppButton>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="space-y-4">
@@ -228,10 +185,53 @@ async function selectOgFromLibrary() {
                         <li v-for="check in focusChecks" :key="check.key" class="flex items-center gap-1.5">
                             <span v-if="check.ok" class="text-emerald-500">✓</span>
                             <span v-else class="text-rose-500">✗</span>
-                            {{ t(`backend.posts.seo.focusChecks.${check.key}`) }}
+                            {{ t(`backend.posts.seo.focus_checks.${check.key}`) }}
                         </li>
                     </ul>
                 </AppMessage>
+            </div>
+        </div>
+
+        <div class="border-t border-line pt-4">
+            <label class="block text-xs font-semibold text-secondary uppercase tracking-wide mb-2">
+                {{ t("backend.posts.seo.og_image") }}
+            </label>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div class="w-full h-40 sm:w-36 sm:h-20 rounded-md border border-line bg-surface-2 overflow-hidden shrink-0 flex items-center justify-center">
+                    <img
+                        v-if="translation.ogImageUrl"
+                        :src="translation.ogImageUrl"
+                        class="w-full h-full object-cover"
+                        :style="{ objectPosition: translation.ogImageFocalPosition ?? '50% 50%' }"
+                        alt=""
+                    >
+                    <ImagePlus v-else class="w-6 h-6 sm:w-5 sm:h-5 text-muted" :stroke-width="2" />
+                </div>
+                <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                    <AppFilePickerButton
+                        ref="ogInputRef"
+                        accept="image/*"
+                        variant="secondary"
+                        size="sm"
+                        :loading="uploadingOg"
+                        class="w-full sm:w-auto"
+                        v-on:change="uploadOgImage"
+                    >
+                        <Upload class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.seo.og_image_upload") }}
+                    </AppFilePickerButton>
+                    <AppButton variant="ghost" size="sm" class="w-full sm:w-auto" v-on:click="selectOgFromLibrary">
+                        <ImagePlus class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.select_from_library") }}
+                    </AppButton>
+                    <AppButton
+                        v-if="translation.ogImageUrl"
+                        variant="ghost"
+                        size="sm"
+                        class="w-full sm:w-auto"
+                        v-on:click="removeOgImage"
+                    >
+                        <X class="w-3.5 h-3.5" :stroke-width="2" />
+                    </AppButton>
+                </div>
             </div>
         </div>
 
