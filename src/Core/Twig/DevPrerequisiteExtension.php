@@ -19,7 +19,7 @@ use Twig\TwigFunction;
  *
  *   aurora_dev_warnings() — list of {@see PrerequisiteWarning}
  *                           for missing dev prerequisites (PHP extensions,
- *                           Node.js, Ollama, models…).
+ *                           Node.js…).
  */
 final class DevPrerequisiteExtension extends AbstractExtension
 {

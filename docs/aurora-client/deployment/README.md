@@ -7,12 +7,11 @@ systemd, pas de pipeline CI. À vous d'adapter à votre cible (serveur dédié,
 PaaS, Kubernetes, etc.). La cible Makefile `deploy-prod` est un exemple
 minimaliste de séquence locale-vers-prod, à reproduire dans votre infra.
 
-> 📋 **Avant de commencer** — checklist exhaustive des prérequis (PHP, Node, PostgreSQL, binaires CLI, modèles Ollama, vars d'env) : [`../../aurora-core/ops/prerequisites.md`](../../aurora-core/ops/prerequisites.md).
+> 📋 **Avant de commencer** — checklist exhaustive des prérequis (PHP, Node, PostgreSQL, binaires CLI, vars d'env) : [`../../aurora-core/ops/prerequisites.md`](../../aurora-core/ops/prerequisites.md).
 >
 > **Docs sœurs dans ce dossier** :
 > - [`worker_systemd.md`](worker_systemd.md) — service systemd pour le worker Messenger
 > - [`apache_xsendfile.md`](apache_xsendfile.md) — `mod_xsendfile` pour servir `var/uploads/`
-> - [`ocr_setup.md`](ocr_setup.md) — pipeline OCR (docTR + Ollama vision)
 > - [`github_actions_ci.md`](github_actions_ci.md) — setup du workflow CI GitHub Actions (PAT pour le vendor privé, init DB de test)
 
 ---

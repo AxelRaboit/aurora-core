@@ -74,15 +74,6 @@
             "bin/phpunit"
         ]
     },
-    "stripe/stripe-php": {
-        "version": "20.1",
-        "recipe": {
-            "repo": "github.com/symfony/recipes-contrib",
-            "branch": "main",
-            "version": "19.0",
-            "ref": "d6829c693e3927a8972c7671d74a1a5c505712b0"
-        }
-    },
     "symfony/console": {
         "version": "7.4",
         "recipe": {
@@ -184,6 +175,15 @@
         "files": [
             "config/packages/property_info.yaml"
         ]
+    },
+    "symfony/resend-mailer": {
+        "version": "7.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "7.1",
+            "ref": "487735bc20cbd1547ec311692ef0261a7687a3f0"
+        }
     },
     "symfony/routing": {
         "version": "7.4",

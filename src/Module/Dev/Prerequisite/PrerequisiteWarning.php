@@ -17,7 +17,7 @@ final readonly class PrerequisiteWarning
         public string $fix,
         /**
          * `warning` = blocks real functionality (missing PHP extension, missing Node).
-         * `info`    = optional or best-effort (Ollama down, model not pulled).
+         * `info`    = optional or best-effort.
          */
         public string $level = 'warning',
     ) {}

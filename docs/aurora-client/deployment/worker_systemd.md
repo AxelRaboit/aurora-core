@@ -1,9 +1,9 @@
 # aurora_worker — systemd service setup
 
-> **Status**: à mettre en place sur le serveur de production avant l'activation du module Billing/OCR.
+> **Status**: à mettre en place sur le serveur de production si un module utilise le transport `async`.
 
 Ce document décrit la configuration du service systemd `aurora-worker` sur le serveur de production,
-qui gère le traitement des messages asynchrones (OCR, jobs lourds) et le scheduler via Symfony Messenger.
+qui gère le traitement des messages asynchrones (jobs lourds) et le scheduler via Symfony Messenger.
 
 ---
 
@@ -63,7 +63,7 @@ sudo systemctl restart aurora-worker
 
 ## Notes
 
-- **`async`** : transport pour les messages asynchrones (OCR factures, notifications, jobs lourds)
+- **`async`** : transport pour les messages asynchrones (notifications, jobs lourds)
 - **`scheduler_main`** : transport pour les tâches planifiées (équivalent d'un cron géré par Messenger)
 - **`--time-limit=3600`** : le worker se relance proprement toutes les heures (évite les fuites mémoire)
 - **`--memory-limit=512M`** : arrêt automatique si le process dépasse 512 Mo
@@ -81,21 +81,3 @@ make start-dev-worker
 
 Cette cible relance automatiquement le process en cas de crash et applique les mêmes
 limites (`--time-limit=3600 --memory-limit=512M`) que la prod.
-
----
-
-## OCR — pré-requis externe
-
-Le handler `ProcessOcrJobMessage` consommé par ce worker dépend de deux services externes :
-
-- **docTR** (microservice Python) — extraction texte/layout. Lancé via :
-  ```bash
-  docker compose --profile ocr up -d doctr
-  ```
-- **Ollama** — modèle vision pour la compréhension structurée. Doit tourner sur l'host
-  (port 11434) avec le modèle pré-tiré :
-  ```bash
-  ollama pull qwen2.5vl:3b
-  ```
-
-Voir `.env` pour les variables `OCR_DOCTR_URL`, `OLLAMA_URL`, `OLLAMA_VISION_MODEL`.
