@@ -213,7 +213,7 @@ backend:
     recent: Recent activity
     posts_by_month: Posts published per month
     no_module_enabled: No dashboard module is enabled.
-    coming_soon: Coming soon
+    empty: No data.
     editorial:
       pending_review: pending review
       scheduled: scheduled

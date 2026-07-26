@@ -213,7 +213,7 @@ backend:
     recent: Activité récente
     posts_by_month: Articles publiés par mois
     no_module_enabled: Aucun module de dashboard activé.
-    coming_soon: Bientôt disponible
+    empty: Aucune donnée.
     editorial:
       pending_review: en attente de revue
       scheduled: planifiés
