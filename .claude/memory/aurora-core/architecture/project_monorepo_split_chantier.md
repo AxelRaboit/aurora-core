@@ -22,6 +22,44 @@ findings ci-dessous.
 > sur **Core + Editorial** seulement. Les 11 autres packages restent sur
 > GitHub, figés à leur dernier split, non ré-publiés depuis aurora-core.
 > `bin/split-modules.sh` ne gère plus qu'`aurora-editorial`.
+>
+> **Pourquoi ne pas avoir touché aux migrations** : le fichier
+> `migrations/Version20260524091527.php` crée toutes les tables (core +
+> les 11 modules) dans un seul `up()`/`down()` entrelacé par ordre
+> alphabétique avec des FK croisées (Billing→Ged, Project→Ged,
+> Ecommerce→Ged, etc.) — découper ce SQL à la main est risqué pour un
+> bénéfice cosmétique, puisque Doctrine Migrations exécute du SQL brut
+> indépendamment du mapping des entités PHP. Seuls 3 fichiers
+> **purement** croisés entre modules retirés (Billing↔Crm, Photo↔Crm,
+> Project↔Crm) ont été supprimés sans risque. Sur une base neuve, le
+> `schema:create` (piloté par les entités, déjà la procédure
+> documentée pour tout fresh install) ne crée que les tables des
+> entités restantes — zéro table orpheline.
+>
+> **Retrouver le retrait exact, pour une réintégration future** :
+> - Tag `pre-simplify-editorial-only` sur aurora-core = état du monorepo
+>   juste **avant** le retrait (les 12 modules encore présents).
+> - `develop` : 5 commits juste après ce tag —
+>   `1482e4d9` (rm -rf du code source des 11 modules),
+>   `b4c9d2b7` (dé-branchement bundles.php/aliases.js/services.yaml/...),
+>   `eeef9c6f` (docs + mémoire marqués « extrait »),
+>   `779bd769` (bugs de code mort trouvés en relançant `make ft` — Twig
+>   `is_ecommerce_shop_enabled()`, `MenuItemTargetTypeEnum::FrontShop`,
+>   ~70 tests orphelins, trait `ScalarCoercionTrait` mort, dashboard qui
+>   affichait des onglets vides pour les modules absents),
+>   `b860524f` (fix `CoreDemoFixtures::USER_COUNT` après suppression
+>   d'un utilisateur démo). `git diff pre-simplify-editorial-only..develop`
+>   donne le diff complet.
+> - `split/core` : commit squashé `8d0c752a` (équivalent core-only des 4
+>   premiers commits ci-dessus, Editorial n'ayant jamais fait partie de
+>   `split/core`) + `4c57f0e2` (fix fixtures).
+> - `aurora-editorial` (repo séparé) : les fixs Editorial du commit
+>   `779bd769` (MenuRenderer, MenuItemSerializer, MenuItemTargetTypeEnum,
+>   EditorialDemoFixtures, traductions) y ont été re-splittés séparément
+>   via `bin/split-modules.sh aurora-editorial`.
+> - Côté `aurora-myspace` (client), le commit qui retire les 10 modules
+>   de `composer.json` est `refactor: strip aurora-myspace down to
+>   Core + Editorial`.
 
 > **Outillage aligné (2026-05-31)** : les skills de scaffolding `/add-module`,
 > `/register-module-toggle`, `/audit-module-toggles`, `/add-submodule` + la doc

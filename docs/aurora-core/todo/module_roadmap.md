@@ -9,6 +9,21 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > ré-publié » ont été retirés du monorepo ; leur code reste figé dans leur
 > repo standalone (`aurora-<module>`), non maintenu depuis aurora-core.
 > Réintégration = reprendre depuis ce repo, pas depuis aurora-core.
+>
+> **Retrouver le retrait exact** — sur `aurora-core` :
+> - Tag `pre-simplify-editorial-only` = état du monorepo juste **avant** le
+>   retrait (dernier commit avec les 12 modules encore présents).
+> - Sur `develop`, le retrait tient dans 5 commits consécutifs juste après
+>   ce tag : `1482e4d9` (suppression du code source),
+>   `b4c9d2b7` (dé-branchement config/JS), `eeef9c6f` (docs/mémoire),
+>   `779bd769` (fixs de code mort trouvés en testant),
+>   `b860524f` (fix fixtures démo). Comparer :
+>   `git diff pre-simplify-editorial-only..develop` pour voir le diff complet.
+> - Sur `split/core`, l'équivalent est un unique commit squashé `8d0c752a`
+>   (+ `4c57f0e2` pour le fix fixtures).
+> - Détail complet de la décision (pourquoi, ce qui a été gardé/coupé,
+>   notamment le choix de ne pas toucher aux migrations SQL) :
+>   mémoire [[project_monorepo_split_chantier]] section « Recentrage ».
 
 | Module | Statut |
 |---|---|
