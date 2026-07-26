@@ -34,6 +34,15 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > - Détail complet de la décision (pourquoi, ce qui a été gardé/coupé,
 >   notamment le choix de ne pas toucher aux migrations SQL) :
 >   mémoire [[project_monorepo_split_chantier]] section « Recentrage ».
+> - **URLs frontend aplaties (juillet 2026)** : conséquence directe du
+>   recentrage — Editorial étant désormais le seul front public, le préfixe
+>   `/{locale}/editorial/...` (hérité de l'époque où plusieurs modules
+>   pouvaient chacun exposer leur propre front) n'a plus de raison d'être.
+>   `/{locale}/editorial` devient `/{locale}`, `/{locale}/editorial/{x}/{y}`
+>   devient `/{locale}/{x}/{y}`, etc. — les noms de route ne changent pas
+>   (`editorial_home`, `editorial_post`, ...), donc tout ce qui génère les
+>   URLs via `path()`/`generateUrl()` suit automatiquement. `develop`
+>   `58d895d3` ; repo standalone `aurora-editorial` `2ec1620`.
 
 | Module | Statut |
 |---|---|
