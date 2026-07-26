@@ -127,7 +127,7 @@ const { postsByMonthData } = useDashboardCharts(stats);
                             <div class="min-w-0 flex-1">
                                 <div class="font-medium text-primary truncate">{{ post.title }}</div>
                                 <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
-                                    <span class="px-1.5 py-0.5 text-xs rounded-md shrink-0" :class="statusBadge(post.status)">{{ t(`backend.stats.postStatus.${post.status}`, post.status) }}</span>
+                                    <span class="px-1.5 py-0.5 text-xs rounded-md shrink-0" :class="statusBadge(post.status)">{{ t(`backend.stats.post_status.${post.status}`, post.status) }}</span>
                                     <span class="text-xs text-muted">{{ post.postType }} · {{ formatDateTime(post.updatedAt) }}</span>
                                 </div>
                             </div>
