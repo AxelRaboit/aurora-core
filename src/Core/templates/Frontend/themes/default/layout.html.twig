@@ -13,32 +13,32 @@
     {% for alt in alternates %}
         {% set alternatesByLocale = alternatesByLocale|merge({(alt.locale): alt.url}) %}
     {% endfor %}
-    {% set switcherLocales = [] %}
-    {% for loc in context.activeLocales %}
-        {% set switcherLocales = switcherLocales|merge([{
-            code: loc.code,
-            name: locale_name(loc.code) ?? loc.code|upper,
-            flagCode: locale_flag(loc.code) ?? loc.code,
-            url: alternatesByLocale[loc.code] ?? path('editorial_home', {locale: loc.code}),
-        }]) %}
-    {% endfor %}
 
+    {# Minimal, module-independent chrome: site name + locale switcher only —
+       no nav menu system here, that's a content-module concern (e.g. Editorial's
+       Menu entity). A module that wants richer header/footer chrome (nav links,
+       account dropdown, ...) overrides this theme file from its own package;
+       see docs/aurora-core/dev/frontend_theme_override.md. #}
     {% block frontend_header %}
-    <div {{ vue_component('editorial/frontend/site/SiteHeaderApp', {
-        locale: locale,
-        siteName: context.siteName,
-        homePath: path('editorial_home', {locale: locale}),
-        headerLogoUrl: themeContext.headerLogoUrl() ?? '',
-        siteLogoUrl: siteLogoUrl ?? '',
-        headerCustomText: themeContext.headerCustomText() ?? '',
-        currentUser: app.user ? {name: app.user.name} : null,
-        primaryMenuItems: showFrontMenus|default(false) ? menu_items('primary', locale) : [],
-        accountMenuItems: showFrontMenus|default(false) ? menu_items('account', locale) : [],
-        localeSwitcher: {
-            enabled: context.activeLocales|length > 1,
-            locales: switcherLocales,
-        },
-    }) }}></div>
+    <header class="border-b border-line">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+            <a href="{{ default_front_home_path(locale) }}" class="flex items-center gap-2 text-lg font-semibold text-primary hover:opacity-80 transition-opacity">
+                {% set headerLogoUrl = themeContext.headerLogoUrl() %}
+                {% if headerLogoUrl %}<img src="{{ headerLogoUrl }}" alt="" class="h-8 w-8 object-cover rounded-lg shrink-0">{% endif %}
+                {{ themeContext.headerCustomText() ?: context.siteName }}
+            </a>
+            {% if context.activeLocales|length > 1 %}
+                <nav class="flex items-center gap-3 text-sm">
+                    {% for loc in context.activeLocales %}
+                        <a
+                            href="{{ alternatesByLocale[loc.code] ?? default_front_home_path(loc.code) }}"
+                            class="{{ loc.code == locale ? 'font-semibold text-primary' : 'text-secondary hover:text-primary transition-colors' }}"
+                        >{{ locale_name(loc.code) ?? loc.code|upper }}</a>
+                    {% endfor %}
+                </nav>
+            {% endif %}
+        </div>
+    </header>
     {% endblock %}
 
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
@@ -46,10 +46,11 @@
     </main>
 
     {% block frontend_footer %}
-    <div {{ vue_component('editorial/frontend/site/SiteFooterApp', {
-        footerText: themeContext.footerText(context.siteName),
-        footerMenuItems: showFrontMenus|default(false) ? menu_items('footer', locale) : [],
-    }) }}></div>
+    <footer class="border-t border-line mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-6 text-center text-sm text-muted">
+            {{ themeContext.footerText(context.siteName) }}
+        </div>
+    </footer>
     {% endblock %}
 </body>
 </html>

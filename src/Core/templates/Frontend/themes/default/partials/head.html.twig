@@ -79,8 +79,6 @@
 {{ vite_entry_script_tags('flash') }}
 <script>window.__flash__ = {{ app.flashes|json_encode|raw }};</script>
 
-<link rel="alternate" type="application/rss+xml" title="{{ context.siteName }} - RSS" href="{{ path('frontend_rss', {locale: locale}) }}">
-
 {% set cssOverrides = themeContext.cssVariableOverrides() %}
 {% if cssOverrides %}
     <style>html[data-theme] { {{ cssOverrides|raw }} }</style>
