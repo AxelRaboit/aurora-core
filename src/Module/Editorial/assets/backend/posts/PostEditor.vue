@@ -194,26 +194,24 @@ const {
                         :label="t('backend.posts.title')"
                         :placeholder="t('backend.posts.title_placeholder')"
                     />
-                    <div class="flex items-end gap-2">
-                        <div class="flex-1">
-                            <AppInput
-                                v-model="form.translations[activeLocale].slug"
-                                :label="t('backend.posts.slug')"
-                                :placeholder="t('backend.posts.slug_placeholder')"
-                                :readonly="slugLocked"
-                            />
-                        </div>
-                        <AppButton
-                            variant="secondary"
-                            size="none"
-                            class="w-9 h-9 mb-0.5 shrink-0"
-                            :title="slugLocked ? t('backend.posts.slug_unlock') : t('backend.posts.slug_lock')"
-                            v-on:click="toggleSlugLock"
-                        >
-                            <Lock v-if="slugLocked" class="w-4 h-4" :stroke-width="2" />
-                            <Unlock v-else class="w-4 h-4" :stroke-width="2" />
-                        </AppButton>
-                    </div>
+                    <AppInput
+                        v-model="form.translations[activeLocale].slug"
+                        :label="t('backend.posts.slug')"
+                        :placeholder="t('backend.posts.slug_placeholder')"
+                        :readonly="slugLocked"
+                    >
+                        <template #suffix>
+                            <button
+                                type="button"
+                                class="hover:text-secondary transition"
+                                :title="slugLocked ? t('backend.posts.slug_unlock') : t('backend.posts.slug_lock')"
+                                v-on:click="toggleSlugLock"
+                            >
+                                <Lock v-if="slugLocked" class="w-4 h-4" :stroke-width="2" />
+                                <Unlock v-else class="w-4 h-4" :stroke-width="2" />
+                            </button>
+                        </template>
+                    </AppInput>
                     <p v-if="frontUrl" class="text-xs text-muted sm:col-span-2">
                         <span class="text-secondary">URL :</span>
                         <a v-if="form.status === 'published'" :href="frontUrl" target="_blank" class="ml-1 font-mono text-accent-400 hover:underline break-all">{{ frontUrl }}</a>
