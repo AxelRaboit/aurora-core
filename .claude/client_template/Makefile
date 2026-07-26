@@ -24,7 +24,7 @@ RECTOR_CONFIG = $(if $(wildcard rector.php),rector.php,$(AURORA)/tools/rector/re
 # NODE_PATH lets Node resolve packages (vue, vue-i18n, …) from aurora's
 # node_modules even when the importing file lives outside vendor/aurora.
 AURORA_NODE   = $(CURDIR)/$(AURORA)/node_modules
-AURORA_ENV    = AURORA_CLIENT_DIR=$(CURDIR) NODE_PATH=$(AURORA_NODE)
+AURORA_ENV    = AURORA_CLIENT_DIR="$(CURDIR)" NODE_PATH="$(AURORA_NODE)"
 
 # Marker file written by `aurora-update`, read by `pull-update` to refuse
 # the redundant `aurora-update && pull-update` chain (pull-update right
