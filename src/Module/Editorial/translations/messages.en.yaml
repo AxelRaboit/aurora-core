@@ -126,7 +126,7 @@ backend:
       reference_any_type: — Any
       reference_multiple: Multiple selection
   posts:
-    select_from_library: Select from library
+    select_from_library: Select from DMS
     status: Status
     status_trashed: Trash
     status_options:

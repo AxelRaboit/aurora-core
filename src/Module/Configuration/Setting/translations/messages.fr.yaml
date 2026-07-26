@@ -128,7 +128,7 @@ backend:
       description: Nombre maximal de révisions conservées par article (les plus anciennes sont supprimées)
     file_versions_limit:
       label: Versions de fichier conservées
-      description: Nombre maximal de versions gardées par fichier (médiathèque et documents GED) — au-delà, les plus anciennes sont supprimées avec leur fichier. 0 = illimité.
+      description: Nombre maximal de versions gardées par fichier GED — au-delà, les plus anciennes sont supprimées avec leur fichier. 0 = illimité.
     trash_auto_purge_days:
       label: Purge auto de la corbeille (jours)
       description: Nombre de jours avant suppression définitive des articles en corbeille (0 = jamais)

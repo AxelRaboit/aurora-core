@@ -17,15 +17,6 @@ backend:
           manage: Gérer les utilisateurs
           module_access:
             manage: Gérer l'accès des utilisateurs aux modules
-      media:
-        view: Voir la médiathèque
-        create: Téléverser des médias
-        edit: Modifier les médias (renommer, recadrer, déplacer)
-        delete: Supprimer des médias
-        folders:
-          create: Créer des dossiers de médias
-          edit: Modifier les dossiers de médias
-          delete: Supprimer des dossiers de médias
       configuration:
         settings:
           manage: Gérer les paramètres

@@ -120,7 +120,7 @@ backend:
       reference_any_type: — Tous
       reference_multiple: Sélection multiple
   posts:
-    select_from_library: Sélectionner depuis la médiathèque
+    select_from_library: Sélectionner depuis la GED
     status: Statut
     status_trashed: Corbeille
     status_options:

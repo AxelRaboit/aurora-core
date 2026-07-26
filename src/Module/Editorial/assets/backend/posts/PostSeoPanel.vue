@@ -196,7 +196,7 @@ async function selectOgFromLibrary() {
             <label class="block text-xs font-semibold text-secondary uppercase tracking-wide mb-2">
                 {{ t("backend.posts.seo.og_image") }}
             </label>
-            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
                 <div class="w-full h-40 sm:w-36 sm:h-20 rounded-md border border-line bg-surface-2 overflow-hidden shrink-0 flex items-center justify-center">
                     <img
                         v-if="translation.ogImageUrl"
@@ -207,7 +207,7 @@ async function selectOgFromLibrary() {
                     >
                     <ImagePlus v-else class="w-6 h-6 sm:w-5 sm:h-5 text-muted" :stroke-width="2" />
                 </div>
-                <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2 min-w-0">
                     <AppFilePickerButton
                         ref="ogInputRef"
                         accept="image/*"
