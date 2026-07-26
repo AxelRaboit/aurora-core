@@ -12,6 +12,7 @@ const props = defineProps({
     label: { type: String, default: '' },
     error: { type: String, default: '' },
     required: { type: Boolean, default: false },
+    readonly: { type: Boolean, default: false },
     toggleable: { type: Boolean, default: false },
     /**
      * Visual flavor. `default` ships the full form-field chrome (border,
@@ -51,7 +52,9 @@ defineExpose({
         :value="modelValue"
         :placeholder="placeholder"
         :required="required"
+        :readonly="readonly"
         class="block w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-inherit"
+        :class="readonly ? 'cursor-not-allowed opacity-70' : ''"
         v-on:input="$emit('update:modelValue', $event.target.value)"
     >
     <div v-else class="flex flex-col gap-1.5">
@@ -67,8 +70,9 @@ defineExpose({
                 :value="modelValue"
                 :placeholder="placeholder"
                 :required="required"
+                :readonly="readonly"
                 class="block w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-primary placeholder-muted focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition"
-                :class="[{ 'border-red-500 focus:border-red-500 focus:ring-red-500': error }, (toggleable || $slots.suffix) ? 'pr-10' : '', $slots.prefix ? 'pl-8' : '']"
+                :class="[{ 'border-red-500 focus:border-red-500 focus:ring-red-500': error }, readonly ? 'bg-surface-2 text-secondary cursor-not-allowed' : '', (toggleable || $slots.suffix) ? 'pr-10' : '', $slots.prefix ? 'pl-8' : '']"
                 v-on:input="$emit('update:modelValue', $event.target.value)"
             >
             <button
