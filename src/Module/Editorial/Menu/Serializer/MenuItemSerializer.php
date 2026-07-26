@@ -132,7 +132,6 @@ class MenuItemSerializer implements MenuItemSerializerInterface
             MenuItemTargetTypeEnum::FrontRegister => ['label' => $this->translator->trans('frontend.menu.register'), 'hint' => '/register'],
             MenuItemTargetTypeEnum::FrontAccount => ['label' => $this->translator->trans('frontend.menu.account'), 'hint' => '/account'],
             MenuItemTargetTypeEnum::FrontLogout => ['label' => $this->translator->trans('frontend.menu.logout'), 'hint' => '/logout'],
-            MenuItemTargetTypeEnum::FrontShop => ['label' => $this->translator->trans('frontend.shop.title'), 'hint' => '/shop'],
             MenuItemTargetTypeEnum::CustomUrl => ['label' => $item->getCustomUrl() ?? '', 'hint' => $item->getCustomUrl() ?? ''],
             MenuItemTargetTypeEnum::Post => $this->postPreview($item, $postCache),
             MenuItemTargetTypeEnum::Term => $this->termPreview($item, $termCache),

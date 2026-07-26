@@ -212,11 +212,6 @@ backend:
     by_type: Posts by type
     recent: Recent activity
     posts_by_month: Posts published per month
-    pipeline: pipeline
-    won: Won deals
-    deals_by_stage: Deals by stage
-    products_by_status: Products by status
-    inventory: Inventory
     no_module_enabled: No dashboard module is enabled.
     coming_soon: Coming soon
     editorial:
@@ -226,35 +221,6 @@ backend:
       recent_activity: Recent activity
       posts_by_author: Posts by author
       media_by_type: Media by type
-    crm:
-      recent_deals: Recent deals
-      conversion_rate: Conversion rate
-      recent_activity: Contact activity (7 d)
-    erp:
-      out_of_stock: Out of stock
-      by_type: By type
-      catalog_evolution: Catalog evolution
-      top_selling: Top selling products
-    billing:
-      needing_review: Needs review
-      total_gross: Total invoiced
-      overdue: Overdue invoices
-      top_suppliers: Top suppliers
-      monthly_evolution: Monthly evolution
-    photo:
-      active: Active galleries
-      finalized: Finalized
-      client_selections: Client selections
-      by_client: Galleries by client
-    ecommerce:
-      pending: pending
-      revenue: Revenue
-      revenue_subtitle: paid + shipped + delivered
-      average_order: Average order
-      recent_orders: Recent orders
-      by_status: By status
-      revenue_chart: Revenue over time
-      top_products: Top products sold
   forms:
     errors:
       slug_format: 'The slug can only contain lowercase letters, numbers and hyphens.'

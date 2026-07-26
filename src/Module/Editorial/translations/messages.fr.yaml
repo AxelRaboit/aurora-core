@@ -69,7 +69,6 @@ backend:
       frontend_login: Page de connexion
       frontend_register: Page d'inscription
       frontend_account: Mon compte
-      frontend_shop: Boutique
       frontend_logout: Se déconnecter
     visibilities:
       always: Toujours visible

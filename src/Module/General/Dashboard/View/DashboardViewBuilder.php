@@ -18,11 +18,6 @@ final readonly class DashboardViewBuilder
      */
     private const array DASHBOARD_MODULES = [
         'editorial' => 'modules_editorial_backend',
-        'crm' => 'modules_crm_backend',
-        'erp' => 'modules_erp_backend',
-        'billing' => 'modules_billing_backend',
-        'ecommerce' => 'modules_ecommerce_backend',
-        'photo' => 'modules_photo_backend',
     ];
 
     public function __construct(

@@ -28,19 +28,10 @@ final readonly class UsersViewBuilder
     private const array MODULE_PRIORITY = [
         'general' => 10,
         'platform' => 20,
-        'vault' => 20,
         'media' => 22,
         'configuration' => 25,
         'editorial' => 30,
         'ged' => 35,
-        'project' => 35,
-        'crm' => 40,
-        'planning' => 40,
-        'hr' => 45,
-        'erp' => 50,
-        'billing' => 55,
-        'ecommerce' => 60,
-        'photo' => 70,
     ];
 
     private const int UNKNOWN_PRIORITY = 500;

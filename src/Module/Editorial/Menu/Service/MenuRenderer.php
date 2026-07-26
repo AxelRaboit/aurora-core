@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Menu\Service;
 
-use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Editorial\Menu\Entity\MenuInterface;
 use Aurora\Module\Editorial\Menu\Entity\MenuItemInterface;
 use Aurora\Module\Editorial\Menu\Enum\MenuItemTargetTypeEnum;
@@ -46,7 +45,6 @@ final class MenuRenderer
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly Security $security,
         private readonly TranslatorInterface $translator,
-        private readonly SettingRepository $settingRepository,
     ) {}
 
     /**
@@ -140,12 +138,6 @@ final class MenuRenderer
             MenuItemTargetTypeEnum::FrontRegister => $this->urlGenerator->generate('frontend_register', ['locale' => $locale]),
             MenuItemTargetTypeEnum::FrontAccount => $this->urlGenerator->generate('frontend_account', ['locale' => $locale]),
             MenuItemTargetTypeEnum::FrontLogout => $this->urlGenerator->generate('frontend_logout', ['locale' => $locale]),
-            // Public front menu rendered without an authenticated user: only the
-            // GLOBAL toggle is consulted here, deliberately bypassing the per-user
-            // ModuleAccessChecker layer (no user context to apply overrides to).
-            MenuItemTargetTypeEnum::FrontShop => $this->settingRepository->getBoolean('modules_ecommerce_frontend', true)
-                ? $this->urlGenerator->generate('frontend_shop_index', ['locale' => $locale])
-                : null,
             MenuItemTargetTypeEnum::CustomUrl => $item->getCustomUrl() ?: null,
             MenuItemTargetTypeEnum::Post => $this->resolvePostUrl($item, $locale),
             MenuItemTargetTypeEnum::Term => $this->resolveTermUrl($item, $locale),
@@ -219,7 +211,6 @@ final class MenuRenderer
             MenuItemTargetTypeEnum::FrontRegister => $this->translator->trans('frontend.menu.register', [], 'messages', $locale),
             MenuItemTargetTypeEnum::FrontAccount => $this->translator->trans('frontend.menu.account', [], 'messages', $locale),
             MenuItemTargetTypeEnum::FrontLogout => $this->translator->trans('frontend.menu.logout', [], 'messages', $locale),
-            MenuItemTargetTypeEnum::FrontShop => $this->translator->trans('frontend.shop.title', [], 'messages', $locale),
             MenuItemTargetTypeEnum::Post => $this->postLabel($item, $locale),
             MenuItemTargetTypeEnum::Term => $this->termLabel($item, $locale),
             MenuItemTargetTypeEnum::PostTypeArchive => $this->postTypeRepository->find($item->getTargetId())?->getLabel(),

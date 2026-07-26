@@ -75,7 +75,6 @@ backend:
       frontend_login: Login page
       frontend_register: Register page
       frontend_account: My account
-      frontend_shop: Shop
       frontend_logout: Sign out
     visibilities:
       always: Always visible

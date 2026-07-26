@@ -15,7 +15,6 @@ enum MenuItemTargetTypeEnum: string
     case FrontRegister = 'frontend_register';
     case FrontAccount = 'frontend_account';
     case FrontLogout = 'frontend_logout';
-    case FrontShop = 'frontend_shop';
 
     public function labelKey(): string
     {

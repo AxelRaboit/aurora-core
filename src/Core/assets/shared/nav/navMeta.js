@@ -115,24 +115,11 @@ export function resolveNavIcon(name) {
 export const MODULE_COLOR = {
     general: "slate",
     platform: "indigo",
-    tools: "stone",
-    vault: "stone",
     configuration: "zinc",
-    notes: "yellow",
-    personal_finance: "emerald",
     editorial: "rose",
     ged: "lime",
     media: "pink",
-    planning: "cyan",
-    crm: "sky",
-    erp: "teal",
-    ecommerce: "purple",
-    billing: "amber",
-    photo: "fuchsia",
-    project: "blue",
-    hr: "green",
     dev: "orange",
-    assistant: "violet",
 };
 
 /** Full Tailwind text class per colour family (safelist-friendly literals). */

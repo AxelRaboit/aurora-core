@@ -948,8 +948,6 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             $addItem($primary, 'Tarifs', 'Pricing', MenuItemTargetTypeEnum::Post, $pos++, $pages['tarifs']->getId());
         }
 
-        // Boutique → front shop (custom URL, locale-prefixed in front routing)
-        $addItem($primary, 'Boutique', 'Shop', MenuItemTargetTypeEnum::CustomUrl, $pos++, null, '/fr/shop');
         if (isset($pages['ressources'])) {
             $addItem($primary, 'Ressources', 'Resources', MenuItemTargetTypeEnum::Post, $pos++, $pages['ressources']->getId());
         }
