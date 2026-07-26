@@ -48,8 +48,8 @@ const coreModules = import.meta.glob([
 
 // All first-party module Vue components (backend + frontend) — auto-discovered.
 // The `**/assets/` pattern accepts any depth of feature folders between
-// Module/<Name>/ and assets/, so e.g. both ./Module/Platform/assets/... AND
-// ./Module/Platform/Agency/assets/... resolve. Feature folders are flattened
+// Module/<Name>/ and assets/, so e.g. both ./Module/Editorial/assets/... AND
+// ./Module/Editorial/Post/assets/... resolve. Feature folders are flattened
 // away in the exposed key (cf. mapping regex below) — the module name is
 // always the FIRST segment under Module/.
 const auroraModules = import.meta.glob("../../Module/**/assets/**/*.vue");
@@ -61,8 +61,8 @@ const auroraModules = import.meta.glob("../../Module/**/assets/**/*.vue");
 // are exposed as ./<name>/backend/Foo.vue so the client uses
 // vue_component('<name>/backend/Foo') in Twig — same convention as aurora's
 // first-party modules. Co-locating override Vue with the PHP extension
-// (e.g. src/Module/Platform/Agency/assets/backend/agencies/AgenciesApp.vue)
-// shadows aurora's `platform/backend/agencies/AgenciesApp` because clientModules
+// (e.g. src/Module/Editorial/assets/backend/posts/PostsApp.vue)
+// shadows aurora's `editorial/backend/posts/PostsApp` because clientModules
 // is spread AFTER auroraModules below — same key, client wins.
 const clientModules = import.meta.glob("@client/src/Module/**/assets/**/*.vue");
 
@@ -75,8 +75,8 @@ const clientOverrides = import.meta.glob("@client/src/Overrides/**/*.vue");
 
 // Regex: capture the FIRST segment under Module/ as the module name, skip any
 // number of feature folders, then capture everything after /assets/.
-// Module/Platform/assets/backend/X.vue          → moduleName=Platform, rest=backend/X.vue
-// Module/Platform/Agency/assets/backend/X.vue   → moduleName=Platform, rest=backend/X.vue
+// Module/Editorial/assets/backend/X.vue        → moduleName=Editorial, rest=backend/X.vue
+// Module/Editorial/Post/assets/backend/X.vue    → moduleName=Editorial, rest=backend/X.vue
 const MODULE_PATH_RE = /Module\/([^/]+)\/(?:[^/]+\/)*assets\/(.*)$/;
 
 const vueContext = {
