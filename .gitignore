@@ -34,6 +34,12 @@ yarn.lock
 /.idea/
 /.vscode/
 
+# macOS
+.DS_Store
+
+# pnpm — machine-local build-script approvals (`pnpm approve-builds`)
+/pnpm-workspace.yaml
+
 # Version (generated at deploy time)
 /VERSION
 
