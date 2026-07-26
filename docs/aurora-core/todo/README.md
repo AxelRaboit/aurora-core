@@ -37,19 +37,15 @@ La doc Welding et le backlog V2 vivent maintenant dans
 généralisée :
 [`../dev/extracting_a_module.md`](../dev/extracting_a_module.md).
 
-### Ecommerce — gaps vs Sylius
+### ~~Ecommerce — gaps vs Sylius~~ — ✅ extrait, cf. aurora-commerce
 
-Fonctionnalités manquantes identifiées par comparaison avec Sylius. Les 3 premiers
-topics (catalogue, tarification, livraison) bloquent un usage réel ; les suivants
-sont importants ; stock avancé est optionnel.
-
-- [Catalogue produit](ecommerce/catalogue.md) — variantes, attributs, images multiples, taxons
-- [Tarification & fiscalité](ecommerce/tarification.md) — TaxCategory/TaxRate, Adjustments, taux de change
-- [Livraison](ecommerce/livraison.md) — ShippingMethod, Shipment, Zones
-- [Promotions & codes promo](ecommerce/promotions.md) — Coupon, PromotionRule/Action
-- [Client & adresses](ecommerce/client.md) — carnet d'adresses, profil client enrichi
-- [Moyens de paiement](ecommerce/paiement.md) — abstraction PaymentMethod, config backend
-- [Stock avancé](ecommerce/stock.md) — par variante, mouvements, multi-entrepôt
+Aurora a été recentré sur Core + Editorial (CMS façon WordPress) ; les
+modules Ecommerce/Erp ont été retirés du monorepo. Le code et le gap
+analysis vs Sylius (catalogue, tarification, livraison, promotions,
+client, paiement, stock) restent figés dans le repo
+[`aurora-commerce`](https://github.com/AxelRaboit/aurora-commerce),
+non ré-publié depuis aurora-core. Procédure générale d'extraction :
+[`../dev/extracting_a_module.md`](../dev/extracting_a_module.md).
 
 ### ~~PersonalFinance (Spendly)~~ — ✅ livré
 
