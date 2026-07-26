@@ -11,24 +11,18 @@ use Aurora\Core\Sequence\SequenceGenerator;
 use Aurora\Core\Sequence\SequencePrefixEnum;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
-use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
-use Aurora\Module\Platform\Agency\Repository\AgencyRepository;
 use Aurora\Module\Platform\Auth\Manager\EmailVerificationManagerInterface;
 use Aurora\Module\Platform\Auth\Manager\InvitationManagerInterface;
-use Aurora\Module\Platform\Service\Entity\ServiceInterface;
-use Aurora\Module\Platform\Service\Repository\ServiceRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Enum\UserStatusEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
-use Aurora\Module\Platform\User\Event\UserAgencyServiceUpdatingEvent;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -44,9 +38,6 @@ class UserManager implements UserManagerInterface
         protected readonly EmailVerificationManagerInterface $emailVerificationManager,
         protected readonly SequenceGenerator $sequenceGenerator,
         protected readonly SettingRepository $settingRepository,
-        protected readonly AgencyRepository $agencyRepository,
-        protected readonly ServiceRepository $serviceRepository,
-        protected readonly EventDispatcherInterface $eventDispatcher,
         protected readonly ModuleToggleRegistry $moduleToggleRegistry,
         protected readonly ModuleRegistry $moduleRegistry,
     ) {}
@@ -204,24 +195,6 @@ class UserManager implements UserManagerInterface
     public function changeMoodMessage(User $user, ?string $moodMessage): void
     {
         $user->setMoodMessage($moodMessage);
-        $this->entityManager->flush();
-    }
-
-    public function updateAgencyAndService(User $user, ?int $agencyId, ?int $serviceId): void
-    {
-        $agency = null !== $agencyId ? $this->agencyRepository->find($agencyId) : null;
-        $service = null !== $serviceId ? $this->serviceRepository->find($serviceId) : null;
-
-        $event = new UserAgencyServiceUpdatingEvent(
-            $user,
-            $agency instanceof AgencyInterface ? $agency : null,
-            $service instanceof ServiceInterface ? $service : null,
-        );
-        $this->eventDispatcher->dispatch($event);
-
-        $user->setAgency($event->getAgency());
-        $user->setService($event->getService());
-
         $this->entityManager->flush();
     }
 

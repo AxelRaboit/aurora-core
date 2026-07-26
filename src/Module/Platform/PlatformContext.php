@@ -8,11 +8,11 @@ use Aurora\Core\Module\Service\ModuleAccessChecker;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 
 /**
- * Toggle façade for the "Platform" section of the backend (Users, Agencies,
- * Services — the organization layer). Media moved to {@see MediaContext}
- * in Jalon 4.5 since it's cross-cutting infrastructure used by every
- * module. Configuration (Settings + Themes) lives in
- * {@see ConfigurationContext} since the earlier Jalon 4 split.
+ * Toggle façade for the "Platform" section of the backend (Users — the
+ * organization layer). Media moved to {@see MediaContext} in Jalon 4.5
+ * since it's cross-cutting infrastructure used by every module.
+ * Configuration (Settings + Themes) lives in {@see ConfigurationContext}
+ * since the earlier Jalon 4 split.
  */
 final readonly class PlatformContext
 {
@@ -26,15 +26,5 @@ final readonly class PlatformContext
     public function isUsersEnabled(): bool
     {
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::PlatformUsers);
-    }
-
-    public function isAgenciesEnabled(): bool
-    {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::PlatformAgencies);
-    }
-
-    public function isServicesEnabled(): bool
-    {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::PlatformServices);
     }
 }

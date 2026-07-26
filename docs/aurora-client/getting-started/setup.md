@@ -184,9 +184,6 @@ automatiquement par `make db-test`. Tous les tests doivent passer en vert.
 | `APP_NAME` | `aurora-client` | Nom de l'application (affiché dans l'UI) |
 | `APP_SHARE_DIR` | `var/share` | Dossier partagé entre workers |
 | `DEFAULT_URI` | `http://localhost` | URI de base pour les emails |
-| `OCR_DOCTR_URL` | *(optionnel)* | URL du microservice docTR (module Billing/OCR) |
-| `OLLAMA_URL` | *(optionnel)* | URL Ollama pour l'extraction OCR |
-| `OLLAMA_VISION_MODEL` | `qwen2.5vl:3b` | Modèle vision Ollama |
 
 ---
 

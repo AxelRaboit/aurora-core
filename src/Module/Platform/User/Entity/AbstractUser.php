@@ -6,8 +6,6 @@ namespace Aurora\Module\Platform\User\Entity;
 
 use Aurora\Core\Locale\Enum\LocaleEnum;
 use Aurora\Core\Timestampable\TimestampableTrait;
-use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
-use Aurora\Module\Platform\Service\Entity\ServiceInterface;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Enum\UserStatusEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -98,14 +96,6 @@ abstract class AbstractUser implements CoreUserInterface
     #[ORM\Column(length: self::MOOD_MESSAGE_MAX_LENGTH, nullable: true)]
     #[Groups(['user:read'])]
     protected ?string $moodMessage = null;
-
-    #[ORM\ManyToOne(targetEntity: AgencyInterface::class)]
-    #[ORM\JoinColumn(name: 'agency_id', nullable: true, onDelete: 'SET NULL')]
-    protected ?AgencyInterface $agency = null;
-
-    #[ORM\ManyToOne(targetEntity: ServiceInterface::class)]
-    #[ORM\JoinColumn(name: 'service_id', nullable: true, onDelete: 'SET NULL')]
-    protected ?ServiceInterface $service = null;
 
     /** @var Collection<int, CoreUserInterface> */
     protected Collection $subordinates;
@@ -431,28 +421,4 @@ abstract class AbstractUser implements CoreUserInterface
     }
 
     public function eraseCredentials(): void {}
-
-    public function getAgency(): ?AgencyInterface
-    {
-        return $this->agency;
-    }
-
-    public function setAgency(?AgencyInterface $agency): static
-    {
-        $this->agency = $agency;
-
-        return $this;
-    }
-
-    public function getService(): ?ServiceInterface
-    {
-        return $this->service;
-    }
-
-    public function setService(?ServiceInterface $service): static
-    {
-        $this->service = $service;
-
-        return $this;
-    }
 }

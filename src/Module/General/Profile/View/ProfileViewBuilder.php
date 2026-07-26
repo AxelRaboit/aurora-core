@@ -51,8 +51,6 @@ final readonly class ProfileViewBuilder
             'role' => $primaryRole,
             'type' => $user->getType()->value,
             'status' => $user->getStatus()->value,
-            'agency' => $user->getAgency()?->getName(),
-            'service' => $user->getService()?->getName(),
             'manager' => $user->getManager()?->getName(),
             'createdAt' => $user->getCreatedAt()->format(DATE_ATOM),
         ];

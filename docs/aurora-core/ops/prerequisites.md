@@ -48,11 +48,9 @@ rien en les omettant.
 
 | Binaire | Module | Dégradation si absent | Install |
 |---------|--------|-----------------------|---------|
-| `pdftk` (ou `pdftk-java`) | PDF Forms | Documents créés en statut *Brouillon* | `sudo apt install pdftk-java` |
 | `pdftoppm` (poppler-utils) | GED — aperçus PDF | Recours auto à `gs` (qualité moindre) ; si ni l'un ni l'autre n'est présent, fallback sur l'icône | `sudo apt install poppler-utils` |
 | `gs` (Ghostscript) | GED — aperçus PDF (fallback) | Même chose que ci-dessus quand `pdftoppm` est aussi absent | `sudo apt install ghostscript` |
 | `ssh` (OpenSSH client) | MountPoint | Tunnels SSH KO → erreur de connexion | Pré-installé sur Linux/macOS |
-| `ollama` | Billing OCR + Assistant IA | OCR met les jobs en erreur ; Assistant renvoie *Ollama HTTP transport error* | [Section 4](#4-ollama--mod%C3%A8les) |
 
 > **GED PDF thumbnails** : `PdfThumbnailGenerator` essaie d'abord `pdftoppm`,
 > puis `gs`, puis renvoie `null` (icône fallback côté Vue). Pour
@@ -67,8 +65,6 @@ rien en les omettant.
 |---------|----------------|-------------------|-----------|
 | **PostgreSQL** | 5432 | Tous | `sudo systemctl start postgresql` |
 | **SMTP** (Mailpit / Mailhog en dev) | 1025 | Mailer | `docker run -p 1025:1025 -p 8025:8025 axllent/mailpit` |
-| **docTR** (microservice Python) | 8001 | Billing OCR | `make docker-up` |
-| **Ollama** | 11434 | Billing OCR + Assistant IA | `ollama serve` (auto au boot après install) |
 
 Les transports Symfony Messenger sont en `doctrine://default` par défaut
 — **aucun broker externe** (RabbitMQ/Redis) requis pour faire tourner
@@ -76,35 +72,7 @@ Aurora tel quel.
 
 ---
 
-## 4. Ollama + modèles
-
-L'assistant et l'OCR partagent **la même instance Ollama** (`OLLAMA_URL`
-= `ASSISTANT_OLLAMA_URL` par défaut). Trois modèles à tirer :
-
-| Modèle | Taille | Module(s) | Pull |
-|--------|--------|-----------|------|
-| `qwen2.5vl:3b` | 3,2 Go | Billing OCR (JSON structuré) + Assistant `image_read` | `ollama pull qwen2.5vl:3b` |
-| `qwen3:8b` | 5,2 Go | Assistant chat (tool calling) | `ollama pull qwen3:8b` |
-
-```bash
-curl -fsSL https://ollama.ai/install.sh | sh
-ollama pull qwen2.5vl:3b
-ollama pull qwen3:8b
-ollama list  # Vérifie que les deux apparaissent
-```
-
-⚠ **Tool calling obligatoire pour le chat assistant** : modèles compatibles
-`qwen3:*`, `qwen2.5:*`, `llama3.1:*`, `mistral-nemo`. Les `gemma:*`,
-`phi3:*` n'ont pas de support tools fiable → l'assistant ne pourra pas
-appeler `filesystem_read` / `image_read` / `aurora_search`.
-
-Tunables runtime via `/backend/configuration/settings` → onglet **Assistant** (modèle
-chat, modèle vision, timeout, num_ctx, prompt système) — pas besoin de
-redéployer pour changer.
-
----
-
-## 5. Variables d'environnement
+## 4. Variables d'environnement
 
 Les défauts sains vivent dans :
 - **aurora-core** : `.env` (versionné) + `.env.local` (gitignored, perso)
@@ -117,8 +85,6 @@ Les blocs à connaître (regroupés par `###> aurora/<truc> ###` markers) :
 |------|------|------------------|
 | `aurora/encryption` | `AURORA_ENCRYPTION_KEY` | `php -r "echo base64_encode(random_bytes(32));"` |
 | `aurora/mount-point` | `AURORA_MOUNT_POINT_KEY` | idem |
-| `aurora/ocr` | `OLLAMA_URL`, `OLLAMA_VISION_MODEL`, `OCR_DOCTR_URL`, `OCR_HTTP_TIMEOUT`, `OCR_NUM_CTX`, `OCR_NUM_PREDICT` | — |
-| `aurora/assistant` | `ASSISTANT_OLLAMA_URL`, `ASSISTANT_CHAT_MODEL`, `ASSISTANT_VISION_MODEL`, `ASSISTANT_HTTP_TIMEOUT`, `ASSISTANT_NUM_CTX` | — |
 | `doctrine/doctrine-bundle` | `DATABASE_URL` | adapter aux credentials locaux |
 | `symfony/mailer` | `MAILER_DSN`, `MAILER_FROM`, `ADMIN_EMAIL` | DSN `smtp://localhost:1025` en dev |
 
@@ -129,7 +95,7 @@ mount points / notes / titres de conversations historiques.
 
 ---
 
-## 6. Production — spécificités
+## 5. Production — spécificités
 
 Au-delà du dev :
 
@@ -147,7 +113,7 @@ Au-delà du dev :
 
 ---
 
-## 7. Vérification rapide
+## 6. Vérification rapide
 
 Un one-liner pour valider qu'un environnement a tout en place :
 
@@ -155,9 +121,7 @@ Un one-liner pour valider qu'un environnement a tout en place :
 php --version | head -1 && \
 node --version && \
 psql --version && \
-composer --version | head -1 && \
-ollama --version 2>/dev/null || echo "ollama: NOT INSTALLED (optional)" && \
-curl -s http://localhost:11434/api/tags | grep -oE '"name":"[^"]+' | head -5
+composer --version | head -1
 ```
 
 Sortie attendue :
@@ -165,11 +129,10 @@ Sortie attendue :
 - v20+ ou v22+ pour Node
 - psql 14+
 - Composer 2.x
-- `"name":"qwen3:8b"` et `"name":"qwen2.5vl:3b"` si l'assistant est setup
 
 ---
 
-## 8. Quand ajouter ici ?
+## 7. Quand ajouter ici ?
 
 Toute **nouvelle dépendance** (binaire CLI, service externe, modèle IA,
 var d'env critique) ajoutée à un module Aurora **doit** être listée ici

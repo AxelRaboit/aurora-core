@@ -62,7 +62,6 @@ security:
                 lifetime: 2592000
 
     access_control:
-        - { path: ^/stripe/webhook, roles: PUBLIC_ACCESS }
         - { path: ^/backend/platform/login, roles: PUBLIC_ACCESS }
         - { path: ^/backend/platform/logout, roles: PUBLIC_ACCESS }
         - { path: ^/backend/platform/register, roles: PUBLIC_ACCESS }

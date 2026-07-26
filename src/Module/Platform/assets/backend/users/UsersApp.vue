@@ -38,8 +38,6 @@ const props = defineProps({
     modulesForAccess: { type: Array, default: () => [] },
     canManageDisabledModules: { type: Boolean, default: false },
     disabledModulesPath: { type: String, default: "" },
-    agencies: { type: Array, default: () => [] },
-    services: { type: Array, default: () => [] },
     listPath: { type: String, required: true },
     invitePath: { type: String, required: true },
     updatePath: { type: String, required: true },
@@ -64,7 +62,7 @@ const props = defineProps({
 
 const { search, roleFilter, users, loading, page, totalPages, fetchUsers, goToPage } = useUsersSearch(props.listPath);
 const { inviteModal, inviteForm, openInvite, submitInvite } = useUsersInvite(props.invitePath, props.roles, fetchUsers, { extraFields: props.extraFields });
-const { editModal, editForm, managerOptions, agencyOptions, serviceOptions, openEdit, onPhotoSelected, removePhoto, submitEdit } = useUsersEdit(props, fetchUsers, { extraFields: props.extraFields });
+const { editModal, editForm, managerOptions, openEdit, onPhotoSelected, removePhoto, submitEdit } = useUsersEdit(props, fetchUsers, { extraFields: props.extraFields });
 
 const { viewingUser, openView, resendInvitation, togglingUser, askToggleDisabled, confirmToggleDisabled, deletingUser, confirmDelete, statusBadgeColor, isCurrent, canActOn, canEditUser, UserStatus } = useUsersActions(props, fetchUsers);
 
@@ -315,16 +313,6 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                 </dl>
 
                 <div class="border-t border-line/40 pt-4 space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div v-if="viewingUser.agencyName">
-                            <p class="text-xs text-secondary uppercase tracking-wide mb-1">{{ t('backend.nav.agencies') }}</p>
-                            <p class="text-sm text-primary">{{ viewingUser.agencyName }}</p>
-                        </div>
-                        <div v-if="viewingUser.serviceName">
-                            <p class="text-xs text-secondary uppercase tracking-wide mb-1">{{ t('backend.nav.services') }}</p>
-                            <p class="text-sm text-primary">{{ viewingUser.serviceName }}</p>
-                        </div>
-                    </div>
                     <div>
                         <p class="text-xs text-secondary uppercase tracking-wide mb-1.5">{{ t('backend.users.manager.label') }}</p>
                         <p v-if="viewingUser.manager" class="text-sm text-primary">{{ viewingUser.manager.name }}</p>
@@ -402,24 +390,6 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                         :label="t('backend.users.manager.label')"
                         :allow-empty="true"
                         :error="editModal.errors.managerId ?? ''"
-                        open-direction="top"
-                        :use-teleport="false"
-                    />
-                    <AppMultiselect
-                        v-if="agencyOptions.length > 1"
-                        v-model="editForm.agencyId"
-                        :options="agencyOptions"
-                        :label="t('backend.nav.agencies')"
-                        :allow-empty="true"
-                        open-direction="top"
-                        :use-teleport="false"
-                    />
-                    <AppMultiselect
-                        v-if="serviceOptions.length > 1"
-                        v-model="editForm.serviceId"
-                        :options="serviceOptions"
-                        :label="t('backend.nav.services')"
-                        :allow-empty="true"
                         open-direction="top"
                         :use-teleport="false"
                     />

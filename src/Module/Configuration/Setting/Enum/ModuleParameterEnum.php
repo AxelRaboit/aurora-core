@@ -24,8 +24,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
 
     // Sub-modules — Platform
     case PlatformUsers = 'modules_platform_users';
-    case PlatformAgencies = 'modules_platform_agencies';
-    case PlatformServices = 'modules_platform_services';
 
     // Sub-modules — Configuration
     case ConfigurationSettings = 'modules_configuration_settings';
@@ -55,8 +53,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GeneralDashboard => 'backend.nav.dashboard',
             self::PlatformBackend => 'backend.modules.platform_backend',
             self::PlatformUsers => 'backend.nav.users',
-            self::PlatformAgencies => 'backend.nav.agencies',
-            self::PlatformServices => 'backend.nav.services',
             self::ConfigurationBackend => 'backend.modules.configuration',
             self::ConfigurationSettings => 'backend.nav.settings',
             self::ConfigurationThemes => 'backend.nav.themes',
@@ -79,8 +75,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GeneralDashboard => 'backend.nav.dashboard_description',
             self::PlatformBackend => 'backend.modules.platform_backend_description',
             self::PlatformUsers => 'backend.nav.users_description',
-            self::PlatformAgencies => 'backend.nav.agencies_description',
-            self::PlatformServices => 'backend.nav.services_description',
             self::ConfigurationBackend => 'backend.modules.configuration_description',
             self::ConfigurationSettings => 'backend.nav.settings_description',
             self::ConfigurationThemes => 'backend.nav.themes_description',
@@ -118,8 +112,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     {
         return match ($this) {
             self::GeneralDashboard => self::GeneralBackend,
-            self::PlatformUsers, self::PlatformAgencies,
-            self::PlatformServices => self::PlatformBackend,
+            self::PlatformUsers => self::PlatformBackend,
             self::ConfigurationSettings, self::ConfigurationThemes => self::ConfigurationBackend,
             self::MediaLibrary => self::MediaBackend,
             self::GedDocuments, self::GedCategories, self::GedTags, self::GedFolders, self::GedFrontend => self::GedBackend,
@@ -138,9 +131,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             // Core sub-modules
             self::GeneralDashboard => self::GeneralBackend->value,
             // Platform sub-modules
-            self::PlatformUsers,
-            self::PlatformAgencies,
-            self::PlatformServices => self::PlatformBackend->value,
+            self::PlatformUsers => self::PlatformBackend->value,
             // Configuration sub-modules
             self::ConfigurationSettings,
             self::ConfigurationThemes => self::ConfigurationBackend->value,

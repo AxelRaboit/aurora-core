@@ -257,14 +257,6 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                                 </AppBadge>
                             </dd>
                         </div>
-                        <div v-if="account.info.value.agency" class="grid grid-cols-3 gap-3 py-2.5">
-                            <dt class="text-secondary">{{ t('backend.profile.account.agency') }}</dt>
-                            <dd class="col-span-2 text-primary truncate">{{ account.info.value.agency }}</dd>
-                        </div>
-                        <div v-if="account.info.value.service" class="grid grid-cols-3 gap-3 py-2.5">
-                            <dt class="text-secondary">{{ t('backend.profile.account.service') }}</dt>
-                            <dd class="col-span-2 text-primary truncate">{{ account.info.value.service }}</dd>
-                        </div>
                         <div v-if="account.info.value.manager" class="grid grid-cols-3 gap-3 py-2.5">
                             <dt class="text-secondary">{{ t('backend.profile.account.manager') }}</dt>
                             <dd class="col-span-2 text-primary truncate">{{ account.info.value.manager }}</dd>

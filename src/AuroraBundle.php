@@ -29,14 +29,10 @@ use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolder;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTag;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTagInterface;
-use Aurora\Module\Platform\Agency\Entity\Agency;
-use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
 use Aurora\Module\Platform\Auth\Entity\AccessRequest;
 use Aurora\Module\Platform\Auth\Entity\AccessRequestInterface;
 use Aurora\Module\Platform\Auth\Entity\ResetPasswordRequest;
 use Aurora\Module\Platform\Auth\Entity\ResetPasswordRequestInterface;
-use Aurora\Module\Platform\Service\Entity\Service;
-use Aurora\Module\Platform\Service\Entity\ServiceInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
@@ -104,14 +100,12 @@ class AuroraBundle extends AbstractBundle
                 ],
                 'auto_mapping' => false,
                 'resolve_target_entities' => [
-                    AgencyInterface::class => Agency::class,
                     CoreUserInterface::class => User::class,
                     AuditLogInterface::class => AuditLog::class,
                     AccessRequestInterface::class => AccessRequest::class,
                     ResetPasswordRequestInterface::class => ResetPasswordRequest::class,
                     LocaleInterface::class => Locale::class,
                     NotificationInterface::class => Notification::class,
-                    ServiceInterface::class => Service::class,
                     SettingInterface::class => Setting::class,
                     ThemeInterface::class => Theme::class,
                     DocumentInterface::class => Document::class,

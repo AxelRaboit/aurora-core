@@ -11,10 +11,10 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * 404s the Platform admin routes (Users, Agencies, Services) when their
- * toggle is OFF — globally or for the current user. Media routes are
- * gated by {@see MediaRouteGateSubscriber} (Jalon 4.5), Configuration
- * routes by {@see ConfigurationRouteGateSubscriber} (Jalon 4).
+ * 404s the Platform admin routes (Users) when their toggle is OFF —
+ * globally or for the current user. Media routes are gated by
+ * {@see MediaRouteGateSubscriber} (Jalon 4.5), Configuration routes by
+ * {@see ConfigurationRouteGateSubscriber} (Jalon 4).
  *
  * The Dashboard (`backend_dashboard`) is intentionally not gated here:
  * it is the post-login landing page and is always accessible.
@@ -28,8 +28,6 @@ final readonly class PlatformRouteGateSubscriber implements EventSubscriberInter
     {
         $this->gates = [
             'backend_platform_users' => $this->platformContext->isUsersEnabled(...),
-            'backend_platform_agencies' => $this->platformContext->isAgenciesEnabled(...),
-            'backend_platform_services' => $this->platformContext->isServicesEnabled(...),
         ];
     }
 

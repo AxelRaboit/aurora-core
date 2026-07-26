@@ -35,7 +35,7 @@
 
 | Fichier | Contenu |
 |---|---|
-| [prerequisites.md](ops/prerequisites.md) | Checklist exhaustive des dépendances système, PHP, Node, modèles Ollama, vars d'env |
+| [prerequisites.md](ops/prerequisites.md) | Checklist exhaustive des dépendances système, PHP, Node, vars d'env |
 
 > Tout ce qui touche au **déploiement** d'un projet client (séquence install-prod, systemd, mod_xsendfile, setup OCR) vit côté aurora-client : [`docs/aurora-client/deployment/`](../aurora-client/README.md#-déploiement-production).
 

@@ -37,6 +37,5 @@ Tout ce qu'il faut faire pour mettre en prod un projet aurora-client, regroupé 
 | [deployment/README.md](deployment/README.md) | Guide principal — séquence `install-prod` / `deploy-prod`, exigences serveur, variables d'env |
 | [deployment/worker_systemd.md](deployment/worker_systemd.md) | Service systemd `aurora-worker` (Symfony Messenger consumer) |
 | [deployment/apache_xsendfile.md](deployment/apache_xsendfile.md) | `mod_xsendfile` pour servir `var/uploads/` sans saturer PHP-FPM |
-| [deployment/ocr_setup.md](deployment/ocr_setup.md) | Pipeline OCR (docTR + Ollama vision) — uniquement si le module Billing OCR est utilisé |
 
-> Pour la checklist exhaustive des prérequis (PHP, Node, PostgreSQL, binaires CLI, modèles Ollama, vars d'env), voir [`aurora-core/ops/prerequisites.md`](../aurora-core/ops/prerequisites.md) — c'est l'inventaire des exigences du bundle lui-même.
+> Pour la checklist exhaustive des prérequis (PHP, Node, PostgreSQL, binaires CLI, vars d'env), voir [`aurora-core/ops/prerequisites.md`](../aurora-core/ops/prerequisites.md) — c'est l'inventaire des exigences du bundle lui-même.

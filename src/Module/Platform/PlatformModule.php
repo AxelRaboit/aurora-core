@@ -12,12 +12,12 @@ use Aurora\Core\Module\Nav\NavSection;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 
 /**
- * Platform section — the organization layer of the backend (Users, Agencies,
- * Services). Media moved to {@see MediaModule} in Jalon 4.5 (cross-cutting
- * infra), Configuration (Settings, Themes) lives in {@see ConfigurationModule}
+ * Platform section — the organization layer of the backend (Users). Media
+ * moved to {@see MediaModule} in Jalon 4.5 (cross-cutting infra),
+ * Configuration (Settings, Themes) lives in {@see ConfigurationModule}
  * (admin params), and global search moved to {@see GeneralModule} in
  * Jalon 5.1 (it's a header feature, not a Platform-specific concern) —
- * this class now strictly owns the "who works for whom doing what" triplet.
+ * this class now strictly owns user management.
  */
 final readonly class PlatformModule implements ModuleInterface, ModuleToggleProviderInterface
 {
@@ -33,8 +33,6 @@ final readonly class PlatformModule implements ModuleInterface, ModuleToggleProv
         return [
             new NavPermission('platform.users.manage'),
             new NavPermission('platform.users.module_access.manage'),
-            new NavPermission('platform.agencies.manage'),
-            new NavPermission('platform.services.manage'),
         ];
     }
 
@@ -50,14 +48,6 @@ final readonly class PlatformModule implements ModuleInterface, ModuleToggleProv
             $items[] = new NavItem('backend_platform_users', 'backend.nav.users', 'users', requiredPrivilege: 'platform.users.manage', descriptionKey: 'backend.nav.users_description');
         }
 
-        if ($this->platformContext->isAgenciesEnabled()) {
-            $items[] = new NavItem('backend_platform_agencies', 'backend.nav.agencies', 'building-2', requiredPrivilege: 'platform.agencies.manage', descriptionKey: 'backend.nav.agencies_description');
-        }
-
-        if ($this->platformContext->isServicesEnabled()) {
-            $items[] = new NavItem('backend_platform_services', 'backend.nav.services', 'briefcase', requiredPrivilege: 'platform.services.manage', descriptionKey: 'backend.nav.services_description');
-        }
-
         if ([] === $items) {
             return [];
         }
@@ -70,8 +60,6 @@ final readonly class PlatformModule implements ModuleInterface, ModuleToggleProv
         return [
             new NavSection('platform', [
                 new NavItem('backend_platform_users', 'backend.nav.users', 'users', requiredPrivilege: 'platform.users.manage', descriptionKey: 'backend.nav.users_description'),
-                new NavItem('backend_platform_agencies', 'backend.nav.agencies', 'building-2', requiredPrivilege: 'platform.agencies.manage', descriptionKey: 'backend.nav.agencies_description'),
-                new NavItem('backend_platform_services', 'backend.nav.services', 'briefcase', requiredPrivilege: 'platform.services.manage', descriptionKey: 'backend.nav.services_description'),
             ], priority: 20),
         ];
     }
@@ -81,8 +69,6 @@ final readonly class PlatformModule implements ModuleInterface, ModuleToggleProv
         return [
             ModuleParameterEnum::PlatformBackend->toToggle(),
             ModuleParameterEnum::PlatformUsers->toToggle(),
-            ModuleParameterEnum::PlatformAgencies->toToggle(),
-            ModuleParameterEnum::PlatformServices->toToggle(),
         ];
     }
 }

@@ -34,8 +34,6 @@ interface UserManagerInterface
 
     public function changeMoodMessage(User $user, ?string $moodMessage): void;
 
-    public function updateAgencyAndService(User $user, ?int $agencyId, ?int $serviceId): void;
-
     /** @param list<string> $privileges */
     public function updatePrivileges(User $user, array $privileges): void;
 

@@ -8,10 +8,6 @@ use Aurora\Core\Module\Service\PermissionRegistry;
 use Aurora\Core\Module\Toggle\ModuleToggle;
 use Aurora\Core\Module\Toggle\ModuleToggleRegistry;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
-use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
-use Aurora\Module\Platform\Agency\Repository\AgencyRepository;
-use Aurora\Module\Platform\Service\Entity\ServiceInterface;
-use Aurora\Module\Platform\Service\Repository\ServiceRepository;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -42,8 +38,6 @@ final readonly class UsersViewBuilder
     public function __construct(
         private PermissionRegistry $permissionRegistry,
         private SettingRepository $settingRepository,
-        private AgencyRepository $agencyRepository,
-        private ServiceRepository $serviceRepository,
         private TranslatorInterface $translator,
         private ModuleToggleRegistry $moduleToggleRegistry,
     ) {
@@ -96,16 +90,6 @@ final readonly class UsersViewBuilder
 
         usort($privilegesByModule, fn (array $a, array $b): int => $this->priorityFor($a['module']) <=> $this->priorityFor($b['module']));
 
-        $agencies = array_map(
-            static fn (AgencyInterface $agency): array => ['value' => (string) $agency->getId(), 'label' => $agency->getName()],
-            $this->agencyRepository->findAllAlphabetical(),
-        );
-
-        $services = array_map(
-            static fn (ServiceInterface $service): array => ['value' => (string) $service->getId(), 'label' => $service->getName()],
-            $this->serviceRepository->findAllAlphabetical(),
-        );
-
         // Modules currently enabled globally — surfaced to the per-user
         // disabled-modules picker as a hierarchical tree
         // (top-level → sub-modules, recursive). Source = ModuleToggleRegistry,
@@ -130,8 +114,6 @@ final readonly class UsersViewBuilder
             'privilegesByModule' => $privilegesByModule,
             'modulesForAccess' => $modulesForAccess,
             'canManageDisabledModules' => $canManageDisabledModules,
-            'agencies' => $agencies,
-            'services' => $services,
         ];
     }
 

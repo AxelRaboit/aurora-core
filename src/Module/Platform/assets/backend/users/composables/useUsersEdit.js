@@ -33,8 +33,6 @@ export function useUsersEdit(props, fetchUsers, options = {}) {
         role: "",
         password: "",
         managerId: null,
-        agencyId: null,
-        serviceId: null,
         ...Object.fromEntries(
             Object.entries(extraFields).map(([key, def]) => [key, def.default]),
         ),
@@ -50,16 +48,6 @@ export function useUsersEdit(props, fetchUsers, options = {}) {
         ];
     });
 
-    const agencyOptions = computed(() => [
-        { value: "", label: "—" },
-        ...(props.agencies ?? []),
-    ]);
-
-    const serviceOptions = computed(() => [
-        { value: "", label: "—" },
-        ...(props.services ?? []),
-    ]);
-
     function openEdit(user) {
         editModal.editing = user;
         editModal.errors = {};
@@ -68,8 +56,6 @@ export function useUsersEdit(props, fetchUsers, options = {}) {
         editForm.role = user.role ?? props.roles[0]?.value ?? "";
         editForm.password = "";
         editForm.managerId = user.managerId ? String(user.managerId) : "";
-        editForm.agencyId = user.agencyId ? String(user.agencyId) : "";
-        editForm.serviceId = user.serviceId ? String(user.serviceId) : "";
         for (const [key, def] of Object.entries(extraFields)) {
             editForm[key] = def.fromEntity
                 ? def.fromEntity(user)
@@ -129,8 +115,6 @@ export function useUsersEdit(props, fetchUsers, options = {}) {
         const payload = {
             ...editForm,
             managerId: editForm.managerId ? Number(editForm.managerId) : null,
-            agencyId: editForm.agencyId ? Number(editForm.agencyId) : null,
-            serviceId: editForm.serviceId ? Number(editForm.serviceId) : null,
         };
         const data = await request(url, payload);
         editModal.saving = false;
@@ -148,8 +132,6 @@ export function useUsersEdit(props, fetchUsers, options = {}) {
         editModal,
         editForm,
         managerOptions,
-        agencyOptions,
-        serviceOptions,
         openEdit,
         onPhotoSelected,
         removePhoto,
