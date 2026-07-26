@@ -69,7 +69,11 @@ final class BlockImageServiceTest extends TestCase
         $resolved = $this->imageService->path($filename, $user);
 
         self::assertFileExists($resolved);
-        self::assertStringStartsWith($this->storageDir.DIRECTORY_SEPARATOR.'9', $resolved);
+        // realpath() on both sides: $resolved went through realpath() in the
+        // service (needed for the traversal check), so compare against the
+        // storage dir's canonical path too — on macOS TMPDIR sits behind a
+        // /var -> /private/var symlink that realpath() resolves.
+        self::assertStringStartsWith(realpath($this->storageDir).DIRECTORY_SEPARATOR.'9', $resolved);
     }
 
     public function testPathThrowsOnMissingFile(): void

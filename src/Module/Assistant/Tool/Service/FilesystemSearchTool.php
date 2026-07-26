@@ -128,7 +128,11 @@ final readonly class FilesystemSearchTool implements ToolInterface
                         return false;
                     }
 
-                    return !($current->isDir() && in_array($name, self::SKIP_DIRS, true));
+                    if (!$current->isDir()) {
+                        return true;
+                    }
+
+                    return !in_array($name, self::SKIP_DIRS, true);
                 },
             );
 

@@ -25,6 +25,7 @@ class OcrJobSerializer implements OcrJobSerializerInterface
     {
         $status = $job->getStatus();
         $document = $job->getDocument();
+        $invoice = $this->invoiceRepository->findOneBy(['ocrJob' => $job]);
 
         return [
             'id' => $job->getId(),
@@ -44,7 +45,7 @@ class OcrJobSerializer implements OcrJobSerializerInterface
             'modelUsed' => $job->getModelUsed(),
             'confidence' => $job->getConfidence(),
             'error' => $job->getError(),
-            'invoiceId' => ($invoice = $this->invoiceRepository->findOneBy(['ocrJob' => $job]))?->getId(),
+            'invoiceId' => $invoice?->getId(),
             'invoiceStatus' => $invoice?->getStatus()->value,
             'invoiceCanValidate' => $invoice?->getStatus()->isEditable() ?? false,
             'invoiceCanDeleteTiers' => $invoice?->getStatus()->isDeletable()
