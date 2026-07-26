@@ -100,13 +100,13 @@ onMounted(async () => {
                 ui: {
                     blockTunes: {
                         toggler: {
-                            "Click to tune":   t("backend.editor.ui.blockTunes.toggler.Click to tune"),
-                            "or drag to move": t("backend.editor.ui.blockTunes.toggler.or drag to move"),
+                            "Click to tune":   t("backend.editor.ui.block_tunes.toggler.Click to tune"),
+                            "or drag to move": t("backend.editor.ui.block_tunes.toggler.or drag to move"),
                         },
                     },
                     inlineToolbar: {
                         converter: {
-                            "Convert to": t("backend.editor.ui.inlineToolbar.converter.Convert to"),
+                            "Convert to": t("backend.editor.ui.inline_toolbar.converter.Convert to"),
                         },
                     },
                     toolbar: {
@@ -149,13 +149,13 @@ onMounted(async () => {
                 blockTunes: {
                     delete: {
                         Delete:           t("backend.editor.block_tunes.delete.Delete"),
-                        "Click to delete": t("backend.editor.blockTunes.delete.Click to delete"),
+                        "Click to delete": t("backend.editor.block_tunes.delete.Click to delete"),
                     },
                     moveUp: {
-                        "Move up": t("backend.editor.blockTunes.moveUp.Move up"),
+                        "Move up": t("backend.editor.block_tunes.move_up.Move up"),
                     },
                     moveDown: {
-                        "Move down": t("backend.editor.blockTunes.moveDown.Move down"),
+                        "Move down": t("backend.editor.block_tunes.move_down.Move down"),
                     },
                 },
             },
