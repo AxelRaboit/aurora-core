@@ -102,6 +102,32 @@ findings ci-dessous.
 > symptôme apparaît, il est probablement lié et mérite d'être ajouté ici
 > plutôt qu'une nouvelle note séparée.
 
+> **URLs frontend aplaties — /{locale}/editorial → /{locale} (juillet
+> 2026)** : suite logique du recentrage — tant qu'il restait plusieurs
+> modules avec front public (Ecommerce/Photo/etc.), le préfixe
+> `/{locale}/editorial/...` servait à distinguer le "front" de chaque
+> module dans l'espace d'URL (cf. `Registry`/`FrontendInterface`,
+> `RootDispatchController::firstEnabledFront()`). Editorial étant
+> maintenant le seul front, ce préfixe n'est plus qu'un segment
+> superflu — retiré des 10 routes front d'Editorial (Post/Comment/Form,
+> `PageController.php`, `CommentController.php`, `FormController.php`).
+> Les noms de route ne changent pas (`editorial_home`, `editorial_post`,
+> `editorial_form`, ...) donc tout `path()`/`generateUrl()` (Twig, sitemap,
+> menu) suit automatiquement — seuls deux endroits construisaient une URL
+> à partir d'un littéral au lieu du nom de route et ont dû être corrigés à
+> la main : `HomeApp.vue` (lien post côté client) et les assertions de
+> `tests/Integration/Service/MenuRendererTest.php`. Ce test-là est
+> monorepo-only (hors `src/Module/Editorial/`, donc pas repris par le
+> `git subtree split` vers `aurora-editorial`). `make ft` vert (1238 tests
+> + 585 vitest). Commit `develop` : `58d895d3`. Propagation : PAS
+> `split/core` (qui exclut Editorial en entier) mais le repo standalone
+> `aurora-editorial` via `bin/split-modules.sh` → commit `2ec1620` sur sa
+> branche `master`, puis `composer update axelraboit/aurora-editorial`
+> côté `aurora-myspace` (`e407625`). Vérifié en live : `/fr` → 200,
+> `/fr/editorial` → 404 (route disparue, comme attendu).
+> `RootDispatchController` n'a pas eu besoin d'édition — il redirige déjà
+> par nom de route (`editorial_home`), pas par chemin littéral.
+
 > **Outillage aligné (2026-05-31)** : les skills de scaffolding `/add-module`,
 > `/register-module-toggle`, `/audit-module-toggles`, `/add-submodule` + la doc
 > `docs/aurora-core/dev/add_module.md` génèrent/attendent désormais la forme
