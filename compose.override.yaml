@@ -10,18 +10,3 @@ services:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
 ###< symfony/mailer ###
-
-###> aurora/ocr ###
-  doctr:
-    build: ./tools/docker/doctr
-    profiles: [ocr]
-    ports:
-      - "8001:8000"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 90s
-###< aurora/ocr ###

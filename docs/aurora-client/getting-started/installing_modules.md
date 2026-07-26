@@ -11,10 +11,18 @@ on passe par des dépôts VCS.
 
 > 🧰 **Kit copier-coller** : un template prêt à l'emploi vit dans aurora-core à
 > `vendor/axelraboit/aurora/.claude/client_template/` —
-> `composer.json` (les **13 `repositories` déjà listés** + require à la carte),
-> `config/bundles.php`, `config/routes.yaml`, `config/packages/messenger.yaml`.
-> Copie-les, puis tu ne touches plus que la section `require` pour
-> ajouter/retirer un module (les repos sont déjà tous là).
+> `composer.json` (`repositories` core + editorial déjà listés + require à
+> la carte), `config/bundles.php`, `config/routes.yaml`,
+> `config/packages/messenger.yaml`. Copie-les, puis tu ne touches plus que
+> la section `require`/`repositories` pour ajouter un module.
+
+> ⚠️ **Modules autres qu'Editorial** : depuis le recentrage d'Aurora sur
+> Core + Editorial (juillet 2026), les 11 autres modules (Tools, Crm,
+> Billing, Photo, Project, Hr, Notes, PersonalFinance, Planning,
+> Assistant, Commerce) ne sont plus maintenus depuis aurora-core — leurs
+> repos GitHub existent toujours et s'installent comme avant, mais sont
+> figés à leur dernier état. Cf. mémoire
+> `architecture/project_monorepo_split_chantier.md`.
 
 ## 1. Déclarer les dépôts VCS + requérir les packages
 
@@ -26,13 +34,11 @@ Dans le `composer.json` du client :
     "prefer-stable": true,
     "require": {
         "axelraboit/aurora": "dev-develop",
-        "axelraboit/aurora-tools": "dev-master",
-        "axelraboit/aurora-crm": "dev-master"
+        "axelraboit/aurora-editorial": "dev-master"
     },
     "repositories": [
         { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-core.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-tools.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-crm.git" }
+        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-editorial.git" }
     ]
 }
 ```

@@ -6,7 +6,7 @@ return [
     // self-registering bundle (AbstractAuroraModuleBundle). Removing a line
     // removes that whole module — the "install only what you want" mechanism.
     // In the target topology each is a separate Composer package.
-    // Ecommerce + Erp ship together as the aurora-commerce package (cat. E).
+    Aurora\Module\Editorial\AuroraEditorialBundle::class => ['all' => true],
     Symfony\Bundle\FrameworkBundle\FrameworkBundle::class => ['all' => true],
     Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => ['all' => true],
     Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle::class => ['dev' => true, 'test' => true],

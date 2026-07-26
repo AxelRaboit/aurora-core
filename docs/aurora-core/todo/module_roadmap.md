@@ -4,23 +4,29 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 
 ## État actuel
 
+> **Recentrage (juillet 2026)** : Aurora a été réduit à **Core + Editorial**
+> (CMS façon WordPress). Les modules ci-dessous marqués « extrait, non
+> ré-publié » ont été retirés du monorepo ; leur code reste figé dans leur
+> repo standalone (`aurora-<module>`), non maintenu depuis aurora-core.
+> Réintégration = reprendre depuis ce repo, pas depuis aurora-core.
+
 | Module | Statut |
 |---|---|
 | Editorial (CMS/Blog) | ✅ Core |
-| CRM (contacts, entreprises, affaires) | ✅ Core |
-| ERP (produits) | ✅ Core |
-| Ecommerce (catalogue, panier, commandes) | ✅ Core |
-| Billing (factures, avoir, OCR, tiers) | ✅ Core |
 | GED (documents) | ✅ Core |
-| Photo (galeries client) | ✅ Core |
-| Project (projets / tâches) | ✅ Core |
-| Planning / Agenda | ✅ Core |
-| HR (fiches employés) | ✅ Core (entité `Employee` avec lien `User`, CRUD complet) |
-| Notes (Markdown + Block / EditorJS) | ✅ Core |
-| Vault (Safe + PasswordGenerator) | ✅ Core |
-| Assistant (Ollama / chat IA) | ✅ Core |
-| PersonalFinance (Spendly) | ✅ Core (porté depuis Spendly, mai 2026) |
 | Media (médiathèque) | ✅ Core — fusion vers GED planifiée, cf. [media-ged-merge](media-ged-merge.md) |
+| ~~CRM (contacts, entreprises, affaires)~~ | Extrait, non ré-publié — `aurora-crm` |
+| ~~ERP (produits)~~ | Extrait, non ré-publié — `aurora-commerce` |
+| ~~Ecommerce (catalogue, panier, commandes)~~ | Extrait, non ré-publié — `aurora-commerce` |
+| ~~Billing (factures, avoir, OCR, tiers)~~ | Extrait, non ré-publié — `aurora-billing` |
+| ~~Photo (galeries client)~~ | Extrait, non ré-publié — `aurora-photo` |
+| ~~Project (projets / tâches)~~ | Extrait, non ré-publié — `aurora-project` |
+| ~~Planning / Agenda~~ | Extrait, non ré-publié — `aurora-planning` |
+| ~~HR (fiches employés)~~ | Extrait, non ré-publié — `aurora-hr` |
+| ~~Notes (Markdown + Block / EditorJS)~~ | Extrait, non ré-publié — `aurora-notes` |
+| ~~Vault (Safe + PasswordGenerator)~~ | Extrait, non ré-publié — `aurora-tools` |
+| ~~Assistant (Ollama / chat IA)~~ | Extrait, non ré-publié — `aurora-assistant` |
+| ~~PersonalFinance (Spendly)~~ | Extrait, non ré-publié — `aurora-personal-finance` |
 | ~~PdfForm (formulaires PDF)~~ | Absorbé dans Welding (sprint 6, mai 2026), puis extrait en client `aurora-welding` |
 | ~~Welding (workflows de soudure réglementée)~~ | Extrait en client `aurora-welding/` (mai 2026 — premier usage du playbook [dev/extracting_a_module.md](../dev/extracting_a_module.md)) |
 

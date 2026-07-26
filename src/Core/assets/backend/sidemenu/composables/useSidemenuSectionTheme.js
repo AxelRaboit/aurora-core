@@ -22,23 +22,11 @@ import { isRef } from "vue";
 const SECTION_THEMES = {
     general: makeTheme("slate"),
     platform: makeTheme("indigo"),
-    vault: makeTheme("stone"),
     configuration: makeTheme("zinc"),
-    notes: makeTheme("yellow"),
-    personal_finance: makeTheme("emerald"),
     editorial: makeTheme("rose"),
     ged: makeTheme("lime"),
-    planning: makeTheme("cyan"),
-    crm: makeTheme("sky"),
-    erp: makeTheme("teal"),
-    ecommerce: makeTheme("purple"),
-    billing: makeTheme("amber"),
-    photo: makeTheme("fuchsia"),
     media: makeTheme("pink"),
-    project: makeTheme("blue"),
-    hr: makeTheme("green"),
     dev: makeTheme("orange"),
-    assistant: makeTheme("violet"),
 };
 
 const FALLBACK_THEME = makeTheme("accent");

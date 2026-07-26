@@ -69,23 +69,6 @@ const baseMessages = {
             confirmPasswordInvalid: "Mot de passe incorrect.",
             cascadeLocked: "Activez d'abord « {parent} ».",
         },
-        projects: {
-            errors: {
-                comment_required: "Le commentaire est requis.",
-                item_label_required: "Le libellé est requis.",
-                time_minutes_invalid: "Durée invalide.",
-            },
-        },
-        ecommerce: {
-            orders: {
-                refund: {
-                    success: "Remboursement effectué.",
-                },
-            },
-            errors: {
-                refund_failed: "Remboursement échoué.",
-            },
-        },
     },
 };
 

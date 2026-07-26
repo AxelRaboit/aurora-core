@@ -8,5 +8,3 @@
 
 ## Contexte projet
 - [project_aurora_client_role.md](project_aurora_client_role.md) — aurora-client est un projet démo + template de départ
-- [project_vault_module.md](project_vault_module.md) — Module Vault E2E : ownership user-scopé, crypto PBKDF2+AES-GCM, permission unique `vault.use`
-- [project_personal_finance_port_status.md](project_personal_finance_port_status.md) — État du port Spendly → PersonalFinance : sessions complétées (1, 2a, 2b, 2c, 3 au 2026-05-22) + ordre + dépendances bloquantes. À mettre à jour à chaque session.

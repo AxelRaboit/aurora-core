@@ -19,7 +19,7 @@ final readonly class OverviewViewBuilder
      */
     public function overviewPayload(): array
     {
-        return ['stats' => $this->statsService->getStats(['editorial', 'crm', 'erp', 'billing', 'ecommerce', 'photo'])];
+        return ['stats' => $this->statsService->getStats(['editorial'])];
     }
 
     /**

@@ -21,12 +21,12 @@ backend:
       submit: Send reset link
       title: Forgot password
     hero:
-      description: 'An all-in-one platform to manage content, customers, catalog and shop.'
+      description: 'A headless CMS to manage multilingual content, pages and forms.'
       feature_1: 'Content management & SEO'
-      feature_2: 'CRM: contacts and deals'
-      feature_3: 'ERP: products and catalog'
-      feature_4: Built-in online store
-      heading: Run your business
+      feature_2: 'Multi-language, block-based editing'
+      feature_3: 'Custom post types & taxonomies'
+      feature_4: Forms & comments
+      heading: Run your content
       heading_accent: 'with {siteName}.'
     invitation:
       accept_title: Accept invitation

@@ -1,13 +1,6 @@
 import { computed, ref, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
-import {
-    Camera,
-    FileText,
-    Package,
-    Receipt,
-    ShoppingCart,
-    Users,
-} from "lucide-vue-next";
+import { FileText } from "lucide-vue-next";
 
 const ACTIVE_MODULE_KEY = "aurora-dashboard-module";
 
@@ -17,15 +10,6 @@ const MODULE_DEFINITIONS = [
         labelKey: "backend.nav.sections.editorial",
         icon: FileText,
     },
-    { id: "crm", labelKey: "backend.nav.sections.crm", icon: Users },
-    { id: "erp", labelKey: "backend.nav.sections.erp", icon: Package },
-    { id: "billing", labelKey: "backend.nav.sections.billing", icon: Receipt },
-    {
-        id: "ecommerce",
-        labelKey: "backend.nav.sections.ecommerce",
-        icon: ShoppingCart,
-    },
-    { id: "photo", labelKey: "backend.nav.sections.photo", icon: Camera },
 ];
 
 export function useDashboardModule(enabledModules) {

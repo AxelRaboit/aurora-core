@@ -21,12 +21,12 @@ backend:
       submit: Envoyer le lien
       title: Mot de passe oublié
     hero:
-      description: 'Une plateforme tout-en-un pour gérer contenus, clients, catalogue et boutique.'
+      description: 'Un CMS headless pour gérer contenus multilingues, pages et formulaires.'
       feature_1: Gestion de contenu et SEO
-      feature_2: 'CRM : contacts et opportunités'
-      feature_3: 'ERP : produits et catalogue'
-      feature_4: Boutique e-commerce intégrée
-      heading: Pilotez votre activité
+      feature_2: 'Édition multilingue par blocs'
+      feature_3: 'Types de contenus et taxonomies personnalisés'
+      feature_4: Formulaires et commentaires
+      heading: Pilotez votre contenu
       heading_accent: 'avec {siteName}.'
     invitation:
       accept_title: Accepter l'invitation

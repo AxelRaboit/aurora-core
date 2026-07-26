@@ -212,11 +212,6 @@ backend:
     by_type: Articles par type
     recent: Activité récente
     posts_by_month: Articles publiés par mois
-    pipeline: pipeline
-    won: Affaires gagnées
-    deals_by_stage: Affaires par étape
-    products_by_status: Produits par statut
-    inventory: Inventaire
     no_module_enabled: Aucun module de dashboard activé.
     coming_soon: Bientôt disponible
     editorial:
@@ -226,35 +221,6 @@ backend:
       recent_activity: Activité récente
       posts_by_author: Posts par auteur
       media_by_type: Médias par type
-    crm:
-      recent_deals: Affaires récentes
-      conversion_rate: Taux de conversion
-      recent_activity: Activité contacts (7 j)
-    erp:
-      out_of_stock: Rupture de stock
-      by_type: Par type
-      catalog_evolution: Évolution du catalogue
-      top_selling: Produits les plus vendus
-    billing:
-      needing_review: À traiter
-      total_gross: CA total facturé
-      overdue: Factures en retard
-      top_suppliers: Top fournisseurs
-      monthly_evolution: Évolution mensuelle
-    photo:
-      active: Galeries actives
-      finalized: Finalisées
-      client_selections: Sélections clients
-      by_client: Galeries par client
-    ecommerce:
-      pending: en attente
-      revenue: Chiffre d'affaires
-      revenue_subtitle: payées + expédiées + livrées
-      average_order: Panier moyen
-      recent_orders: Commandes récentes
-      by_status: Répartition par statut
-      revenue_chart: Évolution du CA
-      top_products: Top produits vendus
   forms:
     errors:
       slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'

@@ -14,6 +14,15 @@ packages sur GitHub (branches `master`, `dev-master`), install à la carte prouv
 Découplage complet (graphe étoile + cat-F). Détail dans la table « État » + les
 findings ci-dessous.
 
+> **Recentrage (juillet 2026)** : le split de ces 13 packages était complet
+> et validé, mais le nettoyage côté monorepo (Phase 3 de
+> `extracting_a_module.md` — retirer le code désormais dupliqué de
+> `src/Module/<X>`) n'avait jamais été fait pour les 11 modules métier
+> (Editorial excepté). C'est désormais chose faite : Aurora a été recentré
+> sur **Core + Editorial** seulement. Les 11 autres packages restent sur
+> GitHub, figés à leur dernier split, non ré-publiés depuis aurora-core.
+> `bin/split-modules.sh` ne gère plus qu'`aurora-editorial`.
+
 > **Outillage aligné (2026-05-31)** : les skills de scaffolding `/add-module`,
 > `/register-module-toggle`, `/audit-module-toggles`, `/add-submodule` + la doc
 > `docs/aurora-core/dev/add_module.md` génèrent/attendent désormais la forme

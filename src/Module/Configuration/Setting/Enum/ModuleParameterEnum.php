@@ -34,12 +34,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     // Sub-modules — Media
     case MediaLibrary = 'modules_media_library';
 
-    // Sub-modules — Billing
-
-    // Sub-modules — CRM
-
-    // Sub-modules — Ecommerce
-
     // Sub-modules — Editorial
 
     // Sub-modules — GED
@@ -48,22 +42,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     case GedTags = 'modules_ged_tags';
     case GedFolders = 'modules_ged_folders';
     case GedFrontend = 'modules_ged_frontend';
-
-    // Sub-modules — ERP
-
-    // Sub-modules — HR
-
-    // Sub-modules — Photo
-
-    // Sub-modules — Planning
-
-    // Sub-modules — Project
-
-    // Sub-modules — Tools
-
-    // Sub-modules — Assistant
-
-    // Sub-modules — PersonalFinance
 
     public function getKey(): string
     {
@@ -168,9 +146,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::ConfigurationThemes => self::ConfigurationBackend->value,
             // Media sub-modules
             self::MediaLibrary => self::MediaBackend->value,
-            // Billing sub-modules
-            // CRM sub-modules
-            // Ecommerce sub-modules
             // Editorial sub-modules
             // GED sub-modules
             self::GedDocuments => self::GedBackend->value,
@@ -178,13 +153,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GedTags => self::GedBackend->value,
             self::GedFolders => self::GedBackend->value,
             self::GedFrontend => self::GedBackend->value,
-            // ERP sub-modules
-            // HR sub-modules
-            // Photo sub-modules
-            // Planning sub-modules
-            // Project sub-modules
-            // Vault sub-modules
-            // PersonalFinance sub-modules
             default => null,
         };
     }

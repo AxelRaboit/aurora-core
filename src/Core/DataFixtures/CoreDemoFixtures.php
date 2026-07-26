@@ -88,16 +88,12 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
                 'role' => UserRoleEnum::User,
                 'privileges' => [
                     'general.dashboard.view',
-                    // CRM — full sales access
-                    'crm.contacts.view', 'crm.contacts.create', 'crm.contacts.edit', 'crm.contacts.delete',
-                    'crm.companies.view', 'crm.companies.create', 'crm.companies.edit', 'crm.companies.delete',
-                    'crm.deals.view', 'crm.deals.create', 'crm.deals.edit', 'crm.deals.delete',
                     // GED — full document management
                     'ged.documents.view', 'ged.documents.create', 'ged.documents.edit', 'ged.documents.delete',
                     'ged.categories.view', 'ged.categories.create', 'ged.categories.edit', 'ged.categories.delete',
                     'ged.tags.manage', 'ged.folders.manage',
                 ],
-                'mood' => 'Commercial senior',
+                'mood' => 'Gestionnaire documentaire',
             ],
             [
                 'email' => 'sophie.bernard@aurora.app',
@@ -118,24 +114,6 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
                     'media.folders.create', 'media.folders.edit', 'media.folders.delete',
                 ],
                 'mood' => 'Rédactrice en chef ✍️',
-            ],
-            [
-                'email' => 'thomas.petit@aurora.app',
-                'name' => 'Thomas Petit',
-                'role' => UserRoleEnum::User,
-                'privileges' => [
-                    'general.dashboard.view',
-                    // Ecommerce — full sales access (refund stays admin-only)
-                    'ecommerce.listings.view', 'ecommerce.listings.create', 'ecommerce.listings.edit', 'ecommerce.listings.delete',
-                    'ecommerce.orders.view', 'ecommerce.orders.edit',
-                    // Billing — full accounting
-                    'billing.invoices.view', 'billing.invoices.create', 'billing.invoices.edit', 'billing.invoices.delete',
-                    'billing.tiers.view', 'billing.tiers.edit', 'billing.tiers.delete',
-                    'billing.ocr.import',
-                    // ERP products
-                    'erp.products.view', 'erp.products.create', 'erp.products.edit',
-                ],
-                'mood' => 'Responsable boutique & facturation',
             ],
         ];
 

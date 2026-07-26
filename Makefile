@@ -125,13 +125,11 @@ purge-uploads: ## Remove all stored files under var/uploads/ (keeps .gitignore)
 	find var/uploads -mindepth 1 -not -name '.gitignore' -delete 2>/dev/null || true
 
 # === Docker ===
-docker-up: ## Start all local services (mailpit + docTR)
+docker-up: ## Start all local services (mailpit)
 	docker compose up -d mailer
-	docker compose --profile ocr up -d --build doctr
 
-docker-down: ## Stop all local services (mailpit + docTR)
+docker-down: ## Stop all local services (mailpit)
 	docker compose stop mailer
-	docker compose --profile ocr stop doctr
 
 # === Mailpit ===
 mailpit-up: ## Start mailpit
