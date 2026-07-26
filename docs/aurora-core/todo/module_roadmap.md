@@ -43,10 +43,41 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 >   (`editorial_home`, `editorial_post`, ...), donc tout ce qui génère les
 >   URLs via `path()`/`generateUrl()` suit automatiquement. `develop`
 >   `58d895d3` ; repo standalone `aurora-editorial` `2ec1620`.
+>
+> **Editorial complètement sorti du monorepo (juillet 2026)** : dernière
+> étape du recentrage — `develop` **devient** Core seul (le contenu qui
+> était jusque-là celui de `split/core`), au lieu de contenir Core+Editorial
+> avec `split/core` comme filtrage dérivé. Editorial ne vit plus **que**
+> dans `aurora-editorial`, même traitement que les 11 autres modules déjà
+> extraits. `split/core` est donc supprimé (redondant, `develop` le
+> remplace intégralement).
+> - **Retrouver l'état d'avant** : branche `archive/develop-pre-editorial-split`
+>   = exact contenu de `develop` juste avant ce changement (Core + Editorial
+>   combinés, comme depuis le début du recentrage éditorial).
+> - **Reliquats trouvés** (`split/core` n'avait en réalité jamais tourné
+>   comme application autonome — il n'était consommé que via Composer, où
+>   le kernel du projet client prenait le relais) : `config/bundles.php`
+>   référençait encore `AuroraEditorialBundle` (classe absente → kernel ne
+>   bootait plus du tout) ; le layout frontend partagé (`layout.html.twig`,
+>   utilisé même par les pages Auth/login) dépendait en dur d'Editorial
+>   (`menu_items()`, route `editorial_home`, composants Vue
+>   `SiteHeaderApp`/`SiteFooterApp`) ; `head.html.twig` référençait la route
+>   RSS d'Editorial. Tout ça corrigé : `develop` `d9ff538b` (bundles/DI) +
+>   `4320d159` (découplage du thème frontend, nouvelle fonction Twig
+>   `default_front_home_path()` qui résout vers le front réellement
+>   enregistré — GED ici).
+> - **Suivi pour une future réintégration d'Editorial** : le thème frontend
+>   par défaut de Core est maintenant volontairement minimal (nom du site +
+>   sélecteur de langue, pas de menu de nav). Si Editorial est réinstallé
+>   un jour, son propre package devrait surcharger `layout.html.twig`/
+>   `head.html.twig` (mécanisme déjà documenté dans
+>   [frontend_theme_override.md](../dev/frontend_theme_override.md)) pour
+>   retrouver le header/footer riches (menus, dropdown compte, flux RSS) —
+>   pas fait ici, volontairement hors-scope.
 
 | Module | Statut |
 |---|---|
-| Editorial (CMS/Blog) | ✅ Core |
+| ~~Editorial (CMS/Blog)~~ | Extrait, non ré-publié — `aurora-editorial` |
 | GED (documents) | ✅ Core |
 | Media (médiathèque) | ✅ Core — fusion vers GED planifiée, cf. [media-ged-merge](media-ged-merge.md) |
 | ~~CRM (contacts, entreprises, affaires)~~ | Extrait, non ré-publié — `aurora-crm` |

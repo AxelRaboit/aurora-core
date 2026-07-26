@@ -128,6 +128,70 @@ findings ci-dessous.
 > `RootDispatchController` n'a pas eu besoin d'édition — il redirige déjà
 > par nom de route (`editorial_home`), pas par chemin littéral.
 
+> **Editorial complètement sorti du monorepo — develop devient Core seul
+> (juillet 2026)** : dernière étape du recentrage, décidée explicitement
+> par l'utilisateur ("tout ce qui est sur split/core, je veux que ce soit
+> officiel et qu'on mette ça sur develop"). Jusque-là `develop` contenait
+> Core+Editorial et `split/core` en était un filtrage dérivé (maintenu à
+> la main via cherry-pick à chaque commit non-Editorial, cf. notes
+> ci-dessus) ; désormais `develop` **est** ce que `split/core` était —
+> Editorial ne vit plus que dans `aurora-editorial`, même statut que les
+> 11 autres modules déjà extraits.
+>
+> Séquence exacte : tag/branche de sauvegarde `archive/develop-pre-editorial-split`
+> créée sur l'ancien tip de `develop` (`995a84b3`) *avant* tout changement
+> → `git push --force` du tip de `split/core` (`93ba0f20`) sur `develop` →
+> suppression de la branche `split/core` (devenue redondante, `develop` la
+> remplace intégralement). Pas un simple renommage de branche : l'historique
+> de `split/core` était maintenu séparément depuis le début (worktree +
+> cherry-pick manuel), donc c'est un remplacement complet du contenu de
+> `develop`, pas un fast-forward.
+>
+> **Reliquats découverts en conséquence** : `split/core` n'avait en fait
+> *jamais* tourné comme application autonome — il n'était consommé que via
+> Composer par les projets client, dont le kernel prenait le relais pour
+> tout ce qui est bundles/config/DI. Une fois `develop` = ce contenu, trois
+> bugs latents sont remontés au premier `make ft` (jamais exécuté "pour de
+> vrai" sur ce contenu avant) :
+> - `config/bundles.php` référençait encore `Aurora\Module\Editorial\AuroraEditorialBundle`
+>   (classe absente sur cette branche) → kernel ne bootait plus du tout
+>   (`ClassNotFoundError` sur toute commande console/CI).
+> - `AuroraBundle.php::prependExtension()` avait un filtre
+>   `$extractedModules = ['Editorial']` qui "simulait" l'absence
+>   d'Editorial dans le monorepo — devenu mort une fois l'absence réelle.
+> - Le thème frontend par défaut (`layout.html.twig`, utilisé même par les
+>   pages Auth/login puisque c'est le layout partagé) dépendait en dur
+>   d'Editorial : fonction Twig `menu_items()` (Twig valide l'existence
+>   d'une fonction à la *compilation*, indépendamment du `showFrontMenus|default(false) ? ... : []`
+>   qui l'entourait — donc ça cassait même quand la branche n'était
+>   jamais prise), route `editorial_home` (lien nom du site + switcher de
+>   langue), composants Vue `editorial/frontend/site/SiteHeaderApp`/`SiteFooterApp`.
+>   Et `head.html.twig` référençait la route `frontend_rss` (flux RSS,
+>   Editorial-only) dans son `<link rel="alternate">`.
+>
+> Corrections : `develop` `d9ff538b` (bundles.php + AuroraBundle.php) et
+> `4320d159` (thème frontend). Le nouveau layout est volontairement
+> minimal et générique — nom du site + logo (via `ThemeContext`, déjà
+> Core) + sélecteur de langue, sans système de menu (ça reste un concept
+> propre à un module de contenu). Nouvelle fonction Twig Core
+> `default_front_home_path(locale)` (`FrontendExtension.php`) : résout
+> vers `Router::getDefault()->getHomeRoute()`, donc vers *quel que soit*
+> le `FrontendInterface` réellement enregistré — sur Core seul c'est
+> `GedFrontendDescriptor` (bibliothèque publique GED, priorité 2), avant
+> c'était Editorial (priorité 10). Zéro route en dur. `make ft` vert après
+> 3 itérations (673 tests PHP, 90 fichiers vitest).
+>
+> **Pour une future réintégration d'Editorial** : le thème frontend `default`
+> de Core est maintenant délibérément pauvre (pas de nav menu, pas de flux
+> RSS, pas de dropdown compte). Le package `aurora-editorial`, s'il est
+> réinstallé, devrait surcharger `Frontend/themes/default/layout.html.twig`
+> et `head.html.twig` (mécanisme déjà en place, cf.
+> [[project_monorepo_split_chantier]] et
+> `docs/aurora-core/dev/frontend_theme_override.md`) pour retrouver le
+> header/footer riches (menus, compte, RSS). Non fait ici — volontairement
+> hors-scope de ce chantier, à traiter le jour où Editorial revient vraiment
+> dans un projet client.
+
 > **Outillage aligné (2026-05-31)** : les skills de scaffolding `/add-module`,
 > `/register-module-toggle`, `/audit-module-toggles`, `/add-submodule` + la doc
 > `docs/aurora-core/dev/add_module.md` génèrent/attendent désormais la forme
