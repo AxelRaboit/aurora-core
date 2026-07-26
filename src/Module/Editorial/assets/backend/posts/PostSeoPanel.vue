@@ -219,7 +219,7 @@ async function selectOgFromLibrary() {
                     >
                         <Upload class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.seo.og_image_upload") }}
                     </AppFilePickerButton>
-                    <AppButton variant="ghost" size="sm" class="w-full sm:w-auto" v-on:click="selectOgFromLibrary">
+                    <AppButton variant="secondary" size="sm" class="w-full sm:w-auto" v-on:click="selectOgFromLibrary">
                         <ImagePlus class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.select_from_library") }}
                     </AppButton>
                     <AppButton
