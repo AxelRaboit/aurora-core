@@ -128,7 +128,7 @@ backend:
       description: Maximum number of revisions kept per post (oldest are deleted)
     file_versions_limit:
       label: File versions kept
-      description: Maximum number of versions kept per file (media library and GED documents) — beyond that, the oldest are deleted along with their file. 0 = unlimited.
+      description: Maximum number of versions kept per GED file — beyond that, the oldest are deleted along with their file. 0 = unlimited.
     trash_auto_purge_days:
       label: Auto-purge trash (days)
       description: Number of days before permanent deletion of trashed posts (0 = never)

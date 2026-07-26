@@ -17,15 +17,6 @@ backend:
           manage: Manage users
           module_access:
             manage: Manage user module access
-      media:
-        view: View media library
-        create: Upload media
-        edit: Edit media (rename, crop, move)
-        delete: Delete media
-        folders:
-          create: Create media folders
-          edit: Edit media folders
-          delete: Delete media folders
       configuration:
         settings:
           manage: Manage settings
