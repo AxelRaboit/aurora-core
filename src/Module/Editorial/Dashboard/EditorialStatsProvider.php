@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Dashboard;
 
 use Aurora\Core\Dashboard\DashboardStatsProviderInterface;
+use Aurora\Core\Storage\Enum\MimeTypeEnum;
 use Aurora\Module\Editorial\Comment\Repository\CommentRepository;
 use Aurora\Module\Editorial\Menu\Repository\MenuRepository;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
@@ -49,6 +50,8 @@ final readonly class EditorialStatsProvider implements DashboardStatsProviderInt
             'users' => ['total' => $this->userRepository->count([])],
             'postsByMonth' => $this->getPostsByMonth(),
             'recentPosts' => $this->getRecentPosts(),
+            'postsByAuthor' => $this->getPostsByAuthor(),
+            'mediaByType' => $this->getMediaByType(),
         ];
     }
 
@@ -100,6 +103,53 @@ final readonly class EditorialStatsProvider implements DashboardStatsProviderInt
         for ($monthOffset = 5; $monthOffset >= 0; --$monthOffset) {
             $monthKey = new DateTimeImmutable(sprintf('-%d months', $monthOffset))->format('Y-m');
             $result[] = ['month' => $monthKey, 'count' => $monthCountMap[$monthKey] ?? 0];
+        }
+
+        return $result;
+    }
+
+    /** @return array<int, array{label: string, count: int}> */
+    private function getPostsByAuthor(): array
+    {
+        $countByAuthor = $this->postRepository->countGroupedByAuthor();
+
+        $result = [];
+        foreach ($countByAuthor as $authorId => $count) {
+            $author = $authorId > 0 ? $this->userRepository->find($authorId) : null;
+            $result[] = ['label' => $author?->getName() ?? '—', 'count' => $count];
+        }
+
+        usort($result, static fn (array $a, array $b): int => $b['count'] <=> $a['count']);
+
+        return $result;
+    }
+
+    /**
+     * Buckets documents into the same image/pdf/other categories as the
+     * GED document type filter (`backend.ged.documents.type_*`), since
+     * {@see MimeTypeEnum} only distinguishes those.
+     *
+     * @return array<int, array{key: string, count: int}>
+     */
+    private function getMediaByType(): array
+    {
+        $buckets = ['image' => 0, 'pdf' => 0, 'other' => 0];
+
+        foreach ($this->documentRepository->countGroupedByMimeType() as $mime => $count) {
+            $enum = MimeTypeEnum::tryFrom((string) $mime);
+            $key = match (true) {
+                $enum?->isImage() => 'image',
+                MimeTypeEnum::Pdf === $enum => 'pdf',
+                default => 'other',
+            };
+            $buckets[$key] += $count;
+        }
+
+        $result = [];
+        foreach ($buckets as $key => $count) {
+            if ($count > 0) {
+                $result[] = ['key' => $key, 'count' => $count];
+            }
         }
 
         return $result;

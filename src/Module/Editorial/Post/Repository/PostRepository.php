@@ -457,6 +457,27 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * @return array<int, int> map of author_id => post count (non-trashed posts);
+     *                         authorless posts are grouped under key 0
+     */
+    public function countGroupedByAuthor(): array
+    {
+        $rows = $this->createQueryBuilder('p')
+            ->select('IDENTITY(p.author) AS authorId, COUNT(p.id) AS cnt')
+            ->where('p.deletedAt IS NULL')
+            ->groupBy('p.author')
+            ->getQuery()
+            ->getArrayResult();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[(int) $row['authorId']] = (int) $row['cnt'];
+        }
+
+        return $map;
+    }
+
+    /**
      * @return list<Post>
      */
     public function findRecent(int $limit = 5): array
