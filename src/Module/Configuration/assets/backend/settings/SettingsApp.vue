@@ -25,7 +25,6 @@ const props = defineProps({
     groups: { type: Object, default: () => ({}) },
     tabs: { type: Array, default: () => [] },
     updatePath: { type: String, default: "" },
-    mediaPickerPath: { type: String, default: "" },
     postSearchPath: { type: String, default: "" },
     navSections: { type: Array, default: () => [] },
 });
