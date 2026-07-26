@@ -48,7 +48,7 @@ class PageController extends AbstractController
         private readonly PageViewBuilder $viewBuilder,
     ) {}
 
-    #[Route('/{locale}/editorial', name: 'editorial_home', requirements: ['locale' => '[a-z]{2}'], priority: 9)]
+    #[Route('/{locale}', name: 'editorial_home', requirements: ['locale' => '[a-z]{2}'], priority: 9)]
     public function home(string $locale, Request $request): Response
     {
         $this->assertActiveLocale($this->context, $locale);
@@ -72,7 +72,7 @@ class PageController extends AbstractController
         return $this->withI18nHeaders($response, $locale);
     }
 
-    #[Route('/{locale}/editorial/search', name: 'editorial_home_search', requirements: ['locale' => '[a-z]{2}'], methods: [HttpMethodEnum::Get->value], priority: 10)]
+    #[Route('/{locale}/search', name: 'editorial_home_search', requirements: ['locale' => '[a-z]{2}'], methods: [HttpMethodEnum::Get->value], priority: 10)]
     public function searchPosts(string $locale, Request $request): JsonResponse
     {
         $this->assertActiveLocale($this->context, $locale);
@@ -85,7 +85,7 @@ class PageController extends AbstractController
         return $this->jsonSuccess($this->viewBuilder->serializePageData($result, $locale));
     }
 
-    #[Route('/{locale}/editorial/{postTypeSlug}/{slug}', name: 'editorial_post', requirements: ['locale' => '[a-z]{2}'], priority: 5)]
+    #[Route('/{locale}/{postTypeSlug}/{slug}', name: 'editorial_post', requirements: ['locale' => '[a-z]{2}'], priority: 5)]
     public function post(string $locale, string $postTypeSlug, string $slug, Request $request): Response
     {
         $this->assertActiveLocale($this->context, $locale);
@@ -121,7 +121,7 @@ class PageController extends AbstractController
         return $response;
     }
 
-    #[Route('/{locale}/editorial/{postTypeSlug}', name: 'editorial_archive', requirements: ['locale' => '[a-z]{2}'], priority: 3)]
+    #[Route('/{locale}/{postTypeSlug}', name: 'editorial_archive', requirements: ['locale' => '[a-z]{2}'], priority: 3)]
     public function archive(string $locale, string $postTypeSlug, Request $request): Response
     {
         $this->assertActiveLocale($this->context, $locale);
@@ -142,7 +142,7 @@ class PageController extends AbstractController
         return $this->withI18nHeaders($response, $locale);
     }
 
-    #[Route('/{locale}/editorial/{taxonomySlug}/{termSlug}', name: 'editorial_term', requirements: ['locale' => '[a-z]{2}'], priority: 4)]
+    #[Route('/{locale}/{taxonomySlug}/{termSlug}', name: 'editorial_term', requirements: ['locale' => '[a-z]{2}'], priority: 4)]
     public function term(string $locale, string $taxonomySlug, string $termSlug, Request $request): Response
     {
         $this->assertActiveLocale($this->context, $locale);

@@ -44,7 +44,7 @@ class CommentController extends AbstractController
         private readonly CommentInputFactoryInterface $commentInputFactory,
     ) {}
 
-    #[Route('/{locale}/editorial/{postTypeSlug}/{slug}/comment', name: 'editorial_post_comment', requirements: ['locale' => '[a-z]{2}'], methods: [HttpMethodEnum::Post->value], priority: 6)]
+    #[Route('/{locale}/{postTypeSlug}/{slug}/comment', name: 'editorial_post_comment', requirements: ['locale' => '[a-z]{2}'], methods: [HttpMethodEnum::Post->value], priority: 6)]
     public function submit(string $locale, string $postTypeSlug, string $slug, Request $request): Response
     {
         $this->assertActiveLocale($this->context, $locale);
@@ -83,7 +83,7 @@ class CommentController extends AbstractController
         return $this->redirectToRoute('editorial_post', ['locale' => $locale, 'postTypeSlug' => $postTypeSlug, 'slug' => $slug]);
     }
 
-    #[Route('/{locale}/editorial/{postTypeSlug}/{slug}/comments', name: 'editorial_post_comments_list', requirements: ['locale' => '[a-z]{2}'], methods: [HttpMethodEnum::Get->value], priority: 5)]
+    #[Route('/{locale}/{postTypeSlug}/{slug}/comments', name: 'editorial_post_comments_list', requirements: ['locale' => '[a-z]{2}'], methods: [HttpMethodEnum::Get->value], priority: 5)]
     public function list(string $locale, string $postTypeSlug, string $slug): JsonResponse
     {
         $this->assertActiveLocale($this->context, $locale);
@@ -109,7 +109,7 @@ class CommentController extends AbstractController
         return $this->jsonSuccess($tree);
     }
 
-    #[Route('/{locale}/editorial/{postTypeSlug}/{slug}/comment/{commentId}/react', name: 'editorial_comment_react', requirements: ['locale' => '[a-z]{2}'], methods: [HttpMethodEnum::Post->value], priority: 5)]
+    #[Route('/{locale}/{postTypeSlug}/{slug}/comment/{commentId}/react', name: 'editorial_comment_react', requirements: ['locale' => '[a-z]{2}'], methods: [HttpMethodEnum::Post->value], priority: 5)]
     public function react(string $locale, string $postTypeSlug, string $slug, int $commentId, Request $request): JsonResponse
     {
         $this->assertActiveLocale($this->context, $locale);

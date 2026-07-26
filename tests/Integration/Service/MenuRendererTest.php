@@ -111,7 +111,7 @@ final class MenuRendererTest extends IntegrationTestCase
 
         self::assertCount(2, $tree);
         self::assertSame('Accueil', $tree[0]['label']);
-        self::assertSame('/fr/editorial', $tree[0]['url']);
+        self::assertSame('/fr', $tree[0]['url']);
         self::assertFalse($tree[0]['openInNewTab']);
 
         self::assertSame('Exemple', $tree[1]['label']);
@@ -151,7 +151,7 @@ final class MenuRendererTest extends IntegrationTestCase
 
         self::assertCount(1, $tree);
         self::assertNotEmpty($tree[0]['label']);
-        self::assertStringStartsWith('/fr/editorial/'.$post->getPostType()->getSlug().'/', $tree[0]['url']);
+        self::assertStringStartsWith('/fr/'.$post->getPostType()->getSlug().'/', $tree[0]['url']);
     }
 
     public function testRenderTermItem(): void

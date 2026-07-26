@@ -21,7 +21,7 @@ const props = defineProps({
 const { query, posts, page, totalPages, total, loading, onSearch, goToPage } = usePostSearch(props);
 
 function postUrl(post) {
-    return `/${props.locale}/editorial/${post.postTypeSlug ?? props.postTypeSlug}/${post.slug}`;
+    return `/${props.locale}/${post.postTypeSlug ?? props.postTypeSlug}/${post.slug}`;
 }
 </script>
 
