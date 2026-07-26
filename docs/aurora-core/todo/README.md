@@ -46,6 +46,9 @@ client, paiement, stock) restent figés dans le repo
 [`aurora-commerce`](https://github.com/AxelRaboit/aurora-commerce),
 non ré-publié depuis aurora-core. Procédure générale d'extraction :
 [`../dev/extracting_a_module.md`](../dev/extracting_a_module.md).
+Pour retrouver le commit exact du retrait (tag `pre-simplify-editorial-only`
++ liste des commits) et réintégrer un jour, voir
+[`module_roadmap.md`](module_roadmap.md#état-actuel).
 
 ### ~~PersonalFinance (Spendly)~~ — ✅ livré
 
