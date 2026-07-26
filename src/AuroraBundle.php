@@ -72,18 +72,11 @@ class AuroraBundle extends AbstractBundle
     {
         $dir = dirname(__DIR__);
 
-        // Modules extracted into their own bundle (POC for the monorepo split):
-        // AuroraBundle ignores them entirely — their dedicated
+        // Extracted modules (Editorial, and previously Crm/Billing/etc.) live
+        // in their own Composer package/bundle now — their dedicated
         // Aurora<Name>Bundle registers their Doctrine mapping / Twig / i18n /
-        // resolve_target_entities. In the target topology these dirs live in a
-        // separate Composer package and simply aren't present here; the list
-        // simulates that absence inside the monorepo.
-        $extractedModules = ['Editorial'];
-
-        $moduleDirs = array_values(array_filter(
-            glob($dir.'/src/Module/*', GLOB_ONLYDIR) ?: [],
-            static fn (string $moduleDir): bool => !in_array(basename($moduleDir), $extractedModules, true),
-        ));
+        // resolve_target_entities from there, not from this monorepo.
+        $moduleDirs = glob($dir.'/src/Module/*', GLOB_ONLYDIR) ?: [];
 
         $builder->prependExtensionConfig('doctrine', [
             'dbal' => [
