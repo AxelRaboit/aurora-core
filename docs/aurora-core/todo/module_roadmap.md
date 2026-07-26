@@ -21,6 +21,10 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 >   `git diff pre-simplify-editorial-only..develop` pour voir le diff complet.
 > - Sur `split/core`, l'équivalent est un unique commit squashé `8d0c752a`
 >   (+ `4c57f0e2` pour le fix fixtures).
+> - **Suite (Ollama/Stripe + Agency/Service)** : `develop` `bc1c2f46` +
+>   `bab23e68` ; `split/core` `07bd5fee`. Agency/Service (org-chart
+>   "qui travaille où" de Platform/User) n'avait plus d'utilité une fois
+>   Hr/Crm/etc. retirés — supprimé en totalité.
 > - Détail complet de la décision (pourquoi, ce qui a été gardé/coupé,
 >   notamment le choix de ne pas toucher aux migrations SQL) :
 >   mémoire [[project_monorepo_split_chantier]] section « Recentrage ».

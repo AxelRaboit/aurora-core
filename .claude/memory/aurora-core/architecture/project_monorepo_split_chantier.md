@@ -61,6 +61,30 @@ findings ci-dessous.
 >   de `composer.json` est `refactor: strip aurora-myspace down to
 >   Core + Editorial`.
 
+> **Suite du recentrage — Ollama/Stripe + Agency/Service (juillet 2026)** :
+> deux oublis du recentrage ci-dessus, trouvés a posteriori (l'app disait
+> encore "Ollama non joignable" en dev, et le duo Agency/Service — org
+> chart "qui travaille où" — n'avait plus aucune utilité sans Hr/Crm/etc.).
+> Sur `develop` : `bc1c2f46` (retire les dernières refs Ollama/Billing-OCR/
+> Stripe — `.env`, `composer.json` (stripe/stripe-php, zipstream,
+> phpspreadsheet), `security.yaml`, `DevPrerequisiteChecker`, docs) puis
+> `bab23e68` (supprime `src/Module/Platform/{Agency,Service}/` en entier +
+> tout leur câblage dans `AbstractUser`, `UserManager`, `PlatformModule`,
+> `ModuleParameterEnum`, `UsersViewBuilder`/`UsersApp.vue`,
+> `ProfileViewBuilder`/`ProfileApp.vue`, `CoreDemoFixtures`). Sur
+> `split/core` : commit squashé `07bd5fee` (même logique que plus haut —
+> Editorial étant absent de cette branche, son fix `EditorialDemoFixtures`
+> — contenu démo "Bienvenue sur Aurora" réécrit sans CRM/Stripe — est
+> reparti séparément vers `aurora-editorial` via `bin/split-modules.sh`).
+> Migrations non touchées, même rationale (`core_agencies`/`core_services`
+> + `agency_id`/`service_id` sur `core_users` viennent de la même migration
+> initiale géante ; `schema:create` sur base neuve ne les crée simplement
+> plus). `make ft` vert (1238 tests, contre 1262 avant — les ~24 tests
+> Agency/Service en moins). Branche `feat/extract-welding-to-client`
+> (entièrement fusionnée dans `develop` depuis l'extraction Welding)
+> supprimée du dépôt GitHub à cette occasion, ne restent que `develop` et
+> `split/core`.
+
 > **Outillage aligné (2026-05-31)** : les skills de scaffolding `/add-module`,
 > `/register-module-toggle`, `/audit-module-toggles`, `/add-submodule` + la doc
 > `docs/aurora-core/dev/add_module.md` génèrent/attendent désormais la forme
