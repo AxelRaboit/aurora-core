@@ -84,6 +84,23 @@ findings ci-dessous.
 > (entièrement fusionnée dans `develop` depuis l'extraction Welding)
 > supprimée du dépôt GitHub à cette occasion, ne restent que `develop` et
 > `split/core`.
+>
+> **Reliquat Agency/Service trouvé après coup (juillet 2026)** : le retrait
+> de `bab23e68` avait nettoyé le PHP/Vue mais oublié `src/Module/Platform/
+> templates/backend/users/index.html.twig`, qui continuait de passer
+> `agencies: agencies, services: services` à `UsersApp` — Twig plantait
+> avec `Variable "agencies" does not exist` dès l'ouverture de la page
+> Utilisateurs (le composant Vue, lui, avait bien été nettoyé, donc rien
+> ne consommait ces props côté JS). Retiré ces deux lignes, plus quelques
+> commentaires d'exemple obsolètes qui citaient encore
+> `Module/Platform/Agency` (`src/Core/assets/app.js`, et côté client
+> `aurora-myspace/config/services.yaml`). Sur `develop` : `66f7491b`. Sur
+> `split/core` : `cea2bdeb` (cherry-pick propre, le fichier existait déjà
+> tel quel). `make ft` toujours vert (1238 tests). Balayage fait à cette
+> occasion sur tout le monorepo (grep PHP/twig/JS/YAML/SQL) pour confirmer
+> qu'il ne reste plus aucune autre trace d'Agency/Service — si un nouveau
+> symptôme apparaît, il est probablement lié et mérite d'être ajouté ici
+> plutôt qu'une nouvelle note séparée.
 
 > **Outillage aligné (2026-05-31)** : les skills de scaffolding `/add-module`,
 > `/register-module-toggle`, `/audit-module-toggles`, `/add-submodule` + la doc

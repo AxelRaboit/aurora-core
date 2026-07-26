@@ -25,6 +25,12 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 >   `bab23e68` ; `split/core` `07bd5fee`. Agency/Service (org-chart
 >   "qui travaille où" de Platform/User) n'avait plus d'utilité une fois
 >   Hr/Crm/etc. retirés — supprimé en totalité.
+> - **Reliquat trouvé après coup** (variable Twig `agencies`/`services`
+>   encore passée à `UsersApp`, + quelques commentaires d'exemple citant
+>   encore `Module/Platform/Agency`) : `develop` `66f7491b` ; `split/core`
+>   `cea2bdeb`. Si un nouveau symptôme du même genre apparaît (route,
+>   traduction, colonne DB orpheline), il appartient à ce même reliquat —
+>   compléter cette liste plutôt qu'ouvrir une nouvelle note.
 > - Détail complet de la décision (pourquoi, ce qui a été gardé/coupé,
 >   notamment le choix de ne pas toucher aux migrations SQL) :
 >   mémoire [[project_monorepo_split_chantier]] section « Recentrage ».
