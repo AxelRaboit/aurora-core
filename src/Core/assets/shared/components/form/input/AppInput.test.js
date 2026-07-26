@@ -56,4 +56,12 @@ describe("AppInput", () => {
         expect(wrapper.find("button").exists()).toBe(true);
         expect(wrapper.find("input").classes()).toContain("pr-10");
     });
+
+    it("applies the readonly attribute to the input when readonly is set", () => {
+        const wrapper = mount(AppInput, {
+            props: { readonly: true },
+            global: { plugins: [i18n] },
+        });
+        expect(wrapper.find("input").attributes("readonly")).toBeDefined();
+    });
 });
