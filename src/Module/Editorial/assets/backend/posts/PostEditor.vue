@@ -206,7 +206,7 @@ const {
                         <AppButton
                             variant="secondary"
                             size="none"
-                            class="p-2 mb-0.5 shrink-0"
+                            class="w-9 h-9 mb-0.5 shrink-0"
                             :title="slugLocked ? t('backend.posts.slug_unlock') : t('backend.posts.slug_lock')"
                             v-on:click="toggleSlugLock"
                         >

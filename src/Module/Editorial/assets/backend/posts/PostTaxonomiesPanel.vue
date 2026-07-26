@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight } from "lucide-vue-next";
 import { buildTermTree, flattenTreeWithDepth } from "@editorial/shared/termTree.js";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
+import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 
 const { t } = useI18n();
 
@@ -78,46 +79,44 @@ function filteredTerms(taxonomy) {
 </script>
 
 <template>
-    <div v-for="taxonomy in taxonomies" :key="taxonomy.id" class="space-y-1.5">
-        <div
-            class="flex items-center gap-2"
-            :class="collapsible ? 'cursor-pointer select-none group' : ''"
-            v-on:click="collapsible ? toggleCollapse(taxonomy.slug) : undefined"
-        >
-            <component
-                :is="isCollapsed(taxonomy.slug) ? ChevronRight : ChevronDown"
-                v-if="collapsible"
-                class="w-3 h-3 text-muted shrink-0 transition-transform"
-            />
-            <span class="text-xs font-medium text-muted uppercase tracking-wide shrink-0 group-hover:text-secondary transition-colors">
-                {{ taxonomyLabel(taxonomy) }}
-            </span>
-            <span v-if="hasActiveTerms(taxonomy)" class="w-1.5 h-1.5 rounded-full bg-accent-500 shrink-0" />
-        </div>
-
-        <template v-if="!isCollapsed(taxonomy.slug)">
-            <AppSearchInput
-                v-model="searches[taxonomy.slug]"
-                :placeholder="t('backend.posts.search_terms')"
-            />
-
-            <div class="max-h-52 overflow-y-auto scrollbar-thin border border-line/60 rounded-md bg-surface-2 p-2 space-y-1">
-                <AppNoData v-if="!filteredTerms(taxonomy).length" :message="t('backend.posts.terms_picker_empty')" />
-                <label
-                    v-for="term in filteredTerms(taxonomy)"
-                    :key="term.id"
-                    class="flex items-center gap-2 text-sm cursor-pointer hover:bg-surface-3 rounded px-1.5 py-0.5"
-                    :style="taxonomy.hierarchical ? { paddingLeft: `${0.375 + (term.depth ?? 0) * 1.25}rem` } : {}"
-                >
-                    <input
-                        type="checkbox"
-                        class="w-4 h-4 rounded border-line bg-surface text-accent-600 focus:ring-accent-500 focus:ring-offset-0 shrink-0"
-                        :checked="selectedTermIds.includes(term.id)"
-                        v-on:change="emit('toggle-term', term.id)"
-                    >
-                    <span class="text-primary truncate">{{ termLabel(term) }}</span>
-                </label>
+    <div class="space-y-4">
+        <div v-for="taxonomy in taxonomies" :key="taxonomy.id" class="space-y-1.5">
+            <div
+                class="flex items-center gap-2"
+                :class="collapsible ? 'cursor-pointer select-none group' : ''"
+                v-on:click="collapsible ? toggleCollapse(taxonomy.slug) : undefined"
+            >
+                <component
+                    :is="isCollapsed(taxonomy.slug) ? ChevronRight : ChevronDown"
+                    v-if="collapsible"
+                    class="w-3 h-3 text-muted shrink-0 transition-transform"
+                />
+                <span class="text-xs font-medium text-muted uppercase tracking-wide shrink-0 group-hover:text-secondary transition-colors">
+                    {{ taxonomyLabel(taxonomy) }}
+                </span>
+                <span v-if="hasActiveTerms(taxonomy)" class="w-1.5 h-1.5 rounded-full bg-accent-500 shrink-0" />
             </div>
-        </template>
+
+            <template v-if="!isCollapsed(taxonomy.slug)">
+                <AppSearchInput
+                    v-model="searches[taxonomy.slug]"
+                    :placeholder="t('backend.posts.search_terms')"
+                />
+
+                <div class="max-h-52 overflow-y-auto scrollbar-thin border border-line/60 rounded-md bg-surface-2 p-2 space-y-1">
+                    <AppNoData v-if="!filteredTerms(taxonomy).length" :message="t('backend.posts.terms_picker_empty')" />
+                    <AppCheckbox
+                        v-for="term in filteredTerms(taxonomy)"
+                        :key="term.id"
+                        class="hover:bg-surface-3 rounded px-1.5 py-0.5"
+                        :style="taxonomy.hierarchical ? { paddingLeft: `${0.375 + (term.depth ?? 0) * 1.25}rem` } : {}"
+                        :model-value="selectedTermIds.includes(term.id)"
+                        v-on:update:model-value="emit('toggle-term', term.id)"
+                    >
+                        <span class="text-primary truncate">{{ termLabel(term) }}</span>
+                    </AppCheckbox>
+                </div>
+            </template>
+        </div>
     </div>
 </template>
