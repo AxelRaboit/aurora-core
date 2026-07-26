@@ -33,7 +33,7 @@ use function count;
 class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     /** Number of demo users seeded (indices 0..USER_COUNT-1). */
-    public const int USER_COUNT = 4;
+    public const int USER_COUNT = 3;
 
     public function __construct(
         private readonly UserPasswordHasherInterface $hasher,
