@@ -183,6 +183,11 @@ fixtures: _require-dev-env ## Drop DB, schema:create from entities, load fixture
 	$(CONSOLE) doctrine:schema:create
 	$(CONSOLE) doctrine:migrations:sync-metadata-storage --no-interaction
 	$(CONSOLE) doctrine:migrations:version --add --all --no-interaction
+	# messenger_messages isn't a Doctrine entity, so schema:create above
+	# skips it, and marking migrations as applied never runs the migration
+	# that creates it — messenger:consume would fail with "relation
+	# messenger_messages does not exist" otherwise.
+	$(CONSOLE) messenger:setup-transports
 	$(CONSOLE) doctrine:fixtures:load --no-interaction
 	$(CONSOLE) aurora:application-parameter
 	@$(SYNC_MENUS)
@@ -372,6 +377,11 @@ install-dev: _require-dev-env ## Install for local development — full reset: d
 	$(CONSOLE) doctrine:schema:create
 	$(CONSOLE) doctrine:migrations:sync-metadata-storage --no-interaction
 	$(CONSOLE) doctrine:migrations:version --add --all --no-interaction
+	# messenger_messages isn't a Doctrine entity, so schema:create above
+	# skips it, and marking migrations as applied never runs the migration
+	# that creates it — messenger:consume would fail with "relation
+	# messenger_messages does not exist" otherwise.
+	$(CONSOLE) messenger:setup-transports
 	$(CONSOLE) doctrine:fixtures:load --no-interaction
 	$(CONSOLE) aurora:application-parameter
 	$(CONSOLE) aurora:privileges:sync
