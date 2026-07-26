@@ -9,7 +9,7 @@
         "php": ">=8.4",
         "symfony/runtime": "7.4.*",
         "axelraboit/aurora": "dev-split/core",
-        "axelraboit/aurora-tools": "dev-master"
+        "axelraboit/aurora-editorial": "dev-master"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^4.3.1",
@@ -26,18 +26,7 @@
     },
     "repositories": [
         { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-core.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-tools.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-crm.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-billing.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-editorial.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-photo.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-project.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-hr.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-notes.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-personal-finance.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-planning.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-assistant.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-commerce.git" }
+        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-editorial.git" }
     ],
     "config": {
         "allow-plugins": {

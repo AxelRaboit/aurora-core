@@ -38,21 +38,7 @@ services:
             # in their own services.php + AbstractAuroraModuleBundle.
             - '../src/Core/DataFixtures/'
             - '../src/Module/Ged/DataFixtures/'
-            - '../src/Module/Tools/'
-            - '../src/Module/Crm/'
-            - '../src/Module/Hr/'
-            - '../src/Module/Notes/'
-            - '../src/Module/PersonalFinance/'
-            - '../src/Module/Planning/'
-            - '../src/Module/Project/'
             - '../src/Module/Editorial/'
-            - '../src/Module/Billing/'
-            - '../src/Module/Assistant/'
-            - '../src/Module/Photo/'
-            # Merge case (aurora-commerce): Ecommerce + Erp ship together; one
-            # services.php (Ecommerce/config) loads both namespaces.
-            - '../src/Module/Ecommerce/'
-            - '../src/Module/Erp/'
 
     # Auto-tag every MediaUsageProvider so the aggregator service collects them.
     # Auto-tag every registered front so the Registry collects them.

@@ -82,7 +82,7 @@ class AuroraBundle extends AbstractBundle
         // resolve_target_entities. In the target topology these dirs live in a
         // separate Composer package and simply aren't present here; the list
         // simulates that absence inside the monorepo.
-        $extractedModules = ['Assistant', 'Billing', 'Crm', 'Ecommerce', 'Editorial', 'Erp', 'Hr', 'Notes', 'PersonalFinance', 'Photo', 'Planning', 'Project', 'Tools'];
+        $extractedModules = ['Editorial'];
 
         $moduleDirs = array_values(array_filter(
             glob($dir.'/src/Module/*', GLOB_ONLYDIR) ?: [],
