@@ -329,13 +329,17 @@ ft: ## Fix code and run all tests
 	make fix && make test && make migrate-check
 
 # === Setup ===
-setup-env: ## Create .env.local from .env.local.example template
+setup-env: ## Create .env.local from .env.local.example template, with APP_SECRET + Aurora keys auto-generated
 	@if [ -f .env.local ]; then \
 		echo "⚠️  .env.local already exists. Overwrite? (yes/no)"; \
 		read -p "" confirm && [ "$$confirm" = "yes" ] || (echo "❌ Cancelled." && exit 1); \
 	fi
 	cp .env.local.example .env.local
-	@echo "✅ .env.local created from .env.local.example — edit it with your local values"
+	@php -r '$$c = file_get_contents(".env.local"); $$c = preg_replace("/^APP_SECRET=.*/m", "APP_SECRET=" . bin2hex(random_bytes(16)), $$c, 1); file_put_contents(".env.local", $$c);'
+	@php -r '$$c = file_get_contents(".env.local"); $$c = preg_replace("/^AURORA_MOUNT_POINT_KEY=.*/m", "AURORA_MOUNT_POINT_KEY=" . base64_encode(random_bytes(32)), $$c, 1); file_put_contents(".env.local", $$c);'
+	@php -r '$$c = file_get_contents(".env.local"); $$c = preg_replace("/^AURORA_ENCRYPTION_KEY=.*/m", "AURORA_ENCRYPTION_KEY=" . base64_encode(random_bytes(32)), $$c, 1); file_put_contents(".env.local", $$c);'
+	@echo "✅ .env.local created — APP_SECRET + Aurora keys generated automatically."
+	@echo "   Review DATABASE_URL before running 'make install-dev'."
 
 .PHONY: help
 help: ## Show this help message
