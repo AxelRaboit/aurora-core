@@ -111,18 +111,13 @@ backend:
       media: Médiathèque
       configuration: Configuration
       dev: Administration
-      tools: Outils
     administration: Accès développeur
     administration_description: "Outils techniques, audit, requêtes d'accès et configuration avancée"
-    agencies: Agences
-    agencies_description: Gérer les agences et leurs services internes
     dashboard: Tableau de bord
     dashboard_description: Vue d'ensemble de l'activité et indicateurs clés
     media: Médias
     media_description: 'Bibliothèque centralisée des images, vidéos et fichiers'
     profile: Mon profil
-    services: Services
-    services_description: Définir les services proposés par les agences
     settings: Réglages
     settings_description: Paramètres globaux de l'application et préférences
     themes: Thèmes

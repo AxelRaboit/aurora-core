@@ -50,8 +50,6 @@ backend:
       role: Rôle
       type: Type
       status: Statut
-      agency: Agence
-      service: Service
       manager: Manager
       created_at: Créé le
       unset: —

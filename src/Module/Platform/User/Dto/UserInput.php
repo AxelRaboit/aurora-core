@@ -24,8 +24,6 @@ class UserInput implements UserInputInterface
         #[Assert\Length(min: 8, minMessage: 'backend.users.errors.password_too_short')]
         public readonly ?string $password = null,
         public readonly ?int $managerId = null,
-        public readonly ?int $agencyId = null,
-        public readonly ?int $serviceId = null,
     ) {}
 
     public function getName(): string
@@ -56,15 +54,5 @@ class UserInput implements UserInputInterface
     public function getManagerId(): ?int
     {
         return $this->managerId;
-    }
-
-    public function getAgencyId(): ?int
-    {
-        return $this->agencyId;
-    }
-
-    public function getServiceId(): ?int
-    {
-        return $this->serviceId;
     }
 }

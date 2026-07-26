@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Aurora\Module\Platform\User\Entity;
 
 use Aurora\Core\Locale\Enum\LocaleEnum;
-use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
-use Aurora\Module\Platform\Service\Entity\ServiceInterface;
 use Aurora\Module\Platform\User\Enum\UserStatusEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use DateTimeImmutable;
@@ -131,14 +129,6 @@ interface CoreUserInterface extends UserInterface, PasswordAuthenticatedUserInte
 
     /** @param array<string, string> $navSectionColors */
     public function setNavSectionColors(array $navSectionColors): static;
-
-    public function getAgency(): ?AgencyInterface;
-
-    public function setAgency(?AgencyInterface $agency): static;
-
-    public function getService(): ?ServiceInterface;
-
-    public function setService(?ServiceInterface $service): static;
 
     public function getCreatedAt(): DateTimeImmutable;
 }

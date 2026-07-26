@@ -17,8 +17,4 @@ interface UserInputInterface
     public function getPassword(): ?string;
 
     public function getManagerId(): ?int;
-
-    public function getAgencyId(): ?int;
-
-    public function getServiceId(): ?int;
 }

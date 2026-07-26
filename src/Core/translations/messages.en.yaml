@@ -110,18 +110,13 @@ backend:
       media: Media library
       configuration: Configuration
       dev: Administration
-      tools: Tools
     administration: Developer access
     administration_description: 'Technical tools, audit log, access requests and advanced configuration'
-    agencies: Agencies
-    agencies_description: Manage agencies and their internal services
     dashboard: Dashboard
     dashboard_description: Overview of activity and key metrics
     media: Media
     media_description: 'Centralized library of images, videos and files'
     profile: My profile
-    services: Services
-    services_description: Define the services offered by your agencies
     settings: Settings
     settings_description: Global application parameters and preferences
     themes: Themes

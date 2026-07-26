@@ -17,10 +17,6 @@ backend:
           manage: Manage users
           module_access:
             manage: Manage user module access
-        agencies:
-          manage: Manage agencies
-        services:
-          manage: Manage services
       media:
         view: View media library
         create: Upload media

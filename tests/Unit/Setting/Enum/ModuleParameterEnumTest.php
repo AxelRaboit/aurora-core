@@ -85,8 +85,6 @@ final class ModuleParameterEnumTest extends TestCase
         $targets = ModuleParameterEnum::PlatformBackend->getCascadeDisableTargets();
 
         self::assertContains(ModuleParameterEnum::PlatformUsers->value, $targets);
-        self::assertContains(ModuleParameterEnum::PlatformAgencies->value, $targets);
-        self::assertContains(ModuleParameterEnum::PlatformServices->value, $targets);
     }
 
     public function testGetParentCaseForTopLevelReturnsNull(): void

@@ -143,8 +143,6 @@ class UsersController extends AbstractController
             return $this->jsonInvalidInput([$field => $invalidArgumentException->getMessage()]);
         }
 
-        $this->userManager->updateAgencyAndService($user, $input->getAgencyId(), $input->getServiceId());
-
         return $this->jsonSuccess(['user' => $this->userSerializer->serialize($user)]);
     }
 

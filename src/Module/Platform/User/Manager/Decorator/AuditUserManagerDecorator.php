@@ -155,15 +155,6 @@ final readonly class AuditUserManagerDecorator implements UserManagerInterface
         return $this->inner->findValidInvitation($selector, $token);
     }
 
-    public function updateAgencyAndService(User $user, ?int $agencyId, ?int $serviceId): void
-    {
-        $this->inner->updateAgencyAndService($user, $agencyId, $serviceId);
-        $this->auditLogger->log('core', 'user.agency_service_updated', 'User', $user->getId(), [
-            'agencyId' => $agencyId,
-            'serviceId' => $serviceId,
-        ]);
-    }
-
     public function updatePrivileges(User $user, array $privileges): void
     {
         $this->inner->updatePrivileges($user, $privileges);
