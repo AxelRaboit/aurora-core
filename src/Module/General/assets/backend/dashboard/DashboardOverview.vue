@@ -136,19 +136,31 @@ const { postsByMonthData } = useDashboardCharts(stats);
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-surface border border-dashed border-line rounded-xl p-5 flex flex-col items-center justify-center gap-2 text-center min-h-32">
-                        <div class="w-9 h-9 rounded-lg bg-surface-2 flex items-center justify-center">
+                    <div class="bg-surface border border-line/60 rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-primary mb-4">{{ t('backend.stats.editorial.posts_by_author') }}</h3>
+                        <div v-if="stats.postsByAuthor?.length" class="space-y-2">
+                            <div v-for="item in stats.postsByAuthor" :key="item.label" class="flex items-center justify-between text-sm">
+                                <span class="text-secondary">{{ item.label }}</span>
+                                <span class="font-medium text-primary tabular-nums">{{ item.count }}</span>
+                            </div>
+                        </div>
+                        <div v-else class="flex flex-col items-center justify-center gap-2 text-center py-6">
                             <Users class="w-4 h-4 text-muted" :stroke-width="1.5" />
+                            <p class="text-xs text-muted">{{ t('backend.stats.empty') }}</p>
                         </div>
-                        <p class="text-sm font-medium text-secondary">{{ t('backend.stats.editorial.posts_by_author') }}</p>
-                        <p class="text-xs text-muted">{{ t('backend.stats.coming_soon') }}</p>
                     </div>
-                    <div class="bg-surface border border-dashed border-line rounded-xl p-5 flex flex-col items-center justify-center gap-2 text-center min-h-32">
-                        <div class="w-9 h-9 rounded-lg bg-surface-2 flex items-center justify-center">
-                            <ImageIcon class="w-4 h-4 text-muted" :stroke-width="1.5" />
+                    <div class="bg-surface border border-line/60 rounded-xl p-5">
+                        <h3 class="text-sm font-semibold text-primary mb-4">{{ t('backend.stats.editorial.media_by_type') }}</h3>
+                        <div v-if="stats.mediaByType?.length" class="space-y-2">
+                            <div v-for="item in stats.mediaByType" :key="item.key" class="flex items-center justify-between text-sm">
+                                <span class="text-secondary">{{ t(`backend.ged.documents.type_${item.key}`) }}</span>
+                                <span class="font-medium text-primary tabular-nums">{{ item.count }}</span>
+                            </div>
                         </div>
-                        <p class="text-sm font-medium text-secondary">{{ t('backend.stats.editorial.media_by_type') }}</p>
-                        <p class="text-xs text-muted">{{ t('backend.stats.coming_soon') }}</p>
+                        <div v-else class="flex flex-col items-center justify-center gap-2 text-center py-6">
+                            <ImageIcon class="w-4 h-4 text-muted" :stroke-width="1.5" />
+                            <p class="text-xs text-muted">{{ t('backend.stats.empty') }}</p>
+                        </div>
                     </div>
                 </div>
             </section>
