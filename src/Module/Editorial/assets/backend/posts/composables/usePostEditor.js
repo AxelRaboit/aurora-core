@@ -134,7 +134,7 @@ export function usePostEditor({ props, emit, t }) {
     const statusOptions = computed(() =>
         POST_STATUS_VALUES.map((value) => ({
             value,
-            label: t(`backend.posts.statusOptions.${value}`),
+            label: t(`backend.posts.status_options.${value}`),
         })),
     );
 

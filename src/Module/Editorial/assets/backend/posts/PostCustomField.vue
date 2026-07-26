@@ -152,7 +152,7 @@ const { uploading, inputRef: mediaInput, uploadFromEvent: uploadMedia } = useIma
                     class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-surface border border-line/60"
                 >
                     <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium" :class="statusBadge(result.status)">
-                        {{ t("backend.stats.post_status." + result.status) }}
+                        {{ t("backend.posts.status_options." + result.status) }}
                     </span>
                     <div class="flex-1 min-w-0">
                         <div class="text-sm text-primary truncate">{{ result.title ?? "(—)" }}</div>
@@ -182,7 +182,7 @@ const { uploading, inputRef: mediaInput, uploadFromEvent: uploadMedia } = useIma
                         v-on:mousedown.prevent="addReference(result)"
                     >
                         <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium" :class="statusBadge(result.status)">
-                            {{ t("backend.stats.post_status." + result.status) }}
+                            {{ t("backend.posts.status_options." + result.status) }}
                         </span>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm text-primary truncate">{{ result.title ?? "(—)" }}</div>

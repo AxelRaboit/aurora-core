@@ -155,7 +155,7 @@ const visibleEntries = computed(() =>
                             >
                                 <div class="flex items-center gap-2 text-xs">
                                     <AppBadge :color="statusBadgeColor(revision.status)">
-                                        {{ t("backend.stats.post_status." + revision.status) }}
+                                        {{ t("backend.posts.status_options." + revision.status) }}
                                     </AppBadge>
                                     <span class="text-muted font-mono">v{{ revision.postVersion }}</span>
                                 </div>

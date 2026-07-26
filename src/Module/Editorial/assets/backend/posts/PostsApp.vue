@@ -305,7 +305,7 @@ const { termMap, postTermLabels } = usePostTermLabels({ parsedTaxonomies, defaul
                                 </div>
                             </div>
                             <AppBadge :color="post.trashed ? 'rose' : statusBadgeColor(post.status)" class="shrink-0">
-                                {{ post.trashed ? t("backend.posts.status_trashed") : t("backend.stats.post_status." + post.status) }}
+                                {{ post.trashed ? t("backend.posts.status_trashed") : t("backend.posts.status_options." + post.status) }}
                             </AppBadge>
                         </div>
                         <div class="flex items-center justify-between pt-2 border-t border-line/40">
@@ -366,7 +366,7 @@ const { termMap, postTermLabels } = usePostTermLabels({ parsedTaxonomies, defaul
                                 <td class="px-6 py-3 text-sm text-secondary hidden md:table-cell">{{ post.postType?.label ?? "-" }}</td>
                                 <td class="px-6 py-3">
                                     <AppBadge :color="post.trashed ? 'rose' : statusBadgeColor(post.status)">
-                                        {{ post.trashed ? t("backend.posts.status_trashed") : t("backend.stats.post_status." + post.status) }}
+                                        {{ post.trashed ? t("backend.posts.status_trashed") : t("backend.posts.status_options." + post.status) }}
                                     </AppBadge>
                                 </td>
                                 <td class="px-6 py-3 text-sm text-secondary hidden lg:table-cell">{{ formatDateShort(post.createdAt) }}</td>
