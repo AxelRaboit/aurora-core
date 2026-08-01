@@ -7,20 +7,6 @@ backend:
     date: Date
     empty: No audit entries.
     actions:
-      media:
-        cropped: Media cropped
-        deleted: Media deleted
-        moved: Media moved
-        updated: Media updated
-        uploaded: Media uploaded
-      users:
-        photo_uploaded: Profile photo uploaded
-        photo_removed: Profile photo removed
-        privileges_updated: Privileges updated
-      mount_point:
-        created: Mount point created
-        updated: Mount point updated
-        deleted: Mount point deleted
       core:
         auth:
           login: Login
@@ -40,42 +26,57 @@ backend:
           created: User created
           updated: User updated
           deleted: User deleted
+          registered: User registered
+          invited: User invited
+          invitation_resent: Invitation resent
+          invitation_consumed: Invitation accepted
+          email_verified: Email address verified
+          password_changed: Password changed
           role_updated: Role updated
+          dev_role_toggled: Developer role changed
           privileges_updated: Privileges updated
-          status_toggled: Status changed
-        front_user:
+          disabled_toggled: Account enabled or disabled
+          disabled_modules_updated: Disabled modules updated
+          sidemenu_preferences_updated: Side menu preferences updated
+          sidemenu_preferences_reset: Side menu preferences reset
+        frontend_user:
           profile_updated: Profile updated
           account_deleted: Account deleted
         password_reset:
           link_requested: Password reset requested
           completed: Password reset completed
         access_request:
+          created: Access request submitted
           approved: Access request approved
           rejected: Access request rejected
-      billing:
-        invoice:
-          created: Facture créée
-          updated: Facture modifiée
-          deleted: Facture supprimée
-          validated: Facture validée
-        tiers:
-          created: Tiers créé
-          updated: Tiers modifié
-          deleted: Tiers supprimé
-        ocr:
-          job:
-            created: Import OCR lancé
-            finished: Import OCR terminé
-            retried: Import OCR relancé
-            deleted: Import OCR supprimé
-          invoice:
-            deleted: Facture OCR supprimée
+        theme:
+          created: Theme created
+          updated: Theme updated
+          deleted: Theme deleted
+          activated: Theme activated
+        mount_point:
+          created: Mount point created
+          updated: Mount point updated
+          deleted: Mount point deleted
       ged:
         document:
-          created: Document créé
-          updated: Document modifié
-          deleted: Document supprimé
+          created: Document created
+          updated: Document updated
+          deleted: Document deleted
+          cropped: Document cropped
+          moved: Document moved
+        folder:
+          created: Folder created
+          updated: Folder updated
+          deleted: Folder deleted
         category:
-          created: Catégorie créée
-          updated: Catégorie modifiée
-          deleted: Catégorie supprimée
+          created: Category created
+          updated: Category updated
+          deleted: Category deleted
+        tag:
+          created: Tag created
+          updated: Tag updated
+          deleted: Tag deleted
+      users:
+        photo_uploaded: Profile photo uploaded
+        photo_removed: Profile photo removed
