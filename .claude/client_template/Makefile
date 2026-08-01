@@ -88,6 +88,16 @@ aurora-vendor-guard: ## Restore aurora-core's own vendor/ if composer wiped it
 		echo "⚠️  aurora-core's nested vendor/ is missing (bare composer update?) — restoring"; \
 		$(COMPOSER) install --working-dir=$(AURORA) --no-scripts; \
 	fi
+	@# The linters live in their own nested installs and are wiped by the same
+	@# re-extraction. Restored here too: `make lint-php` otherwise dies on
+	@# "Could not open input file", which reads like a broken checkout rather
+	@# than a missing dependency.
+	@for tool in php-cs-fixer twig-cs-fixer rector phpstan; do \
+		if [ ! -d "$(AURORA)/tools/$$tool/vendor" ]; then \
+			echo "⚠️  aurora-core's $$tool is missing — restoring"; \
+			$(COMPOSER) install --working-dir=$(AURORA)/tools/$$tool --no-interaction; \
+		fi; \
+	done
 
 build: aurora-vendor-guard ## Build assets for production
 	$(AURORA_ENV) $(PNPM) --dir=$(AURORA) run build
@@ -325,19 +335,19 @@ db-test: _require-dev-env ## Create test database with fresh schema — schema:c
 	$(CONSOLE) doctrine:migrations:version --env=test --add --all --no-interaction
 
 # === Code Quality ===
-stan: ## Run PHPStan
+stan: aurora-vendor-guard ## Run PHPStan
 	$(PHPSTAN) analyse -c $(AURORA)/tools/phpstan/phpstan.neon --memory-limit 1G
 
-lint-php: ## Check PHP code style (dry-run)
+lint-php: aurora-vendor-guard ## Check PHP code style (dry-run)
 	$(PHP_CS_FIXER) fix --dry-run --config=$(AURORA)/.php-cs-fixer.dist.php
 
 lint-js: ## Check JS code style
 	$(AURORA)/node_modules/.bin/eslint --config $(AURORA)/eslint.config.cjs .
 
-lint-twig: ## Check Twig code style
+lint-twig: aurora-vendor-guard ## Check Twig code style
 	$(TWIG_CS_FIXER)
 
-rector: ## Run Rector (dry-run)
+rector: aurora-vendor-guard ## Run Rector (dry-run)
 	$(RECTOR) process --dry-run -c $(RECTOR_CONFIG)
 
 fix-php: ## Fix PHP code style
