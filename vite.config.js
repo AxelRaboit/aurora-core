@@ -36,7 +36,15 @@ function clientTailwindSources(clientDir, enabled) {
         name: 'aurora-client-tailwind-sources',
         enforce: 'pre',
         transform(code, id) {
-            if (!enabled || !id.replace(/\\/g, '/').endsWith(CSS_ENTRY)) return null;
+            // Match on the path alone. The dev server appends a query to the
+            // id (`app.css?direct`, `?used`), which a bare endsWith rejects —
+            // so this ran in build and never in dev, and `make dev` served a
+            // stylesheet missing every class used only by the client. The two
+            // modes disagreeing is worse than neither working: the built site
+            // was correct, so the gap only ever showed up locally.
+            const file = id.replace(/\\/g, '/').split('?')[0];
+
+            if (!enabled || !file.endsWith(CSS_ENTRY)) return null;
 
             const sources = [
                 `@source "${clientDir}/templates";`,
