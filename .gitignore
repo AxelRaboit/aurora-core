@@ -37,8 +37,12 @@ yarn.lock
 # macOS
 .DS_Store
 
-# pnpm — machine-local build-script approvals (`pnpm approve-builds`)
-/pnpm-workspace.yaml
+# pnpm-workspace.yaml is deliberately NOT ignored. `allowBuilds` is a policy
+# call about a dependency — identical on every machine — and tracking it is the
+# only way clients get it. While ignored it never reached the composer package,
+# so any client running `pnpm install` inside vendor/axelraboit/aurora got
+# pnpm's unanswered placeholder written back and the build died on
+# ERR_PNPM_IGNORED_BUILDS.
 
 # Version (generated at deploy time)
 /VERSION

@@ -12,9 +12,13 @@
 App Symfony cliente qui consomme `axelraboit/aurora` (aurora-core) comme
 bundle composer + assets npm.
 
-**Double rôle** : projet de **démonstration** (illustre tous les patterns
-d'extension Aurora — Agency, module Tracking, overrides Vue) et **template
-de départ** pour tout nouveau projet client Aurora.
+**Rôle** : **template de départ** pour tout nouveau projet client Aurora.
+
+`src/`, `assets/` et `templates/` arrivent vides — tout vient du vendor. Ce
+fichier annonçait aussi un rôle de **démonstration** illustrant les patterns
+d'extension (Agency, module Tracking, overrides Vue) : ce contenu n'existe
+pas. Les patterns sont à lire dans les mémoires et la doc listées ci-dessous,
+et les skills (`/extend-aurora-entity`, …) scaffoldent le code correspondant.
 
 ---
 

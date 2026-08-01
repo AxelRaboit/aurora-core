@@ -6,6 +6,8 @@ namespace Aurora\Tests\Unit\Translation;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use Symfony\Component\Yaml\Yaml;
 
 final class TranslationConsistencyTest extends TestCase
@@ -25,34 +27,37 @@ final class TranslationConsistencyTest extends TestCase
         $srcDir = dirname(__DIR__, 3).'/src';
         $pairs = [];
 
-        $dirs = array_merge(
-            glob($srcDir.'/Core/translations', GLOB_ONLYDIR) ?: [],
-            glob($srcDir.'/Core/*/translations', GLOB_ONLYDIR) ?: [],
-            glob($srcDir.'/Module/*/translations', GLOB_ONLYDIR) ?: [],
-        );
+        // Discovered by walking src/ rather than by a fixed list of glob
+        // depths. The previous globs stopped at src/Module/*/translations,
+        // which silently skipped 8 of the 14 translation directories — every
+        // sub-module one (Dev/Audit, Platform/User, Configuration/Theme, …).
+        // Audit's messages.en.yaml sat half-filled with French text for that
+        // exact reason: no test ever looked at it.
+        $dirs = [];
+        $walker = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcDir, RecursiveDirectoryIterator::SKIP_DOTS));
+        foreach ($walker as $file) {
+            if ('messages.fr.yaml' === $file->getFilename()) {
+                $dirs[] = \dirname($file->getPathname());
+            }
+        }
+        sort($dirs);
 
         foreach ($dirs as $dir) {
             $frFile = $dir.'/messages.fr.yaml';
             $enFile = $dir.'/messages.en.yaml';
 
-            if (!file_exists($frFile) || !file_exists($enFile)) {
+            if (!file_exists($enFile)) {
                 continue;
             }
 
-            $pathParts = explode('/', $dir);
-            $moduleIndex = array_search('Module', $pathParts, true);
-            $coreFeatureIndex = array_search('Core', $pathParts, true);
+            // Keyed by the full path relative to src/, not by module name:
+            // Dev/Audit and Dev/MountPoint both reduce to "Dev" and would
+            // overwrite each other in this array, so only one of them would
+            // ever be asserted on.
+            $label = str_replace($srcDir.'/', '', $dir);
 
-            if (false !== $moduleIndex) {
-                $module = $pathParts[$moduleIndex + 1];
-            } elseif (false !== $coreFeatureIndex && isset($pathParts[$coreFeatureIndex + 1]) && 'translations' !== $pathParts[$coreFeatureIndex + 1]) {
-                $module = 'Core.'.$pathParts[$coreFeatureIndex + 1];
-            } else {
-                $module = 'Core';
-            }
-
-            $pairs[$module] = [
-                $module,
+            $pairs[$label] = [
+                $label,
                 Yaml::parseFile($frFile) ?? [],
                 Yaml::parseFile($enFile) ?? [],
             ];

@@ -77,10 +77,22 @@ pnpm-setup: ## Setup pnpm via corepack (usage: make pnpm-setup VERSION=10.11.0)
 	corepack prepare pnpm@$(VERSION) --activate
 	@echo "PNPM $(VERSION) has been activated via corepack"
 
-build: ## Build assets for production
+aurora-vendor-guard: ## Restore aurora-core's own vendor/ if composer wiped it
+	@# aurora-core's package.json depends on its OWN nested vendor
+	@# ("@symfony/ux-vue": "file:vendor/symfony/ux-vue/assets"), which composer
+	@# deletes whenever it re-extracts the package. `make aurora-update` puts it
+	@# back, but a bare `composer update axelraboit/aurora` doesn't — and the
+	@# breakage only surfaces later, as an opaque ENOENT from pnpm. Cheap to
+	@# check, so build/dev repair it themselves rather than failing.
+	@if [ ! -d "$(AURORA)/vendor/symfony/ux-vue/assets" ]; then \
+		echo "⚠️  aurora-core's nested vendor/ is missing (bare composer update?) — restoring"; \
+		$(COMPOSER) install --working-dir=$(AURORA) --no-scripts; \
+	fi
+
+build: aurora-vendor-guard ## Build assets for production
 	$(AURORA_ENV) $(PNPM) --dir=$(AURORA) run build
 
-dev: ## Start Vite dev server
+dev: aurora-vendor-guard ## Start Vite dev server
 	$(AURORA_ENV) $(PNPM) --dir=$(AURORA) run dev
 
 production: ## Install + build for production

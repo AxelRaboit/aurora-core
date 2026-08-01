@@ -121,7 +121,6 @@ final readonly class AuthViewBuilder
         return [
             'locale' => $locale,
             'context' => $this->context,
-            'showFrontMenus' => true,
             'themeContext' => $this->themeContext,
         ];
     }
