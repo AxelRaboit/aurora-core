@@ -24,8 +24,33 @@ const CLIENT_DIR = process.env.AURORA_CLIENT_DIR
     ? path.resolve(process.env.AURORA_CLIENT_DIR)
     : path.resolve(__dirname, 'src/Core/assets/.client-fallback');
 
+// Tailwind v4 discovers its sources from the CSS file's own package, so nothing
+// a client project writes — its Twig themes, its Vue components — ever reaches
+// the scanner, and a class used only there is silently missing from the build.
+// The CSS cannot name the client directory itself (it is only known at build
+// time through AURORA_CLIENT_DIR), so the @source lines are injected here.
+function clientTailwindSources(clientDir, enabled) {
+    const CSS_ENTRY = 'src/Core/assets/css/app.css';
+
+    return {
+        name: 'aurora-client-tailwind-sources',
+        enforce: 'pre',
+        transform(code, id) {
+            if (!enabled || !id.replace(/\\/g, '/').endsWith(CSS_ENTRY)) return null;
+
+            const sources = [
+                `@source "${clientDir}/templates";`,
+                `@source "${clientDir}/src";`,
+            ].join('\n');
+
+            return { code: code.replace('@import "tailwindcss";', `@import "tailwindcss";\n${sources}`), map: null };
+        },
+    };
+}
+
 export default defineConfig({
     plugins: [
+        clientTailwindSources(CLIENT_DIR, Boolean(process.env.AURORA_CLIENT_DIR)),
         tailwindcss(),
         vue(),
         symfonyPlugin({
