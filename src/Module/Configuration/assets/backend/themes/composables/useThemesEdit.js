@@ -120,6 +120,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     const headerLogoMediaId = ref("");
     const headerCustomText = ref("");
     const headerMode = ref("default");
+    const contentWidth = ref("narrow");
     const primaryColor = ref(DEFAULT_PRIMARY_COLOR);
 
     const configFromColors = computed(() => {
@@ -130,6 +131,11 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         }
         if (footerText.value.trim())
             result["footer_text"] = footerText.value.trim();
+        // Only persisted when it differs from the default, like the colours
+        // above: an untouched theme keeps an empty config rather than one
+        // spelling out every default.
+        if (contentWidth.value !== "narrow")
+            result["content_width"] = contentWidth.value;
         if (headerMode.value === "image" && headerLogoMediaId.value.trim()) {
             result["header_logo_media_id"] = headerLogoMediaId.value.trim();
         }
@@ -162,6 +168,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
             colorFields[key] = theme.config?.[key] ?? DEFAULTS[key];
         }
         footerText.value = theme.config?.["footer_text"] ?? "";
+        contentWidth.value = theme.config?.["content_width"] ?? "narrow";
         headerLogoMediaId.value = theme.config?.["header_logo_media_id"] ?? "";
         headerCustomText.value = theme.config?.["header_custom_text"] ?? "";
         headerMode.value = theme.config?.["header_logo_media_id"]
@@ -206,6 +213,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     }
 
     return {
+        contentWidth,
         CSS_SECTIONS,
         DEFAULTS,
         editModal,

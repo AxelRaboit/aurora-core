@@ -32,6 +32,10 @@ backend:
     header_custom_text: Custom text
     header_logo_media_id: Media ID
     footer_text: Footer text
+    content_width: Content width
+    content_width_narrow: Narrow — reading column
+    content_width_wide: Wide
+    content_width_full: Full width
     slug_label: Slug
     header_media_hint: Find the ID in Media → open a media → ID field.
     header_text_placeholder: My site

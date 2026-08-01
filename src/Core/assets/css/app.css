@@ -5,6 +5,11 @@
 @import "@fontsource/poppins/600.css";
 @import "@fontsource/poppins/700.css";
 @import "tailwindcss";
+
+/* The content-width classes are chosen in PHP (ThemeContext::contentWidthClass),
+   which Tailwind never scans, so they are declared here explicitly. Adding a
+   width to that method means adding it here too. */
+@source inline("max-w-3xl max-w-5xl max-w-none mx-auto");
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";
 

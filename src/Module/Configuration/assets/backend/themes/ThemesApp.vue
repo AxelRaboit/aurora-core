@@ -4,6 +4,7 @@ import { Palette, Check, Pencil, Trash2, Plus, Save, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppTextLinkButton from "@/shared/components/action/AppTextLinkButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
+import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppColorSwatch from "@/shared/components/form/picker/AppColorSwatch.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -37,7 +38,7 @@ const props = defineProps({
 const { themeList, accentColor } = useThemesList(props.themes);
 const { activateTheme } = useThemesActivate(themeList, props.activatePath);
 const { createModal, createForm, openCreate, submitCreate } = useThemesCreate(themeList, props.createPath, { extraFields: props.extraFields });
-const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, footerText, headerLogoMediaId, headerCustomText, headerMode, primaryColor, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
+const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, footerText, headerLogoMediaId, headerCustomText, headerMode, primaryColor, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
 const { deletingTheme, confirmDelete } = useThemesDelete(themeList, props.deletePath);
 </script>
 
@@ -232,6 +233,19 @@ const { deletingTheme, confirmDelete } = useThemesDelete(themeList, props.delete
                         v-model="footerText"
                         :label="t('backend.themes.footer_text')"
                         placeholder="© {year} {siteName}"
+                    />
+                    <!-- Reading width, the way Notion offers "full width".
+                         Themes read it through ThemeContext::contentWidthClass()
+                         rather than each mapping the value themselves. -->
+                    <AppSelect
+                        v-if="section.key === 'general'"
+                        v-model="contentWidth"
+                        :label="t('backend.themes.content_width')"
+                        :options="[
+                            { value: 'narrow', label: t('backend.themes.content_width_narrow') },
+                            { value: 'wide', label: t('backend.themes.content_width_wide') },
+                            { value: 'full', label: t('backend.themes.content_width_full') },
+                        ]"
                     />
                 </div>
             </form>
