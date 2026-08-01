@@ -21,7 +21,19 @@ findings ci-dessous.
 > (Editorial excepté). C'est désormais chose faite : Aurora a été recentré
 > sur **Core + Editorial** seulement. Les 11 autres packages restent sur
 > GitHub, figés à leur dernier split, non ré-publiés depuis aurora-core.
-> `bin/split-modules.sh` ne gère plus qu'`aurora-editorial`.
+> `bin/split-modules.sh` ne gérait plus qu'`aurora-editorial`.
+>
+> **Outillage de split supprimé (2026-08-01)** : `bin/split-modules.sh` et
+> les cibles `make split-module` / `make split-modules` ont été retirés.
+> Depuis l'extraction complète d'Editorial, `src/Module/Editorial` n'existe
+> plus dans `develop` et le script ne pouvait plus rien splitter — le
+> `git subtree split` échoue, vérifié. Restaient donc un script inopérant et
+> une doc `Usage:` mensongère, pour un script dont l'étape suivante est un
+> `git push -f` sur la branche `master` du repo cible. **Le repo standalone
+> `aurora-editorial` est désormais la source de vérité** : on y code
+> directement et on pousse sur `master`, on ne repasse plus par le core.
+> (Le récit historique ci-dessous mentionne encore le script — il décrit ce
+> qui s'est passé à l'époque, pas un runbook courant.)
 >
 > **Pourquoi ne pas avoir touché aux migrations** : le fichier
 > `migrations/Version20260524091527.php` crée toutes les tables (core +
