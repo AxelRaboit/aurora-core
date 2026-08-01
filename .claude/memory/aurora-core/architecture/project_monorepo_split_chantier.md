@@ -181,16 +181,26 @@ findings ci-dessous.
 > c'était Editorial (priorité 10). Zéro route en dur. `make ft` vert après
 > 3 itérations (673 tests PHP, 90 fichiers vitest).
 >
-> **Pour une future réintégration d'Editorial** : le thème frontend `default`
-> de Core est maintenant délibérément pauvre (pas de nav menu, pas de flux
-> RSS, pas de dropdown compte). Le package `aurora-editorial`, s'il est
-> réinstallé, devrait surcharger `Frontend/themes/default/layout.html.twig`
-> et `head.html.twig` (mécanisme déjà en place, cf.
-> [[project_monorepo_split_chantier]] et
-> `docs/aurora-core/dev/frontend_theme_override.md`) pour retrouver le
-> header/footer riches (menus, compte, RSS). Non fait ici — volontairement
-> hors-scope de ce chantier, à traiter le jour où Editorial revient vraiment
-> dans un projet client.
+> **Réintégration d'Editorial — fait (2026-08-01)** : le thème frontend
+> `default` de Core reste délibérément pauvre (pas de nav menu, pas de flux
+> RSS, pas de dropdown compte). Ce chantier annonçait qu'`aurora-editorial`
+> « devrait surcharger `layout.html.twig` (mécanisme déjà en place) » —
+> inexact sur les deux points : personne ne le faisait, et **aucun mécanisme
+> ne le permettait**. `AbstractAuroraModuleBundle` n'enregistrait les templates
+> d'un module que sous son propre namespace (`@Editorial`), jamais sous le null
+> namespace où vit `Frontend/themes/…` ; et un client ne peut pas surcharger ce
+> chemin non plus (Symfony ajoute `<projet>/templates` *après* les paths du
+> bundle, donc le bundle gagne). Symptôme : menus créés en backend, invisibles
+> sur le front, `menu_items()` appelé nulle part.
+>
+> Mécanisme ajouté : `<module>/templates/_theme/` est enregistré sous le null
+> namespace, devant Core. Un dossier dédié plutôt que tout `templates/`, pour
+> que masquer un template du core reste un geste explicite. Corollaire à
+> connaître : l'override ne peut pas s'étendre lui-même via son nom logique
+> (récursion infinie) — d'où l'alias `@AuroraTheme` vers
+> `src/Core/templates/Frontend/themes/`. Editorial livre désormais son layout
+> dans `templates/_theme/`, avec un interrupteur backend par emplacement de
+> menu. Détail dans `docs/aurora-core/dev/frontend_theme_override.md`.
 
 > **Outillage aligné (2026-05-31)** : les skills de scaffolding `/add-module`,
 > `/register-module-toggle`, `/audit-module-toggles`, `/add-submodule` + la doc

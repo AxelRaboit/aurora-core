@@ -18,6 +18,62 @@ Tout ce qui n'est pas présent dans le thème custom tombe sur `default`.
 
 ---
 
+## Override du thème `default` depuis un package de module
+
+Le mécanisme ci-dessus est réservé aux **clients** : il passe par un slug de
+thème différent, et `ThemeResolver` ne regarde `<project>/templates/` que pour
+un slug ≠ `default`. Un **package de module** (`aurora-editorial`, …) qui veut
+enrichir le thème `default` lui-même — typiquement pour ajouter au layout un
+chrome que le core ne peut pas connaître — passe par un autre canal.
+
+Tout fichier déposé dans `<module>/templates/_theme/` est enregistré par
+`AbstractAuroraModuleBundle` sous le **null namespace**, devant celui du core
+(les bundles de module `prepend` après `AuroraBundle`, donc leurs paths passent
+en premier). Il masque alors son homonyme du core pour toute l'application.
+
+```
+aurora-editorial/templates/_theme/Frontend/themes/default/layout.html.twig
+  masque
+vendor/axelraboit/aurora/src/Core/templates/Frontend/themes/default/layout.html.twig
+```
+
+Intérêt : les templates de page du bundle font `{% extends
+'Frontend/themes/default/layout.html.twig' %}` **en dur**. Comme l'override
+réutilise le même nom logique, ils récupèrent la nouvelle version sans être
+modifiés — pas besoin de recopier chaque page.
+
+**Deux règles à respecter.**
+
+1. **Étendre via `@AuroraTheme`, jamais via le nom logique.** Depuis l'intérieur
+   de l'override, `{% extends 'Frontend/themes/default/layout.html.twig' %}` se
+   résout vers l'override lui-même et boucle à l'infini. L'alias `@AuroraTheme`
+   pointe sur `src/Core/templates/Frontend/themes/` du bundle et donne accès à
+   l'original :
+
+   ```twig
+   {% extends '@AuroraTheme/default/layout.html.twig' %}
+
+   {% block frontend_header %}…{% endblock %}
+   ```
+
+   En ne surchargeant que les blocs voulus, l'override continue de suivre les
+   évolutions du core sur tout le reste.
+
+2. **Ne pas dépendre des variables posées par le corps du parent.** Un bloc
+   surchargé reçoit bien le contexte, mais s'appuyer dessus couple l'override à
+   l'ordre interne du template parent. Recalculer localement ce dont on a besoin.
+
+Le dossier est volontairement nommé et isolé : enregistrer tout
+`<module>/templates/` sous le null namespace laisserait n'importe quel module
+masquer silencieusement n'importe quel template du core avec lequel il
+partagerait un chemin. Ici, masquer est un geste explicite.
+
+**Exemple en place** : `aurora-editorial` remplace ainsi le layout `default` —
+volontairement dépourvu de navigation côté core — par une version qui rend ses
+menus. Voir `aurora-editorial/templates/_theme/`.
+
+---
+
 ## Structure des thèmes
 
 ```

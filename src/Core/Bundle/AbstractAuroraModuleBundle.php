@@ -127,6 +127,23 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
             $twigPaths[$bundleTemplates] = $name;
         }
 
+        // Opt-in shadowing of Core's null-namespace templates (the frontend
+        // theme, chiefly). A module that ships templates/_theme/ gets that one
+        // directory registered under the null namespace, ahead of Core's own —
+        // module bundles prepend after AuroraBundle, so their paths land first.
+        // This is how e.g. Editorial replaces the deliberately menu-less
+        // default theme layout with one that renders its Menu entity.
+        //
+        // Scoped to a single, explicitly-named directory on purpose: registering
+        // the whole templates/ dir under the null namespace would let any module
+        // silently shadow any Core template it happened to share a path with.
+        // Shadowing a file here still needs `{% extends '@AuroraTheme/...' %}`
+        // rather than the file's own logical name, which would recurse.
+        $themeOverride = $moduleDir.'/templates/_theme';
+        if (is_dir($themeOverride)) {
+            $twigPaths[$themeOverride] = null;
+        }
+
         if ([] !== $twigPaths) {
             $builder->prependExtensionConfig('twig', ['paths' => $twigPaths]);
         }

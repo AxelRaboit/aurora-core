@@ -182,6 +182,12 @@ class AuroraBundle extends AbstractBundle
         $twigPaths[$dir.'/src/Core/templates'] = null;
         $twigPaths[$dir.'/templates'] = null;
         $twigPaths[$dir.'/src/Core/assets/css'] = 'styles';
+        // Stable alias for the bundle's own theme files, so a module package
+        // that shadows one via its templates/_theme/ dir can still extend the
+        // original: `{% extends 'Frontend/themes/default/layout.html.twig' %}`
+        // from inside such an override resolves back to the override itself and
+        // recurses forever. @see AbstractAuroraModuleBundle::prepend()
+        $twigPaths[$dir.'/src/Core/templates/Frontend/themes'] = 'AuroraTheme';
         foreach (['Core', 'Shared'] as $namespace) {
             $bundleColocated = $dir.'/src/Core/templates/'.$namespace;
             if (is_dir($bundleColocated)) {
