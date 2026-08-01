@@ -71,7 +71,7 @@ final class AuditActionLabelTest extends TestCase
             array_values($missing),
             sprintf(
                 "Audit actions emitted by the code with no %s label — they render as the raw key:\n  %s",
-                strtoupper($locale),
+                mb_strtoupper($locale),
                 implode("\n  ", $missing),
             ),
         );
@@ -87,7 +87,7 @@ final class AuditActionLabelTest extends TestCase
             array_values($orphans),
             sprintf(
                 "Audit labels in %s describing actions nothing emits — dead weight, or a rename whose label was left behind:\n  %s",
-                strtoupper($locale),
+                mb_strtoupper($locale),
                 implode("\n  ", $orphans),
             ),
         );
@@ -110,7 +110,7 @@ final class AuditActionLabelTest extends TestCase
 
         foreach (self::phpFiles() as $path) {
             $code = (string) file_get_contents($path);
-            $callSites += substr_count($code, 'auditLogger->log(');
+            $callSites += mb_substr_count($code, 'auditLogger->log(');
 
             preg_match_all("/auditLogger->log\(\s*'([a-z_]+)',\s*'([a-z_.]+)'/", $code, $matches, PREG_SET_ORDER);
             foreach ($matches as $match) {
