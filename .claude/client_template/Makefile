@@ -200,30 +200,42 @@ fixtures: _require-dev-env ## Drop DB, schema:create from entities, load fixture
 	# that creates it — messenger:consume would fail with "relation
 	# messenger_messages does not exist" otherwise.
 	$(CONSOLE) messenger:setup-transports
-	# Fixtures build on the built-in types/taxonomies aurora:install creates.
+	# aurora:install seeds the structure the demo fixtures build on, and
+	# --append keeps doctrine:fixtures:load from purging it back out:
+	# the default purger empties every table, including the one holding
+	# the post types the fixtures are about to look up.
 	$(CONSOLE) aurora:install
-	$(CONSOLE) doctrine:fixtures:load --no-interaction
+	$(CONSOLE) doctrine:fixtures:load --no-interaction --append
 	$(CONSOLE) aurora:application-parameter
 	@$(SYNC_MENUS)
 	$(CONSOLE) aurora:privileges:sync
 	@echo "✅ Fixtures loaded"
 
 demo: _require-dev-env ## Load demo fixtures (DemoFixtures group) + run all syncs (DEV ONLY)
-	# Fixtures build on the built-in types/taxonomies aurora:install creates.
+	# aurora:install seeds the structure the demo fixtures build on, and
+	# --append keeps doctrine:fixtures:load from purging it back out:
+	# the default purger empties every table, including the one holding
+	# the post types the fixtures are about to look up.
 	$(CONSOLE) aurora:install
-	$(CONSOLE) doctrine:fixtures:load --group=demo --no-interaction
+	$(CONSOLE) doctrine:fixtures:load --group=demo --no-interaction --append
 	$(CONSOLE) aurora:application-parameter
 	@$(SYNC_MENUS)
 	$(CONSOLE) aurora:privileges:sync
 	@echo "✅ Demo data loaded"
 
 fixtures-load: _require-dev-env ## Load fixtures without dropping DB — purges tables before re-inserting (DEV ONLY)
-	# Fixtures build on the built-in types/taxonomies aurora:install creates.
+	# aurora:install seeds the structure the demo fixtures build on, and
+	# --append keeps doctrine:fixtures:load from purging it back out:
+	# the default purger empties every table, including the one holding
+	# the post types the fixtures are about to look up.
 	$(CONSOLE) aurora:install
-	$(CONSOLE) doctrine:fixtures:load --no-interaction
+	$(CONSOLE) doctrine:fixtures:load --no-interaction --append
 
 fixtures-append: ## Append fixtures without dropping DB (safe in any env)
-	# Fixtures build on the built-in types/taxonomies aurora:install creates.
+	# aurora:install seeds the structure the demo fixtures build on, and
+	# --append keeps doctrine:fixtures:load from purging it back out:
+	# the default purger empties every table, including the one holding
+	# the post types the fixtures are about to look up.
 	$(CONSOLE) aurora:install
 	$(CONSOLE) doctrine:fixtures:load --append --no-interaction
 
@@ -405,7 +417,7 @@ install-dev: _require-dev-env ## Install for local development — full reset: d
 	# Mandatory data (locales, built-in post types, …) before the fixtures,
 	# which now build sample content on top of it instead of creating it.
 	$(CONSOLE) aurora:install
-	$(CONSOLE) doctrine:fixtures:load --no-interaction
+	$(CONSOLE) doctrine:fixtures:load --no-interaction --append
 	$(CONSOLE) aurora:application-parameter
 	$(CONSOLE) aurora:privileges:sync
 	@$(SYNC_MENUS)
