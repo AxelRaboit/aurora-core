@@ -57,6 +57,8 @@ services:
             tags: [aurora.configuration_tab_provider]
         Aurora\Module\Configuration\Setting\Provider\ApplicationParameterProviderInterface:
             tags: [aurora.application_parameter_provider]
+        Aurora\Core\Bootstrap\BootstrapProviderInterface:
+            tags: [aurora.bootstrap_provider]
         Aurora\Core\Search\SearchProviderInterface:
             tags: [aurora.search_provider]
         Aurora\Core\Dashboard\DashboardStatsProviderInterface:

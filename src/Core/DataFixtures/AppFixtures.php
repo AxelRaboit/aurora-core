@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Core\DataFixtures;
 
-use Aurora\Core\Locale\Entity\Locale;
-use Aurora\Core\Locale\Enum\LocaleEnum;
-use Aurora\Module\Configuration\Setting\Entity\Setting;
-use Aurora\Module\Configuration\Theme\Entity\Theme;
+use Aurora\Core\Bootstrap\CoreBootstrapProvider;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -16,11 +13,19 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
- * Core bootstrap fixtures — only entities that live in the always-on core
- * (Locale, Configuration's Setting/Theme, Platform's User). Module-specific
- * seed data (editorial post types, taxonomies, sample pages, …) now lives in
- * each module package's own DataFixtures so the core stays decoupled and a
- * client without a given module never references its entities.
+ * Development accounts, and nothing else.
+ *
+ * This used to also create the locales, the default theme and four settings —
+ * bootstrap data, which never reached production because DoctrineFixturesBundle
+ * is dev/test only. Locales and theme moved to {@see CoreBootstrapProvider},
+ * run by `aurora:install` in every environment; the four settings were already
+ * declared in ApplicationParameterEnum and created by
+ * `aurora:application-parameter`, so seeding them here was a second source of
+ * truth for the same rows.
+ *
+ * The accounts below stay fixtures on purpose: `dev@aurora.app` / `password` is
+ * a convenience for local work and must never be created anywhere else. A real
+ * install gets its first user from `aurora:user:create`.
  */
 class AppFixtures extends Fixture
 {
@@ -30,33 +35,6 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        // Locales
-        $frenchLocale = new Locale()->setCode(LocaleEnum::French->value)->setName('Français')->setIsDefault(true)->setPosition(0);
-        $englishLocale = new Locale()->setCode(LocaleEnum::English->value)->setName('English')->setPosition(1);
-        $manager->persist($frenchLocale);
-        $manager->persist($englishLocale);
-
-        // Default theme
-        $theme = new Theme()
-            ->setSlug('default')
-            ->setName('Default')
-            ->setDescription('Thème par défaut de Aurora')
-            ->setActive(true);
-        $manager->persist($theme);
-
-        // Settings
-        $settings = [
-            ['site_name', 'Aurora', 'string', 'general'],
-            ['site_description', 'Propulsé par Aurora', 'string', 'general'],
-            ['default_locale', LocaleEnum::French->value, 'string', 'general'],
-            ['posts_per_page', '10', 'int', 'reading'],
-        ];
-
-        foreach ($settings as [$key, $value, $type, $group]) {
-            $setting = new Setting()->setKey($key)->setValue($value)->setType($type)->setGroup($group);
-            $manager->persist($setting);
-        }
-
         // Admin user (backend)
         $adminUser = new User();
         $adminUser->setEmail('dev@aurora.app')

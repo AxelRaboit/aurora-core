@@ -200,6 +200,8 @@ fixtures: _require-dev-env ## Drop DB, schema:create from entities, load fixture
 	# that creates it — messenger:consume would fail with "relation
 	# messenger_messages does not exist" otherwise.
 	$(CONSOLE) messenger:setup-transports
+	# Fixtures build on the built-in types/taxonomies aurora:install creates.
+	$(CONSOLE) aurora:install
 	$(CONSOLE) doctrine:fixtures:load --no-interaction
 	$(CONSOLE) aurora:application-parameter
 	@$(SYNC_MENUS)
@@ -207,6 +209,8 @@ fixtures: _require-dev-env ## Drop DB, schema:create from entities, load fixture
 	@echo "✅ Fixtures loaded"
 
 demo: _require-dev-env ## Load demo fixtures (DemoFixtures group) + run all syncs (DEV ONLY)
+	# Fixtures build on the built-in types/taxonomies aurora:install creates.
+	$(CONSOLE) aurora:install
 	$(CONSOLE) doctrine:fixtures:load --group=demo --no-interaction
 	$(CONSOLE) aurora:application-parameter
 	@$(SYNC_MENUS)
@@ -214,9 +218,13 @@ demo: _require-dev-env ## Load demo fixtures (DemoFixtures group) + run all sync
 	@echo "✅ Demo data loaded"
 
 fixtures-load: _require-dev-env ## Load fixtures without dropping DB — purges tables before re-inserting (DEV ONLY)
+	# Fixtures build on the built-in types/taxonomies aurora:install creates.
+	$(CONSOLE) aurora:install
 	$(CONSOLE) doctrine:fixtures:load --no-interaction
 
 fixtures-append: ## Append fixtures without dropping DB (safe in any env)
+	# Fixtures build on the built-in types/taxonomies aurora:install creates.
+	$(CONSOLE) aurora:install
 	$(CONSOLE) doctrine:fixtures:load --append --no-interaction
 
 # === Database ===
@@ -394,6 +402,9 @@ install-dev: _require-dev-env ## Install for local development — full reset: d
 	# that creates it — messenger:consume would fail with "relation
 	# messenger_messages does not exist" otherwise.
 	$(CONSOLE) messenger:setup-transports
+	# Mandatory data (locales, built-in post types, …) before the fixtures,
+	# which now build sample content on top of it instead of creating it.
+	$(CONSOLE) aurora:install
 	$(CONSOLE) doctrine:fixtures:load --no-interaction
 	$(CONSOLE) aurora:application-parameter
 	$(CONSOLE) aurora:privileges:sync
@@ -406,6 +417,10 @@ install-prod: ## Install for production
 	$(PNPM) --dir=$(AURORA) install --frozen-lockfile
 	make setup-dirs
 	make migrate-f
+	# Without this a production install has no locale — every frontend URL
+	# answers 404 — and no post type, so no content can be created at all.
+	# It used to come from fixtures, which never run here.
+	$(CONSOLE) aurora:install
 	$(CONSOLE) aurora:application-parameter
 	@$(SYNC_MENUS)
 	make build
