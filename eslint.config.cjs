@@ -2,6 +2,20 @@ const globals = require('globals');
 const pluginVue = require('eslint-plugin-vue');
 const prettierPlugin = require('eslint-plugin-prettier');
 
+// Stated here rather than left to Prettier's defaults, which are 2-space.
+// With no options Prettier resolves indent width from .editorconfig, so the
+// whole ruleset silently hinged on that file being present: aurora-editorial
+// was extracted without one and every indented line in its 52 .js files —
+// 4109 of them — was reported as an error, on sources that had not changed.
+// It also put Prettier's implicit 2 against the vue/*-indent rules below,
+// which ask for 4; they now agree. .editorconfig stays for editors, but
+// nothing here depends on it any more.
+const PRETTIER_OPTIONS = {
+    tabWidth: 4,
+    useTabs: false,
+    endOfLine: 'lf',
+};
+
 /** @type {import('eslint').Linter.FlatConfig[]} */
 module.exports = [
     {
@@ -20,7 +34,7 @@ module.exports = [
         rules: {
             semi: 'error',
             'prefer-const': 'error',
-            'prettier/prettier': 'error',
+            'prettier/prettier': ['error', PRETTIER_OPTIONS],
         },
     },
 
