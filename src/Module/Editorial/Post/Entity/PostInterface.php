@@ -16,6 +16,11 @@ interface PostInterface
 {
     public function getId(): ?int;
 
+    /** From TimestampableTrait — declared here so callers can type on the interface. */
+    public function getCreatedAt(): DateTimeImmutable;
+
+    public function getUpdatedAt(): DateTimeImmutable;
+
     public function getReference(): ?string;
 
     public function setReference(?string $reference): static;
