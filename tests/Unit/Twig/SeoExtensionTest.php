@@ -162,7 +162,7 @@ final class SeoExtensionTest extends TestCase
         $localeContext = $this->createMock(LocaleContextInterface::class);
         $localeContext->method('isSingleLocaleMode')->willReturn(false);
 
-        $context = new Context($localeRepo, $settings, $localeContext);
+        $context = new Context($localeRepo, $settings, $localeContext, new RequestStack());
 
         $mediaRepo = $this->createMock(DocumentRepository::class);
 

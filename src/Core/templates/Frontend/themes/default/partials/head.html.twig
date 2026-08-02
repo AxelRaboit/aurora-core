@@ -67,6 +67,13 @@
     <script type="application/ld+json">{{ seo.jsonLd|json_encode|raw }}</script>
 {% endif %}
 
+{# Autodiscovery. `feed_url()` answers null when nothing publishes a feed, so
+   this stays a guard on emptiness rather than on which modules are installed. #}
+{% set feedUrl = feed_url(locale) %}
+{% if feedUrl %}
+    <link rel="alternate" type="application/rss+xml" title="{{ context.siteName }}" href="{{ feedUrl }}">
+{% endif %}
+
 {% if siteFaviconUrl %}
     <link rel="icon" href="{{ siteFaviconUrl }}">
 {% else %}

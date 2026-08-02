@@ -11,12 +11,20 @@ use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Doctrine\Common\Collections\Order;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Aggregates site-wide configuration used by public-facing controllers.
  */
 final class Context
 {
+    /**
+     * What the `site_url` parameter ships with. Not a host anyone deploys
+     * on — see siteUrl().
+     */
+    private const string PLACEHOLDER_SITE_URL = 'http://localhost';
+
     /** @var list<LocaleInterface>|null */
     private ?array $cachedLocales = null;
 
@@ -26,6 +34,7 @@ final class Context
         private readonly LocaleRepository $localeRepository,
         private readonly SettingRepository $settingRepository,
         private readonly LocaleContextInterface $localeContext,
+        private readonly RequestStack $requestStack,
     ) {}
 
     /** @return list<LocaleInterface> */
@@ -93,9 +102,39 @@ final class Context
         return $this->setting(ApplicationParameterEnum::SiteDescription->value, null);
     }
 
+    /**
+     * The origin every public absolute URL is built on — canonical tags,
+     * hreflang, og:image, the sitemap.
+     *
+     * The setting wins when an administrator has actually set it: pinning one
+     * host is the whole point of having it, and a site reachable at both
+     * `example.com` and `www.example.com` needs its canonical URLs to agree
+     * on one of them.
+     *
+     * But the parameter ships seeded with `http://localhost`, which nobody
+     * chose. Taking that at face value is how a production deploy ends up
+     * telling search engines that the canonical address of every page is a
+     * host they cannot reach — a failure with no symptom anywhere in the
+     * application. Left at the placeholder, the request's own origin is the
+     * better answer, and the only one available on a live site.
+     */
     public function siteUrl(): string
     {
-        return mb_rtrim($this->setting(ApplicationParameterEnum::SiteUrl->value, 'http://localhost') ?? 'http://localhost', '/');
+        $configured = mb_rtrim($this->setting(ApplicationParameterEnum::SiteUrl->value, '') ?? '', '/');
+
+        if ('' !== $configured && self::PLACEHOLDER_SITE_URL !== $configured) {
+            return $configured;
+        }
+
+        $request = $this->requestStack->getCurrentRequest();
+        if ($request instanceof Request) {
+            return $request->getSchemeAndHttpHost();
+        }
+
+        // No request to learn from — a console command building URLs. The
+        // placeholder is wrong but it is all there is, and returning an empty
+        // string would produce URLs that are wrong in a harder-to-spot way.
+        return '' !== $configured ? $configured : self::PLACEHOLDER_SITE_URL;
     }
 
     public function homepagePostId(): ?int

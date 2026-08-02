@@ -18,6 +18,7 @@ use Aurora\Module\Editorial\Seo\Dto\SitemapData;
 use Aurora\Module\Editorial\Seo\Service\SitemapBuilder;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -170,6 +171,11 @@ final class SitemapBuilderTest extends TestCase
         $localeContext->method('isSingleLocaleMode')->willReturn(false);
         $localeContext->method('getDefaultLocale')->willReturn($activeLocales[0] ?? 'fr');
 
-        return new Context($localeRepository, $this->createStub(SettingRepository::class), $localeContext);
+        return new Context(
+            $localeRepository,
+            $this->createStub(SettingRepository::class),
+            $localeContext,
+            new RequestStack(),
+        );
     }
 }

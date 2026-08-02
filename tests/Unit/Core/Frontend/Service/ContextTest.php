@@ -12,6 +12,7 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 #[AllowMockObjectsWithoutExpectations]
 final class ContextTest extends TestCase
@@ -40,7 +41,7 @@ final class ContextTest extends TestCase
 
     private function makeContext(): Context
     {
-        return new Context($this->localeRepository, $this->settingRepository, $this->localeContext);
+        return new Context($this->localeRepository, $this->settingRepository, $this->localeContext, new RequestStack());
     }
 
     public function testActiveLocalesQueriesTheRepositoryOncePerInstance(): void
@@ -74,7 +75,7 @@ final class ContextTest extends TestCase
             $this->makeLocale('es'),
         ]);
 
-        $context = new Context($this->localeRepository, $this->settingRepository, $localeContext);
+        $context = new Context($this->localeRepository, $this->settingRepository, $localeContext, new RequestStack());
 
         $codes = array_map(static fn (LocaleInterface $l) => $l->getCode(), $context->activeLocales());
         self::assertSame(['fr'], $codes);
