@@ -234,8 +234,9 @@ backend:
     conflict_overwrite: Save mine anyway
     filters: Filters
     clear_filters: Clear
-    trashed: Open the trash
-    leave_trash: Leave the trash
+    views: Which list
+    view_active: Posts
+    view_trash: Trash
     trash_empty: The trash is empty.
     filter_type: Content type
     filter_status: Status

@@ -14,6 +14,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
+import AppTab from "@/shared/components/nav/AppTab.vue";
 import { Plus, Pencil, Trash2, X, FileText, Filter, Undo2, Flame } from "lucide-vue-next";
 
 const { t } = useI18n();
@@ -86,39 +87,40 @@ const allTerms = computed(() =>
             </template>
         </AppListToolbar>
 
+        <!-- Two lists, not one list narrowed. A trashed post supports different
+             actions from a live one — restore and delete for good, never edit —
+             so this picks *which* list you are working on, the same job the
+             tabs do everywhere else in the backend. A toggle button read as
+             "apply something to what I'm looking at", which is not what it does. -->
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+            <nav class="flex items-center gap-1" :aria-label="t('backend.posts.views')">
+                <AppTab :active="!trashed" size="sm" v-on:click="trashed = false">
+                    <FileText class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.view_active") }}
+                </AppTab>
+                <AppTab :active="trashed" color="rose" size="sm" v-on:click="trashed = true">
+                    <Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.view_trash") }}
+                </AppTab>
+            </nav>
+
+            <!-- Keyed on the list that is on screen, not on the one being
+                 fetched: reading `trashed` here made this flash into view
+                 against the previous list's rows and vanish a moment later. -->
+            <AppButton
+                v-if="showingTrash && can('editorial.posts.delete') && items.length"
+                variant="danger"
+                size="sm"
+                v-on:click="confirmEmptyTrash = true"
+            >
+                <Flame class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.empty_trash") }}
+            </AppButton>
+        </div>
+
         <div class="bg-surface border border-line rounded-xl p-4 space-y-3">
             <div class="flex items-center justify-between gap-3">
                 <span class="flex items-center gap-2 text-sm font-medium text-primary">
                     <Filter class="w-4 h-4" :stroke-width="2" /> {{ t("backend.posts.filters") }}
                 </span>
                 <div class="flex items-center gap-2">
-                    <!-- A pressed button, not a checkbox among the filters:
-                         this swaps the list for another one rather than
-                         narrowing it, and `aria-pressed` says so to a screen
-                         reader. -->
-                    <AppButton
-                        :variant="trashed ? 'danger' : 'ghost'"
-                        size="sm"
-                        :aria-pressed="trashed"
-                        v-on:click="trashed = !trashed"
-                    >
-                        <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ trashed ? t("backend.posts.leave_trash") : t("backend.posts.trashed") }}
-                    </AppButton>
-
-                    <!-- Keyed on the list that is on screen, not on the one
-                         being fetched: reading `trashed` here made this flash
-                         into view against the previous list's rows and vanish
-                         a moment later. -->
-                    <AppButton
-                        v-if="showingTrash && can('editorial.posts.delete') && items.length"
-                        variant="danger"
-                        size="sm"
-                        v-on:click="confirmEmptyTrash = true"
-                    >
-                        <Flame class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.empty_trash") }}
-                    </AppButton>
-
                     <AppButton v-if="activeFilterCount" variant="ghost" size="sm" v-on:click="clearFilters">
                         <X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.clear_filters") }}
                     </AppButton>

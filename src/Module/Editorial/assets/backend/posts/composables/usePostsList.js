@@ -37,15 +37,15 @@ export function usePostsList(props) {
     const termIds = ref([...(props.termIds ?? [])]);
     const statuses = ref([...(props.statuses ?? [])]);
 
-    // The trash counts: it is the filter that changes the list most, and
-    // leaving it on after "Clear" left the screen looking empty for no
-    // visible reason.
+    // The trash deliberately does not count. It is not a filter narrowing the
+    // list, it is the choice of *which* list — the screen says so with its own
+    // tabs — and counting it made "Clear" offer to leave the trash, which is a
+    // different thing from clearing the filters applied inside it.
     const activeFilterCount = computed(
         () =>
             postTypeIds.value.length +
             termIds.value.length +
-            statuses.value.length +
-            (trashed.value ? 1 : 0),
+            statuses.value.length,
     );
 
     function queryString() {
@@ -115,11 +115,11 @@ export function usePostsList(props) {
             : [...list.value, value];
     }
 
+    // Clears the filters, and only those: you stay on the list you chose.
     function clearFilters() {
         postTypeIds.value = [];
         termIds.value = [];
         statuses.value = [];
-        trashed.value = false;
     }
 
     const {
