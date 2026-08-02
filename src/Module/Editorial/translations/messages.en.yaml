@@ -91,6 +91,8 @@ backend:
     taxonomies_description: 'Group content with tags and categories, flat or nested.'
     menus: Menus
     menus_description: 'Compose the public site navigation: header, footer, account.'
+    seo: Search engines
+    seo_description: 'Publish the public site sitemap, robots.txt and RSS feed.'
   post_types:
     title: Content types
     empty: No content type yet.

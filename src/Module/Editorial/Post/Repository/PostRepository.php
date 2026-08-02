@@ -226,6 +226,30 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * Every published post with its translations and type, for the sitemap
+     * and the feed.
+     *
+     * Joined and selected in one go: the sitemap walks every translation of
+     * every post, and letting Doctrine lazy-load them would be one query per
+     * post per locale on the one route a crawler hits hardest.
+     *
+     * @return list<PostInterface>
+     */
+    public function findAllPublishedForSitemap(): array
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.translations', 't')
+            ->leftJoin('p.postType', 'pt')
+            ->addSelect('t', 'pt')
+            ->where('p.status = :status')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('status', PostStatusEnum::Published)
+            ->orderBy('p.publishedAt', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * How many live posts sit in each status, for the dashboard.
      *
      * One grouped query rather than one COUNT per status, and rows are only

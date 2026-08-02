@@ -16,19 +16,21 @@ use Aurora\Module\Editorial\EditorialFrontendDescriptor;
  * turns off Taxonomies alone expects the taxonomy screens to go and the
  * posts to stay.
  *
- * The public routes are not listed here — they are gated by
- * {@see FrontendRouteGateSubscriber}
- * through the prefixes {@see EditorialFrontendDescriptor}
- * declares, and gating them twice would only give the rule two places to
- * drift from.
+ * The public content routes are not listed here — they are gated by
+ * {@see FrontendRouteGateSubscriber} through the prefixes
+ * {@see EditorialFrontendDescriptor} declares, and gating them twice would
+ * only give the rule two places to drift from. The crawler-facing files are
+ * the exception: they carry a toggle of their own, so an administrator can
+ * keep the site public and stop publishing a sitemap — something Core's gate
+ * knows nothing about.
  */
 final readonly class EditorialRouteGateSubscriber extends AbstractModuleRouteGateSubscriber
 {
     public function __construct(private EditorialContext $editorialContext) {}
 
-    protected function routeNamespace(): string
+    protected function routeNamespaces(): array
     {
-        return 'backend_editorial_';
+        return ['backend_editorial_', 'editorial_sitemap', 'editorial_robots', 'editorial_rss'];
     }
 
     protected function gates(): array
@@ -39,6 +41,13 @@ final readonly class EditorialRouteGateSubscriber extends AbstractModuleRouteGat
             'backend_editorial_post_types' => $this->editorialContext->isPostTypesEnabled(),
             'backend_editorial_taxonomies' => $this->editorialContext->isTaxonomiesEnabled(),
             'backend_editorial_menus' => $this->editorialContext->isMenusEnabled(),
+            // The crawler-facing files. They are public routes, so the front
+            // toggle already covers them through Core's gate; this is the one
+            // that lets an administrator keep the site public and stop
+            // publishing a sitemap.
+            'editorial_sitemap' => $this->editorialContext->isSeoEnabled(),
+            'editorial_robots' => $this->editorialContext->isSeoEnabled(),
+            'editorial_rss' => $this->editorialContext->isSeoEnabled(),
         ];
     }
 }

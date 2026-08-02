@@ -43,4 +43,9 @@ final readonly class EditorialContext
     {
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialMenus);
     }
+
+    public function isSeoEnabled(): bool
+    {
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialSeo);
+    }
 }

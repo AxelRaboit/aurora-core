@@ -44,9 +44,9 @@ abstract readonly class AbstractModuleRouteGateSubscriber implements EventSubscr
         $route = (string) $event->getRequest()->attributes->get('_route', '');
 
         // Every request passes through here, most of them for routes this
-        // module knows nothing about. One string comparison settles those
-        // before any toggle is resolved.
-        if (!str_starts_with($route, $this->routeNamespace())) {
+        // module knows nothing about. A handful of string comparisons settle
+        // those before any toggle is resolved.
+        if (!$this->isOurs($route)) {
             return;
         }
 
@@ -58,11 +58,13 @@ abstract readonly class AbstractModuleRouteGateSubscriber implements EventSubscr
     }
 
     /**
-     * The route-name prefix every gate below sits under, e.g.
-     * `backend_editorial_`. Requests outside it are none of this module's
+     * The route-name prefixes every gate below sits under, e.g.
+     * `backend_editorial_`. Requests outside them are none of this module's
      * business and are waved through without touching the settings.
+     *
+     * @return list<string>
      */
-    abstract protected function routeNamespace(): string;
+    abstract protected function routeNamespaces(): array;
 
     /**
      * Route-name prefix → whether the module behind it is on.
@@ -73,4 +75,9 @@ abstract readonly class AbstractModuleRouteGateSubscriber implements EventSubscr
      * @return array<string, bool>
      */
     abstract protected function gates(): array;
+
+    private function isOurs(string $route): bool
+    {
+        return array_any($this->routeNamespaces(), fn ($namespace): bool => str_starts_with($route, (string) $namespace));
+    }
 }

@@ -91,6 +91,8 @@ backend:
     taxonomies_description: "Regrouper les contenus par étiquettes et catégories, à plat ou imbriquées."
     menus: Menus
     menus_description: "Composer la navigation du site public : en-tête, pied de page, compte."
+    seo: Référencement
+    seo_description: "Publier le sitemap, le robots.txt et le flux RSS du site public."
   post_types:
     title: Types de contenu
     empty: Aucun type de contenu.

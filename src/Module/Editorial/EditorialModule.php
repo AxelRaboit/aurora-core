@@ -99,6 +99,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             ModuleParameterEnum::EditorialPostTypes->toToggle(),
             ModuleParameterEnum::EditorialTaxonomies->toToggle(),
             ModuleParameterEnum::EditorialMenus->toToggle(),
+            ModuleParameterEnum::EditorialSeo->toToggle(),
         ];
     }
 

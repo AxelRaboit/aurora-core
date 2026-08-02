@@ -147,6 +147,9 @@ neutralisé et la substitution promise au client ne fonctionne pas.
 | Publication programmée et purge sans écriture d'audit | Un post passe en ligne ou disparaît sans trace |
 | Docblock du filtre par termes annonçant ET, code faisant OU | Documentation fausse |
 | `BlocksRenderer::renderCallout()` lisant `text` et émettant `.callout-info` | Encart vide et non coloré, mais **seulement une fois publié** |
+| `robots.txt` interdisant `/admin/` et `/dev/` | Le backend d'Aurora est sous `/backend/` : le fichier ne bloquait rien qui existe et **annonçait l'administration comme indexable**. Bien formé, route en 200, aucun symptôme avant de voir des URL d'admin dans les résultats de recherche. |
+| Sitemap : `noindex` de la langue par défaut sautant **tout** le post | Un article masqué en français disparaissait aussi en anglais, d'une page que l'éditeur n'avait pas touchée. Le compteur d'URL retenues étant placé après ce `continue`, il sous-comptait exactement les URL perdues par erreur. |
+| `Sitemap:` de robots.txt construit sur `site_url` | Réglage livré à `http://localhost` : un déploiement qui ne l'a jamais changé annonçait son sitemap sur un hôte injoignable — soit aucun sitemap. Généré depuis la requête maintenant. |
 
 **Six défauts nés dans le code reconstruit lui-même**, tous trouvés en
 manipulant l'écran ou en comparant le schéma, aucun signalé par les outils :
