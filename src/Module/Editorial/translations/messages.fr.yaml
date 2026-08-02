@@ -19,6 +19,13 @@ backend:
           created: Type de contenu créé
           updated: Type de contenu modifié
           deleted: Type de contenu supprimé
+        post:
+          created: Publication créée
+          updated: Publication modifiée
+          deleted: Publication mise à la corbeille
+          restored: Publication restaurée depuis la corbeille
+          force_deleted: Publication supprimée définitivement
+          revision_restored: Révision restaurée
         taxonomy:
           created: Taxonomie créée
           updated: Taxonomie modifiée
@@ -28,6 +35,9 @@ backend:
             updated: Terme modifié
             deleted: Terme supprimé
   parameters:
+    editorial_post_prefix:
+      label: Préfixe de référence des publications
+      description: "Préfixe de la référence générée pour chaque publication."
     editorial_taxonomy_term_prefix:
       label: Préfixe de référence des termes
       description: "Préfixe de la référence générée pour chaque terme de taxonomie."

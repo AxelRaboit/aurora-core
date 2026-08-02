@@ -1,0 +1,520 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Aurora\Module\Editorial\Post\Manager;
+
+use Aurora\Core\Sequence\SequenceGenerator;
+use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
+use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Editorial\Post\Dto\PostInputInterface;
+use Aurora\Module\Editorial\Post\Dto\PostTranslationInput;
+use Aurora\Module\Editorial\Post\Entity\Post;
+use Aurora\Module\Editorial\Post\Entity\PostInterface;
+use Aurora\Module\Editorial\Post\Entity\PostRevision;
+use Aurora\Module\Editorial\Post\Entity\PostRevisionInterface;
+use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
+use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Repository\PostRepository;
+use Aurora\Module\Editorial\Post\Repository\PostRevisionRepository;
+use Aurora\Module\Editorial\Post\Repository\PostSlugHistoryRepository;
+use Aurora\Module\Editorial\Post\Security\PostVoter;
+use Aurora\Module\Editorial\Post\Service\PostTextExtractor;
+use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
+use Aurora\Module\Editorial\Setting\EditorialSettingEnum;
+use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyTermRepository;
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Platform\User\Enum\UserRoleEnum;
+use DateTimeImmutable;
+use Doctrine\ORM\EntityManagerInterface;
+use Exception;
+use InvalidArgumentException;
+use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
+
+use const DATE_ATOM;
+
+#[AsAlias(PostManagerInterface::class)]
+class PostManager implements PostManagerInterface
+{
+    public function __construct(
+        protected readonly EntityManagerInterface $entityManager,
+        protected readonly PostRepository $postRepository,
+        protected readonly PostTypeRepository $postTypeRepository,
+        protected readonly TaxonomyTermRepository $termRepository,
+        protected readonly DocumentRepository $documentRepository,
+        protected readonly PostRevisionRepository $revisionRepository,
+        protected readonly PostSlugHistoryRepository $slugHistoryRepository,
+        protected readonly SettingRepository $settingRepository,
+        protected readonly SluggerInterface $slugger,
+        protected readonly Security $security,
+        protected readonly PostTextExtractor $textExtractor,
+        protected readonly TranslatorInterface $translator,
+        protected readonly AuditLogger $auditLogger,
+        protected readonly SequenceGenerator $sequenceGenerator,
+    ) {}
+
+    public function create(PostInputInterface $input): PostInterface
+    {
+        $post = $this->createPost();
+        $this->applyInput($post, $input);
+
+        $currentUser = $this->security->getUser();
+        if ($currentUser instanceof CoreUserInterface) {
+            $post->setAuthor($currentUser);
+        }
+
+        $post->setReference($this->sequenceGenerator->next(
+            $this->settingRepository->getOrDefault(EditorialSettingEnum::PostPrefix),
+        ));
+
+        $this->entityManager->persist($post);
+        $this->entityManager->flush();
+
+        $this->auditCreated($post);
+
+        return $post;
+    }
+
+    public function update(PostInterface $post, PostInputInterface $input): void
+    {
+        $this->applyInput($post, $input);
+
+        // @Version only bumps when the owning entity is itself scheduled for
+        // UPDATE. Editing only a translation or a tag would leave the version
+        // untouched, and the next editor's stale save would look current.
+        $this->entityManager->getUnitOfWork()->scheduleForUpdate($post);
+        $this->entityManager->flush();
+
+        $this->snapshotRevision($post);
+
+        $this->auditUpdated($post);
+    }
+
+    public function delete(PostInterface $post): void
+    {
+        if ($post->isTrashed()) {
+            return;
+        }
+
+        $post->setDeletedAt(new DateTimeImmutable());
+        $this->entityManager->flush();
+
+        $this->auditDeleted($post);
+    }
+
+    public function restore(PostInterface $post): void
+    {
+        $post->setDeletedAt(null);
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('editorial', 'post.restored', 'Post', $post->getId(), $this->auditPayload($post));
+    }
+
+    public function forceDelete(PostInterface $post): void
+    {
+        // Logged before the remove: afterwards the id is gone.
+        $this->auditLogger->log('editorial', 'post.force_deleted', 'Post', $post->getId(), $this->auditPayload($post));
+
+        $this->entityManager->remove($post);
+        $this->entityManager->flush();
+    }
+
+    public function restoreRevision(PostInterface $post, PostRevisionInterface $revision): void
+    {
+        $this->applySnapshot($post, $revision->getSnapshot());
+
+        $this->entityManager->flush();
+
+        // Restoring is itself a change worth a revision — otherwise stepping
+        // back loses whatever it stepped back from.
+        $this->snapshotRevision($post);
+
+        $this->auditLogger->log('editorial', 'post.revision_restored', 'Post', $post->getId(), [
+            ...$this->auditPayload($post),
+            'revisionId' => $revision->getId(),
+        ]);
+    }
+
+    public function emptyTrash(): int
+    {
+        $posts = $this->postRepository->findAllTrashed();
+        if ([] === $posts) {
+            return 0;
+        }
+
+        foreach ($posts as $post) {
+            $this->auditLogger->log('editorial', 'post.force_deleted', 'Post', $post->getId(), $this->auditPayload($post));
+            $this->entityManager->remove($post);
+        }
+
+        $this->entityManager->flush();
+
+        return count($posts);
+    }
+
+    public function demoteIfNotPublishable(PostInputInterface $input, ?PostInterface $post = null): PostInputInterface
+    {
+        if (PostStatusEnum::Published->value !== $input->getStatus()) {
+            return $input;
+        }
+
+        $allowed = $post instanceof PostInterface
+            ? $this->security->isGranted(PostVoter::PUBLISH, $post)
+            : ($this->security->isGranted(UserRoleEnum::Admin->value) || $this->security->isGranted(UserRoleEnum::Dev->value));
+
+        return $allowed ? $input : $input->withStatus(PostStatusEnum::PendingReview->value);
+    }
+
+    // ── Hooks: instanciation ──────────────────────────────────────────────────
+
+    /**
+     * Returns the interface, not the concrete class: a client's own Post
+     * extends AbstractPost, not this one, so a concrete return type would
+     * make the override it is here to allow impossible to write.
+     */
+    protected function createPost(): PostInterface
+    {
+        return new Post();
+    }
+
+    protected function createPostRevision(): PostRevisionInterface
+    {
+        return new PostRevision();
+    }
+
+    // ── Hooks: hydratation ────────────────────────────────────────────────────
+
+    protected function applyInput(PostInterface $post, PostInputInterface $input): void
+    {
+        $postType = $this->postTypeRepository->find($input->getPostTypeId());
+        if (null === $postType) {
+            throw new InvalidArgumentException($this->translator->trans('backend.posts.errors.post_type_not_found', ['{id}' => $input->getPostTypeId()]));
+        }
+
+        $post->setPostType($postType);
+
+        $status = PostStatusEnum::from($input->getStatus());
+        $post->setStatus($status);
+
+        $post->setScheduledAt(
+            PostStatusEnum::Scheduled === $status ? $this->hydrateDate($input->getScheduledAt()) : null,
+        );
+
+        // Stamped once, on the first publish: re-saving a live post must not
+        // move it back to the top of a date-ordered listing.
+        if (PostStatusEnum::Published === $status && !$post->getPublishedAt() instanceof DateTimeImmutable) {
+            $post->setPublishedAt(new DateTimeImmutable());
+        }
+
+        $post->setFeaturedMedia($this->findMedia($input->getFeaturedMediaId()));
+        $post->setCommentsEnabled($input->isCommentsEnabled());
+
+        $this->syncTerms($post, $input->getTermIds());
+        $this->syncRelatedPosts($post, $input->getRelatedPostIds());
+
+        $ogImages = $this->buildMediaMap(array_values(array_filter(
+            array_map(static fn (PostTranslationInput $t): ?int => $t->ogImageMediaId, $input->getTranslations()),
+        )));
+
+        foreach ($input->getTranslations() as $locale => $translationInput) {
+            $this->applyTranslation($post, (string) $locale, $translationInput, $ogImages);
+        }
+    }
+
+    /**
+     * Block images are deliberately not garbage-collected here. They point at
+     * media-library entries, which are shared and addressable by id — a post
+     * dropping a block must not delete a file another post still shows.
+     *
+     * @param array<int, DocumentInterface> $ogImages
+     */
+    protected function applyTranslation(PostInterface $post, string $locale, PostTranslationInput $input, array $ogImages = []): void
+    {
+        $translation = $post->translate($locale);
+
+        $translation->setTitle($input->title);
+        $translation->setBlocks($input->blocks);
+        $translation->setDescription($input->description);
+        $translation->setMetaTitle($input->metaTitle);
+        $translation->setMetaDescription($input->metaDescription);
+        $translation->setCustomFields($input->customFields);
+        $translation->setOgImage(null !== $input->ogImageMediaId ? ($ogImages[$input->ogImageMediaId] ?? null) : null);
+        $translation->setCanonicalUrl($input->canonicalUrl);
+        $translation->setNoindex($input->noindex);
+        $translation->setFocusKeyword($input->focusKeyword);
+        $translation->setJsonLd($input->jsonLd);
+
+        $this->applySlug($post, $translation, $locale, $input);
+
+        $translation->setSearchContent($this->textExtractor->extract($translation));
+    }
+
+    // ── Hooks: audit ──────────────────────────────────────────────────────────
+
+    protected function auditCreated(PostInterface $post): void
+    {
+        $this->auditLogger->log('editorial', 'post.created', 'Post', $post->getId(), $this->auditPayload($post));
+    }
+
+    protected function auditUpdated(PostInterface $post): void
+    {
+        $this->auditLogger->log('editorial', 'post.updated', 'Post', $post->getId(), $this->auditPayload($post));
+    }
+
+    protected function auditDeleted(PostInterface $post): void
+    {
+        $this->auditLogger->log('editorial', 'post.deleted', 'Post', $post->getId(), $this->auditPayload($post));
+    }
+
+    /** @return array<string, mixed> */
+    protected function auditPayload(PostInterface $post): array
+    {
+        $title = null;
+        foreach ($post->getTranslations() as $translation) {
+            $title = $translation->getTitle();
+            if (null !== $title) {
+                break;
+            }
+        }
+
+        return ['title' => $title, 'status' => $post->getStatus()->value];
+    }
+
+    // ── Internals ─────────────────────────────────────────────────────────────
+
+    /**
+     * A renamed slug is remembered so the old URL keeps resolving. Taking a
+     * slug that history holds drops that entry first, or the redirect would
+     * loop onto itself.
+     */
+    private function applySlug(PostInterface $post, PostTranslationInterface $translation, string $locale, PostTranslationInput $input): void
+    {
+        $previous = $translation->getSlug();
+        $next = $input->slug ?? (null !== $input->title ? $this->slugger->slug($input->title)->lower()->toString() : null);
+
+        if ($next === $previous) {
+            return;
+        }
+
+        if (null !== $next && '' !== $next) {
+            $this->slugHistoryRepository->removeByLocaleAndSlug($locale, $next);
+        }
+
+        if (null !== $previous && '' !== $previous) {
+            $this->slugHistoryRepository->recordIfNew($post, $locale, $previous);
+        }
+
+        $translation->setSlug($next);
+    }
+
+    /** @param list<int> $termIds */
+    private function syncTerms(PostInterface $post, array $termIds): void
+    {
+        foreach ($post->getTerms() as $existing) {
+            if (!in_array($existing->getId(), $termIds, true)) {
+                $post->removeTerm($existing);
+            }
+        }
+
+        $missing = $this->missingIds($post->getTerms()->map(static fn ($term): ?int => $term->getId())->toArray(), $termIds);
+        if ([] === $missing) {
+            return;
+        }
+
+        foreach ($this->termRepository->findBy(['id' => $missing]) as $term) {
+            $post->addTerm($term);
+        }
+    }
+
+    /** @param list<int> $relatedPostIds */
+    private function syncRelatedPosts(PostInterface $post, array $relatedPostIds): void
+    {
+        $relatedPostIds = array_values(array_filter($relatedPostIds, static fn (int $id): bool => $id !== $post->getId()));
+
+        foreach ($post->getRelatedPosts() as $existing) {
+            if (!in_array($existing->getId(), $relatedPostIds, true)) {
+                $post->removeRelatedPost($existing);
+            }
+        }
+
+        $missing = $this->missingIds($post->getRelatedPosts()->map(static fn ($related): ?int => $related->getId())->toArray(), $relatedPostIds);
+        if ([] === $missing) {
+            return;
+        }
+
+        foreach ($this->postRepository->findBy(['id' => $missing]) as $related) {
+            $post->addRelatedPost($related);
+        }
+    }
+
+    /**
+     * @param array<int, ?int> $current
+     * @param list<int>        $wanted
+     *
+     * @return list<int>
+     */
+    private function missingIds(array $current, array $wanted): array
+    {
+        return array_values(array_filter($wanted, static fn (int $id): bool => !in_array($id, $current, true)));
+    }
+
+    private function snapshotRevision(PostInterface $post): void
+    {
+        $revision = $this->createPostRevision();
+        $revision->setPost($post);
+        $revision->setPostVersion($post->getVersion());
+        $revision->setStatus($post->getStatus());
+        $revision->setSnapshot($this->buildSnapshot($post));
+
+        $user = $this->security->getUser();
+        if ($user instanceof CoreUserInterface) {
+            $revision->setAuthor($user);
+        }
+
+        $this->entityManager->persist($revision);
+        $this->entityManager->flush();
+
+        $limit = (int) $this->settingRepository->get(
+            ApplicationParameterEnum::PostRevisionsLimit->value,
+            ApplicationParameterEnum::PostRevisionsLimit->getDefaultValue(),
+        );
+
+        if ($limit > 0) {
+            $this->revisionRepository->pruneOlderThanLimit($post, $limit);
+        }
+    }
+
+    /** @return array<string, mixed> */
+    private function buildSnapshot(PostInterface $post): array
+    {
+        $translations = [];
+        foreach ($post->getTranslations() as $locale => $translation) {
+            $translations[(string) $locale] = [
+                'title' => $translation->getTitle(),
+                'slug' => $translation->getSlug(),
+                'blocks' => $translation->getBlocks(),
+                'description' => $translation->getDescription(),
+                'metaTitle' => $translation->getMetaTitle(),
+                'metaDescription' => $translation->getMetaDescription(),
+                'customFields' => $translation->getCustomFields(),
+                'ogImageMediaId' => $translation->getOgImage()?->getId(),
+                'canonicalUrl' => $translation->getCanonicalUrl(),
+                'noindex' => $translation->isNoindex(),
+                'focusKeyword' => $translation->getFocusKeyword(),
+                'jsonLd' => $translation->getJsonLd(),
+            ];
+        }
+
+        return [
+            'status' => $post->getStatus()->value,
+            'postTypeId' => $post->getPostType()->getId(),
+            'featuredMediaId' => $post->getFeaturedMedia()?->getId(),
+            'termIds' => array_values($post->getTerms()->map(static fn ($term): ?int => $term->getId())->toArray()),
+            'relatedPostIds' => array_values($post->getRelatedPosts()->map(static fn ($related): ?int => $related->getId())->toArray()),
+            'publishedAt' => $post->getPublishedAt()?->format(DATE_ATOM),
+            'scheduledAt' => $post->getScheduledAt()?->format(DATE_ATOM),
+            'translations' => $translations,
+        ];
+    }
+
+    /** @param array<string, mixed> $snapshot */
+    private function applySnapshot(PostInterface $post, array $snapshot): void
+    {
+        $post->setStatus(PostStatusEnum::tryFrom((string) ($snapshot['status'] ?? '')) ?? PostStatusEnum::Draft);
+        $post->setPublishedAt($this->hydrateDate($snapshot['publishedAt'] ?? null));
+        $post->setScheduledAt($this->hydrateDate($snapshot['scheduledAt'] ?? null));
+
+        $snapshotTranslations = is_array($snapshot['translations'] ?? null) ? $snapshot['translations'] : [];
+
+        $ogImageIds = array_map(
+            static fn (mixed $t): int => is_array($t) ? (int) ($t['ogImageMediaId'] ?? 0) : 0,
+            $snapshotTranslations,
+        );
+        $featuredMediaId = (int) ($snapshot['featuredMediaId'] ?? 0);
+
+        $media = $this->buildMediaMap(array_values(array_filter(
+            [$featuredMediaId, ...array_values($ogImageIds)],
+            static fn (int $id): bool => $id > 0,
+        )));
+
+        $post->setFeaturedMedia($media[$featuredMediaId] ?? null);
+
+        $this->syncTerms($post, $this->positiveIds($snapshot['termIds'] ?? null));
+        $this->syncRelatedPosts($post, $this->positiveIds($snapshot['relatedPostIds'] ?? null));
+
+        foreach ($snapshotTranslations as $locale => $data) {
+            if (!is_array($data)) {
+                continue;
+            }
+
+            $translation = $post->translate((string) $locale);
+            $translation->setTitle($data['title'] ?? null);
+            $translation->setSlug($data['slug'] ?? null);
+            $translation->setBlocks(is_array($data['blocks'] ?? null) ? $data['blocks'] : []);
+            $translation->setDescription($data['description'] ?? null);
+            $translation->setMetaTitle($data['metaTitle'] ?? null);
+            $translation->setMetaDescription($data['metaDescription'] ?? null);
+            $translation->setCustomFields(is_array($data['customFields'] ?? null) ? $data['customFields'] : []);
+            $translation->setOgImage($media[(int) ($data['ogImageMediaId'] ?? 0)] ?? null);
+            $translation->setCanonicalUrl($data['canonicalUrl'] ?? null);
+            $translation->setNoindex((bool) ($data['noindex'] ?? false));
+            $translation->setFocusKeyword($data['focusKeyword'] ?? null);
+            $translation->setJsonLd(is_array($data['jsonLd'] ?? null) ? $data['jsonLd'] : null);
+
+            $translation->setSearchContent($this->textExtractor->extract($translation));
+        }
+    }
+
+    /** @return list<int> */
+    private function positiveIds(mixed $raw): array
+    {
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(intval(...), $raw), static fn (int $id): bool => $id > 0));
+    }
+
+    private function findMedia(?int $id): ?DocumentInterface
+    {
+        return null !== $id ? $this->documentRepository->find($id) : null;
+    }
+
+    /**
+     * @param list<int> $ids
+     *
+     * @return array<int, DocumentInterface>
+     */
+    private function buildMediaMap(array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        $map = [];
+        foreach ($this->documentRepository->findBy(['id' => array_unique($ids)]) as $document) {
+            $map[$document->getId()] = $document;
+        }
+
+        return $map;
+    }
+
+    private function hydrateDate(mixed $value): ?DateTimeImmutable
+    {
+        if (!is_string($value) || '' === $value) {
+            return null;
+        }
+
+        try {
+            return new DateTimeImmutable($value);
+        } catch (Exception) {
+            return null;
+        }
+    }
+}

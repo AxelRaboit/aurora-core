@@ -19,6 +19,13 @@ backend:
           created: Content type created
           updated: Content type updated
           deleted: Content type deleted
+        post:
+          created: Post created
+          updated: Post updated
+          deleted: Post moved to trash
+          restored: Post restored from trash
+          force_deleted: Post permanently deleted
+          revision_restored: Revision restored
         taxonomy:
           created: Taxonomy created
           updated: Taxonomy updated
@@ -28,6 +35,9 @@ backend:
             updated: Term updated
             deleted: Term deleted
   parameters:
+    editorial_post_prefix:
+      label: Post reference prefix
+      description: 'Prefix of the reference generated for each post.'
     editorial_taxonomy_term_prefix:
       label: Term reference prefix
       description: 'Prefix of the reference generated for each taxonomy term.'

@@ -14,6 +14,7 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
  */
 enum EditorialSettingEnum: string implements ApplicationParameterEnumInterface
 {
+    case PostPrefix = 'backend_editorial_post_prefix';
     case TaxonomyTermPrefix = 'backend_editorial_taxonomy_term_prefix';
 
     public function getKey(): string
@@ -24,6 +25,7 @@ enum EditorialSettingEnum: string implements ApplicationParameterEnumInterface
     public function getLabel(): string
     {
         return match ($this) {
+            self::PostPrefix => 'backend.parameters.editorial_post_prefix.label',
             self::TaxonomyTermPrefix => 'backend.parameters.editorial_taxonomy_term_prefix.label',
         };
     }
@@ -31,6 +33,7 @@ enum EditorialSettingEnum: string implements ApplicationParameterEnumInterface
     public function getDescription(): string
     {
         return match ($this) {
+            self::PostPrefix => 'backend.parameters.editorial_post_prefix.description',
             self::TaxonomyTermPrefix => 'backend.parameters.editorial_taxonomy_term_prefix.description',
         };
     }
@@ -38,6 +41,7 @@ enum EditorialSettingEnum: string implements ApplicationParameterEnumInterface
     public function getDefaultValue(): string
     {
         return match ($this) {
+            self::PostPrefix => SequencePrefixEnum::Post->value,
             self::TaxonomyTermPrefix => SequencePrefixEnum::TaxonomyTerm->value,
         };
     }
