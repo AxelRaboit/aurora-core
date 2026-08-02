@@ -66,6 +66,14 @@ class PostTypeManager implements PostTypeManagerInterface
             throw new RuntimeException($this->translator->trans('backend.post_types.errors.builtin_protected'));
         }
 
+        // Posts point at their type with a non-nullable column, so letting
+        // this through means a foreign key violation and a 500 rather than
+        // an answer the editor can act on. Trashed posts still count: they
+        // are recoverable, and would come back to a type that no longer is.
+        if ($postType->getPosts()->count() > 0) {
+            throw new RuntimeException($this->translator->trans('backend.post_types.errors.has_posts'));
+        }
+
         $this->auditDeleted($postType);
 
         $this->entityManager->remove($postType);

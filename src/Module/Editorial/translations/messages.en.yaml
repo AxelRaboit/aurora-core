@@ -117,6 +117,7 @@ backend:
       slug_taken: 'The slug "{slug}" is already used.'
       label_required: A label is required.
       builtin_protected: A built-in content type cannot be deleted.
+      has_posts: This content type still holds posts, including any in the trash.
       field_name_required: A machine name is required.
       field_name_format: 'The machine name can only contain lowercase letters, numbers and underscores.'
       field_name_taken: 'The field "{name}" already exists on this type.'

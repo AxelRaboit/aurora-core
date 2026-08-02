@@ -117,6 +117,7 @@ backend:
       slug_taken: 'Le slug « {slug} » est déjà utilisé.'
       label_required: Un libellé est requis.
       builtin_protected: Un type de contenu natif ne peut pas être supprimé.
+      has_posts: Ce type de contenu porte encore des publications, y compris à la corbeille.
       field_name_required: Un nom machine est requis.
       field_name_format: 'Le nom machine ne peut contenir que des lettres minuscules, chiffres et tirets bas.'
       field_name_taken: 'Le champ « {name} » existe déjà sur ce type.'
