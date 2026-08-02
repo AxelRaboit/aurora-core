@@ -38,6 +38,13 @@ class PostsController extends AbstractController
     use JsonRequestTrait;
     use JsonResponseTrait;
 
+    /**
+     * The Vue side builds its URLs from templates, asking the generator for
+     * a path with `__id__` where the id goes. A bare `\d+` rejects that at
+     * render time, so the placeholder is allowed alongside real ids.
+     */
+    private const string ID = '\\d+|__id__';
+
     public function __construct(
         private readonly PostManagerInterface $postManager,
         private readonly PostSerializerInterface $postSerializer,
@@ -86,7 +93,7 @@ class PostsController extends AbstractController
         return $this->render('@Editorial/backend/posts/edit.html.twig', $this->viewBuilder->editView());
     }
 
-    #[Route('/{id}/edit', name: '_edit', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    #[Route('/{id}/edit', name: '_edit', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Get->value])]
     #[IsGranted('editorial.posts.edit')]
     public function editPage(Post $post): Response
     {
@@ -117,7 +124,7 @@ class PostsController extends AbstractController
         return $this->jsonSuccess(['posts' => array_map($this->postSerializer->serializeReference(...), $posts)]);
     }
 
-    #[Route('/{id}', name: '_show', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    #[Route('/{id}', name: '_show', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Get->value])]
     public function show(Post $post): JsonResponse
     {
         $this->denyAccessUnlessGranted(PostVoter::VIEW, $post);
@@ -147,7 +154,7 @@ class PostsController extends AbstractController
         return $this->jsonSuccess(['post' => $this->postSerializer->serializeFull($post)]);
     }
 
-    #[Route('/{id}/update', name: '_update', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{id}/update', name: '_update', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('editorial.posts.edit')]
     public function update(Post $post, Request $request): JsonResponse
     {
@@ -182,7 +189,7 @@ class PostsController extends AbstractController
         return $this->jsonSuccess(['post' => $this->postSerializer->serializeFull($post)]);
     }
 
-    #[Route('/{id}/delete', name: '_delete', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{id}/delete', name: '_delete', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('editorial.posts.delete')]
     public function delete(Post $post): JsonResponse
     {

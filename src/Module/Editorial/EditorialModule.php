@@ -15,10 +15,8 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
  * Editorial — the content module: post types, taxonomies, posts, menus.
  *
  * Being rebuilt one sub-domain at a time: a screen appears here in the
- * same commit that brings the Vue app behind it, never before. Posts have
- * their routes, their permissions and their toggle already, but no nav
- * entry until there is something to render — a menu item leading to a
- * blank page is worse than no menu item.
+ * same commit that brings the Vue app behind it, never before — a menu
+ * item leading to a blank page is worse than no menu item.
  */
 final readonly class EditorialModule implements ModuleInterface, ModuleToggleProviderInterface
 {
@@ -56,6 +54,10 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
 
         $items = [];
 
+        if ($this->editorialContext->isPostsEnabled()) {
+            $items[] = $this->postsNavItem();
+        }
+
         if ($this->editorialContext->isPostTypesEnabled()) {
             $items[] = $this->postTypesNavItem();
         }
@@ -75,6 +77,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
     {
         return [
             new NavSection('editorial', [
+                $this->postsNavItem(),
                 $this->postTypesNavItem(),
                 $this->taxonomiesNavItem(),
             ], priority: 30),
@@ -89,6 +92,17 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             ModuleParameterEnum::EditorialPostTypes->toToggle(),
             ModuleParameterEnum::EditorialTaxonomies->toToggle(),
         ];
+    }
+
+    private function postsNavItem(): NavItem
+    {
+        return new NavItem(
+            'backend_editorial_posts',
+            'backend.nav.posts',
+            'file-text',
+            requiredPrivilege: 'editorial.posts.view',
+            descriptionKey: 'backend.nav.posts_description',
+        );
     }
 
     private function taxonomiesNavItem(): NavItem

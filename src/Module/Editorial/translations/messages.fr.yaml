@@ -127,6 +127,30 @@ backend:
     title: Publications
     create: Nouvelle publication
     edit: Modifier la publication
+    empty: Aucune publication.
+    untitled: (sans titre)
+    deleted: Publication mise à la corbeille.
+    delete_confirm: 'Mettre « {title} » à la corbeille ?'
+    delete_hint: Elle quitte les listes mais reste récupérable.
+    search_placeholder: "Chercher un titre, un slug, ou coller une URL…"
+    total: '{count} publications'
+    filters: Filtres
+    clear_filters: Effacer
+    trashed: Afficher la corbeille
+    filter_type: Type de contenu
+    filter_status: Statut
+    filter_term: Terme
+    no_terms: Aucun terme défini.
+    title_column: Titre
+    type_column: Type
+    status_column: Statut
+    updated_column: Modifiée
+    status:
+      draft: Brouillon
+      pending_review: En attente de revue
+      scheduled: Programmée
+      published: Publiée
+      archived: Archivée
     errors:
       post_type_required: Un type de contenu est requis.
       post_type_not_found: "Le type de contenu {id} n'existe pas."

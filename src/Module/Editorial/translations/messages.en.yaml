@@ -127,6 +127,30 @@ backend:
     title: Posts
     create: New post
     edit: Edit post
+    empty: No post yet.
+    untitled: (untitled)
+    deleted: Post moved to the trash.
+    delete_confirm: 'Move "{title}" to the trash?'
+    delete_hint: It leaves the listings but can be restored.
+    search_placeholder: 'Search a title, a slug, or paste a URL…'
+    total: '{count} posts'
+    filters: Filters
+    clear_filters: Clear
+    trashed: Show the trash
+    filter_type: Content type
+    filter_status: Status
+    filter_term: Term
+    no_terms: No term defined.
+    title_column: Title
+    type_column: Type
+    status_column: Status
+    updated_column: Updated
+    status:
+      draft: Draft
+      pending_review: Pending review
+      scheduled: Scheduled
+      published: Published
+      archived: Archived
     errors:
       post_type_required: A content type is required.
       post_type_not_found: 'Content type {id} does not exist.'
