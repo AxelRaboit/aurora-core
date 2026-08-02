@@ -41,7 +41,7 @@ onMounted(() => {
             />
         </div>
         <p v-if="!data?.items?.length" class="py-8 text-center text-sm text-muted">{{ t('backend.audit.empty') }}</p>
-        <div v-else class="bg-surface border border-line rounded-lg overflow-hidden">
+        <div v-else class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">

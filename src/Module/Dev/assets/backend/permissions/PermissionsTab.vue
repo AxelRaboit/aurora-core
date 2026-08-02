@@ -25,7 +25,7 @@ const { searchInput, filteredModules } = usePermissionsFilter(data);
             :placeholder="t('backend.permissions.search_placeholder')"
         />
         <AppNoData v-if="!filteredModules.length" :message="t('backend.permissions.empty')" />
-        <div v-for="moduleEntry in filteredModules" :key="moduleEntry.id" class="bg-surface border border-line rounded-lg overflow-hidden">
+        <div v-for="moduleEntry in filteredModules" :key="moduleEntry.id" class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
             <div class="bg-surface-2 border-b border-line px-4 py-2.5">
                 <h3 class="text-sm font-semibold text-primary">{{ t(`backend.modules.${moduleEntry.id}`) }}</h3>
             </div>

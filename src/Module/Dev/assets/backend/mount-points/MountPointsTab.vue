@@ -57,7 +57,7 @@ onMounted(() => {
             </AppButton>
         </div>
 
-        <div class="bg-surface border border-line rounded-xl overflow-hidden">
+        <div class="bg-surface border border-line rounded-xl overflow-x-auto scrollbar-thin">
             <p v-if="!mp.filteredMountPoints.value.length" class="py-8 text-center text-sm text-muted">
                 {{ t("backend.mount_points.empty") }}
             </p>

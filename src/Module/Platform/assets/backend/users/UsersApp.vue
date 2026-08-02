@@ -141,7 +141,7 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                 </div>
             </div>
 
-            <div class="hidden sm:block bg-surface border border-line/60 rounded-xl overflow-hidden">
+            <div class="hidden sm:block bg-surface border border-line/60 rounded-xl overflow-x-auto scrollbar-thin">
                 <AppNoData v-if="!loading && !users.length" :message="t('backend.users.empty')" />
                 <table v-else class="w-full text-sm">
                     <thead>
