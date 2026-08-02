@@ -213,23 +213,6 @@
 .callout-block__tab--amber     { background: rgb(245 158 11);  }
 .callout-block__tab--fuchsia   { background: rgb(217 70 239);  }
 
-/* ── Intro block ─────────────────────────────────────────────────── */
-.intro-block {
-    padding: 0.5rem 0 0.5rem 0.875rem;
-    border-left: 3px solid var(--color-accent-500);
-    outline: none;
-    font-size: 1.0625rem;
-    line-height: 1.7;
-}
-
-.intro-block:empty::before {
-    content: attr(data-placeholder);
-    color: var(--th-muted);
-    pointer-events: none;
-}
-
-
-
 /* ── PostsList block ─────────────────────────────────────────────── */
 .posts-list-block {
     padding: 0.75rem;

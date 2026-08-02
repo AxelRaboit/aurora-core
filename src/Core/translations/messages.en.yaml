@@ -154,7 +154,6 @@ backend:
       font_size: Font Size
       clear_formatting: Clear formatting
       callout: Callout
-      intro: Introduction
       media_text: Image + Text
       two_column: 2 Columns
     ui:
@@ -208,5 +207,3 @@ backend:
     callout:
       title_placeholder: Title…
       message_placeholder: Message…
-    intro:
-      placeholder: Standfirst — the short paragraph that opens the page…

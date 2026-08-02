@@ -25,7 +25,6 @@ import { ClearFormattingTool } from "@shared/components/editor/tools/ClearFormat
 import MediaTextBlock from "@shared/components/editor/tools/MediaTextBlock.js";
 import TwoColumnBlock from "@shared/components/editor/tools/TwoColumnBlock.js";
 import CalloutBlock from "@shared/components/editor/tools/CalloutBlock.js";
-import IntroBlock from "@shared/components/editor/tools/IntroBlock.js";
 import DragDrop from "editorjs-drag-drop";
 import Undo from "editorjs-undo";
 
@@ -254,14 +253,6 @@ onMounted(async () => {
             },
             clearFormatting: {
                 class: ClearFormattingTool,
-            },
-
-            // Chapô
-            intro: {
-                class: IntroBlock,
-                config: {
-                    placeholder:        t("backend.editor.intro.placeholder"),
-                },
             },
 
             // Callout

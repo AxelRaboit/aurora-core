@@ -21,11 +21,6 @@ function renderBlock(block) {
         case "paragraph":
             return `<p>${block.data?.text ?? ""}</p>`;
 
-        // Left unescaped, like paragraph: the tool stores the field's
-        // innerHTML, so the inline toolbar's markup is part of the value.
-        case "intro":
-            return `<p class="post-intro">${block.data?.text ?? ""}</p>`;
-
         case "header": {
             const level = Math.min(Math.max(block.data?.level ?? 2, 1), 6);
             return `<h${level}>${block.data?.text ?? ""}</h${level}>`;
