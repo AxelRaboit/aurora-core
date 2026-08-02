@@ -136,6 +136,15 @@ backend:
     total: '{count} posts'
     created: Post created.
     updated: Post saved.
+    restore: Restore
+    restored: Post restored.
+    force_delete: Delete for good
+    force_deleted: Post deleted for good.
+    force_delete_confirm: 'Delete "{title}" for good?'
+    empty_trash: Empty the trash
+    empty_trash_confirm: Delete every post in the trash for good?
+    trash_emptied: '{count} posts deleted for good.'
+    irreversible: This cannot be undone.
     back_to_list: Back to the list
     content: Content
     content_placeholder: 'Write, or press Tab for a block…'

@@ -1,4 +1,6 @@
 import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useDelete } from "@/shared/composables/form/useDelete.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
@@ -9,6 +11,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
  * live in the query string too: a filtered list stays a link you can send.
  */
 export function usePostsList(props) {
+    const { t } = useI18n();
     const { request } = useRequest();
 
     const items = ref(props.posts.items ?? []);
@@ -113,6 +116,54 @@ export function usePostsList(props) {
         "backend.posts.deleted",
     );
 
+    const pendingForceDelete = ref(null);
+    const emptyingTrash = ref(false);
+
+    async function restore(post) {
+        const data = await request(
+            buildPath(props.restorePathTemplate, { id: post.id }),
+        );
+        if (data?.success) {
+            toast.success(t("backend.posts.restored"));
+            reload();
+        }
+    }
+
+    async function forceDelete() {
+        if (!pendingForceDelete.value) return;
+
+        const data = await request(
+            buildPath(props.forceDeletePathTemplate, {
+                id: pendingForceDelete.value.id,
+            }),
+        );
+        if (data?.success) {
+            toast.success(t("backend.posts.force_deleted"));
+            pendingForceDelete.value = null;
+            reload();
+        }
+    }
+
+    const confirmEmptyTrash = ref(false);
+
+    async function emptyTrash() {
+        if (emptyingTrash.value) return;
+
+        emptyingTrash.value = true;
+        try {
+            const data = await request(props.emptyTrashPath);
+            if (data?.success) {
+                toast.success(
+                    t("backend.posts.trash_emptied", { count: data.deleted }),
+                );
+                confirmEmptyTrash.value = false;
+                reload();
+            }
+        } finally {
+            emptyingTrash.value = false;
+        }
+    }
+
     function editPath(post) {
         return buildPath(props.editPathTemplate, { id: post.id });
     }
@@ -137,6 +188,12 @@ export function usePostsList(props) {
         deleteLoading,
         confirmDelete,
         doDelete,
+        pendingForceDelete,
+        forceDelete,
+        confirmEmptyTrash,
+        emptyingTrash,
+        emptyTrash,
+        restore,
         editPath,
     };
 }

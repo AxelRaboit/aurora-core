@@ -136,6 +136,15 @@ backend:
     total: '{count} publications'
     created: Publication créée.
     updated: Publication enregistrée.
+    restore: Restaurer
+    restored: Publication restaurée.
+    force_delete: Supprimer définitivement
+    force_deleted: Publication supprimée définitivement.
+    force_delete_confirm: 'Supprimer définitivement « {title} » ?'
+    empty_trash: Vider la corbeille
+    empty_trash_confirm: Supprimer définitivement toutes les publications de la corbeille ?
+    trash_emptied: '{count} publications supprimées définitivement.'
+    irreversible: Cette action est irréversible.
     back_to_list: Retour à la liste
     content: Contenu
     content_placeholder: "Écrivez, ou appuyez sur Tab pour un bloc…"

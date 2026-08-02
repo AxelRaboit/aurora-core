@@ -24,5 +24,7 @@
     editPathTemplate: path('backend_editorial_posts_edit', {id: '__id__'}),
     listPath: path('backend_editorial_posts'),
     searchPath: path('backend_editorial_posts_search'),
+    revisionsPathTemplate: path('backend_editorial_posts_revisions', {id: '__id__'}),
+    revisionRestorePathTemplate: path('backend_editorial_posts_revision_restore', {id: '__id__', revisionId: '__revisionId__'}),
 }) }} class="flex-1 min-w-0"></div>
 {% endblock %}

@@ -14,7 +14,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
-import { Plus, Pencil, Trash2, X, FileText, Filter } from "lucide-vue-next";
+import { Plus, Pencil, Trash2, X, FileText, Filter, Undo2, Flame } from "lucide-vue-next";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
@@ -35,6 +35,9 @@ const props = defineProps({
     newPath: { type: String, required: true },
     editPathTemplate: { type: String, required: true },
     deletePathTemplate: { type: String, required: true },
+    restorePathTemplate: { type: String, required: true },
+    forceDeletePathTemplate: { type: String, required: true },
+    emptyTrashPath: { type: String, required: true },
 });
 
 const {
@@ -42,6 +45,7 @@ const {
     search, trashed, postTypeIds, termIds, statuses,
     activeFilterCount, goToPage, toggleIn, clearFilters,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
+    pendingForceDelete, forceDelete, confirmEmptyTrash, emptyingTrash, emptyTrash, restore,
     editPath,
 } = usePostsList(props);
 
@@ -89,6 +93,14 @@ const allTerms = computed(() =>
                 </span>
                 <div class="flex items-center gap-2">
                     <AppCheckbox v-model="trashed" :label="t('backend.posts.trashed')" />
+                    <AppButton
+                        v-if="trashed && can('editorial.posts.delete') && items.length"
+                        variant="danger"
+                        size="sm"
+                        v-on:click="confirmEmptyTrash = true"
+                    >
+                        <Flame class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.empty_trash") }}
+                    </AppButton>
                     <AppButton v-if="activeFilterCount" variant="ghost" size="sm" v-on:click="clearFilters">
                         <X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.clear_filters") }}
                     </AppButton>
@@ -157,12 +169,28 @@ const allTerms = computed(() =>
                         <td class="px-6 py-3">
                             <div class="flex items-center justify-end gap-0.5">
                                 <AppIconButton
-                                    v-if="can('editorial.posts.edit')"
+                                    v-if="can('editorial.posts.edit') && !post.trashed"
                                     color="accent"
                                     :title="t('shared.common.edit')"
                                     :href="editPath(post)"
                                 >
                                     <Pencil class="w-4 h-4" :stroke-width="2" />
+                                </AppIconButton>
+                                <AppIconButton
+                                    v-if="can('editorial.posts.delete') && post.trashed"
+                                    color="emerald"
+                                    :title="t('backend.posts.restore')"
+                                    v-on:click="restore(post)"
+                                >
+                                    <Undo2 class="w-4 h-4" :stroke-width="2" />
+                                </AppIconButton>
+                                <AppIconButton
+                                    v-if="can('editorial.posts.delete') && post.trashed"
+                                    color="rose"
+                                    :title="t('backend.posts.force_delete')"
+                                    v-on:click="pendingForceDelete = post"
+                                >
+                                    <Flame class="w-4 h-4" :stroke-width="2" />
                                 </AppIconButton>
                                 <AppIconButton
                                     v-if="can('editorial.posts.delete') && !post.trashed"
@@ -201,6 +229,41 @@ const allTerms = computed(() =>
                 <AppModalFooter>
                     <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
                     <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
+        <AppModal
+            :show="!!pendingForceDelete"
+            max-width="sm"
+            :closeable="false"
+            :title="t('backend.posts.force_delete')"
+            :icon="Flame"
+            v-on:close="pendingForceDelete = null"
+        >
+            <p class="text-sm text-primary">{{ t("backend.posts.force_delete_confirm", { title: pendingForceDelete?.title ?? "" }) }}</p>
+            <p class="text-sm text-secondary">{{ t("backend.posts.irreversible") }}</p>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="pendingForceDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                    <AppButton variant="danger" size="md" v-on:click="forceDelete"><Flame class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.force_delete") }}</AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
+
+        <AppModal
+            :show="confirmEmptyTrash"
+            max-width="sm"
+            :closeable="false"
+            :title="t('backend.posts.empty_trash')"
+            :icon="Flame"
+            v-on:close="confirmEmptyTrash = false"
+        >
+            <p class="text-sm text-primary">{{ t("backend.posts.empty_trash_confirm") }}</p>
+            <p class="text-sm text-secondary">{{ t("backend.posts.irreversible") }}</p>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="confirmEmptyTrash = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                    <AppButton variant="danger" size="md" :loading="emptyingTrash" v-on:click="emptyTrash"><Flame class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.empty_trash") }}</AppButton>
                 </AppModalFooter>
             </template>
         </AppModal>
