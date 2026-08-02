@@ -70,7 +70,6 @@ cat > "$HEADER_VUE" << 'VUEOF'
 import { computed, ref, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 import { ChevronDown, User } from "lucide-vue-next";
-import LocaleSwitcher from "@editorial/frontend/LocaleSwitcher.vue";
 
 const { t } = useI18n();
 
@@ -157,7 +156,15 @@ onBeforeUnmount(() => document.removeEventListener("click", onClickOutside));
                 </div>
             </div>
 
-            <LocaleSwitcher v-if="localeSwitcher.enabled" :current-locale="locale" :locales="localeSwitcher.locales" />
+            <nav v-if="localeSwitcher.enabled" class="flex items-center gap-3">
+                <a
+                    v-for="loc in localeSwitcher.locales"
+                    :key="loc.code"
+                    :href="loc.url"
+                    :class="loc.code === locale ? 'font-semibold' : 'opacity-70 hover:opacity-100 transition-opacity'"
+                    style="color: var(--th-header-text, var(--th-primary));"
+                >{{ loc.name }}</a>
+            </nav>
         </div>
     </header>
 </template>
@@ -202,6 +209,8 @@ cat > "$LAYOUT_TWIG" << TWIGEOF
         url: path('${MODULE_SLUG}_front_home', {locale: loc.code}),
     }]) %}
 {% endfor %}
+{# accountMenuItems below is empty on purpose: feed it from whatever owns your
+   navigation — a module exposing a menu Twig function, or a hardcoded list. #}
 <div {{ vue_component('${MODULE_SLUG}/frontend/${MODULE_NAME}HeaderApp', {
     locale: locale,
     siteName: context.siteName,
@@ -210,7 +219,7 @@ cat > "$LAYOUT_TWIG" << TWIGEOF
     siteLogoUrl: siteLogoUrl ?? '',
     headerCustomText: themeContext.headerCustomText() ?? '',
     currentUser: app.user ? {name: app.user.name} : null,
-    accountMenuItems: menu_items('account', locale),
+    accountMenuItems: [],
     loginPath: path('frontend_login', {locale: locale}),
     logoutPath: path('frontend_logout', {locale: locale}),
     localeSwitcher: {
