@@ -12,12 +12,21 @@ fonctions exposées par `src/Core/Twig/LocaleExtension.php` (auto-wired via
 `#[AsTwigFunction]`) :
 
 ```twig
-{{ locale_flag(loc.code) ?? loc.code|upper }}
+{% set flag = locale_flag(loc.code) %}
+{% if flag %}
+    {# code ISO 3166-1 alpha-2, à donner au CSS `flag-icons` #}
+    <span class="fi fi-{{ flag }}" aria-hidden="true"></span>
+{% endif %}
 {{ locale_name(loc.code) ?? loc.code|upper }}
 ```
 
-Les deux fonctions retournent `?string` — toujours prévoir un fallback avec
-`?? loc.code|upper` pour les locales non répertoriés.
+Les deux fonctions retournent `?string`. `locale_name()` prend un fallback
+`?? loc.code|upper`. `locale_flag()` retourne un **code pays**, pas un caractère
+affichable : le tester et ne rien rendre s'il est null, plutôt que de laisser un
+trou ou d'imprimer le code brut.
+
+Le drapeau est toujours **décoratif** (`aria-hidden`) et le nom de la langue
+reste dans le markup : un drapeau désigne un pays, pas une langue.
 
 ## Pourquoi
 
@@ -35,3 +44,5 @@ Les deux fonctions retournent `?string` — toujours prévoir un fallback avec
    ne pas re-créer un dict Twig local.
 3. Si une vue Vue (admin) a besoin du même mapping, exposer les données via
    le ViewBuilder — ne pas hardcoder côté JS non plus.
+4. Consommateur de référence : le switcher de langue frontend, cf.
+   [[pattern_details_dropdown]].

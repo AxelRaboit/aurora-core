@@ -1,33 +1,66 @@
-{# Language switcher.
+{# Language switcher — a disclosure dropdown, so the header stays the same size
+   whether the site speaks two languages or twelve.
+
+   `<details>` rather than a `<select>`: the entries stay real `<a href>` links,
+   which is what a language switcher is. They carry `hreflang`/`lang`, open in a
+   new tab on middle-click, and cost no JavaScript to unfold. A `<select>` would
+   also have had to drop the flags — `<option>` renders text, not markup.
 
    A flag is a country, not a language — English is not the United Kingdom and
    Portuguese is not Portugal. So the flag is decorative (`aria-hidden`) and the
-   language's own name is always in the markup: visible from `sm` up, and read
-   out at every width. A switcher a screen reader announces as "image, image"
-   is not a switcher.
+   language's own name is always in the markup: on the trigger it shows from
+   `sm` up and is read out at every width, and inside the panel it is always
+   visible. A switcher a screen reader announces as "image, image" is not a
+   switcher.
 
-   `locale_flag()` answers null for a language with no flag mapped, and the
-   name alone is then the whole control rather than a gap.
+   `locale_flag()` answers null for a language with no flag mapped, and the name
+   alone is then the whole control rather than a gap.
+
+   Closing on an outside click or Escape is an enhancement layered on top by
+   `shared/utils/detailsDropdown.js`, not a requirement: without it the panel
+   still opens and closes from its own summary.
 
    Expects: `locales` (list of LocaleInterface), `current` (code), `urls`
    (code → href). #}
-<nav class="flex items-center gap-1" aria-label="{{ 'shared.locale_switcher'|trans }}">
-    {% for loc in locales %}
-        {% set isCurrent = loc.code == current %}
-        {% set flag = locale_flag(loc.code) %}
-        <a
-            href="{{ urls[loc.code] }}"
-            hreflang="{{ loc.code }}"
-            lang="{{ loc.code }}"
-            {{ isCurrent ? 'aria-current="true"' : '' }}
-            class="flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors {{ isCurrent
-                ? 'bg-surface-2 text-primary font-semibold'
-                : 'text-secondary hover:text-primary hover:bg-surface-2/60' }}"
+{% set currentFlag = locale_flag(current) %}
+<nav class="relative" aria-label="{{ 'shared.locale_switcher'|trans }}">
+    <details class="group" data-dropdown>
+        <summary
+            class="flex cursor-pointer list-none select-none items-center gap-1.5 rounded-md px-2 py-1 text-secondary transition-colors hover:bg-surface-2/60 hover:text-primary [&::-webkit-details-marker]:hidden"
         >
-            {% if flag %}
-                <span class="fi fi-{{ flag }} rounded-[2px] shrink-0" aria-hidden="true"></span>
+            {% if currentFlag %}
+                <span class="fi fi-{{ currentFlag }} rounded-[2px] shrink-0" aria-hidden="true"></span>
             {% endif %}
-            <span class="sr-only sm:not-sr-only">{{ locale_name(loc.code) ?? loc.code|upper }}</span>
-        </a>
-    {% endfor %}
+            <span class="sr-only sm:not-sr-only">{{ locale_name(current) ?? current|upper }}</span>
+            {{ include('@Shared/components/icon.html.twig', {
+                name: 'chevron-down',
+                class: 'w-3.5 h-3.5 shrink-0 transition-transform group-open:rotate-180',
+                size: 14,
+            }) }}
+        </summary>
+
+        <div class="absolute right-0 top-full z-20 mt-1 flex min-w-40 flex-col rounded-lg border border-line bg-bg p-1 shadow-lg">
+            {% for loc in locales %}
+                {% set isCurrent = loc.code == current %}
+                {% set flag = locale_flag(loc.code) %}
+                <a
+                    href="{{ urls[loc.code] }}"
+                    hreflang="{{ loc.code }}"
+                    lang="{{ loc.code }}"
+                    {{ isCurrent ? 'aria-current="true"' : '' }}
+                    class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors {{ isCurrent
+                        ? 'bg-surface-2 text-primary font-semibold'
+                        : 'text-secondary hover:bg-surface-2/60 hover:text-primary' }}"
+                >
+                    {% if flag %}
+                        <span class="fi fi-{{ flag }} rounded-[2px] shrink-0" aria-hidden="true"></span>
+                    {% endif %}
+                    <span class="flex-1 whitespace-nowrap">{{ locale_name(loc.code) ?? loc.code|upper }}</span>
+                    {% if isCurrent %}
+                        {{ include('@Shared/components/icon.html.twig', {name: 'check', class: 'w-3.5 h-3.5 shrink-0', size: 14}) }}
+                    {% endif %}
+                </a>
+            {% endfor %}
+        </div>
+    </details>
 </nav>

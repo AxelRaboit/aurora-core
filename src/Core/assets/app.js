@@ -10,6 +10,7 @@ import { createAppI18n } from "@/i18n.js";
 // vite-plugin-aurora-modules.js.
 import vendorModules from "virtual:aurora-vendor-modules";
 import "./shared/utils/loader.js";
+import "./shared/utils/detailsDropdown.js";
 import "./css/app.css";
 
 // Module boot hooks: a module may ship `*.register.js` files (e.g. a settings
