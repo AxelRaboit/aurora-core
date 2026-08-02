@@ -23,6 +23,14 @@ use Aurora\Module\Editorial\PostType\Entity\PostType;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeField;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeFieldInterface;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
+use Aurora\Module\Editorial\Taxonomy\Entity\Taxonomy;
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTerm;
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermTranslation;
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermTranslationInterface;
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTranslation;
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTranslationInterface;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Entity\DocumentVersion;
@@ -112,6 +120,10 @@ class AuroraBundle extends AbstractBundle
                     MountPointInterface::class => MountPoint::class,
                     PostTypeInterface::class => PostType::class,
                     PostTypeFieldInterface::class => PostTypeField::class,
+                    TaxonomyInterface::class => Taxonomy::class,
+                    TaxonomyTranslationInterface::class => TaxonomyTranslation::class,
+                    TaxonomyTermInterface::class => TaxonomyTerm::class,
+                    TaxonomyTermTranslationInterface::class => TaxonomyTermTranslation::class,
                 ],
                 'mappings' => array_merge(
                     [

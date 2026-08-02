@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\PostType\Entity;
 
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Order;
@@ -49,9 +50,18 @@ abstract class AbstractPostType implements PostTypeInterface
     #[ORM\OrderBy(['position' => Order::Ascending->value])]
     protected Collection $fields;
 
+    /**
+     * Mapped on the concrete class: the owning side of a ManyToMany needs a
+     * join table, and a MappedSuperclass may not declare one.
+     *
+     * @var Collection<int, TaxonomyInterface>
+     */
+    protected Collection $taxonomies;
+
     public function __construct()
     {
         $this->fields = new ArrayCollection();
+        $this->taxonomies = new ArrayCollection();
     }
 
     public function getSlug(): string
@@ -160,6 +170,27 @@ abstract class AbstractPostType implements PostTypeInterface
     public function removeField(PostTypeFieldInterface $field): static
     {
         $this->fields->removeElement($field);
+
+        return $this;
+    }
+
+    public function getTaxonomies(): Collection
+    {
+        return $this->taxonomies;
+    }
+
+    public function addTaxonomy(TaxonomyInterface $taxonomy): static
+    {
+        if (!$this->taxonomies->contains($taxonomy)) {
+            $this->taxonomies->add($taxonomy);
+        }
+
+        return $this;
+    }
+
+    public function removeTaxonomy(TaxonomyInterface $taxonomy): static
+    {
+        $this->taxonomies->removeElement($taxonomy);
 
         return $this;
     }
