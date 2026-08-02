@@ -44,7 +44,7 @@ class FormsController extends AbstractController
     /** @see RouteRequirement::ID for why a bare `\d+` breaks the screen. */
     private const string ID = RouteRequirement::ID;
 
-    private const string FIELD_ID = '\\d+|__fieldId__';
+    private const string FIELD_ID = RouteRequirement::ID;
 
     public function __construct(
         private readonly FormManagerInterface $formManager,

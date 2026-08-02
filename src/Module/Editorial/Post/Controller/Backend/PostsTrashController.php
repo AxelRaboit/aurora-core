@@ -6,6 +6,7 @@ namespace Aurora\Module\Editorial\Post\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Routing\RouteRequirement;
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Manager\PostManagerInterface;
 use Aurora\Module\Editorial\Post\Security\PostVoter;
@@ -26,7 +27,8 @@ class PostsTrashController extends AbstractController
     use JsonResponseTrait;
 
     /** @see PostsController::ID for why the placeholder is allowed. */
-    private const string ID = '\d+|__id__';
+    /** @see RouteRequirement::ID for why a bare `\d+` breaks the screen. */
+    private const string ID = RouteRequirement::ID;
 
     public function __construct(
         private readonly PostManagerInterface $postManager,

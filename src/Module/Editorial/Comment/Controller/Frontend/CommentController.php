@@ -44,8 +44,8 @@ class CommentController extends AbstractController
     /** How many comments one address may leave in an hour. */
     private const int MAX_PER_HOUR = 5;
 
-    /** @see RouteRequirement — the Vue side asks for this path with a placeholder in it. */
-    private const string COMMENT_ID = '\\d+|__commentId__';
+    /** @see RouteRequirement::ID — the Vue side asks for this path with a placeholder in it. */
+    private const string COMMENT_ID = RouteRequirement::ID;
 
     public function __construct(
         private readonly PostRepository $postRepository,

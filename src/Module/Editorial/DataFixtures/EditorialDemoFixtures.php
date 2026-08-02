@@ -14,6 +14,7 @@ use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Service\EditorBlocks;
 use Aurora\Module\Editorial\Post\Service\PostTextExtractor;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
@@ -253,22 +254,19 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * A body in the shape BlocksRenderer expects, so the public pages have
-     * something to render and the search index something to find. Kept to
-     * the block types the renderer actually handles.
+     * A body in the shape the *editor* expects — which is stricter than what
+     * the renderer accepts, and the reason these go through EditorBlocks
+     * rather than being written out by hand.
      *
      * @return array<int, array<string, mixed>>
      */
     private function blocks(string $title, string $description): array
     {
         return [
-            ['type' => 'paragraph', 'data' => ['text' => $description]],
-            ['type' => 'header', 'data' => ['text' => $title, 'level' => 2]],
-            ['type' => 'paragraph', 'data' => ['text' => 'Ce contenu est une démonstration. Remplacez-le par le vôtre depuis l\'administration.']],
-            ['type' => 'list', 'data' => ['style' => 'unordered', 'items' => [
-                ['content' => 'Un premier point'],
-                ['content' => 'Un deuxième point'],
-            ]]],
+            EditorBlocks::paragraph($description),
+            EditorBlocks::header($title),
+            EditorBlocks::paragraph('Ce contenu est une démonstration. Remplacez-le par le vôtre depuis l\'administration.'),
+            EditorBlocks::list(['Un premier point', 'Un deuxième point']),
         ];
     }
 
