@@ -61,22 +61,6 @@ function renderBlock(block) {
             return `<${tag}>${items}</${tag}>`;
         }
 
-        // Legacy: blocks saved with the standalone @editorjs/checklist package
-        // before it was unified into @editorjs/list v2.
-        case "checklist": {
-            const items = (block.data?.items ?? [])
-                .map(
-                    (
-                        item,
-                    ) => `<li class="checklist-item${item.checked ? " checked" : ""}">
-                    <span class="check">${item.checked ? "✓" : "○"}</span>
-                    <span>${item.text ?? ""}</span>
-                </li>`,
-                )
-                .join("");
-            return `<ul class="checklist">${items}</ul>`;
-        }
-
         case "quote":
             return [
                 `<blockquote>`,
@@ -88,9 +72,6 @@ function renderBlock(block) {
             ]
                 .filter(Boolean)
                 .join("");
-
-        case "warning":
-            return `<div class="callout callout--warning">${block.data?.title ? `<strong>${esc(block.data.title)}</strong>` : ""}<p>${esc(block.data?.message ?? "")}</p></div>`;
 
         case "callout": {
             const calloutType = block.data?.type ?? "info";
@@ -104,7 +85,7 @@ function renderBlock(block) {
             return `<pre><code>${esc(block.data?.code ?? "")}</code></pre>`;
 
         case "image": {
-            const url = block.data?.file?.url ?? block.data?.url ?? "";
+            const url = block.data?.file?.url ?? "";
             const caption = block.data?.caption ?? "";
             return [
                 `<figure>`,
