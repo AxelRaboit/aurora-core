@@ -241,6 +241,26 @@ class AuroraBundle extends AbstractBundle
         $twigPaths[$dir.'/src/Core/templates'] = null;
         $twigPaths[$dir.'/templates'] = null;
         $twigPaths[$dir.'/src/Core/assets/css'] = 'styles';
+
+        // The bundle's error pages, for projects that ship none of their own.
+        //
+        // `<bundle>/templates/bundles/TwigBundle/` is the convention for an
+        // *application* overriding a bundle, so Symfony only honours it when
+        // this package is the application — which it is when developing
+        // aurora-core, and never in a client project. The error pages therefore
+        // worked everywhere we looked at them and nowhere they were needed: a
+        // 404 in production fell back to Symfony's bare "Oops!" page.
+        //
+        // Registering the namespace ourselves is enough, but only when the
+        // project has no `templates/bundles/TwigBundle/` of its own. Twig
+        // resolves a namespace by first matching path, and user-configured
+        // paths are registered before per-bundle override paths — so doing this
+        // unconditionally would make the bundle's pages win over the client's,
+        // which is precisely backwards.
+        if (!is_dir($projectDir.'/templates/bundles/TwigBundle')) {
+            $twigPaths[$dir.'/templates/bundles/TwigBundle'] = 'Twig';
+        }
+
         // Stable alias for the bundle's own theme files, so a module package
         // that shadows one via its templates/_theme/ dir can still extend the
         // original: `{% extends 'Frontend/themes/default/layout.html.twig' %}`
