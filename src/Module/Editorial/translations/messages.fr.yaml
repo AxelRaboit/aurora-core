@@ -7,6 +7,12 @@ backend:
           create: Créer des types de contenu
           edit: Modifier les types de contenu
           delete: Supprimer les types de contenu
+        posts:
+          view: Voir les publications
+          create: Créer des publications
+          edit: Modifier les publications
+          delete: Supprimer les publications
+          manage: Gérer ses propres publications
         taxonomies:
           view: Voir les taxonomies
           create: Créer des taxonomies
@@ -50,6 +56,8 @@ backend:
   nav:
     sections:
       editorial: Éditorial
+    posts: Publications
+    posts_description: "Rédiger et publier le contenu du site."
     post_types: Types de contenu
     post_types_description: "Définir les natures de contenu du site et les champs que chacune porte."
     taxonomies: Taxonomies
@@ -114,6 +122,18 @@ backend:
       field_name_taken: 'Le champ « {name} » existe déjà sur ce type.'
       field_label_required: Un libellé est requis.
       field_type_invalid: Type de champ inconnu.
+  posts:
+    title: Publications
+    create: Nouvelle publication
+    edit: Modifier la publication
+    errors:
+      post_type_required: Un type de contenu est requis.
+      post_type_not_found: "Le type de contenu {id} n'existe pas."
+      status_required: Un statut est requis.
+      status_invalid: Statut inconnu.
+      scheduled_at_required: Une publication programmée a besoin d'une date.
+      scheduled_at_invalid: Cette date est illisible.
+      scheduled_at_in_past: La date de programmation doit être dans le futur.
   taxonomies:
     title: Taxonomies
     empty: Aucune taxonomie.

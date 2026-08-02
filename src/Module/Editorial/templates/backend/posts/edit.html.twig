@@ -1,0 +1,28 @@
+{% extends '@Core/backend/layout.html.twig' %}
+
+{% block title %}{{ 'backend.nav.posts'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'backend.nav.sections.editorial'|trans},
+            {label: 'backend.nav.posts'|trans, path: path('backend_editorial_posts')},
+            {label: post ? 'backend.posts.edit'|trans : 'backend.posts.create'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('editorial/backend/posts/PostEditorApp', {
+    post: post,
+    postTypes: postTypes,
+    taxonomies: taxonomies,
+    locales: locales,
+    statusOptions: statusOptions,
+    createPath: path('backend_editorial_posts_create'),
+    updatePathTemplate: path('backend_editorial_posts_update', {id: '__id__'}),
+    editPathTemplate: path('backend_editorial_posts_edit', {id: '__id__'}),
+    listPath: path('backend_editorial_posts'),
+    searchPath: path('backend_editorial_posts_search'),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

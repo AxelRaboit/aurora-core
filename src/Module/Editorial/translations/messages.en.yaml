@@ -7,6 +7,12 @@ backend:
           create: Create content types
           edit: Edit content types
           delete: Delete content types
+        posts:
+          view: View posts
+          create: Create posts
+          edit: Edit posts
+          delete: Delete posts
+          manage: Manage own posts
         taxonomies:
           view: View taxonomies
           create: Create taxonomies
@@ -50,6 +56,8 @@ backend:
   nav:
     sections:
       editorial: Editorial
+    posts: Posts
+    posts_description: 'Write and publish the site content.'
     post_types: Content types
     post_types_description: 'Define the kinds of content the site holds and the fields each one carries.'
     taxonomies: Taxonomies
@@ -114,6 +122,18 @@ backend:
       field_name_taken: 'The field "{name}" already exists on this type.'
       field_label_required: A label is required.
       field_type_invalid: Unknown field type.
+  posts:
+    title: Posts
+    create: New post
+    edit: Edit post
+    errors:
+      post_type_required: A content type is required.
+      post_type_not_found: 'Content type {id} does not exist.'
+      status_required: A status is required.
+      status_invalid: Unknown status.
+      scheduled_at_required: A scheduled post needs a date.
+      scheduled_at_invalid: That date cannot be read.
+      scheduled_at_in_past: A scheduled date must be in the future.
   taxonomies:
     title: Taxonomies
     empty: No taxonomy yet.

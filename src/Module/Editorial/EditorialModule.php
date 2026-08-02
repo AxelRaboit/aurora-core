@@ -15,7 +15,10 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
  * Editorial — the content module: post types, taxonomies, posts, menus.
  *
  * Being rebuilt one sub-domain at a time: a screen appears here in the
- * same commit that brings its controller and its toggle, never before.
+ * same commit that brings the Vue app behind it, never before. Posts have
+ * their routes, their permissions and their toggle already, but no nav
+ * entry until there is something to render — a menu item leading to a
+ * blank page is worse than no menu item.
  */
 final readonly class EditorialModule implements ModuleInterface, ModuleToggleProviderInterface
 {
@@ -29,6 +32,11 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
     public function getPermissions(): array
     {
         return [
+            new NavPermission('editorial.posts.view'),
+            new NavPermission('editorial.posts.create'),
+            new NavPermission('editorial.posts.edit'),
+            new NavPermission('editorial.posts.delete'),
+            new NavPermission('editorial.posts.manage'),
             new NavPermission('editorial.post_types.view'),
             new NavPermission('editorial.post_types.create'),
             new NavPermission('editorial.post_types.edit'),
@@ -77,6 +85,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
     {
         return [
             ModuleParameterEnum::EditorialBackend->toToggle(),
+            ModuleParameterEnum::EditorialPosts->toToggle(),
             ModuleParameterEnum::EditorialPostTypes->toToggle(),
             ModuleParameterEnum::EditorialTaxonomies->toToggle(),
         ];

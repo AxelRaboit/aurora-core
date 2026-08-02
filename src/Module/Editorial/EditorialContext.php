@@ -24,6 +24,11 @@ final readonly class EditorialContext
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialBackend);
     }
 
+    public function isPostsEnabled(): bool
+    {
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialPosts);
+    }
+
     public function isPostTypesEnabled(): bool
     {
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialPostTypes);
