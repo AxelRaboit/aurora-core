@@ -118,6 +118,48 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > les docs d'audit `decoupling_strategy.md` / `packaging_playbook.md` qui
 > sont l'archive de la décision.
 
+### Défauts trouvés en reconstruisant (août 2026)
+
+Réécrire plutôt que recopier a fait remonter ces défauts d'`aurora-editorial`.
+Aucun n'est « à corriger » : chacun l'est **dans le code reconstruit**, au
+commit qui réécrit la pièce concernée. La liste sert de mémoire — plusieurs
+relèvent du même motif et le motif se répétera sur ce qui reste à faire.
+
+**Le motif dominant — typage sur la classe concrète là où la convention
+d'extensibilité impose l'interface.** Six occurrences sur le seul domaine
+Post. À chaque fois l'effet est le même : `resolve_target_entities` est
+neutralisé et la substitution promise au client ne fonctionne pas.
+
+| Défaut | Ce que ça donnait |
+|---|---|
+| `SettingsViewBuilder` générant une route absente | `/backend/configuration/settings` en 500 |
+| `bin/make-frontend` générant un import et une fonction Twig absents | Tout module scaffoldé cassé au build et au rendu |
+| Kit client épinglé sur `dev-split/core`, branche gelée | Tout nouveau projet démarrait sur un core périmé |
+| `AbstractPostType::$supports` déclarant `excerpt` | Capacité annoncée que rien ne lit |
+| Clés de contrainte nues (`post_types.errors.*`) | **Toutes** les erreurs de validation affichaient une clé brute |
+| `applyInput()` posant le slug d'un type natif | Slug natif modifiable, doublon possible |
+| `translate()` instanciant la classe de traduction concrète | Substitution client impossible |
+| `isDescendantOf()` comparant en `===` seul | Proxy Doctrine ≠ entité chargée : garde anti-cycle contournable |
+| `syncPostTypes()` ne touchant que le côté propriétaire | Liaison écrite en base mais renvoyée comme annulée |
+| Auteur et auteur de révision typés sur `User` | `resolve_target_entities` neutralisé |
+| `createPost(): Post` contredisant son propre docblock | Le hook d'extension était inutilisable |
+| `PostVoter::supports()` sur `Post` concret | Entité substituée : aucun vote, donc refus silencieux |
+| Publication programmée et purge sans écriture d'audit | Un post passe en ligne ou disparaît sans trace |
+| Docblock du filtre par termes annonçant ET, code faisant OU | Documentation fausse |
+| `BlocksRenderer::renderCallout()` lisant `text` et émettant `.callout-info` | Encart vide et non coloré, mais **seulement une fois publié** |
+
+**Trois choses que j'ai cru être des défauts et qui n'en étaient pas** —
+vérifiées avant de « corriger » : le titre absent de `search_content` (le
+repository le cherche par son propre LIKE), la contrainte de route
+`\d+|__id__` (les gabarits d'URL passent le placeholder au générateur), et
+les dépendances `@editorjs/*` (importées par un composant générique de Core).
+
+**Ce que les outils ne voient pas.** Les défauts les plus coûteux — page en
+500, liste non restreinte à son auteur, gabarit d'URL cassé — n'ont été
+trouvés qu'en manipulant l'application avec une vraie base. Ni PHPStan, ni
+les 739 tests, ni la relecture ne les signalaient. Vérifier chaque domaine
+contre le serveur qui tourne n'est pas du confort.
+
 | Module | Statut |
 |---|---|
 | Editorial (CMS/Blog) | 🔄 En reconstruction dans Core — spec : `aurora-editorial` |
