@@ -89,7 +89,7 @@ final class PostVoterTest extends TestCase
     /** @param list<string> $privileges */
     private function user(int $id, array $privileges): CoreUserInterface
     {
-        $user = $this->createMock(CoreUserInterface::class);
+        $user = $this->createStub(CoreUserInterface::class);
         $user->method('getId')->willReturn($id);
         $user->method('hasPrivilege')->willReturnCallback(
             static fn (string $privilege): bool => in_array($privilege, $privileges, true),
@@ -100,7 +100,7 @@ final class PostVoterTest extends TestCase
 
     private function token(CoreUserInterface $user): TokenInterface
     {
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
         $token->method('getUser')->willReturn($user);
 
         return $token;
@@ -108,7 +108,7 @@ final class PostVoterTest extends TestCase
 
     private function accessDecisionManager(bool $isAdmin): AccessDecisionManagerInterface
     {
-        $manager = $this->createMock(AccessDecisionManagerInterface::class);
+        $manager = $this->createStub(AccessDecisionManagerInterface::class);
         $manager->method('decide')->willReturn($isAdmin);
 
         return $manager;
