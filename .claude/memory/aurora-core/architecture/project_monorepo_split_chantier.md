@@ -1,5 +1,30 @@
 # Chantier — Split aurora-core en monorepo de N packages Composer
 
+> ## ⚠️ Editorial est revenu dans le core (août 2026)
+>
+> Tout ce qui suit décrit le chantier de split tel qu'il s'est déroulé, et
+> reste exact **en tant que récit**. Une phrase n'est plus vraie : « le repo
+> standalone `aurora-editorial` est désormais la source de vérité ». Il ne
+> l'est plus.
+>
+> Le multi-dépôt coûtait plus qu'il ne rapportait pour un module au même
+> niveau que Ged ou Platform : bumps Composer manuels, boucle de dev via zip
+> GitHub, et une présentation déjà éclatée puisque les templates du thème
+> par défaut d'Editorial vivaient dans le core. Editorial a donc été
+> **reconstruit** — pas recopié — dans `src/Module/Editorial/`, comme module
+> core simple : glob central de `services.yaml`, entités dans
+> `AuroraBundle::$resolve_target_entities`, ni `composer.json` ni
+> `AuroraEditorialBundle`. Le repo `aurora-editorial` a servi de
+> spécification en lecture seule puis a été archivé.
+>
+> Ce que la reconstruction a fait remonter (défauts, méthodes de détection,
+> simplifications) : `docs/aurora-core/todo/module_roadmap.md`, section
+> « Défauts trouvés en reconstruisant ».
+>
+> **Conséquence pratique** : plus aucun package `axelraboit/aurora-editorial`
+> à installer, à bumper ou à pousser. Les 11 autres modules extraits restent
+> figés dans leur repo standalone, inchangés.
+
 ## Règle
 
 Transformation d'`axelraboit/aurora` (mono-package) en **monorepo Composer** :

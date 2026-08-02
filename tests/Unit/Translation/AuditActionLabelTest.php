@@ -22,8 +22,8 @@ use Symfony\Component\Yaml\Yaml;
  * key to the audit screen.
  *
  * Scope is this package: a module distributed as its own composer package
- * (aurora-editorial, …) owns the labels for the actions it emits and carries
- * its own copy of this test.
+ * owns the labels for the actions it emits and carries its own copy of this
+ * test.
  */
 final class AuditActionLabelTest extends TestCase
 {

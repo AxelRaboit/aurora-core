@@ -22,7 +22,8 @@ Tout ce qui n'est pas présent dans le thème custom tombe sur `default`.
 
 Le mécanisme ci-dessus est réservé aux **clients** : il passe par un slug de
 thème différent, et `ThemeResolver` ne regarde `<project>/templates/` que pour
-un slug ≠ `default`. Un **package de module** (`aurora-editorial`, …) qui veut
+un slug ≠ `default`. Un **package de module** (un module extrait, ou celui
+d'un client) qui veut
 enrichir le thème `default` lui-même — typiquement pour ajouter au layout un
 chrome que le core ne peut pas connaître — passe par un autre canal.
 
@@ -32,7 +33,7 @@ Tout fichier déposé dans `<module>/templates/_theme/` est enregistré par
 en premier). Il masque alors son homonyme du core pour toute l'application.
 
 ```
-aurora-editorial/templates/_theme/Frontend/themes/default/layout.html.twig
+<module>/templates/_theme/Frontend/themes/default/layout.html.twig
   masque
 vendor/axelraboit/aurora/src/Core/templates/Frontend/themes/default/layout.html.twig
 ```
@@ -68,9 +69,14 @@ Le dossier est volontairement nommé et isolé : enregistrer tout
 masquer silencieusement n'importe quel template du core avec lequel il
 partagerait un chemin. Ici, masquer est un geste explicite.
 
-**Exemple en place** : `aurora-editorial` remplace ainsi le layout `default` —
-volontairement dépourvu de navigation côté core — par une version qui rend ses
-menus. Voir `aurora-editorial/templates/_theme/`.
+**Aucun module ne s'en sert aujourd'hui**, et c'est voulu : Editorial vivait
+autrefois dans son propre package et remplaçait par ce canal le layout
+`default`, alors dépourvu de navigation. Depuis qu'il est livré dans le core,
+le layout appelle `menu_items()` directement — une fonction qui répond une
+liste vide quand rien ne publie de menu, donc le core n'a plus besoin
+d'ignorer l'existence des menus pour rester autonome. Le mécanisme reste en
+place pour le cas qu'il vise vraiment : un module *extrait* qui a besoin
+d'ajouter au thème un chrome que le core ne peut pas connaître.
 
 ---
 

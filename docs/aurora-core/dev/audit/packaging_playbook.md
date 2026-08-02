@@ -5,6 +5,14 @@
 > `master`) ; ce doc garde l'anatomie d'un package + les findings. Voir
 > `decoupling_strategy.md` (le découplage) et, côté client,
 > `../../../aurora-client/getting-started/installing_modules.md` (l'adoption).
+>
+> **Archive.** Ce document décrit l'état de la cible au moment du split ; il
+> n'est pas mis à jour au fil de l'eau. Deux choses ont bougé depuis :
+> le recentrage de juillet 2026 a retiré 11 des 13 modules du monorepo, et
+> **Editorial est revenu dans le core en août 2026** (donc plus de package
+> `axelraboit/aurora-editorial` — voir `todo/module_roadmap.md`). La table
+> ci-dessous reste telle qu'elle était : c'est le plan qui a été exécuté, pas
+> l'inventaire d'aujourd'hui.
 
 ## 0. Câblage services per-package : testable DANS le monorepo (corrigé 2026-05-30)
 

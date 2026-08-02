@@ -66,14 +66,13 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 >   `4320d159` (découplage du thème frontend, nouvelle fonction Twig
 >   `default_front_home_path()` qui résout vers le front réellement
 >   enregistré — GED ici).
-> - **Suivi pour une future réintégration d'Editorial** : le thème frontend
->   par défaut de Core est maintenant volontairement minimal (nom du site +
->   sélecteur de langue, pas de menu de nav). Si Editorial est réinstallé
->   un jour, son propre package devrait surcharger `layout.html.twig`/
->   `head.html.twig` (mécanisme déjà documenté dans
->   [frontend_theme_override.md](../dev/frontend_theme_override.md)) pour
->   retrouver le header/footer riches (menus, dropdown compte, flux RSS) —
->   pas fait ici, volontairement hors-scope.
+> - **Suivi pour une future réintégration d'Editorial** ~~: surcharger
+>   `layout.html.twig` depuis le package Editorial~~ — **résolu autrement**
+>   (août 2026). Le layout par défaut appelle `menu_items()` et `feed_url()`,
+>   deux fonctions Twig qui répondent vide quand rien ne publie de menu ni de
+>   flux. Le core n'a donc plus besoin d'ignorer l'existence des menus pour
+>   rester autonome, et Editorial n'a plus besoin de masquer son layout : le
+>   thème demande, au lieu de savoir.
 
 > **Demi-tour : Editorial revient dans aurora-core (août 2026)** — le
 > multi-dépôt coûtait plus qu'il ne rapportait pour un module qui est au
@@ -85,8 +84,13 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > module core simple (`src/Module/Editorial/`, glob central de
 > `services.yaml`, entités dans `AuroraBundle::$resolve_target_entities`),
 > livré par défaut, sans `composer.json` ni `AuroraEditorialBundle`.
-> Reconstruit et non recopié : `aurora-editorial` sert de spécification en
-> lecture seule jusqu'à la fin, puis sera archivé.
+> Reconstruit et non recopié : `aurora-editorial` a servi de spécification en
+> lecture seule jusqu'à la fin, puis a été archivé.
+>
+> **Terminé (août 2026).** Domaines reconstruits, dans l'ordre : PostType,
+> Taxonomy, Post, frontend public, Menu, les providers transverses, puis
+> SEO (sitemap / robots / RSS), Comment et Form. Chaque domaine a été
+> vérifié contre un serveur qui tourne avant d'être commité.
 >
 > **Étape 1 — purge des résidus** (ce qui restait après l'extraction :
 > 97 occurrences sur 47 fichiers source). Tag `pre-editorial-purge` =
@@ -246,7 +250,7 @@ du confort.
 
 | Module | Statut |
 |---|---|
-| Editorial (CMS/Blog) | 🔄 En reconstruction dans Core — spec : `aurora-editorial` |
+| Editorial (CMS/Blog) | ✅ Core — reconstruit depuis `aurora-editorial`, désormais archivé |
 | GED (documents) | ✅ Core |
 | Media (médiathèque) | ✅ Core — fusion vers GED planifiée, cf. [media-ged-merge](media-ged-merge.md) |
 | ~~CRM (contacts, entreprises, affaires)~~ | Extrait, non ré-publié — `aurora-crm` |
