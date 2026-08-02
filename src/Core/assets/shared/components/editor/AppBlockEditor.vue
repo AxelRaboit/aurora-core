@@ -76,6 +76,26 @@ function emitIfChanged(blocks) {
     emit("update:modelValue", blocks);
 }
 
+/**
+ * Editor.js must never see a Vue proxy.
+ *
+ * `modelValue` reaches us deeply reactive, so every block is a `Proxy`. A tool
+ * that copies its data with `structuredClone()` — `@editorjs/list` does —
+ * throws `DataCloneError`, because proxies are not structured-cloneable.
+ * Editor.js catches that, drops the block, and substitutes its Stub: the
+ * infamous « The block can not be displayed correctly ». Nothing throws where
+ * you can see it, the public site renders the block perfectly, and the report
+ * arrives as somebody saying a list is broken.
+ *
+ * A JSON round-trip because block data is JSON by definition — it is what gets
+ * persisted — so nothing survives the trip that Editor.js could have used. It
+ * also hands over a copy rather than our state, which is what we want anyway:
+ * the editor owns its buffer and gives it back through `save()`.
+ */
+function toPlainBlocks(blocks) {
+    return JSON.parse(JSON.stringify(blocks ?? []));
+}
+
 async function flush() {
     if (editor && ready) {
         const data = await editor.save();
@@ -85,7 +105,7 @@ async function flush() {
 
 async function renderBlocks(blocks) {
     if (!editor || !ready) return;
-    await editor.render({ blocks });
+    await editor.render({ blocks: toPlainBlocks(blocks) });
     const data = await editor.save();
     emitIfChanged(data.blocks);
 }
@@ -94,7 +114,7 @@ onMounted(async () => {
     editor = new EditorJS({
         holder: holderEl.value,
         placeholder: props.placeholder || t("backend.editor.placeholder"),
-        data: { blocks: props.modelValue },
+        data: { blocks: toPlainBlocks(props.modelValue) },
         i18n: {
             messages: {
                 ui: {
