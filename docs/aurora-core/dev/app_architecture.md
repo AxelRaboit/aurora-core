@@ -4,6 +4,13 @@ Aurora is a platform built on Symfony 7 / PHP 8.3 / Vue 3 / Vite, designed to ho
 multiple independent business modules (Editorial CMS, CRM, ERP, Billing, Ecommerce, Photo, …)
 on top of a shared Core infrastructure.
 
+> ⚠️ **Read the module names here as illustrations, not as an inventory.**
+> This document describes the *patterns* a module follows. Most of the
+> modules it names (Editorial, Crm, Erp, Billing, Ecommerce, Photo, …) were
+> extracted from this monorepo in July 2026 and no longer live under
+> `src/Module/`. For what is actually installed today, read that directory
+> and `docs/aurora-core/todo/module_roadmap.md`.
+
 ---
 
 ## 1. Overview
@@ -538,6 +545,10 @@ ecommerce_listings, ecommerce_orders, ecommerce_carts, ecommerce_customers
 ---
 
 ## 7. Roadmap
+
+> Historical record. A `[x]` means the work was done — not that the module
+> still lives in this repository; most were extracted in July 2026, and
+> Editorial is being rebuilt here as a native module.
 
 - [x] Module manifest + ModuleRegistry + dynamic admin sidemenu
 - [x] Module/Editorial — full editorial CMS (posts, taxonomies, comments, forms, SEO, sitemap)

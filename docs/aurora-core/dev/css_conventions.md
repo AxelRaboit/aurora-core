@@ -7,42 +7,44 @@ styles à côté de leur code logique.
 
 ## Structure
 
+Deux emplacements, selon la portée :
+
+**1. Global — `src/Core/assets/css/`**, importé par `app.css` :
+
 ```
 src/Core/assets/css/
 ├── app.css                    # Entry — orchestre les imports GLOBAUX uniquement
-├── email.css                  # Standalone, mounted by emails only
+├── email.css                  # Standalone, monté par les emails seulement
 │
-├── base/                      # Tailwind base + theme tokens (globaux)
-│   ├── base.css
-│   ├── scrollbar.css
-│   ├── theme.css
-│   └── theme-transition.css
-│
-├── shared/                    # Styles pour les composants de src/Core/assets/shared/
-│   ├── input.css              #   (importés dans app.css — utilisés partout)
-│   ├── loader.css
-│   └── modal.css
-│
-├── core/                      # Styles pour src/Core/assets/*
-│   └── sidemenu.css           #   (importé par AppSidemenu.vue)
-│
-└── modules/                   # Styles per-module (mirror de src/Module/<Name>/assets/)
-    ├── editorial/
-    │   ├── editor.css         #   (importés par EditorBlock.vue)
-    │   ├── blocks.css         #
-    │   └── prose.css          #   (importé par MergeBlockEntry.vue + RevisionsOverlay.vue)
-    └── notes/                 # Module avec sous-modules → un sous-dossier par sub-module
-        ├── markdown/
-        │   └── preview.css    # (importé par NotePreview.vue)
-        └── block/             # (à venir — sub-module Block / EditorJS)
+└── base/                      # Tout ce qui est chargé sur (presque) toutes les pages
+    ├── theme.css              #   tokens de thème
+    ├── theme-transition.css
+    ├── base.css
+    ├── scrollbar.css
+    ├── content-blocks.css     #   styles du contenu rendu (blocs éditeur)
+    ├── input.css              #   composants shared utilisés partout
+    ├── loader.css
+    └── modal.css
 ```
 
-> **Module avec sous-modules** : si `src/Module/<Name>/assets/` est lui-même
-> compartimenté en sous-modules (cf. `Module/Notes/Markdown/` +
-> `Module/Notes/Block/`), reproduire la subdivision côté CSS :
-> `modules/<name>/<submodule>/<feature>.css`. Le nom de fichier peut
-> raccourcir puisque le dossier parent disambiguate (`preview.css`
-> plutôt que `markdown-preview.css`).
+**2. Feature / module — co-localisé à côté du composant**, importé par le
+SFC lui-même :
+
+```
+src/Core/assets/backend/sidemenu/
+├── AppSidemenu.vue            # import "./sidemenu.css"
+└── sidemenu.css
+
+src/Core/assets/shared/components/editor/
+├── AppBlockEditor.vue         # import "./editor.css" + "./blocks.css"
+├── editor.css
+└── blocks.css
+```
+
+> **Pourquoi co-localisé et pas un miroir `css/modules/<name>/`** : le CSS
+> vit avec le composant qui le consomme, comme le reste de `src/` depuis
+> 0.5. On le trouve sans chercher, il se supprime avec son composant, et
+> un module packagé séparément emporte ses styles avec lui.
 
 ## Règle d'or — où importer ?
 
@@ -57,24 +59,24 @@ shipé dans le même chunk que la JS qui le consomme**. Donc :
   navigateur ne télécharge le CSS que quand la page qui mount le SFC
   est chargée.
 
-### Exemple — NotePreview
+### Exemple — AppBlockEditor
 
 ```vue
 <script setup>
-import '@/css/modules/notes/markdown/preview.css';  // ⬅ CSS d'abord, séparée d'une ligne vide
+import "./editor.css";   // ⬅ CSS d'abord, séparée d'une ligne vide
+import "./blocks.css";
 
-import { computed } from 'vue';
-import { useMarkdownRenderer } from '@notes/backend/markdown/composables/useMarkdownRenderer.js';
+import EditorJS from "@editorjs/editorjs";
 </script>
 ```
 
-Si tu visites `/backend/dashboard`, `preview.css` n'est jamais
-téléchargé. Tu vas sur `/backend/notes/markdown`, il arrive avec le
-chunk `MarkdownNotesApp.js`.
+Si tu visites `/backend/dashboard`, `editor.css` n'est jamais téléchargé.
+Tu ouvres un écran qui monte l'éditeur, il arrive avec le chunk de ce
+composant.
 
 ### Ordre des imports dans un `.vue`
 
-1. **CSS d'abord** (`import "@/css/..."`), un par ligne.
+1. **CSS d'abord** (`import "./…"` ou `import "@/css/…"`), un par ligne.
 2. **Ligne vide** comme séparateur.
 3. **JS imports ensuite** (Vue, composables, components, utils).
 
@@ -88,10 +90,11 @@ les styles avant le rendu JS.
 
 | Type de style | Emplacement | Importé depuis |
 |---|---|---|
-| **Base / theme** (tokens, scrollbar, body) | `base/` | `app.css` |
-| **Composant partagé global** (`src/Core/assets/shared/`) | `shared/` | `app.css` |
-| **Core admin** (`src/Core/assets/*`) | `core/` | le SFC concerné |
-| **Module** (`src/Module/<Name>/assets/*`) | `modules/<name>/` | le SFC concerné |
+| **Base / theme** (tokens, scrollbar, body) | `css/base/` | `app.css` |
+| **Composant partagé chargé partout** (input, modal, loader) | `css/base/` | `app.css` |
+| **Composant shared à portée limitée** | à côté du `.vue` | le SFC concerné |
+| **Core admin** (`src/Core/assets/*`) | à côté du `.vue` | le SFC concerné |
+| **Module** (`src/Module/<Name>/assets/*`) | à côté du `.vue` | le SFC concerné |
 
 ### 2. Inline `<style>` vs fichier externe vs Tailwind
 

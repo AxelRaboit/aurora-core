@@ -8,8 +8,7 @@
     "require": {
         "php": ">=8.4",
         "symfony/runtime": "7.4.*",
-        "axelraboit/aurora": "dev-split/core",
-        "axelraboit/aurora-editorial": "dev-master"
+        "axelraboit/aurora": "dev-develop"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^4.3.1",
@@ -25,8 +24,7 @@
         }
     },
     "repositories": [
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-core.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-editorial.git" }
+        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-core.git" }
     ],
     "config": {
         "allow-plugins": {

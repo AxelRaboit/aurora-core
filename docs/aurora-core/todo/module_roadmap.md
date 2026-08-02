@@ -75,9 +75,52 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 >   retrouver le header/footer riches (menus, dropdown compte, flux RSS) —
 >   pas fait ici, volontairement hors-scope.
 
+> **Demi-tour : Editorial revient dans aurora-core (août 2026)** — le
+> multi-dépôt coûtait plus qu'il ne rapportait pour un module qui est au
+> même niveau que Ged ou Platform : bumps Composer manuels (`make
+> aurora-update` ne nommait jamais `axelraboit/aurora-editorial`), boucle
+> de dev via zip GitHub sans checkout local, et une présentation déjà
+> éclatée sur deux repos puisque les templates du thème par défaut
+> d'Editorial vivaient dans Core. Editorial sera **reconstruit** comme
+> module core simple (`src/Module/Editorial/`, glob central de
+> `services.yaml`, entités dans `AuroraBundle::$resolve_target_entities`),
+> livré par défaut, sans `composer.json` ni `AuroraEditorialBundle`.
+> Reconstruit et non recopié : `aurora-editorial` sert de spécification en
+> lecture seule jusqu'à la fin, puis sera archivé.
+>
+> **Étape 1 — purge des résidus** (ce qui restait après l'extraction :
+> 97 occurrences sur 47 fichiers source). Tag `pre-editorial-purge` =
+> état juste avant. Commits sur `develop`, du plus ancien au plus récent :
+> `e6b89bdc` (crash `/backend/settings`), `f06f8934` (bloc `postsList`),
+> `c09200ff` (panneau de dashboard), `ba464f10` (câblage : alias Vite,
+> `ThemeResolver::resolveAll()`, thèmes de couleur, persona de démo,
+> défauts `DefaultFront`), `04a94e06` (5 templates de thème),
+> `726f1dd9` (`bin/make-frontend`).
+>
+> Trois trouvailles qui n'étaient pas du simple code mort :
+> - `SettingsViewBuilder` générait la route `backend_editorial_posts_search` ;
+>   `UrlGeneratorInterface::generate()` lève `RouteNotFoundException` plutôt
+>   que de dégrader, donc **toute la page `/backend/configuration/settings`
+>   tombait** dès qu'Editorial n'était plus installé.
+> - `bin/make-frontend` générait un import `@editorial/frontend/LocaleSwitcher.vue`
+>   et un appel Twig `menu_items()` : tout module scaffoldé produisait un
+>   build cassé et un template qui plante au rendu.
+> - `.claude/client_template/composer.json` épinglait `dev-split/core` —
+>   une branche gelée depuis le 26 juillet — et requérait
+>   `aurora-editorial`. Tout nouveau projet client démarrait sur un core
+>   périmé.
+>
+> Gardés délibérément : les migrations SQL (même raison qu'au recentrage —
+> `schema:create` ne construit que les entités restantes), les docblocks
+> des points d'extension de Core (`BlockRendererInterface`,
+> `SearchProviderInterface`, `DashboardStatsProviderInterface`,
+> `ContactSignalEvent`) qui expliquent pourquoi ces coutures existent, et
+> les docs d'audit `decoupling_strategy.md` / `packaging_playbook.md` qui
+> sont l'archive de la décision.
+
 | Module | Statut |
 |---|---|
-| ~~Editorial (CMS/Blog)~~ | Extrait, non ré-publié — `aurora-editorial` |
+| Editorial (CMS/Blog) | 🔄 En reconstruction dans Core — spec : `aurora-editorial` |
 | GED (documents) | ✅ Core |
 | Media (médiathèque) | ✅ Core — fusion vers GED planifiée, cf. [media-ged-merge](media-ged-merge.md) |
 | ~~CRM (contacts, entreprises, affaires)~~ | Extrait, non ré-publié — `aurora-crm` |

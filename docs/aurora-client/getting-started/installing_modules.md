@@ -5,24 +5,27 @@ Chaque module Aurora est un package Composer indépendant
 n'installe **que** ce dont il a besoin. Aucune publication Packagist requise :
 on passe par des dépôts VCS.
 
-> Le découpage vit dans le monorepo `aurora-core` ; chaque package est extrait
-> par `bin/split-modules.sh`. Côté client, l'install se résume à 4 points (dont
-> 2 sont auto-découverts).
+> Côté client, l'install se résume à 4 points (dont 2 sont auto-découverts).
 
 > 🧰 **Kit copier-coller** : un template prêt à l'emploi vit dans aurora-core à
 > `vendor/axelraboit/aurora/.claude/client_template/` —
-> `composer.json` (`repositories` core + editorial déjà listés + require à
-> la carte), `config/bundles.php`, `config/routes.yaml`,
+> `composer.json` (dépôt VCS de core déjà listé + require à la carte),
+> `config/bundles.php`, `config/routes.yaml`,
 > `config/packages/messenger.yaml`. Copie-les, puis tu ne touches plus que
 > la section `require`/`repositories` pour ajouter un module.
 
-> ⚠️ **Modules autres qu'Editorial** : depuis le recentrage d'Aurora sur
-> Core + Editorial (juillet 2026), les 11 autres modules (Tools, Crm,
-> Billing, Photo, Project, Hr, Notes, PersonalFinance, Planning,
-> Assistant, Commerce) ne sont plus maintenus depuis aurora-core — leurs
-> repos GitHub existent toujours et s'installent comme avant, mais sont
-> figés à leur dernier état. Cf. mémoire
+> ⚠️ **Modules externes figés** : le recentrage d'Aurora (juillet 2026) a
+> sorti 11 modules du monorepo (Tools, Crm, Billing, Photo, Project, Hr,
+> Notes, PersonalFinance, Planning, Assistant, Commerce). Leurs repos
+> GitHub existent toujours et s'installent comme décrit ici, mais ils ne
+> sont plus maintenus depuis aurora-core et restent figés à leur dernier
+> état. L'outillage d'extraction (`bin/split-modules.sh`) a été retiré :
+> aucun nouveau package ne sera découpé. Cf. mémoire
 > `architecture/project_monorepo_split_chantier.md`.
+>
+> **Editorial** faisait partie de ces packages extraits ; il est en cours
+> de réintégration dans aurora-core comme module natif, livré par défaut.
+> Un client n'a donc plus à le requérir séparément.
 
 ## 1. Déclarer les dépôts VCS + requérir les packages
 
@@ -34,11 +37,11 @@ Dans le `composer.json` du client :
     "prefer-stable": true,
     "require": {
         "axelraboit/aurora": "dev-develop",
-        "axelraboit/aurora-editorial": "dev-master"
+        "axelraboit/aurora-tools": "dev-master"
     },
     "repositories": [
         { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-core.git" },
-        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-editorial.git" }
+        { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-tools.git" }
     ]
 }
 ```
