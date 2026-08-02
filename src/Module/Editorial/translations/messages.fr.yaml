@@ -1,0 +1,5 @@
+backend:
+  modules:
+    editorial: Éditorial
+    editorial_backend: Éditorial
+    editorial_backend_description: "Active la section Éditorial dans l'administration."

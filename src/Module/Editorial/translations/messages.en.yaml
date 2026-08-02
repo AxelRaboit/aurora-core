@@ -1,0 +1,5 @@
+backend:
+  modules:
+    editorial: Editorial
+    editorial_backend: Editorial
+    editorial_backend_description: 'Enables the Editorial section in the admin.'
