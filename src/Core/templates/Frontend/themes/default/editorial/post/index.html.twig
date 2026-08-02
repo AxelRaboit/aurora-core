@@ -50,7 +50,7 @@
     <section {{ vue_component('editorial/frontend/PostComments', {
         listPath: path('editorial_post_comments', {locale: locale, postTypeSlug: postData.postTypeSlug, slug: translationData.slug}),
         submitPath: path('editorial_post_comment_submit', {locale: locale, postTypeSlug: postData.postTypeSlug, slug: translationData.slug}),
-        reactPathTemplate: path('editorial_comment_react', {locale: locale, postTypeSlug: postData.postTypeSlug, slug: translationData.slug, commentId: '__commentId__'}),
+        reactPathTemplate: path_template('editorial_comment_react', {locale: locale, postTypeSlug: postData.postTypeSlug, slug: translationData.slug, commentId: '__commentId__'}),
     }) }} class="mt-12 not-prose"></section>
 {% endif %}
 {% endblock %}

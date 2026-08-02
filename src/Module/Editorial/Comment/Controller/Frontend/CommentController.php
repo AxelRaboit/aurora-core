@@ -8,7 +8,6 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Frontend\Service\Context;
 use Aurora\Core\Http\JsonResponseTrait;
-use Aurora\Core\Routing\RouteRequirement;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Editorial\Comment\Dto\CommentInputFactoryInterface;
 use Aurora\Module\Editorial\Comment\Entity\CommentInterface;
@@ -43,9 +42,6 @@ class CommentController extends AbstractController
 
     /** How many comments one address may leave in an hour. */
     private const int MAX_PER_HOUR = 5;
-
-    /** @see RouteRequirement::ID — the Vue side asks for this path with a placeholder in it. */
-    private const string COMMENT_ID = RouteRequirement::ID;
 
     public function __construct(
         private readonly PostRepository $postRepository,
@@ -119,7 +115,7 @@ class CommentController extends AbstractController
     #[Route(
         '/{locale}/{postTypeSlug}/{slug}/comments/{commentId}/react',
         name: 'editorial_comment_react',
-        requirements: ['locale' => '[a-z]{2}', 'commentId' => self::COMMENT_ID],
+        requirements: ['locale' => '[a-z]{2}', 'commentId' => '\\d+'],
         methods: [HttpMethodEnum::Post->value],
         priority: 7,
     )]

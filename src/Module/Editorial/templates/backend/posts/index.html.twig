@@ -25,10 +25,10 @@
     statuses: statuses,
     listPath: path('backend_editorial_posts'),
     newPath: path('backend_editorial_posts_new'),
-    editPathTemplate: path('backend_editorial_posts_edit', {id: '__id__'}),
-    deletePathTemplate: path('backend_editorial_posts_delete', {id: '__id__'}),
-    restorePathTemplate: path('backend_editorial_posts_restore', {id: '__id__'}),
-    forceDeletePathTemplate: path('backend_editorial_posts_force_delete', {id: '__id__'}),
+    editPathTemplate: path_template('backend_editorial_posts_edit', {id: '__id__'}),
+    deletePathTemplate: path_template('backend_editorial_posts_delete', {id: '__id__'}),
+    restorePathTemplate: path_template('backend_editorial_posts_restore', {id: '__id__'}),
+    forceDeletePathTemplate: path_template('backend_editorial_posts_force_delete', {id: '__id__'}),
     emptyTrashPath: path('backend_editorial_posts_empty_trash'),
 }) }} class="flex-1 min-w-0"></div>
 {% endblock %}

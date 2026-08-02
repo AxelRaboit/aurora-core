@@ -6,7 +6,6 @@ namespace Aurora\Module\Editorial\Post\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonResponseTrait;
-use Aurora\Core\Routing\RouteRequirement;
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Manager\PostManagerInterface;
 use Aurora\Module\Editorial\Post\Security\PostVoter;
@@ -27,15 +26,12 @@ class PostsTrashController extends AbstractController
     use JsonResponseTrait;
 
     /** @see PostsController::ID for why the placeholder is allowed. */
-    /** @see RouteRequirement::ID for why a bare `\d+` breaks the screen. */
-    private const string ID = RouteRequirement::ID;
-
     public function __construct(
         private readonly PostManagerInterface $postManager,
         private readonly PostSerializerInterface $postSerializer,
     ) {}
 
-    #[Route('/{id}/restore', name: '_restore', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{id}/restore', name: '_restore', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('editorial.posts.delete')]
     public function restore(Post $post): JsonResponse
     {
@@ -46,7 +42,7 @@ class PostsTrashController extends AbstractController
         return $this->jsonSuccess(['post' => $this->postSerializer->serialize($post)]);
     }
 
-    #[Route('/{id}/force-delete', name: '_force_delete', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{id}/force-delete', name: '_force_delete', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('editorial.posts.delete')]
     public function forceDelete(Post $post): JsonResponse
     {

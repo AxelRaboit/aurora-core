@@ -17,11 +17,11 @@
     supportOptions: supportOptions,
     fieldTypes: fieldTypes,
     createPath: path('backend_editorial_post_types_create'),
-    updatePathTemplate: path('backend_editorial_post_types_update', {id: '__id__'}),
-    deletePathTemplate: path('backend_editorial_post_types_delete', {id: '__id__'}),
-    fieldCreatePathTemplate: path('backend_editorial_post_types_field_create', {id: '__id__'}),
-    fieldEditPathTemplate: path('backend_editorial_post_types_field_edit', {id: '__id__', fieldId: '__fieldId__'}),
-    fieldDeletePathTemplate: path('backend_editorial_post_types_field_delete', {id: '__id__', fieldId: '__fieldId__'}),
-    fieldReorderPathTemplate: path('backend_editorial_post_types_field_reorder', {id: '__id__'}),
+    updatePathTemplate: path_template('backend_editorial_post_types_update', {id: '__id__'}),
+    deletePathTemplate: path_template('backend_editorial_post_types_delete', {id: '__id__'}),
+    fieldCreatePathTemplate: path_template('backend_editorial_post_types_field_create', {id: '__id__'}),
+    fieldEditPathTemplate: path_template('backend_editorial_post_types_field_edit', {id: '__id__', fieldId: '__fieldId__'}),
+    fieldDeletePathTemplate: path_template('backend_editorial_post_types_field_delete', {id: '__id__', fieldId: '__fieldId__'}),
+    fieldReorderPathTemplate: path_template('backend_editorial_post_types_field_reorder', {id: '__id__'}),
 }) }} class="flex-1 min-w-0"></div>
 {% endblock %}

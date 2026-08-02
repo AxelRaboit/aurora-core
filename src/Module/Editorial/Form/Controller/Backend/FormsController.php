@@ -8,7 +8,6 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
-use Aurora\Core\Routing\RouteRequirement;
 use Aurora\Core\Support\TreeReorderParser;
 use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Core\Validation\Exception\FieldException;
@@ -41,11 +40,6 @@ class FormsController extends AbstractController
     use JsonRequestTrait;
     use JsonResponseTrait;
 
-    /** @see RouteRequirement::ID for why a bare `\d+` breaks the screen. */
-    private const string ID = RouteRequirement::ID;
-
-    private const string FIELD_ID = RouteRequirement::ID;
-
     public function __construct(
         private readonly FormManagerInterface $formManager,
         private readonly FormSerializerInterface $formSerializer,
@@ -75,7 +69,7 @@ class FormsController extends AbstractController
         });
     }
 
-    #[Route('/{id}/update', name: '_update', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{id}/update', name: '_update', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('editorial.forms.edit')]
     public function update(Form $form, Request $request): JsonResponse
     {
@@ -86,7 +80,7 @@ class FormsController extends AbstractController
         });
     }
 
-    #[Route('/{id}/delete', name: '_delete', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{id}/delete', name: '_delete', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('editorial.forms.delete')]
     public function delete(Form $form): JsonResponse
     {
@@ -95,7 +89,7 @@ class FormsController extends AbstractController
         return $this->jsonSuccess();
     }
 
-    #[Route('/{id}/fields', name: '_field_create', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{id}/fields', name: '_field_create', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('editorial.forms.edit')]
     public function createField(Form $form, Request $request): JsonResponse
     {
@@ -106,7 +100,7 @@ class FormsController extends AbstractController
         });
     }
 
-    #[Route('/{id}/fields/{fieldId}/edit', name: '_field_edit', requirements: ['id' => self::ID, 'fieldId' => self::FIELD_ID], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{id}/fields/{fieldId}/edit', name: '_field_edit', requirements: ['id' => '\\d+', 'fieldId' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('editorial.forms.edit')]
     public function editField(Form $form, int $fieldId, Request $request): JsonResponse
     {
@@ -122,7 +116,7 @@ class FormsController extends AbstractController
         });
     }
 
-    #[Route('/{id}/fields/{fieldId}/delete', name: '_field_delete', requirements: ['id' => self::ID, 'fieldId' => self::FIELD_ID], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{id}/fields/{fieldId}/delete', name: '_field_delete', requirements: ['id' => '\\d+', 'fieldId' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('editorial.forms.edit')]
     public function deleteField(Form $form, int $fieldId): JsonResponse
     {
@@ -136,7 +130,7 @@ class FormsController extends AbstractController
         return $this->jsonSuccess(['form' => $this->formSerializer->serialize($form)]);
     }
 
-    #[Route('/{id}/fields/reorder', name: '_field_reorder', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{id}/fields/reorder', name: '_field_reorder', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('editorial.forms.edit')]
     public function reorderFields(Form $form, Request $request): JsonResponse
     {
@@ -157,7 +151,7 @@ class FormsController extends AbstractController
         return $this->jsonSuccess(['form' => $this->formSerializer->serialize($form)]);
     }
 
-    #[Route('/{id}/submissions', name: '_submissions', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Get->value])]
+    #[Route('/{id}/submissions', name: '_submissions', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Get->value])]
     public function submissions(Form $form, Request $request): JsonResponse
     {
         $pagination = PaginationRequest::fromRequest($request);
@@ -176,7 +170,7 @@ class FormsController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/submissions/export', name: '_submissions_export', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Get->value])]
+    #[Route('/{id}/submissions/export', name: '_submissions_export', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Get->value])]
     public function exportSubmissions(Form $form): StreamedResponse
     {
         return $this->exporter->toCsv($form, $this->localeContext->getDefaultLocale());

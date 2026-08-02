@@ -207,11 +207,10 @@ pour chaque domaine restant :
    Le menu disparaît toujours ; ce n'est pas ce qu'on teste. Ce qu'on teste,
    c'est ce que répond la route quand plus rien ne la montre.
 
-**Trois choses que j'ai cru être des défauts et qui n'en étaient pas** —
+**Deux choses que j'ai cru être des défauts et qui n'en étaient pas** —
 vérifiées avant de « corriger » : le titre absent de `search_content` (le
-repository le cherche par son propre LIKE), la contrainte de route
-`\d+|__id__` (les gabarits d'URL passent le placeholder au générateur), et
-les dépendances `@editorjs/*` (importées par un composant générique de Core).
+repository le cherche par son propre LIKE) et les dépendances `@editorjs/*`
+(importées par un composant générique de Core).
 
 **Un docblock à moi que PHPStan a démenti, à raison.** J'avais typé les
 réponses d'un formulaire en `array<string, mixed>` — clés = identifiants de
@@ -229,12 +228,37 @@ vraie question : la clé se résout-elle dans le catalogue ? Ce qui attrape en
 prime les fautes de frappe. **Un test qui vérifie une régularité observée
 plutôt que la règle voulue est une dette, pas un filet.**
 
-**Le défaut `\d+` vs `__id__` réintroduit une deuxième fois**, dans un
-domaine neuf, en resserrant une contrainte qui semblait trop permissive — et
-la page passe en 500 au rendu, avant même d'atteindre la route qu'on croyait
-protéger. Le commentaire d'explication sur `PostsController` n'a rien empêché.
-La raison vit maintenant dans `Core\Routing\RouteRequirement`, à côté de
-l'alternative, donc là où on la cherche.
+**`\d+` vs `__id__` : trois fois le même défaut, et la correction était le
+problème.** Un gabarit d'URL (`path('…', {id: '__id__'})`) demande au
+générateur de produire une adresse à trou, que le composant Vue complètera au
+clic. La contrainte `\d+` refuse — *pendant le rendu*, donc l'écran répond 500
+avant que quiconque atteigne la route qu'elle protégeait.
+
+Je l'ai « corrigé » en desserrant la contrainte elle-même, `\d+|__\w+__`. Ce
+choix coûtait plus qu'il ne rapportait : il fallait le répéter sur chaque
+route, il a été mal fait trois fois (une constante nommée `__id__` recopiée sur
+un paramètre `revisionId`), et surtout **il rendait les routes desserrées
+capables de répondre à de vraies requêtes** — demander
+`/posts/__id__/edit` n'était plus un 404 propre mais une erreur Postgres, le
+placeholder arrivant jusqu'à Doctrine comme identifiant. Une correction qui
+ouvre une porte plus large que celle qu'elle ferme.
+
+Symfony sépare déjà les deux : une contrainte est vérifiée au *filtrage* d'une
+requête **et** à la *génération* d'une URL, et `ConfigurableRequirementsInterface`
+n'éteint que la seconde. Les routes gardent donc leur `\d+` honnête, et
+`path_template()` (`Core\Twig\PathTemplateExtension`) relâche la vérification
+le temps du seul appel qui veut un trou. Une constante à recopier de moins,
+`RouteRequirement` supprimé.
+
+**Le piège de l'écriture, à retenir** : `Router` n'implémente pas
+`ConfigurableRequirementsInterface`. C'est son générateur interne — un cran
+plus bas, obtenu par `getGenerator()` — qui porte le drapeau. Tester le service
+injecté échoue donc *silencieusement* : la relâche n'a jamais lieu et on
+retombe sur le 500 d'origine. Un test à double aurait validé la version fausse,
+puisqu'un `UrlGenerator` nu, lui, est configurable. `PathTemplateExtensionTest`
+construit un vrai `Router` sur une vraie route contrainte, et vérifie en prime
+que le drapeau est restauré après coup — sans quoi le premier `path_template`
+d'une page désactiverait la validation de routage pour tout ce qui suit.
 
 **Trois simplifications que la reconstruction a rendues possibles**, à ne pas
 confondre avec des défauts — ce sont des choix qui n'avaient plus de raison

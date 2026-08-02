@@ -59,9 +59,9 @@
         appVersion: appVersion is defined ? appVersion : '',
         searchPath: path('backend_general_search'),
         notificationsListPath: path('backend_notifications_list'),
-        notificationsMarkReadPath: path('backend_notifications_mark_read', {id: '__id__'}),
+        notificationsMarkReadPath: path_template('backend_notifications_mark_read', {id: '__id__'}),
         notificationsMarkAllReadPath: path('backend_notifications_mark_all_read'),
-        notificationsDeletePath: path('backend_notifications_delete', {id: '__id__'}),
+        notificationsDeletePath: path_template('backend_notifications_delete', {id: '__id__'}),
         notificationsDeleteAllPath: path('backend_notifications_delete_all'),
     }) }}></div>
 

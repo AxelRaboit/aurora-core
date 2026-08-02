@@ -16,8 +16,8 @@
     counts: counts,
     statuses: statuses,
     listPath: path('backend_editorial_comments_list'),
-    approvePathTemplate: path('backend_editorial_comments_approve', {id: '__id__'}),
-    spamPathTemplate: path('backend_editorial_comments_spam', {id: '__id__'}),
-    deletePathTemplate: path('backend_editorial_comments_delete', {id: '__id__'}),
+    approvePathTemplate: path_template('backend_editorial_comments_approve', {id: '__id__'}),
+    spamPathTemplate: path_template('backend_editorial_comments_spam', {id: '__id__'}),
+    deletePathTemplate: path_template('backend_editorial_comments_delete', {id: '__id__'}),
 }) }} class="flex-1 min-w-0"></div>
 {% endblock %}

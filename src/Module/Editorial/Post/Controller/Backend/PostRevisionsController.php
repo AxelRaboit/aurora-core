@@ -6,7 +6,6 @@ namespace Aurora\Module\Editorial\Post\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonResponseTrait;
-use Aurora\Core\Routing\RouteRequirement;
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Entity\PostRevisionInterface;
 use Aurora\Module\Editorial\Post\Manager\PostManagerInterface;
@@ -26,9 +25,6 @@ class PostRevisionsController extends AbstractController
     use JsonResponseTrait;
 
     /** @see PostsController::ID for why the placeholder is allowed. */
-    /** @see RouteRequirement::ID for why a bare `\d+` breaks the screen. */
-    private const string ID = RouteRequirement::ID;
-
     public function __construct(
         private readonly PostManagerInterface $postManager,
         private readonly PostRevisionRepository $revisionRepository,
@@ -36,7 +32,7 @@ class PostRevisionsController extends AbstractController
         private readonly PostSerializerInterface $postSerializer,
     ) {}
 
-    #[Route('/{id}/revisions', name: '_revisions', requirements: ['id' => self::ID], methods: [HttpMethodEnum::Get->value])]
+    #[Route('/{id}/revisions', name: '_revisions', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Get->value])]
     public function list(Post $post): JsonResponse
     {
         $this->denyAccessUnlessGranted(PostVoter::VIEW, $post);
@@ -49,7 +45,7 @@ class PostRevisionsController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/revisions/{revisionId}', name: '_revision_show', requirements: ['id' => self::ID, 'revisionId' => self::ID], methods: [HttpMethodEnum::Get->value])]
+    #[Route('/{id}/revisions/{revisionId}', name: '_revision_show', requirements: ['id' => '\\d+', 'revisionId' => '\\d+'], methods: [HttpMethodEnum::Get->value])]
     public function show(Post $post, int $revisionId): JsonResponse
     {
         $this->denyAccessUnlessGranted(PostVoter::VIEW, $post);
@@ -62,7 +58,7 @@ class PostRevisionsController extends AbstractController
         return $this->jsonSuccess(['revision' => $this->revisionSerializer->serializeFull($revision)]);
     }
 
-    #[Route('/{id}/revisions/{revisionId}/restore', name: '_revision_restore', requirements: ['id' => self::ID, 'revisionId' => self::ID], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{id}/revisions/{revisionId}/restore', name: '_revision_restore', requirements: ['id' => '\\d+', 'revisionId' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('editorial.posts.edit')]
     public function restore(Post $post, int $revisionId): JsonResponse
     {

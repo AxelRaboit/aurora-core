@@ -18,10 +18,10 @@
     targetTypes: targetTypes,
     visibilities: visibilities,
     targetsPath: path('backend_editorial_menus_targets'),
-    updatePathTemplate: path('backend_editorial_menus_update', {id: '__id__'}),
-    itemCreatePathTemplate: path('backend_editorial_menus_item_create', {id: '__id__'}),
-    itemEditPathTemplate: path('backend_editorial_menus_item_edit', {id: '__id__', itemId: '__itemId__'}),
-    itemDeletePathTemplate: path('backend_editorial_menus_item_delete', {id: '__id__', itemId: '__itemId__'}),
-    itemReorderPathTemplate: path('backend_editorial_menus_item_reorder', {id: '__id__'}),
+    updatePathTemplate: path_template('backend_editorial_menus_update', {id: '__id__'}),
+    itemCreatePathTemplate: path_template('backend_editorial_menus_item_create', {id: '__id__'}),
+    itemEditPathTemplate: path_template('backend_editorial_menus_item_edit', {id: '__id__', itemId: '__itemId__'}),
+    itemDeletePathTemplate: path_template('backend_editorial_menus_item_delete', {id: '__id__', itemId: '__itemId__'}),
+    itemReorderPathTemplate: path_template('backend_editorial_menus_item_reorder', {id: '__id__'}),
 }) }} class="flex-1 min-w-0"></div>
 {% endblock %}
