@@ -225,6 +225,42 @@ class PostRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * How many live posts sit in each status, for the dashboard.
+     *
+     * One grouped query rather than one COUNT per status, and rows are only
+     * returned for statuses that have posts — the caller fills the gaps, so
+     * adding a status to the enum cannot leave a hole here.
+     *
+     * @return array<string, int> status value → count, trashed posts excluded
+     */
+    public function countByStatus(): array
+    {
+        $rows = $this->createQueryBuilder('p')
+            ->select('p.status AS status', 'COUNT(p.id) AS total')
+            ->where('p.deletedAt IS NULL')
+            ->groupBy('p.status')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $status = $row['status'];
+            $counts[$status instanceof PostStatusEnum ? $status->value : (string) $status] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
+    public function countTrashed(): int
+    {
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->where('p.deletedAt IS NOT NULL')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     /** @return list<PostInterface> */
     public function findTrashedBefore(DateTimeImmutable $threshold): array
     {

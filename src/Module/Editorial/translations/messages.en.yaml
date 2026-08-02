@@ -73,6 +73,13 @@ backend:
       taxonomies:
         category: Categories
         tag: Tags
+  stats:
+    editorial:
+      posts: Posts
+      post_types: Content types
+      taxonomies: Taxonomies
+      trashed: In the trash
+      by_status: Split by status
   nav:
     sections:
       editorial: Editorial
@@ -119,9 +126,6 @@ backend:
       translatable: Per language
       choices: Choices
       choices_hint: 'One per line.'
-      reference_target_type: Target content type
-      reference_any_type: Any type
-      reference_multiple: Allow several
       types:
         text: Text
         textarea: Long text
@@ -129,10 +133,8 @@ backend:
         date: Date
         select: Choice
         checkbox: Checkbox
-        media: Media
         url: URL
         email: Email
-        reference: Reference
     errors:
       slug_required: A slug is required.
       slug_format: 'The slug can only contain lowercase letters, numbers and underscores.'

@@ -7,10 +7,12 @@ import { useDashboardModule } from "@general/backend/dashboard/composables/useDa
 
 /**
  * The dashboard shell. It owns the module switcher and the empty state,
- * never the panels themselves: a module contributes its figures through
- * a DashboardStatsProviderInterface on the PHP side, and its own panel
- * here. With no module registered, `visibleModules` is empty and the
- * empty state is all there is to draw.
+ * never the panels themselves: a module contributes its figures through a
+ * DashboardStatsProviderInterface on the PHP side and its panel through the
+ * Core panel registry here, so this file names no module and imports none.
+ * Each panel gets the slice of `stats` keyed by its own id. With nothing
+ * registered, `visibleModules` is empty and the empty state is all there is
+ * to draw.
  */
 const props = defineProps({
     stats: { type: Object, default: () => ({}) },
@@ -48,7 +50,13 @@ const { activeModule, selectModule, visibleModules } = useDashboardModule(enable
                 </AppTab>
             </div>
 
-            <!-- A module's panel goes here, shown with `v-show="activeModule === '<id>'"`. -->
+            <component
+                :is="module.component"
+                v-for="module in visibleModules"
+                v-show="activeModule === module.id"
+                :key="module.id"
+                :stats="stats[module.id] ?? {}"
+            />
         </template>
     </div>
 </template>

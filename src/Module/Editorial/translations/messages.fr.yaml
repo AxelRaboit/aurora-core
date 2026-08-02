@@ -73,6 +73,13 @@ backend:
       taxonomies:
         category: Catégories
         tag: Étiquettes
+  stats:
+    editorial:
+      posts: Publications
+      post_types: Types de contenu
+      taxonomies: Taxonomies
+      trashed: À la corbeille
+      by_status: Répartition par statut
   nav:
     sections:
       editorial: Éditorial
@@ -119,9 +126,6 @@ backend:
       translatable: Par langue
       choices: Choix
       choices_hint: 'Un par ligne.'
-      reference_target_type: Type de contenu ciblé
-      reference_any_type: Tous les types
-      reference_multiple: Autoriser plusieurs
       types:
         text: Texte
         textarea: Texte long
@@ -129,10 +133,8 @@ backend:
         date: Date
         select: Liste de choix
         checkbox: Case à cocher
-        media: Média
         url: URL
         email: E-mail
-        reference: Référence
     errors:
       slug_required: Un slug est requis.
       slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets bas.'

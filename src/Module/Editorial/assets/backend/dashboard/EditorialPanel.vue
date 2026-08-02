@@ -1,0 +1,67 @@
+<script setup>
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import { FileText, LayoutTemplate, Tags, Trash2 } from "lucide-vue-next";
+
+/**
+ * Editorial's dashboard panel: how much content the site holds, and how it
+ * is spread across the publication statuses.
+ *
+ * The shell hands over whatever EditorialStatsProvider returned, so every
+ * field is defaulted — a dashboard is not the place to throw because a
+ * figure was missing.
+ */
+const props = defineProps({
+    stats: { type: Object, default: () => ({}) },
+});
+
+const { t } = useI18n();
+
+const totals = computed(() => [
+    { key: "posts", icon: FileText, value: props.stats.posts ?? 0 },
+    { key: "post_types", icon: LayoutTemplate, value: props.stats.postTypes ?? 0 },
+    { key: "taxonomies", icon: Tags, value: props.stats.taxonomies ?? 0 },
+    { key: "trashed", icon: Trash2, value: props.stats.trashed ?? 0 },
+]);
+
+const byStatus = computed(() => Object.entries(props.stats.byStatus ?? {}));
+
+/** Share of the whole, for the bar. Zero posts means zero width, not NaN. */
+function share(count) {
+    const total = props.stats.posts ?? 0;
+
+    return total > 0 ? Math.round((count / total) * 100) : 0;
+}
+</script>
+
+<template>
+    <div class="space-y-6">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div
+                v-for="total in totals"
+                :key="total.key"
+                class="bg-surface border border-line rounded-xl p-4"
+            >
+                <div class="flex items-center gap-2 text-secondary text-xs uppercase tracking-wide">
+                    <component :is="total.icon" class="w-4 h-4 shrink-0" :stroke-width="2" />
+                    {{ t(`backend.stats.editorial.${total.key}`) }}
+                </div>
+                <p class="text-2xl font-semibold text-primary mt-2">{{ total.value }}</p>
+            </div>
+        </div>
+
+        <div v-if="byStatus.length" class="bg-surface border border-line rounded-xl p-5 space-y-3">
+            <h3 class="text-sm font-semibold text-primary">{{ t("backend.stats.editorial.by_status") }}</h3>
+
+            <div v-for="[status, count] in byStatus" :key="status" class="space-y-1">
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-secondary">{{ t(`backend.posts.status.${status}`) }}</span>
+                    <span class="text-primary font-medium tabular-nums">{{ count }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-surface-2 overflow-hidden">
+                    <div class="h-full rounded-full bg-accent-500" :style="{ width: `${share(count)}%` }" />
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

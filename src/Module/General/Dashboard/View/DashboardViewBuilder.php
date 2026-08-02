@@ -4,23 +4,39 @@ declare(strict_types=1);
 
 namespace Aurora\Module\General\Dashboard\View;
 
+use Aurora\Core\Module\Service\ModuleAccessChecker;
 use Aurora\Module\General\Dashboard\Service\StatsService;
 
 /**
  * Builds the Twig payload for the backend dashboard.
  *
- * No module draws a dashboard panel at the moment, so both keys come back
- * empty and the Vue shell renders its empty state. A module joins by
- * gating on its own backend toggle here — a plain core_settings key, so
- * this shell never imports a business module's parameter enum — and
- * adding a matching entry to the Vue `MODULE_DEFINITIONS`. Its figures
- * reach `stats` through a DashboardStatsProviderInterface, which
- * {@see StatsService} filters by the module ids passed below.
+ * A module joins by adding a line to MODULE_TOGGLES below and a matching
+ * entry to the Vue `MODULE_DEFINITIONS`. Its figures reach `stats` through a
+ * DashboardStatsProviderInterface, which {@see StatsService} filters by the
+ * module ids reported enabled here. With nothing listed, the Vue shell draws
+ * its empty state.
+ *
+ * The toggle is named as a plain settings key so this shell never imports a
+ * business module's parameter enum, and passed as a string to
+ * {@see ModuleAccessChecker}, which accepts one — so the cascade and the
+ * per-user masking still apply, and the dashboard cannot disagree with the
+ * side menu about what is switched on.
  */
 final readonly class DashboardViewBuilder
 {
+    /**
+     * Module id → the settings key gating it. The id is what a stats provider
+     * returns from `getModuleKey()` and what the Vue definitions match on.
+     *
+     * @var array<string, string>
+     */
+    private const array MODULE_TOGGLES = [
+        'editorial' => 'modules_editorial_backend',
+    ];
+
     public function __construct(
         private StatsService $statsService,
+        private ModuleAccessChecker $moduleAccessChecker,
     ) {}
 
     /**
@@ -28,8 +44,10 @@ final readonly class DashboardViewBuilder
      */
     public function indexView(): array
     {
-        /** @var array<string, bool> $enabledModules */
         $enabledModules = [];
+        foreach (self::MODULE_TOGGLES as $moduleId => $toggle) {
+            $enabledModules[$moduleId] = $this->moduleAccessChecker->isEnabled($toggle);
+        }
 
         return [
             'enabledModules' => $enabledModules,

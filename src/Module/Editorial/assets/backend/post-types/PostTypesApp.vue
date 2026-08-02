@@ -265,15 +265,6 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
                     :rows="4"
                 />
 
-                <template v-if="fieldForm.type === 'reference'">
-                    <AppSelect
-                        v-model="fieldForm.referencePostTypeId"
-                        :label="t('backend.post_types.fields.reference_target_type')"
-                        :placeholder="t('backend.post_types.fields.reference_any_type')"
-                        :options="items.map((item) => ({ value: item.id, label: item.label }))"
-                    />
-                    <AppCheckbox v-model="fieldForm.referenceMultiple" :label="t('backend.post_types.fields.reference_multiple')" />
-                </template>
 
                 <AppCheckbox v-model="fieldForm.required" :label="t('backend.post_types.fields.required')" />
                 <AppCheckbox v-model="fieldForm.translatable" :label="t('backend.post_types.fields.translatable')" />

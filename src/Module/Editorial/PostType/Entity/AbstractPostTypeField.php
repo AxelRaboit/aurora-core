@@ -10,10 +10,17 @@ use Doctrine\ORM\Mapping as ORM;
 abstract class AbstractPostTypeField implements PostTypeFieldInterface
 {
     /**
-     * `select` reads its choices from `options.choices`; `reference` points
-     * at other posts via `options.postTypeId` + `options.multiple`.
+     * The field types the post editor knows how to draw. `select` reads its
+     * choices from `options.choices`; the rest need no extras.
+     *
+     * Only types with an input behind them belong here — same rule as
+     * {@see AbstractPostType::SUPPORTS}. `media` and `reference` were offered
+     * on the post-types screen while the editor drew neither, so an admin
+     * could define a "featured product" field and the writer would be asked
+     * to type a raw database id into a text box. They come back with their
+     * pickers, not before.
      */
-    public const array TYPES = ['text', 'textarea', 'number', 'date', 'select', 'checkbox', 'media', 'url', 'email', 'reference'];
+    public const array TYPES = ['text', 'textarea', 'number', 'date', 'select', 'checkbox', 'url', 'email'];
 
     /** Machine name, the key this field's value is stored under on a post. */
     #[ORM\Column(length: 100)]

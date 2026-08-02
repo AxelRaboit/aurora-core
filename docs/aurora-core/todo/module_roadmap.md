@@ -148,7 +148,7 @@ neutralisé et la substitution promise au client ne fonctionne pas.
 | Docblock du filtre par termes annonçant ET, code faisant OU | Documentation fausse |
 | `BlocksRenderer::renderCallout()` lisant `text` et émettant `.callout-info` | Encart vide et non coloré, mais **seulement une fois publié** |
 
-**Trois défauts nés dans le code reconstruit lui-même**, tous trouvés en
+**Cinq défauts nés dans le code reconstruit lui-même**, tous trouvés en
 manipulant l'écran ou en comparant le schéma, aucun signalé par les outils :
 
 | Défaut | Ce que ça donnait |
@@ -156,18 +156,26 @@ manipulant l'écran ou en comparant le schéma, aucun signalé par les outils :
 | `Assert\IsTrue` sur un getter (`hasTargetWhenRequired`) | La violation est nommée d'après la méthode : message posé sur un champ que le formulaire n'a pas → formulaire qui refuse d'enregistrer **sans afficher d'erreur nulle part**. Corrigé par un `Assert\Callback` + `atPath()`. |
 | `cascade: ['remove']` + `onDelete: 'CASCADE'` sur les sous-entrées de menu | Le Manager remonte les enfants d'un cran, Doctrine puis Postgres suppriment la branche derrière lui — supprimer un intitulé emportait ses six liens. `AbstractTaxonomyTerm` avait la bonne forme (`SET NULL`, pas de cascade) ; c'est elle qu'il fallait suivre. |
 | **Sept index et contraintes d'unicité jamais redéclarés** | Perdus en réécrivant les entités : `(post_id, locale)`, `(taxonomy_id, locale)`, `(term_id, locale)`, `(menu_item_id, locale)`, `(locale, slug)` sur les termes **et** sur l'historique de slugs, plus deux index de lecture. `indexBy: 'locale'` ne protège que la collection en mémoire ; rien n'empêchait deux lignes pour la même langue, et une vieille URL pouvait retomber sur un post arbitraire. |
+| Aucune garde de route côté backend | Éteindre Editorial retirait ses entrées de menu **et rien d'autre** : les écrans répondaient encore 200 à qui avait gardé l'URL. GED avait son propre subscriber ; Editorial n'en avait aucun. Corrigé par un `AbstractModuleRouteGateSubscriber` dans Core, au grain du sous-module — couper « Taxonomies » ferme ses écrans et laisse les autres ouverts. |
+| Types de champ `media` et `reference` offerts sans éditeur | Même motif que `supports: excerpt` : l'écran des types de contenu les proposait, l'éditeur de publication n'en dessinait aucun — le rédacteur se retrouvait à taper un identifiant de base dans une zone de texte (le `v-else` de repli). Retirés jusqu'à ce que leurs sélecteurs existent. |
 
-Les deux premiers sont verrouillés par `MenuItemInputTest` et
-`MenuItemCascadeTest`, vérifiés en réintroduisant chaque défaut (4 tests
-rouges, puis verts). Le troisième l'est par le schéma lui-même : après
-correction, `doctrine:schema:update --dump-sql` sur la base **construite par
-les migrations** ne signale plus aucun écart sur Editorial.
+Quatre sont verrouillés par des tests — `MenuItemInputTest`,
+`MenuItemCascadeTest`, `EditorialRouteGateSubscriberTest`,
+`PostTypeFieldTypesTest` — chacun vérifié en réintroduisant le défaut
+correspondant. Le troisième l'est par le schéma lui-même : après correction,
+`doctrine:schema:update --dump-sql` sur la base **construite par les
+migrations** ne signale plus aucun écart sur Editorial.
 
-**La méthode qui a trouvé le troisième**, à refaire pour chaque domaine
-restant : comparer les entités à une base montée par `doctrine:migrations:migrate`
-(la base de test l'est), pas à la base de dev — celle-ci a été façonnée par
-`schema:update` au fil de la reconstruction, donc elle est d'accord avec le
-code par construction et ne peut rien révéler.
+**Deux méthodes qui ont trouvé ce que rien d'autre ne voyait**, à refaire
+pour chaque domaine restant :
+
+1. Comparer les entités à une base montée par `doctrine:migrations:migrate`
+   (la base de test l'est), pas à la base de dev — celle-ci a été façonnée
+   par `schema:update` au fil de la reconstruction, donc elle est d'accord
+   avec le code par construction et ne peut rien révéler.
+2. Éteindre chaque bascule de module et **redemander les URL à la main**.
+   Le menu disparaît toujours ; ce n'est pas ce qu'on teste. Ce qu'on teste,
+   c'est ce que répond la route quand plus rien ne la montre.
 
 **Trois choses que j'ai cru être des défauts et qui n'en étaient pas** —
 vérifiées avant de « corriger » : le titre absent de `search_content` (le

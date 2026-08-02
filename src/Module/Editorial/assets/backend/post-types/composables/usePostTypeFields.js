@@ -14,8 +14,6 @@ function emptyField() {
         required: false,
         translatable: false,
         choices: "",
-        referencePostTypeId: null,
-        referenceMultiple: false,
     };
 }
 
@@ -34,13 +32,6 @@ function toOptions(form) {
         };
     }
 
-    if ("reference" === form.type) {
-        return {
-            postTypeId: form.referencePostTypeId,
-            multiple: form.referenceMultiple,
-        };
-    }
-
     return {};
 }
 
@@ -56,8 +47,6 @@ function fromOptions(field) {
         choices: Array.isArray(options.choices)
             ? options.choices.join("\n")
             : "",
-        referencePostTypeId: options.postTypeId ?? null,
-        referenceMultiple: options.multiple ?? false,
     };
 }
 

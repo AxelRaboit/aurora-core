@@ -1,16 +1,15 @@
 import { computed, ref, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
+import { dashboardPanels } from "@/shared/dashboard/panelRegistry.js";
 
 const ACTIVE_MODULE_KEY = "aurora-dashboard-module";
 
 /**
- * One entry per module that draws a dashboard panel:
- * `{ id, labelKey, icon }`, where `id` matches the module id the PHP
- * DashboardViewBuilder reports as enabled. Empty until a module ships
- * both a stats provider and a panel — `visibleModules` is then empty
- * and the shell renders its empty state.
+ * Panels come from the Core registry, filled by each module's
+ * `*.register.js` at boot — the shell names no module and imports none.
+ * With nothing registered, `visibleModules` is empty and the shell renders
+ * its empty state.
  */
-const MODULE_DEFINITIONS = [];
 
 export function useDashboardModule(enabledModules) {
     const { t } = useI18n();
@@ -18,9 +17,9 @@ export function useDashboardModule(enabledModules) {
     const activeModule = ref(localStorage.getItem(ACTIVE_MODULE_KEY) || "");
 
     const visibleModules = computed(() =>
-        MODULE_DEFINITIONS.filter(
-            (module) => enabledModules.value[module.id] !== false,
-        ).map((module) => ({ ...module, label: () => t(module.labelKey) })),
+        dashboardPanels()
+            .filter((module) => enabledModules.value[module.id] !== false)
+            .map((module) => ({ ...module, label: () => t(module.labelKey) })),
     );
 
     function selectModule(id) {
