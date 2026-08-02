@@ -37,4 +37,13 @@ interface TaxonomyInterface
 
     /** @return Collection<int, PostTypeInterface> */
     public function getPostTypes(): Collection;
+
+    /**
+     * Inverse side of the association — PostType owns it in the database.
+     * These keep the loaded object graph consistent so a response
+     * serialized right after a write does not read as stale.
+     */
+    public function addPostType(PostTypeInterface $postType): static;
+
+    public function removePostType(PostTypeInterface $postType): static;
 }

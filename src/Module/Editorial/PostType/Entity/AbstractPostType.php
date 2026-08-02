@@ -179,10 +179,15 @@ abstract class AbstractPostType implements PostTypeInterface
         return $this->taxonomies;
     }
 
+    /**
+     * Owning side of the association. Mirrors onto the taxonomy so both
+     * collections agree in memory, not only after a reload.
+     */
     public function addTaxonomy(TaxonomyInterface $taxonomy): static
     {
         if (!$this->taxonomies->contains($taxonomy)) {
             $this->taxonomies->add($taxonomy);
+            $taxonomy->addPostType($this);
         }
 
         return $this;
@@ -190,7 +195,9 @@ abstract class AbstractPostType implements PostTypeInterface
 
     public function removeTaxonomy(TaxonomyInterface $taxonomy): static
     {
-        $this->taxonomies->removeElement($taxonomy);
+        if ($this->taxonomies->removeElement($taxonomy)) {
+            $taxonomy->removePostType($this);
+        }
 
         return $this;
     }

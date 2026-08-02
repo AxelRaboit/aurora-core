@@ -28,4 +28,9 @@ final readonly class EditorialContext
     {
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialPostTypes);
     }
+
+    public function isTaxonomiesEnabled(): bool
+    {
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialTaxonomies);
+    }
 }

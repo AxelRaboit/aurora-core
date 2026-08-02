@@ -35,6 +35,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
 
     // Sub-modules — Editorial
     case EditorialPostTypes = 'modules_editorial_post_types';
+    case EditorialTaxonomies = 'modules_editorial_taxonomies';
 
     // Sub-modules — GED
     case GedDocuments = 'modules_ged_documents';
@@ -62,6 +63,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::MediaLibrary => 'backend.nav.media',
             self::EditorialBackend => 'backend.modules.editorial_backend',
             self::EditorialPostTypes => 'backend.nav.post_types',
+            self::EditorialTaxonomies => 'backend.nav.taxonomies',
             self::GedBackend => 'backend.modules.ged_backend',
 
             self::GedDocuments => 'backend.nav.documents',
@@ -86,6 +88,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::MediaLibrary => 'backend.nav.media_description',
             self::EditorialBackend => 'backend.modules.editorial_backend_description',
             self::EditorialPostTypes => 'backend.nav.post_types_description',
+            self::EditorialTaxonomies => 'backend.nav.taxonomies_description',
             self::GedBackend => 'backend.modules.ged_backend_description',
 
             self::GedDocuments => 'backend.nav.documents_description',
@@ -121,7 +124,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::PlatformUsers => self::PlatformBackend,
             self::ConfigurationSettings, self::ConfigurationThemes => self::ConfigurationBackend,
             self::MediaLibrary => self::MediaBackend,
-            self::EditorialPostTypes => self::EditorialBackend,
+            self::EditorialPostTypes, self::EditorialTaxonomies => self::EditorialBackend,
             self::GedDocuments, self::GedCategories, self::GedTags, self::GedFolders, self::GedFrontend => self::GedBackend,
             default => null,
         };
@@ -146,6 +149,8 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::MediaLibrary => self::MediaBackend->value,
             // Editorial sub-modules
             self::EditorialPostTypes => self::EditorialBackend->value,
+            // Terms only make sense once a post type can carry them.
+            self::EditorialTaxonomies => self::EditorialPostTypes->value,
             // GED sub-modules
             self::GedDocuments => self::GedBackend->value,
             self::GedCategories => self::GedBackend->value,

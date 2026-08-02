@@ -7,6 +7,11 @@ backend:
           create: Create content types
           edit: Edit content types
           delete: Delete content types
+        taxonomies:
+          view: View taxonomies
+          create: Create taxonomies
+          edit: Edit taxonomies
+          delete: Delete taxonomies
   audit:
     actions:
       editorial:
@@ -14,6 +19,18 @@ backend:
           created: Content type created
           updated: Content type updated
           deleted: Content type deleted
+        taxonomy:
+          created: Taxonomy created
+          updated: Taxonomy updated
+          deleted: Taxonomy deleted
+          term:
+            created: Term created
+            updated: Term updated
+            deleted: Term deleted
+  parameters:
+    editorial_taxonomy_term_prefix:
+      label: Term reference prefix
+      description: 'Prefix of the reference generated for each taxonomy term.'
   modules:
     editorial: Editorial
     editorial_backend: Editorial
@@ -23,6 +40,8 @@ backend:
       editorial: Editorial
     post_types: Content types
     post_types_description: 'Define the kinds of content the site holds and the fields each one carries.'
+    taxonomies: Taxonomies
+    taxonomies_description: 'Group content with tags and categories, flat or nested.'
   post_types:
     title: Content types
     empty: No content type yet.
@@ -83,3 +102,48 @@ backend:
       field_name_taken: 'The field "{name}" already exists on this type.'
       field_label_required: A label is required.
       field_type_invalid: Unknown field type.
+  taxonomies:
+    title: Taxonomies
+    empty: No taxonomy yet.
+    create: New taxonomy
+    edit: Edit taxonomy
+    created: Taxonomy created.
+    updated: Taxonomy updated.
+    deleted: Taxonomy deleted.
+    delete_confirm: 'Delete the "{slug}" taxonomy? Its terms go with it.'
+    built_in: Provided by Aurora
+    slug: Slug
+    slug_locked: 'A built-in taxonomy keeps its slug and its shape.'
+    hierarchical: Nested terms
+    hierarchical_hint: 'Nested taxonomies behave like categories, flat ones like tags.'
+    label: Label
+    description: Description
+    post_types: Applies to
+    post_types_hint: 'The content types whose posts can carry these terms.'
+    terms:
+      title: Terms
+      empty: No term yet.
+      create: Add a term
+      edit: Edit term
+      created: Term added.
+      updated: Term updated.
+      deleted: Term deleted.
+      delete_confirm: 'Delete the "{name}" term? Its children move up a level.'
+      name: Name
+      slug: Slug
+      slug_hint: 'Left blank, it is derived from the name.'
+      description: Description
+      parent: Parent
+      no_parent: Top level
+      reference: Reference
+      move_up: Move up
+      move_down: Move down
+    errors:
+      slug_required: A slug is required.
+      slug_format: 'The slug can only contain lowercase letters, numbers, hyphens and underscores.'
+      slug_taken: 'The slug "{slug}" is already used.'
+      translations_required: At least one language must be filled in.
+      builtin_protected: A built-in taxonomy cannot be deleted.
+      term_self_nested: A term cannot be placed inside itself or one of its own children.
+      parent_wrong_taxonomy: 'Term {parentId} does not belong to the "{taxonomy}" taxonomy.'
+      reorder_cycle: 'That move would put term {id} inside its own subtree.'

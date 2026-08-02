@@ -7,6 +7,11 @@ backend:
           create: Créer des types de contenu
           edit: Modifier les types de contenu
           delete: Supprimer les types de contenu
+        taxonomies:
+          view: Voir les taxonomies
+          create: Créer des taxonomies
+          edit: Modifier les taxonomies
+          delete: Supprimer les taxonomies
   audit:
     actions:
       editorial:
@@ -14,6 +19,18 @@ backend:
           created: Type de contenu créé
           updated: Type de contenu modifié
           deleted: Type de contenu supprimé
+        taxonomy:
+          created: Taxonomie créée
+          updated: Taxonomie modifiée
+          deleted: Taxonomie supprimée
+          term:
+            created: Terme créé
+            updated: Terme modifié
+            deleted: Terme supprimé
+  parameters:
+    editorial_taxonomy_term_prefix:
+      label: Préfixe de référence des termes
+      description: "Préfixe de la référence générée pour chaque terme de taxonomie."
   modules:
     editorial: Éditorial
     editorial_backend: Éditorial
@@ -23,6 +40,8 @@ backend:
       editorial: Éditorial
     post_types: Types de contenu
     post_types_description: "Définir les natures de contenu du site et les champs que chacune porte."
+    taxonomies: Taxonomies
+    taxonomies_description: "Regrouper les contenus par étiquettes et catégories, à plat ou imbriquées."
   post_types:
     title: Types de contenu
     empty: Aucun type de contenu.
@@ -83,3 +102,48 @@ backend:
       field_name_taken: 'Le champ « {name} » existe déjà sur ce type.'
       field_label_required: Un libellé est requis.
       field_type_invalid: Type de champ inconnu.
+  taxonomies:
+    title: Taxonomies
+    empty: Aucune taxonomie.
+    create: Nouvelle taxonomie
+    edit: Modifier la taxonomie
+    created: Taxonomie créée.
+    updated: Taxonomie mise à jour.
+    deleted: Taxonomie supprimée.
+    delete_confirm: 'Supprimer la taxonomie « {slug} » ? Ses termes partent avec elle.'
+    built_in: Fournie par Aurora
+    slug: Slug
+    slug_locked: "Une taxonomie native conserve son slug et sa forme."
+    hierarchical: Termes imbriqués
+    hierarchical_hint: "Imbriquée, elle se comporte comme des catégories ; à plat, comme des étiquettes."
+    label: Libellé
+    description: Description
+    post_types: S'applique à
+    post_types_hint: "Les types de contenu dont les publications peuvent porter ces termes."
+    terms:
+      title: Termes
+      empty: Aucun terme.
+      create: Ajouter un terme
+      edit: Modifier le terme
+      created: Terme ajouté.
+      updated: Terme mis à jour.
+      deleted: Terme supprimé.
+      delete_confirm: 'Supprimer le terme « {name} » ? Ses enfants remontent d''un niveau.'
+      name: Nom
+      slug: Slug
+      slug_hint: "Laissé vide, il est déduit du nom."
+      description: Description
+      parent: Parent
+      no_parent: Premier niveau
+      reference: Référence
+      move_up: Monter
+      move_down: Descendre
+    errors:
+      slug_required: Un slug est requis.
+      slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres, tirets et tirets bas.'
+      slug_taken: 'Le slug « {slug} » est déjà utilisé.'
+      translations_required: Au moins une langue doit être renseignée.
+      builtin_protected: Une taxonomie native ne peut pas être supprimée.
+      term_self_nested: Un terme ne peut pas être placé sous lui-même ni sous l'un de ses enfants.
+      parent_wrong_taxonomy: "Le terme {parentId} n'appartient pas à la taxonomie « {taxonomy} »."
+      reorder_cycle: 'Ce déplacement placerait le terme {id} dans sa propre descendance.'

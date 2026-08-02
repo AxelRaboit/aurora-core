@@ -33,6 +33,10 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             new NavPermission('editorial.post_types.create'),
             new NavPermission('editorial.post_types.edit'),
             new NavPermission('editorial.post_types.delete'),
+            new NavPermission('editorial.taxonomies.view'),
+            new NavPermission('editorial.taxonomies.create'),
+            new NavPermission('editorial.taxonomies.edit'),
+            new NavPermission('editorial.taxonomies.delete'),
         ];
     }
 
@@ -48,6 +52,10 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             $items[] = $this->postTypesNavItem();
         }
 
+        if ($this->editorialContext->isTaxonomiesEnabled()) {
+            $items[] = $this->taxonomiesNavItem();
+        }
+
         if ([] === $items) {
             return [];
         }
@@ -60,6 +68,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
         return [
             new NavSection('editorial', [
                 $this->postTypesNavItem(),
+                $this->taxonomiesNavItem(),
             ], priority: 30),
         ];
     }
@@ -69,7 +78,19 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
         return [
             ModuleParameterEnum::EditorialBackend->toToggle(),
             ModuleParameterEnum::EditorialPostTypes->toToggle(),
+            ModuleParameterEnum::EditorialTaxonomies->toToggle(),
         ];
+    }
+
+    private function taxonomiesNavItem(): NavItem
+    {
+        return new NavItem(
+            'backend_editorial_taxonomies',
+            'backend.nav.taxonomies',
+            'tags',
+            requiredPrivilege: 'editorial.taxonomies.view',
+            descriptionKey: 'backend.nav.taxonomies_description',
+        );
     }
 
     private function postTypesNavItem(): NavItem

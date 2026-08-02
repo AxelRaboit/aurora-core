@@ -127,6 +127,25 @@ abstract class AbstractTaxonomy implements TaxonomyInterface
         return $this->postTypes;
     }
 
+    public function addPostType(PostTypeInterface $postType): static
+    {
+        if (!$this->postTypes->contains($postType)) {
+            $this->postTypes->add($postType);
+            $postType->addTaxonomy($this);
+        }
+
+        return $this;
+    }
+
+    public function removePostType(PostTypeInterface $postType): static
+    {
+        if ($this->postTypes->removeElement($postType)) {
+            $postType->removeTaxonomy($this);
+        }
+
+        return $this;
+    }
+
     /**
      * Instantiation hook, so a client substituting TaxonomyTranslation gets
      * its own class here too — resolve_target_entities only covers Doctrine
