@@ -10,7 +10,6 @@ use Aurora\Module\Configuration\Setting\Configuration\SettingFieldDescriptor;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -29,7 +28,6 @@ final readonly class SettingsViewBuilder
     public function __construct(
         private SettingRepository $settingRepository,
         private DocumentRepository $documentRepository,
-        private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
         private SettingDefinitionRegistry $definitionRegistry,
         private DocumentUrlGenerator $documentUrlGenerator,
@@ -87,7 +85,11 @@ final readonly class SettingsViewBuilder
         return [
             'groups' => $groups,
             'tabs' => $tabs,
-            'postSearchPath' => $this->urlGenerator->generate('backend_editorial_posts_search'),
+            // No content module ships a post-search endpoint right now. The Vue
+            // picker treats an empty path as "search unavailable" and simply
+            // renders nothing, so a `post` field degrades instead of breaking
+            // the page. Point this at the real route once a module owns one.
+            'postSearchPath' => '',
         ];
     }
 
