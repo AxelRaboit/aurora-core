@@ -16,6 +16,7 @@ enum EditorialSettingEnum: string implements ApplicationParameterEnumInterface
 {
     case PostPrefix = 'backend_editorial_post_prefix';
     case TaxonomyTermPrefix = 'backend_editorial_taxonomy_term_prefix';
+    case CommentPrefix = 'backend_editorial_comment_prefix';
 
     public function getKey(): string
     {
@@ -27,6 +28,7 @@ enum EditorialSettingEnum: string implements ApplicationParameterEnumInterface
         return match ($this) {
             self::PostPrefix => 'backend.parameters.editorial_post_prefix.label',
             self::TaxonomyTermPrefix => 'backend.parameters.editorial_taxonomy_term_prefix.label',
+            self::CommentPrefix => 'backend.parameters.editorial_comment_prefix.label',
         };
     }
 
@@ -35,6 +37,7 @@ enum EditorialSettingEnum: string implements ApplicationParameterEnumInterface
         return match ($this) {
             self::PostPrefix => 'backend.parameters.editorial_post_prefix.description',
             self::TaxonomyTermPrefix => 'backend.parameters.editorial_taxonomy_term_prefix.description',
+            self::CommentPrefix => 'backend.parameters.editorial_comment_prefix.description',
         };
     }
 
@@ -43,6 +46,7 @@ enum EditorialSettingEnum: string implements ApplicationParameterEnumInterface
         return match ($this) {
             self::PostPrefix => SequencePrefixEnum::Post->value,
             self::TaxonomyTermPrefix => SequencePrefixEnum::TaxonomyTerm->value,
+            self::CommentPrefix => SequencePrefixEnum::Comment->value,
         };
     }
 

@@ -45,6 +45,9 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             new NavPermission('editorial.taxonomies.delete'),
             new NavPermission('editorial.menus.view'),
             new NavPermission('editorial.menus.edit'),
+            new NavPermission('editorial.comments.view'),
+            new NavPermission('editorial.comments.moderate'),
+            new NavPermission('editorial.comments.delete'),
         ];
     }
 
@@ -72,6 +75,10 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             $items[] = $this->menusNavItem();
         }
 
+        if ($this->editorialContext->isCommentsEnabled()) {
+            $items[] = $this->commentsNavItem();
+        }
+
         if ([] === $items) {
             return [];
         }
@@ -87,6 +94,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
                 $this->postTypesNavItem(),
                 $this->taxonomiesNavItem(),
                 $this->menusNavItem(),
+                $this->commentsNavItem(),
             ], priority: 30),
         ];
     }
@@ -100,6 +108,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             ModuleParameterEnum::EditorialTaxonomies->toToggle(),
             ModuleParameterEnum::EditorialMenus->toToggle(),
             ModuleParameterEnum::EditorialSeo->toToggle(),
+            ModuleParameterEnum::EditorialComments->toToggle(),
         ];
     }
 
@@ -122,6 +131,17 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             'tags',
             requiredPrivilege: 'editorial.taxonomies.view',
             descriptionKey: 'backend.nav.taxonomies_description',
+        );
+    }
+
+    private function commentsNavItem(): NavItem
+    {
+        return new NavItem(
+            'backend_editorial_comments',
+            'backend.nav.comments',
+            'message-square',
+            requiredPrivilege: 'editorial.comments.view',
+            descriptionKey: 'backend.nav.comments_description',
         );
     }
 

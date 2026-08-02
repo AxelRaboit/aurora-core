@@ -15,6 +15,7 @@ enum HttpStatusEnum: int
     case NotFound = 404;
     case Conflict = 409;
     case UnprocessableEntity = 422;
+    case TooManyRequests = 429;
     case MovedPermanently = 301;
     case Found = 302;
     case InternalServerError = 500;

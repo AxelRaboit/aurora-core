@@ -21,6 +21,10 @@ backend:
         menus:
           view: View menus
           edit: Edit menus
+        comments:
+          view: View comments
+          moderate: Moderate comments
+          delete: Delete comments
   audit:
     actions:
       editorial:
@@ -52,6 +56,11 @@ backend:
             updated: Menu item updated
             deleted: Menu item deleted
             reordered: Menu reordered
+        comment:
+          submitted: Comment submitted
+          approved: Comment approved
+          spam: Comment marked as spam
+          deleted: Comment deleted
   parameters:
     editorial_post_prefix:
       label: Post reference prefix
@@ -59,6 +68,9 @@ backend:
     editorial_taxonomy_term_prefix:
       label: Term reference prefix
       description: 'Prefix of the reference generated for each taxonomy term.'
+    editorial_comment_prefix:
+      label: Comment reference prefix
+      description: 'Prefix of the reference generated for each comment.'
   modules:
     editorial: Editorial
     editorial_backend: Editorial
@@ -93,6 +105,8 @@ backend:
     menus_description: 'Compose the public site navigation: header, footer, account.'
     seo: Search engines
     seo_description: 'Publish the public site sitemap, robots.txt and RSS feed.'
+    comments: Comments
+    comments_description: 'Moderate the comments readers leave.'
   post_types:
     title: Content types
     empty: No content type yet.
@@ -268,6 +282,26 @@ backend:
       term_self_nested: A term cannot be placed inside itself or one of its own children.
       parent_wrong_taxonomy: 'Term {parentId} does not belong to the "{taxonomy}" taxonomy.'
       reorder_cycle: 'That move would put term {id} inside its own subtree.'
+  comments:
+    title: Comments
+    empty: No comment yet.
+    search_placeholder: 'Search an author, an address, a text…'
+    all: All
+    author: Author
+    on_post: On
+    in_reply_to: 'In reply to {name}'
+    approve: Approve
+    approved: Comment approved.
+    spam: Spam
+    marked_spam: Comment marked as spam.
+    delete_confirm: "Delete this comment from {name}? Its replies move up a level."
+    deleted: Comment deleted.
+    replies: '{count} replies'
+    reactions: '{count} reactions'
+    status:
+      pending: Pending
+      approved: Approved
+      spam: Spam
   menus:
     title: Menus
     empty: No menu yet.
@@ -340,5 +374,46 @@ backend:
       reorder_cycle: 'That move would put item {id} inside its own subtree.'
 frontend:
   editorial:
+    comments:
+      title: Comments
+      empty: No comment yet. Start the conversation.
+      closed: Comments are closed on this post.
+      submit: Post
+      reply: Reply
+      cancel_reply: Cancel
+      replying_to: 'In reply to {name}'
+      name: Your name
+      email: Your email
+      email_hint: 'Never shown publicly.'
+      content: Your comment
+      sent: Thanks, your comment is live.
+      pending: 'Thanks, your comment will appear once it has been reviewed.'
+      reactions:
+        like: Like
+        love: Love
+        haha: Haha
+        wow: Wow
+        sad: Sad
+        angry: Angry
+      errors:
+        name_required: A name is required.
+        name_too_long: That name is too long.
+        email_invalid: That email address is invalid.
+        content_required: A comment cannot be empty.
+        content_too_long: 'That comment is over 2000 characters.'
+        closed: Comments are closed on this post.
+        too_many: 'Too many comments sent recently. Try again in a moment.'
     no_posts: Nothing published yet.
     pagination: Pages
+editorial:
+  mail:
+    comment:
+      subject_pending: New comment to review
+      subject_approved: New comment on your post
+      pending_heading: A comment is waiting for you
+      pending_intro: '{name} has just left a comment. It stays hidden until approved.'
+      approved_heading: New comment
+      approved_intro: 'Hello {author}, a comment has just been published on one of your posts.'
+      author: Author
+      from: From
+      cta_moderate: Open moderation

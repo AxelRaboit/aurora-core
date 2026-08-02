@@ -1,0 +1,23 @@
+{% extends '@Core/backend/layout.html.twig' %}
+
+{% block title %}{{ 'backend.nav.comments'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'backend.nav.sections.editorial'|trans},
+            {label: 'backend.nav.comments'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('editorial/backend/comments/CommentsApp', {
+    counts: counts,
+    statuses: statuses,
+    listPath: path('backend_editorial_comments_list'),
+    approvePathTemplate: path('backend_editorial_comments_approve', {id: '__id__'}),
+    spamPathTemplate: path('backend_editorial_comments_spam', {id: '__id__'}),
+    deletePathTemplate: path('backend_editorial_comments_delete', {id: '__id__'}),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

@@ -148,6 +148,10 @@ neutralisé et la substitution promise au client ne fonctionne pas.
 | Docblock du filtre par termes annonçant ET, code faisant OU | Documentation fausse |
 | `BlocksRenderer::renderCallout()` lisant `text` et émettant `.callout-info` | Encart vide et non coloré, mais **seulement une fois publié** |
 | `robots.txt` interdisant `/admin/` et `/dev/` | Le backend d'Aurora est sous `/backend/` : le fichier ne bloquait rien qui existe et **annonçait l'administration comme indexable**. Bien formé, route en 200, aucun symptôme avant de voir des URL d'admin dans les résultats de recherche. |
+| Filtre anti-spam des commentaires notifiant **avant** de filtrer | Le décorateur appelait `submit()` — qui persiste, journalise **et envoie le mail** — puis basculait le résultat en spam. Chaque commentaire indésirable prévenait donc l'administrateur, exactement ce qu'un filtre anti-spam existe pour éviter ; et modération coupée, il écrivait à l'adresse saisie par le spammeur, faisant du site un relais pour qui remplit le formulaire. Rien ne le signalait : le commentaire atterrissait bien dans la file « indésirable », seule la boîte mail était en désaccord. |
+| `ReactionTypeEnum::label()` renvoyant du français en dur | Sur le site public, un lecteur anglophone survolant une réaction lisait « J'adore ». |
+| Empreinte de réaction en `sha256(ip + user-agent)` non salée | L'espace est assez petit pour être parcouru : avec la table et une IP suspectée, on confirme ce que quelqu'un a aimé. Salée avec le secret applicatif désormais. |
+| Sérialisation admin comptant les réactions **par commentaire** | Un N+1 sur la file de modération, là où la version publique recevait déjà une carte pré-calculée. |
 | Sitemap : `noindex` de la langue par défaut sautant **tout** le post | Un article masqué en français disparaissait aussi en anglais, d'une page que l'éditeur n'avait pas touchée. Le compteur d'URL retenues étant placé après ce `continue`, il sous-comptait exactement les URL perdues par erreur. |
 | `Sitemap:` de robots.txt construit sur `site_url` | Réglage livré à `http://localhost` : un déploiement qui ne l'a jamais changé annonçait son sitemap sur un hôte injoignable — soit aucun sitemap. Généré depuis la requête maintenant. |
 | **`Context::siteUrl()` prenant le placeholder pour un réglage** (Core, pré-existant) | Le même défaut, une couche plus bas et bien plus grave : `canonical`, `hreflang` et `og:image` de **toutes** les pages publiques annonçaient `http://localhost` tant que personne n'avait touché `site_url`. Aucun symptôme dans l'application — les pages s'affichent, les balises sont bien formées, le site ne remonte simplement pas. Le réglage l'emporte toujours **quand il a vraiment été posé** (épingler un hôte est sa raison d'être) ; laissé au placeholder, l'origine de la requête gagne. |
@@ -187,6 +191,21 @@ vérifiées avant de « corriger » : le titre absent de `search_content` (le
 repository le cherche par son propre LIKE), la contrainte de route
 `\d+|__id__` (les gabarits d'URL passent le placeholder au générateur), et
 les dépendances `@editorjs/*` (importées par un composant générique de Core).
+
+**Un test à moi qui encodait une coïncidence.** `ValidationMessageKeyTest`
+affirmait que toute clé de contrainte commence par `backend.` — vrai de tous
+les DTO au moment où je l'ai écrit, faux dès le premier formulaire public. Le
+test a bloqué le travail correct au lieu de le protéger. Réécrit pour poser la
+vraie question : la clé se résout-elle dans le catalogue ? Ce qui attrape en
+prime les fautes de frappe. **Un test qui vérifie une régularité observée
+plutôt que la règle voulue est une dette, pas un filet.**
+
+**Le défaut `\d+` vs `__id__` réintroduit une deuxième fois**, dans un
+domaine neuf, en resserrant une contrainte qui semblait trop permissive — et
+la page passe en 500 au rendu, avant même d'atteindre la route qu'on croyait
+protéger. Le commentaire d'explication sur `PostsController` n'a rien empêché.
+La raison vit maintenant dans `Core\Routing\RouteRequirement`, à côté de
+l'alternative, donc là où on la cherche.
 
 **Trois simplifications que la reconstruction a rendues possibles**, à ne pas
 confondre avec des défauts — ce sont des choix qui n'avaient plus de raison

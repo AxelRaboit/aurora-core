@@ -19,6 +19,10 @@ use Aurora\Module\Dev\Audit\Entity\AuditLog;
 use Aurora\Module\Dev\Audit\Entity\AuditLogInterface;
 use Aurora\Module\Dev\MountPoint\Entity\MountPoint;
 use Aurora\Module\Dev\MountPoint\Entity\MountPointInterface;
+use Aurora\Module\Editorial\Comment\Entity\Comment;
+use Aurora\Module\Editorial\Comment\Entity\CommentInterface;
+use Aurora\Module\Editorial\Comment\Entity\CommentReaction;
+use Aurora\Module\Editorial\Comment\Entity\CommentReactionInterface;
 use Aurora\Module\Editorial\Menu\Entity\Menu;
 use Aurora\Module\Editorial\Menu\Entity\MenuInterface;
 use Aurora\Module\Editorial\Menu\Entity\MenuItem;
@@ -132,6 +136,8 @@ class AuroraBundle extends AbstractBundle
                     DocumentTagInterface::class => DocumentTag::class,
                     DocumentFolderInterface::class => DocumentFolder::class,
                     MountPointInterface::class => MountPoint::class,
+                    CommentInterface::class => Comment::class,
+                    CommentReactionInterface::class => CommentReaction::class,
                     MenuInterface::class => Menu::class,
                     MenuItemInterface::class => MenuItem::class,
                     MenuItemTranslationInterface::class => MenuItemTranslation::class,

@@ -10,24 +10,31 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
 use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Yaml\Yaml;
 
 /**
- * Every constraint message in this module was a bare key —
+ * Every constraint message in this module was once a bare key —
  * `post_types.errors.slug_required` and the like. Nothing resolves those:
- * PayloadValidator hands messages back untranslated by design, and the Vue
- * layer that does translate them reads a catalogue built only from
- * `messages.*.yaml`, where the keys live under `backend.`. Every failed
+ * PayloadValidator hands messages back untranslated by design, and the layer
+ * that does translate them looks the key up in the catalogue. Every failed
  * validation therefore showed the user a raw key instead of a sentence.
  *
- * This walks the DTOs rather than listing them, so a new one is covered the
- * day it is written.
+ * The check is that the key **resolves**, not that it carries a particular
+ * prefix. An earlier version of this test asserted `backend.`, which was true
+ * of every DTO at the time and stopped being true the moment a public form
+ * arrived — a rule read off a coincidence, which then blocked the correct
+ * work. Looking the key up in the catalogue asks the real question and
+ * catches a typo besides.
+ *
+ * The DTOs are walked rather than listed, so a new one is covered the day it
+ * is written.
  */
 final class ValidationMessageKeyTest extends TestCase
 {
     /** @return iterable<array{string}> */
     public static function dtoProvider(): iterable
     {
-        $directory = dirname(__DIR__, 5).'/src/Module/Editorial';
+        $directory = self::moduleDir();
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
 
         foreach ($files as $file) {
@@ -48,7 +55,7 @@ final class ValidationMessageKeyTest extends TestCase
     }
 
     #[DataProvider('dtoProvider')]
-    public function testEveryConstraintMessageIsAKeyTheFrontCanResolve(string $class): void
+    public function testEveryConstraintMessageIsAKeyThatResolves(string $class): void
     {
         $messages = self::constraintMessages($class);
 
@@ -60,13 +67,14 @@ final class ValidationMessageKeyTest extends TestCase
             return;
         }
 
+        $catalogue = self::catalogue();
+
         foreach ($messages as $message) {
-            self::assertStringStartsWith(
-                'backend.',
-                $message,
+            self::assertTrue(
+                self::resolves($message, $catalogue),
                 sprintf(
-                    'The message "%s" in %s cannot be resolved: only keys under `backend.` reach the JS catalogue, '
-                    ."so this one would render to the user as its own key.\n",
+                    'The message "%s" in %s does not resolve to anything in the module\'s translations, '
+                    ."so a failed validation would show the user this key instead of a sentence.\n",
                     $message,
                     $class,
                 ),
@@ -74,11 +82,40 @@ final class ValidationMessageKeyTest extends TestCase
         }
     }
 
+    /** @param array<string, mixed> $catalogue */
+    private static function resolves(string $key, array $catalogue): bool
+    {
+        $node = $catalogue;
+        foreach (explode('.', $key) as $segment) {
+            if (!is_array($node) || !array_key_exists($segment, $node)) {
+                return false;
+            }
+
+            $node = $node[$segment];
+        }
+
+        return is_string($node) && '' !== $node;
+    }
+
+    /** @return array<string, mixed> */
+    private static function catalogue(): array
+    {
+        /** @var array<string, mixed> $parsed */
+        $parsed = Yaml::parseFile(self::moduleDir().'/translations/messages.en.yaml');
+
+        return $parsed;
+    }
+
+    private static function moduleDir(): string
+    {
+        return dirname(__DIR__, 5).'/src/Module/Editorial';
+    }
+
     /** @return list<string> */
     private static function constraintMessages(string $class): array
     {
         $messages = [];
-        $constructor = (new ReflectionClass($class))->getConstructor();
+        $constructor = new ReflectionClass($class)->getConstructor();
 
         foreach ($constructor?->getParameters() ?? [] as $parameter) {
             foreach ($parameter->getAttributes() as $attribute) {

@@ -21,6 +21,10 @@ backend:
         menus:
           view: Voir les menus
           edit: Modifier les menus
+        comments:
+          view: Voir les commentaires
+          moderate: Modérer les commentaires
+          delete: Supprimer les commentaires
   audit:
     actions:
       editorial:
@@ -52,6 +56,11 @@ backend:
             updated: Entrée de menu modifiée
             deleted: Entrée de menu supprimée
             reordered: Menu réorganisé
+        comment:
+          submitted: Commentaire déposé
+          approved: Commentaire approuvé
+          spam: Commentaire marqué comme indésirable
+          deleted: Commentaire supprimé
   parameters:
     editorial_post_prefix:
       label: Préfixe de référence des publications
@@ -59,6 +68,9 @@ backend:
     editorial_taxonomy_term_prefix:
       label: Préfixe de référence des termes
       description: "Préfixe de la référence générée pour chaque terme de taxonomie."
+    editorial_comment_prefix:
+      label: Préfixe de référence des commentaires
+      description: "Préfixe de la référence générée pour chaque commentaire."
   modules:
     editorial: Éditorial
     editorial_backend: Éditorial
@@ -93,6 +105,8 @@ backend:
     menus_description: "Composer la navigation du site public : en-tête, pied de page, compte."
     seo: Référencement
     seo_description: "Publier le sitemap, le robots.txt et le flux RSS du site public."
+    comments: Commentaires
+    comments_description: "Modérer les commentaires laissés par les lecteurs."
   post_types:
     title: Types de contenu
     empty: Aucun type de contenu.
@@ -268,6 +282,26 @@ backend:
       term_self_nested: Un terme ne peut pas être placé sous lui-même ni sous l'un de ses enfants.
       parent_wrong_taxonomy: "Le terme {parentId} n'appartient pas à la taxonomie « {taxonomy} »."
       reorder_cycle: 'Ce déplacement placerait le terme {id} dans sa propre descendance.'
+  comments:
+    title: Commentaires
+    empty: Aucun commentaire.
+    search_placeholder: "Chercher un auteur, une adresse, un texte…"
+    all: Tous
+    author: Auteur
+    on_post: Sur
+    in_reply_to: 'En réponse à {name}'
+    approve: Approuver
+    approved: Commentaire approuvé.
+    spam: Indésirable
+    marked_spam: Commentaire marqué comme indésirable.
+    delete_confirm: "Supprimer ce commentaire de {name} ? Ses réponses remontent d'un niveau."
+    deleted: Commentaire supprimé.
+    replies: '{count} réponses'
+    reactions: '{count} réactions'
+    status:
+      pending: En attente
+      approved: Approuvé
+      spam: Indésirable
   menus:
     title: Menus
     empty: Aucun menu.
@@ -340,5 +374,46 @@ backend:
       reorder_cycle: 'Ce déplacement placerait l''entrée {id} dans sa propre descendance.'
 frontend:
   editorial:
+    comments:
+      title: Commentaires
+      empty: Aucun commentaire pour le moment. Lancez la discussion.
+      closed: Les commentaires sont fermés sur cette publication.
+      submit: Publier
+      reply: Répondre
+      cancel_reply: Annuler
+      replying_to: 'En réponse à {name}'
+      name: Votre nom
+      email: Votre e-mail
+      email_hint: "Jamais affiché publiquement."
+      content: Votre commentaire
+      sent: Merci, votre commentaire est en ligne.
+      pending: "Merci, votre commentaire sera visible après relecture."
+      reactions:
+        like: J'aime
+        love: J'adore
+        haha: Haha
+        wow: Waouh
+        sad: Triste
+        angry: En colère
+      errors:
+        name_required: Un nom est requis.
+        name_too_long: Ce nom est trop long.
+        email_invalid: Cette adresse e-mail est invalide.
+        content_required: Un commentaire ne peut pas être vide.
+        content_too_long: "Ce commentaire dépasse 2000 caractères."
+        closed: Les commentaires sont fermés sur cette publication.
+        too_many: "Trop de commentaires envoyés récemment. Réessayez dans un moment."
     no_posts: Rien de publié pour le moment.
     pagination: Pages
+editorial:
+  mail:
+    comment:
+      subject_pending: Nouveau commentaire à relire
+      subject_approved: Nouveau commentaire sur votre publication
+      pending_heading: Un commentaire attend votre relecture
+      pending_intro: "{name} vient de laisser un commentaire. Il ne sera visible qu'une fois approuvé."
+      approved_heading: Nouveau commentaire
+      approved_intro: "Bonjour {author}, un commentaire vient d'être publié sur l'une de vos publications."
+      author: Auteur
+      from: De
+      cta_moderate: Ouvrir la modération

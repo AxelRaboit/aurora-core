@@ -7,6 +7,7 @@ namespace Aurora\Module\Editorial\Post\Service;
 use Aurora\Core\Frontend\Service\Context;
 use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Configuration\Theme\Service\ThemeResolver;
+use Aurora\Module\Editorial\Comment\Manager\CommentManagerInterface;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Seo\Service\AlternatesBuilder;
@@ -34,6 +35,7 @@ final readonly class PostPageRenderer
         private BlocksRenderer $blocksRenderer,
         private AlternatesBuilder $alternatesBuilder,
         private DocumentUrlGenerator $documentUrlGenerator,
+        private CommentManagerInterface $commentManager,
     ) {}
 
     public function render(PostInterface $post, string $locale): Response
@@ -60,6 +62,10 @@ final readonly class PostPageRenderer
             'content' => $this->blocksRenderer->render($translation->getBlocks(), $locale),
             'terms' => $this->postTerms($post, $locale),
             'alternates' => $this->alternatesBuilder->forPost($post),
+            // The thread itself is fetched by the browser rather than
+            // rendered here: comments are the one part of the page that
+            // changes between two readers of the same cached HTML.
+            'commentsEnabled' => $this->commentManager->areCommentsEnabled($post),
         ]);
 
         $response = new Response($body);

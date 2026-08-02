@@ -9,6 +9,7 @@ use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
+use Aurora\Core\Routing\RouteRequirement;
 use Aurora\Core\Support\Arr;
 use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Core\Validation\Service\PayloadValidator;
@@ -39,12 +40,8 @@ class PostsController extends AbstractController
     use JsonRequestTrait;
     use JsonResponseTrait;
 
-    /**
-     * The Vue side builds its URLs from templates, asking the generator for
-     * a path with `__id__` where the id goes. A bare `\d+` rejects that at
-     * render time, so the placeholder is allowed alongside real ids.
-     */
-    private const string ID = '\\d+|__id__';
+    /** @see RouteRequirement::ID for why a bare `\d+` breaks the screen. */
+    private const string ID = RouteRequirement::ID;
 
     public function __construct(
         private readonly PostManagerInterface $postManager,

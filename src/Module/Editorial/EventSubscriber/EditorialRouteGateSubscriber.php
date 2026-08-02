@@ -30,7 +30,7 @@ final readonly class EditorialRouteGateSubscriber extends AbstractModuleRouteGat
 
     protected function routeNamespaces(): array
     {
-        return ['backend_editorial_', 'editorial_sitemap', 'editorial_robots', 'editorial_rss'];
+        return ['backend_editorial_', 'editorial_sitemap', 'editorial_robots', 'editorial_rss', 'editorial_post_comment', 'editorial_comment_'];
     }
 
     protected function gates(): array
@@ -41,6 +41,12 @@ final readonly class EditorialRouteGateSubscriber extends AbstractModuleRouteGat
             'backend_editorial_post_types' => $this->editorialContext->isPostTypesEnabled(),
             'backend_editorial_taxonomies' => $this->editorialContext->isTaxonomiesEnabled(),
             'backend_editorial_menus' => $this->editorialContext->isMenusEnabled(),
+            'backend_editorial_comments' => $this->editorialContext->isCommentsEnabled(),
+            // The public endpoints go with the screen that moderates them:
+            // accepting comments nobody can approve is worse than not
+            // accepting them.
+            'editorial_post_comment' => $this->editorialContext->isCommentsEnabled(),
+            'editorial_comment_' => $this->editorialContext->isCommentsEnabled(),
             // The crawler-facing files. They are public routes, so the front
             // toggle already covers them through Core's gate; this is the one
             // that lets an administrator keep the site public and stop

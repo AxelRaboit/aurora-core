@@ -48,4 +48,9 @@ final readonly class EditorialContext
     {
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialSeo);
     }
+
+    public function isCommentsEnabled(): bool
+    {
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialComments);
+    }
 }
