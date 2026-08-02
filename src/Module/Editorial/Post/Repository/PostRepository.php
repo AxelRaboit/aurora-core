@@ -93,6 +93,81 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * A public listing for one post type. Only published, never trashed, and
+     * only rows that have something to show in this locale — a post with no
+     * translation here would render as a card with no title.
+     *
+     * @return array{items: list<PostInterface>, total: int, page: int, totalPages: int}
+     */
+    public function findPublishedByPostType(int $postTypeId, int $page, int $limit, string $locale, ?string $search = null): array
+    {
+        $items = $this->publishedQueryBuilder($locale)
+            ->addSelect('t')
+            ->andWhere('p.postType = :postType')
+            ->setParameter('postType', $postTypeId)
+            ->orderBy('p.publishedAt', Order::Descending->value)
+            ->addOrderBy('p.id', Order::Descending->value);
+
+        $count = $this->publishedQueryBuilder($locale)
+            ->select('COUNT(p.id)')
+            ->andWhere('p.postType = :postType')
+            ->setParameter('postType', $postTypeId);
+
+        if (null !== $search && '' !== mb_trim($search)) {
+            $matched = array_values(array_unique([
+                ...$this->fullTextPostIds($search),
+                ...$this->titleSlugMatchIds($search),
+            ]));
+
+            if ([] === $matched) {
+                return ['items' => [], 'total' => 0, 'page' => 1, 'totalPages' => 1];
+            }
+
+            foreach ([$items, $count] as $queryBuilder) {
+                $queryBuilder->andWhere('p.id IN (:ids)')->setParameter('ids', $matched);
+            }
+        }
+
+        return $this->paginate($items, $count, $page, $limit);
+    }
+
+    /**
+     * @return array{items: list<PostInterface>, total: int, page: int, totalPages: int}
+     */
+    public function findPublishedByTerm(int $termId, int $page, int $limit, string $locale): array
+    {
+        $items = $this->publishedQueryBuilder($locale)
+            ->addSelect('t')
+            ->innerJoin('p.terms', 'term')
+            ->andWhere('term.id = :termId')
+            ->setParameter('termId', $termId)
+            ->orderBy('p.publishedAt', Order::Descending->value)
+            ->addOrderBy('p.id', Order::Descending->value);
+
+        $count = $this->publishedQueryBuilder($locale)
+            ->select('COUNT(p.id)')
+            ->innerJoin('p.terms', 'term')
+            ->andWhere('term.id = :termId')
+            ->setParameter('termId', $termId);
+
+        return $this->paginate($items, $count, $page, $limit);
+    }
+
+    /**
+     * The shape every public listing starts from. An INNER JOIN on the
+     * translation is what drops posts untranslated in this locale.
+     */
+    private function publishedQueryBuilder(string $locale): QueryBuilder
+    {
+        return $this->createQueryBuilder('p')
+            ->innerJoin('p.translations', 't', 'WITH', 't.locale = :locale')
+            ->andWhere('p.status = :published')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('locale', $locale)
+            ->setParameter('published', PostStatusEnum::Published);
+    }
+
+    /**
      * Post ids matching the full-text index, best first. Raw SQL because
      * ts_rank has no DQL equivalent; the column it reads is maintained by
      * PostTextExtractor on every save.

@@ -1,0 +1,48 @@
+{% extends 'Frontend/themes/default/layout.html.twig' %}
+
+{% block seo_define %}
+    {% do seo({
+        title: translationData.metaTitle ?: translationData.title,
+        description: translationData.metaDescription ?: translationData.description,
+        image: translationData.ogImage.publicUrl|default(null),
+        canonical: translationData.canonicalUrl ?: (translationData.slug
+            ? path('editorial_post', {locale: locale, postTypeSlug: postData.postType.slug, slug: translationData.slug})
+            : ''),
+        type: 'article',
+        noindex: translationData.noindex,
+        jsonLd: translationData.jsonLd,
+    }) %}
+{% endblock %}
+
+{% block body %}
+<article class="prose max-w-none">
+    <h1>{{ translationData.title }}</h1>
+
+    {% if translationData.description %}
+        <p class="lead text-secondary">{{ translationData.description }}</p>
+    {% endif %}
+
+    {% if featuredMediaData %}
+        <img
+            src="{{ featuredMediaData.url }}"
+            alt="{{ featuredMediaData.alt ?? '' }}"
+            class="w-full rounded-xl"
+            style="object-position: {{ featuredMediaData.focalPosition }};"
+        >
+    {% endif %}
+
+    {# Already HTML: BlocksRenderer escaped and sanitised every value on the
+       way out, so escaping again here would print the markup. #}
+    {{ content|raw }}
+
+    {% if terms is not empty %}
+        <footer class="flex flex-wrap gap-1.5 not-prose border-t border-line pt-4 mt-8">
+            {% for taxonomySlug, names in terms %}
+                {% for name in names %}
+                    <span class="px-2 py-0.5 text-xs rounded-md bg-surface-2 text-secondary">{{ name }}</span>
+                {% endfor %}
+            {% endfor %}
+        </footer>
+    {% endif %}
+</article>
+{% endblock %}

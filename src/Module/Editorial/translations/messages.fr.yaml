@@ -53,6 +53,8 @@ backend:
     editorial: Éditorial
     editorial_backend: Éditorial
     editorial_backend_description: "Active la section Éditorial dans l'administration."
+    editorial_frontend: Site public éditorial
+    editorial_frontend_description: "Sert les publications, archives et pages de taxonomie aux lecteurs."
   nav:
     sections:
       editorial: Éditorial
@@ -242,3 +244,7 @@ backend:
       term_self_nested: Un terme ne peut pas être placé sous lui-même ni sous l'un de ses enfants.
       parent_wrong_taxonomy: "Le terme {parentId} n'appartient pas à la taxonomie « {taxonomy} »."
       reorder_cycle: 'Ce déplacement placerait le terme {id} dans sa propre descendance.'
+frontend:
+  editorial:
+    no_posts: Rien de publié pour le moment.
+    pagination: Pages

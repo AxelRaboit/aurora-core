@@ -40,6 +40,7 @@ final readonly class AlternatesBuilder
             if (null === $slug) {
                 continue;
             }
+
             if ('' === $slug) {
                 continue;
             }
@@ -66,6 +67,7 @@ final readonly class AlternatesBuilder
             if (!$translation instanceof TaxonomyTermTranslationInterface) {
                 continue;
             }
+
             if ('' === $translation->getSlug()) {
                 continue;
             }

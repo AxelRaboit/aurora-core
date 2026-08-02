@@ -53,6 +53,8 @@ backend:
     editorial: Editorial
     editorial_backend: Editorial
     editorial_backend_description: 'Enables the Editorial section in the admin.'
+    editorial_frontend: Editorial public site
+    editorial_frontend_description: 'Serves the posts, archives and taxonomy pages to readers.'
   nav:
     sections:
       editorial: Editorial
@@ -242,3 +244,7 @@ backend:
       term_self_nested: A term cannot be placed inside itself or one of its own children.
       parent_wrong_taxonomy: 'Term {parentId} does not belong to the "{taxonomy}" taxonomy.'
       reorder_cycle: 'That move would put term {id} inside its own subtree.'
+frontend:
+  editorial:
+    no_posts: Nothing published yet.
+    pagination: Pages

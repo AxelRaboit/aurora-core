@@ -1,0 +1,53 @@
+{# Shared listing markup. Rendered server-side rather than mounted as a Vue
+   app: a public listing has nothing interactive about it, and HTML that is
+   already there is what a search engine — and a reader whose JavaScript did
+   not load — actually gets. #}
+{% if posts is empty %}
+    <p class="text-secondary">{{ 'frontend.editorial.no_posts'|trans }}</p>
+{% else %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for post in posts %}
+            <article class="bg-surface border border-line rounded-xl overflow-hidden flex flex-col">
+                {% if post.featuredMediaUrl %}
+                    <img
+                        src="{{ post.featuredMediaUrl }}"
+                        alt=""
+                        loading="lazy"
+                        class="w-full h-48 object-cover"
+                        style="object-position: {{ post.featuredMediaFocalPosition }};"
+                    >
+                {% endif %}
+                <div class="p-5 flex-1 flex flex-col gap-2">
+                    <h2 class="text-lg font-semibold text-primary">
+                        <a href="{{ path('editorial_post', {locale: locale, postTypeSlug: post.postTypeSlug, slug: post.slug}) }}">
+                            {{ post.title }}
+                        </a>
+                    </h2>
+                    {% if post.description %}
+                        <p class="text-sm text-secondary">{{ post.description }}</p>
+                    {% endif %}
+                    {% if post.terms is not empty %}
+                        <div class="flex flex-wrap gap-1.5 mt-auto pt-2">
+                            {% for taxonomySlug, names in post.terms %}
+                                {% for name in names %}
+                                    <span class="px-2 py-0.5 text-xs rounded-md bg-surface-2 text-secondary">{{ name }}</span>
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+
+    {% if totalPages > 1 %}
+        <nav class="flex items-center justify-center gap-2 mt-8" aria-label="{{ 'frontend.editorial.pagination'|trans }}">
+            {% for p in 1..totalPages %}
+                <a
+                    href="?page={{ p }}"
+                    class="px-3 py-1.5 rounded-lg text-sm {{ p == page ? 'bg-surface border border-line text-primary font-semibold' : 'text-secondary hover:text-primary' }}"
+                >{{ p }}</a>
+            {% endfor %}
+        </nav>
+    {% endif %}
+{% endif %}

@@ -34,6 +34,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     case MediaLibrary = 'modules_media_library';
 
     // Sub-modules — Editorial
+    case EditorialFrontend = 'modules_editorial_frontend';
     case EditorialPosts = 'modules_editorial_posts';
     case EditorialPostTypes = 'modules_editorial_post_types';
     case EditorialTaxonomies = 'modules_editorial_taxonomies';
@@ -63,6 +64,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::MediaBackend => 'backend.modules.media_backend',
             self::MediaLibrary => 'backend.nav.media',
             self::EditorialBackend => 'backend.modules.editorial_backend',
+            self::EditorialFrontend => 'backend.modules.editorial_frontend',
             self::EditorialPosts => 'backend.nav.posts',
             self::EditorialPostTypes => 'backend.nav.post_types',
             self::EditorialTaxonomies => 'backend.nav.taxonomies',
@@ -89,6 +91,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::MediaBackend => 'backend.modules.media_backend_description',
             self::MediaLibrary => 'backend.nav.media_description',
             self::EditorialBackend => 'backend.modules.editorial_backend_description',
+            self::EditorialFrontend => 'backend.modules.editorial_frontend_description',
             self::EditorialPosts => 'backend.nav.posts_description',
             self::EditorialPostTypes => 'backend.nav.post_types_description',
             self::EditorialTaxonomies => 'backend.nav.taxonomies_description',
@@ -127,7 +130,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::PlatformUsers => self::PlatformBackend,
             self::ConfigurationSettings, self::ConfigurationThemes => self::ConfigurationBackend,
             self::MediaLibrary => self::MediaBackend,
-            self::EditorialPosts, self::EditorialPostTypes, self::EditorialTaxonomies => self::EditorialBackend,
+            self::EditorialFrontend, self::EditorialPosts, self::EditorialPostTypes, self::EditorialTaxonomies => self::EditorialBackend,
             self::GedDocuments, self::GedCategories, self::GedTags, self::GedFolders, self::GedFrontend => self::GedBackend,
             default => null,
         };
@@ -153,6 +156,8 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             // Editorial sub-modules
             // A post needs a type to be, so posts follow post types.
             self::EditorialPosts => self::EditorialPostTypes->value,
+            // Nothing to publish without posts.
+            self::EditorialFrontend => self::EditorialPosts->value,
             self::EditorialPostTypes => self::EditorialBackend->value,
             // Terms only make sense once a post type can carry them.
             self::EditorialTaxonomies => self::EditorialPostTypes->value,
