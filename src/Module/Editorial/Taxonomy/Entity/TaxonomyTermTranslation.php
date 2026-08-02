@@ -9,6 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TaxonomyTermTranslationRepository::class)]
 #[ORM\Table(name: 'core_taxonomy_term_translations')]
+#[ORM\UniqueConstraint(name: 'uniq_taxonomy_term_translation_locale', columns: ['term_id', 'locale'])]
+// Term slugs are a public URL segment, so they have to be unique per locale
+// across every taxonomy — `/fr/theme/boulange` names exactly one term.
+#[ORM\UniqueConstraint(name: 'uniq_term_locale_slug', columns: ['locale', 'slug'])]
 class TaxonomyTermTranslation extends AbstractTaxonomyTermTranslation
 {
     #[ORM\Id]

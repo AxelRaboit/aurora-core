@@ -45,6 +45,13 @@ backend:
             created: Terme créé
             updated: Terme modifié
             deleted: Terme supprimé
+        menu:
+          updated: Menu modifié
+          item:
+            created: Entrée de menu créée
+            updated: Entrée de menu modifiée
+            deleted: Entrée de menu supprimée
+            reordered: Menu réorganisé
   parameters:
     editorial_post_prefix:
       label: Préfixe de référence des publications
@@ -316,6 +323,7 @@ backend:
       authenticated_only: Visiteurs connectés
       hidden: Masquée
     errors:
+      name_required: Un nom est requis.
       target_type_required: Une cible est requise.
       target_type_invalid: Type de cible inconnu.
       target_required: Cette cible demande un élément à pointer.

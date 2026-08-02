@@ -9,6 +9,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PostRevisionRepository::class)]
 #[ORM\Table(name: 'core_post_revisions')]
+// The only way revisions are ever read: a post's, newest first.
+#[ORM\Index(name: 'idx_post_revision_post_created', columns: ['post_id', 'created_at'])]
 class PostRevision extends AbstractPostRevision
 {
     #[ORM\Id]

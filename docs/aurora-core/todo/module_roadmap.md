@@ -148,17 +148,55 @@ neutralisé et la substitution promise au client ne fonctionne pas.
 | Docblock du filtre par termes annonçant ET, code faisant OU | Documentation fausse |
 | `BlocksRenderer::renderCallout()` lisant `text` et émettant `.callout-info` | Encart vide et non coloré, mais **seulement une fois publié** |
 
+**Trois défauts nés dans le code reconstruit lui-même**, tous trouvés en
+manipulant l'écran ou en comparant le schéma, aucun signalé par les outils :
+
+| Défaut | Ce que ça donnait |
+|---|---|
+| `Assert\IsTrue` sur un getter (`hasTargetWhenRequired`) | La violation est nommée d'après la méthode : message posé sur un champ que le formulaire n'a pas → formulaire qui refuse d'enregistrer **sans afficher d'erreur nulle part**. Corrigé par un `Assert\Callback` + `atPath()`. |
+| `cascade: ['remove']` + `onDelete: 'CASCADE'` sur les sous-entrées de menu | Le Manager remonte les enfants d'un cran, Doctrine puis Postgres suppriment la branche derrière lui — supprimer un intitulé emportait ses six liens. `AbstractTaxonomyTerm` avait la bonne forme (`SET NULL`, pas de cascade) ; c'est elle qu'il fallait suivre. |
+| **Sept index et contraintes d'unicité jamais redéclarés** | Perdus en réécrivant les entités : `(post_id, locale)`, `(taxonomy_id, locale)`, `(term_id, locale)`, `(menu_item_id, locale)`, `(locale, slug)` sur les termes **et** sur l'historique de slugs, plus deux index de lecture. `indexBy: 'locale'` ne protège que la collection en mémoire ; rien n'empêchait deux lignes pour la même langue, et une vieille URL pouvait retomber sur un post arbitraire. |
+
+Les deux premiers sont verrouillés par `MenuItemInputTest` et
+`MenuItemCascadeTest`, vérifiés en réintroduisant chaque défaut (4 tests
+rouges, puis verts). Le troisième l'est par le schéma lui-même : après
+correction, `doctrine:schema:update --dump-sql` sur la base **construite par
+les migrations** ne signale plus aucun écart sur Editorial.
+
+**La méthode qui a trouvé le troisième**, à refaire pour chaque domaine
+restant : comparer les entités à une base montée par `doctrine:migrations:migrate`
+(la base de test l'est), pas à la base de dev — celle-ci a été façonnée par
+`schema:update` au fil de la reconstruction, donc elle est d'accord avec le
+code par construction et ne peut rien révéler.
+
 **Trois choses que j'ai cru être des défauts et qui n'en étaient pas** —
 vérifiées avant de « corriger » : le titre absent de `search_content` (le
 repository le cherche par son propre LIKE), la contrainte de route
 `\d+|__id__` (les gabarits d'URL passent le placeholder au générateur), et
 les dépendances `@editorjs/*` (importées par un composant générique de Core).
 
+**Trois simplifications que la reconstruction a rendues possibles**, à ne pas
+confondre avec des défauts — ce sont des choix qui n'avaient plus de raison
+d'être une fois Editorial dans Core :
+
+- `aurora:menus:sync` disparaît. Core avait déjà `aurora:install`, idempotent
+  et lancé partout ; les menus y sont un fournisseur de plus. Le garde
+  à-la-carte du `Makefile` client (« lancer la commande seulement si elle
+  existe ») n'a plus rien à garder.
+- `TaxonomyReorderParser` devient `Core\Support\TreeReorderParser`. La charge
+  drag-and-drop a la même forme partout ; une copie par écran, c'est un
+  endroit par écran où elle peut diverger.
+- Pas de réglages `ShowPrimaryMenu` / `ShowFooterMenu` / `ShowAccountMenu`.
+  Un emplacement s'affiche s'il contient quelque chose de visible ; le
+  réglage faisait doublon avec « vider le menu », et ajoutait une deuxième
+  raison pour laquelle une navigation peut ne pas apparaître.
+
 **Ce que les outils ne voient pas.** Les défauts les plus coûteux — page en
-500, liste non restreinte à son auteur, gabarit d'URL cassé — n'ont été
-trouvés qu'en manipulant l'application avec une vraie base. Ni PHPStan, ni
-les 739 tests, ni la relecture ne les signalaient. Vérifier chaque domaine
-contre le serveur qui tourne n'est pas du confort.
+500, liste non restreinte à son auteur, gabarit d'URL cassé, branche de menu
+supprimée avec son parent — n'ont été trouvés qu'en manipulant l'application
+avec une vraie base. Ni PHPStan, ni les tests, ni la relecture ne les
+signalaient. Vérifier chaque domaine contre le serveur qui tourne n'est pas
+du confort.
 
 | Module | Statut |
 |---|---|

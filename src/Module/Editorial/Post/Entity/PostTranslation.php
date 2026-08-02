@@ -9,6 +9,11 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PostTranslationRepository::class)]
 #[ORM\Table(name: 'core_post_translations')]
+// `indexBy: 'locale'` keys the in-memory collection; only the database can
+// stop a second row for the same locale from ever existing. Without it
+// getTranslation() would hand back whichever of the two Doctrine hydrated
+// first.
+#[ORM\UniqueConstraint(name: 'uniq_post_translation_locale', columns: ['post_id', 'locale'])]
 class PostTranslation extends AbstractPostTranslation
 {
     #[ORM\Id]

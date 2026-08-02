@@ -43,6 +43,8 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             new NavPermission('editorial.taxonomies.create'),
             new NavPermission('editorial.taxonomies.edit'),
             new NavPermission('editorial.taxonomies.delete'),
+            new NavPermission('editorial.menus.view'),
+            new NavPermission('editorial.menus.edit'),
         ];
     }
 
@@ -66,6 +68,10 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             $items[] = $this->taxonomiesNavItem();
         }
 
+        if ($this->editorialContext->isMenusEnabled()) {
+            $items[] = $this->menusNavItem();
+        }
+
         if ([] === $items) {
             return [];
         }
@@ -80,6 +86,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
                 $this->postsNavItem(),
                 $this->postTypesNavItem(),
                 $this->taxonomiesNavItem(),
+                $this->menusNavItem(),
             ], priority: 30),
         ];
     }
@@ -114,6 +121,17 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             'tags',
             requiredPrivilege: 'editorial.taxonomies.view',
             descriptionKey: 'backend.nav.taxonomies_description',
+        );
+    }
+
+    private function menusNavItem(): NavItem
+    {
+        return new NavItem(
+            'backend_editorial_menus',
+            'backend.nav.menus',
+            'menu',
+            requiredPrivilege: 'editorial.menus.view',
+            descriptionKey: 'backend.nav.menus_description',
         );
     }
 

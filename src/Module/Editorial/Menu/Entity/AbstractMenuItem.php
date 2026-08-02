@@ -49,12 +49,22 @@ abstract class AbstractMenuItem implements MenuItemInterface
     #[ORM\Column]
     protected int $position = 0;
 
+    /**
+     * `SET NULL`, not `CASCADE`, and no cascade-remove on the collection.
+     * Deleting an entry means dropping that entry: an editor removing a
+     * heading wants the label gone, not the six links under it. The Manager
+     * promotes the children first, and the database agrees rather than
+     * quietly taking the branch anyway.
+     *
+     * Deleting the whole menu still takes everything, through the menu
+     * foreign key below.
+     */
     #[ORM\ManyToOne(targetEntity: MenuItemInterface::class, inversedBy: 'children')]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?MenuItemInterface $parent = null;
 
     /** @var Collection<int, MenuItemInterface> */
-    #[ORM\OneToMany(targetEntity: MenuItemInterface::class, mappedBy: 'parent', cascade: ['remove'])]
+    #[ORM\OneToMany(targetEntity: MenuItemInterface::class, mappedBy: 'parent')]
     #[ORM\OrderBy(['position' => Order::Ascending->value])]
     protected Collection $children;
 

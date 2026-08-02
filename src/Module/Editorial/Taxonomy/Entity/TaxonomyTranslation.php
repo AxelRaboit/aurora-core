@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TaxonomyTranslationRepository::class)]
 #[ORM\Table(name: 'core_taxonomy_translations')]
+#[ORM\UniqueConstraint(name: 'uniq_taxonomy_translation_locale', columns: ['taxonomy_id', 'locale'])]
 class TaxonomyTranslation extends AbstractTaxonomyTranslation
 {
     #[ORM\Id]

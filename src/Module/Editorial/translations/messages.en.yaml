@@ -45,6 +45,13 @@ backend:
             created: Term created
             updated: Term updated
             deleted: Term deleted
+        menu:
+          updated: Menu updated
+          item:
+            created: Menu item created
+            updated: Menu item updated
+            deleted: Menu item deleted
+            reordered: Menu reordered
   parameters:
     editorial_post_prefix:
       label: Post reference prefix
@@ -316,6 +323,7 @@ backend:
       authenticated_only: Signed-in visitors
       hidden: Hidden
     errors:
+      name_required: A name is required.
       target_type_required: A target is required.
       target_type_invalid: Unknown target type.
       target_required: That target needs an item to point at.

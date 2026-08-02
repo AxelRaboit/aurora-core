@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Tests\Unit\Module\Editorial\Service;
+namespace Aurora\Tests\Unit\Support;
 
-use Aurora\Module\Editorial\Taxonomy\Service\TaxonomyReorderParser;
+use Aurora\Core\Support\TreeReorderParser;
 use PHPUnit\Framework\TestCase;
 
-final class TaxonomyReorderParserTest extends TestCase
+final class TreeReorderParserTest extends TestCase
 {
     public function testNormalisesAWellFormedPayload(): void
     {
@@ -16,7 +16,7 @@ final class TaxonomyReorderParserTest extends TestCase
                 ['id' => 3, 'parentId' => null, 'position' => 0],
                 ['id' => 4, 'parentId' => 3, 'position' => 1],
             ],
-            TaxonomyReorderParser::parse([
+            TreeReorderParser::parse([
                 ['id' => '3', 'parentId' => 0, 'position' => '0'],
                 ['id' => 4, 'parentId' => '3', 'position' => 1],
             ]),
@@ -28,7 +28,7 @@ final class TaxonomyReorderParserTest extends TestCase
     {
         self::assertSame(
             [['id' => 5, 'parentId' => null, 'position' => 0]],
-            TaxonomyReorderParser::parse([
+            TreeReorderParser::parse([
                 'rubbish',
                 ['parentId' => 1],
                 ['id' => 0, 'position' => 3],
@@ -39,8 +39,8 @@ final class TaxonomyReorderParserTest extends TestCase
 
     public function testTreatsAnythingButAListAsEmpty(): void
     {
-        self::assertSame([], TaxonomyReorderParser::parse(null));
-        self::assertSame([], TaxonomyReorderParser::parse('nope'));
-        self::assertSame([], TaxonomyReorderParser::parse([]));
+        self::assertSame([], TreeReorderParser::parse(null));
+        self::assertSame([], TreeReorderParser::parse('nope'));
+        self::assertSame([], TreeReorderParser::parse([]));
     }
 }

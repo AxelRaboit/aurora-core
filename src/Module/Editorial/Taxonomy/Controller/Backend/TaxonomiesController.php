@@ -8,6 +8,7 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Support\TreeReorderParser;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Editorial\Taxonomy\Dto\TaxonomyInputFactoryInterface;
 use Aurora\Module\Editorial\Taxonomy\Dto\TaxonomyTermInputFactoryInterface;
@@ -15,7 +16,6 @@ use Aurora\Module\Editorial\Taxonomy\Entity\Taxonomy;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
 use Aurora\Module\Editorial\Taxonomy\Manager\TaxonomyManagerInterface;
 use Aurora\Module\Editorial\Taxonomy\Serializer\TaxonomySerializerInterface;
-use Aurora\Module\Editorial\Taxonomy\Service\TaxonomyReorderParser;
 use Aurora\Module\Editorial\Taxonomy\View\TaxonomiesViewBuilder;
 use InvalidArgumentException;
 use RuntimeException;
@@ -160,7 +160,7 @@ class TaxonomiesController extends AbstractController
     #[IsGranted('editorial.taxonomies.edit')]
     public function reorderTerms(Taxonomy $taxonomy, Request $request): JsonResponse
     {
-        $entries = TaxonomyReorderParser::parse($this->decodeJson($request)['entries'] ?? null);
+        $entries = TreeReorderParser::parse($this->decodeJson($request)['entries'] ?? null);
 
         try {
             $this->taxonomyManager->reorderTerms($taxonomy, $entries);
