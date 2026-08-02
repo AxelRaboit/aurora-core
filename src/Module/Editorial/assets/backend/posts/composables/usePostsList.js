@@ -22,15 +22,30 @@ export function usePostsList(props) {
 
     const search = ref(props.search ?? "");
     const trashed = ref(Boolean(props.trashed));
+
+    /**
+     * Which list is on screen right now — not which one has been asked for.
+     *
+     * The two differ for the length of a request, and the trash controls used
+     * to read the intent while the rows were still the previous list's. Ticking
+     * "show the trash" therefore flashed an "Empty the trash" button, built
+     * from a count of posts that were not in the trash, and took it away again
+     * when the answer arrived.
+     */
+    const showingTrash = ref(Boolean(props.trashed));
     const postTypeIds = ref([...(props.postTypeIds ?? [])]);
     const termIds = ref([...(props.termIds ?? [])]);
     const statuses = ref([...(props.statuses ?? [])]);
 
+    // The trash counts: it is the filter that changes the list most, and
+    // leaving it on after "Clear" left the screen looking empty for no
+    // visible reason.
     const activeFilterCount = computed(
         () =>
             postTypeIds.value.length +
             termIds.value.length +
-            statuses.value.length,
+            statuses.value.length +
+            (trashed.value ? 1 : 0),
     );
 
     function queryString() {
@@ -62,6 +77,7 @@ export function usePostsList(props) {
             if (!data?.success) return;
 
             items.value = data.items;
+            showingTrash.value = trashed.value;
             total.value = data.total;
             page.value = data.page;
             totalPages.value = data.totalPages;
@@ -103,6 +119,7 @@ export function usePostsList(props) {
         postTypeIds.value = [];
         termIds.value = [];
         statuses.value = [];
+        trashed.value = false;
     }
 
     const {
@@ -193,6 +210,7 @@ export function usePostsList(props) {
         confirmEmptyTrash,
         emptyingTrash,
         emptyTrash,
+        showingTrash,
         restore,
         editPath,
     };

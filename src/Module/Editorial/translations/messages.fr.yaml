@@ -234,7 +234,9 @@ backend:
     conflict_overwrite: Enregistrer la mienne
     filters: Filtres
     clear_filters: Effacer
-    trashed: Afficher la corbeille
+    trashed: Voir la corbeille
+    leave_trash: Quitter la corbeille
+    trash_empty: La corbeille est vide.
     filter_type: Type de contenu
     filter_status: Statut
     filter_term: Terme

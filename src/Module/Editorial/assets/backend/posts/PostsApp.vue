@@ -45,7 +45,7 @@ const {
     search, trashed, postTypeIds, termIds, statuses,
     activeFilterCount, goToPage, toggleIn, clearFilters,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
-    pendingForceDelete, forceDelete, confirmEmptyTrash, emptyingTrash, emptyTrash, restore,
+    pendingForceDelete, forceDelete, confirmEmptyTrash, emptyingTrash, emptyTrash, showingTrash, restore,
     editPath,
 } = usePostsList(props);
 
@@ -92,15 +92,33 @@ const allTerms = computed(() =>
                     <Filter class="w-4 h-4" :stroke-width="2" /> {{ t("backend.posts.filters") }}
                 </span>
                 <div class="flex items-center gap-2">
-                    <AppCheckbox v-model="trashed" :label="t('backend.posts.trashed')" />
+                    <!-- A pressed button, not a checkbox among the filters:
+                         this swaps the list for another one rather than
+                         narrowing it, and `aria-pressed` says so to a screen
+                         reader. -->
                     <AppButton
-                        v-if="trashed && can('editorial.posts.delete') && items.length"
+                        :variant="trashed ? 'danger' : 'ghost'"
+                        size="sm"
+                        :aria-pressed="trashed"
+                        v-on:click="trashed = !trashed"
+                    >
+                        <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ trashed ? t("backend.posts.leave_trash") : t("backend.posts.trashed") }}
+                    </AppButton>
+
+                    <!-- Keyed on the list that is on screen, not on the one
+                         being fetched: reading `trashed` here made this flash
+                         into view against the previous list's rows and vanish
+                         a moment later. -->
+                    <AppButton
+                        v-if="showingTrash && can('editorial.posts.delete') && items.length"
                         variant="danger"
                         size="sm"
                         v-on:click="confirmEmptyTrash = true"
                     >
                         <Flame class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.empty_trash") }}
                     </AppButton>
+
                     <AppButton v-if="activeFilterCount" variant="ghost" size="sm" v-on:click="clearFilters">
                         <X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.clear_filters") }}
                     </AppButton>
@@ -204,7 +222,11 @@ const allTerms = computed(() =>
                         </td>
                     </tr>
                     <tr v-if="!items.length && !loading">
-                        <td :colspan="5"><AppNoData :message="t('backend.posts.empty')" /></td>
+                        <!-- "No post" and "the trash is empty" are different
+                             facts, and the second is the reassuring one. -->
+                        <td :colspan="5">
+                            <AppNoData :message="t(showingTrash ? 'backend.posts.trash_empty' : 'backend.posts.empty')" />
+                        </td>
                     </tr>
                 </tbody>
             </table>
