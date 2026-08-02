@@ -296,7 +296,6 @@ sub-module benefits from :
 ```bash
 # Sync DB-tracked permissions + nav from PHP into the DB
 make sf CMD="aurora:privileges:sync"
-make sf CMD="aurora:menus:sync"
 
 # Re-generate frontend translation bundle
 make translation

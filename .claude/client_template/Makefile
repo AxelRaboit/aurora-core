@@ -4,10 +4,6 @@ SHELL := /bin/bash
 AURORA        = vendor/axelraboit/aurora
 PHP_BIN       = php
 CONSOLE       = $(PHP_BIN) bin/console
-# aurora:menus:sync ships with the Editorial module; in an à-la-carte client
-# without Editorial the command is absent. Run it only when present so a
-# core-only setup doesn't break the bring-up / deploy sequences.
-SYNC_MENUS    = $(CONSOLE) list --raw 2>/dev/null | grep -q '^aurora:menus:sync' && $(CONSOLE) aurora:menus:sync || echo "  menus:sync skipped (Editorial module not installed)"
 COMPOSER      = composer
 PNPM          = pnpm
 PHP_CS_FIXER  = $(PHP_BIN) $(AURORA)/tools/php-cs-fixer/vendor/bin/php-cs-fixer
@@ -217,7 +213,6 @@ fixtures: _require-dev-env ## Drop DB, schema:create from entities, load fixture
 	$(CONSOLE) aurora:install
 	$(CONSOLE) doctrine:fixtures:load --no-interaction --append
 	$(CONSOLE) aurora:application-parameter
-	@$(SYNC_MENUS)
 	$(CONSOLE) aurora:privileges:sync
 	@echo "✅ Fixtures loaded"
 
@@ -229,7 +224,6 @@ demo: _require-dev-env ## Load demo fixtures (DemoFixtures group) + run all sync
 	$(CONSOLE) aurora:install
 	$(CONSOLE) doctrine:fixtures:load --group=demo --no-interaction --append
 	$(CONSOLE) aurora:application-parameter
-	@$(SYNC_MENUS)
 	$(CONSOLE) aurora:privileges:sync
 	@echo "✅ Demo data loaded"
 
@@ -286,15 +280,15 @@ migration-diff: ## Generate a migration from entity changes
 sync-params: ## Synchronise application parameters (creates missing, deletes obsolete)
 	$(CONSOLE) aurora:application-parameter
 
-sync-menus: ## Create missing menus for registered locations (primary, footer, …)
-	@$(SYNC_MENUS)
+install-data: ## Create every module's seed data — locales, theme, post types, taxonomies, menus (idempotent)
+	$(CONSOLE) aurora:install
 
 sync-privileges: ## Purge obsolete privileges from users after module changes
 	$(CONSOLE) aurora:privileges:sync
 
-module-sync: ## After scaffolding a new module: sync privileges + menus + params, dump JSON translations, rebuild Vite bundle. Run once after `aurora:make:module`.
+module-sync: ## After scaffolding a new module: sync privileges + seed data + params, dump JSON translations, rebuild Vite bundle. Run once after `aurora:make:module`.
 	make sync-privileges
-	make sync-menus
+	make install-data
 	make sync-params
 	make translation
 	make build
@@ -430,7 +424,6 @@ install-dev: _require-dev-env ## Install for local development — full reset: d
 	$(CONSOLE) doctrine:fixtures:load --no-interaction --append
 	$(CONSOLE) aurora:application-parameter
 	$(CONSOLE) aurora:privileges:sync
-	@$(SYNC_MENUS)
 	make dev
 	@echo "✅ Admin user: admin@aurora.app / password"
 
@@ -444,7 +437,6 @@ install-prod: ## Install for production
 	# It used to come from fixtures, which never run here.
 	$(CONSOLE) aurora:install
 	$(CONSOLE) aurora:application-parameter
-	@$(SYNC_MENUS)
 	make build
 	make cc-prod
 
@@ -460,7 +452,7 @@ deploy-prod: ## Deploy to production (requires a git tag on HEAD)
 	$(PNPM) --dir=$(AURORA) install --frozen-lockfile; \
 	$(CONSOLE) doctrine:migrations:migrate --no-interaction; \
 	$(CONSOLE) aurora:application-parameter; \
-	$(SYNC_MENUS); \
+	$(CONSOLE) aurora:install; \
 	$(PNPM) --dir=$(AURORA) run build; \
 	APP_ENV=prod APP_DEBUG=0 $(CONSOLE) cache:clear --env=prod; \
 	echo "✅ Deployed $$APP_VERSION"

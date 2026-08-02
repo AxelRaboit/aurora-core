@@ -114,7 +114,7 @@ php bin/console doctrine:migrations:version --add --all --no-interaction
 php bin/console doctrine:schema:validate                     # sanity check
 php bin/console aurora:application-parameter
 php bin/console aurora:privileges:sync
-php bin/console aurora:menus:sync
+php bin/console aurora:install
 php bin/console doctrine:fixtures:load --no-interaction      # données dev
 ```
 
@@ -266,7 +266,7 @@ php bin/console doctrine:migrations:version --add --all --no-interaction
 php bin/console doctrine:schema:validate                     # sanity check
 php bin/console aurora:application-parameter
 php bin/console aurora:privileges:sync
-php bin/console aurora:menus:sync
+php bin/console aurora:install
 php bin/console doctrine:fixtures:load --no-interaction      # optionnel — dev data
 ```
 

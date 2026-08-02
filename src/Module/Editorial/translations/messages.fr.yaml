@@ -18,6 +18,9 @@ backend:
           create: Créer des taxonomies
           edit: Modifier les taxonomies
           delete: Supprimer les taxonomies
+        menus:
+          view: Voir les menus
+          edit: Modifier les menus
   audit:
     actions:
       editorial:
@@ -55,6 +58,14 @@ backend:
     editorial_backend_description: "Active la section Éditorial dans l'administration."
     editorial_frontend: Site public éditorial
     editorial_frontend_description: "Sert les publications, archives et pages de taxonomie aux lecteurs."
+  editorial:
+    bootstrap:
+      post_types:
+        page: Page
+        article: Article
+      taxonomies:
+        category: Catégories
+        tag: Étiquettes
   nav:
     sections:
       editorial: Éditorial
@@ -64,6 +75,8 @@ backend:
     post_types_description: "Définir les natures de contenu du site et les champs que chacune porte."
     taxonomies: Taxonomies
     taxonomies_description: "Regrouper les contenus par étiquettes et catégories, à plat ou imbriquées."
+    menus: Menus
+    menus_description: "Composer la navigation du site public : en-tête, pied de page, compte."
   post_types:
     title: Types de contenu
     empty: Aucun type de contenu.
@@ -244,6 +257,75 @@ backend:
       term_self_nested: Un terme ne peut pas être placé sous lui-même ni sous l'un de ses enfants.
       parent_wrong_taxonomy: "Le terme {parentId} n'appartient pas à la taxonomie « {taxonomy} »."
       reorder_cycle: 'Ce déplacement placerait le terme {id} dans sa propre descendance.'
+  menus:
+    title: Menus
+    empty: Aucun menu.
+    empty_hint: "Les menus sont créés à l'installation, un par emplacement du thème."
+    updated: Menu mis à jour.
+    name: Nom
+    location: Emplacement
+    description: Description
+    items: Entrées
+    items_empty: Aucune entrée dans ce menu.
+    add_item: Ajouter une entrée
+    edit_item: Modifier l'entrée
+    item_created: Entrée ajoutée.
+    item_updated: Entrée mise à jour.
+    item_deleted: Entrée supprimée.
+    item_delete_confirm: "Supprimer l'entrée « {label} » ? Ses sous-entrées partent avec elle."
+    reordered: Menu réorganisé.
+    label: Libellé
+    label_hint: "Laissé vide, l'entrée prend le titre de la cible et suit ses traductions."
+    target_type: Cible
+    target: Élément ciblé
+    custom_url: URL
+    custom_url_placeholder: 'https://exemple.fr/page'
+    open_in_new_tab: Ouvrir dans un nouvel onglet
+    css_class: Classe CSS
+    visibility: Visibilité
+    parent: Sous-entrée de
+    no_parent: Premier niveau
+    move_up: Monter
+    move_down: Descendre
+    heading_hint: "Sans lien résoluble mais avec des sous-entrées, cette entrée s'affiche comme un titre."
+    unresolved: Cible introuvable — cette entrée ne s'affiche pas sur le site.
+    locations:
+      primary: Navigation principale
+      primary_description: "Affichée dans l'en-tête, sur toutes les pages du site public."
+      footer: Pied de page
+      footer_description: "Affichée en bas de page, sous le contenu."
+      account: Compte
+      account_description: "Liens de connexion et d'espace personnel, selon que le visiteur est identifié."
+    defaults:
+      home: Accueil
+      login: Connexion
+      logout: Déconnexion
+    target_types:
+      post: Publication
+      term: Terme
+      post_type_archive: Archive de type de contenu
+      home: Accueil
+      custom_url: URL libre
+      frontend_login: Connexion
+      frontend_register: Inscription
+      frontend_account: Mon compte
+      frontend_logout: Déconnexion
+    visibilities:
+      always: Tout le monde
+      guests_only: Visiteurs non connectés
+      authenticated_only: Visiteurs connectés
+      hidden: Masquée
+    errors:
+      target_type_required: Une cible est requise.
+      target_type_invalid: Type de cible inconnu.
+      target_required: Cette cible demande un élément à pointer.
+      target_not_found: "L'élément ciblé {id} n'existe pas."
+      custom_url_required: Une URL est requise.
+      custom_url_invalid: Cette URL est illisible.
+      visibility_invalid: Visibilité inconnue.
+      parent_wrong_menu: "L'entrée parente n'appartient pas à ce menu."
+      self_nested: Une entrée ne peut pas être placée sous elle-même ni sous l'une de ses sous-entrées.
+      reorder_cycle: 'Ce déplacement placerait l''entrée {id} dans sa propre descendance.'
 frontend:
   editorial:
     no_posts: Rien de publié pour le moment.

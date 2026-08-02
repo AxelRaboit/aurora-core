@@ -38,4 +38,9 @@ final readonly class EditorialContext
     {
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialTaxonomies);
     }
+
+    public function isMenusEnabled(): bool
+    {
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialMenus);
+    }
 }

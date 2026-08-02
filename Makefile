@@ -47,7 +47,7 @@ install-dev: ## Install for local development
 	make setup-dirs
 	make migrate
 	make sync-params
-	make sync-menus
+	make install-data
 	make translation
 	make dev
 
@@ -72,7 +72,7 @@ deploy-prod: ## Deploy to production (requires a git tag on HEAD)
 	$(PNPM) --dir=$(AURORA) install --frozen-lockfile; \
 	$(CONSOLE) doctrine:migrations:migrate --no-interaction; \
 	$(CONSOLE) aurora:application-parameter; \
-	$(CONSOLE) aurora:menus:sync; \
+	$(CONSOLE) aurora:install; \
 	$(CONSOLE) aurora:privileges:sync; \
 	$(CONSOLE) app:translations:dump-js; \
 	$(PNPM) --dir=$(AURORA) run build; \
@@ -199,7 +199,7 @@ fixtures: ## Drop DB, re-run migrations and load fixtures
 demo: purge-uploads ## Purge var/uploads/ then load demo fixtures + run all syncs
 	$(CONSOLE) doctrine:fixtures:load --group=demo --no-interaction
 	$(CONSOLE) aurora:application-parameter
-	$(CONSOLE) aurora:menus:sync
+	$(CONSOLE) aurora:install
 	$(CONSOLE) aurora:privileges:sync
 	@echo "✅ Demo data loaded"
 
@@ -243,16 +243,16 @@ migration-generate: ## Generate a blank migration
 migration-diff: ## Generate a migration from entity changes
 	$(CONSOLE) doctrine:migrations:diff
 
-sync: ## Run all sync commands (params, menus, privileges)
+sync: ## Run all sync commands (params, seed data, privileges)
 	make sync-params
-	make sync-menus
+	make install-data
 	make sync-privileges
 
 sync-params: ## Synchronise application parameters (creates missing, deletes obsolete)
 	$(CONSOLE) aurora:application-parameter
 
-sync-menus: ## Create missing menus for registered locations (primary, footer, …)
-	$(CONSOLE) aurora:menus:sync
+install-data: ## Create every module's seed data — locales, theme, post types, taxonomies, menus (idempotent)
+	$(CONSOLE) aurora:install
 
 sync-privileges: ## Purge obsolete privileges from users after module changes
 	$(CONSOLE) aurora:privileges:sync
@@ -260,9 +260,9 @@ sync-privileges: ## Purge obsolete privileges from users after module changes
 sync-sequences: ## Resync all PostgreSQL sequences to MAX(id)+1 (run after fixture loads or data imports)
 	$(CONSOLE) aurora:sequences:resync
 
-module-sync: ## After scaffolding a new module: sync privileges + menus + params, dump JSON translations, rebuild Vite bundle. Run once after the `/add-module` skill finishes.
+module-sync: ## After scaffolding a new module: sync privileges + seed data + params, dump JSON translations, rebuild Vite bundle. Run once after the `/add-module` skill finishes.
 	make sync-privileges
-	make sync-menus
+	make install-data
 	make sync-params
 	make translation
 	make build

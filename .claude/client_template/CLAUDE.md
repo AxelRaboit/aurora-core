@@ -294,7 +294,7 @@ fois pour opter dans le sync.
 | `make migrate-f` | applique les nouvelles migrations Doctrine (vendor + client). Jamais de downgrade auto. |
 | `aurora:privileges:sync` | crée les nouveaux `NavPermission` déclarés dans le code. Ne supprime pas les anciens. |
 | `aurora:application-parameter` | synchronise les settings registry. Ne supprime jamais une valeur saisie côté admin. |
-| `aurora:menus:sync` | crée les menus manquants par location. Ne supprime jamais ceux existants. |
+| `aurora:install` | crée les données de socle manquantes de chaque module (locales, thème, types de contenu, taxonomies, menus). Ne remplace jamais ce qui a été édité côté admin. |
 
 ### Points d'attention
 

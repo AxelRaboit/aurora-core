@@ -274,7 +274,7 @@ CLIENT projects don't inherit aurora-core's auto-discovery globs. Verify
 ## Step 5 — Sync + verify
 
 ```bash
-make module-sync    # privileges:sync + menus:sync + application-parameter + translation + build
+make module-sync    # privileges:sync + aurora:install + application-parameter + translation + build
 make ft             # tests + lint
 ```
 

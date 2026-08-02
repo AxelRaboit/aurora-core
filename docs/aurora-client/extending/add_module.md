@@ -196,7 +196,6 @@ quoi le module ne sera pas opérationnel** :
 
 ```bash
 make sf CMD="aurora:privileges:sync"         # enregistre la permission <module>.use
-make sf CMD="aurora:menus:sync"              # enregistre le NavItem
 make translation                             # dump JSON traductions pour vue-i18n
 make cc                                      # clear cache (Twig + Symfony)
 ```
@@ -280,15 +279,12 @@ Une fois le module créé (ou modifié), synchroniser :
 
 ```bash
 make sf CMD="aurora:privileges:sync"
-make sf CMD="aurora:menus:sync"
 ```
 
 - `aurora:privileges:sync` crée les rows `core_permissions` à partir des
   `NavPermission` retournés par `getPermissions()`
-- `aurora:menus:sync` met à jour la table `core_menu_items` à partir des
-  `NavSection`/`NavItem`
 
-À relancer à chaque ajout/suppression de permission ou de NavItem.
+À relancer à chaque ajout/suppression de permission.
 
 ### 4.3 Controller
 
@@ -1044,9 +1040,8 @@ le plus complet, comme le module d'exemple `Tracking`) :
 15. [ ] `Setting/<Module>ConfigurationTabProvider.php` (si settings)
 16. [ ] `make migration && make migrate` — schéma DB
 17. [ ] `make sf CMD="aurora:privileges:sync"` — permissions enregistrées
-18. [ ] `make sf CMD="aurora:menus:sync"` — menus mis à jour
-19. [ ] `make translation` — dump JSON des traductions
-20. [ ] `make ft` vert (fix code + tous les tests)
+18. [ ] `make translation` — dump JSON des traductions
+19. [ ] `make ft` vert (fix code + tous les tests)
 
 ---
 

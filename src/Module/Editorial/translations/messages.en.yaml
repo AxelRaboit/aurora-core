@@ -18,6 +18,9 @@ backend:
           create: Create taxonomies
           edit: Edit taxonomies
           delete: Delete taxonomies
+        menus:
+          view: View menus
+          edit: Edit menus
   audit:
     actions:
       editorial:
@@ -55,6 +58,14 @@ backend:
     editorial_backend_description: 'Enables the Editorial section in the admin.'
     editorial_frontend: Editorial public site
     editorial_frontend_description: 'Serves the posts, archives and taxonomy pages to readers.'
+  editorial:
+    bootstrap:
+      post_types:
+        page: Page
+        article: Article
+      taxonomies:
+        category: Categories
+        tag: Tags
   nav:
     sections:
       editorial: Editorial
@@ -64,6 +75,8 @@ backend:
     post_types_description: 'Define the kinds of content the site holds and the fields each one carries.'
     taxonomies: Taxonomies
     taxonomies_description: 'Group content with tags and categories, flat or nested.'
+    menus: Menus
+    menus_description: 'Compose the public site navigation: header, footer, account.'
   post_types:
     title: Content types
     empty: No content type yet.
@@ -244,6 +257,75 @@ backend:
       term_self_nested: A term cannot be placed inside itself or one of its own children.
       parent_wrong_taxonomy: 'Term {parentId} does not belong to the "{taxonomy}" taxonomy.'
       reorder_cycle: 'That move would put term {id} inside its own subtree.'
+  menus:
+    title: Menus
+    empty: No menu yet.
+    empty_hint: 'Menus are created at install time, one per location the theme renders.'
+    updated: Menu updated.
+    name: Name
+    location: Location
+    description: Description
+    items: Items
+    items_empty: Nothing in this menu yet.
+    add_item: Add an item
+    edit_item: Edit item
+    item_created: Item added.
+    item_updated: Item updated.
+    item_deleted: Item deleted.
+    item_delete_confirm: 'Delete the "{label}" item? Its sub-items go with it.'
+    reordered: Menu reordered.
+    label: Label
+    label_hint: 'Left blank, the item takes its target title and follows its translations.'
+    target_type: Target
+    target: Targeted item
+    custom_url: URL
+    custom_url_placeholder: 'https://example.com/page'
+    open_in_new_tab: Open in a new tab
+    css_class: CSS class
+    visibility: Visibility
+    parent: Sub-item of
+    no_parent: Top level
+    move_up: Move up
+    move_down: Move down
+    heading_hint: 'With no resolvable link but sub-items under it, this item renders as a heading.'
+    unresolved: Target not found — this item does not render on the site.
+    locations:
+      primary: Main navigation
+      primary_description: 'Rendered in the header, on every page of the public site.'
+      footer: Footer
+      footer_description: 'Rendered at the bottom of the page, under the content.'
+      account: Account
+      account_description: 'Sign-in and personal area links, depending on whether the visitor is signed in.'
+    defaults:
+      home: Home
+      login: Sign in
+      logout: Sign out
+    target_types:
+      post: Post
+      term: Term
+      post_type_archive: Content type archive
+      home: Home
+      custom_url: Custom URL
+      frontend_login: Sign in
+      frontend_register: Sign up
+      frontend_account: My account
+      frontend_logout: Sign out
+    visibilities:
+      always: Everyone
+      guests_only: Signed-out visitors
+      authenticated_only: Signed-in visitors
+      hidden: Hidden
+    errors:
+      target_type_required: A target is required.
+      target_type_invalid: Unknown target type.
+      target_required: That target needs an item to point at.
+      target_not_found: 'The targeted item {id} does not exist.'
+      custom_url_required: A URL is required.
+      custom_url_invalid: That URL is unreadable.
+      visibility_invalid: Unknown visibility.
+      parent_wrong_menu: 'The parent item does not belong to this menu.'
+      self_nested: An item cannot be placed inside itself or one of its own sub-items.
+      reorder_cycle: 'That move would put item {id} inside its own subtree.'
 frontend:
   editorial:
     no_posts: Nothing published yet.

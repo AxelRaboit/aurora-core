@@ -50,6 +50,8 @@ services:
             tags: [aurora.document_usage_provider]
         Aurora\Core\Frontend\Contract\FrontendInterface:
             tags: [aurora.front]
+        Aurora\Module\Editorial\Menu\Contract\MenuLocationProviderInterface:
+            tags: [aurora.menu_location_provider]
         Aurora\Core\Sequence\SequencePrefixProviderInterface:
             tags: [aurora.sequence_prefix]
         Aurora\Module\Configuration\Setting\Configuration\ConfigurationTabProviderInterface:

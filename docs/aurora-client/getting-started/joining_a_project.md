@@ -109,7 +109,7 @@ unconditionnellement) :
 4. `doctrine:migrations:sync-metadata-storage` + `migrations:version --add --all`
    (marque toutes les migrations comme appliquées — workaround multi-namespace)
 5. `doctrine:fixtures:load` (charge les users + données dev)
-6. `aurora:application-parameter` + `aurora:privileges:sync` + `aurora:menus:sync`
+6. `aurora:application-parameter` + `aurora:privileges:sync` + `aurora:install`
 7. `make dev` → lance Vite
 
 > ⚠️ `make install-dev` est explicitement **"from scratch"** — il

@@ -81,6 +81,23 @@ abstract class AbstractMenu implements MenuInterface
         return $this->items;
     }
 
+    public function addItem(MenuItemInterface $item): static
+    {
+        if (!$this->items->contains($item)) {
+            $this->items->add($item);
+            $item->setMenu($this);
+        }
+
+        return $this;
+    }
+
+    public function removeItem(MenuItemInterface $item): static
+    {
+        $this->items->removeElement($item);
+
+        return $this;
+    }
+
     public function findItemById(int $itemId): ?MenuItemInterface
     {
         foreach ($this->items as $item) {

@@ -33,7 +33,7 @@ pnpm --dir=vendor/axelraboit/aurora install --frozen-lockfile
 make setup-dirs                                    # var/cache, var/log
 make migrate-f                                     # doctrine:migrations:migrate --no-interaction
 aurora:application-parameter                       # synchronise ApplicationParameters
-aurora:menus:sync                                  # crée les menus par défaut
+aurora:install                                     # données de socle (locales, thème, types, menus)
 make build                                         # build prod des assets Vite
 make cc-prod                                       # cache:clear --env=prod + verification du boot
 ```
@@ -98,7 +98,7 @@ public, le reste de l'arborescence non.
 
 ```bash
 php bin/console aurora:application-parameter       # nouveaux paramètres applicatifs
-php bin/console aurora:menus:sync                  # synchronise les menus
+php bin/console aurora:install                     # données de socle des modules (idempotent)
 php bin/console aurora:privileges:sync             # privilèges des modules (après ajout de NavPermission)
 ```
 

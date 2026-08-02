@@ -102,7 +102,6 @@ config/services.yaml              # ajout path translations pour DumpJsTranslati
 ```bash
 make sf CMD="aurora:application-parameter"   # seed les toggle rows (via le provider du module)
 make sf CMD="aurora:privileges:sync"         # enregistre la permission <module>.use
-make sf CMD="aurora:menus:sync"              # enregistre le NavItem
 make translation                             # dump JSON traductions pour vue-i18n
 make cc                                      # clear cache (Twig + Symfony)
 ```

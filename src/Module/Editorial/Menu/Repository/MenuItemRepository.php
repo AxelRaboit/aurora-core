@@ -18,4 +18,13 @@ class MenuItemRepository extends ResolveTargetEntityRepository
     {
         parent::__construct($registry, MenuItem::class, MenuItemInterface::class);
     }
+
+    /**
+     * References identify the entries the bootstrap creates, so re-running it
+     * recognises its own work instead of duplicating it.
+     */
+    public function findOneByReference(string $reference): ?MenuItemInterface
+    {
+        return $this->findOneBy(['reference' => $reference]);
+    }
 }

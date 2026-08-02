@@ -603,7 +603,6 @@ Doc core : [`../../aurora-core/dev/per_user_module_access.md`](../../aurora-core
 
 ```bash
 make sf CMD="aurora:privileges:sync"
-make sf CMD="aurora:menus:sync"
 ```
 
 À relancer à chaque ajout/suppression de permission ou de NavItem.

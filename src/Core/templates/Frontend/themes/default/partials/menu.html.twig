@@ -1,0 +1,28 @@
+{# One level of menu entries, with their children in a hover panel.
+
+   An entry with no URL is a heading: the renderer keeps it when it has
+   children, so it can title a group without pretending to be a link. #}
+{% for item in items %}
+    {% if item.children is empty %}
+        <a
+            href="{{ item.url }}"
+            class="text-secondary hover:text-primary transition-colors {{ item.cssClass }}"
+            {% if item.openInNewTab %}target="_blank" rel="noopener"{% endif %}
+        >{{ item.label }}</a>
+    {% else %}
+        <div class="relative group">
+            {% if item.url %}
+                <a
+                    href="{{ item.url }}"
+                    class="text-secondary group-hover:text-primary transition-colors {{ item.cssClass }}"
+                    {% if item.openInNewTab %}target="_blank" rel="noopener"{% endif %}
+                >{{ item.label }}</a>
+            {% else %}
+                <span class="text-secondary group-hover:text-primary transition-colors cursor-default {{ item.cssClass }}">{{ item.label }}</span>
+            {% endif %}
+            <div class="absolute left-0 top-full z-20 hidden min-w-48 flex-col gap-2 rounded-lg border border-line bg-bg p-3 shadow-lg group-hover:flex group-focus-within:flex">
+                {{ include('Frontend/themes/default/partials/menu.html.twig', {items: item.children}) }}
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}

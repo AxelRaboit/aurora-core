@@ -50,7 +50,7 @@ make install            # alias vers make install-dev
 5. `make db-create` + `make migrate` (joue les migrations Aurora **et** client)
 6. `doctrine:fixtures:load`
 7. `aurora:application-parameter` (synchronise les ApplicationParameters)
-8. `aurora:menus:sync` (crée les menus par défaut)
+8. `aurora:install` (données de socle : locales, thème, types de contenu, menus)
 9. `make dev` (Vite dev server)
 
 Compte admin par défaut après `make install` : `admin@aurora.app` / `password`.

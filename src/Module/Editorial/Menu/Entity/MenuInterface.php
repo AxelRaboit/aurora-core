@@ -25,5 +25,9 @@ interface MenuInterface
     /** @return Collection<int, MenuItemInterface> */
     public function getItems(): Collection;
 
+    public function addItem(MenuItemInterface $item): static;
+
+    public function removeItem(MenuItemInterface $item): static;
+
     public function findItemById(int $itemId): ?MenuItemInterface;
 }
