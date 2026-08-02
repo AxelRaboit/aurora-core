@@ -85,7 +85,10 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > `services.yaml`, entités dans `AuroraBundle::$resolve_target_entities`),
 > livré par défaut, sans `composer.json` ni `AuroraEditorialBundle`.
 > Reconstruit et non recopié : `aurora-editorial` a servi de spécification en
-> lecture seule jusqu'à la fin, puis a été archivé.
+> lecture seule jusqu'à la fin, puis **a été archivé sur GitHub** (2026-08-02,
+> dernier commit `9c6943c`). Le dépôt reste lisible — c'est l'archive de la
+> décision et la seule trace du code d'origine — mais il n'accepte plus
+> d'écriture, et plus rien ne le consomme.
 >
 > **Terminé (août 2026).** Domaines reconstruits, dans l'ordre : PostType,
 > Taxonomy, Post, frontend public, Menu, les providers transverses, puis
