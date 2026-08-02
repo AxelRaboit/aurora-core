@@ -19,6 +19,10 @@ use Aurora\Module\Dev\Audit\Entity\AuditLog;
 use Aurora\Module\Dev\Audit\Entity\AuditLogInterface;
 use Aurora\Module\Dev\MountPoint\Entity\MountPoint;
 use Aurora\Module\Dev\MountPoint\Entity\MountPointInterface;
+use Aurora\Module\Editorial\PostType\Entity\PostType;
+use Aurora\Module\Editorial\PostType\Entity\PostTypeField;
+use Aurora\Module\Editorial\PostType\Entity\PostTypeFieldInterface;
+use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Entity\DocumentVersion;
@@ -106,6 +110,8 @@ class AuroraBundle extends AbstractBundle
                     DocumentTagInterface::class => DocumentTag::class,
                     DocumentFolderInterface::class => DocumentFolder::class,
                     MountPointInterface::class => MountPoint::class,
+                    PostTypeInterface::class => PostType::class,
+                    PostTypeFieldInterface::class => PostTypeField::class,
                 ],
                 'mappings' => array_merge(
                     [
