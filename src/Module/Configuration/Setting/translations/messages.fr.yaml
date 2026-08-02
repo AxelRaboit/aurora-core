@@ -202,25 +202,10 @@ backend:
     search_placeholder: Rechercher par clé…
     all_groups: Tous les groupes
   title: Administration
+  # Coquille du dashboard uniquement — un module qui dessine un panneau
+  # embarque ses propres libellés.
   stats:
-    posts: Articles
-    media: Médias
-    menus: Menus
-    users: Utilisateurs
-    published: publiés
-    draft: brouillons
-    by_type: Articles par type
-    recent: Activité récente
-    posts_by_month: Articles publiés par mois
     no_module_enabled: Aucun module de dashboard activé.
-    empty: Aucune donnée.
-    editorial:
-      pending_review: en attente de revue
-      scheduled: planifiés
-      pending_comments: Commentaires en attente
-      recent_activity: Activité récente
-      posts_by_author: Posts par auteur
-      media_by_type: Médias par type
   forms:
     errors:
       slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'

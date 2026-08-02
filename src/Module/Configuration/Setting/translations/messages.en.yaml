@@ -202,25 +202,9 @@ backend:
     search_placeholder: Search by key…
     all_groups: All groups
   title: Administration
+  # Dashboard shell only — a module that draws a panel ships its own labels.
   stats:
-    posts: Posts
-    media: Media
-    menus: Menus
-    users: Users
-    published: published
-    draft: drafts
-    by_type: Posts by type
-    recent: Recent activity
-    posts_by_month: Posts published per month
     no_module_enabled: No dashboard module is enabled.
-    empty: No data.
-    editorial:
-      pending_review: pending review
-      scheduled: scheduled
-      pending_comments: Pending comments
-      recent_activity: Recent activity
-      posts_by_author: Posts by author
-      media_by_type: Media by type
   forms:
     errors:
       slug_format: 'The slug can only contain lowercase letters, numbers and hyphens.'

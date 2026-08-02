@@ -24,8 +24,9 @@ final readonly class StatsService
     ) {}
 
     /**
-     * @param list<string> $enabledModules Module IDs to include (e.g. ['editorial', 'crm']).
-     *                                     An empty list returns an empty array.
+     * @param list<string> $enabledModules Module IDs to include, matched against each
+     *                                     provider's getModuleKey(). An empty list
+     *                                     returns an empty array.
      *
      * @return array<string, mixed>
      */

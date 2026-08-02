@@ -19,7 +19,9 @@ final readonly class OverviewViewBuilder
      */
     public function overviewPayload(): array
     {
-        return ['stats' => $this->statsService->getStats(['editorial'])];
+        // Module ids whose figures the dev overview wants. Empty while no
+        // module ships a DashboardStatsProviderInterface.
+        return ['stats' => $this->statsService->getStats([])];
     }
 
     /**
