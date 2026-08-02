@@ -198,37 +198,6 @@
     pointer-events: none;
 }
 
-/* Colors per type (editor + preview) */
-.callout-block--info,      .callout--info      { border-color: rgb(59 130 246);  background: rgb(239 246 255); color: rgb(30 64 175);   }
-.callout-block--success,   .callout--success   { border-color: rgb(34 197 94);   background: rgb(240 253 244); color: rgb(21 128 61);   }
-.callout-block--warning,   .callout--warning   { border-color: rgb(234 179 8);   background: rgb(254 252 232); color: rgb(133 77 14);   }
-.callout-block--danger,    .callout--danger    { border-color: rgb(239 68 68);   background: rgb(254 242 242); color: rgb(153 27 27);   }
-.callout-block--tip,       .callout--tip       { border-color: rgb(168 85 247);  background: rgb(250 245 255); color: rgb(107 33 168);  }
-.callout-block--note,      .callout--note      { border-color: rgb(100 116 139); background: rgb(248 250 252); color: rgb(51 65 85);    }
-.callout-block--question,  .callout--question  { border-color: rgb(14 165 233);  background: rgb(240 249 255); color: rgb(7 89 133);    }
-.callout-block--important, .callout--important { border-color: rgb(249 115 22);  background: rgb(255 247 237); color: rgb(154 52 18);   }
-.callout-block--update,    .callout--update    { border-color: rgb(20 184 166);  background: rgb(240 253 250); color: rgb(17 94 89);    }
-.callout-block--rose,      .callout--rose      { border-color: rgb(236 72 153);  background: rgb(255 241 242); color: rgb(159 18 57);   }
-.callout-block--accent,    .callout--accent    { border-color: var(--color-accent-500); background: var(--color-accent-50); color: var(--color-accent-900); }
-.callout-block--lime,      .callout--lime      { border-color: rgb(132 204 22);  background: rgb(247 254 231); color: rgb(63 98 18);    }
-.callout-block--amber,     .callout--amber     { border-color: rgb(245 158 11);  background: rgb(255 251 235); color: rgb(120 53 15);   }
-.callout-block--fuchsia,   .callout--fuchsia   { border-color: rgb(217 70 239);  background: rgb(253 244 255); color: rgb(134 25 143);  }
-
-.dark .callout-block--info,      .dark .callout--info      { background: rgb(23 37 84    / 0.5); color: rgb(147 197 253); }
-.dark .callout-block--success,   .dark .callout--success   { background: rgb(20 83 45    / 0.5); color: rgb(134 239 172); }
-.dark .callout-block--warning,   .dark .callout--warning   { background: rgb(120 53 15   / 0.5); color: rgb(253 224 71);  }
-.dark .callout-block--danger,    .dark .callout--danger    { background: rgb(127 29 29   / 0.5); color: rgb(252 165 165); }
-.dark .callout-block--tip,       .dark .callout--tip       { background: rgb(88 28 135   / 0.5); color: rgb(216 180 254); }
-.dark .callout-block--note,      .dark .callout--note      { background: rgb(30 41 59    / 0.5); color: rgb(148 163 184); }
-.dark .callout-block--question,  .dark .callout--question  { background: rgb(7 89 133    / 0.5); color: rgb(125 211 252); }
-.dark .callout-block--important, .dark .callout--important { background: rgb(124 45 18   / 0.5); color: rgb(253 186 116); }
-.dark .callout-block--update,    .dark .callout--update    { background: rgb(17 94 89    / 0.5); color: rgb(94 234 212);  }
-.dark .callout-block--rose,      .dark .callout--rose      { background: rgb(136 19 55   / 0.5); color: rgb(251 207 232); }
-.dark .callout-block--accent,    .dark .callout--accent    { background: color-mix(in srgb, var(--color-accent-900) 50%, transparent); color: var(--color-accent-300); }
-.dark .callout-block--lime,      .dark .callout--lime      { background: rgb(63 98 18    / 0.5); color: rgb(190 242 100); }
-.dark .callout-block--amber,     .dark .callout--amber     { background: rgb(120 53 15   / 0.5); color: rgb(252 211 77);  }
-.dark .callout-block--fuchsia,   .dark .callout--fuchsia   { background: rgb(112 26 117  / 0.5); color: rgb(240 171 252); }
-
 .callout-block__tab--info      { background: rgb(59 130 246);  }
 .callout-block__tab--success   { background: rgb(34 197 94);   }
 .callout-block__tab--warning   { background: rgb(234 179 8);   }
@@ -259,19 +228,7 @@
     pointer-events: none;
 }
 
-/* Rendered standfirst — larger and lighter than body copy, so a reader tells
-   it apart from the first paragraph without it shouting. */
-.post-intro {
-    font-size: 1.125rem;
-    line-height: 1.7;
-    opacity: 0.85;
-    margin: 0 0 1.5rem;
-}
 
-/* Preview-only callout wrapper */
-.callout { border-radius: 0.5rem; border-left: 4px solid; padding: 0.75rem 1rem; margin: 1rem 0; }
-.callout strong { display: block; font-weight: 600; margin-bottom: 0.25rem; }
-.callout p { margin: 0; font-size: 0.9rem; }
 
 /* ── PostsList block ─────────────────────────────────────────────── */
 .posts-list-block {
