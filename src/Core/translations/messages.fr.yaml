@@ -155,6 +155,7 @@ backend:
       font_size: Taille du texte
       clear_formatting: Effacer le formatage
       callout: Callout
+      intro: Introduction
       media_text: Image + Texte
       two_column: 2 Colonnes
     ui:
@@ -208,3 +209,5 @@ backend:
     callout:
       title_placeholder: Titre…
       message_placeholder: Message…
+    intro:
+      placeholder: Chapô — le court paragraphe qui ouvre la page…
