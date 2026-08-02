@@ -1,4 +1,12 @@
 shared:
+  drop_zone:
+    cta: Drag a file here, or click to browse
+    drop: Drop to upload
+    uploading: Uploading…
+  media:
+    choose: Choose an image
+    change: Change
+    remove: Remove
   locale_switcher: Language
   errors:
     page_not_found:
@@ -10,6 +18,8 @@ shared:
       message: The server encountered an unexpected problem. Our team has been notified. Please try again in a few moments.
       back: Back to home
   common:
+    search: Search
+    selected: selected
     pagination: 'Page {page} of {totalPages}'
     'yes': 'Yes'
     'no': 'No'
