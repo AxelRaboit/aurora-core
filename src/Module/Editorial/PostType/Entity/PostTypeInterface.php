@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\PostType\Entity;
 
+use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
 use Doctrine\Common\Collections\Collection;
 
@@ -47,6 +48,9 @@ interface PostTypeInterface
     public function addField(PostTypeFieldInterface $field): static;
 
     public function removeField(PostTypeFieldInterface $field): static;
+
+    /** @return Collection<int, PostInterface> */
+    public function getPosts(): Collection;
 
     /** @return Collection<int, TaxonomyInterface> */
     public function getTaxonomies(): Collection;

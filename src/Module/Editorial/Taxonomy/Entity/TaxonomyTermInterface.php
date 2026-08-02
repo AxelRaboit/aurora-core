@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Taxonomy\Entity;
 
+use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Doctrine\Common\Collections\Collection;
 
 interface TaxonomyTermInterface
@@ -35,6 +36,17 @@ interface TaxonomyTermInterface
     public function getTranslation(string $locale): ?TaxonomyTermTranslationInterface;
 
     public function translate(string $locale): TaxonomyTermTranslationInterface;
+
+    /** @return Collection<int, PostInterface> */
+    public function getPosts(): Collection;
+
+    /**
+     * Inverse side — Post owns the association. Keeps the loaded graph
+     * consistent so a response serialized right after a write is accurate.
+     */
+    public function addPost(PostInterface $post): static;
+
+    public function removePost(PostInterface $post): static;
 
     /** @return list<TaxonomyTermInterface> */
     public function getAncestors(): array;

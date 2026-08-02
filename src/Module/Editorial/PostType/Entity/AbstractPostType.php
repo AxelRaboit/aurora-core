@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\PostType\Entity;
 
+use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -58,10 +59,15 @@ abstract class AbstractPostType implements PostTypeInterface
      */
     protected Collection $taxonomies;
 
+    /** @var Collection<int, PostInterface> */
+    #[ORM\OneToMany(targetEntity: PostInterface::class, mappedBy: 'postType')]
+    protected Collection $posts;
+
     public function __construct()
     {
         $this->fields = new ArrayCollection();
         $this->taxonomies = new ArrayCollection();
+        $this->posts = new ArrayCollection();
     }
 
     public function getSlug(): string
@@ -172,6 +178,11 @@ abstract class AbstractPostType implements PostTypeInterface
         $this->fields->removeElement($field);
 
         return $this;
+    }
+
+    public function getPosts(): Collection
+    {
+        return $this->posts;
     }
 
     public function getTaxonomies(): Collection

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Taxonomy\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
+use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -37,10 +38,15 @@ abstract class AbstractTaxonomyTerm implements TaxonomyTermInterface
     #[ORM\OneToMany(targetEntity: TaxonomyTermTranslationInterface::class, mappedBy: 'term', cascade: ['persist', 'remove'], orphanRemoval: true, indexBy: 'locale')]
     protected Collection $translations;
 
+    /** @var Collection<int, PostInterface> */
+    #[ORM\ManyToMany(targetEntity: PostInterface::class, mappedBy: 'terms')]
+    protected Collection $posts;
+
     public function __construct()
     {
         $this->children = new ArrayCollection();
         $this->translations = new ArrayCollection();
+        $this->posts = new ArrayCollection();
     }
 
     public function getReference(): ?string
@@ -119,6 +125,30 @@ abstract class AbstractTaxonomyTerm implements TaxonomyTermInterface
         $this->translations->set($locale, $translation);
 
         return $translation;
+    }
+
+    public function getPosts(): Collection
+    {
+        return $this->posts;
+    }
+
+    public function addPost(PostInterface $post): static
+    {
+        if (!$this->posts->contains($post)) {
+            $this->posts->add($post);
+            $post->addTerm($this);
+        }
+
+        return $this;
+    }
+
+    public function removePost(PostInterface $post): static
+    {
+        if ($this->posts->removeElement($post)) {
+            $post->removeTerm($this);
+        }
+
+        return $this;
     }
 
     public function getAncestors(): array

@@ -19,6 +19,14 @@ use Aurora\Module\Dev\Audit\Entity\AuditLog;
 use Aurora\Module\Dev\Audit\Entity\AuditLogInterface;
 use Aurora\Module\Dev\MountPoint\Entity\MountPoint;
 use Aurora\Module\Dev\MountPoint\Entity\MountPointInterface;
+use Aurora\Module\Editorial\Post\Entity\Post;
+use Aurora\Module\Editorial\Post\Entity\PostInterface;
+use Aurora\Module\Editorial\Post\Entity\PostRevision;
+use Aurora\Module\Editorial\Post\Entity\PostRevisionInterface;
+use Aurora\Module\Editorial\Post\Entity\PostSlugHistory;
+use Aurora\Module\Editorial\Post\Entity\PostSlugHistoryInterface;
+use Aurora\Module\Editorial\Post\Entity\PostTranslation;
+use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\PostType\Entity\PostType;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeField;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeFieldInterface;
@@ -118,6 +126,10 @@ class AuroraBundle extends AbstractBundle
                     DocumentTagInterface::class => DocumentTag::class,
                     DocumentFolderInterface::class => DocumentFolder::class,
                     MountPointInterface::class => MountPoint::class,
+                    PostInterface::class => Post::class,
+                    PostTranslationInterface::class => PostTranslation::class,
+                    PostRevisionInterface::class => PostRevision::class,
+                    PostSlugHistoryInterface::class => PostSlugHistory::class,
                     PostTypeInterface::class => PostType::class,
                     PostTypeFieldInterface::class => PostTypeField::class,
                     TaxonomyInterface::class => Taxonomy::class,
