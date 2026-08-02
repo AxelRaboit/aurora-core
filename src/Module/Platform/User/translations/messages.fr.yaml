@@ -8,7 +8,7 @@ backend:
     search_placeholder: Rechercher un utilisateur…
     all_roles: Tous les rôles
     empty: Aucun utilisateur trouvé
-    you: (Vous)
+    you: Vous
     invite: Inviter un utilisateur
     send_invite: Envoyer l'invitation
     invite_message: Message
