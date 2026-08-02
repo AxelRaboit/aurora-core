@@ -92,6 +92,14 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > SEO (sitemap / robots / RSS), Comment et Form. Chaque domaine a été
 > vérifié contre un serveur qui tourne avant d'être commité.
 >
+> **Démo bnb rétablie** (`aurora-myspace`, groupe `bnb`) : six chambres à
+> champs personnalisés, six pages, menus imbriqués, et une page qui exerce
+> tous les types de bloc. C'est le plus gros usage de l'API Editorial nulle
+> part ailleurs, donc la vraie recette de la reconstruction — elle a d'ailleurs
+> fait remonter deux défauts que la démo portait depuis toujours : le thème
+> qu'elle livre n'était jamais activé, et l'absence de dépendance déclarée sur
+> la démo Ged faisait disparaître silencieusement ses deux plus beaux blocs.
+>
 > **Étape 1 — purge des résidus** (ce qui restait après l'extraction :
 > 97 occurrences sur 47 fichiers source). Tag `pre-editorial-purge` =
 > état juste avant. Commits sur `develop`, du plus ancien au plus récent :
