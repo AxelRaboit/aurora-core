@@ -25,6 +25,11 @@ backend:
           view: Voir les commentaires
           moderate: Modérer les commentaires
           delete: Supprimer les commentaires
+        forms:
+          view: Voir les formulaires
+          create: Créer des formulaires
+          edit: Modifier les formulaires
+          delete: Supprimer les formulaires
   audit:
     actions:
       editorial:
@@ -56,6 +61,10 @@ backend:
             updated: Entrée de menu modifiée
             deleted: Entrée de menu supprimée
             reordered: Menu réorganisé
+        form:
+          created: Formulaire créé
+          updated: Formulaire modifié
+          deleted: Formulaire supprimé
         comment:
           submitted: Commentaire déposé
           approved: Commentaire approuvé
@@ -71,6 +80,15 @@ backend:
     editorial_comment_prefix:
       label: Préfixe de référence des commentaires
       description: "Préfixe de la référence générée pour chaque commentaire."
+    editorial_form_prefix:
+      label: Préfixe de référence des formulaires
+      description: "Préfixe de la référence générée pour chaque formulaire."
+    editorial_form_field_prefix:
+      label: Préfixe de référence des champs
+      description: "Préfixe de la référence générée pour chaque champ de formulaire."
+    editorial_form_submission_prefix:
+      label: Préfixe de référence des soumissions
+      description: "Préfixe de la référence générée pour chaque soumission."
   modules:
     editorial: Éditorial
     editorial_backend: Éditorial
@@ -105,6 +123,8 @@ backend:
     menus_description: "Composer la navigation du site public : en-tête, pied de page, compte."
     seo: Référencement
     seo_description: "Publier le sitemap, le robots.txt et le flux RSS du site public."
+    forms: Formulaires
+    forms_description: "Composer des formulaires publics et relire leurs soumissions."
     comments: Commentaires
     comments_description: "Modérer les commentaires laissés par les lecteurs."
   post_types:
@@ -302,6 +322,84 @@ backend:
       pending: En attente
       approved: Approuvé
       spam: Indésirable
+  forms:
+    title: Formulaires
+    empty: Aucun formulaire.
+    create: Nouveau formulaire
+    edit: Modifier le formulaire
+    created: Formulaire créé.
+    updated: Formulaire enregistré.
+    deleted: Formulaire supprimé.
+    delete_confirm: "Supprimer le formulaire « {title} » ? Ses soumissions partent avec lui."
+    title_label: Titre
+    slug: Slug
+    slug_hint: "Laissé vide, il est déduit du titre. Il forme l'URL publique."
+    description: Description
+    active: Publié
+    active_hint: "Un formulaire non publié répond 404 : c'est un brouillon."
+    notify_email: Prévenir à
+    notify_email_hint: "Laissé vide, les soumissions vont à l'administrateur du site."
+    webhook_url: Webhook
+    webhook_url_hint: "Chaque soumission y est envoyée, signée avec le secret de l'application."
+    crm_sync: Signaler le contact
+    public_url: URL publique
+    fields:
+      title: Champs
+      empty: Aucun champ.
+      create: Ajouter un champ
+      edit: Modifier le champ
+      created: Champ ajouté.
+      updated: Champ mis à jour.
+      deleted: Champ supprimé.
+      delete_confirm: "Supprimer le champ « {label} » ? Les conditions qui le citent seront retirées."
+      label: Libellé
+      placeholder: Texte indicatif
+      type: Type
+      required: Obligatoire
+      options: Choix
+      options_hint: 'Un par ligne.'
+      step: Étape
+      conditions: Conditions d'affichage
+      conditions_hint: "Le champ n'apparaît que si ces réponses sont données."
+      condition_field: Champ
+      condition_value: Vaut
+      add_condition: Ajouter une condition
+      move_up: Monter
+      move_down: Descendre
+    steps:
+      title: Étapes
+      hint: "Sans étape, le formulaire tient sur une page."
+      add: Ajouter une étape
+      remove: Retirer
+      name: Nom de l'étape
+    submissions:
+      title: Soumissions
+      empty: Aucune soumission.
+      export: Exporter en CSV
+      submitted_at: Reçue le
+      reference: Référence
+    field_types:
+      text: Texte
+      email: E-mail
+      textarea: Texte long
+      select: Liste déroulante
+      checkbox: Cases à cocher
+      radio: Boutons radio
+      number: Nombre
+      date: Date
+      tel: Téléphone
+    condition_logic:
+      and: Toutes les conditions
+      or: Au moins une condition
+    errors:
+      translations_required: Au moins une langue doit être renseignée.
+      field_translations_required: Au moins une langue doit être renseignée.
+      slug_taken: 'Le slug « {slug} » est déjà utilisé.'
+      notify_email_invalid: Cette adresse e-mail est invalide.
+      webhook_url_invalid: Cette URL est illisible.
+      options_required: "Un champ à choix a besoin d'au moins une option."
+      field_type_invalid: Type de champ inconnu.
+      condition_logic_invalid: Logique de condition inconnue.
   menus:
     title: Menus
     empty: Aucun menu.
@@ -374,6 +472,19 @@ backend:
       reorder_cycle: 'Ce déplacement placerait l''entrée {id} dans sa propre descendance.'
 frontend:
   editorial:
+    forms:
+      submit: Envoyer
+      next: Suivant
+      previous: Précédent
+      step: 'Étape {number}'
+      sent: Merci, votre message a bien été envoyé.
+      errors:
+        required: Ce champ est obligatoire.
+        email_invalid: Cette adresse e-mail est invalide.
+        number_invalid: Cette valeur doit être un nombre.
+        date_invalid: Cette date est illisible.
+        choice_invalid: Ce choix ne fait pas partie des options proposées.
+        too_many: "Trop d'envois récents. Réessayez dans un moment."
     comments:
       title: Commentaires
       empty: Aucun commentaire pour le moment. Lancez la discussion.
@@ -417,3 +528,10 @@ editorial:
       author: Auteur
       from: De
       cta_moderate: Ouvrir la modération
+    form:
+      subject_admin: 'Nouvelle soumission : {form}'
+      subject_confirmation: 'Votre message : {form}'
+      admin_heading: Nouvelle soumission
+      admin_intro: "Le formulaire « {form} » vient d'être rempli."
+      confirmation_heading: Message bien reçu
+      confirmation_intro: "Merci, nous avons bien reçu votre message envoyé via « {form} »."

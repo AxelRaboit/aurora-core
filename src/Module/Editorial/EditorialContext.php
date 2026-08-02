@@ -53,4 +53,9 @@ final readonly class EditorialContext
     {
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialComments);
     }
+
+    public function isFormsEnabled(): bool
+    {
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialForms);
+    }
 }

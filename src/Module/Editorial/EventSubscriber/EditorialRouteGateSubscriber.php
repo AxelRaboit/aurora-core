@@ -30,7 +30,7 @@ final readonly class EditorialRouteGateSubscriber extends AbstractModuleRouteGat
 
     protected function routeNamespaces(): array
     {
-        return ['backend_editorial_', 'editorial_sitemap', 'editorial_robots', 'editorial_rss', 'editorial_post_comment', 'editorial_comment_'];
+        return ['backend_editorial_', 'editorial_sitemap', 'editorial_robots', 'editorial_rss', 'editorial_post_comment', 'editorial_comment_', 'editorial_form'];
     }
 
     protected function gates(): array
@@ -42,6 +42,8 @@ final readonly class EditorialRouteGateSubscriber extends AbstractModuleRouteGat
             'backend_editorial_taxonomies' => $this->editorialContext->isTaxonomiesEnabled(),
             'backend_editorial_menus' => $this->editorialContext->isMenusEnabled(),
             'backend_editorial_comments' => $this->editorialContext->isCommentsEnabled(),
+            'backend_editorial_forms' => $this->editorialContext->isFormsEnabled(),
+            'editorial_form' => $this->editorialContext->isFormsEnabled(),
             // The public endpoints go with the screen that moderates them:
             // accepting comments nobody can approve is worse than not
             // accepting them.

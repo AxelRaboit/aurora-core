@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Seo\Service;
 
 use Aurora\Core\Frontend\Service\Context;
+use Aurora\Module\Editorial\Form\Entity\FormInterface;
+use Aurora\Module\Editorial\Form\Entity\FormTranslationInterface;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
@@ -78,6 +80,38 @@ final readonly class AlternatesBuilder
                     'locale' => $code,
                     'taxonomySlug' => $taxonomy->getSlug(),
                     'termSlug' => $translation->getSlug(),
+                ]),
+            ];
+        }
+
+        return $alternates;
+    }
+
+    /**
+     * A form is only listed in the locales it was actually translated into —
+     * the slug differs per locale, and a locale with no translation has no
+     * page to point at.
+     *
+     * @return list<array{locale: string, url: string}>
+     */
+    public function forForm(FormInterface $form): array
+    {
+        $alternates = [];
+        foreach ($this->context->activeLocaleCodes() as $code) {
+            $translation = $form->getTranslation($code);
+            if (!$translation instanceof FormTranslationInterface) {
+                continue;
+            }
+
+            if ('' === $translation->getSlug()) {
+                continue;
+            }
+
+            $alternates[] = [
+                'locale' => $code,
+                'url' => $this->urlGenerator->generate('editorial_form', [
+                    'locale' => $code,
+                    'slug' => $translation->getSlug(),
                 ]),
             ];
         }

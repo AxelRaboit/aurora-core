@@ -23,6 +23,16 @@ use Aurora\Module\Editorial\Comment\Entity\Comment;
 use Aurora\Module\Editorial\Comment\Entity\CommentInterface;
 use Aurora\Module\Editorial\Comment\Entity\CommentReaction;
 use Aurora\Module\Editorial\Comment\Entity\CommentReactionInterface;
+use Aurora\Module\Editorial\Form\Entity\Form;
+use Aurora\Module\Editorial\Form\Entity\FormField;
+use Aurora\Module\Editorial\Form\Entity\FormFieldInterface;
+use Aurora\Module\Editorial\Form\Entity\FormFieldTranslation;
+use Aurora\Module\Editorial\Form\Entity\FormFieldTranslationInterface;
+use Aurora\Module\Editorial\Form\Entity\FormInterface;
+use Aurora\Module\Editorial\Form\Entity\FormSubmission;
+use Aurora\Module\Editorial\Form\Entity\FormSubmissionInterface;
+use Aurora\Module\Editorial\Form\Entity\FormTranslation;
+use Aurora\Module\Editorial\Form\Entity\FormTranslationInterface;
 use Aurora\Module\Editorial\Menu\Entity\Menu;
 use Aurora\Module\Editorial\Menu\Entity\MenuInterface;
 use Aurora\Module\Editorial\Menu\Entity\MenuItem;
@@ -138,6 +148,11 @@ class AuroraBundle extends AbstractBundle
                     MountPointInterface::class => MountPoint::class,
                     CommentInterface::class => Comment::class,
                     CommentReactionInterface::class => CommentReaction::class,
+                    FormInterface::class => Form::class,
+                    FormTranslationInterface::class => FormTranslation::class,
+                    FormFieldInterface::class => FormField::class,
+                    FormFieldTranslationInterface::class => FormFieldTranslation::class,
+                    FormSubmissionInterface::class => FormSubmission::class,
                     MenuInterface::class => Menu::class,
                     MenuItemInterface::class => MenuItem::class,
                     MenuItemTranslationInterface::class => MenuItemTranslation::class,

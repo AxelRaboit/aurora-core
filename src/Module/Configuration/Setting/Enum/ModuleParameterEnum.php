@@ -41,6 +41,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     case EditorialMenus = 'modules_editorial_menus';
     case EditorialSeo = 'modules_editorial_seo';
     case EditorialComments = 'modules_editorial_comments';
+    case EditorialForms = 'modules_editorial_forms';
 
     // Sub-modules — GED
     case GedDocuments = 'modules_ged_documents';
@@ -74,6 +75,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::EditorialMenus => 'backend.nav.menus',
             self::EditorialSeo => 'backend.nav.seo',
             self::EditorialComments => 'backend.nav.comments',
+            self::EditorialForms => 'backend.nav.forms',
             self::GedBackend => 'backend.modules.ged_backend',
 
             self::GedDocuments => 'backend.nav.documents',
@@ -104,6 +106,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::EditorialMenus => 'backend.nav.menus_description',
             self::EditorialSeo => 'backend.nav.seo_description',
             self::EditorialComments => 'backend.nav.comments_description',
+            self::EditorialForms => 'backend.nav.forms_description',
             self::GedBackend => 'backend.modules.ged_backend_description',
 
             self::GedDocuments => 'backend.nav.documents_description',
@@ -139,7 +142,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::PlatformUsers => self::PlatformBackend,
             self::ConfigurationSettings, self::ConfigurationThemes => self::ConfigurationBackend,
             self::MediaLibrary => self::MediaBackend,
-            self::EditorialFrontend, self::EditorialPosts, self::EditorialPostTypes, self::EditorialTaxonomies, self::EditorialMenus, self::EditorialSeo, self::EditorialComments => self::EditorialBackend,
+            self::EditorialFrontend, self::EditorialPosts, self::EditorialPostTypes, self::EditorialTaxonomies, self::EditorialMenus, self::EditorialSeo, self::EditorialComments, self::EditorialForms => self::EditorialBackend,
             self::GedDocuments, self::GedCategories, self::GedTags, self::GedFolders, self::GedFrontend => self::GedBackend,
             default => null,
         };
@@ -178,6 +181,8 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             // A comment is a reply to something published; with no public
             // site there is nothing to reply to.
             self::EditorialComments => self::EditorialFrontend->value,
+            // A form is published at its own public URL, so it needs the front.
+            self::EditorialForms => self::EditorialFrontend->value,
             // GED sub-modules
             self::GedDocuments => self::GedBackend->value,
             self::GedCategories => self::GedBackend->value,

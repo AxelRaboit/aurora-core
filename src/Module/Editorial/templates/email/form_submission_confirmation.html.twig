@@ -1,0 +1,16 @@
+{% extends '@Shared/email/layout/base.html.twig' %}
+
+{% block content %}
+<h1>{{ 'editorial.mail.form.confirmation_heading'|trans }}</h1>
+<p>{{ 'editorial.mail.form.confirmation_intro'|trans({'{form}': formTitle}) }}</p>
+
+<table class="panel" role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+    <tr>
+        <td class="panel-content">
+            {% for pair in pairs %}
+                <p style="margin:0 0 6px;"><strong>{{ pair.label }} :</strong> {{ pair.value|nl2br }}</p>
+            {% endfor %}
+        </td>
+    </tr>
+</table>
+{% endblock %}

@@ -152,6 +152,12 @@ neutralisé et la substitution promise au client ne fonctionne pas.
 | `ReactionTypeEnum::label()` renvoyant du français en dur | Sur le site public, un lecteur anglophone survolant une réaction lisait « J'adore ». |
 | Empreinte de réaction en `sha256(ip + user-agent)` non salée | L'espace est assez petit pour être parcouru : avec la table et une IP suspectée, on confirme ce que quelqu'un a aimé. Salée avec le secret applicatif désormais. |
 | Sérialisation admin comptant les réactions **par commentaire** | Un N+1 sur la file de modération, là où la version publique recevait déjà une carte pré-calculée. |
+| **Formulaires : conditions ignorées côté serveur** | Le validateur parcourait tous les champs et imposait `required` sur chacun. Un champ obligatoire qui n'apparaît que pour une réponse donnée était donc exigé de **tous** les visiteurs, y compris ceux qui ne le voyaient pas : formulaire définitivement non soumettable, avec une erreur pointant un champ absent de leur écran. Les conditions étant une fonctionnalité phare du constructeur, cela concernait tout formulaire qui en utilise. |
+| Formulaires : messages de validation en anglais brut | Les contraintes renvoyaient les libellés par défaut de Symfony (« This value should not be blank. ») sur une page publique française. |
+| Formulaires : choix d'un `select` jamais vérifié | On pouvait poster n'importe quelle chaîne pour une liste déroulante ; elle était stockée, envoyée par mail et transmise au webhook comme si le formulaire l'avait proposée. |
+| Formulaires : suppression d'un champ laissant les conditions orphelines | Une condition citant un champ disparu ne peut plus jamais être satisfaite : les champs qui en dépendaient devenaient invisibles pour toujours, sans rien dans le constructeur pour l'expliquer. |
+| Formulaires : IP du visiteur dans la charge du webhook | Le webhook pointe vers le tiers qu'un admin a configuré : chaque soumission expédiait donc l'adresse du visiteur hors de l'installation. Il a rempli un formulaire de contact, pas consenti à cela. L'adresse reste locale ; la livraison est désormais signée (HMAC), ce qu'elle n'était pas non plus. |
+| Formulaires : export CSV sans neutralisation des formules | Un formulaire public est exactement le vecteur : n'importe qui tape `=HYPERLINK(...)` dans un champ texte, et cela s'exécute quand un collègue ouvre l'export. |
 | Sitemap : `noindex` de la langue par défaut sautant **tout** le post | Un article masqué en français disparaissait aussi en anglais, d'une page que l'éditeur n'avait pas touchée. Le compteur d'URL retenues étant placé après ce `continue`, il sous-comptait exactement les URL perdues par erreur. |
 | `Sitemap:` de robots.txt construit sur `site_url` | Réglage livré à `http://localhost` : un déploiement qui ne l'a jamais changé annonçait son sitemap sur un hôte injoignable — soit aucun sitemap. Généré depuis la requête maintenant. |
 | **`Context::siteUrl()` prenant le placeholder pour un réglage** (Core, pré-existant) | Le même défaut, une couche plus bas et bien plus grave : `canonical`, `hreflang` et `og:image` de **toutes** les pages publiques annonçaient `http://localhost` tant que personne n'avait touché `site_url`. Aucun symptôme dans l'application — les pages s'affichent, les balises sont bien formées, le site ne remonte simplement pas. Le réglage l'emporte toujours **quand il a vraiment été posé** (épingler un hôte est sa raison d'être) ; laissé au placeholder, l'origine de la requête gagne. |
@@ -191,6 +197,14 @@ vérifiées avant de « corriger » : le titre absent de `search_content` (le
 repository le cherche par son propre LIKE), la contrainte de route
 `\d+|__id__` (les gabarits d'URL passent le placeholder au générateur), et
 les dépendances `@editorjs/*` (importées par un composant générique de Core).
+
+**Un docblock à moi que PHPStan a démenti, à raison.** J'avais typé les
+réponses d'un formulaire en `array<string, mixed>` — clés = identifiants de
+champ. Or PHP convertit une clé de tableau numérique en entier : `"3"` devient
+`3`. Le type décrivait donc quelque chose que PHP ne peut pas contenir, et une
+lecture par clé chaîne n'aurait jamais pu aboutir. Le code marchait par hasard,
+les deux côtés étant normalisés de la même façon. `array<array-key, mixed>` et
+un accès par entier.
 
 **Un test à moi qui encodait une coïncidence.** `ValidationMessageKeyTest`
 affirmait que toute clé de contrainte commence par `backend.` — vrai de tous

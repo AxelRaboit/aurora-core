@@ -25,6 +25,11 @@ backend:
           view: View comments
           moderate: Moderate comments
           delete: Delete comments
+        forms:
+          view: View forms
+          create: Create forms
+          edit: Edit forms
+          delete: Delete forms
   audit:
     actions:
       editorial:
@@ -56,6 +61,10 @@ backend:
             updated: Menu item updated
             deleted: Menu item deleted
             reordered: Menu reordered
+        form:
+          created: Form created
+          updated: Form updated
+          deleted: Form deleted
         comment:
           submitted: Comment submitted
           approved: Comment approved
@@ -71,6 +80,15 @@ backend:
     editorial_comment_prefix:
       label: Comment reference prefix
       description: 'Prefix of the reference generated for each comment.'
+    editorial_form_prefix:
+      label: Form reference prefix
+      description: 'Prefix of the reference generated for each form.'
+    editorial_form_field_prefix:
+      label: Field reference prefix
+      description: 'Prefix of the reference generated for each form field.'
+    editorial_form_submission_prefix:
+      label: Submission reference prefix
+      description: 'Prefix of the reference generated for each submission.'
   modules:
     editorial: Editorial
     editorial_backend: Editorial
@@ -105,6 +123,8 @@ backend:
     menus_description: 'Compose the public site navigation: header, footer, account.'
     seo: Search engines
     seo_description: 'Publish the public site sitemap, robots.txt and RSS feed.'
+    forms: Forms
+    forms_description: 'Compose public forms and read what they collect.'
     comments: Comments
     comments_description: 'Moderate the comments readers leave.'
   post_types:
@@ -302,6 +322,84 @@ backend:
       pending: Pending
       approved: Approved
       spam: Spam
+  forms:
+    title: Forms
+    empty: No form yet.
+    create: New form
+    edit: Edit form
+    created: Form created.
+    updated: Form saved.
+    deleted: Form deleted.
+    delete_confirm: 'Delete the "{title}" form? Its submissions go with it.'
+    title_label: Title
+    slug: Slug
+    slug_hint: 'Left blank, it is derived from the title. It forms the public URL.'
+    description: Description
+    active: Published
+    active_hint: 'An unpublished form answers 404: it is a draft.'
+    notify_email: Notify
+    notify_email_hint: 'Left blank, submissions go to the site administrator.'
+    webhook_url: Webhook
+    webhook_url_hint: 'Every submission is posted there, signed with the application secret.'
+    crm_sync: Signal the contact
+    public_url: Public URL
+    fields:
+      title: Fields
+      empty: No field yet.
+      create: Add a field
+      edit: Edit field
+      created: Field added.
+      updated: Field updated.
+      deleted: Field deleted.
+      delete_confirm: 'Delete the "{label}" field? Conditions naming it will be dropped.'
+      label: Label
+      placeholder: Placeholder
+      type: Type
+      required: Required
+      options: Choices
+      options_hint: 'One per line.'
+      step: Step
+      conditions: Show when
+      conditions_hint: 'The field only appears when these answers are given.'
+      condition_field: Field
+      condition_value: Equals
+      add_condition: Add a condition
+      move_up: Move up
+      move_down: Move down
+    steps:
+      title: Steps
+      hint: 'With no step, the form fits on one page.'
+      add: Add a step
+      remove: Remove
+      name: Step name
+    submissions:
+      title: Submissions
+      empty: No submission yet.
+      export: Export as CSV
+      submitted_at: Received
+      reference: Reference
+    field_types:
+      text: Text
+      email: Email
+      textarea: Long text
+      select: Dropdown
+      checkbox: Checkboxes
+      radio: Radio buttons
+      number: Number
+      date: Date
+      tel: Phone
+    condition_logic:
+      and: All conditions
+      or: Any condition
+    errors:
+      translations_required: At least one language must be filled in.
+      field_translations_required: At least one language must be filled in.
+      slug_taken: 'The slug "{slug}" is already used.'
+      notify_email_invalid: That email address is invalid.
+      webhook_url_invalid: That URL is unreadable.
+      options_required: 'A choice field needs at least one option.'
+      field_type_invalid: Unknown field type.
+      condition_logic_invalid: Unknown condition logic.
   menus:
     title: Menus
     empty: No menu yet.
@@ -374,6 +472,19 @@ backend:
       reorder_cycle: 'That move would put item {id} inside its own subtree.'
 frontend:
   editorial:
+    forms:
+      submit: Send
+      next: Next
+      previous: Back
+      step: 'Step {number}'
+      sent: Thanks, your message has been sent.
+      errors:
+        required: This field is required.
+        email_invalid: That email address is invalid.
+        number_invalid: This value must be a number.
+        date_invalid: That date is unreadable.
+        choice_invalid: That choice is not one of the offered options.
+        too_many: 'Too many submissions recently. Try again in a moment.'
     comments:
       title: Comments
       empty: No comment yet. Start the conversation.
@@ -417,3 +528,10 @@ editorial:
       author: Author
       from: From
       cta_moderate: Open moderation
+    form:
+      subject_admin: 'New submission: {form}'
+      subject_confirmation: 'Your message: {form}'
+      admin_heading: New submission
+      admin_intro: 'The "{form}" form has just been filled in.'
+      confirmation_heading: Message received
+      confirmation_intro: 'Thanks, we have received the message you sent through "{form}".'

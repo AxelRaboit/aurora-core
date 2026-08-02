@@ -48,6 +48,10 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             new NavPermission('editorial.comments.view'),
             new NavPermission('editorial.comments.moderate'),
             new NavPermission('editorial.comments.delete'),
+            new NavPermission('editorial.forms.view'),
+            new NavPermission('editorial.forms.create'),
+            new NavPermission('editorial.forms.edit'),
+            new NavPermission('editorial.forms.delete'),
         ];
     }
 
@@ -79,6 +83,10 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             $items[] = $this->commentsNavItem();
         }
 
+        if ($this->editorialContext->isFormsEnabled()) {
+            $items[] = $this->formsNavItem();
+        }
+
         if ([] === $items) {
             return [];
         }
@@ -95,6 +103,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
                 $this->taxonomiesNavItem(),
                 $this->menusNavItem(),
                 $this->commentsNavItem(),
+                $this->formsNavItem(),
             ], priority: 30),
         ];
     }
@@ -109,6 +118,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             ModuleParameterEnum::EditorialMenus->toToggle(),
             ModuleParameterEnum::EditorialSeo->toToggle(),
             ModuleParameterEnum::EditorialComments->toToggle(),
+            ModuleParameterEnum::EditorialForms->toToggle(),
         ];
     }
 
@@ -131,6 +141,17 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             'tags',
             requiredPrivilege: 'editorial.taxonomies.view',
             descriptionKey: 'backend.nav.taxonomies_description',
+        );
+    }
+
+    private function formsNavItem(): NavItem
+    {
+        return new NavItem(
+            'backend_editorial_forms',
+            'backend.nav.forms',
+            'clipboard-list',
+            requiredPrivilege: 'editorial.forms.view',
+            descriptionKey: 'backend.nav.forms_description',
         );
     }
 
