@@ -315,6 +315,21 @@ onMounted(async () => {
     ready = true;
     registerFlush?.(flush);
     registerRender?.(renderBlocks);
+
+    // Editor.js was constructed with whatever `modelValue` held at mount, and
+    // never looks at it again. A parent that hydrates its form in its own
+    // onMounted — which runs *after* this one — therefore handed us an empty
+    // array, and the editor stayed blank until something forced a remount.
+    // Switching locale and back did exactly that, which is how it looked like
+    // a translation bug rather than a boot-order one.
+    //
+    // Booting is also async (`await isReady` above), so the value can have
+    // moved on by now even when the parent is not the cause. Catch up once,
+    // here — not through a watcher, which would fire on every keystroke and
+    // re-render the document under the caret.
+    if (JSON.stringify(props.modelValue) !== lastEmittedJson) {
+        await renderBlocks(props.modelValue);
+    }
 });
 
 onBeforeUnmount(async () => {
