@@ -1,4 +1,5 @@
 shared:
+  locale_switcher: Language
   errors:
     page_not_found:
       title: Page not found

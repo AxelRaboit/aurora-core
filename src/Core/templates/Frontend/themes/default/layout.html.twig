@@ -46,14 +46,17 @@
                     </nav>
                 {% endif %}
                 {% if context.activeLocales|length > 1 %}
-                    <nav class="flex items-center gap-3">
-                        {% for loc in context.activeLocales %}
-                            <a
-                                href="{{ alternatesByLocale[loc.code] ?? default_front_home_path(loc.code) }}"
-                                class="{{ loc.code == locale ? 'font-semibold text-primary' : 'text-secondary hover:text-primary transition-colors' }}"
-                            >{{ locale_name(loc.code) ?? loc.code|upper }}</a>
-                        {% endfor %}
-                    </nav>
+                    {% set localeUrls = {} %}
+                    {% for loc in context.activeLocales %}
+                        {% set localeUrls = localeUrls|merge({
+                            (loc.code): alternatesByLocale[loc.code] ?? default_front_home_path(loc.code),
+                        }) %}
+                    {% endfor %}
+                    {{ include('Frontend/themes/default/partials/locale_switcher.html.twig', {
+                        locales: context.activeLocales,
+                        current: locale,
+                        urls: localeUrls,
+                    }) }}
                 {% endif %}
             </div>
         </div>

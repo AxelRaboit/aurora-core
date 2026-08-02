@@ -1,4 +1,5 @@
 shared:
+  locale_switcher: Choix de la langue
   errors:
     page_not_found:
       title: Page introuvable
