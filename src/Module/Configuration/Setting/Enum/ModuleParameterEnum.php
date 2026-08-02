@@ -32,8 +32,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     // Sub-modules — Media
     case MediaLibrary = 'modules_media_library';
 
-    // Sub-modules — Editorial
-
     // Sub-modules — GED
     case GedDocuments = 'modules_ged_documents';
     case GedCategories = 'modules_ged_categories';
@@ -137,7 +135,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::ConfigurationThemes => self::ConfigurationBackend->value,
             // Media sub-modules
             self::MediaLibrary => self::MediaBackend->value,
-            // Editorial sub-modules
             // GED sub-modules
             self::GedDocuments => self::GedBackend->value,
             self::GedCategories => self::GedBackend->value,

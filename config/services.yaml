@@ -34,11 +34,10 @@ services:
             # dependency, absent in prod). Loaded dev/test-only via when@dev
             # below so a client's --no-dev build never compiles them. Ged is a
             # core module (loaded by this glob, not a standalone bundle), so its
-            # DataFixtures need the same gating; the extracted modules handle it
-            # in their own services.php + AbstractAuroraModuleBundle.
+            # DataFixtures need the same gating; a module shipped as its own
+            # package handles it in its services.php + AbstractAuroraModuleBundle.
             - '../src/Core/DataFixtures/'
             - '../src/Module/Ged/DataFixtures/'
-            - '../src/Module/Editorial/'
 
     # Auto-tag every MediaUsageProvider so the aggregator service collects them.
     # Auto-tag every registered front so the Registry collects them.

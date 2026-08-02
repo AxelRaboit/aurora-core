@@ -18,7 +18,10 @@ final readonly class Router
 
     public function getDefault(): FrontendInterface
     {
-        $slug = $this->settingRepository->get(ApplicationParameterEnum::DefaultFront->value, 'editorial') ?? 'editorial';
+        // Unset by default: with no slug configured — or one naming a front
+        // that is no longer installed — the highest-priority registered front
+        // wins, so the public site keeps answering either way.
+        $slug = $this->settingRepository->get(ApplicationParameterEnum::DefaultFront->value, '') ?? '';
 
         return $this->registry->find($slug) ?? $this->registry->highest() ?? throw new RuntimeException('No front registered.');
     }

@@ -28,7 +28,7 @@ use function assert;
 class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     /** Number of demo users seeded (indices 0..USER_COUNT-1). */
-    public const int USER_COUNT = 3;
+    public const int USER_COUNT = 2;
 
     public function __construct(
         private readonly UserPasswordHasherInterface $hasher,
@@ -88,26 +88,6 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
                     'ged.tags.manage', 'ged.folders.manage',
                 ],
                 'mood' => 'Gestionnaire documentaire',
-            ],
-            [
-                'email' => 'sophie.bernard@aurora.app',
-                'name' => 'Sophie Bernard',
-                'role' => UserRoleEnum::User,
-                'privileges' => [
-                    'general.dashboard.view',
-                    // Editorial — full editorial workflow
-                    'editorial.posts.view', 'editorial.posts.create', 'editorial.posts.edit', 'editorial.posts.delete',
-                    'editorial.menus.view', 'editorial.menus.create', 'editorial.menus.edit', 'editorial.menus.delete',
-                    'editorial.taxonomies.view', 'editorial.taxonomies.create', 'editorial.taxonomies.edit',
-                    'editorial.post_types.view',
-                    'editorial.comments.view', 'editorial.comments.moderate', 'editorial.comments.delete',
-                    'editorial.forms.view', 'editorial.forms.create', 'editorial.forms.edit', 'editorial.forms.delete',
-                    'editorial.sitemap.view', 'editorial.sitemap.regenerate',
-                    // Media library (editors need full CRUD on items + folders)
-                    'ged.documents.view', 'ged.documents.create', 'ged.documents.edit', 'ged.documents.delete',
-                    'ged.folders.manage',
-                ],
-                'mood' => 'Rédactrice en chef ✍️',
             ],
         ];
 

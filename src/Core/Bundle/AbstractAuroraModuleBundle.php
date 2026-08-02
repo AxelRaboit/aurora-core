@@ -131,8 +131,8 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
         // theme, chiefly). A module that ships templates/_theme/ gets that one
         // directory registered under the null namespace, ahead of Core's own —
         // module bundles prepend after AuroraBundle, so their paths land first.
-        // This is how e.g. Editorial replaces the deliberately menu-less
-        // default theme layout with one that renders its Menu entity.
+        // This is how a content module can replace the deliberately menu-less
+        // default theme layout with one that renders its own navigation.
         //
         // Scoped to a single, explicitly-named directory on purpose: registering
         // the whole templates/ dir under the null namespace would let any module

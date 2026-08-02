@@ -64,7 +64,7 @@ abstract class AbstractUser implements CoreUserInterface
 
     /**
      * Per-section colour overrides for the sidemenu — `{sectionId: colorName}`
-     * (e.g. `{"personal_finance": "emerald", "editorial": "rose"}`). Unknown
+     * (e.g. `{"ged": "emerald", "configuration": "rose"}`). Unknown
      * sections fall back to the default palette defined in
      * `useSidemenuSectionTheme`. User-managed via /backend/profile/sidemenu.
      *

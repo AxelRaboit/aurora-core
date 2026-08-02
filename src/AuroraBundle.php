@@ -72,10 +72,9 @@ class AuroraBundle extends AbstractBundle
     {
         $dir = dirname(__DIR__);
 
-        // Extracted modules (Editorial, and previously Crm/Billing/etc.) live
-        // in their own Composer package/bundle now — their dedicated
-        // Aurora<Name>Bundle registers their Doctrine mapping / Twig / i18n /
-        // resolve_target_entities from there, not from this monorepo.
+        // Only this monorepo's own modules. A module shipped as a separate
+        // Composer package registers its Doctrine mapping / Twig / i18n /
+        // resolve_target_entities from its own Aurora<Name>Bundle instead.
         $moduleDirs = glob($dir.'/src/Module/*', GLOB_ONLYDIR) ?: [];
 
         $builder->prependExtensionConfig('doctrine', [

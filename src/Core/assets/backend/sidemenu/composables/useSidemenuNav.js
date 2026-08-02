@@ -198,9 +198,8 @@ export function useSidemenuNav(
     /**
      * Wrapper classes for a nav item. Delegates to the section theme
      * registry so the active/hover hue inherits the section colour
-     * (e.g. a personal-finance item lights up emerald, an editorial
-     * item lights up rose). Falls back to the accent palette when the
-     * sectionId isn't known.
+     * (e.g. a GED item lights up lime, a configuration item fuchsia).
+     * Falls back to the accent palette when the sectionId isn't known.
      */
     function itemClasses(item, sectionId = null) {
         return themeItemClasses(sectionId, {

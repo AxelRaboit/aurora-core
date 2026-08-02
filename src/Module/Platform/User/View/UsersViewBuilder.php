@@ -26,7 +26,6 @@ final readonly class UsersViewBuilder
         'platform' => 20,
         'media' => 22,
         'configuration' => 25,
-        'editorial' => 30,
         'ged' => 35,
     ];
 

@@ -187,7 +187,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::FileVersionsLimit => '3',
             self::TrashAutoPurgeDays => '30',
             self::HomepagePostId => '',
-            self::DefaultFront => 'editorial',
+            self::DefaultFront => '',
             self::LogoMediaId => '',
             self::FaviconMediaId => '',
             self::SeoTitleTemplate => '{title} — {siteName}',
