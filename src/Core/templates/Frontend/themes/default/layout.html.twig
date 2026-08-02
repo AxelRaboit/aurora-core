@@ -15,10 +15,10 @@
     {% endfor %}
 
     {# Minimal, module-independent chrome: site name + locale switcher only —
-       no nav menu system here, that's a content-module concern (e.g. Editorial's
-       Menu entity). A module that wants richer header/footer chrome (nav links,
-       account dropdown, ...) overrides this theme file from its own package;
-       see docs/aurora-core/dev/frontend_theme_override.md. #}
+       no nav menu system here, that's a content-module concern (a module owning
+       a Menu entity renders it). A module that wants richer header/footer chrome
+       (nav links, account dropdown, ...) overrides this theme file from its own
+       package; see docs/aurora-core/dev/frontend_theme_override.md. #}
     {% block frontend_header %}
     <header class="border-b border-line">
         <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
