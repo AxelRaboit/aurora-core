@@ -1,5 +1,85 @@
 backend:
+  permissions:
+    names:
+      editorial:
+        post_types:
+          view: Voir les types de contenu
+          create: Créer des types de contenu
+          edit: Modifier les types de contenu
+          delete: Supprimer les types de contenu
+  audit:
+    actions:
+      editorial:
+        post_type:
+          created: Type de contenu créé
+          updated: Type de contenu modifié
+          deleted: Type de contenu supprimé
   modules:
     editorial: Éditorial
     editorial_backend: Éditorial
     editorial_backend_description: "Active la section Éditorial dans l'administration."
+  nav:
+    sections:
+      editorial: Éditorial
+    post_types: Types de contenu
+    post_types_description: "Définir les natures de contenu du site et les champs que chacune porte."
+  post_types:
+    title: Types de contenu
+    empty: Aucun type de contenu.
+    created: Type de contenu créé.
+    updated: Type de contenu mis à jour.
+    deleted: Type de contenu supprimé.
+    create: Nouveau type de contenu
+    edit: Modifier le type de contenu
+    delete_confirm: 'Supprimer le type de contenu « {label} » ?'
+    built_in: Fourni par Aurora
+    slug: Slug
+    slug_locked: "Un type natif conserve son slug : les routes et les contenus existants pointent dessus."
+    label: Libellé
+    icon: Icône
+    has_archive: Possède une page d'archive
+    has_archive_hint: "Publie une page de liste pour ce type sur le site public."
+    supports: Capacités
+    supports_blocks: Contenu en blocs
+    supports_thumbnail: Image à la une
+    fields:
+      title: Champs personnalisés
+      empty: Aucun champ personnalisé.
+      created: Champ ajouté.
+      updated: Champ mis à jour.
+      deleted: Champ supprimé.
+      create: Ajouter un champ
+      edit: Modifier le champ
+      delete_confirm: 'Supprimer le champ « {label} » ?'
+      name: Nom machine
+      label: Libellé
+      type: Type
+      required: Obligatoire
+      translatable: Par langue
+      choices: Choix
+      choices_hint: 'Un par ligne.'
+      reference_target_type: Type de contenu ciblé
+      reference_any_type: Tous les types
+      reference_multiple: Autoriser plusieurs
+      types:
+        text: Texte
+        textarea: Texte long
+        number: Nombre
+        date: Date
+        select: Liste de choix
+        checkbox: Case à cocher
+        media: Média
+        url: URL
+        email: E-mail
+        reference: Référence
+    errors:
+      slug_required: Un slug est requis.
+      slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets bas.'
+      slug_taken: 'Le slug « {slug} » est déjà utilisé.'
+      label_required: Un libellé est requis.
+      builtin_protected: Un type de contenu natif ne peut pas être supprimé.
+      field_name_required: Un nom machine est requis.
+      field_name_format: 'Le nom machine ne peut contenir que des lettres minuscules, chiffres et tirets bas.'
+      field_name_taken: 'Le champ « {name} » existe déjà sur ce type.'
+      field_label_required: Un libellé est requis.
+      field_type_invalid: Type de champ inconnu.

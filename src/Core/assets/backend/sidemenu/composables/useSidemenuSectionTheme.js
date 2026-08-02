@@ -23,6 +23,7 @@ const SECTION_THEMES = {
     general: makeTheme("sky"),
     platform: makeTheme("indigo"),
     configuration: makeTheme("fuchsia"),
+    editorial: makeTheme("rose"),
     ged: makeTheme("lime"),
     dev: makeTheme("orange"),
 };

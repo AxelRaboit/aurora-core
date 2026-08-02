@@ -33,6 +33,9 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     // Sub-modules — Media
     case MediaLibrary = 'modules_media_library';
 
+    // Sub-modules — Editorial
+    case EditorialPostTypes = 'modules_editorial_post_types';
+
     // Sub-modules — GED
     case GedDocuments = 'modules_ged_documents';
     case GedCategories = 'modules_ged_categories';
@@ -58,6 +61,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::MediaBackend => 'backend.modules.media_backend',
             self::MediaLibrary => 'backend.nav.media',
             self::EditorialBackend => 'backend.modules.editorial_backend',
+            self::EditorialPostTypes => 'backend.nav.post_types',
             self::GedBackend => 'backend.modules.ged_backend',
 
             self::GedDocuments => 'backend.nav.documents',
@@ -81,6 +85,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::MediaBackend => 'backend.modules.media_backend_description',
             self::MediaLibrary => 'backend.nav.media_description',
             self::EditorialBackend => 'backend.modules.editorial_backend_description',
+            self::EditorialPostTypes => 'backend.nav.post_types_description',
             self::GedBackend => 'backend.modules.ged_backend_description',
 
             self::GedDocuments => 'backend.nav.documents_description',
@@ -116,6 +121,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::PlatformUsers => self::PlatformBackend,
             self::ConfigurationSettings, self::ConfigurationThemes => self::ConfigurationBackend,
             self::MediaLibrary => self::MediaBackend,
+            self::EditorialPostTypes => self::EditorialBackend,
             self::GedDocuments, self::GedCategories, self::GedTags, self::GedFolders, self::GedFrontend => self::GedBackend,
             default => null,
         };
@@ -138,6 +144,8 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::ConfigurationThemes => self::ConfigurationBackend->value,
             // Media sub-modules
             self::MediaLibrary => self::MediaBackend->value,
+            // Editorial sub-modules
+            self::EditorialPostTypes => self::EditorialBackend->value,
             // GED sub-modules
             self::GedDocuments => self::GedBackend->value,
             self::GedCategories => self::GedBackend->value,

@@ -116,6 +116,7 @@ export const MODULE_COLOR = {
     general: "slate",
     platform: "indigo",
     configuration: "zinc",
+    editorial: "rose",
     ged: "lime",
     media: "pink",
     dev: "orange",

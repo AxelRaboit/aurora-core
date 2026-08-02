@@ -1,5 +1,85 @@
 backend:
+  permissions:
+    names:
+      editorial:
+        post_types:
+          view: View content types
+          create: Create content types
+          edit: Edit content types
+          delete: Delete content types
+  audit:
+    actions:
+      editorial:
+        post_type:
+          created: Content type created
+          updated: Content type updated
+          deleted: Content type deleted
   modules:
     editorial: Editorial
     editorial_backend: Editorial
     editorial_backend_description: 'Enables the Editorial section in the admin.'
+  nav:
+    sections:
+      editorial: Editorial
+    post_types: Content types
+    post_types_description: 'Define the kinds of content the site holds and the fields each one carries.'
+  post_types:
+    title: Content types
+    empty: No content type yet.
+    created: Content type created.
+    updated: Content type updated.
+    deleted: Content type deleted.
+    create: New content type
+    edit: Edit content type
+    delete_confirm: 'Delete the "{label}" content type?'
+    built_in: Provided by Aurora
+    slug: Slug
+    slug_locked: 'A built-in type keeps its slug: routes and existing content point at it.'
+    label: Label
+    icon: Icon
+    has_archive: Has an archive page
+    has_archive_hint: 'Publishes a listing page for this type on the public site.'
+    supports: Capabilities
+    supports_blocks: Block content
+    supports_thumbnail: Featured image
+    fields:
+      title: Custom fields
+      empty: No custom field.
+      created: Field added.
+      updated: Field updated.
+      deleted: Field deleted.
+      create: Add a field
+      edit: Edit field
+      delete_confirm: 'Delete the "{label}" field?'
+      name: Machine name
+      label: Label
+      type: Type
+      required: Required
+      translatable: Per language
+      choices: Choices
+      choices_hint: 'One per line.'
+      reference_target_type: Target content type
+      reference_any_type: Any type
+      reference_multiple: Allow several
+      types:
+        text: Text
+        textarea: Long text
+        number: Number
+        date: Date
+        select: Choice
+        checkbox: Checkbox
+        media: Media
+        url: URL
+        email: Email
+        reference: Reference
+    errors:
+      slug_required: A slug is required.
+      slug_format: 'The slug can only contain lowercase letters, numbers and underscores.'
+      slug_taken: 'The slug "{slug}" is already used.'
+      label_required: A label is required.
+      builtin_protected: A built-in content type cannot be deleted.
+      field_name_required: A machine name is required.
+      field_name_format: 'The machine name can only contain lowercase letters, numbers and underscores.'
+      field_name_taken: 'The field "{name}" already exists on this type.'
+      field_label_required: A label is required.
+      field_type_invalid: Unknown field type.
