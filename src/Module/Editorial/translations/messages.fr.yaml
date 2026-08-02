@@ -134,6 +134,35 @@ backend:
     delete_hint: Elle quitte les listes mais reste récupérable.
     search_placeholder: "Chercher un titre, un slug, ou coller une URL…"
     total: '{count} publications'
+    created: Publication créée.
+    updated: Publication enregistrée.
+    back_to_list: Retour à la liste
+    content: Contenu
+    content_placeholder: "Écrivez, ou appuyez sur Tab pour un bloc…"
+    custom_fields: Champs personnalisés
+    seo: Moteurs de recherche
+    terms: Termes
+    featured_media: Image à la une
+    comments_enabled: Commentaires ouverts
+    field_title: Titre
+    field_slug: Slug
+    slug_hint: "Laissé vide, il est déduit du titre. Le modifier garde l'ancienne URL fonctionnelle."
+    field_description: Résumé
+    description_hint: "Affiché sous le titre et sur les cartes de liste. Ce n'est pas l'extrait de recherche."
+    field_post_type: Type de contenu
+    field_status: Statut
+    field_scheduled_at: Publier le
+    meta_title: Titre méta
+    meta_description: Description méta
+    meta_description_hint: "L'extrait affiché par les moteurs, coupé vers 160 caractères."
+    focus_keyword: Mot-clé principal
+    canonical_url: URL canonique
+    noindex: Demander aux moteurs de ne pas indexer
+    noindex_hint: "La page reste accessible ; elle demande juste à ne pas figurer dans les résultats."
+    conflict_title: Quelqu'un a enregistré avant vous
+    conflict_body: "Cette publication a changé depuis que vous l'avez ouverte. Rechargez pour voir leur version, ou écrasez-la avec la vôtre."
+    conflict_reload: Recharger la leur
+    conflict_overwrite: Enregistrer la mienne
     filters: Filtres
     clear_filters: Effacer
     trashed: Afficher la corbeille
