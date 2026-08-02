@@ -106,6 +106,10 @@ Distribué via composer : les clients lisent ces mémoires depuis
   (`/home/axel/Documents/dev/personal/aurora-client/`) reste à jour : routes
   préservées, overrides toujours valides, nouvelles conventions appliquées,
   breaking changes testés côté client. À répéter à chaque session.
+- [process_never_patch_vendor.md](process_never_patch_vendor.md) — **règle
+  dure** : `vendor/axelraboit/aurora*` est en lecture seule côté client. Passer
+  par commit → push → `composer update`, et committer le `composer.lock`. Un
+  vendor patché fait passer le pipeline local tout en cassant la CI.
 - [process_make_ft_before_commit.md](process_make_ft_before_commit.md) —
   lancer `make ft` (= fix + test) avant chaque commit ; aucune échappatoire
 - [pref_no_co_authored.md](pref_no_co_authored.md) — ne jamais ajouter
