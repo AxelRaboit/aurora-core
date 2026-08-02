@@ -19,6 +19,7 @@ use Aurora\Module\Editorial\Post\Manager\PostManagerInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Security\PostVoter;
 use Aurora\Module\Editorial\Post\Serializer\PostSerializerInterface;
+use Aurora\Module\Editorial\Post\Service\PostAccessService;
 use Aurora\Module\Editorial\Post\View\PostsViewBuilder;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -54,6 +55,7 @@ class PostsController extends AbstractController
         private readonly PostInputFactoryInterface $postInputFactory,
         private readonly EntityManagerInterface $entityManager,
         private readonly LocaleContextInterface $localeContext,
+        private readonly PostAccessService $postAccessService,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -66,6 +68,9 @@ class PostsController extends AbstractController
             $pagination,
             $filters['postTypeIds'],
             $filters['trashed'],
+            // Anyone but a dev or an admin sees only what they wrote. The
+            // voter cannot help here — a list has no single post to vote on.
+            authorId: $this->postAccessService->scopedAuthorId(),
             termIds: $filters['termIds'],
             statuses: $filters['statuses'],
         );
