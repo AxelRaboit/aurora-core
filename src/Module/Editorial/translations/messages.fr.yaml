@@ -26,6 +26,8 @@ backend:
           restored: Publication restaurée depuis la corbeille
           force_deleted: Publication supprimée définitivement
           revision_restored: Révision restaurée
+          published_on_schedule: Publication mise en ligne à l'heure prévue
+          purged: Publication purgée automatiquement de la corbeille
         taxonomy:
           created: Taxonomie créée
           updated: Taxonomie modifiée

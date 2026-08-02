@@ -26,6 +26,8 @@ backend:
           restored: Post restored from trash
           force_deleted: Post permanently deleted
           revision_restored: Revision restored
+          published_on_schedule: Post published on schedule
+          purged: Trashed post purged automatically
         taxonomy:
           created: Taxonomy created
           updated: Taxonomy updated
