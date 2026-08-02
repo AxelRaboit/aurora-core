@@ -38,6 +38,7 @@ services:
             # package handles it in its services.php + AbstractAuroraModuleBundle.
             - '../src/Core/DataFixtures/'
             - '../src/Module/Ged/DataFixtures/'
+            - '../src/Module/Editorial/DataFixtures/'
 
     # Auto-tag every MediaUsageProvider so the aggregator service collects them.
     # Auto-tag every registered front so the Registry collects them.
@@ -168,6 +169,8 @@ when@dev:
             resource: '../src/Core/DataFixtures/'
         Aurora\Module\Ged\DataFixtures\:
             resource: '../src/Module/Ged/DataFixtures/'
+        Aurora\Module\Editorial\DataFixtures\:
+            resource: '../src/Module/Editorial/DataFixtures/'
 
 when@test:
     services:
@@ -178,5 +181,7 @@ when@test:
             resource: '../src/Core/DataFixtures/'
         Aurora\Module\Ged\DataFixtures\:
             resource: '../src/Module/Ged/DataFixtures/'
+        Aurora\Module\Editorial\DataFixtures\:
+            resource: '../src/Module/Editorial/DataFixtures/'
 
 

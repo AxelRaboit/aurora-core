@@ -189,24 +189,31 @@ about: ## Show app info
 	$(CONSOLE) about
 
 # === Fixtures & Dev ===
-fixtures: ## Drop DB, re-run migrations and load fixtures
+# `aurora:install` runs BEFORE the fixtures, and the fixtures run with
+# --append. The default purger empties every table, including the one holding
+# the post types the demo content is about to look up — so seeding first and
+# purging after left the fixtures with nothing to build on.
+fixtures: ## Drop DB, re-run migrations, seed the floor and load fixtures
 	$(CONSOLE) doctrine:database:drop --force --if-exists
 	$(CONSOLE) doctrine:database:create --if-not-exists
 	$(CONSOLE) doctrine:migrations:migrate --no-interaction
-	$(CONSOLE) doctrine:fixtures:load --no-interaction
+	$(CONSOLE) aurora:install
+	$(CONSOLE) doctrine:fixtures:load --no-interaction --append
 	@echo "✅ Fixtures loaded"
 
 demo: purge-uploads ## Purge var/uploads/ then load demo fixtures + run all syncs
-	$(CONSOLE) doctrine:fixtures:load --group=demo --no-interaction
-	$(CONSOLE) aurora:application-parameter
 	$(CONSOLE) aurora:install
+	$(CONSOLE) doctrine:fixtures:load --group=demo --no-interaction --append
+	$(CONSOLE) aurora:application-parameter
 	$(CONSOLE) aurora:privileges:sync
 	@echo "✅ Demo data loaded"
 
 fixtures-load: ## Load fixtures without dropping DB
-	$(CONSOLE) doctrine:fixtures:load --no-interaction
+	$(CONSOLE) aurora:install
+	$(CONSOLE) doctrine:fixtures:load --no-interaction --append
 
 fixtures-append: ## Append fixtures without dropping DB
+	$(CONSOLE) aurora:install
 	$(CONSOLE) doctrine:fixtures:load --append --no-interaction
 
 # === Database ===

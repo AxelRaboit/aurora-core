@@ -148,7 +148,7 @@ neutralisé et la substitution promise au client ne fonctionne pas.
 | Docblock du filtre par termes annonçant ET, code faisant OU | Documentation fausse |
 | `BlocksRenderer::renderCallout()` lisant `text` et émettant `.callout-info` | Encart vide et non coloré, mais **seulement une fois publié** |
 
-**Cinq défauts nés dans le code reconstruit lui-même**, tous trouvés en
+**Six défauts nés dans le code reconstruit lui-même**, tous trouvés en
 manipulant l'écran ou en comparant le schéma, aucun signalé par les outils :
 
 | Défaut | Ce que ça donnait |
@@ -158,6 +158,7 @@ manipulant l'écran ou en comparant le schéma, aucun signalé par les outils :
 | **Sept index et contraintes d'unicité jamais redéclarés** | Perdus en réécrivant les entités : `(post_id, locale)`, `(taxonomy_id, locale)`, `(term_id, locale)`, `(menu_item_id, locale)`, `(locale, slug)` sur les termes **et** sur l'historique de slugs, plus deux index de lecture. `indexBy: 'locale'` ne protège que la collection en mémoire ; rien n'empêchait deux lignes pour la même langue, et une vieille URL pouvait retomber sur un post arbitraire. |
 | Aucune garde de route côté backend | Éteindre Editorial retirait ses entrées de menu **et rien d'autre** : les écrans répondaient encore 200 à qui avait gardé l'URL. GED avait son propre subscriber ; Editorial n'en avait aucun. Corrigé par un `AbstractModuleRouteGateSubscriber` dans Core, au grain du sous-module — couper « Taxonomies » ferme ses écrans et laisse les autres ouverts. |
 | Types de champ `media` et `reference` offerts sans éditeur | Même motif que `supports: excerpt` : l'écran des types de contenu les proposait, l'éditeur de publication n'en dessinait aucun — le rédacteur se retrouvait à taper un identifiant de base dans une zone de texte (le `v-else` de repli). Retirés jusqu'à ce que leurs sélecteurs existent. |
+| `make fixtures` / `make demo` purgeaient ce que `aurora:install` venait de créer | Le purger de doctrine vide toutes les tables, y compris celle des types de contenu que les fixtures s'apprêtent à chercher. Le Makefile **client** avait déjà la bonne séquence (`aurora:install` puis `--append`) et son commentaire l'expliquait ; celui de core faisait l'inverse. |
 
 Quatre sont verrouillés par des tests — `MenuItemInputTest`,
 `MenuItemCascadeTest`, `EditorialRouteGateSubscriberTest`,
