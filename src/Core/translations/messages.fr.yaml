@@ -100,9 +100,8 @@ shared:
     cropped: Image recadrée
 
 # Editor.js — clés partagées par tous les modules consommateurs de
-# AppBlockEditor (Editorial Post, Notes/Block, …). Les libellés
-# module-specific (postsList côté Editorial, productGrid côté Ecommerce)
-# restent dans leur propre messages.fr.yaml.
+# AppBlockEditor. Les libellés des outils spécifiques à un module,
+# injectés via `extraTools`, restent dans son propre messages.fr.yaml.
 backend:
   nav:
     sections:

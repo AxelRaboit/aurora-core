@@ -99,9 +99,9 @@ shared:
     apply: Apply crop
     cropped: Image cropped
 
-# Editor.js — keys shared by all consumers of AppBlockEditor (Editorial
-# Post, Notes/Block, …). Module-specific labels (postsList in Editorial,
-# productGrid in Ecommerce) stay in their own messages.en.yaml.
+# Editor.js — keys shared by all consumers of AppBlockEditor. Labels for
+# module-specific tools injected via `extraTools` stay in that module's
+# own messages.en.yaml.
 backend:
   nav:
     sections:

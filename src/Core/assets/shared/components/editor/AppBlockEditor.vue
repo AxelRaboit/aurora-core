@@ -30,20 +30,20 @@ import Undo from "editorjs-undo";
 
 /**
  * Generic Editor.js wrapper. Lives in @shared so any module that needs
- * a rich-block editor (Editorial Post translations, Notes/Block notes,
- * future docs/wiki modules…) can reuse the exact same shell.
+ * a rich-block editor (translated content bodies, notes, future
+ * docs/wiki modules…) can reuse the exact same shell.
  *
- * Module-specific tools (Editorial PostsList, Ecommerce ProductGrid, …)
- * are injected by the consumer via the `extraTools` prop — the wrapper
- * merges them into its built-in toolkit at editor init.
+ * Module-specific tools are injected by the consumer via the
+ * `extraTools` prop — the wrapper merges them into its built-in toolkit
+ * at editor init, so nothing here needs to know they exist.
  *
  * Two integration patterns are supported:
  *   - v-model + `:key="<entity-id>"` re-mount: simplest, one editor
- *     instance per selected entity (Notes uses this).
+ *     instance per selected entity.
  *   - `provide('registerEditorFlush'/'registerEditorRender')` callbacks:
  *     parent captures them and can flush before save or push fresh
- *     blocks without remounting (Editorial PostEditor uses this for
- *     locale switches).
+ *     blocks without remounting — what a multi-locale editor needs when
+ *     switching locale without losing the buffer.
  */
 const { t } = useI18n();
 
@@ -144,7 +144,6 @@ onMounted(async () => {
                     "Callout":        t("backend.editor.tool_names.callout"),
                     "Image + Text":   t("backend.editor.tool_names.media_text"),
                     "Two Columns":    t("backend.editor.tool_names.two_column"),
-                    "Liste d'articles": t("backend.editor.tool_names.posts_list"),
                 },
                 blockTunes: {
                     delete: {
@@ -283,8 +282,8 @@ onMounted(async () => {
             },
             twoColumn: { class: TwoColumnBlock },
 
-            // Module-specific tools (postsList, productGrid, …) — Editor.js
-            // shape `{ toolName: { class, config?, inlineToolbar? } | Class }`.
+            // Module-specific tools — Editor.js shape
+            // `{ toolName: { class, config?, inlineToolbar? } | Class }`.
             // Spread last so a consumer can override built-in configs too.
             ...props.extraTools,
         },

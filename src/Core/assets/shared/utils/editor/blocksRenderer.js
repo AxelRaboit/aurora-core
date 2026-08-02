@@ -133,28 +133,6 @@ function renderBlock(block) {
             return `<div class="mt-block__row">${cols}</div>`;
         }
 
-        // This renderer feeds the revisions overlay and the conflict merge
-        // view, neither of which can reach the database to resolve the posts
-        // the way the server renderer does. It shows what the block *is*
-        // instead — the configuration a diff needs to compare. Inventing cards
-        // would hide the very change the reader opened the diff to see.
-        case "postsList": {
-            const data = block.data ?? {};
-            const summary = [
-                data.postTypeSlug,
-                data.mode,
-                data.columns ? `${data.columns} col.` : null,
-                data.mode === "manual"
-                    ? `${(data.postIds ?? []).length} posts`
-                    : data.perPage
-                      ? `${data.perPage}/page`
-                      : null,
-            ]
-                .filter(Boolean)
-                .join(" · ");
-            return `<div class="posts-list">${data.title ? `<strong>${esc(data.title)}</strong>` : ""}<p>${esc(summary)}</p></div>`;
-        }
-
         case "twoColumn": {
             const { left, right } = block.data ?? {};
             return `<div class="two-col-block"><div class="two-col-block__col">${left ?? ""}</div><div class="two-col-block__col">${right ?? ""}</div></div>`;
