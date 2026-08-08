@@ -337,12 +337,18 @@ class AuroraBundle extends AbstractBundle
             'enabled_locales' => LocaleEnum::values(),
             'translator' => [
                 'default_path' => $dir.'/src/Core/translations',
+                // Client catalogues come LAST on purpose. Symfony adds each
+                // path as a resource in order and a later resource wins on a
+                // shared key, so trailing position is what lets a client
+                // restate an aurora string — the same priority client
+                // templates already get. Listed first, they were loaded and
+                // then immediately overwritten by the bundle's own.
                 'paths' => array_values(array_filter(
                     array_merge(
-                        $clientTranslationDirs,
                         array_map(static fn (string $moduleDir): string => $moduleDir.'/translations', $moduleDirs),
                         glob($dir.'/src/Module/*/*/translations', GLOB_ONLYDIR) ?: [],
                         $coreDirs,
+                        $clientTranslationDirs,
                     ),
                     is_dir(...),
                 )),
