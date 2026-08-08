@@ -12,6 +12,7 @@ export function emptyBanner() {
         enabled: false,
         height: "md",
         width: "contained",
+        verticalAlign: "center",
         logoMediaId: null,
         logo: null,
         background: {

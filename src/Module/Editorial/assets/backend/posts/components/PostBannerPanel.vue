@@ -21,7 +21,7 @@ import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import BannerColorField from "./BannerColorField.vue";
-import { Plus, Trash2, ChevronUp, ChevronDown, Type, Image } from "lucide-vue-next";
+import { Plus, Trash2, ChevronUp, ChevronDown, Type, Image, MousePointerClick } from "lucide-vue-next";
 import { usePostBanner } from "../composables/usePostBanner.js";
 
 const props = defineProps({
@@ -35,6 +35,8 @@ const {
     alignOptions,
     fillOptions,
     widthModeOptions,
+    verticalAlignOptions,
+    titleSizeOptions,
     widthOptions,
     items,
     canAddItem,
@@ -65,7 +67,7 @@ const {
                 >
                     <div class="flex items-center gap-2">
                         <component
-                            :is="item.type === 'text' ? Type : Image"
+                            :is="{ text: Type, image: Image, button: MousePointerClick }[item.type]"
                             class="w-4 h-4 text-muted"
                             :stroke-width="2"
                         />
@@ -124,6 +126,41 @@ const {
                                 :label="t('backend.posts.banner.slot_description_color')"
                             />
                         </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <AppSelect
+                                v-model="itemFields(index).align.value"
+                                :label="t('backend.posts.banner.slot_align')"
+                                :options="alignOptions"
+                            />
+                            <AppSelect
+                                v-model="itemFields(index).titleSize.value"
+                                :label="t('backend.posts.banner.title_size')"
+                                :options="titleSizeOptions"
+                            />
+                        </div>
+                    </template>
+
+                    <template v-else-if="item.type === 'button'">
+                        <AppInput
+                            v-model="itemFields(index).label.value"
+                            :label="t('backend.posts.banner.button_label')"
+                            :placeholder="t('backend.posts.banner.button_label_placeholder')"
+                        />
+                        <AppInput
+                            v-model="itemFields(index).url.value"
+                            :label="t('backend.posts.banner.button_url')"
+                            :placeholder="t('backend.posts.banner.button_url_placeholder')"
+                        />
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <BannerColorField
+                                v-model="itemFields(index).buttonColor.value"
+                                :label="t('backend.posts.banner.button_color')"
+                            />
+                            <BannerColorField
+                                v-model="itemFields(index).buttonTextColor.value"
+                                :label="t('backend.posts.banner.button_text_color')"
+                            />
+                        </div>
                         <AppSelect
                             v-model="itemFields(index).align.value"
                             :label="t('backend.posts.banner.slot_align')"
@@ -163,6 +200,15 @@ const {
                         <Plus class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ t("backend.posts.banner.add_image") }}
                     </AppButton>
+                    <AppButton
+                        variant="ghost"
+                        size="md"
+                        :disabled="!canAddItem"
+                        v-on:click="addItem('button')"
+                    >
+                        <Plus class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ t("backend.posts.banner.add_button") }}
+                    </AppButton>
                 </div>
             </div>
 
@@ -181,6 +227,11 @@ const {
                         v-model="fields.height.value"
                         :label="t('backend.posts.banner.height')"
                         :options="heightOptions"
+                    />
+                    <AppSelect
+                        v-model="fields.verticalAlign.value"
+                        :label="t('backend.posts.banner.vertical_align')"
+                        :options="verticalAlignOptions"
                     />
                 </div>
 

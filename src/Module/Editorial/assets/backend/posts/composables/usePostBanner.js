@@ -62,9 +62,14 @@ function newItem(type) {
         titleColor: null,
         descriptionColor: null,
         align: "start",
+        titleSize: "md",
         mediaId: null,
         alt: "",
         media: null,
+        label: "",
+        url: "",
+        buttonColor: null,
+        buttonTextColor: null,
     };
 }
 
@@ -141,6 +146,12 @@ export function usePostBanner(banner) {
             () => banner.value.width,
             (value) => {
                 banner.value.width = value;
+            },
+        ),
+        verticalAlign: writable(
+            () => banner.value.verticalAlign,
+            (value) => {
+                banner.value.verticalAlign = value;
             },
         ),
         fillType: writable(
@@ -237,7 +248,12 @@ export function usePostBanner(banner) {
                 titleColor: scalar("titleColor"),
                 descriptionColor: scalar("descriptionColor"),
                 align: scalar("align"),
+                titleSize: scalar("titleSize"),
                 alt: scalar("alt"),
+                label: scalar("label"),
+                url: scalar("url"),
+                buttonColor: scalar("buttonColor"),
+                buttonTextColor: scalar("buttonTextColor"),
                 // The width control drives the large-screen span only. Below
                 // that an item stays full width, which is what the stored
                 // `base` says and what reads best on a phone.
@@ -262,6 +278,8 @@ export function usePostBanner(banner) {
         alignOptions,
         fillOptions,
         widthModeOptions,
+        verticalAlignOptions,
+        titleSizeOptions,
         widthOptions,
         items,
         canAddItem,

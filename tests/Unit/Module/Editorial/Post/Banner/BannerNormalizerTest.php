@@ -121,6 +121,48 @@ final class BannerNormalizerTest extends TestCase
         self::assertSame(48, $banner['items'][0]['span']['lg']);
     }
 
+    /**
+     * A button's link lands in an `href`, so the whitelist is the guard. These
+     * are the cases a blocklist would have let through.
+     */
+    public function testOnlyKnownSafeLinkSchemesSurvive(): void
+    {
+        $url = fn (string $value): ?string => $this->normalizer->normalize([
+            'items' => [['type' => 'button', 'url' => $value]],
+        ])['items'][0]['url'];
+
+        self::assertSame('/fr/contact', $url('/fr/contact'));
+        self::assertSame('https://example.org', $url('https://example.org'));
+        self::assertSame('mailto:a@b.c', $url('mailto:a@b.c'));
+        self::assertSame('#ancre', $url('#ancre'));
+
+        self::assertNull($url('javascript:alert(1)'));
+        self::assertNull($url('JaVaScRiPt:alert(1)'), 'the check is case-insensitive');
+        self::assertNull($url('data:text/html,<script>'));
+        self::assertNull($url('ftp://example.org'));
+    }
+
+    public function testAButtonIsAFirstClassItemType(): void
+    {
+        $item = $this->normalizer->normalize([
+            'items' => [['type' => 'button', 'label' => 'Découvrir', 'url' => '/fr/a-propos']],
+        ])['items'][0];
+
+        self::assertSame('button', $item['type']);
+        self::assertSame('Découvrir', $item['label']);
+    }
+
+    public function testTitleSizeAndVerticalAlignmentAreWhitelisted(): void
+    {
+        $banner = $this->normalizer->normalize([
+            'verticalAlign' => 'bottom',
+            'items' => [['type' => 'text', 'titleSize' => 'enormous']],
+        ]);
+
+        self::assertSame('center', $banner['verticalAlign'], 'unknown alignment falls back to centred');
+        self::assertSame('md', $banner['items'][0]['titleSize']);
+    }
+
     public function testUnknownEnumValuesFallBackInsteadOfPersisting(): void
     {
         $banner = $this->normalizer->normalize([

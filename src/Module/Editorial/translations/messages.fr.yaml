@@ -203,6 +203,7 @@ backend:
       item_types:
         text: Texte
         image: Image
+        button: Bouton
       width: Largeur sur grand écran
       widths:
         full: Pleine largeur
@@ -211,6 +212,24 @@ backend:
         half: Moitié
         third: Un tiers
         quarter: Un quart
+      vertical_align: Position verticale
+      verticals:
+        start: En haut
+        center: Au milieu
+        end: En bas
+      title_size: Taille du titre
+      title_sizes:
+        sm: Petite
+        md: Normale
+        lg: Grande
+        xl: Très grande
+      add_button: Ajouter un bouton
+      button_label: Libellé du bouton
+      button_label_placeholder: Découvrir
+      button_url: Lien
+      button_url_placeholder: /fr/a-propos
+      button_color: Couleur du bouton
+      button_text_color: Couleur du texte du bouton
       appearance: Apparence
       logo_hint: Affiché en haut à gauche, par-dessus le fond.
       fill: Type de fond

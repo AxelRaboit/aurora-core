@@ -33,6 +33,8 @@ final readonly class BannerNormalizer
 
     public const string ITEM_IMAGE = 'image';
 
+    public const string ITEM_BUTTON = 'button';
+
     public const string WIDTH_CONTAINED = 'contained';
 
     public const string WIDTH_FULL = 'full';
@@ -61,7 +63,18 @@ final readonly class BannerNormalizer
      */
     private const int MAX_ITEMS = 6;
 
-    private const array ITEM_TYPES = [self::ITEM_TEXT, self::ITEM_IMAGE];
+    private const array ITEM_TYPES = [self::ITEM_TEXT, self::ITEM_IMAGE, self::ITEM_BUTTON];
+
+    private const array TITLE_SIZES = ['sm', 'md', 'lg', 'xl'];
+
+    private const array VERTICAL_ALIGNMENTS = ['start', 'center', 'end'];
+
+    /**
+     * Schemes a banner link may use. `javascript:` and `data:` are the reason
+     * this is a whitelist rather than a blocklist — the value lands in an
+     * `href`, and an author is not the only one who can reach this field.
+     */
+    private const array URL_PREFIXES = ['/', '#', 'http://', 'https://', 'mailto:', 'tel:'];
 
     private const array FILL_TYPES = [self::FILL_NONE, self::FILL_SOLID, self::FILL_GRADIENT];
 
@@ -90,6 +103,9 @@ final readonly class BannerNormalizer
             // Where the banner sits: inside the article column like the rest of
             // the page, or spanning the viewport flush under the top bar.
             'width' => $this->oneOf($data['width'] ?? null, self::WIDTHS, self::WIDTH_CONTAINED),
+            // Where the content sits in a banner taller than it needs: pinned
+            // to the top, centred, or dropped to the bottom.
+            'verticalAlign' => $this->oneOf($data['verticalAlign'] ?? null, self::VERTICAL_ALIGNMENTS, 'center'),
             'logoMediaId' => $this->id($data['logoMediaId'] ?? null),
             'background' => $this->background(is_array($data['background'] ?? null) ? $data['background'] : []),
             'items' => $this->items($data),
@@ -164,8 +180,13 @@ final readonly class BannerNormalizer
                 'titleColor' => $this->color($entry['titleColor'] ?? null),
                 'descriptionColor' => $this->color($entry['descriptionColor'] ?? null),
                 'align' => $this->oneOf($entry['align'] ?? null, self::ALIGNMENTS, 'start'),
+                'titleSize' => $this->oneOf($entry['titleSize'] ?? null, self::TITLE_SIZES, 'md'),
                 'mediaId' => $this->id($entry['mediaId'] ?? null),
                 'alt' => $this->text($entry['alt'] ?? null),
+                'label' => $this->text($entry['label'] ?? null),
+                'url' => $this->url($entry['url'] ?? null),
+                'buttonColor' => $this->color($entry['buttonColor'] ?? null),
+                'buttonTextColor' => $this->color($entry['buttonTextColor'] ?? null),
             ];
         }
 
@@ -259,6 +280,28 @@ final readonly class BannerNormalizer
     private function color(mixed $value): ?string
     {
         return is_string($value) && 1 === preg_match(self::HEX_COLOR, $value) ? mb_strtolower($value) : null;
+    }
+
+    /**
+     * A link is kept only if it starts with something known-safe. The value
+     * ends up in an `href`, so `javascript:` and `data:` are the whole reason
+     * this is a whitelist — a blocklist is a guess about what else exists.
+     */
+    private function url(mixed $value): ?string
+    {
+        $url = $this->text($value);
+
+        if ('' === $url) {
+            return null;
+        }
+
+        foreach (self::URL_PREFIXES as $prefix) {
+            if (str_starts_with(mb_strtolower($url), $prefix)) {
+                return $url;
+            }
+        }
+
+        return null;
     }
 
     private function id(mixed $value): ?int
