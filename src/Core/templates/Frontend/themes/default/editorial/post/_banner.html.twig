@@ -1,0 +1,83 @@
+{# Post banner — rendered above the article when the translation configures one.
+   `banner` comes from BannerViewBuilder and is null when disabled or empty, so
+   the caller guards on it rather than this file second-guessing.
+
+   Classes are written out literally in the maps below rather than built by
+   concatenation: Tailwind scans source text, and a class assembled at runtime
+   is a class it never sees and never emits. #}
+
+{% set heights = {
+    sm: 'min-h-48',
+    md: 'min-h-72',
+    lg: 'min-h-[32rem]',
+    full: 'min-h-screen',
+} %}
+
+{# Only meaningful when both slots are filled; a lone slot spans the row. #}
+{% set ratios = {
+    '50-50': 'md:grid-cols-2',
+    '33-67': 'md:grid-cols-[1fr_2fr]',
+    '67-33': 'md:grid-cols-[2fr_1fr]',
+} %}
+
+{% set alignments = {
+    start: 'text-left items-start',
+    center: 'text-center items-center',
+    end: 'text-right items-end',
+} %}
+
+{% set filledSlots = banner.slots|filter(slot => slot.type != 'none') %}
+
+<header
+    {# flex column, so the inner grid can claim the leftover height. `h-full`
+       on it would not: the header's own height is auto, and a percentage
+       height against min-height resolves to nothing. #}
+    class="relative isolate flex flex-col overflow-hidden rounded-xl not-prose mb-8 {{ heights[banner.height] }}"
+    {% if banner.background.color %}style="background-color: {{ banner.background.color }};"{% endif %}
+>
+    {% if banner.background.media %}
+        <img
+            src="{{ banner.background.media.url }}"
+            alt=""
+            aria-hidden="true"
+            class="absolute inset-0 -z-10 h-full w-full object-cover"
+            style="object-position: {{ banner.background.media.focalPosition }};"
+        >
+        {% if banner.background.overlay > 0 %}
+            {# Darkens the picture so slot text stays readable over it. #}
+            <div class="absolute inset-0 -z-10 bg-black" style="opacity: {{ banner.background.overlay / 100 }};"></div>
+        {% endif %}
+    {% endif %}
+
+    {% if banner.logo %}
+        <img src="{{ banner.logo.url }}" alt="{{ banner.logo.alt }}" class="absolute top-6 left-6 z-10 h-10 w-auto">
+    {% endif %}
+
+    <div class="grid flex-1 grid-cols-1 gap-8 p-8 sm:p-12 {{ filledSlots|length > 1 ? ratios[banner.ratio] : '' }}">
+        {% for slot in banner.slots %}
+            {% if slot.type == 'text' %}
+                <div class="flex flex-col justify-center gap-3 {{ alignments[slot.align] }}">
+                    {% if slot.title %}
+                        <p class="text-3xl sm:text-4xl font-bold leading-tight"
+                           {% if slot.titleColor %}style="color: {{ slot.titleColor }};"{% endif %}
+                        >{{ slot.title }}</p>
+                    {% endif %}
+                    {% if slot.description %}
+                        <p class="text-base sm:text-lg max-w-prose"
+                           {% if slot.descriptionColor %}style="color: {{ slot.descriptionColor }};"{% endif %}
+                        >{{ slot.description }}</p>
+                    {% endif %}
+                </div>
+            {% elseif slot.type == 'image' and slot.media %}
+                <div class="flex items-center justify-center">
+                    <img
+                        src="{{ slot.media.url }}"
+                        alt="{{ slot.media.alt }}"
+                        class="max-h-full w-full rounded-lg object-cover"
+                        style="object-position: {{ slot.media.focalPosition }};"
+                    >
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</header>

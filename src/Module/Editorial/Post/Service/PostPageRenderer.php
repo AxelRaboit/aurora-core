@@ -8,6 +8,7 @@ use Aurora\Core\Frontend\Service\Context;
 use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Configuration\Theme\Service\ThemeResolver;
 use Aurora\Module\Editorial\Comment\Manager\CommentManagerInterface;
+use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Seo\Service\AlternatesBuilder;
@@ -36,6 +37,7 @@ final readonly class PostPageRenderer
         private AlternatesBuilder $alternatesBuilder,
         private DocumentUrlGenerator $documentUrlGenerator,
         private CommentManagerInterface $commentManager,
+        private BannerViewBuilder $bannerViewBuilder,
     ) {}
 
     public function render(PostInterface $post, string $locale): Response
@@ -59,6 +61,9 @@ final readonly class PostPageRenderer
             ],
             'translationData' => $this->translationData($translation, $post->getFeaturedMedia()),
             'featuredMediaData' => $this->mediaData($post->getFeaturedMedia()),
+            // null when the banner is off or empty, which is what the template
+            // reads to fall back to the plain title header.
+            'banner' => $this->bannerViewBuilder->build($translation->getBanner()),
             'content' => $this->blocksRenderer->render($translation->getBlocks(), $locale),
             'terms' => $this->postTerms($post, $locale),
             'alternates' => $this->alternatesBuilder->forPost($post),

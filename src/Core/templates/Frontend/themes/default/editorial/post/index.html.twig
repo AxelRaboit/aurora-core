@@ -16,10 +16,19 @@
 
 {% block body %}
 <article class="prose max-w-none">
-    <h1>{{ translationData.title }}</h1>
+    {% if banner %}
+        {{ include('Frontend/themes/default/editorial/post/_banner.html.twig', {banner: banner}) }}
+    {% endif %}
 
-    {% if translationData.description %}
-        <p class="lead text-secondary">{{ translationData.description }}</p>
+    {# The banner carries its own title and description, so repeating the
+       plain header under it would print everything twice. A post without a
+       banner keeps the header it always had. #}
+    {% if not banner %}
+        <h1>{{ translationData.title }}</h1>
+
+        {% if translationData.description %}
+            <p class="lead text-secondary">{{ translationData.description }}</p>
+        {% endif %}
     {% endif %}
 
     {% if featuredMediaData %}
