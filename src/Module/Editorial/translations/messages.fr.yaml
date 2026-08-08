@@ -297,10 +297,12 @@ backend:
     content: Contenu
     content_placeholder: "Écrivez, ou appuyez sur Tab pour un bloc…"
     custom_fields: Champs personnalisés
+    identity_hint: "Servent à retrouver la publication dans la liste et sur les cartes qui la présentent. Ils coiffent aussi la page, mais seulement si l'en-tête personnalisé n'a pas de titre."
     seo: Moteurs de recherche
     tabs:
       content: Contenu
       header: En-tête
+      settings: Paramétrage
       seo: Moteurs de recherche
     terms: Termes
     featured_media: Image à la une
@@ -309,7 +311,6 @@ backend:
     field_slug: Slug
     slug_hint: "Laissé vide, il est déduit du titre. Le modifier garde l'ancienne URL fonctionnelle."
     field_description: Résumé
-    description_hint: "Affiché sous le titre et sur les cartes de liste. Ce n'est pas l'extrait de recherche."
     field_post_type: Type de contenu
     field_status: Statut
     field_scheduled_at: Publier le

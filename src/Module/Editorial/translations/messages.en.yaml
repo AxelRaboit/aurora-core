@@ -297,10 +297,12 @@ backend:
     content: Content
     content_placeholder: 'Write, or press Tab for a block…'
     custom_fields: Custom fields
+    identity_hint: "Used to find this publication in the list and on any card that presents it. They also head the page itself, but only when the custom header carries no title."
     seo: Search engines
     tabs:
       content: Content
       header: Header
+      settings: Settings
       seo: Search engines
     terms: Terms
     featured_media: Featured image
@@ -309,7 +311,6 @@ backend:
     field_slug: Slug
     slug_hint: 'Left blank, it is derived from the title. Changing it keeps the old URL working.'
     field_description: Summary
-    description_hint: 'Shown under the title and on listing cards. Not the search snippet.'
     field_post_type: Content type
     field_status: Status
     field_scheduled_at: Publish at
