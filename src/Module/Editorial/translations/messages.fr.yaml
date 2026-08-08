@@ -190,6 +190,7 @@ backend:
       width_mode: Placement
       width_modes:
         contained: Dans la colonne
+        full_aligned: Pleine largeur, contenu aligné
         full: Pleine largeur, collé à la barre
       height: Hauteur
       clear_color: Effacer la couleur

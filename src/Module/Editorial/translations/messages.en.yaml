@@ -190,6 +190,7 @@ backend:
       width_mode: Placement
       width_modes:
         contained: In the article column
+        full_aligned: Full width, content aligned
         full: Full width, flush with the bar
       height: Height
       clear_color: Clear colour

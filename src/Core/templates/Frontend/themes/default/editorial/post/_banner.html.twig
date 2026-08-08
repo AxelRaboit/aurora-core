@@ -23,12 +23,24 @@
     end: 'text-right items-end',
 } %}
 
-{# Contained sits in the article column, rounded and spaced like a card.
-   Full spans the viewport flush under the top bar, so it drops the rounding
-   and the margin — a corner radius against the window edge reads as a
-   mistake, and the gap it would leave is the thing being removed. Inner
-   padding grows to keep the text off the window edge. #}
-{% set isFull = banner.width == 'full' %}
+{# Three placements:
+   - contained    — the banner sits in the article column, rounded like a card
+   - full_aligned — background spans the viewport, content keeps the page's
+                    own left edge, so the title lines up with the text below
+   - full         — background and content both span, edge to edge
+
+   The two full modes drop the rounding: a corner radius against the window
+   edge reads as a mistake.
+
+   `full_aligned` mirrors <main>'s own box — max-w-7xl, centred, px-4 — rather
+   than guessing a value, so the two stay aligned if that ever changes. #}
+{% set isFull = banner.width starts with 'full' %}
+
+{% set contentBox = {
+    contained: 'p-8 sm:p-12',
+    full_aligned: 'w-full max-w-7xl mx-auto px-4 py-8 sm:py-12',
+    full: 'p-8 sm:p-12 lg:px-16',
+} %}
 
 <header
     {# flex column, so the inner grid can claim the leftover height. `h-full`
@@ -57,7 +69,7 @@
         <img src="{{ banner.logo.url }}" alt="{{ banner.logo.alt }}" class="absolute top-6 left-6 z-10 h-10 w-auto">
     {% endif %}
 
-    <div class="aurora-grid flex-1 gap-8 {{ isFull ? 'p-8 sm:p-12 lg:px-16' : 'p-8 sm:p-12' }}">
+    <div class="aurora-grid flex-1 gap-8 {{ contentBox[banner.width] }}">
         {% for item in banner.items %}
             <div style="{{ item.spanStyle|raw }}">
                 {% if item.type == 'text' %}

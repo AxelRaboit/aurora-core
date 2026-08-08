@@ -18,14 +18,14 @@
    room for anything that has to span the viewport. Inside <main> it would be
    capped by max-w-7xl and inset by its padding. #}
 {% block frontend_banner %}
-    {% if banner and banner.width == 'full' %}
+    {% if banner and banner.width starts with 'full' %}
         {{ include('Frontend/themes/default/editorial/post/_banner.html.twig', {banner: banner}) }}
     {% endif %}
 {% endblock %}
 
 {% block body %}
 <article class="prose max-w-none">
-    {% if banner and banner.width != 'full' %}
+    {% if banner and not (banner.width starts with 'full') %}
         {{ include('Frontend/themes/default/editorial/post/_banner.html.twig', {banner: banner}) }}
     {% endif %}
 

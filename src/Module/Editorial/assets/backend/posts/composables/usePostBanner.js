@@ -82,7 +82,10 @@ export function usePostBanner(banner) {
     const heightOptions = options(["sm", "md", "lg", "full"], "heights");
     const alignOptions = options(["start", "center", "end"], "aligns");
     const fillOptions = options(["none", "solid", "gradient"], "fills");
-    const widthModeOptions = options(["contained", "full"], "width_modes");
+    const widthModeOptions = options(
+        ["contained", "full_aligned", "full"],
+        "width_modes",
+    );
 
     const widthOptions = computed(() =>
         WIDTHS.map(({ columns, key }) => ({

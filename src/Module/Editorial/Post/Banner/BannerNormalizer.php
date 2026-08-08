@@ -37,6 +37,14 @@ final readonly class BannerNormalizer
 
     public const string WIDTH_FULL = 'full';
 
+    /**
+     * Background spans the viewport, content keeps the page's own left edge.
+     * Usually what "full width" is meant to look like: at 1920px the two
+     * differ by 267 pixels, and a title that starts nowhere near the text
+     * under it reads as a mistake rather than a choice.
+     */
+    public const string WIDTH_FULL_ALIGNED = 'full_aligned';
+
     public const string FILL_NONE = 'none';
 
     public const string FILL_SOLID = 'solid';
@@ -59,7 +67,7 @@ final readonly class BannerNormalizer
 
     private const array HEIGHTS = ['sm', 'md', 'lg', 'full'];
 
-    private const array WIDTHS = [self::WIDTH_CONTAINED, self::WIDTH_FULL];
+    private const array WIDTHS = [self::WIDTH_CONTAINED, self::WIDTH_FULL_ALIGNED, self::WIDTH_FULL];
 
     private const array ALIGNMENTS = ['start', 'center', 'end'];
 
