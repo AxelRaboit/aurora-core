@@ -95,7 +95,7 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > SEO (sitemap / robots / RSS), Comment et Form. Chaque domaine a été
 > vérifié contre un serveur qui tourne avant d'être commité.
 >
-> **Démo bnb rétablie** (`aurora-myspace`, groupe `bnb`) : six chambres à
+> **Démo bnb rétablie** (`aurora-client`, groupe `demo`) : six chambres à
 > champs personnalisés, six pages, menus imbriqués, et une page qui exerce
 > tous les types de bloc. C'est le plus gros usage de l'API Editorial nulle
 > part ailleurs, donc la vraie recette de la reconstruction — elle a d'ailleurs

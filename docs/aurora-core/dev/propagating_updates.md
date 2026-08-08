@@ -43,8 +43,7 @@ via le dépôt VCS GitHub (composer) :
 
 | Projet | Chemin local | Rôle | Notes |
 |---|---|---|---|
-| **aurora-client** | `../aurora-client/` | **Projet modèle / référence** | Gabarit canonique de tout projet consommateur. **À mettre à jour en premier** (canari). Reste minimal et propre : c'est lui qui valide le `client_template`. |
-| aurora-myspace | `../aurora-myspace/` | Projet consommateur | Consomme `axelraboit/aurora: dev-develop`. Module Editorial installé. |
+| **aurora-client** | `../aurora-client/` | **Projet modèle / référence** | Gabarit canonique de tout projet consommateur. **À mettre à jour en premier** (canari). Reste minimal et propre : c'est lui qui valide le `client_template`. Anciennement `aurora-myspace`, renommé en août 2026 ; l'ancien dépôt est conservé en lecture seule sous `aurora-client-backup`. |
 
 > _Ajouter ici tout nouveau projet consommant `axelraboit/aurora`._
 
@@ -126,7 +125,6 @@ Un garde-fou (`_no-recent-aurora-update`) refuse `pull-update` juste après un
 ## Checklist (copier à chaque propagation)
 
 - [ ] `git push origin develop` (aurora-core)
-- [ ] aurora-client : `make aurora-update` → vérif build/DI OK → commit bump
-- [ ] aurora-myspace : `make aurora-update` → `make ft` vert → commit bump
+- [ ] aurora-client : `make aurora-update` → `make ft` vert → commit bump
 - [ ] _(répéter pour tout nouveau projet du tableau)_
 - [ ] Backups DB faits si le bump contient une migration

@@ -29,7 +29,7 @@
 | [frontend_theme_override.md](dev/frontend_theme_override.md) | `ThemeResolver` — système de fallback des templates frontend |
 | [per_user_module_access.md](dev/per_user_module_access.md) | Toggle modules par utilisateur (`UserModuleAccess`) |
 | [single_locale_mode.md](dev/single_locale_mode.md) | Mode mono-langue — bascule chaude, effets sur routes/forms/fixtures |
-| [propagating_updates.md](dev/propagating_updates.md) | Propager une mise à jour d'aurora-core aux projets consommateurs (aurora-client = modèle, aurora-myspace) — procédure `make aurora-update`, releases plus tard |
+| [propagating_updates.md](dev/propagating_updates.md) | Propager une mise à jour d'aurora-core aux projets consommateurs (aurora-client = modèle / canari) — procédure `make aurora-update`, releases plus tard |
 
 ## ops/ — Prérequis bundle
 
