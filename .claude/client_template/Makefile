@@ -357,6 +357,11 @@ fix-rector: ## Apply Rector suggestions
 	$(RECTOR) process -c $(RECTOR_CONFIG)
 
 fix: ## Run all fixers + stan
+	# First, mirroring CI: `composer validate` is its opening step, so a stale
+	# lock fails the pipeline before any other check runs. Renaming the package
+	# invalidates the lock's content hash, and without this the only way to
+	# find out is a red pipeline.
+	$(COMPOSER) validate
 	make fix-js
 	make fix-twig
 	make fix-rector
