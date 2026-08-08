@@ -66,7 +66,17 @@ if ! grep -qxF "${DIVIDER}" "${CLIENT_ENV}"; then
 fi
 
 # ── Step 2: enumerate aurora/* blocks declared in vendor .env ────────
-mapfile -t vendor_blocks < <(
+# `mapfile` is a bash 4 builtin. macOS ships bash 3.2 — Apple never moved
+# past it — so on a Mac this line aborted the script outright and took
+# `make aurora-update` down with it. A read loop is equivalent and runs on
+# both. `if` rather than `&&` because `set -e` is on: an empty last line
+# would make the loop body exit non-zero and kill the script.
+vendor_blocks=()
+while IFS= read -r block; do
+    if [[ -n "${block}" ]]; then
+        vendor_blocks+=("${block}")
+    fi
+done < <(
     grep -oE '^###> aurora/[a-zA-Z0-9_-]+ ###' "${VENDOR_ENV}" \
         | sed -E 's/^###> (aurora\/[a-zA-Z0-9_-]+) ###$/\1/' \
         | sort -u
