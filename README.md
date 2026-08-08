@@ -158,8 +158,12 @@ make fixtures
 ### Développement
 
 ```bash
-make start              # serveur Symfony + Vite HMR
+make start              # serveur Symfony (démarré en arrière-plan)
+make watch              # Vite HMR — dans un second terminal
 ```
+
+`make start` ne lance plus Vite : les deux serveurs sont indépendants, et un
+site sans assets à recompiler n'a pas besoin du watcher.
 
 ### Production
 
@@ -214,7 +218,8 @@ E2E_FULL=1 pnpm test:e2e
 
 ```bash
 # Développement
-make start              # serveur Symfony + Vite HMR
+make start              # serveur Symfony (démarré en arrière-plan)
+make watch              # Vite HMR (second terminal)
 make stop               # arrêter les services Docker
 
 # Tests

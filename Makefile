@@ -142,9 +142,11 @@ mailpit-logs: ## Tail mailpit logs
 	docker compose logs -f mailer
 
 # === Symfony ===
-start: ## Start dev server + Vite dev server
+start: ## Start dev server
 	@docker compose up -d mailer 2>/dev/null || true
 	symfony server:start -d
+
+watch: ## Start Vite dev server (asset watcher)
 	$(PNPM) --dir=$(AURORA) run dev
 
 start-no-tls: ## Start dev server without TLS
