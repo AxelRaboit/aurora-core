@@ -41,7 +41,7 @@ final readonly class BannerViewBuilder
         // A banner whose every slot is empty and which carries no background
         // would render as a coloured void. Treat it as off rather than as a
         // layout choice — an author who cleared everything meant to remove it.
-        $hasContent = null !== $banner['background']['color']
+        $hasContent = null !== $banner['background']['fillStyle']
             || null !== $banner['background']['media']
             || [] !== array_filter(
                 $banner['slots'],
@@ -87,6 +87,10 @@ final readonly class BannerViewBuilder
             'background' => [
                 ...$banner['background'],
                 'media' => $this->mediaData($documents[$banner['background']['mediaId']] ?? null, ''),
+                // Built here rather than in Twig so one place knows how a fill
+                // becomes CSS. Safe to assemble as a string: the normaliser has
+                // already reduced every part to a hex colour or an integer.
+                'fillStyle' => $this->fillStyle($banner['background']),
             ],
             'logo' => $this->mediaData($documents[$banner['logoMediaId']] ?? null, ''),
         ];
@@ -116,6 +120,32 @@ final readonly class BannerViewBuilder
         }
 
         return $documents;
+    }
+
+    /**
+     * @param array<string, mixed> $background
+     *
+     * @return string|null the CSS declaration, or null when nothing is filled
+     */
+    private function fillStyle(array $background): ?string
+    {
+        return match ($background['type']) {
+            BannerNormalizer::FILL_SOLID => null !== $background['color']
+                ? sprintf('background-color: %s;', $background['color'])
+                : null,
+            // Both stops are required: a gradient with one colour is a solid
+            // fill the author did not ask for, and guessing the other end
+            // would be inventing a design decision.
+            BannerNormalizer::FILL_GRADIENT => null !== $background['gradientFrom'] && null !== $background['gradientTo']
+                ? sprintf(
+                    'background-image: linear-gradient(%ddeg, %s, %s);',
+                    $background['gradientAngle'],
+                    $background['gradientFrom'],
+                    $background['gradientTo'],
+                )
+                : null,
+            default => null,
+        };
     }
 
     /** @return array<string, mixed>|null */

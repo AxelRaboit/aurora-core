@@ -91,6 +91,64 @@ final class BannerNormalizerTest extends TestCase
         self::assertNull($banner['slots'][0]['descriptionColor'], 'three-digit hex is not accepted');
     }
 
+    public function testTheFillTypeIsWhitelistedAndDefaultsToNone(): void
+    {
+        self::assertSame('none', $this->normalizer->normalize([])['background']['type']);
+        self::assertSame(
+            'gradient',
+            $this->normalizer->normalize(['background' => ['type' => 'gradient']])['background']['type'],
+        );
+        self::assertSame(
+            'none',
+            $this->normalizer->normalize(['background' => ['type' => 'radial']])['background']['type'],
+            'an unknown fill is refused rather than persisted',
+        );
+    }
+
+    /**
+     * Banners written before the fill type existed carry a colour and no type.
+     * Reading those as "no fill" would strip a background someone chose.
+     */
+    public function testALegacyBannerWithAColourAndNoTypeReadsAsSolid(): void
+    {
+        $background = $this->normalizer->normalize([
+            'background' => ['color' => '#0f172a', 'overlay' => 0],
+        ])['background'];
+
+        self::assertSame('solid', $background['type']);
+        self::assertSame('#0f172a', $background['color']);
+    }
+
+    public function testAnExplicitNoneIsHonouredEvenWithAColourStillStored(): void
+    {
+        $background = $this->normalizer->normalize([
+            'background' => ['type' => 'none', 'color' => '#0f172a'],
+        ])['background'];
+
+        self::assertSame('none', $background['type'], 'the upgrade only applies when no type was written at all');
+    }
+
+    public function testGradientStopsAreColoursAndTheAngleIsClamped(): void
+    {
+        $background = $this->normalizer->normalize([
+            'background' => [
+                'type' => 'gradient',
+                'gradientFrom' => '#112233',
+                'gradientTo' => 'rgb(0,0,0)',
+                'gradientAngle' => 900,
+            ],
+        ])['background'];
+
+        self::assertSame('#112233', $background['gradientFrom']);
+        self::assertNull($background['gradientTo'], 'only hex is accepted, as for every other colour');
+        self::assertSame(360, $background['gradientAngle']);
+    }
+
+    public function testTheGradientAngleDefaultsToTopDown(): void
+    {
+        self::assertSame(180, $this->normalizer->normalize([])['background']['gradientAngle']);
+    }
+
     public function testOverlayIsClampedToAPercentage(): void
     {
         self::assertSame(0, $this->normalizer->normalize(['background' => ['overlay' => -40]])['background']['overlay']);

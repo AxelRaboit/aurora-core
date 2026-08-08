@@ -33,7 +33,15 @@ final readonly class BannerNormalizer
     /** Both slots always exist; an unused one is `none` rather than absent. */
     private const int SLOT_COUNT = 2;
 
+    public const string FILL_NONE = 'none';
+
+    public const string FILL_SOLID = 'solid';
+
+    public const string FILL_GRADIENT = 'gradient';
+
     private const array SLOT_TYPES = [self::SLOT_NONE, self::SLOT_TEXT, self::SLOT_IMAGE];
+
+    private const array FILL_TYPES = [self::FILL_NONE, self::FILL_SOLID, self::FILL_GRADIENT];
 
     private const array HEIGHTS = ['sm', 'md', 'lg', 'full'];
 
@@ -72,7 +80,20 @@ final readonly class BannerNormalizer
     private function background(array $data): array
     {
         return [
+            // Explicit rather than inferred from which colours are filled:
+            // going back from a gradient to a flat colour then means picking
+            // "solid", not clearing two fields and hoping.
+            //
+            // The one exception is a banner written before this field existed:
+            // it has a colour and no type, and reading it as "no fill" would
+            // silently strip a background someone chose. Absent *and* coloured
+            // upgrades to solid; present but unknown still falls back to none.
+            'type' => $this->fillType($data),
             'color' => $this->color($data['color'] ?? null),
+            'gradientFrom' => $this->color($data['gradientFrom'] ?? null),
+            'gradientTo' => $this->color($data['gradientTo'] ?? null),
+            // Degrees, the CSS sense: 0 points up, 180 down.
+            'gradientAngle' => max(0, min(360, (int) ($data['gradientAngle'] ?? 180))),
             'mediaId' => $this->id($data['mediaId'] ?? null),
             // Percentage, so a background image can be darkened enough for
             // text to stay readable over it.
@@ -109,6 +130,16 @@ final readonly class BannerNormalizer
         }
 
         return $slots;
+    }
+
+    /** @param array<string, mixed> $data */
+    private function fillType(array $data): string
+    {
+        if (!array_key_exists('type', $data) && null !== $this->color($data['color'] ?? null)) {
+            return self::FILL_SOLID;
+        }
+
+        return $this->oneOf($data['type'] ?? null, self::FILL_TYPES, self::FILL_NONE);
     }
 
     /** @param list<string> $allowed */

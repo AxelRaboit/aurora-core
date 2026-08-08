@@ -33,7 +33,9 @@
        on it would not: the header's own height is auto, and a percentage
        height against min-height resolves to nothing. #}
     class="relative isolate flex flex-col overflow-hidden rounded-xl not-prose mb-8 {{ heights[banner.height] }}"
-    {% if banner.background.color %}style="background-color: {{ banner.background.color }};"{% endif %}
+    {# Already a CSS declaration built from hex-validated parts by
+       BannerViewBuilder, so `raw` here is not a hole. #}
+    {% if banner.background.fillStyle %}style="{{ banner.background.fillStyle|raw }}"{% endif %}
 >
     {% if banner.background.media %}
         <img

@@ -29,7 +29,17 @@ export function emptyBanner() {
         ratio: "50-50",
         logoMediaId: null,
         logo: null,
-        background: { color: null, mediaId: null, overlay: 0, media: null },
+        background: {
+            type: "none",
+            color: null,
+            gradientFrom: null,
+            gradientTo: null,
+            gradientAngle: 180,
+            mediaId: null,
+            overlay: 0,
+            media: null,
+            fillStyle: null,
+        },
         slots: [emptyBannerSlot(), emptyBannerSlot()],
     };
 }

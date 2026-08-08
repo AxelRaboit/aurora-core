@@ -30,10 +30,14 @@ const {
     ratioOptions,
     slotTypeOptions,
     alignOptions,
+    fillOptions,
     presetOptions,
     applyPreset,
     bothSlotsFilled,
     hasBackgroundImage,
+    isSolidFill,
+    isGradientFill,
+    fillPreviewStyle,
     fields,
     slotFields,
 } = usePostBanner(computed(() => props.banner));
@@ -142,10 +146,54 @@ const slotLabels = computed(() => [
                     />
                 </div>
 
-                <BannerColorField
-                    v-model="fields.backgroundColor.value"
-                    :label="t('backend.posts.banner.background_color')"
-                />
+                <div class="space-y-3">
+                    <div class="flex items-end gap-3">
+                        <AppSelect
+                            v-model="fields.fillType.value"
+                            :label="t('backend.posts.banner.fill')"
+                            :options="fillOptions"
+                            class="flex-1"
+                        />
+                        <!-- Live swatch of the fill: the panel has no preview
+                             of the banner yet, and a gradient's direction is
+                             not something to discover after saving. -->
+                        <span
+                            v-if="fillPreviewStyle"
+                            class="h-9 w-16 shrink-0 rounded-md border border-line"
+                            :style="fillPreviewStyle"
+                        />
+                    </div>
+
+                    <BannerColorField
+                        v-if="isSolidFill"
+                        v-model="fields.backgroundColor.value"
+                        :label="t('backend.posts.banner.background_color')"
+                    />
+
+                    <template v-if="isGradientFill">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <BannerColorField
+                                v-model="fields.gradientFrom.value"
+                                :label="t('backend.posts.banner.gradient_from')"
+                            />
+                            <BannerColorField
+                                v-model="fields.gradientTo.value"
+                                :label="t('backend.posts.banner.gradient_to')"
+                            />
+                        </div>
+                        <div>
+                            <p class="text-sm text-secondary mb-1">
+                                {{ t("backend.posts.banner.gradient_angle", { degrees: fields.gradientAngle.value }) }}
+                            </p>
+                            <AppRange
+                                v-model="fields.gradientAngle.value"
+                                :min="0"
+                                :max="360"
+                                :step="15"
+                            />
+                        </div>
+                    </template>
+                </div>
 
                 <AppImagePickerField
                     v-model="fields.backgroundMedia.value"

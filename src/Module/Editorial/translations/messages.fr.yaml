@@ -203,6 +203,14 @@ backend:
       clear_color: Effacer la couleur
       appearance: Apparence
       logo_hint: Affiché en haut à gauche, par-dessus le fond.
+      fill: Type de fond
+      fills:
+        none: Aucun
+        solid: Couleur unie
+        gradient: Dégradé
+      gradient_from: Couleur de départ
+      gradient_to: Couleur d'arrivée
+      gradient_angle: 'Orientation : {degrees}°'
       background_color: Couleur de fond
       background_image: Image de fond
       background_image_hint: Placée derrière le contenu, recadrée selon son point focal.

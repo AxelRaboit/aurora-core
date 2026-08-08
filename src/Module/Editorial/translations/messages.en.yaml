@@ -203,6 +203,14 @@ backend:
       clear_color: Clear colour
       appearance: Appearance
       logo_hint: Shown top left, over the background.
+      fill: Background type
+      fills:
+        none: None
+        solid: Solid colour
+        gradient: Gradient
+      gradient_from: From
+      gradient_to: To
+      gradient_angle: 'Direction: {degrees}°'
       background_color: Background colour
       background_image: Background image
       background_image_hint: Sits behind the content, cropped to its focal point.

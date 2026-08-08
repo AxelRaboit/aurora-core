@@ -53,6 +53,7 @@ export function usePostBanner(banner) {
     const ratioOptions = options(["50-50", "33-67", "67-33"], "ratios");
     const slotTypeOptions = options(["none", "text", "image"], "slot_types");
     const alignOptions = options(["start", "center", "end"], "aligns");
+    const fillOptions = options(["none", "solid", "gradient"], "fills");
 
     /**
      * The ratio only decides anything when both slots hold something — a lone
@@ -121,10 +122,34 @@ export function usePostBanner(banner) {
                 banner.value.ratio = value;
             },
         ),
+        fillType: writable(
+            () => background().type,
+            (value) => {
+                background().type = value;
+            },
+        ),
         backgroundColor: writable(
             () => background().color,
             (value) => {
                 background().color = value;
+            },
+        ),
+        gradientFrom: writable(
+            () => background().gradientFrom,
+            (value) => {
+                background().gradientFrom = value;
+            },
+        ),
+        gradientTo: writable(
+            () => background().gradientTo,
+            (value) => {
+                background().gradientTo = value;
+            },
+        ),
+        gradientAngle: writable(
+            () => background().gradientAngle,
+            (value) => {
+                background().gradientAngle = value;
             },
         ),
         overlay: writable(
@@ -144,6 +169,30 @@ export function usePostBanner(banner) {
     };
 
     const hasBackgroundImage = computed(() => null !== background().media);
+    const isSolidFill = computed(() => "solid" === background().type);
+    const isGradientFill = computed(() => "gradient" === background().type);
+
+    /**
+     * A live swatch of the fill being composed. Cheap to derive here, and it
+     * spares an author from saving just to find out which way the gradient
+     * runs — the panel has no preview of the banner itself yet.
+     */
+    const fillPreviewStyle = computed(() => {
+        const { type, color, gradientFrom, gradientTo, gradientAngle } =
+            background();
+
+        if ("solid" === type && color) {
+            return { backgroundColor: color };
+        }
+
+        if ("gradient" === type && gradientFrom && gradientTo) {
+            return {
+                backgroundImage: `linear-gradient(${gradientAngle}deg, ${gradientFrom}, ${gradientTo})`,
+            };
+        }
+
+        return null;
+    });
 
     // Built once per slot and cached: the template calls slotFields(index) on
     // every render, and handing back a fresh set of computeds each time would
@@ -184,10 +233,14 @@ export function usePostBanner(banner) {
         ratioOptions,
         slotTypeOptions,
         alignOptions,
+        fillOptions,
         presetOptions,
         applyPreset,
         bothSlotsFilled,
         hasBackgroundImage,
+        isSolidFill,
+        isGradientFill,
+        fillPreviewStyle,
         fields,
         slotFields,
     };
