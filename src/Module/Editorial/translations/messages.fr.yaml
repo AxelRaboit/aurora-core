@@ -212,6 +212,7 @@ backend:
         half: Moitié
         third: Un tiers
         quarter: Un quart
+      preview: Aperçu
       vertical_align: Position verticale
       verticals:
         start: En haut

@@ -15,6 +15,7 @@ import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
+import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppRange from "@/shared/components/form/toggle/AppRange.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
@@ -23,9 +24,11 @@ import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import BannerColorField from "./BannerColorField.vue";
 import { Plus, Trash2, ChevronUp, ChevronDown, Type, Image, MousePointerClick } from "lucide-vue-next";
 import { usePostBanner } from "../composables/usePostBanner.js";
+import { useBannerPreview } from "../composables/useBannerPreview.js";
 
 const props = defineProps({
     banner: { type: Object, required: true },
+    previewPath: { type: String, required: true },
 });
 
 const { t } = useI18n();
@@ -50,6 +53,11 @@ const {
     fields,
     itemFields,
 } = usePostBanner(computed(() => props.banner));
+
+const { html: previewHtml, loading: previewLoading } = useBannerPreview(
+    computed(() => props.banner),
+    props.previewPath,
+);
 </script>
 
 <template>
@@ -57,6 +65,16 @@ const {
         <AppToggle v-model="fields.enabled.value" :label="t('backend.posts.banner.enabled')" />
 
         <template v-if="fields.enabled.value">
+            <div class="relative space-y-2">
+                <p class="text-sm font-medium text-primary">{{ t("backend.posts.banner.preview") }}</p>
+                <!-- Rendered by the server from the same Twig the public page
+                     uses, so what shows here is what gets published. -->
+                <div class="rounded-lg border border-line overflow-hidden bg-surface-2/30 p-3">
+                    <div v-html="previewHtml" />
+                </div>
+                <AppLoader :active="previewLoading" />
+            </div>
+
             <div class="space-y-3">
                 <AppNoData v-if="!items.length" :message="t('backend.posts.banner.empty')" />
 

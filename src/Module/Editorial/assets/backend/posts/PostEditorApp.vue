@@ -26,6 +26,7 @@ const props = defineProps({
     updatePathTemplate: { type: String, required: true },
     editPathTemplate: { type: String, required: true },
     listPath: { type: String, required: true },
+    bannerPreviewPath: { type: String, required: true },
     searchPath: { type: String, required: true },
 });
 
@@ -95,7 +96,7 @@ function termLabel(term) {
 
                 <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
                     <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.banner.title") }}</h3>
-                    <PostBannerPanel :banner="current.banner" />
+                    <PostBannerPanel :banner="current.banner" :preview-path="bannerPreviewPath" />
                 </div>
 
                 <div v-if="supportsBlocks" class="bg-surface border border-line rounded-xl p-5 space-y-3">
