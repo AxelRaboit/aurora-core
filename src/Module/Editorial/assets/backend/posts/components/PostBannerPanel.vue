@@ -64,6 +64,14 @@ const { html: previewHtml, loading: previewLoading } = useBannerPreview(
     <div class="space-y-4">
         <AppToggle v-model="fields.enabled.value" :label="t('backend.posts.banner.enabled')" />
 
+        <!-- Without this the card is a lone toggle, which reads as collapsed
+             rather than as off. It also says the thing the model makes true
+             and nothing else would: the banner belongs to the translation, so
+             turning it on here leaves the other languages untouched. -->
+        <p v-if="!fields.enabled.value" class="text-sm text-muted">
+            {{ t("backend.posts.banner.disabled_hint") }}
+        </p>
+
         <template v-if="fields.enabled.value">
             <div class="relative space-y-2">
                 <p class="text-sm font-medium text-primary">{{ t("backend.posts.banner.preview") }}</p>

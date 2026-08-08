@@ -212,6 +212,7 @@ backend:
         half: Half
         third: One third
         quarter: One quarter
+      disabled_hint: "Off — the post keeps its usual title. The header is set per language: turning it on here leaves the other languages untouched."
       preview: Preview
       vertical_align: Vertical position
       verticals:

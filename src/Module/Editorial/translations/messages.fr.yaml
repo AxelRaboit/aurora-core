@@ -212,6 +212,7 @@ backend:
         half: Moitié
         third: Un tiers
         quarter: Un quart
+      disabled_hint: "Désactivé — la publication garde son titre habituel. L'en-tête se règle par langue : l'activer ici ne concerne que la langue en cours d'édition."
       preview: Aperçu
       vertical_align: Position verticale
       verticals:
