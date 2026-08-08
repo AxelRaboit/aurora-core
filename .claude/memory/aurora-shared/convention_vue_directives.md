@@ -51,9 +51,9 @@ Les modifiers suivent la même règle :
 ```bash
 # Audit : trouver les @ restants dans les .vue
 # Côté core : src/Core/assets/ + src/Module/*/assets/
-# Côté client : assets/client/
+# Côté client : src/Module/*/assets/ + src/Overrides/ (plus d'assets/client/ depuis 0.5)
 grep -rEn '@(click|submit|change|input|keydown|keyup|close|focus|blur|update)' \
-    src/ assets/ --include="*.vue" \
+    src/ --include="*.vue" \
   | grep -v node_modules | grep -v ".test."
 ```
 

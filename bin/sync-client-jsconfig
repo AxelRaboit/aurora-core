@@ -18,13 +18,22 @@ const CLIENT_DIR   = process.cwd();
 const AURORA_VENDOR = "vendor/axelraboit/aurora";
 
 // Without baseUrl, path values must be relative (TS 5.0+ requirement).
-// Aurora 0.5+ : all frontend assets live under src/Core/Frontend/ and
-// src/Module/<X>/assets/ (no more root assets/).
+// Aurora 0.5+ : core frontend assets live under src/Core/assets/, module
+// assets under src/Module/<X>/assets/ (no more root assets/).
+//
+// These MUST mirror aurora-core's aliases.js + vite.config.js, which are what
+// actually resolve at build time. A jsconfig that disagrees breaks nothing at
+// runtime — only editor navigation and autocomplete — which is exactly how all
+// four of these drifted unnoticed: `src/Core/Frontend/` holds PHP, not a single
+// .js or .vue file.
 const paths = {
-    "@/*":       [`./${AURORA_VENDOR}/src/Core/Frontend/*`],
-    "@core/*":   [`./${AURORA_VENDOR}/src/Core/Frontend/*`],
-    "@shared/*": [`./${AURORA_VENDOR}/src/Core/Frontend/shared/*`],
-    "@client/*": ["./assets/client/*"],
+    "@/*":       [`./${AURORA_VENDOR}/src/Core/assets/*`],
+    "@core/*":   [`./${AURORA_VENDOR}/src/Core/assets/*`],
+    "@shared/*": [`./${AURORA_VENDOR}/src/Core/assets/shared/*`],
+    // vite.config.js maps `@client` to CLIENT_DIR — the client project root —
+    // and app.js globs `@client/src/Module/**` and `@client/src/Overrides/**`.
+    // There is no `assets/client/` directory in a 0.5+ project.
+    "@client/*": ["./*"],
 };
 
 // Dynamic aurora module aliases — one per src/Module/<Name>/assets/ in aurora

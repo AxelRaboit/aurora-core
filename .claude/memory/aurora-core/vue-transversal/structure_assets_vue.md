@@ -211,7 +211,9 @@ npm run build  # Production build
 ```
 
 Côté client, le build est lancé via `pnpm` depuis le dossier aurora-core
-en mode `AURORA_ENV` qui scanne aussi `assets/client/` du projet client.
+en mode `AURORA_ENV` qui scanne aussi le projet client — depuis 0.5 sa
+racine (`src/Module/<X>/assets/`, `src/Overrides/`), plus `assets/client/`
+qui n'existe plus.
 
 Cf `aurora-core/Makefile` (target `build` / `dev`) pour les détails.
 

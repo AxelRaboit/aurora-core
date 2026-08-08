@@ -15,8 +15,9 @@ import { auroraVendorModules } from './vite-plugin-aurora-modules.js';
 const auroraPkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
 const sharedDeps = Object.keys({ ...auroraPkg.dependencies, ...auroraPkg.devDependencies });
 
-// AURORA_CLIENT_DIR points to a client project's extension dir (e.g.
-// aurora-client/assets/client). When set, aurora's Vite scans that dir for
+// AURORA_CLIENT_DIR points to a client project's ROOT (e.g. aurora-client/),
+// not to a subdirectory — app.js globs `@client/src/Module/**` and
+// `@client/src/Overrides/**` off it. When set, aurora's Vite scans that dir for
 // additional Vue components, controllers and CSS, exposed under the @client
 // alias. Standalone aurora dev leaves the var unset; the alias then resolves
 // to an empty placeholder dir so import.meta.glob('@client/...') returns {}.
