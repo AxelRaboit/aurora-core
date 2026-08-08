@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Post\Serializer;
 
 use Aurora\Core\Locale\Service\LocaleContextInterface;
+use Aurora\Module\Editorial\Post\Banner\BannerNormalizer;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
@@ -18,6 +19,7 @@ class PostSerializer implements PostSerializerInterface
     public function __construct(
         protected readonly LocaleContextInterface $localeContext,
         protected readonly DocumentUrlGenerator $documentUrlGenerator,
+        protected readonly BannerNormalizer $bannerNormalizer,
     ) {}
 
     public function serializeReference(PostInterface $post): array
@@ -113,6 +115,10 @@ class PostSerializer implements PostSerializerInterface
             'title' => $translation->getTitle(),
             'slug' => $translation->getSlug(),
             'blocks' => $translation->getBlocks(),
+            // Normalised on the way out too, so a translation saved before the
+            // banner existed still reaches the editor as a complete shape
+            // instead of an empty array it would have to guard against.
+            'banner' => $this->bannerNormalizer->normalize($translation->getBanner()),
             'description' => $translation->getDescription(),
             'metaTitle' => $translation->getMetaTitle(),
             'metaDescription' => $translation->getMetaDescription(),

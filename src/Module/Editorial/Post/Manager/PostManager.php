@@ -8,6 +8,7 @@ use Aurora\Core\Sequence\SequenceGenerator;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Editorial\Post\Banner\BannerNormalizer;
 use Aurora\Module\Editorial\Post\Dto\PostInputInterface;
 use Aurora\Module\Editorial\Post\Dto\PostTranslationInput;
 use Aurora\Module\Editorial\Post\Entity\Post;
@@ -57,6 +58,7 @@ class PostManager implements PostManagerInterface
         protected readonly TranslatorInterface $translator,
         protected readonly AuditLogger $auditLogger,
         protected readonly SequenceGenerator $sequenceGenerator,
+        protected readonly BannerNormalizer $bannerNormalizer,
     ) {}
 
     public function create(PostInputInterface $input): PostInterface
@@ -240,6 +242,9 @@ class PostManager implements PostManagerInterface
 
         $translation->setTitle($input->title);
         $translation->setBlocks($input->blocks);
+        // Normalised here rather than in the DTO: this is the write boundary,
+        // and it is the only place guaranteed to run whatever built the input.
+        $translation->setBanner($this->bannerNormalizer->normalize($input->banner));
         $translation->setDescription($input->description);
         $translation->setMetaTitle($input->metaTitle);
         $translation->setMetaDescription($input->metaDescription);

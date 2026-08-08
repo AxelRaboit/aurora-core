@@ -17,6 +17,7 @@ final readonly class PostTranslationInput
      * @param list<array{id?: string, type: string, data: array<string, mixed>}> $blocks       Editor.js native shape
      * @param array<string, mixed>                                               $customFields
      * @param array<string, mixed>|null                                          $jsonLd
+     * @param array<string, mixed>                                               $banner       raw; normalised at the write boundary by BannerNormalizer
      */
     public function __construct(
         public ?string $title,
@@ -31,6 +32,7 @@ final readonly class PostTranslationInput
         public bool $noindex = false,
         public ?string $focusKeyword = null,
         public ?array $jsonLd = null,
+        public array $banner = [],
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -49,6 +51,7 @@ final readonly class PostTranslationInput
             noindex: (bool) ($data['noindex'] ?? false),
             focusKeyword: Str::trimOrNull((string) ($data['focusKeyword'] ?? '')),
             jsonLd: self::decodeJsonLd($data['jsonLd'] ?? null),
+            banner: is_array($data['banner'] ?? null) ? $data['banner'] : [],
         );
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Post\Entity;
 
+use Aurora\Module\Editorial\Post\Banner\BannerNormalizer;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -50,6 +51,21 @@ abstract class AbstractPostTranslation implements PostTranslationInterface
     /** @var array<string, mixed> Values of the PostType's custom fields, keyed by field name. */
     #[ORM\Column(type: Types::JSON)]
     protected array $customFields = [];
+
+    /**
+     * Per-locale banner configuration — layout, colours, and the two slots.
+     * Shape and defaults belong to {@see BannerNormalizer},
+     * which every write goes through; an empty array here means "never
+     * configured" and reads as a disabled banner.
+     *
+     * Per translation rather than per post on purpose: the banner carries a
+     * title and a description, which are editorial copy, and a locale may
+     * legitimately want a different image behind them.
+     *
+     * @var array<string, mixed>
+     */
+    #[ORM\Column(type: Types::JSON)]
+    protected array $banner = [];
 
     #[ORM\ManyToOne(targetEntity: DocumentInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -120,6 +136,20 @@ abstract class AbstractPostTranslation implements PostTranslationInterface
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    /** @return array<string, mixed> */
+    public function getBanner(): array
+    {
+        return $this->banner;
+    }
+
+    /** @param array<string, mixed> $banner */
+    public function setBanner(array $banner): static
+    {
+        $this->banner = $banner;
 
         return $this;
     }

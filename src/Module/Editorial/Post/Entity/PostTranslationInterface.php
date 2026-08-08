@@ -27,6 +27,12 @@ interface PostTranslationInterface
     public function setDescription(?string $description): static;
 
     /** @return list<array{id?: string, type: string, data: array<string, mixed>}> */
+    /** @return array<string, mixed> */
+    public function getBanner(): array;
+
+    /** @param array<string, mixed> $banner */
+    public function setBanner(array $banner): static;
+
     public function getBlocks(): array;
 
     /** @param list<array{id?: string, type: string, data: array<string, mixed>}> $blocks */
