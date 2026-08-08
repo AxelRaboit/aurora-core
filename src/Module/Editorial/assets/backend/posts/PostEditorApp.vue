@@ -39,7 +39,16 @@ const {
 } = usePostEditor(props);
 
 /**
- * Sections, kept in the URL fragment rather than in localStorage.
+ * Sections, in one order rather than two.
+ *
+ * They run from what a reader sees to what only a machine reads: the header
+ * and the body in the order they appear on the published page, then what the
+ * site needs to place and publish it, then the metadata. The previous order
+ * put Content first because that is where the work happens — true, but it
+ * contradicted the page itself, where the header sits above the body.
+ *
+ * Which tab *opens* is a separate question, and the answer is still Content:
+ * position says how the sections relate, the default says where the work is.
  *
  * There is one editor per post: a remembered key would be shared by all of
  * them, and two browser tabs on two posts would fight over it. The fragment
@@ -49,7 +58,7 @@ const {
  * English keys because they end up in the URL, where the rest of the routing
  * is English too. The labels are translated; the identifier is not.
  */
-const TABS = ["content", "header", "settings", "seo"];
+const TABS = ["header", "content", "settings", "seo"];
 const { activeTab, select: selectTab, isActive: isTabActive } = useTabState(TABS, {
     hash: true,
     defaultKey: "content",
@@ -144,6 +153,21 @@ function termLabel(term) {
                      and remounting it per tab would throw away the undo stack
                      and flicker — the same reason one instance serves every
                      locale. -->
+                <div v-show="isTabActive('header')" class="space-y-4">
+                    <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.banner.title") }}</h3>
+                        <!-- Two halves: the design is one per post, the words
+                             are one set per language. Switching the locale tab
+                             swaps the second and leaves the first standing. -->
+                        <PostBannerPanel
+                            :layout="form.bannerLayout"
+                            :texts="current.banner"
+                            :locale="locale"
+                            :preview-path="bannerPreviewPath"
+                        />
+                    </div>
+                </div>
+
                 <div v-show="isTabActive('content')" class="space-y-4">
                     <div v-if="supportsBlocks" class="bg-surface border border-line rounded-xl p-5 space-y-3">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.content") }}</h3>
@@ -182,21 +206,6 @@ function termLabel(term) {
                                 v-on:update:model-value="setCustomField(field.name, $event)"
                             />
                         </template>
-                    </div>
-                </div>
-
-                <div v-show="isTabActive('header')" class="space-y-4">
-                    <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
-                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.banner.title") }}</h3>
-                        <!-- Two halves: the design is one per post, the words
-                             are one set per language. Switching the locale tab
-                             swaps the second and leaves the first standing. -->
-                        <PostBannerPanel
-                            :layout="form.bannerLayout"
-                            :texts="current.banner"
-                            :locale="locale"
-                            :preview-path="bannerPreviewPath"
-                        />
                     </div>
                 </div>
 
