@@ -27,7 +27,7 @@ use function sprintf;
 final readonly class UploadPathResolver
 {
     public function __construct(
-        #[Autowire('%app.upload_dir%')]
+        #[Autowire(param: 'app.upload_dir')]
         private string $uploadDir,
     ) {}
 

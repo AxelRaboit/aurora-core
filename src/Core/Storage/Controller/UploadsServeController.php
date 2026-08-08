@@ -38,7 +38,7 @@ final class UploadsServeController extends AbstractController
 {
     public function __construct(
         private readonly BinaryFileServer $binaryFileServer,
-        #[Autowire('%app.upload_dir%')]
+        #[Autowire(param: 'app.upload_dir')]
         private readonly string $uploadRoot,
     ) {}
 

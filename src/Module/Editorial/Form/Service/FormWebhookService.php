@@ -37,7 +37,7 @@ readonly class FormWebhookService
         private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
         private FormFieldLabeler $labeler,
-        #[Autowire('%kernel.secret%')]
+        #[Autowire(param: 'kernel.secret')]
         private string $secret,
     ) {}
 

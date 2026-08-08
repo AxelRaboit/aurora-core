@@ -20,7 +20,7 @@ class CommentReactionManager implements CommentReactionManagerInterface
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly CommentReactionRepository $reactionRepository,
-        #[Autowire('%kernel.secret%')]
+        #[Autowire(param: 'kernel.secret')]
         protected readonly string $secret,
     ) {}
 

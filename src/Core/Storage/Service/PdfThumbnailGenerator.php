@@ -31,7 +31,7 @@ use Throwable;
 final readonly class PdfThumbnailGenerator
 {
     public function __construct(
-        #[Autowire('%app.upload_dir%')]
+        #[Autowire(param: 'app.upload_dir')]
         private string $uploadDir,
         private Filesystem $filesystem = new Filesystem(),
         private ExecutableFinder $executableFinder = new ExecutableFinder(),

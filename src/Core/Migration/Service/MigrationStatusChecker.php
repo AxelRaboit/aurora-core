@@ -30,7 +30,7 @@ final class MigrationStatusChecker
 
     public function __construct(
         private readonly Connection $connection,
-        #[Autowire('%kernel.project_dir%')]
+        #[Autowire(param: 'kernel.project_dir')]
         private readonly string $projectDir,
     ) {}
 

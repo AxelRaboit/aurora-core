@@ -20,7 +20,7 @@ final readonly class ImageVariantGenerator
 
     public function __construct(
         private Filesystem $filesystem,
-        #[Autowire('%app.upload_dir%')]
+        #[Autowire(param: 'app.upload_dir')]
         private string $uploadDir,
     ) {}
 

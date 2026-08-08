@@ -33,7 +33,7 @@ final readonly class GedDocumentUploader
         private SluggerInterface $slugger,
         private PdfThumbnailGenerator $pdfThumbnailGenerator,
         private ImageCropper $imageCropper,
-        #[Autowire('%app.upload_dir%')]
+        #[Autowire(param: 'app.upload_dir')]
         private string $uploadDir,
     ) {}
 

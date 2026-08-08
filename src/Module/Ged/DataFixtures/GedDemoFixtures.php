@@ -36,7 +36,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
     }
 
     public function __construct(
-        #[Autowire('%app.upload_dir%')]
+        #[Autowire(param: 'app.upload_dir')]
         private readonly string $uploadDir,
         private readonly PdfThumbnailGenerator $pdfThumbnailGenerator,
         private readonly SettingsService $settingsManager,

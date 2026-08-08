@@ -25,7 +25,7 @@ final class DevPrerequisiteExtension extends AbstractExtension
 {
     public function __construct(
         private readonly DevPrerequisiteChecker $checker,
-        #[Autowire('%kernel.environment%')]
+        #[Autowire(param: 'kernel.environment')]
         private readonly string $env,
     ) {}
 
