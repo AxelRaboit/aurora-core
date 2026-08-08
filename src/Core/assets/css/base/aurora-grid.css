@@ -18,10 +18,31 @@
 .aurora-grid {
     display: grid;
     grid-template-columns: repeat(48, minmax(0, 1fr));
+
+    /* Gutters belong to the items, never to the tracks.
+     *
+     * `column-gap` on a 48-track grid is 47 gutters, not one between items.
+     * At the 2rem this started with that is 1504px of gap inside a 1280px
+     * container: every track collapsed to zero width, the grid became nothing
+     * but its own gaps, and a full-width item overflowed by 240px — which is
+     * how a right-aligned button ended up half outside the banner. Measured in
+     * the browser, not deduced.
+     *
+     * Padding on the item keeps the arithmetic exact instead: an item spanning
+     * 24 of 48 columns is half the container, whatever the gutter is, and two
+     * neighbours show twice the gutter between them.
+     *
+     * No negative margin to pull the outer edges back — `.aurora-grid` shares
+     * its element with the caller's box, and cancelling `mx-auto` there would
+     * break the centring of the full-width banner. The outer inset is the
+     * gutter, which reads as part of the padding it sits inside.
+     */
+    column-gap: 0;
 }
 
 .aurora-grid > * {
     grid-column: span var(--span-base, 48);
+    padding-inline: var(--aurora-gutter, 1rem);
 }
 
 @media (min-width: 768px) {

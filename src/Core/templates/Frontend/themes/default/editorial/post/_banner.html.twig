@@ -82,7 +82,10 @@
         <img src="{{ banner.logo.url }}" alt="{{ banner.logo.alt }}" class="absolute top-6 left-6 z-10 h-10 w-auto">
     {% endif %}
 
-    <div class="aurora-grid flex-1 gap-8 {{ contentBox[banner.width] }}">
+    {# Row gap only. The column axis belongs to `.aurora-grid`, which spaces
+       items with padding: a column-gap here would be 47 gutters across the 48
+       tracks and push the last item out of the banner. #}
+    <div class="aurora-grid flex-1 gap-y-8 {{ contentBox[banner.width] }}">
         {% for item in banner.items %}
             <div style="{{ item.spanStyle|raw }}">
                 {% if item.type == 'text' %}
