@@ -75,8 +75,24 @@ final readonly class BannerViewBuilder
         $banner = $this->bannerNormalizer->normalize($stored);
         $documents = $this->documents($banner);
 
+        // The banner replaces the page's own <h1>, so one of its titles has to
+        // become it: a post with a banner otherwise ships no top-level heading
+        // at all, which costs both search engines and anyone navigating by
+        // headings. The first title wins; later ones stay paragraphs.
+        $headingIndex = null;
+        foreach ($banner['items'] as $index => $item) {
+            if (BannerNormalizer::ITEM_TEXT === $item['type'] && '' !== $item['title']) {
+                $headingIndex = $index;
+                break;
+            }
+        }
+
         return [
             ...$banner,
+            // Null when no item carries a title: the template then keeps the
+            // plain <h1> under the banner rather than leaving the page without
+            // one, treating the banner as decoration.
+            'headingIndex' => $headingIndex,
             'items' => array_map(
                 fn (array $item): array => [
                     ...$item,

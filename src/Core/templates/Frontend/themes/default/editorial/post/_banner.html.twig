@@ -75,9 +75,14 @@
                 {% if item.type == 'text' %}
                     <div class="flex h-full flex-col justify-center gap-3 {{ alignments[item.align] }}">
                         {% if item.title %}
-                            <p class="text-3xl sm:text-4xl font-bold leading-tight"
-                               {% if item.titleColor %}style="color: {{ item.titleColor }};"{% endif %}
-                            >{{ item.title }}</p>
+                            {# The first title carries the page's <h1>; the rest
+                               are paragraphs. A banner that replaces the header
+                               has to replace its heading too. #}
+                            {% set titleTag = loop.index0 == banner.headingIndex ? 'h1' : 'p' %}
+                            <{{ titleTag }}
+                                class="text-3xl sm:text-4xl font-bold leading-tight"
+                                {% if item.titleColor %}style="color: {{ item.titleColor }};"{% endif %}
+                            >{{ item.title }}</{{ titleTag }}>
                         {% endif %}
                         {% if item.description %}
                             <p class="text-base sm:text-lg max-w-prose"

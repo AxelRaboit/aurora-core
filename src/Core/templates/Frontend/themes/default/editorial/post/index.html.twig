@@ -29,10 +29,11 @@
         {{ include('Frontend/themes/default/editorial/post/_banner.html.twig', {banner: banner}) }}
     {% endif %}
 
-    {# The banner carries its own title and description, so repeating the
-       plain header under it would print everything twice. A post without a
-       banner keeps the header it always had. #}
-    {% if not banner %}
+    {# The banner carries its own title, so repeating the plain header under it
+       would print everything twice — but only when it actually carries one. A
+       purely decorative banner leaves the page without any heading, so the
+       plain header stays. #}
+    {% if not banner or banner.headingIndex is null %}
         <h1>{{ translationData.title }}</h1>
 
         {% if translationData.description %}
