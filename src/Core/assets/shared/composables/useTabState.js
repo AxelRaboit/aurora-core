@@ -1,19 +1,21 @@
 import { ref, onMounted, onUnmounted } from "vue";
 
 /**
- * Tracks the active tab key, optionally persisted so it survives a reload.
+ * Tracks which tab is active, optionally mirrored in the URL fragment.
  *
- * Two ways to persist, and they answer different questions.
+ * `hash: true` is what makes the choice survive a reload and makes it
+ * shareable: "the header of that post", "the modules tab of the settings"
+ * become links rather than places to be walked to. Use it whenever the tabs
+ * divide a page someone might send.
  *
- * `storageKey` remembers a preference: which tab *this user* was last on,
- * everywhere that screen appears. Right for a settings page, where there is
- * one of them.
+ * It replaces remembering the tab in `localStorage`, which this used to do.
+ * A remembered key is one key for every instance of the screen — fine while
+ * there was one settings page, wrong the moment tabs appeared on a per-record
+ * editor, where two browser tabs on two records would overwrite each other.
+ * The URL belongs to the page being looked at, which is what the tab does too.
  *
- * `hash` puts the tab in the URL after the `#`. Right for a screen that
- * exists once per record — a post editor — where one remembered key would be
- * shared by every post, and two browser tabs on two posts would overwrite
- * each other. It also makes the tab shareable: a link can point at the header
- * of a specific page.
+ * Left off for tabs inside a modal or a widget, where the page is not what is
+ * being divided and a fragment would be noise.
  *
  * The fragment never reaches the server, so nothing about the initial render
  * changes; the tab is chosen on mount. `replaceState` rather than assigning
@@ -23,13 +25,12 @@ import { ref, onMounted, onUnmounted } from "vue";
  *
  * @param {string[]}    validKeys Allowed tab keys (used to discard stale values).
  * @param {object}      options
- * @param {string|null} [options.storageKey] When set, persists the active tab in localStorage.
  * @param {boolean}     [options.hash]       When true, mirrors the active tab in the URL fragment.
  * @param {string|null} [options.defaultKey] Falls back to the first valid key when omitted.
  */
 export function useTabState(
     validKeys,
-    { storageKey = null, hash = false, defaultKey = null } = {},
+    { hash = false, defaultKey = null } = {},
 ) {
     const fallback =
         defaultKey && validKeys.includes(defaultKey)
@@ -38,39 +39,18 @@ export function useTabState(
 
     function fromHash() {
         if (!hash || "undefined" === typeof window) return null;
+
         const key = window.location.hash.replace(/^#/, "");
 
         return validKeys.includes(key) ? key : null;
     }
 
-    function fromStorage() {
-        if (!storageKey) return null;
-        try {
-            const saved = localStorage.getItem(storageKey);
-
-            return saved && validKeys.includes(saved) ? saved : null;
-        } catch (_) {
-            /* ignored — private mode, full storage, etc. */
-            return null;
-        }
-    }
-
-    // The URL wins over the remembered preference: it is the more explicit of
-    // the two, and it is what a shared link carries.
-    const activeTab = ref(fromHash() ?? fromStorage() ?? fallback);
+    const activeTab = ref(fromHash() ?? fallback);
 
     function select(key) {
         if (!validKeys.includes(key)) return;
 
         activeTab.value = key;
-
-        if (storageKey) {
-            try {
-                localStorage.setItem(storageKey, key);
-            } catch (_) {
-                /* ignored */
-            }
-        }
 
         if (hash && "undefined" !== typeof window) {
             window.history.replaceState(

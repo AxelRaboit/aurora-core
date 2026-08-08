@@ -243,10 +243,12 @@ class UserManager implements UserManagerInterface
         return array_keys($clean);
     }
 
-    /**
-     * @param list<string> $hiddenNavSections
-     * @param list<string> $hiddenNavItems
-     */
+    public function updateSidemenuCollapsed(User $user, bool $collapsed): void
+    {
+        $user->setSidemenuCollapsed($collapsed);
+        $this->entityManager->flush();
+    }
+
     /**
      * @param list<string>          $hiddenNavSections
      * @param list<string>          $hiddenNavItems

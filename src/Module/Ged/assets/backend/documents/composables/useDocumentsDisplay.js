@@ -18,16 +18,16 @@ export const DOCUMENT_SORT_FIELDS = [
 ];
 
 export function useDocumentsDisplay(items) {
-    const { viewMode, setViewMode } = useListViewMode(
-        "aurora-ged-view",
-        "list",
-    );
-    const { sortBy, sortDir, setSort } = useListSort(
-        "aurora-ged-sort",
-        "aurora-ged-sort-dir",
-        "date",
-        "desc",
-    );
+    // Both in the query string: the sort and the layout describe what is on
+    // screen, so a link to this list carries them.
+    const { viewMode, setViewMode } = useListViewMode(["grid", "list"], "list");
+    const { sortBy, sortDir, setSort } = useListSort("date", "desc", {
+        // Named after the columns rather than the module: nothing else on this
+        // page competes for them, and ?sort=date reads better than
+        // ?gedSort=date in a link someone is meant to click.
+        fieldParam: "sort",
+        dirParam: "dir",
+    });
 
     const displayedItems = computed(() => {
         const dir = sortDir.value === "asc" ? 1 : -1;

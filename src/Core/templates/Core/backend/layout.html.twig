@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
+{# The collapsed class is rendered here rather than added by a script: it is
+   stored on the user, so the first paint already has it and the menu no longer
+   starts expanded and snaps shut. The width still comes from the browser — see
+   theme_script. #}
+<html lang="{{ app.request.locale }}"{% if app.user and app.user.sidemenuCollapsed %} class="sidemenu-collapsed"{% endif %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,6 +55,7 @@
         hasEnabledFronts: has_enabled_fronts(),
         profilePath: path('backend_general_profile'),
         sidemenuPreferencesPath: path('backend_general_profile_sidemenu'),
+        sidemenuCollapsedPath: path('backend_general_profile_sidemenu_collapsed'),
         logoutPath: path('backend_platform_logout'),
         locale: app.request.locale,
         mailpitUrl: aurora_is_dev() ? 'http://127.0.0.1:8025' : '',

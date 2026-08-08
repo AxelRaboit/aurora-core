@@ -16,8 +16,10 @@ export function useSettingsTabs(groups, tabs = []) {
         )
         .map((tab) => tab.id);
 
+    // In the URL, so "the modules tab of the settings" is a link someone can
+    // send rather than a place to be walked to.
     const { activeTab, select: selectTab } = useTabState(availableGroups, {
-        storageKey: "aurora-settings-active-tab",
+        hash: true,
     });
 
     function tabLabel(groupName) {

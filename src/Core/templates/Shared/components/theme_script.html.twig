@@ -8,10 +8,9 @@
             {% endif %}
         }
         {% if sidemenu is defined and sidemenu %}
-        const sidemenuState = localStorage.getItem('aurora-sidemenu');
-        if (sidemenuState === 'collapsed') {
-            document.documentElement.classList.add('sidemenu-collapsed');
-        }
+        {# Collapsed is not read here any more: it lives on the user and the
+           layout renders it. Only the width is still the browser's, because a
+           pixel count describes the screen it was dragged on. #}
         const storedWidth = localStorage.getItem('aurora-sidemenu-width');
         if (storedWidth) {
             const parsedWidth = parseInt(storedWidth, 10);

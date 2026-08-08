@@ -1,37 +1,46 @@
-import { ref } from "vue";
+import { useQueryState } from "@/shared/composables/useQueryState.js";
 
 /**
- * Persisted sort state: a `sortBy` field + `sortDir` (asc/desc). Clicking
- * the same field toggles direction; clicking a new one resets to asc.
+ * Sort state for a list: a `sortBy` field + `sortDir` (asc/desc). Clicking the
+ * same field toggles direction; clicking a new one resets to asc.
  *
- * Both values live in localStorage so the user's sort choice survives
- * reloads. Pass two distinct keys per consumer to avoid collisions
- * between lists.
+ * Both live in the query string rather than in localStorage. A sort is part of
+ * what someone is looking at, not of how they like to work: a colleague asked
+ * to "check the documents, newest first" should be able to receive that as a
+ * link. Remembering it locally also meant two browser tabs on two lists
+ * overwriting each other, and there was no way to get back to the default
+ * order except by clicking through to it.
  *
- * @param {string} fieldKey      localStorage key for sortBy
- * @param {string} dirKey        localStorage key for sortDir
- * @param {string} [defaultField="name"]
+ * Defaults are left out of the URL, so a list nobody has sorted has a clean
+ * address.
+ *
+ * @param {string}       [defaultField="name"]
  * @param {"asc"|"desc"} [defaultDir="asc"]
+ * @param {object}       [options]
+ * @param {string}       [options.fieldParam="sort"] Query parameter for the field.
+ * @param {string}       [options.dirParam="dir"]    Query parameter for the direction.
  */
 export function useListSort(
-    fieldKey,
-    dirKey,
     defaultField = "name",
     defaultDir = "asc",
+    { fieldParam = "sort", dirParam = "dir" } = {},
 ) {
-    const sortBy = ref(localStorage.getItem(fieldKey) ?? defaultField);
-    const sortDir = ref(localStorage.getItem(dirKey) ?? defaultDir);
+    const field = useQueryState(fieldParam, { defaultValue: defaultField });
+    const direction = useQueryState(dirParam, {
+        defaultValue: defaultDir,
+        valid: ["asc", "desc"],
+    });
 
-    function setSort(field) {
-        if (sortBy.value === field) {
-            sortDir.value = sortDir.value === "asc" ? "desc" : "asc";
-        } else {
-            sortBy.value = field;
-            sortDir.value = "asc";
+    function setSort(next) {
+        if (field.value.value === next) {
+            direction.set("asc" === direction.value.value ? "desc" : "asc");
+
+            return;
         }
-        localStorage.setItem(fieldKey, sortBy.value);
-        localStorage.setItem(dirKey, sortDir.value);
+
+        field.set(next);
+        direction.set("asc");
     }
 
-    return { sortBy, sortDir, setSort };
+    return { sortBy: field.value, sortDir: direction.value, setSort };
 }

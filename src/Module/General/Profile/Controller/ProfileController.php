@@ -240,6 +240,24 @@ final class ProfileController extends AbstractController
         ]);
     }
 
+    /**
+     * Collapsing is its own call rather than part of the sidemenu form: it
+     * happens on a button in the menu itself, nowhere near the preferences
+     * screen, and sending the whole customisation to toggle one flag would
+     * make a click that should be instant depend on state the caller does not
+     * have.
+     */
+    #[Route('/sidemenu/collapsed', name: '_sidemenu_collapsed', methods: [HttpMethodEnum::Post->value])]
+    public function sidemenuCollapsed(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $this->userManager->updateSidemenuCollapsed($user, (bool) ($this->decodeJson($request)['collapsed'] ?? false));
+
+        return $this->jsonSuccess(['collapsed' => $user->isSidemenuCollapsed()]);
+    }
+
     #[Route('/sidemenu/reset', name: '_sidemenu_reset', methods: [HttpMethodEnum::Post->value])]
     public function sidemenuReset(): JsonResponse
     {

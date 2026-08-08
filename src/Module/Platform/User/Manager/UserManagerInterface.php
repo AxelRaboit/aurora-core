@@ -58,11 +58,14 @@ interface UserManagerInterface
      * unknown / privilege-filtered entries are silently dropped. This is a
      * user-initiated action — the target user is always the actor themselves
      * (no rank check).
-     *
-     * @param list<string>          $hiddenNavSections NavSection.id values to hide
-     * @param list<string>          $hiddenNavItems    NavItem.route values to hide
-     * @param array<string, string> $navSectionColors  map of NavSection.id → Tailwind palette name
      */
+    /**
+     * Whether this user keeps the sidemenu collapsed. Beside their hidden
+     * sections and section colours rather than in the browser, so the choice
+     * follows the account and the layout can render it on first paint.
+     */
+    public function updateSidemenuCollapsed(User $user, bool $collapsed): void;
+
     public function updateSidemenuPreferences(
         User $user,
         array $hiddenNavSections,

@@ -1,20 +1,26 @@
-import { ref } from "vue";
+import { useQueryState } from "@/shared/composables/useQueryState.js";
 
 /**
- * Persisted list view toggle (e.g. "grid" ↔ "list"). Reads + writes the
- * preference under a caller-supplied localStorage key so each list page
- * keeps its own remembered choice across reloads.
+ * List view toggle — "grid" ↔ "list", or whatever a caller declares.
  *
- * @param {string} storageKey  e.g. "aurora-ged-view"
- * @param {string} [defaultMode="grid"]  initial value if nothing is stored
+ * In the query string rather than localStorage, for the same reason as the
+ * sort beside it: it describes the page being looked at, so it belongs to the
+ * link. The default is left out of the URL so an untouched list has a clean
+ * address.
+ *
+ * @param {string[]} [modes=["grid", "list"]] Allowed values; anything else is discarded.
+ * @param {string}   [defaultMode="grid"]
+ * @param {string}   [param="view"]           Query parameter name.
  */
-export function useListViewMode(storageKey, defaultMode = "grid") {
-    const viewMode = ref(localStorage.getItem(storageKey) ?? defaultMode);
+export function useListViewMode(
+    modes = ["grid", "list"],
+    defaultMode = "grid",
+    param = "view",
+) {
+    const { value, set } = useQueryState(param, {
+        defaultValue: defaultMode,
+        valid: modes,
+    });
 
-    function setViewMode(mode) {
-        viewMode.value = mode;
-        localStorage.setItem(storageKey, mode);
-    }
-
-    return { viewMode, setViewMode };
+    return { viewMode: value, setViewMode: set };
 }

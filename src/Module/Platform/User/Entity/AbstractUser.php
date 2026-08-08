@@ -74,6 +74,23 @@ abstract class AbstractUser implements CoreUserInterface
     #[Groups(['user:read'])]
     protected array $navSectionColors = [];
 
+    /**
+     * Whether this user keeps the sidemenu collapsed.
+     *
+     * Beside the other sidemenu preferences rather than in the browser, which
+     * is where it used to live: hiding a section was remembered per account
+     * and collapsing the whole menu was remembered per machine, for one
+     * object. It also lets the layout render the collapsed class itself, so
+     * the menu no longer starts expanded and snaps shut once a script has run.
+     *
+     * The *width* stays in the browser: a number of pixels describes the
+     * screen it was dragged on, and carrying 420 from a 27-inch monitor to a
+     * laptop is worse than forgetting it.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    #[Groups(['user:read'])]
+    protected bool $sidemenuCollapsed = false;
+
     #[ORM\Column]
     protected string $password;
 
@@ -385,6 +402,18 @@ abstract class AbstractUser implements CoreUserInterface
     public function getHiddenNavSections(): array
     {
         return $this->hiddenNavSections;
+    }
+
+    public function isSidemenuCollapsed(): bool
+    {
+        return $this->sidemenuCollapsed;
+    }
+
+    public function setSidemenuCollapsed(bool $sidemenuCollapsed): static
+    {
+        $this->sidemenuCollapsed = $sidemenuCollapsed;
+
+        return $this;
     }
 
     public function setHiddenNavSections(array $hiddenNavSections): static

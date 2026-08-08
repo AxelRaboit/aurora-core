@@ -40,7 +40,7 @@ const TABS = [
 
 const { activeTab, select: selectTab, isActive: isActiveTab } = useTabState(
     TABS.map((tab) => tab.key),
-    { storageKey: "aurora-profile-preferences-tab" },
+    { hash: true },
 );
 
 const current = computed(() => TABS.find((tab) => tab.key === activeTab.value) ?? TABS[0]);

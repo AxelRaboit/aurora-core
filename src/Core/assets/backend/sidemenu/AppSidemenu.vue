@@ -41,6 +41,7 @@ const props = defineProps({
     hasEnabledFronts: { type: Boolean, default: true },
     profilePath: { type: String, default: "/backend/general/profile" },
     sidemenuPreferencesPath: { type: String, default: "/backend/general/profile/sidemenu" },
+    sidemenuCollapsedPath: { type: String, default: "/backend/general/profile/sidemenu/collapsed" },
     logoutPath: { type: String, default: "/logout" },
     mailpitUrl: { type: String, default: "" },
     siteName: { type: String, default: "Aurora" },
@@ -61,7 +62,7 @@ const props = defineProps({
 const { t } = useI18n();
 const { theme, toggle: toggleTheme } = useTheme();
 const { liveSectionColors } = useSidemenuLiveColors(props.navSectionColors);
-const { collapse, expand, mobileOpen, openMobile, closeMobile } = useSidemenuCollapse();
+const { collapse, expand, mobileOpen, openMobile, closeMobile } = useSidemenuCollapse(props.sidemenuCollapsedPath);
 
 const { dragging: sidemenuDragging, startResize: startSidemenuResize, reset: resetSidemenuWidth } = useResizable({
     key: "aurora-sidemenu-width",

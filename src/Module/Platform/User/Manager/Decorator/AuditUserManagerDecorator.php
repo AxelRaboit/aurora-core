@@ -176,6 +176,16 @@ final readonly class AuditUserManagerDecorator implements UserManagerInterface
         ]);
     }
 
+    /**
+     * Not audited. Folding a menu is a gesture, not a change to the account
+     * worth a trail entry — one afternoon of clicks would bury the entries
+     * that matter.
+     */
+    public function updateSidemenuCollapsed(User $user, bool $collapsed): void
+    {
+        $this->inner->updateSidemenuCollapsed($user, $collapsed);
+    }
+
     public function updateSidemenuPreferences(
         User $user,
         array $hiddenNavSections,

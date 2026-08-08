@@ -1,8 +1,7 @@
-import { computed, ref, watchEffect } from "vue";
+import { computed, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import { dashboardPanels } from "@/shared/dashboard/panelRegistry.js";
-
-const ACTIVE_MODULE_KEY = "aurora-dashboard-module";
+import { useQueryState } from "@/shared/composables/useQueryState.js";
 
 /**
  * Panels come from the Core registry, filled by each module's
@@ -14,7 +13,11 @@ const ACTIVE_MODULE_KEY = "aurora-dashboard-module";
 export function useDashboardModule(enabledModules) {
     const { t } = useI18n();
 
-    const activeModule = ref(localStorage.getItem(ACTIVE_MODULE_KEY) || "");
+    // In the URL: which module's dashboard is on screen is what the page is
+    // showing, so a link to it should say so. Validated on read rather than
+    // against a fixed list — the panels come from a registry each module
+    // fills at boot, so what is valid is only known here.
+    const { value: activeModule, set: selectModule } = useQueryState("module");
 
     const visibleModules = computed(() =>
         dashboardPanels()
@@ -22,11 +25,8 @@ export function useDashboardModule(enabledModules) {
             .map((module) => ({ ...module, label: () => t(module.labelKey) })),
     );
 
-    function selectModule(id) {
-        activeModule.value = id;
-        localStorage.setItem(ACTIVE_MODULE_KEY, id);
-    }
-
+    // A module named in the URL that is disabled, gone, or never existed
+    // falls back to the first one rather than showing an empty shell.
     watchEffect(() => {
         if (
             visibleModules.value.length > 0 &&

@@ -29,7 +29,6 @@ function setHash(value) {
 
 describe("useTabState", () => {
     beforeEach(() => {
-        localStorage.clear();
         setHash("");
     });
 
@@ -43,26 +42,6 @@ describe("useTabState", () => {
 
     it("ignores a default that is not a valid key", () => {
         expect(run({ defaultKey: "nope" }).api.activeTab.value).toBe("content");
-    });
-
-    // ── Remembered preference ────────────────────────────────────────────
-
-    it("restores the remembered tab", () => {
-        localStorage.setItem("tabs", "seo");
-
-        expect(run({ storageKey: "tabs" }).api.activeTab.value).toBe("seo");
-    });
-
-    it("discards a remembered key that no longer exists", () => {
-        localStorage.setItem("tabs", "gone");
-
-        expect(run({ storageKey: "tabs" }).api.activeTab.value).toBe("content");
-    });
-
-    it("writes the choice down", () => {
-        run({ storageKey: "tabs" }).api.select("header");
-
-        expect(localStorage.getItem("tabs")).toBe("header");
     });
 
     // ── The URL fragment ─────────────────────────────────────────────────
@@ -132,24 +111,13 @@ describe("useTabState", () => {
     });
 
     /**
-     * A shared link has to win: it is the more explicit of the two, and the
-     * whole point of sending it is to land somewhere specific.
+     * Tabs inside a modal divide a widget, not the page, and a fragment there
+     * would be noise in an address nobody meant to change.
      */
-    it("lets the fragment override the remembered preference", () => {
-        localStorage.setItem("tabs", "header");
-        setHash("seo");
+    it("leaves the URL alone when the fragment is not asked for", () => {
+        run().api.select("seo");
 
-        expect(
-            run({ storageKey: "tabs", hash: true }).api.activeTab.value,
-        ).toBe("seo");
-    });
-
-    it("falls back to the remembered tab when the fragment says nothing", () => {
-        localStorage.setItem("tabs", "header");
-
-        expect(
-            run({ storageKey: "tabs", hash: true }).api.activeTab.value,
-        ).toBe("header");
+        expect(window.location.hash).toBe("");
     });
 
     // ── Selecting ────────────────────────────────────────────────────────
