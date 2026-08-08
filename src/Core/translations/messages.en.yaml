@@ -7,6 +7,9 @@ shared:
     choose: Choose an image
     change: Change
     remove: Remove
+    upload: Browse
+    uploading: Uploading
+    upload_failed: The upload failed.
   locale_switcher: Language
   errors:
     page_not_found:

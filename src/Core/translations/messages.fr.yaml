@@ -7,6 +7,9 @@ shared:
     choose: Choisir une image
     change: Changer
     remove: Retirer
+    upload: Parcourir
+    uploading: Import en cours
+    upload_failed: L'import a échoué.
   locale_switcher: Choix de la langue
   errors:
     page_not_found:
