@@ -53,9 +53,10 @@ yarn.lock
 # Twig CS Fixer
 .twig-cs-fixer.cache
 
-# Tools vendors
+# Tools vendors — the lock files ARE versioned, on purpose: CI runs
+# `composer install` in each tools/ dir, so without a lock it resolves the
+# newest release every run and green-locally stops meaning green-in-CI.
 /tools/*/vendor/
-/tools/*/composer.lock
 
 # Generated translation catalogues (run `pnpm i18n` to rebuild)
 /src/Core/assets/locales/generated/
