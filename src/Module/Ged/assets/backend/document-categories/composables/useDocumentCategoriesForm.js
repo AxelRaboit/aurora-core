@@ -6,8 +6,21 @@ import { useFormAction } from "@/shared/composables/form/useFormAction.js";
 import { useDelete } from "@/shared/composables/form/useDelete.js";
 import { required } from "@/shared/utils/validation/validators.js";
 
-function emptyForm() {
-    return { name: "", description: "" };
+// `extraFields` is the client extension point: `{ color: { default: "",
+// fromEntity: (cat) => cat.color ?? "" } }`. Merging the keys in here is what
+// makes them travel — `body: () => form.value` submits the whole object, so a
+// client field reaches the server without this file naming it.
+function emptyForm(extraFields) {
+    return {
+        name: "",
+        description: "",
+        ...Object.fromEntries(
+            Object.entries(extraFields).map(([key, field]) => [
+                key,
+                field.default ?? "",
+            ]),
+        ),
+    };
 }
 
 export function useDocumentCategoriesForm(
@@ -15,12 +28,13 @@ export function useDocumentCategoriesForm(
     updatePath,
     deletePath,
     reset,
+    extraFields = {},
 ) {
     const { t } = useI18n();
 
     // ── Create ───────────────────────────────────────────────────────────────
     const showCreate = ref(false);
-    const newCategory = ref(emptyForm());
+    const newCategory = ref(emptyForm(extraFields));
 
     const {
         errors: createErrors,
@@ -52,7 +66,7 @@ export function useDocumentCategoriesForm(
     // ── Edit ─────────────────────────────────────────────────────────────────
     const showEdit = ref(false);
     const editingCategory = ref(null);
-    const editForm = ref(emptyForm());
+    const editForm = ref(emptyForm(extraFields));
 
     const {
         errors: editErrors,
@@ -80,6 +94,14 @@ export function useDocumentCategoriesForm(
         editForm.value = {
             name: category.name,
             description: category.description ?? "",
+            ...Object.fromEntries(
+                Object.entries(extraFields).map(([key, field]) => [
+                    key,
+                    field.fromEntity
+                        ? field.fromEntity(category)
+                        : (category[key] ?? ""),
+                ]),
+            ),
         };
         clearEdit();
         showEdit.value = true;

@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useListPage } from "@/shared/composables/list/useListPage.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -24,6 +25,11 @@ const props = defineProps({
     updatePath: { type: String, required: true },
     deletePath: { type: String, required: true },
     listPath: { type: String, required: true },
+    // Client extension point. A wrapper in an aurora-client project passes
+    // `{ color: { default: "", fromEntity: (cat) => cat.color ?? "" } }` and
+    // fills the three scoped slots below; this component stays untouched, so
+    // an aurora-core update never conflicts with it.
+    extraFields: { type: Object, default: () => ({}) },
 });
 
 const { items, loading, page, totalPages, search: searchInput, onSearch, goToPage, reload: reset } = useListPage(
@@ -34,7 +40,11 @@ const {
     showCreate, newCategory, createErrors, createLoading, openCreate, submitCreate,
     showEdit, editingCategory, editForm, editErrors, editLoading, openEdit, submitEdit,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
-} = useDocumentCategoriesForm(props.createPath, props.updatePath, props.deletePath, reset);
+} = useDocumentCategoriesForm(props.createPath, props.updatePath, props.deletePath, reset, props.extraFields);
+
+// Name + slug + actions, plus whatever the client added — otherwise the empty
+// row stops spanning the table the moment an extra column exists.
+const columnCount = computed(() => 3 + Object.keys(props.extraFields).length);
 </script>
 
 <template>
@@ -77,6 +87,7 @@ const {
                         <tr class="bg-surface-2/50 border-b border-line/40">
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.ged.categories.name") }}</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("backend.ged.categories.slug") }}</th>
+                            <slot name="extra-headers" />
                             <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t("shared.common.actions") }}</th>
                         </tr>
                     </thead>
@@ -84,6 +95,7 @@ const {
                         <tr v-for="cat in items" :key="cat.id" class="group hover:bg-surface-2/40 transition-colors">
                             <td class="px-6 py-3 font-medium text-primary">{{ cat.name }}</td>
                             <td class="px-6 py-3 text-muted font-mono text-xs hidden md:table-cell">{{ cat.slug }}</td>
+                            <slot name="extra-cells" :category="cat" />
                             <td class="px-6 py-3">
                                 <div class="flex items-center justify-end gap-0.5">
                                     <AppIconButton v-if="can('ged.categories.edit')" color="accent" :title="t('shared.common.edit')" v-on:click="openEdit(cat)"><Pencil class="w-4 h-4" :stroke-width="2" /></AppIconButton>
@@ -92,7 +104,7 @@ const {
                             </td>
                         </tr>
                         <tr v-if="!items?.length">
-                            <td :colspan="3"><AppNoData :message="t('backend.ged.categories.empty')" /></td>
+                            <td :colspan="columnCount"><AppNoData :message="t('backend.ged.categories.empty')" /></td>
                         </tr>
                     </tbody>
                 </table>
@@ -117,6 +129,7 @@ const {
                     required
                 />
                 <AppInput v-model="newCategory.description" :label="t('backend.ged.categories.description')" :placeholder="t('backend.ged.categories.description_placeholder')" />
+                <slot name="extra-form-fields" :form="newCategory" :errors="createErrors" />
             </form>
             <template #footer>
                 <AppModalFooter>
@@ -142,6 +155,7 @@ const {
                     required
                 />
                 <AppInput v-model="editForm.description" :label="t('backend.ged.categories.description')" :placeholder="t('backend.ged.categories.description_placeholder')" />
+                <slot name="extra-form-fields" :form="editForm" :errors="editErrors" />
             </form>
             <template #footer>
                 <AppModalFooter>
