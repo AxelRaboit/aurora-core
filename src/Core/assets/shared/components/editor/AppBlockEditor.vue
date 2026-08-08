@@ -2,7 +2,7 @@
 import "./editor.css";
 import "./blocks.css";
 
-import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
+import { IMAGE_UPLOAD_ENDPOINT, uploadImageFile } from "@/shared/utils/http/uploadImageFile.js";
 import { ref, onMounted, onBeforeUnmount, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import EditorJS from "@editorjs/editorjs";
@@ -50,7 +50,7 @@ const { t } = useI18n();
 const props = defineProps({
     modelValue: { type: Array, default: () => [] },
     placeholder: { type: String, default: "" },
-    uploadUrl: { type: String, default: "/backend/media/media/upload" },
+    uploadUrl: { type: String, default: IMAGE_UPLOAD_ENDPOINT },
     /**
      * Module-specific tools dict, merged on top of the built-in set.
      * Shape matches Editor.js' native `tools` config:
@@ -203,16 +203,16 @@ onMounted(async () => {
                 config: {
                     uploader: {
                         uploadByUrl: async (url) => ({ success: 1, file: { url } }),
+                        // Editor.js wants {success: 1, file: {url}}; the
+                        // endpoint answers with the filed document. Handing it
+                        // the raw body used to "work" only because the request
+                        // never reached a route at all.
                         uploadByFile: async (file) => {
-                            const body = new FormData();
-                            body.append("image", file);
-                            try {
-                                const response = await fetch(props.uploadUrl, { method: HttpMethod.Post, body });
-                                if (!response.ok) return { success: 0 };
-                                return response.json();
-                            } catch {
-                                return { success: 0 };
-                            }
+                            const uploaded = await uploadImageFile(file, props.uploadUrl);
+
+                            return uploaded
+                                ? { success: 1, file: { url: uploaded.url } }
+                                : { success: 0 };
                         },
                     },
                     captionPlaceholder: t("backend.editor.image.caption_placeholder"),

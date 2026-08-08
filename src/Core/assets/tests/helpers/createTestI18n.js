@@ -43,6 +43,9 @@ const baseMessages = {
             change: "Changer",
             choose: "Choisir",
             remove: "Retirer",
+            upload: "Parcourir",
+            uploading: "Import en cours",
+            upload_failed: "L'import a échoué.",
         },
         pagination: {
             previous: "Précédent",
