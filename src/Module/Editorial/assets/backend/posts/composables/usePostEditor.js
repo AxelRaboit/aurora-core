@@ -5,12 +5,42 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useServerErrors } from "@/shared/composables/form/useServerErrors.js";
 
+// Mirrors BannerNormalizer's shape. A new translation starts with both slots
+// present and empty rather than an empty array, so the panel never has to
+// guard a missing index and the server round-trips what it was sent.
+function emptyBannerSlot() {
+    return {
+        type: "none",
+        title: "",
+        description: "",
+        titleColor: null,
+        descriptionColor: null,
+        align: "start",
+        mediaId: null,
+        alt: "",
+        media: null,
+    };
+}
+
+export function emptyBanner() {
+    return {
+        enabled: false,
+        height: "md",
+        ratio: "50-50",
+        logoMediaId: null,
+        logo: null,
+        background: { color: null, mediaId: null, overlay: 0, media: null },
+        slots: [emptyBannerSlot(), emptyBannerSlot()],
+    };
+}
+
 function emptyTranslation() {
     return {
         title: "",
         slug: "",
         description: "",
         blocks: [],
+        banner: emptyBanner(),
         metaTitle: "",
         metaDescription: "",
         customFields: {},

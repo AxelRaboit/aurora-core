@@ -32,36 +32,58 @@ final readonly class BannerViewBuilder
      */
     public function build(array $stored): ?array
     {
-        $banner = $this->bannerNormalizer->normalize($stored);
+        $banner = $this->resolve($stored);
 
         if (true !== $banner['enabled']) {
             return null;
         }
 
-        $documents = $this->documents($banner);
-
-        $slots = array_map(
-            fn (array $slot): array => [
-                ...$slot,
-                'media' => $this->mediaData($documents[$slot['mediaId']] ?? null, $slot['alt']),
-            ],
-            $banner['slots'],
-        );
-
         // A banner whose every slot is empty and which carries no background
         // would render as a coloured void. Treat it as off rather than as a
         // layout choice — an author who cleared everything meant to remove it.
         $hasContent = null !== $banner['background']['color']
-            || null !== ($documents[$banner['background']['mediaId']] ?? null)
-            || [] !== array_filter($slots, static fn (array $slot): bool => BannerNormalizer::SLOT_NONE !== $slot['type']);
+            || null !== $banner['background']['media']
+            || [] !== array_filter(
+                $banner['slots'],
+                static fn (array $slot): bool => BannerNormalizer::SLOT_NONE !== $slot['type'],
+            );
 
-        if (!$hasContent) {
-            return null;
-        }
+        return $hasContent ? $banner : null;
+    }
+
+    /**
+     * The editor needs the same resolved media, but unconditionally: a
+     * disabled banner still has to show its picture in the picker, and an
+     * empty one still has to render its form.
+     *
+     * @param array<string, mixed> $stored
+     *
+     * @return array<string, mixed>
+     */
+    public function buildForEditor(array $stored): array
+    {
+        return $this->resolve($stored);
+    }
+
+    /**
+     * @param array<string, mixed> $stored
+     *
+     * @return array<string, mixed>
+     */
+    private function resolve(array $stored): array
+    {
+        $banner = $this->bannerNormalizer->normalize($stored);
+        $documents = $this->documents($banner);
 
         return [
             ...$banner,
-            'slots' => $slots,
+            'slots' => array_map(
+                fn (array $slot): array => [
+                    ...$slot,
+                    'media' => $this->mediaData($documents[$slot['mediaId']] ?? null, $slot['alt']),
+                ],
+                $banner['slots'],
+            ),
             'background' => [
                 ...$banner['background'],
                 'media' => $this->mediaData($documents[$banner['background']['mediaId']] ?? null, ''),

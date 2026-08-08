@@ -184,6 +184,46 @@ backend:
       field_label_required: A label is required.
       field_type_invalid: Unknown field type.
   posts:
+    banner:
+      title: Custom header
+      enabled: Show a custom header
+      height: Height
+      ratio: Split
+      background: Background
+      background_color: Background colour
+      background_image: Background image
+      background_image_hint: Sits behind the content, cropped to its focal point.
+      overlay: 'Darkening: {percent}%'
+      logo: Logo
+      slot: 'Slot {number}'
+      slot_type: Content
+      slot_title: Title
+      slot_title_placeholder: Welcome to Aurora
+      slot_description: Description
+      slot_description_placeholder: One sentence summing the page up.
+      slot_title_color: Title colour
+      slot_description_color: Description colour
+      slot_align: Alignment
+      slot_image: Image
+      slot_alt: Alternative text
+      slot_alt_placeholder: What the image shows, for screen readers.
+      heights:
+        sm: Short
+        md: Medium
+        lg: Tall
+        full: Full screen
+      ratios:
+        50_50: Half / half
+        33_67: One third / two thirds
+        67_33: Two thirds / one third
+      slot_types:
+        none: Empty
+        text: Text
+        image: Image
+      aligns:
+        start: Left
+        center: Centred
+        end: Right
     title: Posts
     create: New post
     edit: Edit post

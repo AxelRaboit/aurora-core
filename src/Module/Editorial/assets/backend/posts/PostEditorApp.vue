@@ -11,6 +11,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
+import PostBannerPanel from "./components/PostBannerPanel.vue";
 import { Save, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-vue-next";
 
 const { t } = useI18n();
@@ -90,6 +91,11 @@ function termLabel(term) {
                         :hint="t('backend.posts.description_hint')"
                         :rows="3"
                     />
+                </div>
+
+                <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                    <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.banner.title") }}</h3>
+                    <PostBannerPanel :banner="current.banner" />
                 </div>
 
                 <div v-if="supportsBlocks" class="bg-surface border border-line rounded-xl p-5 space-y-3">

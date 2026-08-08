@@ -184,6 +184,46 @@ backend:
       field_label_required: Un libellé est requis.
       field_type_invalid: Type de champ inconnu.
   posts:
+    banner:
+      title: En-tête personnalisé
+      enabled: Afficher un en-tête personnalisé
+      height: Hauteur
+      ratio: Répartition
+      background: Fond
+      background_color: Couleur de fond
+      background_image: Image de fond
+      background_image_hint: Placée derrière le contenu, recadrée selon son point focal.
+      overlay: 'Assombrissement : {percent} %'
+      logo: Logo
+      slot: 'Emplacement {number}'
+      slot_type: Contenu
+      slot_title: Titre
+      slot_title_placeholder: Bienvenue chez Aurora
+      slot_description: Description
+      slot_description_placeholder: Une phrase qui résume la page.
+      slot_title_color: Couleur du titre
+      slot_description_color: Couleur de la description
+      slot_align: Alignement
+      slot_image: Image
+      slot_alt: Texte alternatif
+      slot_alt_placeholder: Ce que montre l'image, pour les lecteurs d'écran.
+      heights:
+        sm: Basse
+        md: Moyenne
+        lg: Haute
+        full: Plein écran
+      ratios:
+        50_50: Moitié / moitié
+        33_67: Un tiers / deux tiers
+        67_33: Deux tiers / un tiers
+      slot_types:
+        none: Vide
+        text: Texte
+        image: Image
+      aligns:
+        start: À gauche
+        center: Centré
+        end: À droite
     title: Publications
     create: Nouvelle publication
     edit: Modifier la publication
