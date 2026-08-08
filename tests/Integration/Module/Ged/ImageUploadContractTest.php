@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Ged;
 
+use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
-use Aurora\Module\Ged\GedBootstrapProvider;
+use Aurora\Module\Ged\DocumentCategory\Service\InlineUploadCategoryProvider;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -65,10 +67,40 @@ final class ImageUploadContractTest extends IntegrationTestCase
         $document = $this->uploadedDocument();
 
         self::assertSame(
-            GedBootstrapProvider::INLINE_UPLOAD_CATEGORY,
+            InlineUploadCategoryProvider::SLUG,
             $document->getCategory()?->getSlug(),
             'an inline upload with no category is exactly the litter this endpoint avoids',
         );
+    }
+
+    /**
+     * The bootstrap seeds the category, and the bootstrap is the one step a
+     * project upgrading from an older version can skip. Every image uploaded
+     * before someone remembered to run `aurora:install` would then land
+     * uncategorised — so the first upload creates it.
+     */
+    public function testTheCategoryIsCreatedByTheFirstUploadWhenNothingSeededIt(): void
+    {
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $category = static::getContainer()->get(InlineUploadCategoryProvider::class)->find();
+
+        // Back to a database that never ran the bootstrap. Documents already
+        // filed there would hold the foreign key, so they go first.
+        self::assertNotNull($category, 'the suite is expected to have seeded it');
+        $entityManager->createQuery('DELETE FROM '.Document::class.' d WHERE d.category = :category')
+            ->setParameter('category', $category)
+            ->execute();
+        $entityManager->remove($category);
+        $entityManager->flush();
+
+        self::assertNull(
+            static::getContainer()->get(InlineUploadCategoryProvider::class)->find(),
+            'the category was not actually removed, so what follows would prove nothing',
+        );
+
+        $document = $this->uploadedDocument();
+
+        self::assertSame(InlineUploadCategoryProvider::SLUG, $document->getCategory()?->getSlug());
     }
 
     /**

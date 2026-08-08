@@ -7,10 +7,8 @@ namespace Aurora\Module\Ged\Document\Service;
 use Aurora\Module\Ged\Document\Dto\DocumentInputFactoryInterface;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Manager\DocumentManagerInterface;
-use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
-use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
+use Aurora\Module\Ged\DocumentCategory\Service\InlineUploadCategoryProvider;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
-use Aurora\Module\Ged\GedBootstrapProvider;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -28,10 +26,11 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  * after. An asset nobody can reach again is the disorder this is meant to
  * avoid, not a safe default.
  *
- * **The dedicated category**, seeded by {@see GedBootstrapProvider}. A
- * project's categories describe its filing; a banner image belongs to none of
- * them, and an uncategorised document is exactly the litter this exists to
- * prevent.
+ * **The dedicated category**, created on the first upload if it is not there
+ * yet. A project's categories describe its filing; a banner image belongs to
+ * none of them, and an uncategorised document is exactly the litter this
+ * exists to prevent — so the category is resolved rather than looked up, and
+ * an install that skipped the bootstrap still files correctly.
  */
 final readonly class InlineImageUploader
 {
@@ -39,7 +38,7 @@ final readonly class InlineImageUploader
         private GedDocumentUploader $uploader,
         private DocumentManagerInterface $documentManager,
         private DocumentInputFactoryInterface $inputFactory,
-        private DocumentCategoryRepository $documentCategoryRepository,
+        private InlineUploadCategoryProvider $inlineUploadCategoryProvider,
     ) {}
 
     public function upload(UploadedFile $file): DocumentInterface
@@ -53,7 +52,7 @@ final readonly class InlineImageUploader
             // in GED like any other document.
             'title' => $uploaded['originalName'],
             'status' => DocumentStatusEnum::Published->value,
-            'categoryId' => $this->categoryId(),
+            'categoryId' => (int) $this->inlineUploadCategoryProvider->resolve()->getId(),
             'filePath' => $uploaded['filePath'],
             'fileName' => $uploaded['fileName'],
             'originalName' => $uploaded['originalName'],
@@ -63,20 +62,5 @@ final readonly class InlineImageUploader
             'height' => $uploaded['height'],
             'thumbnailPath' => $uploaded['thumbnailPath'],
         ]));
-    }
-
-    /**
-     * Null when the category is missing, which only happens on an install that
-     * never ran the bootstrap. Uncategorised is worse than categorised and
-     * better than a failed upload: the author keeps their image, and the row
-     * is one query away from being filed.
-     */
-    private function categoryId(): ?int
-    {
-        $category = $this->documentCategoryRepository->findOneBy([
-            'slug' => GedBootstrapProvider::INLINE_UPLOAD_CATEGORY,
-        ]);
-
-        return $category instanceof DocumentCategoryInterface ? (int) $category->getId() : null;
     }
 }
