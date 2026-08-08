@@ -212,8 +212,6 @@ backend:
       browse: Parcourir
       actions: Actions
       or: ou
-      media_id_placeholder: ID média existant…
-      media_id_not_found: Média introuvable
     media_picker:
       title: Choisir un média
       search: Rechercher par nom ou alt…

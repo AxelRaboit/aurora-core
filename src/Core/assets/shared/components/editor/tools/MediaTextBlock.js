@@ -1,5 +1,7 @@
 import { handlePlainTextPaste } from "./handlePlainTextPaste.js";
 import { openDocumentPicker } from "@shared/utils/documentPicker.js";
+import { uploadImageFile } from "@shared/utils/http/uploadImageFile.js";
+import { usePrivileges } from "@shared/composables/usePrivileges.js";
 
 export default class MediaTextBlock {
     #wrapper = null;
@@ -34,9 +36,10 @@ export default class MediaTextBlock {
             changeUrl: config.changeUrl ?? "Change URL",
             confirm: config.confirm ?? "Confirm",
             browse: config.browse ?? "Browse media",
+            upload: config.upload ?? "Upload",
+            uploading: config.uploading ?? "Uploading…",
+            uploadFailed: config.uploadFailed ?? "The upload failed.",
             orLabel: config.orLabel ?? "or",
-            mediaIdPlaceholder: config.mediaIdPlaceholder ?? "Media ID…",
-            mediaIdNotFound: config.mediaIdNotFound ?? "Media not found",
         };
     }
 
@@ -178,57 +181,67 @@ export default class MediaTextBlock {
         });
         urlInput.addEventListener("blur", submitUrl);
 
-        const separator2 = document.createElement("span");
-        separator2.className = "mt-block__url-or";
-        separator2.textContent = this.#config.orLabel;
-
-        const idInput = document.createElement("input");
-        idInput.type = "number";
-        idInput.min = "1";
-        idInput.placeholder = this.#config.mediaIdPlaceholder;
-        idInput.className = "mt-block__url-input";
+        // Uploading from the machine, the same way the image block and every
+        // picker in the backend do — one endpoint, one category, one place
+        // that knows the response shape.
+        //
+        // Replaces a "Media ID…" field that fetched /backend/media/media/{id}/info,
+        // a route removed with the Media module. It had been broken for as long
+        // as that route had been gone, and browsing makes it redundant anyway.
         const error = document.createElement("p");
         error.className = "mt-block__url-error";
         error.style.display = "none";
-        const submitId = async () => {
-            const id = parseInt(idInput.value, 10);
-            if (!id || id < 1) return;
+
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.accept = "image/*";
+        fileInput.className = "mt-block__url-file";
+        fileInput.hidden = true;
+
+        // The endpoint is guarded by GED's permission, not the one that opened
+        // the editor. Hiding the button beats a 403 with nothing to explain it.
+        const canUpload = usePrivileges().can("ged.documents.create");
+
+        const uploadBtn = this.#createButton(this.#config.upload, () =>
+            fileInput.click(),
+        );
+        uploadBtn.classList.add("mt-block__url-upload");
+
+        fileInput.addEventListener("change", async (event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+
             error.style.display = "none";
-            try {
-                const response = await fetch(
-                    `/backend/media/media/${id}/info`,
-                    {
-                        headers: { Accept: "application/json" },
-                    },
-                );
-                if (!response.ok) throw new Error();
-                const data = await response.json();
-                if (data?.media?.url) {
-                    onConfirm(data.media.url, data.media.id);
-                } else {
-                    throw new Error();
-                }
-            } catch {
-                error.textContent = this.#config.mediaIdNotFound;
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = this.#config.uploading;
+
+            const uploaded = await uploadImageFile(file);
+
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = this.#config.upload;
+            fileInput.value = "";
+
+            if (!uploaded) {
+                error.textContent = this.#config.uploadFailed;
                 error.style.display = "block";
+
+                return;
             }
-        };
-        idInput.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                submitId();
-            }
-        });
-        idInput.addEventListener("blur", () => {
-            if (idInput.value.trim()) submitId();
+
+            onConfirm(uploaded.url, uploaded.id);
         });
 
         wrapper.appendChild(browseBtn);
+
+        if (canUpload) {
+            wrapper.appendChild(uploadBtn);
+            wrapper.appendChild(fileInput);
+        }
+
         wrapper.appendChild(separator);
         wrapper.appendChild(urlInput);
-        wrapper.appendChild(separator2);
-        wrapper.appendChild(idInput);
         wrapper.appendChild(error);
+
         return wrapper;
     }
 

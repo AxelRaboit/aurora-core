@@ -29,12 +29,21 @@ use function sprintf;
  */
 final class FrontendRouteReferencesTest extends IntegrationTestCase
 {
+    /** Quoted literals: `"/backend/ged/documents/list"`. */
+    private const string QUOTED_PATH = '#["\'](/backend/[a-z0-9/-]+)["\']#i';
+
     /**
-     * Literal `/backend/...` paths, quoted, with no interpolation. Templated
-     * ones (`/backend/x/{id}`) are built by `buildPath` at runtime and are not
-     * this test's business.
+     * Backtick templates: `` `/backend/ged/documents/${id}/usage` ``. Only the
+     * static head is checked, against the *start* of a route — the rest is a
+     * runtime value.
+     *
+     * Added because the first version of this test missed exactly this shape,
+     * and the shape held a second dead route: the media-text block looked up
+     * `/backend/media/media/${id}/info`, gone with the Media module. A guard
+     * that covers one quoting style and not the others reports green for the
+     * wrong reason.
      */
-    private const string BACKEND_PATH = '#["\'](/backend/[a-z0-9/-]+)["\']#i';
+    private const string TEMPLATE_PATH = '#`(/backend/[a-z0-9/-]*)\$\{#i';
 
     /**
      * @return iterable<string, array{string, list<string>}>
@@ -59,9 +68,15 @@ final class FrontendRouteReferencesTest extends IntegrationTestCase
 
             $contents = self::withoutComments((string) file_get_contents($file->getPathname()));
 
-            preg_match_all(self::BACKEND_PATH, $contents, $matches);
+            preg_match_all(self::QUOTED_PATH, $contents, $quoted);
+            preg_match_all(self::TEMPLATE_PATH, $contents, $templated);
 
-            $paths = array_values(array_unique($matches[1]));
+            $paths = array_values(array_unique([
+                ...$quoted[1],
+                // Marked so the assertion knows to match a prefix rather than
+                // the whole path.
+                ...array_map(static fn (string $head): string => $head.'*', $templated[1]),
+            ]));
 
             if ([] === $paths) {
                 continue;
@@ -98,16 +113,35 @@ final class FrontendRouteReferencesTest extends IntegrationTestCase
         }
 
         foreach ($paths as $path) {
-            self::assertArrayHasKey(
-                $path,
-                $known,
+            self::assertTrue(
+                $this->isKnown($path, array_keys($known)),
                 sprintf(
-                    '%s posts to %s, which matches no route. A dead path fails silently: '
+                    '%s calls %s, which matches no route. A dead path fails silently: '
                     .'the request 404s and the feature simply stops working.',
                     $file,
-                    $path,
+                    mb_rtrim($path, '*'),
                 ),
             );
         }
+    }
+
+    /**
+     * @param list<string> $known
+     */
+    private function isKnown(string $path, array $known): bool
+    {
+        if (!str_ends_with($path, '*')) {
+            return in_array($path, $known, true);
+        }
+
+        $prefix = mb_rtrim($path, '*');
+
+        foreach ($known as $route) {
+            if (str_starts_with($route, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

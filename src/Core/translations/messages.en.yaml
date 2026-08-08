@@ -212,8 +212,6 @@ backend:
       browse: Browse
       actions: Actions
       or: or
-      media_id_placeholder: Existing media ID…
-      media_id_not_found: Media not found
     media_picker:
       title: Choose a media
       search: Search by name or alt…
