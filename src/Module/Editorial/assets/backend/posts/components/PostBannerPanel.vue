@@ -34,6 +34,7 @@ const {
     heightOptions,
     alignOptions,
     fillOptions,
+    widthModeOptions,
     widthOptions,
     items,
     canAddItem,
@@ -170,11 +171,18 @@ const {
             <div class="rounded-lg border border-line p-4 space-y-4">
                 <p class="text-sm font-medium text-primary">{{ t("backend.posts.banner.appearance") }}</p>
 
-                <AppSelect
-                    v-model="fields.height.value"
-                    :label="t('backend.posts.banner.height')"
-                    :options="heightOptions"
-                />
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <AppSelect
+                        v-model="fields.widthMode.value"
+                        :label="t('backend.posts.banner.width_mode')"
+                        :options="widthModeOptions"
+                    />
+                    <AppSelect
+                        v-model="fields.height.value"
+                        :label="t('backend.posts.banner.height')"
+                        :options="heightOptions"
+                    />
+                </div>
 
                 <div class="space-y-3">
                     <div class="flex items-end gap-3">

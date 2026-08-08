@@ -11,6 +11,7 @@ export function emptyBanner() {
     return {
         enabled: false,
         height: "md",
+        width: "contained",
         logoMediaId: null,
         logo: null,
         background: {

@@ -33,6 +33,10 @@ final readonly class BannerNormalizer
 
     public const string ITEM_IMAGE = 'image';
 
+    public const string WIDTH_CONTAINED = 'contained';
+
+    public const string WIDTH_FULL = 'full';
+
     public const string FILL_NONE = 'none';
 
     public const string FILL_SOLID = 'solid';
@@ -55,6 +59,8 @@ final readonly class BannerNormalizer
 
     private const array HEIGHTS = ['sm', 'md', 'lg', 'full'];
 
+    private const array WIDTHS = [self::WIDTH_CONTAINED, self::WIDTH_FULL];
+
     private const array ALIGNMENTS = ['start', 'center', 'end'];
 
     private const array BREAKPOINTS = ['base', 'md', 'lg'];
@@ -73,6 +79,9 @@ final readonly class BannerNormalizer
         return [
             'enabled' => (bool) ($data['enabled'] ?? false),
             'height' => $this->oneOf($data['height'] ?? null, self::HEIGHTS, 'md'),
+            // Where the banner sits: inside the article column like the rest of
+            // the page, or spanning the viewport flush under the top bar.
+            'width' => $this->oneOf($data['width'] ?? null, self::WIDTHS, self::WIDTH_CONTAINED),
             'logoMediaId' => $this->id($data['logoMediaId'] ?? null),
             'background' => $this->background(is_array($data['background'] ?? null) ? $data['background'] : []),
             'items' => $this->items($data),

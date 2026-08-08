@@ -63,6 +63,12 @@
     </header>
     {% endblock %}
 
+    {# Anything that has to span the viewport goes here rather than inside
+       <main>, which is width-capped and padded. Escaping that from within with
+       `100vw` and a negative margin is the usual trick and the usual bug:
+       `100vw` counts the scrollbar, so the page gains a horizontal one. #}
+    {% block frontend_banner %}{% endblock %}
+
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
         {% block body %}{% endblock %}
     </main>

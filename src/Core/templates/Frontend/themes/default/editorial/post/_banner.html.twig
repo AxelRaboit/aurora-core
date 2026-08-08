@@ -23,11 +23,18 @@
     end: 'text-right items-end',
 } %}
 
+{# Contained sits in the article column, rounded and spaced like a card.
+   Full spans the viewport flush under the top bar, so it drops the rounding
+   and the margin — a corner radius against the window edge reads as a
+   mistake, and the gap it would leave is the thing being removed. Inner
+   padding grows to keep the text off the window edge. #}
+{% set isFull = banner.width == 'full' %}
+
 <header
     {# flex column, so the inner grid can claim the leftover height. `h-full`
        on it would not: the header's own height is auto, and a percentage
        height against min-height resolves to nothing. #}
-    class="relative isolate flex flex-col overflow-hidden rounded-xl not-prose mb-8 {{ heights[banner.height] }}"
+    class="relative isolate flex flex-col overflow-hidden not-prose {{ heights[banner.height] }} {{ isFull ? 'mb-8' : 'rounded-xl mb-8' }}"
     {# Already a CSS declaration built from hex-validated parts by
        BannerViewBuilder, so `raw` here is not a hole. #}
     {% if banner.background.fillStyle %}style="{{ banner.background.fillStyle|raw }}"{% endif %}
@@ -50,7 +57,7 @@
         <img src="{{ banner.logo.url }}" alt="{{ banner.logo.alt }}" class="absolute top-6 left-6 z-10 h-10 w-auto">
     {% endif %}
 
-    <div class="aurora-grid flex-1 gap-8 p-8 sm:p-12">
+    <div class="aurora-grid flex-1 gap-8 {{ isFull ? 'p-8 sm:p-12 lg:px-16' : 'p-8 sm:p-12' }}">
         {% for item in banner.items %}
             <div style="{{ item.spanStyle|raw }}">
                 {% if item.type == 'text' %}

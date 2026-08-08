@@ -82,6 +82,7 @@ export function usePostBanner(banner) {
     const heightOptions = options(["sm", "md", "lg", "full"], "heights");
     const alignOptions = options(["start", "center", "end"], "aligns");
     const fillOptions = options(["none", "solid", "gradient"], "fills");
+    const widthModeOptions = options(["contained", "full"], "width_modes");
 
     const widthOptions = computed(() =>
         WIDTHS.map(({ columns, key }) => ({
@@ -131,6 +132,12 @@ export function usePostBanner(banner) {
             () => banner.value.height,
             (value) => {
                 banner.value.height = value;
+            },
+        ),
+        widthMode: writable(
+            () => banner.value.width,
+            (value) => {
+                banner.value.width = value;
             },
         ),
         fillType: writable(
@@ -251,6 +258,7 @@ export function usePostBanner(banner) {
         heightOptions,
         alignOptions,
         fillOptions,
+        widthModeOptions,
         widthOptions,
         items,
         canAddItem,

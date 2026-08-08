@@ -187,6 +187,10 @@ backend:
     banner:
       title: En-tête personnalisé
       enabled: Afficher un en-tête personnalisé
+      width_mode: Placement
+      width_modes:
+        contained: Dans la colonne
+        full: Pleine largeur, collé à la barre
       height: Hauteur
       clear_color: Effacer la couleur
       empty: Aucun élément. Ajoutez un texte ou une image.
