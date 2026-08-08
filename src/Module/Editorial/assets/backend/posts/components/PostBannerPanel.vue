@@ -9,6 +9,7 @@
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppColorPicker from "@/shared/components/form/picker/AppColorPicker.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -29,11 +30,21 @@ const {
     ratioOptions,
     slotTypeOptions,
     alignOptions,
+    presetOptions,
+    applyPreset,
     bothSlotsFilled,
     hasBackgroundImage,
     fields,
     slotFields,
 } = usePostBanner(computed(() => props.banner));
+
+// Slots are laid out side by side above the mobile breakpoint and stacked
+// below it, so "left" and "right" are the desktop reading — which is the one
+// an author is composing against.
+const slotLabels = computed(() => [
+    t("backend.posts.banner.slot_left"),
+    t("backend.posts.banner.slot_right"),
+]);
 </script>
 
 <template>
@@ -41,45 +52,21 @@ const {
         <AppToggle v-model="fields.enabled.value" :label="t('backend.posts.banner.enabled')" />
 
         <template v-if="fields.enabled.value">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <AppSelect
-                    v-model="fields.height.value"
-                    :label="t('backend.posts.banner.height')"
-                    :options="heightOptions"
-                />
-                <AppSelect
-                    v-if="bothSlotsFilled"
-                    v-model="fields.ratio.value"
-                    :label="t('backend.posts.banner.ratio')"
-                    :options="ratioOptions"
-                />
-            </div>
-
-            <div class="rounded-lg border border-line p-4 space-y-4">
-                <p class="text-sm font-medium text-primary">{{ t("backend.posts.banner.background") }}</p>
-
-                <AppColorPicker
-                    v-model="fields.backgroundColor.value"
-                    :label="t('backend.posts.banner.background_color')"
-                />
-
-                <AppImagePickerField
-                    v-model="fields.backgroundMedia.value"
-                    :label="t('backend.posts.banner.background_image')"
-                    :hint="t('backend.posts.banner.background_image_hint')"
-                />
-
-                <div v-if="hasBackgroundImage">
-                    <p class="text-sm text-secondary mb-1">
-                        {{ t("backend.posts.banner.overlay", { percent: fields.overlay.value }) }}
-                    </p>
-                    <AppRange v-model="fields.overlay.value" :min="0" :max="100" :step="5" />
+            <div class="space-y-2">
+                <p class="text-sm font-medium text-primary">{{ t("backend.posts.banner.preset") }}</p>
+                <div class="flex flex-wrap gap-2">
+                    <AppTab
+                        v-for="preset in presetOptions"
+                        :key="preset.key"
+                        variant="pill"
+                        size="sm"
+                        :active="preset.active"
+                        v-on:click="applyPreset(preset.types)"
+                    >
+                        {{ preset.label }}
+                    </AppTab>
                 </div>
-
-                <AppImagePickerField
-                    v-model="fields.logoMedia.value"
-                    :label="t('backend.posts.banner.logo')"
-                />
+                <p class="text-xs text-muted">{{ t("backend.posts.banner.preset_hint") }}</p>
             </div>
 
             <div
@@ -87,9 +74,7 @@ const {
                 :key="index"
                 class="rounded-lg border border-line p-4 space-y-4"
             >
-                <p class="text-sm font-medium text-primary">
-                    {{ t("backend.posts.banner.slot", { number: index + 1 }) }}
-                </p>
+                <p class="text-sm font-medium text-primary">{{ slotLabels[index] }}</p>
 
                 <AppSelect
                     v-model="slotFields(index).type.value"
@@ -136,6 +121,50 @@ const {
                         :placeholder="t('backend.posts.banner.slot_alt_placeholder')"
                     />
                 </template>
+            </div>
+
+            <!-- Appearance last: an author fills the banner before deciding
+                 how tall it is or what sits behind it. -->
+            <div class="rounded-lg border border-line p-4 space-y-4">
+                <p class="text-sm font-medium text-primary">{{ t("backend.posts.banner.appearance") }}</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <AppSelect
+                        v-model="fields.height.value"
+                        :label="t('backend.posts.banner.height')"
+                        :options="heightOptions"
+                    />
+                    <AppSelect
+                        v-if="bothSlotsFilled"
+                        v-model="fields.ratio.value"
+                        :label="t('backend.posts.banner.ratio')"
+                        :options="ratioOptions"
+                    />
+                </div>
+
+                <AppColorPicker
+                    v-model="fields.backgroundColor.value"
+                    :label="t('backend.posts.banner.background_color')"
+                />
+
+                <AppImagePickerField
+                    v-model="fields.backgroundMedia.value"
+                    :label="t('backend.posts.banner.background_image')"
+                    :hint="t('backend.posts.banner.background_image_hint')"
+                />
+
+                <div v-if="hasBackgroundImage">
+                    <p class="text-sm text-secondary mb-1">
+                        {{ t("backend.posts.banner.overlay", { percent: fields.overlay.value }) }}
+                    </p>
+                    <AppRange v-model="fields.overlay.value" :min="0" :max="100" :step="5" />
+                </div>
+
+                <AppImagePickerField
+                    v-model="fields.logoMedia.value"
+                    :label="t('backend.posts.banner.logo')"
+                    :hint="t('backend.posts.banner.logo_hint')"
+                />
             </div>
         </template>
     </div>

@@ -65,6 +65,41 @@ export function usePostBanner(banner) {
             1,
     );
 
+    /**
+     * Authors think in arrangements — "text then image", "two images" — while
+     * the model is two independent slots. These presets bridge the two: one
+     * click sets both slot types, and the per-slot control below stays free
+     * for anything the list does not cover.
+     *
+     * Deliberately not stored: the arrangement is derived from the slot types,
+     * so there is no second source of truth to keep in step.
+     */
+    const presets = [
+        { key: "text", types: ["text", "none"] },
+        { key: "image", types: ["image", "none"] },
+        { key: "text_image", types: ["text", "image"] },
+        { key: "image_text", types: ["image", "text"] },
+        { key: "two_texts", types: ["text", "text"] },
+        { key: "two_images", types: ["image", "image"] },
+    ];
+
+    const presetOptions = computed(() =>
+        presets.map(({ key, types }) => ({
+            key,
+            types,
+            label: t(`backend.posts.banner.presets.${key}`),
+            active: banner.value.slots.every(
+                (slot, i) => slot.type === types[i],
+            ),
+        })),
+    );
+
+    function applyPreset(types) {
+        types.forEach((type, index) => {
+            banner.value.slots[index].type = type;
+        });
+    }
+
     const background = () => banner.value.background;
 
     const fields = {
@@ -149,6 +184,8 @@ export function usePostBanner(banner) {
         ratioOptions,
         slotTypeOptions,
         alignOptions,
+        presetOptions,
+        applyPreset,
         bothSlotsFilled,
         hasBackgroundImage,
         fields,

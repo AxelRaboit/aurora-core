@@ -189,13 +189,24 @@ backend:
       enabled: Afficher un en-tête personnalisé
       height: Hauteur
       ratio: Répartition
-      background: Fond
+      preset: Disposition
+      preset_hint: Point de départ — chaque emplacement reste réglable en dessous.
+      presets:
+        text: Texte seul
+        image: Image seule
+        text_image: Texte + image
+        image_text: Image + texte
+        two_texts: Deux textes
+        two_images: Deux images
+      slot_left: À gauche
+      slot_right: À droite
+      appearance: Apparence
+      logo_hint: Affiché en haut à gauche, par-dessus le fond.
       background_color: Couleur de fond
       background_image: Image de fond
       background_image_hint: Placée derrière le contenu, recadrée selon son point focal.
       overlay: 'Assombrissement : {percent} %'
       logo: Logo
-      slot: 'Emplacement {number}'
       slot_type: Contenu
       slot_title: Titre
       slot_title_placeholder: Bienvenue chez Aurora

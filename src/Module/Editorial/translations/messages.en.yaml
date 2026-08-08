@@ -189,13 +189,24 @@ backend:
       enabled: Show a custom header
       height: Height
       ratio: Split
-      background: Background
+      preset: Arrangement
+      preset_hint: A starting point — each slot stays adjustable below.
+      presets:
+        text: Text only
+        image: Image only
+        text_image: Text + image
+        image_text: Image + text
+        two_texts: Two texts
+        two_images: Two images
+      slot_left: Left
+      slot_right: Right
+      appearance: Appearance
+      logo_hint: Shown top left, over the background.
       background_color: Background colour
       background_image: Background image
       background_image_hint: Sits behind the content, cropped to its focal point.
       overlay: 'Darkening: {percent}%'
       logo: Logo
-      slot: 'Slot {number}'
       slot_type: Content
       slot_title: Title
       slot_title_placeholder: Welcome to Aurora
