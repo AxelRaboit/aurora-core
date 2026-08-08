@@ -200,6 +200,7 @@ backend:
         two_images: Deux images
       slot_left: À gauche
       slot_right: À droite
+      clear_color: Effacer la couleur
       appearance: Apparence
       logo_hint: Affiché en haut à gauche, par-dessus le fond.
       background_color: Couleur de fond

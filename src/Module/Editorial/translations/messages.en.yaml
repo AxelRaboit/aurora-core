@@ -200,6 +200,7 @@ backend:
         two_images: Two images
       slot_left: Left
       slot_right: Right
+      clear_color: Clear colour
       appearance: Appearance
       logo_hint: Shown top left, over the background.
       background_color: Background colour

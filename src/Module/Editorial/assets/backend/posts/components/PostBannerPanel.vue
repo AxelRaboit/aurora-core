@@ -10,7 +10,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import AppTab from "@/shared/components/nav/AppTab.vue";
-import AppColorPicker from "@/shared/components/form/picker/AppColorPicker.vue";
+import BannerColorField from "./BannerColorField.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppRange from "@/shared/components/form/toggle/AppRange.vue";
@@ -94,11 +94,11 @@ const slotLabels = computed(() => [
                         :placeholder="t('backend.posts.banner.slot_description_placeholder')"
                     />
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <AppColorPicker
+                        <BannerColorField
                             v-model="slotFields(index).titleColor.value"
                             :label="t('backend.posts.banner.slot_title_color')"
                         />
-                        <AppColorPicker
+                        <BannerColorField
                             v-model="slotFields(index).descriptionColor.value"
                             :label="t('backend.posts.banner.slot_description_color')"
                         />
@@ -142,7 +142,7 @@ const slotLabels = computed(() => [
                     />
                 </div>
 
-                <AppColorPicker
+                <BannerColorField
                     v-model="fields.backgroundColor.value"
                     :label="t('backend.posts.banner.background_color')"
                 />
