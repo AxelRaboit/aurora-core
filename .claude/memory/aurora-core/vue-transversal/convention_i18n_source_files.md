@@ -11,31 +11,49 @@ de build régénéré par `make translation`. Ne jamais toucher `src/Core/assets
 
 ## Structure des fichiers
 
-### Modules métier
+Les traductions sont **co-localisées avec la feature** qui les consomme. La
+plupart des features historiquement sous `src/Core/<Feature>/` ont migré sous
+`src/Module/<Domaine>/<Feature>/` — d'où la profondeur 2 ci-dessous.
+
+### Core
+
 ```
-src/Module/<Module>/translations/messages.{fr,en}.yaml
+src/Core/translations/               → shared.*, backend.* + security.* / validators.*
+src/Core/Mail/translations/          → frontend.*, shared.*
+src/Core/Migration/translations/     → backend.*
+src/Core/Module/translations/        → backend.* (permissions, modules)
+src/Core/Notification/translations/  → backend.*
 ```
 
-### Core — découpé par feature (depuis mai 2026)
+`src/Core/translations/` porte aussi `security.{fr,en,es,de}.yaml` et
+`validators.{fr,en,es,de}.yaml`. Seuls `fr` et `en` sont des locales actives
+(`Aurora\Core\Locale\Enum\LocaleEnum`) : les variantes `es`/`de` existent mais
+ne sont **pas** générées côté JS.
+
+### Modules
+
 ```
-src/Core/Auth/translations/         → backend.auth, frontend.login/register/…, shared.password
-src/Core/Audit/translations/        → backend.audit
-src/Core/Mail/translations/         → frontend.mail, shared.mail
-src/Module/Media/translations/        → backend.media, shared.media, shared.dropZone
-src/Core/Menu/translations/         → backend.menus, backend.nav, frontend.menu
-src/Core/Module/translations/       → backend.permissions, backend.modules
-src/Core/MountPoint/translations/   → backend.mountPoints
-src/Core/Notification/translations/ → backend.notifications
-src/Core/Profile/translations/      → backend.profile, backend.impersonation
-src/Core/Search/translations/       → backend.search
-src/Core/Setting/translations/      → backend.settings, backend.parameters, backend.tabs, backend.stats
-src/Core/Theme/translations/        → backend.themes, frontend.theme
-src/Core/User/translations/         → backend.users, backend.roles, backend.invitations, backend.access_requests
-src/Core/translations/              → shared.common, shared.locales, shared.pagination, shared.form, shared.comment + security.* + validators.*
+src/Module/Platform/Auth/translations/        → backend.*, frontend.*, shared.*
+src/Module/Platform/User/translations/        → backend.*
+src/Module/Configuration/Setting/translations/ → backend.* (settings, parameters, tabs)
+src/Module/Configuration/Theme/translations/  → backend.*, frontend.*
+src/Module/Editorial/translations/            → backend.*, frontend.*, editorial.*
+src/Module/General/Profile/translations/      → backend.*
+src/Module/General/Search/translations/       → backend.*
+src/Module/Dev/Audit/translations/            → backend.*
+src/Module/Dev/MountPoint/translations/       → backend.*
+src/Module/Ged/translations/                  → backend.*, ged.*
 ```
 
-**Découverte automatique** via glob dans `AuroraBundle` et `DumpJsTranslationsCommand` :
-`src/Core/*/translations/`, `src/Module/*/translations/` — aucune config manuelle.
+**Découverte automatique** via glob dans `AuroraBundle` (~l. 298-310) —
+**profondeur 1 et 2**, aucune config manuelle :
+
+```
+src/Core/*/translations       src/Core/*/*/translations
+src/Module/*/translations     src/Module/*/*/translations
+```
+
+C'est ce second niveau qui permet `Configuration/Setting/` ou `Platform/Auth/`.
 
 ## Workflow
 
@@ -46,24 +64,30 @@ make translation   # régénère src/Core/assets/locales/generated/{fr,en}.json
 
 ## Where does a key go?
 
-- `backend.billing.*` → `src/Module/Billing/translations/`
-- `backend.media.*` → `src/Module/Media/translations/`
+- `backend.parameters.*` → `src/Module/Configuration/Setting/translations/`
+- `backend.users.*` → `src/Module/Platform/User/translations/`
+- `frontend.login.*` → `src/Module/Platform/Auth/translations/`
 - `shared.common.*` → `src/Core/translations/messages.{fr,en}.yaml`
-- Nouvelle feature Core → créer `src/Core/<Feature>/translations/messages.{fr,en}.yaml`
+- Nouveau module → `src/Module/<Domaine>/<Module>/translations/messages.{fr,en}.yaml`, découvert auto
 
-**Why:** séparation par feature = co-localisation avec le code qui utilise la traduction.
-Un dev qui touche `src/Module/Media/` sait exactement où sont ses traductions.
+**Why:** séparation par feature = co-localisation avec le code qui utilise la
+traduction. Un dev qui touche `src/Module/Platform/Auth/` sait exactement où
+sont ses traductions.
 
 ## Tests de cohérence
 
-`tests/Unit/Translation/TranslationConsistencyTest.php` tourne à chaque `make ft` et
-valide sur toutes les paires FR/EN (25 au total) :
+`tests/Unit/Translation/TranslationConsistencyTest.php` tourne à chaque
+`make ft` et valide **sur toutes les paires FR/EN découvertes** :
+
 1. Parité des clés FR↔EN
 2. Pas de valeurs vides
 3. Cohérence des `{placeholders}`
 
+> Le test découvre les paires par glob — ne pas figer leur nombre ici, il
+> augmente à chaque module et le chiffre se périme aussitôt.
+
 ## How to apply
 
-- Nouveau module : créer `src/Module/<Module>/translations/messages.{fr,en}.yaml`, découvert auto.
+- Nouveau module : créer `src/Module/<Domaine>/<Module>/translations/messages.{fr,en}.yaml`, découvert auto.
 - Nouvelle feature Core : créer `src/Core/<Feature>/translations/messages.{fr,en}.yaml`, découvert auto.
 - Doc complète : `docs/aurora-shared/translations.md`

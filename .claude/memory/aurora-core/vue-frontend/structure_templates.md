@@ -205,5 +205,5 @@ Le projet utilise `twig-cs-fixer` (cf `tools/twig-cs-fixer/`). Avant un
 commit qui touche des templates :
 
 ```bash
-make twig-cs-fix  # ou php vendor/.../twig-cs-fixer fix templates/
+make fix-twig     # écriture ; `make lint-twig` pour un dry-run
 ```

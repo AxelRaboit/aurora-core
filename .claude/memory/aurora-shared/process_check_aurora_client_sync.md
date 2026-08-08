@@ -1,6 +1,6 @@
 ---
 name: process_check_aurora_client_sync
-description: Après tout changement dans aurora-core (nouvelle feature, refacto, breaking change), TOUJOURS vérifier que le projet aurora-client (situé à `/home/axel/Documents/dev/personal/aurora-client/`) est à jour et fonctionne avec la nouvelle version. À répéter à chaque session — c'est une lacune récurrente.
+description: Après tout changement dans aurora-core (nouvelle feature, refacto, breaking change), TOUJOURS vérifier que le projet aurora-client est à jour et fonctionne avec la nouvelle version. À répéter à chaque session — c'est une lacune récurrente.
 metadata:
   type: feedback
 ---
@@ -41,7 +41,7 @@ Ouvrir aurora-client en parallèle et :
 
 ```bash
 # Grep pour les usages potentiels du symbole modifié
-cd /home/axel/Documents/dev/personal/aurora-client
+cd "$AURORA_CLIENT_DIR"   # chemin local du checkout aurora-client
 grep -rn "<ClassName>\|<methodName>\|backend_xxx_routename" src/ assets/ templates/ config/
 ```
 
@@ -51,7 +51,7 @@ Tous les **noms de routes** doivent être préservés à l'identique côté core
 
 ```bash
 # Liste rapide des routes utilisées par aurora-client
-cd /home/axel/Documents/dev/personal/aurora-client
+cd "$AURORA_CLIENT_DIR"   # chemin local du checkout aurora-client
 grep -rnE "(path|url)\(['\"]backend_" templates/ src/
 grep -rn "backend_" assets/ | grep -v node_modules
 ```
@@ -65,7 +65,7 @@ Une nouvelle règle dans `aurora-shared/` s'applique au client aussi. Le client 
 Tester d'abord dans aurora-client :
 
 ```bash
-cd /home/axel/Documents/dev/personal/aurora-client
+cd "$AURORA_CLIENT_DIR"   # chemin local du checkout aurora-client
 
 # ⚠️ TOUJOURS `make aurora-update`, jamais bare `composer update`.
 # Le target encapsule : composer update + composer install des sub-deps

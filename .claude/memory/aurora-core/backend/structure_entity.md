@@ -63,10 +63,11 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Platform\Agency\Entity;
 
+use Aurora\Core\Timestampable\TimestampableTrait;
 use Doctrine\ORM\Mapping as ORM;
-use Knp\DoctrineBehaviors\Model\Timestampable\TimestampableTrait;
 
 #[ORM\MappedSuperclass]
+#[ORM\HasLifecycleCallbacks]
 abstract class AbstractAgency implements AgencyInterface
 {
     use TimestampableTrait;
@@ -86,6 +87,10 @@ abstract class AbstractAgency implements AgencyInterface
 
 **Notes** :
 - `#[ORM\MappedSuperclass]` (pas `#[ORM\Entity]`).
+- `#[ORM\HasLifecycleCallbacks]` obligatoire dès que `TimestampableTrait`
+  est utilisé — sans lui les callbacks ne tournent pas et les dates
+  restent nulles. Le trait vient de `Aurora\Core\Timestampable`,
+  **jamais de Knp** (cf. [[convention_timestampable]]).
 - `abstract class` (pas instanciable).
 - Propriétés `protected` (pas `private`) pour que la concrete y accède
   directement si besoin de surcharger.

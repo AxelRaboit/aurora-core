@@ -1,13 +1,13 @@
 ---
 name: process_make_ft_before_commit
-description: Lancer make ft (= fix + test) avant chaque commit — résoudre tous les problèmes avant de committer
+description: Lancer make ft (= fix + test + migrate-check) avant chaque commit — résoudre tous les problèmes avant de committer
 metadata:
   type: feedback
 ---
 
 ## Règle
 
-**Avant chaque commit**, lancer `make ft` (= `make fix && make test`) et **résoudre** tous les problèmes détectés. Ne jamais committer avec des erreurs phpstan, des formatters non appliqués, ou des tests rouges.
+**Avant chaque commit**, lancer `make ft` (= `make fix && make test && make migrate-check`) et **résoudre** tous les problèmes détectés. Ne jamais committer avec des erreurs phpstan, des formatters non appliqués, ou des tests rouges.
 
 ## Pourquoi
 
@@ -34,8 +34,15 @@ Lancer `make ft` à chaque entité instrumentée dans le rollout, pas juste à l
 ## Targets Makefile concernés
 
 ```bash
-make ft         # = fix + test
-make fix        # = formatters + stan
+make ft         # = fix + test + migrate-check
+make fix        # = fix-js + fix-twig + fix-rector + fix-php + stan
 make stan       # phpstan (analyse statique PHP)
-make test       # phpunit
+make test       # = test-frontend (Vitest) + test-backend (PHPUnit)
+make fix-php    # php-cs-fixer (écriture) ; dry-run : make lint-php
+make fix-twig   # twig-cs-fixer (écriture) ; dry-run : make lint-twig
+make fix-js     # eslint --fix ; dry-run : make lint-js
 ```
+
+> Cibles telles que définies dans le Makefile d'un **projet client**.
+> Dans aurora-core lui-même, `make fix` commence en plus par `make translation`
+> et `make ft` inclut `make build` — voir la version core de cette mémoire.

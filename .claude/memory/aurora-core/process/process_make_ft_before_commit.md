@@ -2,10 +2,14 @@
 
 ## Règle
 
-**Avant chaque commit**, lancer `make ft` (= `make fix && make test`) et
-**résoudre** tous les problèmes détectés (formatters + phpstan + tests).
+**Avant chaque commit**, lancer `make ft` (= `make fix && make test &&
+make build && make migrate-check`) et **résoudre** tous les problèmes
+détectés (formatters + phpstan + tests + build + migrations en attente).
 Ne jamais commit avec des erreurs phpstan, des formatters non appliqués,
 ou des tests rouges.
+
+Si aucun asset (Vue / JS / CSS) n'a été touché, `make ftl` fait la même
+chose sans le build Vite — sensiblement plus rapide.
 
 ## Pourquoi
 
@@ -59,14 +63,19 @@ documenter pourquoi en commentaire de code + en mémoire ici.
 ## Targets Makefile concernés
 
 ```bash
-make ft         # = fix + test
-make fix        # = formatters + stan
+make ft         # = fix + test + build + migrate-check
+make ftl        # = fix + test + migrate-check (sans build d'assets)
+make fix        # = translation + fix-js + fix-twig + fix-rector + fix-php + stan
 make stan       # phpstan (analyse statique PHP)
-make test       # phpunit
-make rector     # rector (autofix patterns)
-make php-cs-fix # php-cs-fixer
-make twig-cs-fix # twig-cs-fixer
+make test       # = test-frontend (Vitest) + test-backend (PHPUnit)
+make rector     # rector en DRY-RUN — l'autofix, c'est `make fix-rector`
+make fix-php    # php-cs-fixer (écriture)
+make fix-twig   # twig-cs-fixer (écriture)
+make fix-js     # eslint --fix
 ```
+
+> Les cibles `php-cs-fix` et `twig-cs-fix` citées ici auparavant n'ont
+> jamais existé dans le Makefile : ce sont `fix-php` et `fix-twig`.
 
 ## Source
 

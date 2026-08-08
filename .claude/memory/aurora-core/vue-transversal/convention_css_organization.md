@@ -1,89 +1,81 @@
 ---
 name: convention_css_organization
-description: Organisation du CSS Aurora — où vivent les fichiers (base/shared/core/modules) et règle d'import (app.css uniquement pour le global, SFC sinon)
+description: Organisation du CSS Aurora — global sous css/base/ importé par app.css, CSS de feature co-localisé à côté du SFC qui le consomme (pas de miroir css/modules/)
 metadata:
   type: feedback
 ---
 
 ## Règle
 
-CSS organisé pour **mirror la structure `src/`** (co-localisée avec le
-PHP depuis 0.5) : `src/Core/assets/css/{base,shared,core,modules}/`.
-CSS spécifique à un SFC vit à côté du SFC sous
-`src/Module/<Name>/assets/`. Documentation complète :
+Deux emplacements, selon la portée :
+
+1. **Global** — `src/Core/assets/css/base/`, importé par `app.css`. Réservé
+   à ce qui est chargé sur (presque) toutes les pages : tokens de thème,
+   base, scrollbar, et les composants shared universels (`input.css`,
+   `modal.css`, `loader.css`).
+2. **Feature / module** — **co-localisé à côté du SFC** qui le consomme, et
+   importé par ce SFC.
+
+```
+src/Core/assets/backend/sidemenu/
+├── AppSidemenu.vue          # import "./sidemenu.css"
+└── sidemenu.css
+```
+
+**Il n'y a pas de miroir `src/Core/assets/css/modules/<name>/`** — ce
+dossier n'existe pas. Le CSS vit avec le composant qui le consomme, comme
+le reste de `src/` depuis 0.5 : on le trouve sans chercher, il se supprime
+avec son composant, et un module packagé séparément emporte ses styles.
+
+Documentation complète (autoritaire) :
 [`docs/aurora-core/dev/css_conventions.md`](../../../../docs/aurora-core/dev/css_conventions.md).
-
-### Où importer ?
-
-| Type de style | Emplacement | Importé depuis |
-|---|---|---|
-| Base / theme (tokens, scrollbar, body) | `base/` | `app.css` |
-| Composant shared global (input, modal, loader) | `shared/` | `app.css` |
-| Core admin (sidemenu, …) | `core/` | le SFC concerné |
-| Module (`src/Module/<Name>/assets/*`) | `modules/<name>/` | le SFC concerné |
-
-**Critère** : importer dans `app.css` uniquement si vraiment global
-(quasi toutes les pages). Sinon importer dans le SFC qui consomme — Vite
-émet alors le CSS dans le même chunk JS que le composant, code-splitting
-automatique.
 
 ### Ordre des imports dans un `.vue`
 
 ```vue
 <script setup>
-import "@/css/modules/notes/markdown-preview.css";  // 1. CSS d'abord
+import "./editor.css";                    // 1. CSS d'abord
+import "./blocks.css";
 
-import { computed } from "vue";                      // 2. ligne vide, puis JS
-import { useMarkdownRenderer } from "@notes/...";
+import EditorJS from "@editorjs/editorjs"; // 2. ligne vide, puis JS
 </script>
 ```
 
-CSS d'abord (side-effect import) → ligne vide → JS ensuite (composables,
-components, utils). Matche l'ordre d'application navigateur (styles
-avant rendu JS).
+CSS d'abord (import side-effect) → ligne vide → JS ensuite. Matche l'ordre
+d'application navigateur.
 
 ### Inline `<style scoped>` vs fichier externe
 
-- **Tailwind via `:class`** pour 95% des cas.
-- **Fichier externe** (`modules/<name>/<feature>.css`) dès qu'on style
-  du contenu rendu (`v-html`, EditorJS, marked) ou qu'on dépasse ~5
-  règles cohérentes — les `:deep()` partout dans `<style scoped>` sont
-  un anti-pattern.
-- **Inline `<style scoped>`** uniquement pour : 1-2 règles très locales,
-  animations/keyframes propres au composant.
+- **Tailwind via `:class`** pour 95 % des cas.
+- **Fichier externe co-localisé** dès qu'on style du contenu rendu
+  (`v-html`, EditorJS, marked) ou qu'on dépasse ~5 règles cohérentes — des
+  `:deep()` partout dans un `<style scoped>` sont un anti-pattern.
+- **Inline `<style scoped>`** uniquement pour 1-2 règles très locales ou
+  des keyframes propres au composant.
 
 ## Pourquoi
 
-- Retrouver les styles à côté de leur code (même org que les SFC).
-- Code-splitting CSS automatique via les imports per-SFC : un user qui
-  ne visite pas `/notes/markdown` ne télécharge jamais
-  `markdown-preview.css`.
-- Évite les `:deep()` agressifs pour styler du contenu injecté
-  (marked/EditorJS/v-html).
+- **Code-splitting automatique** : Vite/Rolldown tracent les
+  `import "...css"` par chunk JS, donc le CSS part dans le même chunk que
+  le composant. Un visiteur qui n'ouvre jamais l'éditeur ne télécharge
+  jamais `editor.css`.
+- **Suppression sûre** : le style disparaît avec son composant, au lieu de
+  survivre orphelin dans un dossier central.
+- Évite les `:deep()` agressifs pour styler du contenu injecté.
 
 ## Comment l'appliquer
 
-1. Nouveau CSS pour une feature → créer
-   `src/Core/assets/css/modules/<module>/<feature>.css`.
-2. L'importer **dans le `<script setup>` du SFC** qui le consomme, en
-   tête, séparé du JS par une ligne vide.
-3. Si vraiment global (réutilisé partout) → ajouter à `app.css`.
-4. Header comment dans le fichier CSS qui explique quel composant +
-   quelle classe racine pose le scope.
+1. Nouveau CSS de feature → le créer **à côté du SFC**, pas sous `css/`.
+2. L'importer dans le `<script setup>` du SFC, en tête, séparé du JS par
+   une ligne vide.
+3. Vraiment global (quasi toutes les pages) → `css/base/` + import dans
+   `app.css`.
+4. Header comment dans le fichier CSS : quel composant, quelle classe
+   racine pose le scope.
 
-### Module avec sous-modules
+### Références réelles
 
-Si le module est compartimenté en sub-modules côté `src/` (cf.
-`Module/Notes/Markdown/` + `Module/Notes/Block/`), reproduire côté CSS :
-`modules/<name>/<submodule>/<feature>.css`. Le dossier parent
-disambiguate → nom de fichier court (`preview.css` plutôt que
-`markdown-preview.css`).
-
-### Modules déjà conformes (référence)
-
-| Module / Section | Fichier(s) CSS | Importé par |
+| Section | Fichier(s) | Importé par |
 |---|---|---|
-| Core sidemenu | `core/sidemenu.css` | `AppSidemenu.vue` |
-| Editorial editor | `modules/editorial/editor.css`, `blocks.css` | `EditorBlock.vue` |
-| Editorial prose | `modules/editorial/prose.css` | `MergeBlockEntry.vue`, `RevisionsOverlay.vue` |
-| Notes / Markdown preview | `modules/notes/markdown/preview.css` | `NotePreview.vue` |
+| Sidemenu admin | `src/Core/assets/backend/sidemenu/sidemenu.css` | `AppSidemenu.vue` |
+| Éditeur de blocs | `src/Core/assets/shared/components/editor/editor.css` + `blocks.css` | `AppBlockEditor.vue` |

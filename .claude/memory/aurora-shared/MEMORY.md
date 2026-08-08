@@ -103,9 +103,9 @@ Distribué via composer : les clients lisent ces mémoires depuis
 
 - [process_check_aurora_client_sync.md](process_check_aurora_client_sync.md) —
   **règle dure** : après toute modif d'aurora-core, vérifier que aurora-client
-  (`/home/axel/Documents/dev/personal/aurora-client/`) reste à jour : routes
-  préservées, overrides toujours valides, nouvelles conventions appliquées,
-  breaking changes testés côté client. À répéter à chaque session.
+  reste à jour : routes préservées, overrides toujours valides, nouvelles
+  conventions appliquées, breaking changes testés côté client. À répéter à
+  chaque session.
 - [process_never_patch_vendor.md](process_never_patch_vendor.md) — **règle
   dure** : `vendor/axelraboit/aurora*` est en lecture seule côté client. Passer
   par commit → push → `composer update`, et committer le `composer.lock`. Un
