@@ -34,7 +34,23 @@ module.exports = [
         rules: {
             semi: 'error',
             'prefer-const': 'error',
+            'no-undef': 'error',
             'prettier/prettier': ['error', PRETTIER_OPTIONS],
+        },
+    },
+
+    // Build config and test runners execute under Node, not in a browser.
+    // Given the node environment rather than exempted from no-undef, so a real
+    // typo in them is still an error.
+    {
+        files: [
+            '*.config.js',
+            'tests/e2e/**/*.js',
+            '**/*.test.js',
+            '**/*.spec.js',
+        ],
+        languageOptions: {
+            globals: { ...globals.browser, ...globals.node },
         },
     },
 
@@ -45,11 +61,26 @@ module.exports = [
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'module',
-            globals: globals.browser,
+            globals: {
+                ...globals.browser,
+                // Compiler macros: the SFC compiler removes them, so they never
+                // exist as bindings and no-undef would flag every component.
+                defineProps: 'readonly',
+                defineEmits: 'readonly',
+                defineExpose: 'readonly',
+                defineOptions: 'readonly',
+                defineSlots: 'readonly',
+                defineModel: 'readonly',
+                withDefaults: 'readonly',
+            },
         },
         rules: {
             semi: 'error',
             'prefer-const': 'error',
+            // Caught a composable returning a name it never declared: the
+            // component threw on setup and rendered nothing, while build, tests
+            // and lint were all green. A ReferenceError is not a style question.
+            'no-undef': 'error',
             'vue/multi-word-component-names': 'off',
             'vue/v-on-style': ['error', 'longform'],
             'vue/v-bind-style': ['error', 'shorthand'],

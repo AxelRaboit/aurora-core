@@ -91,6 +91,11 @@ export function usePostBanner(banner) {
         ["contained", "full_aligned", "full"],
         "width_modes",
     );
+    const verticalAlignOptions = options(
+        ["start", "center", "end"],
+        "verticals",
+    );
+    const titleSizeOptions = options(["sm", "md", "lg", "xl"], "title_sizes");
 
     const widthOptions = computed(() =>
         WIDTHS.map(({ columns, key }) => ({
