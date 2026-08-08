@@ -18,6 +18,7 @@ use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
 use Aurora\Module\Ged\Document\Serializer\DocumentVersionSerializerInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUsageService;
 use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
+use Aurora\Module\Ged\Document\Service\InlineImageUploader;
 use Aurora\Module\Ged\Document\View\DocumentsViewBuilder;
 use Aurora\Module\Ged\DocumentFolder\Repository\DocumentFolderRepository;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
@@ -49,6 +50,7 @@ final class DocumentsController extends AbstractController
         private readonly GedDocumentUploader $uploader,
         private readonly DocumentUsageService $usageService,
         private readonly DocumentFolderRepository $folderRepository,
+        private readonly InlineImageUploader $inlineImageUploader,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -215,5 +217,40 @@ final class DocumentsController extends AbstractController
         }
 
         return $this->jsonSuccess($this->uploader->upload($file));
+    }
+
+    /**
+     * One call for the pickers embedded in other forms — a banner image, a
+     * featured image, a custom field.
+     *
+     * Separate from `/upload` because that one deliberately stops at the bytes
+     * and leaves the Document row to GED's own create form, which asks for a
+     * category, a folder and tags. An author picking a picture mid-edit has no
+     * such form, and chaining the two calls from the browser left them filing
+     * the result themselves — which meant nobody did.
+     *
+     * The destination is decided server-side by {@see InlineImageUploader}: a
+     * request cannot name the category it lands in, or leave it a draft.
+     */
+    #[Route('/upload-image', name: '_upload_image', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.create')]
+    public function uploadImage(Request $request): JsonResponse
+    {
+        /** @var UploadedFile|null $file */
+        $file = $request->files->get('file');
+        if (null === $file) {
+            return $this->jsonFailure('backend.ged.documents.errors.upload_required');
+        }
+
+        // Images only. The endpoint is reachable by anyone who may create a
+        // document, and the pickers that call it show what they get back as an
+        // <img> — a PDF would file silently and render as a broken picture.
+        if (!str_starts_with((string) $file->getMimeType(), 'image/')) {
+            return $this->jsonFailure('backend.ged.documents.errors.image_required');
+        }
+
+        return $this->jsonSuccess([
+            'document' => $this->serializer->serialize($this->inlineImageUploader->upload($file)),
+        ]);
     }
 }

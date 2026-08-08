@@ -42,6 +42,10 @@ backend:
     ged_folders: Dossiers
     ged_folders_description: Organiser les documents par dossier
   ged:
+    bootstrap:
+      categories:
+        inline_uploads: Médias éditoriaux
+        inline_uploads_description: Images importées depuis un formulaire d'édition — bannières, images à la une, champs personnalisés.
     documents:
       reference: Référence
       title: Titre
@@ -125,6 +129,7 @@ backend:
       errors:
         title_required: Le titre est obligatoire
         upload_required: Aucun fichier reçu
+        image_required: Ce champ n'accepte que des images.
     categories:
       name: Nom
       slug: Identifiant

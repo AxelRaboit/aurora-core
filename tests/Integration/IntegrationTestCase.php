@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration;
 
-use Aurora\Core\Bootstrap\CoreBootstrapProvider;
+use Aurora\Core\Bootstrap\BootstrapRunner;
 use Aurora\Core\DataFixtures\AppFixtures;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
@@ -31,11 +31,14 @@ abstract class IntegrationTestCase extends WebTestCase
         $executor = new ORMExecutor($entityManager, new ORMPurger($entityManager));
         $executor->purge();
 
-        // Core's provider by name: this package's own suite has no module
-        // providers to collect, and reaching for the tagged iterator would only
-        // add indirection. A module package's tests seed their own alongside it.
-        foreach ($container->get(CoreBootstrapProvider::class)->bootstrap() as $_) {
-            // Drain the generator; the labels only matter to the command.
+        // Every provider, through the same runner `aurora:install` uses. Core's
+        // was once named here on its own — true when it was the only one, and
+        // silently wrong once Editorial and GED had theirs. The bug that
+        // surfaced it: an upload filed into a category the suite had never
+        // created, so a test could only pass by asserting the absence of the
+        // filing this seeds.
+        foreach ($container->get(BootstrapRunner::class)->run() as $result) {
+            self::assertTrue($result->success, sprintf('bootstrap failed: %s — %s', $result->label, (string) $result->error));
         }
 
         $executor->execute([$container->get(AppFixtures::class)], true);

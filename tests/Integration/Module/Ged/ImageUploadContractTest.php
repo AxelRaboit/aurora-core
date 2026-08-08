@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Ged;
 
+use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Ged\GedBootstrapProvider;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -11,15 +13,13 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
- * The two-step upload the image picker chains: bytes first, then the Document
- * row. `useImageUpload` reads specific keys out of each response and would
- * fail silently at the second call if either shape moved.
+ * What happens to an image dropped into an editing form.
  *
- * Worth pinning because that composable existed for months without a single
- * caller — the picker only offered already-filed media — so nothing exercised
- * this contract at all. The same module already shipped an editor pointing at
- * `/backend/media/media/upload`, a route that no longer exists, and no test
- * noticed.
+ * The endpoint decides where it lands, and these are the two decisions that
+ * are not the browser's: the category and the status. Pinned because getting
+ * either wrong is invisible at the moment of upload — the picture appears in
+ * the field and renders on the page — and only shows up later, as an asset
+ * nobody can find again.
  */
 final class ImageUploadContractTest extends IntegrationTestCase
 {
@@ -36,43 +36,11 @@ final class ImageUploadContractTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
     }
 
-    public function testUploadingBytesThenCreatingYieldsAUsableImage(): void
+    public function testAnUploadedImageComesBackReadyToUse(): void
     {
-        $uploaded = $this->upload();
+        $payload = $this->upload();
 
-        // The exact keys the composable forwards to /create. Named one by one
-        // rather than compared as a whole: a missing key here is the failure
-        // mode, and the message should say which.
-        foreach (['filePath', 'fileName', 'originalName', 'mimeType', 'size', 'width', 'height'] as $key) {
-            self::assertArrayHasKey($key, $uploaded, $key.' is missing from the upload response');
-        }
-
-        self::assertSame('image/png', $uploaded['mimeType']);
-        self::assertSame(1, $uploaded['width']);
-        self::assertSame(1, $uploaded['height']);
-
-        $this->client->request(
-            'POST',
-            '/backend/ged/documents/create',
-            server: ['CONTENT_TYPE' => 'application/json'],
-            content: json_encode([
-                'title' => $uploaded['originalName'],
-                'filePath' => $uploaded['filePath'],
-                'fileName' => $uploaded['fileName'],
-                'originalName' => $uploaded['originalName'],
-                'mimeType' => $uploaded['mimeType'],
-                'size' => $uploaded['size'],
-                'width' => $uploaded['width'],
-                'height' => $uploaded['height'],
-                'thumbnailPath' => $uploaded['thumbnailPath'] ?? null,
-            ], JSON_THROW_ON_ERROR),
-        );
-
-        self::assertSame(200, $this->client->getResponse()->getStatusCode());
-
-        $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
-
-        self::assertTrue($payload['success'], 'the create call refused a payload the upload call produced');
+        self::assertTrue($payload['success']);
 
         // The two fields the picker sets on its model. Without them the image
         // is filed but the field it was picked for stays empty.
@@ -80,13 +48,67 @@ final class ImageUploadContractTest extends IntegrationTestCase
         self::assertNotEmpty($payload['document']['fileUrl']);
     }
 
-    public function testUploadingNothingIsRefusedRatherThanStored(): void
+    /**
+     * The picker lists published documents only. A draft would be usable once
+     * and then vanish from "choose an image" — the disorder the dedicated
+     * category exists to prevent, arriving by another door.
+     */
+    public function testTheImageIsPublishedSoThePickerCanFindItAgain(): void
     {
-        $this->client->request('POST', '/backend/ged/documents/upload');
+        $document = $this->uploadedDocument();
+
+        self::assertSame('published', $document->getStatus()->value);
+    }
+
+    public function testTheImageIsFiledUnderTheCategoryMeantForIt(): void
+    {
+        $document = $this->uploadedDocument();
+
+        self::assertSame(
+            GedBootstrapProvider::INLINE_UPLOAD_CATEGORY,
+            $document->getCategory()?->getSlug(),
+            'an inline upload with no category is exactly the litter this endpoint avoids',
+        );
+    }
+
+    /**
+     * The endpoint is open to anyone who may create a document, and every
+     * caller renders what it returns as an `<img>`. A PDF would file quietly
+     * and show up as a broken picture.
+     */
+    public function testAFileThatIsNotAnImageIsRefused(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'aurora-upload').'.txt';
+        file_put_contents($path, 'pas une image');
+
+        $this->client->request(
+            'POST',
+            '/backend/ged/documents/upload-image',
+            files: ['file' => new UploadedFile($path, 'note.txt', 'text/plain', null, true)],
+        );
 
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
         self::assertFalse($payload['success']);
+    }
+
+    public function testUploadingNothingIsRefusedRatherThanStored(): void
+    {
+        $this->client->request('POST', '/backend/ged/documents/upload-image');
+
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertFalse($payload['success']);
+    }
+
+    private function uploadedDocument(): object
+    {
+        $id = (int) $this->upload()['document']['id'];
+
+        $document = static::getContainer()->get(DocumentRepository::class)->find($id);
+        self::assertNotNull($document);
+
+        return $document;
     }
 
     /** @return array<string, mixed> */
@@ -104,16 +126,12 @@ final class ImageUploadContractTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            '/backend/ged/documents/upload',
+            '/backend/ged/documents/upload-image',
             files: ['file' => new UploadedFile($path, 'pixel.png', 'image/png', null, true)],
         );
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
-
-        self::assertTrue($payload['success'], 'the upload endpoint refused a plain PNG');
-
-        return $payload;
+        return json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
     }
 }

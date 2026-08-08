@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace Aurora\Core\Bootstrap\Command;
 
-use Aurora\Core\Bootstrap\BootstrapProviderInterface;
+use Aurora\Core\Bootstrap\BootstrapRunner;
 use Aurora\Module\Platform\User\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use ReflectionClass;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
-use Throwable;
 
 /**
  * Creates the rows Aurora cannot run without, in any environment.
@@ -35,12 +32,8 @@ use Throwable;
 )]
 final class InstallCommand extends Command
 {
-    /**
-     * @param iterable<BootstrapProviderInterface> $providers
-     */
     public function __construct(
-        #[AutowireIterator('aurora.bootstrap_provider')]
-        private readonly iterable $providers,
+        private readonly BootstrapRunner $bootstrapRunner,
         private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
@@ -50,29 +43,22 @@ final class InstallCommand extends Command
     {
         $symfonyStyle = new SymfonyStyle($input, $output);
 
-        $providers = iterator_to_array($this->providers, false);
-        usort(
-            $providers,
-            static fn (BootstrapProviderInterface $a, BootstrapProviderInterface $b): int => $b->getPriority() <=> $a->getPriority(),
-        );
-
         $created = 0;
         $failed = false;
 
-        foreach ($providers as $provider) {
-            $name = new ReflectionClass($provider)->getShortName();
+        // Ordering and per-provider isolation live in the runner: the test
+        // suite seeds through the same path, and two implementations of "what
+        // an install does" is how they came to disagree.
+        foreach ($this->bootstrapRunner->run() as $result) {
+            if ($result->success) {
+                $symfonyStyle->writeln(sprintf('  <info>+</info> %s', $result->label));
+                ++$created;
 
-            try {
-                foreach ($provider->bootstrap() as $label) {
-                    $symfonyStyle->writeln(sprintf('  <info>+</info> %s', $label));
-                    ++$created;
-                }
-            } catch (Throwable $e) {
-                // One module's seed failing must not hide the others: a deploy
-                // needs to see everything that is wrong, not just the first.
-                $symfonyStyle->writeln(sprintf('  <error>!</error> %s : %s', $name, $e->getMessage()));
-                $failed = true;
+                continue;
             }
+
+            $symfonyStyle->writeln(sprintf('  <error>!</error> %s : %s', $result->label, $result->error));
+            $failed = true;
         }
 
         if (0 === $created && !$failed) {

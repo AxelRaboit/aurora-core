@@ -2,17 +2,21 @@ import { ref } from "vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
 /**
- * Upload an image file and persist it as a GED document, in one call from
- * the consumer's point of view.
+ * Upload an image file and get back a filed, reusable GED document.
  *
- * GED's own `/upload` endpoint is deliberately two-step (upload the bytes,
- * then a separate `/create` call persists the Document row — built for its
- * multi-field create form). This composable chains both calls so simple
- * "pick one image" UIs (OG image, featured image, custom fields) don't have
- * to know about that.
+ * One call, and deliberately so. GED's own `/upload` stops at the bytes and
+ * leaves the Document row to its create form, which asks for a category, a
+ * folder and tags — right for that screen, wrong for an author picking a
+ * picture in the middle of writing a banner. Chaining the two calls from here
+ * used to work but left the filing to the caller, so nothing was filed: the
+ * result was a published-looking image that was in fact an uncategorised
+ * draft, invisible in the picker the moment the page reloaded.
+ *
+ * `/upload-image` decides both server-side. Where the image lands is not the
+ * browser's to choose.
  *
  * Usage:
- *   const { uploading, inputRef, uploadFromEvent, reset } = useImageUpload({
+ *   const { uploading, inputRef, uploadFromEvent } = useImageUpload({
  *       onSuccess: ({ file, media }) => { ... },
  *       onError: () => toast.error(...),
  *   });
@@ -23,8 +27,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 export function useImageUpload({
     onSuccess,
     onError,
-    uploadEndpoint = "/backend/ged/documents/upload",
-    createEndpoint = "/backend/ged/documents/create",
+    endpoint = "/backend/ged/documents/upload-image",
 } = {}) {
     const { request } = useRequest();
     const uploading = ref(false);
@@ -33,31 +36,16 @@ export function useImageUpload({
     async function uploadFromEvent(event) {
         const file = event.target.files?.[0];
         if (!file) return;
+
         uploading.value = true;
         try {
             const body = new FormData();
             body.append("file", file);
-            const uploaded = await request(uploadEndpoint, null, {
-                rawBody: body,
-            });
-            if (!uploaded?.success) {
-                onError?.();
-                return;
-            }
 
-            const created = await request(createEndpoint, {
-                title: uploaded.originalName || file.name,
-                filePath: uploaded.filePath,
-                fileName: uploaded.fileName,
-                originalName: uploaded.originalName,
-                mimeType: uploaded.mimeType,
-                size: uploaded.size,
-                width: uploaded.width,
-                height: uploaded.height,
-                thumbnailPath: uploaded.thumbnailPath,
-            });
+            const created = await request(endpoint, null, { rawBody: body });
+
             if (!created?.success) {
-                onError?.();
+                onError?.(created?.message ?? null);
                 return;
             }
 

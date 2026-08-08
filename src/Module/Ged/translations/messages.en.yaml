@@ -42,6 +42,10 @@ backend:
     ged_folders: Folders
     ged_folders_description: Organize documents by folder
   ged:
+    bootstrap:
+      categories:
+        inline_uploads: Editorial media
+        inline_uploads_description: Images uploaded from an editing form — banners, featured images, custom fields.
     documents:
       reference: Reference
       title: Title
@@ -125,6 +129,7 @@ backend:
       errors:
         title_required: Title is required
         upload_required: No file received
+        image_required: This field only accepts images.
     categories:
       name: Name
       slug: Identifier
