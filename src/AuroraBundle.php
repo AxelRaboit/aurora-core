@@ -219,6 +219,29 @@ class AuroraBundle extends AbstractBundle
             }
         }
 
+        // 1bis. Modules the client owns outright. The loop above only covers
+        // names aurora ships, so a module that exists solely in the client
+        // project had no namespace at all and its templates were unreachable —
+        // it had to fall back to the project's default templates/ directory,
+        // breaking the co-location the convention asks for everywhere else.
+        if ($projectDir !== $dir) {
+            foreach (glob($projectDir.'/src/Module/*', GLOB_ONLYDIR) ?: [] as $clientModuleDir) {
+                $moduleName = basename($clientModuleDir);
+                $templates = $clientModuleDir.'/templates';
+
+                // Aurora-owned names are handled above, with their fallback to
+                // the bundle's own templates; re-registering here would shadow
+                // that ordering.
+                if (is_dir($dir.'/src/Module/'.$moduleName)) {
+                    continue;
+                }
+
+                if (is_dir($templates)) {
+                    $twigPaths[$templates] = $moduleName;
+                }
+            }
+        }
+
         if ($projectDir !== $dir) {
             foreach (['Core', 'Shared'] as $namespace) {
                 $clientColocated = $projectDir.'/src/Core/templates/'.$namespace;
@@ -299,6 +322,16 @@ class AuroraBundle extends AbstractBundle
             glob($dir.'/src/Core/*/*/translations', GLOB_ONLYDIR) ?: [],
         );
 
+        // A client module carries its own catalogue, co-located like aurora's
+        // own do. Without this every path below resolved inside the bundle, so
+        // a client had exactly one place to put translations — the project's
+        // root catalogue — however many modules it owned. Depth 1 and 2, to
+        // match `src/Module/<Domain>/<Feature>/`.
+        $clientTranslationDirs = $projectDir === $dir ? [] : array_merge(
+            glob($projectDir.'/src/Module/*/translations', GLOB_ONLYDIR) ?: [],
+            glob($projectDir.'/src/Module/*/*/translations', GLOB_ONLYDIR) ?: [],
+        );
+
         $builder->prependExtensionConfig('framework', [
             'default_locale' => LocaleEnum::default()->value,
             'enabled_locales' => LocaleEnum::values(),
@@ -306,6 +339,7 @@ class AuroraBundle extends AbstractBundle
                 'default_path' => $dir.'/src/Core/translations',
                 'paths' => array_values(array_filter(
                     array_merge(
+                        $clientTranslationDirs,
                         array_map(static fn (string $moduleDir): string => $moduleDir.'/translations', $moduleDirs),
                         glob($dir.'/src/Module/*/*/translations', GLOB_ONLYDIR) ?: [],
                         $coreDirs,
