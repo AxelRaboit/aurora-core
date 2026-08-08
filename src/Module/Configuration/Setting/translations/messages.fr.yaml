@@ -120,9 +120,12 @@ backend:
     admin_access_request_enabled:
       label: Demandes d'accès admin ouvertes
       description: Autoriser les demandes d'accès via /access-request (formulaire de demande d'accès à l'administration)
+    front_login_enabled:
+      label: Connexion frontend activée
+      description: "Si désactivé, le site public n'a plus de comptes du tout : connexion, inscription, espace client et mot de passe oublié renvoient une 404, et les liens correspondants disparaissent des menus. À couper pour une application purement vitrine."
     front_registration_enabled:
       label: Inscriptions frontend ouvertes
-      description: 'Si activé, les visiteurs peuvent créer un compte depuis le site public.'
+      description: 'Si activé, les visiteurs peuvent créer un compte depuis le site public. Sans effet si la connexion frontend est désactivée.'
     post_revisions_limit:
       label: Nombre de révisions gardées par article
       description: Nombre maximal de révisions conservées par article (les plus anciennes sont supprimées)

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Menu\Service;
 
+use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
+use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Editorial\Menu\Entity\MenuInterface;
 use Aurora\Module\Editorial\Menu\Entity\MenuItemInterface;
 use Aurora\Module\Editorial\Menu\Enum\MenuItemTargetTypeEnum;
@@ -48,6 +50,7 @@ final class MenuRenderer
         private readonly PostTypeRepository $postTypeRepository,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly Security $security,
+        private readonly SettingRepository $settingRepository,
     ) {}
 
     /**
@@ -159,6 +162,16 @@ final class MenuRenderer
 
     private function resolveUrl(MenuItemInterface $item, string $locale): ?string
     {
+        // An install can turn front-end accounts off entirely, for a site that
+        // is pure brochure. Reading the parameter beats asking the Auth module:
+        // navigation stays free of a dependency on a front that may not be
+        // installed at all — the same reason the lookups below tolerate a
+        // missing route. Resolving to null drops the entry, so the sign-in
+        // link leaves the header without anyone editing the menu.
+        if ($item->getTargetType()->isAccountLink() && !$this->frontAccountsEnabled()) {
+            return null;
+        }
+
         return match ($item->getTargetType()) {
             MenuItemTargetTypeEnum::Home => $this->route('editorial_home', ['locale' => $locale]),
             MenuItemTargetTypeEnum::CustomUrl => $item->getCustomUrl(),
@@ -220,6 +233,19 @@ final class MenuRenderer
             'locale' => $locale,
             'postTypeSlug' => $postType->getSlug(),
         ]);
+    }
+
+    /**
+     * Defaults to enabled so a site whose settings row predates the parameter
+     * keeps the account links it already renders. SettingRepository warms its
+     * own per-request cache, so asking once per entry costs an array lookup.
+     */
+    private function frontAccountsEnabled(): bool
+    {
+        return $this->settingRepository->getBoolean(
+            ApplicationParameterEnum::FrontLoginEnabled->value,
+            true,
+        );
     }
 
     /** @param array<string, mixed> $parameters */

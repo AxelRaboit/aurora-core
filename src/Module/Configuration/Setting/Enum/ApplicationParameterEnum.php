@@ -27,6 +27,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
     case MaintenanceMode = 'maintenance_mode';
     case AdminRegistrationEnabled = 'backend_registration_enabled';
     case AdminAccessRequestEnabled = 'backend_platform_access_request_enabled';
+    case FrontLoginEnabled = 'frontend_login_enabled';
     case FrontRegistrationEnabled = 'frontend_registration_enabled';
     case PostRevisionsLimit = 'post_revisions_limit';
     case TrashAutoPurgeDays = 'trash_auto_purge_days';
@@ -88,6 +89,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::MaintenanceMode => 'backend.parameters.maintenance_mode.label',
             self::AdminRegistrationEnabled => 'backend.parameters.admin_registration_enabled.label',
             self::AdminAccessRequestEnabled => 'backend.parameters.admin_access_request_enabled.label',
+            self::FrontLoginEnabled => 'backend.parameters.front_login_enabled.label',
             self::FrontRegistrationEnabled => 'backend.parameters.front_registration_enabled.label',
             self::PostRevisionsLimit => 'backend.parameters.post_revisions_limit.label',
             self::FileVersionsLimit => 'backend.parameters.file_versions_limit.label',
@@ -135,6 +137,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::MaintenanceMode => 'backend.parameters.maintenance_mode.description',
             self::AdminRegistrationEnabled => 'backend.parameters.admin_registration_enabled.description',
             self::AdminAccessRequestEnabled => 'backend.parameters.admin_access_request_enabled.description',
+            self::FrontLoginEnabled => 'backend.parameters.front_login_enabled.description',
             self::FrontRegistrationEnabled => 'backend.parameters.front_registration_enabled.description',
             self::PostRevisionsLimit => 'backend.parameters.post_revisions_limit.description',
             self::FileVersionsLimit => 'backend.parameters.file_versions_limit.description',
@@ -182,6 +185,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::MaintenanceMode => '0',
             self::AdminRegistrationEnabled => '0',
             self::AdminAccessRequestEnabled => '1',
+            self::FrontLoginEnabled => '1',
             self::FrontRegistrationEnabled => '0',
             self::PostRevisionsLimit => '20',
             self::FileVersionsLimit => '3',
@@ -216,7 +220,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::PostsPerPage, self::MaxUploadSizeMb, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FileVersionsLimit => 'int',
             self::HomepagePostId => 'post',
             self::DefaultFront, self::DefaultLocale, self::EmailLocale, self::Timezone => 'select',
-            self::CommentsEnabled, self::CommentModerationEnabled, self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontRegistrationEnabled, self::SingleLocaleMode => 'bool',
+            self::CommentsEnabled, self::CommentModerationEnabled, self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled, self::SingleLocaleMode => 'bool',
             self::LogoMediaId, self::FaviconMediaId, self::SeoDefaultOgImage => 'media',
             self::ColorPickerPresets => 'json',
             default => 'string',
@@ -238,7 +242,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::DefaultLocale, self::SingleLocaleMode, self::Timezone, self::DateFormat => 'localization',
             self::PostsPerPage, self::CommentsEnabled, self::CommentModerationEnabled, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::HomepagePostId, self::DefaultFront => 'reading',
             self::MaxUploadSizeMb, self::AllowedUploadExtensions, self::FileVersionsLimit => 'media',
-            self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontRegistrationEnabled => 'system',
+            self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled => 'system',
             self::LogoMediaId, self::FaviconMediaId => 'branding',
             self::SeoTitleTemplate, self::SeoDefaultDescription, self::SeoDefaultOgImage, self::SeoTwitterHandle => 'seo',
             self::CoreUserPrefix, self::CoreMediaPrefix, self::CoreAccessRequestPrefix, self::CoreAuditLogPrefix, self::CoreResetPasswordPrefix, self::CoreMediaFolderPrefix, self::CoreMenuItemPrefix => 'sequences',

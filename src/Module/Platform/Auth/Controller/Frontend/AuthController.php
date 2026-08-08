@@ -7,11 +7,10 @@ namespace Aurora\Module\Platform\Auth\Controller\Frontend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Frontend\Service\Context;
 use Aurora\Core\Validation\Service\PayloadValidator;
-use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
-use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Configuration\Theme\Service\ThemeResolver;
 use Aurora\Module\Platform\Auth\Dto\Frontend\RegisterInput;
 use Aurora\Module\Platform\Auth\Entity\ResetPasswordRequest;
+use Aurora\Module\Platform\Auth\Service\FrontendAuthGate;
 use Aurora\Module\Platform\Auth\View\Frontend\AuthViewBuilder;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
@@ -34,7 +33,7 @@ class AuthController extends AbstractController
     public function __construct(
         private readonly UserManager $frontUserManager,
         private readonly UserRepository $userRepository,
-        private readonly SettingRepository $settingRepository,
+        private readonly FrontendAuthGate $authGate,
         private readonly TranslatorInterface $translator,
         private readonly PayloadValidator $payloadValidator,
         private readonly Context $context,
@@ -76,7 +75,7 @@ class AuthController extends AbstractController
             return $this->redirectToRoute('frontend_root');
         }
 
-        $registrationEnabled = $this->settingRepository->getBoolean(ApplicationParameterEnum::FrontRegistrationEnabled->value);
+        $registrationEnabled = $this->authGate->isRegistrationEnabled();
 
         if (!$registrationEnabled || !$request->isMethod(HttpMethodEnum::Post->value)) {
             return $this->render($this->themeResolver->resolve('auth/register/index'), $this->viewBuilder->registerView(

@@ -120,9 +120,12 @@ backend:
     admin_access_request_enabled:
       label: Admin access requests open
       description: Allow access requests via /access-request (access request form for the administration)
+    front_login_enabled:
+      label: Front-end login enabled
+      description: "If disabled, the public site has no accounts at all: login, registration, the account area and password reset return 404, and the matching menu links disappear. Turn it off for a brochure-only application."
     front_registration_enabled:
       label: Front-end registrations open
-      description: 'If enabled, visitors can create an account from the public site.'
+      description: 'If enabled, visitors can create an account from the public site. No effect when front-end login is disabled.'
     post_revisions_limit:
       label: Post revisions kept
       description: Maximum number of revisions kept per post (oldest are deleted)
