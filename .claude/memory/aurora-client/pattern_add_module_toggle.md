@@ -9,15 +9,15 @@ type: project
 Pour qu'un module client apparaisse dans la modale **Accès aux modules**
 de la fiche user backend (et bénéficie du gating per-user + cascade),
 son `Module` class doit implémenter
-`Aurora\Core\Module\ModuleToggleProviderInterface` en plus de
+`Aurora\Core\Module\Contract\ModuleToggleProviderInterface` en plus de
 `ModuleInterface`.
 
 ```php
 namespace App\Module\Tracking;
 
-use Aurora\Core\Module\ModuleInterface;
-use Aurora\Core\Module\ModuleToggle;
-use Aurora\Core\Module\ModuleToggleProviderInterface;
+use Aurora\Core\Module\Contract\ModuleInterface;
+use Aurora\Core\Module\Contract\ModuleToggleProviderInterface;
+use Aurora\Core\Module\Toggle\ModuleToggle;
 
 final readonly class TrackingModule implements ModuleInterface, ModuleToggleProviderInterface
 {
