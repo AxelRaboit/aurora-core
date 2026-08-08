@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>503 — {{ 'shared.errors.maintenance.title'|trans }}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta name="robots" content="noindex">
+    {{ vite_entry_link_tags('app') }}
+    <style>:root{--th-bg:#f9fafb;--th-surface:#ffffff;--th-primary:#111827;--th-secondary:#4b5563;--th-muted:#9ca3af;--th-accent:#6366f1}</style>
+</head>
+<body class="min-h-screen bg-bg flex flex-col items-center justify-center px-4 text-center">
+
+    <p class="text-8xl font-black text-accent-400/30 leading-none select-none mb-6">503</p>
+
+    <h1 class="text-2xl font-bold text-primary mb-2">{{ 'shared.errors.maintenance.title'|trans }}</h1>
+    <p class="text-secondary max-w-sm">
+        {{ 'shared.errors.maintenance.message'|trans }}
+    </p>
+
+    {# No "back home" button, unlike 404/500: every public page answers 503
+       while maintenance is on, so the only link we could offer leads back
+       here. #}
+
+</body>
+</html>

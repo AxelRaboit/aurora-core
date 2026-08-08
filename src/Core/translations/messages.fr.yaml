@@ -17,6 +17,9 @@ shared:
       title: Une erreur est survenue
       message: Le serveur a rencontré un problème inattendu. Notre équipe a été notifiée. Veuillez réessayer dans quelques instants.
       back: Retour à l'accueil
+    maintenance:
+      title: Site en maintenance
+      message: Le site est momentanément fermé pour maintenance. Merci de revenir dans quelques instants.
   common:
     search: Rechercher
     selected: sélectionnés

@@ -17,6 +17,9 @@ shared:
       title: An error occurred
       message: The server encountered an unexpected problem. Our team has been notified. Please try again in a few moments.
       back: Back to home
+    maintenance:
+      title: Site under maintenance
+      message: The site is temporarily closed for maintenance. Please check back in a few moments.
   common:
     search: Search
     selected: selected
