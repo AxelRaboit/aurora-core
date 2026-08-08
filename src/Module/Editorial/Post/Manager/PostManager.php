@@ -217,6 +217,14 @@ class PostManager implements PostManagerInterface
         $post->setFeaturedMedia($this->findMedia($input->getFeaturedMediaId()));
         $post->setCommentsEnabled($input->isCommentsEnabled());
 
+        // Normalised here rather than in the DTO: this is the write boundary,
+        // and it is the only place guaranteed to run whatever built the input.
+        // Before the translations, because their texts are keyed by the ids
+        // this call settles — an item the layout dropped must not keep its
+        // words in five languages.
+        $bannerLayout = $this->bannerNormalizer->normalizeLayout($input->getBannerLayout());
+        $post->setBannerLayout($bannerLayout);
+
         $this->syncTerms($post, $input->getTermIds());
         $this->syncRelatedPosts($post, $input->getRelatedPostIds());
 
@@ -225,7 +233,7 @@ class PostManager implements PostManagerInterface
         )));
 
         foreach ($input->getTranslations() as $locale => $translationInput) {
-            $this->applyTranslation($post, (string) $locale, $translationInput, $ogImages);
+            $this->applyTranslation($post, (string) $locale, $translationInput, $ogImages, $bannerLayout);
         }
     }
 
@@ -235,16 +243,17 @@ class PostManager implements PostManagerInterface
      * dropping a block must not delete a file another post still shows.
      *
      * @param array<int, DocumentInterface> $ogImages
+     * @param array<string, mixed>          $bannerLayout the already-normalised layout, which says which banner items exist
      */
-    protected function applyTranslation(PostInterface $post, string $locale, PostTranslationInput $input, array $ogImages = []): void
+    protected function applyTranslation(PostInterface $post, string $locale, PostTranslationInput $input, array $ogImages = [], array $bannerLayout = []): void
     {
         $translation = $post->translate($locale);
 
         $translation->setTitle($input->title);
         $translation->setBlocks($input->blocks);
-        // Normalised here rather than in the DTO: this is the write boundary,
-        // and it is the only place guaranteed to run whatever built the input.
-        $translation->setBanner($this->bannerNormalizer->normalize($input->banner));
+        // Only this locale's words. Against the post's layout, so text for an
+        // item that no longer exists is dropped instead of lingering unseen.
+        $translation->setBanner($this->bannerNormalizer->normalizeTexts($input->banner, $bannerLayout));
         $translation->setDescription($input->description);
         $translation->setMetaTitle($input->metaTitle);
         $translation->setMetaDescription($input->metaDescription);

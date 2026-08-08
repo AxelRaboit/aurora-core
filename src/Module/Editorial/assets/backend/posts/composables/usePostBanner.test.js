@@ -6,7 +6,7 @@ vi.mock("vue-i18n", () => ({
     useI18n: () => ({ t: (key) => key }),
 }));
 
-function makeBanner(overrides = {}) {
+function makeLayout(overrides = {}) {
     return ref({
         enabled: true,
         height: "md",
@@ -29,6 +29,18 @@ function makeBanner(overrides = {}) {
     });
 }
 
+function makeTexts(overrides = {}) {
+    return ref({ items: {}, ...overrides });
+}
+
+/** The pair the composable takes, since the banner is stored in two halves. */
+function make(overrides = {}) {
+    const layout = makeLayout(overrides);
+    const texts = makeTexts();
+
+    return { layout, texts, api: usePostBanner(layout, texts) };
+}
+
 describe("usePostBanner", () => {
     /**
      * The composable shipped returning two option lists it never declared. The
@@ -41,7 +53,7 @@ describe("usePostBanner", () => {
      * this runs.
      */
     it("exposes every name it returns", () => {
-        const api = usePostBanner(makeBanner());
+        const api = make().api;
 
         for (const [key, value] of Object.entries(api)) {
             expect(value, `${key} is missing`).toBeDefined();
@@ -49,7 +61,7 @@ describe("usePostBanner", () => {
     });
 
     it("builds every option list the panel binds to", () => {
-        const api = usePostBanner(makeBanner());
+        const api = make().api;
 
         const lists = {
             heightOptions: 4,
@@ -71,8 +83,8 @@ describe("usePostBanner", () => {
     });
 
     it("writes through to the banner rather than to a copy", () => {
-        const banner = makeBanner();
-        const { fields } = usePostBanner(banner);
+        const { layout: banner, api } = make();
+        const { fields } = api;
 
         fields.height.value = "full";
         fields.verticalAlign.value = "end";
@@ -86,8 +98,7 @@ describe("usePostBanner", () => {
     });
 
     it("adds, reorders and removes items", () => {
-        const banner = makeBanner();
-        const { addItem, moveItem, removeItem, items } = usePostBanner(banner);
+        const { addItem, moveItem, removeItem, items } = make().api;
 
         addItem("text");
         addItem("image");
@@ -101,8 +112,7 @@ describe("usePostBanner", () => {
     });
 
     it("refuses to move an item past either end", () => {
-        const banner = makeBanner();
-        const { addItem, moveItem, items } = usePostBanner(banner);
+        const { addItem, moveItem, items } = make().api;
 
         addItem("text");
         addItem("image");
@@ -114,8 +124,7 @@ describe("usePostBanner", () => {
     });
 
     it("stops adding items at the cap", () => {
-        const banner = makeBanner();
-        const { addItem, canAddItem, items } = usePostBanner(banner);
+        const { addItem, canAddItem, items } = make().api;
 
         for (let index = 0; index < 10; index += 1) {
             addItem("text");
@@ -125,9 +134,9 @@ describe("usePostBanner", () => {
         expect(canAddItem.value).toBe(false);
     });
 
-    it("exposes the per-item fields as writable computeds", () => {
-        const banner = makeBanner();
-        const { addItem, itemFields } = usePostBanner(banner);
+    it("sends each field to the half it belongs to", () => {
+        const { layout, texts, api } = make();
+        const { addItem, itemFields } = api;
 
         addItem("text");
         const item = itemFields(0);
@@ -135,13 +144,96 @@ describe("usePostBanner", () => {
         item.title.value = "Bonjour";
         item.titleSize.value = "xl";
 
-        expect(banner.value.items[0].title).toBe("Bonjour");
-        expect(banner.value.items[0].titleSize).toBe("xl");
+        const id = layout.value.items[0].id;
+
+        // The word is translated, the size is not.
+        expect(texts.value.items[id].title).toBe("Bonjour");
+        expect(layout.value.items[0].titleSize).toBe("xl");
+        expect(layout.value.items[0].title).toBeUndefined();
+    });
+
+    it("treats a button's link as copy, not as layout", () => {
+        const { layout, texts, api } = make();
+        const { addItem, itemFields } = api;
+
+        addItem("button");
+        itemFields(0).url.value = "/fr/contact";
+        itemFields(0).buttonColor.value = "#ffffff";
+
+        const id = layout.value.items[0].id;
+
+        expect(texts.value.items[id].url).toBe("/fr/contact");
+        expect(layout.value.items[0].buttonColor).toBe("#ffffff");
+    });
+
+    /**
+     * The whole point of the split. Re-pointing `texts` is what switching the
+     * locale tab does, and the design has to survive it untouched.
+     */
+    it("keeps the design when the language changes", () => {
+        const layout = makeLayout();
+        const french = makeTexts();
+        const { addItem, itemFields } = usePostBanner(layout, french);
+
+        addItem("text");
+        itemFields(0).title.value = "Bonjour";
+        const before = JSON.stringify(layout.value);
+
+        // Same composable, a different set of words: what the editor hands it
+        // after the tab changes.
+        const german = makeTexts();
+        const api = usePostBanner(layout, german);
+        api.itemFields(0).title.value = "Guten Tag";
+
+        expect(JSON.stringify(layout.value)).toBe(before);
+        expect(french.value.items[layout.value.items[0].id].title).toBe(
+            "Bonjour",
+        );
+        expect(german.value.items[layout.value.items[0].id].title).toBe(
+            "Guten Tag",
+        );
+    });
+
+    it("drops an item's text when the item goes", () => {
+        const { layout, texts, api } = make();
+
+        api.addItem("text");
+        const id = layout.value.items[0].id;
+        api.itemFields(0).title.value = "Bonjour";
+
+        api.removeItem(0);
+
+        expect(texts.value.items[id]).toBeUndefined();
+    });
+
+    /**
+     * A counter would hand the next item the id of the one just deleted, and
+     * every other language would greet it with the removed item's words.
+     */
+    it("never hands a new item the id of a removed one", () => {
+        const { layout, api } = make();
+
+        api.addItem("text");
+        const first = layout.value.items[0].id;
+        api.removeItem(0);
+        api.addItem("text");
+
+        expect(layout.value.items[0].id).not.toBe(first);
+    });
+
+    it("gives every item a distinct id", () => {
+        const { layout, api } = make();
+
+        for (let index = 0; index < 6; index += 1) {
+            api.addItem("text");
+        }
+
+        const ids = layout.value.items.map((item) => item.id);
+        expect(new Set(ids).size).toBe(6);
     });
 
     it("previews a gradient only once both stops are set", () => {
-        const banner = makeBanner();
-        const { fields, fillPreviewStyle } = usePostBanner(banner);
+        const { fields, fillPreviewStyle } = make().api;
 
         fields.fillType.value = "gradient";
         fields.gradientFrom.value = "#000000";

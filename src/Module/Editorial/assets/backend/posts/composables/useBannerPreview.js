@@ -15,11 +15,18 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
  * is long enough to swallow typing and short enough that adjusting a colour
  * still feels immediate.
  */
-export function useBannerPreview(banner, previewPath) {
+export function useBannerPreview(layout, texts, previewPath) {
     const { request } = useRequest();
 
     const html = ref("");
     const loading = ref(false);
+
+    // Strips the reactive proxies so what goes over the wire is plain data.
+    // Tolerates undefined, which is what a translation that has not finished
+    // loading looks like — throwing inside a debounced callback would surface
+    // 400ms later as a preview that simply stopped updating.
+    const snapshot = (value) =>
+        undefined === value ? {} : JSON.parse(JSON.stringify(value));
 
     // Guards against a slow response overwriting a newer one: only the answer
     // to the most recent question is allowed to land.
@@ -31,7 +38,10 @@ export function useBannerPreview(banner, previewPath) {
 
         try {
             const data = await request(previewPath, {
-                banner: JSON.parse(JSON.stringify(banner.value)),
+                // Both halves: a preview is per language, so the same layout
+                // with two sets of words is two different pictures.
+                layout: snapshot(layout.value),
+                texts: snapshot(texts.value),
             });
 
             if (ticket === latest && data?.success) {
@@ -46,7 +56,9 @@ export function useBannerPreview(banner, previewPath) {
 
     const schedule = useDebounce(fetchPreview, 400);
 
-    watch(banner, schedule, { deep: true, immediate: true });
+    // Both, deeply: typing a title has to redraw as surely as changing a
+    // colour does, and switching locale re-points `texts` wholesale.
+    watch([layout, texts], schedule, { deep: true, immediate: true });
 
     return { html, loading, refresh: fetchPreview };
 }

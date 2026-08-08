@@ -56,11 +56,12 @@ final class PostEditorBannerTest extends IntegrationTestCase
             '/backend/editorial/posts/banner-preview',
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode([
-                'banner' => [
+                'layout' => [
                     'enabled' => true,
                     'background' => ['type' => 'solid', 'color' => '#123456'],
-                    'items' => [['type' => 'text', 'title' => 'Titre de test']],
+                    'items' => [['id' => 'a1', 'type' => 'text']],
                 ],
+                'texts' => ['items' => ['a1' => ['title' => 'Titre de test']]],
             ], JSON_THROW_ON_ERROR),
         );
 
@@ -85,14 +86,15 @@ final class PostEditorBannerTest extends IntegrationTestCase
             '/backend/editorial/posts/banner-preview',
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode([
-                'banner' => [
+                'layout' => [
                     'enabled' => true,
                     'items' => [[
+                        'id' => 'a1',
                         'type' => 'text',
-                        'title' => 'Titre',
                         'titleColor' => 'red; background: url(javascript:alert(1))',
                     ]],
                 ],
+                'texts' => ['items' => ['a1' => ['title' => 'Titre']]],
             ], JSON_THROW_ON_ERROR),
         );
 

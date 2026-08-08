@@ -16,6 +16,7 @@ class PostInput implements PostInputInterface
      * @param array<string, PostTranslationInput> $translations
      * @param list<int>                           $termIds
      * @param list<int>                           $relatedPostIds
+     * @param array<string, mixed>                $bannerLayout   raw; normalised at the write boundary by BannerNormalizer
      */
     public function __construct(
         #[Assert\Positive(message: 'backend.posts.errors.post_type_required')]
@@ -31,6 +32,7 @@ class PostInput implements PostInputInterface
         public readonly ?int $version = null,
         public readonly bool $force = false,
         public readonly bool $commentsEnabled = true,
+        public readonly array $bannerLayout = [],
     ) {}
 
     public function withStatus(string $status): PostInputInterface
@@ -46,6 +48,7 @@ class PostInput implements PostInputInterface
             version: $this->version,
             force: $this->force,
             commentsEnabled: $this->commentsEnabled,
+            bannerLayout: $this->bannerLayout,
         );
     }
 
@@ -97,6 +100,11 @@ class PostInput implements PostInputInterface
     public function isCommentsEnabled(): bool
     {
         return $this->commentsEnabled;
+    }
+
+    public function getBannerLayout(): array
+    {
+        return $this->bannerLayout;
     }
 
     /**

@@ -31,6 +31,14 @@ interface PostInputInterface
 
     public function isCommentsEnabled(): bool;
 
+    /**
+     * The banner's design, shared by every language. Raw as it left the
+     * editor; the manager normalises it.
+     *
+     * @return array<string, mixed>
+     */
+    public function getBannerLayout(): array;
+
     /** Returns a copy with a different status, leaving everything else alone. */
     public function withStatus(string $status): self;
 }

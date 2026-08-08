@@ -8,6 +8,11 @@
  *
  * Presentation only: every field arrives as a writable computed from
  * usePostBanner, so nothing here writes to the prop directly.
+ *
+ * Two props because the banner is stored in two halves — the design on the
+ * post, the words on the open translation. The panel does not arrange them
+ * differently for it: a field is a field, and usePostBanner is what knows
+ * which half each one belongs to.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -27,7 +32,12 @@ import { usePostBanner } from "../composables/usePostBanner.js";
 import { useBannerPreview } from "../composables/useBannerPreview.js";
 
 const props = defineProps({
-    banner: { type: Object, required: true },
+    /** The design, shared by every language. */
+    layout: { type: Object, required: true },
+    /** The words, for the language currently open. */
+    texts: { type: Object, required: true },
+    /** Which language that is — shown on the fields that are per-language. */
+    locale: { type: String, required: true },
     previewPath: { type: String, required: true },
 });
 
@@ -52,10 +62,14 @@ const {
     fillPreviewStyle,
     fields,
     itemFields,
-} = usePostBanner(computed(() => props.banner));
+} = usePostBanner(
+    computed(() => props.layout),
+    computed(() => props.texts),
+);
 
 const { html: previewHtml, loading: previewLoading } = useBannerPreview(
-    computed(() => props.banner),
+    computed(() => props.layout),
+    computed(() => props.texts),
     props.previewPath,
 );
 </script>
@@ -66,8 +80,8 @@ const { html: previewHtml, loading: previewLoading } = useBannerPreview(
 
         <!-- Without this the card is a lone toggle, which reads as collapsed
              rather than as off. It also says the thing the model makes true
-             and nothing else would: the banner belongs to the translation, so
-             turning it on here leaves the other languages untouched. -->
+             and nothing else would: the design is shared, so switching it on
+             switches it on in every language. -->
         <p v-if="!fields.enabled.value" class="text-sm text-muted">
             {{ t("backend.posts.banner.disabled_hint") }}
         </p>
@@ -132,16 +146,21 @@ const { html: previewHtml, loading: previewLoading } = useBannerPreview(
                     />
 
                     <template v-if="item.type === 'text'">
-                        <AppInput
-                            v-model="itemFields(index).title.value"
-                            :label="t('backend.posts.banner.slot_title')"
-                            :placeholder="t('backend.posts.banner.slot_title_placeholder')"
-                        />
-                        <AppTextarea
-                            v-model="itemFields(index).description.value"
-                            :label="t('backend.posts.banner.slot_description')"
-                            :placeholder="t('backend.posts.banner.slot_description_placeholder')"
-                        />
+                        <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                            <p class="text-xs uppercase tracking-wide text-muted">
+                                {{ t("backend.posts.banner.translated_fields", { locale }) }}
+                            </p>
+                            <AppInput
+                                v-model="itemFields(index).title.value"
+                                :label="t('backend.posts.banner.slot_title')"
+                                :placeholder="t('backend.posts.banner.slot_title_placeholder')"
+                            />
+                            <AppTextarea
+                                v-model="itemFields(index).description.value"
+                                :label="t('backend.posts.banner.slot_description')"
+                                :placeholder="t('backend.posts.banner.slot_description_placeholder')"
+                            />
+                        </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <BannerColorField
                                 v-model="itemFields(index).titleColor.value"
@@ -167,16 +186,24 @@ const { html: previewHtml, loading: previewLoading } = useBannerPreview(
                     </template>
 
                     <template v-else-if="item.type === 'button'">
-                        <AppInput
-                            v-model="itemFields(index).label.value"
-                            :label="t('backend.posts.banner.button_label')"
-                            :placeholder="t('backend.posts.banner.button_label_placeholder')"
-                        />
-                        <AppInput
-                            v-model="itemFields(index).url.value"
-                            :label="t('backend.posts.banner.button_url')"
-                            :placeholder="t('backend.posts.banner.button_url_placeholder')"
-                        />
+                        <!-- The link is in here on purpose: a localised page
+                             has a localised address, and the first banner ever
+                             written pointed at /fr/page/premiers-pas. -->
+                        <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                            <p class="text-xs uppercase tracking-wide text-muted">
+                                {{ t("backend.posts.banner.translated_fields", { locale }) }}
+                            </p>
+                            <AppInput
+                                v-model="itemFields(index).label.value"
+                                :label="t('backend.posts.banner.button_label')"
+                                :placeholder="t('backend.posts.banner.button_label_placeholder')"
+                            />
+                            <AppInput
+                                v-model="itemFields(index).url.value"
+                                :label="t('backend.posts.banner.button_url')"
+                                :placeholder="t('backend.posts.banner.button_url_placeholder')"
+                            />
+                        </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <BannerColorField
                                 v-model="itemFields(index).buttonColor.value"
@@ -199,11 +226,16 @@ const { html: previewHtml, loading: previewLoading } = useBannerPreview(
                             v-model="itemFields(index).media.value"
                             :label="t('backend.posts.banner.slot_image')"
                         />
-                        <AppInput
-                            v-model="itemFields(index).alt.value"
-                            :label="t('backend.posts.banner.slot_alt')"
-                            :placeholder="t('backend.posts.banner.slot_alt_placeholder')"
-                        />
+                        <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                            <p class="text-xs uppercase tracking-wide text-muted">
+                                {{ t("backend.posts.banner.translated_fields", { locale }) }}
+                            </p>
+                            <AppInput
+                                v-model="itemFields(index).alt.value"
+                                :label="t('backend.posts.banner.slot_alt')"
+                                :placeholder="t('backend.posts.banner.slot_alt_placeholder')"
+                            />
+                        </div>
                     </template>
                 </div>
 

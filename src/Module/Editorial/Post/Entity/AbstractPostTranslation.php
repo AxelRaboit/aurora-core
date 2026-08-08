@@ -53,14 +53,14 @@ abstract class AbstractPostTranslation implements PostTranslationInterface
     protected array $customFields = [];
 
     /**
-     * Per-locale banner configuration — layout, colours, and the two slots.
-     * Shape and defaults belong to {@see BannerNormalizer},
-     * which every write goes through; an empty array here means "never
-     * configured" and reads as a disabled banner.
+     * The banner's words for this locale — titles, descriptions, alt text and
+     * button links — keyed by the id of the layout item they belong to. Shape
+     * and defaults belong to {@see BannerNormalizer}, which every write goes
+     * through.
      *
-     * Per translation rather than per post on purpose: the banner carries a
-     * title and a description, which are editorial copy, and a locale may
-     * legitimately want a different image behind them.
+     * Only the copy. The design lives once on the post
+     * ({@see AbstractPost::$bannerLayout}) so translating a banner means
+     * writing its text, not rebuilding it.
      *
      * @var array<string, mixed>
      */

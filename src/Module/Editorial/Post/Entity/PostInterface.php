@@ -51,6 +51,17 @@ interface PostInterface
 
     public function setCommentsEnabled(bool $commentsEnabled): static;
 
+    /**
+     * The banner's design, shared by every language. Its words live on each
+     * translation and join back by item id.
+     *
+     * @return array<string, mixed>
+     */
+    public function getBannerLayout(): array;
+
+    /** @param array<string, mixed> $bannerLayout */
+    public function setBannerLayout(array $bannerLayout): static;
+
     public function getPostType(): PostTypeInterface;
 
     public function setPostType(PostTypeInterface $postType): static;

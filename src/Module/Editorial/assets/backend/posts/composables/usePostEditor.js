@@ -5,9 +5,12 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useServerErrors } from "@/shared/composables/form/useServerErrors.js";
 
-// Mirrors BannerNormalizer's shape. A new translation starts with no items:
+// Mirrors BannerNormalizer's layout shape. A new post starts with no items:
 // the banner is a list an author builds, not a pair of boxes to fill.
-export function emptyBanner() {
+//
+// The design only. It sits on the post, so every language shows the same
+// banner and translating one means writing its words, not rebuilding it.
+export function emptyBannerLayout() {
     return {
         enabled: false,
         height: "md",
@@ -30,13 +33,18 @@ export function emptyBanner() {
     };
 }
 
+/** The words, keyed by the id of the layout item they belong to. */
+export function emptyBannerTexts() {
+    return { items: {} };
+}
+
 function emptyTranslation() {
     return {
         title: "",
         slug: "",
         description: "",
         blocks: [],
-        banner: emptyBanner(),
+        banner: emptyBannerTexts(),
         metaTitle: "",
         metaDescription: "",
         customFields: {},
@@ -49,7 +57,15 @@ function emptyTranslation() {
 }
 
 function translationFrom(source) {
-    return { ...emptyTranslation(), ...(source ?? {}) };
+    const translation = { ...emptyTranslation(), ...(source ?? {}) };
+
+    // A translation saved before the split, or one the server sent as an empty
+    // array, would leave `items` undefined and every text field unbindable.
+    translation.banner = {
+        items: translation.banner?.items ?? {},
+    };
+
+    return translation;
 }
 
 export function usePostEditor(props) {
@@ -72,6 +88,12 @@ export function usePostEditor(props) {
             url: props.post?.featuredMediaUrl ?? null,
         },
         commentsEnabled: props.post?.commentsEnabled ?? true,
+        // On the post, beside status and terms, rather than inside a
+        // translation: one design, shared by every language.
+        bannerLayout: {
+            ...emptyBannerLayout(),
+            ...(props.post?.bannerLayout ?? {}),
+        },
         termIds: [...(props.post?.termIds ?? [])],
         relatedPostIds: [...(props.post?.relatedPostIds ?? [])],
         translations: Object.fromEntries(

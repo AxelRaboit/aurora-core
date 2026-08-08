@@ -43,12 +43,17 @@ final class BannerPreviewController extends AbstractController
     public function preview(Request $request): JsonResponse
     {
         $payload = $this->decodeJson($request);
-        $raw = is_array($payload['banner'] ?? null) ? $payload['banner'] : [];
+
+        // Both halves, because a preview is per language: the same layout with
+        // the German copy is a different picture from the same layout with the
+        // French, and previewing the layout alone would show neither.
+        $layout = is_array($payload['layout'] ?? null) ? $payload['layout'] : [];
+        $texts = is_array($payload['texts'] ?? null) ? $payload['texts'] : [];
 
         // buildForEditor rather than build: the panel asks for a preview while
         // the banner is still switched off or half-composed, and answering
         // "nothing" there would look like a bug rather than a state.
-        $banner = $this->bannerViewBuilder->buildForEditor($raw);
+        $banner = $this->bannerViewBuilder->buildForEditor($layout, $texts);
 
         return $this->json([
             'success' => true,

@@ -23,7 +23,7 @@ final class BannerNormalizerTest extends TestCase
 
     public function testGarbageInputStillProducesAUsableBanner(): void
     {
-        $banner = $this->normalizer->normalize('not an array at all');
+        $banner = $this->normalizer->normalizeLayout('not an array at all');
 
         self::assertFalse($banner['enabled']);
         self::assertSame('md', $banner['height']);
@@ -32,36 +32,41 @@ final class BannerNormalizerTest extends TestCase
 
     public function testAnItemOfUnknownTypeIsDroppedRatherThanDefaulted(): void
     {
-        $banner = $this->normalizer->normalize([
+        $layout = $this->normalizer->normalizeLayout([
             'items' => [
-                ['type' => 'text', 'title' => 'Gardé'],
+                ['type' => 'text'],
                 ['type' => 'video'],
                 'not even an array',
             ],
         ]);
 
-        self::assertCount(1, $banner['items']);
-        self::assertSame('Gardé', $banner['items'][0]['title']);
+        self::assertCount(1, $layout['items']);
+        self::assertSame('text', $layout['items'][0]['type']);
     }
 
     /**
      * Switching an item from text to image in the editor must not throw the
-     * typed text away — the front sends every key back on the next save.
+     * typed text away — the item keeps its id, and the words hang off that.
      */
     public function testAnImageItemKeepsTheTextItWasCarrying(): void
     {
-        $banner = $this->normalizer->normalize([
-            'items' => [['type' => 'image', 'mediaId' => 12, 'title' => 'Titre gardé']],
+        $layout = $this->normalizer->normalizeLayout([
+            'items' => [['id' => 'a1', 'type' => 'image', 'mediaId' => 12]],
         ]);
 
-        self::assertSame('image', $banner['items'][0]['type']);
-        self::assertSame(12, $banner['items'][0]['mediaId']);
-        self::assertSame('Titre gardé', $banner['items'][0]['title']);
+        $texts = $this->normalizer->normalizeTexts(
+            ['items' => ['a1' => ['title' => 'Titre gardé']]],
+            $layout,
+        );
+
+        self::assertSame('image', $layout['items'][0]['type']);
+        self::assertSame(12, $layout['items'][0]['mediaId']);
+        self::assertSame('Titre gardé', $texts['items']['a1']['title']);
     }
 
     public function testTheItemCountIsCapped(): void
     {
-        $banner = $this->normalizer->normalize([
+        $banner = $this->normalizer->normalizeLayout([
             'items' => array_fill(0, 30, ['type' => 'text']),
         ]);
 
@@ -70,7 +75,7 @@ final class BannerNormalizerTest extends TestCase
 
     public function testAnItemThatSaysNothingIsFullWidthOnEveryBreakpoint(): void
     {
-        $span = $this->normalizer->normalize(['items' => [['type' => 'text']]])['items'][0]['span'];
+        $span = $this->normalizer->normalizeLayout(['items' => [['type' => 'text']]])['items'][0]['span'];
 
         self::assertSame(48, $span['base'], 'full width on a phone');
         self::assertNull($span['md'], 'absent steps inherit the one below');
@@ -79,7 +84,7 @@ final class BannerNormalizerTest extends TestCase
 
     public function testSpansAreClampedToTheGrid(): void
     {
-        $span = $this->normalizer->normalize([
+        $span = $this->normalizer->normalizeLayout([
             'items' => [['type' => 'text', 'span' => ['base' => 0, 'md' => 900, 'lg' => '24']]],
         ])['items'][0]['span'];
 
@@ -94,7 +99,7 @@ final class BannerNormalizerTest extends TestCase
      */
     public function testLegacySlotsBecomeItems(): void
     {
-        $banner = $this->normalizer->normalize([
+        $layout = $this->normalizer->normalizeLayout([
             'ratio' => '33-67',
             'slots' => [
                 ['type' => 'text', 'title' => 'Gauche'],
@@ -102,23 +107,22 @@ final class BannerNormalizerTest extends TestCase
             ],
         ]);
 
-        self::assertCount(2, $banner['items']);
-        self::assertSame('Gauche', $banner['items'][0]['title']);
-        self::assertSame(16, $banner['items'][0]['span']['lg'], 'the old ratio becomes a width in columns');
-        self::assertSame(32, $banner['items'][1]['span']['lg']);
+        self::assertCount(2, $layout['items']);
+        self::assertSame(16, $layout['items'][0]['span']['lg'], 'the old ratio becomes a width in columns');
+        self::assertSame(32, $layout['items'][1]['span']['lg']);
     }
 
     public function testALegacyEmptySlotIsDroppedAndTheSurvivorSpansTheRow(): void
     {
-        $banner = $this->normalizer->normalize([
+        $layout = $this->normalizer->normalizeLayout([
             'slots' => [
                 ['type' => 'text', 'title' => 'Seul'],
                 ['type' => 'none'],
             ],
         ]);
 
-        self::assertCount(1, $banner['items']);
-        self::assertSame(48, $banner['items'][0]['span']['lg']);
+        self::assertCount(1, $layout['items']);
+        self::assertSame(48, $layout['items'][0]['span']['lg']);
     }
 
     /**
@@ -127,9 +131,14 @@ final class BannerNormalizerTest extends TestCase
      */
     public function testOnlyKnownSafeLinkSchemesSurvive(): void
     {
-        $url = fn (string $value): ?string => $this->normalizer->normalize([
-            'items' => [['type' => 'button', 'url' => $value]],
-        ])['items'][0]['url'];
+        $layout = $this->normalizer->normalizeLayout([
+            'items' => [['id' => 'b1', 'type' => 'button']],
+        ]);
+
+        $url = fn (string $value): ?string => $this->normalizer->normalizeTexts(
+            ['items' => ['b1' => ['url' => $value]]],
+            $layout,
+        )['items']['b1']['url'];
 
         self::assertSame('/fr/contact', $url('/fr/contact'));
         self::assertSame('https://example.org', $url('https://example.org'));
@@ -144,17 +153,23 @@ final class BannerNormalizerTest extends TestCase
 
     public function testAButtonIsAFirstClassItemType(): void
     {
-        $item = $this->normalizer->normalize([
-            'items' => [['type' => 'button', 'label' => 'Découvrir', 'url' => '/fr/a-propos']],
-        ])['items'][0];
+        $layout = $this->normalizer->normalizeLayout([
+            'items' => [['id' => 'b1', 'type' => 'button']],
+        ]);
 
-        self::assertSame('button', $item['type']);
-        self::assertSame('Découvrir', $item['label']);
+        $texts = $this->normalizer->normalizeTexts(
+            ['items' => ['b1' => ['label' => 'Découvrir', 'url' => '/fr/a-propos']]],
+            $layout,
+        );
+
+        self::assertSame('button', $layout['items'][0]['type']);
+        self::assertSame('Découvrir', $texts['items']['b1']['label']);
+        self::assertSame('/fr/a-propos', $texts['items']['b1']['url']);
     }
 
     public function testTitleSizeAndVerticalAlignmentAreWhitelisted(): void
     {
-        $banner = $this->normalizer->normalize([
+        $banner = $this->normalizer->normalizeLayout([
             'verticalAlign' => 'bottom',
             'items' => [['type' => 'text', 'titleSize' => 'enormous']],
         ]);
@@ -165,7 +180,7 @@ final class BannerNormalizerTest extends TestCase
 
     public function testUnknownEnumValuesFallBackInsteadOfPersisting(): void
     {
-        $banner = $this->normalizer->normalize([
+        $banner = $this->normalizer->normalizeLayout([
             'height' => 'gigantic',
             'items' => [['type' => 'text', 'align' => 'justify']],
         ]);
@@ -180,7 +195,7 @@ final class BannerNormalizerTest extends TestCase
      */
     public function testOnlySixDigitHexColoursSurvive(): void
     {
-        $banner = $this->normalizer->normalize([
+        $banner = $this->normalizer->normalizeLayout([
             'background' => ['color' => '#AABBCC'],
             'items' => [[
                 'type' => 'text',
@@ -196,17 +211,17 @@ final class BannerNormalizerTest extends TestCase
 
     public function testTheFillTypeIsWhitelistedAndDefaultsToNone(): void
     {
-        self::assertSame('none', $this->normalizer->normalize([])['background']['type']);
+        self::assertSame('none', $this->normalizer->normalizeLayout([])['background']['type']);
         self::assertSame(
             'none',
-            $this->normalizer->normalize(['background' => ['type' => 'radial']])['background']['type'],
+            $this->normalizer->normalizeLayout(['background' => ['type' => 'radial']])['background']['type'],
             'an unknown fill is refused rather than persisted',
         );
     }
 
     public function testGradientStopsAreColoursAndTheAngleIsClamped(): void
     {
-        $background = $this->normalizer->normalize([
+        $background = $this->normalizer->normalizeLayout([
             'background' => [
                 'type' => 'gradient',
                 'gradientFrom' => '#112233',
@@ -226,7 +241,7 @@ final class BannerNormalizerTest extends TestCase
      */
     public function testALegacyBannerWithAColourAndNoTypeReadsAsSolid(): void
     {
-        $background = $this->normalizer->normalize([
+        $background = $this->normalizer->normalizeLayout([
             'background' => ['color' => '#0f172a', 'overlay' => 0],
         ])['background'];
 
@@ -235,7 +250,7 @@ final class BannerNormalizerTest extends TestCase
 
     public function testAnExplicitNoneIsHonouredEvenWithAColourStillStored(): void
     {
-        $background = $this->normalizer->normalize([
+        $background = $this->normalizer->normalizeLayout([
             'background' => ['type' => 'none', 'color' => '#0f172a'],
         ])['background'];
 
@@ -244,18 +259,142 @@ final class BannerNormalizerTest extends TestCase
 
     public function testOverlayIsClampedToAPercentage(): void
     {
-        self::assertSame(0, $this->normalizer->normalize(['background' => ['overlay' => -40]])['background']['overlay']);
-        self::assertSame(100, $this->normalizer->normalize(['background' => ['overlay' => 900]])['background']['overlay']);
+        self::assertSame(0, $this->normalizer->normalizeLayout(['background' => ['overlay' => -40]])['background']['overlay']);
+        self::assertSame(100, $this->normalizer->normalizeLayout(['background' => ['overlay' => 900]])['background']['overlay']);
+    }
+
+    // ── The split itself ──────────────────────────────────────────────────
+
+    public function testTheLayoutHoldsNoWordsAndTheTextsHoldNoDesign(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'items' => [['id' => 'a1', 'type' => 'text', 'title' => 'Passé en fraude', 'titleSize' => 'xl']],
+        ]);
+
+        // A title sent inside the layout is dropped, not stored: two places
+        // holding the same word is how the two halves would start to disagree.
+        self::assertArrayNotHasKey('title', $layout['items'][0]);
+        self::assertSame('xl', $layout['items'][0]['titleSize']);
+
+        $texts = $this->normalizer->normalizeTexts(
+            ['items' => ['a1' => ['title' => 'Bonjour', 'titleSize' => 'sm']]],
+            $layout,
+        );
+
+        self::assertSame('Bonjour', $texts['items']['a1']['title']);
+        self::assertArrayNotHasKey('titleSize', $texts['items']['a1']);
+    }
+
+    public function testAnItemWithNoIdIsGivenOneRatherThanDropped(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'items' => [['type' => 'text'], ['type' => 'image']],
+        ]);
+
+        self::assertSame('i1', $layout['items'][0]['id']);
+        self::assertSame('i2', $layout['items'][1]['id']);
+    }
+
+    /**
+     * Two items sharing an id would share one translation's words. The second
+     * claim loses, and gets an id of its own.
+     */
+    public function testTwoItemsCannotShareAnId(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'items' => [['id' => 'dup', 'type' => 'text'], ['id' => 'dup', 'type' => 'image']],
+        ]);
+
+        self::assertSame('dup', $layout['items'][0]['id']);
+        self::assertNotSame('dup', $layout['items'][1]['id']);
+    }
+
+    public function testAnIdThatIsNotSafeAsAKeyIsReplaced(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'items' => [['id' => '../../etc/passwd', 'type' => 'text']],
+        ]);
+
+        self::assertSame('i1', $layout['items'][0]['id']);
+    }
+
+    /**
+     * Text for an item the layout no longer has would sit in every language
+     * with nothing able to show or clear it.
+     */
+    public function testTextForAnItemThatIsGoneIsDropped(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'items' => [['id' => 'a1', 'type' => 'text']],
+        ]);
+
+        $texts = $this->normalizer->normalizeTexts(
+            ['items' => ['a1' => ['title' => 'Gardé'], 'orphan' => ['title' => 'Perdu']]],
+            $layout,
+        );
+
+        self::assertArrayHasKey('a1', $texts['items']);
+        self::assertArrayNotHasKey('orphan', $texts['items']);
+    }
+
+    public function testEveryLayoutItemGetsAnEntryEvenWithNothingWritten(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'items' => [['id' => 'a1', 'type' => 'text'], ['id' => 'a2', 'type' => 'button']],
+        ]);
+
+        $texts = $this->normalizer->normalizeTexts([], $layout);
+
+        self::assertSame(['a1', 'a2'], array_keys($texts['items']));
+        self::assertSame('', $texts['items']['a1']['title']);
+        self::assertNull($texts['items']['a2']['url']);
+    }
+
+    /**
+     * A banner stored whole, before the split. Its texts are positional and
+     * the layout was built from the same list, so position is how they line
+     * up — a database restored from an older dump must not lose its copy.
+     */
+    public function testAPreSplitBannerStillYieldsItsTexts(): void
+    {
+        $stored = [
+            'enabled' => true,
+            'items' => [
+                ['type' => 'text', 'title' => 'Bienvenue', 'description' => 'Sous-titre'],
+                ['type' => 'button', 'label' => 'Découvrir', 'url' => '/fr/a-propos'],
+            ],
+        ];
+
+        $layout = $this->normalizer->normalizeLayout($stored);
+        $texts = $this->normalizer->normalizeTexts($stored, $layout);
+
+        self::assertSame('Bienvenue', $texts['items']['i1']['title']);
+        self::assertSame('Sous-titre', $texts['items']['i1']['description']);
+        self::assertSame('Découvrir', $texts['items']['i2']['label']);
+        self::assertSame('/fr/a-propos', $texts['items']['i2']['url']);
+    }
+
+    public function testAnEmptyLayoutIsAnAcceptableArgument(): void
+    {
+        self::assertSame(['items' => []], $this->normalizer->normalizeTexts(['items' => ['a' => []]], []));
     }
 
     public function testNormalizingTwiceChangesNothing(): void
     {
-        $once = $this->normalizer->normalize([
+        $once = $this->normalizer->normalizeLayout([
             'enabled' => true,
             'height' => 'lg',
-            'items' => [['type' => 'text', 'title' => '  Espaces  ', 'span' => ['lg' => 24]]],
+            'items' => [['id' => 'a1', 'type' => 'text', 'span' => ['lg' => 24]]],
         ]);
 
-        self::assertSame($once, $this->normalizer->normalize($once));
+        self::assertSame($once, $this->normalizer->normalizeLayout($once));
+
+        $texts = $this->normalizer->normalizeTexts(
+            ['items' => ['a1' => ['title' => '  Espaces  ']]],
+            $once,
+        );
+
+        self::assertSame('Espaces', $texts['items']['a1']['title'], 'trimmed on the way in');
+        self::assertSame($texts, $this->normalizer->normalizeTexts($texts, $once));
     }
 }

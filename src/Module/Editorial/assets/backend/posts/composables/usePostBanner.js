@@ -4,9 +4,11 @@ import { useI18n } from "vue-i18n";
 /**
  * Drives the banner panel of the post editor.
  *
- * Holds no state of its own: the banner lives inside the current translation,
- * so switching locale switches banner with it and saving carries it along
- * without this file knowing anything about the save.
+ * Holds no state of its own, and reads from two places on purpose: the
+ * **layout** lives on the post and is shared by every language, the **texts**
+ * live in the current translation. Switching locale therefore swaps the words
+ * and leaves the design standing — which is the whole point of the split, and
+ * it costs nothing here because `texts` is a computed the caller re-points.
  *
  * The banner is a list an author builds — add a text, add an image, reorder,
  * remove. Arrangements like "text then image" or "two images" are what that
@@ -50,31 +52,53 @@ function applyPicked(target, picked, mediaKey, idKey) {
     target[mediaKey] = picked?.id ? { url: picked.url ?? null } : null;
 }
 
+/**
+ * A fresh id for a layout item. Random rather than a counter: a counter reuses
+ * the id of an item that was just removed, and the next item created would
+ * silently inherit its text in every other language.
+ */
+function newItemId() {
+    // Available on localhost and over https, which is everywhere the backend
+    // runs; the fallback is for jsdom, where tests run without it.
+    if ("function" === typeof globalThis.crypto?.randomUUID) {
+        return globalThis.crypto.randomUUID().replaceAll("-", "").slice(0, 24);
+    }
+
+    return Array.from({ length: 24 }, () =>
+        Math.floor(Math.random() * 36).toString(36),
+    ).join("");
+}
+
 function newItem(type) {
     return {
+        id: newItemId(),
         type,
         // Full width on a phone, half on a large screen: the common case for
         // a second item, and a single item still fills the row because the
         // grid has nothing to put beside it.
         span: { base: COLUMNS, md: null, lg: 24 },
-        title: "",
-        description: "",
         titleColor: null,
         descriptionColor: null,
         align: "start",
         titleSize: "md",
         mediaId: null,
-        alt: "",
         media: null,
-        label: "",
-        url: "",
         buttonColor: null,
         buttonTextColor: null,
     };
 }
 
-export function usePostBanner(banner) {
+/** The five per-language fields, as a translation starts with them. */
+function newItemText() {
+    return { title: "", description: "", alt: "", label: "", url: "" };
+}
+
+export function usePostBanner(layout, texts) {
     const { t } = useI18n();
+
+    // Everything below reads the design here. `banner` is kept as the name so
+    // the shape stays recognisable against BannerNormalizer's layout half.
+    const banner = layout;
 
     const options = (values, prefix) =>
         computed(() =>
@@ -108,13 +132,25 @@ export function usePostBanner(banner) {
     const canAddItem = computed(() => banner.value.items.length < MAX_ITEMS);
 
     function addItem(type) {
-        if (canAddItem.value) {
-            banner.value.items.push(newItem(type));
+        if (!canAddItem.value) {
+            return;
         }
+
+        const item = newItem(type);
+        banner.value.items.push(item);
+        // Only this language's entry. The others gain theirs when the server
+        // normalises their texts against the layout — an empty string is what
+        // an untranslated item means, and inventing entries here would just be
+        // guessing at state the editor cannot see.
+        texts.value.items[item.id] = newItemText();
     }
 
     function removeItem(index) {
-        banner.value.items.splice(index, 1);
+        const [removed] = banner.value.items.splice(index, 1);
+
+        if (removed) {
+            delete texts.value.items[removed.id];
+        }
     }
 
     /**
@@ -239,6 +275,22 @@ export function usePostBanner(banner) {
     function itemFields(index) {
         if (!itemFieldsCache.has(index)) {
             const item = () => banner.value.items[index];
+
+            // The words for this item, in whichever language is open. Created
+            // on demand rather than assumed present: a layout item added in
+            // one locale reaches the others with no entry of its own until
+            // someone types in them.
+            const text = () => {
+                const id = item()?.id;
+                if (undefined === id) {
+                    return {};
+                }
+
+                texts.value.items[id] ??= newItemText();
+
+                return texts.value.items[id];
+            };
+
             const scalar = (key) =>
                 writable(
                     () => item()?.[key],
@@ -247,16 +299,27 @@ export function usePostBanner(banner) {
                     },
                 );
 
+            const localised = (key) =>
+                writable(
+                    () => text()[key] ?? "",
+                    (value) => {
+                        text()[key] = value;
+                    },
+                );
+
             itemFieldsCache.set(index, {
-                title: scalar("title"),
-                description: scalar("description"),
+                // Per language — the copy.
+                title: localised("title"),
+                description: localised("description"),
+                alt: localised("alt"),
+                label: localised("label"),
+                // A link is copy too: a localised page has a localised address.
+                url: localised("url"),
+                // Shared — the design.
                 titleColor: scalar("titleColor"),
                 descriptionColor: scalar("descriptionColor"),
                 align: scalar("align"),
                 titleSize: scalar("titleSize"),
-                alt: scalar("alt"),
-                label: scalar("label"),
-                url: scalar("url"),
                 buttonColor: scalar("buttonColor"),
                 buttonTextColor: scalar("buttonTextColor"),
                 // The width control drives the large-screen span only. Below

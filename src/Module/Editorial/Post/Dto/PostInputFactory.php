@@ -28,6 +28,8 @@ class PostInputFactory implements PostInputFactoryInterface
             version: $version > 0 ? $version : null,
             force: (bool) ($data['force'] ?? false),
             commentsEnabled: (bool) ($data['commentsEnabled'] ?? true),
+            // On the post, not the translation: one design for every language.
+            bannerLayout: is_array($data['bannerLayout'] ?? null) ? $data['bannerLayout'] : [],
         );
     }
 

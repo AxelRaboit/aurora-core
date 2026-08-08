@@ -96,7 +96,15 @@ function termLabel(term) {
 
                 <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
                     <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.banner.title") }}</h3>
-                    <PostBannerPanel :banner="current.banner" :preview-path="bannerPreviewPath" />
+                    <!-- Two halves: the design is one per post, the words are
+                         one set per language. Switching the locale tab swaps
+                         the second and leaves the first standing. -->
+                    <PostBannerPanel
+                        :layout="form.bannerLayout"
+                        :texts="current.banner"
+                        :locale="locale"
+                        :preview-path="bannerPreviewPath"
+                    />
                 </div>
 
                 <div v-if="supportsBlocks" class="bg-surface border border-line rounded-xl p-5 space-y-3">

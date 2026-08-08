@@ -51,6 +51,22 @@ abstract class AbstractPost implements PostInterface
     #[ORM\Column(options: ['default' => true])]
     protected bool $commentsEnabled = true;
 
+    /**
+     * The banner's design: arrangement, widths, colours, pictures. Shape and
+     * defaults belong to {@see BannerNormalizer}, which every write goes
+     * through; an empty array here means "never configured" and reads as a
+     * disabled banner.
+     *
+     * On the post rather than on each translation, so a banner is designed
+     * once and every language inherits it. The words live on the translation
+     * — see {@see AbstractPostTranslation::$banner} — joined back to these
+     * items by id.
+     *
+     * @var array<string, mixed>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
+    protected array $bannerLayout = [];
+
     #[ORM\ManyToOne(targetEntity: PostTypeInterface::class, inversedBy: 'posts')]
     #[ORM\JoinColumn(nullable: false)]
     protected PostTypeInterface $postType;
@@ -168,6 +184,20 @@ abstract class AbstractPost implements PostInterface
     public function isCommentsEnabled(): bool
     {
         return $this->commentsEnabled;
+    }
+
+    /** @return array<string, mixed> */
+    public function getBannerLayout(): array
+    {
+        return $this->bannerLayout;
+    }
+
+    /** @param array<string, mixed> $bannerLayout */
+    public function setBannerLayout(array $bannerLayout): static
+    {
+        $this->bannerLayout = $bannerLayout;
+
+        return $this;
     }
 
     public function setCommentsEnabled(bool $commentsEnabled): static

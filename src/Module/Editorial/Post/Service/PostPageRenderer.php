@@ -63,7 +63,7 @@ final readonly class PostPageRenderer
             'featuredMediaData' => $this->mediaData($post->getFeaturedMedia()),
             // null when the banner is off or empty, which is what the template
             // reads to fall back to the plain title header.
-            'banner' => $this->bannerViewBuilder->build($translation->getBanner()),
+            'banner' => $this->bannerViewBuilder->build($post->getBannerLayout(), $translation->getBanner()),
             'content' => $this->blocksRenderer->render($translation->getBlocks(), $locale),
             'terms' => $this->postTerms($post, $locale),
             'alternates' => $this->alternatesBuilder->forPost($post),

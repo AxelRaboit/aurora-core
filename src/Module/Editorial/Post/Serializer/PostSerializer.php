@@ -73,6 +73,12 @@ class PostSerializer implements PostSerializerInterface
             'featuredMediaId' => $post->getFeaturedMedia()?->getId(),
             'featuredMediaUrl' => $this->documentUrlGenerator->publicUrl($post->getFeaturedMedia()),
             'featuredMediaFocalPosition' => $this->documentUrlGenerator->focalPositionCss($post->getFeaturedMedia()),
+            // Resolved on the way out, so a post saved before the banner
+            // existed reaches the editor as a complete shape instead of an
+            // empty array it would have to guard against — and so a picker can
+            // preview the image it already holds rather than just its id.
+            // Texts are left out: they belong to whichever locale is open.
+            'bannerLayout' => $this->bannerViewBuilder->buildForEditor($post->getBannerLayout(), []),
             'translations' => $translations,
             'relatedPosts' => array_map(
                 $this->serializeReference(...),
@@ -115,11 +121,10 @@ class PostSerializer implements PostSerializerInterface
             'title' => $translation->getTitle(),
             'slug' => $translation->getSlug(),
             'blocks' => $translation->getBlocks(),
-            // Resolved on the way out, so a translation saved before the banner
-            // existed reaches the editor as a complete shape instead of an
-            // empty array it would have to guard against — and so a picker can
-            // preview the image it already holds rather than just its id.
-            'banner' => $this->bannerViewBuilder->buildForEditor($translation->getBanner()),
+            // Only the words. The design is serialised once on the post, so
+            // switching locale in the editor swaps the copy and leaves the
+            // layout standing — which is the whole point of the split.
+            'banner' => $translation->getBanner(),
             'description' => $translation->getDescription(),
             'metaTitle' => $translation->getMetaTitle(),
             'metaDescription' => $translation->getMetaDescription(),
