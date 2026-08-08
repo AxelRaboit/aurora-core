@@ -78,6 +78,38 @@ final class BlocksRendererTest extends TestCase
         );
     }
 
+    /**
+     * The shape the editor actually saves: each column is the `innerHTML` of a
+     * contenteditable, a string. This renderer required an array and emitted
+     * nothing otherwise, so every two-column block ever written published as
+     * two empty divs — and the test below passed the whole time, because it
+     * asserted the nested shape nobody produces.
+     */
+    public function testRendersTwoColumnsInTheShapeTheToolSaves(): void
+    {
+        $html = $this->render([
+            ['type' => 'twoColumn', 'data' => [
+                'left' => '<b>gauche</b>',
+                'right' => 'droite',
+            ]],
+        ]);
+
+        self::assertSame('<div class="two-column"><div><b>gauche</b></div><div>droite</div></div>', $html);
+    }
+
+    public function testAColumnGoesThroughTheSanitizer(): void
+    {
+        $html = $this->render([
+            ['type' => 'twoColumn', 'data' => ['left' => '<a href="javascript:alert(1)">x</a>', 'right' => '']],
+        ]);
+
+        self::assertStringNotContainsString('javascript:', $html);
+    }
+
+    /**
+     * The nested shape stays readable: a module block renderer may hand over
+     * real blocks, and dropping it would break anything that already does.
+     */
     public function testNestsTwoColumnContent(): void
     {
         $html = $this->render([
@@ -88,6 +120,51 @@ final class BlocksRendererTest extends TestCase
         ]);
 
         self::assertSame('<div class="two-column"><div><p>gauche</p></div><div><p>droite</p></div></div>', $html);
+    }
+
+    /**
+     * Same class of mismatch: this looked for the url under an `image` key the
+     * editor has never written — it saves `url` at the top level, beside
+     * `caption` and `flip`. Every media-text block published its text with no
+     * picture at all.
+     */
+    public function testRendersMediaTextInTheShapeTheToolSaves(): void
+    {
+        $html = $this->render([
+            ['type' => 'mediaText', 'data' => [
+                'url' => '/uploads/ged/photo.png',
+                'text' => 'Le texte',
+                'caption' => 'La légende',
+            ]],
+        ]);
+
+        self::assertStringContainsString('src="/uploads/ged/photo.png"', $html);
+        self::assertStringContainsString('Le texte', $html);
+        self::assertStringContainsString('<figcaption>La légende</figcaption>', $html);
+    }
+
+    /** An option the editor offered and the page ignored. */
+    public function testTheFlippedLayoutReachesTheMarkup(): void
+    {
+        $html = $this->render([
+            ['type' => 'mediaText', 'data' => ['url' => '/x.png', 'text' => 'y', 'flip' => true]],
+        ]);
+
+        self::assertStringContainsString('media-text--flip', $html);
+
+        $straight = $this->render([
+            ['type' => 'mediaText', 'data' => ['url' => '/x.png', 'text' => 'y']],
+        ]);
+
+        self::assertStringNotContainsString('media-text--flip', $straight);
+    }
+
+    public function testMediaTextWithNoPictureStillRendersItsText(): void
+    {
+        $html = $this->render([['type' => 'mediaText', 'data' => ['text' => 'Seul le texte']]]);
+
+        self::assertStringContainsString('Seul le texte', $html);
+        self::assertStringNotContainsString('<img', $html);
     }
 
     public function testSkipsAnImageWithNoUrlRatherThanEmittingABrokenTag(): void

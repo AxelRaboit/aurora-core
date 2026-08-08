@@ -247,24 +247,68 @@ final readonly class BlocksRenderer
     }
 
     /** @param array<string, mixed> $data */
+    /**
+     * The editor saves each column as a string of inline HTML — the
+     * `innerHTML` of a contenteditable. This required an *array* of nested
+     * blocks and emitted nothing otherwise, so every two-column block ever
+     * written published as `<div class="two-column"><div></div><div></div></div>`:
+     * the markup was there, the text was not, and nothing failed loudly.
+     *
+     * Both shapes are read now. The array branch stays because a module block
+     * renderer may legitimately hand nested blocks, and because dropping it
+     * would break anything that already does.
+     *
+     * @param array<string, mixed> $data
+     */
     private function renderTwoColumn(array $data, string $locale): string
     {
         return sprintf(
             '<div class="two-column"><div>%s</div><div>%s</div></div>',
-            is_array($data['left'] ?? null) ? $this->render($data['left'], $locale) : '',
-            is_array($data['right'] ?? null) ? $this->render($data['right'], $locale) : '',
+            $this->column($data['left'] ?? null, $locale),
+            $this->column($data['right'] ?? null, $locale),
         );
     }
 
-    /** @param array<string, mixed> $data */
+    private function column(mixed $value, string $locale): string
+    {
+        if (is_array($value)) {
+            return $this->render($value, $locale);
+        }
+
+        return $this->safe($value);
+    }
+
+    /**
+     * Same mismatch as the two-column block: this looked for the url under an
+     * `image` key the editor has never written — it saves `url` at the top
+     * level, beside `caption` and `flip`. Every media-text block therefore
+     * published its text with no picture at all.
+     *
+     * `flip` and `caption` are rendered too. They were saved, and silently
+     * dropped: an author choosing "image on the right" got it on the left.
+     *
+     * @param array<string, mixed> $data
+     */
     private function renderMediaText(array $data): string
     {
+        // The nested shape is still read: it is what a module renderer would
+        // reasonably hand over, and it costs one coalesce.
         $image = is_array($data['image'] ?? null) ? $data['image'] : [];
-        $url = $this->attr($image['url'] ?? '');
+        $url = $this->attr($data['url'] ?? $image['url'] ?? '');
+        $caption = $this->safe($data['caption'] ?? '');
+
+        $figure = '' !== $url
+            ? sprintf(
+                '<figure><img src="%s" alt="" loading="lazy">%s</figure>',
+                $url,
+                '' !== $caption ? sprintf('<figcaption>%s</figcaption>', $caption) : '',
+            )
+            : '';
 
         return sprintf(
-            '<div class="media-text">%s<div>%s</div></div>',
-            '' !== $url ? sprintf('<figure><img src="%s" alt="" loading="lazy"></figure>', $url) : '',
+            '<div class="media-text%s">%s<div>%s</div></div>',
+            true === ($data['flip'] ?? false) ? ' media-text--flip' : '',
+            $figure,
             $this->safe($data['text'] ?? ''),
         );
     }

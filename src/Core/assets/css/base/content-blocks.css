@@ -47,3 +47,69 @@
 .callout { border-radius: 0.5rem; border-left: 4px solid; padding: 0.75rem 1rem; margin: 1rem 0; }
 .callout strong { display: block; font-weight: 600; margin-bottom: 0.25rem; }
 .callout p { margin: 0; font-size: 0.9rem; }
+
+/*
+ * Two-column and media + text, as rendered on the site.
+ *
+ * They had no rules at all: `blocks.css` styles `.media-text-block`, which is
+ * the *editor's* class, and nothing styled `.two-column` or `.media-text`.
+ * Both published as bare divs, so two columns stacked and an image sat above
+ * its text at full width — the layout the author chose existed only in the
+ * editor.
+ *
+ * One column below `md`. Side-by-side text on a phone is two columns of four
+ * words, and the block is about pairing things, not about squeezing them.
+ */
+.two-column,
+.media-text {
+    display: grid;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+@media (min-width: 768px) {
+    .two-column {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .media-text {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        align-items: center;
+    }
+
+    /* "Image on the right" — an option the editor offered and the page ignored. */
+    .media-text--flip {
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    }
+
+    .media-text--flip figure {
+        order: 2;
+    }
+}
+
+.two-column > div > :first-child,
+.media-text > div > :first-child {
+    margin-top: 0;
+}
+
+.two-column > div > :last-child,
+.media-text > div > :last-child {
+    margin-bottom: 0;
+}
+
+.media-text figure {
+    margin: 0;
+}
+
+.media-text img {
+    width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    display: block;
+}
+
+.media-text figcaption {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary, rgb(100 116 139));
+}

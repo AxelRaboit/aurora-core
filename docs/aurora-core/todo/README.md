@@ -13,6 +13,15 @@ puis par topic.
   embarqué → picker unifié → suppression de Media). **Décision prise, à
   démarrer.**
 
+### Éditorial
+
+- [Grille de contenu 48 colonnes](content-grid-48.md) — des zones
+  redimensionnables et déplaçables sur la grille que la bannière utilise déjà,
+  avec du texte Editor.js, une autre publication, un média ou une URL vidéo
+  dans chacune. Décisions structurantes prises (48 colonnes, pas d'aimantation
+  variable, `{base, md, lg}`), primitive CSS livrée et testée. **Une question à
+  trancher en premier : où vit le contenu des zones.**
+
 ### Frontend / Vue
 
 - [Audit `translateServerErrors`](translate_server_errors_audit.md) — ~18
