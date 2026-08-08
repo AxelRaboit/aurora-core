@@ -1,6 +1,7 @@
 <script setup>
 import { useI18n } from "vue-i18n";
 import { usePostEditor } from "./composables/usePostEditor.js";
+import { useTabState } from "@/shared/composables/useTabState.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
@@ -35,6 +36,23 @@ const {
     availableTaxonomies, supportsBlocks, supportsThumbnail, customFieldDefinitions,
     switchLocale, save, saveAnyway, reloadFromServer, toggleTerm, setCustomField,
 } = usePostEditor(props);
+
+/**
+ * Sections, kept in the URL fragment rather than in localStorage.
+ *
+ * There is one editor per post: a remembered key would be shared by all of
+ * them, and two browser tabs on two posts would fight over it. The fragment
+ * belongs to the page being looked at, survives the reload, and makes a link
+ * to a specific section shareable.
+ *
+ * English keys because they end up in the URL, where the rest of the routing
+ * is English too. The labels are translated; the identifier is not.
+ */
+const TABS = ["content", "header", "seo"];
+const { activeTab, select: selectTab, isActive: isTabActive } = useTabState(TABS, {
+    hash: true,
+    defaultKey: "content",
+});
 
 const postTypeOptions = props.postTypes.map((type) => ({ value: type.id, label: type.label }));
 const statusSelectOptions = props.statusOptions.map((status) => ({
@@ -75,89 +93,115 @@ function termLabel(term) {
         <div class="grid grid-cols-1 lg:grid-cols-[1fr_20rem] gap-4">
             <!-- Content -->
             <section class="space-y-4">
-                <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
-                    <AppInput
-                        v-model="current.title"
-                        :label="t('backend.posts.field_title')"
-                        :error="errors.title"
-                    />
-                    <AppInput
-                        v-model="current.slug"
-                        :label="t('backend.posts.field_slug')"
-                        :hint="t('backend.posts.slug_hint')"
-                    />
-                    <AppTextarea
-                        v-model="current.description"
-                        :label="t('backend.posts.field_description')"
-                        :hint="t('backend.posts.description_hint')"
-                        :rows="3"
-                    />
+                <!-- Sections. The aside stays outside them: post type, status
+                     and terms describe the document itself, and hiding them
+                     behind a tab would mean losing sight of what is being
+                     published while writing it. -->
+                <div class="flex gap-1 border-b border-line">
+                    <AppTab
+                        v-for="tab in TABS"
+                        :key="tab"
+                        variant="underline"
+                        :active="isTabActive(tab)"
+                        v-on:click="selectTab(tab)"
+                    >
+                        {{ t(`backend.posts.tabs.${tab}`) }}
+                    </AppTab>
                 </div>
 
-                <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
-                    <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.banner.title") }}</h3>
-                    <!-- Two halves: the design is one per post, the words are
-                         one set per language. Switching the locale tab swaps
-                         the second and leaves the first standing. -->
-                    <PostBannerPanel
-                        :layout="form.bannerLayout"
-                        :texts="current.banner"
-                        :locale="locale"
-                        :preview-path="bannerPreviewPath"
-                    />
-                </div>
-
-                <div v-if="supportsBlocks" class="bg-surface border border-line rounded-xl p-5 space-y-3">
-                    <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.content") }}</h3>
-                    <AppBlockEditor v-model="current.blocks" :placeholder="t('backend.posts.content_placeholder')" />
-                </div>
-
-                <div v-if="customFieldDefinitions.length" class="bg-surface border border-line rounded-xl p-5 space-y-4">
-                    <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.custom_fields") }}</h3>
-                    <template v-for="field in customFieldDefinitions" :key="field.id">
-                        <AppCheckbox
-                            v-if="field.type === 'checkbox'"
-                            :model-value="!!current.customFields[field.name]"
-                            :label="field.label"
-                            v-on:update:model-value="setCustomField(field.name, $event)"
-                        />
-                        <AppSelect
-                            v-else-if="field.type === 'select'"
-                            :model-value="current.customFields[field.name] ?? null"
-                            :label="field.label"
-                            :options="(field.options?.choices ?? []).map((choice) => ({ value: choice, label: choice }))"
-                            v-on:update:model-value="setCustomField(field.name, $event)"
-                        />
-                        <AppTextarea
-                            v-else-if="field.type === 'textarea'"
-                            :model-value="current.customFields[field.name] ?? ''"
-                            :label="field.label"
-                            :rows="3"
-                            v-on:update:model-value="setCustomField(field.name, $event)"
+                <!-- v-show, not v-if: the block editor holds its own state,
+                     and remounting it per tab would throw away the undo stack
+                     and flicker — the same reason one instance serves every
+                     locale. -->
+                <div v-show="isTabActive('content')" class="space-y-4">
+                    <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                        <AppInput
+                            v-model="current.title"
+                            :label="t('backend.posts.field_title')"
+                            :error="errors.title"
                         />
                         <AppInput
-                            v-else
-                            :model-value="current.customFields[field.name] ?? ''"
-                            :label="field.label"
-                            :type="field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'"
-                            :required="field.required"
-                            v-on:update:model-value="setCustomField(field.name, $event)"
+                            v-model="current.slug"
+                            :label="t('backend.posts.field_slug')"
+                            :hint="t('backend.posts.slug_hint')"
                         />
-                    </template>
+                        <AppTextarea
+                            v-model="current.description"
+                            :label="t('backend.posts.field_description')"
+                            :hint="t('backend.posts.description_hint')"
+                            :rows="3"
+                        />
+                    </div>
+
+                    <div v-if="supportsBlocks" class="bg-surface border border-line rounded-xl p-5 space-y-3">
+                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.content") }}</h3>
+                        <AppBlockEditor v-model="current.blocks" :placeholder="t('backend.posts.content_placeholder')" />
+                    </div>
+
+                    <div v-if="customFieldDefinitions.length" class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.custom_fields") }}</h3>
+                        <template v-for="field in customFieldDefinitions" :key="field.id">
+                            <AppCheckbox
+                                v-if="field.type === 'checkbox'"
+                                :model-value="!!current.customFields[field.name]"
+                                :label="field.label"
+                                v-on:update:model-value="setCustomField(field.name, $event)"
+                            />
+                            <AppSelect
+                                v-else-if="field.type === 'select'"
+                                :model-value="current.customFields[field.name] ?? null"
+                                :label="field.label"
+                                :options="(field.options?.choices ?? []).map((choice) => ({ value: choice, label: choice }))"
+                                v-on:update:model-value="setCustomField(field.name, $event)"
+                            />
+                            <AppTextarea
+                                v-else-if="field.type === 'textarea'"
+                                :model-value="current.customFields[field.name] ?? ''"
+                                :label="field.label"
+                                :rows="3"
+                                v-on:update:model-value="setCustomField(field.name, $event)"
+                            />
+                            <AppInput
+                                v-else
+                                :model-value="current.customFields[field.name] ?? ''"
+                                :label="field.label"
+                                :type="field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'"
+                                :required="field.required"
+                                v-on:update:model-value="setCustomField(field.name, $event)"
+                            />
+                        </template>
+                    </div>
                 </div>
 
-                <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
-                    <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.seo") }}</h3>
-                    <AppInput v-model="current.metaTitle" :label="t('backend.posts.meta_title')" />
-                    <AppTextarea
-                        v-model="current.metaDescription"
-                        :label="t('backend.posts.meta_description')"
-                        :hint="t('backend.posts.meta_description_hint')"
-                        :rows="2"
-                    />
-                    <AppInput v-model="current.focusKeyword" :label="t('backend.posts.focus_keyword')" />
-                    <AppInput v-model="current.canonicalUrl" :label="t('backend.posts.canonical_url')" />
-                    <AppCheckbox v-model="current.noindex" :label="t('backend.posts.noindex')" :hint="t('backend.posts.noindex_hint')" />
+                <div v-show="isTabActive('header')" class="space-y-4">
+                    <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.banner.title") }}</h3>
+                        <!-- Two halves: the design is one per post, the words
+                             are one set per language. Switching the locale tab
+                             swaps the second and leaves the first standing. -->
+                        <PostBannerPanel
+                            :layout="form.bannerLayout"
+                            :texts="current.banner"
+                            :locale="locale"
+                            :preview-path="bannerPreviewPath"
+                        />
+                    </div>
+                </div>
+
+                <div v-show="isTabActive('seo')" class="space-y-4">
+                    <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.seo") }}</h3>
+                        <AppInput v-model="current.metaTitle" :label="t('backend.posts.meta_title')" />
+                        <AppTextarea
+                            v-model="current.metaDescription"
+                            :label="t('backend.posts.meta_description')"
+                            :hint="t('backend.posts.meta_description_hint')"
+                            :rows="2"
+                        />
+                        <AppInput v-model="current.focusKeyword" :label="t('backend.posts.focus_keyword')" />
+                        <AppInput v-model="current.canonicalUrl" :label="t('backend.posts.canonical_url')" />
+                        <AppCheckbox v-model="current.noindex" :label="t('backend.posts.noindex')" :hint="t('backend.posts.noindex_hint')" />
+                    </div>
                 </div>
             </section>
 

@@ -298,6 +298,10 @@ backend:
     content_placeholder: 'Write, or press Tab for a block…'
     custom_fields: Custom fields
     seo: Search engines
+    tabs:
+      content: Content
+      header: Header
+      seo: Search engines
     terms: Terms
     featured_media: Featured image
     comments_enabled: Comments open

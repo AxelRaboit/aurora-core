@@ -298,6 +298,10 @@ backend:
     content_placeholder: "Écrivez, ou appuyez sur Tab pour un bloc…"
     custom_fields: Champs personnalisés
     seo: Moteurs de recherche
+    tabs:
+      content: Contenu
+      header: En-tête
+      seo: Moteurs de recherche
     terms: Termes
     featured_media: Image à la une
     comments_enabled: Commentaires ouverts
