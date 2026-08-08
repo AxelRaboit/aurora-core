@@ -337,12 +337,19 @@ class AuroraBundle extends AbstractBundle
             'enabled_locales' => LocaleEnum::values(),
             'translator' => [
                 'default_path' => $dir.'/src/Core/translations',
-                // Client catalogues come LAST on purpose. Symfony adds each
-                // path as a resource in order and a later resource wins on a
-                // shared key, so trailing position is what lets a client
-                // restate an aurora string — the same priority client
-                // templates already get. Listed first, they were loaded and
-                // then immediately overwritten by the bundle's own.
+                // Client catalogues come LAST on purpose: a later path wins on
+                // a shared key, so trailing position is what lets a client
+                // restate an aurora string — the priority client templates
+                // already get. Listed first, they were loaded and immediately
+                // overwritten by the bundle's own. Verified on a real project:
+                // a client entry for `backend.ged.categories.name` has no
+                // effect from the front of the list and takes over from the
+                // back.
+                //
+                // One exception, and it is Symfony's, not ours: `default_path`
+                // outranks every entry in `paths`. It points at
+                // src/Core/translations, so the `shared.*` catalogue there
+                // cannot be overridden this way whatever the ordering.
                 'paths' => array_values(array_filter(
                     array_merge(
                         array_map(static fn (string $moduleDir): string => $moduleDir.'/translations', $moduleDirs),
