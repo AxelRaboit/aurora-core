@@ -271,11 +271,16 @@ migrate-check: ## Warn loud if the dev DB has pending migrations (called by `mak
 		echo ""; \
 	fi
 
+# Both targets pin ClientMigrations. Two namespaces are registered — aurora's
+# own (vendor/axelraboit/aurora/migrations) and the project's — and doctrine
+# picks the first when it is not told, so an unqualified diff writes the
+# client's migration inside vendor/, where it is read-only, unversioned and
+# wiped by the next composer update.
 migration-generate: ## Generate a blank migration
-	$(CONSOLE) doctrine:migrations:generate
+	$(CONSOLE) doctrine:migrations:generate --namespace=ClientMigrations
 
 migration-diff: ## Generate a migration from entity changes
-	$(CONSOLE) doctrine:migrations:diff
+	$(CONSOLE) doctrine:migrations:diff --namespace=ClientMigrations
 
 sync-params: ## Synchronise application parameters (creates missing, deletes obsolete)
 	$(CONSOLE) aurora:application-parameter
