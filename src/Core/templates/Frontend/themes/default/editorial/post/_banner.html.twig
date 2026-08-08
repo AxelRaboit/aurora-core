@@ -2,9 +2,13 @@
    `banner` comes from BannerViewBuilder and is null when disabled or empty, so
    the caller guards on it rather than this file second-guessing.
 
-   Classes are written out literally in the maps below rather than built by
-   concatenation: Tailwind scans source text, and a class assembled at runtime
-   is a class it never sees and never emits. #}
+   Items lay out on the shared 48-column grid (`.aurora-grid`, see
+   css/base/aurora-grid.css). Each one carries its width as custom properties
+   rather than classes: a span is a runtime number, and Tailwind only emits
+   classes it can read in the source.
+
+   The height and alignment maps below are written out literally for the same
+   reason — a class assembled by concatenation is one Tailwind never sees. #}
 
 {% set heights = {
     sm: 'min-h-48',
@@ -13,20 +17,11 @@
     full: 'min-h-screen',
 } %}
 
-{# Only meaningful when both slots are filled; a lone slot spans the row. #}
-{% set ratios = {
-    '50-50': 'md:grid-cols-2',
-    '33-67': 'md:grid-cols-[1fr_2fr]',
-    '67-33': 'md:grid-cols-[2fr_1fr]',
-} %}
-
 {% set alignments = {
     start: 'text-left items-start',
     center: 'text-center items-center',
     end: 'text-right items-end',
 } %}
-
-{% set filledSlots = banner.slots|filter(slot => slot.type != 'none') %}
 
 <header
     {# flex column, so the inner grid can claim the leftover height. `h-full`
@@ -46,7 +41,7 @@
             style="object-position: {{ banner.background.media.focalPosition }};"
         >
         {% if banner.background.overlay > 0 %}
-            {# Darkens the picture so slot text stays readable over it. #}
+            {# Darkens the picture so item text stays readable over it. #}
             <div class="absolute inset-0 -z-10 bg-black" style="opacity: {{ banner.background.overlay / 100 }};"></div>
         {% endif %}
     {% endif %}
@@ -55,31 +50,33 @@
         <img src="{{ banner.logo.url }}" alt="{{ banner.logo.alt }}" class="absolute top-6 left-6 z-10 h-10 w-auto">
     {% endif %}
 
-    <div class="grid flex-1 grid-cols-1 gap-8 p-8 sm:p-12 {{ filledSlots|length > 1 ? ratios[banner.ratio] : '' }}">
-        {% for slot in banner.slots %}
-            {% if slot.type == 'text' %}
-                <div class="flex flex-col justify-center gap-3 {{ alignments[slot.align] }}">
-                    {% if slot.title %}
-                        <p class="text-3xl sm:text-4xl font-bold leading-tight"
-                           {% if slot.titleColor %}style="color: {{ slot.titleColor }};"{% endif %}
-                        >{{ slot.title }}</p>
-                    {% endif %}
-                    {% if slot.description %}
-                        <p class="text-base sm:text-lg max-w-prose"
-                           {% if slot.descriptionColor %}style="color: {{ slot.descriptionColor }};"{% endif %}
-                        >{{ slot.description }}</p>
-                    {% endif %}
-                </div>
-            {% elseif slot.type == 'image' and slot.media %}
-                <div class="flex items-center justify-center">
-                    <img
-                        src="{{ slot.media.url }}"
-                        alt="{{ slot.media.alt }}"
-                        class="max-h-full w-full rounded-lg object-cover"
-                        style="object-position: {{ slot.media.focalPosition }};"
-                    >
-                </div>
-            {% endif %}
+    <div class="aurora-grid flex-1 gap-8 p-8 sm:p-12">
+        {% for item in banner.items %}
+            <div style="{{ item.spanStyle|raw }}">
+                {% if item.type == 'text' %}
+                    <div class="flex h-full flex-col justify-center gap-3 {{ alignments[item.align] }}">
+                        {% if item.title %}
+                            <p class="text-3xl sm:text-4xl font-bold leading-tight"
+                               {% if item.titleColor %}style="color: {{ item.titleColor }};"{% endif %}
+                            >{{ item.title }}</p>
+                        {% endif %}
+                        {% if item.description %}
+                            <p class="text-base sm:text-lg max-w-prose"
+                               {% if item.descriptionColor %}style="color: {{ item.descriptionColor }};"{% endif %}
+                            >{{ item.description }}</p>
+                        {% endif %}
+                    </div>
+                {% elseif item.type == 'image' and item.media %}
+                    <div class="flex h-full items-center justify-center">
+                        <img
+                            src="{{ item.media.url }}"
+                            alt="{{ item.media.alt }}"
+                            class="max-h-full w-full rounded-lg object-cover"
+                            style="object-position: {{ item.media.focalPosition }};"
+                        >
+                    </div>
+                {% endif %}
+            </div>
         {% endfor %}
     </div>
 </header>

@@ -41,12 +41,12 @@ final readonly class BannerViewBuilder
         // A banner whose every slot is empty and which carries no background
         // would render as a coloured void. Treat it as off rather than as a
         // layout choice — an author who cleared everything meant to remove it.
+        // A banner with no items and no background would render as a coloured
+        // void. Treat it as off rather than as a layout choice — an author who
+        // cleared everything meant to remove it.
         $hasContent = null !== $banner['background']['fillStyle']
             || null !== $banner['background']['media']
-            || [] !== array_filter(
-                $banner['slots'],
-                static fn (array $slot): bool => BannerNormalizer::SLOT_NONE !== $slot['type'],
-            );
+            || [] !== $banner['items'];
 
         return $hasContent ? $banner : null;
     }
@@ -77,12 +77,16 @@ final readonly class BannerViewBuilder
 
         return [
             ...$banner,
-            'slots' => array_map(
-                fn (array $slot): array => [
-                    ...$slot,
-                    'media' => $this->mediaData($documents[$slot['mediaId']] ?? null, $slot['alt']),
+            'items' => array_map(
+                fn (array $item): array => [
+                    ...$item,
+                    'media' => $this->mediaData($documents[$item['mediaId']] ?? null, $item['alt']),
+                    // Custom properties rather than classes: a span is a number
+                    // between 1 and 48 chosen at runtime, and Tailwind only
+                    // emits classes it can read in the source.
+                    'spanStyle' => $this->spanStyle($item['span']),
                 ],
-                $banner['slots'],
+                $banner['items'],
             ),
             'background' => [
                 ...$banner['background'],
@@ -104,8 +108,8 @@ final readonly class BannerViewBuilder
     private function documents(array $banner): array
     {
         $ids = [$banner['logoMediaId'], $banner['background']['mediaId']];
-        foreach ($banner['slots'] as $slot) {
-            $ids[] = $slot['mediaId'];
+        foreach ($banner['items'] as $item) {
+            $ids[] = $item['mediaId'];
         }
 
         $ids = array_values(array_unique(array_filter($ids, static fn (?int $id): bool => null !== $id)));
@@ -120,6 +124,26 @@ final readonly class BannerViewBuilder
         }
 
         return $documents;
+    }
+
+    /**
+     * Widths as CSS custom properties, read by the `.aurora-grid` rule. An
+     * absent breakpoint emits nothing, which is what makes it inherit the one
+     * below through the variable's own fallback chain.
+     *
+     * @param array<string, int|null> $span
+     */
+    private function spanStyle(array $span): string
+    {
+        $declarations = [];
+
+        foreach ($span as $breakpoint => $columns) {
+            if (null !== $columns) {
+                $declarations[] = sprintf('--span-%s: %d;', $breakpoint, $columns);
+            }
+        }
+
+        return implode(' ', $declarations);
     }
 
     /**

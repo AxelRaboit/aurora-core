@@ -1,0 +1,37 @@
+/*
+ * The 48-column layout grid, shared by the post banner and — once it lands —
+ * the content grid. Applied by `.aurora-grid` on the container; every direct
+ * child is an item.
+ *
+ * Widths arrive as custom properties on the item (`--span-base`, `--span-md`,
+ * `--span-lg`) because a span is a number chosen at runtime, and Tailwind only
+ * emits classes it can read in the source. The fallback chain is what gives
+ * inheritance for free: an item that sets only `--span-lg` is full width up to
+ * the large breakpoint and narrows there, with no rule per combination.
+ *
+ * 48 columns is 4 × 12 and 2 × 24, so a twelfth is 4 and a twenty-fourth is 2.
+ * Halves, thirds, quarters, sixths and eighths all land on whole numbers.
+ *
+ * Breakpoints match Tailwind's md (768px) and lg (1024px) so a template can mix
+ * utilities and spans without two scales to reconcile.
+ */
+.aurora-grid {
+    display: grid;
+    grid-template-columns: repeat(48, minmax(0, 1fr));
+}
+
+.aurora-grid > * {
+    grid-column: span var(--span-base, 48);
+}
+
+@media (min-width: 768px) {
+    .aurora-grid > * {
+        grid-column: span var(--span-md, var(--span-base, 48));
+    }
+}
+
+@media (min-width: 1024px) {
+    .aurora-grid > * {
+        grid-column: span var(--span-lg, var(--span-md, var(--span-base, 48)));
+    }
+}

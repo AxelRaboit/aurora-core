@@ -188,19 +188,24 @@ backend:
       title: En-tête personnalisé
       enabled: Afficher un en-tête personnalisé
       height: Hauteur
-      ratio: Répartition
-      preset: Disposition
-      preset_hint: Point de départ — chaque emplacement reste réglable en dessous.
-      presets:
-        text: Texte seul
-        image: Image seule
-        text_image: Texte + image
-        image_text: Image + texte
-        two_texts: Deux textes
-        two_images: Deux images
-      slot_left: À gauche
-      slot_right: À droite
       clear_color: Effacer la couleur
+      empty: Aucun élément. Ajoutez un texte ou une image.
+      add_text: Ajouter un texte
+      add_image: Ajouter une image
+      remove_item: Supprimer cet élément
+      move_up: Monter
+      move_down: Descendre
+      item_types:
+        text: Texte
+        image: Image
+      width: Largeur sur grand écran
+      widths:
+        full: Pleine largeur
+        three_quarters: Trois quarts
+        two_thirds: Deux tiers
+        half: Moitié
+        third: Un tiers
+        quarter: Un quart
       appearance: Apparence
       logo_hint: Affiché en haut à gauche, par-dessus le fond.
       fill: Type de fond
@@ -232,10 +237,6 @@ backend:
         md: Moyenne
         lg: Haute
         full: Plein écran
-      ratios:
-        50_50: Moitié / moitié
-        33_67: Un tiers / deux tiers
-        67_33: Deux tiers / un tiers
       slot_types:
         none: Vide
         text: Texte

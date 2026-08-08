@@ -32,6 +32,7 @@
 
 /* ── Shared component styles (loaded everywhere, used everywhere) ──── */
 @import "./base/content-blocks.css";
+@import "./base/aurora-grid.css";
 @import "./base/input.css";
 @import "./base/loader.css";
 @import "./base/modal.css";

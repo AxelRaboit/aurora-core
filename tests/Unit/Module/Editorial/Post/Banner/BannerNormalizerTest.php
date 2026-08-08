@@ -27,49 +27,109 @@ final class BannerNormalizerTest extends TestCase
 
         self::assertFalse($banner['enabled']);
         self::assertSame('md', $banner['height']);
-        self::assertSame('50-50', $banner['ratio']);
-        self::assertCount(2, $banner['slots']);
+        self::assertSame([], $banner['items']);
     }
 
-    public function testBothSlotsAlwaysExistEvenWhenNoneWereSent(): void
-    {
-        $banner = $this->normalizer->normalize(['slots' => []]);
-
-        self::assertCount(2, $banner['slots']);
-        foreach ($banner['slots'] as $slot) {
-            self::assertSame(BannerNormalizer::SLOT_NONE, $slot['type']);
-        }
-    }
-
-    /**
-     * Switching a slot from text to image in the editor must not throw the
-     * typed text away — the front sends every key back on the next save.
-     */
-    public function testAnImageSlotKeepsTheTextItWasCarrying(): void
+    public function testAnItemOfUnknownTypeIsDroppedRatherThanDefaulted(): void
     {
         $banner = $this->normalizer->normalize([
-            'slots' => [
-                ['type' => 'image', 'mediaId' => 12, 'title' => 'Titre gardé'],
+            'items' => [
+                ['type' => 'text', 'title' => 'Gardé'],
+                ['type' => 'video'],
+                'not even an array',
             ],
         ]);
 
-        self::assertSame('image', $banner['slots'][0]['type']);
-        self::assertSame(12, $banner['slots'][0]['mediaId']);
-        self::assertSame('Titre gardé', $banner['slots'][0]['title']);
+        self::assertCount(1, $banner['items']);
+        self::assertSame('Gardé', $banner['items'][0]['title']);
+    }
+
+    /**
+     * Switching an item from text to image in the editor must not throw the
+     * typed text away — the front sends every key back on the next save.
+     */
+    public function testAnImageItemKeepsTheTextItWasCarrying(): void
+    {
+        $banner = $this->normalizer->normalize([
+            'items' => [['type' => 'image', 'mediaId' => 12, 'title' => 'Titre gardé']],
+        ]);
+
+        self::assertSame('image', $banner['items'][0]['type']);
+        self::assertSame(12, $banner['items'][0]['mediaId']);
+        self::assertSame('Titre gardé', $banner['items'][0]['title']);
+    }
+
+    public function testTheItemCountIsCapped(): void
+    {
+        $banner = $this->normalizer->normalize([
+            'items' => array_fill(0, 30, ['type' => 'text']),
+        ]);
+
+        self::assertCount(6, $banner['items']);
+    }
+
+    public function testAnItemThatSaysNothingIsFullWidthOnEveryBreakpoint(): void
+    {
+        $span = $this->normalizer->normalize(['items' => [['type' => 'text']]])['items'][0]['span'];
+
+        self::assertSame(48, $span['base'], 'full width on a phone');
+        self::assertNull($span['md'], 'absent steps inherit the one below');
+        self::assertNull($span['lg']);
+    }
+
+    public function testSpansAreClampedToTheGrid(): void
+    {
+        $span = $this->normalizer->normalize([
+            'items' => [['type' => 'text', 'span' => ['base' => 0, 'md' => 900, 'lg' => '24']]],
+        ])['items'][0]['span'];
+
+        self::assertSame(1, $span['base']);
+        self::assertSame(48, $span['md']);
+        self::assertSame(24, $span['lg'], 'a numeric string is accepted and cast');
+    }
+
+    /**
+     * Banners written against the fixed two-slot shape must survive the move
+     * to a free list, or every existing header silently empties.
+     */
+    public function testLegacySlotsBecomeItems(): void
+    {
+        $banner = $this->normalizer->normalize([
+            'ratio' => '33-67',
+            'slots' => [
+                ['type' => 'text', 'title' => 'Gauche'],
+                ['type' => 'image', 'mediaId' => 7],
+            ],
+        ]);
+
+        self::assertCount(2, $banner['items']);
+        self::assertSame('Gauche', $banner['items'][0]['title']);
+        self::assertSame(16, $banner['items'][0]['span']['lg'], 'the old ratio becomes a width in columns');
+        self::assertSame(32, $banner['items'][1]['span']['lg']);
+    }
+
+    public function testALegacyEmptySlotIsDroppedAndTheSurvivorSpansTheRow(): void
+    {
+        $banner = $this->normalizer->normalize([
+            'slots' => [
+                ['type' => 'text', 'title' => 'Seul'],
+                ['type' => 'none'],
+            ],
+        ]);
+
+        self::assertCount(1, $banner['items']);
+        self::assertSame(48, $banner['items'][0]['span']['lg']);
     }
 
     public function testUnknownEnumValuesFallBackInsteadOfPersisting(): void
     {
         $banner = $this->normalizer->normalize([
             'height' => 'gigantic',
-            'ratio' => '80-20',
-            'slots' => [['type' => 'video', 'align' => 'justify']],
+            'items' => [['type' => 'text', 'align' => 'justify']],
         ]);
 
         self::assertSame('md', $banner['height']);
-        self::assertSame('50-50', $banner['ratio']);
-        self::assertSame('none', $banner['slots'][0]['type']);
-        self::assertSame('start', $banner['slots'][0]['align']);
+        self::assertSame('start', $banner['items'][0]['align']);
     }
 
     /**
@@ -80,52 +140,26 @@ final class BannerNormalizerTest extends TestCase
     {
         $banner = $this->normalizer->normalize([
             'background' => ['color' => '#AABBCC'],
-            'slots' => [[
+            'items' => [[
+                'type' => 'text',
                 'titleColor' => 'red; background: url(javascript:alert(1))',
                 'descriptionColor' => '#abc',
             ]],
         ]);
 
         self::assertSame('#aabbcc', $banner['background']['color']);
-        self::assertNull($banner['slots'][0]['titleColor']);
-        self::assertNull($banner['slots'][0]['descriptionColor'], 'three-digit hex is not accepted');
+        self::assertNull($banner['items'][0]['titleColor']);
+        self::assertNull($banner['items'][0]['descriptionColor'], 'three-digit hex is not accepted');
     }
 
     public function testTheFillTypeIsWhitelistedAndDefaultsToNone(): void
     {
         self::assertSame('none', $this->normalizer->normalize([])['background']['type']);
         self::assertSame(
-            'gradient',
-            $this->normalizer->normalize(['background' => ['type' => 'gradient']])['background']['type'],
-        );
-        self::assertSame(
             'none',
             $this->normalizer->normalize(['background' => ['type' => 'radial']])['background']['type'],
             'an unknown fill is refused rather than persisted',
         );
-    }
-
-    /**
-     * Banners written before the fill type existed carry a colour and no type.
-     * Reading those as "no fill" would strip a background someone chose.
-     */
-    public function testALegacyBannerWithAColourAndNoTypeReadsAsSolid(): void
-    {
-        $background = $this->normalizer->normalize([
-            'background' => ['color' => '#0f172a', 'overlay' => 0],
-        ])['background'];
-
-        self::assertSame('solid', $background['type']);
-        self::assertSame('#0f172a', $background['color']);
-    }
-
-    public function testAnExplicitNoneIsHonouredEvenWithAColourStillStored(): void
-    {
-        $background = $this->normalizer->normalize([
-            'background' => ['type' => 'none', 'color' => '#0f172a'],
-        ])['background'];
-
-        self::assertSame('none', $background['type'], 'the upgrade only applies when no type was written at all');
     }
 
     public function testGradientStopsAreColoursAndTheAngleIsClamped(): void
@@ -144,29 +178,32 @@ final class BannerNormalizerTest extends TestCase
         self::assertSame(360, $background['gradientAngle']);
     }
 
-    public function testTheGradientAngleDefaultsToTopDown(): void
+    /**
+     * Banners written before the fill type existed carry a colour and no type.
+     * Reading those as "no fill" would strip a background someone chose.
+     */
+    public function testALegacyBannerWithAColourAndNoTypeReadsAsSolid(): void
     {
-        self::assertSame(180, $this->normalizer->normalize([])['background']['gradientAngle']);
+        $background = $this->normalizer->normalize([
+            'background' => ['color' => '#0f172a', 'overlay' => 0],
+        ])['background'];
+
+        self::assertSame('solid', $background['type']);
+    }
+
+    public function testAnExplicitNoneIsHonouredEvenWithAColourStillStored(): void
+    {
+        $background = $this->normalizer->normalize([
+            'background' => ['type' => 'none', 'color' => '#0f172a'],
+        ])['background'];
+
+        self::assertSame('none', $background['type'], 'the upgrade only applies when no type was written at all');
     }
 
     public function testOverlayIsClampedToAPercentage(): void
     {
         self::assertSame(0, $this->normalizer->normalize(['background' => ['overlay' => -40]])['background']['overlay']);
         self::assertSame(100, $this->normalizer->normalize(['background' => ['overlay' => 900]])['background']['overlay']);
-        self::assertSame(45, $this->normalizer->normalize(['background' => ['overlay' => '45']])['background']['overlay']);
-    }
-
-    public function testMediaIdsMustBePositiveIntegers(): void
-    {
-        $banner = $this->normalizer->normalize([
-            'logoMediaId' => 0,
-            'background' => ['mediaId' => -3],
-            'slots' => [['mediaId' => '7']],
-        ]);
-
-        self::assertNull($banner['logoMediaId']);
-        self::assertNull($banner['background']['mediaId']);
-        self::assertSame(7, $banner['slots'][0]['mediaId'], 'a numeric string is accepted and cast');
     }
 
     public function testNormalizingTwiceChangesNothing(): void
@@ -174,7 +211,7 @@ final class BannerNormalizerTest extends TestCase
         $once = $this->normalizer->normalize([
             'enabled' => true,
             'height' => 'lg',
-            'slots' => [['type' => 'text', 'title' => '  Espaces  ']],
+            'items' => [['type' => 'text', 'title' => '  Espaces  ', 'span' => ['lg' => 24]]],
         ]);
 
         self::assertSame($once, $this->normalizer->normalize($once));

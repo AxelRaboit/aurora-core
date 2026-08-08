@@ -2,21 +2,26 @@
 /**
  * Banner panel of the post editor.
  *
- * Presentation only: every field is a writable computed handed over by
- * usePostBanner, so nothing here writes to the prop directly. The banner
- * itself belongs to the current translation, which is why this component owns
- * no state and knows nothing about saving or locales.
+ * A builder: add a text or an image, reorder, remove. The arrangements —
+ * text then image, two images, text alone — are what the list produces rather
+ * than options to pick from.
+ *
+ * Presentation only: every field arrives as a writable computed from
+ * usePostBanner, so nothing here writes to the prop directly.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import AppTab from "@/shared/components/nav/AppTab.vue";
-import BannerColorField from "./BannerColorField.vue";
+import AppButton from "@/shared/components/action/AppButton.vue";
+import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
+import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppRange from "@/shared/components/form/toggle/AppRange.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
+import BannerColorField from "./BannerColorField.vue";
+import { Plus, Trash2, ChevronUp, ChevronDown, Type, Image } from "lucide-vue-next";
 import { usePostBanner } from "../composables/usePostBanner.js";
 
 const props = defineProps({
@@ -27,28 +32,21 @@ const { t } = useI18n();
 
 const {
     heightOptions,
-    ratioOptions,
-    slotTypeOptions,
     alignOptions,
     fillOptions,
-    presetOptions,
-    applyPreset,
-    bothSlotsFilled,
+    widthOptions,
+    items,
+    canAddItem,
+    addItem,
+    removeItem,
+    moveItem,
     hasBackgroundImage,
     isSolidFill,
     isGradientFill,
     fillPreviewStyle,
     fields,
-    slotFields,
+    itemFields,
 } = usePostBanner(computed(() => props.banner));
-
-// Slots are laid out side by side above the mobile breakpoint and stacked
-// below it, so "left" and "right" are the desktop reading — which is the one
-// an author is composing against.
-const slotLabels = computed(() => [
-    t("backend.posts.banner.slot_left"),
-    t("backend.posts.banner.slot_right"),
-]);
 </script>
 
 <template>
@@ -56,75 +54,115 @@ const slotLabels = computed(() => [
         <AppToggle v-model="fields.enabled.value" :label="t('backend.posts.banner.enabled')" />
 
         <template v-if="fields.enabled.value">
-            <div class="space-y-2">
-                <p class="text-sm font-medium text-primary">{{ t("backend.posts.banner.preset") }}</p>
-                <div class="flex flex-wrap gap-2">
-                    <AppTab
-                        v-for="preset in presetOptions"
-                        :key="preset.key"
-                        variant="pill"
-                        size="sm"
-                        :active="preset.active"
-                        v-on:click="applyPreset(preset.types)"
-                    >
-                        {{ preset.label }}
-                    </AppTab>
-                </div>
-                <p class="text-xs text-muted">{{ t("backend.posts.banner.preset_hint") }}</p>
-            </div>
+            <div class="space-y-3">
+                <AppNoData v-if="!items.length" :message="t('backend.posts.banner.empty')" />
 
-            <div
-                v-for="(slot, index) in banner.slots"
-                :key="index"
-                class="rounded-lg border border-line p-4 space-y-4"
-            >
-                <p class="text-sm font-medium text-primary">{{ slotLabels[index] }}</p>
-
-                <AppSelect
-                    v-model="slotFields(index).type.value"
-                    :label="t('backend.posts.banner.slot_type')"
-                    :options="slotTypeOptions"
-                />
-
-                <template v-if="slot.type === 'text'">
-                    <AppInput
-                        v-model="slotFields(index).title.value"
-                        :label="t('backend.posts.banner.slot_title')"
-                        :placeholder="t('backend.posts.banner.slot_title_placeholder')"
-                    />
-                    <AppTextarea
-                        v-model="slotFields(index).description.value"
-                        :label="t('backend.posts.banner.slot_description')"
-                        :placeholder="t('backend.posts.banner.slot_description_placeholder')"
-                    />
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <BannerColorField
-                            v-model="slotFields(index).titleColor.value"
-                            :label="t('backend.posts.banner.slot_title_color')"
+                <div
+                    v-for="(item, index) in items"
+                    :key="index"
+                    class="rounded-lg border border-line p-4 space-y-4"
+                >
+                    <div class="flex items-center gap-2">
+                        <component
+                            :is="item.type === 'text' ? Type : Image"
+                            class="w-4 h-4 text-muted"
+                            :stroke-width="2"
                         />
-                        <BannerColorField
-                            v-model="slotFields(index).descriptionColor.value"
-                            :label="t('backend.posts.banner.slot_description_color')"
-                        />
+                        <p class="text-sm font-medium text-primary flex-1">
+                            {{ t(`backend.posts.banner.item_types.${item.type}`) }}
+                        </p>
+                        <AppIconButton
+                            color="default"
+                            :title="t('backend.posts.banner.move_up')"
+                            :disabled="index === 0"
+                            v-on:click="moveItem(index, -1)"
+                        >
+                            <ChevronUp class="w-4 h-4" :stroke-width="2" />
+                        </AppIconButton>
+                        <AppIconButton
+                            color="default"
+                            :title="t('backend.posts.banner.move_down')"
+                            :disabled="index === items.length - 1"
+                            v-on:click="moveItem(index, 1)"
+                        >
+                            <ChevronDown class="w-4 h-4" :stroke-width="2" />
+                        </AppIconButton>
+                        <AppIconButton
+                            color="rose"
+                            :title="t('backend.posts.banner.remove_item')"
+                            v-on:click="removeItem(index)"
+                        >
+                            <Trash2 class="w-4 h-4" :stroke-width="2" />
+                        </AppIconButton>
                     </div>
-                    <AppSelect
-                        v-model="slotFields(index).align.value"
-                        :label="t('backend.posts.banner.slot_align')"
-                        :options="alignOptions"
-                    />
-                </template>
 
-                <template v-else-if="slot.type === 'image'">
-                    <AppImagePickerField
-                        v-model="slotFields(index).media.value"
-                        :label="t('backend.posts.banner.slot_image')"
+                    <AppSelect
+                        v-model="itemFields(index).width.value"
+                        :label="t('backend.posts.banner.width')"
+                        :options="widthOptions"
                     />
-                    <AppInput
-                        v-model="slotFields(index).alt.value"
-                        :label="t('backend.posts.banner.slot_alt')"
-                        :placeholder="t('backend.posts.banner.slot_alt_placeholder')"
-                    />
-                </template>
+
+                    <template v-if="item.type === 'text'">
+                        <AppInput
+                            v-model="itemFields(index).title.value"
+                            :label="t('backend.posts.banner.slot_title')"
+                            :placeholder="t('backend.posts.banner.slot_title_placeholder')"
+                        />
+                        <AppTextarea
+                            v-model="itemFields(index).description.value"
+                            :label="t('backend.posts.banner.slot_description')"
+                            :placeholder="t('backend.posts.banner.slot_description_placeholder')"
+                        />
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <BannerColorField
+                                v-model="itemFields(index).titleColor.value"
+                                :label="t('backend.posts.banner.slot_title_color')"
+                            />
+                            <BannerColorField
+                                v-model="itemFields(index).descriptionColor.value"
+                                :label="t('backend.posts.banner.slot_description_color')"
+                            />
+                        </div>
+                        <AppSelect
+                            v-model="itemFields(index).align.value"
+                            :label="t('backend.posts.banner.slot_align')"
+                            :options="alignOptions"
+                        />
+                    </template>
+
+                    <template v-else>
+                        <AppImagePickerField
+                            v-model="itemFields(index).media.value"
+                            :label="t('backend.posts.banner.slot_image')"
+                        />
+                        <AppInput
+                            v-model="itemFields(index).alt.value"
+                            :label="t('backend.posts.banner.slot_alt')"
+                            :placeholder="t('backend.posts.banner.slot_alt_placeholder')"
+                        />
+                    </template>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <AppButton
+                        variant="ghost"
+                        size="md"
+                        :disabled="!canAddItem"
+                        v-on:click="addItem('text')"
+                    >
+                        <Plus class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ t("backend.posts.banner.add_text") }}
+                    </AppButton>
+                    <AppButton
+                        variant="ghost"
+                        size="md"
+                        :disabled="!canAddItem"
+                        v-on:click="addItem('image')"
+                    >
+                        <Plus class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ t("backend.posts.banner.add_image") }}
+                    </AppButton>
+                </div>
             </div>
 
             <!-- Appearance last: an author fills the banner before deciding
@@ -132,19 +170,11 @@ const slotLabels = computed(() => [
             <div class="rounded-lg border border-line p-4 space-y-4">
                 <p class="text-sm font-medium text-primary">{{ t("backend.posts.banner.appearance") }}</p>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <AppSelect
-                        v-model="fields.height.value"
-                        :label="t('backend.posts.banner.height')"
-                        :options="heightOptions"
-                    />
-                    <AppSelect
-                        v-if="bothSlotsFilled"
-                        v-model="fields.ratio.value"
-                        :label="t('backend.posts.banner.ratio')"
-                        :options="ratioOptions"
-                    />
-                </div>
+                <AppSelect
+                    v-model="fields.height.value"
+                    :label="t('backend.posts.banner.height')"
+                    :options="heightOptions"
+                />
 
                 <div class="space-y-3">
                     <div class="flex items-end gap-3">
@@ -185,12 +215,7 @@ const slotLabels = computed(() => [
                             <p class="text-sm text-secondary mb-1">
                                 {{ t("backend.posts.banner.gradient_angle", { degrees: fields.gradientAngle.value }) }}
                             </p>
-                            <AppRange
-                                v-model="fields.gradientAngle.value"
-                                :min="0"
-                                :max="360"
-                                :step="15"
-                            />
+                            <AppRange v-model="fields.gradientAngle.value" :min="0" :max="360" :step="15" />
                         </div>
                     </template>
                 </div>

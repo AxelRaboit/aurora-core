@@ -14,24 +14,24 @@ namespace Aurora\Module\Editorial\Post\Banner;
  * anyone noticing. A banner that survives a round-trip is a banner the
  * renderer can trust.
  *
- * The shape is one layout and two slots, rather than an enumerated list of
- * layouts. "Text left, image right", "image only", "two images" and "two
- * texts" are then the same structure with different slot types, so adding a
- * seventh arrangement later costs nothing.
+ * The banner is a list of items, each with a type and a width in columns.
+ * "Text left, image right", "image only", "two images" and "two texts" are
+ * then arrangements an author builds rather than a list this class enumerates.
  *
- * @phpstan-type BannerSlot array{type: string, title: string, description: string, titleColor: ?string, descriptionColor: ?string, align: string, mediaId: ?int, alt: string}
- * @phpstan-type Banner array{enabled: bool, height: string, ratio: string, logoMediaId: ?int, background: array{color: ?string, mediaId: ?int, overlay: int}, slots: list<BannerSlot>}
+ * The width lives on a 48-column grid, and 48 is not arbitrary: it is 4 × 12
+ * and 2 × 24, so a twelfth is 4 columns and a twenty-fourth is 2. Halves,
+ * thirds, quarters, sixths and eighths all land on whole numbers. The same
+ * grid carries the content layout, which is why the shape lives here rather
+ * than being invented twice.
+ *
+ * @phpstan-type BannerSpan array{base: int, md: ?int, lg: ?int}
+ * @phpstan-type BannerItem array{type: string, span: BannerSpan, title: string, description: string, titleColor: ?string, descriptionColor: ?string, align: string, mediaId: ?int, alt: string}
  */
 final readonly class BannerNormalizer
 {
-    public const string SLOT_NONE = 'none';
+    public const string ITEM_TEXT = 'text';
 
-    public const string SLOT_TEXT = 'text';
-
-    public const string SLOT_IMAGE = 'image';
-
-    /** Both slots always exist; an unused one is `none` rather than absent. */
-    private const int SLOT_COUNT = 2;
+    public const string ITEM_IMAGE = 'image';
 
     public const string FILL_NONE = 'none';
 
@@ -39,15 +39,25 @@ final readonly class BannerNormalizer
 
     public const string FILL_GRADIENT = 'gradient';
 
-    private const array SLOT_TYPES = [self::SLOT_NONE, self::SLOT_TEXT, self::SLOT_IMAGE];
+    /** Full width of the grid, and the default span of a new item. */
+    public const int COLUMNS = 48;
+
+    /**
+     * A banner is a header, not a page. The cap is here so a runaway payload
+     * cannot turn one into an unbounded list — the content grid is where many
+     * items belong.
+     */
+    private const int MAX_ITEMS = 6;
+
+    private const array ITEM_TYPES = [self::ITEM_TEXT, self::ITEM_IMAGE];
 
     private const array FILL_TYPES = [self::FILL_NONE, self::FILL_SOLID, self::FILL_GRADIENT];
 
     private const array HEIGHTS = ['sm', 'md', 'lg', 'full'];
 
-    private const array RATIOS = ['50-50', '33-67', '67-33'];
-
     private const array ALIGNMENTS = ['start', 'center', 'end'];
+
+    private const array BREAKPOINTS = ['base', 'md', 'lg'];
 
     private const string HEX_COLOR = '/^#[0-9a-fA-F]{6}$/';
 
@@ -63,10 +73,9 @@ final readonly class BannerNormalizer
         return [
             'enabled' => (bool) ($data['enabled'] ?? false),
             'height' => $this->oneOf($data['height'] ?? null, self::HEIGHTS, 'md'),
-            'ratio' => $this->oneOf($data['ratio'] ?? null, self::RATIOS, '50-50'),
             'logoMediaId' => $this->id($data['logoMediaId'] ?? null),
             'background' => $this->background(is_array($data['background'] ?? null) ? $data['background'] : []),
-            'slots' => $this->slots(is_array($data['slots'] ?? null) ? $data['slots'] : []),
+            'items' => $this->items($data),
         ];
     }
 
@@ -102,34 +111,111 @@ final readonly class BannerNormalizer
     }
 
     /**
-     * @param array<mixed> $raw
+     * @param array<string, mixed> $data
      *
      * @return list<array<string, mixed>>
      */
-    private function slots(array $raw): array
+    private function items(array $data): array
     {
-        $slots = [];
+        $raw = is_array($data['items'] ?? null)
+            ? $data['items']
+            : $this->itemsFromLegacySlots($data);
 
-        for ($i = 0; $i < self::SLOT_COUNT; ++$i) {
-            $slot = is_array($raw[$i] ?? null) ? $raw[$i] : [];
-            $type = $this->oneOf($slot['type'] ?? null, self::SLOT_TYPES, self::SLOT_NONE);
+        $items = [];
 
-            // Every key is present whatever the type. Switching a slot from
+        foreach (array_slice(array_values($raw), 0, self::MAX_ITEMS) as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            // An unknown type drops the item rather than defaulting to text:
+            // a banner is better short one element than showing an empty box
+            // where something else was meant to be.
+            $type = $this->oneOf($entry['type'] ?? null, self::ITEM_TYPES, '');
+            if ('' === $type) {
+                continue;
+            }
+
+            // Every key is present whatever the type. Switching an item from
             // text to image and back in the editor would otherwise lose what
             // was typed, and the front would have to guard every read.
-            $slots[] = [
+            $items[] = [
                 'type' => $type,
-                'title' => $this->text($slot['title'] ?? null),
-                'description' => $this->text($slot['description'] ?? null),
-                'titleColor' => $this->color($slot['titleColor'] ?? null),
-                'descriptionColor' => $this->color($slot['descriptionColor'] ?? null),
-                'align' => $this->oneOf($slot['align'] ?? null, self::ALIGNMENTS, 'start'),
-                'mediaId' => $this->id($slot['mediaId'] ?? null),
-                'alt' => $this->text($slot['alt'] ?? null),
+                'span' => $this->span(is_array($entry['span'] ?? null) ? $entry['span'] : []),
+                'title' => $this->text($entry['title'] ?? null),
+                'description' => $this->text($entry['description'] ?? null),
+                'titleColor' => $this->color($entry['titleColor'] ?? null),
+                'descriptionColor' => $this->color($entry['descriptionColor'] ?? null),
+                'align' => $this->oneOf($entry['align'] ?? null, self::ALIGNMENTS, 'start'),
+                'mediaId' => $this->id($entry['mediaId'] ?? null),
+                'alt' => $this->text($entry['alt'] ?? null),
             ];
         }
 
-        return $slots;
+        return $items;
+    }
+
+    /**
+     * Banners written against the previous shape carry two fixed `slots` and a
+     * `ratio`. Converting them here rather than in a migration keeps the
+     * upgrade in one place and costs nothing once no such row is left: the
+     * branch is only reached when `items` is absent entirely.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function itemsFromLegacySlots(array $data): array
+    {
+        if (!is_array($data['slots'] ?? null)) {
+            return [];
+        }
+
+        $filled = array_values(array_filter(
+            $data['slots'],
+            static fn (mixed $slot): bool => is_array($slot) && in_array($slot['type'] ?? null, self::ITEM_TYPES, true),
+        ));
+
+        // The old ratio applied only when both slots held something; a lone
+        // slot spanned the row.
+        $spans = match (2 === count($filled) ? ($data['ratio'] ?? '50-50') : null) {
+            '33-67' => [16, 32],
+            '67-33' => [32, 16],
+            '50-50' => [24, 24],
+            default => [self::COLUMNS],
+        };
+
+        return array_map(
+            static fn (array $slot, int $index): array => [...$slot, 'span' => ['lg' => $spans[$index] ?? self::COLUMNS]],
+            $filled,
+            array_keys($filled),
+        );
+    }
+
+    /**
+     * Widths per breakpoint, smallest first. An absent step inherits the one
+     * below it — which is why only `base` is guaranteed: an item that says
+     * nothing is full width on a phone and stays full width until something
+     * says otherwise.
+     *
+     * @param array<string, mixed> $raw
+     *
+     * @return array<string, int|null>
+     */
+    private function span(array $raw): array
+    {
+        $span = [];
+
+        foreach (self::BREAKPOINTS as $breakpoint) {
+            $value = $raw[$breakpoint] ?? null;
+            $span[$breakpoint] = is_numeric($value)
+                ? max(1, min(self::COLUMNS, (int) $value))
+                : null;
+        }
+
+        $span['base'] ??= self::COLUMNS;
+
+        return $span;
     }
 
     /** @param array<string, mixed> $data */
