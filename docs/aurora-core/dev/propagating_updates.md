@@ -44,7 +44,7 @@ via le dépôt VCS GitHub (composer) :
 | Projet | Chemin local | Rôle | Notes |
 |---|---|---|---|
 | **aurora-client** | `../aurora-client/` | **Projet modèle / référence** | Gabarit canonique de tout projet consommateur. **À mettre à jour en premier** (canari). Reste minimal et propre : c'est lui qui valide le `client_template`. |
-| aurora-welding | `../aurora-welding/` | Client métier (soudure réglementée) | Contient le module `Welding` extrait d'aurora-core. A ses propres tests (`make test`). |
+| aurora-myspace | `../aurora-myspace/` | Projet consommateur | Consomme `axelraboit/aurora: dev-develop`. Module Editorial installé. |
 
 > _Ajouter ici tout nouveau projet consommant `axelraboit/aurora`._
 
@@ -77,7 +77,7 @@ Sans ça, `composer update` côté client tirerait l'ancien état (cf. plus haut
 ### 2. Bumper chaque consommateur
 
 ```bash
-# depuis aurora-client D'ABORD (projet modèle / canari), puis aurora-welding
+# depuis aurora-client D'ABORD (projet modèle / canari), puis les autres consommateurs
 make aurora-update
 ```
 
@@ -127,6 +127,6 @@ Un garde-fou (`_no-recent-aurora-update`) refuse `pull-update` juste après un
 
 - [ ] `git push origin develop` (aurora-core)
 - [ ] aurora-client : `make aurora-update` → vérif build/DI OK → commit bump
-- [ ] aurora-welding : `make aurora-update` → `make test` vert → commit bump
+- [ ] aurora-myspace : `make aurora-update` → `make ft` vert → commit bump
 - [ ] _(répéter pour tout nouveau projet du tableau)_
 - [ ] Backups DB faits si le bump contient une migration

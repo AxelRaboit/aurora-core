@@ -23,7 +23,7 @@ le push = bumper l'ancien état.
 **How to apply** :
 - **Bumper `aurora-client` en PREMIER** : c'est le **projet modèle/référence**
   (gabarit de `.claude/client_template/`), gardé épuré, sert de canari. Puis
-  les clients métier (aurora-welding…).
+  les autres consommateurs (aurora-myspace…).
 - Si le bump contient une **migration** (`migrate-f` l'applique) → backup DB
   prod avant.
 - **Liste des consommateurs + procédure détaillée** : doc

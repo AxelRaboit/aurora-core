@@ -1,5 +1,17 @@
 # Installer des modules Aurora à la carte (sans Packagist)
 
+> ⚠️ **Obsolète — les packages modules ne sont plus maintenus.**
+> Les dépôts `aurora-assistant`, `aurora-personal-finance`, `aurora-billing`,
+> `aurora-crm`, `aurora-planning`, `aurora-commerce`, `aurora-photo`,
+> `aurora-project`, `aurora-notes`, `aurora-hr`, `aurora-tools`, ainsi que
+> `aurora-editorial` et le client `aurora-welding`, sont **archivés en lecture
+> seule sur GitHub**. Ne pas s'y brancher : un `composer require` continuerait
+> de fonctionner, mais figerait le projet sur du code qui ne recevra plus rien.
+>
+> Un projet consommateur ne requiert plus que `axelraboit/aurora` (le core).
+> La mécanique décrite ci-dessous reste valable **comme référence** si des
+> packages à la carte reviennent un jour ; elle ne décrit plus l'état actuel.
+
 Chaque module Aurora est un package Composer indépendant
 (`axelraboit/aurora-<module>`) hébergé sur son propre repo GitHub. Un client
 n'installe **que** ce dont il a besoin. Aucune publication Packagist requise :
