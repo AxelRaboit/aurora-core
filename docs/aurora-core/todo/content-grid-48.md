@@ -1,8 +1,8 @@
 # Grille de contenu 48 colonnes
 
-> **Statut (2026-08-08) : à démarrer.** Les décisions structurantes sont
-> prises et la primitive CSS est déjà livrée et testée. Ce document existe
-> pour qu'on reprenne sans re-débattre.
+> **Statut (2026-08-09) : quatre étapes sur six livrées.** Le contrat, le
+> rendu public, les quatre types de zone et l'éditeur sont en place et testés.
+> Restent l'aperçu et le sort de `blocks`.
 
 ---
 
@@ -57,26 +57,26 @@ dans un conteneur de 1280 : toutes les pistes tombent à zéro et le dernier ite
 sort du cadre. Les gouttières vivent sur les items. Le test ci-dessus l'empêche
 de revenir.
 
-## La question à trancher en premier
+## La question tranchée (2026-08-09)
 
-**Où vit le contenu de la grille ?**
+**Où vit le contenu de la grille ?** Par le précédent de la bannière, pas par un
+arbitrage neuf.
 
-La bannière a été scindée en deux : la mise en page sur le post (partagée par
-toutes les langues), les textes sur chaque traduction, joints par id d'item.
-La grille pose exactement la même question, et il faut y répondre avant
-d'écrire la première ligne.
+| Partagé — sur le post | Par langue — sur la traduction |
+|---|---|
+| id de zone, **type**, span, ordre | blocs de texte |
+| `mediaId` | `alt`, `caption` |
+| `postId` de la publication liée | URL vidéo |
 
-Aujourd'hui `blocks` est **par traduction**. Si la grille remplace ou double
-`blocks`, on retrouve le problème d'origine : refaire la mise en page dans
-chaque langue, et deux versions qui divergent sans que rien ne dise laquelle
-fait foi.
+Chaque côté se justifie. Une zone qui serait du texte en français et une vidéo
+en anglais n'est pas une zone. Une publication liée a ses propres traductions —
+c'est au rendu de choisir la bonne, pas à l'éditeur de la re-choisir. Une image
+est la même image ; la décrire, c'est écrire. Et l'adresse d'une vidéo est du
+contenu : la première bannière écrite pointait vers `/fr/page/premiers-pas`.
 
-Réponse probable — la même que pour la bannière : **la disposition des zones
-sur le post, le contenu de chaque zone par traduction**. Mais un « contenu de
-zone » n'est pas un simple texte : une zone « autre publication » pointe un id,
-une zone média pointe un `mediaId`. Ceux-là sont-ils partagés ou traduits ?
-(Une vidéo peut avoir une version par langue ; une publication liée en a une par
-définition.) À décider explicitement, pas par défaut.
+**Les zones s'enchaînent**, elles ne sont pas posées en coordonnées.
+Redimensionner change un span, déplacer réordonne. Pas de cellule vide à gérer,
+et le placement libre reste ajoutable — l'inverse ne l'est pas.
 
 ## Défauts du voisinage — corrigés le 2026-08-08
 
@@ -104,21 +104,37 @@ publiaient des div nues. Styles ajoutés dans `base/content-blocks.css`, qui est
 le fichier des blocs **rendus** ; `components/editor/blocks.css` ne sert qu'à
 l'éditeur. **La grille doit poser ses styles dans le premier, pas le second.**
 
-## Étapes proposées
+## Étapes
 
 Chacune verte et livrable, comme pour la fusion Media → GED.
 
-1. **Trancher le modèle de stockage** (cf. plus haut) et écrire le
-   normaliseur — c'est le contrat, tout en découle.
-2. **Rendu public** : le Twig de la grille sur `.aurora-grid`, avec un seul type
-   de zone (texte Editor.js). Publiable tel quel.
-3. **Éditeur** : poser, redimensionner, déplacer les zones. Pas de
-   glisser-déposer au début — le projet réordonne partout par monter/descendre,
-   et une zone dans une grille se décrit très bien par un span et une position.
-4. **Les trois autres types de zone**, un par un.
-5. **Aperçu** via le même Twig, sur le patron de `BannerPreviewController`.
-6. **Sort de `blocks`** : cohabitation, migration, ou remplacement. À décider à
-   ce moment-là, avec les autres étapes vertes.
+1. ✅ **Modèle et normaliseur** — `GridNormalizer`, deux colonnes, migration,
+   passage par le DTO et le manager. 19 tests unitaires, 3 d'intégration sur la
+   frontière d'écriture. *(32927c47)*
+2. ✅ **Rendu public** — `GridViewBuilder` + `_grid.html.twig` sur
+   `.aurora-grid`, branché dans `PostPageRenderer`. La grille **remplace** la
+   colonne de blocs, elle ne s'y ajoute pas. 13 tests. *(c50fd299)*
+3. ✅ **Éditeur** — `usePostGrid` + `PostGridPanel`, dans l'onglet Contenu.
+   Largeur au curseur par pas d'aimantation, réordonnancement par
+   monter/descendre. 17 tests. *(0a4095f6)*
+4. ✅ **Les quatre types de zone** — livrés avec l'étape 2 plutôt qu'après :
+   une zone configurée qui ne rend rien ressemble à un bug pour qui vient de la
+   configurer. Les vidéos passent par `VideoEmbedResolver`, 21 tests.
+5. ⬜ **Aperçu** via le même Twig, sur le patron de `BannerPreviewController`.
+   Rien n'existe encore. L'éditeur montre les réglages, pas le résultat.
+6. ⬜ **Sort de `blocks`** — aujourd'hui les deux **cohabitent** : le panneau de
+   blocs disparaît quand la grille est activée (`supportsBlocks &&
+   !gridLayout.enabled`), et le rendu public fait le même choix. Rien n'est
+   migré, rien n'est supprimé. La décision reste entière.
+
+### Ce qui a été fait en plus du plan
+
+- **Fixtures de démo** : la page d'accueil et l'article portent chacun une
+  grille, arrangées différemment — 48/24+24/32+16/48 pour l'une, 48/16+32/24+24
+  pour l'autre. *(abfb5fde, 4d6b8998)*
+- **`.aurora-grid-flush`** : le padding des items décalait les deux bords
+  extérieurs, donc la grille ne s'alignait pas sur le titre au-dessus.
+  *(3ba74bca)*
 
 ## Ce qu'il ne faut pas oublier
 
