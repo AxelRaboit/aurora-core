@@ -483,7 +483,7 @@ Une tranche refuse ce qu'elle ne peut pas prendre — une pile, puisque la
 profondeur s'arrête à un — et laisse alors l'événement remonter : la boîte
 derrière le prend comme un échange, donc le geste fait quelque chose plutôt que
 rien. Le surlignage dit lequel des deux : la boîte s'allume, la tranche non.
-*(`d3a5b7c2`)*
+*(`52dc2b5f`)*
 
 **Ce qui n'est pas fait** : sortir une zone d'une pile en la glissant. Elle se
 supprime depuis la pile.
