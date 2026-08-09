@@ -69,38 +69,89 @@ function writable(get, set) {
 }
 
 /**
- * Where each zone lands once the grid has wrapped: which row, and which column
- * it starts on.
+ * The width a zone has on a large screen, following the stylesheet's own
+ * fallback chain: an unset breakpoint inherits the one below it.
+ */
+export function largeSpan(zone) {
+    const columns =
+        zone?.span?.lg ?? zone?.span?.md ?? zone?.span?.base ?? COLUMNS;
+
+    return Math.min(COLUMNS, Math.max(1, columns));
+}
+
+/**
+ * An offset the row can actually hold — never more than what is left once the
+ * zone has taken its own width.
  *
- * This is arithmetic rather than measurement because it can be. `.aurora-grid`
- * places items with the default `grid-auto-flow: row` — no `dense` — so an item
- * that does not fit in what is left of a row starts the next one at column
- * zero, and nothing ever backfills the gap behind it. That is exactly the loop
- * below, so the answer matches what the browser will do without reading a
- * single rect.
+ * Mirrors GridNormalizer::clampOffset. Written here as well as at the write
+ * boundary because this one runs on the layout as it is being edited, before
+ * anything has been saved: the canvas has to draw what a half-finished drag is
+ * asking for, and it has to draw it the way the server will store it.
+ */
+export function clampOffset(offset, zone) {
+    return Math.max(
+        0,
+        Math.min(COLUMNS - largeSpan(zone), Math.round(Number(offset) || 0)),
+    );
+}
+
+/**
+ * Where each zone lands: its row and its first column, both 1-based.
  *
- * Widths are read from `span.lg`: the large-screen arrangement is the one an
- * author sets, and `span.base` is 48 for every zone.
+ * Mirrors GridNormalizer::place. The canvas emits what this returns as
+ * `--row-base` and `--start-base`, so the picture in the panel and the
+ * published page are the same arithmetic rather than two guesses that happen to
+ * agree.
  *
- * @param {Array<{span?: {lg?: number}}>} zones
- * @return {Array<{row: number, start: number}>} one entry per zone, in order
+ * The row is worked out here rather than left to auto-placement, which was the
+ * first attempt and was not enough: a grid puts an item with a definite column
+ * in the first row where those columns are free, so a zone asked to start a new
+ * row — whose columns happened to be free beside its neighbour — was placed
+ * there and the break did nothing.
+ *
+ * Widths come from `span.lg`: the large-screen arrangement is the one an author
+ * sets, and every zone is full width below that.
+ *
+ * @param {Array<object>} zones
+ * @return {Array<{row: number, column: number}>} one per zone, in order
  */
 export function placeZones(zones) {
-    let row = 0;
+    let row = 1;
     let used = 0;
 
     return zones.map((zone) => {
-        const span = Math.min(COLUMNS, Math.max(1, zone?.span?.lg ?? COLUMNS));
+        const span = largeSpan(zone);
+        const offset = clampOffset(zone?.offset, zone);
 
-        if (used + span > COLUMNS) {
+        if (zone?.newRow && used > 0) {
             row += 1;
             used = 0;
         }
 
-        const start = used;
-        used += span;
+        let start;
 
-        return { row, start };
+        if (offset > 0) {
+            // A row fills from the left, so what is free on it is always its
+            // tail: an asked-for column below the mark is taken, and the zone
+            // goes to the next row where the same column is free by definition.
+            if (offset < used) {
+                row += 1;
+                used = 0;
+            }
+
+            start = offset;
+        } else {
+            if (used + span > COLUMNS) {
+                row += 1;
+                used = 0;
+            }
+
+            start = used;
+        }
+
+        used = start + span;
+
+        return { row, column: start + 1 };
     });
 }
 
@@ -126,6 +177,11 @@ function newZone(type) {
         // Full width on a phone, half on a large screen. A zone alone on its
         // row still fills it, because the grid has nothing to put beside it.
         span: { base: COLUMNS, md: null, lg: 24 },
+        // No gap to its left and no break before it: a new zone joins the flow
+        // where the last one left off, which is what "add a zone" has always
+        // meant. Both are annotations an author reaches for, never defaults.
+        offset: 0,
+        newRow: false,
         ratio: "natural",
         mediaId: null,
         media: null,
@@ -231,6 +287,25 @@ export function usePostGrid(layout, content) {
             title: t(`backend.posts.grid.fractions.${fraction.name}`),
         })),
     );
+
+    /**
+     * How far a zone may be pushed from the left of its row, in the same
+     * fractions its width is set in — so "1/2 wide, pushed by 1/2" reads as one
+     * thought rather than as two unrelated numbers.
+     *
+     * "None" leads, and is what every zone has: pushing one is the exception,
+     * and the row has to offer a way back to the flow.
+     */
+    const offsetOptions = computed(() => [
+        { value: 0, label: t("backend.posts.grid.offsets.none") },
+        ...WIDTH_FRACTIONS.filter((fraction) => fraction.columns < COLUMNS).map(
+            (fraction) => ({
+                value: fraction.columns,
+                label: fraction.label,
+                title: t(`backend.posts.grid.fractions.${fraction.name}`),
+            }),
+        ),
+    ]);
 
     function addZone(type) {
         if (!canAddZone.value) {
@@ -347,6 +422,11 @@ export function usePostGrid(layout, content) {
         }
 
         list.splice(fromIndex, 1);
+        // A row's annotations mean nothing in a column. Cleared here rather
+        // than left for the server, so what the canvas draws the moment the
+        // zone lands is what a save would produce.
+        moving.offset = 0;
+        moving.newRow = false;
         stack.children.splice(atIndex, 0, moving);
         shareEvenly(stack.children);
 
@@ -380,6 +460,8 @@ export function usePostGrid(layout, content) {
         shareEvenly(stack.children);
 
         moving.span.lg = 24;
+        moving.offset = 0;
+        moving.newRow = false;
         layout.value.zones.splice(atIndex, 0, moving);
 
         return true;
@@ -547,10 +629,43 @@ export function usePostGrid(layout, content) {
                 // The width control drives the large-screen span only. Below
                 // that a zone stays full width, which is what the stored
                 // `base` says and what reads best on a phone.
+                // Both are top-level only: inside a stack the axis of flow is
+                // vertical, so there is no row to start or to sit at the end
+                // of. The panel does not show them there, and the normaliser
+                // would zero them anyway.
+                offset: writable(
+                    () => zone()?.offset ?? 0,
+                    (value) => {
+                        // Zero is exempt from the snap, which has the step as
+                        // its floor: rounding it up would leave no way back to
+                        // the flow, and "no gap" is the answer most zones want.
+                        zone().offset = clampOffset(
+                            0 === Number(value)
+                                ? 0
+                                : clampToSnap(value, snap.value),
+                            zone(),
+                        );
+                    },
+                ),
+                newRow: writable(
+                    () => zone()?.newRow ?? false,
+                    (value) => {
+                        zone().newRow = Boolean(value);
+                    },
+                ),
                 width: writable(
                     () => zone()?.span?.lg ?? COLUMNS,
                     (value) => {
                         zone().span.lg = clampToSnap(value, snap.value);
+
+                        // A wider zone leaves less room to its left. Without
+                        // this a zone pushed to the right and then widened to
+                        // the full row would keep an offset the row cannot
+                        // hold — and the server, which clamps on the way in,
+                        // would give back a layout the editor never showed.
+                        if (null === childIndex) {
+                            zone().offset = clampOffset(zone().offset, zone());
+                        }
 
                         // Inside a stack the shares are relative to each other,
                         // so setting one without touching the rest gives an
@@ -621,6 +736,7 @@ export function usePostGrid(layout, content) {
         typeOptions,
         leafTypeOptions,
         widthOptions,
+        offsetOptions,
         shareOptions,
         ratioOptions,
         childrenOf,

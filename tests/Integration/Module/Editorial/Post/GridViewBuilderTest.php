@@ -239,6 +239,28 @@ final class GridViewBuilderTest extends IntegrationTestCase
     }
 
     /**
+     * Where a zone lands, ready for the stylesheet. Large screen only: below
+     * that breakpoint every zone is full width and there is nothing to arrange.
+     */
+    public function testAZoneAskedToSitRightCarriesItsStartColumn(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            [
+                'enabled' => true,
+                'zones' => [
+                    ['id' => 'z1', 'type' => 'text', 'span' => ['lg' => 48]],
+                    ['id' => 'z2', 'type' => 'text', 'span' => ['lg' => 24], 'offset' => 24],
+                ],
+            ],
+            [],
+            'fr',
+        );
+
+        self::assertSame('--row-lg: 1; --start-lg: 1;', $grid['zones'][0]['startStyle']);
+        self::assertSame('--row-lg: 2; --start-lg: 25;', $grid['zones'][1]['startStyle']);
+    }
+
+    /**
      * The library wins whenever it has an answer: a document carries a focal
      * point, a variant sized for the slot and an alt of its own, and an address
      * carries none of that. It stands in rather than competing.

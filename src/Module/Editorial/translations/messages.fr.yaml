@@ -305,7 +305,7 @@ backend:
       canvas: Disposition
       canvas_empty: "Aucune zone — ajoutez-en une plus bas et elle apparaîtra ici."
       pick_zone: "Cliquez une zone ci-dessus pour modifier son contenu."
-      canvas_hint: "Tirez le bord droit d'une zone pour régler sa largeur, ou sélectionnez-la et utilisez les flèches. Ces largeurs sont celles du grand écran ; en dessous, une zone occupe toujours toute la largeur."
+      canvas_hint: "Tirez le bord droit d'une zone pour régler sa largeur, le bord gauche pour la décaler vers la droite ; les flèches font la même chose au clavier. Ces réglages sont ceux du grand écran ; en dessous, une zone occupe toujours toute la largeur."
       resize_zone: "Largeur de la zone « {zone} »"
       snap: Pas d'aimantation
       snap_hint: "La finesse à laquelle une largeur se règle. Changer le pas ne déplace pas les zones déjà posées."
@@ -348,6 +348,14 @@ backend:
         3x4: Portrait
         fill: Remplir
       zone_image: Image de la zone
+      offset: Décalage à gauche
+      offset_hint: "Colonnes laissées vides avant la zone, sur grand écran. Sert à poser une zone à droite d'une ligne autrement vide."
+      offset_zone: "Décaler la zone {zone}"
+      offset_label: "{columns} colonnes vides sur {total}"
+      offsets:
+        none: Aucun
+      new_row: Commencer une nouvelle ligne
+      new_row_hint: Descend la zone sous la précédente, même si elle tiendrait à côté.
       zone_image_url: Adresse de l'image
       zone_image_url_hint: "Utilisée seulement si aucune image n'est choisie ci-dessus. Pratique pour un visuel provisoire ; une image hébergée ailleurs peut disparaître, et son hébergeur voit passer vos visiteurs."
       zone_alt: Texte alternatif

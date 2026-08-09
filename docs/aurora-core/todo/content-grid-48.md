@@ -91,6 +91,37 @@ dans un `src` que le navigateur suit.
 Redimensionner change un span, déplacer réordonne. Pas de cellule vide à gérer,
 et le placement libre reste ajoutable — l'inverse ne l'est pas.
 
+### Ce qui a été ajouté le 2026-08-09 : deux annotations sur l'enchaînement
+
+Deux dispositions manquaient à l'appel, toutes deux demandées après coup : une
+zone à droite d'une ligne autrement vide, et une zone poussée sous une voisine à
+côté de laquelle elle tiendrait. Ni l'une ni l'autre n'est exprimable par la
+seule suite des spans.
+
+| Champ | Ce qu'il dit |
+|---|---|
+| `offset` | colonnes laissées vides avant la zone |
+| `newRow` | la zone commence une nouvelle ligne |
+
+Tous deux sont **partagés** (côté post) et bornés au haut niveau : dans une
+pile, l'axe d'écoulement est vertical, il n'y a pas de ligne à commencer.
+`offset` est borné par ce que la largeur laisse, ce qui garantit qu'une colonne
+demandée est toujours tenable.
+
+Ce **n'est pas** le placement libre refusé plus haut. L'auteur écrit toujours
+une suite ; la ligne et la colonne sont *déduites* de cette suite, par le même
+calcul dans `GridNormalizer::place()` et dans `placeZones()` côté canvas. Rien
+n'est stocké en coordonnées, il n'y a toujours pas de cellule vide à arbitrer, et
+en dessous du grand écran rien n'est émis du tout — le téléphone n'a pas à
+répondre à la question.
+
+**La ligne est calculée, pas laissée au navigateur.** C'était la première
+version et elle ne suffit pas : une grille place un élément à colonne définie
+dans la première ligne où ces colonnes sont libres, donc une zone demandant une
+nouvelle ligne alors que ses colonnes étaient libres à côté de sa voisine y
+était posée, et la rupture ne faisait rien — silencieusement. Trouvé dans le
+navigateur, pas déduit.
+
 ## Défauts du voisinage — corrigés le 2026-08-08
 
 Quatre choses cassées ont été trouvées sur ce terrain en préparant ce document.

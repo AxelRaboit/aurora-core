@@ -129,7 +129,7 @@ describe("PostGridCanvas", () => {
 
     it("turns a drag into the width the pointer is asking for", () => {
         const wrapper = mountCanvas([zone("a", 24)]);
-        const handle = wrapper.find('[role="slider"]');
+        const handle = wrapper.find('[data-handle="width"]');
 
         pointer(handle, "pointerdown");
         pointer(handle, "pointermove", 120);
@@ -140,7 +140,7 @@ describe("PostGridCanvas", () => {
 
     it("measures a width from the column its own zone starts on", () => {
         const wrapper = mountCanvas([zone("a", 24), zone("b", 24)]);
-        const handle = wrapper.findAll('[role="slider"]')[1];
+        const handle = wrapper.findAll('[data-handle="width"]')[1];
 
         pointer(handle, "pointerdown");
         pointer(handle, "pointermove", 360);
@@ -149,9 +149,81 @@ describe("PostGridCanvas", () => {
         expect(wrapper.emitted("resize").at(-1)).toEqual([1, 12]);
     });
 
+    // ── The handle that pushes rather than resizes ────────────────────────
+
+    it("turns a drag on the left edge into the column to start at", () => {
+        const wrapper = mountCanvas([zone("a", 24)]);
+        const handle = wrapper.find('[data-handle="offset"]');
+
+        pointer(handle, "pointerdown");
+        pointer(handle, "pointermove", 240);
+
+        // Halfway across, measured from the grid's left edge rather than from
+        // the zone: an offset counts from where the row begins.
+        expect(wrapper.emitted("offset").at(-1)).toEqual([0, 24]);
+    });
+
+    it("leaves the width alone while the offset is being dragged", () => {
+        const wrapper = mountCanvas([zone("a", 24)]);
+        const handle = wrapper.find('[data-handle="offset"]');
+
+        pointer(handle, "pointerdown");
+        pointer(handle, "pointermove", 240);
+
+        expect(wrapper.emitted("resize")).toBeFalsy();
+    });
+
+    it("draws the gap a pushed zone leaves in front of it", () => {
+        const wrapper = mountCanvas([
+            zone("a", 48),
+            zone("b", 24, { offset: 24 }),
+        ]);
+        const items = wrapper.findAll(".aurora-grid > div");
+
+        // Both 1-based, like the properties they go into. The second zone is on
+        // a row of its own because the first took the whole of the one above.
+        expect(items[0].attributes("style")).toContain("--row-base: 1");
+        expect(items[1].attributes("style")).toContain("--row-base: 2");
+        expect(items[1].attributes("style")).toContain("--start-base: 25");
+    });
+
+    // The same case the composable pins, seen through the markup: the canvas
+    // draws the break rather than leaving it to auto-placement, which would put
+    // this zone beside its neighbour and show a layout the page will not.
+    it("draws a break the columns beside the neighbour would have swallowed", () => {
+        const wrapper = mountCanvas([
+            zone("a", 32),
+            zone("b", 16, { offset: 32, newRow: true }),
+        ]);
+        const items = wrapper.findAll(".aurora-grid > div");
+
+        expect(items[1].attributes("style")).toContain("--row-base: 2");
+        expect(items[1].attributes("style")).toContain("--start-base: 33");
+    });
+
+    it("moves the offset by the snap from the keyboard", async () => {
+        const wrapper = mountCanvas([zone("a", 24, { offset: 12 })]);
+
+        await wrapper
+            .find('[data-handle="offset"]')
+            .trigger("keydown", { key: "ArrowRight" });
+
+        expect(wrapper.emitted("offset").at(-1)).toEqual([0, 16]);
+    });
+
+    it("sends the offset back to nothing with Home", async () => {
+        const wrapper = mountCanvas([zone("a", 24, { offset: 12 })]);
+
+        await wrapper
+            .find('[data-handle="offset"]')
+            .trigger("keydown", { key: "Home" });
+
+        expect(wrapper.emitted("offset").at(-1)).toEqual([0, 0]);
+    });
+
     it("hands the width on unrounded, leaving the one clamp downstream", () => {
         const wrapper = mountCanvas([zone("a", 24)]);
-        const handle = wrapper.find('[role="slider"]');
+        const handle = wrapper.find('[data-handle="width"]');
 
         pointer(handle, "pointerdown");
         pointer(handle, "pointermove", 137);
@@ -161,7 +233,7 @@ describe("PostGridCanvas", () => {
 
     it("ignores a move that belongs to another zone's handle", () => {
         const wrapper = mountCanvas([zone("a", 24), zone("b", 24)]);
-        const handles = wrapper.findAll('[role="slider"]');
+        const handles = wrapper.findAll('[data-handle="width"]');
 
         pointer(handles[0], "pointerdown");
         pointer(handles[1], "pointermove", 360);
@@ -171,7 +243,7 @@ describe("PostGridCanvas", () => {
 
     it("stops resizing once the pointer is let go", () => {
         const wrapper = mountCanvas([zone("a", 24)]);
-        const handle = wrapper.find('[role="slider"]');
+        const handle = wrapper.find('[data-handle="width"]');
 
         pointer(handle, "pointerdown");
         pointer(handle, "pointerup");
@@ -244,7 +316,7 @@ describe("PostGridCanvas", () => {
 
     it("resizes from the keyboard, by the snap in force", async () => {
         const wrapper = mountCanvas([zone("a", 24)], { snap: 2 });
-        const handle = wrapper.find('[role="slider"]');
+        const handle = wrapper.find('[data-handle="width"]');
 
         await handle.trigger("keydown", { key: "ArrowRight" });
         expect(wrapper.emitted("resize").at(-1)).toEqual([0, 26]);
@@ -263,7 +335,7 @@ describe("PostGridCanvas", () => {
         const wrapper = mountCanvas([zone("a", 24)]);
 
         await wrapper
-            .find('[role="slider"]')
+            .find('[data-handle="width"]')
             .trigger("keydown", { key: "Tab" });
 
         expect(wrapper.emitted("resize")).toBeFalsy();
@@ -271,7 +343,7 @@ describe("PostGridCanvas", () => {
 
     it("announces the width it carries, for a reader that cannot see it", () => {
         const wrapper = mountCanvas([zone("a", 24)]);
-        const handle = wrapper.find('[role="slider"]');
+        const handle = wrapper.find('[data-handle="width"]');
 
         expect(handle.attributes("aria-valuenow")).toBe("24");
         expect(handle.attributes("aria-valuemin")).toBe("4");
@@ -353,7 +425,7 @@ describe("PostGridCanvas", () => {
             ]),
         ]);
 
-        expect(wrapper.findAll('[role="slider"]')).toHaveLength(
+        expect(wrapper.findAll('[data-handle="width"]')).toHaveLength(
             1,
             "one for the stack itself, none for what it holds",
         );

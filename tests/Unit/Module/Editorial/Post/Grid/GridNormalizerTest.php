@@ -145,7 +145,7 @@ final class GridNormalizerTest extends TestCase
         ])['zones'][0];
 
         self::assertSame(
-            ['id', 'type', 'span', 'ratio', 'mediaId', 'mediaUrl', 'postId', 'children'],
+            ['id', 'type', 'span', 'offset', 'newRow', 'ratio', 'mediaId', 'mediaUrl', 'postId', 'children'],
             array_keys($zone),
             'switching a zone type in the editor must not lose what was picked',
         );
@@ -266,6 +266,175 @@ final class GridNormalizerTest extends TestCase
 
         self::assertSame('1x1', $layout['zones'][0]['ratio']);
         self::assertArrayNotHasKey('ratio', $content['zones']['a1']);
+    }
+
+    // ── Where a zone sits on its row ──────────────────────────────────────
+
+    public function testAZoneFlowsAfterTheLastOneByDefault(): void
+    {
+        // Row and column, both 1-based like the properties they end up in: two
+        // zones share the first row, and the third has nowhere left to go on it.
+        self::assertSame(
+            [[1, 1], [1, 25], [2, 1]],
+            $this->placeWidths(24, 24, 24),
+        );
+    }
+
+    /**
+     * The first of the two arrangements the flow could not express: one zone,
+     * at the right, with nothing to its left.
+     */
+    public function testAnOffsetPutsAZoneAtTheRightOfAnEmptyRow(): void
+    {
+        $places = $this->place([
+            ['span' => ['lg' => 48]],
+            ['span' => ['lg' => 24], 'offset' => 24],
+        ]);
+
+        self::assertSame([[1, 1], [2, 25]], $places);
+    }
+
+    /**
+     * The second: two zones that would sit side by side, and should not. An
+     * offset cannot say this — pushing the second one right leaves it on the
+     * same row — so it takes a field of its own.
+     */
+    public function testANewRowDropsAZoneBelowOneItWouldFitBeside(): void
+    {
+        $places = $this->place([
+            ['span' => ['lg' => 32]],
+            ['span' => ['lg' => 16], 'newRow' => true],
+        ]);
+
+        self::assertSame([[1, 1], [2, 1]], $places);
+    }
+
+    /**
+     * The case that made the row worth working out at all.
+     *
+     * Left to the browser's auto-placement — which was the first attempt — the
+     * second zone was put beside the first: columns 33 to 48 were free there,
+     * and a grid places an item with a definite column in the first row that
+     * can take it. The break did nothing, silently.
+     */
+    public function testABreakHoldsEvenWhenTheColumnsAreFreeBeside(): void
+    {
+        $places = $this->place([
+            ['span' => ['lg' => 32]],
+            ['span' => ['lg' => 16], 'offset' => 32, 'newRow' => true],
+        ]);
+
+        self::assertSame([[1, 1], [2, 33]], $places);
+    }
+
+    public function testANewRowOnTheFirstZoneChangesNothing(): void
+    {
+        $places = $this->place([
+            ['span' => ['lg' => 24], 'newRow' => true],
+            ['span' => ['lg' => 24]],
+        ]);
+
+        self::assertSame([[1, 1], [1, 25]], $places, 'there is no row to break out of yet');
+    }
+
+    public function testAZoneAfterAnOffsetOneGoesOnFlowingFromIt(): void
+    {
+        $places = $this->place([
+            ['span' => ['lg' => 12], 'offset' => 12],
+            ['span' => ['lg' => 24]],
+        ]);
+
+        self::assertSame([[1, 13], [1, 25]], $places);
+    }
+
+    /**
+     * A row fills from the left, so what is free on it is always its tail: a
+     * column below the mark is taken, and the zone goes to the next row rather
+     * than overlapping the neighbour that holds it.
+     */
+    public function testAnOffsetBehindWhatIsAlreadyPlacedGoesToTheNextRow(): void
+    {
+        $places = $this->place([
+            ['span' => ['lg' => 32]],
+            ['span' => ['lg' => 24], 'offset' => 12],
+        ]);
+
+        self::assertSame([[1, 1], [2, 13]], $places);
+    }
+
+    /**
+     * An offset is bounded by what the zone's own width leaves. Clamped at the
+     * write boundary, so {@see GridNormalizer::place()} can take an asked-for
+     * column at face value.
+     */
+    public function testAnOffsetNeverPushesAZoneOffItsRow(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'a1', 'type' => 'text', 'span' => ['lg' => 24], 'offset' => 40],
+                ['id' => 'a2', 'type' => 'text', 'span' => ['lg' => 48], 'offset' => 12],
+                ['id' => 'a3', 'type' => 'text', 'span' => ['lg' => 24], 'offset' => -8],
+            ],
+        ]);
+
+        self::assertSame(24, $layout['zones'][0]['offset'], 'half a row leaves half a row');
+        self::assertSame(0, $layout['zones'][1]['offset'], 'a full-width zone has nowhere to be pushed to');
+        self::assertSame(0, $layout['zones'][2]['offset']);
+    }
+
+    /**
+     * Both are about a row, and a stack has none: its axis of flow is vertical
+     * and its zones divide a height.
+     */
+    public function testAStackedZoneCarriesNoOffsetAndNoBreak(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [[
+                'id' => 's1',
+                'type' => 'stack',
+                'children' => [
+                    ['id' => 'c1', 'type' => 'text', 'span' => ['lg' => 24], 'offset' => 12, 'newRow' => true],
+                ],
+            ]],
+        ]);
+
+        self::assertSame(0, $layout['zones'][0]['children'][0]['offset']);
+        self::assertFalse($layout['zones'][0]['children'][0]['newRow']);
+    }
+
+    /**
+     * @return list<array{int, int}>
+     */
+    private function placeWidths(int ...$widths): array
+    {
+        return $this->place(array_map(
+            static fn (int $lg): array => ['span' => ['lg' => $lg]],
+            $widths,
+        ));
+    }
+
+    /**
+     * Through the normaliser rather than straight into the walk, so the zones
+     * carry the same clamps a saved layout does.
+     *
+     * @param list<array<string, mixed>> $zones
+     *
+     * @return list<array{int, int}>
+     */
+    private function place(array $zones): array
+    {
+        $prepared = [];
+
+        foreach ($zones as $index => $zone) {
+            $prepared[] = [...$zone, 'id' => 'z'.$index, 'type' => 'text'];
+        }
+
+        $layout = $this->normalizer->normalizeLayout(['zones' => $prepared]);
+
+        return array_map(
+            static fn (array $place): array => [$place['row'], $place['column']],
+            GridNormalizer::place($layout['zones']),
+        );
     }
 
     // ── An address instead of a document ──────────────────────────────────

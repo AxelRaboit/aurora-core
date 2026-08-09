@@ -138,6 +138,22 @@ final readonly class GridViewBuilder
 
         $zones = array_map($resolve, $layout['zones']);
 
+        // Applied after the zones are resolved rather than inside the walk,
+        // because where a zone lands is a fact about the row it shares and not
+        // about the zone: it cannot be known while resolving one at a time.
+        //
+        // Large screen only. Below that breakpoint every zone is full width, so
+        // there is nothing to arrange, and the stylesheet reads an unset
+        // property as `auto` — which is the plain flow this started as, and
+        // what a theme that never emits this still gets.
+        foreach (GridNormalizer::place($layout['zones']) as $index => $place) {
+            $zones[$index]['startStyle'] = sprintf(
+                '--row-lg: %d; --start-lg: %d;',
+                $place['row'],
+                $place['column'],
+            );
+        }
+
         return [
             ...$layout,
             'zones' => $zones,

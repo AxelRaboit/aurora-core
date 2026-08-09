@@ -57,6 +57,7 @@ const {
     typeOptions,
     leafTypeOptions,
     widthOptions,
+    offsetOptions,
     shareOptions,
     ratioOptions,
     childrenOf,
@@ -110,6 +111,11 @@ const selectedIndex = ref(null);
 /** The canvas hands back an unrounded width; the one clamp lives downstream. */
 function resizeZone(index, columns) {
     zoneFields(index).width.value = columns;
+}
+
+/** Same arrangement for the offset handle: unrounded here, clamped downstream. */
+function offsetZone(index, columns) {
+    zoneFields(index).offset.value = columns;
 }
 
 // The moved zone leaves the row and lands inside the stack, so the selection
@@ -212,6 +218,7 @@ function moveSelectedAware(index, offset) {
                 :type-options="typeOptions"
                 :can-add="canAddZone"
                 v-on:resize="resizeZone"
+                v-on:offset="offsetZone"
                 v-on:add="addAndSelect"
                 v-on:swap="swapZones"
                 v-on:move-into="moveIntoStack"
@@ -330,6 +337,33 @@ function moveSelectedAware(index, offset) {
                             />
                         </div>
                     </details>
+                </div>
+
+                <!-- Where a zone sits on its row, as opposed to how much of
+                     it it takes. Both only exist above the large breakpoint,
+                     which is also the only place the canvas above draws rows —
+                     below it every zone is full width and there is nothing to
+                     push against.
+
+                     Beneath the width on purpose: an offset is bounded by what
+                     the width leaves, so the two read in the order they have to
+                     be set in. -->
+                <div class="space-y-1.5">
+                    <AppChoiceRow
+                        v-model="zoneFields(index).offset.value"
+                        :label="t('backend.posts.grid.offset')"
+                        :hint="t('backend.posts.grid.offset_hint')"
+                        :options="offsetOptions"
+                    />
+                    <!-- The one arrangement an offset cannot express: a zone
+                         that would fit beside its neighbour and should not.
+                         Pushing it right leaves it on the same row; this is
+                         what sends it below. -->
+                    <AppToggle
+                        v-model="zoneFields(index).newRow.value"
+                        :label="t('backend.posts.grid.new_row')"
+                        :hint="t('backend.posts.grid.new_row_hint')"
+                    />
                 </div>
 
                 <!-- A stack holds zones instead of content, so it shows them

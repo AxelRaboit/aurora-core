@@ -305,7 +305,7 @@ backend:
       canvas: Layout
       canvas_empty: "No zone yet — add one below and it appears here."
       pick_zone: "Click a zone above to edit what it holds."
-      canvas_hint: "Drag a zone's right edge to set how wide it is, or focus it and use the arrow keys. Widths are the ones used on a large screen; below that a zone is always full width."
+      canvas_hint: "Drag a zone's right edge to set how wide it is, its left edge to push it rightwards; the arrow keys do the same from the keyboard. These are the large-screen settings; below that a zone is always full width."
       resize_zone: "Width of the “{zone}” zone"
       snap: Snap step
       snap_hint: "How finely a width can be set. Changing the step does not move zones already placed."
@@ -348,6 +348,14 @@ backend:
         3x4: Portrait
         fill: Fill
       zone_image: Zone image
+      offset: Left offset
+      offset_hint: "Columns left empty before the zone, on a large screen. Use it to sit a zone at the right of an otherwise empty row."
+      offset_zone: "Offset the {zone} zone"
+      offset_label: "{columns} empty columns of {total}"
+      offsets:
+        none: None
+      new_row: Start a new row
+      new_row_hint: Drops the zone below the previous one, even when it would fit beside it.
       zone_image_url: Image address
       zone_image_url_hint: "Used only when no image is picked above. Handy for a stand-in; a picture hosted elsewhere can disappear, and its host sees your visitors go by."
       zone_alt: Alt text

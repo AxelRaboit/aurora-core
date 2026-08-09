@@ -52,7 +52,7 @@ const props = defineProps({
     canAdd: { type: Boolean, default: true },
 });
 
-const emit = defineEmits(["update:selectedIndex", "resize", "add", "swap", "moveInto", "moveOut"]);
+const emit = defineEmits(["update:selectedIndex", "resize", "offset", "add", "swap", "moveInto", "moveOut"]);
 
 const { t } = useI18n();
 
@@ -72,6 +72,28 @@ const placements = computed(() => placeZones(props.zones));
 
 function widthOf(index) {
     return props.zones[index]?.span?.lg ?? COLUMNS;
+}
+
+function offsetOf(index) {
+    return props.zones[index]?.offset ?? 0;
+}
+
+/**
+ * The item's own placement, as the custom properties `.aurora-grid` reads.
+ *
+ * All three go into the `-base` slot for the same reason the width does: the
+ * real chain only applies the large-screen values above a 1024px viewport, and
+ * this panel is usually read in a narrower window. What an author edits is the
+ * large-screen arrangement, so the canvas draws that one at any panel width.
+ */
+function styleOf(index) {
+    const at = placements.value[index];
+
+    return {
+        "--span-base": widthOf(index),
+        "--row-base": at?.row ?? "auto",
+        "--start-base": at?.column ?? "auto",
+    };
 }
 
 /**
@@ -120,13 +142,42 @@ function resizeFromPointer(index, clientX) {
 
     const column = ((clientX - rect.left) / rect.width) * COLUMNS;
 
-    emit("resize", index, column - placements.value[index].start);
+    // `column` on a placement is 1-based, like `grid-column`; the pointer's is
+    // measured from zero. Subtracting the two without this reads every width a
+    // column too wide.
+    emit("resize", index, column - (placements.value[index].column - 1));
 }
 
-function onPointerDown(index, event) {
+/**
+ * The column the pointer is over, taken as the column the zone should start on.
+ *
+ * The left handle pushes rather than resizes: the width is left alone and only
+ * the gap before the zone changes. Resizing from the left would move two things
+ * with one gesture — where the zone starts and how wide it is — and there is
+ * already a handle for the second.
+ *
+ * Measured from the grid's left edge because that is where a row begins, which
+ * is what an offset counts from. The clamp to what the row can still hold lives
+ * in usePostGrid, beside the one the width goes through.
+ */
+function offsetFromPointer(index, clientX) {
+    const rect = gridEl.value?.getBoundingClientRect();
+
+    if (!rect?.width) {
+        return;
+    }
+
+    emit("offset", index, ((clientX - rect.left) / rect.width) * COLUMNS);
+}
+
+/** Which handle a pointer gesture is holding — `null`, or `resize` / `offset`. */
+const draggingKind = ref(null);
+
+function onPointerDown(index, event, kind = "resize") {
     // Stops the drag from selecting the labels it passes over.
     event.preventDefault();
     dragging.value = index;
+    draggingKind.value = kind;
     // Optional because jsdom has no pointer capture, and a canvas that throws
     // in its own test is a canvas nobody tests.
     event.currentTarget.setPointerCapture?.(event.pointerId);
@@ -138,11 +189,18 @@ function onPointerMove(index, event) {
         return;
     }
 
+    if ("offset" === draggingKind.value) {
+        offsetFromPointer(index, event.clientX);
+
+        return;
+    }
+
     resizeFromPointer(index, event.clientX);
 }
 
 function onPointerUp(event) {
     dragging.value = null;
+    draggingKind.value = null;
 
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
@@ -326,6 +384,32 @@ function onKeydown(index, event) {
     event.preventDefault();
     emit("resize", index, asked);
 }
+
+/**
+ * The offset handle answers to the keyboard too, and for the same reason the
+ * width one does: a gesture that only exists as a drag is a gesture some people
+ * cannot make. End is the far right — as far as the zone's own width allows,
+ * which usePostGrid works out.
+ */
+function onOffsetKeydown(index, event) {
+    const offset = offsetOf(index);
+
+    const asked = {
+        ArrowLeft: offset - props.snap,
+        ArrowRight: offset + props.snap,
+        ArrowDown: offset - props.snap,
+        ArrowUp: offset + props.snap,
+        Home: 0,
+        End: COLUMNS,
+    }[event.key];
+
+    if (undefined === asked) {
+        return;
+    }
+
+    event.preventDefault();
+    emit("offset", index, asked);
+}
 </script>
 
 <template>
@@ -369,7 +453,7 @@ function onKeydown(index, event) {
                         v-for="(zone, index) in zones"
                         :key="zone.id"
                         class="relative"
-                        :style="{ '--span-base': widthOf(index) }"
+                        :style="styleOf(index)"
                     >
                         <button
                             type="button"
@@ -481,11 +565,36 @@ function onKeydown(index, event) {
                             </div>
                         </button>
 
+                        <!-- Pushes the zone right, leaving the columns behind
+                         it empty. Its own handle rather than a modifier on the
+                         width one, because they answer different questions and
+                         a zone can want either without the other. -->
+                        <button
+                            type="button"
+                            role="slider"
+                            data-handle="offset"
+                            aria-orientation="horizontal"
+                            :aria-label="t('backend.posts.grid.offset_zone', { zone: labelOf(zone) })"
+                            :aria-valuemin="0"
+                            :aria-valuemax="COLUMNS - widthOf(index)"
+                            :aria-valuenow="offsetOf(index)"
+                            :aria-valuetext="t('backend.posts.grid.offset_label', { columns: offsetOf(index), total: COLUMNS })"
+                            class="absolute inset-y-0 left-1 flex w-3 cursor-col-resize touch-none items-center justify-center rounded-l-md text-muted hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                            v-on:pointerdown="onPointerDown(index, $event, 'offset')"
+                            v-on:pointermove="onPointerMove(index, $event)"
+                            v-on:pointerup="onPointerUp"
+                            v-on:pointercancel="onPointerUp"
+                            v-on:keydown="onOffsetKeydown(index, $event)"
+                        >
+                            <GripVertical class="w-3 h-3" :stroke-width="2" />
+                        </button>
+
                         <!-- Sits inside the item's padding, so it lands on the box
                          edge rather than in the gutter between two zones. -->
                         <button
                             type="button"
                             role="slider"
+                            data-handle="width"
                             aria-orientation="horizontal"
                             :aria-label="t('backend.posts.grid.resize_zone', { zone: labelOf(zone) })"
                             :aria-valuemin="snap"

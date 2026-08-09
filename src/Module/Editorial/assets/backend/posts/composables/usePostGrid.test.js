@@ -179,6 +179,44 @@ describe("usePostGrid", () => {
         expect(layout.value.zones[0].alt).toBeUndefined();
     });
 
+    it("treats where a zone sits as arrangement, not content", () => {
+        const { layout, content, api } = make();
+
+        api.addZone("text");
+        api.zoneFields(0).offset.value = 12;
+        api.zoneFields(0).newRow.value = true;
+
+        const id = layout.value.zones[0].id;
+
+        expect(layout.value.zones[0].offset).toBe(12);
+        expect(layout.value.zones[0].newRow).toBe(true);
+        expect(content.value.zones[id]).not.toHaveProperty("offset");
+    });
+
+    // Zero has to survive the snap, whose floor is the step: an offset rounded
+    // up to 4 would leave no way back to the flow.
+    it("lets an offset go back to nothing", () => {
+        const { layout, api } = make();
+
+        api.addZone("text");
+        api.zoneFields(0).offset.value = 12;
+        api.zoneFields(0).offset.value = 0;
+
+        expect(layout.value.zones[0].offset).toBe(0);
+    });
+
+    // Otherwise the server, which clamps on the way in, would hand back a
+    // layout the editor never showed.
+    it("gives back an offset the row can no longer hold when a zone widens", () => {
+        const { layout, api } = make();
+
+        api.addZone("text");
+        api.zoneFields(0).offset.value = 24;
+        api.zoneFields(0).width.value = 48;
+
+        expect(layout.value.zones[0].offset).toBe(0);
+    });
+
     // Deliberately the other way round from the video address just below: a
     // video is localised, a picture is the same picture in every language and
     // only its description changes.
@@ -743,60 +781,136 @@ describe("usePostGrid", () => {
 });
 
 describe("placeZones", () => {
-    const place = (...widths) =>
-        placeZones(widths.map((lg) => ({ span: { base: 48, md: null, lg } })));
+    const at = (...zones) =>
+        placeZones(zones).map((place) => [place.row, place.column]);
+
+    const widths = (...lg) =>
+        at(
+            ...lg.map((columns) => ({
+                span: { base: 48, md: null, lg: columns },
+            })),
+        );
 
     it("lays a row out left to right", () => {
-        expect(place(24, 16, 8)).toEqual([
-            { row: 0, start: 0 },
-            { row: 0, start: 24 },
-            { row: 0, start: 40 },
+        expect(widths(24, 16, 8)).toEqual([
+            [1, 1],
+            [1, 25],
+            [1, 41],
         ]);
     });
 
     it("starts a new row for a zone that does not fit in what is left", () => {
-        expect(place(32, 32)).toEqual([
-            { row: 0, start: 0 },
-            { row: 1, start: 0 },
+        expect(widths(32, 32)).toEqual([
+            [1, 1],
+            [2, 1],
         ]);
     });
 
     it("never backfills the gap a wrap leaves behind", () => {
-        // A grid with `dense` would slot the 16 into the 16 columns left on row
-        // zero. `.aurora-grid` does not set it, so the browser carries on where
-        // the cursor is — and this arithmetic has to agree, or the canvas draws
-        // one layout while the page renders another.
-        expect(place(32, 32, 16)).toEqual([
-            { row: 0, start: 0 },
-            { row: 1, start: 0 },
-            { row: 1, start: 32 },
+        // A grid with `dense` would slot the 16 into the 16 columns left on the
+        // first row. `.aurora-grid` does not set it, and neither does this.
+        expect(widths(32, 32, 16)).toEqual([
+            [1, 1],
+            [2, 1],
+            [2, 33],
         ]);
     });
 
     it("fills a row exactly without spilling to the next", () => {
-        expect(place(24, 24, 24)).toEqual([
-            { row: 0, start: 0 },
-            { row: 0, start: 24 },
-            { row: 1, start: 0 },
+        expect(widths(24, 24, 24)).toEqual([
+            [1, 1],
+            [1, 25],
+            [2, 1],
         ]);
     });
 
     it("reads the large-screen width, not the one a phone gets", () => {
-        const zones = [
-            { span: { base: 48, md: null, lg: 24 } },
-            { span: { base: 48, md: null, lg: 24 } },
-        ];
-
-        expect(placeZones(zones)).toEqual([
-            { row: 0, start: 0 },
-            { row: 0, start: 24 },
+        expect(
+            at(
+                { span: { base: 48, md: null, lg: 24 } },
+                { span: { base: 48, md: null, lg: 24 } },
+            ),
+        ).toEqual([
+            [1, 1],
+            [1, 25],
         ]);
     });
 
     it("treats a zone with no width of its own as full width", () => {
-        expect(placeZones([{}, {}])).toEqual([
-            { row: 0, start: 0 },
-            { row: 1, start: 0 },
+        expect(at({}, {})).toEqual([
+            [1, 1],
+            [2, 1],
+        ]);
+    });
+
+    // ── The two arrangements the flow alone could not express ─────────────
+
+    it("puts an offset zone at the right of an otherwise empty row", () => {
+        expect(
+            at({ span: { lg: 48 } }, { span: { lg: 24 }, offset: 24 }),
+        ).toEqual([
+            [1, 1],
+            [2, 25],
+        ]);
+    });
+
+    it("drops a zone below one it would have fitted beside", () => {
+        expect(
+            at({ span: { lg: 32 } }, { span: { lg: 16 }, newRow: true }),
+        ).toEqual([
+            [1, 1],
+            [2, 1],
+        ]);
+    });
+
+    /**
+     * The case that made the row worth naming at all. Left to auto-placement
+     * the second zone was put beside the first, because columns 33 to 48 were
+     * free there and a grid places a definite column in the first row that can
+     * take it — so the break did nothing.
+     */
+    it("holds a break even when the columns are free beside the neighbour", () => {
+        expect(
+            at(
+                { span: { lg: 32 } },
+                { span: { lg: 16 }, offset: 32, newRow: true },
+            ),
+        ).toEqual([
+            [1, 1],
+            [2, 33],
+        ]);
+    });
+
+    it("goes on flowing from where an offset zone ends", () => {
+        expect(
+            at({ span: { lg: 12 }, offset: 12 }, { span: { lg: 24 } }),
+        ).toEqual([
+            [1, 13],
+            [1, 25],
+        ]);
+    });
+
+    it("ignores a break asked for by the first zone", () => {
+        expect(
+            at({ span: { lg: 24 }, newRow: true }, { span: { lg: 24 } }),
+        ).toEqual([
+            [1, 1],
+            [1, 25],
+        ]);
+    });
+
+    // Mirrors GridNormalizer::clampOffset. The canvas draws what a drag is
+    // asking for before anything is saved, so it has to bound it the same way
+    // the server will.
+    it("never pushes a zone off the row it sits on", () => {
+        expect(
+            at(
+                { span: { lg: 24 }, offset: 40 },
+                { span: { lg: 48 }, offset: 12 },
+            ),
+        ).toEqual([
+            [1, 25],
+            [2, 1],
         ]);
     });
 });

@@ -40,8 +40,29 @@
     column-gap: 0;
 }
 
+/*
+ * `--start-*` is the column an item begins on and `--row-*` the row, both
+ * 1-based. Together they are what lets a zone sit at the right of an otherwise
+ * empty row, or drop below a neighbour it would have fitted beside. Left
+ * unset — which is the case for every item the banner places, and for a grid
+ * rendered by a theme that predates this — both resolve to `auto` and the item
+ * flows after the previous one exactly as before.
+ *
+ * This is **not** authoring in coordinates. An author still works in one
+ * sequence: add a zone, set its width, reorder. The row and column are worked
+ * out from that sequence, by the same arithmetic on the server and in the
+ * editor's canvas — see GridNormalizer::place. Deriving them rather than
+ * leaving them to auto-placement is what makes a break honour itself: a zone
+ * asked to start a new row while the columns it wants are still free beside its
+ * neighbour would otherwise be placed there, silently.
+ *
+ * Nothing is emitted below the large breakpoint, where every zone is full width
+ * and there is no arrangement to hold — which is also why a phone needs no
+ * answer to any of this.
+ */
 .aurora-grid > * {
-    grid-column: span var(--span-base, 48);
+    grid-row: var(--row-base, auto);
+    grid-column: var(--start-base, auto) / span var(--span-base, 48);
     padding-inline: var(--aurora-gutter, 1rem);
 }
 
@@ -61,12 +82,16 @@
 
 @media (min-width: 768px) {
     .aurora-grid > * {
-        grid-column: span var(--span-md, var(--span-base, 48));
+        grid-row: var(--row-md, var(--row-base, auto));
+        grid-column: var(--start-md, var(--start-base, auto)) /
+            span var(--span-md, var(--span-base, 48));
     }
 }
 
 @media (min-width: 1024px) {
     .aurora-grid > * {
-        grid-column: span var(--span-lg, var(--span-md, var(--span-base, 48)));
+        grid-row: var(--row-lg, var(--row-md, var(--row-base, auto)));
+        grid-column: var(--start-lg, var(--start-md, var(--start-base, auto))) /
+            span var(--span-lg, var(--span-md, var(--span-base, 48)));
     }
 }
