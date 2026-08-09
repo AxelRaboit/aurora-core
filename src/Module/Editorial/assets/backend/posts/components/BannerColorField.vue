@@ -27,6 +27,13 @@ const emit = defineEmits(["update:modelValue"]);
 
 const { t } = useI18n();
 
+/** Says out loud what the dimming says visually, for anyone not seeing it. */
+const state = computed(() =>
+    props.modelValue
+        ? props.modelValue
+        : t("backend.posts.banner.color_unset"),
+);
+
 // The field wants a string; the model stores null for "inherit".
 const value = computed({
     get: () => props.modelValue ?? "",
@@ -36,7 +43,18 @@ const value = computed({
 
 <template>
     <div class="flex items-end gap-2">
-        <AppColorField v-model="value" :label="label" class="flex-1" />
+        <!-- An `<input type="color">` cannot hold nothing: handed an empty
+             value it shows black, so an unset stop looked like a chosen one and
+             a gradient that renders nothing looked like a gradient from red to
+             black. Dimming it is what separates "black" from "not set" without
+             replacing the native picker. -->
+        <AppColorField
+            v-model="value"
+            :label="label"
+            class="flex-1"
+            :class="modelValue ? '' : 'opacity-50'"
+        />
+        <span class="sr-only">{{ label }} — {{ state }}</span>
         <AppIconButton
             v-if="modelValue"
             color="default"

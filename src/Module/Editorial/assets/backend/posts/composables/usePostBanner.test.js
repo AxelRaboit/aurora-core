@@ -245,3 +245,53 @@ describe("usePostBanner", () => {
         );
     });
 });
+
+describe("fillWarning", () => {
+    /**
+     * The defect this exists for: a gradient saved with one stop rendered a
+     * header with no background at all, and its white text vanished into the
+     * white panel. The renderer is right to refuse a half-finished gradient
+     * rather than guess the other end — it just said nothing about it.
+     */
+    it("says which half of a gradient is missing", () => {
+        const { layout, api } = make();
+
+        const { fields } = api;
+
+        fields.fillType.value = "gradient";
+        fields.gradientFrom.value = "#ff6161";
+
+        expect(layout.value.background.gradientTo).toBeNull();
+        expect(api.fillWarning.value).toBe(
+            "backend.posts.banner.fill_needs_both_stops",
+        );
+
+        fields.gradientTo.value = "#000000";
+
+        expect(api.fillWarning.value).toBeNull();
+    });
+
+    it("says the same of a solid with no colour", () => {
+        const { api } = make();
+
+        api.fields.fillType.value = "solid";
+
+        expect(api.fillWarning.value).toBe(
+            "backend.posts.banner.fill_needs_color",
+        );
+
+        api.fields.backgroundColor.value = "#123456";
+
+        expect(api.fillWarning.value).toBeNull();
+    });
+
+    // It answers only for a fill that will not draw — a picture or "none" has
+    // nothing to be incomplete about.
+    it("has nothing to say when there is no fill to complete", () => {
+        const { api } = make();
+
+        api.fields.fillType.value = "none";
+
+        expect(api.fillWarning.value).toBeNull();
+    });
+});

@@ -60,6 +60,7 @@ const {
     isSolidFill,
     isGradientFill,
     fillPreviewStyle,
+    fillWarning,
     fields,
     itemFields,
 } = usePostBanner(
@@ -312,6 +313,15 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                             :style="fillPreviewStyle"
                         />
                     </div>
+
+                    <!-- The renderer refuses an incomplete fill rather than
+                         guessing the missing half, which is right — and silent.
+                         A header that draws nothing, with white text on a white
+                         panel, reads as the editor being broken. This says
+                         which half is missing. -->
+                    <p v-if="fillWarning" class="text-xs text-amber-600 dark:text-amber-500">
+                        {{ fillWarning }}
+                    </p>
 
                     <BannerColorField
                         v-if="isSolidFill"

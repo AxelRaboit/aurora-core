@@ -250,6 +250,34 @@ export function usePostBanner(layout, texts) {
      * spares an author from saving just to find out which way the gradient
      * runs — the panel has no preview of the banner itself yet.
      */
+    /**
+     * Why the fill will not render, when it will not.
+     *
+     * `fillPreviewStyle` already knows — it answers null for a solid with no
+     * colour and for a gradient missing a stop — but a 64×36 swatch that turns
+     * blank is not an explanation. The renderer refuses an incomplete fill on
+     * purpose, so that nobody's half-finished gradient is guessed at; the cost
+     * is a header that draws nothing, and white text on a white panel reads as
+     * the editor being broken rather than as a choice left unfinished.
+     *
+     * Reported here rather than in the SFC because it is the same rule the
+     * preview swatch runs on, and two copies of a rule are two places to drop
+     * it. Null when there is nothing to say.
+     */
+    const fillWarning = computed(() => {
+        const { type, color, gradientFrom, gradientTo } = background();
+
+        if ("solid" === type && !color) {
+            return t("backend.posts.banner.fill_needs_color");
+        }
+
+        if ("gradient" === type && !(gradientFrom && gradientTo)) {
+            return t("backend.posts.banner.fill_needs_both_stops");
+        }
+
+        return null;
+    });
+
     const fillPreviewStyle = computed(() => {
         const { type, color, gradientFrom, gradientTo, gradientAngle } =
             background();
@@ -358,6 +386,7 @@ export function usePostBanner(layout, texts) {
         isSolidFill,
         isGradientFill,
         fillPreviewStyle,
+        fillWarning,
         fields,
         itemFields,
     };

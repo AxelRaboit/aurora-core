@@ -193,6 +193,9 @@ backend:
         full_aligned: Full width, content aligned
         full: Full width, flush with the bar
       height: Height
+      fill_needs_color: "Pick a colour, or the header draws no background at all."
+      fill_needs_both_stops: "A gradient needs both of its colours. While one is missing the header draws no background — and white text is lost on it."
+      color_unset: no colour
       clear_color: Clear colour
       empty: Nothing yet. Add a text or an image.
       add_text: Add a text
