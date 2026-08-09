@@ -10,7 +10,7 @@ use Aurora\Core\Storage\Service\PdfThumbnailGenerator;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Service\SettingsService;
 use Aurora\Module\Ged\Document\Entity\Document;
-use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory;
+use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolder;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTag;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
@@ -186,14 +186,21 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['name' => 'Qualité & Conformité',     'slug' => 'qualite-conformite',     'desc' => 'Politiques qualité, audits et certifications.'],
         ];
         $categories = [];
-        $categoryRepository = $em->getRepository(DocumentCategory::class);
+        // Through the interface, not the concrete class. A client may map
+        // `DocumentCategoryInterface` onto its own entity — that is the whole
+        // extensibility convention — and Doctrine then refuses an Aurora
+        // `DocumentCategory` for the association, with an error that names two
+        // classes and no reason. `getClassName()` gives back whichever one this
+        // installation actually resolved to.
+        $categoryRepository = $em->getRepository(DocumentCategoryInterface::class);
+        $categoryClass = $categoryRepository->getClassName();
 
         foreach ($catDefs as $def) {
             // Reused when the slug is already taken, so `make demo` can run on
             // a database that already has demo data. It used to always insert
             // and die on the unique slug — after the target had purged
             // var/uploads, which left the pictures gone and the rows unchanged.
-            $c = $categoryRepository->findOneBy(['slug' => $def['slug']]) ?? new DocumentCategory();
+            $c = $categoryRepository->findOneBy(['slug' => $def['slug']]) ?? new $categoryClass();
             $c->setName($def['name'])->setSlug($def['slug'])->setDescription($def['desc']);
             $em->persist($c);
             $categories[] = $c;
