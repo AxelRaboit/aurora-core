@@ -297,6 +297,34 @@ backend:
     content: Content
     content_placeholder: 'Write, or press Tab for a block…'
     custom_fields: Custom fields
+    grid:
+      title: Content grid
+      enabled: Use a content grid
+      disabled_hint: "Off — the publication keeps its usual content column. Turning this on replaces it with zones laid out on a 48-column grid."
+      snap: Snap step
+      snap_hint: "How finely a width can be set. Changing the step does not move zones already placed."
+      snaps:
+        4: Twelfths (4 columns)
+        2: Twenty-fourths (2 columns)
+        1: Column by column
+      width: Width
+      width_label: "{columns} of {total} columns"
+      translated_fields: "Content — {locale}"
+      zone_types:
+        text: Text
+        media: Image
+        post: Publication
+        video: Video
+      zone_image: Zone image
+      zone_alt: Alt text
+      zone_caption: Caption
+      zone_post: Publication to show
+      zone_post_hint: "Picked from the related publications. It appears in the language of the page, so this choice applies to all of them."
+      zone_video: Video address
+      zone_video_hint: "YouTube, Vimeo or Dailymotion. Any other address renders as a link rather than a player."
+      move_up: Move up
+      move_down: Move down
+      remove_zone: Remove zone
     identity_hint: "Used to find this publication in the list and on any card that presents it. They also head the page itself, but only when the custom header carries no title."
     seo: Search engines
     tabs:

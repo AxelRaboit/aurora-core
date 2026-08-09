@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePostEditor } from "./composables/usePostEditor.js";
 import { useTabState } from "@/shared/composables/useTabState.js";
@@ -14,6 +15,7 @@ import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import PostBannerPanel from "./components/PostBannerPanel.vue";
+import PostGridPanel from "./components/PostGridPanel.vue";
 import { Save, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-vue-next";
 
 const { t } = useI18n();
@@ -78,6 +80,18 @@ const STATUS_COLORS = {
     published: "emerald",
     archived: "zinc",
 };
+
+/**
+ * What a `post` zone may link to. The editor already receives the related
+ * publications it can reference, which is the same list — asking the server
+ * for a second one would be a query for a list it already sent.
+ */
+const relatedPostOptions = computed(() =>
+    (props.post?.relatedPosts ?? []).map((related) => ({
+        id: related.id,
+        title: related.title,
+    })),
+);
 
 function termLabel(term) {
     return term.translations?.[props.locales[0]]?.name ?? `#${term.id}`;
@@ -170,6 +184,20 @@ function termLabel(term) {
 
                 <div v-show="isTabActive('content')" class="space-y-4">
                     <div v-if="supportsBlocks" class="bg-surface border border-line rounded-xl p-5 space-y-3">
+                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.grid.title") }}</h3>
+                        <!-- Above the plain column because it replaces it: a
+                             grid that is switched on is what the page renders,
+                             and the column below is then dead weight the
+                             author should see is unused. -->
+                        <PostGridPanel
+                            :layout="form.gridLayout"
+                            :content="current.grid"
+                            :locale="locale"
+                            :post-options="relatedPostOptions"
+                        />
+                    </div>
+
+                    <div v-if="supportsBlocks && !form.gridLayout.enabled" class="bg-surface border border-line rounded-xl p-5 space-y-3">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.content") }}</h3>
                         <AppBlockEditor v-model="current.blocks" :placeholder="t('backend.posts.content_placeholder')" />
                     </div>

@@ -1,4 +1,4 @@
-import { computed, provide, ref } from "vue";
+import { computed, nextTick, provide, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -38,6 +38,20 @@ export function emptyBannerTexts() {
     return { items: {} };
 }
 
+/**
+ * The content grid's arrangement. Like the banner's, it sits on the post so
+ * every language shows the same layout — see GridNormalizer for why each field
+ * is on the side it is.
+ */
+export function emptyGridLayout() {
+    return { enabled: false, snap: 4, zones: [] };
+}
+
+/** What fills each zone, keyed by the id of the zone on the post. */
+export function emptyGridContent() {
+    return { zones: {} };
+}
+
 function emptyTranslation() {
     return {
         title: "",
@@ -45,6 +59,7 @@ function emptyTranslation() {
         description: "",
         blocks: [],
         banner: emptyBannerTexts(),
+        grid: emptyGridContent(),
         metaTitle: "",
         metaDescription: "",
         customFields: {},
@@ -63,6 +78,13 @@ function translationFrom(source) {
     // array, would leave `items` undefined and every text field unbindable.
     translation.banner = {
         items: translation.banner?.items ?? {},
+    };
+
+    // Same guard as the banner above: a translation saved before the grid
+    // existed, or one the server sent as an empty array, would leave `zones`
+    // undefined and every field unbindable.
+    translation.grid = {
+        zones: translation.grid?.zones ?? {},
     };
 
     return translation;
@@ -93,6 +115,10 @@ export function usePostEditor(props) {
         bannerLayout: {
             ...emptyBannerLayout(),
             ...(props.post?.bannerLayout ?? {}),
+        },
+        gridLayout: {
+            ...emptyGridLayout(),
+            ...(props.post?.gridLayout ?? {}),
         },
         termIds: [...(props.post?.termIds ?? [])],
         relatedPostIds: [...(props.post?.relatedPostIds ?? [])],
@@ -128,24 +154,32 @@ export function usePostEditor(props) {
     );
     const customFieldDefinitions = computed(() => postType.value?.fields ?? []);
 
-    // One editor instance for every locale: remounting it per tab loses the
-    // undo stack and flickers. The parent drives it instead — flush what the
-    // outgoing locale holds, render what the incoming one does.
-    let flushEditor = null;
-    let renderEditor = null;
-    provide("registerEditorFlush", (fn) => {
-        flushEditor = fn;
+    // One editor instance per locale, not one per tab: remounting loses the
+    // undo stack and flickers. The parent drives them instead — flush what the
+    // outgoing locale holds, then let each re-read what the incoming one does.
+    //
+    // A set rather than one callback. With the content grid a page can hold
+    // several editors, and a single slot would have kept only the last to
+    // mount — every other zone's text lost on save, silently.
+    const editors = new Set();
+    provide("registerEditor", (handlers) => {
+        editors.add(handlers);
+
+        return () => editors.delete(handlers);
     });
-    provide("registerEditorRender", (fn) => {
-        renderEditor = fn;
-    });
+
+    async function flushEditors() {
+        await Promise.all([...editors].map((editor) => editor.flush()));
+    }
 
     async function switchLocale(next) {
         if (next === locale.value) return;
 
-        if (flushEditor) await flushEditor();
+        await flushEditors();
         locale.value = next;
-        if (renderEditor) await renderEditor(current.value.blocks);
+        // After the swap, so each one reads the incoming translation.
+        await nextTick();
+        await Promise.all([...editors].map((editor) => editor.render()));
     }
 
     function payload(force = false) {
@@ -163,9 +197,9 @@ export function usePostEditor(props) {
     async function save(force = false) {
         if (saving.value) return;
 
-        // The editor holds the current locale's blocks in its own state; without
-        // this the last edits before pressing save are simply not in the payload.
-        if (flushEditor) await flushEditor();
+        // Each editor holds its own blocks in its own state; without this the
+        // last edits before pressing save are simply not in the payload.
+        await flushEditors();
 
         saving.value = true;
         clearErrors();

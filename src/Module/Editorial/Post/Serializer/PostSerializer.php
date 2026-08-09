@@ -8,6 +8,7 @@ use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
+use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use DateTimeInterface;
@@ -20,6 +21,7 @@ class PostSerializer implements PostSerializerInterface
         protected readonly LocaleContextInterface $localeContext,
         protected readonly DocumentUrlGenerator $documentUrlGenerator,
         protected readonly BannerViewBuilder $bannerViewBuilder,
+        protected readonly GridViewBuilder $gridViewBuilder,
     ) {}
 
     public function serializeReference(PostInterface $post): array
@@ -79,6 +81,14 @@ class PostSerializer implements PostSerializerInterface
             // preview the image it already holds rather than just its id.
             // Texts are left out: they belong to whichever locale is open.
             'bannerLayout' => $this->bannerViewBuilder->buildForEditor($post->getBannerLayout(), []),
+            // Same treatment for the grid: resolved so a picker can preview the
+            // image it already holds rather than just its id, and content left
+            // out because it belongs to whichever locale is open.
+            'gridLayout' => $this->gridViewBuilder->buildForEditor(
+                $post->getGridLayout(),
+                [],
+                $this->localeContext->getDefaultLocale(),
+            ),
             'translations' => $translations,
             'relatedPosts' => array_map(
                 $this->serializeReference(...),
@@ -125,6 +135,7 @@ class PostSerializer implements PostSerializerInterface
             // switching locale in the editor swaps the copy and leaves the
             // layout standing — which is the whole point of the split.
             'banner' => $translation->getBanner(),
+            'grid' => $translation->getGrid(),
             'description' => $translation->getDescription(),
             'metaTitle' => $translation->getMetaTitle(),
             'metaDescription' => $translation->getMetaDescription(),

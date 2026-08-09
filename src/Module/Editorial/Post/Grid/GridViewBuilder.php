@@ -8,7 +8,6 @@ use Aurora\Core\Content\ContentValueNormalizer;
 use Aurora\Core\Content\VideoEmbedResolver;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
-use Aurora\Module\Editorial\Post\Serializer\PostSerializerInterface;
 use Aurora\Module\Editorial\Post\Service\BlocksRenderer;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
@@ -38,7 +37,6 @@ final readonly class GridViewBuilder
         private DocumentRepository $documentRepository,
         private DocumentUrlGenerator $documentUrlGenerator,
         private PostRepository $postRepository,
-        private PostSerializerInterface $postSerializer,
         private BlocksRenderer $blocksRenderer,
         private VideoEmbedResolver $videoEmbedResolver,
     ) {}
@@ -189,6 +187,12 @@ final readonly class GridViewBuilder
      * which is why the id is shared and this is not: the post carries its own
      * translations and picking the right one is the renderer's job.
      *
+     * Built here rather than through PostSerializer, for two reasons. It would
+     * be a circular dependency — the serialiser calls this builder to hand the
+     * editor a resolved layout. And `serializeCard` computes terms and custom
+     * fields, which cost queries and which a grid card does not show: six
+     * fields is the whole of it.
+     *
      * @return array<string, mixed>|null null when the post is gone, trashed,
      *                                   or has nothing written in this locale
      */
@@ -198,12 +202,28 @@ final readonly class GridViewBuilder
             return null;
         }
 
-        $card = $this->postSerializer->serializeCard($post, $locale);
+        $translation = $post->getTranslation($locale);
+        $featured = $post->getFeaturedMedia();
 
         // A card with no title and no address is a link to nowhere. That is
         // what an untranslated publication looks like, and it should leave a
         // gap rather than an empty box.
-        return null !== $card['title'] && null !== $card['slug'] ? $card : null;
+        if (null === $translation?->getTitle() || null === $translation->getSlug()) {
+            return null;
+        }
+
+        return [
+            'id' => $post->getId(),
+            'title' => $translation->getTitle(),
+            'slug' => $translation->getSlug(),
+            // The description, never the meta description: that one is written
+            // for a search snippet and cut around 160 characters.
+            'description' => $translation->getDescription(),
+            'postTypeSlug' => $post->getPostType()->getSlug(),
+            'featuredMediaUrl' => $this->documentUrlGenerator->variantUrl($featured, 'medium')
+                ?? $this->documentUrlGenerator->publicUrl($featured),
+            'featuredMediaFocalPosition' => $this->documentUrlGenerator->focalPositionCss($featured),
+        ];
     }
 
     /** @return array<string, mixed>|null */

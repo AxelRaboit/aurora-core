@@ -297,6 +297,34 @@ backend:
     content: Contenu
     content_placeholder: "Écrivez, ou appuyez sur Tab pour un bloc…"
     custom_fields: Champs personnalisés
+    grid:
+      title: Grille de contenu
+      enabled: Utiliser une grille de contenu
+      disabled_hint: "Désactivée — la publication garde sa colonne de contenu habituelle. L'activer la remplace par des zones posées sur une grille de 48 colonnes."
+      snap: Pas d'aimantation
+      snap_hint: "La finesse à laquelle une largeur se règle. Changer le pas ne déplace pas les zones déjà posées."
+      snaps:
+        4: Douzièmes (4 colonnes)
+        2: Vingt-quatrièmes (2 colonnes)
+        1: Colonne par colonne
+      width: Largeur
+      width_label: "{columns} colonnes sur {total}"
+      translated_fields: "Contenu — {locale}"
+      zone_types:
+        text: Texte
+        media: Image
+        post: Publication
+        video: Vidéo
+      zone_image: Image de la zone
+      zone_alt: Texte alternatif
+      zone_caption: Légende
+      zone_post: Publication à afficher
+      zone_post_hint: "Choisie parmi les publications liées. Elle s'affiche dans la langue de la page, donc ce choix vaut pour toutes."
+      zone_video: Adresse de la vidéo
+      zone_video_hint: "YouTube, Vimeo ou Dailymotion. Une autre adresse s'affichera en lien plutôt qu'en lecteur."
+      move_up: Monter
+      move_down: Descendre
+      remove_zone: Supprimer la zone
     identity_hint: "Servent à retrouver la publication dans la liste et sur les cartes qui la présentent. Ils coiffent aussi la page, mais seulement si l'en-tête personnalisé n'a pas de titre."
     seo: Moteurs de recherche
     tabs:

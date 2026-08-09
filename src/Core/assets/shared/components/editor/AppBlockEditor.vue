@@ -40,10 +40,15 @@ import Undo from "editorjs-undo";
  * Two integration patterns are supported:
  *   - v-model + `:key="<entity-id>"` re-mount: simplest, one editor
  *     instance per selected entity.
- *   - `provide('registerEditorFlush'/'registerEditorRender')` callbacks:
- *     parent captures them and can flush before save or push fresh
- *     blocks without remounting — what a multi-locale editor needs when
- *     switching locale without losing the buffer.
+ *   - `provide('registerEditor')`: the parent collects every instance and
+ *     can flush them all before a save, or ask them all to re-read their own
+ *     value — what a multi-locale editor needs to switch locale without
+ *     losing the buffer, and what a page of several editors needs at all.
+ *
+ * That registration is a registry rather than a slot. It used to be one
+ * callback the parent overwrote, which was invisible while there was one
+ * editor on the page and would have silently dropped the content of every
+ * text zone but the last once the content grid put several there.
  */
 const { t } = useI18n();
 
@@ -62,8 +67,8 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue"]);
 
 const holderEl = ref(null);
-const registerFlush  = inject("registerEditorFlush",  null);
-const registerRender = inject("registerEditorRender", null);
+const registerEditor = inject("registerEditor", null);
+let unregister = null;
 
 let editor = null;
 let ready = false;
@@ -324,8 +329,14 @@ onMounted(async () => {
     new DragDrop(localEditor);
     new Undo({ editor: localEditor });
     ready = true;
-    registerFlush?.(flush);
-    registerRender?.(renderBlocks);
+
+    // `render` takes nothing and re-reads this instance's own value: with
+    // several editors on a page, the parent cannot know what each one holds,
+    // and passing blocks in would make it guess.
+    unregister = registerEditor?.({
+        flush,
+        render: () => renderBlocks(props.modelValue),
+    });
 
     // Editor.js was constructed with whatever `modelValue` held at mount, and
     // never looks at it again. A parent that hydrates its form in its own
@@ -344,8 +355,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(async () => {
-    registerFlush?.(null);
-    registerRender?.(null);
+    unregister?.();
+    unregister = null;
     await flush();
     if (editor && ready) editor.destroy();
     editor = null;
