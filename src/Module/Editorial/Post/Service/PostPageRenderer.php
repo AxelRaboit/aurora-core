@@ -11,6 +11,7 @@ use Aurora\Module\Editorial\Comment\Manager\CommentManagerInterface;
 use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
+use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Editorial\Seo\Service\AlternatesBuilder;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
@@ -38,6 +39,7 @@ final readonly class PostPageRenderer
         private DocumentUrlGenerator $documentUrlGenerator,
         private CommentManagerInterface $commentManager,
         private BannerViewBuilder $bannerViewBuilder,
+        private GridViewBuilder $gridViewBuilder,
     ) {}
 
     public function render(PostInterface $post, string $locale): Response
@@ -64,6 +66,9 @@ final readonly class PostPageRenderer
             // null when the banner is off or empty, which is what the template
             // reads to fall back to the plain title header.
             'banner' => $this->bannerViewBuilder->build($post->getBannerLayout(), $translation->getBanner()),
+            // Null when the post has no grid, which is what makes the template
+            // fall back to the plain block column it has always rendered.
+            'grid' => $this->gridViewBuilder->build($post->getGridLayout(), $translation->getGrid(), $locale),
             'content' => $this->blocksRenderer->render($translation->getBlocks(), $locale),
             'terms' => $this->postTerms($post, $locale),
             'alternates' => $this->alternatesBuilder->forPost($post),

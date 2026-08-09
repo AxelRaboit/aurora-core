@@ -50,9 +50,17 @@
         >
     {% endif %}
 
-    {# Already HTML: BlocksRenderer escaped and sanitised every value on the
-       way out, so escaping again here would print the markup. #}
-    {{ content|raw }}
+    {# The grid takes over the body when the post has one: it is a different
+       way of laying out the same thing, not something to print above or below
+       the plain column. Null when disabled or empty, which is what makes a
+       post that never touched it render exactly as it did before. #}
+    {% if grid %}
+        {{ include('Frontend/themes/default/editorial/post/_grid.html.twig', {grid: grid, locale: locale}) }}
+    {% else %}
+        {# Already HTML: BlocksRenderer escaped and sanitised every value on the
+           way out, so escaping again here would print the markup. #}
+        {{ content|raw }}
+    {% endif %}
 
     {% if terms is not empty %}
         <footer class="flex flex-wrap gap-1.5 not-prose border-t border-line pt-4 mt-8">

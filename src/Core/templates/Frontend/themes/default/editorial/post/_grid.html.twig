@@ -1,0 +1,93 @@
+{# Content grid — rendered in place of the plain block column when the post
+   configures one. `grid` comes from GridViewBuilder and is null when disabled
+   or empty, so the caller guards on it rather than this file second-guessing.
+
+   Zones lay out on the shared 48-column grid (`.aurora-grid`, see
+   css/base/aurora-grid.css), the same one the banner uses. Each one carries
+   its width as custom properties rather than classes: a span is a runtime
+   number, and Tailwind only emits classes it can read in the source.
+
+   Gutters come from the grid's own item padding. A `gap-x` here would be 47
+   gutters across the 48 tracks — see AuroraGridGutterTest. #}
+
+<div class="aurora-grid gap-y-8">
+    {% for zone in grid.zones %}
+        <div style="{{ zone.spanStyle|raw }}">
+            {% if zone.type == 'text' and zone.html %}
+                {# Already sanitised by BlocksRenderer, which every block type
+                   goes through — the same path the plain block column uses. #}
+                <div class="prose max-w-none">{{ zone.html|raw }}</div>
+
+            {% elseif zone.type == 'media' and zone.media %}
+                <figure class="m-0">
+                    <img
+                        src="{{ zone.media.url }}"
+                        alt="{{ zone.media.alt }}"
+                        loading="lazy"
+                        class="w-full h-auto rounded-lg object-cover"
+                        style="object-position: {{ zone.media.focalPosition }};"
+                    >
+                    {% if zone.caption %}
+                        <figcaption class="mt-2 text-sm text-secondary">{{ zone.caption }}</figcaption>
+                    {% endif %}
+                </figure>
+
+            {% elseif zone.type == 'post' and zone.post %}
+                {# The card links with the same route the archive listing uses,
+                   built from the linked post's own type and slug. #}
+                <a
+                    href="{{ path('editorial_post', {locale: locale, postTypeSlug: zone.post.postTypeSlug, slug: zone.post.slug}) }}"
+                    class="group flex h-full flex-col overflow-hidden rounded-xl border border-line no-underline transition-colors hover:border-secondary"
+                >
+                    {% if zone.post.featuredMediaUrl %}
+                        <img
+                            src="{{ zone.post.featuredMediaUrl }}"
+                            alt=""
+                            loading="lazy"
+                            class="aspect-video w-full object-cover"
+                            style="object-position: {{ zone.post.featuredMediaFocalPosition }};"
+                        >
+                    {% endif %}
+                    <div class="flex flex-1 flex-col gap-2 p-4">
+                        {# h2: the page's h1 is its own title or its banner's,
+                           and a linked publication is a section of this page,
+                           not a competing document. #}
+                        <h2 class="m-0 text-lg font-semibold group-hover:text-primary">{{ zone.post.title }}</h2>
+                        {% if zone.post.description %}
+                            <p class="m-0 text-sm text-secondary">{{ zone.post.description }}</p>
+                        {% endif %}
+                    </div>
+                </a>
+
+            {% elseif zone.type == 'video' %}
+                {% if zone.video %}
+                    {# The src is built from an extracted id against a whitelist
+                       of three providers — see VideoEmbedResolver. An iframe
+                       runs what its host serves, so an arbitrary address is
+                       never put here. #}
+                    <div class="relative aspect-video overflow-hidden rounded-lg">
+                        <iframe
+                            src="{{ zone.video.embedUrl }}"
+                            class="absolute inset-0 h-full w-full"
+                            loading="lazy"
+                            referrerpolicy="strict-origin-when-cross-origin"
+                            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen
+                            title="{{ zone.caption ?: 'Vidéo' }}"
+                        ></iframe>
+                    </div>
+                    {% if zone.caption %}
+                        <p class="mt-2 text-sm text-secondary">{{ zone.caption }}</p>
+                    {% endif %}
+                {% elseif zone.url %}
+                    {# An address no provider claims still reaches the reader,
+                       as a link. Showing nothing would look like a bug to the
+                       author, who pasted something and saw it accepted. #}
+                    <a href="{{ zone.url }}" rel="noopener" class="text-sm underline">
+                        {{ zone.caption ?: zone.url }}
+                    </a>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
