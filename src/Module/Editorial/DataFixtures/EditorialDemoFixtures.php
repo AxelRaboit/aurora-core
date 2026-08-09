@@ -241,7 +241,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 // Every card in every listing was drawn without a picture:
                 // nothing set one, so the demo showed the layout for a post
                 // that has none and never the one it has.
-                ->setFeaturedMedia($this->getReference(GedDemoFixtures::mediaRef($def['media']), Document::class))
+                ->setThumbnail($this->getReference(GedDemoFixtures::mediaRef($def['media']), Document::class))
                 ->setStatus($def['status'])
                 ->setPublishedAt($def['publishedAt'])
                 ->setScheduledAt($def['scheduledAt'] ?? null)

@@ -10,7 +10,15 @@ interface PostInputInterface
 
     public function getStatus(): string;
 
-    public function getFeaturedMediaId(): ?int;
+    /** The picture that stands for this publication wherever it is listed. */
+    public function getThumbnailId(): ?int;
+
+    /** One of ThumbnailFitEnum; the manager is what refuses anything else. */
+    public function getThumbnailFit(): string;
+
+    public function getThumbnailFocalX(): ?float;
+
+    public function getThumbnailFocalY(): ?float;
 
     /** @return list<int> */
     public function getTermIds(): array;

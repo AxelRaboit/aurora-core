@@ -9,6 +9,7 @@ use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
+use Aurora\Module\Editorial\Post\Service\ThumbnailPresenter;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use DateTimeInterface;
@@ -22,6 +23,7 @@ class PostSerializer implements PostSerializerInterface
         protected readonly DocumentUrlGenerator $documentUrlGenerator,
         protected readonly BannerViewBuilder $bannerViewBuilder,
         protected readonly GridViewBuilder $gridViewBuilder,
+        protected readonly ThumbnailPresenter $thumbnailPresenter,
     ) {}
 
     public function serializeReference(PostInterface $post): array
@@ -72,9 +74,13 @@ class PostSerializer implements PostSerializerInterface
 
         return [
             ...$this->serialize($post),
-            'featuredMediaId' => $post->getFeaturedMedia()?->getId(),
-            'featuredMediaUrl' => $this->documentUrlGenerator->publicUrl($post->getFeaturedMedia()),
-            'featuredMediaFocalPosition' => $this->documentUrlGenerator->focalPositionCss($post->getFeaturedMedia()),
+            'thumbnailId' => $post->getThumbnail()?->getId(),
+            'thumbnailUrl' => $this->documentUrlGenerator->publicUrl($post->getThumbnail()),
+            'thumbnailFit' => $post->getThumbnailFit()->value,
+            // Null when the publication does not override the document's, which
+            // is what the editor shows as "inherited".
+            'thumbnailFocalX' => $post->getThumbnailFocalX(),
+            'thumbnailFocalY' => $post->getThumbnailFocalY(),
             // Resolved on the way out, so a post saved before the banner
             // existed reaches the editor as a complete shape instead of an
             // empty array it would have to guard against — and so a picker can
@@ -100,7 +106,7 @@ class PostSerializer implements PostSerializerInterface
     public function serializeCard(PostInterface $post, string $locale): array
     {
         $translation = $post->getTranslation($locale);
-        $featured = $post->getFeaturedMedia();
+        $thumbnail = $this->thumbnailPresenter->present($post);
 
         return [
             'id' => $post->getId(),
@@ -112,9 +118,9 @@ class PostSerializer implements PostSerializerInterface
             'description' => $translation?->getDescription(),
             'publishedAt' => $post->getPublishedAt()?->format(DateTimeInterface::ATOM),
             'postTypeSlug' => $post->getPostType()->getSlug(),
-            'featuredMediaUrl' => $this->documentUrlGenerator->variantUrl($featured, 'medium')
-                ?? $this->documentUrlGenerator->publicUrl($featured),
-            'featuredMediaFocalPosition' => $this->documentUrlGenerator->focalPositionCss($featured),
+            'thumbnailUrl' => $thumbnail['url'],
+            'thumbnailFitClass' => $thumbnail['objectFitClass'],
+            'thumbnailFocalPosition' => $thumbnail['focalPosition'],
             // A card used to carry only what a blog post needs — title, teaser,
             // image. A post type whose meaning lives in its custom fields (a
             // room's price, a product's weight) could not be listed usefully at

@@ -9,6 +9,7 @@ use Aurora\Core\Content\VideoEmbedResolver;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Service\BlocksRenderer;
+use Aurora\Module\Editorial\Post\Service\ThumbnailPresenter;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
@@ -39,6 +40,7 @@ final readonly class GridViewBuilder
         private PostRepository $postRepository,
         private BlocksRenderer $blocksRenderer,
         private VideoEmbedResolver $videoEmbedResolver,
+        private ThumbnailPresenter $thumbnailPresenter,
     ) {}
 
     /**
@@ -203,7 +205,7 @@ final readonly class GridViewBuilder
         }
 
         $translation = $post->getTranslation($locale);
-        $featured = $post->getFeaturedMedia();
+        $thumbnail = $this->thumbnailPresenter->present($post);
 
         // A card with no title and no address is a link to nowhere. That is
         // what an untranslated publication looks like, and it should leave a
@@ -220,9 +222,13 @@ final readonly class GridViewBuilder
             // for a search snippet and cut around 160 characters.
             'description' => $translation->getDescription(),
             'postTypeSlug' => $post->getPostType()->getSlug(),
-            'featuredMediaUrl' => $this->documentUrlGenerator->variantUrl($featured, 'medium')
-                ?? $this->documentUrlGenerator->publicUrl($featured),
-            'featuredMediaFocalPosition' => $this->documentUrlGenerator->focalPositionCss($featured),
+            // Named the same way serializeCard names them, so one card
+            // partial can read either shape. Spreading the presenter's own
+            // keys would have put a `url` on a card, which reads as the
+            // publication's address rather than its picture's.
+            'thumbnailUrl' => $thumbnail['url'],
+            'thumbnailFitClass' => $thumbnail['objectFitClass'],
+            'thumbnailFocalPosition' => $thumbnail['focalPosition'],
         ];
     }
 

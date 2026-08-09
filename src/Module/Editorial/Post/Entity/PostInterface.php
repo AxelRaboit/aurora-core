@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Post\Entity;
 
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
@@ -77,9 +78,24 @@ interface PostInterface
 
     public function setPostType(PostTypeInterface $postType): static;
 
-    public function getFeaturedMedia(): ?DocumentInterface;
+    /**
+     * The picture that stands for this publication wherever it is listed. Not
+     * rendered at the top of the page any more — the custom header does that.
+     */
+    public function getThumbnail(): ?DocumentInterface;
 
-    public function setFeaturedMedia(?DocumentInterface $featuredMedia): static;
+    public function setThumbnail(?DocumentInterface $thumbnail): static;
+
+    public function getThumbnailFit(): ThumbnailFitEnum;
+
+    public function setThumbnailFit(ThumbnailFitEnum $thumbnailFit): static;
+
+    public function getThumbnailFocalX(): ?float;
+
+    public function getThumbnailFocalY(): ?float;
+
+    /** Both or neither: half a focal point is not a position. */
+    public function setThumbnailFocal(?float $x, ?float $y): static;
 
     public function getAuthor(): ?CoreUserInterface;
 

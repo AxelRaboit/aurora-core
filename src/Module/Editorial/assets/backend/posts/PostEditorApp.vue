@@ -13,6 +13,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
+import AppFocalPointField from "@/shared/components/form/file/AppFocalPointField.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import PostBannerPanel from "./components/PostBannerPanel.vue";
 import PostGridPanel from "./components/PostGridPanel.vue";
@@ -86,6 +87,29 @@ const STATUS_COLORS = {
  * publications it can reference, which is the same list — asking the server
  * for a second one would be a query for a list it already sent.
  */
+/**
+ * How the thumbnail fills a card's frame. Written out rather than assembled:
+ * Tailwind only emits classes it can read in the source.
+ */
+const THUMBNAIL_FITS = ["cover", "contain", "fill"];
+const THUMBNAIL_FIT_CLASSES = {
+    cover: "object-cover",
+    contain: "object-contain",
+    fill: "object-fill",
+};
+
+const thumbnailFitOptions = computed(() =>
+    THUMBNAIL_FITS.map((fit) => ({
+        value: fit,
+        label: t(`backend.posts.thumbnail_fits.${fit}`),
+    })),
+);
+
+// The preview crops the way a card will, so what is aimed at is what lands.
+const thumbnailFitClass = computed(
+    () => THUMBNAIL_FIT_CLASSES[form.value.thumbnailFit] ?? "object-cover",
+);
+
 const relatedPostOptions = computed(() =>
     (props.post?.relatedPosts ?? []).map((related) => ({
         id: related.id,
@@ -266,11 +290,33 @@ function termLabel(term) {
                         <AppCheckbox v-model="form.commentsEnabled" :label="t('backend.posts.comments_enabled')" />
                     </div>
 
-                    <div v-if="supportsThumbnail" class="bg-surface border border-line rounded-xl p-5">
+                    <div v-if="supportsThumbnail" class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.thumbnail") }}</h3>
+                        <p class="text-xs text-muted">{{ t("backend.posts.thumbnail_hint") }}</p>
+
                         <AppImagePickerField
-                            v-model="form.featuredMedia"
-                            :label="t('backend.posts.featured_media')"
+                            v-model="form.thumbnail"
+                            :label="t('backend.posts.thumbnail_image')"
                         />
+
+                        <template v-if="form.thumbnail?.url">
+                            <AppSelect
+                                v-model="form.thumbnailFit"
+                                :label="t('backend.posts.thumbnail_fit')"
+                                :options="thumbnailFitOptions"
+                            />
+                            <AppFocalPointField
+                                :src="form.thumbnail.url"
+                                :x="form.thumbnailFocalX"
+                                :y="form.thumbnailFocalY"
+                                :fit-class="thumbnailFitClass"
+                                :inherited="post?.thumbnailFocalPosition ?? '50% 50%'"
+                                :label="t('backend.posts.thumbnail_focal')"
+                                :hint="t('backend.posts.thumbnail_focal_hint')"
+                                v-on:update:x="form.thumbnailFocalX = $event"
+                                v-on:update:y="form.thumbnailFocalY = $event"
+                            />
+                        </template>
                     </div>
 
                     <div v-if="availableTaxonomies.length" class="bg-surface border border-line rounded-xl p-5 space-y-3">

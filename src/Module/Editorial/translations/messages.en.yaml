@@ -333,7 +333,16 @@ backend:
       settings: Settings
       seo: Search engines
     terms: Terms
-    featured_media: Featured image
+    thumbnail: Thumbnail
+    thumbnail_hint: "The picture that stands for this publication wherever it is listed: an archive card, a grid zone linking to it, the preview of a shared link. It is no longer printed at the top of the page — the custom header opens it."
+    thumbnail_image: Image
+    thumbnail_fit: Fit
+    thumbnail_fits:
+      cover: Fill the frame (crops)
+      contain: Fit entirely (leaves space)
+      fill: Stretch to the frame (distorts)
+    thumbnail_focal: Crop point
+    thumbnail_focal_hint: "What stays visible when a wide photo has to fit a narrow frame. Left unset, the document's own point applies."
     comments_enabled: Comments open
     field_title: Title
     field_slug: Slug

@@ -8,13 +8,16 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for post in posts %}
             <article class="bg-surface border border-line rounded-xl overflow-hidden flex flex-col">
-                {% if post.featuredMediaUrl %}
+                {% if post.thumbnailUrl %}
+                    {# The fit arrives as a class, not a value: Tailwind only
+                       emits classes it can read in the source, and
+                       `object-{{ fit }}` is one it never sees. #}
                     <img
-                        src="{{ post.featuredMediaUrl }}"
+                        src="{{ post.thumbnailUrl }}"
                         alt=""
                         loading="lazy"
-                        class="w-full h-48 object-cover"
-                        style="object-position: {{ post.featuredMediaFocalPosition }};"
+                        class="w-full h-48 {{ post.thumbnailFitClass }}"
+                        style="object-position: {{ post.thumbnailFocalPosition }};"
                     >
                 {% endif %}
                 <div class="p-5 flex-1 flex flex-col gap-2">

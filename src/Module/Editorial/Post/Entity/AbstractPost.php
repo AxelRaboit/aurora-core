@@ -6,6 +6,7 @@ namespace Aurora\Module\Editorial\Post\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\AbstractTaxonomy;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
@@ -85,9 +86,37 @@ abstract class AbstractPost implements PostInterface
     #[ORM\JoinColumn(nullable: false)]
     protected PostTypeInterface $postType;
 
+    /**
+     * The picture that stands for this publication wherever it is listed: an
+     * archive card, a grid zone linking to it, the image a link preview shows.
+     *
+     * It used to be called the featured image and used to render at the top of
+     * the page as well. The custom header does that job now, and doing both
+     * printed two hero images one above the other. What is left is what the
+     * name says.
+     */
     #[ORM\ManyToOne(targetEntity: DocumentInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    protected ?DocumentInterface $featuredMedia = null;
+    protected ?DocumentInterface $thumbnail = null;
+
+    /** How that picture fills the frame a card gives it. */
+    #[ORM\Column(length: 20, enumType: ThumbnailFitEnum::class, options: ['default' => 'cover'])]
+    protected ThumbnailFitEnum $thumbnailFit = ThumbnailFitEnum::Cover;
+
+    /**
+     * Where the crop centres, as fractions of the picture, overriding the focal
+     * point stored on the document itself.
+     *
+     * Null means "use the document's". The document's answer is about the file
+     * — a face is in the same place wherever it appears — and this one is about
+     * this publication's card, which is a different question the moment a wide
+     * photo has to work in a narrow frame.
+     */
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    protected ?float $thumbnailFocalX = null;
+
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    protected ?float $thumbnailFocalY = null;
 
     #[ORM\ManyToOne(targetEntity: CoreUserInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -247,14 +276,51 @@ abstract class AbstractPost implements PostInterface
         return $this;
     }
 
-    public function getFeaturedMedia(): ?DocumentInterface
+    public function getThumbnail(): ?DocumentInterface
     {
-        return $this->featuredMedia;
+        return $this->thumbnail;
     }
 
-    public function setFeaturedMedia(?DocumentInterface $featuredMedia): static
+    public function setThumbnail(?DocumentInterface $thumbnail): static
     {
-        $this->featuredMedia = $featuredMedia;
+        $this->thumbnail = $thumbnail;
+
+        return $this;
+    }
+
+    public function getThumbnailFit(): ThumbnailFitEnum
+    {
+        return $this->thumbnailFit;
+    }
+
+    public function setThumbnailFit(ThumbnailFitEnum $thumbnailFit): static
+    {
+        $this->thumbnailFit = $thumbnailFit;
+
+        return $this;
+    }
+
+    public function getThumbnailFocalX(): ?float
+    {
+        return $this->thumbnailFocalX;
+    }
+
+    public function getThumbnailFocalY(): ?float
+    {
+        return $this->thumbnailFocalY;
+    }
+
+    /**
+     * Both or neither: half a focal point is not a position, and letting one
+     * axis come from the publication and the other from the document would put
+     * the crop somewhere nobody chose.
+     */
+    public function setThumbnailFocal(?float $x, ?float $y): static
+    {
+        $complete = null !== $x && null !== $y;
+
+        $this->thumbnailFocalX = $complete ? max(0.0, min(1.0, $x)) : null;
+        $this->thumbnailFocalY = $complete ? max(0.0, min(1.0, $y)) : null;
 
         return $this;
     }

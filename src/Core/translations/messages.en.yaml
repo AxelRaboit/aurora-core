@@ -7,6 +7,9 @@ shared:
     choose: Choose an image
     change: Change
     remove: Remove
+    focal_pick: Click the picture to choose where it crops
+    focal_inherited: Point inherited from the document
+    focal_reset: Back to the document's point
     upload: Browse
     uploading: Uploading
     upload_failed: The upload failed.

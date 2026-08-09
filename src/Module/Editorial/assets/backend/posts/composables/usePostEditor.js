@@ -105,10 +105,14 @@ export function usePostEditor(props) {
         status: props.post?.status ?? "draft",
         scheduledAt: props.post?.scheduledAt ?? "",
         // The picker works in {id, url}; the wire format is just the id.
-        featuredMedia: {
-            id: props.post?.featuredMediaId ?? null,
-            url: props.post?.featuredMediaUrl ?? null,
+        thumbnail: {
+            id: props.post?.thumbnailId ?? null,
+            url: props.post?.thumbnailUrl ?? null,
         },
+        thumbnailFit: props.post?.thumbnailFit ?? "cover",
+        // Null means "use the point stored on the document itself".
+        thumbnailFocalX: props.post?.thumbnailFocalX ?? null,
+        thumbnailFocalY: props.post?.thumbnailFocalY ?? null,
         commentsEnabled: props.post?.commentsEnabled ?? true,
         // On the post, beside status and terms, rather than inside a
         // translation: one design, shared by every language.
@@ -183,11 +187,11 @@ export function usePostEditor(props) {
     }
 
     function payload(force = false) {
-        const { featuredMedia, ...rest } = form.value;
+        const { thumbnail, ...rest } = form.value;
 
         return {
             ...rest,
-            featuredMediaId: featuredMedia?.id ?? null,
+            thumbnailId: thumbnail?.id ?? null,
             scheduledAt: form.value.scheduledAt || null,
             version: version.value,
             force,

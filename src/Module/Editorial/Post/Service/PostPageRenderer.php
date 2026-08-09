@@ -61,8 +61,7 @@ final readonly class PostPageRenderer
                 'postType' => ['slug' => $post->getPostType()->getSlug()],
                 'postTypeSlug' => $post->getPostType()->getSlug(),
             ],
-            'translationData' => $this->translationData($translation, $post->getFeaturedMedia()),
-            'featuredMediaData' => $this->mediaData($post->getFeaturedMedia()),
+            'translationData' => $this->translationData($translation, $post->getThumbnail()),
             // null when the banner is off or empty, which is what the template
             // reads to fall back to the plain title header.
             'banner' => $this->bannerViewBuilder->build($post->getBannerLayout(), $translation->getBanner()),
@@ -85,11 +84,13 @@ final readonly class PostPageRenderer
     }
 
     /** @return array<string, mixed> */
-    private function translationData(PostTranslationInterface $translation, ?DocumentInterface $featuredMedia): array
+    private function translationData(PostTranslationInterface $translation, ?DocumentInterface $thumbnail): array
     {
-        // Falls back to the featured image: a post shared without an explicit
-        // social image should still show the one it already has.
-        $ogImage = $translation->getOgImage() ?? $featuredMedia;
+        // Falls back to the thumbnail: a post shared without an explicit social
+        // image should still show the picture that stands for it everywhere
+        // else. That fallback is the one job the thumbnail kept when it stopped
+        // being rendered at the top of the page.
+        $ogImage = $translation->getOgImage() ?? $thumbnail;
 
         return [
             'title' => $translation->getTitle(),
@@ -106,24 +107,6 @@ final readonly class PostPageRenderer
             // Same gap the listing cards had: a post type whose meaning lives
             // in its custom fields could not render them on its own page.
             'customFields' => $translation->getCustomFields(),
-        ];
-    }
-
-    /** @return array<string, mixed>|null */
-    private function mediaData(?DocumentInterface $media): ?array
-    {
-        if (!$media instanceof DocumentInterface) {
-            return null;
-        }
-
-        $focalPosition = $this->documentUrlGenerator->focalPositionCss($media);
-        $large = $this->documentUrlGenerator->variantUrl($media, 'large');
-
-        return [
-            'publicUrl' => $this->documentUrlGenerator->publicUrl($media),
-            'url' => $large ?? $this->documentUrlGenerator->publicUrl($media),
-            'alt' => $media->getAlt(),
-            'focalPosition' => $focalPosition,
         ];
     }
 

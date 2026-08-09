@@ -7,6 +7,7 @@ namespace Aurora\Module\Editorial\Post\Dto;
 use Aurora\Core\Support\Arr;
 use Aurora\Core\Support\Str;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 #[AsAlias(PostInputFactoryInterface::class)]
@@ -20,7 +21,7 @@ class PostInputFactory implements PostInputFactoryInterface
         return new PostInput(
             postTypeId: (int) ($data['postTypeId'] ?? 0),
             status: Str::trimOrNull((string) ($data['status'] ?? '')) ?? PostStatusEnum::Draft->value,
-            featuredMediaId: $this->positiveIntOrNull($data['featuredMediaId'] ?? null),
+            thumbnailId: $this->positiveIntOrNull($data['thumbnailId'] ?? null),
             termIds: Arr::positiveInts($data['termIds'] ?? null),
             translations: $this->translations($data['translations'] ?? null),
             relatedPostIds: Arr::positiveInts($data['relatedPostIds'] ?? null),
@@ -31,6 +32,9 @@ class PostInputFactory implements PostInputFactoryInterface
             // On the post, not the translation: one design for every language.
             bannerLayout: is_array($data['bannerLayout'] ?? null) ? $data['bannerLayout'] : [],
             gridLayout: is_array($data['gridLayout'] ?? null) ? $data['gridLayout'] : [],
+            thumbnailFit: Str::trimOrNull((string) ($data['thumbnailFit'] ?? '')) ?? ThumbnailFitEnum::Cover->value,
+            thumbnailFocalX: $this->fractionOrNull($data['thumbnailFocalX'] ?? null),
+            thumbnailFocalY: $this->fractionOrNull($data['thumbnailFocalY'] ?? null),
         );
     }
 
@@ -49,6 +53,22 @@ class PostInputFactory implements PostInputFactoryInterface
         }
 
         return $translations;
+    }
+
+    /**
+     * A focal coordinate is a fraction of the picture. Anything outside 0..1
+     * is not a position on it, so it becomes "no override" rather than being
+     * clamped into one nobody chose.
+     */
+    private function fractionOrNull(mixed $raw): ?float
+    {
+        if (!is_numeric($raw)) {
+            return null;
+        }
+
+        $value = (float) $raw;
+
+        return $value >= 0.0 && $value <= 1.0 ? $value : null;
     }
 
     private function positiveIntOrNull(mixed $raw): ?int

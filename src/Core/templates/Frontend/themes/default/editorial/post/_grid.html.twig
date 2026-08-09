@@ -39,13 +39,13 @@
                     href="{{ path('editorial_post', {locale: locale, postTypeSlug: zone.post.postTypeSlug, slug: zone.post.slug}) }}"
                     class="group flex h-full flex-col overflow-hidden rounded-xl border border-line no-underline transition-colors hover:border-secondary"
                 >
-                    {% if zone.post.featuredMediaUrl %}
+                    {% if zone.post.thumbnailUrl %}
                         <img
-                            src="{{ zone.post.featuredMediaUrl }}"
+                            src="{{ zone.post.thumbnailUrl }}"
                             alt=""
                             loading="lazy"
-                            class="aspect-video w-full object-cover"
-                            style="object-position: {{ zone.post.featuredMediaFocalPosition }};"
+                            class="aspect-video w-full {{ zone.post.thumbnailFitClass }}"
+                            style="object-position: {{ zone.post.thumbnailFocalPosition }};"
                         >
                     {% endif %}
                     <div class="flex flex-1 flex-col gap-2 p-4">

@@ -41,14 +41,9 @@
         {% endif %}
     {% endif %}
 
-    {% if featuredMediaData %}
-        <img
-            src="{{ featuredMediaData.url }}"
-            alt="{{ featuredMediaData.alt ?? '' }}"
-            class="w-full rounded-xl"
-            style="object-position: {{ featuredMediaData.focalPosition }};"
-        >
-    {% endif %}
+    {# The thumbnail is not printed here any more. It is what stands for this
+       publication in a listing, and the custom header is what opens the page —
+       rendering both put two hero images one above the other. #}
 
     {# The grid takes over the body when the post has one: it is a different
        way of laying out the same thing, not something to print above or below

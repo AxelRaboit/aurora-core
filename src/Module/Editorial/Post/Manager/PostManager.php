@@ -17,6 +17,7 @@ use Aurora\Module\Editorial\Post\Entity\PostRevision;
 use Aurora\Module\Editorial\Post\Entity\PostRevisionInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Repository\PostRevisionRepository;
@@ -216,7 +217,12 @@ class PostManager implements PostManagerInterface
             $post->setPublishedAt(new DateTimeImmutable());
         }
 
-        $post->setFeaturedMedia($this->findMedia($input->getFeaturedMediaId()));
+        $post->setThumbnail($this->findMedia($input->getThumbnailId()));
+        // An unknown value falls back rather than failing: a fit is a
+        // presentation choice, and refusing a save over one would lose an
+        // author's text for the sake of a dropdown.
+        $post->setThumbnailFit(ThumbnailFitEnum::tryFrom($input->getThumbnailFit()) ?? ThumbnailFitEnum::Cover);
+        $post->setThumbnailFocal($input->getThumbnailFocalX(), $input->getThumbnailFocalY());
         $post->setCommentsEnabled($input->isCommentsEnabled());
 
         // Normalised here rather than in the DTO: this is the write boundary,
@@ -438,7 +444,7 @@ class PostManager implements PostManagerInterface
         return [
             'status' => $post->getStatus()->value,
             'postTypeId' => $post->getPostType()->getId(),
-            'featuredMediaId' => $post->getFeaturedMedia()?->getId(),
+            'thumbnailId' => $post->getThumbnail()?->getId(),
             'termIds' => array_values($post->getTerms()->map(static fn ($term): ?int => $term->getId())->toArray()),
             'relatedPostIds' => array_values($post->getRelatedPosts()->map(static fn ($related): ?int => $related->getId())->toArray()),
             'publishedAt' => $post->getPublishedAt()?->format(DATE_ATOM),
@@ -460,14 +466,14 @@ class PostManager implements PostManagerInterface
             static fn (mixed $t): int => is_array($t) ? (int) ($t['ogImageMediaId'] ?? 0) : 0,
             $snapshotTranslations,
         );
-        $featuredMediaId = (int) ($snapshot['featuredMediaId'] ?? 0);
+        $thumbnailId = (int) ($snapshot['thumbnailId'] ?? 0);
 
         $media = $this->buildMediaMap(array_values(array_filter(
-            [$featuredMediaId, ...array_values($ogImageIds)],
+            [$thumbnailId, ...array_values($ogImageIds)],
             static fn (int $id): bool => $id > 0,
         )));
 
-        $post->setFeaturedMedia($media[$featuredMediaId] ?? null);
+        $post->setThumbnail($media[$thumbnailId] ?? null);
 
         $this->syncTerms($post, $this->positiveIds($snapshot['termIds'] ?? null));
         $this->syncRelatedPosts($post, $this->positiveIds($snapshot['relatedPostIds'] ?? null));

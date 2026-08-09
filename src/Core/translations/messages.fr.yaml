@@ -7,6 +7,9 @@ shared:
     choose: Choisir une image
     change: Changer
     remove: Retirer
+    focal_pick: Cliquez sur l'image pour choisir le point de recadrage
+    focal_inherited: Point hérité du document
+    focal_reset: Revenir au point du document
     upload: Parcourir
     uploading: Import en cours
     upload_failed: L'import a échoué.

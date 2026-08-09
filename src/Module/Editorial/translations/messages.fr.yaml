@@ -333,7 +333,16 @@ backend:
       settings: Paramétrage
       seo: Moteurs de recherche
     terms: Termes
-    featured_media: Image à la une
+    thumbnail: Vignette
+    thumbnail_hint: "L'image qui représente cette publication partout où elle est listée : une carte d'archive, une zone de grille qui pointe vers elle, l'aperçu d'un lien partagé. Elle ne s'affiche plus en haut de la page — c'est l'en-tête personnalisé qui ouvre la page."
+    thumbnail_image: Image
+    thumbnail_fit: Cadrage
+    thumbnail_fits:
+      cover: Remplir le cadre (recadre)
+      contain: Contenir entièrement (laisse du vide)
+      fill: Étirer au cadre (déforme)
+    thumbnail_focal: Point de recadrage
+    thumbnail_focal_hint: "Ce qui reste visible quand une photo large doit tenir dans un cadre étroit. Sans réglage, celui du document s'applique."
     comments_enabled: Commentaires ouverts
     field_title: Titre
     field_slug: Slug

@@ -24,7 +24,7 @@ class PostInput implements PostInputInterface
         #[Assert\NotBlank(message: 'backend.posts.errors.status_required')]
         #[Assert\Choice(callback: [PostStatusEnum::class, 'values'], message: 'backend.posts.errors.status_invalid')]
         public readonly string $status,
-        public readonly ?int $featuredMediaId,
+        public readonly ?int $thumbnailId,
         public readonly array $termIds,
         public readonly array $translations,
         public readonly array $relatedPostIds = [],
@@ -34,6 +34,9 @@ class PostInput implements PostInputInterface
         public readonly bool $commentsEnabled = true,
         public readonly array $bannerLayout = [],
         public readonly array $gridLayout = [],
+        public readonly string $thumbnailFit = 'cover',
+        public readonly ?float $thumbnailFocalX = null,
+        public readonly ?float $thumbnailFocalY = null,
     ) {}
 
     public function withStatus(string $status): PostInputInterface
@@ -41,7 +44,7 @@ class PostInput implements PostInputInterface
         return new self(
             postTypeId: $this->postTypeId,
             status: $status,
-            featuredMediaId: $this->featuredMediaId,
+            thumbnailId: $this->thumbnailId,
             termIds: $this->termIds,
             translations: $this->translations,
             relatedPostIds: $this->relatedPostIds,
@@ -51,6 +54,9 @@ class PostInput implements PostInputInterface
             commentsEnabled: $this->commentsEnabled,
             bannerLayout: $this->bannerLayout,
             gridLayout: $this->gridLayout,
+            thumbnailFit: $this->thumbnailFit,
+            thumbnailFocalX: $this->thumbnailFocalX,
+            thumbnailFocalY: $this->thumbnailFocalY,
         );
     }
 
@@ -64,9 +70,24 @@ class PostInput implements PostInputInterface
         return $this->status;
     }
 
-    public function getFeaturedMediaId(): ?int
+    public function getThumbnailId(): ?int
     {
-        return $this->featuredMediaId;
+        return $this->thumbnailId;
+    }
+
+    public function getThumbnailFit(): string
+    {
+        return $this->thumbnailFit;
+    }
+
+    public function getThumbnailFocalX(): ?float
+    {
+        return $this->thumbnailFocalX;
+    }
+
+    public function getThumbnailFocalY(): ?float
+    {
+        return $this->thumbnailFocalY;
     }
 
     public function getTermIds(): array
