@@ -60,6 +60,7 @@ const {
     offsetOptions,
     shareOptions,
     ratioOptions,
+    scaleOptions,
     childrenOf,
     canAddChild,
     addChild,
@@ -470,6 +471,7 @@ function moveSelectedAware(index, offset) {
                                 :locale="locale"
                                 :post-options="postOptions"
                                 :ratio-options="ratioOptions"
+                                :scale-options="scaleOptions"
                             />
                         </div>
 
@@ -497,6 +499,7 @@ function moveSelectedAware(index, offset) {
                     :locale="locale"
                     :post-options="postOptions"
                     :ratio-options="ratioOptions"
+                    :scale-options="scaleOptions"
                 />
             </div>
 

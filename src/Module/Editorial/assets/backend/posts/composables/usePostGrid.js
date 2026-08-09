@@ -41,6 +41,14 @@ const MAX_STACK_CHILDREN = 6;
 export const ZONE_RATIOS = ["natural", "16x9", "4x3", "1x1", "3x4", "fill"];
 
 /**
+ * Mirrors GridNormalizer::SCALES — how much of its zone's width a picture
+ * takes. A width rather than a height because a picture keeps its proportions:
+ * halving the width halves the height, and a percentage survives a phone where
+ * a number of pixels does not.
+ */
+export const ZONE_SCALES = [25, 33, 50, 66, 75, 100];
+
+/**
  * The widths an author actually draws with, named the way they think of them.
  *
  * "24 of 48 columns" is a coordinate; "a half" is a thought. Every one of these
@@ -224,6 +232,7 @@ function newZone(type) {
         offset: 0,
         newRow: false,
         ratio: "natural",
+        scale: 100,
         mediaId: null,
         media: null,
         mediaUrl: "",
@@ -299,6 +308,17 @@ export function usePostGrid(layout, content) {
             label: t(`backend.posts.grid.zone_types.${type}`),
         }));
     }
+
+    // The figures are the same in every language; the word for "full" is not.
+    const scaleOptions = computed(() =>
+        ZONE_SCALES.map((scale) => ({
+            value: scale,
+            label:
+                100 === scale
+                    ? t("backend.posts.grid.scales.full")
+                    : `${scale} %`,
+        })),
+    );
 
     const ratioOptions = computed(() =>
         ZONE_RATIOS.map((ratio) => ({
@@ -808,6 +828,7 @@ export function usePostGrid(layout, content) {
                 type: shared("type"),
                 postId: shared("postId"),
                 ratio: shared("ratio"),
+                scale: shared("scale"),
                 mediaUrl: shared("mediaUrl"),
                 // The width control drives the large-screen span only. Below
                 // that a zone stays full width, which is what the stored
@@ -922,6 +943,7 @@ export function usePostGrid(layout, content) {
         offsetOptions,
         shareOptions,
         ratioOptions,
+        scaleOptions,
         childrenOf,
         canAddChild,
         addChild,

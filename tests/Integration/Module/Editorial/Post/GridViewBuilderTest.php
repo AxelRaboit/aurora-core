@@ -261,6 +261,29 @@ final class GridViewBuilderTest extends IntegrationTestCase
     }
 
     /**
+     * A width rather than a height: the picture keeps `width: 100%` inside the
+     * narrowed figure, so its height follows its own proportions and the author
+     * gets a smaller picture rather than a squashed one.
+     */
+    public function testAPictureAskedToBeSmallerNarrowsItsFigure(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            [
+                'enabled' => true,
+                'zones' => [
+                    ['id' => 'z1', 'type' => 'media', 'scale' => 50],
+                    ['id' => 'z2', 'type' => 'media'],
+                ],
+            ],
+            [],
+            'fr',
+        );
+
+        self::assertSame('width: 50%;', $grid['zones'][0]['scaleStyle']);
+        self::assertSame('', $grid['zones'][1]['scaleStyle'], 'nothing to say at full width');
+    }
+
+    /**
      * The library wins whenever it has an answer: a document carries a focal
      * point, a variant sized for the slot and an alt of its own, and an address
      * carries none of that. It stands in rather than competing.

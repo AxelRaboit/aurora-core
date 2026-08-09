@@ -28,7 +28,16 @@
            anyway. #}
         {% set fills = zone.ratio == 'fill' %}
 
-        <figure class="m-0 not-prose{{ fills ? ' lg:flex lg:h-full lg:flex-col' : '' }}">
+        {# `scaleStyle` narrows the figure, and the picture inside it keeps
+           `width: 100%` — so its height follows its own proportions and the
+           author gets a smaller picture rather than a squashed one. Centred,
+           because a picture narrower than its column with all the space on one
+           side reads as a mistake rather than as a choice.
+
+           On the figure and not on the image: the caption should sit under the
+           picture it belongs to, at its width, not run the full column beneath
+           a small photograph. #}
+        <figure class="m-0 mx-auto not-prose{{ fills ? ' lg:flex lg:h-full lg:flex-col' : '' }}" style="{{ zone.scaleStyle|default('')|raw }}">
             {# `ratioStyle` is empty unless the zone asks to be cropped.
                With a width of 100% and `height: auto`, an `aspect-ratio`
                settles the height on its own — no wrapper, no second

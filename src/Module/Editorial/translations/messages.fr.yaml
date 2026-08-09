@@ -339,6 +339,10 @@ backend:
         post: Publication
         video: Vidéo
         stack: Pile
+      scale: Taille de l'image
+      scale_hint: "Part de la largeur de la zone occupée par l'image. Les proportions sont gardées, donc une image à 50 % est deux fois moins haute aussi. La zone, elle, ne bouge pas."
+      scales:
+        full: Pleine largeur
       ratio: Proportions
       ratio_hint: "Recadre l'image à cette forme. « Naturelles » la laisse à ses propres proportions. « Remplir » lui donne toute la hauteur qui reste dans la pile : les autres zones prennent la leur, celle-ci prend le reste — c'est ce qui ferme l'écart sous un texte court."
       ratios:

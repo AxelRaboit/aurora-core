@@ -220,6 +220,20 @@ describe("usePostGrid", () => {
     // Deliberately the other way round from the video address just below: a
     // video is localised, a picture is the same picture in every language and
     // only its description changes.
+    // Design, like the ratio beside it: how big a picture is printed is written
+    // once for every language.
+    it("treats how big a picture is printed as arrangement", () => {
+        const { layout, content, api } = make();
+
+        api.addZone("media");
+        api.zoneFields(0).scale.value = 50;
+
+        const id = layout.value.zones[0].id;
+
+        expect(layout.value.zones[0].scale).toBe(50);
+        expect(content.value.zones[id] ?? {}).not.toHaveProperty("scale");
+    });
+
     it("treats an image address as arrangement, not content", () => {
         const { layout, content, api } = make();
 

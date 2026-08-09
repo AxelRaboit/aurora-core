@@ -45,7 +45,7 @@ use Aurora\Core\Content\ContentValueNormalizer;
  * they are sanitised at render, like `blocks` always has been. Everything else
  * is whitelisted on the way in.
  *
- * @phpstan-type GridZone array{id: string, type: string, span: array<string, int|null>, offset: int, newRow: bool, ratio: string, mediaId: ?int, mediaUrl: ?string, postId: ?int, children: list<mixed>}
+ * @phpstan-type GridZone array{id: string, type: string, span: array<string, int|null>, offset: int, newRow: bool, ratio: string, scale: int, mediaId: ?int, mediaUrl: ?string, postId: ?int, children: list<mixed>}
  * @phpstan-type GridZoneContent array{blocks: list<mixed>, alt: string, caption: string, url: ?string}
  */
 final readonly class GridNormalizer
@@ -117,6 +117,28 @@ final readonly class GridNormalizer
     public const string RATIO_FILL = 'fill';
 
     public const array RATIOS = [self::RATIO_NATURAL, '16x9', '4x3', '1x1', '3x4', self::RATIO_FILL];
+
+    /**
+     * How much of its zone's width a picture takes, as a percentage.
+     *
+     * The answer to "I want this image smaller, but still in proportion". A
+     * width rather than a height on purpose: a percentage of the zone is
+     * responsive where a height in pixels is not, and because the picture keeps
+     * its own proportions, halving its width halves its height. Asking for the
+     * height and asking for the width are the same question.
+     *
+     * Narrowing the zone instead would have done it too, and does something
+     * else: it moves the neighbours. This leaves the zone where it is and only
+     * changes what fills it.
+     *
+     * A whitelist rather than any number between 1 and 100, for the reason the
+     * width fractions are a whitelist: these are the sizes anyone actually
+     * picks, and they are easy to aim at.
+     */
+    public const array SCALES = [25, 33, 50, 66, 75, 100];
+
+    /** Full width — a picture fills its zone unless told otherwise. */
+    public const int SCALE_FULL = 100;
 
     /**
      * A page is not a feed. High enough that nobody meets it while laying out
@@ -298,6 +320,9 @@ final readonly class GridNormalizer
                 // Shared, like the span: how a picture is cropped is design,
                 // and the design is written once for every language.
                 'ratio' => $this->values->oneOf($entry['ratio'] ?? null, self::RATIOS, self::RATIO_NATURAL),
+                // Shared for the same reason the ratio is: how big a picture
+                // is printed is design, written once for every language.
+                'scale' => $this->scale($entry['scale'] ?? null),
                 'mediaId' => $this->values->id($entry['mediaId'] ?? null),
                 // An address, for a picture that is not in the library — a
                 // placeholder service while a page is being drafted, or an
@@ -474,6 +499,13 @@ final readonly class GridNormalizer
         }
 
         return null;
+    }
+
+    private function scale(mixed $value): int
+    {
+        $scale = is_numeric($value) ? (int) $value : 0;
+
+        return in_array($scale, self::SCALES, true) ? $scale : self::SCALE_FULL;
     }
 
     private function snap(mixed $value): int

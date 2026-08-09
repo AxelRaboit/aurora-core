@@ -98,6 +98,12 @@ final readonly class GridViewBuilder
                 'caption' => $held['caption'],
                 'spanStyle' => $this->values->spanStyle($zone['span']),
                 'ratioStyle' => $this->ratioStyle($zone['ratio']),
+                // Empty at full width, which is every zone that has not asked
+                // for anything — so a theme reading this puts no style on the
+                // figure at all unless there is something to say.
+                'scaleStyle' => GridNormalizer::SCALE_FULL === $zone['scale']
+                    ? ''
+                    : sprintf('width: %d%%;', $zone['scale']),
                 // A stack's own children, resolved the same way. The
                 // recursion is bounded by the normaliser, which refuses a
                 // stack inside a stack — so this descends once and stops.

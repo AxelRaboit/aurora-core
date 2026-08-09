@@ -145,7 +145,7 @@ final class GridNormalizerTest extends TestCase
         ])['zones'][0];
 
         self::assertSame(
-            ['id', 'type', 'span', 'offset', 'newRow', 'ratio', 'mediaId', 'mediaUrl', 'postId', 'children'],
+            ['id', 'type', 'span', 'offset', 'newRow', 'ratio', 'scale', 'mediaId', 'mediaUrl', 'postId', 'children'],
             array_keys($zone),
             'switching a zone type in the editor must not lose what was picked',
         );
@@ -435,6 +435,41 @@ final class GridNormalizerTest extends TestCase
             static fn (array $place): array => [$place['row'], $place['column']],
             GridNormalizer::place($layout['zones']),
         );
+    }
+
+    // ── How big a picture is printed ──────────────────────────────────────
+
+    public function testAPictureMayBePrintedSmallerThanItsZone(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'a1', 'type' => 'media', 'scale' => 50],
+                ['id' => 'a2', 'type' => 'media'],
+            ],
+        ]);
+
+        self::assertSame(50, $layout['zones'][0]['scale']);
+        self::assertSame(100, $layout['zones'][1]['scale'], 'a picture fills its zone unless told otherwise');
+    }
+
+    /**
+     * A whitelist rather than any number, for the reason the width fractions
+     * are one: these are the sizes anyone picks, and a page should not be able
+     * to carry a picture printed at 3%.
+     */
+    public function testAnUnlistedSizeFallsBackToFullWidth(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'a1', 'type' => 'media', 'scale' => 37],
+                ['id' => 'a2', 'type' => 'media', 'scale' => 0],
+                ['id' => 'a3', 'type' => 'media', 'scale' => 'moitié'],
+            ],
+        ]);
+
+        foreach ($layout['zones'] as $zone) {
+            self::assertSame(100, $zone['scale']);
+        }
     }
 
     // ── An address instead of a document ──────────────────────────────────

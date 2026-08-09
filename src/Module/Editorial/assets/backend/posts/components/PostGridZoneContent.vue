@@ -30,6 +30,8 @@ const props = defineProps({
     postOptions: { type: Array, default: () => [] },
     /** The shapes a media zone may be cropped to. */
     ratioOptions: { type: Array, default: () => [] },
+    /** How much of its zone's width a picture may take. */
+    scaleOptions: { type: Array, default: () => [] },
 });
 
 const { t } = useI18n();
@@ -92,6 +94,15 @@ const publicationOptions = computed(() =>
                 :label="t('backend.posts.grid.ratio')"
                 :hint="t('backend.posts.grid.ratio_hint')"
                 :options="ratioOptions"
+            />
+            <!-- Not a second way to say the same thing as the width above: that
+                 one moves the zone's neighbours, this one leaves the zone where
+                 it is and prints the picture smaller inside it. -->
+            <AppChoiceRow
+                v-model="bound.scale.value"
+                :label="t('backend.posts.grid.scale')"
+                :hint="t('backend.posts.grid.scale_hint')"
+                :options="scaleOptions"
             />
             <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
                 <p class="text-xs uppercase tracking-wide text-muted">

@@ -70,7 +70,7 @@ arbitrage neuf.
 | Partagé — sur le post | Par langue — sur la traduction |
 |---|---|
 | id de zone, **type**, span, ordre | blocs de texte |
-| `mediaId`, `mediaUrl` | `alt`, `caption` |
+| `mediaId`, `mediaUrl`, `ratio`, `scale` | `alt`, `caption` |
 | `postId` de la publication liée | URL vidéo |
 
 Chaque côté se justifie. Une zone qui serait du texte en français et une vidéo
@@ -86,6 +86,18 @@ seul porte un point focal, une variante à la bonne taille et un alt à lui.
 L'adresse existe pour le visuel provisoire — une maquette, une démo — et le
 normaliseur ne laisse passer que `/`, `http://` et `https://` : la valeur finit
 dans un `src` que le navigateur suit.
+
+`scale` (2026-08-09) répond à « je veux cette image plus petite, mais toujours
+proportionnelle ». C'est une **largeur** en pourcentage de la zone, pas une
+hauteur : une image garde ses proportions, donc demander la moitié de la largeur
+donne la moitié de la hauteur — les deux questions n'en font qu'une. Une hauteur
+en pixels, elle, ne survivrait pas au téléphone, et c'est exactement ce que le
+choix d'un rapport plutôt que d'une hauteur avait déjà écarté.
+
+Rétrécir la zone ferait aussi l'affaire et fait autre chose : ça déplace les
+voisines. `scale` laisse la zone où elle est et ne change que ce qui la remplit.
+La figure est centrée et la légende prend la largeur de l'image, pas celle de la
+colonne.
 
 **Les zones s'enchaînent**, elles ne sont pas posées en coordonnées.
 Redimensionner change un span, déplacer réordonne. Pas de cellule vide à gérer,
