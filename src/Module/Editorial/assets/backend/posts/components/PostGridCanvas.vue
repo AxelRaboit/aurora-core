@@ -312,7 +312,42 @@ function onKeydown(index, event) {
                                  has to stay legible. Only where there is an
                                  image: on a plain box the plate would be a
                                  rectangle around nothing. -->
+                            <!-- A stack draws what it holds, at the shares it
+                                 holds it at: the same `flex-grow` the page uses,
+                                 so the picture is right rather than merely
+                                 suggestive. Icons only — a slice of an 80px box
+                                 has no room for a word, and the panel below
+                                 names every zone anyway.
+
+                                 Its own children carry no handle: a zone's share
+                                 here is a height, and the canvas only ever
+                                 resized widths. That is set in the panel. -->
                             <div
+                                v-if="'stack' === zone.type && zone.children?.length"
+                                class="relative flex h-full w-full flex-col gap-1 py-1"
+                            >
+                                <div class="flex min-h-0 flex-1 flex-col gap-0.5">
+                                    <div
+                                        v-for="child in zone.children"
+                                        :key="child.id"
+                                        class="flex min-h-0 items-center justify-center rounded-sm border border-line bg-surface-1"
+                                        :style="{ flexGrow: child.span?.lg ?? 1, flexBasis: 0 }"
+                                        :title="t(`backend.posts.grid.zone_types.${child.type}`)"
+                                    >
+                                        <component
+                                            :is="ZONE_ICONS[child.type]"
+                                            class="w-3 h-3 shrink-0 text-secondary"
+                                            :stroke-width="2"
+                                        />
+                                    </div>
+                                </div>
+                                <span class="shrink-0 text-[10px] text-muted tabular-nums">
+                                    {{ widthOf(index) }}/{{ COLUMNS }} · {{ zone.children.length }}
+                                </span>
+                            </div>
+
+                            <div
+                                v-else
                                 class="relative flex flex-col items-center gap-1"
                                 :class="imageOf(zone) ? 'rounded-md bg-surface/90 px-2 py-1' : ''"
                             >
@@ -328,7 +363,7 @@ function onKeydown(index, event) {
                                     class="line-clamp-2 text-xs text-primary"
                                 >{{ labelOf(zone) }}</span>
                                 <span class="text-[10px] text-muted tabular-nums">
-                                    {{ widthOf(index) }}/{{ COLUMNS }}<template v-if="'stack' === zone.type"> · {{ zone.children?.length ?? 0 }}</template>
+                                    {{ widthOf(index) }}/{{ COLUMNS }}<template v-if="'stack' === zone.type"> · 0</template>
                                 </span>
                             </div>
                         </button>

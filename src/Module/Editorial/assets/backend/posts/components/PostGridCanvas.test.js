@@ -297,6 +297,68 @@ describe("PostGridCanvas", () => {
         expect(box.classList.contains("relative")).toBe(true);
     });
 
+    // ── Stacks ────────────────────────────────────────────────────────────
+
+    function stack(id, lg, children) {
+        return {
+            ...zone(id, lg, { type: "stack" }),
+            children: children.map((child, i) =>
+                zone(`${id}-${i}`, child.lg, { type: child.type }),
+            ),
+        };
+    }
+
+    /**
+     * The same grow factors the page uses, so the picture is right rather than
+     * merely suggestive: a stack whose zones stand 3/4 to 1/4 must look like it
+     * here too, or the canvas stops being worth trusting.
+     */
+    it("draws a stack's zones at the shares it holds them at", () => {
+        const wrapper = mountCanvas([
+            stack("s", 24, [
+                { type: "media", lg: 36 },
+                { type: "text", lg: 12 },
+            ]),
+        ]);
+
+        const slices = wrapper.findAll(
+            '.aurora-grid [aria-pressed] [style*="flex-grow"]',
+        );
+
+        expect(slices).toHaveLength(2);
+        expect(slices[0].attributes("style")).toContain("flex-grow: 36");
+        expect(slices[1].attributes("style")).toContain("flex-grow: 12");
+    });
+
+    it("says how many zones a stack holds", () => {
+        const wrapper = mountCanvas([
+            stack("s", 24, [
+                { type: "media", lg: 24 },
+                { type: "media", lg: 24 },
+            ]),
+        ]);
+
+        expect(wrapper.text()).toContain("24/48 · 2");
+    });
+
+    /**
+     * A share is a height, and the canvas only ever resized widths. Offering a
+     * handle on a slice would promise a gesture that has nowhere to go.
+     */
+    it("puts no resize handle on a stack's own zones", () => {
+        const wrapper = mountCanvas([
+            stack("s", 24, [
+                { type: "media", lg: 24 },
+                { type: "media", lg: 24 },
+            ]),
+        ]);
+
+        expect(wrapper.findAll('[role="slider"]')).toHaveLength(
+            1,
+            "one for the stack itself, none for what it holds",
+        );
+    });
+
     it("shows a linked publication by name, and a picked image itself", () => {
         const wrapper = mountCanvas(
             [
