@@ -632,6 +632,75 @@ describe("usePostGrid", () => {
         expect(layout.value.zones).toHaveLength(2);
     });
 
+    // ── Taking a zone back out of a stack ─────────────────────────────────
+
+    /**
+     * Without this a stack is a trap: a zone built inside one could only leave
+     * by being deleted, which drops what every language holds for it.
+     */
+    it("takes a zone out of a stack and puts it back on the row", () => {
+        const { layout, content, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "media");
+        api.addChild(0, "text");
+
+        const movedId = layout.value.zones[0].children[0].id;
+        api.zoneFields(0, 0).alt.value = "Vue depuis la treille";
+
+        expect(api.moveZoneOutOfStack(0, 0, 0)).toBe(true);
+
+        expect(layout.value.zones.map((z) => z.type)).toEqual([
+            "media",
+            "stack",
+        ]);
+        expect(layout.value.zones[0].id).toBe(movedId);
+        expect(layout.value.zones[1].children).toHaveLength(1);
+        expect(content.value.zones[movedId].alt).toBe("Vue depuis la treille");
+    });
+
+    /**
+     * The number meant a share of the height inside the stack and would mean a
+     * width on the row. Carrying it over would reinterpret it silently — 36
+     * going from "three quarters of the height" to "three quarters of the row",
+     * a value nobody chose.
+     */
+    it("resets the span rather than reading a height share as a width", () => {
+        const { layout, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "media");
+        api.addChild(0, "media");
+        api.zoneFields(0, 0).width.value = 36;
+
+        api.moveZoneOutOfStack(0, 0, 0);
+
+        expect(layout.value.zones[0].span.lg).toBe(24);
+    });
+
+    it("re-shares what stays behind", () => {
+        const { layout, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "media");
+        api.addChild(0, "media");
+        api.addChild(0, "media");
+
+        api.moveZoneOutOfStack(0, 0, 0);
+
+        expect(layout.value.zones[1].children.map((c) => c.span.lg)).toEqual([
+            24, 24,
+        ]);
+    });
+
+    it("ignores a move out of a zone that holds nothing", () => {
+        const { api } = make();
+
+        api.addZone("text");
+
+        expect(api.moveZoneOutOfStack(0, 0, 0)).toBe(false);
+    });
+
     it("stops adding to a stack at the cap", () => {
         const { layout, api } = make();
 

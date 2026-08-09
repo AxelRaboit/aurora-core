@@ -410,6 +410,47 @@ describe("PostGridCanvas", () => {
         );
     });
 
+    it("takes a zone out of a stack when its slice is dropped on the row", () => {
+        const wrapper = mountCanvas([
+            zone("a", 24),
+            stack("s", 24, [
+                { type: "media", lg: 24 },
+                { type: "media", lg: 24 },
+            ]),
+        ]);
+
+        const slices = wrapper.findAll('.aurora-grid [style*="flex-grow"]');
+
+        drag(slices[1], "dragstart");
+        drag(boxes(wrapper)[0], "dragover");
+        drag(boxes(wrapper)[0], "drop");
+
+        expect(wrapper.emitted("moveOut")[0]).toEqual([1, 1, 0]);
+        expect(wrapper.emitted("swap")).toBeFalsy();
+    });
+
+    /**
+     * A slice dragged out is not the stack being dragged: without stopping the
+     * event the box behind would start a drag of the whole stack, and the two
+     * gestures would fight over the same pointer.
+     */
+    it("does not start a drag of the whole stack when a slice is picked up", () => {
+        const wrapper = mountCanvas([
+            zone("a", 24),
+            stack("s", 24, [{ type: "media", lg: 48 }]),
+        ]);
+
+        drag(
+            wrapper.findAll('.aurora-grid [style*="flex-grow"]')[0],
+            "dragstart",
+        );
+        drag(boxes(wrapper)[0], "dragover");
+        drag(boxes(wrapper)[0], "drop");
+
+        expect(wrapper.emitted("moveOut")).toBeTruthy();
+        expect(wrapper.emitted("swap")).toBeFalsy();
+    });
+
     it("shows a linked publication by name, and a picked image itself", () => {
         const wrapper = mountCanvas(
             [

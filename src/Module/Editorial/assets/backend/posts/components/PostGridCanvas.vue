@@ -52,7 +52,7 @@ const props = defineProps({
     canAdd: { type: Boolean, default: true },
 });
 
-const emit = defineEmits(["update:selectedIndex", "resize", "add", "swap", "moveInto"]);
+const emit = defineEmits(["update:selectedIndex", "resize", "add", "swap", "moveInto", "moveOut"]);
 
 const { t } = useI18n();
 
@@ -170,6 +170,15 @@ function onDragStart(index, event) {
 }
 
 function onDragOver(index, event) {
+    // A slice dragged out of a stack lands here too — the box says "on the row,
+    // at this place", which is the only thing leaving a stack can mean.
+    if (null !== draggingSlice.value) {
+        event.preventDefault();
+        dropTarget.value = index;
+
+        return;
+    }
+
     if (null === draggingFrom.value || draggingFrom.value === index) {
         return;
     }
@@ -212,6 +221,26 @@ function sliceAccepts(stackIndex) {
     );
 }
 
+/**
+ * The slice being dragged out, as `stackIndex:childIndex`, or null.
+ *
+ * Held apart from `draggingFrom` because the two answer different questions —
+ * one names a zone on the row, the other a zone inside a stack — and a single
+ * field would have to be read twice to tell which.
+ */
+const draggingSlice = ref(null);
+
+function onSliceDragStart(stackIndex, childIndex, event) {
+    // Stops the stack's own box from starting a drag of the whole stack.
+    event.stopPropagation();
+    draggingSlice.value = { stackIndex, childIndex };
+    event.dataTransfer?.setData("text/plain", `${stackIndex}:${childIndex}`);
+
+    if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+    }
+}
+
 function onSliceOver(stackIndex, atIndex, event) {
     if (!sliceAccepts(stackIndex)) {
         return;
@@ -238,6 +267,14 @@ function onSliceDrop(stackIndex, atIndex, event) {
 }
 
 function onDrop(index) {
+    if (null !== draggingSlice.value) {
+        const { stackIndex, childIndex } = draggingSlice.value;
+        emit("moveOut", stackIndex, childIndex, index);
+        onDragEnd();
+
+        return;
+    }
+
     if (null !== draggingFrom.value && draggingFrom.value !== index) {
         emit("swap", draggingFrom.value, index);
         // The zone the author was holding is now here, and it is the one they
@@ -250,6 +287,7 @@ function onDrop(index) {
 
 function onDragEnd() {
     draggingFrom.value = null;
+    draggingSlice.value = null;
     dropTarget.value = null;
     dropSlice.value = null;
 }
@@ -396,6 +434,8 @@ function onKeydown(index, event) {
                                         "
                                         :style="{ flexGrow: child.span?.lg ?? 1, flexBasis: 0 }"
                                         :title="t(`backend.posts.grid.zone_types.${child.type}`)"
+                                        draggable="true"
+                                        v-on:dragstart="onSliceDragStart(index, childIndex, $event)"
                                         v-on:dragover="onSliceOver(index, childIndex, $event)"
                                         v-on:dragleave="dropSlice = null"
                                         v-on:drop="onSliceDrop(index, childIndex, $event)"

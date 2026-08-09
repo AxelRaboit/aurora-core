@@ -65,6 +65,7 @@ const {
     removeChild,
     moveChild,
     moveZoneIntoStack,
+    moveZoneOutOfStack,
     childShare,
     addZone,
     removeZone,
@@ -123,6 +124,14 @@ function moveIntoStack(fromIndex, stackIndex, atIndex) {
     }
 
     selectedIndex.value = fromIndex < stackIndex ? stackIndex - 1 : stackIndex;
+}
+
+// The zone is back on the row, at the place it was dropped, and that is where
+// the author is now looking.
+function moveOutOfStack(stackIndex, childIndex, atIndex) {
+    if (moveZoneOutOfStack(stackIndex, childIndex, atIndex)) {
+        selectedIndex.value = atIndex;
+    }
 }
 
 // Only the selected zone shows its fields, so a zone added without being
@@ -208,6 +217,7 @@ watch(selectedIndex, async (index) => {
                 v-on:add="addAndSelect"
                 v-on:swap="swapZones"
                 v-on:move-into="moveIntoStack"
+                v-on:move-out="moveOutOfStack"
             />
 
             <!-- Behind a button rather than inline: the panel is a column a few

@@ -353,6 +353,38 @@ export function usePostGrid(layout, content) {
     }
 
     /**
+     * Take a zone out of a stack and put it back on the row.
+     *
+     * The mirror of moving one in, and the reason a stack is not a trap: a zone
+     * built inside one could otherwise only leave by being deleted, which drops
+     * what every language holds for it.
+     *
+     * **Its span is reset rather than carried over.** Inside a stack the number
+     * was a share of the height; on a row the same number is a width. Keeping
+     * it would silently reinterpret 36 from "three quarters of the height" to
+     * "three quarters of the row" — a value nobody chose, arrived at by the
+     * field meaning two things. Half is what a new zone gets.
+     *
+     * @return {boolean} whether the move happened.
+     */
+    function moveZoneOutOfStack(stackIndex, childIndex, atIndex) {
+        const stack = layout.value.zones[stackIndex];
+        const moving = stack?.children?.[childIndex];
+
+        if (undefined === moving) {
+            return false;
+        }
+
+        stack.children.splice(childIndex, 1);
+        shareEvenly(stack.children);
+
+        moving.span.lg = 24;
+        layout.value.zones.splice(atIndex, 0, moving);
+
+        return true;
+    }
+
+    /**
      * Hand the rest of the height back to the other zones of a stack.
      *
      * Shares are grow factors, so only their ratio matters — but an author
@@ -595,6 +627,7 @@ export function usePostGrid(layout, content) {
         removeChild,
         moveChild,
         moveZoneIntoStack,
+        moveZoneOutOfStack,
         childShare,
         addZone,
         removeZone,

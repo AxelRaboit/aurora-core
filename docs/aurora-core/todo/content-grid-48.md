@@ -500,8 +500,16 @@ derrière le prend comme un échange, donc le geste fait quelque chose plutôt q
 rien. Le surlignage dit lequel des deux : la boîte s'allume, la tranche non.
 *(`52dc2b5f`)*
 
-**Ce qui n'est pas fait** : sortir une zone d'une pile en la glissant. Elle se
-supprime depuis la pile.
+**Sortir une zone d'une pile** se fait en glissant sa tranche sur une boîte de
+la ligne — le miroir exact du geste inverse. Sans ça une pile serait un piège :
+une zone construite dedans ne pourrait en sortir qu'en étant supprimée, ce qui
+efface ce que chaque langue en tient.
+
+Son span est **remis à la moitié** plutôt que conservé. Dans la pile le nombre
+était une part de hauteur ; sur la ligne le même nombre est une largeur. Le
+garder réinterpréterait 36 en silence, de « trois quarts de la hauteur » à
+« trois quarts de la ligne » — une valeur que personne n'a choisie, obtenue
+parce qu'un champ veut dire deux choses.
 
 ### Livré le 2026-08-09 : le rapport d'image, sur la zone média
 

@@ -111,6 +111,13 @@ final readonly class PostPageRenderer
                     // to fill on every publication for a string the document
                     // already carries.
                     'alt' => (string) $ogImage->getAlt(),
+                    // The document's focal point, for a theme that prints this
+                    // picture as a hero. A wide photo in a shallow band crops
+                    // to its middle without it, which is where a sky usually
+                    // is. Not the post's own focal point — that one belongs to
+                    // the thumbnail, and answers a different question: how this
+                    // publication should look in a card.
+                    'focalPosition' => $this->documentUrlGenerator->focalPositionCss($ogImage),
                 ]
                 : null,
             'jsonLd' => $translation->getJsonLd(),
