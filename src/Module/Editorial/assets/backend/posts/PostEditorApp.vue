@@ -43,16 +43,20 @@ const {
 } = usePostEditor(props);
 
 /**
- * Sections, in one order rather than two.
+ * Sections, in one order, and the first one is the one that opens.
  *
- * They run from what a reader sees to what only a machine reads: the header
- * and the body in the order they appear on the published page, then what the
- * site needs to place and publish it, then the metadata. The previous order
- * put Content first because that is where the work happens — true, but it
- * contradicted the page itself, where the header sits above the body.
+ * Settings leads because it is where the publication says what it is: its
+ * title and summary sit at the top of it, and those name the record in the
+ * admin list and on any card that embeds it. Arriving anywhere else would mean
+ * arriving on a screen that never says which publication is being edited. The
+ * rest follows the published page — header, then body — and ends with the
+ * metadata only a machine reads.
  *
- * Which tab *opens* is a separate question, and the answer is still Content:
- * position says how the sections relate, the default says where the work is.
+ * Position and default used to be set apart, on the grounds that position says
+ * how the sections relate and the default says where the work is. That held
+ * while the title was pinned above the tabs and visible from every one of
+ * them. It stopped holding when the title moved into a section, so there is
+ * one order now and `useTabState` falls back to its first key.
  *
  * There is one editor per post: a remembered key would be shared by all of
  * them, and two browser tabs on two posts would fight over it. The fragment
@@ -62,10 +66,9 @@ const {
  * English keys because they end up in the URL, where the rest of the routing
  * is English too. The labels are translated; the identifier is not.
  */
-const TABS = ["header", "content", "settings", "seo"];
+const TABS = ["settings", "header", "content", "seo"];
 const { activeTab, select: selectTab, isActive: isTabActive } = useTabState(TABS, {
     hash: true,
-    defaultKey: "content",
 });
 
 const postTypeOptions = props.postTypes.map((type) => ({ value: type.id, label: type.label }));
@@ -153,25 +156,6 @@ function termLabel(term) {
             >
                 {{ code }}
             </AppTab>
-        </div>
-
-        <!-- The record's own name and summary, outside the sections because
-             they are not one: they identify the publication in the admin list
-             and on any card that embeds it. They also head the page itself,
-             but only as a fallback — an in-page header with a title of its own
-             takes over, which is why they are not filed under Content. -->
-        <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
-            <AppInput
-                v-model="current.title"
-                :label="t('backend.posts.field_title')"
-                :error="errors.title"
-            />
-            <AppTextarea
-                v-model="current.description"
-                :label="t('backend.posts.field_description')"
-                :rows="2"
-            />
-            <p class="text-xs text-muted">{{ t("backend.posts.identity_hint") }}</p>
         </div>
 
         <div>
@@ -264,6 +248,27 @@ function termLabel(term) {
                 </div>
 
                 <div v-show="isTabActive('settings')" class="space-y-4">
+                    <!-- The record's own name and summary. They are not part of
+                         Content, and never were: they identify the publication
+                         in the admin list and on any card that embeds it, and
+                         they head the page itself only as a fallback — an
+                         in-page header carrying a title of its own takes over.
+                         They sit at the top of Settings, above the slug they
+                         are the source of. -->
+                    <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                        <AppInput
+                            v-model="current.title"
+                            :label="t('backend.posts.field_title')"
+                            :error="errors.title"
+                        />
+                        <AppTextarea
+                            v-model="current.description"
+                            :label="t('backend.posts.field_description')"
+                            :rows="2"
+                        />
+                        <p class="text-xs text-muted">{{ t("backend.posts.identity_hint") }}</p>
+                    </div>
+
                     <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
                         <AppInput
                             v-model="current.slug"
