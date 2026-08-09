@@ -91,16 +91,32 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
             ],
         ];
 
+        $repository = $em->getRepository(User::class);
+
         foreach ($defs as $def) {
-            $user = new User();
+            // Reused when it is already there, so `make demo` can be run twice.
+            // It used to always insert, and the second run died on the unique
+            // (email, type) — after purging var/uploads, which is the first
+            // thing that target does. A reload that half-runs is worse than one
+            // that refuses.
+            $user = $repository->findOneBy(['email' => $def['email']]) ?? new User();
+            $fresh = null === $user->getId();
+
             $user->setEmail($def['email'])
                  ->setName($def['name'])
                  ->setRoles([$def['role']->value])
                  ->setPrivileges($def['privileges'])
                  ->setMoodMessage($def['mood'])
-                 ->setLocale(LocaleEnum::French)
-                 ->setPassword($this->hasher->hashPassword($user, 'password'));
-            $em->persist($user);
+                 ->setLocale(LocaleEnum::French);
+
+            // Only on creation: a reload refreshes what the demo describes —
+            // the name, the rights — without resetting a password somebody
+            // changed in the meantime.
+            if ($fresh) {
+                $user->setPassword($this->hasher->hashPassword($user, 'password'));
+                $em->persist($user);
+            }
+
             $users[] = $user;
         }
 

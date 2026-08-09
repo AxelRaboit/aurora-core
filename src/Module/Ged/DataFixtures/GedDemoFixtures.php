@@ -103,7 +103,14 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             $dest = $destDir.'/'.$def['name'];
             $this->fs->copy($src, $dest, true);
 
-            $document = new Document();
+            // Reused when the path is already taken. Without this a second
+            // `make demo` inserted the whole set again — forty rows for
+            // eighteen files, every publication still pointing at the first
+            // copy, and a fresh set of orphans on disk each run.
+            $document = $em->getRepository(Document::class)
+                ->findOneBy(['filePath' => 'ged/'.$month.'/'.$def['name']])
+                ?? new Document();
+
             $document->setTitle($def['original'])
                 ->setFileName($def['name'])
                 ->setOriginalName($def['original'])
@@ -179,8 +186,14 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['name' => 'Qualité & Conformité',     'slug' => 'qualite-conformite',     'desc' => 'Politiques qualité, audits et certifications.'],
         ];
         $categories = [];
+        $categoryRepository = $em->getRepository(DocumentCategory::class);
+
         foreach ($catDefs as $def) {
-            $c = new DocumentCategory();
+            // Reused when the slug is already taken, so `make demo` can run on
+            // a database that already has demo data. It used to always insert
+            // and die on the unique slug — after the target had purged
+            // var/uploads, which left the pictures gone and the rows unchanged.
+            $c = $categoryRepository->findOneBy(['slug' => $def['slug']]) ?? new DocumentCategory();
             $c->setName($def['name'])->setSlug($def['slug'])->setDescription($def['desc']);
             $em->persist($c);
             $categories[] = $c;
@@ -224,8 +237,14 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             'png' => 'image/png',
         ];
 
+        $documentRepository = $em->getRepository(Document::class);
+
         foreach ($docDefs as $idx => $def) {
-            $d = new Document();
+            // Keyed on the title: some of these carry no file at all — on
+            // purpose, so there is something to test the upload flow against —
+            // so the path cannot be the key. The titles are distinct across the
+            // set, which is what makes them one.
+            $d = $documentRepository->findOneBy(['title' => $def['title']]) ?? new Document();
             $d->setTitle($def['title'])
               ->setDescription($def['desc'])
               ->setStatus($def['status'])

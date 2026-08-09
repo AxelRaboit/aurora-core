@@ -29,29 +29,46 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
  */
 class AppFixtures extends Fixture
 {
+    private const string EMAIL = 'dev@aurora.app';
+
     public function __construct(
         private readonly UserPasswordHasherInterface $hasher,
     ) {}
 
     public function load(ObjectManager $manager): void
     {
-        // Admin user (backend)
-        $adminUser = new User();
-        $adminUser->setEmail('dev@aurora.app')
-             ->setName('Admin User')
-             ->setRoles([UserRoleEnum::Dev->value])
-             ->setPassword($this->hasher->hashPassword($adminUser, 'password'));
-        $manager->persist($adminUser);
-
-        // Frontend user — same email, accessible via front login
-        $frontUser = new User();
-        $frontUser->setEmail('dev@aurora.app')
-             ->setName('Admin User')
-             ->setType(UserTypeEnum::Frontend)
-             ->setRoles([UserRoleEnum::Dev->value])
-             ->setPassword($this->hasher->hashPassword($frontUser, 'password'));
-        $manager->persist($frontUser);
+        // One account per side. Same address on purpose — the backend and the
+        // frontend are two logins, and the unique key is the pair.
+        $this->account($manager, UserTypeEnum::Backend);
+        $this->account($manager, UserTypeEnum::Frontend);
 
         $manager->flush();
+    }
+
+    /**
+     * Created once and left alone afterwards.
+     *
+     * It used to always insert, so a second `doctrine:fixtures:load --append`
+     * died on the unique (email, type) — and `make demo` runs exactly that,
+     * after purging var/uploads. A reload that half-runs is worse than one
+     * that refuses: the pictures were gone and the rows were not replaced.
+     */
+    private function account(ObjectManager $manager, UserTypeEnum $type): void
+    {
+        $existing = $manager->getRepository(User::class)
+            ->findOneBy(['email' => self::EMAIL, 'type' => $type]);
+
+        if ($existing instanceof User) {
+            return;
+        }
+
+        $user = new User();
+        $user->setEmail(self::EMAIL)
+             ->setName('Admin User')
+             ->setType($type)
+             ->setRoles([UserRoleEnum::Dev->value])
+             ->setPassword($this->hasher->hashPassword($user, 'password'));
+
+        $manager->persist($user);
     }
 }

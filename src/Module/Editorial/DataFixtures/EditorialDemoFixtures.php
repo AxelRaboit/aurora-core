@@ -14,6 +14,7 @@ use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Service\EditorBlocks;
 use Aurora\Module\Editorial\Post\Service\PostTextExtractor;
@@ -146,7 +147,13 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         string $reference,
         ?TaxonomyTermInterface $parent = null,
     ): TaxonomyTermInterface {
-        $term = new TaxonomyTerm()
+        // Reused when the reference is already taken, for the same reason as
+        // the publications below: `make demo` should refresh a database that
+        // already has demo data rather than dying halfway through it.
+        $term = $em->getRepository(TaxonomyTerm::class)->findOneBy(['reference' => $reference])
+            ?? new TaxonomyTerm();
+
+        $term
             ->setTaxonomy($taxonomy)
             ->setParent($parent)
             ->setReference($reference)
@@ -231,21 +238,36 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
         $posts = [];
         $index = 0;
+        $repository = $em->getRepository(Post::class);
 
         foreach ($defs as $key => $def) {
             ++$index;
 
-            $post = new Post()
+            $reference = sprintf('%s-DEMO-%d', SequencePrefixEnum::Post->value, $index);
+
+            // Reused when it is already there, so a second `make demo`
+            // refreshes the demo rather than dying on the unique reference.
+            // Everything below is a setter, and `addTerm` already refuses a
+            // term it holds — so one path serves both cases and there is no
+            // second one to keep in step.
+            $post = $repository->findOneBy(['reference' => $reference]) ?? new Post();
+
+            $post
                 ->setPostType($def['type'])
                 ->setAuthor($author)
-                // Every card in every listing was drawn without a picture:
-                // nothing set one, so the demo showed the layout for a post
-                // that has none and never the one it has.
+                // Every publication carries one: a demo where some cards have
+                // a picture and some do not shows the empty layout as often as
+                // the real one, and reads as unfinished rather than as a
+                // choice.
                 ->setThumbnail($this->getReference(GedDemoFixtures::mediaRef($def['media']), Document::class))
+                // Stated rather than left to the default. It is the same value,
+                // and a demo that relies on a default cannot show that the
+                // control exists.
+                ->setThumbnailFit(ThumbnailFitEnum::Cover)
                 ->setStatus($def['status'])
                 ->setPublishedAt($def['publishedAt'])
                 ->setScheduledAt($def['scheduledAt'] ?? null)
-                ->setReference(sprintf('%s-DEMO-%d', SequencePrefixEnum::Post->value, $index));
+                ->setReference($reference);
 
             foreach ($def['terms'] as $termKey) {
                 if (isset($terms[$termKey])) {
@@ -265,6 +287,8 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 $this->indexForSearch($translation);
             }
 
+            // persist() on an entity Doctrine already manages is a no-op, so
+            // the reused branch needs no guard of its own.
             $em->persist($post);
             $posts[$key] = $post;
         }
