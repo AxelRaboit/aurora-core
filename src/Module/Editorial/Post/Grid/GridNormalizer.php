@@ -40,7 +40,7 @@ use Aurora\Core\Content\ContentValueNormalizer;
  * they are sanitised at render, like `blocks` always has been. Everything else
  * is whitelisted on the way in.
  *
- * @phpstan-type GridZone array{id: string, type: string, span: array<string, int|null>, ratio: string, mediaId: ?int, postId: ?int}
+ * @phpstan-type GridZone array{id: string, type: string, span: array<string, int|null>, ratio: string, mediaId: ?int, postId: ?int, children: list<mixed>}
  * @phpstan-type GridZoneContent array{blocks: list<mixed>, alt: string, caption: string, url: ?string}
  */
 final readonly class GridNormalizer
@@ -56,6 +56,22 @@ final readonly class GridNormalizer
 
     /** A video address — YouTube, Vimeo, Dailymotion. */
     public const string ZONE_VIDEO = 'video';
+
+    /**
+     * Zones stacked one above another, sharing the height of the row they sit
+     * in.
+     *
+     * The one way to get a tall zone with two shorter ones beside it, and the
+     * reason it is a zone type rather than a second dimension on the grid.
+     * Making a zone span two rows would mean explicit placement — start column,
+     * row span, empty cells to arbitrate, and no sensible answer for a phone.
+     * A stack keeps every zone flowing in one sequence: it is one more zone,
+     * that happens to hold others.
+     *
+     * Its children take their height from the row, because grid items stretch
+     * to it. Nothing here declares a height, and nothing has to.
+     */
+    public const string ZONE_STACK = 'stack';
 
     public const int COLUMNS = ContentValueNormalizer::COLUMNS;
 
@@ -94,7 +110,25 @@ final readonly class GridNormalizer
      */
     private const int MAX_ZONES = 60;
 
-    private const array ZONE_TYPES = [self::ZONE_TEXT, self::ZONE_POST, self::ZONE_MEDIA, self::ZONE_VIDEO];
+    /**
+     * A stack is a way to split one cell in two or three, not a second page.
+     * Low enough that the shares stay meaningful — six zones sharing a row's
+     * height are six slivers.
+     */
+    private const int MAX_STACK_CHILDREN = 6;
+
+    /** What a zone may be anywhere, including inside a stack. */
+    private const array LEAF_ZONE_TYPES = [self::ZONE_TEXT, self::ZONE_POST, self::ZONE_MEDIA, self::ZONE_VIDEO];
+
+    /**
+     * A stack is only allowed at the top level: depth stops at one.
+     *
+     * Nesting further would turn a page into a layout tree, where what a zone
+     * renders as can no longer be read off the list — and every consumer of
+     * this shape, from the canvas to the Twig, would have to recurse without
+     * bound.
+     */
+    private const array ZONE_TYPES = [...self::LEAF_ZONE_TYPES, self::ZONE_STACK];
 
     public function __construct(
         private ContentValueNormalizer $values,
@@ -142,11 +176,11 @@ final readonly class GridNormalizer
 
         $content = [];
 
-        foreach ($zones as $zone) {
-            if (!is_array($zone)) {
-                continue;
-            }
-
+        // Flat, including what stacks hold: ids are unique across the tree, so
+        // one map answers for every zone whatever its depth. A nested content
+        // shape would have to be walked in step with the layout by everything
+        // that reads it, for no gain.
+        foreach (self::flatten($zones) as $zone) {
             if (!is_string($zone['id'] ?? null)) {
                 continue;
             }
@@ -189,23 +223,41 @@ final readonly class GridNormalizer
     private function zones(array $data): array
     {
         $raw = is_array($data['zones'] ?? null) ? $data['zones'] : [];
-
-        $zones = [];
         $used = [];
 
-        foreach (array_slice(array_values($raw), 0, self::MAX_ZONES) as $entry) {
+        return $this->zoneList($raw, $used, true);
+    }
+
+    /**
+     * @param array<mixed>        $raw
+     * @param array<string, true> $used ids already taken, across the whole tree
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function zoneList(array $raw, array &$used, bool $allowStacks): array
+    {
+        $zones = [];
+        $limit = $allowStacks ? self::MAX_ZONES : self::MAX_STACK_CHILDREN;
+
+        foreach (array_slice(array_values($raw), 0, $limit) as $entry) {
             if (!is_array($entry)) {
                 continue;
             }
 
             // An unknown type drops the zone rather than defaulting to text: a
             // page is better one zone short than showing an empty box where
-            // something else was meant to be.
-            $type = $this->values->oneOf($entry['type'] ?? null, self::ZONE_TYPES, '');
+            // something else was meant to be. Inside a stack the same applies
+            // to a nested stack: depth stops at one, and the alternative — a
+            // stack silently becoming a text zone — would be worse.
+            $allowed = $allowStacks ? self::ZONE_TYPES : self::LEAF_ZONE_TYPES;
+            $type = $this->values->oneOf($entry['type'] ?? null, $allowed, '');
             if ('' === $type) {
                 continue;
             }
 
+            // Ids are unique across the whole tree, not per level: content is
+            // keyed by id in one flat map, so two zones sharing one would share
+            // their words in every language at once.
             $id = $this->values->itemId($entry['id'] ?? null, $used);
             $used[$id] = true;
 
@@ -215,16 +267,58 @@ final readonly class GridNormalizer
             $zones[] = [
                 'id' => $id,
                 'type' => $type,
+                // On a row this is a width; inside a stack it is a share of the
+                // height. Both are a fraction of the space along the axis the
+                // zone flows on, which is why one field says both.
                 'span' => $this->values->span($entry['span'] ?? null),
                 // Shared, like the span: how a picture is cropped is design,
                 // and the design is written once for every language.
                 'ratio' => $this->values->oneOf($entry['ratio'] ?? null, self::RATIOS, self::RATIO_NATURAL),
                 'mediaId' => $this->values->id($entry['mediaId'] ?? null),
                 'postId' => $this->values->id($entry['postId'] ?? null),
+                // Present on every zone, empty unless it is a stack — same
+                // reasoning as the keys above, so nothing has to guard the read.
+                'children' => self::ZONE_STACK === $type
+                    ? $this->zoneList(is_array($entry['children'] ?? null) ? $entry['children'] : [], $used, false)
+                    : [],
             ];
         }
 
         return $zones;
+    }
+
+    /**
+     * Every zone of a layout, stacks and what they hold, in reading order.
+     *
+     * Public because the view builder needs the same walk to batch its document
+     * and post lookups: one query per kind for the whole page, stacks included,
+     * rather than one per zone.
+     *
+     * @param array<mixed> $zones
+     *
+     * @return list<array<string, mixed>>
+     */
+    public static function flatten(array $zones): array
+    {
+        $flat = [];
+
+        foreach ($zones as $zone) {
+            if (!is_array($zone)) {
+                continue;
+            }
+
+            $flat[] = $zone;
+
+            if (is_array($zone['children'] ?? null)) {
+                foreach ($zone['children'] as $child) {
+                    if (is_array($child)) {
+                        $flat[] = $child;
+                    }
+                }
+            }
+        }
+
+        return $flat;
     }
 
     private function snap(mixed $value): int

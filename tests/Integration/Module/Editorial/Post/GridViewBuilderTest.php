@@ -97,6 +97,71 @@ final class GridViewBuilderTest extends IntegrationTestCase
         self::assertSame('', $grid['zones'][0]['ratioStyle']);
     }
 
+    /**
+     * A stack's children are resolved like any other zone — the whole point of
+     * the type is that what fills a stacked zone is not a special case.
+     */
+    public function testAStacksChildrenAreResolvedLikeAnyOtherZone(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            [
+                'enabled' => true,
+                'zones' => [[
+                    'id' => 'holder',
+                    'type' => 'stack',
+                    'span' => ['lg' => 24],
+                    'children' => [
+                        ['id' => 'top', 'type' => 'text', 'span' => ['lg' => 24]],
+                        ['id' => 'bottom', 'type' => 'text', 'span' => ['lg' => 24]],
+                    ],
+                ]],
+            ],
+            ['zones' => [
+                'top' => ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Au-dessus']]]],
+                'bottom' => ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'En dessous']]]],
+            ]],
+            'fr',
+        );
+
+        $children = $grid['zones'][0]['children'];
+
+        self::assertCount(2, $children);
+        self::assertStringContainsString('Au-dessus', (string) $children[0]['html']);
+        self::assertStringContainsString('En dessous', (string) $children[1]['html']);
+    }
+
+    /**
+     * `flex-basis: 0` is what turns the grow factors into exact proportions
+     * rather than a split of leftover space. There is deliberately no
+     * `min-height: 0` beside it: without that floor a child could be squeezed
+     * under its own content, which is the clipped-text failure this whole
+     * approach exists to avoid. Proportions when the content fits, growth when
+     * it does not.
+     */
+    public function testAStackedChildCarriesItsShareOfTheHeight(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            [
+                'enabled' => true,
+                'zones' => [[
+                    'id' => 'holder',
+                    'type' => 'stack',
+                    'children' => [
+                        ['id' => 'top', 'type' => 'text', 'span' => ['lg' => 24]],
+                        ['id' => 'bottom', 'type' => 'text', 'span' => ['lg' => 24]],
+                    ],
+                ]],
+            ],
+            [],
+            'fr',
+        );
+
+        foreach ($grid['zones'][0]['children'] as $child) {
+            self::assertSame('flex-grow: 24; flex-basis: 0;', $child['shareStyle']);
+            self::assertStringNotContainsString('min-height', $child['shareStyle']);
+        }
+    }
+
     public function testTextGoesThroughTheBlockSanitiser(): void
     {
         $grid = $this->gridViewBuilder->buildForEditor(

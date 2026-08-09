@@ -89,39 +89,53 @@ final readonly class GridViewBuilder
         $documents = $this->documents($layout);
         $posts = $this->posts($layout);
 
-        $zones = array_map(
-            function (array $zone) use ($content, $documents, $posts, $locale): array {
-                $held = $content['zones'][$zone['id']];
+        $resolve = function (array $zone) use (&$resolve, $content, $documents, $posts, $locale): array {
+            $held = $content['zones'][$zone['id']];
 
-                return [
-                    ...$zone,
-                    'caption' => $held['caption'],
-                    'spanStyle' => $this->values->spanStyle($zone['span']),
-                    'ratioStyle' => $this->ratioStyle($zone['ratio']),
-                    // One key per type, null for the others. The template reads
-                    // the one its type names, and a zone whose target has been
-                    // deleted since renders as nothing rather than as a hole
-                    // with a broken image in it.
-                    'html' => GridNormalizer::ZONE_TEXT === $zone['type']
-                        ? $this->blocksRenderer->render($held['blocks'], $locale)
-                        : null,
-                    'media' => GridNormalizer::ZONE_MEDIA === $zone['type']
-                        ? $this->mediaData($documents[$zone['mediaId']] ?? null, $held['alt'])
-                        : null,
-                    'post' => GridNormalizer::ZONE_POST === $zone['type']
-                        ? $this->postCard($posts[$zone['postId']] ?? null, $locale)
-                        : null,
-                    'video' => GridNormalizer::ZONE_VIDEO === $zone['type']
-                        ? $this->videoEmbedResolver->resolve($held['url'])
-                        : null,
-                    // Kept beside the embed so a zone whose address belongs to
-                    // no known provider can still offer the link rather than
-                    // silently showing nothing.
-                    'url' => GridNormalizer::ZONE_VIDEO === $zone['type'] ? $held['url'] : null,
-                ];
-            },
-            $layout['zones'],
-        );
+            return [
+                ...$zone,
+                'caption' => $held['caption'],
+                'spanStyle' => $this->values->spanStyle($zone['span']),
+                'ratioStyle' => $this->ratioStyle($zone['ratio']),
+                // A stack's own children, resolved the same way. The
+                // recursion is bounded by the normaliser, which refuses a
+                // stack inside a stack — so this descends once and stops.
+                'children' => array_map($resolve, $zone['children'] ?? []),
+                // What a child contributes to the stack's height, as a
+                // share out of 48. `flex-basis: 0` is what makes the grow
+                // factors read as exact proportions rather than as a split
+                // of whatever space is left over; the absence of a
+                // `min-height: 0` is what stops a child from ever being
+                // squeezed under its own content. Proportions when the
+                // content fits, growth when it does not, clipping never.
+                'shareStyle' => sprintf(
+                    'flex-grow: %d; flex-basis: 0;',
+                    $zone['span']['lg'] ?? $zone['span']['base'] ?? GridNormalizer::COLUMNS,
+                ),
+                // One key per type, null for the others. The template reads
+                // the one its type names, and a zone whose target has been
+                // deleted since renders as nothing rather than as a hole
+                // with a broken image in it.
+                'html' => GridNormalizer::ZONE_TEXT === $zone['type']
+                    ? $this->blocksRenderer->render($held['blocks'], $locale)
+                    : null,
+                'media' => GridNormalizer::ZONE_MEDIA === $zone['type']
+                    ? $this->mediaData($documents[$zone['mediaId']] ?? null, $held['alt'])
+                    : null,
+                'post' => GridNormalizer::ZONE_POST === $zone['type']
+                    ? $this->postCard($posts[$zone['postId']] ?? null, $locale)
+                    : null,
+                'video' => GridNormalizer::ZONE_VIDEO === $zone['type']
+                    ? $this->videoEmbedResolver->resolve($held['url'])
+                    : null,
+                // Kept beside the embed so a zone whose address belongs to
+                // no known provider can still offer the link rather than
+                // silently showing nothing.
+                'url' => GridNormalizer::ZONE_VIDEO === $zone['type'] ? $held['url'] : null,
+            ];
+        };
+
+        $zones = array_map($resolve, $layout['zones']);
 
         return [
             ...$layout,
@@ -137,7 +151,9 @@ final readonly class GridViewBuilder
     private function documents(array $layout): array
     {
         $ids = [];
-        foreach ($layout['zones'] as $zone) {
+        // The whole tree, stacks included: a picture inside a stack must be
+        // fetched by the same one query as the rest, not by a second one.
+        foreach (GridNormalizer::flatten($layout['zones']) as $zone) {
             if (GridNormalizer::ZONE_MEDIA === $zone['type'] && null !== $zone['mediaId']) {
                 $ids[] = $zone['mediaId'];
             }
@@ -165,7 +181,7 @@ final readonly class GridViewBuilder
     private function posts(array $layout): array
     {
         $ids = [];
-        foreach ($layout['zones'] as $zone) {
+        foreach (GridNormalizer::flatten($layout['zones']) as $zone) {
             if (GridNormalizer::ZONE_POST === $zone['type'] && null !== $zone['postId']) {
                 $ids[] = $zone['postId'];
             }

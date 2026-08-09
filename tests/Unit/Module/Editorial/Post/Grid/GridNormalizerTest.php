@@ -145,7 +145,7 @@ final class GridNormalizerTest extends TestCase
         ])['zones'][0];
 
         self::assertSame(
-            ['id', 'type', 'span', 'ratio', 'mediaId', 'postId'],
+            ['id', 'type', 'span', 'ratio', 'mediaId', 'postId', 'children'],
             array_keys($zone),
             'switching a zone type in the editor must not lose what was picked',
         );
@@ -251,6 +251,108 @@ final class GridNormalizerTest extends TestCase
 
         self::assertSame('1x1', $layout['zones'][0]['ratio']);
         self::assertArrayNotHasKey('ratio', $content['zones']['a1']);
+    }
+
+    // ── Stacks ────────────────────────────────────────────────────────────
+
+    public function testAStackKeepsItsChildrenAndOtherZonesGetNone(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'left', 'type' => 'media'],
+                ['id' => 'right', 'type' => 'stack', 'children' => [
+                    ['id' => 'top', 'type' => 'media', 'span' => ['lg' => 24]],
+                    ['id' => 'bottom', 'type' => 'media', 'span' => ['lg' => 24]],
+                ]],
+            ],
+        ]);
+
+        self::assertSame([], $layout['zones'][0]['children'], 'a media zone holds nothing');
+        self::assertCount(2, $layout['zones'][1]['children']);
+        self::assertSame(['top', 'bottom'], array_column($layout['zones'][1]['children'], 'id'));
+    }
+
+    /**
+     * Depth stops at one. Nesting further turns a page into a layout tree,
+     * where what a zone renders as can no longer be read off the list — and
+     * every consumer of this shape would have to recurse without bound.
+     */
+    public function testAStackInsideAStackIsRefused(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'outer', 'type' => 'stack', 'children' => [
+                    ['id' => 'inner', 'type' => 'stack', 'children' => [
+                        ['id' => 'deep', 'type' => 'text'],
+                    ]],
+                    ['id' => 'ok', 'type' => 'text'],
+                ]],
+            ],
+        ]);
+
+        self::assertSame(
+            ['ok'],
+            array_column($layout['zones'][0]['children'], 'id'),
+            'the nested stack is dropped, not flattened into a text zone',
+        );
+    }
+
+    /**
+     * Content is keyed by id in one flat map. Two zones sharing an id would
+     * share their words in every language at once, so uniqueness has to hold
+     * across the whole tree and not merely per level.
+     */
+    public function testIdsAreUniqueAcrossTheWholeTreeAndNotJustPerLevel(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'same', 'type' => 'text'],
+                ['id' => 'holder', 'type' => 'stack', 'children' => [
+                    ['id' => 'same', 'type' => 'text'],
+                ]],
+            ],
+        ]);
+
+        $ids = [
+            $layout['zones'][0]['id'],
+            $layout['zones'][1]['children'][0]['id'],
+        ];
+
+        self::assertSame('same', $ids[0]);
+        self::assertNotSame($ids[0], $ids[1]);
+    }
+
+    public function testAStackedChildGetsItsOwnContentEntry(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'holder', 'type' => 'stack', 'children' => [
+                    ['id' => 'child', 'type' => 'media'],
+                ]],
+            ],
+        ]);
+
+        $content = $this->normalizer->normalizeContent(
+            ['zones' => ['child' => ['alt' => 'Vue depuis la treille']]],
+            $layout,
+        );
+
+        self::assertArrayHasKey('holder', $content['zones']);
+        self::assertSame('Vue depuis la treille', $content['zones']['child']['alt']);
+    }
+
+    public function testTheChildCountIsCapped(): void
+    {
+        $children = array_map(
+            static fn (int $i): array => ['id' => 'c'.$i, 'type' => 'text'],
+            range(1, 20),
+        );
+
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [['id' => 'holder', 'type' => 'stack', 'children' => $children]],
+        ]);
+
+        self::assertCount(6, $layout['zones'][0]['children']);
     }
 
     // ── Content ───────────────────────────────────────────────────────────

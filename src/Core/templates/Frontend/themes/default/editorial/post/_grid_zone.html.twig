@@ -1,0 +1,92 @@
+{# What one zone renders as, whatever holds it.
+
+   Pulled out of `_grid.html.twig` when stacks arrived: a stacked child renders
+   exactly like a zone on a row, and the alternative was the same forty lines
+   written twice, drifting apart on the first change. `twoColumn` is in this
+   file's history as the cost of that drift — a renderer reading a shape its own
+   tool no longer wrote.
+
+   Takes `zone` and `locale`. Nothing about where the zone sits belongs here:
+   the caller owns the box and its geometry. #}
+
+    {% if zone.type == 'text' and zone.html %}
+        {# Already sanitised by BlocksRenderer, which every block type
+           goes through — the same path the plain block column uses. #}
+        <div class="prose max-w-none">{{ zone.html|raw }}</div>
+
+    {% elseif zone.type == 'media' and zone.media %}
+        <figure class="m-0 not-prose">
+            {# `ratioStyle` is empty unless the zone asks to be cropped.
+               With a width of 100% and `height: auto`, an `aspect-ratio`
+               settles the height on its own — no wrapper, no second
+               element.
+               `object-cover` and the focal position, both already here,
+               are what make the crop land where the picture matters. #}
+            <img
+                src="{{ zone.media.url }}"
+                alt="{{ zone.media.alt }}"
+                loading="lazy"
+                class="w-full h-auto rounded-lg object-cover"
+                style="object-position: {{ zone.media.focalPosition }};{{ zone.ratioStyle }}"
+            >
+            {% if zone.caption %}
+                <figcaption class="mt-2 text-sm text-secondary">{{ zone.caption }}</figcaption>
+            {% endif %}
+        </figure>
+
+    {% elseif zone.type == 'post' and zone.post %}
+        {# The card links with the same route the archive listing uses,
+           built from the linked post's own type and slug. #}
+        <a
+            href="{{ path('editorial_post', {locale: locale, postTypeSlug: zone.post.postTypeSlug, slug: zone.post.slug}) }}"
+            class="group not-prose flex h-full flex-col overflow-hidden rounded-xl border border-line no-underline transition-colors hover:border-secondary"
+        >
+            {% if zone.post.thumbnailUrl %}
+                <img
+                    src="{{ zone.post.thumbnailUrl }}"
+                    alt=""
+                    loading="lazy"
+                    class="aspect-video w-full {{ zone.post.thumbnailFitClass }}"
+                    style="object-position: {{ zone.post.thumbnailFocalPosition }};"
+                >
+            {% endif %}
+            <div class="flex flex-1 flex-col gap-2 p-4">
+                {# h2: the page's h1 is its own title or its banner's,
+                   and a linked publication is a section of this page,
+                   not a competing document. #}
+                <h2 class="m-0 text-lg font-semibold group-hover:text-primary">{{ zone.post.title }}</h2>
+                {% if zone.post.description %}
+                    <p class="m-0 text-sm text-secondary">{{ zone.post.description }}</p>
+                {% endif %}
+            </div>
+        </a>
+
+    {% elseif zone.type == 'video' %}
+        {% if zone.video %}
+            {# The src is built from an extracted id against a whitelist
+               of three providers — see VideoEmbedResolver. An iframe
+               runs what its host serves, so an arbitrary address is
+               never put here. #}
+            <div class="relative aspect-video overflow-hidden rounded-lg not-prose">
+                <iframe
+                    src="{{ zone.video.embedUrl }}"
+                    class="absolute inset-0 h-full w-full"
+                    loading="lazy"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    title="{{ zone.caption ?: 'Vidéo' }}"
+                ></iframe>
+            </div>
+            {% if zone.caption %}
+                <p class="mt-2 text-sm text-secondary">{{ zone.caption }}</p>
+            {% endif %}
+        {% elseif zone.url %}
+            {# An address no provider claims still reaches the reader,
+               as a link. Showing nothing would look like a bug to the
+               author, who pasted something and saw it accepted. #}
+            <a href="{{ zone.url }}" rel="noopener" class="text-sm underline not-prose">
+                {{ zone.caption ?: zone.url }}
+            </a>
+        {% endif %}
+    {% endif %}
