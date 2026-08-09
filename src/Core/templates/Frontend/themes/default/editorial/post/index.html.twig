@@ -49,7 +49,18 @@
            anything off. `??` falls back only on null or undefined. #}
         {% set showTitle = titleVisible ?? true %}
 
-        <h1 {% if not showTitle %}class="sr-only"{% endif %}>{{ translationData.title }}</h1>
+        {# `mb-3` only when a summary follows, and `mt-0` on the summary itself.
+           Both are needed: adjacent vertical margins collapse to the larger, so
+           shrinking the paragraph alone would have left `prose`'s 32px on the
+           heading and changed nothing.
+
+           The pair was reading backwards — 32px above the summary against 20px
+           below it, so it sat closer to the section that follows than to the
+           title it belongs to. Twelve puts it back where it belongs without
+           crowding a 36px heading. #}
+        {% set hasSummary = showTitle and translationData.description %}
+
+        <h1 class="{{ showTitle ? '' : 'sr-only' }}{{ hasSummary ? ' mb-3' : '' }}">{{ translationData.title }}</h1>
 
         {# No size class at all, rather than the typography plugin's `lead`
            (1.25em, so 20px) or a `text-base`. The summary is meant to read as
@@ -62,8 +73,8 @@
            The summary is dropped rather than hidden: nothing in the document's
            structure depends on it, and the meta description — which is what a
            crawler reads — is a field of its own. #}
-        {% if showTitle and translationData.description %}
-            <p class="text-secondary">{{ translationData.description }}</p>
+        {% if hasSummary %}
+            <p class="mt-0 text-secondary">{{ translationData.description }}</p>
         {% endif %}
     {% endif %}
 
