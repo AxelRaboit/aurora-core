@@ -334,7 +334,7 @@ backend:
       seo: Moteurs de recherche
     terms: Termes
     thumbnail: Vignette
-    thumbnail_hint: "L'image qui représente cette publication partout où elle est listée : une carte d'archive, une zone de grille qui pointe vers elle, l'aperçu d'un lien partagé. Elle ne s'affiche plus en haut de la page — c'est l'en-tête personnalisé qui ouvre la page."
+    thumbnail_hint: "L'image qui représente cette publication partout où elle est listée : une carte d'archive, une zone de grille qui pointe vers elle, l'aperçu d'un lien partagé."
     thumbnail_image: Image
     thumbnail_fit: Cadrage
     thumbnail_fits:

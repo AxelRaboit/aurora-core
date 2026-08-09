@@ -334,7 +334,7 @@ backend:
       seo: Search engines
     terms: Terms
     thumbnail: Thumbnail
-    thumbnail_hint: "The picture that stands for this publication wherever it is listed: an archive card, a grid zone linking to it, the preview of a shared link. It is no longer printed at the top of the page — the custom header opens it."
+    thumbnail_hint: "The picture that stands for this publication wherever it is listed: an archive card, a grid zone linking to it, the preview of a shared link."
     thumbnail_image: Image
     thumbnail_fit: Fit
     thumbnail_fits:
