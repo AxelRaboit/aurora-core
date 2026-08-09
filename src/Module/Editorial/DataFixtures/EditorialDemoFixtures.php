@@ -299,8 +299,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * The welcome page shows what a content grid can do: all four zone types
-     * and four different widths, on the 48-column grid.
+     * The welcome page shows what a content grid can do: every zone type,
+     * several widths, and a stack — the one arrangement the grid could not
+     * make while zones only ever flowed along a row.
      *
      * Widths are all multiples of four, so every one of them is reachable at
      * the default snap — a demo an author cannot reproduce with the controls
@@ -317,13 +318,41 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $welcome = $posts['welcome'];
         $linked = $posts['first-steps'];
         $picture = $this->getReference(GedDemoFixtures::mediaRef(1), Document::class);
+        // mediaRef(2), not (4): the references are numbered from one and the
+        // fourth is the demo video, which a media zone would render as a
+        // broken `<img>`. A portrait suits the lower half of a stack anyway.
+        $stacked = $this->getReference(GedDemoFixtures::mediaRef(2), Document::class);
 
         $zones = [
             ['id' => 'intro', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48]],
-            // A picture and its commentary side by side: half each above the
-            // large breakpoint, stacked below it.
-            ['id' => 'picture', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'mediaId' => $picture->getId()],
-            ['id' => 'beside', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 24]],
+            // A tall picture beside a stack of two, which is the one shape the
+            // grid could not make until stacks existed: a zone cannot occupy
+            // two rows, so a third zone would have wrapped and landed *under*
+            // this one rather than beside it.
+            //
+            // The portrait ratio is what gives the left zone a height that was
+            // decided rather than inherited from its content — without it
+            // "taller than its neighbours" is not something a picture can be
+            // asked for.
+            ['id' => 'picture', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => '3x4', 'mediaId' => $picture->getId()],
+            [
+                'id' => 'column',
+                'type' => GridNormalizer::ZONE_STACK,
+                'span' => ['base' => 48, 'md' => null, 'lg' => 24],
+                // Halves that sum to 48, so the editor's fraction row reads
+                // "1/2" on each and is telling the truth. The stack takes its
+                // height from the row, which the picture beside it sets.
+                'children' => [
+                    ['id' => 'beside', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 24]],
+                    // 16:9 so the picture fits inside its half. Left at its own
+                    // proportions it is a portrait, taller than the share it was
+                    // given — and a stacked zone is never squeezed under its own
+                    // content, so it would take the room it needs and leave the
+                    // text a sliver. Correct behaviour, and a poor demonstration
+                    // of a split down the middle.
+                    ['id' => 'under', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => '16x9', 'mediaId' => $stacked->getId()],
+                ],
+            ],
             // Two thirds and one third: a player next to the article it is
             // about.
             ['id' => 'film', 'type' => GridNormalizer::ZONE_VIDEO, 'span' => ['base' => 48, 'md' => null, 'lg' => 32]],
@@ -341,15 +370,15 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             'fr' => [
                 'intro' => [EditorBlocks::header('Une page composée par zones'),
                     EditorBlocks::paragraph('Chaque bloc ci-dessous est une zone posée sur une grille de 48 colonnes. Leur largeur se règle indépendamment, et ce qui les remplit se traduit — la disposition, elle, est écrite une seule fois.')],
-                'beside' => [EditorBlocks::header('Texte et image côte à côte', 3),
-                    EditorBlocks::paragraph('Deux zones de 24 colonnes se partagent la ligne sur grand écran. Sur téléphone elles s\'empilent : une colonne de quatre mots n\'est pas une mise en page.')],
+                'beside' => [EditorBlocks::header('Une zone haute, deux zones à côté', 3),
+                    EditorBlocks::paragraph('À gauche une image en portrait ; à droite une pile, qui prend la hauteur de la ligne et la partage entre ce texte et l\'image du dessous. Aucune hauteur n\'est réglée nulle part.')],
                 'outro' => [EditorBlocks::paragraph("Une zone pleine largeur pour refermer. Modifiez tout ceci depuis l'administration, onglet Contenu.")],
             ],
             'en' => [
                 'intro' => [EditorBlocks::header('A page laid out in zones'),
                     EditorBlocks::paragraph('Every block below is a zone on a 48-column grid. Widths are set independently, and what fills them is translated — the arrangement is written once.')],
-                'beside' => [EditorBlocks::header('Text and picture side by side', 3),
-                    EditorBlocks::paragraph('Two 24-column zones share the row on a large screen. On a phone they stack: a column four words wide is not a layout.')],
+                'beside' => [EditorBlocks::header('One tall zone, two beside it', 3),
+                    EditorBlocks::paragraph('A portrait picture on the left; on the right a stack, which takes the height of the row and splits it between this text and the picture under it. No height is set anywhere.')],
                 'outro' => [EditorBlocks::paragraph('A full-width zone to close. Change any of this from the backend, under Content.')],
             ],
         ];
@@ -367,6 +396,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                     'intro' => ['blocks' => $content[$locale]['intro']],
                     'picture' => $captions[$locale],
                     'beside' => ['blocks' => $content[$locale]['beside']],
+                    'under' => 'fr' === $locale
+                        ? ['alt' => 'Un bureau de démonstration', 'caption' => 'La seconde moitié de la pile.']
+                        : ['alt' => 'A demo desk', 'caption' => 'The second half of the stack.'],
                     // Big Buck Bunny — Blender's open movie, which is here
                     // because a demo address that refuses to embed looks like
                     // a broken feature rather than a placeholder.

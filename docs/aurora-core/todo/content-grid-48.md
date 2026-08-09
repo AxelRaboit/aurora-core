@@ -152,7 +152,15 @@ Chacune verte et livrable, comme pour la fusion Media → GED.
 
 - **Fixtures de démo** : la page d'accueil et l'article portent chacun une
   grille, arrangées différemment — 48/24+24/32+16/48 pour l'une, 48/16+32/24+24
-  pour l'autre. *(abfb5fde, 4d6b8998)*
+  pour l'autre. *(abfb5fde, 4d6b8998)*. La page d'accueil montre désormais une
+  **pile** : une image en portrait à gauche, et à droite un texte et une image
+  qui se partagent la hauteur exactement.
+
+  L'image de la pile porte un rapport 16:9 **pour que la démonstration tienne
+  sa promesse**. Laissée à ses proportions elle est plus haute que sa part, et
+  comme une zone empilée n'est jamais écrasée sous son propre contenu, elle
+  prendrait la place qu'il lui faut en laissant au texte une lisière. C'est le
+  comportement voulu, et une mauvaise vitrine pour un partage en deux.
 - **`.aurora-grid-flush`** : le padding des items décalait les deux bords
   extérieurs, donc la grille ne s'alignait pas sur le titre au-dessus.
   *(3ba74bca)*
