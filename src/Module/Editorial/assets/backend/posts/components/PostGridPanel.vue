@@ -30,6 +30,7 @@ import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import { useServerPreview } from "@/shared/composables/http/backend/useServerPreview.js";
 import { usePostGrid } from "../composables/usePostGrid.js";
+import { useGridSelection } from "../composables/useGridSelection.js";
 import PostGridCanvas from "./PostGridCanvas.vue";
 import PostGridZoneContent from "./PostGridZoneContent.vue";
 
@@ -46,6 +47,14 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+
+// Held as one object as well as destructured: useGridSelection needs the write
+// operations, and handing it the bag rather than nine arguments keeps the two
+// composables from having to be edited in step every time one gains a verb.
+const grid = usePostGrid(
+    computed(() => props.layout),
+    computed(() => props.content),
+);
 
 const {
     COLUMNS,
@@ -67,22 +76,12 @@ const {
     addChild,
     removeChild,
     moveChild,
-    moveZoneIntoStack,
-    moveZoneOutOfStack,
     childShare,
-    addZone,
-    addZoneAt,
-    removeZone,
-    moveZone,
-    moveZoneTo,
-    resizeZoneFromLeft,
-    swapZones,
     zoneFields,
     widthLabel,
-} = usePostGrid(
-    computed(() => props.layout),
-    computed(() => props.content),
-);
+    resizeZoneFromLeft: resizeZoneStart,
+    swapZones,
+} = grid;
 
 const showPreview = ref(false);
 
@@ -103,109 +102,25 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
 
 const ZONE_ICONS = { text: FileText, media: Image, post: Newspaper, video: Film, stack: Layers };
 
-
-/**
- * Which zone the canvas and the list are both pointing at.
- *
- * UI state, so it lives here rather than in usePostGrid — nothing about it is
- * saved, and a composable that owns the document should not grow a field the
- * document does not have.
- */
-const selectedIndex = ref(null);
+// Which zone the canvas and the card below it are both pointing at, and what
+// becomes of it when a zone is added, removed, reordered or relocated. Every
+// answer is arithmetic on indices, which is why it is a composable and not six
+// functions here — see useGridSelection.
+const {
+    selectedIndex,
+    addZone: addAndSelect,
+    addZoneOnNewRow,
+    fillGap,
+    removeZone: removeSelectedAware,
+    moveZone: moveSelectedAware,
+    moveZoneTo: moveAndSelect,
+    moveIntoStack,
+    moveOutOfStack,
+} = useGridSelection(grid);
 
 /** The canvas hands back an unrounded width; the one clamp lives downstream. */
 function resizeZone(index, columns) {
     zoneFields(index).width.value = columns;
-}
-
-/** Same arrangement for the left edge: unrounded here, clamped downstream. */
-function resizeZoneStart(index, columns) {
-    resizeZoneFromLeft(index, columns);
-}
-
-// The moved zone leaves the row and lands inside the stack, so the selection
-// follows it there — the stack is now what holds it, and its card is where its
-// fields are. Taking a zone out from before the stack shifts the stack down one,
-// which is arithmetic rather than a search: two stacks would make a search pick
-// the wrong one.
-function moveIntoStack(fromIndex, stackIndex, atIndex) {
-    if (!moveZoneIntoStack(fromIndex, stackIndex, atIndex)) {
-        return;
-    }
-
-    selectedIndex.value = fromIndex < stackIndex ? stackIndex - 1 : stackIndex;
-}
-
-// The zone is back on the row, at the place it was dropped, and that is where
-// the author is now looking.
-function moveOutOfStack(stackIndex, childIndex, atIndex, column = null, newRow = false) {
-    if (moveZoneOutOfStack(stackIndex, childIndex, atIndex, column, newRow)) {
-        selectedIndex.value = atIndex;
-    }
-}
-
-// Only the selected zone shows its fields, so a zone added without being
-// selected would land on the canvas and open nothing — it would read as the
-// button having failed. `addZone` declines at the cap, hence the length check
-// rather than assuming it worked.
-// A strip between two rows adds a text zone there and opens it. Text rather
-// than a chooser: it is the commonest zone by a distance, and the type row in
-// the card below converts it in one click without losing the id — so offering
-// five buttons in a four-pixel strip would cost more than it saves.
-function addRowAt(type, target, newRow) {
-    select(addZoneAt(type, target, { newRow }));
-}
-
-// The same, for the empty part of a row rather than the space between two: the
-// zone takes the hole's place and its width, so a gap becomes something to
-// write in without a detour through the end of the page.
-function fillGap(type, target, column, width) {
-    select(addZoneAt(type, target, { column, width }));
-}
-
-function select(at) {
-    if (null !== at) {
-        selectedIndex.value = at;
-    }
-}
-
-function addAndSelect(type) {
-    const before = zones.value.length;
-
-    addZone(type);
-
-    if (zones.value.length > before) {
-        selectedIndex.value = zones.value.length - 1;
-    }
-}
-
-// A zone that goes takes the selection with it, and a zone that moves keeps it:
-// leaving an index behind would point the highlight at whichever zone slid into
-// the slot.
-function removeSelectedAware(index) {
-    removeZone(index);
-
-    if (selectedIndex.value === index) {
-        selectedIndex.value = null;
-    } else if (null !== selectedIndex.value && selectedIndex.value > index) {
-        selectedIndex.value -= 1;
-    }
-}
-
-function moveSelectedAware(index, offset) {
-    const target = index + offset;
-
-    if (target < 0 || target >= zones.value.length) {
-        return;
-    }
-
-    moveZone(index, offset);
-
-    if (selectedIndex.value === index) {
-        selectedIndex.value = target;
-    } else if (selectedIndex.value === target) {
-        selectedIndex.value = index;
-    }
 }
 
 // No scrolling to the selected card, deliberately.
@@ -246,10 +161,10 @@ function moveSelectedAware(index, offset) {
                 v-on:resize="resizeZone"
                 v-on:resize-start="resizeZoneStart"
                 v-on:add="addAndSelect"
-                v-on:add-at="addRowAt"
+                v-on:add-at="addZoneOnNewRow"
                 v-on:fill-gap="fillGap"
                 v-on:swap="swapZones"
-                v-on:move="moveZoneTo"
+                v-on:move="moveAndSelect"
                 v-on:move-into="moveIntoStack"
                 v-on:move-out="moveOutOfStack"
             />

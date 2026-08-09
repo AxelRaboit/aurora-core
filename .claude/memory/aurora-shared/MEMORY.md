@@ -37,6 +37,12 @@ Distribué via composer : les clients lisent ces mémoires depuis
   UI-only), toute logique métier (état orchestré, watchers, autosave, HTTP,
   state machine) va dans un composable co-localisé. Limite : ~80 lignes de
   `<script setup>`.
+- [convention_mirrored_contract_php_js.md](convention_mirrored_contract_php_js.md) —
+  une liste de valeurs écrite des deux côtés (normaliseur PHP + composable JS)
+  doit être tenue par un test PHP qui **lit le fichier JS**. Un commentaire
+  « Mirrors X » n'est pas une contrainte. Référence :
+  `GridContractMirrorTest`, qui a trouvé une divergence à sa première
+  exécution.
 - [convention_storage_var_uploads.md](convention_storage_var_uploads.md) —
   **règle dure** : tout fichier stocké vit sous `var/uploads/<categorie>/`,
   jamais `public/`. Servi exclusivement via PHP (`BinaryFileServer`).

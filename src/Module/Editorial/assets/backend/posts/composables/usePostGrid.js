@@ -212,6 +212,42 @@ export function planMove(zones, index, target, column, newRow) {
 }
 
 /**
+ * The picture a media zone shows, or null.
+ *
+ * Pure, and exported so the canvas can draw the same one the page will. A picked
+ * document first, the address only when there is none — the order the renderer
+ * uses. A canvas showing the other one would be a picture of a page nobody is
+ * going to get.
+ */
+export function zoneImage(zone) {
+    if ("media" !== zone?.type) {
+        return null;
+    }
+
+    return zone.media?.url ?? (zone.mediaUrl || null);
+}
+
+/**
+ * What a box says about itself.
+ *
+ * A linked publication shows its title, everything else its type. Both are
+ * values already in the editor's state, not markup rebuilt from the content.
+ *
+ * Takes the translator rather than reaching for `useI18n`, which keeps it
+ * callable from a test with no i18n instance and out of the SFC, where the
+ * convention does not want a computed label living.
+ */
+export function zoneLabel(zone, postOptions, t) {
+    if ("post" === zone?.type) {
+        const linked = postOptions.find((post) => post.id === zone.postId);
+
+        return linked?.title ?? t("backend.posts.grid.zone_types.post");
+    }
+
+    return t(`backend.posts.grid.zone_types.${zone?.type}`);
+}
+
+/**
  * A fresh id for a zone. Random rather than a counter: a counter reuses the id
  * of a zone just removed, and the next one created would silently inherit its
  * content in every other language.

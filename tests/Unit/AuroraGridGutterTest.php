@@ -78,23 +78,32 @@ final class AuroraGridGutterTest extends TestCase
 
         preg_match_all(self::CLASS_ATTRIBUTE, $contents, $matches);
 
+        $offenders = [];
+
         foreach ($matches[1] as $classList) {
             // Twig expressions inside the attribute are not utilities; only
             // the literal classes around them can carry a gap.
             $literal = (string) preg_replace('/\{\{.*?\}\}/s', ' ', $classList);
 
-            self::assertSame(
-                0,
-                preg_match(self::COLUMN_GAP, $literal),
-                sprintf(
-                    '%s applies a column gap to .aurora-grid ("%s"). '
-                    .'On 48 tracks that is 47 gutters and the last item overflows. '
-                    .'Use gap-y-* and let item padding space the columns.',
-                    $path,
-                    mb_trim($classList),
-                ),
-            );
+            if (1 === preg_match(self::COLUMN_GAP, $literal)) {
+                $offenders[] = mb_trim($classList);
+            }
         }
+
+        // Collected and asserted once rather than asserted inside the loop: a
+        // file can name `aurora-grid` in a comment and carry no such class at
+        // all — `PostGridPanel.vue` does — and a loop that never runs is a test
+        // that never asserts, which PHPUnit rightly calls risky.
+        self::assertSame(
+            [],
+            $offenders,
+            sprintf(
+                '%s applies a column gap to .aurora-grid. '
+                .'On 48 tracks that is 47 gutters and the last item overflows. '
+                .'Use gap-y-* and let item padding space the columns.',
+                $path,
+            ),
+        );
     }
 
     public function testTheGridItselfNeutralisesTheColumnGap(): void

@@ -394,8 +394,9 @@ que la poignée qui élargit sur la toile.
   ligne au même endroit que le site, donc on le voit.
 - **Le rapport d'image** est livré, sur la zone média seulement — voir plus bas.
   La vignette de carte et la vidéo gardent leur `aspect-video` en dur.
-- **Le placement absolu** (bord gauche indépendant, hauteur) reste écarté, pour
-  les raisons de la section « Redimensionner dans les quatre sens ».
+- **Le placement absolu** reste écarté pour la *hauteur*. Le bord gauche, lui,
+  ne l'est plus depuis le 2026-08-09 : voir « Redimensionner dans les quatre
+  sens », dont la moitié gauche est désormais périmée et corrigée sur place.
 - **La pile** est livrée : une zone haute avec deux zones empilées à sa droite
   se construit, se règle et se publie. Reste à pouvoir y glisser une zone qui
   existe déjà ailleurs.
@@ -480,8 +481,15 @@ accessible de E.**
 ### Redimensionner dans les quatre sens : ce que le modèle permet
 
 Question posée le 2026-08-09, et qui touche le modèle plus que l'interface. Une
-zone porte aujourd'hui `id, type, span, mediaId, postId` — **ni hauteur, ni
-ligne, ni colonne de départ**.
+zone portait alors `id, type, span, mediaId, postId` — **ni hauteur, ni ligne,
+ni colonne de départ**.
+
+> **Périmé le même jour, gardé pour le raisonnement.** Ce qui suit sur le bord
+> gauche a été écrit le matin et dépassé l'après-midi : `offset` et `newRow` ont
+> livré la colonne de départ. Le paragraphe reste parce que sa conclusion
+> — « il faudrait une colonne de départ explicite » — était juste, et que c'est
+> exactement ce qui a été ajouté ; ce qui était faux, c'est d'en déduire qu'il
+> fallait le placement absolu. La suite sur la hauteur, elle, tient toujours.
 
 **Gauche et droite : possible, mais les deux bords font la même chose.** Les
 zones s'enchaînent : une zone commence là où la précédente finit. Tirer son bord
@@ -490,8 +498,15 @@ alors que le geste laisse attendre un déplacement du point de départ. Un bord
 gauche véritablement indépendant suppose une colonne de départ explicite, donc
 le **placement absolu** : cellules vides possibles, collisions à arbitrer, et la
 question du téléphone qui devient difficile (que devient une disposition 2D sur
-une colonne ?). C'est le compromis noté au tout début du document, et il tient
-toujours : le placement libre s'ajoute, il ne se retire pas.
+une colonne ?).
+
+**Ce qui a été fait à la place** (2026-08-09) : une colonne de départ *déduite*
+plutôt que stockée. L'auteur écrit toujours une suite ; `offset` et `newRow`
+l'annotent, et `GridNormalizer::place()` en tire ligne et colonne. Rien n'est
+stocké en coordonnées, il n'y a pas de cellule vide à arbitrer, et rien n'est
+émis en dessous du grand écran — le téléphone n'a donc pas à répondre à la
+question. Le bord gauche de la toile redimensionne depuis le 2026-08-09 : il
+déplace le début de la zone et laisse le bord droit en place.
 
 **Haut et bas : n'existe pas du tout.** La hauteur d'une zone est celle de son
 contenu. La régler suppose soit des `grid-row: span N` avec une hauteur de ligne

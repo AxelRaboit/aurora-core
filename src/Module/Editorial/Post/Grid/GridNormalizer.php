@@ -161,11 +161,23 @@ final readonly class GridNormalizer
      * A stack is a way to split one cell in two or three, not a second page.
      * Low enough that the shares stay meaningful — six zones sharing a row's
      * height are six slivers.
+     *
+     * Public because the editor mirrors it and `GridContractMirrorTest` holds
+     * the two together. The same goes for the two type lists below: they are
+     * vocabulary the canvas has to know, not an internal detail.
      */
-    private const int MAX_STACK_CHILDREN = 6;
+    public const int MAX_STACK_CHILDREN = 6;
 
-    /** What a zone may be anywhere, including inside a stack. */
-    private const array LEAF_ZONE_TYPES = [self::ZONE_TEXT, self::ZONE_POST, self::ZONE_MEDIA, self::ZONE_VIDEO];
+    /**
+     * What a zone may be anywhere, including inside a stack.
+     *
+     * In the order the editor offers them, which is the order an author reads.
+     * Nothing here depends on it — `oneOf` does not care — but the list is
+     * mirrored in `usePostGrid.js`, and two lists that claim to be the same
+     * should be the same. `GridContractMirrorTest` caught them disagreeing on
+     * exactly this the first time it ran.
+     */
+    public const array LEAF_ZONE_TYPES = [self::ZONE_TEXT, self::ZONE_MEDIA, self::ZONE_POST, self::ZONE_VIDEO];
 
     /**
      * A stack is only allowed at the top level: depth stops at one.
@@ -175,7 +187,7 @@ final readonly class GridNormalizer
      * this shape, from the canvas to the Twig, would have to recurse without
      * bound.
      */
-    private const array ZONE_TYPES = [...self::LEAF_ZONE_TYPES, self::ZONE_STACK];
+    public const array ZONE_TYPES = [...self::LEAF_ZONE_TYPES, self::ZONE_STACK];
 
     public function __construct(
         private ContentValueNormalizer $values,

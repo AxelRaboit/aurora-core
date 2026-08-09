@@ -270,6 +270,46 @@ describe("PostGridCanvas", () => {
         expect(ghost.attributes("style")).toContain("--start-base: 25");
     });
 
+    /**
+     * A zone moved on the row leaves the list before it is put back, so its own
+     * box must not be counted. A slice leaving a stack takes nothing off the
+     * row — the stack is still there, and still ahead of a drop past it.
+     * Skipping it named the place one too early, and the zone came out to the
+     * left of the stack it had just left.
+     */
+    it("counts the stack a slice is leaving, because it stays on the row", () => {
+        const stack = {
+            id: "s",
+            type: "stack",
+            span: { base: 48, md: null, lg: 24 },
+            children: [
+                { id: "c", type: "text", span: { base: 48, md: null, lg: 24 } },
+            ],
+        };
+        const wrapper = mountCanvas([stack, zone("b", 24)]);
+        layOut(wrapper, [
+            { row: 0, column: 0, span: 24 },
+            { row: 0, column: 24, span: 24 },
+        ]);
+
+        const slice = wrapper.find(
+            '[data-zone] [draggable="true"] [draggable="true"]',
+        );
+        slice.element.dispatchEvent(
+            new MouseEvent("dragstart", { bubbles: true }),
+        );
+        wrapper.find(".aurora-grid").element.dispatchEvent(
+            new MouseEvent("drop", {
+                clientX: 460,
+                clientY: 40,
+                bubbles: true,
+            }),
+        );
+
+        // Past both boxes on the row, so third in the order — not second.
+        expect(wrapper.emitted("moveOut").at(-1)).toEqual([0, 0, 2, 46, false]);
+    });
+
     // ── The left edge, which resizes like the right one ───────────────────
 
     it("turns a drag on the left edge into the column to start at", () => {
