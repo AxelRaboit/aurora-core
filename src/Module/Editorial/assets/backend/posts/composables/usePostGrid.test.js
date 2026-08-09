@@ -984,17 +984,35 @@ describe("addZoneAt", () => {
         api.addZone("text");
         api.addZone("media");
 
-        const at = api.addZoneAt("video", 1, true);
+        const at = api.addZoneAt("video", 1, { newRow: true });
 
         expect(at).toBe(1);
         expect(layout.value.zones[1].type).toBe("video");
         expect(layout.value.zones[1].newRow).toBe(true);
     });
 
+    /**
+     * Filling a hole: the zone takes the hole's width, rounded down to the step
+     * so it cannot spill past it and push the neighbour onto another row.
+     */
+    it("fits a zone to the hole it was asked to fill", () => {
+        const { layout, api } = make();
+
+        api.addZone("text");
+        api.zoneFields(0).width.value = 32;
+
+        api.addZoneAt("text", 1, { column: 32, width: 14 });
+
+        expect(layout.value.zones[1].span.lg).toBe(12);
+        // No offset: flowing after the zone beside it already starts it there,
+        // and a zone that flows survives its neighbour changing width.
+        expect(layout.value.zones[1].offset).toBe(0);
+    });
+
     it("gives the new zone an entry in the open language", () => {
         const { layout, content, api } = make();
 
-        api.addZoneAt("text", 0, false);
+        api.addZoneAt("text", 0);
 
         expect(content.value.zones[layout.value.zones[0].id]).toEqual({
             blocks: [],

@@ -360,19 +360,39 @@ export function usePostGrid(layout, content) {
      *
      * @return {number|null} where it landed, so a caller can select it.
      */
-    function addZoneAt(type, target, newRow = false) {
+    function addZoneAt(type, target, options = {}) {
         if (!canAddZone.value) {
             return null;
         }
 
         const zone = newZone(type);
-        zone.newRow = Boolean(newRow);
+        zone.newRow = Boolean(options.newRow);
+
+        // Filling a hole rather than opening a row: the zone takes the hole's
+        // width, rounded *down* to the step so it cannot spill past it and push
+        // the neighbour it was meant to sit beside onto another row.
+        if (null !== (options.width ?? null)) {
+            zone.span.lg = Math.max(
+                snap.value,
+                Math.floor(options.width / snap.value) * snap.value,
+            );
+        }
 
         const at = Math.min(
             Math.max(0, target ?? layout.value.zones.length),
             layout.value.zones.length,
         );
         layout.value.zones.splice(at, 0, zone);
+
+        // The flow first, an annotation only if it does not already land there
+        // — the same preference `planMove` applies, and for the same reason: a
+        // zone that flows survives its neighbours changing width.
+        if (
+            null !== (options.column ?? null) &&
+            placeZones(layout.value.zones)[at].column - 1 !== options.column
+        ) {
+            zone.offset = clampOffset(options.column, zone);
+        }
         // Only this language's entry. The others gain theirs when the server
         // normalises their content against the layout — an empty zone is what
         // an untranslated one means.
@@ -382,7 +402,7 @@ export function usePostGrid(layout, content) {
     }
 
     function addZone(type) {
-        addZoneAt(type, layout.value.zones.length, false);
+        addZoneAt(type, layout.value.zones.length);
     }
 
     /**

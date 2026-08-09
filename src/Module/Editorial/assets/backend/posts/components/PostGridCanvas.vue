@@ -52,7 +52,7 @@ const props = defineProps({
     canAdd: { type: Boolean, default: true },
 });
 
-const emit = defineEmits(["update:selectedIndex", "resize", "resizeStart", "add", "addAt", "swap", "move", "moveInto", "moveOut"]);
+const emit = defineEmits(["update:selectedIndex", "resize", "resizeStart", "add", "addAt", "fillGap", "swap", "move", "moveInto", "moveOut"]);
 
 const { t } = useI18n();
 
@@ -115,6 +115,67 @@ function styleOf(index) {
  * the last leaves, so a row can never be left behind empty and never needs
  * deleting.
  */
+/**
+ * The empty stretches of each row, each one an offer to put something there.
+ *
+ * A row that is not full has a hole in it, and until now the only way to fill
+ * one was to add a zone at the end and drag it back. Hovering the hole and
+ * clicking is the whole gesture.
+ *
+ * Two kinds of hole, and both are safe to fill without moving anything else.
+ * A hole *before* a zone can only exist because that zone asked for a column,
+ * so it stays where it asked to be. A hole at the *end* of a row is space the
+ * next zone already declined — it is on another row because it broke, or
+ * because it did not fit — and filling the tail only takes more of the room it
+ * had already turned down.
+ *
+ * Holes narrower than the step are left alone: a zone that thin is not a zone
+ * anyone is placing, and an invisible target between two boxes is a place to
+ * click by accident.
+ */
+const rowGaps = computed(() => {
+    const rows = new Map();
+
+    placements.value.forEach((place, index) => {
+        const start = place.column - 1;
+        const row = rows.get(place.row) ?? [];
+
+        row.push({ index, start, end: start + widthOf(index) });
+        rows.set(place.row, row);
+    });
+
+    const gaps = [];
+
+    rows.forEach((zones, row) => {
+        const sorted = [...zones].sort((a, b) => a.start - b.start);
+        let cursor = 0;
+
+        sorted.forEach((zone) => {
+            if (zone.start - cursor >= props.snap) {
+                gaps.push({
+                    row,
+                    start: cursor,
+                    width: zone.start - cursor,
+                    target: zone.index,
+                });
+            }
+
+            cursor = Math.max(cursor, zone.end);
+        });
+
+        if (COLUMNS - cursor >= props.snap) {
+            gaps.push({
+                row,
+                start: cursor,
+                width: COLUMNS - cursor,
+                target: sorted[sorted.length - 1].index + 1,
+            });
+        }
+    });
+
+    return gaps;
+});
+
 const rowStrips = computed(() => {
     const strips = [{ track: 1, target: 0, newRow: false }];
     let row = 0;
@@ -788,6 +849,28 @@ function onStartKeydown(index, event) {
                             <GripVertical class="w-3 h-3" :stroke-width="2" />
                         </button>
                     </div>
+
+                    <!-- One per hole in a row. Quiet at rest and lit on
+                         hover, like the strips between rows — the same idea on
+                         the other axis, so the two read as one system rather
+                         than two inventions. -->
+                    <button
+                        v-for="gap in rowGaps"
+                        :key="`gap-${gap.row}-${gap.start}`"
+                        type="button"
+                        class="flex h-20 items-center justify-center rounded-md border border-dashed border-line text-muted opacity-40 transition hover:border-accent hover:bg-accent/10 hover:text-accent hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-20"
+                        :style="{
+                            '--span-base': gap.width,
+                            '--row-base': gap.row * 2,
+                            '--start-base': gap.start + 1,
+                        }"
+                        :title="t('backend.posts.grid.fill_gap')"
+                        :disabled="!canAdd"
+                        v-on:click="emit('fillGap', gap.target, gap.start, gap.width)"
+                    >
+                        <Plus class="w-4 h-4" :stroke-width="2" />
+                        <span class="sr-only">{{ t("backend.posts.grid.fill_gap") }}</span>
+                    </button>
 
                     <!-- One per gap between rows, plus one above the first.
                          Faint rather than hidden: a control nobody can see is a

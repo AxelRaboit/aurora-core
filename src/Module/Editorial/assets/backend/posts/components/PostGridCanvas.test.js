@@ -342,11 +342,61 @@ describe("PostGridCanvas", () => {
         expect(wrapper.emitted("resizeStart").at(-1)).toEqual([0, 0]);
     });
 
+    // ── Filling the empty part of a row ───────────────────────────────────
+
+    it("offers the empty tail of a row as somewhere to put a zone", async () => {
+        const wrapper = mountCanvas([zone("a", 32)]);
+        const gaps = wrapper.findAll('[title="backend.posts.grid.fill_gap"]');
+
+        expect(gaps).toHaveLength(1);
+        expect(gaps[0].attributes("style")).toContain("--start-base: 33");
+        expect(gaps[0].attributes("style")).toContain("--span-base: 16");
+
+        await gaps[0].trigger("click");
+        // After the zone it sits beside, at column 32, sixteen wide.
+        expect(wrapper.emitted("fillGap").at(-1)).toEqual([1, 32, 16]);
+    });
+
+    /**
+     * A hole before a zone can only exist because that zone asked for a column,
+     * so filling it goes in front of it in the order and leaves it where it is.
+     */
+    it("offers the hole a pushed zone leaves in front of it", async () => {
+        const wrapper = mountCanvas([zone("a", 24, { offset: 24 })]);
+        const gaps = wrapper.findAll('[title="backend.posts.grid.fill_gap"]');
+
+        expect(gaps).toHaveLength(1);
+        expect(gaps[0].attributes("style")).toContain("--start-base: 1");
+
+        await gaps[0].trigger("click");
+        expect(wrapper.emitted("fillGap").at(-1)).toEqual([0, 0, 24]);
+    });
+
+    it("leaves a full row alone", () => {
+        const wrapper = mountCanvas([zone("a", 24), zone("b", 24)]);
+
+        expect(
+            wrapper.findAll('[title="backend.posts.grid.fill_gap"]'),
+        ).toHaveLength(0);
+    });
+
+    // An invisible target between two boxes is a place to click by accident,
+    // and a zone that thin is not one anyone is placing.
+    it("ignores a hole narrower than the step", () => {
+        const wrapper = mountCanvas([zone("a", 46)]);
+
+        expect(
+            wrapper.findAll('[title="backend.posts.grid.fill_gap"]'),
+        ).toHaveLength(0);
+    });
+
     // ── Opening a row between two ─────────────────────────────────────────
 
     it("offers a strip above the first row and after every row", () => {
         const wrapper = mountCanvas([zone("a", 48), zone("b", 48)]);
-        const strips = wrapper.findAll(".aurora-grid > button");
+        const strips = wrapper.findAll(
+            '.aurora-grid > [title="backend.posts.grid.add_row"]',
+        );
 
         // Above everything, then after each of the two rows.
         expect(strips).toHaveLength(3);
@@ -359,7 +409,9 @@ describe("PostGridCanvas", () => {
 
     it("says where in the order a zone added there would go", async () => {
         const wrapper = mountCanvas([zone("a", 48), zone("b", 48)]);
-        const strips = wrapper.findAll(".aurora-grid > button");
+        const strips = wrapper.findAll(
+            '.aurora-grid > [title="backend.posts.grid.add_row"]',
+        );
 
         await strips[0].trigger("click");
         // Above everything: no row to break out of yet.

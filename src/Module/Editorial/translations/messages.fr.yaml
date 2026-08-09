@@ -349,6 +349,7 @@ backend:
         3x4: Portrait
         fill: Remplir
       zone_image: Image de la zone
+      fill_gap: Ajouter une zone dans cet espace
       add_row: Ajouter une ligne ici
       resize_start_zone: "Redimensionner la zone {zone} par la gauche"
       start_label: "Commence à la colonne {columns} sur {total}"

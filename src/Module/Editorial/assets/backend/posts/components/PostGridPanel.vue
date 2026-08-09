@@ -151,8 +151,17 @@ function moveOutOfStack(stackIndex, childIndex, atIndex) {
 // the card below converts it in one click without losing the id — so offering
 // five buttons in a four-pixel strip would cost more than it saves.
 function addRowAt(target, newRow) {
-    const at = addZoneAt("text", target, newRow);
+    select(addZoneAt("text", target, { newRow }));
+}
 
+// The same, for the empty part of a row rather than the space between two: the
+// zone takes the hole's place and its width, so one click turns a gap into
+// something to write in.
+function fillGap(target, column, width) {
+    select(addZoneAt("text", target, { column, width }));
+}
+
+function select(at) {
     if (null !== at) {
         selectedIndex.value = at;
     }
@@ -236,6 +245,7 @@ function moveSelectedAware(index, offset) {
                 v-on:resize-start="resizeZoneStart"
                 v-on:add="addAndSelect"
                 v-on:add-at="addRowAt"
+                v-on:fill-gap="fillGap"
                 v-on:swap="swapZones"
                 v-on:move="moveZoneTo"
                 v-on:move-into="moveIntoStack"
