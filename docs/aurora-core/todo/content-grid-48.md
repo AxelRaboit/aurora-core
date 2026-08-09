@@ -299,6 +299,10 @@ que la poignée qui élargit sur la toile.
   La vignette de carte et la vidéo gardent leur `aspect-video` en dur.
 - **Le placement absolu** (bord gauche indépendant, hauteur) reste écarté, pour
   les raisons de la section « Redimensionner dans les quatre sens ».
+- **La zone conteneur** — une zone haute avec deux zones empilées à sa droite —
+  est évaluée et non commencée. C'est le plus gros lot restant ; la section qui
+  lui est consacrée dit pourquoi c'est impossible aujourd'hui et ce qu'il
+  faudrait.
 
 ### Pourquoi les jauges seules ne suffisaient pas
 
@@ -402,6 +406,59 @@ minimale par zone.
 produit l'un ou l'autre : du texte coupé, ou du vide. La plupart des
 constructeurs de page qui l'offrent cassent sur un autre écran que celui où la
 page a été dessinée.
+
+### La zone conteneur : évaluée le 2026-08-09, pas commencée
+
+> **Demande** : une zone haute à gauche, et à sa droite deux zones empilées
+> faisant chacune la moitié de sa hauteur. **Réponse : impossible aujourd'hui**,
+> et le blocage est dans le modèle, pas dans l'interface.
+
+**Pourquoi ça ne marche pas.** Les zones s'enchaînent en une suite et passent à
+la ligne quand elle est pleine ; aucune ne peut occuper deux lignes. Posez
+gauche(24), droiteA(24), droiteB(24) et `placeZones` donne :
+
+| Zone | Ligne | Colonne de départ |
+|---|---|---|
+| gauche | 0 | 0 |
+| droiteA | 0 | 24 |
+| droiteB | **1** | **0** |
+
+La troisième repasse à la ligne et se pose **sous** la zone de gauche, pas à
+côté. Pour qu'elle reste à droite il faudrait un `grid-row: span 2` sur la zone
+de gauche — donc la grille 2D que la section précédente écarte.
+
+**La façon d'y arriver sans grille 2D : un cinquième type de zone, conteneur**,
+dont le contenu est d'autres zones empilées. La disposition demandée devient
+gauche(24) + conteneur(24) portant deux enfants. Le placement ne change pas : les
+zones continuent de s'enchaîner, et le conteneur n'est qu'une zone de plus.
+
+**Et la hauteur tombe juste sans être écrite nulle part.** `.aurora-grid` ne pose
+aucun `align-items`, donc les items d'une ligne sont en `stretch` : le conteneur
+fait déjà exactement la hauteur de la zone de gauche. Deux enfants en `flex-1`
+dedans, et le 50/50 est obtenu sans qu'aucune hauteur n'existe dans le modèle.
+
+Ça se marie avec le rapport d'image livré plus bas : c'est lui qui donne à la
+zone de gauche une hauteur **décidée** plutôt que subie. Sans lui, « une certaine
+hauteur » reste celle du contenu.
+
+**Ce que ça coûte** — le plus gros lot de ce chantier, plusieurs fois celui de la
+toile :
+
+- le normaliseur devient récursif, avec une **profondeur bornée à 1** : au-delà
+  on invente un arbre de mise en page, et plus personne ne sait ce que rend une
+  zone
+- `placeZones`, `GridViewBuilder` et le Twig doivent descendre d'un niveau
+- la toile doit dessiner un conteneur et ses enfants, et le glissé-déposé doit
+  décider ce que « lâcher une zone sur un conteneur » veut dire — entrer dedans,
+  ou échanger avec lui
+- le panneau doit permettre d'ajouter, retirer et réordonner **dans** un
+  conteneur
+- les ids doivent rester uniques sur tout l'arbre, sinon deux zones partagent
+  leur contenu dans toutes les langues
+
+**Non commencé.** Écrit ici pour que le raisonnement ne se reperde pas — en
+particulier l'argument du `stretch`, qui est ce qui rend la piste abordable et
+qui ne se devine pas en lisant le CSS.
 
 ### Livré le 2026-08-09 : le rapport d'image, sur la zone média
 
