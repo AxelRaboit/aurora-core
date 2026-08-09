@@ -69,9 +69,11 @@ const {
     moveZoneOutOfStack,
     childShare,
     addZone,
+    addZoneAt,
     removeZone,
     moveZone,
     moveZoneTo,
+    resizeZoneFromLeft,
     swapZones,
     zoneFields,
     widthLabel,
@@ -114,9 +116,9 @@ function resizeZone(index, columns) {
     zoneFields(index).width.value = columns;
 }
 
-/** Same arrangement for the offset handle: unrounded here, clamped downstream. */
-function offsetZone(index, columns) {
-    zoneFields(index).offset.value = columns;
+/** Same arrangement for the left edge: unrounded here, clamped downstream. */
+function resizeZoneStart(index, columns) {
+    resizeZoneFromLeft(index, columns);
 }
 
 // The moved zone leaves the row and lands inside the stack, so the selection
@@ -144,6 +146,18 @@ function moveOutOfStack(stackIndex, childIndex, atIndex) {
 // selected would land on the canvas and open nothing — it would read as the
 // button having failed. `addZone` declines at the cap, hence the length check
 // rather than assuming it worked.
+// A strip between two rows adds a text zone there and opens it. Text rather
+// than a chooser: it is the commonest zone by a distance, and the type row in
+// the card below converts it in one click without losing the id — so offering
+// five buttons in a four-pixel strip would cost more than it saves.
+function addRowAt(target, newRow) {
+    const at = addZoneAt("text", target, newRow);
+
+    if (null !== at) {
+        selectedIndex.value = at;
+    }
+}
+
 function addAndSelect(type) {
     const before = zones.value.length;
 
@@ -219,8 +233,9 @@ function moveSelectedAware(index, offset) {
                 :type-options="typeOptions"
                 :can-add="canAddZone"
                 v-on:resize="resizeZone"
-                v-on:offset="offsetZone"
+                v-on:resize-start="resizeZoneStart"
                 v-on:add="addAndSelect"
+                v-on:add-at="addRowAt"
                 v-on:swap="swapZones"
                 v-on:move="moveZoneTo"
                 v-on:move-into="moveIntoStack"

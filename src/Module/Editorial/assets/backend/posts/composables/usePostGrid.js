@@ -348,17 +348,41 @@ export function usePostGrid(layout, content) {
         ),
     ]);
 
-    function addZone(type) {
+    /**
+     * Add a zone at a given place in the order, optionally opening a row for it.
+     *
+     * What the canvas's between-rows buttons call, and what makes "add an empty
+     * row and put something in it" one gesture rather than three. There is no
+     * empty row to add: a row is what zones make, so it appears with the zone
+     * and goes when the last one leaves. Nothing to store, nothing to arbitrate
+     * on a phone, and no way to leave a page with a blank band in it that
+     * nobody meant.
+     *
+     * @return {number|null} where it landed, so a caller can select it.
+     */
+    function addZoneAt(type, target, newRow = false) {
         if (!canAddZone.value) {
-            return;
+            return null;
         }
 
         const zone = newZone(type);
-        layout.value.zones.push(zone);
+        zone.newRow = Boolean(newRow);
+
+        const at = Math.min(
+            Math.max(0, target ?? layout.value.zones.length),
+            layout.value.zones.length,
+        );
+        layout.value.zones.splice(at, 0, zone);
         // Only this language's entry. The others gain theirs when the server
         // normalises their content against the layout — an empty zone is what
         // an untranslated one means.
         content.value.zones[zone.id] = newZoneContent();
+
+        return at;
+    }
+
+    function addZone(type) {
+        addZoneAt(type, layout.value.zones.length, false);
     }
 
     /**
@@ -599,6 +623,53 @@ export function usePostGrid(layout, content) {
     }
 
     /**
+     * Resize a zone by its left edge, leaving its right edge where it is.
+     *
+     * The mirror of the width handle rather than a second kind of control: both
+     * edges resize, and moving a zone is done by taking hold of it in the
+     * middle. The left edge used to push the zone instead, which read as a move
+     * and was not one — the width stayed put and the zone slid sideways.
+     *
+     * Two values change together, which is why this lives here rather than
+     * being two writes from the panel: the edge that moves sets where the zone
+     * starts, and what is left between there and the right edge is its width.
+     *
+     * **The edge cannot go left of where the order puts the zone.** Dragging it
+     * past that would ask the zone to start before its own neighbour ends, and
+     * the placement walk answers that by dropping it to the next row — the zone
+     * would jump out from under the pointer. The floor is that flow position,
+     * and reaching it clears the offset rather than pinning the zone to a column
+     * it would have taken anyway.
+     */
+    function resizeZoneFromLeft(index, column) {
+        const list = layout.value.zones;
+        const zone = list[index];
+
+        if (undefined === zone) {
+            return;
+        }
+
+        const start = placeZones(list)[index].column - 1;
+        const end = start + largeSpan(zone);
+
+        const flowed = [...list];
+        flowed[index] = { ...zone, offset: 0 };
+        const floor = placeZones(flowed)[index].column - 1;
+
+        if (end - snap.value < floor) {
+            return;
+        }
+
+        // Rounded here rather than through clampToSnap, whose floor is the step
+        // itself: column zero is a legitimate answer and would be rounded up.
+        const asked = Math.round(Number(column) / snap.value) * snap.value;
+        const next = Math.max(floor, Math.min(end - snap.value, asked));
+
+        zone.span.lg = end - next;
+        zone.offset = next === floor ? 0 : clampOffset(next, zone);
+    }
+
+    /**
      * Put a zone where it was dropped, rather than where the order happened to
      * leave it.
      *
@@ -819,9 +890,11 @@ export function usePostGrid(layout, content) {
         moveZoneOutOfStack,
         childShare,
         addZone,
+        addZoneAt,
         removeZone,
         moveZone,
         moveZoneTo,
+        resizeZoneFromLeft,
         swapZones,
         zoneFields,
         widthLabel,

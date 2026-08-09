@@ -305,7 +305,7 @@ backend:
       canvas: Layout
       canvas_empty: "No zone yet — add one below and it appears here."
       pick_zone: "Click a zone above to edit what it holds."
-      canvas_hint: "Drag a zone's right edge to set how wide it is, its left edge to push it rightwards; the arrow keys do the same from the keyboard. These are the large-screen settings; below that a zone is always full width."
+      canvas_hint: "Drag either edge of a zone to resize it; the arrow keys do the same from the keyboard. These are the large-screen settings; below that a zone is always full width."
       resize_zone: "Width of the “{zone}” zone"
       snap: Snap step
       snap_hint: "How finely a width can be set. Changing the step does not move zones already placed."
@@ -331,7 +331,7 @@ backend:
       stack_share: Height share
       stack_share_effective: "That is {percent}% of the stack's height."
       type_drops_text: "This zone's text will be dropped when you save. Set the zone back to Text to keep it."
-      move_hint: "Drag a zone into empty space to put it there; drop it between two rows and it takes a row of its own."
+      move_hint: "Take hold of a zone in its middle and drag it where it should go; drop it between two rows and it takes a row of its own."
       swap_hint: "Drag a zone onto another to exchange their places."
       zone_types:
         text: Text
@@ -349,6 +349,9 @@ backend:
         3x4: Portrait
         fill: Fill
       zone_image: Zone image
+      add_row: Add a row here
+      resize_start_zone: "Resize the {zone} zone from the left"
+      start_label: "Starts at column {columns} of {total}"
       offset: Left offset
       offset_hint: "Columns left empty before the zone, on a large screen. Use it to sit a zone at the right of an otherwise empty row."
       offset_zone: "Offset the {zone} zone"

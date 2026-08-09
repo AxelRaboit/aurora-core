@@ -33,7 +33,7 @@
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { FileText, Film, GripVertical, Image, Layers, Newspaper } from "lucide-vue-next";
+import { FileText, Film, GripVertical, Image, Layers, Newspaper, Plus } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import { COLUMNS, largeSpan, placeZones, planMove } from "../composables/usePostGrid.js";
 
@@ -52,7 +52,7 @@ const props = defineProps({
     canAdd: { type: Boolean, default: true },
 });
 
-const emit = defineEmits(["update:selectedIndex", "resize", "offset", "add", "swap", "move", "moveInto", "moveOut"]);
+const emit = defineEmits(["update:selectedIndex", "resize", "resizeStart", "add", "addAt", "swap", "move", "moveInto", "moveOut"]);
 
 const { t } = useI18n();
 
@@ -74,8 +74,9 @@ function widthOf(index) {
     return props.zones[index]?.span?.lg ?? COLUMNS;
 }
 
-function offsetOf(index) {
-    return props.zones[index]?.offset ?? 0;
+/** The column a zone begins on, zero-based — what its left edge is holding. */
+function startOf(index) {
+    return (placements.value[index]?.column ?? 1) - 1;
 }
 
 /**
@@ -91,10 +92,45 @@ function styleOf(index) {
 
     return {
         "--span-base": widthOf(index),
-        "--row-base": at?.row ?? "auto",
+        "--row-base": at ? at.row * 2 : "auto",
         "--start-base": at?.column ?? "auto",
     };
 }
+
+/**
+ * The strips between the rows, each one an offer to open a row there.
+ *
+ * The canvas lays zones on every *other* grid track — `row * 2` above — so the
+ * odd tracks in between are free for these. It costs one line and keeps the
+ * strips inside the same grid, which is what makes them land exactly in the gaps
+ * rather than being positioned to look as though they do. The page is untouched:
+ * it emits the walk's own row numbers, and only this drawing doubles them.
+ *
+ * A strip carries the place in the order a zone added there would take, and
+ * whether it needs a break to hold its row: the first strip sits above
+ * everything, where there is no row to break out of.
+ *
+ * There is no strip for an *empty* row, because there is no such thing to make.
+ * A row is what zones put on it — it appears with the first one and goes when
+ * the last leaves, so a row can never be left behind empty and never needs
+ * deleting.
+ */
+const rowStrips = computed(() => {
+    const strips = [{ track: 1, target: 0, newRow: false }];
+    let row = 0;
+    let seen = 0;
+
+    placements.value.forEach((place) => {
+        if (place.row !== row) {
+            row = place.row;
+        }
+
+        seen += 1;
+        strips[row] = { track: row * 2 + 1, target: seen, newRow: true };
+    });
+
+    return strips.filter(Boolean);
+});
 
 /**
  * What a box says about itself. A linked publication shows its title and a
@@ -149,28 +185,28 @@ function resizeFromPointer(index, clientX) {
 }
 
 /**
- * The column the pointer is over, taken as the column the zone should start on.
+ * The column the pointer is over, taken as where the zone's left edge should be.
  *
- * The left handle pushes rather than resizes: the width is left alone and only
- * the gap before the zone changes. Resizing from the left would move two things
- * with one gesture — where the zone starts and how wide it is — and there is
- * already a handle for the second.
+ * Both edges resize, and the right one stays put while this moves — which is
+ * what makes it a resize rather than the push it used to be. Moving a zone is a
+ * separate gesture now: take hold of it in the middle and drop it where it goes.
  *
- * Measured from the grid's left edge because that is where a row begins, which
- * is what an offset counts from. The clamp to what the row can still hold lives
- * in usePostGrid, beside the one the width goes through.
+ * Measured from the grid's left edge rather than from the zone, because that is
+ * where a row begins and the column is what the answer is expressed in. The
+ * floor — a left edge cannot go past where the order puts the zone — lives in
+ * usePostGrid, beside the width clamp it has to agree with.
  */
-function offsetFromPointer(index, clientX) {
+function startFromPointer(index, clientX) {
     const rect = gridEl.value?.getBoundingClientRect();
 
     if (!rect?.width) {
         return;
     }
 
-    emit("offset", index, ((clientX - rect.left) / rect.width) * COLUMNS);
+    emit("resizeStart", index, ((clientX - rect.left) / rect.width) * COLUMNS);
 }
 
-/** Which handle a pointer gesture is holding — `null`, or `resize` / `offset`. */
+/** Which handle a pointer gesture is holding — `null`, or `resize` / `start`. */
 const draggingKind = ref(null);
 
 function onPointerDown(index, event, kind = "resize") {
@@ -189,8 +225,8 @@ function onPointerMove(index, event) {
         return;
     }
 
-    if ("offset" === draggingKind.value) {
-        offsetFromPointer(index, event.clientX);
+    if ("start" === draggingKind.value) {
+        startFromPointer(index, event.clientX);
 
         return;
     }
@@ -417,8 +453,13 @@ function dropAt(event) {
     let target = 0;
     let newRow = true;
 
-    [...gridEl.value.children].forEach((child, index) => {
-        if (index === draggingFrom.value || child.dataset.ghost) {
+    // Only the zone boxes: the grid also holds the between-row strips and the
+    // drop ghost, and counting either as a zone would put the drop somewhere
+    // other than where it was aimed.
+    gridEl.value.querySelectorAll(":scope > [data-zone]").forEach((child) => {
+        const index = Number(child.dataset.zone);
+
+        if (index === draggingFrom.value) {
             return;
         }
 
@@ -483,7 +524,7 @@ const ghostStyle = computed(() => {
 
     return {
         "--span-base": largeSpan(props.zones[draggingFrom.value]),
-        "--row-base": plan.place.row,
+        "--row-base": plan.place.row * 2,
         "--start-base": plan.place.column,
     };
 });
@@ -517,19 +558,20 @@ function onKeydown(index, event) {
 }
 
 /**
- * The offset handle answers to the keyboard too, and for the same reason the
- * width one does: a gesture that only exists as a drag is a gesture some people
- * cannot make. End is the far right — as far as the zone's own width allows,
- * which usePostGrid works out.
+ * The left edge answers to the keyboard too, for the same reason the right one
+ * does: a gesture that only exists as a drag is one some people cannot make.
+ * Home takes the edge as far left as the order allows, End as far right as the
+ * zone's own minimum width leaves — both worked out by usePostGrid, so the
+ * extremes here are simply out of range and get clamped.
  */
-function onOffsetKeydown(index, event) {
-    const offset = offsetOf(index);
+function onStartKeydown(index, event) {
+    const start = startOf(index);
 
     const asked = {
-        ArrowLeft: offset - props.snap,
-        ArrowRight: offset + props.snap,
-        ArrowDown: offset - props.snap,
-        ArrowUp: offset + props.snap,
+        ArrowLeft: start - props.snap,
+        ArrowRight: start + props.snap,
+        ArrowDown: start - props.snap,
+        ArrowUp: start + props.snap,
         Home: 0,
         End: COLUMNS,
     }[event.key];
@@ -539,7 +581,7 @@ function onOffsetKeydown(index, event) {
     }
 
     event.preventDefault();
-    emit("offset", index, asked);
+    emit("resizeStart", index, asked);
 }
 </script>
 
@@ -586,6 +628,7 @@ function onOffsetKeydown(index, event) {
                         v-for="(zone, index) in zones"
                         :key="zone.id"
                         class="relative"
+                        :data-zone="index"
                         :style="styleOf(index)"
                     >
                         <button
@@ -698,26 +741,27 @@ function onOffsetKeydown(index, event) {
                             </div>
                         </button>
 
-                        <!-- Pushes the zone right, leaving the columns behind
-                         it empty. Its own handle rather than a modifier on the
-                         width one, because they answer different questions and
-                         a zone can want either without the other. -->
+                        <!-- The other edge, and the same gesture: what moves
+                         is where the zone starts, and the right edge stays put.
+                         A zone is moved by taking hold of it in the middle, not
+                         by an edge — an edge that moved the whole box would be
+                         two controls wearing one shape. -->
                         <button
                             type="button"
                             role="slider"
-                            data-handle="offset"
+                            data-handle="start"
                             aria-orientation="horizontal"
-                            :aria-label="t('backend.posts.grid.offset_zone', { zone: labelOf(zone) })"
+                            :aria-label="t('backend.posts.grid.resize_start_zone', { zone: labelOf(zone) })"
                             :aria-valuemin="0"
-                            :aria-valuemax="COLUMNS - widthOf(index)"
-                            :aria-valuenow="offsetOf(index)"
-                            :aria-valuetext="t('backend.posts.grid.offset_label', { columns: offsetOf(index), total: COLUMNS })"
+                            :aria-valuemax="COLUMNS - snap"
+                            :aria-valuenow="startOf(index)"
+                            :aria-valuetext="t('backend.posts.grid.start_label', { columns: startOf(index) + 1, total: COLUMNS })"
                             class="absolute inset-y-0 left-1 flex w-3 cursor-col-resize touch-none items-center justify-center rounded-l-md text-muted hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-                            v-on:pointerdown="onPointerDown(index, $event, 'offset')"
+                            v-on:pointerdown="onPointerDown(index, $event, 'start')"
                             v-on:pointermove="onPointerMove(index, $event)"
                             v-on:pointerup="onPointerUp"
                             v-on:pointercancel="onPointerUp"
-                            v-on:keydown="onOffsetKeydown(index, $event)"
+                            v-on:keydown="onStartKeydown(index, $event)"
                         >
                             <GripVertical class="w-3 h-3" :stroke-width="2" />
                         </button>
@@ -744,6 +788,27 @@ function onOffsetKeydown(index, event) {
                             <GripVertical class="w-3 h-3" :stroke-width="2" />
                         </button>
                     </div>
+
+                    <!-- One per gap between rows, plus one above the first.
+                         Faint rather than hidden: a control nobody can see is a
+                         control nobody uses, and one drawn at full strength
+                         between every row would read as a ladder the zones sit
+                         on. Hovering brings it up to something you would click. -->
+                    <button
+                        v-for="strip in rowStrips"
+                        :key="`strip-${strip.track}`"
+                        type="button"
+                        class="group flex h-4 items-center justify-center gap-2 rounded text-muted opacity-30 transition hover:bg-accent/10 hover:text-accent hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-20"
+                        :style="{ '--span-base': COLUMNS, '--row-base': strip.track }"
+                        :title="t('backend.posts.grid.add_row')"
+                        :disabled="!canAdd"
+                        v-on:click="emit('addAt', strip.target, strip.newRow)"
+                    >
+                        <span class="h-px flex-1 bg-current" />
+                        <Plus class="w-3 h-3 shrink-0" :stroke-width="2" />
+                        <span class="h-px flex-1 bg-current" />
+                        <span class="sr-only">{{ t("backend.posts.grid.add_row") }}</span>
+                    </button>
 
                     <!-- Where the zone being dragged would land, drawn with the
                          very properties the boxes use — so what is promised

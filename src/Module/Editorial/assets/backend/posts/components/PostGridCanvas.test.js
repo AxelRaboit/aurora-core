@@ -157,7 +157,7 @@ describe("PostGridCanvas", () => {
      * at all — 480px across 48 columns, 80px tall rows.
      */
     function layOut(wrapper, rows) {
-        wrapper.findAll(".aurora-grid > div").forEach((item, index) => {
+        wrapper.findAll("[data-zone]").forEach((item, index) => {
             const at = rows[index];
 
             item.element.getBoundingClientRect = () => ({
@@ -268,23 +268,25 @@ describe("PostGridCanvas", () => {
         expect(ghost.attributes("style")).toContain("--start-base: 25");
     });
 
-    // ── The handle that pushes rather than resizes ────────────────────────
+    // ── The left edge, which resizes like the right one ───────────────────
 
     it("turns a drag on the left edge into the column to start at", () => {
         const wrapper = mountCanvas([zone("a", 24)]);
-        const handle = wrapper.find('[data-handle="offset"]');
+        const handle = wrapper.find('[data-handle="start"]');
 
         pointer(handle, "pointerdown");
         pointer(handle, "pointermove", 240);
 
         // Halfway across, measured from the grid's left edge rather than from
-        // the zone: an offset counts from where the row begins.
-        expect(wrapper.emitted("offset").at(-1)).toEqual([0, 24]);
+        // the zone: a column counts from where the row begins.
+        expect(wrapper.emitted("resizeStart").at(-1)).toEqual([0, 24]);
     });
 
-    it("leaves the width alone while the offset is being dragged", () => {
+    // The right edge is the one that stays put, so the two never move together
+    // — and the floor and the width clamp live downstream, in one place.
+    it("leaves the right edge to its own handle", () => {
         const wrapper = mountCanvas([zone("a", 24)]);
-        const handle = wrapper.find('[data-handle="offset"]');
+        const handle = wrapper.find('[data-handle="start"]');
 
         pointer(handle, "pointerdown");
         pointer(handle, "pointermove", 240);
@@ -297,12 +299,12 @@ describe("PostGridCanvas", () => {
             zone("a", 48),
             zone("b", 24, { offset: 24 }),
         ]);
-        const items = wrapper.findAll(".aurora-grid > div");
+        const items = wrapper.findAll("[data-zone]");
 
-        // Both 1-based, like the properties they go into. The second zone is on
-        // a row of its own because the first took the whole of the one above.
-        expect(items[0].attributes("style")).toContain("--row-base: 1");
-        expect(items[1].attributes("style")).toContain("--row-base: 2");
+        // Rows on every other track, so the odd ones are free for the strips
+        // that open a row between two. The page emits the walk's own numbers.
+        expect(items[0].attributes("style")).toContain("--row-base: 2");
+        expect(items[1].attributes("style")).toContain("--row-base: 4");
         expect(items[1].attributes("style")).toContain("--start-base: 25");
     });
 
@@ -314,30 +316,70 @@ describe("PostGridCanvas", () => {
             zone("a", 32),
             zone("b", 16, { offset: 32, newRow: true }),
         ]);
-        const items = wrapper.findAll(".aurora-grid > div");
+        const items = wrapper.findAll("[data-zone]");
 
-        expect(items[1].attributes("style")).toContain("--row-base: 2");
+        expect(items[1].attributes("style")).toContain("--row-base: 4");
         expect(items[1].attributes("style")).toContain("--start-base: 33");
     });
 
-    it("moves the offset by the snap from the keyboard", async () => {
+    it("moves the left edge by the snap from the keyboard", async () => {
         const wrapper = mountCanvas([zone("a", 24, { offset: 12 })]);
 
         await wrapper
-            .find('[data-handle="offset"]')
+            .find('[data-handle="start"]')
             .trigger("keydown", { key: "ArrowRight" });
 
-        expect(wrapper.emitted("offset").at(-1)).toEqual([0, 16]);
+        expect(wrapper.emitted("resizeStart").at(-1)).toEqual([0, 16]);
     });
 
-    it("sends the offset back to nothing with Home", async () => {
+    it("takes the left edge as far left as it goes with Home", async () => {
         const wrapper = mountCanvas([zone("a", 24, { offset: 12 })]);
 
         await wrapper
-            .find('[data-handle="offset"]')
+            .find('[data-handle="start"]')
             .trigger("keydown", { key: "Home" });
 
-        expect(wrapper.emitted("offset").at(-1)).toEqual([0, 0]);
+        expect(wrapper.emitted("resizeStart").at(-1)).toEqual([0, 0]);
+    });
+
+    // ── Opening a row between two ─────────────────────────────────────────
+
+    it("offers a strip above the first row and after every row", () => {
+        const wrapper = mountCanvas([zone("a", 48), zone("b", 48)]);
+        const strips = wrapper.findAll(".aurora-grid > button");
+
+        // Above everything, then after each of the two rows.
+        expect(strips).toHaveLength(3);
+        expect(strips.map((s) => s.attributes("style"))).toEqual([
+            expect.stringContaining("--row-base: 1"),
+            expect.stringContaining("--row-base: 3"),
+            expect.stringContaining("--row-base: 5"),
+        ]);
+    });
+
+    it("says where in the order a zone added there would go", async () => {
+        const wrapper = mountCanvas([zone("a", 48), zone("b", 48)]);
+        const strips = wrapper.findAll(".aurora-grid > button");
+
+        await strips[0].trigger("click");
+        // Above everything: no row to break out of yet.
+        expect(wrapper.emitted("addAt").at(-1)).toEqual([0, false]);
+
+        await strips[1].trigger("click");
+        expect(wrapper.emitted("addAt").at(-1)).toEqual([1, true]);
+    });
+
+    it("keeps the strips out of the drop maths", () => {
+        const wrapper = mountCanvas([zone("a", 24), zone("b", 24)]);
+        layOut(wrapper, [
+            { row: 0, column: 0, span: 24 },
+            { row: 0, column: 24, span: 24 },
+        ]);
+
+        // Counting a strip as a zone would put the drop a place further along.
+        dragTo(wrapper, 1, 40, 40);
+
+        expect(wrapper.emitted("move").at(-1)).toEqual([1, 0, 4, false]);
     });
 
     it("hands the width on unrounded, leaving the one clamp downstream", () => {

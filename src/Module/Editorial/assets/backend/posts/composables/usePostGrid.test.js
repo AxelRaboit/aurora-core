@@ -915,6 +915,96 @@ describe("placeZones", () => {
     });
 });
 
+describe("resizeZoneFromLeft", () => {
+    // The right edge is the fixed point — that is what makes this a resize and
+    // not the push it replaced.
+    it("moves the left edge and leaves the right one where it is", () => {
+        const { layout, api } = make();
+
+        api.addZone("text");
+        api.zoneFields(0).width.value = 24;
+
+        api.resizeZoneFromLeft(0, 12);
+
+        expect(layout.value.zones[0].offset).toBe(12);
+        expect(layout.value.zones[0].span.lg).toBe(12);
+    });
+
+    /**
+     * Dragging past where the order puts the zone would ask it to start before
+     * its neighbour ends, and the walk answers that by dropping it to the next
+     * row — the zone would jump out from under the pointer.
+     */
+    it("will not take the edge left of where the order puts the zone", () => {
+        const { layout, api } = make();
+
+        api.addZone("text");
+        api.addZone("text");
+
+        // The second zone starts at column 24; asked for 8, it stays at 24.
+        api.resizeZoneFromLeft(1, 8);
+
+        expect(layout.value.zones[1].offset).toBe(0);
+        expect(layout.value.zones[1].span.lg).toBe(24);
+    });
+
+    // Reaching the flow position clears the offset rather than pinning the zone
+    // to a column it would have taken anyway.
+    it("gives the zone back to the flow when the edge reaches it", () => {
+        const { layout, api } = make();
+
+        api.addZone("text");
+        api.zoneFields(0).width.value = 48;
+        api.resizeZoneFromLeft(0, 24);
+        expect(layout.value.zones[0].offset).toBe(24);
+
+        api.resizeZoneFromLeft(0, 0);
+
+        expect(layout.value.zones[0].offset).toBe(0);
+        expect(layout.value.zones[0].span.lg).toBe(48);
+    });
+
+    it("leaves the zone at least one snap wide", () => {
+        const { layout, api } = make();
+
+        api.addZone("text");
+        api.zoneFields(0).width.value = 24;
+
+        api.resizeZoneFromLeft(0, 48);
+
+        expect(layout.value.zones[0].span.lg).toBe(4);
+        expect(layout.value.zones[0].offset).toBe(20);
+    });
+});
+
+describe("addZoneAt", () => {
+    it("puts a zone at the place asked for, on a row of its own", () => {
+        const { layout, api } = make();
+
+        api.addZone("text");
+        api.addZone("media");
+
+        const at = api.addZoneAt("video", 1, true);
+
+        expect(at).toBe(1);
+        expect(layout.value.zones[1].type).toBe("video");
+        expect(layout.value.zones[1].newRow).toBe(true);
+    });
+
+    it("gives the new zone an entry in the open language", () => {
+        const { layout, content, api } = make();
+
+        api.addZoneAt("text", 0, false);
+
+        expect(content.value.zones[layout.value.zones[0].id]).toEqual({
+            blocks: [],
+            alt: "",
+            caption: "",
+            url: "",
+        });
+    });
+});
+
 describe("moveZoneTo", () => {
     // Through the composable rather than the plan, because the point is that
     // the layout is written: the plan says what would happen, this does it.
