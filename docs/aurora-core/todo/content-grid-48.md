@@ -2,7 +2,8 @@
 
 > **Statut (2026-08-09) : cinq étapes sur six livrées.** Le contrat, le rendu
 > public, les quatre types de zone, l'éditeur et l'aperçu sont en place et
-> testés. Reste le sort de `blocks`, qui cohabite.
+> testés. Reste le sort de `blocks`, qui cohabite — et un chantier d'ergonomie
+> sur le réglage de largeur, décrit plus bas.
 
 ---
 
@@ -137,6 +138,94 @@ Chacune verte et livrable, comme pour la fusion Media → GED.
 - **`.aurora-grid-flush`** : le padding des items décalait les deux bords
   extérieurs, donc la grille ne s'alignait pas sur le titre au-dessus.
   *(3ba74bca)*
+
+## À reprendre : rendre le réglage de largeur utilisable
+
+> **Signalé le 2026-08-09.** Les curseurs fonctionnent, mais ils demandent trop
+> à l'auteur. Ce chapitre existe pour reprendre le sujet sans avoir suivi la
+> session qui l'a produit — il décrit l'existant, pas seulement la cible.
+
+### Ce qu'il y a aujourd'hui
+
+Un `AppRange` par zone dans `PostGridPanel.vue`, borné `min = snap`,
+`max = 48`, `step = snap`, avec un libellé « **24 colonnes sur 48** »
+(`backend.posts.grid.width_label`).
+
+Le pas d'aimantation est un `AppSelect` en haut du panneau : 4 (douzièmes,
+défaut), 2 (vingt-quatrièmes), 1 (colonne par colonne).
+
+Côté état, dans `usePostGrid.js` :
+
+- `width` est un computed accessible en écriture qui ne pilote **que**
+  `span.lg`. `span.base` reste à 48 — une zone est pleine largeur sur
+  téléphone, toujours. `span.md` n'est jamais écrit.
+- `clampToSnap(value, step)` arrondit au pas puis borne entre `step` et 48.
+- Changer le pas **ne réécrit pas** les zones déjà posées ; seules les largeurs
+  réglées ensuite atterrissent dessus.
+
+### Pourquoi ce n'est pas suffisant
+
+1. **L'unité n'est pas celle de l'auteur.** « 24 colonnes sur 48 » est une
+   coordonnée d'implémentation. On pense en moitié, tiers, quart.
+2. **Aucun retour sur le résultat pendant le geste.** L'aperçu est en haut du
+   panneau et se redessine 400 ms après ; le curseur, lui, ne montre rien de la
+   proportion obtenue.
+3. **Viser est difficile.** Au pas 1 le curseur a 48 arrêts. À la souris c'est
+   pénible, au trackpad davantage, et pour quelqu'un dont la motricité fine est
+   limitée c'est un obstacle réel.
+4. **Rien ne dit ce qui se passe entre zones.** Deux zones à 32 ne tiennent pas
+   sur une ligne, et rien ne le signale avant l'aperçu.
+
+### Pistes, avec ce qu'elles coûtent
+
+**A — Fractions nommées.** Une rangée de puces : 1/1, 1/2, 1/3, 2/3, 1/4, 3/4,
+1/6, 5/6. Discret, nommé dans l'unité de l'auteur, atteignable au clavier.
+Toutes tombent juste sur 48 (48, 24, 16, 32, 12, 36, 8, 40). Perd les largeurs
+arbitraires — à moins de garder une échappatoire « précis » qui rouvre le
+curseur. **Le pas d'aimantation devient probablement inutile**, ou une option
+avancée : c'est la fraction qui porte le sens.
+
+**B — Sélecteur en cellules.** Douze cases cliquables (au pas 4) qu'on parcourt
+au clic-glissé, comme une mini-grille. Manipulation directe, la proportion se
+voit. Reste à décider ce qu'il devient au pas 1 — 48 cases sont trop fines.
+
+**C — Poignées sur l'aperçu.** Redimensionner la zone en tirant son bord dans
+l'aperçu. Le plus direct, et de loin le plus coûteux : **l'aperçu est du HTML
+rendu par le serveur, injecté en `v-html`** (voir `useServerPreview` et
+`GridPreviewController`). Poser des poignées dessus veut dire soit les
+superposer en calculant les positions, soit dessiner une seconde grille en Vue
+— et une seconde grille est exactement la divergence que l'aperçu serveur
+existe pour éviter.
+
+**D — Gabarits de ligne.** Choisir une ligne (50/50, 33/67, tiers, …) et y
+déposer les zones. Le plus lisible pour un débutant, mais **ça change le
+modèle** : on passerait de « zones qui s'enchaînent avec un span » à « lignes
+qui contiennent des zones ». Le normaliseur, le rendu et la migration suivent.
+
+### Contraintes à ne pas redécouvrir
+
+- **`span.base` reste 48.** Côte à côte sur téléphone, c'est deux colonnes de
+  quatre mots. Ce que règle l'auteur, c'est le grand écran.
+- **Tailwind n'émet que les classes qu'il lit dans les sources.** Une largeur
+  est un nombre choisi à l'exécution : elle passe par les propriétés
+  personnalisées `--span-*`, jamais par une classe assemblée.
+- **Les gouttières viennent du padding des items**, pas d'un `column-gap` — 47
+  gouttières sur 48 pistes. `AuroraGridGutterTest` le fait échouer en CI.
+- **`.aurora-grid-flush`** annule le décalage des bords extérieurs. Toute
+  nouvelle grille rendue dans le flux d'un article en a besoin.
+
+### Ce qui se cassera, et qu'il faudra reprendre
+
+- `usePostGrid.test.js` — 17 tests, dont cinq portent directement sur le pas :
+  « lands a width on the current step », « reaches finer widths on a finer
+  step », « never lets a zone reach zero or overflow the grid », « leaves
+  placed zones alone when the step changes », « keeps a zone full width below
+  the large breakpoint ». Les garanties restent valables quelle que soit
+  l'interface ; ce sont les appels qui changent.
+- Les clés `backend.posts.grid.width`, `width_label`, `snap`, `snap_hint` et
+  `snaps.*` — à revoir ou à retirer selon la piste retenue.
+- `GridNormalizer::SNAPS` et le champ `snap` du layout, si le pas disparaît.
+  **Attention** : il est déjà persisté en base sur deux publications de démo.
 
 ## Ce qu'il ne faut pas oublier
 

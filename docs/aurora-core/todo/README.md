@@ -20,8 +20,10 @@ puis par topic.
   avec du texte Editor.js, une autre publication, un média ou une URL vidéo
   dans chacune. Décisions structurantes prises (48 colonnes, pas d'aimantation
   variable, `{base, md, lg}`). **5 étapes sur 6 livrées** — contrat, rendu
-  public, quatre types de zone, éditeur, aperçu. Reste le sort de `blocks`,
-  qui cohabite pour l'instant.
+  public, quatre types de zone, éditeur, aperçu. Restent le sort de `blocks`,
+  qui cohabite, et **un chantier d'ergonomie sur le réglage de largeur** : les
+  curseurs fonctionnent mais parlent en « 24 colonnes sur 48 », ne montrent
+  rien pendant le geste et sont difficiles à viser.
 
 ### Frontend / Vue
 
