@@ -12,9 +12,12 @@ Distribué via composer : les clients lisent ces mémoires depuis
 ## Architecture / responsabilités (règles dures)
 
 - [convention_no_cross_module_dep.md](convention_no_cross_module_dep.md) —
-  **règle dure** : pas d'import inter-modules dans aurora-core (Editorial
-  → Ecommerce, etc.). Le câblage cross-module se fait via points
-  d'extension typés (`extraXxx` props/DTO) remplis par aurora-client.
+  **règle dure** : pas d'import entre modules **du consommateur**
+  (`App\Module\Tracking` → `App\Module\Bnb`). Le câblage passe par des
+  points d'extension typés (`extraXxx` props/DTO) remplis par le projet.
+  **Ne s'applique pas** aux six modules d'aurora-core, qui forment un seul
+  noyau au couplage assumé jusque dans les entités — ne pas les relever en
+  audit.
 - [convention_edit_vs_update_route_naming.md](convention_edit_vs_update_route_naming.md) —
   **règle dure** : `_edit` = GET page Twig d'édition ; `_update` = POST API
   JSON. Jamais un seul nom pour les deux. CRUD SPA inline = seulement
