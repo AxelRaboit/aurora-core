@@ -145,7 +145,7 @@ final class GridNormalizerTest extends TestCase
         ])['zones'][0];
 
         self::assertSame(
-            ['id', 'type', 'span', 'ratio', 'mediaId', 'postId', 'children'],
+            ['id', 'type', 'span', 'ratio', 'mediaId', 'mediaUrl', 'postId', 'children'],
             array_keys($zone),
             'switching a zone type in the editor must not lose what was picked',
         );
@@ -266,6 +266,56 @@ final class GridNormalizerTest extends TestCase
 
         self::assertSame('1x1', $layout['zones'][0]['ratio']);
         self::assertArrayNotHasKey('ratio', $content['zones']['a1']);
+    }
+
+    // ── An address instead of a document ──────────────────────────────────
+
+    public function testAZoneMayCarryAnImageAddress(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'a1', 'type' => 'media', 'mediaUrl' => 'https://picsum.photos/800/600'],
+                ['id' => 'a2', 'type' => 'media', 'mediaUrl' => '/uploads/local.jpg'],
+            ],
+        ]);
+
+        self::assertSame('https://picsum.photos/800/600', $layout['zones'][0]['mediaUrl']);
+        self::assertSame('/uploads/local.jpg', $layout['zones'][1]['mediaUrl'], 'a path on this site is an address too');
+    }
+
+    /**
+     * The value lands in an `src` the browser acts on, so the scheme whitelist
+     * is the whole of the defence. `mailto:` and `tel:` pass the generic url
+     * check and mean nothing in a picture, so they are refused here as well.
+     */
+    public function testAnImageAddressTheBrowserShouldNotFollowIsRefused(): void
+    {
+        foreach (['javascript:alert(1)', 'data:text/html,<script>', 'mailto:x@y.z', 'tel:+33', '#ancre'] as $bad) {
+            $layout = $this->normalizer->normalizeLayout([
+                'zones' => [['id' => 'a1', 'type' => 'media', 'mediaUrl' => $bad]],
+            ]);
+
+            self::assertNull($layout['zones'][0]['mediaUrl'], $bad);
+        }
+    }
+
+    /**
+     * Shared like the id beside it: it is the same picture in every language,
+     * and describing it is what the translation carries.
+     */
+    public function testTheImageAddressIsSharedAndNotTranslated(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [['id' => 'a1', 'type' => 'media', 'mediaUrl' => 'https://example.test/a.jpg']],
+        ]);
+
+        $content = $this->normalizer->normalizeContent(
+            ['zones' => ['a1' => ['mediaUrl' => 'https://example.test/b.jpg']]],
+            $layout,
+        );
+
+        self::assertSame('https://example.test/a.jpg', $layout['zones'][0]['mediaUrl']);
+        self::assertArrayNotHasKey('mediaUrl', $content['zones']['a1']);
     }
 
     // ── Stacks ────────────────────────────────────────────────────────────

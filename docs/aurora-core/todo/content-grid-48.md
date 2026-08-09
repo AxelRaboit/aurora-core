@@ -70,7 +70,7 @@ arbitrage neuf.
 | Partagé — sur le post | Par langue — sur la traduction |
 |---|---|
 | id de zone, **type**, span, ordre | blocs de texte |
-| `mediaId` | `alt`, `caption` |
+| `mediaId`, `mediaUrl` | `alt`, `caption` |
 | `postId` de la publication liée | URL vidéo |
 
 Chaque côté se justifie. Une zone qui serait du texte en français et une vidéo
@@ -78,6 +78,14 @@ en anglais n'est pas une zone. Une publication liée a ses propres traductions �
 c'est au rendu de choisir la bonne, pas à l'éditeur de la re-choisir. Une image
 est la même image ; la décrire, c'est écrire. Et l'adresse d'une vidéo est du
 contenu : la première bannière écrite pointait vers `/fr/page/premiers-pas`.
+
+`mediaUrl` (2026-08-09) est du même côté que `mediaId`, et pour la même raison —
+c'est la même image dans toutes les langues. Elle sert de repli, jamais de
+concurrente : dès qu'un document est choisi, c'est lui qui rend, parce que lui
+seul porte un point focal, une variante à la bonne taille et un alt à lui.
+L'adresse existe pour le visuel provisoire — une maquette, une démo — et le
+normaliseur ne laisse passer que `/`, `http://` et `https://` : la valeur finit
+dans un `src` que le navigateur suit.
 
 **Les zones s'enchaînent**, elles ne sont pas posées en coordonnées.
 Redimensionner change un span, déplacer réordonne. Pas de cellule vide à gérer,

@@ -91,7 +91,14 @@ function labelOf(zone) {
 }
 
 function imageOf(zone) {
-    return "media" === zone.type ? (zone.media?.url ?? null) : null;
+    if ("media" !== zone.type) {
+        return null;
+    }
+
+    // Same order the renderer uses: a picked document first, the address only
+    // when there is none. A canvas showing the other one would be a picture of
+    // a page nobody is going to get.
+    return zone.media?.url ?? (zone.mediaUrl || null);
 }
 
 /**

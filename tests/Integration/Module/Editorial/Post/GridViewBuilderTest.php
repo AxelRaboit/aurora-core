@@ -238,6 +238,38 @@ final class GridViewBuilderTest extends IntegrationTestCase
         self::assertSame('flex-grow: 12; flex-basis: 0;', $grid['zones'][0]['children'][1]['shareStyle']);
     }
 
+    /**
+     * The library wins whenever it has an answer: a document carries a focal
+     * point, a variant sized for the slot and an alt of its own, and an address
+     * carries none of that. It stands in rather than competing.
+     */
+    public function testAPickedDocumentIsPreferredToAnAddress(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            [
+                'enabled' => true,
+                'zones' => [['id' => 'z1', 'type' => 'media', 'mediaUrl' => 'https://example.test/stand-in.jpg']],
+            ],
+            [],
+            'fr',
+        );
+
+        // No document exists for a null id, so the address answers.
+        self::assertSame('https://example.test/stand-in.jpg', $grid['zones'][0]['media']['url']);
+        self::assertSame('50% 50%', $grid['zones'][0]['media']['focalPosition'], 'an address says where a picture is, not what matters in it');
+    }
+
+    public function testAMediaZoneWithNeitherResolvesToNothing(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'media']]],
+            [],
+            'fr',
+        );
+
+        self::assertNull($grid['zones'][0]['media']);
+    }
+
     public function testTextGoesThroughTheBlockSanitiser(): void
     {
         $grid = $this->gridViewBuilder->buildForEditor(

@@ -129,6 +129,7 @@ function newZone(type) {
         ratio: "natural",
         mediaId: null,
         media: null,
+        mediaUrl: "",
         postId: null,
         // Empty on every zone, filled only by a stack — the same reason every
         // other key is always present: switching a type back and forth in the
@@ -542,6 +543,7 @@ export function usePostGrid(layout, content) {
                 type: shared("type"),
                 postId: shared("postId"),
                 ratio: shared("ratio"),
+                mediaUrl: shared("mediaUrl"),
                 // The width control drives the large-screen span only. Below
                 // that a zone stays full width, which is what the stored
                 // `base` says and what reads best on a phone.

@@ -348,6 +348,8 @@ backend:
         3x4: Portrait
         fill: Remplir
       zone_image: Image de la zone
+      zone_image_url: Adresse de l'image
+      zone_image_url_hint: "Utilisée seulement si aucune image n'est choisie ci-dessus. Pratique pour un visuel provisoire ; une image hébergée ailleurs peut disparaître, et son hébergeur voit passer vos visiteurs."
       zone_alt: Texte alternatif
       zone_caption: Légende
       zone_post: Publication à afficher

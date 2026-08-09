@@ -121,7 +121,7 @@ final readonly class GridViewBuilder
                     ? $this->blocksRenderer->render($held['blocks'], $locale)
                     : null,
                 'media' => GridNormalizer::ZONE_MEDIA === $zone['type']
-                    ? $this->mediaData($documents[$zone['mediaId']] ?? null, $held['alt'])
+                    ? $this->mediaData($documents[$zone['mediaId']] ?? null, $held['alt'], $zone['mediaUrl'] ?? null)
                     : null,
                 'post' => GridNormalizer::ZONE_POST === $zone['type']
                     ? $this->postCard($posts[$zone['postId']] ?? null, $locale)
@@ -329,10 +329,27 @@ final readonly class GridViewBuilder
      *                                   draw, which the template reads as a
      *                                   zone that renders nothing
      */
-    private function mediaData(?DocumentInterface $media, string $alt): ?array
+    /**
+     * @param ?string $url an address standing in for a document, used only when
+     *                     no document is picked
+     */
+    private function mediaData(?DocumentInterface $media, string $alt, ?string $url = null): ?array
     {
+        // The library wins whenever it has an answer: a document carries a
+        // focal point, a variant sized for this slot and an alt of its own,
+        // and none of that can be read off an address. The address is what an
+        // author has while a page is being drafted, not a second way of doing
+        // the same thing.
         if (!$media instanceof DocumentInterface) {
-            return null;
+            return null === $url ? null : [
+                'url' => $url,
+                'alt' => $alt,
+                // Nothing to focus on: an address says where a picture is, not
+                // what matters inside it. Centre is what `object-cover` does
+                // without instruction anyway, and stating it keeps the template
+                // free of a second branch.
+                'focalPosition' => '50% 50%',
+            ];
         }
 
         // A media zone renders an `<img>`, so what it holds has to be an

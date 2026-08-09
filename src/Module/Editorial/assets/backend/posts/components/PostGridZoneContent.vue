@@ -72,6 +72,17 @@ const publicationOptions = computed(() =>
                 v-model="bound.media.value"
                 :label="t('backend.posts.grid.zone_image')"
             />
+            <!-- Only reached when nothing is picked above, which is the order
+                 the renderer uses too. A document carries a focal point, a
+                 sized variant and an alt of its own; an address carries none of
+                 that, so it stands in rather than competes. -->
+            <AppInput
+                v-if="!bound.media.value?.id"
+                v-model="bound.mediaUrl.value"
+                :label="t('backend.posts.grid.zone_image_url')"
+                :hint="t('backend.posts.grid.zone_image_url_hint')"
+                placeholder="https://…"
+            />
             <!-- The one vertical control the grid has, and the only one
                  it will get: a shape to crop to, not a height. Shared
                  rather than per language, like the span — how a picture

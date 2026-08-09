@@ -179,6 +179,23 @@ describe("usePostGrid", () => {
         expect(layout.value.zones[0].alt).toBeUndefined();
     });
 
+    // Deliberately the other way round from the video address just below: a
+    // video is localised, a picture is the same picture in every language and
+    // only its description changes.
+    it("treats an image address as arrangement, not content", () => {
+        const { layout, content, api } = make();
+
+        api.addZone("media");
+        api.zoneFields(0).mediaUrl.value = "https://picsum.photos/800/600";
+
+        const id = layout.value.zones[0].id;
+
+        expect(layout.value.zones[0].mediaUrl).toBe(
+            "https://picsum.photos/800/600",
+        );
+        expect(content.value.zones[id] ?? {}).not.toHaveProperty("mediaUrl");
+    });
+
     it("treats a video address as content, not arrangement", () => {
         const { layout, content, api } = make();
 

@@ -40,7 +40,7 @@ use Aurora\Core\Content\ContentValueNormalizer;
  * they are sanitised at render, like `blocks` always has been. Everything else
  * is whitelisted on the way in.
  *
- * @phpstan-type GridZone array{id: string, type: string, span: array<string, int|null>, ratio: string, mediaId: ?int, postId: ?int, children: list<mixed>}
+ * @phpstan-type GridZone array{id: string, type: string, span: array<string, int|null>, ratio: string, mediaId: ?int, mediaUrl: ?string, postId: ?int, children: list<mixed>}
  * @phpstan-type GridZoneContent array{blocks: list<mixed>, alt: string, caption: string, url: ?string}
  */
 final readonly class GridNormalizer
@@ -285,6 +285,11 @@ final readonly class GridNormalizer
                 // and the design is written once for every language.
                 'ratio' => $this->values->oneOf($entry['ratio'] ?? null, self::RATIOS, self::RATIO_NATURAL),
                 'mediaId' => $this->values->id($entry['mediaId'] ?? null),
+                // An address, for a picture that is not in the library — a
+                // placeholder service while a page is being drafted, or an
+                // image already hosted elsewhere. Shared like the id, and for
+                // the same reason: it is the same picture in every language.
+                'mediaUrl' => $this->imageUrl($entry['mediaUrl'] ?? null),
                 'postId' => $this->values->id($entry['postId'] ?? null),
                 // Present on every zone, empty unless it is a stack — same
                 // reasoning as the keys above, so nothing has to guard the read.
@@ -329,6 +334,34 @@ final readonly class GridNormalizer
         }
 
         return $flat;
+    }
+
+    /**
+     * An address that may go in an `src`.
+     *
+     * Narrower than {@see ContentValueNormalizer::url()}, which also accepts
+     * `mailto:`, `tel:` and `#` — legitimate for a link and meaningless for a
+     * picture. What is left is a path on this site or an http address, and the
+     * scheme whitelist is what keeps `javascript:` out of an attribute the
+     * browser will act on.
+     */
+    private function imageUrl(mixed $value): ?string
+    {
+        $url = $this->values->url($value);
+
+        if (null === $url) {
+            return null;
+        }
+
+        $lower = mb_strtolower($url);
+
+        foreach (['/', 'http://', 'https://'] as $prefix) {
+            if (str_starts_with($lower, $prefix)) {
+                return $url;
+            }
+        }
+
+        return null;
     }
 
     private function snap(mixed $value): int

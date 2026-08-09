@@ -348,6 +348,8 @@ backend:
         3x4: Portrait
         fill: Fill
       zone_image: Zone image
+      zone_image_url: Image address
+      zone_image_url_hint: "Used only when no image is picked above. Handy for a stand-in; a picture hosted elsewhere can disappear, and its host sees your visitors go by."
       zone_alt: Alt text
       zone_caption: Caption
       zone_post: Publication to show
