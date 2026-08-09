@@ -4,7 +4,8 @@
 > largeur.** Le contrat, le rendu public, les quatre types de zone, l'éditeur et
 > l'aperçu sont en place et testés. Le réglage de largeur est passé à une toile
 > manipulable doublée d'une rangée de fractions au clavier — voir le chapitre
-> qui lui est consacré. Reste le sort de `blocks`, qui cohabite.
+> qui lui est consacré, et une **pile** permet à une zone haute de côtoyer deux
+> zones empilées. Reste le sort de `blocks`, qui cohabite.
 
 ---
 
@@ -40,6 +41,7 @@ c'est ce qui évite une règle par combinaison.
 | Une autre publication | choisie par select — c'est la « carte » |
 | Un média direct | image ou vidéo depuis la GED |
 | Une URL vidéo | YouTube, Vimeo, Dailymotion |
+| Une pile | *ajouté le 2026-08-09* — des zones empilées qui se partagent la hauteur de la ligne |
 
 ## Ce qui existe déjà et qu'il faut réutiliser
 
@@ -299,10 +301,9 @@ que la poignée qui élargit sur la toile.
   La vignette de carte et la vidéo gardent leur `aspect-video` en dur.
 - **Le placement absolu** (bord gauche indépendant, hauteur) reste écarté, pour
   les raisons de la section « Redimensionner dans les quatre sens ».
-- **La zone conteneur** — une zone haute avec deux zones empilées à sa droite —
-  est évaluée et non commencée. C'est le plus gros lot restant ; la section qui
-  lui est consacrée dit pourquoi c'est impossible aujourd'hui et ce qu'il
-  faudrait.
+- **La pile** est livrée : une zone haute avec deux zones empilées à sa droite
+  se construit, se règle et se publie. Reste à pouvoir y glisser une zone qui
+  existe déjà ailleurs.
 
 ### Pourquoi les jauges seules ne suffisaient pas
 
@@ -407,14 +408,14 @@ produit l'un ou l'autre : du texte coupé, ou du vide. La plupart des
 constructeurs de page qui l'offrent cassent sur un autre écran que celui où la
 page a été dessinée.
 
-### La zone conteneur : évaluée le 2026-08-09, pas commencée
+### La pile : livrée le 2026-08-09
 
 > **Demande** : une zone haute à gauche, et à sa droite deux zones empilées
-> faisant chacune la moitié de sa hauteur. **Réponse : impossible aujourd'hui**,
-> et le blocage est dans le modèle, pas dans l'interface.
+> faisant chacune la moitié de sa hauteur. **Impossible avec les seules zones de
+> ligne**, et le blocage était dans le modèle.
 
-**Pourquoi ça ne marche pas.** Les zones s'enchaînent en une suite et passent à
-la ligne quand elle est pleine ; aucune ne peut occuper deux lignes. Posez
+**Pourquoi ça ne marchait pas.** Les zones s'enchaînent en une suite et passent
+à la ligne quand elle est pleine ; aucune ne peut occuper deux lignes. Posez
 gauche(24), droiteA(24), droiteB(24) et `placeZones` donne :
 
 | Zone | Ligne | Colonne de départ |
@@ -423,42 +424,56 @@ gauche(24), droiteA(24), droiteB(24) et `placeZones` donne :
 | droiteA | 0 | 24 |
 | droiteB | **1** | **0** |
 
-La troisième repasse à la ligne et se pose **sous** la zone de gauche, pas à
-côté. Pour qu'elle reste à droite il faudrait un `grid-row: span 2` sur la zone
-de gauche — donc la grille 2D que la section précédente écarte.
+La troisième se pose **sous** la zone de gauche. Pour qu'elle reste à droite il
+faudrait un `grid-row: span 2`, donc le placement explicite que ce document
+écarte depuis le début.
 
-**La façon d'y arriver sans grille 2D : un cinquième type de zone, conteneur**,
-dont le contenu est d'autres zones empilées. La disposition demandée devient
-gauche(24) + conteneur(24) portant deux enfants. Le placement ne change pas : les
-zones continuent de s'enchaîner, et le conteneur n'est qu'une zone de plus.
+**La réponse : un cinquième type de zone**, `stack`, dont le contenu est
+d'autres zones. Le placement ne change pas — une pile est une zone de plus, qui
+se trouve en contenir d'autres.
 
-**Et la hauteur tombe juste sans être écrite nulle part.** `.aurora-grid` ne pose
-aucun `align-items`, donc les items d'une ligne sont en `stretch` : le conteneur
-fait déjà exactement la hauteur de la zone de gauche. Deux enfants en `flex-1`
-dedans, et le 50/50 est obtenu sans qu'aucune hauteur n'existe dans le modèle.
+**La hauteur n'est déclarée nulle part.** `.aurora-grid` ne pose aucun
+`align-items`, donc les items d'une ligne s'étirent déjà à sa hauteur : une pile
+fait exactement la hauteur de la zone d'à côté et n'a qu'à répartir ce qu'on lui
+a donné. C'est ce seul fait qui rend la piste abordable, et il ne se voit pas en
+lisant le CSS.
 
-Ça se marie avec le rapport d'image livré plus bas : c'est lui qui donne à la
-zone de gauche une hauteur **décidée** plutôt que subie. Sans lui, « une certaine
-hauteur » reste celle du contenu.
+**Les enfants réutilisent `span` comme part de hauteur.** Dans une pile l'axe
+d'écoulement est vertical : « 24 sur 48 » veut dire la moitié de la hauteur
+exactement comme il veut dire la moitié de la largeur sur une ligne. Un champ,
+un vocabulaire, et la rangée de fractions marche telle quelle.
 
-**Ce que ça coûte** — le plus gros lot de ce chantier, plusieurs fois celui de la
-toile :
+**Rendu en `flex-grow: <span>; flex-basis: 0`, sans `min-height: 0`.** La basis
+donne les proportions exactes plutôt qu'un partage du reste ; l'absence du
+min-height empêche un enfant d'être écrasé sous son propre contenu. Proportions
+quand ça tient, croissance quand ça ne tient pas, **texte coupé jamais** — c'est
+le reproche que ce document fait aux autres constructeurs de page depuis le
+début, et il fallait ne pas le mériter.
 
-- le normaliseur devient récursif, avec une **profondeur bornée à 1** : au-delà
-  on invente un arbre de mise en page, et plus personne ne sait ce que rend une
-  zone
-- `placeZones`, `GridViewBuilder` et le Twig doivent descendre d'un niveau
-- la toile doit dessiner un conteneur et ses enfants, et le glissé-déposé doit
-  décider ce que « lâcher une zone sur un conteneur » veut dire — entrer dedans,
-  ou échanger avec lui
-- le panneau doit permettre d'ajouter, retirer et réordonner **dans** un
-  conteneur
-- les ids doivent rester uniques sur tout l'arbre, sinon deux zones partagent
-  leur contenu dans toutes les langues
+**Les parts se rééquilibrent.** Ce sont des facteurs relatifs : régler une zone
+sur 2/3 pendant que sa voisine reste à 1/2 donnait 57 % et 43 %. Changer une
+part rend désormais le reste aux autres, proportionnellement à ce qu'elles
+avaient, avec un plancher d'une unité. Et « 1/1 » n'est pas offert comme part :
+une zone qui partage sa hauteur par définition ne peut pas la prendre entière.
+Le panneau affiche en plus le pourcentage réel — le nombre qui ne peut pas
+mentir.
 
-**Non commencé.** Écrit ici pour que le raisonnement ne se reperde pas — en
-particulier l'argument du `stretch`, qui est ce qui rend la piste abordable et
-qui ne se devine pas en lisant le CSS.
+**Deux bornes, testées.** Profondeur d'un niveau : au-delà, une page devient un
+arbre de mise en page qu'aucun consommateur ne lit sans récursion sans fin. Ids
+uniques sur tout l'arbre : le contenu est indexé par id dans une carte plate, et
+deux zones qui partagent un id partageraient leurs mots dans toutes les langues.
+
+**Sur la toile**, une pile dessine ses zones aux mêmes `flex-grow` que la page.
+Aucune poignée sur les tranches — une part est une hauteur, et la toile n'a
+jamais redimensionné que des largeurs. **Un lâcher sur une pile reste un
+échange** : un geste, un sens, sinon l'auteur ne peut plus prédire ce qu'il
+obtient.
+
+Livrée en trois tranches : `55f8cdb4` (modèle et rendu public), `2efde2f6`
+(panneau), `98835f47` (toile).
+
+**Ce qui n'est pas fait** : déplacer une zone existante *dans* une pile. Elle
+s'ajoute depuis la pile, elle ne s'y glisse pas.
 
 ### Livré le 2026-08-09 : le rapport d'image, sur la zone média
 
