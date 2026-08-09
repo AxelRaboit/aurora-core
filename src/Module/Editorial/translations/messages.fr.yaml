@@ -190,8 +190,7 @@ backend:
       width_mode: Placement
       width_modes:
         contained: Dans la colonne
-        full_aligned: Pleine largeur, contenu aligné
-        full: Pleine largeur, collé à la barre
+        full_aligned: Pleine largeur
       height: Hauteur
       fill_needs_color: "Choisissez une couleur, sinon l'en-tête ne dessinera pas de fond."
       fill_needs_both_stops: "Un dégradé demande ses deux couleurs. Tant qu'il en manque une, l'en-tête ne dessine aucun fond — et un texte blanc s'y perd."

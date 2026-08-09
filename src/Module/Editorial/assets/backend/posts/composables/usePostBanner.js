@@ -112,7 +112,8 @@ export function usePostBanner(layout, texts) {
     const alignOptions = options(["start", "center", "end"], "aligns");
     const fillOptions = options(["none", "solid", "gradient"], "fills");
     const widthModeOptions = options(
-        ["contained", "full_aligned", "full"],
+        // Mirrors BannerNormalizer::WIDTHS. `full` retired 2026-08-09.
+        ["contained", "full_aligned"],
         "width_modes",
     );
     const verticalAlignOptions = options(

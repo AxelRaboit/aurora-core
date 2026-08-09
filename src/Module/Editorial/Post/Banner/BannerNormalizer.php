@@ -51,17 +51,36 @@ final readonly class BannerNormalizer
 
     public const string ITEM_BUTTON = 'button';
 
+    /** Background and content both stop at the page's column. */
     public const string WIDTH_CONTAINED = 'contained';
-
-    public const string WIDTH_FULL = 'full';
 
     /**
      * Background spans the viewport, content keeps the page's own left edge.
-     * Usually what "full width" is meant to look like: at 1920px the two
-     * differ by 267 pixels, and a title that starts nowhere near the text
-     * under it reads as a mistake rather than a choice.
+     *
+     * What "full width" is almost always meant to look like, and now the only
+     * full-width there is — see {@see WIDTH_FULL_RETIRED} for the one that went.
      */
     public const string WIDTH_FULL_ALIGNED = 'full_aligned';
+
+    /**
+     * Retired on 2026-08-09: background and content both went to the window
+     * edge, so a banner's title started nowhere near the text under it — at
+     * 1920px, 267 pixels apart.
+     *
+     * Full-bleed hero text is a real parti pris, but it needs type and imagery
+     * chosen for it. Offered in a list beside two options that look almost the
+     * same, with no preview of the consequence, it behaved as a trap rather
+     * than a choice: every author who picked it got a header that reads as a
+     * mistake.
+     *
+     * Kept as a constant, and not merely deleted, because the value is stored:
+     * `oneOf` would answer the default for it and quietly re-lay-out every page
+     * that had chosen it. {@see Version20260809210000} rewrites those to
+     * `full_aligned` — the nearest neighbour, same full-width background, same
+     * height, only the text moving into line — and this constant is what the
+     * migration and its test name.
+     */
+    public const string WIDTH_FULL_RETIRED = 'full';
 
     public const string FILL_NONE = 'none';
 
@@ -89,7 +108,7 @@ final readonly class BannerNormalizer
 
     private const array HEIGHTS = ['sm', 'md', 'lg', 'full'];
 
-    private const array WIDTHS = [self::WIDTH_CONTAINED, self::WIDTH_FULL_ALIGNED, self::WIDTH_FULL];
+    private const array WIDTHS = [self::WIDTH_CONTAINED, self::WIDTH_FULL_ALIGNED];
 
     private const array ALIGNMENTS = ['start', 'center', 'end'];
 
@@ -113,7 +132,7 @@ final readonly class BannerNormalizer
             'height' => $this->values->oneOf($data['height'] ?? null, self::HEIGHTS, 'md'),
             // Where the banner sits: inside the article column like the rest of
             // the page, or spanning the viewport flush under the top bar.
-            'width' => $this->values->oneOf($data['width'] ?? null, self::WIDTHS, self::WIDTH_CONTAINED),
+            'width' => $this->width($data['width'] ?? null),
             // Where the content sits in a banner taller than it needs: pinned
             // to the top, centred, or dropped to the bottom.
             'verticalAlign' => $this->values->oneOf($data['verticalAlign'] ?? null, self::VERTICAL_ALIGNMENTS, 'center'),
@@ -336,7 +355,26 @@ final readonly class BannerNormalizer
         );
     }
 
-    /** @param array<string, mixed> $data */
+    /**
+     * The placement, with the retired full-bleed folded into its neighbour.
+     *
+     * A layout saved before 2026-08-09 can still say `full`, and the migration
+     * only rewrites what was in the database when it ran — a revision snapshot
+     * restored afterwards, or a client posting an old payload, arrives here
+     * saying it too. Answering the *default* for those would move a banner from
+     * full width to the page column, which is a bigger change than the one
+     * being made. Answering the nearest neighbour keeps the design and only
+     * brings the text into line.
+     */
+    private function width(mixed $value): string
+    {
+        if (self::WIDTH_FULL_RETIRED === $value) {
+            return self::WIDTH_FULL_ALIGNED;
+        }
+
+        return $this->values->oneOf($value, self::WIDTHS, self::WIDTH_CONTAINED);
+    }
+
     private function fillType(array $data): string
     {
         if (!array_key_exists('type', $data) && null !== $this->values->color($data['color'] ?? null)) {

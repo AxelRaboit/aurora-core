@@ -67,7 +67,8 @@ describe("usePostBanner", () => {
             heightOptions: 4,
             alignOptions: 3,
             fillOptions: 3,
-            widthModeOptions: 3,
+            // Two since 2026-08-09: the full-bleed placement was retired.
+            widthModeOptions: 2,
             verticalAlignOptions: 3,
             titleSizeOptions: 4,
             widthOptions: 6,

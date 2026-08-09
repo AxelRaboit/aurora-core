@@ -6,6 +6,7 @@ namespace Aurora\Tests\Unit\Module\Editorial\Post\Banner;
 
 use Aurora\Core\Content\ContentValueNormalizer;
 use Aurora\Module\Editorial\Post\Banner\BannerNormalizer;
+use DoctrineMigrations\Version20260809210000;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -397,5 +398,43 @@ final class BannerNormalizerTest extends TestCase
 
         self::assertSame('Espaces', $texts['items']['a1']['title'], 'trimmed on the way in');
         self::assertSame($texts, $this->normalizer->normalizeTexts($texts, $once));
+    }
+
+    /**
+     * The retired full-bleed placement folds into its neighbour, not into the
+     * default.
+     *
+     * `oneOf` answers `contained` for a value it no longer knows, and that
+     * would move a banner from full width into the article column — a larger
+     * change than the one being made, on a page nobody edited.
+     * {@see Version20260809210000} rewrites what was in
+     * the database; this is what catches the rest, since a revision restored
+     * afterwards or an old payload posted by a client both arrive here still
+     * saying `full`.
+     */
+    public function testTheRetiredFullBleedBecomesTheAlignedFullWidth(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'enabled' => true,
+            'width' => BannerNormalizer::WIDTH_FULL_RETIRED,
+        ]);
+
+        self::assertSame(BannerNormalizer::WIDTH_FULL_ALIGNED, $layout['width']);
+    }
+
+    public function testAnUnknownPlacementStillFallsBackToTheColumn(): void
+    {
+        $layout = $this->normalizer->normalizeLayout(['enabled' => true, 'width' => 'edge-to-edge']);
+
+        self::assertSame(BannerNormalizer::WIDTH_CONTAINED, $layout['width']);
+    }
+
+    public function testTheTwoPlacementsThatRemainAreKept(): void
+    {
+        foreach ([BannerNormalizer::WIDTH_CONTAINED, BannerNormalizer::WIDTH_FULL_ALIGNED] as $width) {
+            $layout = $this->normalizer->normalizeLayout(['enabled' => true, 'width' => $width]);
+
+            self::assertSame($width, $layout['width']);
+        }
     }
 }

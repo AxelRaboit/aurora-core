@@ -190,8 +190,7 @@ backend:
       width_mode: Placement
       width_modes:
         contained: In the article column
-        full_aligned: Full width, content aligned
-        full: Full width, flush with the bar
+        full_aligned: Full width
       height: Height
       fill_needs_color: "Pick a colour, or the header draws no background at all."
       fill_needs_both_stops: "A gradient needs both of its colours. While one is missing the header draws no background — and white text is lost on it."
