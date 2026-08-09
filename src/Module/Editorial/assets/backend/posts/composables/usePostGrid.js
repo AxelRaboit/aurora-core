@@ -38,7 +38,7 @@ const MAX_STACK_CHILDREN = 6;
  * the only vertical control the grid offers. `natural` is what every zone
  * starts as, because the default has to be what is already published.
  */
-export const ZONE_RATIOS = ["natural", "16x9", "4x3", "1x1", "3x4"];
+export const ZONE_RATIOS = ["natural", "16x9", "4x3", "1x1", "3x4", "fill"];
 
 /**
  * The widths an author actually draws with, named the way they think of them.

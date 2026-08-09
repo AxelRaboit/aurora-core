@@ -339,13 +339,14 @@ backend:
         video: Video
         stack: Stack
       ratio: Shape
-      ratio_hint: "Crops the picture to this shape. “Natural” leaves it at its own proportions."
+      ratio_hint: "Crops the picture to this shape. “Natural” leaves it at its own proportions. “Fill” gives it whatever height is left in the stack: the other zones take theirs, this one takes the rest — which is what closes the gap under a short text."
       ratios:
         natural: Natural
         16x9: "16:9"
         4x3: "4:3"
         1x1: Square
         3x4: Portrait
+        fill: Fill
       zone_image: Zone image
       zone_alt: Alt text
       zone_caption: Caption

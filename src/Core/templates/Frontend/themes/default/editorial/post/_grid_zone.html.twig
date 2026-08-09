@@ -15,7 +15,20 @@
         <div class="prose max-w-none">{{ zone.html|raw }}</div>
 
     {% elseif zone.type == 'media' and zone.media %}
-        <figure class="m-0 not-prose">
+        {# `fill` is the one shape that is not a ratio: it takes the height of
+           the box it is in and crops into it, which is how a picture stops
+           leaving a gap under itself when its neighbour is taller. A height
+           cannot be an `aspect-ratio`, so it is classes here rather than a
+           declaration from the view builder.
+
+           Only from `lg` up. Below it every zone is alone on its row, so the
+           box has no height of its own to fill — `flex-1` against an auto
+           height would collapse the picture to nothing. There it reads as
+           `natural`, which is what a picture alone on a phone should be
+           anyway. #}
+        {% set fills = zone.ratio == 'fill' %}
+
+        <figure class="m-0 not-prose{{ fills ? ' lg:flex lg:h-full lg:flex-col' : '' }}">
             {# `ratioStyle` is empty unless the zone asks to be cropped.
                With a width of 100% and `height: auto`, an `aspect-ratio`
                settles the height on its own — no wrapper, no second
@@ -26,11 +39,13 @@
                 src="{{ zone.media.url }}"
                 alt="{{ zone.media.alt }}"
                 loading="lazy"
-                class="w-full h-auto rounded-lg object-cover"
+                class="w-full h-auto rounded-lg object-cover{{ fills ? ' lg:min-h-0 lg:flex-1' : '' }}"
                 style="object-position: {{ zone.media.focalPosition }};{{ zone.ratioStyle }}"
             >
             {% if zone.caption %}
-                <figcaption class="mt-2 text-sm text-secondary">{{ zone.caption }}</figcaption>
+                {# `shrink-0` so the caption keeps its line when the picture
+                   above it is taking every pixel it can. #}
+                <figcaption class="mt-2 text-sm text-secondary{{ fills ? ' lg:shrink-0' : '' }}">{{ zone.caption }}</figcaption>
             {% endif %}
         </figure>
 

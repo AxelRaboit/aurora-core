@@ -204,6 +204,21 @@ final class GridNormalizerTest extends TestCase
         self::assertSame(4, $this->normalizer->normalizeLayout(['snap' => 'douze'])['snap']);
     }
 
+    /**
+     * A picture alone on its row has no imposed height, so `fill` has nothing
+     * to fill — it is stored all the same, because the arrangement is written
+     * for the large screen and the template is where "nothing to fill" is
+     * decided, not the normaliser.
+     */
+    public function testFillIsAShapeLikeTheOthers(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [['id' => 'a1', 'type' => 'media', 'ratio' => 'fill']],
+        ]);
+
+        self::assertSame(GridNormalizer::RATIO_FILL, $layout['zones'][0]['ratio']);
+    }
+
     public function testTheRatioIsOneOfTheOfferedShapes(): void
     {
         foreach (GridNormalizer::RATIOS as $ratio) {

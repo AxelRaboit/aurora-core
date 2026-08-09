@@ -101,7 +101,17 @@ final readonly class GridNormalizer
      *
      * `natural` first: the default has to be the behaviour already published.
      */
-    public const array RATIOS = [self::RATIO_NATURAL, '16x9', '4x3', '1x1', '3x4'];
+    /**
+     * Not a ratio at all, and in this list because it answers the same question
+     * an author is asking: "how tall is this picture?" It means "as tall as the
+     * box you are in" — which is only ever imposed from outside, by the row a
+     * zone shares or the stack it sits in. A picture alone on its row has
+     * nothing to fill, so this reads as `natural` there and below the large
+     * breakpoint, where every zone is alone.
+     */
+    public const string RATIO_FILL = 'fill';
+
+    public const array RATIOS = [self::RATIO_NATURAL, '16x9', '4x3', '1x1', '3x4', self::RATIO_FILL];
 
     /**
      * A page is not a feed. High enough that nobody meets it while laying out

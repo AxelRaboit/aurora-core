@@ -167,6 +167,77 @@ final class GridViewBuilderTest extends IntegrationTestCase
      * Blocks are the one part written raw, so this is where the sanitiser has
      * to run — the same path the plain block column took.
      */
+    /**
+     * `fill` is a height, not a ratio, so it emits no declaration — the
+     * template turns it into classes instead. Asserting the empty string is
+     * what stops someone "fixing" it later by inventing an `aspect-ratio` for
+     * it, which would pin the very height it exists to inherit.
+     */
+    public function testFillingAZoneStatesNoRatioAtAll(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'media', 'ratio' => 'fill']]],
+            [],
+            'fr',
+        );
+
+        self::assertSame('fill', $grid['zones'][0]['ratio']);
+        self::assertSame('', $grid['zones'][0]['ratioStyle']);
+    }
+
+    /**
+     * The point of `fill`: not "half each", which leaves a hole under three
+     * lines of text, but "the text takes what it needs and the picture has the
+     * rest". Shares stop applying the moment one zone claims the remainder —
+     * a zone cannot both leave room and take everything left.
+     */
+    public function testAFillingZoneTakesTheRemainderAndItsNeighboursTheirOwnHeight(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            [
+                'enabled' => true,
+                'zones' => [[
+                    'id' => 'holder',
+                    'type' => 'stack',
+                    'children' => [
+                        ['id' => 'words', 'type' => 'text', 'span' => ['lg' => 24]],
+                        ['id' => 'picture', 'type' => 'media', 'span' => ['lg' => 24], 'ratio' => 'fill'],
+                    ],
+                ]],
+            ],
+            [],
+            'fr',
+        );
+
+        [$words, $picture] = $grid['zones'][0]['children'];
+
+        self::assertSame('flex-grow: 0; flex-basis: auto;', $words['shareStyle']);
+        self::assertSame('flex-grow: 1; flex-basis: 0;', $picture['shareStyle']);
+    }
+
+    /** Without one, the shares are what divides the height, exactly as before. */
+    public function testSharesStillApplyWhenNoZoneFills(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            [
+                'enabled' => true,
+                'zones' => [[
+                    'id' => 'holder',
+                    'type' => 'stack',
+                    'children' => [
+                        ['id' => 'top', 'type' => 'text', 'span' => ['lg' => 36]],
+                        ['id' => 'bottom', 'type' => 'text', 'span' => ['lg' => 12]],
+                    ],
+                ]],
+            ],
+            [],
+            'fr',
+        );
+
+        self::assertSame('flex-grow: 36; flex-basis: 0;', $grid['zones'][0]['children'][0]['shareStyle']);
+        self::assertSame('flex-grow: 12; flex-basis: 0;', $grid['zones'][0]['children'][1]['shareStyle']);
+    }
+
     public function testTextGoesThroughTheBlockSanitiser(): void
     {
         $grid = $this->gridViewBuilder->buildForEditor(

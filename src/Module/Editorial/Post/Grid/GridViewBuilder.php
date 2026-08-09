@@ -101,7 +101,7 @@ final readonly class GridViewBuilder
                 // A stack's own children, resolved the same way. The
                 // recursion is bounded by the normaliser, which refuses a
                 // stack inside a stack — so this descends once and stops.
-                'children' => array_map($resolve, $zone['children'] ?? []),
+                'children' => $this->shareOut(array_map($resolve, $zone['children'] ?? [])),
                 // What a child contributes to the stack's height, as a
                 // share out of 48. `flex-basis: 0` is what makes the grow
                 // factors read as exact proportions rather than as a split
@@ -251,6 +251,51 @@ final readonly class GridViewBuilder
     }
 
     /**
+     * How a stack divides its height between the zones it holds.
+     *
+     * Normally by their shares, which is what `shareStyle` already says. But a
+     * zone set to **fill** claims what is left over instead, and that only
+     * means something if its neighbours stop claiming a share of their own —
+     * so they fall back to their own content height and the filling one takes
+     * the rest.
+     *
+     * This is what an author asks for with a short paragraph beside a picture:
+     * not "half each", which leaves a hole under three lines of text, but
+     * "the text takes what it needs and the picture has the remainder". Shares
+     * stop applying the moment one zone says it wants the remainder — one zone
+     * cannot both leave room and take everything left.
+     *
+     * @param list<array<string, mixed>> $children
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function shareOut(array $children): array
+    {
+        $fills = array_filter(
+            $children,
+            static fn (array $child): bool => GridNormalizer::RATIO_FILL === $child['ratio'],
+        );
+
+        if ([] === $fills) {
+            return $children;
+        }
+
+        return array_map(
+            static fn (array $child): array => [
+                ...$child,
+                'shareStyle' => GridNormalizer::RATIO_FILL === $child['ratio']
+                    // Several filling zones split the remainder evenly, which
+                    // is the only reading of "we both take what is left".
+                    ? 'flex-grow: 1; flex-basis: 0;'
+                    // Its own height, and no more. `flex-basis: auto` with no
+                    // growth is what "as tall as what it says" means here.
+                    : 'flex-grow: 0; flex-basis: auto;',
+            ],
+            $children,
+        );
+    }
+
+    /**
      * The crop, as a declaration rather than a class.
      *
      * A Tailwind class would have to be written out somewhere Tailwind reads —
@@ -272,6 +317,9 @@ final readonly class GridViewBuilder
             '4x3' => 'aspect-ratio: 4 / 3;',
             '1x1' => 'aspect-ratio: 1 / 1;',
             '3x4' => 'aspect-ratio: 3 / 4;',
+            // `fill` and `natural` both land here: neither states a ratio. What
+            // separates them is a height, which is a class on the element
+            // rather than a declaration — see `_grid_zone.html.twig`.
             default => '',
         };
     }

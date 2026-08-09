@@ -35,8 +35,19 @@
                    nothing. The gap matches the row gap above, so a stack reads
                    as part of the same lattice rather than as a tighter island. #}
                 <div class="flex h-full flex-col gap-y-8">
+                    {# `lg:min-h-0` only for a zone that fills. Everywhere else
+                       the automatic floor is the whole point: a flex item does
+                       not shrink under its own content, which is what keeps
+                       text from being clipped when its share is smaller than
+                       what it has to say. A zone that asks to fill has already
+                       consented to being cropped, and without lifting the floor
+                       it does the opposite of what it says — the picture
+                       imposes its natural height and its neighbours give way. #}
                     {% for child in zone.children %}
-                        <div class="min-w-0" style="{{ child.shareStyle|raw }}">
+                        <div
+                            class="min-w-0{{ child.ratio == 'fill' ? ' lg:min-h-0' : '' }}"
+                            style="{{ child.shareStyle|raw }}"
+                        >
                             {{ include('Frontend/themes/default/editorial/post/_grid_zone.html.twig', {zone: child, locale: locale}) }}
                         </div>
                     {% endfor %}

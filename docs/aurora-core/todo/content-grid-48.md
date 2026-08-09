@@ -483,6 +483,30 @@ d'écoulement est vertical : « 24 sur 48 » veut dire la moitié de la hauteur
 exactement comme il veut dire la moitié de la largeur sur une ligne. Un champ,
 un vocabulaire, et la rangée de fractions marche telle quelle.
 
+**« Remplir » : la sixième forme, qui n'en est pas une.** Ajoutée le 2026-08-09
+après avoir mesuré la démo : trois lignes de texte dans une case de 403px
+laissaient **275px de vide** avant l'image. Une part fixe honore sa promesse,
+et c'est le problème — elle la tient même quand le contenu ne la remplit pas.
+
+`fill` veut dire « prends ce qui reste ». Dès qu'une zone le demande, **les
+parts cessent de s'appliquer** : les autres prennent leur hauteur de contenu et
+celle-là absorbe le solde. Une zone ne peut pas à la fois laisser de la place et
+prendre tout ce qui reste.
+
+Deux détails qui ont coûté deux essais ratés :
+
+- il ne suffit pas que l'image remplisse *sa case*. La première version faisait
+  ça, et le trou restait — parce qu'il était sous le **texte**, pas sous
+  l'image ;
+- la case qui remplit doit lever son `min-height: auto`. Sans ça l'image impose
+  sa hauteur naturelle et ce sont ses voisines qui reculent — l'inverse exact
+  de ce que le bouton annonce. Une zone qui demande à remplir a déjà consenti à
+  être recadrée, donc le plancher saute pour elle seule et pour personne
+  d'autre.
+
+Au-dessus de `lg` uniquement : plus bas chaque zone est seule sur sa ligne,
+donc il n'y a aucune hauteur imposée à remplir.
+
 **Rendu en `flex-grow: <span>; flex-basis: 0`, sans `min-height: 0`.** La basis
 donne les proportions exactes plutôt qu'un partage du reste ; l'absence du
 min-height empêche un enfant d'être écrasé sous son propre contenu. Proportions

@@ -362,13 +362,13 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 // height from the row, which the picture beside it sets.
                 'children' => [
                     ['id' => 'beside', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 24]],
-                    // 16:9 so the picture fits inside its half. Left at its own
-                    // proportions it is a portrait, taller than the share it was
-                    // given — and a stacked zone is never squeezed under its own
-                    // content, so it would take the room it needs and leave the
-                    // text a sliver. Correct behaviour, and a poor demonstration
-                    // of a split down the middle.
-                    ['id' => 'under', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => '16x9', 'mediaId' => $stacked->getId()],
+                    // `fill`, not a ratio and not a half. The text above is
+                    // three lines and its share was 403px, so an even split
+                    // left 275px of nothing between the two — the gap this
+                    // shape exists to close. The paragraph now takes what it
+                    // says and the picture has the rest, which is what an
+                    // author means by "a picture beside a short text".
+                    ['id' => 'under', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => GridNormalizer::RATIO_FILL, 'mediaId' => $stacked->getId()],
                 ],
             ],
             // Two thirds and one third: a player next to the article it is

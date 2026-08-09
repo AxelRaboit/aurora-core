@@ -358,6 +358,7 @@ describe("usePostGrid", () => {
             "4x3",
             "1x1",
             "3x4",
+            "fill",
         ]);
     });
 
