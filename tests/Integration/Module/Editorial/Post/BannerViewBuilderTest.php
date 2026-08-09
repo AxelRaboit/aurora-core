@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Editorial\Post;
 
 use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
+use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * The join between the two halves of a banner, and the only reason the Twig
@@ -20,12 +22,15 @@ final class BannerViewBuilderTest extends IntegrationTestCase
 {
     private BannerViewBuilder $bannerViewBuilder;
 
+    private EntityManagerInterface $entityManager;
+
     protected function setUp(): void
     {
         parent::setUp();
         static::bootKernel();
 
         $this->bannerViewBuilder = static::getContainer()->get(BannerViewBuilder::class);
+        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
     }
 
     public function testAnItemCarriesBothItsDesignAndItsWords(): void
@@ -214,5 +219,126 @@ final class BannerViewBuilderTest extends IntegrationTestCase
         );
 
         self::assertNull($banner['background']['fillStyle']);
+    }
+
+    /**
+     * The background, the logo and an image item all end up in an `<img>`, so
+     * all three have to hold an image. The picker only offers those, but a
+     * fixture, an API write, or a document whose file is replaced afterwards
+     * reach past it — and a browser handed an mp4 in an `<img>` shows a broken
+     * image and says nothing anywhere.
+     */
+    public function testNoneOfTheThreePicturesResolvesToAVideo(): void
+    {
+        $video = $this->document('video/mp4', 'ged/2026/08/demo-video.mp4');
+
+        $banner = $this->bannerViewBuilder->buildForEditor(
+            [
+                'enabled' => true,
+                'logoMediaId' => $video,
+                'background' => ['mediaId' => $video],
+                'items' => [['id' => 'a1', 'type' => 'image', 'mediaId' => $video]],
+            ],
+            [],
+        );
+
+        self::assertNull($banner['background']['media']);
+        self::assertNull($banner['logo']);
+        self::assertNull($banner['items'][0]['media']);
+    }
+
+    /**
+     * The other half of the check, and the one that would catch a guard
+     * written too wide: refusing everything would pass the test above.
+     */
+    public function testAPictureStillResolvesInAllThreePlaces(): void
+    {
+        $picture = $this->document('image/jpeg', 'ged/2026/08/photo.jpg');
+
+        $banner = $this->bannerViewBuilder->buildForEditor(
+            [
+                'enabled' => true,
+                'logoMediaId' => $picture,
+                'background' => ['mediaId' => $picture],
+                'items' => [['id' => 'a1', 'type' => 'image', 'mediaId' => $picture]],
+            ],
+            [],
+        );
+
+        self::assertStringContainsString('photo.jpg', (string) $banner['background']['media']['url']);
+        self::assertStringContainsString('photo.jpg', (string) $banner['logo']['url']);
+        self::assertStringContainsString('photo.jpg', (string) $banner['items'][0]['media']['url']);
+    }
+
+    /**
+     * The library keeps documents with no file on purpose, so the upload flow
+     * has something to be tested against. One of those used to produce
+     * `<img src="">`, which is worse than an absent picture: an empty src
+     * resolves to the page's own address and fetches it a second time.
+     */
+    public function testADocumentWithNoFileResolvesToNothing(): void
+    {
+        $fileless = $this->document('image/jpeg', null);
+
+        $banner = $this->bannerViewBuilder->buildForEditor(
+            ['enabled' => true, 'background' => ['mediaId' => $fileless]],
+            [],
+        );
+
+        self::assertNull($banner['background']['media']);
+    }
+
+    /**
+     * What makes answering null acceptable for a hero background: the fill is
+     * resolved separately, so a banner that has one still renders the header
+     * its author designed rather than a transparent box.
+     */
+    public function testAFillSurvivesABackgroundPictureThatCannotBeDrawn(): void
+    {
+        $video = $this->document('video/mp4', 'ged/2026/08/demo-video.mp4');
+
+        $banner = $this->bannerViewBuilder->build(
+            [
+                'enabled' => true,
+                'background' => ['type' => 'solid', 'color' => '#123456', 'mediaId' => $video],
+            ],
+            [],
+        );
+
+        self::assertNotNull($banner);
+        self::assertNull($banner['background']['media']);
+        self::assertSame('background-color: #123456;', $banner['background']['fillStyle']);
+    }
+
+    /**
+     * And the other end of it: a banner whose only content was that picture has
+     * nothing left, so `build` switches it off and the page puts back its own
+     * header — and with it the `<h1>` the banner was going to carry.
+     */
+    public function testABannerLeftWithNothingButAnUndrawablePictureIsOff(): void
+    {
+        $video = $this->document('video/mp4', 'ged/2026/08/demo-video.mp4');
+
+        self::assertNull($this->bannerViewBuilder->build(
+            ['enabled' => true, 'background' => ['mediaId' => $video]],
+            [],
+        ));
+    }
+
+    /**
+     * Flushed rather than only persisted: the builder resolves ids through the
+     * repository, so the row has to exist and to have an id.
+     */
+    private function document(string $mimeType, ?string $filePath): int
+    {
+        $document = new Document();
+        $document->setTitle('Média');
+        $document->setMimeType($mimeType);
+        $document->setFilePath($filePath);
+
+        $this->entityManager->persist($document);
+        $this->entityManager->flush();
+
+        return (int) $document->getId();
     }
 }

@@ -632,10 +632,41 @@ classe dans Images et qu'un renderer refuse de dessiner, sans rien pour dire
 lequel a tort. Un préfixe et non une liste fermée, comme le `LIKE 'image/%'`
 qu'il reflète : `image/avif` est une image.
 
-**`BannerViewBuilder::mediaData()` porte le même défaut et n'a pas été touché.**
-Le fond d'une bannière est un hero ; le faire disparaître se voit bien davantage
-qu'une zone de grille vide, et cette décision mérite d'être prise pour
-elle-même.
+### Livré le 2026-08-09 : la bannière, décidée pour elle-même
+
+`BannerViewBuilder::mediaData()` portait le même défaut — les deux gardes, le
+mime et l'URL nulle. Mais pas la même décision : la bannière alimente **trois**
+images depuis cette seule fonction — le fond du hero, le logo, et le média d'un
+item. Un fond qui ne rend rien se voit bien davantage qu'une zone de grille
+vide, donc « renvoyer `null` » demandait à être justifié plutôt que recopié.
+
+**Il l'est, parce que la bannière sait déjà se passer d'image.** Le repli
+n'était pas à inventer, il était écrit :
+
+- le remplissage est résolu séparément — `fillStyle` ne dépend pas du document,
+  donc une bannière qui a un aplat ou un dégradé rend l'en-tête que son auteur a
+  dessiné, pas une boîte transparente ;
+- une bannière à qui il ne reste rien est **éteinte par `build()`**, et la page
+  remet son propre en-tête — avec le `<h1>` que la bannière allait porter. Cette
+  règle existait pour l'auteur qui avait tout effacé ; elle couvre le fond
+  refusé sans une ligne de plus.
+
+**Ce qu'on n'a pas fait : une image de remplacement, ou un aplat gris par
+défaut.** Les deux inventent une décision de design que personne n'a prise — la
+raison exacte pour laquelle, six fonctions plus haut dans le même fichier, un
+dégradé auquel il manque une borne ne rend aucun dégradé plutôt qu'un dégradé
+deviné.
+
+**Ni une garde sur deux des trois appels.** Le logo et l'item sortent en `<img>`
+avec un `alt` non vide, donc une vidéo y affiche l'icône d'image cassée *et* son
+texte. Le fond a `alt=""` et `aria-hidden`, ce qui rend le dégât visuel plus
+discret — mais `<img src="">` reste un second chargement de la page à chaque vue,
+pour échouer à la décoder. Trois `<img>`, une garde, un endroit.
+
+Six tests dans `BannerViewBuilderTest` : les trois emplacements refusant une
+vidéo, les trois acceptant une image — une garde écrite trop large passerait le
+premier test —, le document sans fichier, le remplissage qui survit, et la
+bannière éteinte faute de contenu.
 
 ---
 

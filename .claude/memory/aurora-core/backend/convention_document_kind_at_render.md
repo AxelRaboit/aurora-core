@@ -78,9 +78,16 @@ private function mediaData(?DocumentInterface $media, string $alt): ?array
 Le template teste déjà la clé (`{% if zone.media %}`), donc `null` veut dire
 « ne rend rien » sans ligne de Twig à ajouter.
 
-**Reste à faire** : `BannerViewBuilder::mediaData()` porte exactement le même
-défaut et n'a pas été corrigé — un fond de bannière qui disparaît se voit bien
-plus qu'une zone de grille vide, la décision se prend pour elle-même.
+**Appliqué à `GridViewBuilder::mediaData()` et à `BannerViewBuilder::mediaData()`**
+(fond du hero, logo, média d'item — les trois par la même fonction).
+
+**Le repli, quand `null` se voit.** Avant de recopier la garde ailleurs,
+vérifier ce que rend l'appelant sans image. La bannière avait déjà la réponse :
+son remplissage est résolu séparément et reste, et une bannière à qui il ne
+reste rien est éteinte par `build()`, ce qui remet l'en-tête de la page et son
+`<h1>`. Un endroit qui n'aurait pas ce repli le construit **avec les valeurs de
+l'auteur** — jamais une image de remplacement ni un aplat par défaut, qui
+inventent une décision de design que personne n'a prise.
 
 ## Source
 
