@@ -221,7 +221,17 @@ fixtures: stop-dev-worker ## Drop DB, re-run migrations, seed the floor and load
 	@echo "✅ Fixtures loaded"
 	@echo "↻  Restart the worker: make start-dev-worker"
 
-demo: purge-uploads ## Purge var/uploads/ then load demo fixtures + run all syncs
+# No longer purges var/uploads/ first, and that was the whole risk in it: the
+# target deleted every stored file — including anything uploaded through the
+# application — and only then ran the load that might fail. A run that stopped
+# halfway left the pictures gone and the rows untouched, which is exactly what
+# happened while the fixtures were still dying on a unique key.
+#
+# The purge is not needed either. The demo copies its files with overwrite
+# under deterministic names, so a reload refreshes them in place; nothing
+# accumulates now that the documents are found before they are created.
+# `make purge-uploads` stays, for when emptying the store is what you meant.
+demo: ## Load demo fixtures + run all syncs (idempotent, keeps stored files)
 	$(CONSOLE) aurora:install
 	$(CONSOLE) doctrine:fixtures:load --group=demo --no-interaction --append
 	$(CONSOLE) aurora:application-parameter
