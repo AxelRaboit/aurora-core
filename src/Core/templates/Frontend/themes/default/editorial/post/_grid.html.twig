@@ -8,9 +8,13 @@
    number, and Tailwind only emits classes it can read in the source.
 
    Gutters come from the grid's own item padding. A `gap-x` here would be 47
-   gutters across the 48 tracks — see AuroraGridGutterTest. #}
+   gutters across the 48 tracks — see AuroraGridGutterTest.
 
-<div class="aurora-grid gap-y-8">
+   `aurora-grid-flush` pulls the two outer edges back by that same gutter, so
+   the first column lines up with the title above the grid rather than sitting
+   a gutter to the right of it. #}
+
+<div class="aurora-grid aurora-grid-flush gap-y-8">
     {% for zone in grid.zones %}
         <div style="{{ zone.spanStyle|raw }}">
             {% if zone.type == 'text' and zone.html %}

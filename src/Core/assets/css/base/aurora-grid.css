@@ -32,10 +32,10 @@
      * 24 of 48 columns is half the container, whatever the gutter is, and two
      * neighbours show twice the gutter between them.
      *
-     * No negative margin to pull the outer edges back — `.aurora-grid` shares
-     * its element with the caller's box, and cancelling `mx-auto` there would
-     * break the centring of the full-width banner. The outer inset is the
-     * gutter, which reads as part of the padding it sits inside.
+     * The cost is that the outer edges are inset by a gutter too. Inside a box
+     * that already has padding — the banner's — that is invisible. In the
+     * article flow it is not: the grid sat a gutter to the right of the title
+     * above it. `.aurora-grid-flush` is the opt-in that pulls those edges back.
      */
     column-gap: 0;
 }
@@ -43,6 +43,20 @@
 .aurora-grid > * {
     grid-column: span var(--span-base, 48);
     padding-inline: var(--aurora-gutter, 1rem);
+}
+
+/*
+ * Cancels the outer gutter so the first and last column line up with whatever
+ * the grid sits under. The inner gutters are untouched — this only pulls the
+ * two edges back by what the items add.
+ *
+ * Opt-in rather than the default, because it cannot be applied blindly: on the
+ * banner, `.aurora-grid` shares its element with `mx-auto max-w-7xl`, and a
+ * margin-inline there would cancel the centring. Its content sits inside its
+ * own padding anyway, so it has nothing to pull back.
+ */
+.aurora-grid-flush {
+    margin-inline: calc(var(--aurora-gutter, 1rem) * -1);
 }
 
 @media (min-width: 768px) {

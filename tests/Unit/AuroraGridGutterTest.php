@@ -113,4 +113,23 @@ final class AuroraGridGutterTest extends TestCase
             'the gutter has to come from item padding, or items touch.',
         );
     }
+
+    /**
+     * Item padding insets the two outer edges as well, which is invisible
+     * inside a box that has padding of its own and very visible in the article
+     * flow: the content grid sat a gutter to the right of the title above it.
+     *
+     * The modifier cancels exactly that, from the same variable — two numbers
+     * that have to match are two numbers that will stop matching.
+     */
+    public function testTheFlushModifierCancelsExactlyTheGutter(): void
+    {
+        $css = (string) file_get_contents(dirname(__DIR__, 2).'/src/Core/assets/css/base/aurora-grid.css');
+
+        self::assertMatchesRegularExpression(
+            '/\.aurora-grid-flush\s*\{[^}]*margin-inline:\s*calc\(var\(--aurora-gutter[^)]*\)\s*\*\s*-1\)/',
+            $css,
+            'without this the grid no longer lines up with what it sits under.',
+        );
+    }
 }
