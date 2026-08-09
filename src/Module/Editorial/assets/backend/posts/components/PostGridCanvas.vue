@@ -35,7 +35,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { FileText, Film, GripVertical, Image, Layers, Newspaper } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import { COLUMNS, placeZones } from "../composables/usePostGrid.js";
+import { COLUMNS, largeSpan, placeZones, planMove } from "../composables/usePostGrid.js";
 
 const props = defineProps({
     /** The arrangement, in order. Read-only here — resizing is emitted. */
@@ -52,7 +52,7 @@ const props = defineProps({
     canAdd: { type: Boolean, default: true },
 });
 
-const emit = defineEmits(["update:selectedIndex", "resize", "offset", "add", "swap", "moveInto", "moveOut"]);
+const emit = defineEmits(["update:selectedIndex", "resize", "offset", "add", "swap", "move", "moveInto", "moveOut"]);
 
 const { t } = useI18n();
 
@@ -235,6 +235,14 @@ function onDragStart(index, event) {
 }
 
 function onDragOver(index, event) {
+    // A box covers part of the canvas, and the canvas behind it means "move the
+    // zone here". Over a box the gesture means something else — exchange — so
+    // the event stops here rather than being claimed by both. Before the stop,
+    // hovering your own box cancelled the dragover through the grid and then
+    // dropped to nothing, which is a cursor promising a move that never came.
+    event.stopPropagation();
+    dropPlan.value = null;
+
     // A slice dragged out of a stack lands here too — the box says "on the row,
     // at this place", which is the only thing leaving a stack can mean.
     if (null !== draggingSlice.value) {
@@ -331,7 +339,11 @@ function onSliceDrop(stackIndex, atIndex, event) {
     onDragEnd();
 }
 
-function onDrop(index) {
+function onDrop(index, event) {
+    // Stops the grid behind from also taking it as a move to empty space. A
+    // drop on a box means exchange, and only that.
+    event?.stopPropagation();
+
     if (null !== draggingSlice.value) {
         const { stackIndex, childIndex } = draggingSlice.value;
         emit("moveOut", stackIndex, childIndex, index);
@@ -355,7 +367,126 @@ function onDragEnd() {
     draggingSlice.value = null;
     dropTarget.value = null;
     dropSlice.value = null;
+    dropPlan.value = null;
 }
+
+/**
+ * Dropping a zone in the empty part of the canvas, which moves it there.
+ *
+ * The gesture this panel was missing. A drop on another zone exchanges the two
+ * and always did; a drop on nothing had no meaning at all, so the only way to
+ * push a zone rightwards was the three-pixel handle on its left edge — a resize
+ * gesture standing in for a move, which is what made this awkward enough to
+ * complain about.
+ *
+ * Where it lands is read off the pointer rather than off a list of slots. A slot
+ * would have to be drawn, and the ones worth drawing move while they are being
+ * aimed at: the rows re-flow as widths shift. The pointer is over one column of
+ * 48 and either inside a row or between two, and those two facts are the whole
+ * of the answer.
+ */
+const dropPlan = ref(null);
+
+/**
+ * The column under the pointer, and where the zone would sit in the order.
+ *
+ * A zone counts as "before the drop" when it is on an earlier row, or on the
+ * same one and more than half passed — the midpoint rather than the edge, so
+ * the answer changes where the pointer visibly crosses a box rather than at the
+ * moment it leaves one.
+ *
+ * `newRow` is true when the pointer is in none of the rows: the gap between two,
+ * or the space below the last. That is the only place a break can be asked for
+ * with a drop, and it reads as one — you are putting the zone between things.
+ */
+function dropAt(event) {
+    const rect = gridEl.value?.getBoundingClientRect();
+
+    if (!rect?.width || null === draggingFrom.value) {
+        return null;
+    }
+
+    const column = Math.max(
+        0,
+        Math.min(
+            COLUMNS - 1,
+            Math.floor(((event.clientX - rect.left) / rect.width) * COLUMNS),
+        ),
+    );
+
+    let target = 0;
+    let newRow = true;
+
+    [...gridEl.value.children].forEach((child, index) => {
+        if (index === draggingFrom.value || child.dataset.ghost) {
+            return;
+        }
+
+        const box = child.getBoundingClientRect();
+
+        if (box.bottom < event.clientY) {
+            target += 1;
+
+            return;
+        }
+
+        if (box.top > event.clientY) {
+            return;
+        }
+
+        // Inside this row, so the drop joins it rather than opening a new one.
+        newRow = false;
+
+        if (box.left + box.width / 2 < event.clientX) {
+            target += 1;
+        }
+    });
+
+    return { target, column, newRow };
+}
+
+function onGridOver(event) {
+    if (null === draggingFrom.value) {
+        return;
+    }
+
+    const at = dropAt(event);
+
+    if (null === at) {
+        return;
+    }
+
+    event.preventDefault();
+    dropPlan.value = { ...at, plan: planMove(props.zones, draggingFrom.value, at.target, at.column, at.newRow) };
+}
+
+function onGridDrop(event) {
+    const at = dropAt(event);
+
+    if (null !== at && null !== draggingFrom.value) {
+        emit("move", draggingFrom.value, at.target, at.column, at.newRow);
+        // The zone the author was holding has moved, and it is the one they
+        // were working on — its new index is where it was put.
+        emit("update:selectedIndex", at.target);
+    }
+
+    onDragEnd();
+}
+
+/** The ghost's own placement, in the same properties every box uses. */
+const ghostStyle = computed(() => {
+    const plan = dropPlan.value?.plan;
+
+    if (!plan || null === draggingFrom.value) {
+        return null;
+    }
+
+    return {
+        "--span-base": largeSpan(props.zones[draggingFrom.value]),
+        "--row-base": plan.place.row,
+        "--start-base": plan.place.column,
+    };
+});
 
 /**
  * The handle answers to the keyboard as well as the pointer.
@@ -448,6 +579,8 @@ function onOffsetKeydown(index, event) {
                     ref="gridEl"
                     class="aurora-grid gap-y-2"
                     style="--aurora-gutter: 0.25rem"
+                    v-on:dragover="onGridOver"
+                    v-on:drop="onGridDrop"
                 >
                     <div
                         v-for="(zone, index) in zones"
@@ -473,7 +606,7 @@ function onOffsetKeydown(index, event) {
                             v-on:dragstart="onDragStart(index, $event)"
                             v-on:dragover="onDragOver(index, $event)"
                             v-on:dragleave="dropTarget = null"
-                            v-on:drop="onDrop(index)"
+                            v-on:drop="onDrop(index, $event)"
                             v-on:dragend="onDragEnd"
                         >
                             <!-- The box above is `relative` for this one element.
@@ -611,6 +744,20 @@ function onOffsetKeydown(index, event) {
                             <GripVertical class="w-3 h-3" :stroke-width="2" />
                         </button>
                     </div>
+
+                    <!-- Where the zone being dragged would land, drawn with the
+                         very properties the boxes use — so what is promised
+                         under the pointer is what the drop produces, rather than
+                         a second guess at it. Last in the DOM and marked, so the
+                         walk above skips it when working out the order. -->
+                    <div
+                        v-if="ghostStyle"
+                        data-ghost="true"
+                        class="pointer-events-none"
+                        :style="ghostStyle"
+                    >
+                        <div class="h-20 rounded-md border-2 border-dashed border-accent bg-accent/10" />
+                    </div>
                 </div>
             </div>
 
@@ -639,8 +786,9 @@ function onOffsetKeydown(index, event) {
         </div>
 
         <p v-if="zones.length" class="text-xs text-muted">
-            {{ t("backend.posts.grid.canvas_hint") }}
+            {{ t("backend.posts.grid.move_hint") }}
             {{ zones.length > 1 ? t("backend.posts.grid.swap_hint") : "" }}
+            {{ t("backend.posts.grid.canvas_hint") }}
         </p>
     </div>
 </template>

@@ -156,6 +156,47 @@ export function placeZones(zones) {
 }
 
 /**
+ * What dropping a zone somewhere would come to, without doing it.
+ *
+ * Pure, and shared by the canvas and the composable for one reason: the ghost
+ * the author sees under the pointer has to be the layout they get when they let
+ * go. Computing the preview one way and the move another is how a drop lands
+ * somewhere other than where it was aimed.
+ *
+ * `target` is a place in the order with the moved zone already taken out of it,
+ * and `column` the zero-based column it was dropped on. `newRow` says the drop
+ * fell between rows rather than beside a zone.
+ *
+ * **The flow is preferred over an annotation.** If the zone lands on the asked
+ * column with no offset at all — dropped right after its neighbour, say — that
+ * is what is kept, because a layout that flows survives its neighbours changing
+ * width and one pinned to a column does not.
+ *
+ * @return {{at: number, offset: number, newRow: boolean, place: {row: number, column: number}}|null}
+ */
+export function planMove(zones, index, target, column, newRow) {
+    const list = [...zones];
+    const [moving] = list.splice(index, 1);
+
+    if (undefined === moving) {
+        return null;
+    }
+
+    const at = Math.min(Math.max(0, target), list.length);
+    const planned = { ...moving, offset: 0, newRow: Boolean(newRow) };
+    list.splice(at, 0, planned);
+
+    let place = placeZones(list)[at];
+
+    if (place.column - 1 !== column) {
+        planned.offset = clampOffset(column, planned);
+        place = placeZones(list)[at];
+    }
+
+    return { at, offset: planned.offset, newRow: planned.newRow, place };
+}
+
+/**
  * A fresh id for a zone. Random rather than a counter: a counter reuses the id
  * of a zone just removed, and the next one created would silently inherit its
  * content in every other language.
@@ -558,6 +599,36 @@ export function usePostGrid(layout, content) {
     }
 
     /**
+     * Put a zone where it was dropped, rather than where the order happened to
+     * leave it.
+     *
+     * The gesture the canvas offers alongside the swap, and the one that makes
+     * a zone feel movable: drop it in empty space and it goes there — into that
+     * place in the order, at that column, on a row of its own if it was dropped
+     * between two. Before this, moving a zone rightwards meant dragging a
+     * three-pixel handle, which is a resize gesture wearing a move's clothes.
+     *
+     * Content is not touched: it is keyed by zone id, and the id travels.
+     *
+     * @return {boolean} whether the move happened.
+     */
+    function moveZoneTo(index, target, column, newRow) {
+        const list = layout.value.zones;
+        const plan = planMove(list, index, target, column, newRow);
+
+        if (null === plan) {
+            return false;
+        }
+
+        const [moving] = list.splice(index, 1);
+        moving.offset = plan.offset;
+        moving.newRow = plan.newRow;
+        list.splice(plan.at, 0, moving);
+
+        return true;
+    }
+
+    /**
      * Reordering by one step, which is what the up/down buttons do — and the
      * path that works without a pointer, so it stays whatever the canvas
      * offers.
@@ -750,6 +821,7 @@ export function usePostGrid(layout, content) {
         addZone,
         removeZone,
         moveZone,
+        moveZoneTo,
         swapZones,
         zoneFields,
         widthLabel,

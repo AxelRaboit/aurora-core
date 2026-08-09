@@ -331,6 +331,7 @@ backend:
       stack_share: Part de hauteur
       stack_share_effective: "Soit {percent} % de la hauteur de la pile."
       type_drops_text: "Le texte de cette zone sera supprimé à l'enregistrement. Repassez la zone en Texte pour le conserver."
+      move_hint: "Faites glisser une zone dans un espace vide pour la poser là ; entre deux lignes, elle prend une ligne à elle."
       swap_hint: "Faites glisser une zone sur une autre pour échanger leurs places."
       zone_types:
         text: Texte

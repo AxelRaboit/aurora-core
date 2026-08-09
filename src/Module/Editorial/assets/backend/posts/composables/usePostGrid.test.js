@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { ref } from "vue";
-import { placeZones, usePostGrid } from "./usePostGrid.js";
+import { placeZones, planMove, usePostGrid } from "./usePostGrid.js";
 
 vi.mock("vue-i18n", () => ({
     useI18n: () => ({ t: (key) => key }),
@@ -912,5 +912,102 @@ describe("placeZones", () => {
             [1, 25],
             [2, 1],
         ]);
+    });
+});
+
+describe("moveZoneTo", () => {
+    // Through the composable rather than the plan, because the point is that
+    // the layout is written: the plan says what would happen, this does it.
+    it("puts a zone where it was dropped and annotates only if it must", () => {
+        const { layout, api } = make();
+
+        api.addZone("text");
+        api.addZone("text");
+        api.zoneFields(0).width.value = 48;
+
+        // The second zone, dropped after the first at the right of a new row.
+        api.moveZoneTo(1, 1, 24, true);
+
+        expect(layout.value.zones[1].offset).toBe(24);
+        expect(layout.value.zones[1].newRow).toBe(true);
+    });
+
+    it("carries the zone's content with it, because the id travels", () => {
+        const { layout, content, api } = make();
+
+        api.addZone("text");
+        api.addZone("media");
+        api.zoneFields(1).alt.value = "Le chantier";
+
+        const id = layout.value.zones[1].id;
+        api.moveZoneTo(1, 0, 0, true);
+
+        expect(layout.value.zones[0].id).toBe(id);
+        expect(content.value.zones[id].alt).toBe("Le chantier");
+    });
+
+    it("declines a zone that is not there", () => {
+        const { api } = make();
+
+        expect(api.moveZoneTo(3, 0, 0, false)).toBe(false);
+    });
+});
+
+describe("planMove", () => {
+    const half = (id, extra = {}) => ({
+        id,
+        span: { base: 48, md: null, lg: 24 },
+        offset: 0,
+        newRow: false,
+        ...extra,
+    });
+
+    /**
+     * The point of preferring the flow: a zone dropped exactly where the order
+     * already puts it keeps no annotation at all, so it goes on following its
+     * neighbour when that neighbour changes width.
+     */
+    it("keeps a zone flowing when the drop is where the flow already puts it", () => {
+        const zones = [half("a"), half("b"), half("c")];
+
+        // Zone c dropped beside a, which is where the order would put it after
+        // it moves in front of b.
+        const plan = planMove(zones, 2, 1, 24, false);
+
+        expect(plan.offset).toBe(0);
+        expect(plan.newRow).toBe(false);
+        expect(plan.place).toEqual({ row: 1, column: 25 });
+    });
+
+    it("pushes a zone rightwards when the drop is past what the flow gives", () => {
+        const zones = [half("a"), half("b")];
+
+        // Zone b dropped at the far right of the row below, on its own.
+        const plan = planMove(zones, 1, 1, 24, true);
+
+        expect(plan.newRow).toBe(true);
+        expect(plan.place).toEqual({ row: 2, column: 25 });
+    });
+
+    it("takes a zone from the end of the order to the front of it", () => {
+        const zones = [half("a"), half("b"), half("c")];
+        const plan = planMove(zones, 2, 0, 0, false);
+
+        expect(plan.at).toBe(0);
+        expect(plan.place).toEqual({ row: 1, column: 1 });
+    });
+
+    /** Pure: what it is asked about is left exactly as it was found. */
+    it("changes nothing about the zones it is handed", () => {
+        const zones = [half("a"), half("b")];
+        const before = JSON.stringify(zones);
+
+        planMove(zones, 1, 0, 24, true);
+
+        expect(JSON.stringify(zones)).toBe(before);
+    });
+
+    it("has no answer for a zone that is not there", () => {
+        expect(planMove([half("a")], 4, 0, 0, false)).toBeNull();
     });
 });

@@ -149,6 +149,125 @@ describe("PostGridCanvas", () => {
         expect(wrapper.emitted("resize").at(-1)).toEqual([1, 12]);
     });
 
+    // ── Dropping a zone in the empty part of the canvas ───────────────────
+
+    /**
+     * jsdom lays nothing out, so every box reports a zero rect. Giving each one
+     * the rectangle its placement implies is what lets the drop maths be tested
+     * at all — 480px across 48 columns, 80px tall rows.
+     */
+    function layOut(wrapper, rows) {
+        wrapper.findAll(".aurora-grid > div").forEach((item, index) => {
+            const at = rows[index];
+
+            item.element.getBoundingClientRect = () => ({
+                left: at.column * 10,
+                right: (at.column + at.span) * 10,
+                width: at.span * 10,
+                top: at.row * 100,
+                bottom: at.row * 100 + 80,
+                height: 80,
+            });
+        });
+    }
+
+    function dragTo(wrapper, from, clientX, clientY) {
+        const boxes = wrapper.findAll(
+            '.aurora-grid > div > button[draggable="true"]',
+        );
+        boxes[from].element.dispatchEvent(
+            new MouseEvent("dragstart", { bubbles: true }),
+        );
+
+        const grid = wrapper.find(".aurora-grid").element;
+        grid.dispatchEvent(
+            new MouseEvent("drop", { clientX, clientY, bubbles: true }),
+        );
+    }
+
+    it("moves a zone to the column it was dropped on", () => {
+        const wrapper = mountCanvas([zone("a", 24), zone("b", 24)]);
+        layOut(wrapper, [
+            { row: 0, column: 0, span: 24 },
+            { row: 0, column: 24, span: 24 },
+        ]);
+
+        // The second zone, dropped in the empty space below both — between
+        // rows, so it asks for one of its own — a quarter of the way across.
+        dragTo(wrapper, 1, 120, 250);
+
+        expect(wrapper.emitted("move").at(-1)).toEqual([1, 1, 12, true]);
+    });
+
+    it("reads the place in the order from which boxes the drop is past", () => {
+        const wrapper = mountCanvas([zone("a", 24), zone("b", 24)]);
+        layOut(wrapper, [
+            { row: 0, column: 0, span: 24 },
+            { row: 0, column: 24, span: 24 },
+        ]);
+
+        // The second zone dropped over the first row, left of the first box's
+        // midpoint: it goes in front of it, on that row.
+        dragTo(wrapper, 1, 40, 40);
+
+        expect(wrapper.emitted("move").at(-1)).toEqual([1, 0, 4, false]);
+    });
+
+    /**
+     * A box means exchange, and the canvas behind it means move. Both would
+     * fire on one drop without the stop, and hovering a zone's own box cancelled
+     * the dragover through the grid then dropped to nothing — a cursor promising
+     * a move that never came.
+     */
+    it("leaves a drop on another box to mean an exchange", () => {
+        const wrapper = mountCanvas([zone("a", 24), zone("b", 24)]);
+        const boxes = wrapper.findAll(
+            '.aurora-grid > div > button[draggable="true"]',
+        );
+
+        boxes[0].element.dispatchEvent(
+            new MouseEvent("dragstart", { bubbles: true }),
+        );
+        boxes[1].element.dispatchEvent(
+            new MouseEvent("drop", { clientX: 300, bubbles: true }),
+        );
+
+        expect(wrapper.emitted("swap").at(-1)).toEqual([0, 1]);
+        expect(wrapper.emitted("move")).toBeFalsy();
+    });
+
+    it("draws where the zone would land while it is being dragged", async () => {
+        const wrapper = mountCanvas([zone("a", 48), zone("b", 24)]);
+        layOut(wrapper, [
+            { row: 0, column: 0, span: 48 },
+            { row: 1, column: 0, span: 24 },
+        ]);
+
+        const boxes = wrapper.findAll(
+            '.aurora-grid > div > button[draggable="true"]',
+        );
+        boxes[1].element.dispatchEvent(
+            new MouseEvent("dragstart", { bubbles: true }),
+        );
+
+        wrapper.find(".aurora-grid").element.dispatchEvent(
+            new MouseEvent("dragover", {
+                clientX: 300,
+                clientY: 250,
+                bubbles: true,
+            }),
+        );
+        await wrapper.vm.$nextTick();
+
+        const ghost = wrapper.find("[data-ghost]");
+        expect(ghost.exists()).toBe(true);
+        // Column 31 is under the pointer, and a 24-wide zone cannot start
+        // there without running off the row — so the ghost shows 25, which is
+        // where the drop will actually put it. Showing the pointer's own column
+        // would be promising a place the clamp is about to refuse.
+        expect(ghost.attributes("style")).toContain("--start-base: 25");
+    });
+
     // ── The handle that pushes rather than resizes ────────────────────────
 
     it("turns a drag on the left edge into the column to start at", () => {

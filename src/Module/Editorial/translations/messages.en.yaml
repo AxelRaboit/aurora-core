@@ -331,6 +331,7 @@ backend:
       stack_share: Height share
       stack_share_effective: "That is {percent}% of the stack's height."
       type_drops_text: "This zone's text will be dropped when you save. Set the zone back to Text to keep it."
+      move_hint: "Drag a zone into empty space to put it there; drop it between two rows and it takes a row of its own."
       swap_hint: "Drag a zone onto another to exchange their places."
       zone_types:
         text: Text

@@ -71,6 +71,7 @@ const {
     addZone,
     removeZone,
     moveZone,
+    moveZoneTo,
     swapZones,
     zoneFields,
     widthLabel,
@@ -221,6 +222,7 @@ function moveSelectedAware(index, offset) {
                 v-on:offset="offsetZone"
                 v-on:add="addAndSelect"
                 v-on:swap="swapZones"
+                v-on:move="moveZoneTo"
                 v-on:move-into="moveIntoStack"
                 v-on:move-out="moveOutOfStack"
             />
