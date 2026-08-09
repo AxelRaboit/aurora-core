@@ -27,7 +27,6 @@ final readonly class PostTextExtractor
             $translation->getMetaTitle(),
             $translation->getMetaDescription(),
             $translation->getFocusKeyword(),
-            $this->textFromBlocks($translation->getBlocks()),
             // The body lives in the grid since it became the only one. Reading
             // `blocks` alone stopped finding a word of it — and nothing would
             // have said so: the column still holds what it held before the

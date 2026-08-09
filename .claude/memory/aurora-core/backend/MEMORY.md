@@ -17,6 +17,7 @@
 - [pattern_two_pass_n_plus_1_hydration.md](pattern_two_pass_n_plus_1_hydration.md) — pagination + ManyToMany : page query d'abord, puis 2e passe `WHERE id IN (:pageIds)` pour peupler l'identity map
 - [convention_admin_create_labels.md](convention_admin_create_labels.md) — i18n CRUD admin : `add` = "Ajouter un X" (toolbar) / `create` = "Nouveau X" (modal/éditeur)
 - [convention_locale_context.md](convention_locale_context.md) — passer par `LocaleContext` / `LocaleOptionsProvider` / `TranslationLocaleSyncer` ; jamais hardcoder `'fr'`/`'en'` ni `kernel.enabled_locales`
+- [convention_document_kind_at_render.md](convention_document_kind_at_render.md) — « est-ce une image ? » via `MimeGroupEnum::matches()` (jamais un `str_starts_with` inline), et vérifié **au rendu** : le fichier derrière un `mediaId` peut changer après l'écriture
 
 ## Permissions & Navigation backend
 - [convention_privilege_naming.md](convention_privilege_naming.md) — règle uniforme `<module_id>.<entity>.<action>` partout (post-Jalon 5) ; le `getId()` du module owner == préfixe du privilege

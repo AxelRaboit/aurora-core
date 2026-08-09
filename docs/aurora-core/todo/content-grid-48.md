@@ -40,7 +40,7 @@ c'est ce qui évite une règle par combinaison.
 |---|---|
 | Texte Editor.js | l'éditeur actuel, dans une zone |
 | Une autre publication | choisie par select — c'est la « carte » |
-| Un média direct | image ou vidéo depuis la GED |
+| Un média direct | **images seulement** depuis la GED — la vidéo directe est annoncée ici depuis le début et n'a jamais été construite ; voir « une zone média ne rend que des images » |
 | Une URL vidéo | YouTube, Vimeo, Dailymotion |
 | Une pile | *ajouté le 2026-08-09* — des zones empilées qui se partagent la hauteur de la ligne |
 
@@ -142,11 +142,28 @@ Chacune verte et livrable, comme pour la fusion Media → GED.
    où le chemin bloc la donnait. **Rien ne bouge sur une page publiée**, ce qui
    était le seul vrai risque puisque la migration tourne aussi chez les clients.
 
-   **La colonne `blocks` n'est pas supprimée.** Elle garde chaque valeur, ce qui
-   rend la migration réversible : le `down()` n'a qu'à rééteindre la grille,
-   puisque les mots ne sont jamais partis. La supprimer est une décision d'un
-   autre jour, prise quand plus rien ne l'aura lue depuis longtemps — pas le
-   jour où la donnée bouge. *(Version20260809150000)*
+   **La colonne `blocks` a été supprimée ensuite**, une fois — et seulement une
+   fois — que plus rien ne la lisait : ni le renderer, ni les thèmes, ni la
+   recherche, ni les fixtures, ni les instantanés de révision, ni le thème du
+   client. C'est la seule migration du chantier qui **ne se défait pas** : son
+   `down()` rend une colonne vide, parce que prétendre le contraire serait pire
+   que de le dire. Les mots avaient été copiés dans `grid` par la migration
+   précédente, ce qui en fait un retrait et non une perte.
+   *(Version20260809150000, puis Version20260809170000)*
+
+   **Trois choses ont failli partir en silence** en retirant `content` :
+
+   - les **fixtures** écrivaient encore les corps dans `blocks`, et la migration
+     ne repasse pas sur une base rechargée — `make fixtures` produisait des
+     pages HTTP 200 sans corps ;
+   - `PostTextExtractor` ne lisait que `getBlocks()`, donc la **recherche**
+     cessait d'indexer le corps tout en continuant de répondre, avec la chaîne
+     d'avant la migration ;
+   - les **révisions** capturaient `blocks` et jamais la grille : une révision
+     prise après la migration ne contenait plus rien du contenu, et la
+     restaurer ne le rendait pas. L'instantané prend désormais la grille **et**
+     son arrangement, et l'arrangement est restauré en premier — le contenu se
+     normalise contre lui, donc l'inverse jetterait chaque zone.
 
 ### Ce qui a été fait en plus du plan
 
@@ -558,6 +575,67 @@ l'aperçu serveur montre le résultat.
 carte parce que la rendre réglable changerait des pages déjà publiées ; la vidéo
 parce que son iframe en `absolute inset-0` a besoin d'une boîte et que le ratio
 appartient au fournisseur, pas à l'auteur.
+
+### Livré le 2026-08-09 : une zone média ne rend que des images
+
+> **Décision : le garde-fou est au rendu, pas à l'écriture.**
+> `GridViewBuilder::mediaData()` renvoie `null` dès que le document n'est pas
+> une image, et la zone ne rend alors rien — exactement comme une zone dont la
+> cible a été supprimée.
+
+**Le défaut.** Rien ne lisait le `mime_type`. Une zone média pointée sur une
+vidéo — `demo-video.mp4`, document 5 des fixtures GED — publiait
+`<img src="…/demo-video.mp4">` : une image cassée, et aucune erreur nulle part.
+Trouvé en écrivant une fixture qui visait le mauvais document.
+
+**Ce n'est pas atteignable depuis l'éditeur** : le sélecteur n'offre que des
+images. Y arrivent une fixture, une écriture par l'API, et un document dont le
+fichier est remplacé après coup.
+
+**Pourquoi pas un refus dans `GridNormalizer`.** Deux raisons, et la seconde est
+la vraie. Le normaliseur n'a pas de base de données et ne tourne pas qu'à
+l'écriture — `GridViewBuilder::resolve()` l'appelle à chaque rendu, donc lui
+donner un repository mettrait une requête derrière chaque page vue. Surtout, le
+troisième chemin n'a aucune écriture à refuser : **une disposition valide le
+jour où elle est enregistrée cesse de l'être le jour où le fichier derrière
+change.** Seul le rendu peut le savoir, donc c'est là que la question se pose.
+
+**Pourquoi pas un `<video>` — pour l'instant.** Le tableau des types de zone
+plus haut annonce « image ou vidéo depuis la GED », et cette moitié-là n'a
+jamais été construite. La livrer veut dire ouvrir le sélecteur aux vidéos
+(`AppImagePickerField`, `accept="image/*"`, utilisé à six endroits), dire dans
+le panneau et sur la toile de quelle nature est une zone, et trancher poster,
+contrôles, préchargement et rapport — rien de tout ça n'est le défaut du jour,
+et le type `video` existant couvre déjà les fournisseurs embarqués. **Le
+garde-fou ne ferme pas cette porte** : un `mediaData()` qui renvoie `null`
+aujourd'hui peut renvoyer une clé `kind` demain sans toucher au stockage,
+puisqu'un `mediaId` désigne déjà n'importe quel document. C'est le refus à
+l'écriture qui l'aurait fermée, en refusant précisément les documents dont
+cette suite aurait besoin.
+
+**« Une zone configurée qui ne rend rien ressemble à un bug »** — l'objection de
+ce document tient toujours, mais elle a été écrite pour l'étape 4, où le cas
+touchait chaque auteur parce qu'un *type* entier n'avait pas de renderer. Ici
+l'auteur ne peut pas produire l'état ; qui l'atteint a écrit une fixture ou une
+charge API, et reçoit le même signal qu'en pointant un document supprimé — ce
+que le code avait déjà tranché, et que son test épingle depuis l'étape 2.
+
+**Trouvé au passage, même fonction, même famille.** Un document sans fichier —
+la démo en garde trois exprès, pour qu'il y ait de quoi tester l'upload — donnait
+`url => null`, donc `<img src="">` : une image cassée, pas une image absente.
+Même garde, deux lignes plus bas.
+
+**« Ce qui est une image » a désormais une seule définition.**
+`MimeGroupEnum::matches()` est écrit à côté de `applyTo()`, qui répond déjà à la
+même question en SQL. Les deux séparés, c'est un document que la bibliothèque
+classe dans Images et qu'un renderer refuse de dessiner, sans rien pour dire
+lequel a tort. Un préfixe et non une liste fermée, comme le `LIKE 'image/%'`
+qu'il reflète : `image/avif` est une image.
+
+**`BannerViewBuilder::mediaData()` porte le même défaut et n'a pas été touché.**
+Le fond d'une bannière est un hero ; le faire disparaître se voit bien davantage
+qu'une zone de grille vide, et cette décision mérite d'être prise pour
+elle-même.
 
 ---
 

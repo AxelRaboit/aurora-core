@@ -48,7 +48,6 @@ describe("usePostEditor", () => {
 
             expect(translation.banner.items, locale).toEqual({});
             expect(translation.grid.zones, locale).toEqual({});
-            expect(translation.blocks, locale).toEqual([]);
         }
     });
 

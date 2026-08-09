@@ -19,7 +19,12 @@ const PRETTIER_OPTIONS = {
 /** @type {import('eslint').Linter.FlatConfig[]} */
 module.exports = [
     {
-        ignores: ['node_modules/**', 'vendor/**', 'public/**', 'assets/vendor/**', 'tools/**', 'var/**', 'vite.config.js'],
+        // `.claude/worktrees/**` holds throwaway git worktrees — a second copy
+        // of this whole project, config files and all. Linting them fails on
+        // the root configs, which are Node scripts the browser globals here do
+        // not cover, so `make ft` went red for as long as one existed. They are
+        // tooling scratch space, not source.
+        ignores: ['node_modules/**', 'vendor/**', 'public/**', 'assets/vendor/**', 'tools/**', 'var/**', '.claude/worktrees/**', 'vite.config.js'],
     },
 
     // JS files — Prettier formatting

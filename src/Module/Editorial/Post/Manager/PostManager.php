@@ -266,7 +266,6 @@ class PostManager implements PostManagerInterface
         $translation = $post->translate($locale);
 
         $translation->setTitle($input->title);
-        $translation->setBlocks($input->blocks);
         // Only this locale's words. Against the post's layout, so text for an
         // item that no longer exists is dropped instead of lingering unseen.
         $translation->setBanner($this->bannerNormalizer->normalizeTexts($input->banner, $bannerLayout));
@@ -429,7 +428,11 @@ class PostManager implements PostManagerInterface
             $translations[(string) $locale] = [
                 'title' => $translation->getTitle(),
                 'slug' => $translation->getSlug(),
-                'blocks' => $translation->getBlocks(),
+                // The body, which is a grid and lives in two halves: what each
+                // zone holds is here, the arrangement is on the post below.
+                // Taking one without the other restores words with nowhere to
+                // go, or an arrangement with nothing in it.
+                'grid' => $translation->getGrid(),
                 'description' => $translation->getDescription(),
                 'metaTitle' => $translation->getMetaTitle(),
                 'metaDescription' => $translation->getMetaDescription(),
@@ -450,6 +453,8 @@ class PostManager implements PostManagerInterface
             'relatedPostIds' => array_values($post->getRelatedPosts()->map(static fn ($related): ?int => $related->getId())->toArray()),
             'publishedAt' => $post->getPublishedAt()?->format(DATE_ATOM),
             'scheduledAt' => $post->getScheduledAt()?->format(DATE_ATOM),
+            'gridLayout' => $post->getGridLayout(),
+            'bannerLayout' => $post->getBannerLayout(),
             'translations' => $translations,
         ];
     }
@@ -460,6 +465,12 @@ class PostManager implements PostManagerInterface
         $post->setStatus(PostStatusEnum::tryFrom((string) ($snapshot['status'] ?? '')) ?? PostStatusEnum::Draft);
         $post->setPublishedAt($this->hydrateDate($snapshot['publishedAt'] ?? null));
         $post->setScheduledAt($this->hydrateDate($snapshot['scheduledAt'] ?? null));
+
+        // Before the translations: what each zone holds is normalised against
+        // the arrangement, so the arrangement has to be back first or every
+        // zone would be dropped as belonging to nothing.
+        $post->setGridLayout($this->gridNormalizer->normalizeLayout($snapshot['gridLayout'] ?? null));
+        $post->setBannerLayout($this->bannerNormalizer->normalizeLayout($snapshot['bannerLayout'] ?? null));
 
         $snapshotTranslations = is_array($snapshot['translations'] ?? null) ? $snapshot['translations'] : [];
 
@@ -487,7 +498,10 @@ class PostManager implements PostManagerInterface
             $translation = $post->translate((string) $locale);
             $translation->setTitle($data['title'] ?? null);
             $translation->setSlug($data['slug'] ?? null);
-            $translation->setBlocks(is_array($data['blocks'] ?? null) ? $data['blocks'] : []);
+            $translation->setGrid($this->gridNormalizer->normalizeContent(
+                $data['grid'] ?? null,
+                $post->getGridLayout(),
+            ));
             $translation->setDescription($data['description'] ?? null);
             $translation->setMetaTitle($data['metaTitle'] ?? null);
             $translation->setMetaDescription($data['metaDescription'] ?? null);

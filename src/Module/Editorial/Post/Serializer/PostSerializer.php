@@ -141,7 +141,6 @@ class PostSerializer implements PostSerializerInterface
         return [
             'title' => $translation->getTitle(),
             'slug' => $translation->getSlug(),
-            'blocks' => $translation->getBlocks(),
             // Only the words. The design is serialised once on the post, so
             // switching locale in the editor swaps the copy and leaves the
             // layout standing — which is the whole point of the split.

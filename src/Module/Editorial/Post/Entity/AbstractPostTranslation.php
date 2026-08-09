@@ -33,15 +33,6 @@ abstract class AbstractPostTranslation implements PostTranslationInterface
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     protected ?string $description = null;
 
-    /**
-     * Editor.js native shape: ordered list of `{id?, type, data}` entries.
-     * Identity is the Editor.js-generated id; order is the array order.
-     *
-     * @var list<array{id?: string, type: string, data: array<string, mixed>}>
-     */
-    #[ORM\Column(type: Types::JSON)]
-    protected array $blocks = [];
-
     #[ORM\Column(length: 255, nullable: true)]
     protected ?string $metaTitle = null;
 
@@ -97,7 +88,7 @@ abstract class AbstractPostTranslation implements PostTranslationInterface
     #[ORM\Column(type: Types::JSON, nullable: true)]
     protected ?array $jsonLd = null;
 
-    /** Flattened text of title + blocks, rebuilt on save so search hits the body. */
+    /** Flattened text of the translation and its grid, rebuilt on save so search hits the body. */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     protected ?string $searchContent = null;
 
@@ -177,18 +168,6 @@ abstract class AbstractPostTranslation implements PostTranslationInterface
     public function setBanner(array $banner): static
     {
         $this->banner = $banner;
-
-        return $this;
-    }
-
-    public function getBlocks(): array
-    {
-        return $this->blocks;
-    }
-
-    public function setBlocks(array $blocks): static
-    {
-        $this->blocks = $blocks;
 
         return $this;
     }

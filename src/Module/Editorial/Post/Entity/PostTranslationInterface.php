@@ -47,12 +47,6 @@ interface PostTranslationInterface
     /** @param array<string, mixed> $grid */
     public function setGrid(array $grid): static;
 
-    /** @return list<array{id?: string, type: string, data: array<string, mixed>}> */
-    public function getBlocks(): array;
-
-    /** @param list<array{id?: string, type: string, data: array<string, mixed>}> $blocks */
-    public function setBlocks(array $blocks): static;
-
     public function getMetaTitle(): ?string;
 
     public function setMetaTitle(?string $metaTitle): static;

@@ -57,7 +57,6 @@ function emptyTranslation() {
         title: "",
         slug: "",
         description: "",
-        blocks: [],
         banner: emptyBannerTexts(),
         grid: emptyGridContent(),
         metaTitle: "",
@@ -153,6 +152,10 @@ export function usePostEditor(props) {
         ),
     );
 
+    // "blocks" is what a post type calls having a body, and it kept the name
+    // when the body became a grid: it is a value stored on every post type, so
+    // renaming it would be a migration for a word. What it opens has changed;
+    // what it means has not.
     const supportsBlocks = computed(
         () => postType.value?.supports?.includes("blocks") ?? false,
     );

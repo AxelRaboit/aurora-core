@@ -14,17 +14,15 @@ use Aurora\Core\Support\Str;
 final readonly class PostTranslationInput
 {
     /**
-     * @param list<array{id?: string, type: string, data: array<string, mixed>}> $blocks       Editor.js native shape
-     * @param array<string, mixed>                                               $customFields
-     * @param array<string, mixed>|null                                          $jsonLd
-     * @param array<string, mixed>                                               $banner       raw; normalised at the write boundary by BannerNormalizer
-     * @param array<string, mixed>                                               $grid         raw; normalised at the write boundary by GridNormalizer
+     * @param array<string, mixed>      $customFields
+     * @param array<string, mixed>|null $jsonLd
+     * @param array<string, mixed>      $banner       raw; normalised at the write boundary by BannerNormalizer
+     * @param array<string, mixed>      $grid         raw; normalised at the write boundary by GridNormalizer
      */
     public function __construct(
         public ?string $title,
         public ?string $slug,
         public ?string $description,
-        public array $blocks,
         public ?string $metaTitle,
         public ?string $metaDescription,
         public array $customFields,
@@ -44,7 +42,6 @@ final readonly class PostTranslationInput
             title: Str::trimOrNull((string) ($data['title'] ?? '')),
             slug: Str::trimOrNull((string) ($data['slug'] ?? '')),
             description: Str::trimOrNull((string) ($data['description'] ?? '')),
-            blocks: is_array($data['blocks'] ?? null) ? array_values($data['blocks']) : [],
             metaTitle: Str::trimOrNull((string) ($data['metaTitle'] ?? '')),
             metaDescription: Str::trimOrNull((string) ($data['metaDescription'] ?? '')),
             customFields: is_array($data['customFields'] ?? null) ? $data['customFields'] : [],
