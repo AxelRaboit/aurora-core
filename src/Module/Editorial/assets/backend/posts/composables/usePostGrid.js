@@ -531,9 +531,19 @@ export function usePostGrid(layout, content) {
      * "three quarters of the row" — a value nobody chose, arrived at by the
      * field meaning two things. Half is what a new zone gets.
      *
+     * `column` and `newRow` come from a drop on the empty canvas, which says
+     * where on the page as well as where in the order. A drop on a box says
+     * only the second, and passes neither.
+     *
      * @return {boolean} whether the move happened.
      */
-    function moveZoneOutOfStack(stackIndex, childIndex, atIndex) {
+    function moveZoneOutOfStack(
+        stackIndex,
+        childIndex,
+        atIndex,
+        column = null,
+        newRow = false,
+    ) {
         const stack = layout.value.zones[stackIndex];
         const moving = stack?.children?.[childIndex];
 
@@ -546,8 +556,19 @@ export function usePostGrid(layout, content) {
 
         moving.span.lg = 24;
         moving.offset = 0;
-        moving.newRow = false;
-        layout.value.zones.splice(atIndex, 0, moving);
+        moving.newRow = Boolean(newRow);
+        const at = Math.min(Math.max(0, atIndex), layout.value.zones.length);
+        layout.value.zones.splice(at, 0, moving);
+
+        // Dropped on the empty canvas rather than on a box, so the drop said a
+        // column as well as a place. The flow first, as everywhere else — the
+        // zone only takes an offset when it would not land there anyway.
+        if (
+            null !== column &&
+            placeZones(layout.value.zones)[at].column - 1 !== column
+        ) {
+            moving.offset = clampOffset(column, moving);
+        }
 
         return true;
     }

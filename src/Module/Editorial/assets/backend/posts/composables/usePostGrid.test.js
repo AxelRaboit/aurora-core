@@ -1061,6 +1061,41 @@ describe("moveZoneTo", () => {
     });
 });
 
+describe("moveZoneOutOfStack", () => {
+    /**
+     * Dropped on the empty canvas rather than on a box, so the drop said a
+     * column as well as a place in the order. Before this a slice could only
+     * come out onto a box, which made the only way out of a stack an exchange
+     * with something already on the page.
+     */
+    it("puts a zone leaving a stack where it was dropped", () => {
+        const { layout, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "text");
+
+        api.moveZoneOutOfStack(0, 0, 1, 24, true);
+
+        expect(layout.value.zones[1].type).toBe("text");
+        expect(layout.value.zones[1].offset).toBe(24);
+        expect(layout.value.zones[1].newRow).toBe(true);
+        // A share of a height is not a width, so it gets a fresh one.
+        expect(layout.value.zones[1].span.lg).toBe(24);
+    });
+
+    it("leaves it flowing when a drop on a box says no column at all", () => {
+        const { layout, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "text");
+
+        api.moveZoneOutOfStack(0, 0, 1);
+
+        expect(layout.value.zones[1].offset).toBe(0);
+        expect(layout.value.zones[1].newRow).toBe(false);
+    });
+});
+
 describe("planMove", () => {
     const half = (id, extra = {}) => ({
         id,

@@ -136,8 +136,8 @@ function moveIntoStack(fromIndex, stackIndex, atIndex) {
 
 // The zone is back on the row, at the place it was dropped, and that is where
 // the author is now looking.
-function moveOutOfStack(stackIndex, childIndex, atIndex) {
-    if (moveZoneOutOfStack(stackIndex, childIndex, atIndex)) {
+function moveOutOfStack(stackIndex, childIndex, atIndex, column = null, newRow = false) {
+    if (moveZoneOutOfStack(stackIndex, childIndex, atIndex, column, newRow)) {
         selectedIndex.value = atIndex;
     }
 }
@@ -150,15 +150,15 @@ function moveOutOfStack(stackIndex, childIndex, atIndex) {
 // than a chooser: it is the commonest zone by a distance, and the type row in
 // the card below converts it in one click without losing the id — so offering
 // five buttons in a four-pixel strip would cost more than it saves.
-function addRowAt(target, newRow) {
-    select(addZoneAt("text", target, { newRow }));
+function addRowAt(type, target, newRow) {
+    select(addZoneAt(type, target, { newRow }));
 }
 
 // The same, for the empty part of a row rather than the space between two: the
-// zone takes the hole's place and its width, so one click turns a gap into
-// something to write in.
-function fillGap(target, column, width) {
-    select(addZoneAt("text", target, { column, width }));
+// zone takes the hole's place and its width, so a gap becomes something to
+// write in without a detour through the end of the page.
+function fillGap(type, target, column, width) {
+    select(addZoneAt(type, target, { column, width }));
 }
 
 function select(at) {

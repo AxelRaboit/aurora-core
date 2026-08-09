@@ -35,6 +35,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { FileText, Film, GripVertical, Image, Layers, Newspaper, Plus } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import { COLUMNS, largeSpan, placeZones, planMove } from "../composables/usePostGrid.js";
 
 const props = defineProps({
@@ -175,6 +176,34 @@ const rowGaps = computed(() => {
 
     return gaps;
 });
+
+/**
+ * Which strip or hole is being filled, if any, so it can offer the types.
+ *
+ * A picker opened in place rather than a zone added straight away: adding a
+ * text zone and converting it works, but it makes every other type a two-step
+ * that starts with the wrong answer. One `+` on the page at a time — opening a
+ * second closes the first, because two open pickers are two half-finished
+ * sentences.
+ */
+const picking = ref(null);
+
+function openPicker(id) {
+    picking.value = picking.value === id ? null : id;
+}
+
+/**
+ * The types a strip or a hole may offer, which is not all of them.
+ *
+ * A stack is left out on purpose. It holds zones rather than content, so one
+ * created from a hole would be an empty frame the author then has to go and
+ * fill from the panel — the opposite of the one-click this is for. It stays on
+ * the row of buttons below the canvas, where adding an empty thing is what the
+ * gesture already means.
+ */
+const fillTypes = computed(() =>
+    props.typeOptions.filter((option) => "stack" !== option.value),
+);
 
 const rowStrips = computed(() => {
     const strips = [{ track: 1, target: 0, newRow: false }];
@@ -496,10 +525,10 @@ const dropPlan = ref(null);
  * or the space below the last. That is the only place a break can be asked for
  * with a drop, and it reads as one — you are putting the zone between things.
  */
-function dropAt(event) {
+function dropAt(event, ignoreIndex = draggingFrom.value) {
     const rect = gridEl.value?.getBoundingClientRect();
 
-    if (!rect?.width || null === draggingFrom.value) {
+    if (!rect?.width) {
         return null;
     }
 
@@ -520,7 +549,7 @@ function dropAt(event) {
     gridEl.value.querySelectorAll(":scope > [data-zone]").forEach((child) => {
         const index = Number(child.dataset.zone);
 
-        if (index === draggingFrom.value) {
+        if (index === ignoreIndex) {
             return;
         }
 
@@ -549,6 +578,14 @@ function dropAt(event) {
 
 function onGridOver(event) {
     if (null === draggingFrom.value) {
+        // A slice on its way out of a stack: the canvas takes it as readily as
+        // a box does, and says so by cancelling. It gets no ghost — where it
+        // lands depends on a width it does not have yet, since a share of a
+        // height is not a width and usePostGrid gives it a fresh one.
+        if (null !== draggingSlice.value) {
+            event.preventDefault();
+        }
+
         return;
     }
 
@@ -563,6 +600,22 @@ function onGridOver(event) {
 }
 
 function onGridDrop(event) {
+    // Leaving a stack for the empty canvas, rather than for another zone's box.
+    // Before this a slice could only come out onto a box, which meant the only
+    // way out of a stack was an exchange with something already on the page.
+    if (null !== draggingSlice.value) {
+        const { stackIndex, childIndex } = draggingSlice.value;
+        const at = dropAt(event, stackIndex);
+
+        if (null !== at) {
+            emit("moveOut", stackIndex, childIndex, at.target, at.column, at.newRow);
+        }
+
+        onDragEnd();
+
+        return;
+    }
+
     const at = dropAt(event);
 
     if (null !== at && null !== draggingFrom.value) {
@@ -854,44 +907,92 @@ function onStartKeydown(index, event) {
                          hover, like the strips between rows — the same idea on
                          the other axis, so the two read as one system rather
                          than two inventions. -->
-                    <button
+                    <div
                         v-for="gap in rowGaps"
                         :key="`gap-${gap.row}-${gap.start}`"
-                        type="button"
-                        class="flex h-20 items-center justify-center rounded-md border border-dashed border-line text-muted opacity-40 transition hover:border-accent hover:bg-accent/10 hover:text-accent hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-20"
                         :style="{
                             '--span-base': gap.width,
                             '--row-base': gap.row * 2,
                             '--start-base': gap.start + 1,
                         }"
-                        :title="t('backend.posts.grid.fill_gap')"
-                        :disabled="!canAdd"
-                        v-on:click="emit('fillGap', gap.target, gap.start, gap.width)"
                     >
-                        <Plus class="w-4 h-4" :stroke-width="2" />
-                        <span class="sr-only">{{ t("backend.posts.grid.fill_gap") }}</span>
-                    </button>
+                        <div
+                            class="flex h-20 flex-wrap items-center justify-center gap-1 rounded-md border border-dashed border-line transition"
+                            :class="
+                                picking === `gap-${gap.row}-${gap.start}`
+                                    ? 'border-accent bg-accent/5 opacity-100'
+                                    : 'text-muted opacity-40 hover:border-accent hover:bg-accent/10 hover:text-accent hover:opacity-100'
+                            "
+                            v-on:keydown.esc="picking = null"
+                        >
+                            <template v-if="picking === `gap-${gap.row}-${gap.start}`">
+                                <AppIconButton
+                                    v-for="option in fillTypes"
+                                    :key="option.value"
+                                    color="default"
+                                    :title="option.label"
+                                    v-on:click="emit('fillGap', option.value, gap.target, gap.start, gap.width); picking = null"
+                                >
+                                    <component :is="ZONE_ICONS[option.value]" class="w-4 h-4" :stroke-width="2" />
+                                </AppIconButton>
+                            </template>
+                            <button
+                                v-else
+                                type="button"
+                                class="flex h-full w-full items-center justify-center rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                                :title="t('backend.posts.grid.fill_gap')"
+                                :disabled="!canAdd"
+                                v-on:click="openPicker(`gap-${gap.row}-${gap.start}`)"
+                            >
+                                <Plus class="w-4 h-4" :stroke-width="2" />
+                                <span class="sr-only">{{ t("backend.posts.grid.fill_gap") }}</span>
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- One per gap between rows, plus one above the first.
                          Faint rather than hidden: a control nobody can see is a
                          control nobody uses, and one drawn at full strength
                          between every row would read as a ladder the zones sit
                          on. Hovering brings it up to something you would click. -->
-                    <button
+                    <div
                         v-for="strip in rowStrips"
                         :key="`strip-${strip.track}`"
-                        type="button"
-                        class="group flex h-4 items-center justify-center gap-2 rounded text-muted opacity-30 transition hover:bg-accent/10 hover:text-accent hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-20"
                         :style="{ '--span-base': COLUMNS, '--row-base': strip.track }"
-                        :title="t('backend.posts.grid.add_row')"
-                        :disabled="!canAdd"
-                        v-on:click="emit('addAt', strip.target, strip.newRow)"
+                        v-on:keydown.esc="picking = null"
                     >
-                        <span class="h-px flex-1 bg-current" />
-                        <Plus class="w-3 h-3 shrink-0" :stroke-width="2" />
-                        <span class="h-px flex-1 bg-current" />
-                        <span class="sr-only">{{ t("backend.posts.grid.add_row") }}</span>
-                    </button>
+                        <!-- The strip grows into a picker rather than opening
+                             one beside it: four pixels is not room for five
+                             buttons, and a popover would have to be positioned
+                             against a grid track that moves as the rows do. -->
+                        <div
+                            v-if="picking === `strip-${strip.track}`"
+                            class="flex flex-wrap items-center justify-center gap-1 rounded border border-dashed border-accent bg-accent/5 py-1"
+                        >
+                            <AppIconButton
+                                v-for="option in fillTypes"
+                                :key="option.value"
+                                color="default"
+                                :title="option.label"
+                                v-on:click="emit('addAt', option.value, strip.target, strip.newRow); picking = null"
+                            >
+                                <component :is="ZONE_ICONS[option.value]" class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
+                        </div>
+                        <button
+                            v-else
+                            type="button"
+                            class="flex h-4 w-full items-center justify-center gap-2 rounded text-muted opacity-30 transition hover:bg-accent/10 hover:text-accent hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-20"
+                            :title="t('backend.posts.grid.add_row')"
+                            :disabled="!canAdd"
+                            v-on:click="openPicker(`strip-${strip.track}`)"
+                        >
+                            <span class="h-px flex-1 bg-current" />
+                            <Plus class="w-3 h-3 shrink-0" :stroke-width="2" />
+                            <span class="h-px flex-1 bg-current" />
+                            <span class="sr-only">{{ t("backend.posts.grid.add_row") }}</span>
+                        </button>
+                    </div>
 
                     <!-- Where the zone being dragged would land, drawn with the
                          very properties the boxes use — so what is promised

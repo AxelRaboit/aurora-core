@@ -55,7 +55,9 @@ function pointer(wrapper, type, clientX = 0) {
 describe("PostGridCanvas", () => {
     it("draws one box per zone at its large-screen width", () => {
         const wrapper = mountCanvas([zone("a", 24), zone("b", 16)]);
-        const items = wrapper.findAll(".aurora-grid > div");
+        // By `data-zone`, not by position: the grid also holds the strips
+        // between rows and the targets over the holes in them.
+        const items = wrapper.findAll("[data-zone]");
 
         expect(items).toHaveLength(2);
         // Into --span-base, not --span-lg: the real chain only applies the lg
@@ -344,17 +346,47 @@ describe("PostGridCanvas", () => {
 
     // ── Filling the empty part of a row ───────────────────────────────────
 
+    const TYPES = [
+        { value: "text", label: "Texte" },
+        { value: "media", label: "Image" },
+        { value: "stack", label: "Pile" },
+    ];
+
     it("offers the empty tail of a row as somewhere to put a zone", async () => {
-        const wrapper = mountCanvas([zone("a", 32)]);
+        const wrapper = mountCanvas([zone("a", 32)], { typeOptions: TYPES });
         const gaps = wrapper.findAll('[title="backend.posts.grid.fill_gap"]');
 
         expect(gaps).toHaveLength(1);
-        expect(gaps[0].attributes("style")).toContain("--start-base: 33");
-        expect(gaps[0].attributes("style")).toContain("--span-base: 16");
+        expect(
+            gaps[0].element.parentElement.parentElement.getAttribute("style"),
+        ).toContain("--start-base: 33");
 
+        // The `+` opens the types in place rather than adding a zone outright:
+        // adding text and converting makes every other type a two-step that
+        // starts with the wrong answer.
         await gaps[0].trigger("click");
+        const picked = wrapper.findAll('[title="Image"]');
+        expect(picked).toHaveLength(1);
+
+        await picked[0].trigger("click");
         // After the zone it sits beside, at column 32, sixteen wide.
-        expect(wrapper.emitted("fillGap").at(-1)).toEqual([1, 32, 16]);
+        expect(wrapper.emitted("fillGap").at(-1)).toEqual(["media", 1, 32, 16]);
+    });
+
+    /**
+     * A stack holds zones rather than content, so one made from a hole is an
+     * empty frame the author then has to go and fill — the opposite of the
+     * one-click this is for. It stays on the row of buttons under the canvas.
+     */
+    it("keeps the stack out of what a hole may become", async () => {
+        const wrapper = mountCanvas([zone("a", 32)], { typeOptions: TYPES });
+
+        await wrapper
+            .find('[title="backend.posts.grid.fill_gap"]')
+            .trigger("click");
+
+        expect(wrapper.find('[title="Texte"]').exists()).toBe(true);
+        expect(wrapper.find('[title="Pile"]').exists()).toBe(false);
     });
 
     /**
@@ -362,14 +394,20 @@ describe("PostGridCanvas", () => {
      * so filling it goes in front of it in the order and leaves it where it is.
      */
     it("offers the hole a pushed zone leaves in front of it", async () => {
-        const wrapper = mountCanvas([zone("a", 24, { offset: 24 })]);
+        const wrapper = mountCanvas([zone("a", 24, { offset: 24 })], {
+            typeOptions: TYPES,
+        });
         const gaps = wrapper.findAll('[title="backend.posts.grid.fill_gap"]');
 
         expect(gaps).toHaveLength(1);
-        expect(gaps[0].attributes("style")).toContain("--start-base: 1");
+        expect(
+            gaps[0].element.parentElement.parentElement.getAttribute("style"),
+        ).toContain("--start-base: 1");
 
         await gaps[0].trigger("click");
-        expect(wrapper.emitted("fillGap").at(-1)).toEqual([0, 0, 24]);
+        await wrapper.find('[title="Texte"]').trigger("click");
+
+        expect(wrapper.emitted("fillGap").at(-1)).toEqual(["text", 0, 0, 24]);
     });
 
     it("leaves a full row alone", () => {
@@ -394,13 +432,16 @@ describe("PostGridCanvas", () => {
 
     it("offers a strip above the first row and after every row", () => {
         const wrapper = mountCanvas([zone("a", 48), zone("b", 48)]);
-        const strips = wrapper.findAll(
-            '.aurora-grid > [title="backend.posts.grid.add_row"]',
-        );
+        const strips = wrapper.findAll('[title="backend.posts.grid.add_row"]');
 
         // Above everything, then after each of the two rows.
         expect(strips).toHaveLength(3);
-        expect(strips.map((s) => s.attributes("style"))).toEqual([
+        // The strip is the button; the track it sits on is its wrapper's.
+        expect(
+            strips.map((strip) =>
+                strip.element.parentElement.getAttribute("style"),
+            ),
+        ).toEqual([
             expect.stringContaining("--row-base: 1"),
             expect.stringContaining("--row-base: 3"),
             expect.stringContaining("--row-base: 5"),
@@ -408,17 +449,19 @@ describe("PostGridCanvas", () => {
     });
 
     it("says where in the order a zone added there would go", async () => {
-        const wrapper = mountCanvas([zone("a", 48), zone("b", 48)]);
-        const strips = wrapper.findAll(
-            '.aurora-grid > [title="backend.posts.grid.add_row"]',
-        );
+        const wrapper = mountCanvas([zone("a", 48), zone("b", 48)], {
+            typeOptions: TYPES,
+        });
+        const strips = wrapper.findAll('[title="backend.posts.grid.add_row"]');
 
         await strips[0].trigger("click");
+        await wrapper.find('[title="Texte"]').trigger("click");
         // Above everything: no row to break out of yet.
-        expect(wrapper.emitted("addAt").at(-1)).toEqual([0, false]);
+        expect(wrapper.emitted("addAt").at(-1)).toEqual(["text", 0, false]);
 
         await strips[1].trigger("click");
-        expect(wrapper.emitted("addAt").at(-1)).toEqual([1, true]);
+        await wrapper.find('[title="Image"]').trigger("click");
+        expect(wrapper.emitted("addAt").at(-1)).toEqual(["media", 1, true]);
     });
 
     it("keeps the strips out of the drop maths", () => {
