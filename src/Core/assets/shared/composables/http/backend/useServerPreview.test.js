@@ -164,6 +164,84 @@ describe("useServerPreview", () => {
         expect(request.mock.calls[0][1].layout).toEqual({ items: [] });
     });
 
+    // ── Previews nobody is looking at ─────────────────────────────────────
+
+    /** A caller that gates the preview on something being open. */
+    function gatedPreview(layout, texts, open) {
+        return useServerPreview(
+            () => ({ layout: layout.value, texts: texts.value }),
+            [layout, texts],
+            "/preview",
+            { enabled: () => open.value },
+        );
+    }
+
+    it("asks for nothing while nobody is looking", async () => {
+        const layout = ref({ items: [] });
+        const texts = ref({ items: {} });
+        const open = ref(false);
+
+        gatedPreview(layout, texts, open);
+        await settle();
+
+        texts.value.items.a1 = { title: "Bonjour" };
+        await nextTick();
+        await settle();
+
+        expect(request).not.toHaveBeenCalled();
+    });
+
+    it("catches up as soon as somebody opens it", async () => {
+        const layout = ref({ items: [] });
+        const texts = ref({ items: {} });
+        const open = ref(false);
+
+        gatedPreview(layout, texts, open);
+        texts.value.items.a1 = { title: "Bonjour" };
+        await nextTick();
+        await settle();
+
+        open.value = true;
+        await nextTick();
+        await settle();
+
+        expect(request).toHaveBeenCalledTimes(1);
+        expect(request.mock.calls[0][1].texts.items.a1.title).toBe("Bonjour");
+    });
+
+    /** Re-opening a preview nothing has moved under should cost no request. */
+    it("does not ask again when nothing has changed since the last answer", async () => {
+        const layout = ref({ items: [] });
+        const texts = ref({ items: {} });
+        const open = ref(true);
+
+        gatedPreview(layout, texts, open);
+        await settle();
+        expect(request).toHaveBeenCalledTimes(1);
+
+        open.value = false;
+        await nextTick();
+        open.value = true;
+        await nextTick();
+        await settle();
+
+        expect(request).toHaveBeenCalledTimes(1);
+    });
+
+    it("still redraws live for a caller that never gates it", async () => {
+        const layout = ref({ items: [] });
+        const texts = ref({ items: {} });
+
+        preview(layout, texts);
+        await settle();
+
+        texts.value.items.a1 = { title: "Bonjour" };
+        await nextTick();
+        await settle();
+
+        expect(request).toHaveBeenCalledTimes(2);
+    });
+
     it("reports that a request is in flight", async () => {
         const layout = ref({ items: [] });
         const texts = ref({ items: {} });

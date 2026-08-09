@@ -1,9 +1,10 @@
 # Grille de contenu 48 colonnes
 
-> **Statut (2026-08-09) : cinq étapes sur six livrées.** Le contrat, le rendu
-> public, les quatre types de zone, l'éditeur et l'aperçu sont en place et
-> testés. Reste le sort de `blocks`, qui cohabite — et un chantier d'ergonomie
-> sur le réglage de largeur, décrit plus bas.
+> **Statut (2026-08-09) : cinq étapes sur six livrées, plus le réglage de
+> largeur.** Le contrat, le rendu public, les quatre types de zone, l'éditeur et
+> l'aperçu sont en place et testés. Le réglage de largeur est passé à une toile
+> manipulable doublée d'une rangée de fractions au clavier — voir le chapitre
+> qui lui est consacré. Reste le sort de `blocks`, qui cohabite.
 
 ---
 
@@ -139,31 +140,167 @@ Chacune verte et livrable, comme pour la fusion Media → GED.
   extérieurs, donc la grille ne s'alignait pas sur le titre au-dessus.
   *(3ba74bca)*
 
-## À reprendre : rendre le réglage de largeur utilisable
+## Réglage de largeur : tranché et livré le 2026-08-09
 
-> **Signalé le 2026-08-09.** Les curseurs fonctionnent, mais ils demandent trop
-> à l'auteur. Ce chapitre existe pour reprendre le sujet sans avoir suivi la
-> session qui l'a produit — il décrit l'existant, pas seulement la cible.
+> **Décision : la toile d'abord, avec les fractions comme chemin clavier.** La
+> piste E (toile manipulable), allégée d'un cran — la liste verticale des zones
+> reste, seul le réglage de largeur change. La piste A n'est pas une alternative
+> à E, c'est la façon d'y accéder au clavier.
+>
+> Les sections qui suivent conservent l'analyse qui a mené là, parce qu'elle
+> explique des choix qui ne se lisent pas dans le code.
 
-### Ce qu'il y a aujourd'hui
+### Ce qui a été livré
 
-Un `AppRange` par zone dans `PostGridPanel.vue`, borné `min = snap`,
-`max = 48`, `step = snap`, avec un libellé « **24 colonnes sur 48** »
-(`backend.posts.grid.width_label`).
+| Brique | Où |
+|---|---|
+| La toile | `PostGridCanvas.vue` — une boîte par zone sur `.aurora-grid`, poignée de bord droit, sélection au clic |
+| Le placement | `placeZones()` dans `usePostGrid.js` — ligne et colonne de départ de chaque zone |
+| Les fractions | `WIDTH_FRACTIONS` + `widthOptions` dans `usePostGrid.js`, rendues par `AppChoiceRow` |
+| La rangée de choix | `Core/assets/shared/components/form/select/AppChoiceRow.vue` — radiogroup, un seul arrêt de tabulation |
 
-Le pas d'aimantation est un `AppSelect` en haut du panneau : 4 (douzièmes,
-défaut), 2 (vingt-quatrièmes), 1 (colonne par colonne).
+**Ce qui n'a pas bougé** : le modèle. `span.lg`, `layout.zones`, `GridNormalizer`,
+le Twig, le rendu public, `GridNormalizer::SNAPS` et le champ `snap` persisté
+sur les deux publications de démo. La toile écrit exactement le nombre que la
+jauge écrivait, par le même computed `width`.
 
-Côté état, dans `usePostGrid.js` :
+### Le panneau ne montre qu'une zone à la fois
 
-- `width` est un computed accessible en écriture qui ne pilote **que**
-  `span.lg`. `span.base` reste à 48 — une zone est pleine largeur sur
-  téléphone, toujours. `span.md` n'est jamais écrit.
-- `clampToSnap(value, step)` arrondit au pas puis borne entre `step` et 48.
-- Changer le pas **ne réécrit pas** les zones déjà posées ; seules les largeurs
-  réglées ensuite atterrissent dessus.
+Demandé après un premier essai : la liste verticale de toutes les zones obligeait
+à faire défiler pour atteindre celle qu'on voulait. Le panneau se lit maintenant
+**Disposition → bouton Aperçu → la zone sélectionnée → Réglages avancés →
+ajouter**.
 
-### Pourquoi ce n'est pas suffisant
+**L'aperçu est passé dans une modale pleine largeur.** Le panneau est une colonne
+de quelques centaines de pixels ; une page dessinée sur 48 colonnes n'y montre
+rien d'utile. La modale est le premier endroit où l'aperçu est à l'échelle, et
+elle rend au panneau la place qu'il prenait. `no-padding` sur la modale : la
+grille apporte ses propres gouttières, et y ajouter celles de la modale
+décalerait les deux bords extérieurs — exactement ce que `.aurora-grid-flush`
+existe pour empêcher.
+
+**`useServerPreview` sait désormais que personne ne regarde.** Il prend une
+option `enabled` ; tant qu'elle est fausse, une modification marque l'aperçu
+périmé sans déclencher de requête, et l'ouverture rattrape immédiatement —
+sans le debounce, qui existe pour absorber la frappe et pas pour faire attendre
+quelqu'un qui vient de cliquer. Réouvrir sans avoir rien changé ne coûte rien.
+Le défaut reste « toujours actif », donc l'aperçu de la bannière, qui est en
+ligne, n'a pas bougé.
+
+**Les cartes non sélectionnées sont masquées, pas démontées — `v-show`, jamais
+`v-if`.** Chaque zone de texte porte une instance vivante d'Editor.js ; la
+démonter perd sa pile d'annulation. `AppBlockEditor` fait bien un `flush()` dans
+son `onBeforeUnmount`, donc le contenu ne serait pas perdu — mais l'annulation
+si, et silencieusement. C'est le même choix que les onglets de langue au-dessus
+de ce panneau (`PostEditorApp.vue`, « v-show, not v-if: the block editor holds
+its own state »), ce qui prouve au passage qu'Editor.js supporte d'être
+initialisé dans un conteneur masqué ici.
+
+**Ajouter une zone la sélectionne.** Sans ça, le bouton poserait une boîte sur
+la toile et n'ouvrirait rien — ce qui se lit comme un bouton qui n'a pas marché.
+
+### La toile est le constructeur, pas un afficheur
+
+Les quatre boutons d'ajout vivent **dans le cadre de la toile**, sous la grille.
+Un cadre répond ainsi à toute la question « de quoi cette page est faite » : les
+zones, leurs largeurs, et comment en obtenir une autre.
+
+**Pas de case « + » dans la grille elle-même**, bien que ce soit plus joli : elle
+occuperait de vraies colonnes, donc elle déplacerait les retours à la ligne. Une
+toile qui ne passe pas à la ligne comme la page vaut moins qu'une toile plus
+sobre qui le fait.
+
+**Convertir une zone** — un choix de type sur la zone sélectionnée. Le modèle
+était déjà prêt : le normaliseur écrit toutes les clés quel que soit le type, et
+convertir garde l'id, donc les autres langues gardent ce qu'elles ont, et la
+largeur comme la place dans l'ordre survivent. Seuls les blocs se perdent, et
+seulement à l'enregistrement : ils restent en mémoire côté client, donc repasser
+en Texte les restaure. D'où un **avertissement** et non un blocage — bloquer
+serait faux, prévenir après coup serait inutile.
+
+**Échanger deux zones** — on glisse une boîte sur une autre. Le doc avait écarté
+le glissé, à raison : viser un *intervalle* dans une grille qui reflue est
+difficile parce que l'intervalle bouge pendant qu'on le vise. Mais déposer **sur**
+une boîte est une autre cible, et une boîte ne bouge pas. Glisser-déposer natif
+plutôt que des événements pointeur à seuil : le navigateur sait déjà distinguer
+un clic d'un glissé et laisse le clic continuer à sélectionner. Pas d'équivalent
+clavier, et il n'en est pas dû — les chevrons monter/descendre réordonnent sans
+pointeur.
+
+### Trois pièges de mesure et de positionnement, trouvés à l'œil
+
+Aucun n'a levé d'erreur ni fait échouer un test. Tous ont été vus en regardant.
+
+**L'image d'une zone débordait de sa boîte.** Elle est en `absolute inset-0`, et
+la boîte n'était pas `relative` — l'ancêtre positionné était donc l'item de
+grille, dont la boîte de padding **inclut les gouttières**. L'image dépassait
+d'une gouttière de chaque côté, la zone paraissait plus large, et sa ligne
+paraissait plus serrée. `overflow-hidden` ne rattrape pas ça : un bloc ne rogne
+pas un descendant absolu dont le bloc conteneur est un de ses ancêtres.
+
+**Les lignes se touchaient pendant que les colonnes respiraient.** Deux voisines
+d'une même ligne montrent deux gouttières entre elles ; l'axe des lignes n'avait
+rien. `gap-y-2` = 0,5rem rétablit le maillage. Mesuré sur la page publique :
+padding d'item 16px, donc 32px entre deux zones, et `gap-y-8` = 32px — le Twig
+avait déjà fait ce calcul.
+
+**Le glissé mesurait la mauvaise boîte.** Le `p-2` était sur l'élément
+`.aurora-grid`, celui que `getBoundingClientRect()` mesure. Les 48 pistes vivent
+dans la boîte de **contenu**, le rect renvoie la boîte de **bordure** : l'erreur
+valait zéro au centre et environ une colonne à chaque bord. Le padding est passé
+sur un conteneur intermédiaire, et un test épingle l'invariant — l'élément mesuré
+ne porte aucune classe de padding.
+
+### Trois décisions à ne pas défaire
+
+**La toile écrit les largeurs dans `--span-base`, pas `--span-lg`.** La chaîne
+réelle n'applique `--span-lg` qu'au-dessus de **1024px de viewport**, et le
+panneau se lit souvent dans une fenêtre plus étroite. Laissée aux media queries,
+la toile afficherait tout en pleine largeur et les poignées auraient l'air
+cassées. Ce que l'auteur règle, c'est le grand écran : la toile le montre à
+n'importe quelle largeur de panneau.
+
+**La toile n'arrondit rien.** Elle émet la largeur brute que le pointeur
+demande ; l'arrondi au pas et le bornage 1..48 restent dans `clampToSnap`. Deux
+clamps, ce seraient deux règles à garder d'accord.
+
+**Le placement est de l'arithmétique, pas de la mesure.** `.aurora-grid` n'a pas
+`grid-auto-flow: dense`, donc une zone qui ne rentre pas démarre la ligne
+suivante et **rien ne rebouche le trou derrière**. `placeZones` fait la même
+boucle, sans lire un seul rect. Un test l'affirme explicitement (« never
+backfills the gap a wrap leaves behind ») : si cette hypothèse tombe, la toile
+dessine une disposition et la page en rend une autre.
+
+### Les fractions : six, pas huit
+
+`1/4, 1/3, 1/2, 2/3, 3/4, 1/1` — soit 12, 16, 24, 32, 36, 48.
+
+**Toutes sont des multiples de 4**, donc `clampToSnap` les laisse intactes au
+pas 4 comme au pas 1. C'est ce qui a rendu le chantier purement additif : ni le
+pas ni `SNAPS` n'ont eu à disparaître. Un test le vérifie pour chaque fraction à
+chaque pas, parce qu'une puce qui atterrit ailleurs que ce qu'elle annonce est
+un bouton qui ment.
+
+**Les sixièmes (8 et 40) sont écartés volontairement**, bien qu'arithmétiquement
+aussi propres. Personne ne dessine en sixièmes, et le chantier est né d'une
+remarque sur la difficulté à viser : rallonger la rangée de cibles inutilisées
+aurait aggravé exactement ce qu'on corrigeait. Elles restent atteignables par le
+curseur « précis ».
+
+**Ordre croissant** : la flèche qui élargit dans la rangée va dans le même sens
+que la poignée qui élargit sur la toile.
+
+### Ce qui reste ouvert
+
+- **`blocks`** — étape 6, intacte.
+- **L'indication de ligne** est devenue inutile : la toile fait passer à la
+  ligne au même endroit que le site, donc on le voit.
+- **Le rapport d'image** est livré, sur la zone média seulement — voir plus bas.
+  La vignette de carte et la vidéo gardent leur `aspect-video` en dur.
+- **Le placement absolu** (bord gauche indépendant, hauteur) reste écarté, pour
+  les raisons de la section « Redimensionner dans les quatre sens ».
+
+### Pourquoi les jauges seules ne suffisaient pas
 
 1. **L'unité n'est pas celle de l'auteur.** « 24 colonnes sur 48 » est une
    coordonnée d'implémentation. On pense en moitié, tiers, quart.
@@ -177,6 +314,13 @@ Côté état, dans `usePostGrid.js` :
    sur une ligne, et rien ne le signale avant l'aperçu.
 
 ### Pistes, avec ce qu'elles coûtent
+
+> Conservées telles qu'elles ont été écrites avant l'arbitrage. **E et A ont été
+> retenues ensemble** ; B et D ne l'ont pas été, et C reste écartée pour la
+> raison qui y est notée. La reco initiale disait « A d'abord, la toile ensuite
+> si le besoin se confirme » — le besoin s'est confirmé tout de suite, et
+> vérifier que `.aurora-grid` est déjà chargée dans le backend a fait tomber le
+> principal coût supposé de E.
 
 **A — Fractions nommées.** Une rangée de puces : 1/1, 1/2, 1/3, 2/3, 1/4, 3/4,
 1/6, 5/6. Discret, nommé dans l'unité de l'auteur, atteignable au clavier.
@@ -259,6 +403,48 @@ produit l'un ou l'autre : du texte coupé, ou du vide. La plupart des
 constructeurs de page qui l'offrent cassent sur un autre écran que celui où la
 page a été dessinée.
 
+### Livré le 2026-08-09 : le rapport d'image, sur la zone média
+
+`ratio` sur la zone — `natural` (défaut), `16x9`, `4x3`, `1x1`, `3x4`. **Partagé
+comme le span** : recadrer est du dessin, écrit une fois pour toutes les langues.
+
+**Un fait qui reformule la question et qui n'était pas dans l'analyse
+ci-dessous.** `.aurora-grid` ne pose aucun `align-items`, donc les items d'une
+grille CSS sont en `stretch` : **deux zones d'une même ligne ont déjà la même
+hauteur**. Ce qui ne remplit pas, c'est le contenu — l'image est en `h-auto`.
+« Aligner une image sur le texte à côté » ne demandait donc jamais une hauteur,
+seulement de dire à l'image quelle forme prendre.
+
+**Le ratio sort en style inline, pas en classe Tailwind.** Le doc proposait une
+classe littérale ; c'est un piège. `aspect-video` existe par hasard dans ce Twig,
+mais `aspect-square` et `aspect-[3/4]` n'apparaissent dans aucune source que
+Tailwind lit — choisies en PHP, elles n'émettraient rien et le recadrage ne se
+ferait pas, en silence. Le projet avait déjà répondu à cette question pour les
+spans, qui sortent en propriétés personnalisées pour la même raison.
+`GridViewBuilder::ratioStyle()` rend donc `aspect-ratio: 16 / 9;` ou la chaîne
+vide. Aucune ligne à ajouter dans `@source inline`, rien à se rappeler.
+
+**Et c'est vraiment une ligne dans le Twig.** Avec `width: 100%` et
+`height: auto`, un `aspect-ratio` fixe la hauteur seul — pas de conteneur, pas de
+second élément. Le style s'ajoute à celui qui portait déjà `object-position`, et
+c'est le point focal, déjà là, qui fait tomber le recadrage au bon endroit.
+
+**Pas de migration** : `grid_layout` est une colonne JSON et le normaliseur
+défaut à `natural`. Les zones enregistrées avant ce champ rendent exactement ce
+qu'elles rendaient — un test l'affirme.
+
+**La toile ne montre pas le ratio.** Ses boîtes sont à hauteur uniforme, ce qui
+est ce qui rend les lignes lisibles en tant que lignes ; lui faire montrer les
+hauteurs réelles la rapprocherait d'un aperçu. Le contrôle dit la valeur,
+l'aperçu serveur montre le résultat.
+
+**Les deux autres `aspect-video` restent en dur, volontairement.** La vignette de
+carte parce que la rendre réglable changerait des pages déjà publiées ; la vidéo
+parce que son iframe en `absolute inset-0` a besoin d'une boîte et que le ratio
+appartient au fournisseur, pas à l'auteur.
+
+---
+
 **Le chemin intermédiaire, probablement le bon** : pas une hauteur libre, mais
 un **rapport d'image par zone** — 16:9, 4:3, carré, ou naturel. Ça couvre
 l'essentiel de ce à quoi sert « redimensionner en hauteur » (une image et une
@@ -306,18 +492,30 @@ couvre probablement l'essentiel du sujet ; fait seul, ça aiderait déjà.
 - **`.aurora-grid-flush`** annule le décalage des bords extérieurs. Toute
   nouvelle grille rendue dans le flux d'un article en a besoin.
 
-### Ce qui se cassera, et qu'il faudra reprendre
+### Ce qu'on craignait de casser — et qui n'a pas bougé
 
-- `usePostGrid.test.js` — 17 tests, dont cinq portent directement sur le pas :
-  « lands a width on the current step », « reaches finer widths on a finer
-  step », « never lets a zone reach zero or overflow the grid », « leaves
-  placed zones alone when the step changes », « keeps a zone full width below
-  the large breakpoint ». Les garanties restent valables quelle que soit
-  l'interface ; ce sont les appels qui changent.
-- Les clés `backend.posts.grid.width`, `width_label`, `snap`, `snap_hint` et
-  `snaps.*` — à revoir ou à retirer selon la piste retenue.
-- `GridNormalizer::SNAPS` et le champ `snap` du layout, si le pas disparaît.
-  **Attention** : il est déjà persisté en base sur deux publications de démo.
+Cette section annonçait trois ruptures. Aucune n'a eu lieu, parce que les
+fractions passent par le même computed `width` que la jauge :
+
+- **Les 17 tests de `usePostGrid.test.js`** sont intacts, y compris les cinq qui
+  portent sur le pas. S'y ajoutent 6 tests sur `placeZones` et 2 sur les
+  fractions.
+- **Les clés `width`, `width_label`, `snap`, `snap_hint`, `snaps.*`** servent
+  toutes encore. `width_label` a changé de rôle : de libellé principal, elle est
+  devenue le repli qui affiche le compte exact quand aucune fraction ne
+  correspond — et c'est là qu'elle est enfin à sa place, puisque c'est le moment
+  où l'auteur compte réellement des colonnes.
+- **`GridNormalizer::SNAPS` et le champ `snap`** sont inchangés, donc les deux
+  publications de démo qui le portent en base n'ont rien eu à migrer.
+
+Ajoutées : `canvas`, `canvas_empty`, `canvas_hint`, `resize_zone`, `precise`,
+`advanced`, `fractions.*`.
+
+**Trouvé en chemin** : `AppSelect`, `AppInput` et les autres champs partagés ne
+déclaraient pas de prop `hint`. Les 26 `:hint` du projet tombaient en attribut
+sur la div racine et ne s'affichaient nulle part — dont `snap_hint`,
+`zone_post_hint` et `zone_video_hint` de ce panneau. Corrigé dans les composants
+partagés en parallèle de ce lot.
 
 ## Ce qu'il ne faut pas oublier
 

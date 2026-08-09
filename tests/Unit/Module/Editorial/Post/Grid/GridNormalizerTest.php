@@ -145,7 +145,7 @@ final class GridNormalizerTest extends TestCase
         ])['zones'][0];
 
         self::assertSame(
-            ['id', 'type', 'span', 'mediaId', 'postId'],
+            ['id', 'type', 'span', 'ratio', 'mediaId', 'postId'],
             array_keys($zone),
             'switching a zone type in the editor must not lose what was picked',
         );
@@ -202,6 +202,55 @@ final class GridNormalizerTest extends TestCase
 
         self::assertSame(4, $this->normalizer->normalizeLayout(['snap' => 7])['snap']);
         self::assertSame(4, $this->normalizer->normalizeLayout(['snap' => 'douze'])['snap']);
+    }
+
+    public function testTheRatioIsOneOfTheOfferedShapes(): void
+    {
+        foreach (GridNormalizer::RATIOS as $ratio) {
+            $layout = $this->normalizer->normalizeLayout([
+                'zones' => [['id' => 'a1', 'type' => 'media', 'ratio' => $ratio]],
+            ]);
+
+            self::assertSame($ratio, $layout['zones'][0]['ratio']);
+        }
+    }
+
+    /**
+     * The default has to be the behaviour already on the published pages. A
+     * zone stored before this field existed carries no ratio at all, and it
+     * must keep rendering at its own proportions rather than silently gaining
+     * a crop.
+     */
+    public function testAZoneThatNamesNoRatioKeepsItsOwnProportions(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'a1', 'type' => 'media'],
+                ['id' => 'a2', 'type' => 'media', 'ratio' => 'panoramique'],
+            ],
+        ]);
+
+        self::assertSame(GridNormalizer::RATIO_NATURAL, $layout['zones'][0]['ratio']);
+        self::assertSame(GridNormalizer::RATIO_NATURAL, $layout['zones'][1]['ratio']);
+    }
+
+    /**
+     * Cropping is design, and the design is written once — the same argument
+     * that puts the span on the post rather than on the translation.
+     */
+    public function testTheRatioIsSharedAndCannotBeTranslated(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [['id' => 'a1', 'type' => 'media', 'ratio' => '1x1']],
+        ]);
+
+        $content = $this->normalizer->normalizeContent(
+            ['zones' => ['a1' => ['ratio' => '16x9']]],
+            $layout,
+        );
+
+        self::assertSame('1x1', $layout['zones'][0]['ratio']);
+        self::assertArrayNotHasKey('ratio', $content['zones']['a1']);
     }
 
     // ── Content ───────────────────────────────────────────────────────────

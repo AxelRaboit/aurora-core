@@ -1,0 +1,370 @@
+<script setup>
+/**
+ * The content grid, drawn as something you can take hold of.
+ *
+ * This is a picture of the **arrangement**, not of the content. Each zone is a
+ * box carrying its type and its width; the server preview below the panel stays
+ * the authority on what a zone actually renders as. Drawing content here would
+ * mean a second renderer beside the Twig one, which is precisely how the
+ * `twoColumn` block came to write a shape its own renderer could not read.
+ *
+ * The geometry is not an imitation. `app.css` is the project's single CSS entry
+ * and the backend layout loads it, so `.aurora-grid` is the very stylesheet the
+ * public page uses — 48 tracks, `column-gap: 0`, gutters from the items' own
+ * padding. Two zones that will not share a row wrap here for the same reason
+ * they wrap there, with nothing written to make that happen.
+ *
+ * Two deliberate departures from the public rendering, both because this is a
+ * scale model rather than a preview:
+ *
+ * - **Widths go into `--span-base`, not `--span-lg`.** The real chain only
+ *   applies `--span-lg` above a 1024px *viewport*, and this panel is often
+ *   read in a narrower window. Left to the media queries the canvas would show
+ *   every zone full width and the handles would look broken. What the author
+ *   edits is the large-screen arrangement, so the canvas shows that one at any
+ *   panel width.
+ * - **Boxes share one height.** On the page a zone is as tall as its content.
+ *   Here even heights are what makes the rows legible as rows.
+ *
+ * Presentation only: the canvas emits the width it was dragged to and never
+ * clamps it. Rounding to the snap and bounding to 1..48 belong to usePostGrid,
+ * which already does both for the fraction row — two clamps would be two rules
+ * to keep in agreement.
+ */
+import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { FileText, Film, GripVertical, Image, Newspaper } from "lucide-vue-next";
+import AppButton from "@/shared/components/action/AppButton.vue";
+import { COLUMNS, placeZones } from "../composables/usePostGrid.js";
+
+const props = defineProps({
+    /** The arrangement, in order. Read-only here — resizing is emitted. */
+    zones: { type: Array, required: true },
+    /** The snap in force, for how far an arrow key moves a handle. */
+    snap: { type: Number, default: 4 },
+    /** Which zone is under the author's attention, or null. */
+    selectedIndex: { type: Number, default: null },
+    /** Publications the `post` zones may name, so a box can show its title. */
+    postOptions: { type: Array, default: () => [] },
+    /** The kinds of zone that can be added, as `{ value, label }`. */
+    typeOptions: { type: Array, default: () => [] },
+    /** False at the zone cap, which disables the add buttons rather than hiding them. */
+    canAdd: { type: Boolean, default: true },
+});
+
+const emit = defineEmits(["update:selectedIndex", "resize", "add", "swap"]);
+
+const { t } = useI18n();
+
+const ZONE_ICONS = { text: FileText, media: Image, post: Newspaper, video: Film };
+
+const gridEl = ref(null);
+/** The zone being dragged, so a stray pointermove on another handle is ignored. */
+const dragging = ref(null);
+
+const placements = computed(() => placeZones(props.zones));
+
+function widthOf(index) {
+    return props.zones[index]?.span?.lg ?? COLUMNS;
+}
+
+/**
+ * What a box says about itself. A linked publication shows its title and a
+ * media zone its image — both are values already held in the editor's state,
+ * not markup rebuilt from the content. A text zone shows its type and stops
+ * there, which is where the line sits.
+ */
+function labelOf(zone) {
+    if ("post" === zone.type) {
+        const linked = props.postOptions.find((post) => post.id === zone.postId);
+
+        return linked?.title ?? t("backend.posts.grid.zone_types.post");
+    }
+
+    return t(`backend.posts.grid.zone_types.${zone.type}`);
+}
+
+function imageOf(zone) {
+    return "media" === zone.type ? (zone.media?.url ?? null) : null;
+}
+
+/**
+ * The width the pointer is asking for: the column it sits over, less the column
+ * the zone starts on.
+ *
+ * `start` is read fresh on every move rather than frozen at pointerdown. A zone
+ * dragged wider than the room left on its row wraps to a row of its own, and
+ * its start column becomes zero — recomputing keeps the handle under the
+ * pointer through that jump. It cannot oscillate: once wrapped, the zone only
+ * comes back when it fits again, and a width that fits cannot re-wrap.
+ */
+function resizeFromPointer(index, clientX) {
+    const rect = gridEl.value?.getBoundingClientRect();
+
+    if (!rect?.width) {
+        return;
+    }
+
+    const column = ((clientX - rect.left) / rect.width) * COLUMNS;
+
+    emit("resize", index, column - placements.value[index].start);
+}
+
+function onPointerDown(index, event) {
+    // Stops the drag from selecting the labels it passes over.
+    event.preventDefault();
+    dragging.value = index;
+    // Optional because jsdom has no pointer capture, and a canvas that throws
+    // in its own test is a canvas nobody tests.
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    emit("update:selectedIndex", index);
+}
+
+function onPointerMove(index, event) {
+    if (dragging.value !== index) {
+        return;
+    }
+
+    resizeFromPointer(index, event.clientX);
+}
+
+function onPointerUp(event) {
+    dragging.value = null;
+
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+}
+
+/**
+ * Reordering by dropping one zone onto another, which exchanges their places.
+ *
+ * Native drag and drop rather than pointer events with a movement threshold:
+ * the browser already knows the difference between a click and a drag, draws
+ * the ghost, and leaves the box's own click free to go on selecting.
+ *
+ * It is a swap and not an insertion on purpose. Dropping *between* two zones
+ * says more, and the gap it aims at moves while it is being aimed at, because
+ * the rows re-flow as widths shift. A box holds still.
+ *
+ * No keyboard equivalent here, and none is owed: the up/down buttons on the
+ * selected zone reorder without a pointer and are the path that has to work.
+ */
+const draggingFrom = ref(null);
+const dropTarget = ref(null);
+
+function onDragStart(index, event) {
+    draggingFrom.value = index;
+    // Firefox starts no drag at all unless something is written here.
+    event.dataTransfer?.setData("text/plain", String(index));
+
+    if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+    }
+}
+
+function onDragOver(index, event) {
+    if (null === draggingFrom.value || draggingFrom.value === index) {
+        return;
+    }
+
+    // A dragover that is not cancelled means "no drop here", so this is what
+    // makes the box a target at all rather than a nicety.
+    event.preventDefault();
+    dropTarget.value = index;
+}
+
+function onDrop(index) {
+    if (null !== draggingFrom.value && draggingFrom.value !== index) {
+        emit("swap", draggingFrom.value, index);
+        // The zone the author was holding is now here, and it is the one they
+        // were working on.
+        emit("update:selectedIndex", index);
+    }
+
+    onDragEnd();
+}
+
+function onDragEnd() {
+    draggingFrom.value = null;
+    dropTarget.value = null;
+}
+
+/**
+ * The handle answers to the keyboard as well as the pointer.
+ *
+ * This whole rework started from someone saying that aiming a slider is hard;
+ * a canvas that only takes a drag would have restated that problem in a worse
+ * form. Arrows move by the snap, Home and End go to the extremes — which is
+ * what `role="slider"` promises on the element, and the promise should hold.
+ */
+function onKeydown(index, event) {
+    const width = widthOf(index);
+
+    const asked = {
+        ArrowLeft: width - props.snap,
+        ArrowRight: width + props.snap,
+        ArrowDown: width - props.snap,
+        ArrowUp: width + props.snap,
+        Home: props.snap,
+        End: COLUMNS,
+    }[event.key];
+
+    if (undefined === asked) {
+        return;
+    }
+
+    event.preventDefault();
+    emit("resize", index, asked);
+}
+</script>
+
+<template>
+    <div class="space-y-1.5">
+        <p class="text-xs font-medium text-secondary uppercase tracking-wide">
+            {{ t("backend.posts.grid.canvas") }}
+        </p>
+
+        <div class="rounded-lg border border-line bg-surface-2/30">
+            <p v-if="!zones.length" class="p-4 text-sm text-muted">
+                {{ t("backend.posts.grid.canvas_empty") }}
+            </p>
+
+            <!-- The padding lives here and never on the grid itself. The 48
+                 tracks span the grid's *content* box, while the rect a drag is
+                 measured against is its border box — padding on that element
+                 would offset every column by it, and a handle near an edge
+                 would answer a column or so off. -->
+            <div v-else class="p-2">
+                <!-- A quarter of the page's gutter. The real one is a flat 1rem
+                 whatever the container is wide, so at panel width it would eat
+                 most of a narrow zone — scaling it down keeps the proportions
+                 honest rather than breaking them.
+
+                 `gap-y-2` is 0.5rem, which is what two neighbours on one row
+                 already show between them: each carries the gutter as padding,
+                 so the space between them is two of them. Matching the row axis
+                 to it makes the zones sit on an even lattice instead of rows
+                 that touch while columns breathe.
+
+                 The row axis is the only one that may take a gap. `column-gap`
+                 on 48 tracks is 47 gutters, not one — `AuroraGridGutterTest`
+                 reads this file and fails the build for `gap-*` or `gap-x-*`,
+                 while allowing `gap-y-*` for exactly this reason. -->
+                <div
+                    ref="gridEl"
+                    class="aurora-grid gap-y-2"
+                    style="--aurora-gutter: 0.25rem"
+                >
+                    <div
+                        v-for="(zone, index) in zones"
+                        :key="zone.id"
+                        class="relative"
+                        :style="{ '--span-base': widthOf(index) }"
+                    >
+                        <button
+                            type="button"
+                            draggable="true"
+                            class="relative flex h-20 w-full cursor-grab flex-col items-center justify-center gap-1 overflow-hidden rounded-md border px-1 text-center transition-colors active:cursor-grabbing"
+                            :class="[
+                                dropTarget === index
+                                    ? 'border-accent border-dashed bg-accent/20'
+                                    : selectedIndex === index
+                                        ? 'border-accent bg-accent/10'
+                                        : 'border-line bg-surface-1 hover:border-secondary',
+                                draggingFrom === index ? 'opacity-40' : '',
+                            ]"
+                            :title="labelOf(zone)"
+                            :aria-pressed="selectedIndex === index"
+                            v-on:click="emit('update:selectedIndex', index)"
+                            v-on:dragstart="onDragStart(index, $event)"
+                            v-on:dragover="onDragOver(index, $event)"
+                            v-on:dragleave="dropTarget = null"
+                            v-on:drop="onDrop(index)"
+                            v-on:dragend="onDragEnd"
+                        >
+                            <!-- The box above is `relative` for this one element.
+                             Without it the nearest positioned ancestor is the
+                             grid item, whose padding box includes the gutters —
+                             so the picture spilled a gutter either side of its
+                             own border and the zone read as wider than it is,
+                             which also made its row look tighter than the rest.
+                             `overflow-hidden` on the box does not catch that: a
+                             block does not clip an absolute descendant whose
+                             containing block is one of its own ancestors. -->
+                            <img
+                                v-if="imageOf(zone)"
+                                :src="imageOf(zone)"
+                                alt=""
+                                class="absolute inset-0 h-full w-full rounded-md object-cover opacity-70"
+                            >
+                            <component
+                                :is="ZONE_ICONS[zone.type]"
+                                class="relative w-4 h-4 shrink-0 text-secondary"
+                                :stroke-width="2"
+                            />
+                            <!-- Hidden under about a sixth, where it would be one
+                             clipped letter pretending to be a word. -->
+                            <span
+                                v-if="widthOf(index) >= 8"
+                                class="relative line-clamp-2 text-xs text-primary"
+                            >{{ labelOf(zone) }}</span>
+                            <span class="relative text-[10px] text-muted tabular-nums">
+                                {{ widthOf(index) }}/{{ COLUMNS }}
+                            </span>
+                        </button>
+
+                        <!-- Sits inside the item's padding, so it lands on the box
+                         edge rather than in the gutter between two zones. -->
+                        <button
+                            type="button"
+                            role="slider"
+                            aria-orientation="horizontal"
+                            :aria-label="t('backend.posts.grid.resize_zone', { zone: labelOf(zone) })"
+                            :aria-valuemin="snap"
+                            :aria-valuemax="COLUMNS"
+                            :aria-valuenow="widthOf(index)"
+                            :aria-valuetext="t('backend.posts.grid.width_label', { columns: widthOf(index), total: COLUMNS })"
+                            class="absolute inset-y-0 right-1 flex w-3 cursor-col-resize touch-none items-center justify-center rounded-r-md text-muted hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                            v-on:pointerdown="onPointerDown(index, $event)"
+                            v-on:pointermove="onPointerMove(index, $event)"
+                            v-on:pointerup="onPointerUp"
+                            v-on:pointercancel="onPointerUp"
+                            v-on:keydown="onKeydown(index, $event)"
+                        >
+                            <GripVertical class="w-3 h-3" :stroke-width="2" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Adding lives in the canvas rather than at the foot of the
+                 panel, so one frame answers the whole question of what the
+                 page is made of: the zones, their widths, and how to get
+                 another. A `+` cell inside the grid itself would read better
+                 still and is deliberately not that — it would claim real
+                 columns, so it would change where the rows wrap, and a canvas
+                 that wraps differently from the page is worth less than a
+                 slightly plainer one that does not. -->
+            <div class="flex flex-wrap gap-2 border-t border-line p-2">
+                <AppButton
+                    v-for="option in typeOptions"
+                    :key="option.value"
+                    variant="secondary"
+                    size="sm"
+                    type="button"
+                    :disabled="!canAdd"
+                    v-on:click="emit('add', option.value)"
+                >
+                    <component :is="ZONE_ICONS[option.value]" class="w-4 h-4" :stroke-width="2" />
+                    {{ option.label }}
+                </AppButton>
+            </div>
+        </div>
+
+        <p v-if="zones.length" class="text-xs text-muted">
+            {{ t("backend.posts.grid.canvas_hint") }}
+            {{ zones.length > 1 ? t("backend.posts.grid.swap_hint") : "" }}
+        </p>
+    </div>
+</template>

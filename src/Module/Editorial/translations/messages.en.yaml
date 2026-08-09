@@ -302,6 +302,11 @@ backend:
       enabled: Use a content grid
       disabled_hint: "Off — the publication keeps its usual content column. Turning this on replaces it with zones laid out on a 48-column grid."
       preview: Preview
+      canvas: Layout
+      canvas_empty: "No zone yet — add one below and it appears here."
+      pick_zone: "Click a zone above to edit what it holds."
+      canvas_hint: "Drag a zone's right edge to set how wide it is, or focus it and use the arrow keys. Widths are the ones used on a large screen; below that a zone is always full width."
+      resize_zone: "Width of the “{zone}” zone"
       snap: Snap step
       snap_hint: "How finely a width can be set. Changing the step does not move zones already placed."
       snaps:
@@ -310,12 +315,32 @@ backend:
         1: Column by column
       width: Width
       width_label: "{columns} of {total} columns"
+      precise: Exact width
+      advanced: Advanced
+      fractions:
+        quarter: A quarter
+        third: A third
+        half: A half
+        two_thirds: Two thirds
+        three_quarters: Three quarters
+        full: Full width
       translated_fields: "Content — {locale}"
+      zone_type: Zone type
+      type_drops_text: "This zone's text will be dropped when you save. Set the zone back to Text to keep it."
+      swap_hint: "Drag a zone onto another to exchange their places."
       zone_types:
         text: Text
         media: Image
         post: Publication
         video: Video
+      ratio: Shape
+      ratio_hint: "Crops the picture to this shape. “Natural” leaves it at its own proportions."
+      ratios:
+        natural: Natural
+        16x9: "16:9"
+        4x3: "4:3"
+        1x1: Square
+        3x4: Portrait
       zone_image: Zone image
       zone_alt: Alt text
       zone_caption: Caption

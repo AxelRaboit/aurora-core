@@ -97,6 +97,7 @@ final readonly class GridViewBuilder
                     ...$zone,
                     'caption' => $held['caption'],
                     'spanStyle' => $this->values->spanStyle($zone['span']),
+                    'ratioStyle' => $this->ratioStyle($zone['ratio']),
                     // One key per type, null for the others. The template reads
                     // the one its type names, and a zone whose target has been
                     // deleted since renders as nothing rather than as a hole
@@ -233,6 +234,32 @@ final readonly class GridViewBuilder
     }
 
     /** @return array<string, mixed>|null */
+    /**
+     * The crop, as a declaration rather than a class.
+     *
+     * A Tailwind class would have to be written out somewhere Tailwind reads —
+     * `aspect-video` happens to appear in this module's Twig, but
+     * `aspect-square` and `aspect-[3/4]` appear nowhere, so choosing them here
+     * would emit nothing and the crop would silently not happen. The project
+     * already answered this question for spans, which go out as custom
+     * properties for the same reason. `ThumbnailFitEnum::objectFitClass()`
+     * returns classes from PHP and gets away with it only because those strings
+     * exist in unrelated Vue files.
+     *
+     * Empty for `natural`, so the caller can test it and the style attribute
+     * stays clean.
+     */
+    private function ratioStyle(string $ratio): string
+    {
+        return match ($ratio) {
+            '16x9' => 'aspect-ratio: 16 / 9;',
+            '4x3' => 'aspect-ratio: 4 / 3;',
+            '1x1' => 'aspect-ratio: 1 / 1;',
+            '3x4' => 'aspect-ratio: 3 / 4;',
+            default => '',
+        };
+    }
+
     private function mediaData(?DocumentInterface $media, string $alt): ?array
     {
         if (!$media instanceof DocumentInterface) {

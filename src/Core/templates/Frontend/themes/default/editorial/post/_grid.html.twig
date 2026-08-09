@@ -31,12 +31,18 @@
 
             {% elseif zone.type == 'media' and zone.media %}
                 <figure class="m-0 not-prose">
+                    {# `ratioStyle` is empty unless the zone asks to be cropped.
+                       With a width of 100% and `height: auto`, an `aspect-ratio`
+                       settles the height on its own — no wrapper, no second
+                       element.
+                       `object-cover` and the focal position, both already here,
+                       are what make the crop land where the picture matters. #}
                     <img
                         src="{{ zone.media.url }}"
                         alt="{{ zone.media.alt }}"
                         loading="lazy"
                         class="w-full h-auto rounded-lg object-cover"
-                        style="object-position: {{ zone.media.focalPosition }};"
+                        style="object-position: {{ zone.media.focalPosition }};{{ zone.ratioStyle }}"
                     >
                     {% if zone.caption %}
                         <figcaption class="mt-2 text-sm text-secondary">{{ zone.caption }}</figcaption>

@@ -302,6 +302,11 @@ backend:
       enabled: Utiliser une grille de contenu
       disabled_hint: "Désactivée — la publication garde sa colonne de contenu habituelle. L'activer la remplace par des zones posées sur une grille de 48 colonnes."
       preview: Aperçu
+      canvas: Disposition
+      canvas_empty: "Aucune zone — ajoutez-en une plus bas et elle apparaîtra ici."
+      pick_zone: "Cliquez une zone ci-dessus pour modifier son contenu."
+      canvas_hint: "Tirez le bord droit d'une zone pour régler sa largeur, ou sélectionnez-la et utilisez les flèches. Ces largeurs sont celles du grand écran ; en dessous, une zone occupe toujours toute la largeur."
+      resize_zone: "Largeur de la zone « {zone} »"
       snap: Pas d'aimantation
       snap_hint: "La finesse à laquelle une largeur se règle. Changer le pas ne déplace pas les zones déjà posées."
       snaps:
@@ -310,12 +315,32 @@ backend:
         1: Colonne par colonne
       width: Largeur
       width_label: "{columns} colonnes sur {total}"
+      precise: Largeur précise
+      advanced: Réglages avancés
+      fractions:
+        quarter: Un quart
+        third: Un tiers
+        half: La moitié
+        two_thirds: Deux tiers
+        three_quarters: Trois quarts
+        full: Pleine largeur
       translated_fields: "Contenu — {locale}"
+      zone_type: Type de zone
+      type_drops_text: "Le texte de cette zone sera supprimé à l'enregistrement. Repassez la zone en Texte pour le conserver."
+      swap_hint: "Faites glisser une zone sur une autre pour échanger leurs places."
       zone_types:
         text: Texte
         media: Image
         post: Publication
         video: Vidéo
+      ratio: Proportions
+      ratio_hint: "Recadre l'image à cette forme. « Naturelles » la laisse à ses propres proportions."
+      ratios:
+        natural: Naturelles
+        16x9: "16:9"
+        4x3: "4:3"
+        1x1: Carré
+        3x4: Portrait
       zone_image: Image de la zone
       zone_alt: Texte alternatif
       zone_caption: Légende

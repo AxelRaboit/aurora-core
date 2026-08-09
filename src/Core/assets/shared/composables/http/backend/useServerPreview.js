@@ -21,13 +21,25 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
  * long enough to swallow typing and short enough that adjusting a width still
  * feels immediate.
  *
- * @param {() => object} payload  What to post. Read on every request, so it
- *                                sees the current state rather than a snapshot
- *                                taken when this was called.
- * @param {Array}        sources  Reactive sources to watch, deeply.
- * @param {string}       path     Where to post it.
+ * @param {() => object}  payload  What to post. Read on every request, so it
+ *                                 sees the current state rather than a snapshot
+ *                                 taken when this was called.
+ * @param {Array}         sources  Reactive sources to watch, deeply.
+ * @param {string}        path     Where to post it.
+ * @param {object}        options
+ * @param {() => boolean} options.enabled  Whether anyone is looking. A preview
+ *                                 behind a button spends the whole editing
+ *                                 session closed, and rendering Twig on every
+ *                                 keystroke for markup nobody sees is work the
+ *                                 server does for nothing. Defaults to always
+ *                                 on, which is what an inline preview wants.
  */
-export function useServerPreview(payload, sources, path) {
+export function useServerPreview(
+    payload,
+    sources,
+    path,
+    { enabled = () => true } = {},
+) {
     const { request } = useRequest();
 
     const html = ref("");
@@ -37,8 +49,13 @@ export function useServerPreview(payload, sources, path) {
     // to the most recent question is allowed to land.
     let latest = 0;
 
+    // Whether what we hold has been overtaken by an edit. Tracked rather than
+    // assumed, so re-opening a preview nothing has changed under costs nothing.
+    let stale = true;
+
     async function fetchPreview() {
         const ticket = ++latest;
+        stale = false;
         loading.value = true;
 
         try {
@@ -66,7 +83,26 @@ export function useServerPreview(payload, sources, path) {
 
     const schedule = useDebounce(fetchPreview, 400);
 
-    watch(sources, schedule, { deep: true, immediate: true });
+    watch(
+        sources,
+        () => {
+            stale = true;
+
+            if (enabled()) {
+                schedule();
+            }
+        },
+        { deep: true, immediate: true },
+    );
+
+    // Opening asks straight away rather than through the debounce: the wait
+    // exists to swallow typing, and somebody who just opened a preview is not
+    // typing.
+    watch(enabled, (on) => {
+        if (on && stale) {
+            fetchPreview();
+        }
+    });
 
     return { html, loading, refresh: fetchPreview };
 }

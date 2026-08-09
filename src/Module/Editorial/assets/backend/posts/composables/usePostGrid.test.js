@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { ref } from "vue";
-import { usePostGrid } from "./usePostGrid.js";
+import { placeZones, usePostGrid } from "./usePostGrid.js";
 
 vi.mock("vue-i18n", () => ({
     useI18n: () => ({ t: (key) => key }),
@@ -41,6 +41,75 @@ describe("usePostGrid", () => {
 
         removeZone(0);
         expect(zones.value.map((z) => z.type)).toEqual(["text"]);
+    });
+
+    it("exchanges two zones wherever they sit", () => {
+        const { addZone, swapZones, zones } = make().api;
+
+        addZone("text");
+        addZone("media");
+        addZone("video");
+
+        swapZones(0, 2);
+
+        expect(zones.value.map((z) => z.type)).toEqual([
+            "video",
+            "media",
+            "text",
+        ]);
+    });
+
+    /**
+     * Content is keyed by zone id, so a swap must not move it — the ids travel
+     * with the zones. Getting this wrong would hand a zone the other one's
+     * text in every language at once.
+     */
+    it("leaves each zone's content attached to it through a swap", () => {
+        const { layout, content, api } = make();
+
+        api.addZone("text");
+        api.addZone("text");
+        api.zoneFields(0).caption.value = "Première";
+        api.zoneFields(1).caption.value = "Seconde";
+
+        const [first, second] = layout.value.zones.map((z) => z.id);
+        api.swapZones(0, 1);
+
+        expect(layout.value.zones.map((z) => z.id)).toEqual([second, first]);
+        expect(content.value.zones[first].caption).toBe("Première");
+        expect(content.value.zones[second].caption).toBe("Seconde");
+    });
+
+    it("ignores a swap that names a zone twice or a zone that is not there", () => {
+        const { addZone, swapZones, zones } = make().api;
+
+        addZone("text");
+        addZone("media");
+
+        swapZones(0, 0);
+        swapZones(0, 9);
+        swapZones(-1, 1);
+
+        expect(zones.value.map((z) => z.type)).toEqual(["text", "media"]);
+    });
+
+    /**
+     * Converting keeps the id, so every other language keeps what it holds for
+     * the zone, and the width and place in the order survive.
+     */
+    it("converts a zone without disturbing anything else about it", () => {
+        const { layout, content, api } = make();
+
+        api.addZone("text");
+        api.zoneFields(0).width.value = 16;
+        const id = layout.value.zones[0].id;
+        content.value.zones[id].alt = "Déjà écrit";
+
+        api.zoneFields(0).type.value = "media";
+
+        expect(layout.value.zones[0].id).toBe(id);
+        expect(layout.value.zones[0].span.lg).toBe(16);
+        expect(content.value.zones[id].alt).toBe("Déjà écrit");
     });
 
     it("refuses to move a zone past either end", () => {
@@ -229,6 +298,69 @@ describe("usePostGrid", () => {
         );
     });
 
+    it("offers every fraction on a whole number of columns", () => {
+        const { widthOptions } = make().api;
+
+        expect(widthOptions.value.map((o) => o.value)).toEqual([
+            12, 16, 24, 32, 36, 48,
+        ]);
+    });
+
+    it("names widths the snap can always reach", () => {
+        // Every fraction is a multiple of four, so `clampToSnap` leaves them
+        // alone at the coarsest step as well as the finest. Were one not, a
+        // fraction would silently land somewhere else and the button would be
+        // lying about what it does.
+        const { layout, api } = make();
+
+        for (const step of [4, 2, 1]) {
+            layout.value.snap = step;
+
+            for (const option of api.widthOptions.value) {
+                api.addZone("text");
+                const index = layout.value.zones.length - 1;
+                api.zoneFields(index).width.value = option.value;
+
+                expect(
+                    layout.value.zones[index].span.lg,
+                    `${option.label} on step ${step}`,
+                ).toBe(option.value);
+            }
+        }
+    });
+
+    it("starts a zone at its own proportions", () => {
+        const { layout, api } = make();
+
+        api.addZone("media");
+
+        expect(layout.value.zones[0].ratio).toBe("natural");
+    });
+
+    it("treats the crop as arrangement, not content", () => {
+        // How a picture is cropped is design, written once — the same argument
+        // that puts the span on the post rather than on the translation.
+        const { layout, content, api } = make();
+
+        api.addZone("media");
+        api.zoneFields(0).ratio.value = "1x1";
+
+        expect(layout.value.zones[0].ratio).toBe("1x1");
+        expect(
+            content.value.zones[layout.value.zones[0].id],
+        ).not.toHaveProperty("ratio");
+    });
+
+    it("offers every shape the normaliser accepts", () => {
+        expect(make().api.ratioOptions.value.map((o) => o.value)).toEqual([
+            "natural",
+            "16x9",
+            "4x3",
+            "1x1",
+            "3x4",
+        ]);
+    });
+
     it("offers the three steps and the four zone types", () => {
         const { snapOptions, typeOptions } = make().api;
 
@@ -238,6 +370,65 @@ describe("usePostGrid", () => {
             "media",
             "post",
             "video",
+        ]);
+    });
+});
+
+describe("placeZones", () => {
+    const place = (...widths) =>
+        placeZones(widths.map((lg) => ({ span: { base: 48, md: null, lg } })));
+
+    it("lays a row out left to right", () => {
+        expect(place(24, 16, 8)).toEqual([
+            { row: 0, start: 0 },
+            { row: 0, start: 24 },
+            { row: 0, start: 40 },
+        ]);
+    });
+
+    it("starts a new row for a zone that does not fit in what is left", () => {
+        expect(place(32, 32)).toEqual([
+            { row: 0, start: 0 },
+            { row: 1, start: 0 },
+        ]);
+    });
+
+    it("never backfills the gap a wrap leaves behind", () => {
+        // A grid with `dense` would slot the 16 into the 16 columns left on row
+        // zero. `.aurora-grid` does not set it, so the browser carries on where
+        // the cursor is — and this arithmetic has to agree, or the canvas draws
+        // one layout while the page renders another.
+        expect(place(32, 32, 16)).toEqual([
+            { row: 0, start: 0 },
+            { row: 1, start: 0 },
+            { row: 1, start: 32 },
+        ]);
+    });
+
+    it("fills a row exactly without spilling to the next", () => {
+        expect(place(24, 24, 24)).toEqual([
+            { row: 0, start: 0 },
+            { row: 0, start: 24 },
+            { row: 1, start: 0 },
+        ]);
+    });
+
+    it("reads the large-screen width, not the one a phone gets", () => {
+        const zones = [
+            { span: { base: 48, md: null, lg: 24 } },
+            { span: { base: 48, md: null, lg: 24 } },
+        ];
+
+        expect(placeZones(zones)).toEqual([
+            { row: 0, start: 0 },
+            { row: 0, start: 24 },
+        ]);
+    });
+
+    it("treats a zone with no width of its own as full width", () => {
+        expect(placeZones([{}, {}])).toEqual([
+            { row: 0, start: 0 },
+            { row: 1, start: 0 },
         ]);
     });
 });

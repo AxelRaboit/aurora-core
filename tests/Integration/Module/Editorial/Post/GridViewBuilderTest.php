@@ -62,6 +62,41 @@ final class GridViewBuilderTest extends IntegrationTestCase
      * Blocks are the one part written raw, so this is where the sanitiser has
      * to run — the same path the plain block column takes.
      */
+    /**
+     * A declaration rather than a Tailwind class, for the reason spans are
+     * custom properties: `aspect-square` and `aspect-[3/4]` appear in no source
+     * Tailwind reads, so choosing them in PHP would emit nothing and the crop
+     * would silently not happen.
+     */
+    public function testACroppedZoneCarriesItsShapeAsACssDeclaration(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            [
+                'enabled' => true,
+                'zones' => [['id' => 'z1', 'type' => 'media', 'ratio' => '1x1']],
+            ],
+            [],
+            'fr',
+        );
+
+        self::assertSame('aspect-ratio: 1 / 1;', $grid['zones'][0]['ratioStyle']);
+    }
+
+    /**
+     * Empty rather than `aspect-ratio: auto`, so the template can test it and
+     * a picture that was published uncropped stays byte-for-byte uncropped.
+     */
+    public function testAZoneAtItsOwnProportionsEmitsNoShapeAtAll(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'media']]],
+            [],
+            'fr',
+        );
+
+        self::assertSame('', $grid['zones'][0]['ratioStyle']);
+    }
+
     public function testTextGoesThroughTheBlockSanitiser(): void
     {
         $grid = $this->gridViewBuilder->buildForEditor(

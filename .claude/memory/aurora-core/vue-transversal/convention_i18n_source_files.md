@@ -62,6 +62,22 @@ C'est ce second niveau qui permet `Configuration/Setting/` ou `Platform/Auth/`.
 make translation   # régénère src/Core/assets/locales/generated/{fr,en}.json
 ```
 
+**Aucun test ne rattrape l'oubli de `make translation`, par construction.**
+`TranslationConsistencyTest` valide la parité FR/EN **des YAML**, et
+`VueTranslationKeyTest` lit délibérément les YAML plutôt que le catalogue
+généré — c'est écrit dans son en-tête, pour qu'il tienne que le dump ait été
+lancé ou non. Résultat : une clé ajoutée en YAML mais pas dumpée passe
+`make ft` en entier, passe le build Vite, et ne se voit **qu'à l'écran**, sous
+la forme de `backend.posts.grid.canvas` affiché tel quel.
+
+Le catalogue généré est gitignoré : un `git status` propre ne prouve donc rien
+non plus. Le seul contrôle fiable est de regarder la page — ou de vérifier la
+clé directement :
+
+```bash
+node -e 'console.log(require("./src/Core/assets/locales/generated/fr.json").backend.posts.grid.canvas)'
+```
+
 ## Where does a key go?
 
 - `backend.parameters.*` → `src/Module/Configuration/Setting/translations/`

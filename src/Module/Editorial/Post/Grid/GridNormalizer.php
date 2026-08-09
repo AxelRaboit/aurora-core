@@ -40,7 +40,7 @@ use Aurora\Core\Content\ContentValueNormalizer;
  * they are sanitised at render, like `blocks` always has been. Everything else
  * is whitelisted on the way in.
  *
- * @phpstan-type GridZone array{id: string, type: string, span: array<string, int|null>, mediaId: ?int, postId: ?int}
+ * @phpstan-type GridZone array{id: string, type: string, span: array<string, int|null>, ratio: string, mediaId: ?int, postId: ?int}
  * @phpstan-type GridZoneContent array{blocks: list<mixed>, alt: string, caption: string, url: ?string}
  */
 final readonly class GridNormalizer
@@ -66,6 +66,26 @@ final readonly class GridNormalizer
      * stored rather than assumed.
      */
     public const array SNAPS = [4, 2, 1];
+
+    /** A picture at its own proportions, and what every zone starts as. */
+    public const string RATIO_NATURAL = 'natural';
+
+    /**
+     * The shape a media zone is cropped to.
+     *
+     * This is the one vertical control the grid offers, and deliberately the
+     * only one. A free height means `grid-row` spans over a fixed row height —
+     * a real 2D grid, with empty cells to arbitrate and no sensible answer for
+     * a phone. It also produces, on any screen other than the one the page was
+     * drawn on, either clipped text or a band of nothing.
+     *
+     * A ratio covers what "resize vertically" is actually wanted for — two
+     * images that line up, a row of even cards — and survives the phone, where
+     * a 16:9 picture is simply a picture.
+     *
+     * `natural` first: the default has to be the behaviour already published.
+     */
+    public const array RATIOS = [self::RATIO_NATURAL, '16x9', '4x3', '1x1', '3x4'];
 
     /**
      * A page is not a feed. High enough that nobody meets it while laying out
@@ -196,6 +216,9 @@ final readonly class GridNormalizer
                 'id' => $id,
                 'type' => $type,
                 'span' => $this->values->span($entry['span'] ?? null),
+                // Shared, like the span: how a picture is cropped is design,
+                // and the design is written once for every language.
+                'ratio' => $this->values->oneOf($entry['ratio'] ?? null, self::RATIOS, self::RATIO_NATURAL),
                 'mediaId' => $this->values->id($entry['mediaId'] ?? null),
                 'postId' => $this->values->id($entry['postId'] ?? null),
             ];

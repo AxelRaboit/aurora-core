@@ -14,7 +14,7 @@ import { useI18n } from "vue-i18n";
  * template: `v-model` on a prop's property is a mutation ESLint rightly
  * refuses, and the write belongs next to the mapping it goes through.
  */
-const COLUMNS = 48;
+export const COLUMNS = 48;
 const MAX_ZONES = 60;
 
 /** Mirrors GridNormalizer::SNAPS — four is twelfths, the usual way to talk about a layout. */
@@ -22,8 +22,75 @@ export const SNAPS = [4, 2, 1];
 
 export const ZONE_TYPES = ["text", "media", "post", "video"];
 
+/**
+ * Mirrors GridNormalizer::RATIOS — the shape a media zone is cropped to, and
+ * the only vertical control the grid offers. `natural` is what every zone
+ * starts as, because the default has to be what is already published.
+ */
+export const ZONE_RATIOS = ["natural", "16x9", "4x3", "1x1", "3x4"];
+
+/**
+ * The widths an author actually draws with, named the way they think of them.
+ *
+ * "24 of 48 columns" is a coordinate; "a half" is a thought. Every one of these
+ * lands on a whole number of columns because 48 is 4 × 12 — and, as it happens,
+ * every one is a multiple of four, so they survive `clampToSnap` at any step.
+ * The snap and the fractions never disagree.
+ *
+ * Sixths (8 and 40) are arithmetically just as clean and are deliberately left
+ * out: nobody lays a page out in fifths of anything, and this row is meant to be
+ * easy to aim at. They stay reachable through the precise slider.
+ *
+ * Ordered by width, so the arrow that widens a zone here is the same direction
+ * as the handle that widens it on the canvas.
+ */
+export const WIDTH_FRACTIONS = [
+    { columns: 12, label: "1/4", name: "quarter" },
+    { columns: 16, label: "1/3", name: "third" },
+    { columns: 24, label: "1/2", name: "half" },
+    { columns: 32, label: "2/3", name: "two_thirds" },
+    { columns: 36, label: "3/4", name: "three_quarters" },
+    { columns: 48, label: "1/1", name: "full" },
+];
+
 function writable(get, set) {
     return computed({ get, set });
+}
+
+/**
+ * Where each zone lands once the grid has wrapped: which row, and which column
+ * it starts on.
+ *
+ * This is arithmetic rather than measurement because it can be. `.aurora-grid`
+ * places items with the default `grid-auto-flow: row` — no `dense` — so an item
+ * that does not fit in what is left of a row starts the next one at column
+ * zero, and nothing ever backfills the gap behind it. That is exactly the loop
+ * below, so the answer matches what the browser will do without reading a
+ * single rect.
+ *
+ * Widths are read from `span.lg`: the large-screen arrangement is the one an
+ * author sets, and `span.base` is 48 for every zone.
+ *
+ * @param {Array<{span?: {lg?: number}}>} zones
+ * @return {Array<{row: number, start: number}>} one entry per zone, in order
+ */
+export function placeZones(zones) {
+    let row = 0;
+    let used = 0;
+
+    return zones.map((zone) => {
+        const span = Math.min(COLUMNS, Math.max(1, zone?.span?.lg ?? COLUMNS));
+
+        if (used + span > COLUMNS) {
+            row += 1;
+            used = 0;
+        }
+
+        const start = used;
+        used += span;
+
+        return { row, start };
+    });
 }
 
 /**
@@ -48,6 +115,7 @@ function newZone(type) {
         // Full width on a phone, half on a large screen. A zone alone on its
         // row still fills it, because the grid has nothing to put beside it.
         span: { base: COLUMNS, md: null, lg: 24 },
+        ratio: "natural",
         mediaId: null,
         media: null,
         postId: null,
@@ -93,6 +161,23 @@ export function usePostGrid(layout, content) {
         })),
     );
 
+    const ratioOptions = computed(() =>
+        ZONE_RATIOS.map((ratio) => ({
+            value: ratio,
+            label: t(`backend.posts.grid.ratios.${ratio}`),
+        })),
+    );
+
+    // The figures are the same in every language, so they stay literal; the
+    // spelt-out name rides along as the tooltip.
+    const widthOptions = computed(() =>
+        WIDTH_FRACTIONS.map((fraction) => ({
+            value: fraction.columns,
+            label: fraction.label,
+            title: t(`backend.posts.grid.fractions.${fraction.name}`),
+        })),
+    );
+
     function addZone(type) {
         if (!canAddZone.value) {
             return;
@@ -115,9 +200,31 @@ export function usePostGrid(layout, content) {
     }
 
     /**
-     * Up/down rather than drag: zones flow, so moving one is reordering it,
-     * and the rest of the backend reorders this way. A drag target on a grid
-     * whose rows re-flow as you drag is a harder thing to aim at than it looks.
+     * Exchange two zones' places in the order.
+     *
+     * A swap rather than a move-to-position, because that is the gesture the
+     * canvas offers: a zone is dropped **on** another one. Dropping *between*
+     * two zones would be the more expressive move and is much harder to aim
+     * at — the rows re-flow as the widths shift, so the gap being aimed for
+     * moves while it is being aimed at. A box is a target that stays still.
+     *
+     * Content follows without being touched: it is keyed by zone id, and the
+     * ids travel with the zones.
+     */
+    function swapZones(a, b) {
+        const list = layout.value.zones;
+
+        if (a === b || undefined === list[a] || undefined === list[b]) {
+            return;
+        }
+
+        [list[a], list[b]] = [list[b], list[a]];
+    }
+
+    /**
+     * Reordering by one step, which is what the up/down buttons do — and the
+     * path that works without a pointer, so it stays whatever the canvas
+     * offers.
      */
     function moveZone(index, offset) {
         const target = index + offset;
@@ -126,8 +233,7 @@ export function usePostGrid(layout, content) {
             return;
         }
 
-        const list = layout.value.zones;
-        [list[index], list[target]] = [list[target], list[index]];
+        swapZones(index, target);
     }
 
     // Built once per index and cached: the template calls zoneFields(index) on
@@ -174,6 +280,7 @@ export function usePostGrid(layout, content) {
                 // Shared — the arrangement.
                 type: shared("type"),
                 postId: shared("postId"),
+                ratio: shared("ratio"),
                 // The width control drives the large-screen span only. Below
                 // that a zone stays full width, which is what the stored
                 // `base` says and what reads best on a phone.
@@ -239,9 +346,12 @@ export function usePostGrid(layout, content) {
         snap,
         snapOptions,
         typeOptions,
+        widthOptions,
+        ratioOptions,
         addZone,
         removeZone,
         moveZone,
+        swapZones,
         zoneFields,
         widthLabel,
     };
