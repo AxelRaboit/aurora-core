@@ -233,6 +233,41 @@ faut un chemin discret et clavier — les fractions nommées de A, sur la zone
 sélectionnée. **A et E ne sont donc pas concurrentes : A est le chemin
 accessible de E.**
 
+### Redimensionner dans les quatre sens : ce que le modèle permet
+
+Question posée le 2026-08-09, et qui touche le modèle plus que l'interface. Une
+zone porte aujourd'hui `id, type, span, mediaId, postId` — **ni hauteur, ni
+ligne, ni colonne de départ**.
+
+**Gauche et droite : possible, mais les deux bords font la même chose.** Les
+zones s'enchaînent : une zone commence là où la précédente finit. Tirer son bord
+gauche ne peut donc que changer sa largeur, exactement comme le bord droit —
+alors que le geste laisse attendre un déplacement du point de départ. Un bord
+gauche véritablement indépendant suppose une colonne de départ explicite, donc
+le **placement absolu** : cellules vides possibles, collisions à arbitrer, et la
+question du téléphone qui devient difficile (que devient une disposition 2D sur
+une colonne ?). C'est le compromis noté au tout début du document, et il tient
+toujours : le placement libre s'ajoute, il ne se retire pas.
+
+**Haut et bas : n'existe pas du tout.** La hauteur d'une zone est celle de son
+contenu. La régler suppose soit des `grid-row: span N` avec une hauteur de ligne
+fixée — une vraie grille 2D, mêmes conséquences que ci-dessus — soit une hauteur
+minimale par zone.
+
+**Et il faut se demander si on la veut.** Imposer une hauteur à du contenu
+produit l'un ou l'autre : du texte coupé, ou du vide. La plupart des
+constructeurs de page qui l'offrent cassent sur un autre écran que celui où la
+page a été dessinée.
+
+**Le chemin intermédiaire, probablement le bon** : pas une hauteur libre, mais
+un **rapport d'image par zone** — 16:9, 4:3, carré, ou naturel. Ça couvre
+l'essentiel de ce à quoi sert « redimensionner en hauteur » (une image et une
+vidéo côte à côte qui s'alignent, une rangée de cartes régulière) sans introduire
+de modèle 2D. Une zone média a déjà `aspect-video` en dur dans les cartes ; le
+rendre réglable est une ligne dans le normaliseur et une classe littérale de
+plus dans le Twig — **littérale, pas assemblée** : Tailwind n'émet que ce qu'il
+lit.
+
 ### Ce que ça gagnera vraiment — et ce que ça ne réglera pas
 
 **Le gain est dans l'unité, pas dans le contrôle.** « 24 colonnes sur 48 » est
