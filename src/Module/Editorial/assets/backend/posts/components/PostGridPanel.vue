@@ -14,7 +14,7 @@
  * Presentation only: every field arrives as a writable computed, so nothing
  * here writes to a prop.
  */
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
@@ -106,7 +106,6 @@ const ZONE_ICONS = { text: FileText, media: Image, post: Newspaper, video: Film,
  * document does not have.
  */
 const selectedIndex = ref(null);
-const cardEls = ref([]);
 
 /** The canvas hands back an unrounded width; the one clamp lives downstream. */
 function resizeZone(index, columns) {
@@ -177,16 +176,15 @@ function moveSelectedAware(index, offset) {
     }
 }
 
-// Picking a zone on the canvas should bring its fields into view — the list is
-// long enough that the selected card is often below the fold.
-watch(selectedIndex, async (index) => {
-    if (null === index) {
-        return;
-    }
-
-    await nextTick();
-    cardEls.value[index]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-});
+// No scrolling to the selected card, deliberately.
+//
+// Picking a zone used to scroll its fields into view, which made sense while
+// every zone's card was on the page and the one you wanted was usually below
+// the fold. Only one card shows now and it sits directly under the canvas, so
+// there is nothing to go and find — and the scroll had become actively wrong:
+// resizing selects the zone under the handle, and dropping selects the zone
+// that moved, so both gestures ended by pulling the canvas off the screen just
+// as the author was looking at what they had done.
 </script>
 
 <template>
@@ -249,7 +247,6 @@ watch(selectedIndex, async (index) => {
                 v-for="(zone, index) in zones"
                 v-show="selectedIndex === index"
                 :key="zone.id"
-                :ref="(el) => (cardEls[index] = el)"
                 class="bg-surface-2/40 border border-accent rounded-lg p-4 space-y-4"
                 v-on:focusin="selectedIndex = index"
             >
