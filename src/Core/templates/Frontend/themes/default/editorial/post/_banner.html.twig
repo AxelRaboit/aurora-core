@@ -82,55 +82,75 @@
         <img src="{{ banner.logo.url }}" alt="{{ banner.logo.alt }}" class="absolute top-6 left-6 z-10 h-10 w-auto">
     {% endif %}
 
-    {# Row gap only. The column axis belongs to `.aurora-grid`, which spaces
-       items with padding: a column-gap here would be 47 gutters across the 48
-       tracks and push the last item out of the banner. #}
-    <div class="aurora-grid flex-1 gap-y-8 {{ contentBox[banner.width] }}">
-        {% for item in banner.items %}
-            <div style="{{ item.spanStyle|raw }}">
-                {% if item.type == 'text' %}
-                    <div class="flex h-full flex-col gap-3 {{ verticals[banner.verticalAlign] }} {{ alignments[item.align] }}">
-                        {% if item.title %}
-                            {# The first title carries the page's <h1>; the rest
-                               are paragraphs. A banner that replaces the header
-                               has to replace its heading too. #}
-                            {% set titleTag = loop.index0 == banner.headingIndex ? 'h1' : 'p' %}
-                            <{{ titleTag }}
-                                class="{{ titleSizes[item.titleSize] }} font-bold leading-tight"
-                                {% if item.titleColor %}style="color: {{ item.titleColor }};"{% endif %}
-                            >{{ item.title }}</{{ titleTag }}>
-                        {% endif %}
-                        {% if item.description %}
-                            <p class="text-base sm:text-lg max-w-prose"
-                               {% if item.descriptionColor %}style="color: {{ item.descriptionColor }};"{% endif %}
-                            >{{ item.description }}</p>
-                        {% endif %}
-                    </div>
-                {% elseif item.type == 'button' and item.label and item.url %}
-                    {# Both the label and a link that survived the whitelist are
-                       required: a button with neither is a dead control, and
-                       one with no destination is worse than absent. #}
-                    <div class="flex h-full flex-col gap-3 {{ verticals[banner.verticalAlign] }} {{ alignments[item.align] }}">
-                        <a
-                            href="{{ item.url }}"
-                            class="inline-flex items-center justify-center rounded-lg px-6 py-3 font-medium transition-opacity hover:opacity-90 no-underline"
-                            style="
-                                background-color: {{ item.buttonColor ?? '#ffffff' }};
-                                color: {{ item.buttonTextColor ?? '#0f172a' }};
-                            "
-                        >{{ item.label }}</a>
-                    </div>
-                {% elseif item.type == 'image' and item.media %}
-                    <div class="flex h-full items-center justify-center">
-                        <img
-                            src="{{ item.media.url }}"
-                            alt="{{ item.media.alt }}"
-                            class="max-h-full w-full rounded-lg object-cover"
-                            style="object-position: {{ item.media.focalPosition }};"
-                        >
-                    </div>
-                {% endif %}
-            </div>
-        {% endfor %}
+    {# The box and the grid are two elements, not one, and that is what makes
+       the alignment work.
+
+       `.aurora-grid` spaces its items with their own `padding-inline` — the
+       gutter — so the first item's content sits a gutter inside the grid box.
+       Against a page column that has no such gutter, that is a permanent
+       sixteen-pixel offset: `full_aligned` promised the page's own left edge
+       and missed it by exactly one gutter, every time.
+
+       `.aurora-grid-flush` pulls those two outer edges back, which is the
+       whole reason it exists — but it cannot share an element with `mx-auto`,
+       because a negative `margin-inline` cancels the centring. So the box
+       (`max-w-7xl mx-auto px-4`, or the full-bleed padding) goes on the
+       wrapper, and the grid goes inside it. The negative margin then works
+       against the wrapper's padding and leaves the centring alone.
+
+       This is what `_grid_zone`'s caller already does inside <main>, and why
+       the content grid lines up with the article while the banner did not. #}
+    <div class="flex flex-1 flex-col {{ contentBox[banner.width] }}">
+        {# Row gap only. The column axis belongs to `.aurora-grid`, which spaces
+           items with padding: a column-gap here would be 47 gutters across the
+           48 tracks and push the last item out of the banner. #}
+        <div class="aurora-grid aurora-grid-flush flex-1 gap-y-8">
+            {% for item in banner.items %}
+                <div style="{{ item.spanStyle|raw }}">
+                    {% if item.type == 'text' %}
+                        <div class="flex h-full flex-col gap-3 {{ verticals[banner.verticalAlign] }} {{ alignments[item.align] }}">
+                            {% if item.title %}
+                                {# The first title carries the page's <h1>; the rest
+                                   are paragraphs. A banner that replaces the header
+                                   has to replace its heading too. #}
+                                {% set titleTag = loop.index0 == banner.headingIndex ? 'h1' : 'p' %}
+                                <{{ titleTag }}
+                                    class="{{ titleSizes[item.titleSize] }} font-bold leading-tight"
+                                    {% if item.titleColor %}style="color: {{ item.titleColor }};"{% endif %}
+                                >{{ item.title }}</{{ titleTag }}>
+                            {% endif %}
+                            {% if item.description %}
+                                <p class="text-base sm:text-lg max-w-prose"
+                                   {% if item.descriptionColor %}style="color: {{ item.descriptionColor }};"{% endif %}
+                                >{{ item.description }}</p>
+                            {% endif %}
+                        </div>
+                    {% elseif item.type == 'button' and item.label and item.url %}
+                        {# Both the label and a link that survived the whitelist are
+                           required: a button with neither is a dead control, and
+                           one with no destination is worse than absent. #}
+                        <div class="flex h-full flex-col gap-3 {{ verticals[banner.verticalAlign] }} {{ alignments[item.align] }}">
+                            <a
+                                href="{{ item.url }}"
+                                class="inline-flex items-center justify-center rounded-lg px-6 py-3 font-medium transition-opacity hover:opacity-90 no-underline"
+                                style="
+                                    background-color: {{ item.buttonColor ?? '#ffffff' }};
+                                    color: {{ item.buttonTextColor ?? '#0f172a' }};
+                                "
+                            >{{ item.label }}</a>
+                        </div>
+                    {% elseif item.type == 'image' and item.media %}
+                        <div class="flex h-full items-center justify-center">
+                            <img
+                                src="{{ item.media.url }}"
+                                alt="{{ item.media.alt }}"
+                                class="max-h-full w-full rounded-lg object-cover"
+                                style="object-position: {{ item.media.focalPosition }};"
+                            >
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
     </div>
 </header>
