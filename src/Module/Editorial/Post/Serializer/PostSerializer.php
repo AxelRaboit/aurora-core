@@ -81,6 +81,10 @@ class PostSerializer implements PostSerializerInterface
             // is what the editor shows as "inherited".
             'thumbnailFocalX' => $post->getThumbnailFocalX(),
             'thumbnailFocalY' => $post->getThumbnailFocalY(),
+            // The *document's* own point, not the effective one: this is what
+            // the picker shows as "inherited", so it has to keep saying what
+            // clearing the override would fall back to.
+            'thumbnailFocalPosition' => $this->documentUrlGenerator->focalPositionCss($post->getThumbnail()),
             // Resolved on the way out, so a post saved before the banner
             // existed reaches the editor as a complete shape instead of an
             // empty array it would have to guard against — and so a picker can

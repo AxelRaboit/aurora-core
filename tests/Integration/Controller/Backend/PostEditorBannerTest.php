@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Controller\Backend;
 
+use Aurora\Module\Editorial\Post\Entity\Post;
+use Aurora\Module\Editorial\PostType\Entity\PostType;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 /**
@@ -47,6 +50,49 @@ final class PostEditorBannerTest extends IntegrationTestCase
         // quotes entity-encoded, and the literal route never appears.
         self::assertStringContainsString('bannerPreviewPath', $html);
         self::assertStringContainsString('banner-preview', $html);
+    }
+
+    /**
+     * The focal picker reads `thumbnailFocalPosition` to show what clearing an
+     * override falls back to. It bound to a key the serialiser never emitted,
+     * so the marker always claimed the centre — silently, because a missing
+     * key in a prop reads as a default rather than as an error.
+     */
+    public function testTheEditorReceivesEveryThumbnailControlItBindsTo(): void
+    {
+        $this->client->request('GET', sprintf('/backend/editorial/posts/%d/edit', $this->createPost()));
+
+        $html = (string) $this->client->getResponse()->getContent();
+
+        foreach ([
+            'thumbnailId',
+            'thumbnailUrl',
+            'thumbnailFit',
+            'thumbnailFocalX',
+            'thumbnailFocalY',
+            'thumbnailFocalPosition',
+        ] as $key) {
+            self::assertStringContainsString($key, $html, $key.' never reaches the editor');
+        }
+    }
+
+    /** The suite seeds no publications, so the edit page needs one of its own. */
+    private function createPost(): int
+    {
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $postType = new PostType();
+        $postType->setSlug('editor-props-'.bin2hex(random_bytes(4)));
+        $postType->setLabel('Editor props');
+
+        $post = new Post();
+        $post->setPostType($postType);
+
+        $entityManager->persist($postType);
+        $entityManager->persist($post);
+        $entityManager->flush();
+
+        return (int) $post->getId();
     }
 
     public function testThePreviewEndpointRendersAnUnsavedBanner(): void
