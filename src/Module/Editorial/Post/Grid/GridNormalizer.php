@@ -45,7 +45,7 @@ use Aurora\Core\Content\ContentValueNormalizer;
  * they are sanitised at render, like `blocks` always has been. Everything else
  * is whitelisted on the way in.
  *
- * @phpstan-type GridZone array{id: string, type: string, span: array<string, int|null>, offset: int, newRow: bool, ratio: string, scale: int, mediaId: ?int, mediaUrl: ?string, postId: ?int, children: list<mixed>}
+ * @phpstan-type GridZone array{id: string, type: string, span: array<string, int|null>, offset: int, newRow: bool, ratio: string, scale: int, align: string, mediaId: ?int, mediaUrl: ?string, postId: ?int, children: list<mixed>}
  * @phpstan-type GridZoneContent array{blocks: list<mixed>, alt: string, caption: string, url: ?string}
  */
 final readonly class GridNormalizer
@@ -139,6 +139,16 @@ final readonly class GridNormalizer
 
     /** Full width — a picture fills its zone unless told otherwise. */
     public const int SCALE_FULL = 100;
+
+    /**
+     * Which side a picture sits on once it is narrower than its zone.
+     *
+     * Only ever asked at less than full width, where the question exists at
+     * all: a picture filling its zone has no side to be on. Centre first,
+     * because that is what a smaller picture did before this was a choice, and
+     * the default has to be the behaviour already published.
+     */
+    public const array ALIGNMENTS = ['center', 'left', 'right'];
 
     /**
      * A page is not a feed. High enough that nobody meets it while laying out
@@ -323,6 +333,8 @@ final readonly class GridNormalizer
                 // Shared for the same reason the ratio is: how big a picture
                 // is printed is design, written once for every language.
                 'scale' => $this->scale($entry['scale'] ?? null),
+                // Shared with the size it depends on: both are design.
+                'align' => $this->values->oneOf($entry['align'] ?? null, self::ALIGNMENTS, self::ALIGNMENTS[0]),
                 'mediaId' => $this->values->id($entry['mediaId'] ?? null),
                 // An address, for a picture that is not in the library — a
                 // placeholder service while a page is being drafted, or an

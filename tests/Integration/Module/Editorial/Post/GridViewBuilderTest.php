@@ -279,8 +279,32 @@ final class GridViewBuilderTest extends IntegrationTestCase
             'fr',
         );
 
-        self::assertSame('width: 50%;', $grid['zones'][0]['scaleStyle']);
+        self::assertSame('width: 50%; margin-inline: auto;', $grid['zones'][0]['scaleStyle']);
         self::assertSame('', $grid['zones'][1]['scaleStyle'], 'nothing to say at full width');
+    }
+
+    /**
+     * The margin travels with the width because it only means anything
+     * alongside it: a picture filling its zone has no side to sit on.
+     */
+    public function testAPictureMayBePushedToOneSideOfItsZone(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            [
+                'enabled' => true,
+                'zones' => [
+                    ['id' => 'z1', 'type' => 'media', 'scale' => 50, 'align' => 'left'],
+                    ['id' => 'z2', 'type' => 'media', 'scale' => 50, 'align' => 'right'],
+                    ['id' => 'z3', 'type' => 'media', 'align' => 'left'],
+                ],
+            ],
+            [],
+            'fr',
+        );
+
+        self::assertSame('width: 50%; margin-inline: 0 auto;', $grid['zones'][0]['scaleStyle']);
+        self::assertSame('width: 50%; margin-inline: auto 0;', $grid['zones'][1]['scaleStyle']);
+        self::assertSame('', $grid['zones'][2]['scaleStyle'], 'a side means nothing at full width');
     }
 
     /**

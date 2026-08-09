@@ -145,7 +145,7 @@ final class GridNormalizerTest extends TestCase
         ])['zones'][0];
 
         self::assertSame(
-            ['id', 'type', 'span', 'offset', 'newRow', 'ratio', 'scale', 'mediaId', 'mediaUrl', 'postId', 'children'],
+            ['id', 'type', 'span', 'offset', 'newRow', 'ratio', 'scale', 'align', 'mediaId', 'mediaUrl', 'postId', 'children'],
             array_keys($zone),
             'switching a zone type in the editor must not lose what was picked',
         );
@@ -470,6 +470,19 @@ final class GridNormalizerTest extends TestCase
         foreach ($layout['zones'] as $zone) {
             self::assertSame(100, $zone['scale']);
         }
+    }
+
+    public function testAPictureMayBeToldWhichSideToSitOn(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'a1', 'type' => 'media', 'scale' => 50, 'align' => 'right'],
+                ['id' => 'a2', 'type' => 'media', 'scale' => 50, 'align' => 'sideways'],
+            ],
+        ]);
+
+        self::assertSame('right', $layout['zones'][0]['align']);
+        self::assertSame('center', $layout['zones'][1]['align'], 'what a smaller picture did before this was a choice');
     }
 
     // ── An address instead of a document ──────────────────────────────────

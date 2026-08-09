@@ -343,6 +343,11 @@ backend:
       scale_hint: "How much of the zone's width the picture takes. Proportions are kept, so an image at 50% is half as tall too. The zone itself does not move."
       scales:
         full: Full width
+      align: Alignment
+      alignments:
+        center: Centred
+        left: Left
+        right: Right
       ratio: Shape
       ratio_hint: "Crops the picture to this shape. “Natural” leaves it at its own proportions. “Fill” gives it whatever height is left in the stack: the other zones take theirs, this one takes the rest — which is what closes the gap under a short text."
       ratios:

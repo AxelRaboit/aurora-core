@@ -100,10 +100,18 @@ final readonly class GridViewBuilder
                 'ratioStyle' => $this->ratioStyle($zone['ratio']),
                 // Empty at full width, which is every zone that has not asked
                 // for anything — so a theme reading this puts no style on the
-                // figure at all unless there is something to say.
+                // figure at all unless there is something to say. The margin
+                // travels with the width because it only means anything
+                // alongside it: a picture filling its zone has no side to sit
+                // on, and emitting one would be answering a question nobody
+                // asked.
                 'scaleStyle' => GridNormalizer::SCALE_FULL === $zone['scale']
                     ? ''
-                    : sprintf('width: %d%%;', $zone['scale']),
+                    : sprintf(
+                        'width: %d%%; margin-inline: %s;',
+                        $zone['scale'],
+                        $this->marginFor($zone['align']),
+                    ),
                 // A stack's own children, resolved the same way. The
                 // recursion is bounded by the normaliser, which refuses a
                 // stack inside a stack — so this descends once and stops.
@@ -347,13 +355,28 @@ final readonly class GridViewBuilder
     }
 
     /**
-     * @return array<string, mixed>|null null whenever there is no picture to
-     *                                   draw, which the template reads as a
-     *                                   zone that renders nothing
+     * Which side a picture narrower than its zone sits on.
+     *
+     * `margin-inline` rather than a class, for the reason the width beside it
+     * is a declaration: both are values chosen at runtime, and Tailwind only
+     * emits classes it can read in the source.
      */
+    private function marginFor(string $align): string
+    {
+        return match ($align) {
+            'left' => '0 auto',
+            'right' => 'auto 0',
+            default => 'auto',
+        };
+    }
+
     /**
      * @param ?string $url an address standing in for a document, used only when
      *                     no document is picked
+     *
+     * @return array<string, mixed>|null null whenever there is no picture to
+     *                                   draw, which the template reads as a
+     *                                   zone that renders nothing
      */
     private function mediaData(?DocumentInterface $media, string $alt, ?string $url = null): ?array
     {

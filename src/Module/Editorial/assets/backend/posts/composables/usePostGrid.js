@@ -49,6 +49,13 @@ export const ZONE_RATIOS = ["natural", "16x9", "4x3", "1x1", "3x4", "fill"];
 export const ZONE_SCALES = [25, 33, 50, 66, 75, 100];
 
 /**
+ * Mirrors GridNormalizer::ALIGNMENTS — which side a picture sits on once it is
+ * narrower than its zone. Centre first: it is what a smaller picture did before
+ * this was a choice, and the default has to be the behaviour already published.
+ */
+export const ZONE_ALIGNMENTS = ["center", "left", "right"];
+
+/**
  * The widths an author actually draws with, named the way they think of them.
  *
  * "24 of 48 columns" is a coordinate; "a half" is a thought. Every one of these
@@ -233,6 +240,7 @@ function newZone(type) {
         newRow: false,
         ratio: "natural",
         scale: 100,
+        align: "center",
         mediaId: null,
         media: null,
         mediaUrl: "",
@@ -317,6 +325,13 @@ export function usePostGrid(layout, content) {
                 100 === scale
                     ? t("backend.posts.grid.scales.full")
                     : `${scale} %`,
+        })),
+    );
+
+    const alignOptions = computed(() =>
+        ZONE_ALIGNMENTS.map((align) => ({
+            value: align,
+            label: t(`backend.posts.grid.alignments.${align}`),
         })),
     );
 
@@ -829,6 +844,7 @@ export function usePostGrid(layout, content) {
                 postId: shared("postId"),
                 ratio: shared("ratio"),
                 scale: shared("scale"),
+                align: shared("align"),
                 mediaUrl: shared("mediaUrl"),
                 // The width control drives the large-screen span only. Below
                 // that a zone stays full width, which is what the stored
@@ -944,6 +960,7 @@ export function usePostGrid(layout, content) {
         shareOptions,
         ratioOptions,
         scaleOptions,
+        alignOptions,
         childrenOf,
         canAddChild,
         addChild,

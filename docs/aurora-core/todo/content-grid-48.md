@@ -70,7 +70,7 @@ arbitrage neuf.
 | Partagé — sur le post | Par langue — sur la traduction |
 |---|---|
 | id de zone, **type**, span, ordre | blocs de texte |
-| `mediaId`, `mediaUrl`, `ratio`, `scale` | `alt`, `caption` |
+| `mediaId`, `mediaUrl`, `ratio`, `scale`, `align` | `alt`, `caption` |
 | `postId` de la publication liée | URL vidéo |
 
 Chaque côté se justifie. Une zone qui serait du texte en français et une vidéo
@@ -96,8 +96,12 @@ choix d'un rapport plutôt que d'une hauteur avait déjà écarté.
 
 Rétrécir la zone ferait aussi l'affaire et fait autre chose : ça déplace les
 voisines. `scale` laisse la zone où elle est et ne change que ce qui la remplit.
-La figure est centrée et la légende prend la largeur de l'image, pas celle de la
-colonne.
+`align` va avec : une fois l'image plus étroite que sa zone, elle peut se caler
+à gauche, à droite ou rester centrée — centrée par défaut, puisque c'est ce
+qu'une image réduite faisait avant que ce soit un choix. La marge n'est émise
+qu'avec la largeur, parce qu'elle ne veut rien dire sans elle : une image qui
+remplit sa zone n'a pas de côté. La légende suit la figure, donc elle prend la
+largeur de l'image et son côté, pas ceux de la colonne.
 
 **Les zones s'enchaînent**, elles ne sont pas posées en coordonnées.
 Redimensionner change un span, déplacer réordonne. Pas de cellule vide à gérer,

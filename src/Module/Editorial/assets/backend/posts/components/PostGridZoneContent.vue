@@ -32,6 +32,8 @@ const props = defineProps({
     ratioOptions: { type: Array, default: () => [] },
     /** How much of its zone's width a picture may take. */
     scaleOptions: { type: Array, default: () => [] },
+    /** Which side it sits on once it takes less than all of it. */
+    alignOptions: { type: Array, default: () => [] },
 });
 
 const { t } = useI18n();
@@ -103,6 +105,16 @@ const publicationOptions = computed(() =>
                 :label="t('backend.posts.grid.scale')"
                 :hint="t('backend.posts.grid.scale_hint')"
                 :options="scaleOptions"
+            />
+            <!-- Only once the picture is narrower than its zone, which is the
+                 only time the question exists: one filling its zone has no side
+                 to be on, and offering the choice there would be offering three
+                 buttons that all do nothing. -->
+            <AppChoiceRow
+                v-if="bound.scale.value !== 100"
+                v-model="bound.align.value"
+                :label="t('backend.posts.grid.align')"
+                :options="alignOptions"
             />
             <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
                 <p class="text-xs uppercase tracking-wide text-muted">
