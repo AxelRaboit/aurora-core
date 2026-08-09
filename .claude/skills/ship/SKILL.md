@@ -185,6 +185,13 @@ silently — tell the user it is pending and let them decide when:
 
 The consumer list lives in `docs/aurora-core/dev/propagating_updates.md`.
 
+**`propagate` does all four.** Hand off to it rather than running them from
+here — it refuses to start on a CI that is red or still running, names the
+migrations the range carries *before* `make aurora-update` migrates on its
+own, and waits for the consumer's pipeline before calling the job done. This
+step stays a reminder that the propagation is owed; that skill is where it
+gets paid.
+
 ## Recovery — PR wanted after committing to develop
 
 Only if step 2 was answered too late. Moves the branch pointers; leaves the

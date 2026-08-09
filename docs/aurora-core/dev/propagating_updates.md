@@ -122,6 +122,21 @@ Un garde-fou (`_no-recent-aurora-update`) refuse `pull-update` juste après un
 
 ---
 
+## Le skill
+
+`propagate` (`.claude/skills/propagate/`) est la forme exécutable de cette
+page. Il ajoute deux refus que la checklist ci-dessous laisse à la vigilance :
+
+- il ne démarre pas si la CI d'aurora-core est rouge **ou encore en cours** —
+  bumper sur un sha non validé propage du rouge chez le consommateur, où il
+  aura l'air d'être de sa faute ;
+- il énonce les migrations du range **avant** de lancer `make aurora-update`,
+  qui les applique tout seul via `migrate-f`.
+
+Ce document reste la référence : la liste des consommateurs se tient ici.
+
+---
+
 ## Checklist (copier à chaque propagation)
 
 - [ ] `git push origin develop` (aurora-core)
