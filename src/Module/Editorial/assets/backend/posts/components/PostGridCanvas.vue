@@ -298,20 +298,33 @@ function onKeydown(index, event) {
                                 alt=""
                                 class="absolute inset-0 h-full w-full rounded-md object-cover opacity-70"
                             >
-                            <component
-                                :is="ZONE_ICONS[zone.type]"
-                                class="relative w-4 h-4 shrink-0 text-secondary"
-                                :stroke-width="2"
-                            />
-                            <!-- Hidden under about a sixth, where it would be one
-                             clipped letter pretending to be a word. -->
-                            <span
-                                v-if="widthOf(index) >= 8"
-                                class="relative line-clamp-2 text-xs text-primary"
-                            >{{ labelOf(zone) }}</span>
-                            <span class="relative text-[10px] text-muted tabular-nums">
-                                {{ widthOf(index) }}/{{ COLUMNS }}
-                            </span>
+                            <!-- On a zone carrying a picture the label needs a
+                                 plate of its own. Laid straight over the image
+                                 it was unreadable — the column count in
+                                 `text-muted` disappeared entirely against a
+                                 photo, which is the one part of the box that
+                                 has to stay legible. Only where there is an
+                                 image: on a plain box the plate would be a
+                                 rectangle around nothing. -->
+                            <div
+                                class="relative flex flex-col items-center gap-1"
+                                :class="imageOf(zone) ? 'rounded-md bg-surface/90 px-2 py-1' : ''"
+                            >
+                                <component
+                                    :is="ZONE_ICONS[zone.type]"
+                                    class="w-4 h-4 shrink-0 text-secondary"
+                                    :stroke-width="2"
+                                />
+                                <!-- Hidden under about a sixth, where it would be
+                                     one clipped letter pretending to be a word. -->
+                                <span
+                                    v-if="widthOf(index) >= 8"
+                                    class="line-clamp-2 text-xs text-primary"
+                                >{{ labelOf(zone) }}</span>
+                                <span class="text-[10px] text-muted tabular-nums">
+                                    {{ widthOf(index) }}/{{ COLUMNS }}
+                                </span>
+                            </div>
                         </button>
 
                         <!-- Sits inside the item's padding, so it lands on the box
