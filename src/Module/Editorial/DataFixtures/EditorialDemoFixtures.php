@@ -89,6 +89,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         // After the flush on purpose: a grid points at a publication and a
         // document by *id*, and neither has one before it is written.
         $this->layOutWelcomePage($posts);
+        $this->layOutFirstStepsArticle($posts);
 
         $this->fillPrimaryMenu($manager, $posts);
 
@@ -182,6 +183,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $defs = [
             'welcome' => [
                 'type' => $page,
+                'media' => 0,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-30 days'),
                 'terms' => [],
@@ -190,6 +192,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ],
             'first-steps' => [
                 'type' => $article,
+                'media' => 3,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-12 days'),
                 'terms' => ['starters', 'editorial'],
@@ -198,6 +201,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ],
             'blocks' => [
                 'type' => $article,
+                'media' => 2,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-3 days'),
                 'terms' => ['guides'],
@@ -206,6 +210,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ],
             'roadmap' => [
                 'type' => $article,
+                'media' => 1,
                 'status' => PostStatusEnum::Draft,
                 'publishedAt' => null,
                 'terms' => ['release'],
@@ -214,6 +219,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ],
             'announcement' => [
                 'type' => $article,
+                'media' => 0,
                 'status' => PostStatusEnum::Scheduled,
                 'publishedAt' => null,
                 'scheduledAt' => $now->modify('+7 days'),
@@ -232,6 +238,10 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             $post = new Post()
                 ->setPostType($def['type'])
                 ->setAuthor($author)
+                // Every card in every listing was drawn without a picture:
+                // nothing set one, so the demo showed the layout for a post
+                // that has none and never the one it has.
+                ->setFeaturedMedia($this->getReference(GedDemoFixtures::mediaRef($def['media']), Document::class))
                 ->setStatus($def['status'])
                 ->setPublishedAt($def['publishedAt'])
                 ->setScheduledAt($def['scheduledAt'] ?? null)
@@ -341,6 +351,76 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                     'outro' => ['blocks' => $content[$locale]['outro']],
                 ],
             ], $welcome->getGridLayout()));
+
+            $this->indexForSearch($translation);
+        }
+    }
+
+    /**
+     * The article the welcome page links to gets a grid of its own, arranged
+     * differently: a picture at a third beside its explanation at two thirds,
+     * then two cards sharing a row — a "read next" strip, which is the shape
+     * the linked-publication zone was added for.
+     *
+     * Different on purpose. Two demo pages laid out identically show one
+     * arrangement twice and teach that the grid has a house style.
+     *
+     * @param array<string, PostInterface> $posts
+     */
+    private function layOutFirstStepsArticle(array $posts): void
+    {
+        $article = $posts['first-steps'];
+        $shot = $this->getReference(GedDemoFixtures::mediaRef(3), Document::class);
+
+        $article->setGridLayout($this->gridNormalizer->normalizeLayout([
+            'enabled' => true,
+            'snap' => 4,
+            'zones' => [
+                ['id' => 'lede', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48]],
+                ['id' => 'shot', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 16], 'mediaId' => $shot->getId()],
+                ['id' => 'explain', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 32]],
+                ['id' => 'next-blocks', 'type' => GridNormalizer::ZONE_POST, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'postId' => $posts['blocks']->getId()],
+                ['id' => 'next-welcome', 'type' => GridNormalizer::ZONE_POST, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'postId' => $posts['welcome']->getId()],
+            ],
+        ]));
+
+        $content = [
+            'fr' => [
+                'lede' => [
+                    EditorBlocks::header('Du brouillon à la mise en ligne'),
+                    EditorBlocks::paragraph('Un article se compose de la même façon qu\'une page : des zones, une largeur chacune, et du contenu de nature différente dans chacune.'),
+                ],
+                'explain' => [
+                    EditorBlocks::header('Une image au tiers, le texte aux deux tiers', 3),
+                    EditorBlocks::paragraph('16 colonnes sur 48 pour la photo, 32 pour ce paragraphe. La page d\'accueil utilise l\'inverse — rien n\'impose une seule façon de découper une ligne.'),
+                    EditorBlocks::list(['Ajoutez une zone', 'Réglez sa largeur au curseur', 'Remplissez-la']),
+                ],
+                'shot' => ['alt' => 'Un poste de travail', 'caption' => 'Une photo au tiers de la largeur.'],
+            ],
+            'en' => [
+                'lede' => [
+                    EditorBlocks::header('From draft to published'),
+                    EditorBlocks::paragraph('An article is composed the same way a page is: zones, a width each, and content of a different kind in every one.'),
+                ],
+                'explain' => [
+                    EditorBlocks::header('A picture at a third, the text at two thirds', 3),
+                    EditorBlocks::paragraph('16 of 48 columns for the photo, 32 for this paragraph. The welcome page uses the reverse — nothing forces one way of splitting a row.'),
+                    EditorBlocks::list(['Add a zone', 'Set its width with the slider', 'Fill it']),
+                ],
+                'shot' => ['alt' => 'A workstation', 'caption' => 'A photo at a third of the width.'],
+            ],
+        ];
+
+        foreach (['fr', 'en'] as $locale) {
+            $translation = $article->translate($locale);
+
+            $translation->setGrid($this->gridNormalizer->normalizeContent([
+                'zones' => [
+                    'lede' => ['blocks' => $content[$locale]['lede']],
+                    'shot' => $content[$locale]['shot'],
+                    'explain' => ['blocks' => $content[$locale]['explain']],
+                ],
+            ], $article->getGridLayout()));
 
             $this->indexForSearch($translation);
         }
