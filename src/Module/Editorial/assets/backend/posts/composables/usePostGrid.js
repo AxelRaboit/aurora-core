@@ -20,7 +20,18 @@ const MAX_ZONES = 60;
 /** Mirrors GridNormalizer::SNAPS — four is twelfths, the usual way to talk about a layout. */
 export const SNAPS = [4, 2, 1];
 
-export const ZONE_TYPES = ["text", "media", "post", "video"];
+/** What a zone may be inside a stack, where nesting stops. */
+export const LEAF_ZONE_TYPES = ["text", "media", "post", "video"];
+
+/** Mirrors GridNormalizer::ZONE_TYPES — a stack is top level only. */
+export const ZONE_TYPES = [...LEAF_ZONE_TYPES, "stack"];
+
+/**
+ * How many zones a stack may hold. Mirrors GridNormalizer::MAX_STACK_CHILDREN:
+ * a stack splits one cell in two or three, and six zones sharing a row's height
+ * are six slivers.
+ */
+const MAX_STACK_CHILDREN = 6;
 
 /**
  * Mirrors GridNormalizer::RATIOS — the shape a media zone is cropped to, and
@@ -119,7 +130,31 @@ function newZone(type) {
         mediaId: null,
         media: null,
         postId: null,
+        // Empty on every zone, filled only by a stack — the same reason every
+        // other key is always present: switching a type back and forth in the
+        // editor must not lose what was picked.
+        children: [],
     };
+}
+
+/**
+ * Give every zone of a stack an equal share, summing to 48.
+ *
+ * `flex-grow` is relative, so equal values would already split evenly whatever
+ * they are. Making them sum to 48 is for the author, not the browser: it is
+ * what lets the fraction row say the truth — with three children at 16, "1/3"
+ * really is a third of the height.
+ */
+function shareEvenly(children) {
+    if (0 === children.length) {
+        return;
+    }
+
+    const each = Math.max(1, Math.round(COLUMNS / children.length));
+
+    for (const child of children) {
+        child.span.lg = each;
+    }
 }
 
 /** The four per-language fields, as a translation starts with them. */
@@ -154,18 +189,36 @@ export function usePostGrid(layout, content) {
         })),
     );
 
-    const typeOptions = computed(() =>
-        ZONE_TYPES.map((type) => ({
+    const typeOptions = computed(() => typeChoices(ZONE_TYPES));
+
+    // A zone inside a stack cannot become a stack: depth stops at one, and the
+    // normaliser would drop it rather than nest it.
+    const leafTypeOptions = computed(() => typeChoices(LEAF_ZONE_TYPES));
+
+    function typeChoices(types) {
+        return types.map((type) => ({
             value: type,
             label: t(`backend.posts.grid.zone_types.${type}`),
-        })),
-    );
+        }));
+    }
 
     const ratioOptions = computed(() =>
         ZONE_RATIOS.map((ratio) => ({
             value: ratio,
             label: t(`backend.posts.grid.ratios.${ratio}`),
         })),
+    );
+
+    /**
+     * The same fractions, less "the whole thing".
+     *
+     * A zone of a stack shares its height with the others by definition, so
+     * offering it the full height offers a contradiction: the rebalance would
+     * have to leave the others a sliver, and the button would promise something
+     * the page cannot show. Three quarters is the most one zone may claim.
+     */
+    const shareOptions = computed(() =>
+        widthOptions.value.filter((option) => option.value !== COLUMNS),
     );
 
     // The figures are the same in every language, so they stay literal; the
@@ -189,6 +242,126 @@ export function usePostGrid(layout, content) {
         // normalises their content against the layout — an empty zone is what
         // an untranslated one means.
         content.value.zones[zone.id] = newZoneContent();
+    }
+
+    /**
+     * The zones a stack holds, or an empty list for anything else — so a caller
+     * can ask any zone without first checking what it is.
+     */
+    function childrenOf(index) {
+        return layout.value.zones[index]?.children ?? [];
+    }
+
+    function canAddChild(index) {
+        return childrenOf(index).length < MAX_STACK_CHILDREN;
+    }
+
+    /**
+     * Adding re-shares the height evenly across the stack. An author who has
+     * set proportions deliberately will set them again; one who has not gets
+     * halves, then thirds, which is what "add another" is expected to mean.
+     */
+    function addChild(index, type) {
+        const zone = layout.value.zones[index];
+
+        if (undefined === zone || !canAddChild(index)) {
+            return;
+        }
+
+        const child = newZone(type);
+        zone.children.push(child);
+        shareEvenly(zone.children);
+        content.value.zones[child.id] = newZoneContent();
+    }
+
+    function removeChild(index, childIndex) {
+        const zone = layout.value.zones[index];
+        const [removed] = zone?.children?.splice(childIndex, 1) ?? [];
+
+        if (removed) {
+            delete content.value.zones[removed.id];
+            shareEvenly(zone.children);
+        }
+    }
+
+    function moveChild(index, childIndex, offset) {
+        const list = layout.value.zones[index]?.children ?? [];
+        const target = childIndex + offset;
+
+        if (target < 0 || target >= list.length) {
+            return;
+        }
+
+        [list[childIndex], list[target]] = [list[target], list[childIndex]];
+    }
+
+    /**
+     * What a zone of a stack really gets, as a percentage.
+     *
+     * The spans are grow factors, so what counts is each one against their
+     * total, not against 48. They sum to 48 when the editor set them and can
+     * stop doing so the moment an author picks fractions by hand — at which
+     * point "2/3" on both zones would be two lies. This is the number that
+     * cannot lie, and the panel shows it beside the buttons.
+     */
+    /**
+     * Hand the rest of the height back to the other zones of a stack.
+     *
+     * Shares are grow factors, so only their ratio matters — but an author
+     * reading "2/3" means two thirds of the stack, not two parts against
+     * whatever the neighbour happens to hold. Keeping the total at 48 is what
+     * makes the fraction row honest.
+     *
+     * Split in proportion to what the others already had, so a stack an author
+     * has tuned keeps its shape when one zone changes. Each keeps at least one
+     * unit: a zone reduced to nothing would vanish from the page with no
+     * control left to bring it back.
+     */
+    function rebalance(index, changedIndex) {
+        const list = childrenOf(index);
+        const others = list.filter((_, i) => i !== changedIndex);
+
+        if (0 === others.length) {
+            return;
+        }
+
+        const left = Math.max(
+            others.length,
+            COLUMNS - list[changedIndex].span.lg,
+        );
+        const before = others.reduce((sum, child) => sum + child.span.lg, 0);
+
+        let given = 0;
+
+        others.forEach((child, i) => {
+            const share =
+                0 === before
+                    ? Math.round(left / others.length)
+                    : Math.round((child.span.lg / before) * left);
+
+            // The last one takes what rounding left over, so the total is 48
+            // exactly rather than 47 or 49.
+            child.span.lg =
+                i === others.length - 1
+                    ? Math.max(1, left - given)
+                    : Math.max(1, share);
+
+            given += child.span.lg;
+        });
+    }
+
+    function childShare(index, childIndex) {
+        const list = childrenOf(index);
+        const total = list.reduce(
+            (sum, child) => sum + (child.span?.lg ?? 0),
+            0,
+        );
+
+        if (0 === total) {
+            return 0;
+        }
+
+        return Math.round(((list[childIndex]?.span?.lg ?? 0) / total) * 100);
     }
 
     function removeZone(index) {
@@ -241,9 +414,17 @@ export function usePostGrid(layout, content) {
     // away their caching for nothing.
     const zoneFieldsCache = new Map();
 
-    function zoneFields(index) {
-        if (!zoneFieldsCache.has(index)) {
-            const zone = () => layout.value.zones[index];
+    function zoneFields(index, childIndex = null) {
+        const key = null === childIndex ? `${index}` : `${index}:${childIndex}`;
+
+        if (!zoneFieldsCache.has(key)) {
+            // Two levels and no more, which is what lets a path be two numbers
+            // rather than a list to walk. The normaliser refuses a stack inside
+            // a stack, so there is no third.
+            const zone = () =>
+                null === childIndex
+                    ? layout.value.zones[index]
+                    : layout.value.zones[index]?.children?.[childIndex];
 
             // What this zone holds, in whichever language is open. Created on
             // demand: a zone added in one locale reaches the others with no
@@ -276,7 +457,7 @@ export function usePostGrid(layout, content) {
                     },
                 );
 
-            zoneFieldsCache.set(index, {
+            zoneFieldsCache.set(key, {
                 // Shared — the arrangement.
                 type: shared("type"),
                 postId: shared("postId"),
@@ -288,6 +469,16 @@ export function usePostGrid(layout, content) {
                     () => zone()?.span?.lg ?? COLUMNS,
                     (value) => {
                         zone().span.lg = clampToSnap(value, snap.value);
+
+                        // Inside a stack the shares are relative to each other,
+                        // so setting one without touching the rest gives an
+                        // author who picked "2/3" something else — 24 and 32
+                        // are 43% and 57%, not a third and two thirds. Giving
+                        // the remainder back to the others is what makes the
+                        // button mean what it says.
+                        if (null !== childIndex) {
+                            rebalance(index, childIndex);
+                        }
                     },
                 ),
                 media: writable(
@@ -313,7 +504,7 @@ export function usePostGrid(layout, content) {
             });
         }
 
-        return zoneFieldsCache.get(index);
+        return zoneFieldsCache.get(key);
     }
 
     /**
@@ -346,8 +537,16 @@ export function usePostGrid(layout, content) {
         snap,
         snapOptions,
         typeOptions,
+        leafTypeOptions,
         widthOptions,
+        shareOptions,
         ratioOptions,
+        childrenOf,
+        canAddChild,
+        addChild,
+        removeChild,
+        moveChild,
+        childShare,
         addZone,
         removeZone,
         moveZone,

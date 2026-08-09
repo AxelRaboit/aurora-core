@@ -25,12 +25,13 @@ import AppRange from "@/shared/components/form/toggle/AppRange.vue";
 import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
-import { ChevronDown, ChevronUp, Eye, FileText, Film, Image, Newspaper, Trash2 } from "lucide-vue-next";
+import { ChevronDown, ChevronUp, Eye, FileText, Film, Image, Layers, Newspaper, Plus, Trash2 } from "lucide-vue-next";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import { useServerPreview } from "@/shared/composables/http/backend/useServerPreview.js";
 import { usePostGrid } from "../composables/usePostGrid.js";
 import PostGridCanvas from "./PostGridCanvas.vue";
+import PostGridZoneContent from "./PostGridZoneContent.vue";
 
 const props = defineProps({
     /** The arrangement, shared by every language. */
@@ -54,8 +55,16 @@ const {
     snap,
     snapOptions,
     typeOptions,
+    leafTypeOptions,
     widthOptions,
+    shareOptions,
     ratioOptions,
+    childrenOf,
+    canAddChild,
+    addChild,
+    removeChild,
+    moveChild,
+    childShare,
     addZone,
     removeZone,
     moveZone,
@@ -84,11 +93,8 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
     { enabled: () => showPreview.value },
 );
 
-const ZONE_ICONS = { text: FileText, media: Image, post: Newspaper, video: Film };
+const ZONE_ICONS = { text: FileText, media: Image, post: Newspaper, video: Film, stack: Layers };
 
-const publicationOptions = computed(() =>
-    props.postOptions.map((post) => ({ value: post.id, label: post.title ?? `#${post.id}` })),
-);
 
 /**
  * Which zone the canvas and the list are both pointing at.
@@ -304,78 +310,111 @@ watch(selectedIndex, async (index) => {
                     </details>
                 </div>
 
-                <template v-if="zone.type === 'text'">
-                    <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <!-- A stack holds zones instead of content, so it shows them
+                     here: same fields, one level down. The share row is the
+                     width row over again — inside a stack the axis of flow is
+                     vertical, so a fraction reads as a fraction of the height
+                     and the same six buttons say it. -->
+                <template v-if="zone.type === 'stack'">
+                    <div class="space-y-3 rounded-lg border border-dashed border-line p-3">
                         <p class="text-xs uppercase tracking-wide text-muted">
-                            {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                            {{ t("backend.posts.grid.stack_children") }}
                         </p>
-                        <AppBlockEditor
-                            v-model="zoneFields(index).blocks.value"
-                            :placeholder="t('backend.posts.content_placeholder')"
-                        />
+
+                        <p v-if="!childrenOf(index).length" class="text-sm text-muted">
+                            {{ t("backend.posts.grid.stack_empty") }}
+                        </p>
+
+                        <div
+                            v-for="(child, childIndex) in childrenOf(index)"
+                            :key="child.id"
+                            class="space-y-3 rounded-lg border border-line bg-surface p-3"
+                        >
+                            <div class="flex items-center gap-2">
+                                <component :is="ZONE_ICONS[child.type]" class="w-4 h-4 text-secondary" :stroke-width="2" />
+                                <p class="flex-1 text-sm font-medium text-primary">
+                                    {{ t(`backend.posts.grid.zone_types.${child.type}`) }}
+                                </p>
+                                <AppIconButton
+                                    color="default"
+                                    :title="t('backend.posts.grid.move_up')"
+                                    :disabled="childIndex === 0"
+                                    v-on:click="moveChild(index, childIndex, -1)"
+                                >
+                                    <ChevronUp class="w-4 h-4" :stroke-width="2" />
+                                </AppIconButton>
+                                <AppIconButton
+                                    color="default"
+                                    :title="t('backend.posts.grid.move_down')"
+                                    :disabled="childIndex === childrenOf(index).length - 1"
+                                    v-on:click="moveChild(index, childIndex, 1)"
+                                >
+                                    <ChevronDown class="w-4 h-4" :stroke-width="2" />
+                                </AppIconButton>
+                                <AppIconButton
+                                    color="rose"
+                                    :title="t('backend.posts.grid.remove_zone')"
+                                    v-on:click="removeChild(index, childIndex)"
+                                >
+                                    <Trash2 class="w-4 h-4" :stroke-width="2" />
+                                </AppIconButton>
+                            </div>
+
+                            <AppChoiceRow
+                                v-model="zoneFields(index, childIndex).type.value"
+                                :label="t('backend.posts.grid.zone_type')"
+                                :options="leafTypeOptions"
+                            />
+
+                            <div class="space-y-1.5">
+                                <AppChoiceRow
+                                    v-model="zoneFields(index, childIndex).width.value"
+                                    :label="t('backend.posts.grid.stack_share')"
+                                    :options="shareOptions"
+                                />
+                                <!-- The fractions are grow factors against each
+                                     other, not against 48, so two zones both set
+                                     to 2/3 are two halves. This is the number
+                                     that cannot say otherwise. -->
+                                <p class="text-xs text-muted">
+                                    {{ t("backend.posts.grid.stack_share_effective", { percent: childShare(index, childIndex) }) }}
+                                </p>
+                            </div>
+
+                            <PostGridZoneContent
+                                :zone="child"
+                                :fields="zoneFields(index, childIndex)"
+                                :locale="locale"
+                                :post-options="postOptions"
+                                :ratio-options="ratioOptions"
+                            />
+                        </div>
+
+                        <div class="flex flex-wrap gap-2">
+                            <AppButton
+                                v-for="option in leafTypeOptions"
+                                :key="option.value"
+                                variant="secondary"
+                                size="sm"
+                                type="button"
+                                :disabled="!canAddChild(index)"
+                                v-on:click="addChild(index, option.value)"
+                            >
+                                <Plus class="w-4 h-4" :stroke-width="2" />
+                                {{ option.label }}
+                            </AppButton>
+                        </div>
                     </div>
                 </template>
 
-                <template v-else-if="zone.type === 'media'">
-                    <AppImagePickerField
-                        v-model="zoneFields(index).media.value"
-                        :label="t('backend.posts.grid.zone_image')"
-                    />
-                    <!-- The one vertical control the grid has, and the only one
-                         it will get: a shape to crop to, not a height. Shared
-                         rather than per language, like the span — how a picture
-                         is cropped is design, written once. -->
-                    <AppChoiceRow
-                        v-model="zoneFields(index).ratio.value"
-                        :label="t('backend.posts.grid.ratio')"
-                        :hint="t('backend.posts.grid.ratio_hint')"
-                        :options="ratioOptions"
-                    />
-                    <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
-                        <p class="text-xs uppercase tracking-wide text-muted">
-                            {{ t("backend.posts.grid.translated_fields", { locale }) }}
-                        </p>
-                        <AppInput
-                            v-model="zoneFields(index).alt.value"
-                            :label="t('backend.posts.grid.zone_alt')"
-                        />
-                        <AppInput
-                            v-model="zoneFields(index).caption.value"
-                            :label="t('backend.posts.grid.zone_caption')"
-                        />
-                    </div>
-                </template>
-
-                <template v-else-if="zone.type === 'post'">
-                    <!-- Shared, not translated: the linked publication carries
-                         its own translations and the page picks the right one. -->
-                    <AppSelect
-                        v-model="zoneFields(index).postId.value"
-                        :label="t('backend.posts.grid.zone_post')"
-                        :hint="t('backend.posts.grid.zone_post_hint')"
-                        :options="publicationOptions"
-                    />
-                </template>
-
-                <template v-else>
-                    <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
-                        <p class="text-xs uppercase tracking-wide text-muted">
-                            {{ t("backend.posts.grid.translated_fields", { locale }) }}
-                        </p>
-                        <!-- The address is per language: a localised video has
-                             a localised URL. -->
-                        <AppInput
-                            v-model="zoneFields(index).url.value"
-                            :label="t('backend.posts.grid.zone_video')"
-                            :hint="t('backend.posts.grid.zone_video_hint')"
-                            placeholder="https://youtu.be/…"
-                        />
-                        <AppInput
-                            v-model="zoneFields(index).caption.value"
-                            :label="t('backend.posts.grid.zone_caption')"
-                        />
-                    </div>
-                </template>
+                <PostGridZoneContent
+                    v-else
+                    :zone="zone"
+                    :fields="zoneFields(index)"
+                    :locale="locale"
+                    :post-options="postOptions"
+                    :ratio-options="ratioOptions"
+                />
             </div>
 
             <!-- The snap only governs the precise sliders now that fractions

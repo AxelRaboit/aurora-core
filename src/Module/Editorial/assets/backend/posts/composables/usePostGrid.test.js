@@ -361,7 +361,7 @@ describe("usePostGrid", () => {
         ]);
     });
 
-    it("offers the three steps and the four zone types", () => {
+    it("offers the three steps and the five zone types", () => {
         const { snapOptions, typeOptions } = make().api;
 
         expect(snapOptions.value.map((o) => o.value)).toEqual([4, 2, 1]);
@@ -370,7 +370,195 @@ describe("usePostGrid", () => {
             "media",
             "post",
             "video",
+            "stack",
         ]);
+    });
+
+    /** Depth stops at one, and the editor must not offer what the server drops. */
+    it("does not offer a stack inside a stack", () => {
+        expect(make().api.leafTypeOptions.value.map((o) => o.value)).toEqual([
+            "text",
+            "media",
+            "post",
+            "video",
+        ]);
+    });
+
+    // ── Stacks ────────────────────────────────────────────────────────────
+
+    it("adds zones to a stack and shares the height evenly", () => {
+        const { layout, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "media");
+        api.addChild(0, "media");
+
+        const children = layout.value.zones[0].children;
+
+        expect(children.map((c) => c.type)).toEqual(["media", "media"]);
+        expect(children.map((c) => c.span.lg)).toEqual(
+            [24, 24],
+            "two zones, half the height each — and they sum to 48 so the fraction row can say so",
+        );
+
+        api.addChild(0, "text");
+        expect(layout.value.zones[0].children.map((c) => c.span.lg)).toEqual([
+            16, 16, 16,
+        ]);
+    });
+
+    it("re-shares the height when a zone leaves the stack", () => {
+        const { layout, content, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "media");
+        api.addChild(0, "media");
+        api.addChild(0, "media");
+
+        const goneId = layout.value.zones[0].children[1].id;
+        api.removeChild(0, 1);
+
+        expect(layout.value.zones[0].children.map((c) => c.span.lg)).toEqual([
+            24, 24,
+        ]);
+        expect(content.value.zones[goneId]).toBeUndefined();
+    });
+
+    it("reorders inside a stack without touching the rest", () => {
+        const { layout, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "text");
+        api.addChild(0, "media");
+        api.moveChild(0, 0, 1);
+
+        expect(layout.value.zones[0].children.map((c) => c.type)).toEqual([
+            "media",
+            "text",
+        ]);
+    });
+
+    it("reaches a stacked zone's own fields", () => {
+        const { layout, content, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "media");
+        api.zoneFields(0, 0).alt.value = "Vue depuis la treille";
+
+        const childId = layout.value.zones[0].children[0].id;
+
+        expect(content.value.zones[childId].alt).toBe("Vue depuis la treille");
+        expect(api.zoneFields(0).alt.value).not.toBe("Vue depuis la treille");
+    });
+
+    /**
+     * The spans are grow factors against each other, not against 48. Two zones
+     * both set to 2/3 are two halves, and the panel has to be able to say so
+     * rather than print "2/3" twice.
+     */
+    it("reports the share a zone really gets, not the fraction it was given", () => {
+        const { layout, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "media");
+        api.addChild(0, "media");
+
+        expect(api.childShare(0, 0)).toBe(50);
+
+        layout.value.zones[0].children[0].span.lg = 32;
+        layout.value.zones[0].children[1].span.lg = 16;
+
+        expect(api.childShare(0, 0)).toBe(67);
+        expect(api.childShare(0, 1)).toBe(33);
+    });
+
+    /**
+     * The point of rebalancing: a button that says "2/3" has to give two
+     * thirds. Left alone, 32 beside an untouched 24 is 57% and 43% — close
+     * enough to look right and wrong enough to be a bug report.
+     */
+    it("gives the rest of the height back when one zone's share changes", () => {
+        const { layout, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "media");
+        api.addChild(0, "media");
+
+        api.zoneFields(0, 0).width.value = 32;
+
+        expect(layout.value.zones[0].children.map((c) => c.span.lg)).toEqual([
+            32, 16,
+        ]);
+        expect(api.childShare(0, 0)).toBe(67);
+        expect(api.childShare(0, 1)).toBe(33);
+    });
+
+    it("splits the rest in proportion to what the others already had", () => {
+        const { layout, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "media");
+        api.addChild(0, "media");
+        api.addChild(0, "media");
+
+        // A stack an author has already tuned: 8 / 16 / 24 out of 48.
+        const children = layout.value.zones[0].children;
+        children[1].span.lg = 16;
+        children[2].span.lg = 24;
+        children[0].span.lg = 8;
+
+        api.zoneFields(0, 0).width.value = 24;
+
+        // 24 left for two that stood 16 to 24 — two fifths and three fifths.
+        expect(children.map((c) => c.span.lg)).toEqual([24, 10, 14]);
+        expect(children.reduce((sum, c) => sum + c.span.lg, 0)).toBe(48);
+    });
+
+    it("never reduces another zone of the stack to nothing", () => {
+        const { layout, api } = make();
+
+        api.addZone("stack");
+        api.addChild(0, "media");
+        api.addChild(0, "media");
+
+        api.zoneFields(0, 0).width.value = 48;
+
+        expect(
+            layout.value.zones[0].children[1].span.lg,
+        ).toBeGreaterThanOrEqual(1);
+    });
+
+    /**
+     * A zone of a stack shares its height by definition, so "the whole thing"
+     * is a contradiction the row must not offer.
+     */
+    it("does not offer the full height as a share", () => {
+        const { widthOptions, shareOptions } = make().api;
+
+        expect(widthOptions.value.map((o) => o.value)).toContain(48);
+        expect(shareOptions.value.map((o) => o.value)).not.toContain(48);
+    });
+
+    it("stops adding to a stack at the cap", () => {
+        const { layout, api } = make();
+
+        api.addZone("stack");
+
+        for (let index = 0; index < 10; index += 1) {
+            api.addChild(0, "text");
+        }
+
+        expect(layout.value.zones[0].children).toHaveLength(6);
+        expect(api.canAddChild(0)).toBe(false);
+    });
+
+    it("hands back no children for a zone that is not a stack", () => {
+        const { api } = make();
+
+        api.addZone("text");
+
+        expect(api.childrenOf(0)).toEqual([]);
+        expect(api.childrenOf(99)).toEqual([]);
     });
 });
 

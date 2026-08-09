@@ -33,7 +33,7 @@
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { FileText, Film, GripVertical, Image, Newspaper } from "lucide-vue-next";
+import { FileText, Film, GripVertical, Image, Layers, Newspaper } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import { COLUMNS, placeZones } from "../composables/usePostGrid.js";
 
@@ -56,7 +56,13 @@ const emit = defineEmits(["update:selectedIndex", "resize", "add", "swap"]);
 
 const { t } = useI18n();
 
-const ZONE_ICONS = { text: FileText, media: Image, post: Newspaper, video: Film };
+const ZONE_ICONS = {
+    text: FileText,
+    media: Image,
+    post: Newspaper,
+    video: Film,
+    stack: Layers,
+};
 
 const gridEl = ref(null);
 /** The zone being dragged, so a stray pointermove on another handle is ignored. */
@@ -322,7 +328,7 @@ function onKeydown(index, event) {
                                     class="line-clamp-2 text-xs text-primary"
                                 >{{ labelOf(zone) }}</span>
                                 <span class="text-[10px] text-muted tabular-nums">
-                                    {{ widthOf(index) }}/{{ COLUMNS }}
+                                    {{ widthOf(index) }}/{{ COLUMNS }}<template v-if="'stack' === zone.type"> · {{ zone.children?.length ?? 0 }}</template>
                                 </span>
                             </div>
                         </button>
