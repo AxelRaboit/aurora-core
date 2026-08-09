@@ -37,8 +37,15 @@
     {% if not banner or banner.headingIndex is null %}
         <h1>{{ translationData.title }}</h1>
 
+        {# No size class at all, rather than the typography plugin's `lead`
+           (1.25em, so 20px) or a `text-base`. The summary is meant to read as
+           an ordinary paragraph, and the way to get that is to let `prose`
+           style it as one: 16px over a 28px line. `text-base` would pin the
+           size and bring its own 24px line-height, so it would match the body
+           text in size and not in rhythm. Colour is the only thing that sets
+           this paragraph apart. #}
         {% if translationData.description %}
-            <p class="lead text-secondary">{{ translationData.description }}</p>
+            <p class="text-secondary">{{ translationData.description }}</p>
         {% endif %}
     {% endif %}
 
