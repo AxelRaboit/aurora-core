@@ -9,6 +9,7 @@ use Aurora\Core\Sequence\SequencePrefixEnum;
 use Aurora\Module\Editorial\Menu\Entity\MenuInterface;
 use Aurora\Module\Editorial\Menu\Entity\MenuItem;
 use Aurora\Module\Editorial\Menu\Enum\MenuItemTargetTypeEnum;
+use Aurora\Module\Editorial\Menu\Repository\MenuItemRepository;
 use Aurora\Module\Editorial\Menu\Repository\MenuRepository;
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
@@ -55,6 +56,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         private readonly PostTypeRepository $postTypeRepository,
         private readonly TaxonomyRepository $taxonomyRepository,
         private readonly MenuRepository $menuRepository,
+        private readonly MenuItemRepository $menuItemRepository,
         private readonly PostTextExtractor $textExtractor,
         private readonly GridNormalizer $gridNormalizer,
     ) {}
@@ -505,7 +507,17 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 continue;
             }
 
-            $item = new MenuItem()
+            // Reused when this menu already points at that publication.
+            // Without it every `make demo` appended another entry, and the
+            // topbar grew a copy of each link per run — which is exactly what
+            // it did here before this line existed.
+            $item = $this->menuItemRepository->findOneBy([
+                'menu' => $menu,
+                'targetType' => MenuItemTargetTypeEnum::Post,
+                'targetId' => $post->getId(),
+            ]) ?? new MenuItem();
+
+            $item
                 ->setTargetType(MenuItemTargetTypeEnum::Post)
                 ->setTargetId($post->getId())
                 ->setPosition($position++);
