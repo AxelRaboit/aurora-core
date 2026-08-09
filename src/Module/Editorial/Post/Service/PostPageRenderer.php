@@ -101,7 +101,14 @@ final readonly class PostPageRenderer
             'canonicalUrl' => $translation->getCanonicalUrl(),
             'noindex' => $translation->isNoindex(),
             'ogImage' => $ogImage instanceof DocumentInterface
-                ? ['publicUrl' => $this->documentUrlGenerator->publicUrl($ogImage)]
+                ? [
+                    'publicUrl' => $this->documentUrlGenerator->publicUrl($ogImage),
+                    // The document's own description. There is no per-post
+                    // one, and adding a field for this alone would be a field
+                    // to fill on every publication for a string the document
+                    // already carries.
+                    'alt' => (string) $ogImage->getAlt(),
+                ]
                 : null,
             'jsonLd' => $translation->getJsonLd(),
             // Same gap the listing cards had: a post type whose meaning lives

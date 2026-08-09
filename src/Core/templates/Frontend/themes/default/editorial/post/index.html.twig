@@ -5,6 +5,7 @@
         title: translationData.metaTitle ?: translationData.title,
         description: translationData.metaDescription ?: translationData.description,
         image: translationData.ogImage.publicUrl|default(null),
+        imageAlt: translationData.ogImage.alt|default(null),
         canonical: translationData.canonicalUrl ?: (translationData.slug
             ? path('editorial_post', {locale: locale, postTypeSlug: postData.postType.slug, slug: translationData.slug})
             : ''),

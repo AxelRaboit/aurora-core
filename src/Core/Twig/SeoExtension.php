@@ -44,7 +44,7 @@ final readonly class SeoExtension
     /**
      * @param array<string, mixed> $data
      *
-     * @return array{title: string, description: string, image: string, canonical: string, type: string, twitterCard: string, twitterHandle: ?string, noindex: bool, extraMeta: string, jsonLd: array<string, mixed>|null}
+     * @return array{title: string, description: string, image: string, imageAlt: string, canonical: string, type: string, twitterCard: string, twitterHandle: ?string, noindex: bool, extraMeta: string, jsonLd: array<string, mixed>|null}
      */
     #[AsTwigFunction(name: 'seo')]
     public function build(array $data = []): array
@@ -60,7 +60,7 @@ final readonly class SeoExtension
     }
 
     /**
-     * @return array{title: string, description: string, image: string, canonical: string, type: string, twitterCard: string, twitterHandle: ?string, noindex: bool, extraMeta: string, jsonLd: array<string, mixed>|null}
+     * @return array{title: string, description: string, image: string, imageAlt: string, canonical: string, type: string, twitterCard: string, twitterHandle: ?string, noindex: bool, extraMeta: string, jsonLd: array<string, mixed>|null}
      */
     #[AsTwigFunction(name: 'seo_current')]
     public function current(): array
@@ -69,7 +69,7 @@ final readonly class SeoExtension
         $stored = $request?->attributes->get(self::REQUEST_ATTRIBUTE);
 
         if (is_array($stored)) {
-            /* @var array{title: string, description: string, image: string, canonical: string, type: string, twitterCard: string, twitterHandle: ?string, noindex: bool, extraMeta: string, jsonLd: array<string, mixed>|null} $stored */
+            /* @var array{title: string, description: string, image: string, imageAlt: string, canonical: string, type: string, twitterCard: string, twitterHandle: ?string, noindex: bool, extraMeta: string, jsonLd: array<string, mixed>|null} $stored */
             return $stored;
         }
 
@@ -79,7 +79,7 @@ final readonly class SeoExtension
     /**
      * @param array<string, mixed> $data
      *
-     * @return array{title: string, description: string, image: string, canonical: string, type: string, twitterCard: string, twitterHandle: ?string, noindex: bool, extraMeta: string, jsonLd: array<string, mixed>|null}
+     * @return array{title: string, description: string, image: string, imageAlt: string, canonical: string, type: string, twitterCard: string, twitterHandle: ?string, noindex: bool, extraMeta: string, jsonLd: array<string, mixed>|null}
      */
     private function resolve(array $data): array
     {
@@ -91,6 +91,13 @@ final readonly class SeoExtension
             'title' => $this->resolveTitle($data['title'] ?? null, $siteName),
             'description' => $this->resolveDescription($data['description'] ?? null),
             'image' => $image,
+            // Only when there is an image to describe: `og:image:alt` without
+            // an `og:image` describes nothing, and an empty one is worse than
+            // absent — it tells a screen reader the picture is decorative when
+            // it is the whole preview of a shared link.
+            'imageAlt' => '' !== $image && is_string($data['imageAlt'] ?? null)
+                ? mb_trim($data['imageAlt'])
+                : '',
             'canonical' => $this->resolveCanonical($data['canonical'] ?? null, $siteUrl),
             'type' => is_string($data['type'] ?? null) && '' !== $data['type'] ? $data['type'] : 'website',
             'twitterCard' => is_string($data['twitterCard'] ?? null) && '' !== $data['twitterCard']

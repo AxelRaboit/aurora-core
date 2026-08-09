@@ -93,6 +93,43 @@ final class SeoExtensionTest extends TestCase
         self::assertSame('https://monsite.com/uploads/y.png', $seo['image']);
     }
 
+    /**
+     * A shared link's preview has no surrounding text naming its picture,
+     * unlike a card, whose title sits right beside it. This is the one place
+     * describing the image is read out.
+     */
+    public function testTheImageDescriptionTravelsWithTheImage(): void
+    {
+        $extension = $this->makeExtension(siteUrl: 'https://monsite.com');
+
+        $seo = $extension->build([
+            'image' => ['publicUrl' => '/uploads/y.png'],
+            'imageAlt' => '  Un poste de travail  ',
+        ]);
+
+        self::assertSame('Un poste de travail', $seo['imageAlt'], 'trimmed on the way through');
+    }
+
+    /**
+     * An alt with nothing to describe is worse than none: it tells a reader
+     * there is a picture when the payload carries no image at all.
+     */
+    public function testAnImageDescriptionWithNoImageIsDropped(): void
+    {
+        $seo = $this->makeExtension()->build(['imageAlt' => 'Une photo']);
+
+        self::assertSame('', $seo['image']);
+        self::assertSame('', $seo['imageAlt']);
+    }
+
+    public function testAnAbsentDescriptionIsEmptyRatherThanMissing(): void
+    {
+        $seo = $this->makeExtension(siteUrl: 'https://monsite.com')
+            ->build(['image' => ['publicUrl' => '/uploads/y.png']]);
+
+        self::assertSame('', $seo['imageAlt'], 'the head guards on it, so it has to exist');
+    }
+
     public function testNoindexFlagPropagates(): void
     {
         $extension = $this->makeExtension();

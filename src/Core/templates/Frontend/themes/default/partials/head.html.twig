@@ -11,6 +11,7 @@
       seo.title          → <title>, og:title, twitter:title
       seo.description    → meta description, og:description, twitter:description
       seo.image          → absolute URL for og:image / twitter:image
+      seo.imageAlt       → describes that image for og:image:alt / twitter:image:alt
       seo.canonical      → absolute canonical URL (used for canonical link AND og:url)
       seo.type           → og:type ("website" | "article" | "product" | …)
       seo.twitterCard    → "summary_large_image" if image, else "summary"
@@ -47,6 +48,12 @@
 {% endfor %}
 {% if seo.image %}
     <meta property="og:image" content="{{ seo.image }}">
+    {# The one place a description of this picture is read out: a shared link's
+       preview has no surrounding text to name it, unlike a card, whose title
+       sits right beside it. #}
+    {% if seo.imageAlt %}
+        <meta property="og:image:alt" content="{{ seo.imageAlt }}">
+    {% endif %}
 {% endif %}
 
 <link rel="canonical" href="{{ seo.canonical }}">
@@ -59,6 +66,9 @@
 <meta name="twitter:description" content="{{ seo.description }}">
 {% if seo.image %}
     <meta name="twitter:image" content="{{ seo.image }}">
+    {% if seo.imageAlt %}
+        <meta name="twitter:image:alt" content="{{ seo.imageAlt }}">
+    {% endif %}
 {% endif %}
 
 {% if seo.extraMeta %}{{ seo.extraMeta|raw }}{% endif %}
