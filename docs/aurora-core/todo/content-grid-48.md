@@ -202,6 +202,31 @@ déposer les zones. Le plus lisible pour un débutant, mais **ça change le
 modèle** : on passerait de « zones qui s'enchaînent avec un span » à « lignes
 qui contiennent des zones ». Le normaliseur, le rendu et la migration suivent.
 
+### Ce que ça gagnera vraiment — et ce que ça ne réglera pas
+
+**Le gain est dans l'unité, pas dans le contrôle.** « 24 colonnes sur 48 » est
+une coordonnée ; « la moitié » est une pensée. C'est le seul point où changer
+l'interface change réellement ce que l'auteur a à faire — et c'est la piste A
+qui l'obtient, la moins chère des quatre. Un bouton nommé se décrit lui-même,
+ce qui dissout au passage une bonne part du besoin de retour pendant le geste :
+on n'a pas besoin de voir le résultat d'un réglage qui dit ce qu'il fait.
+
+**Le coût est mesurable et faible.** Au pas 4, douze largeurs sont atteignables.
+Les huit fractions en couvrent huit. Les quatre perdues sont 1/12, 5/12, 7/12
+et 11/12 — des proportions qu'on ne dessine pas. Une échappatoire « précis »
+peut les rendre, mais elle ne se justifie qu'à l'usage.
+
+**Ce qui ne sera pas réglé pour autant : rien ne dit si une ligne tient.** Deux
+zones à 2/3 ne rentrent pas ensemble, et l'auteur ne l'apprend qu'en regardant
+l'aperçu. Aucune des quatre pistes ne corrige ça — c'est un problème de
+*relation entre zones*, pas de réglage d'une zone.
+
+Le remède est indépendant et moins cher que n'importe laquelle des quatre : une
+**indication de ligne** dans le panneau — « cette ligne : 32 + 16 = 48, pleine »
+ou « 32 + 32 = 64, la seconde passe à la ligne ». Le total est déjà calculable
+à partir de `layout.zones`, sans requête ni rendu. Fait avec la piste A, ça
+couvre probablement l'essentiel du sujet ; fait seul, ça aiderait déjà.
+
 ### Contraintes à ne pas redécouvrir
 
 - **`span.base` reste 48.** Côte à côte sur téléphone, c'est deux colonnes de
