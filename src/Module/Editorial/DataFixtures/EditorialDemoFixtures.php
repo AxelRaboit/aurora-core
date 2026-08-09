@@ -14,6 +14,7 @@ use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Service\EditorBlocks;
 use Aurora\Module\Editorial\Post\Service\PostTextExtractor;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
@@ -22,6 +23,8 @@ use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTerm;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
+use Aurora\Module\Ged\DataFixtures\GedDemoFixtures;
+use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -52,6 +55,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         private readonly TaxonomyRepository $taxonomyRepository,
         private readonly MenuRepository $menuRepository,
         private readonly PostTextExtractor $textExtractor,
+        private readonly GridNormalizer $gridNormalizer,
     ) {}
 
     public static function getGroups(): array
@@ -61,7 +65,8 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
     public function getDependencies(): array
     {
-        return [CoreDemoFixtures::class];
+        // GED too, since the welcome page's grid points at a demo picture.
+        return [CoreDemoFixtures::class, GedDemoFixtures::class];
     }
 
     public function load(ObjectManager $manager): void
@@ -80,6 +85,10 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $posts = $this->createPosts($manager, $article, $page, $terms);
 
         $manager->flush();
+
+        // After the flush on purpose: a grid points at a publication and a
+        // document by *id*, and neither has one before it is written.
+        $this->layOutWelcomePage($posts);
 
         $this->fillPrimaryMenu($manager, $posts);
 
@@ -251,6 +260,90 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         }
 
         return $posts;
+    }
+
+    /**
+     * The welcome page shows what a content grid can do: all four zone types
+     * and four different widths, on the 48-column grid.
+     *
+     * Widths are all multiples of four, so every one of them is reachable at
+     * the default snap — a demo an author cannot reproduce with the controls
+     * in front of them teaches the wrong thing.
+     *
+     * The arrangement is written once and both languages share it; only what
+     * fills the zones is translated. That is the feature, so the fixture has
+     * to be built that way rather than duplicating a layout per locale.
+     *
+     * @param array<string, PostInterface> $posts
+     */
+    private function layOutWelcomePage(array $posts): void
+    {
+        $welcome = $posts['welcome'];
+        $linked = $posts['first-steps'];
+        $picture = $this->getReference(GedDemoFixtures::mediaRef(1), Document::class);
+
+        $zones = [
+            ['id' => 'intro', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48]],
+            // A picture and its commentary side by side: half each above the
+            // large breakpoint, stacked below it.
+            ['id' => 'picture', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'mediaId' => $picture->getId()],
+            ['id' => 'beside', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 24]],
+            // Two thirds and one third: a player next to the article it is
+            // about.
+            ['id' => 'film', 'type' => GridNormalizer::ZONE_VIDEO, 'span' => ['base' => 48, 'md' => null, 'lg' => 32]],
+            ['id' => 'linked', 'type' => GridNormalizer::ZONE_POST, 'span' => ['base' => 48, 'md' => null, 'lg' => 16], 'postId' => $linked->getId()],
+            ['id' => 'outro', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48]],
+        ];
+
+        $welcome->setGridLayout($this->gridNormalizer->normalizeLayout([
+            'enabled' => true,
+            'snap' => 4,
+            'zones' => $zones,
+        ]));
+
+        $content = [
+            'fr' => [
+                'intro' => [EditorBlocks::header('Une page composée par zones'),
+                    EditorBlocks::paragraph('Chaque bloc ci-dessous est une zone posée sur une grille de 48 colonnes. Leur largeur se règle indépendamment, et ce qui les remplit se traduit — la disposition, elle, est écrite une seule fois.')],
+                'beside' => [EditorBlocks::header('Texte et image côte à côte', 3),
+                    EditorBlocks::paragraph('Deux zones de 24 colonnes se partagent la ligne sur grand écran. Sur téléphone elles s\'empilent : une colonne de quatre mots n\'est pas une mise en page.')],
+                'outro' => [EditorBlocks::paragraph("Une zone pleine largeur pour refermer. Modifiez tout ceci depuis l'administration, onglet Contenu.")],
+            ],
+            'en' => [
+                'intro' => [EditorBlocks::header('A page laid out in zones'),
+                    EditorBlocks::paragraph('Every block below is a zone on a 48-column grid. Widths are set independently, and what fills them is translated — the arrangement is written once.')],
+                'beside' => [EditorBlocks::header('Text and picture side by side', 3),
+                    EditorBlocks::paragraph('Two 24-column zones share the row on a large screen. On a phone they stack: a column four words wide is not a layout.')],
+                'outro' => [EditorBlocks::paragraph('A full-width zone to close. Change any of this from the backend, under Content.')],
+            ],
+        ];
+
+        $captions = [
+            'fr' => ['alt' => 'Un paysage de démonstration', 'caption' => 'Une image, avec sa légende — les deux se traduisent, l\'image non.'],
+            'en' => ['alt' => 'A demo landscape', 'caption' => 'A picture and its caption — both translated, the picture itself is not.'],
+        ];
+
+        foreach (['fr', 'en'] as $locale) {
+            $translation = $welcome->translate($locale);
+
+            $translation->setGrid($this->gridNormalizer->normalizeContent([
+                'zones' => [
+                    'intro' => ['blocks' => $content[$locale]['intro']],
+                    'picture' => $captions[$locale],
+                    'beside' => ['blocks' => $content[$locale]['beside']],
+                    // Big Buck Bunny — Blender's open movie, which is here
+                    // because a demo address that refuses to embed looks like
+                    // a broken feature rather than a placeholder.
+                    'film' => [
+                        'url' => 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+                        'caption' => 'fr' === $locale ? 'Une vidéo, par langue.' : 'A video, per language.',
+                    ],
+                    'outro' => ['blocks' => $content[$locale]['outro']],
+                ],
+            ], $welcome->getGridLayout()));
+
+            $this->indexForSearch($translation);
+        }
     }
 
     /**
