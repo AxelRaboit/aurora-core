@@ -67,6 +67,20 @@ abstract class AbstractPost implements PostInterface
     #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
     protected array $bannerLayout = [];
 
+    /**
+     * The content grid's arrangement: which zones exist, in what order, how
+     * wide, and of what kind. Shape and defaults belong to
+     * {@see GridNormalizer}; an empty array means "never configured".
+     *
+     * On the post for the same reason as the banner's layout — see
+     * {@see AbstractPost::$bannerLayout}. What each zone *holds* lives on the
+     * translation and joins back by zone id.
+     *
+     * @var array<string, mixed>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
+    protected array $gridLayout = [];
+
     #[ORM\ManyToOne(targetEntity: PostTypeInterface::class, inversedBy: 'posts')]
     #[ORM\JoinColumn(nullable: false)]
     protected PostTypeInterface $postType;
@@ -196,6 +210,20 @@ abstract class AbstractPost implements PostInterface
     public function setBannerLayout(array $bannerLayout): static
     {
         $this->bannerLayout = $bannerLayout;
+
+        return $this;
+    }
+
+    /** @return array<string, mixed> */
+    public function getGridLayout(): array
+    {
+        return $this->gridLayout;
+    }
+
+    /** @param array<string, mixed> $gridLayout */
+    public function setGridLayout(array $gridLayout): static
+    {
+        $this->gridLayout = $gridLayout;
 
         return $this;
     }

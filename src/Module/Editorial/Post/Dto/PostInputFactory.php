@@ -30,6 +30,7 @@ class PostInputFactory implements PostInputFactoryInterface
             commentsEnabled: (bool) ($data['commentsEnabled'] ?? true),
             // On the post, not the translation: one design for every language.
             bannerLayout: is_array($data['bannerLayout'] ?? null) ? $data['bannerLayout'] : [],
+            gridLayout: is_array($data['gridLayout'] ?? null) ? $data['gridLayout'] : [],
         );
     }
 

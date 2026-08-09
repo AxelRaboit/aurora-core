@@ -18,6 +18,7 @@ final readonly class PostTranslationInput
      * @param array<string, mixed>                                               $customFields
      * @param array<string, mixed>|null                                          $jsonLd
      * @param array<string, mixed>                                               $banner       raw; normalised at the write boundary by BannerNormalizer
+     * @param array<string, mixed>                                               $grid         raw; normalised at the write boundary by GridNormalizer
      */
     public function __construct(
         public ?string $title,
@@ -33,6 +34,7 @@ final readonly class PostTranslationInput
         public ?string $focusKeyword = null,
         public ?array $jsonLd = null,
         public array $banner = [],
+        public array $grid = [],
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -52,6 +54,7 @@ final readonly class PostTranslationInput
             focusKeyword: Str::trimOrNull((string) ($data['focusKeyword'] ?? '')),
             jsonLd: self::decodeJsonLd($data['jsonLd'] ?? null),
             banner: is_array($data['banner'] ?? null) ? $data['banner'] : [],
+            grid: is_array($data['grid'] ?? null) ? $data['grid'] : [],
         );
     }
 

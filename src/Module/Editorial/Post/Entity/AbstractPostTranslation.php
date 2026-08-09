@@ -67,6 +67,19 @@ abstract class AbstractPostTranslation implements PostTranslationInterface
     #[ORM\Column(type: Types::JSON)]
     protected array $banner = [];
 
+    /**
+     * What each content-grid zone holds in this locale — the text blocks, the
+     * alt text, the caption, the video address — keyed by the id of the zone
+     * on the post. Shape belongs to {@see GridNormalizer}.
+     *
+     * Only the content. The arrangement lives once on the post
+     * ({@see AbstractPost::$gridLayout}).
+     *
+     * @var array<string, mixed>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
+    protected array $grid = [];
+
     #[ORM\ManyToOne(targetEntity: DocumentInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?DocumentInterface $ogImage = null;
@@ -144,6 +157,20 @@ abstract class AbstractPostTranslation implements PostTranslationInterface
     public function getBanner(): array
     {
         return $this->banner;
+    }
+
+    /** @return array<string, mixed> */
+    public function getGrid(): array
+    {
+        return $this->grid;
+    }
+
+    /** @param array<string, mixed> $grid */
+    public function setGrid(array $grid): static
+    {
+        $this->grid = $grid;
+
+        return $this;
     }
 
     /** @param array<string, mixed> $banner */

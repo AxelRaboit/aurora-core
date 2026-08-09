@@ -17,6 +17,7 @@ use Aurora\Module\Editorial\Post\Entity\PostRevision;
 use Aurora\Module\Editorial\Post\Entity\PostRevisionInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Repository\PostRevisionRepository;
 use Aurora\Module\Editorial\Post\Repository\PostSlugHistoryRepository;
@@ -59,6 +60,7 @@ class PostManager implements PostManagerInterface
         protected readonly AuditLogger $auditLogger,
         protected readonly SequenceGenerator $sequenceGenerator,
         protected readonly BannerNormalizer $bannerNormalizer,
+        protected readonly GridNormalizer $gridNormalizer,
     ) {}
 
     public function create(PostInputInterface $input): PostInterface
@@ -225,6 +227,12 @@ class PostManager implements PostManagerInterface
         $bannerLayout = $this->bannerNormalizer->normalizeLayout($input->getBannerLayout());
         $post->setBannerLayout($bannerLayout);
 
+        // Same order and the same reason as the banner above: the zones have
+        // to be settled before the translations, because their ids are what
+        // each language's content hangs off.
+        $gridLayout = $this->gridNormalizer->normalizeLayout($input->getGridLayout());
+        $post->setGridLayout($gridLayout);
+
         $this->syncTerms($post, $input->getTermIds());
         $this->syncRelatedPosts($post, $input->getRelatedPostIds());
 
@@ -233,7 +241,7 @@ class PostManager implements PostManagerInterface
         )));
 
         foreach ($input->getTranslations() as $locale => $translationInput) {
-            $this->applyTranslation($post, (string) $locale, $translationInput, $ogImages, $bannerLayout);
+            $this->applyTranslation($post, (string) $locale, $translationInput, $ogImages, $bannerLayout, $gridLayout);
         }
     }
 
@@ -244,8 +252,9 @@ class PostManager implements PostManagerInterface
      *
      * @param array<int, DocumentInterface> $ogImages
      * @param array<string, mixed>          $bannerLayout the already-normalised layout, which says which banner items exist
+     * @param array<string, mixed>          $gridLayout   likewise, for the content grid's zones
      */
-    protected function applyTranslation(PostInterface $post, string $locale, PostTranslationInput $input, array $ogImages = [], array $bannerLayout = []): void
+    protected function applyTranslation(PostInterface $post, string $locale, PostTranslationInput $input, array $ogImages = [], array $bannerLayout = [], array $gridLayout = []): void
     {
         $translation = $post->translate($locale);
 
@@ -254,6 +263,7 @@ class PostManager implements PostManagerInterface
         // Only this locale's words. Against the post's layout, so text for an
         // item that no longer exists is dropped instead of lingering unseen.
         $translation->setBanner($this->bannerNormalizer->normalizeTexts($input->banner, $bannerLayout));
+        $translation->setGrid($this->gridNormalizer->normalizeContent($input->grid, $gridLayout));
         $translation->setDescription($input->description);
         $translation->setMetaTitle($input->metaTitle);
         $translation->setMetaDescription($input->metaDescription);

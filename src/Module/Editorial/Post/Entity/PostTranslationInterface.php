@@ -37,6 +37,16 @@ interface PostTranslationInterface
     /** @param array<string, mixed> $banner */
     public function setBanner(array $banner): static;
 
+    /**
+     * What each content-grid zone holds in this locale, keyed by zone id.
+     *
+     * @return array<string, mixed>
+     */
+    public function getGrid(): array;
+
+    /** @param array<string, mixed> $grid */
+    public function setGrid(array $grid): static;
+
     /** @return list<array{id?: string, type: string, data: array<string, mixed>}> */
     public function getBlocks(): array;
 

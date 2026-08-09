@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Unit\Module\Editorial\Post\Banner;
 
+use Aurora\Core\Content\ContentValueNormalizer;
 use Aurora\Module\Editorial\Post\Banner\BannerNormalizer;
 use PHPUnit\Framework\TestCase;
 
@@ -18,7 +19,7 @@ final class BannerNormalizerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->normalizer = new BannerNormalizer();
+        $this->normalizer = new BannerNormalizer(new ContentValueNormalizer());
     }
 
     public function testGarbageInputStillProducesAUsableBanner(): void

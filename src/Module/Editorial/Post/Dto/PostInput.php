@@ -33,6 +33,7 @@ class PostInput implements PostInputInterface
         public readonly bool $force = false,
         public readonly bool $commentsEnabled = true,
         public readonly array $bannerLayout = [],
+        public readonly array $gridLayout = [],
     ) {}
 
     public function withStatus(string $status): PostInputInterface
@@ -49,6 +50,7 @@ class PostInput implements PostInputInterface
             force: $this->force,
             commentsEnabled: $this->commentsEnabled,
             bannerLayout: $this->bannerLayout,
+            gridLayout: $this->gridLayout,
         );
     }
 
@@ -105,6 +107,11 @@ class PostInput implements PostInputInterface
     public function getBannerLayout(): array
     {
         return $this->bannerLayout;
+    }
+
+    public function getGridLayout(): array
+    {
+        return $this->gridLayout;
     }
 
     /**

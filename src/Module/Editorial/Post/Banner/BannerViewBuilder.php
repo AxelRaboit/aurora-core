@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Post\Banner;
 
+use Aurora\Core\Content\ContentValueNormalizer;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
@@ -27,6 +28,7 @@ final readonly class BannerViewBuilder
         private DocumentRepository $documentRepository,
         private DocumentUrlGenerator $documentUrlGenerator,
         private BannerNormalizer $bannerNormalizer,
+        private ContentValueNormalizer $values,
     ) {}
 
     /**
@@ -92,7 +94,7 @@ final readonly class BannerViewBuilder
                     // Custom properties rather than classes: a span is a number
                     // between 1 and 48 chosen at runtime, and Tailwind only
                     // emits classes it can read in the source.
-                    'spanStyle' => $this->spanStyle($item['span']),
+                    'spanStyle' => $this->values->spanStyle($item['span']),
                 ];
             },
             $layout['items'],
@@ -162,26 +164,6 @@ final readonly class BannerViewBuilder
         }
 
         return $documents;
-    }
-
-    /**
-     * Widths as CSS custom properties, read by the `.aurora-grid` rule. An
-     * absent breakpoint emits nothing, which is what makes it inherit the one
-     * below through the variable's own fallback chain.
-     *
-     * @param array<string, int|null> $span
-     */
-    private function spanStyle(array $span): string
-    {
-        $declarations = [];
-
-        foreach ($span as $breakpoint => $columns) {
-            if (null !== $columns) {
-                $declarations[] = sprintf('--span-%s: %d;', $breakpoint, $columns);
-            }
-        }
-
-        return implode(' ', $declarations);
     }
 
     /**

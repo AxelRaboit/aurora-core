@@ -62,6 +62,17 @@ interface PostInterface
     /** @param array<string, mixed> $bannerLayout */
     public function setBannerLayout(array $bannerLayout): static;
 
+    /**
+     * The content grid's arrangement, shared by every language. What each zone
+     * holds lives on each translation and joins back by zone id.
+     *
+     * @return array<string, mixed>
+     */
+    public function getGridLayout(): array;
+
+    /** @param array<string, mixed> $gridLayout */
+    public function setGridLayout(array $gridLayout): static;
+
     public function getPostType(): PostTypeInterface;
 
     public function setPostType(PostTypeInterface $postType): static;
