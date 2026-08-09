@@ -10,6 +10,13 @@
    Gutters come from the grid's own item padding. A `gap-x` here would be 47
    gutters across the 48 tracks — see AuroraGridGutterTest.
 
+   Every zone that is not text carries `not-prose`. The grid renders inside
+   `<article class="prose">`, and Typography styles what it finds there: a card
+   image was getting `margin: 2em 0` from `.prose :where(img)`, an iframe the
+   same. Not on the container, on each zone — the exclusion is written
+   `[class~=not-prose] *`, so a `not-prose` wrapper would also switch off the
+   `prose` that the text zones deliberately switch back on.
+
    `aurora-grid-flush` pulls the two outer edges back by that same gutter, so
    the first column lines up with the title above the grid rather than sitting
    a gutter to the right of it. #}
@@ -23,7 +30,7 @@
                 <div class="prose max-w-none">{{ zone.html|raw }}</div>
 
             {% elseif zone.type == 'media' and zone.media %}
-                <figure class="m-0">
+                <figure class="m-0 not-prose">
                     <img
                         src="{{ zone.media.url }}"
                         alt="{{ zone.media.alt }}"
@@ -41,7 +48,7 @@
                    built from the linked post's own type and slug. #}
                 <a
                     href="{{ path('editorial_post', {locale: locale, postTypeSlug: zone.post.postTypeSlug, slug: zone.post.slug}) }}"
-                    class="group flex h-full flex-col overflow-hidden rounded-xl border border-line no-underline transition-colors hover:border-secondary"
+                    class="group not-prose flex h-full flex-col overflow-hidden rounded-xl border border-line no-underline transition-colors hover:border-secondary"
                 >
                     {% if zone.post.thumbnailUrl %}
                         <img
@@ -69,7 +76,7 @@
                        of three providers — see VideoEmbedResolver. An iframe
                        runs what its host serves, so an arbitrary address is
                        never put here. #}
-                    <div class="relative aspect-video overflow-hidden rounded-lg">
+                    <div class="relative aspect-video overflow-hidden rounded-lg not-prose">
                         <iframe
                             src="{{ zone.video.embedUrl }}"
                             class="absolute inset-0 h-full w-full"
@@ -87,7 +94,7 @@
                     {# An address no provider claims still reaches the reader,
                        as a link. Showing nothing would look like a bug to the
                        author, who pasted something and saw it accepted. #}
-                    <a href="{{ zone.url }}" rel="noopener" class="text-sm underline">
+                    <a href="{{ zone.url }}" rel="noopener" class="text-sm underline not-prose">
                         {{ zone.caption ?: zone.url }}
                     </a>
                 {% endif %}
