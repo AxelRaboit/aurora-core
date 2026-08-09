@@ -189,18 +189,49 @@ avancée : c'est la fraction qui porte le sens.
 au clic-glissé, comme une mini-grille. Manipulation directe, la proportion se
 voit. Reste à décider ce qu'il devient au pas 1 — 48 cases sont trop fines.
 
-**C — Poignées sur l'aperçu.** Redimensionner la zone en tirant son bord dans
-l'aperçu. Le plus direct, et de loin le plus coûteux : **l'aperçu est du HTML
-rendu par le serveur, injecté en `v-html`** (voir `useServerPreview` et
-`GridPreviewController`). Poser des poignées dessus veut dire soit les
-superposer en calculant les positions, soit dessiner une seconde grille en Vue
-— et une seconde grille est exactement la divergence que l'aperçu serveur
-existe pour éviter.
+**C — Poignées sur l'aperçu serveur.** Redimensionner en tirant le bord d'une
+zone dans l'aperçu lui-même. **À écarter** : l'aperçu est du HTML rendu par le
+serveur, injecté en `v-html` (`useServerPreview`, `GridPreviewController`).
+Poser des poignées dessus veut dire calculer des positions sur du markup qu'on
+ne contrôle pas, et le recalculer à chaque re-rendu débounced. Voir E, qui
+obtient le même geste sans ce problème.
 
 **D — Gabarits de ligne.** Choisir une ligne (50/50, 33/67, tiers, …) et y
 déposer les zones. Le plus lisible pour un débutant, mais **ça change le
 modèle** : on passerait de « zones qui s'enchaînent avec un span » à « lignes
 qui contiennent des zones ». Le normaliseur, le rendu et la migration suivent.
+
+**E — Une toile de structure, manipulable.** La cible la plus ambitieuse et,
+sur le fond, la plus juste : on voit la grille, on tire le bord d'une zone pour
+la redimensionner, on clique dedans pour ouvrir son contenu.
+
+*L'objection que je croyais rédhibitoire ne l'est pas.* Une toile qui dessine la
+**structure** n'est pas un second moteur de rendu : elle pose des boîtes sur
+`.aurora-grid` avec les mêmes `--span-*`, donc **la géométrie est celle du site,
+littéralement le même CSS**. Une zone y affiche une icône de type et un libellé
+— jamais ses blocs, son image ou sa vidéo. L'aperçu serveur reste l'autorité
+sur le contenu ; la toile ne parle que de disposition. C'est la distinction qui
+rend cette piste abordable, et je l'avais manquée en écartant C.
+
+Ce qu'elle demande vraiment :
+
+- **Redimensionner** : événements pointeur sur une poignée de bord, colonne
+  déduite de la position en x dans la grille, aimantée. `layout.zones` est déjà
+  la seule source ; la toile écrit dedans comme le curseur le fait aujourd'hui.
+- **Ouvrir une zone** : les champs par type sortent de la liste verticale pour
+  aller dans un panneau latéral ou une modale. **Attention à Editor.js** — le
+  démonter en fermant perd la pile d'annulation. Il faut `v-show`, ou garder les
+  instances vivantes (le registre de `usePostEditor` est fait pour ça).
+- **Réordonner** : le glissé dans une grille qui reflue est difficile à viser.
+  Garder monter/descendre sur la zone sélectionnée est plus sûr, et cohérent
+  avec le reste du backend.
+
+**Le piège à ne pas reproduire.** Ce chantier est né d'une remarque
+d'accessibilité : viser un curseur est difficile pour certaines personnes. Une
+toile *uniquement* manipulable à la souris recrée le même problème en pire. Il
+faut un chemin discret et clavier — les fractions nommées de A, sur la zone
+sélectionnée. **A et E ne sont donc pas concurrentes : A est le chemin
+accessible de E.**
 
 ### Ce que ça gagnera vraiment — et ce que ça ne réglera pas
 
@@ -218,10 +249,11 @@ peut les rendre, mais elle ne se justifie qu'à l'usage.
 
 **Ce qui ne sera pas réglé pour autant : rien ne dit si une ligne tient.** Deux
 zones à 2/3 ne rentrent pas ensemble, et l'auteur ne l'apprend qu'en regardant
-l'aperçu. Aucune des quatre pistes ne corrige ça — c'est un problème de
-*relation entre zones*, pas de réglage d'une zone.
+l'aperçu. Ni A ni B ne corrigent ça — c'est un problème de *relation entre
+zones*, pas de réglage d'une zone. E le règle par construction, puisqu'on voit
+la ligne.
 
-Le remède est indépendant et moins cher que n'importe laquelle des quatre : une
+Le remède est indépendant et moins cher que n'importe laquelle des pistes : une
 **indication de ligne** dans le panneau — « cette ligne : 32 + 16 = 48, pleine »
 ou « 32 + 32 = 64, la seconde passe à la ligne ». Le total est déjà calculable
 à partir de `layout.zones`, sans requête ni rendu. Fait avec la piste A, ça

@@ -21,9 +21,11 @@ puis par topic.
   dans chacune. Décisions structurantes prises (48 colonnes, pas d'aimantation
   variable, `{base, md, lg}`). **5 étapes sur 6 livrées** — contrat, rendu
   public, quatre types de zone, éditeur, aperçu. Restent le sort de `blocks`,
-  qui cohabite, et **un chantier d'ergonomie sur le réglage de largeur** : les
+  qui cohabite, et **un chantier d'ergonomie sur la mise en page** : les
   curseurs fonctionnent mais parlent en « 24 colonnes sur 48 », ne montrent
-  rien pendant le geste et sont difficiles à viser.
+  rien pendant le geste et sont difficiles à viser. Cinq pistes décrites, de la
+  plus légère (fractions nommées) à la toile manipulable — qui n'impose pas de
+  second moteur de rendu tant qu'elle dessine la structure et non le contenu.
 
 ### Frontend / Vue
 
