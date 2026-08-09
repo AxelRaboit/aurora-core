@@ -126,9 +126,11 @@ final readonly class GridNormalizer
             if (!is_array($zone)) {
                 continue;
             }
+
             if (!is_string($zone['id'] ?? null)) {
                 continue;
             }
+
             $entry = is_array($stored[$zone['id']] ?? null) ? $stored[$zone['id']] : [];
 
             $content[$zone['id']] = [
