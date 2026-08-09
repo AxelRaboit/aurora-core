@@ -52,7 +52,7 @@ const props = defineProps({
     canAdd: { type: Boolean, default: true },
 });
 
-const emit = defineEmits(["update:selectedIndex", "resize", "add", "swap"]);
+const emit = defineEmits(["update:selectedIndex", "resize", "add", "swap", "moveInto"]);
 
 const { t } = useI18n();
 
@@ -180,6 +180,63 @@ function onDragOver(index, event) {
     dropTarget.value = index;
 }
 
+/**
+ * Dropping onto a slice of a stack rather than onto the stack itself.
+ *
+ * Two intents need two targets, or the author cannot tell what a drop will do.
+ * A stack's slices are already drawn, so they are the target that says "inside,
+ * here"; the rest of the box keeps the meaning every other zone has, which is
+ * exchange. Aiming at a slice is aiming at a rectangle that holds still — the
+ * same reason dropping *between* zones was refused on the row axis.
+ */
+const dropSlice = ref(null);
+
+/**
+ * Whether this slice may take what is being dragged.
+ *
+ * One predicate for both handlers. A browser will not fire `drop` on a target
+ * whose `dragover` was not cancelled, so asking twice looks redundant — but
+ * that is the browser enforcing our rule for us, and a rule enforced somewhere
+ * we do not control is a rule that holds until it does not.
+ *
+ * A stack refuses a stack because depth stops at one: the normaliser would drop
+ * it on the way out, which loses a zone silently rather than refusing a move.
+ */
+function sliceAccepts(stackIndex) {
+    const from = draggingFrom.value;
+
+    return (
+        null !== from &&
+        from !== stackIndex &&
+        "stack" !== props.zones[from]?.type
+    );
+}
+
+function onSliceOver(stackIndex, atIndex, event) {
+    if (!sliceAccepts(stackIndex)) {
+        return;
+    }
+
+    event.preventDefault();
+    // Stops the stack's own box from also claiming the drop as a swap.
+    event.stopPropagation();
+    dropSlice.value = `${stackIndex}:${atIndex}`;
+    dropTarget.value = null;
+}
+
+function onSliceDrop(stackIndex, atIndex, event) {
+    if (!sliceAccepts(stackIndex)) {
+        // Left to bubble on purpose: the box behind takes it as the exchange
+        // every drop means by default, so the gesture does something rather
+        // than nothing.
+        return;
+    }
+
+    event.stopPropagation();
+    emit("moveInto", draggingFrom.value, stackIndex, atIndex);
+    onDragEnd();
+}
+
 function onDrop(index) {
     if (null !== draggingFrom.value && draggingFrom.value !== index) {
         emit("swap", draggingFrom.value, index);
@@ -194,6 +251,7 @@ function onDrop(index) {
 function onDragEnd() {
     draggingFrom.value = null;
     dropTarget.value = null;
+    dropSlice.value = null;
 }
 
 /**
@@ -328,11 +386,19 @@ function onKeydown(index, event) {
                             >
                                 <div class="flex min-h-0 flex-1 flex-col gap-0.5">
                                     <div
-                                        v-for="child in zone.children"
+                                        v-for="(child, childIndex) in zone.children"
                                         :key="child.id"
-                                        class="flex min-h-0 items-center justify-center rounded-sm border border-line bg-surface-1"
+                                        class="flex min-h-0 items-center justify-center rounded-sm border bg-surface-1"
+                                        :class="
+                                            dropSlice === `${index}:${childIndex}`
+                                                ? 'border-dashed border-accent bg-accent/20'
+                                                : 'border-line'
+                                        "
                                         :style="{ flexGrow: child.span?.lg ?? 1, flexBasis: 0 }"
                                         :title="t(`backend.posts.grid.zone_types.${child.type}`)"
+                                        v-on:dragover="onSliceOver(index, childIndex, $event)"
+                                        v-on:dragleave="dropSlice = null"
+                                        v-on:drop="onSliceDrop(index, childIndex, $event)"
                                     >
                                         <component
                                             :is="ZONE_ICONS[child.type]"

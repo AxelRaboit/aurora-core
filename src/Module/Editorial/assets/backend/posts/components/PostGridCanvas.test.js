@@ -359,6 +359,57 @@ describe("PostGridCanvas", () => {
         );
     });
 
+    /**
+     * Two intents need two targets. The stack's own box keeps the meaning every
+     * zone has — exchange — and its slices say "inside, here". Aiming at a
+     * slice is aiming at a rectangle that holds still, which is the same reason
+     * dropping *between* zones was refused on the row axis.
+     */
+    it("moves a zone into a stack when it is dropped on one of its slices", () => {
+        const wrapper = mountCanvas([
+            zone("a", 24),
+            stack("s", 24, [
+                { type: "media", lg: 24 },
+                { type: "media", lg: 24 },
+            ]),
+        ]);
+
+        const slices = wrapper.findAll('.aurora-grid [style*="flex-grow"]');
+
+        drag(boxes(wrapper)[0], "dragstart");
+        drag(slices[1], "dragover");
+        drag(slices[1], "drop");
+
+        expect(wrapper.emitted("moveInto")[0]).toEqual([0, 1, 1]);
+        expect(wrapper.emitted("swap")).toBeFalsy();
+    });
+
+    /**
+     * A stack cannot go inside a stack, so a slice refuses it — and the event
+     * carries on up to the box, which accepts it as the exchange every drop
+     * means by default. The author is not left with a gesture that does
+     * nothing, and the highlight says which of the two happened: the box
+     * lights up, the slice does not.
+     */
+    it("falls back to an exchange when a stack is dropped on a stack's slice", () => {
+        const wrapper = mountCanvas([
+            stack("a", 24, [{ type: "media", lg: 48 }]),
+            stack("b", 24, [{ type: "media", lg: 48 }]),
+        ]);
+
+        const slices = wrapper.findAll('.aurora-grid [style*="flex-grow"]');
+
+        drag(boxes(wrapper)[0], "dragstart");
+        drag(slices[1], "dragover");
+        drag(slices[1], "drop");
+
+        expect(wrapper.emitted("moveInto")).toBeFalsy();
+        expect(wrapper.emitted("swap")[0]).toEqual(
+            [0, 1],
+            "the slice let it through and the box behind took it",
+        );
+    });
+
     it("shows a linked publication by name, and a picked image itself", () => {
         const wrapper = mountCanvas(
             [

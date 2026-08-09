@@ -539,6 +539,99 @@ describe("usePostGrid", () => {
         expect(shareOptions.value.map((o) => o.value)).not.toContain(48);
     });
 
+    // ── Moving an existing zone into a stack ──────────────────────────────
+
+    it("takes a zone off its row and puts it in a stack", () => {
+        const { layout, content, api } = make();
+
+        api.addZone("media");
+        api.addZone("stack");
+        api.addChild(1, "text");
+
+        const movedId = layout.value.zones[0].id;
+        api.zoneFields(0).alt.value = "Vue depuis la treille";
+
+        expect(api.moveZoneIntoStack(0, 1, 0)).toBe(true);
+
+        expect(layout.value.zones).toHaveLength(1);
+        expect(layout.value.zones[0].children.map((c) => c.id)).toEqual([
+            movedId,
+            expect.any(String),
+        ]);
+        // Content is keyed by id and the id travelled, so nothing had to move.
+        expect(content.value.zones[movedId].alt).toBe("Vue depuis la treille");
+    });
+
+    it("re-shares the height once a zone has moved in", () => {
+        const { layout, api } = make();
+
+        api.addZone("media");
+        api.addZone("stack");
+        api.addChild(1, "text");
+        api.moveZoneIntoStack(0, 1, 1);
+
+        expect(layout.value.zones[0].children.map((c) => c.span.lg)).toEqual([
+            24, 24,
+        ]);
+    });
+
+    /**
+     * The splice that lifts the zone off the row shifts every index after it,
+     * including the stack's own when the zone sat before it. Holding the stack
+     * by reference is what makes that a non-issue — this pins it.
+     */
+    it("finds the right stack when the zone sat before it", () => {
+        const { layout, api } = make();
+
+        api.addZone("text");
+        api.addZone("media");
+        api.addZone("stack");
+        api.addChild(2, "text");
+
+        const movedId = layout.value.zones[0].id;
+        api.moveZoneIntoStack(0, 2, 0);
+
+        expect(layout.value.zones.map((z) => z.type)).toEqual([
+            "media",
+            "stack",
+        ]);
+        expect(layout.value.zones[1].children[0].id).toBe(movedId);
+    });
+
+    it("refuses to put a stack inside a stack", () => {
+        const { layout, api } = make();
+
+        api.addZone("stack");
+        api.addZone("stack");
+
+        expect(api.moveZoneIntoStack(0, 1, 0)).toBe(false);
+        expect(layout.value.zones).toHaveLength(2);
+    });
+
+    it("refuses a move onto anything that is not a stack", () => {
+        const { layout, api } = make();
+
+        api.addZone("media");
+        api.addZone("text");
+
+        expect(api.moveZoneIntoStack(0, 1, 0)).toBe(false);
+        expect(layout.value.zones).toHaveLength(2);
+    });
+
+    it("refuses a move into a stack that is already full", () => {
+        const { layout, api } = make();
+
+        api.addZone("media");
+        api.addZone("stack");
+
+        for (let index = 0; index < 6; index += 1) {
+            api.addChild(1, "text");
+        }
+
+        expect(api.moveZoneIntoStack(0, 1, 0)).toBe(false);
+        expect(layout.value.zones).toHaveLength(2);
+    });
+
     it("stops adding to a stack at the cap", () => {
         const { layout, api } = make();
 

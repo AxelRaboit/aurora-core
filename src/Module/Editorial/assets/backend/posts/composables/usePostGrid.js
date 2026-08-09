@@ -305,6 +305,54 @@ export function usePostGrid(layout, content) {
      * cannot lie, and the panel shows it beside the buttons.
      */
     /**
+     * Take a zone off its row and put it inside a stack.
+     *
+     * The other half of "add a zone to a stack": that one makes a new zone,
+     * this one moves the zone already laid out — which is the thing an author
+     * has no other way to do, short of deleting and rebuilding it and losing
+     * what every other language holds for it.
+     *
+     * The stack is held by reference rather than by index, because the splice
+     * that removes the zone shifts every index after it — including, half the
+     * time, the stack's own.
+     *
+     * Content is not touched: it is keyed by zone id, and the id travels.
+     *
+     * @return {boolean} whether the move happened, so a caller can leave the
+     *                   selection alone when it did not.
+     */
+    function moveZoneIntoStack(fromIndex, stackIndex, atIndex) {
+        const list = layout.value.zones;
+        const stack = list[stackIndex];
+        const moving = list[fromIndex];
+
+        if (
+            undefined === stack ||
+            undefined === moving ||
+            fromIndex === stackIndex
+        ) {
+            return false;
+        }
+
+        // Depth stops at one, so a stack cannot go inside a stack — the
+        // normaliser would drop it on the way out, which is a zone silently
+        // lost rather than a move refused.
+        if ("stack" !== stack.type || "stack" === moving.type) {
+            return false;
+        }
+
+        if (stack.children.length >= MAX_STACK_CHILDREN) {
+            return false;
+        }
+
+        list.splice(fromIndex, 1);
+        stack.children.splice(atIndex, 0, moving);
+        shareEvenly(stack.children);
+
+        return true;
+    }
+
+    /**
      * Hand the rest of the height back to the other zones of a stack.
      *
      * Shares are grow factors, so only their ratio matters — but an author
@@ -546,6 +594,7 @@ export function usePostGrid(layout, content) {
         addChild,
         removeChild,
         moveChild,
+        moveZoneIntoStack,
         childShare,
         addZone,
         removeZone,

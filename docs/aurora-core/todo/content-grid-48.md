@@ -472,8 +472,21 @@ obtient.
 Livrée en trois tranches : `55f8cdb4` (modèle et rendu public), `2efde2f6`
 (panneau), `98835f47` (toile).
 
-**Ce qui n'est pas fait** : déplacer une zone existante *dans* une pile. Elle
-s'ajoute depuis la pile, elle ne s'y glisse pas.
+**Déplacer une zone existante dans une pile** se fait en la glissant sur une
+**tranche** de la pile — pas sur la pile elle-même. Deux intentions demandent
+deux cibles : la boîte garde le sens qu'ont toutes les autres, l'échange, et les
+tranches disent « dedans, ici ». Une tranche est un rectangle qui ne bouge pas,
+ce qui est la raison pour laquelle déposer *entre* deux zones avait été refusé
+sur l'axe horizontal.
+
+Une tranche refuse ce qu'elle ne peut pas prendre — une pile, puisque la
+profondeur s'arrête à un — et laisse alors l'événement remonter : la boîte
+derrière le prend comme un échange, donc le geste fait quelque chose plutôt que
+rien. Le surlignage dit lequel des deux : la boîte s'allume, la tranche non.
+*(`d3a5b7c2`)*
+
+**Ce qui n'est pas fait** : sortir une zone d'une pile en la glissant. Elle se
+supprime depuis la pile.
 
 ### Livré le 2026-08-09 : le rapport d'image, sur la zone média
 

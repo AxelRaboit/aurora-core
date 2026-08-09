@@ -64,6 +64,7 @@ const {
     addChild,
     removeChild,
     moveChild,
+    moveZoneIntoStack,
     childShare,
     addZone,
     removeZone,
@@ -109,6 +110,19 @@ const cardEls = ref([]);
 /** The canvas hands back an unrounded width; the one clamp lives downstream. */
 function resizeZone(index, columns) {
     zoneFields(index).width.value = columns;
+}
+
+// The moved zone leaves the row and lands inside the stack, so the selection
+// follows it there — the stack is now what holds it, and its card is where its
+// fields are. Taking a zone out from before the stack shifts the stack down one,
+// which is arithmetic rather than a search: two stacks would make a search pick
+// the wrong one.
+function moveIntoStack(fromIndex, stackIndex, atIndex) {
+    if (!moveZoneIntoStack(fromIndex, stackIndex, atIndex)) {
+        return;
+    }
+
+    selectedIndex.value = fromIndex < stackIndex ? stackIndex - 1 : stackIndex;
 }
 
 // Only the selected zone shows its fields, so a zone added without being
@@ -193,6 +207,7 @@ watch(selectedIndex, async (index) => {
                 v-on:resize="resizeZone"
                 v-on:add="addAndSelect"
                 v-on:swap="swapZones"
+                v-on:move-into="moveIntoStack"
             />
 
             <!-- Behind a button rather than inline: the panel is a column a few
