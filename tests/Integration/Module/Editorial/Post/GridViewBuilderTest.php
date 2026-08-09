@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Editorial\Post;
 
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
+use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * The join between the grid's two halves, and the place that decides what a
@@ -19,12 +21,15 @@ final class GridViewBuilderTest extends IntegrationTestCase
 {
     private GridViewBuilder $gridViewBuilder;
 
+    private EntityManagerInterface $entityManager;
+
     protected function setUp(): void
     {
         parent::setUp();
         static::bootKernel();
 
         $this->gridViewBuilder = static::getContainer()->get(GridViewBuilder::class);
+        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
     }
 
     public function testAZoneCarriesBothItsArrangementAndItsContent(): void
@@ -58,10 +63,6 @@ final class GridViewBuilderTest extends IntegrationTestCase
         self::assertStringNotContainsString('--span-md', $grid['zones'][0]['spanStyle']);
     }
 
-    /**
-     * Blocks are the one part written raw, so this is where the sanitiser has
-     * to run — the same path the plain block column takes.
-     */
     /**
      * A declaration rather than a Tailwind class, for the reason spans are
      * custom properties: `aspect-square` and `aspect-[3/4]` appear in no source
@@ -162,6 +163,10 @@ final class GridViewBuilderTest extends IntegrationTestCase
         }
     }
 
+    /**
+     * Blocks are the one part written raw, so this is where the sanitiser has
+     * to run — the same path the plain block column took.
+     */
     public function testTextGoesThroughTheBlockSanitiser(): void
     {
         $grid = $this->gridViewBuilder->buildForEditor(
@@ -237,6 +242,63 @@ final class GridViewBuilderTest extends IntegrationTestCase
         self::assertNull($grid['zones'][0]['media']);
     }
 
+    /**
+     * A media zone renders an `<img>`, so what it points at has to be an
+     * image. The picker only offers those, but a fixture, an API write, or a
+     * document whose file is replaced afterwards all reach past it — and this
+     * is the one that reads as nothing at all rather than as an error: a
+     * browser handed an mp4 in an `<img>` shows a broken image and says
+     * nothing anywhere.
+     */
+    public function testAMediaZonePointingAtAVideoResolvesToNothing(): void
+    {
+        $video = $this->document('video/mp4', 'ged/2026/08/demo-video.mp4');
+
+        $grid = $this->gridViewBuilder->buildForEditor(
+            ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'media', 'mediaId' => $video]]],
+            [],
+            'fr',
+        );
+
+        self::assertNull($grid['zones'][0]['media']);
+    }
+
+    /**
+     * The other half of the check, and the one that would catch a guard
+     * written too wide: refusing everything would pass the test above.
+     */
+    public function testAMediaZonePointingAtAPictureStillResolves(): void
+    {
+        $picture = $this->document('image/jpeg', 'ged/2026/08/photo.jpg');
+
+        $grid = $this->gridViewBuilder->buildForEditor(
+            ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'media', 'mediaId' => $picture]]],
+            [],
+            'fr',
+        );
+
+        self::assertNotNull($grid['zones'][0]['media']);
+        self::assertStringContainsString('photo.jpg', (string) $grid['zones'][0]['media']['url']);
+    }
+
+    /**
+     * The library keeps documents with no file on purpose, so the upload flow
+     * has something to be tested against. One of those in a media zone used to
+     * produce `<img src="">` — a broken image, not an absent one.
+     */
+    public function testAMediaZoneWhoseDocumentHasNoFileResolvesToNothing(): void
+    {
+        $fileless = $this->document('image/jpeg', null);
+
+        $grid = $this->gridViewBuilder->buildForEditor(
+            ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'media', 'mediaId' => $fileless]]],
+            [],
+            'fr',
+        );
+
+        self::assertNull($grid['zones'][0]['media']);
+    }
+
     public function testAPostZonePointingAtNothingResolvesToNothing(): void
     {
         $grid = $this->gridViewBuilder->buildForEditor(
@@ -298,5 +360,22 @@ final class GridViewBuilderTest extends IntegrationTestCase
         self::assertFalse($grid['enabled']);
         self::assertSame([], $grid['zones']);
         self::assertSame(4, $grid['snap']);
+    }
+
+    /**
+     * Flushed rather than only persisted: the builder resolves ids through the
+     * repository, so the row has to exist and to have an id.
+     */
+    private function document(string $mimeType, ?string $filePath): int
+    {
+        $document = new Document();
+        $document->setTitle('Média');
+        $document->setMimeType($mimeType);
+        $document->setFilePath($filePath);
+
+        $this->entityManager->persist($document);
+        $this->entityManager->flush();
+
+        return (int) $document->getId();
     }
 }

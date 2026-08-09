@@ -6,6 +6,7 @@ namespace Aurora\Module\Editorial\Post\Grid;
 
 use Aurora\Core\Content\ContentValueNormalizer;
 use Aurora\Core\Content\VideoEmbedResolver;
+use Aurora\Core\Storage\Enum\MimeGroupEnum;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Service\BlocksRenderer;
@@ -249,7 +250,6 @@ final readonly class GridViewBuilder
         ];
     }
 
-    /** @return array<string, mixed>|null */
     /**
      * The crop, as a declaration rather than a class.
      *
@@ -276,15 +276,46 @@ final readonly class GridViewBuilder
         };
     }
 
+    /**
+     * @return array<string, mixed>|null null whenever there is no picture to
+     *                                   draw, which the template reads as a
+     *                                   zone that renders nothing
+     */
     private function mediaData(?DocumentInterface $media, string $alt): ?array
     {
         if (!$media instanceof DocumentInterface) {
             return null;
         }
 
+        // A media zone renders an `<img>`, so what it holds has to be an
+        // image. The backend picker only ever offers those, but three paths
+        // reach past it — a fixture, an API write, and a document whose file
+        // is replaced after the zone was configured — and an `<img>` pointed
+        // at an mp4 is a broken image with nothing said anywhere.
+        //
+        // Asked here rather than refused in `GridNormalizer` for two reasons.
+        // The normaliser has no database and runs on every render, not only on
+        // the way in — giving it a repository would put a query behind every
+        // page view. And the third path above has no write to refuse: a layout
+        // that was valid the day it was saved stops being valid the day the
+        // file behind it changes. Only the render knows.
+        if (!MimeGroupEnum::Image->matches($media->getMimeType())) {
+            return null;
+        }
+
+        $url = $this->documentUrlGenerator->variantUrl($media, 'large')
+            ?? $this->documentUrlGenerator->publicUrl($media);
+
+        // A document can carry no file at all — the demo library keeps three
+        // that way on purpose, so the upload flow has something to be tested
+        // against. Without this the zone emitted `<img src="">`, which is a
+        // broken image rather than an absent one.
+        if (null === $url) {
+            return null;
+        }
+
         return [
-            'url' => $this->documentUrlGenerator->variantUrl($media, 'large')
-                ?? $this->documentUrlGenerator->publicUrl($media),
+            'url' => $url,
             // The zone's own alt wins: the same picture can mean different
             // things in two places, and the document's alt describes the file.
             'alt' => '' !== $alt ? $alt : (string) $media->getAlt(),

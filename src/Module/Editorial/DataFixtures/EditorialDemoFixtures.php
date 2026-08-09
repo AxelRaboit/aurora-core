@@ -277,14 +277,32 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 }
             }
 
+            // A body is a grid of one full-width text zone. It used to be the
+            // `blocks` column, which is the same thing said the old way — the
+            // migration that moved every publication over does not run again on
+            // a freshly loaded fixture set, so the fixtures have to speak the
+            // new shape themselves or the demo pages come up empty.
+            $post->setGridLayout($this->gridNormalizer->normalizeLayout([
+                'enabled' => true,
+                'snap' => 4,
+                'zones' => [[
+                    'id' => 'body',
+                    'type' => GridNormalizer::ZONE_TEXT,
+                    'span' => ['base' => 48, 'md' => null, 'lg' => 48],
+                ]],
+            ]));
+
             foreach (['fr', 'en'] as $locale) {
                 [$title, $slug, $description] = $def[$locale];
 
                 $translation = $post->translate($locale)
                     ->setTitle($title)
                     ->setSlug($slug)
-                    ->setDescription($description)
-                    ->setBlocks($this->blocks($title, $description));
+                    ->setDescription($description);
+
+                $translation->setGrid($this->gridNormalizer->normalizeContent([
+                    'zones' => ['body' => ['blocks' => $this->blocks($title, $description)]],
+                ], $post->getGridLayout()));
 
                 $this->indexForSearch($translation);
             }

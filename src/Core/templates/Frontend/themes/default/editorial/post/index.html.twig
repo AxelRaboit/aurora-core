@@ -71,16 +71,17 @@
        publication in a listing, and the custom header is what opens the page —
        rendering both put two hero images one above the other. #}
 
-    {# The grid takes over the body when the post has one: it is a different
-       way of laying out the same thing, not something to print above or below
-       the plain column. Null when disabled or empty, which is what makes a
-       post that never touched it render exactly as it did before. #}
+    {# The body, and the only one there is. The plain block column that used to
+       sit in an `{% else %}` here was migrated into a one-zone grid, and the
+       `content` variable that fed it is no longer passed at all — keeping it
+       would have meant a second path nobody exercised, quietly rotting until
+       the day something fell back to it and rendered words a year out of date.
+
+       Null when the post has no grid, which now means it has no body: an
+       author who has laid out nothing gets nothing here, rather than an empty
+       wrapper pretending to be content. #}
     {% if grid %}
         {{ include('Frontend/themes/default/editorial/post/_grid.html.twig', {grid: grid, locale: locale}) }}
-    {% else %}
-        {# Already HTML: BlocksRenderer escaped and sanitised every value on the
-           way out, so escaping again here would print the markup. #}
-        {{ content|raw }}
     {% endif %}
 
     {% if terms is not empty %}

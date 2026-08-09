@@ -34,7 +34,6 @@ final readonly class PostPageRenderer
         private ThemeResolver $themeResolver,
         private Context $context,
         private ThemeContext $themeContext,
-        private BlocksRenderer $blocksRenderer,
         private AlternatesBuilder $alternatesBuilder,
         private DocumentUrlGenerator $documentUrlGenerator,
         private CommentManagerInterface $commentManager,
@@ -68,7 +67,6 @@ final readonly class PostPageRenderer
             // Null when the post has no grid, which is what makes the template
             // fall back to the plain block column it has always rendered.
             'grid' => $this->gridViewBuilder->build($post->getGridLayout(), $translation->getGrid(), $locale),
-            'content' => $this->blocksRenderer->render($translation->getBlocks(), $locale),
             'terms' => $this->postTerms($post, $locale),
             'alternates' => $this->alternatesBuilder->forPost($post),
             // The thread itself is fetched by the browser rather than

@@ -28,6 +28,12 @@ final readonly class PostTextExtractor
             $translation->getMetaDescription(),
             $translation->getFocusKeyword(),
             $this->textFromBlocks($translation->getBlocks()),
+            // The body lives in the grid since it became the only one. Reading
+            // `blocks` alone stopped finding a word of it — and nothing would
+            // have said so: the column still holds what it held before the
+            // migration, so search kept answering, with answers a version out
+            // of date.
+            $this->textFromGrid($translation->getGrid()),
             $this->textFromCustomFields($translation),
         ];
 
@@ -48,6 +54,41 @@ final readonly class PostTextExtractor
         }
 
         return implode(' ', $collected);
+    }
+
+    /**
+     * What a grid holds, in every zone and at every depth.
+     *
+     * Captions and alt text are collected beside the blocks: they are words an
+     * author wrote for a reader, which is the whole test for whether something
+     * belongs in a search index. The video address is not — it is a location,
+     * and a reader searching for "youtube" wants pages about it rather than
+     * every page carrying a clip.
+     *
+     * @param array<string, mixed> $grid
+     */
+    public function textFromGrid(array $grid): string
+    {
+        $zones = is_array($grid['zones'] ?? null) ? $grid['zones'] : [];
+        $parts = [];
+
+        foreach ($zones as $zone) {
+            if (!is_array($zone)) {
+                continue;
+            }
+
+            if (is_array($zone['blocks'] ?? null)) {
+                $parts[] = $this->textFromBlocks($zone['blocks']);
+            }
+
+            foreach (['alt', 'caption'] as $field) {
+                if (is_string($zone[$field] ?? null) && '' !== $zone[$field]) {
+                    $parts[] = $zone[$field];
+                }
+            }
+        }
+
+        return implode(' ', array_filter($parts, static fn (string $part): bool => '' !== mb_trim($part)));
     }
 
     private function textFromCustomFields(PostTranslationInterface $translation): string
