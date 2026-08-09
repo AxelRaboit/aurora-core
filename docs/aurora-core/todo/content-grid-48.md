@@ -1,11 +1,12 @@
 # Grille de contenu 48 colonnes
 
-> **Statut (2026-08-09) : cinq étapes sur six livrées, plus le réglage de
+> **Statut (2026-08-09) : les six étapes livrées, plus le réglage de
 > largeur.** Le contrat, le rendu public, les quatre types de zone, l'éditeur et
 > l'aperçu sont en place et testés. Le réglage de largeur est passé à une toile
 > manipulable doublée d'une rangée de fractions au clavier — voir le chapitre
 > qui lui est consacré, et une **pile** permet à une zone haute de côtoyer deux
-> zones empilées. Reste le sort de `blocks`, qui cohabite.
+> zones empilées. `blocks` a été migré dans la grille : elle est désormais le
+> seul corps d'une publication.
 
 ---
 
@@ -128,10 +129,24 @@ Chacune verte et livrable, comme pour la fusion Media → GED.
    l'affiche au-dessus des zones. Le composable d'aperçu de la bannière a été
    généralisé en `useServerPreview` au passage plutôt que dupliqué : seul le
    format de charge différait. 6 tests d'intégration, 7 sur le composable.
-6. ⬜ **Sort de `blocks`** — aujourd'hui les deux **cohabitent** : le panneau de
-   blocs disparaît quand la grille est activée (`supportsBlocks &&
-   !gridLayout.enabled`), et le rendu public fait le même choix. Rien n'est
-   migré, rien n'est supprimé. La décision reste entière.
+6. ✅ **Sort de `blocks`** — tranché le 2026-08-09 : **la grille devient le
+   corps, seule.** Chaque colonne de blocs est passée en une zone texte pleine
+   largeur, ce qu'elle a toujours été. Le panneau de blocs disparaît de
+   l'éditeur ; `supportsBlocks` nomme toujours les types qui ont un corps, seul
+   ce qu'il ouvre a changé.
+
+   **Décidé sur mesure, pas sur intuition.** Une publication rendue des deux
+   façons place son paragraphe, son h2 et sa liste au même pixel — même gauche,
+   même largeur, même hauteur. Le HTML intérieur est identique, seuls trois
+   conteneurs l'entourent, et `prose` remet à zéro la marge du premier enfant là
+   où le chemin bloc la donnait. **Rien ne bouge sur une page publiée**, ce qui
+   était le seul vrai risque puisque la migration tourne aussi chez les clients.
+
+   **La colonne `blocks` n'est pas supprimée.** Elle garde chaque valeur, ce qui
+   rend la migration réversible : le `down()` n'a qu'à rééteindre la grille,
+   puisque les mots ne sont jamais partis. La supprimer est une décision d'un
+   autre jour, prise quand plus rien ne l'aura lue depuis longtemps — pas le
+   jour où la donnée bouge. *(Version20260809150000)*
 
 ### Ce qui a été fait en plus du plan
 

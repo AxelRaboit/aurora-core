@@ -12,7 +12,6 @@ import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
-import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
 import AppFocalPointField from "@/shared/components/form/file/AppFocalPointField.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import PostBannerPanel from "./components/PostBannerPanel.vue";
@@ -192,12 +191,15 @@ function termLabel(term) {
                 </div>
 
                 <div v-show="isTabActive('content')" class="space-y-4">
+                    <!-- The grid is the body now, not one of two ways to write
+                         one. The plain block column that used to sit under this
+                         was migrated into a single full-width text zone — which
+                         is what it always was — and the two paths it cost to
+                         keep are down to one. `supportsBlocks` still names the
+                         post types that have a body at all; only what it opens
+                         has changed. -->
                     <div v-if="supportsBlocks" class="bg-surface border border-line rounded-xl p-5 space-y-3">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.grid.title") }}</h3>
-                        <!-- Above the plain column because it replaces it: a
-                             grid that is switched on is what the page renders,
-                             and the column below is then dead weight the
-                             author should see is unused. -->
                         <PostGridPanel
                             :layout="form.gridLayout"
                             :content="current.grid"
@@ -205,11 +207,6 @@ function termLabel(term) {
                             :post-options="relatedPostOptions"
                             :preview-path="gridPreviewPath"
                         />
-                    </div>
-
-                    <div v-if="supportsBlocks && !form.gridLayout.enabled" class="bg-surface border border-line rounded-xl p-5 space-y-3">
-                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.content") }}</h3>
-                        <AppBlockEditor v-model="current.blocks" :placeholder="t('backend.posts.content_placeholder')" />
                     </div>
 
                     <div v-if="customFieldDefinitions.length" class="bg-surface border border-line rounded-xl p-5 space-y-4">
