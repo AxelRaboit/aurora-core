@@ -39,6 +39,8 @@ interface PostInputInterface
 
     public function isCommentsEnabled(): bool;
 
+    public function isTitleVisible(): bool;
+
     /**
      * The banner's design, shared by every language. Raw as it left the
      * editor; the manager normalises it.

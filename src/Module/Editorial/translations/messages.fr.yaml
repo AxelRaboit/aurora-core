@@ -351,6 +351,8 @@ backend:
       move_up: Monter
       move_down: Descendre
       remove_zone: Supprimer la zone
+    title_visible: Afficher le titre et le résumé sur la page
+    title_visible_hint: "Décoché, la page n'affiche ni l'un ni l'autre — à réserver aux pages dont l'en-tête ou la première zone dit déjà de quoi il s'agit. Le titre reste dans le document pour les lecteurs d'écran et les moteurs de recherche."
     identity_hint: "Servent à retrouver la publication dans la liste et sur les cartes qui la présentent. Ils coiffent aussi la page, mais seulement si l'en-tête personnalisé n'a pas de titre."
     seo: Moteurs de recherche
     tabs:

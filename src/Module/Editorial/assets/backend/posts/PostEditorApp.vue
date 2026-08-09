@@ -267,6 +267,15 @@ function termLabel(term) {
                             :rows="2"
                         />
                         <p class="text-xs text-muted">{{ t("backend.posts.identity_hint") }}</p>
+
+                        <!-- Shared across languages, unlike the two fields
+                             above it: a page with a heading in French and none
+                             in German would be two different pages. -->
+                        <AppCheckbox
+                            v-model="form.titleVisible"
+                            :label="t('backend.posts.title_visible')"
+                            :hint="t('backend.posts.title_visible_hint')"
+                        />
                     </div>
 
                     <div class="bg-surface border border-line rounded-xl p-5 space-y-4">

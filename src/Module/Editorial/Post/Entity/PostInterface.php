@@ -52,6 +52,10 @@ interface PostInterface
 
     public function setCommentsEnabled(bool $commentsEnabled): static;
 
+    public function isTitleVisible(): bool;
+
+    public function setTitleVisible(bool $titleVisible): static;
+
     /**
      * The banner's design, shared by every language. Its words live on each
      * translation and join back by item id.

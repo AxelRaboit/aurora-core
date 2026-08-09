@@ -75,6 +75,9 @@ final readonly class PostPageRenderer
             // rendered here: comments are the one part of the page that
             // changes between two readers of the same cached HTML.
             'commentsEnabled' => $this->commentManager->areCommentsEnabled($post),
+            // Whether the page prints its own title and summary. Shared, not
+            // per translation: it is a decision about the design.
+            'titleVisible' => $post->isTitleVisible(),
         ]);
 
         $response = new Response($body);

@@ -32,6 +32,7 @@ class PostInput implements PostInputInterface
         public readonly ?int $version = null,
         public readonly bool $force = false,
         public readonly bool $commentsEnabled = true,
+        public readonly bool $titleVisible = true,
         public readonly array $bannerLayout = [],
         public readonly array $gridLayout = [],
         public readonly string $thumbnailFit = 'cover',
@@ -52,6 +53,7 @@ class PostInput implements PostInputInterface
             version: $this->version,
             force: $this->force,
             commentsEnabled: $this->commentsEnabled,
+            titleVisible: $this->titleVisible,
             bannerLayout: $this->bannerLayout,
             gridLayout: $this->gridLayout,
             thumbnailFit: $this->thumbnailFit,
@@ -123,6 +125,11 @@ class PostInput implements PostInputInterface
     public function isCommentsEnabled(): bool
     {
         return $this->commentsEnabled;
+    }
+
+    public function isTitleVisible(): bool
+    {
+        return $this->titleVisible;
     }
 
     public function getBannerLayout(): array

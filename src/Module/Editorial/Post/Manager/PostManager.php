@@ -224,6 +224,7 @@ class PostManager implements PostManagerInterface
         $post->setThumbnailFit(ThumbnailFitEnum::tryFrom($input->getThumbnailFit()) ?? ThumbnailFitEnum::Cover);
         $post->setThumbnailFocal($input->getThumbnailFocalX(), $input->getThumbnailFocalY());
         $post->setCommentsEnabled($input->isCommentsEnabled());
+        $post->setTitleVisible($input->isTitleVisible());
 
         // Normalised here rather than in the DTO: this is the write boundary,
         // and it is the only place guaranteed to run whatever built the input.

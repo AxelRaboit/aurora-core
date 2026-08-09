@@ -114,6 +114,9 @@ export function usePostEditor(props) {
         thumbnailFocalX: props.post?.thumbnailFocalX ?? null,
         thumbnailFocalY: props.post?.thumbnailFocalY ?? null,
         commentsEnabled: props.post?.commentsEnabled ?? true,
+        // Whether the page prints its own title and summary. On the post like
+        // the banner below, for the same reason: it is design, written once.
+        titleVisible: props.post?.titleVisible ?? true,
         // On the post, beside status and terms, rather than inside a
         // translation: one design, shared by every language.
         bannerLayout: {

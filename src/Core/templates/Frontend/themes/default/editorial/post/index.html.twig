@@ -35,7 +35,21 @@
        purely decorative banner leaves the page without any heading, so the
        plain header stays. #}
     {% if not banner or banner.headingIndex is null %}
-        <h1>{{ translationData.title }}</h1>
+        {# `titleVisible` hides the pair from sight, never from the document.
+           The heading stays in the markup as `sr-only` because it is the page's
+           only `<h1>` in this branch — the banner has none, and a grid text
+           zone cannot make one, its editor offers levels 2 to 4. Dropping the
+           element outright would leave the document with no first-level
+           heading at all, and its highest heading an h2: a structure that reads
+           as a fragment to a screen reader and to a crawler alike. Hidden is a
+           layout decision; absent would be a different document. #}
+        {# `??` and not `|default`: the default filter falls back on any *empty*
+           value, and `false` is empty — so `titleVisible|default(true)` was
+           true whichever way the switch was set, and the flag could never turn
+           anything off. `??` falls back only on null or undefined. #}
+        {% set showTitle = titleVisible ?? true %}
+
+        <h1 {% if not showTitle %}class="sr-only"{% endif %}>{{ translationData.title }}</h1>
 
         {# No size class at all, rather than the typography plugin's `lead`
            (1.25em, so 20px) or a `text-base`. The summary is meant to read as
@@ -43,8 +57,12 @@
            style it as one: 16px over a 28px line. `text-base` would pin the
            size and bring its own 24px line-height, so it would match the body
            text in size and not in rhythm. Colour is the only thing that sets
-           this paragraph apart. #}
-        {% if translationData.description %}
+           this paragraph apart.
+
+           The summary is dropped rather than hidden: nothing in the document's
+           structure depends on it, and the meta description — which is what a
+           crawler reads — is a field of its own. #}
+        {% if showTitle and translationData.description %}
             <p class="text-secondary">{{ translationData.description }}</p>
         {% endif %}
     {% endif %}

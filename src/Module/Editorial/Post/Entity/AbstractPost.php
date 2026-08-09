@@ -53,6 +53,21 @@ abstract class AbstractPost implements PostInterface
     protected bool $commentsEnabled = true;
 
     /**
+     * Whether the published page prints its own title and summary.
+     *
+     * Shared rather than per translation, by the same argument as a span: this
+     * is a decision about the page's design, and a design is written once for
+     * every language. A page with a heading in French and none in German would
+     * be two different pages.
+     *
+     * Turning it off never leaves the document without an `<h1>` — the
+     * template keeps one for readers who cannot see the layout. What it hides
+     * is the visible pair.
+     */
+    #[ORM\Column(options: ['default' => true])]
+    protected bool $titleVisible = true;
+
+    /**
      * The banner's design: arrangement, widths, colours, pictures. Shape and
      * defaults belong to {@see BannerNormalizer}, which every write goes
      * through; an empty array here means "never configured" and reads as a
@@ -260,6 +275,18 @@ abstract class AbstractPost implements PostInterface
     public function setCommentsEnabled(bool $commentsEnabled): static
     {
         $this->commentsEnabled = $commentsEnabled;
+
+        return $this;
+    }
+
+    public function isTitleVisible(): bool
+    {
+        return $this->titleVisible;
+    }
+
+    public function setTitleVisible(bool $titleVisible): static
+    {
+        $this->titleVisible = $titleVisible;
 
         return $this;
     }
