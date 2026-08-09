@@ -159,6 +159,23 @@ stop: ## Stop dev server
 	symfony server:stop
 	@docker compose stop database 2>/dev/null || true
 
+# PostgreSQL refuses to drop a database anything is connected to, and the dev
+# worker holds a connection permanently: it sits in LISTEN on the messenger
+# queue. So `make fixtures` died on the drop with "database is being accessed
+# by other users", after the supervisor loop below had already restarted the
+# consumer it had just been told to stop.
+#
+# Killed by the pattern rather than by the marker file's pid, because the
+# supervisor and the consumer are two processes and the pattern matches both —
+# the supervisor carries the same command in its `bash -c` string. Killing the
+# consumer alone just makes the loop start another one.
+stop-dev-worker: ## Stop the messenger worker (frees the DB for a drop)
+	@pkill -f 'messenger:consume async scheduler_main' 2>/dev/null || true
+	@sleep 1
+	@pkill -9 -f 'messenger:consume async scheduler_main' 2>/dev/null || true
+	@rm -f var/.messenger-dev-worker-running
+	@echo "🛑 Messenger worker stopped — restart it with: make start-dev-worker"
+
 start-dev-worker: ## Start the messenger worker (async + scheduler)
 	@touch var/.messenger-dev-worker-running
 	@trap 'rm -f var/.messenger-dev-worker-running; exit' INT TERM EXIT; \
@@ -195,13 +212,14 @@ about: ## Show app info
 # --append. The default purger empties every table, including the one holding
 # the post types the demo content is about to look up — so seeding first and
 # purging after left the fixtures with nothing to build on.
-fixtures: ## Drop DB, re-run migrations, seed the floor and load fixtures
+fixtures: stop-dev-worker ## Drop DB, re-run migrations, seed the floor and load fixtures
 	$(CONSOLE) doctrine:database:drop --force --if-exists
 	$(CONSOLE) doctrine:database:create --if-not-exists
 	$(CONSOLE) doctrine:migrations:migrate --no-interaction
 	$(CONSOLE) aurora:install
 	$(CONSOLE) doctrine:fixtures:load --no-interaction --append
 	@echo "✅ Fixtures loaded"
+	@echo "↻  Restart the worker: make start-dev-worker"
 
 demo: purge-uploads ## Purge var/uploads/ then load demo fixtures + run all syncs
 	$(CONSOLE) aurora:install
@@ -222,7 +240,7 @@ fixtures-append: ## Append fixtures without dropping DB
 db-create: ## Create the database
 	$(CONSOLE) doctrine:database:create --if-not-exists
 
-db-drop: ## Drop the database
+db-drop: stop-dev-worker ## Drop the database
 	$(CONSOLE) doctrine:database:drop --force --if-exists
 
 migration: ## Generate a new migration
