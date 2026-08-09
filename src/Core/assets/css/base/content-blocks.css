@@ -113,3 +113,25 @@
     font-size: 0.875rem;
     color: var(--color-text-secondary, rgb(100 116 139));
 }
+
+/*
+ * A heading belongs to the text under it, not to the section above.
+ *
+ * Typography ships one em below a heading — 24px under a 24px h2 — against the
+ * two em it puts above. The ratio was already right; the absolute value was
+ * not, and a title floated free of the paragraph it introduces. Half an em
+ * reads as one block: the space above still says "new section", the space
+ * below no longer says "unrelated".
+ *
+ * In `em`, so it stays proportional. A paragraph following a heading already
+ * has `margin-top: 0` from Typography's `h2 + *` rule, so this margin is the
+ * whole of the gap — there is nothing collapsing against it to soften a value
+ * chosen here.
+ *
+ * `h1` is left alone. A page title is set beside its summary in the post
+ * template, which is a pairing this rule knows nothing about, and a `.prose`
+ * selector would outrank the utility that does it.
+ */
+.prose :is(h2, h3, h4) {
+    margin-bottom: 0.5em;
+}
