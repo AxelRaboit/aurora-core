@@ -29,7 +29,7 @@ import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import BannerColorField from "./BannerColorField.vue";
 import { Plus, Trash2, ChevronUp, ChevronDown, Type, Image, MousePointerClick } from "lucide-vue-next";
 import { usePostBanner } from "../composables/usePostBanner.js";
-import { useBannerPreview } from "../composables/useBannerPreview.js";
+import { useServerPreview } from "@/shared/composables/http/backend/useServerPreview.js";
 
 const props = defineProps({
     /** The design, shared by every language. */
@@ -67,9 +67,11 @@ const {
     computed(() => props.texts),
 );
 
-const { html: previewHtml, loading: previewLoading } = useBannerPreview(
-    computed(() => props.layout),
-    computed(() => props.texts),
+// Both halves, because a preview is per language: the same layout with the
+// German copy is a different picture from the same layout with the French.
+const { html: previewHtml, loading: previewLoading } = useServerPreview(
+    () => ({ layout: props.layout, texts: props.texts }),
+    [() => props.layout, () => props.texts],
     props.previewPath,
 );
 </script>

@@ -301,6 +301,7 @@ backend:
       title: Content grid
       enabled: Use a content grid
       disabled_hint: "Off — the publication keeps its usual content column. Turning this on replaces it with zones laid out on a 48-column grid."
+      preview: Preview
       snap: Snap step
       snap_hint: "How finely a width can be set. Changing the step does not move zones already placed."
       snaps:

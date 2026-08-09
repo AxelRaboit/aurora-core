@@ -19,9 +19,9 @@ puis par topic.
   redimensionnables et déplaçables sur la grille que la bannière utilise déjà,
   avec du texte Editor.js, une autre publication, un média ou une URL vidéo
   dans chacune. Décisions structurantes prises (48 colonnes, pas d'aimantation
-  variable, `{base, md, lg}`). **4 étapes sur 6 livrées** — contrat, rendu
-  public, quatre types de zone, éditeur. Restent l'aperçu et le sort de
-  `blocks`, qui cohabite pour l'instant.
+  variable, `{base, md, lg}`). **5 étapes sur 6 livrées** — contrat, rendu
+  public, quatre types de zone, éditeur, aperçu. Reste le sort de `blocks`,
+  qui cohabite pour l'instant.
 
 ### Frontend / Vue
 

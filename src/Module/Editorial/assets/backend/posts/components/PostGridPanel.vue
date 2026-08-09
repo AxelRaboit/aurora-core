@@ -25,6 +25,8 @@ import AppRange from "@/shared/components/form/toggle/AppRange.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import { ChevronDown, ChevronUp, FileText, Film, Image, Newspaper, Plus, Trash2 } from "lucide-vue-next";
+import AppLoader from "@/shared/components/feedback/AppLoader.vue";
+import { useServerPreview } from "@/shared/composables/http/backend/useServerPreview.js";
 import { usePostGrid } from "../composables/usePostGrid.js";
 
 const props = defineProps({
@@ -36,6 +38,7 @@ const props = defineProps({
     locale: { type: String, required: true },
     /** Publications this grid may link to, for the `post` zone type. */
     postOptions: { type: Array, default: () => [] },
+    previewPath: { type: String, required: true },
 });
 
 const { t } = useI18n();
@@ -58,6 +61,15 @@ const {
     computed(() => props.content),
 );
 
+// The locale travels too: a card links with `path('editorial_post', {locale})`
+// and shows the linked publication in that language, so previewing the German
+// tab from a French backend has to say German.
+const { html: previewHtml, loading: previewLoading } = useServerPreview(
+    () => ({ layout: props.layout, content: props.content, locale: props.locale }),
+    [() => props.layout, () => props.content, () => props.locale],
+    props.previewPath,
+);
+
 const ZONE_ICONS = { text: FileText, media: Image, post: Newspaper, video: Film };
 
 const publicationOptions = computed(() =>
@@ -78,6 +90,18 @@ const publicationOptions = computed(() =>
         </p>
 
         <template v-if="enabled">
+            <div class="relative space-y-2">
+                <p class="text-sm font-medium text-primary">{{ t("backend.posts.grid.preview") }}</p>
+                <!-- Rendered by the server from the same Twig the public page
+                     uses, so what shows here is what gets published. Widths are
+                     set with a slider, and a slider without a picture of the
+                     result is a number to guess at. -->
+                <div class="rounded-lg border border-line overflow-hidden bg-surface-2/30 p-3">
+                    <div v-html="previewHtml" />
+                </div>
+                <AppLoader :active="previewLoading" />
+            </div>
+
             <AppSelect
                 v-model="snap"
                 :label="t('backend.posts.grid.snap')"

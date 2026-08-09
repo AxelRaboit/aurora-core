@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { ref, nextTick } from "vue";
-import { useBannerPreview } from "./useBannerPreview.js";
+import { useServerPreview } from "./useServerPreview.js";
 
 const request = vi.fn();
 
@@ -20,6 +20,19 @@ vi.mock("@/shared/composables/useDebounce.js", () => ({
     },
 }));
 
+/**
+ * What a caller passes: the payload to send and the sources to watch. Written
+ * once here because every test needs the same pair, and the shape of that pair
+ * is the composable's actual contract.
+ */
+function preview(layout, texts) {
+    return useServerPreview(
+        () => ({ layout: layout.value, texts: texts.value }),
+        [layout, texts],
+        "/preview",
+    );
+}
+
 /** Lets the debounce fire and the awaited request settle. */
 async function settle() {
     vi.runAllTimers();
@@ -28,7 +41,7 @@ async function settle() {
     await Promise.resolve();
 }
 
-describe("useBannerPreview", () => {
+describe("useServerPreview", () => {
     beforeEach(() => {
         vi.useFakeTimers();
         request.mockReset();
@@ -46,7 +59,7 @@ describe("useBannerPreview", () => {
         });
         const texts = ref({ items: { a1: { title: "Bonjour" } } });
 
-        useBannerPreview(layout, texts, "/preview");
+        preview(layout, texts);
         await settle();
 
         expect(request).toHaveBeenCalledWith("/preview", {
@@ -59,7 +72,7 @@ describe("useBannerPreview", () => {
         const layout = ref({ items: [] });
         const texts = ref({ items: { a1: { title: "Bonjour" } } });
 
-        useBannerPreview(layout, texts, "/preview");
+        preview(layout, texts);
         await settle();
         expect(request).toHaveBeenCalledTimes(1);
 
@@ -75,7 +88,7 @@ describe("useBannerPreview", () => {
         const layout = ref({ items: [] });
         const texts = ref({ items: {} });
 
-        useBannerPreview(layout, texts, "/preview");
+        preview(layout, texts);
 
         for (const title of ["B", "Bo", "Bon"]) {
             texts.value.items.a1 = { title };
@@ -101,7 +114,7 @@ describe("useBannerPreview", () => {
         );
         request.mockResolvedValueOnce({ success: true, html: "<p>récent</p>" });
 
-        const { html, refresh } = useBannerPreview(layout, texts, "/preview");
+        const { html, refresh } = preview(layout, texts);
 
         const first = refresh();
         await refresh();
@@ -118,7 +131,7 @@ describe("useBannerPreview", () => {
         const layout = ref({ items: [] });
         const texts = ref({ items: {} });
 
-        const { html, refresh } = useBannerPreview(layout, texts, "/preview");
+        const { html, refresh } = preview(layout, texts);
         await settle();
         expect(html.value).toBe("<header></header>");
 
@@ -135,29 +148,27 @@ describe("useBannerPreview", () => {
      * A translation that has not finished loading is undefined, and the
      * snapshot runs inside a debounced callback — a throw there would surface
      * 400ms later as a preview that simply stopped updating.
+     *
+     * The half that is missing drops out of the payload rather than arriving
+     * empty, which reads the same on the server: every reader of these guards
+     * on `is_array(... ?? null)`.
      */
     it("survives a half loaded translation", async () => {
         const layout = ref({ items: [] });
         const texts = ref(undefined);
 
-        useBannerPreview(layout, texts, "/preview");
+        preview(layout, texts);
         await settle();
 
-        expect(request).toHaveBeenCalledWith("/preview", {
-            layout: { items: [] },
-            texts: {},
-        });
+        expect(request).toHaveBeenCalledTimes(1);
+        expect(request.mock.calls[0][1].layout).toEqual({ items: [] });
     });
 
     it("reports that a request is in flight", async () => {
         const layout = ref({ items: [] });
         const texts = ref({ items: {} });
 
-        const { loading, refresh } = useBannerPreview(
-            layout,
-            texts,
-            "/preview",
-        );
+        const { loading, refresh } = preview(layout, texts);
 
         const pending = refresh();
         expect(loading.value).toBe(true);

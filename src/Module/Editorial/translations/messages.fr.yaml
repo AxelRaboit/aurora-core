@@ -301,6 +301,7 @@ backend:
       title: Grille de contenu
       enabled: Utiliser une grille de contenu
       disabled_hint: "Désactivée — la publication garde sa colonne de contenu habituelle. L'activer la remplace par des zones posées sur une grille de 48 colonnes."
+      preview: Aperçu
       snap: Pas d'aimantation
       snap_hint: "La finesse à laquelle une largeur se règle. Changer le pas ne déplace pas les zones déjà posées."
       snaps:

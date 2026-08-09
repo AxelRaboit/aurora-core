@@ -1,8 +1,8 @@
 # Grille de contenu 48 colonnes
 
-> **Statut (2026-08-09) : quatre étapes sur six livrées.** Le contrat, le
-> rendu public, les quatre types de zone et l'éditeur sont en place et testés.
-> Restent l'aperçu et le sort de `blocks`.
+> **Statut (2026-08-09) : cinq étapes sur six livrées.** Le contrat, le rendu
+> public, les quatre types de zone, l'éditeur et l'aperçu sont en place et
+> testés. Reste le sort de `blocks`, qui cohabite.
 
 ---
 
@@ -120,8 +120,10 @@ Chacune verte et livrable, comme pour la fusion Media → GED.
 4. ✅ **Les quatre types de zone** — livrés avec l'étape 2 plutôt qu'après :
    une zone configurée qui ne rend rien ressemble à un bug pour qui vient de la
    configurer. Les vidéos passent par `VideoEmbedResolver`, 21 tests.
-5. ⬜ **Aperçu** via le même Twig, sur le patron de `BannerPreviewController`.
-   Rien n'existe encore. L'éditeur montre les réglages, pas le résultat.
+5. ✅ **Aperçu** — `GridPreviewController` rend le vrai Twig, le panneau
+   l'affiche au-dessus des zones. Le composable d'aperçu de la bannière a été
+   généralisé en `useServerPreview` au passage plutôt que dupliqué : seul le
+   format de charge différait. 6 tests d'intégration, 7 sur le composable.
 6. ⬜ **Sort de `blocks`** — aujourd'hui les deux **cohabitent** : le panneau de
    blocs disparaît quand la grille est activée (`supportsBlocks &&
    !gridLayout.enabled`), et le rendu public fait le même choix. Rien n'est

@@ -32,6 +32,7 @@ const props = defineProps({
     editPathTemplate: { type: String, required: true },
     listPath: { type: String, required: true },
     bannerPreviewPath: { type: String, required: true },
+    gridPreviewPath: { type: String, required: true },
     searchPath: { type: String, required: true },
 });
 
@@ -218,6 +219,7 @@ function termLabel(term) {
                             :content="current.grid"
                             :locale="locale"
                             :post-options="relatedPostOptions"
+                            :preview-path="gridPreviewPath"
                         />
                     </div>
 
