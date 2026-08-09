@@ -42,6 +42,16 @@ describe("AppSelect", () => {
         expect(wrapper.find("select").classes()).toContain("border-red-500");
     });
 
+    it("renders hint text under the control instead of leaking it as an attribute", () => {
+        const wrapper = mount(AppSelect, {
+            props: { modelValue: "", options, hint: "Pick the closest match" },
+        });
+        expect(wrapper.find("p.text-muted").text()).toBe(
+            "Pick the closest match",
+        );
+        expect(wrapper.attributes("hint")).toBeUndefined();
+    });
+
     it("emits update:modelValue on change", async () => {
         const wrapper = mount(AppSelect, {
             props: { modelValue: "", options },

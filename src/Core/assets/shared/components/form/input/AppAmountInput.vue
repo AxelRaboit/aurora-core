@@ -25,6 +25,8 @@ const props = defineProps({
     label: { type: String, default: "" },
     placeholder: { type: String, default: "" },
     error: { type: String, default: "" },
+    /** Help text under the control — explains the field, unlike `error` which reports it. */
+    hint: { type: String, default: "" },
     required: { type: Boolean, default: false },
     decimals: { type: Number, default: 2 },
     allowNegative: { type: Boolean, default: false },
@@ -78,6 +80,7 @@ defineExpose({ evaluate });
             v-on:input="onInput"
             v-on:blur="evaluate"
         >
+        <p v-if="hint" class="text-xs text-muted">{{ hint }}</p>
         <p v-if="error" class="text-xs text-red-500">{{ t(error, error) }}</p>
     </div>
 </template>

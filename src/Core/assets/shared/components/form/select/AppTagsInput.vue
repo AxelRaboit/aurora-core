@@ -9,6 +9,8 @@ const props = defineProps({
     label: { type: String, default: "" },
     placeholder: { type: String, default: "" },
     error: { type: String, default: "" },
+    /** Help text under the control — explains the field, unlike `error` which reports it. */
+    hint: { type: String, default: "" },
 });
 const emit = defineEmits(["update:modelValue"]);
 
@@ -81,6 +83,7 @@ const placeholderText = computed(
                 v-on:blur="commit"
             >
         </div>
+        <p v-if="hint" class="text-xs text-muted">{{ hint }}</p>
         <p v-if="error" class="text-xs text-rose-500">{{ error }}</p>
     </div>
 </template>

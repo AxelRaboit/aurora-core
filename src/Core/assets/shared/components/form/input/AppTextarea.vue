@@ -9,6 +9,12 @@ defineProps({
     placeholder: { type: String, default: '' },
     label: { type: String, default: '' },
     error: { type: String, default: '' },
+    /**
+     * Help text under the control — explains the field, unlike `error` which
+     * reports it. Ignored by the `ghost` variant, which has no chrome to hang
+     * it on.
+     */
+    hint: { type: String, default: '' },
     required: { type: Boolean, default: false },
     rows: { type: Number, default: 3 },
     mono: { type: Boolean, default: false },
@@ -50,6 +56,7 @@ defineEmits(['update:modelValue']);
             ]"
             v-on:input="$emit('update:modelValue', $event.target.value)"
         />
+        <p v-if="hint" class="text-xs text-muted">{{ hint }}</p>
         <p v-if="error" class="text-xs text-red-500">{{ t(error, error) }}</p>
     </div>
 </template>

@@ -2,6 +2,8 @@
 defineProps({
     modelValue: { type: Boolean, default: false },
     label: { type: String, default: '' },
+    /** Help text under the switch — explains what flipping it does. */
+    hint: { type: String, default: '' },
     disabled: { type: Boolean, default: false },
 });
 
@@ -25,5 +27,6 @@ defineEmits(['update:modelValue']);
                 :class="modelValue ? 'translate-x-[18px]' : 'translate-x-0.5'"
             />
         </button>
+        <p v-if="hint" class="text-xs text-muted">{{ hint }}</p>
     </div>
 </template>

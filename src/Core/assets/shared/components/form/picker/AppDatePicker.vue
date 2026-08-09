@@ -20,6 +20,8 @@ const props = defineProps({
     placeholder: { type: String, default: "" },
     required: { type: Boolean, default: false },
     error: { type: String, default: "" },
+    /** Help text under the control — explains the field, unlike `error` which reports it. */
+    hint: { type: String, default: "" },
     enableTime: { type: Boolean, default: false },
     /**
      * Month-only picker. `modelValue` is then expected/emitted as
@@ -78,6 +80,7 @@ const internalValue = computed(() => {
             input-class-name="dp-custom-input"
             v-on:update:model-value="onUpdate"
         />
+        <p v-if="hint" class="text-xs text-muted">{{ hint }}</p>
         <p v-if="error" class="text-xs text-red-500">{{ error }}</p>
     </div>
 </template>

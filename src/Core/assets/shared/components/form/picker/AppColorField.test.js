@@ -23,6 +23,16 @@ describe("AppColorField", () => {
         expect(wrapper.find("p.text-rose-400").exists()).toBe(false);
     });
 
+    it("renders hint text under the control instead of leaking it as an attribute", () => {
+        const wrapper = mount(AppColorField, {
+            props: { modelValue: "", hint: "Used for buttons and links" },
+        });
+        expect(wrapper.find("p.text-muted").text()).toBe(
+            "Used for buttons and links",
+        );
+        expect(wrapper.attributes("hint")).toBeUndefined();
+    });
+
     it("displays hex value when showHex is true and modelValue is set", () => {
         const wrapper = mount(AppColorField, {
             props: { modelValue: "#3b82f6", showHex: true },

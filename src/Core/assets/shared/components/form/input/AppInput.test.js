@@ -57,6 +57,17 @@ describe("AppInput", () => {
         expect(wrapper.find("input").classes()).toContain("pr-10");
     });
 
+    it("renders hint text under the control instead of leaking it as an attribute", () => {
+        const wrapper = mount(AppInput, {
+            props: { hint: "Lowercase letters and dashes only" },
+            global: { plugins: [i18n] },
+        });
+        expect(wrapper.find("p.text-muted").text()).toBe(
+            "Lowercase letters and dashes only",
+        );
+        expect(wrapper.attributes("hint")).toBeUndefined();
+    });
+
     it("applies the readonly attribute to the input when readonly is set", () => {
         const wrapper = mount(AppInput, {
             props: { readonly: true },

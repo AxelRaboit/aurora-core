@@ -27,6 +27,16 @@ describe("AppNoData", () => {
         expect(wrapper.find("p").text()).toBe("Empty list.");
     });
 
+    it("renders hint text under the message instead of leaking it as an attribute", () => {
+        const wrapper = mount(AppNoData, {
+            props: { message: "No menus yet.", hint: "Create one to start." },
+        });
+        expect(wrapper.find("p.text-muted").text()).toBe(
+            "Create one to start.",
+        );
+        expect(wrapper.attributes("hint")).toBeUndefined();
+    });
+
     it("has centering layout classes", () => {
         const wrapper = mount(AppNoData);
         const div = wrapper.find("div");

@@ -42,6 +42,17 @@ describe("AppTagsInput", () => {
         expect(emitted[0][0]).toContain("react");
     });
 
+    it("renders hint text under the control instead of leaking it as an attribute", () => {
+        const wrapper = mount(AppTagsInput, {
+            props: { modelValue: [], hint: "Press Enter after each tag" },
+            global: { plugins: [i18n] },
+        });
+        expect(wrapper.find("p.text-muted").text()).toBe(
+            "Press Enter after each tag",
+        );
+        expect(wrapper.attributes("hint")).toBeUndefined();
+    });
+
     it("applies error border class when error prop is set", () => {
         const wrapper = mount(AppTagsInput, {
             props: { modelValue: [], error: "Tags required" },

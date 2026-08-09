@@ -44,6 +44,21 @@ describe("AppMultiselect", () => {
         expect(wrapper.find("p.text-red-500").exists()).toBe(false);
     });
 
+    it("renders hint text under the control instead of leaking it as an attribute", () => {
+        const wrapper = mount(AppMultiselect, {
+            props: {
+                modelValue: null,
+                options,
+                hint: "Search by name or code",
+            },
+            global: { plugins: [i18n] },
+        });
+        expect(wrapper.find("p.text-muted").text()).toBe(
+            "Search by name or code",
+        );
+        expect(wrapper.attributes("hint")).toBeUndefined();
+    });
+
     it("renders label when label prop is set", () => {
         const wrapper = mount(AppMultiselect, {
             props: { modelValue: null, options, label: "Language" },

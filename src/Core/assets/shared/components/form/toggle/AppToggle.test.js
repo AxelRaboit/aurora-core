@@ -21,6 +21,16 @@ describe("AppToggle", () => {
         expect(wrapper.find("button").classes()).toContain("opacity-50");
     });
 
+    it("renders hint text under the switch instead of leaking it as an attribute", () => {
+        const wrapper = mount(AppToggle, {
+            props: { modelValue: false, hint: "Applies on the next publish" },
+        });
+        expect(wrapper.find("p.text-muted").text()).toBe(
+            "Applies on the next publish",
+        );
+        expect(wrapper.attributes("hint")).toBeUndefined();
+    });
+
     it("emits update:modelValue with toggled value on click", async () => {
         const wrapper = mount(AppToggle, { props: { modelValue: false } });
         await wrapper.find("button").trigger("click");

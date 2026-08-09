@@ -50,6 +50,17 @@ describe("AppDatePicker", () => {
         expect(wrapper.find("p.text-red-500").exists()).toBe(false);
     });
 
+    it("renders hint text under the control instead of leaking it as an attribute", () => {
+        const wrapper = mount(AppDatePicker, {
+            props: { modelValue: "", hint: "Leave empty to publish now" },
+            global: globalConfig,
+        });
+        expect(wrapper.find("p.text-muted").text()).toBe(
+            "Leave empty to publish now",
+        );
+        expect(wrapper.attributes("hint")).toBeUndefined();
+    });
+
     it("renders the stubbed VueDatePicker component", () => {
         const wrapper = mount(AppDatePicker, {
             props: { modelValue: "" },

@@ -37,6 +37,17 @@ describe("AppTextarea", () => {
         expect(wrapper.find("textarea").classes()).toContain("border-red-500");
     });
 
+    it("renders hint text under the control instead of leaking it as an attribute", () => {
+        const wrapper = mount(AppTextarea, {
+            props: { hint: "Around 155 characters reads best" },
+            global: { plugins: [i18n] },
+        });
+        expect(wrapper.find("p.text-muted").text()).toBe(
+            "Around 155 characters reads best",
+        );
+        expect(wrapper.attributes("hint")).toBeUndefined();
+    });
+
     it("emits update:modelValue with new value on input", async () => {
         const wrapper = mount(AppTextarea, {
             props: { modelValue: "" },

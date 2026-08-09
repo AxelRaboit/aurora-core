@@ -30,6 +30,23 @@ describe("AppCheckbox", () => {
         expect(wrapper.text()).toContain("Accept terms");
     });
 
+    it("renders hint text under the box instead of leaking it as an attribute", () => {
+        const wrapper = mount(AppCheckbox, {
+            props: { hint: "Archives get their own listing page" },
+        });
+        expect(wrapper.find("p.text-muted").text()).toBe(
+            "Archives get their own listing page",
+        );
+        expect(wrapper.attributes("hint")).toBeUndefined();
+    });
+
+    it("keeps the hint outside the label so clicking it does not toggle", () => {
+        const wrapper = mount(AppCheckbox, {
+            props: { hint: "Not a click target" },
+        });
+        expect(wrapper.find("label p").exists()).toBe(false);
+    });
+
     it("emits update:modelValue on change", async () => {
         const wrapper = mount(AppCheckbox, { props: { modelValue: false } });
         const input = wrapper.find("input[type='checkbox']");

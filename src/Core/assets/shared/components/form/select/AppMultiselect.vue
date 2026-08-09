@@ -12,6 +12,8 @@ const props = defineProps({
     label: { type: String, default: "" },
     placeholder: { type: String, default: "" },
     error: { type: String, default: "" },
+    /** Help text under the control — explains the field, unlike `error` which reports it. */
+    hint: { type: String, default: "" },
     required: { type: Boolean, default: false },
     multiple: { type: Boolean, default: false },
     searchable: { type: Boolean, default: true },
@@ -64,6 +66,7 @@ function onSelect(value) {
             <template #noOptions>{{ t('shared.common.no_options') }}</template>
             <template #noResult>{{ t('shared.common.no_result') }}</template>
         </Multiselect>
+        <p v-if="hint" class="text-xs text-muted">{{ hint }}</p>
         <p v-if="error" class="text-xs text-red-500">{{ error }}</p>
     </div>
 </template>

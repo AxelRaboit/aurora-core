@@ -5,6 +5,8 @@ const props = defineProps({
     modelValue: { type: [String, Number], default: '' },
     label: { type: String, default: '' },
     error: { type: String, default: '' },
+    /** Help text under the control — explains the field, unlike `error` which reports it. */
+    hint: { type: String, default: '' },
     required: { type: Boolean, default: false },
     placeholder: { type: String, default: '' },
     // Array of { value, label } OR object { value: label } — leave empty to use slot
@@ -40,6 +42,7 @@ const isArrayOpts = (v) => Array.isArray(v) && v.length > 0;
                 <slot />
             </template>
         </select>
+        <p v-if="hint" class="text-xs text-muted">{{ hint }}</p>
         <p v-if="error" class="text-xs text-red-500">{{ error }}</p>
     </div>
 </template>

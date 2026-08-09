@@ -68,6 +68,20 @@ describe("AppImagePickerField", () => {
         expect(wrapper.find("p").text()).toBe("Cover image");
     });
 
+    it("renders hint text under the control instead of leaking it as an attribute", () => {
+        const wrapper = mount(AppImagePickerField, {
+            props: {
+                modelValue: { id: null, url: null },
+                hint: "A square image crops best here",
+            },
+            global: globalConfig,
+        });
+        expect(wrapper.find("p.text-muted").text()).toBe(
+            "A square image crops best here",
+        );
+        expect(wrapper.attributes("hint")).toBeUndefined();
+    });
+
     it("shows image when modelValue.url is set", () => {
         const wrapper = mount(AppImagePickerField, {
             props: {
