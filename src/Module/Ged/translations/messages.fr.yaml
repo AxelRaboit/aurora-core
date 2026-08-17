@@ -131,6 +131,9 @@ backend:
         upload_required: Aucun fichier reçu
         image_required: Ce champ n'accepte que des images.
     categories:
+      row_actions:
+        edit_description: Renommer la catégorie et changer sa description.
+        delete_description: Supprime la catégorie. Les documents qu'elle portait n'en auront plus.
       name: Nom
       slug: Identifiant
       description: Description
@@ -149,6 +152,9 @@ backend:
       errors:
         name_required: Le nom est obligatoire
     tags:
+      row_actions:
+        edit_description: Renommer l'étiquette et changer sa couleur.
+        delete_description: Supprime l'étiquette et la retire de tous les documents.
       name: Nom
       color: Couleur
       search_placeholder: Rechercher une étiquette…

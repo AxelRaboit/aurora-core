@@ -131,6 +131,9 @@ backend:
         upload_required: No file received
         image_required: This field only accepts images.
     categories:
+      row_actions:
+        edit_description: Rename the category and change its description.
+        delete_description: Removes the category. Documents that carried it will have none.
       name: Name
       slug: Identifier
       description: Description
@@ -149,6 +152,9 @@ backend:
       errors:
         name_required: Name is required
     tags:
+      row_actions:
+        edit_description: Rename the tag and change its colour.
+        delete_description: Removes the tag, and takes it off every document.
       name: Name
       color: Color
       search_placeholder: Search a tag…

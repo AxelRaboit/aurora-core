@@ -1,6 +1,7 @@
 <script setup>
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
 import { useDocumentTagsForm } from "./composables/useDocumentTagsForm.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -9,7 +10,7 @@ import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppColorPicker from "@/shared/components/form/picker/AppColorPicker.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { Plus, Pencil, Trash2, Save, X, Tag } from "lucide-vue-next";
 
@@ -30,6 +31,16 @@ const {
     showEdit, editingTag, editForm, editErrors, editLoading, openEdit, submitEdit,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
 } = useDocumentTagsForm(props.tags, props.createPath, props.updatePath, props.deletePath);
+
+const actionsFor = useEditDeleteActions({
+    can,
+    editPermission: "ged.tags.manage",
+    deletePermission: "ged.tags.manage",
+    openEdit,
+    confirmDelete,
+    editDescription: "backend.ged.tags.row_actions.edit_description",
+    deleteDescription: "backend.ged.tags.row_actions.delete_description",
+});
 </script>
 
 <template>
@@ -61,8 +72,7 @@ const {
                     </div>
                 </div>
                 <div class="flex justify-end px-3 py-2 border-t border-line/40 bg-surface-2/40">
-                    <AppIconButton v-if="can('ged.tags.manage')" color="accent" :title="t('shared.common.edit')" v-on:click="openEdit(tag)"><Pencil class="w-4 h-4" :stroke-width="2" /></AppIconButton>
-                    <AppIconButton v-if="can('ged.tags.manage')" color="rose" :title="t('shared.common.delete')" v-on:click="confirmDelete(tag)"><Trash2 class="w-4 h-4" :stroke-width="2" /></AppIconButton>
+                    <AppRowActions :actions="actionsFor(tag)" :label="tag.name ?? tag.label ?? ''" />
                 </div>
             </div>
         </div>
@@ -86,8 +96,7 @@ const {
                         <td class="px-6 py-3 text-muted font-mono text-xs hidden md:table-cell">{{ tag.color ?? '—' }}</td>
                         <td class="px-6 py-3">
                             <div class="flex items-center justify-end gap-0.5">
-                                <AppIconButton v-if="can('ged.tags.manage')" color="accent" :title="t('shared.common.edit')" v-on:click="openEdit(tag)"><Pencil class="w-4 h-4" :stroke-width="2" /></AppIconButton>
-                                <AppIconButton v-if="can('ged.tags.manage')" color="rose" :title="t('shared.common.delete')" v-on:click="confirmDelete(tag)"><Trash2 class="w-4 h-4" :stroke-width="2" /></AppIconButton>
+                                <AppRowActions :actions="actionsFor(tag)" :label="tag.name ?? tag.label ?? ''" />
                             </div>
                         </td>
                     </tr>

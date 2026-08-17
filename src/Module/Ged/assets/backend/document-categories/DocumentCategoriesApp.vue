@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useListPage } from "@/shared/composables/list/useListPage.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
 import { useDocumentCategoriesForm } from "./composables/useDocumentCategoriesForm.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -11,7 +12,7 @@ import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
-import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import { Plus, Pencil, Trash2, Save, X, Tag } from "lucide-vue-next";
@@ -41,6 +42,16 @@ const {
     showEdit, editingCategory, editForm, editErrors, editLoading, openEdit, submitEdit,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
 } = useDocumentCategoriesForm(props.createPath, props.updatePath, props.deletePath, reset, props.extraFields);
+
+const actionsFor = useEditDeleteActions({
+    can,
+    editPermission: "ged.categories.edit",
+    deletePermission: "ged.categories.delete",
+    openEdit,
+    confirmDelete,
+    editDescription: "backend.ged.categories.row_actions.edit_description",
+    deleteDescription: "backend.ged.categories.row_actions.delete_description",
+});
 
 // Name + slug + actions, plus whatever the client added — otherwise the empty
 // row stops spanning the table the moment an extra column exists.
@@ -74,8 +85,7 @@ const columnCount = computed(() => 3 + Object.keys(props.extraFields).length);
                         <p class="text-xs text-muted font-mono mt-0.5">{{ cat.slug }}</p>
                     </div>
                     <div class="flex justify-end px-3 py-2 border-t border-line/40 bg-surface-2/40">
-                        <AppIconButton v-if="can('ged.categories.edit')" color="accent" :title="t('shared.common.edit')" v-on:click="openEdit(cat)"><Pencil class="w-4 h-4" :stroke-width="2" /></AppIconButton>
-                        <AppIconButton v-if="can('ged.categories.delete')" color="rose" :title="t('shared.common.delete')" v-on:click="confirmDelete(cat)"><Trash2 class="w-4 h-4" :stroke-width="2" /></AppIconButton>
+                        <AppRowActions :actions="actionsFor(cat)" :label="cat.name ?? cat.label ?? ''" />
                     </div>
                 </div>
             </div>
@@ -98,8 +108,7 @@ const columnCount = computed(() => 3 + Object.keys(props.extraFields).length);
                             <slot name="extra-cells" :category="cat" />
                             <td class="px-6 py-3">
                                 <div class="flex items-center justify-end gap-0.5">
-                                    <AppIconButton v-if="can('ged.categories.edit')" color="accent" :title="t('shared.common.edit')" v-on:click="openEdit(cat)"><Pencil class="w-4 h-4" :stroke-width="2" /></AppIconButton>
-                                    <AppIconButton v-if="can('ged.categories.delete')" color="rose" :title="t('shared.common.delete')" v-on:click="confirmDelete(cat)"><Trash2 class="w-4 h-4" :stroke-width="2" /></AppIconButton>
+                                    <AppRowActions :actions="actionsFor(cat)" :label="cat.name ?? cat.label ?? ''" />
                                 </div>
                             </td>
                         </tr>
