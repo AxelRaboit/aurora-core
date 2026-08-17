@@ -287,6 +287,11 @@ backend:
     created: Publication créée.
     updated: Publication enregistrée.
     restore: Restaurer
+    row_actions:
+      edit_description: Ouvrir l'éditeur — contenu, en-tête, disposition.
+      restore_description: Sort la publication de la corbeille, telle qu'elle était.
+      force_delete_description: Supprime définitivement. Sans retour possible.
+      delete_description: Met à la corbeille — récupérable tant qu'elle n'est pas vidée.
     restored: Publication restaurée.
     force_delete: Supprimer définitivement
     force_deleted: Publication supprimée définitivement.

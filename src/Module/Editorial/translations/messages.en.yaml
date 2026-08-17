@@ -287,6 +287,11 @@ backend:
     created: Post created.
     updated: Post saved.
     restore: Restore
+    row_actions:
+      edit_description: Open the editor — content, header, layout.
+      restore_description: Takes the publication out of the trash, as it was.
+      force_delete_description: Deletes for good. There is no undo.
+      delete_description: Moves it to the trash — recoverable until the trash is emptied.
     restored: Post restored.
     force_delete: Delete for good
     force_deleted: Post deleted for good.

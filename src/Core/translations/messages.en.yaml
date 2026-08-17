@@ -26,6 +26,10 @@ shared:
     maintenance:
       title: Site under maintenance
       message: The site is temporarily closed for maintenance. Please check back in a few moments.
+  actions:
+    plain_title: Actions
+    title: "Actions — {name}"
+    open: "Actions for {name}"
   common:
     search: Search
     selected: selected

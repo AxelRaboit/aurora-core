@@ -4,8 +4,9 @@ import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { usePostsList } from "./composables/usePostsList.js";
+import { usePostRowActions } from "./composables/usePostRowActions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
@@ -15,7 +16,7 @@ import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
-import { Plus, Pencil, Trash2, X, FileText, Filter, Undo2, Flame } from "lucide-vue-next";
+import { Plus, Trash2, X, FileText, Filter, Flame } from "lucide-vue-next";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
@@ -49,6 +50,20 @@ const {
     pendingForceDelete, forceDelete, confirmEmptyTrash, emptyingTrash, emptyTrash, showingTrash, restore,
     editPath,
 } = usePostsList(props);
+
+// What a row offers depends on the permission and on whether the post sits in
+// the trash — a rule about the record, not a layout decision, so it is not four
+// `v-if` in a table cell. `pendingForceDelete` rather than `forceDelete`: that
+// one cannot be undone and keeps its confirmation.
+const actionsFor = usePostRowActions({
+    can,
+    editPath,
+    restore,
+    confirmDelete,
+    forceDelete: (post) => {
+        pendingForceDelete.value = post;
+    },
+});
 
 const statusColors = {
     draft: "gray",
@@ -187,40 +202,7 @@ const allTerms = computed(() =>
                         </td>
                         <td class="px-6 py-3 text-muted text-xs hidden lg:table-cell">{{ formatDateTime(post.updatedAt) }}</td>
                         <td class="px-6 py-3">
-                            <div class="flex items-center justify-end gap-0.5">
-                                <AppIconButton
-                                    v-if="can('editorial.posts.edit') && !post.trashed"
-                                    color="accent"
-                                    :title="t('shared.common.edit')"
-                                    :href="editPath(post)"
-                                >
-                                    <Pencil class="w-4 h-4" :stroke-width="2" />
-                                </AppIconButton>
-                                <AppIconButton
-                                    v-if="can('editorial.posts.delete') && post.trashed"
-                                    color="emerald"
-                                    :title="t('backend.posts.restore')"
-                                    v-on:click="restore(post)"
-                                >
-                                    <Undo2 class="w-4 h-4" :stroke-width="2" />
-                                </AppIconButton>
-                                <AppIconButton
-                                    v-if="can('editorial.posts.delete') && post.trashed"
-                                    color="rose"
-                                    :title="t('backend.posts.force_delete')"
-                                    v-on:click="pendingForceDelete = post"
-                                >
-                                    <Flame class="w-4 h-4" :stroke-width="2" />
-                                </AppIconButton>
-                                <AppIconButton
-                                    v-if="can('editorial.posts.delete') && !post.trashed"
-                                    color="rose"
-                                    :title="t('shared.common.delete')"
-                                    v-on:click="confirmDelete(post)"
-                                >
-                                    <Trash2 class="w-4 h-4" :stroke-width="2" />
-                                </AppIconButton>
-                            </div>
+                            <AppRowActions :actions="actionsFor(post)" :label="post.title" />
                         </td>
                     </tr>
                     <tr v-if="!items.length && !loading">
