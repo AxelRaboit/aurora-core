@@ -83,6 +83,19 @@ backend:
     disable_confirm: "Disable {name}'s account? They will no longer be able to sign in."
     enable_confirm: "Re-enable {name}'s account?"
     view: View profile
+    row_actions:
+      title: "Actions — {name}"
+      open: "Actions for {name}"
+      view_description: Read the full record without changing anything.
+      resend_description: Sends a fresh invitation to the same address.
+      impersonate_description: Opens the backend with their rights, to see what they see.
+      impersonate_front_description: Opens the public site as their account.
+      edit_description: Name, address, language and role.
+      privileges_description: Choose what this account may reach, screen by screen.
+      modules_description: Turn modules on or off for this account alone.
+      disable_description: The account is kept but can no longer sign in.
+      enable_description: Gives the account back its access, as it was.
+      delete_description: Removes the account for good. There is no undo.
     manager:
       label: Manager
       none: No manager

@@ -83,6 +83,19 @@ backend:
     disable_confirm: "Désactiver le compte de {name} ? L'utilisateur ne pourra plus se connecter."
     enable_confirm: 'Réactiver le compte de {name} ?'
     view: Voir le profil
+    row_actions:
+      title: "Actions — {name}"
+      open: "Actions pour {name}"
+      view_description: Consulter la fiche complète sans rien modifier.
+      resend_description: Envoie une nouvelle invitation à la même adresse.
+      impersonate_description: Ouvre le backend avec ses droits, pour reproduire ce qu'il voit.
+      impersonate_front_description: Ouvre le site public avec son compte.
+      edit_description: Nom, adresse, langue et rôle.
+      privileges_description: Choisir ce à quoi ce compte a accès, écran par écran.
+      modules_description: Activer ou masquer des modules pour ce compte seulement.
+      disable_description: Le compte est conservé mais ne peut plus se connecter.
+      enable_description: Rend l'accès au compte, tel qu'il était.
+      delete_description: Supprime le compte définitivement. Sans retour possible.
     manager:
       label: Responsable
       none: Aucun responsable
