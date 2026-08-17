@@ -22,7 +22,7 @@ import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
 import AppNotificationsBell from "@core/backend/notifications/AppNotificationsBell.vue";
 import {
     Globe, ShieldCheck, LogOut, Mail, Moon, Sun, User, SlidersHorizontal,
-    ChevronsLeft, ChevronsRight, Menu as MenuIcon, X,
+    Menu as MenuIcon, X,
     Search, Loader2, ChevronDown, Filter,
     Clock, Layers, FileText, Tags as TagsIcon, Image, FolderKanban, CheckSquare,
 } from "lucide-vue-next";
@@ -62,7 +62,7 @@ const props = defineProps({
 const { t } = useI18n();
 const { theme, toggle: toggleTheme } = useTheme();
 const { liveSectionColors } = useSidemenuLiveColors(props.navSectionColors);
-const { collapse, expand, mobileOpen, openMobile, closeMobile } = useSidemenuCollapse(props.sidemenuCollapsedPath);
+const { collapsed, mobileOpen, openMobile, closeMobile } = useSidemenuCollapse(props.sidemenuCollapsedPath);
 
 const { dragging: sidemenuDragging, startResize: startSidemenuResize, reset: resetSidemenuWidth } = useResizable({
     key: "aurora-sidemenu-width",
@@ -81,6 +81,7 @@ useLayoutMount();
 const {
     dashboardPath, groupedSections, navItems, navFilter, displayedSections,
     isGroupExpanded, toggleGroup, isSectionExpanded, toggleSection,
+    isAccountExpanded, toggleAccount,
     isActive, isActiveExact, itemIsActive, itemClasses, iconClasses,
 } = useSidemenuNav(props.navSections, props.activeRoute, props.navSectionAliases, props.navItemAliases, liveSectionColors);
 
@@ -124,12 +125,6 @@ function openSearchFromMobile() {
                 <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 object-cover rounded-xl">
                 <AppLogo v-else :size="32" />
             </a>
-            <button
-                class="sh-collapse-btn p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-2 transition-colors shrink-0"
-                v-on:click="collapse"
-            >
-                <ChevronsLeft class="w-4 h-4" />
-            </button>
         </div>
 
         <div class="sh-logo-expanded items-center gap-3 border-b border-line px-4 py-3 shrink-0">
@@ -282,62 +277,75 @@ function openSearchFromMobile() {
         </nav>
 
         <div class="sidemenu-bottom shrink-0 border-t border-line py-3 space-y-0.5">
+            <!-- Folds like a nav section, and for the same reason: five rows
+                 that are read once a session should not hold the bottom of the
+                 menu open. Same header markup, same chevron, same store — the
+                 gesture is one an author already knows from the sections above.
+
+                 `collapsed ||` is what keeps the rows on screen in icon mode.
+                 `.si-section-header` is hidden there by the stylesheet, so
+                 without it a folded block would have no control left to unfold
+                 it — and logging out would be unreachable. -->
             <button
-                class="sh-expand-btn w-full items-center justify-center py-2.5 rounded-lg text-muted hover:text-primary hover:bg-surface-2 transition-colors"
-                v-on:click="expand"
+                type="button"
+                class="si-section-header w-full flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted hover:text-primary transition-colors"
+                v-on:click="toggleAccount"
             >
-                <ChevronsRight class="w-4 h-4" />
+                <span class="si-label truncate">{{ t("backend.nav.sections.account") }}</span>
+                <ChevronDown class="si-chevron w-3.5 h-3.5 shrink-0 transition-transform" :class="{ '-rotate-90': !isAccountExpanded() }" :stroke-width="2.5" />
             </button>
 
-            <AppNavLink
-                v-if="mailpitUrl"
-                :href="mailpitUrl"
-                target="_blank"
-                hover-color="amber"
-                tooltip-title="Mailpit"
-            >
-                <Mail class="w-5 h-5 shrink-0 text-muted group-hover:text-amber-400 transition-colors" :stroke-width="2" />
-                <span class="si-label">Mailpit</span>
-            </AppNavLink>
-
-            <AppNavButton
-                :tooltip-title="theme === 'dark' ? t('backend.nav.light_mode') : t('backend.nav.dark_mode')"
-                v-on:click="toggleTheme"
-            >
-                <Moon v-if="theme !== 'dark'" class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                <Sun v-else class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                <span class="si-label">{{ theme === "dark" ? t("backend.nav.light_mode") : t("backend.nav.dark_mode") }}</span>
-            </AppNavButton>
-
-            <AppNavLink
-                :href="profilePath"
-                :active="isActiveExact('backend_general_profile')"
-                :tooltip-title="t('backend.nav.profile')"
-            >
-                <User class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                <span class="si-label truncate">{{ t("backend.nav.profile") }}</span>
-            </AppNavLink>
-
-            <AppNavLink
-                :href="sidemenuPreferencesPath"
-                :active="isActive('backend_general_profile_sidemenu')"
-                :tooltip-title="t('backend.profile.preferences.title')"
-            >
-                <SlidersHorizontal class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                <span class="si-label truncate">{{ t("backend.profile.preferences.title") }}</span>
-            </AppNavLink>
-
-            <form :action="logoutPath" method="POST">
-                <input type="hidden" name="_token" :value="logoutCsrf">
-                <AppNavButton
-                    type="submit"
-                    hover-color="rose"
-                    :tooltip-title="t('backend.nav.logout')"
+            <template v-if="collapsed || isAccountExpanded()">
+                <AppNavLink
+                    v-if="mailpitUrl"
+                    :href="mailpitUrl"
+                    target="_blank"
+                    hover-color="amber"
+                    tooltip-title="Mailpit"
                 >
-                    <LogOut class="w-5 h-5 shrink-0 text-muted group-hover:text-rose-400 transition-colors" :stroke-width="2" />
-                    <span class="si-label">{{ t("backend.nav.logout") }}</span>
+                    <Mail class="w-5 h-5 shrink-0 text-muted group-hover:text-amber-400 transition-colors" :stroke-width="2" />
+                    <span class="si-label">Mailpit</span>
+                </AppNavLink>
+
+                <AppNavButton
+                    :tooltip-title="theme === 'dark' ? t('backend.nav.light_mode') : t('backend.nav.dark_mode')"
+                    v-on:click="toggleTheme"
+                >
+                    <Moon v-if="theme !== 'dark'" class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
+                    <Sun v-else class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
+                    <span class="si-label">{{ theme === "dark" ? t("backend.nav.light_mode") : t("backend.nav.dark_mode") }}</span>
                 </AppNavButton>
-            </form>
+
+                <AppNavLink
+                    :href="profilePath"
+                    :active="isActiveExact('backend_general_profile')"
+                    :tooltip-title="t('backend.nav.profile')"
+                >
+                    <User class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
+                    <span class="si-label truncate">{{ t("backend.nav.profile") }}</span>
+                </AppNavLink>
+
+                <AppNavLink
+                    :href="sidemenuPreferencesPath"
+                    :active="isActive('backend_general_profile_sidemenu')"
+                    :tooltip-title="t('backend.profile.preferences.title')"
+                >
+                    <SlidersHorizontal class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
+                    <span class="si-label truncate">{{ t("backend.profile.preferences.title") }}</span>
+                </AppNavLink>
+
+                <form :action="logoutPath" method="POST">
+                    <input type="hidden" name="_token" :value="logoutCsrf">
+                    <AppNavButton
+                        type="submit"
+                        hover-color="rose"
+                        :tooltip-title="t('backend.nav.logout')"
+                    >
+                        <LogOut class="w-5 h-5 shrink-0 text-muted group-hover:text-rose-400 transition-colors" :stroke-width="2" />
+                        <span class="si-label">{{ t("backend.nav.logout") }}</span>
+                    </AppNavButton>
+                </form>
+            </template>
         </div>
 
         <div class="sh-logo-expanded justify-center py-2 border-t border-line/30">

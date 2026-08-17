@@ -120,6 +120,26 @@ export function useSidemenuNav(
     function isSectionExpanded(section) {
         return isSectionExpandedById(section.id);
     }
+    /**
+     * The account block at the foot of the menu folds like a nav section, and
+     * shares their store: one localStorage key, one rule — expanded unless
+     * someone said otherwise. A second mechanism for the same gesture would be
+     * a second thing to keep in agreement.
+     *
+     * Not one of `navSections`, because it is not navigation: its rows are a
+     * theme toggle, a mail catcher and a logout form, and nothing generates
+     * them.
+     */
+    const ACCOUNT_SECTION = "account";
+
+    function isAccountExpanded() {
+        return isSectionExpandedById(ACCOUNT_SECTION);
+    }
+
+    function toggleAccount() {
+        toggleSectionById(ACCOUNT_SECTION);
+    }
+
     function toggleSection(section) {
         toggleSectionById(section.id);
     }
@@ -247,6 +267,8 @@ export function useSidemenuNav(
         toggleGroup,
         isSectionExpanded,
         toggleSection,
+        isAccountExpanded,
+        toggleAccount,
         isActive,
         isActiveExact,
         itemIsActive,

@@ -1,4 +1,21 @@
 <header class="bg-surface border-b border-line h-16 flex items-center lg:sticky lg:top-0 lg:z-20 shrink-0">
+    {# The one control that folds the side menu, at the top left of the page —
+       not inside the menu it hides. A button that lives in the thing it hides
+       needs a second copy somewhere to bring it back, which is what Aurora had.
+
+       `hidden lg:flex`: below the large breakpoint the menu is a drawer with
+       its own button in the mobile bar, and folding a drawer means nothing. #}
+    <div class="hidden lg:flex items-center gap-1 pl-3">
+        <div {{ vue_component('core/backend/sidemenu/AppSidemenuToggle', {
+            collapsedPath: path('backend_general_profile_sidemenu_collapsed'),
+        }) }}></div>
+        {# Back, forward and reload — browser chrome brought into the page,
+           beside the control that folds the menu. Desktop only, like the
+           toggle: a phone has its own back gesture and no room to spare. #}
+        <div class="border-l border-line pl-1">
+            <div {{ vue_component('core/backend/sidemenu/AppTopbarNav') }}></div>
+        </div>
+    </div>
     <div class="px-4 sm:px-6 lg:px-8 w-full">
         {% if crumbs is defined and crumbs %}
             <nav class="flex items-center gap-2 text-sm min-w-0">

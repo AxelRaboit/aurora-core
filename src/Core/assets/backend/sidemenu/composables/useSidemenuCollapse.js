@@ -1,4 +1,17 @@
-import { ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
+
+/**
+ * Announced whenever the menu folds or unfolds.
+ *
+ * The menu and the button that toggles it are two independent Vue apps — the
+ * sidebar is mounted by the layout, the button by the page header — so neither
+ * can see the other's refs. The class on `<html>` is the shared truth; this
+ * event is how each one learns it changed without polling for it.
+ *
+ * Same shape as SIDEMENU_PREFS_EVENT, and for the same reason — see
+ * pattern_cross_mount_state_sync.
+ */
+export const SIDEMENU_COLLAPSE_EVENT = "aurora:sidemenu-collapsed";
 
 /**
  * Collapsing and expanding the sidemenu.
@@ -17,6 +30,19 @@ import { ref } from "vue";
  * starts expanded and snaps shut once a script has run.
  */
 export function useSidemenuCollapse(collapsedPath = "") {
+    /**
+     * Whether the menu is showing icons only.
+     *
+     * Read from the class the server already renders on first paint, so it is
+     * right before any script has run. Kept as a ref because the template needs
+     * to *reason* about it and not merely be styled by it: the account block
+     * folds behind a header, and that header is hidden in icon mode — so
+     * something has to keep its items on screen, or there would be no way left
+     * to log out.
+     */
+    const collapsed = ref(
+        document.documentElement.classList.contains("sidemenu-collapsed"),
+    );
     function persist(collapsed) {
         if (!collapsedPath) return;
 
@@ -33,15 +59,54 @@ export function useSidemenuCollapse(collapsedPath = "") {
         });
     }
 
+    function apply(next) {
+        document.documentElement.classList.toggle("sidemenu-collapsed", next);
+        collapsed.value = next;
+    }
+
+    function announce(next) {
+        window.dispatchEvent(
+            new CustomEvent(SIDEMENU_COLLAPSE_EVENT, {
+                detail: { collapsed: next },
+            }),
+        );
+    }
+
     function collapse() {
-        document.documentElement.classList.add("sidemenu-collapsed");
+        apply(true);
+        announce(true);
         persist(true);
     }
 
     function expand() {
-        document.documentElement.classList.remove("sidemenu-collapsed");
+        apply(false);
+        announce(false);
         persist(false);
     }
+
+    /** One gesture for both directions, which is what a single control needs. */
+    function toggle() {
+        if (collapsed.value) {
+            expand();
+
+            return;
+        }
+
+        collapse();
+    }
+
+    // Follows what the other mount did, without re-persisting it: whoever
+    // dispatched has already saved, and a second POST would race the first.
+    function onAnnounced(event) {
+        apply(Boolean(event.detail?.collapsed));
+    }
+
+    onMounted(() =>
+        window.addEventListener(SIDEMENU_COLLAPSE_EVENT, onAnnounced),
+    );
+    onBeforeUnmount(() =>
+        window.removeEventListener(SIDEMENU_COLLAPSE_EVENT, onAnnounced),
+    );
 
     const mobileOpen = ref(false);
 
@@ -55,5 +120,13 @@ export function useSidemenuCollapse(collapsedPath = "") {
         document.body.style.overflow = "";
     }
 
-    return { collapse, expand, mobileOpen, openMobile, closeMobile };
+    return {
+        collapsed,
+        collapse,
+        expand,
+        toggle,
+        mobileOpen,
+        openMobile,
+        closeMobile,
+    };
 }

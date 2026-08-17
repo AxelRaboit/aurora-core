@@ -42,11 +42,7 @@
 .sidemenu-collapsed .sh-logo-expanded { display: none; }
 .sidemenu-collapsed .sh-logo-collapsed { display: flex; }
 
-.sh-collapse-btn { display: flex; }
-.sidemenu-collapsed .sh-collapse-btn { display: none; }
 
-.sh-expand-btn { display: none; }
-.sidemenu-collapsed .sh-expand-btn { display: flex; }
 
 .sidemenu-nav {
     padding-left: 0.74rem;

@@ -130,6 +130,12 @@ backend:
       media: Media library
       configuration: Configuration
       dev: Administration
+      account: Account
+    go_back: Previous page
+    go_forward: Next page
+    hard_reload: Reload and clear caches
+    expand_menu: Expand the menu
+    collapse_menu: Collapse the menu
     administration: Developer access
     administration_description: 'Technical tools, audit log, access requests and advanced configuration'
     dashboard: Dashboard
