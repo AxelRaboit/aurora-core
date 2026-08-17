@@ -1,10 +1,13 @@
 <script setup>
-import { useI18n } from "vue-i18n";
-import { LogIn, Pencil, Shield, Trash2, UserRound } from "lucide-vue-next";
-import AppIconButton from "@/shared/components/action/AppIconButton.vue";
-import { buildPath } from "@/shared/utils/http/buildPath.js";
-
-const { t } = useI18n();
+/**
+ * The actions a developer row offers, handed to the shared sheet.
+ *
+ * Presentation only: what may be done to whom lives in `useDevUserActions`,
+ * where the rule that matters is visible — nothing that could lock the last
+ * developer out is offered on your own account.
+ */
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import { useDevUserActions } from "./composables/useDevUserActions.js";
 
 const props = defineProps({
     user: { type: Object, required: true },
@@ -12,37 +15,15 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["edit", "toggle-role", "delete"]);
+
+const actionsFor = useDevUserActions({
+    impersonatePath: props.impersonatePath,
+    onEdit: (user) => emit("edit", user),
+    onToggleRole: (user) => emit("toggle-role", user),
+    onDelete: (user) => emit("delete", user),
+});
 </script>
 
 <template>
-    <AppIconButton color="accent" :title="t('backend.users.edit')" v-on:click="emit('edit', props.user)">
-        <Pencil class="w-4 h-4" :stroke-width="2" />
-    </AppIconButton>
-
-    <AppIconButton
-        v-if="!user.isCurrent"
-        color="amber"
-        :href="buildPath(impersonatePath, { email: user.email })"
-        :title="t('backend.users.impersonate', { name: user.name })"
-    >
-        <LogIn class="w-4 h-4" :stroke-width="2" />
-    </AppIconButton>
-
-    <AppIconButton
-        v-if="!user.isCurrent"
-        :color="user.isDevRole ? 'accent' : 'rose'"
-        :title="user.isDevRole ? t('backend.users.revoke_dev') : t('backend.users.grant_dev')"
-        v-on:click="emit('toggle-role', props.user)"
-    >
-        <component :is="user.isDevRole ? UserRound : Shield" class="w-4 h-4" :stroke-width="2" />
-    </AppIconButton>
-
-    <AppIconButton
-        v-if="!user.isCurrent"
-        color="rose"
-        :title="t('shared.common.delete')"
-        v-on:click="emit('delete', props.user)"
-    >
-        <Trash2 class="w-4 h-4" :stroke-width="2" />
-    </AppIconButton>
+    <AppRowActions :actions="actionsFor(user)" :label="user.name" />
 </template>

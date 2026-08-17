@@ -87,6 +87,9 @@ backend:
       title: "Actions — {name}"
       open: "Actions for {name}"
       view_description: Read the full record without changing anything.
+      revoke_dev_description: Removes the Dev role — access to the technical tools goes with it.
+      grant_dev_description: Grants the Dev role, and the technical tools with it.
+      dev_delete_description: Removes the account for good. There is no undo.
       resend_description: Sends a fresh invitation to the same address.
       impersonate_description: Opens the backend with their rights, to see what they see.
       impersonate_front_description: Opens the public site as their account.
@@ -150,6 +153,9 @@ backend:
     expires: Expires
     empty: No access requests.
     approve: Approve
+    row_actions:
+      approve_description: Creates the account and tells the requester by email.
+      reject_description: Turns the request down and tells the requester.
     reject: Reject
     purge: Purge
     approve_confirm: 'Approve the request from {name}? They will receive an email.'

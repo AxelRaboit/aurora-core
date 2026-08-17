@@ -87,6 +87,9 @@ backend:
       title: "Actions — {name}"
       open: "Actions pour {name}"
       view_description: Consulter la fiche complète sans rien modifier.
+      revoke_dev_description: Retire le rôle Dev — l'accès aux outils techniques disparaît.
+      grant_dev_description: Donne le rôle Dev, et l'accès aux outils techniques.
+      dev_delete_description: Supprime le compte définitivement. Sans retour possible.
       resend_description: Envoie une nouvelle invitation à la même adresse.
       impersonate_description: Ouvre le backend avec ses droits, pour reproduire ce qu'il voit.
       impersonate_front_description: Ouvre le site public avec son compte.
@@ -150,6 +153,9 @@ backend:
     expires: Expire
     empty: Aucune demande d'accès.
     approve: Approuver
+    row_actions:
+      approve_description: Crée le compte et prévient le demandeur par e-mail.
+      reject_description: Refuse la demande et prévient le demandeur.
     reject: Rejeter
     purge: Purger
     approve_confirm: 'Approuver la demande de {name} ? Un e-mail lui sera envoyé.'
