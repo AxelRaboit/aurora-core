@@ -1,6 +1,7 @@
 <script setup>
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
 import { useDocumentFoldersForm } from "./composables/useDocumentFoldersForm.js";
 import { useDocumentFolderTree } from "./composables/useDocumentFolderTree.js";
 import { useDocumentFolderDragDrop } from "./composables/useDocumentFolderDragDrop.js";
@@ -11,7 +12,7 @@ import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { Plus, Pencil, Trash2, Save, X, Folder, ChevronRight, GripVertical } from "lucide-vue-next";
 
@@ -32,6 +33,16 @@ const {
     showEdit, editingFolder, editForm, editErrors, editLoading, openEdit, submitEdit,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
 } = useDocumentFoldersForm(props.folders, props.createPath, props.updatePath, props.deletePath);
+
+const actionsFor = useEditDeleteActions({
+    can,
+    editPermission: "ged.folders.manage",
+    deletePermission: "ged.folders.manage",
+    openEdit,
+    confirmDelete,
+    editDescription: "backend.ged.folders.row_actions.edit_description",
+    deleteDescription: "backend.ged.folders.row_actions.delete_description",
+});
 
 const { flatTree, filteredTree, search: folderSearch, collapsedIds, toggleCollapse } = useDocumentFolderTree(items);
 
@@ -122,8 +133,7 @@ const { draggingId, dropTarget, onDragStart, onDragOver, onDragLeave, onDragEnd,
                     <span v-if="node.childCount" class="text-xs text-muted tabular-nums shrink-0">{{ node.childCount }}</span>
 
                     <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                        <AppIconButton v-if="can('ged.folders.manage')" color="accent" :title="t('shared.common.edit')" v-on:click.stop="openEdit(node)"><Pencil class="w-4 h-4" :stroke-width="2" /></AppIconButton>
-                        <AppIconButton v-if="can('ged.folders.manage')" color="rose" :title="t('shared.common.delete')" v-on:click.stop="confirmDelete(node)"><Trash2 class="w-4 h-4" :stroke-width="2" /></AppIconButton>
+                        <AppRowActions :actions="actionsFor(node)" :label="node.name ?? ''" />
                     </div>
                 </div>
             </div>

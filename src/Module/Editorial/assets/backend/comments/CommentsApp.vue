@@ -1,9 +1,10 @@
 <script setup>
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+import { useCommentRowActions } from "./composables/useCommentRowActions.js";
 import { useComments } from "./composables/useComments.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
@@ -30,6 +31,15 @@ const {
     approve, markAsSpam,
     pendingDelete, deleteLoading, doDelete,
 } = useComments(props);
+
+const actionsFor = useCommentRowActions({
+    can,
+    approve,
+    markAsSpam,
+    confirmDelete: (comment) => {
+        pendingDelete.value = comment;
+    },
+});
 
 function formatDate(value) {
     return d(new Date(value), "short");
@@ -103,32 +113,7 @@ function badgeColor(value) {
                             {{ t(`backend.comments.status.${comment.status}`) }}
                         </AppBadge>
 
-                        <div class="flex items-center gap-0.5">
-                            <AppIconButton
-                                v-if="can('editorial.comments.moderate') && comment.status !== 'approved'"
-                                color="green"
-                                :title="t('backend.comments.approve')"
-                                v-on:click="approve(comment)"
-                            >
-                                <Check class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-                            <AppIconButton
-                                v-if="can('editorial.comments.moderate') && comment.status !== 'spam'"
-                                color="amber"
-                                :title="t('backend.comments.spam')"
-                                v-on:click="markAsSpam(comment)"
-                            >
-                                <ShieldAlert class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-                            <AppIconButton
-                                v-if="can('editorial.comments.delete')"
-                                color="rose"
-                                :title="t('shared.common.delete')"
-                                v-on:click="pendingDelete = comment"
-                            >
-                                <Trash2 class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-                        </div>
+                        <AppRowActions :actions="actionsFor(comment)" :label="comment.authorName ?? ''" />
                     </div>
                 </header>
 

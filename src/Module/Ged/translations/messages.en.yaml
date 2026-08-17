@@ -171,6 +171,9 @@ backend:
       errors:
         name_required: Name is required
     folders:
+      row_actions:
+        edit_description: Rename the folder and move it.
+        delete_description: Removes the folder. The documents inside move up one level.
       name: Name
       parent: Parent folder
       position: Position

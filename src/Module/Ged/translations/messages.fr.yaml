@@ -171,6 +171,9 @@ backend:
       errors:
         name_required: Le nom est obligatoire
     folders:
+      row_actions:
+        edit_description: Renommer le dossier et le déplacer.
+        delete_description: Supprime le dossier. Les documents qu'il contenait remontent d'un niveau.
       name: Nom
       parent: Dossier parent
       position: Position

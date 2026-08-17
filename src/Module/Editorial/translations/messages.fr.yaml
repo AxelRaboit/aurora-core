@@ -509,6 +509,10 @@ backend:
     on_post: Sur
     in_reply_to: 'En réponse à {name}'
     approve: Approuver
+    row_actions:
+      approve_description: Le commentaire devient visible sur le site.
+      spam_description: Le retire du site et le signale comme indésirable.
+      delete_description: Supprime le commentaire définitivement.
     approved: Commentaire approuvé.
     spam: Indésirable
     marked_spam: Commentaire marqué comme indésirable.
