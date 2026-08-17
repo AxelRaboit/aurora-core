@@ -50,7 +50,6 @@ rien en les omettant.
 |---------|--------|-----------------------|---------|
 | `pdftoppm` (poppler-utils) | GED — aperçus PDF | Recours auto à `gs` (qualité moindre) ; si ni l'un ni l'autre n'est présent, fallback sur l'icône | `sudo apt install poppler-utils` |
 | `gs` (Ghostscript) | GED — aperçus PDF (fallback) | Même chose que ci-dessus quand `pdftoppm` est aussi absent | `sudo apt install ghostscript` |
-| `ssh` (OpenSSH client) | MountPoint | Tunnels SSH KO → erreur de connexion | Pré-installé sur Linux/macOS |
 
 > **GED PDF thumbnails** : `PdfThumbnailGenerator` essaie d'abord `pdftoppm`,
 > puis `gs`, puis renvoie `null` (icône fallback côté Vue). Pour
@@ -90,8 +89,13 @@ Les blocs à connaître (regroupés par `###> aurora/<truc> ###` markers) :
 
 ⚠ **Les clés de chiffrement ne doivent PAS rester sur leurs valeurs
 placeholder** (`replace_with_base64_32_bytes_key`) — `EncryptedTextType`
-plantera silencieusement au déchiffrement et tu perdras l'accès aux
-mount points / notes / titres de conversations historiques.
+plantera silencieusement au déchiffrement, et tout champ chiffré déjà écrit
+devient illisible.
+
+`AURORA_MOUNT_POINT_KEY` est encore dans `.env` alors que le module MountPoint
+a été extrait puis archivé : c'est un reliquat. Le retirer touche les `.env.local`
+des projets consommateurs, donc il attend une décision plutôt qu'un nettoyage
+silencieux.
 
 ---
 

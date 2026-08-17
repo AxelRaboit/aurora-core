@@ -78,51 +78,30 @@ Le verrouillage optimiste utilise la colonne `#[ORM\Version]` de Doctrine combin
 | Node.js | 20+ | |
 | Composer | 2+ | |
 | pnpm | 9+ | |
-| Docker + docker compose | v2+ | Mailpit (SMTP dev) — et docTR si module OCR Billing activé |
+| Docker + docker compose | v2+ | Mailpit (SMTP dev) — seul service conteneurisé |
 
 **Binaires système optionnels**
 
 | Binaire | Module | Usage | Installation |
 |---------|--------|-------|-------------|
-| `pdftk` | **PDF Forms** | Détection des champs AcroForm (`dump_data_fields`) | `sudo apt install pdftk` (ou `pdftk-java` sur Ubuntu 22+) |
-| `node` (Node.js ≥ 18) | **PDF Forms** | Remplissage et aplatissement Unicode-safe via `tools/pdf/fill.mjs` (basé sur `pdf-lib`, installé via `pnpm install`) | Déjà requis pour le build assets — aucune install supplémentaire |
-| `ssh` (OpenSSH client) | **MountPoint** | Tunnels SSH vers des bases de données distantes | Inclus par défaut sur Linux/macOS |
-| `ollama` | **Billing OCR** + **Assistant IA** | Inférence locale (modèle vision OCR + chat assistant + vision assistant) | [ollama.ai](https://ollama.ai) — voir [deployment/ocr_setup.md](docs/aurora-client/deployment/ocr_setup.md) |
+| `pdftoppm` (poppler-utils) | **GED** | Aperçus des PDF | `brew install poppler` / `sudo apt install poppler-utils` |
+| `gs` (Ghostscript) | **GED** | Aperçus des PDF, quand `pdftoppm` est absent | `brew install ghostscript` / `sudo apt install ghostscript` |
 
-> Les modules dont la dépendance est absente se dégradent proprement : PDF Forms crée les documents en statut *Brouillon*, MountPoint affiche une erreur de connexion, OCR met les jobs en erreur avec un message explicite.
+> La GED dégrade proprement : `PdfThumbnailGenerator` essaie `pdftoppm`, puis
+> `gs`, puis renvoie l'icône de repli. Rien ne casse si aucun des deux n'est là.
 
-> 📋 **Liste exhaustive** des prérequis (système, PHP exts, binaires CLI, services externes, modèles Ollama, vars d'env, spécificités prod) :
+> 📋 **Liste exhaustive** des prérequis (système, extensions PHP, binaires CLI, services externes, vars d'env, spécificités prod) :
 > [`docs/aurora-core/ops/prerequisites.md`](docs/aurora-core/ops/prerequisites.md) — à consulter avant chaque install/déploiement.
 
-### Services externes (OCR Billing + Assistant IA)
+### Services externes
 
-Deux modules utilisent un Ollama local — **optionnels** si tu ne les actives pas :
+Aucun, au-delà de PostgreSQL et d'un SMTP de développement. Les transports
+Messenger sont en `doctrine://default`, donc **aucun broker** (RabbitMQ, Redis)
+n'est requis pour faire tourner Aurora tel quel.
 
-| Module | Service | Modèle par défaut | Var .env |
-|--------|---------|-------------------|----------|
-| **Billing OCR** | docTR (Docker) + Ollama vision (JSON structuré) | `qwen2.5vl:3b` | `OLLAMA_URL`, `OLLAMA_VISION_MODEL` |
-| **Assistant IA** | Ollama chat (tool-calling) | `qwen3:8b` | `ASSISTANT_OLLAMA_URL`, `ASSISTANT_CHAT_MODEL` |
-| **Assistant IA** | Ollama vision (image_read tool, prose) | `qwen2.5vl:3b` | `ASSISTANT_VISION_MODEL` |
-
-```bash
-# Installer Ollama
-curl -fsSL https://ollama.ai/install.sh | sh
-
-# Modèle Billing OCR (réutilisé par l'assistant image_read)
-ollama pull qwen2.5vl:3b
-
-# Modèle Assistant IA (chat avec tool calling — doit être tools-aware)
-ollama pull qwen3:8b
-
-# Lancer docTR si tu utilises l'OCR (Docker requis)
-make docker-up
-```
-
-⚠ Le modèle de chat **doit supporter le tool calling** : `qwen3:*`, `qwen2.5:*`, `llama3.1:*`, `mistral-nemo` OK ; `gemma`, `phi3` non.
-
-Tunables sans redéploiement via [`/backend/configuration/settings`](http://localhost:8000/backend/configuration/settings) → onglet **Assistant** : modèle chat, modèle vision, timeout, num_ctx, prompt système.
-
-→ Documentation complète OCR : [docs/aurora-client/deployment/ocr_setup.md](docs/aurora-client/deployment/ocr_setup.md)
+Les modules qui demandaient un Ollama local ou un microservice docTR — Billing
+OCR, Assistant IA — ont été extraits puis archivés en août 2026. Voir
+[`docs/aurora-client/getting-started/installing_modules.md`](docs/aurora-client/getting-started/installing_modules.md).
 
 ### Mise en place
 

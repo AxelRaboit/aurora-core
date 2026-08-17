@@ -181,23 +181,6 @@ start-dev-worker: ## Start the messenger worker (async + scheduler)
 	@trap 'rm -f var/.messenger-dev-worker-running; exit' INT TERM EXIT; \
 	while true; do $(CONSOLE) messenger:consume async scheduler_main -vv --time-limit=3600 --memory-limit=512M || sleep 1; done
 
-# === OCR (docTR microservice) ===
-ocr-up: ## Build & start the docTR microservice (port 8001)
-	docker compose --profile ocr up -d --build doctr
-
-ocr-down: ## Stop the docTR microservice
-	docker compose --profile ocr stop doctr
-
-ocr-logs: ## Tail docTR logs
-	docker compose --profile ocr logs -f doctr
-
-ocr-restart: ## Restart docTR
-	docker compose --profile ocr restart doctr
-
-ocr-rebuild: ## Stop, rebuild & start the docTR microservice (use after editing tools/docker/doctr)
-	docker compose --profile ocr down doctr
-	docker compose --profile ocr up -d --build doctr
-
 routes: ## List all registered routes
 	$(CONSOLE) debug:router --show-controllers
 
