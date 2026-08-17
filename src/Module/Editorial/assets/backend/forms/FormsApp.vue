@@ -2,6 +2,8 @@
 import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
 import { useFormsList } from "./composables/useFormsList.js";
 import { useFormFields } from "./composables/useFormFields.js";
 import { useFormSubmissions } from "./composables/useFormSubmissions.js";
@@ -45,6 +47,21 @@ const {
     openCreate, openEdit, submit, addStep, removeStep,
     pendingDelete, deleteLoading, doDelete,
 } = useFormsList(props);
+
+// The two actions a field row offers. The reorder arrows beside them stay as they
+// are: they are pressed repeatedly, and a sheet would turn each nudge into
+// open-click-close.
+const fieldActions = useEditDeleteActions({
+    can,
+    editPermission: "editorial.forms.edit",
+    deletePermission: "editorial.forms.edit",
+    openEdit: openFieldEdit,
+    confirmDelete: (field) => {
+        pendingFieldDelete.value = field;
+    },
+    editDescription: "backend.forms.fields.row_actions.edit_description",
+    deleteDescription: "backend.forms.fields.row_actions.delete_description",
+});
 
 const {
     fields, showField, editingField, fieldForm, fieldErrors, fieldLoading,
@@ -178,12 +195,7 @@ function formatDate(value) {
                             <AppIconButton :title="t('backend.forms.fields.move_down')" v-on:click="move(field, 1)">
                                 <ChevronDown class="w-4 h-4" :stroke-width="2" />
                             </AppIconButton>
-                            <AppIconButton color="accent" :title="t('shared.common.edit')" v-on:click="openFieldEdit(field)">
-                                <Pencil class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-                            <AppIconButton color="rose" :title="t('shared.common.delete')" v-on:click="pendingFieldDelete = field">
-                                <Trash2 class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
+                            <AppRowActions :actions="fieldActions(field)" :label="field.label ?? field.name ?? ''" />
                         </div>
                     </div>
                 </div>

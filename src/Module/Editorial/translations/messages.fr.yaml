@@ -147,6 +147,9 @@ backend:
     supports_blocks: Contenu en blocs
     supports_thumbnail: Image à la une
     fields:
+      row_actions:
+        edit_description: Libellé, type, obligatoire ou non, options.
+        delete_description: Supprime le champ. Les réponses déjà reçues le gardent.
       title: Champs personnalisés
       empty: Aucun champ personnalisé.
       created: Champ ajouté.
@@ -474,6 +477,9 @@ backend:
     post_types: S'applique à
     post_types_hint: "Les types de contenu dont les publications peuvent porter ces termes."
     terms:
+      row_actions:
+        edit_description: Renommer le terme et changer son slug.
+        delete_description: Supprime le terme. Les contenus qui le portaient n'en auront plus.
       title: Termes
       empty: Aucun terme.
       create: Ajouter un terme
@@ -603,6 +609,9 @@ backend:
       field_type_invalid: Type de champ inconnu.
       condition_logic_invalid: Logique de condition inconnue.
   menus:
+    row_actions:
+      edit_description: Changer le libellé, la cible et l'ouverture du lien.
+      delete_description: Retire l'entrée du menu. Ses enfants remontent d'un niveau.
     title: Menus
     empty: Aucun menu.
     empty_hint: "Les menus sont créés à l'installation, un par emplacement du thème."

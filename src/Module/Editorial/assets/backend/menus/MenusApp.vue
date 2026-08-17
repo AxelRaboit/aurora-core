@@ -1,6 +1,8 @@
 <script setup>
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
 import { useMenus } from "./composables/useMenus.js";
 import { useMenuItems } from "./composables/useMenuItems.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -35,6 +37,21 @@ const {
     items, selectedId, selected, upsert,
     showEdit, editForm, editErrors, editLoading, openEdit, submitEdit,
 } = useMenus(props);
+
+// The two actions a item row offers. The reorder arrows beside them stay as they
+// are: they are pressed repeatedly, and a sheet would turn each nudge into
+// open-click-close.
+const itemActions = useEditDeleteActions({
+    can,
+    editPermission: "editorial.menus.edit",
+    deletePermission: "editorial.menus.edit",
+    openEdit: openItemEdit,
+    confirmDelete: (item) => {
+        pendingItemDelete.value = item;
+    },
+    editDescription: "backend.menus.row_actions.edit_description",
+    deleteDescription: "backend.menus.row_actions.delete_description",
+});
 
 const {
     rows, labelOf, showItem, editingItem, form, itemErrors, itemLoading,
@@ -143,12 +160,7 @@ function isUnresolved(item) {
                             <AppIconButton :title="t('backend.menus.move_down')" v-on:click="move(item, 1)">
                                 <ChevronDown class="w-4 h-4" :stroke-width="2" />
                             </AppIconButton>
-                            <AppIconButton color="accent" :title="t('shared.common.edit')" v-on:click="openItemEdit(item)">
-                                <Pencil class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-                            <AppIconButton color="rose" :title="t('shared.common.delete')" v-on:click="pendingItemDelete = item">
-                                <Trash2 class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
+                            <AppRowActions :actions="itemActions(item)" :label="item.label ?? item.name ?? ''" />
                         </div>
                     </div>
                 </div>

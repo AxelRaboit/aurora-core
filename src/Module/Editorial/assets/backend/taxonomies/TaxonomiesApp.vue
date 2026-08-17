@@ -2,6 +2,8 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
 import { useTaxonomiesForm } from "./composables/useTaxonomiesForm.js";
 import { useTaxonomyTerms } from "./composables/useTaxonomyTerms.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -39,6 +41,21 @@ const {
     pendingDelete, deleteLoading, confirmDelete, doDelete,
     togglePostType,
 } = useTaxonomiesForm(props);
+
+// The two actions a term row offers. The reorder arrows beside them stay as they
+// are: they are pressed repeatedly, and a sheet would turn each nudge into
+// open-click-close.
+const termActions = useEditDeleteActions({
+    can,
+    editPermission: "editorial.taxonomies.edit",
+    deletePermission: "editorial.taxonomies.edit",
+    openEdit: openTermEdit,
+    confirmDelete: (term) => {
+        pendingTermDelete.value = term;
+    },
+    editDescription: "backend.taxonomies.terms.row_actions.edit_description",
+    deleteDescription: "backend.taxonomies.terms.row_actions.delete_description",
+});
 
 const {
     rows, showTerm, editingTerm, form, termErrors, termLoading, parentOptions,
@@ -164,12 +181,7 @@ function nameOf(term) {
                             <AppIconButton :title="t('backend.taxonomies.terms.move_down')" v-on:click="move(term, 1)">
                                 <ChevronDown class="w-4 h-4" :stroke-width="2" />
                             </AppIconButton>
-                            <AppIconButton color="accent" :title="t('shared.common.edit')" v-on:click="openTermEdit(term)">
-                                <Pencil class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-                            <AppIconButton color="rose" :title="t('shared.common.delete')" v-on:click="pendingTermDelete = term">
-                                <Trash2 class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
+                            <AppRowActions :actions="termActions(term)" :label="term.label ?? term.name ?? ''" />
                         </div>
                     </div>
                 </div>

@@ -147,6 +147,9 @@ backend:
     supports_blocks: Block content
     supports_thumbnail: Featured image
     fields:
+      row_actions:
+        edit_description: Label, type, required or not, options.
+        delete_description: Removes the field. Answers already received keep it.
       title: Custom fields
       empty: No custom field.
       created: Field added.
@@ -474,6 +477,9 @@ backend:
     post_types: Applies to
     post_types_hint: 'The content types whose posts can carry these terms.'
     terms:
+      row_actions:
+        edit_description: Rename the term and change its slug.
+        delete_description: Removes the term. Content that carried it will have none.
       title: Terms
       empty: No term yet.
       create: Add a term
@@ -603,6 +609,9 @@ backend:
       field_type_invalid: Unknown field type.
       condition_logic_invalid: Unknown condition logic.
   menus:
+    row_actions:
+      edit_description: Change the label, the target and how the link opens.
+      delete_description: Takes the entry out of the menu. Its children move up one level.
     title: Menus
     empty: No menu yet.
     empty_hint: 'Menus are created at install time, one per location the theme renders.'
