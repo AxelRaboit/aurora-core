@@ -47,6 +47,12 @@ backend:
         inline_uploads: Médias éditoriaux
         inline_uploads_description: Images importées depuis un formulaire d'édition — bannières, images à la une, champs personnalisés.
     documents:
+      row_actions:
+        view_description: Ouvre l'aperçu, ses versions et où il est utilisé.
+        download_description: Télécharge le fichier tel qu'il a été déposé.
+        qr_description: Affiche un QR code menant à ce document.
+        edit_description: Titre, catégorie, étiquettes, dossier.
+        delete_description: Supprime le document et son fichier. Sans retour possible.
       reference: Référence
       title: Titre
       description: Description

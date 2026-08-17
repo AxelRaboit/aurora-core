@@ -4,6 +4,9 @@ import { useListPage } from "@/shared/composables/list/useListPage.js";
 import { useQrCode } from "@/shared/composables/overlay/useQrCode.js";
 import { useClipboard } from "@/shared/composables/useClipboard.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
+import { useDocumentRowActions } from "./composables/useDocumentRowActions.js";
 import { useDocumentsForm, DOCUMENT_STATUS_BADGE } from "./composables/useDocumentsForm.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -147,6 +150,29 @@ const {
 } = useDocumentSidebarFolders(
     props, folders, currentFolderId, flatFolders, allFlatFolders, navigateTo, reset,
 );
+
+// Two sets on this screen: what a document offers, and what a folder in the
+// tree does. Both were written twice — once for the cards, once for the table —
+// so the two copies could already disagree.
+const documentActions = useDocumentRowActions({
+    can,
+    viewDoc,
+    openQr,
+    openEdit,
+    confirmDelete,
+});
+
+const folderActions = useEditDeleteActions({
+    can,
+    editPermission: "ged.folders.manage",
+    deletePermission: "ged.folders.manage",
+    openEdit: openEditFolder,
+    confirmDelete: (folder) => {
+        deletingFolder.value = folder;
+    },
+    editDescription: "backend.ged.folders.row_actions.edit_description",
+    deleteDescription: "backend.ged.folders.row_actions.delete_description",
+});
 
 const {
     dragOverFolderId, rootDragOver,
@@ -304,12 +330,7 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                             >
                                 <Star class="w-3.5 h-3.5" :stroke-width="2" :fill="favouriteFolderIds.has(folder.id) ? 'currentColor' : 'none'" />
                             </AppIconButton>
-                            <AppIconButton v-if="can('ged.folders.manage')" color="accent" v-on:click.stop="openEditFolder(folder)">
-                                <Pencil class="w-3.5 h-3.5" :stroke-width="2" />
-                            </AppIconButton>
-                            <AppIconButton v-if="can('ged.folders.manage')" color="rose" v-on:click.stop="deletingFolder = folder">
-                                <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                            </AppIconButton>
+                            <AppRowActions :actions="folderActions(folder)" :label="folder.name ?? ''" />
                         </div>
                     </div>
                 </div>
@@ -552,19 +573,7 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                                 </div>
                             </div>
                             <div class="flex justify-end px-3 py-2 border-t border-line/40 bg-surface-2/40">
-                                <AppIconButton color="default" :title="t('shared.common.view')" v-on:click="viewDoc(doc)"><Eye class="w-4 h-4" :stroke-width="2" /></AppIconButton>
-                                <AppIconButton
-                                    v-if="doc.fileUrl"
-                                    color="default"
-                                    :title="t('shared.common.download')"
-                                    :href="doc.fileUrl"
-                                    download
-                                >
-                                    <Download class="w-4 h-4" :stroke-width="2" />
-                                </AppIconButton>
-                                <AppIconButton v-if="doc.fileUrl" color="default" :title="t('shared.common.qr_code')" v-on:click="openQr(doc)"><QrCode class="w-4 h-4" :stroke-width="2" /></AppIconButton>
-                                <AppIconButton v-if="can('ged.documents.edit')" color="accent" :title="t('shared.common.edit')" v-on:click="openEdit(doc)"><Pencil class="w-4 h-4" :stroke-width="2" /></AppIconButton>
-                                <AppIconButton v-if="can('ged.documents.delete')" color="rose" :title="t('shared.common.delete')" v-on:click="confirmDelete(doc)"><Trash2 class="w-4 h-4" :stroke-width="2" /></AppIconButton>
+                                <AppRowActions :actions="documentActions(doc)" :label="doc.title ?? ''" />
                             </div>
                         </div>
                     </div>
@@ -637,19 +646,7 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                                     </td>
                                     <td class="px-6 py-3">
                                         <div class="flex items-center justify-end gap-0.5">
-                                            <AppIconButton color="default" :title="t('shared.common.view')" v-on:click="viewDoc(doc)"><Eye class="w-4 h-4" :stroke-width="2" /></AppIconButton>
-                                            <AppIconButton
-                                                v-if="doc.fileUrl"
-                                                color="default"
-                                                :title="t('shared.common.download')"
-                                                :href="doc.fileUrl"
-                                                download
-                                            >
-                                                <Download class="w-4 h-4" :stroke-width="2" />
-                                            </AppIconButton>
-                                            <AppIconButton v-if="doc.fileUrl" color="default" :title="t('shared.common.qr_code')" v-on:click="openQr(doc)"><QrCode class="w-4 h-4" :stroke-width="2" /></AppIconButton>
-                                            <AppIconButton v-if="can('ged.documents.edit')" color="accent" :title="t('shared.common.edit')" v-on:click="openEdit(doc)"><Pencil class="w-4 h-4" :stroke-width="2" /></AppIconButton>
-                                            <AppIconButton v-if="can('ged.documents.delete')" color="rose" :title="t('shared.common.delete')" v-on:click="confirmDelete(doc)"><Trash2 class="w-4 h-4" :stroke-width="2" /></AppIconButton>
+                                            <AppRowActions :actions="documentActions(doc)" :label="doc.title ?? ''" />
                                         </div>
                                     </td>
                                 </tr>

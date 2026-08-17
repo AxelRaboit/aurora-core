@@ -47,6 +47,12 @@ backend:
         inline_uploads: Editorial media
         inline_uploads_description: Images uploaded from an editing form — banners, featured images, custom fields.
     documents:
+      row_actions:
+        view_description: Opens the preview, its versions and where it is used.
+        download_description: Downloads the file exactly as it was uploaded.
+        qr_description: Shows a QR code pointing at this document.
+        edit_description: Title, category, tags, folder.
+        delete_description: Removes the document and its file. There is no undo.
       reference: Reference
       title: Title
       description: Description
