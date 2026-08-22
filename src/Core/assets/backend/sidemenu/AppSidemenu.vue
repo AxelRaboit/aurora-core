@@ -21,6 +21,7 @@ import AppNavButton from "@/shared/components/nav/AppNavButton.vue";
 import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
 import AppNotificationsBell from "@core/backend/notifications/AppNotificationsBell.vue";
 import AppSidemenuAccount from "./AppSidemenuAccount.vue";
+import AppSidemenuNav from "./AppSidemenuNav.vue";
 import {
     Globe, ShieldCheck, LogOut, Mail, Moon, Sun, User, SlidersHorizontal,
     PanelLeft, PanelLeftClose, X,
@@ -79,14 +80,15 @@ watch(sidemenuDragging, (dragging) => {
 
 useLayoutMount();
 
+const nav = useSidemenuNav(props.navSections, props.activeRoute, props.navSectionAliases, props.navItemAliases, liveSectionColors);
+
 const {
     dashboardPath, groupedSections, navItems, navFilter, displayedSections,
-    isGroupExpanded, toggleGroup, isSectionExpanded, toggleSection,
     isAccountExpanded, toggleAccount,
-    isActive, isActiveExact, itemIsActive, itemClasses, iconClasses,
-} = useSidemenuNav(props.navSections, props.activeRoute, props.navSectionAliases, props.navItemAliases, liveSectionColors);
+    isActive, isActiveExact,
+} = nav;
 
-const { headerClasses: sectionHeaderClasses, labelClasses: sectionLabelClasses } = useSidemenuSectionTheme(liveSectionColors);
+const sectionTheme = useSidemenuSectionTheme(liveSectionColors);
 
 const SECTION_CONFIG = {
     recent:  { icon: Clock,         labelKey: "backend.search.sections.recent"   },
@@ -160,76 +162,13 @@ function openSearchFromMobile() {
             <p v-if="navFilter && !displayedSections.length" class="sh-logo-expanded px-3 text-xs text-muted">
                 {{ t("backend.nav.filter_nav_empty") }}
             </p>
-            <div v-for="section in displayedSections" :key="section.id" class="space-y-0.5">
-                <button
-                    v-if="!navFilter"
-                    type="button"
-                    class="si-section-header w-full flex items-center justify-between text-xs font-semibold uppercase tracking-wider transition-colors"
-                    :class="[sectionHeaderClasses(section.id), sectionLabelClasses(section.id)]"
-                    v-on:click="toggleSection(section)"
-                >
-                    <span class="si-label truncate">{{ section.label }}</span>
-                    <ChevronDown class="si-chevron w-3.5 h-3.5 shrink-0 transition-transform" :class="{ '-rotate-90': !isSectionExpanded(section) }" :stroke-width="2.5" />
-                </button>
-
-                <template v-for="item in section.items" :key="item.route">
-                    <template v-if="navFilter || isSectionExpanded(section)">
-                        <!-- Group parent: split link + chevron toggle (only when not filtering) -->
-                        <template v-if="!navFilter && item.children?.length">
-                            <AppTooltip :title="item.label" :description="item.description" placement="right">
-                                <div
-                                    class="flex items-center rounded-lg text-sm font-medium transition-colors group relative"
-                                    :class="itemClasses(item, section.id)"
-                                >
-                                    <a
-                                        :href="item.path"
-                                        :data-sidemenu-active="itemIsActive(item) ? 'true' : null"
-                                        class="flex items-center flex-1 min-w-0 gap-3 py-[0.625rem] pl-3"
-                                    >
-                                        <component :is="item.icon" class="w-5 h-5 shrink-0" :class="iconClasses(item, section.id)" :stroke-width="2" />
-                                        <span class="si-label flex-1 truncate">{{ item.label }}</span>
-                                    </a>
-                                    <AppIconButton
-                                        :title="item.label"
-                                        class="si-group-chevron si-label mr-1 opacity-50 hover:opacity-100 hover:!bg-transparent"
-                                        v-on:click.stop="toggleGroup(item.route)"
-                                    >
-                                        <ChevronDown class="w-3.5 h-3.5 transition-transform" :class="{ '-rotate-90': !isGroupExpanded(item.route) }" :stroke-width="2.5" />
-                                    </AppIconButton>
-                                </div>
-                            </AppTooltip>
-                            <div v-show="isGroupExpanded(item.route)" class="si-children space-y-0.5">
-                                <AppNavLink
-                                    v-for="child in item.children"
-                                    :key="child.route"
-                                    :href="child.path"
-                                    :active="isActive(child.route)"
-                                    :sidemenu-active="isActive(child.route)"
-                                    :link-classes-override="itemClasses(child, section.id)"
-                                    :tooltip-title="child.label"
-                                    :tooltip-description="child.description"
-                                >
-                                    <component :is="child.icon" class="w-4 h-4 shrink-0" :class="iconClasses(child, section.id)" :stroke-width="2" />
-                                    <span class="si-label truncate">{{ child.label }}</span>
-                                </AppNavLink>
-                            </div>
-                        </template>
-                        <!-- Regular item or filtered group parent -->
-                        <AppNavLink
-                            v-else
-                            :href="item.path"
-                            :active="itemIsActive(item)"
-                            :sidemenu-active="itemIsActive(item)"
-                            :link-classes-override="itemClasses(item, section.id)"
-                            :tooltip-title="item.label"
-                            :tooltip-description="item.description"
-                        >
-                            <component :is="item.icon" class="w-5 h-5 shrink-0" :class="iconClasses(item, section.id)" :stroke-width="2" />
-                            <span class="si-label truncate">{{ item.label }}</span>
-                        </AppNavLink>
-                    </template>
-                </template>
-            </div>
+            <AppSidemenuNav
+                :sections="displayedSections"
+                :nav="nav"
+                :theme="sectionTheme"
+                :nav-filter="navFilter"
+                :icon-mode="collapsed"
+            />
         </nav>
 
         <div class="sidemenu-bottom shrink-0 border-t border-line py-3">
@@ -353,61 +292,17 @@ function openSearchFromMobile() {
             </div>
 
             <nav class="flex-1 overflow-y-auto scrollbar-thin px-3 py-2 space-y-3">
-                <div v-for="section in groupedSections" :key="section.id" class="space-y-0.5">
-                    <button
-                        type="button"
-                        class="w-full flex items-center justify-between px-3 py-1.5 text-xs font-semibold uppercase tracking-wider transition-colors"
-                        :class="[sectionHeaderClasses(section.id), sectionLabelClasses(section.id)]"
-                        v-on:click="toggleSection(section)"
-                    >
-                        <span class="truncate">{{ section.label }}</span>
-                        <ChevronDown class="w-3.5 h-3.5 shrink-0 transition-transform" :class="{ '-rotate-90': !isSectionExpanded(section) }" :stroke-width="2.5" />
-                    </button>
-
-                    <template v-for="item in section.items" :key="item.route">
-                        <template v-if="isSectionExpanded(section)">
-                            <!-- Group parent: split link + chevron -->
-                            <template v-if="item.children?.length">
-                                <div
-                                    class="flex items-center rounded-lg text-sm font-medium transition-colors"
-                                    :class="itemClasses(item, section.id)"
-                                >
-                                    <a :href="item.path" class="flex items-center flex-1 gap-3 px-3 py-2.5">
-                                        <component :is="item.icon" class="w-5 h-5 shrink-0" :class="iconClasses(item, section.id)" :stroke-width="2" />
-                                        {{ item.label }}
-                                    </a>
-                                    <AppIconButton :title="item.label" class="mr-1 opacity-50 hover:opacity-100 hover:!bg-transparent" v-on:click.stop="toggleGroup(item.route)">
-                                        <ChevronDown class="w-3.5 h-3.5 transition-transform" :class="{ '-rotate-90': !isGroupExpanded(item.route) }" :stroke-width="2.5" />
-                                    </AppIconButton>
-                                </div>
-                                <div v-show="isGroupExpanded(item.route)" class="space-y-0.5">
-                                    <AppNavLink
-                                        v-for="child in item.children"
-                                        :key="child.route"
-                                        :href="child.path"
-                                        :active="isActive(child.route)"
-                                        :link-classes-override="itemClasses(child, section.id)"
-                                    >
-                                        <component :is="child.icon" class="w-4 h-4 shrink-0" :class="iconClasses(child, section.id)" :stroke-width="2" />
-                                        <span class="truncate">{{ child.label }}</span>
-                                        <template #tooltip>{{ child.label }}</template>
-                                    </AppNavLink>
-                                </div>
-                            </template>
-                            <!-- Regular item -->
-                            <AppNavLink
-                                v-else
-                                :href="item.path"
-                                :active="itemIsActive(item)"
-                                :link-classes-override="itemClasses(item, section.id)"
-                            >
-                                <component :is="item.icon" class="w-5 h-5 shrink-0" :class="iconClasses(item, section.id)" :stroke-width="2" />
-                                <span class="si-label truncate">{{ item.label }}</span>
-                                <template #tooltip>{{ item.label }}</template>
-                            </AppNavLink>
-                        </template>
-                    </template>
-                </div>
+                <!-- The same component the aside uses. Its own copy was a
+                     degraded one: no item descriptions in the tooltips, no
+                     `data-sidemenu-active`, and two dead `#tooltip` slots
+                     `AppNavLink` never declared — so those child links had no
+                     tooltip at all. A drawer is never a rail, hence no
+                     `icon-mode`, and it has no filter of its own. -->
+                <AppSidemenuNav
+                    :sections="groupedSections"
+                    :nav="nav"
+                    :theme="sectionTheme"
+                />
             </nav>
 
             <!-- The same component the aside uses. It carried its own copy
