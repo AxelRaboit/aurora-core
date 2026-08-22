@@ -39,6 +39,13 @@ module.exports = [
         rules: {
             semi: 'error',
             'prefer-const': 'error',
+            // `convention_js_no_var` has existed for a long time and nothing
+            // enforced it: `prefer-const` says nothing about `var`, so the one
+            // declaration the convention forbids was the one that slipped
+            // through. Added while moving to eslint 10, with the codebase
+            // already at zero occurrences — so it locks a state rather than
+            // asking for a cleanup.
+            'no-var': 'error',
             'no-undef': 'error',
             'prettier/prettier': ['error', PRETTIER_OPTIONS],
         },
