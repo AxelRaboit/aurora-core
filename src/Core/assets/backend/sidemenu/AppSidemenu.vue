@@ -20,9 +20,10 @@ import AppNavLink from "@/shared/components/nav/AppNavLink.vue";
 import AppNavButton from "@/shared/components/nav/AppNavButton.vue";
 import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
 import AppNotificationsBell from "@core/backend/notifications/AppNotificationsBell.vue";
+import AppSidemenuAccount from "./AppSidemenuAccount.vue";
 import {
     Globe, ShieldCheck, LogOut, Mail, Moon, Sun, User, SlidersHorizontal,
-    Menu as MenuIcon, X,
+    PanelLeft, PanelLeftClose, X,
     Search, Loader2, ChevronDown, Filter,
     Clock, Layers, FileText, Tags as TagsIcon, Image, FolderKanban, CheckSquare,
 } from "lucide-vue-next";
@@ -125,14 +126,6 @@ function openSearchFromMobile() {
                 <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 object-cover rounded-xl">
                 <AppLogo v-else :size="32" />
             </a>
-        </div>
-
-        <div class="sh-logo-expanded items-center gap-3 border-b border-line px-4 py-3 shrink-0">
-            <AppAvatar variant="solid" :name="userName" :photo-url="userPhotoUrl" size="md" />
-            <div class="flex flex-col min-w-0">
-                <p class="text-sm font-medium text-primary truncate">{{ userName }}</p>
-                <p class="text-xs text-muted truncate">{{ userEmail }}</p>
-            </div>
         </div>
 
         <div v-if="hasEnabledFronts" class="px-3 py-2 border-b border-line shrink-0">
@@ -239,76 +232,24 @@ function openSearchFromMobile() {
             </div>
         </nav>
 
-        <div class="sidemenu-bottom shrink-0 border-t border-line py-3 space-y-0.5">
-            <!-- Folds like a nav section, and for the same reason: five rows
-                 that are read once a session should not hold the bottom of the
-                 menu open. Same header markup, same chevron, same store — the
-                 gesture is one an author already knows from the sections above.
-
-                 `collapsed ||` is what keeps the rows on screen in icon mode.
-                 `.si-section-header` is hidden there by the stylesheet, so
-                 without it a folded block would have no control left to unfold
-                 it — and logging out would be unreachable. -->
-            <button
-                type="button"
-                class="si-section-header w-full flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-muted hover:text-primary transition-colors"
-                v-on:click="toggleAccount"
-            >
-                <span class="si-label truncate">{{ t("backend.nav.sections.account") }}</span>
-                <ChevronDown class="si-chevron w-3.5 h-3.5 shrink-0 transition-transform" :class="{ '-rotate-90': !isAccountExpanded() }" :stroke-width="2.5" />
-            </button>
-
-            <template v-if="collapsed || isAccountExpanded()">
-                <AppNavLink
-                    v-if="mailpitUrl"
-                    :href="mailpitUrl"
-                    target="_blank"
-                    hover-color="amber"
-                    tooltip-title="Mailpit"
-                >
-                    <Mail class="w-5 h-5 shrink-0 text-muted group-hover:text-amber-400 transition-colors" :stroke-width="2" />
-                    <span class="si-label">Mailpit</span>
-                </AppNavLink>
-
-                <AppNavButton
-                    :tooltip-title="theme === 'dark' ? t('backend.nav.light_mode') : t('backend.nav.dark_mode')"
-                    v-on:click="toggleTheme"
-                >
-                    <Moon v-if="theme !== 'dark'" class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                    <Sun v-else class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                    <span class="si-label">{{ theme === "dark" ? t("backend.nav.light_mode") : t("backend.nav.dark_mode") }}</span>
-                </AppNavButton>
-
-                <AppNavLink
-                    :href="profilePath"
-                    :active="isActiveExact('backend_general_profile')"
-                    :tooltip-title="t('backend.nav.profile')"
-                >
-                    <User class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                    <span class="si-label truncate">{{ t("backend.nav.profile") }}</span>
-                </AppNavLink>
-
-                <AppNavLink
-                    :href="sidemenuPreferencesPath"
-                    :active="isActive('backend_general_profile_sidemenu')"
-                    :tooltip-title="t('backend.profile.preferences.title')"
-                >
-                    <SlidersHorizontal class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                    <span class="si-label truncate">{{ t("backend.profile.preferences.title") }}</span>
-                </AppNavLink>
-
-                <form :action="logoutPath" method="POST">
-                    <input type="hidden" name="_token" :value="logoutCsrf">
-                    <AppNavButton
-                        type="submit"
-                        hover-color="rose"
-                        :tooltip-title="t('backend.nav.logout')"
-                    >
-                        <LogOut class="w-5 h-5 shrink-0 text-muted group-hover:text-rose-400 transition-colors" :stroke-width="2" />
-                        <span class="si-label">{{ t("backend.nav.logout") }}</span>
-                    </AppNavButton>
-                </form>
-            </template>
+        <div class="sidemenu-bottom shrink-0 border-t border-line py-3">
+            <AppSidemenuAccount
+                :user-name="userName"
+                :user-email="userEmail"
+                :user-photo-url="userPhotoUrl"
+                :mailpit-url="mailpitUrl"
+                :profile-path="profilePath"
+                :preferences-path="sidemenuPreferencesPath"
+                :logout-path="logoutPath"
+                :logout-csrf="logoutCsrf"
+                :profile-active="isActiveExact('backend_general_profile')"
+                :preferences-active="isActive('backend_general_profile_sidemenu')"
+                :theme="theme"
+                :expanded="isAccountExpanded()"
+                :icon-mode="collapsed"
+                v-on:toggle="toggleAccount"
+                v-on:toggle-theme="toggleTheme"
+            />
         </div>
 
         <div class="sh-logo-expanded justify-center py-2 border-t border-line/30">
@@ -335,8 +276,34 @@ function openSearchFromMobile() {
             <AppButton variant="ghost" size="none" class="p-2" v-on:click="openPalette">
                 <Search class="w-5 h-5" :stroke-width="2" />
             </AppButton>
-            <AppButton variant="ghost" size="none" class="p-2" v-on:click="openMobile">
-                <MenuIcon class="w-5 h-5" :stroke-width="2" />
+            <!-- The bell belongs here too. On desktop it moved to the page
+                 header, which is hidden below the large breakpoint — so without
+                 this, a phone had no way to reach notifications at all. -->
+            <AppNotificationsBell
+                v-if="notificationsListPath"
+                :list-path="notificationsListPath"
+                :mark-read-path="notificationsMarkReadPath"
+                :mark-all-read-path="notificationsMarkAllReadPath"
+                :delete-path="notificationsDeletePath"
+                :delete-all-path="notificationsDeleteAllPath"
+            />
+            <!-- The desktop toggle's icons, and its alternation: an open
+                 panel when the drawer is open, a closed one when it is shut.
+                 Both controls open the same menu, so showing two different
+                 glyphs for it would be two names for one thing.
+
+                 The icon shows the state, not the action — same reason as on
+                 desktop: a control that announced what it would do flips under
+                 the finger at the moment of tapping. -->
+            <AppButton
+                variant="ghost"
+                size="none"
+                class="p-2"
+                :title="mobileOpen ? t('backend.nav.collapse_menu') : t('backend.nav.expand_menu')"
+                v-on:click="mobileOpen ? closeMobile() : openMobile()"
+            >
+                <PanelLeftClose v-if="mobileOpen" class="w-5 h-5" :stroke-width="2" />
+                <PanelLeft v-else class="w-5 h-5" :stroke-width="2" />
             </AppButton>
         </div>
     </div>
@@ -443,38 +410,28 @@ function openSearchFromMobile() {
                 </div>
             </nav>
 
-            <div class="shrink-0 border-t border-line px-3 py-3 space-y-1">
-                <button
-                    class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-secondary hover:text-primary hover:bg-surface-2 transition-colors"
-                    v-on:click="toggleTheme"
-                >
-                    <Moon v-if="theme !== 'dark'" class="w-5 h-5 text-muted shrink-0" :stroke-width="2" />
-                    <Sun v-else class="w-5 h-5 text-muted shrink-0" :stroke-width="2" />
-                    {{ theme === "dark" ? t("backend.nav.light_mode") : t("backend.nav.dark_mode") }}
-                </button>
-                <a
-                    :href="profilePath"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
-                    :class="isActiveExact('backend_general_profile') ? 'bg-accent-600/15 text-accent-400' : 'text-secondary hover:text-primary hover:bg-surface-2'"
-                >
-                    <User class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                    {{ t("backend.nav.profile") }}
-                </a>
-                <a
-                    :href="sidemenuPreferencesPath"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
-                    :class="isActive('backend_general_profile_sidemenu') ? 'bg-accent-600/15 text-accent-400' : 'text-secondary hover:text-primary hover:bg-surface-2'"
-                >
-                    <SlidersHorizontal class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                    {{ t("backend.profile.preferences.title") }}
-                </a>
-                <form :action="logoutPath" method="POST">
-                    <input type="hidden" name="_token" :value="logoutCsrf">
-                    <button type="submit" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-secondary hover:text-rose-400 hover:bg-rose-500/10 transition-colors">
-                        <LogOut class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                        {{ t("backend.nav.logout") }}
-                    </button>
-                </form>
+            <!-- The same component the aside uses. It carried its own copy
+                 in plain markup until the collapsed rules were scoped to
+                 `#sidemenu`; before that, a menu folded on desktop would have
+                 folded this drawer's rows on a phone. `icon-mode` is false
+                 here — a drawer is never a rail. -->
+            <div class="shrink-0 border-t border-line px-3 py-3">
+                <AppSidemenuAccount
+                    :user-name="userName"
+                    :user-email="userEmail"
+                    :user-photo-url="userPhotoUrl"
+                    :mailpit-url="mailpitUrl"
+                    :profile-path="profilePath"
+                    :preferences-path="sidemenuPreferencesPath"
+                    :logout-path="logoutPath"
+                    :logout-csrf="logoutCsrf"
+                    :profile-active="isActiveExact('backend_general_profile')"
+                    :preferences-active="isActive('backend_general_profile_sidemenu')"
+                    :theme="theme"
+                    :expanded="isAccountExpanded()"
+                    v-on:toggle="toggleAccount"
+                    v-on:toggle-theme="toggleTheme"
+                />
             </div>
         </div>
     </div>

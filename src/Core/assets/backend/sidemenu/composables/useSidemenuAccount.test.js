@@ -51,6 +51,20 @@ describe("the account block", () => {
     });
 
     /**
+     * The menu is rendered twice in one file — an `<aside>` for desktop and a
+     * drawer for mobile — and the drawer's copy was left unfoldable when the
+     * desktop one gained its header. Both now read the same store, so folding
+     * in either place is remembered in both, and neither can drift.
+     */
+    it("is one state, whichever of the two menus folded it", () => {
+        const desktop = useSidemenuNav([], "");
+        desktop.toggleAccount();
+
+        // A second call site is what the drawer is: same store, same answer.
+        expect(useSidemenuNav([], "").isAccountExpanded()).toBe(false);
+    });
+
+    /**
      * Shares the sections' own store rather than opening a second one: one key,
      * one rule. A separate mechanism for the same gesture would be a second
      * thing to keep in agreement.

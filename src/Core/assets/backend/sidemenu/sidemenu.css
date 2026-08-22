@@ -1,3 +1,14 @@
+/*
+ * `.sidemenu-collapsed` sits on `<html>`, so every rule below has to name the
+ * aside it applies to. Without that they reached the *mobile drawer* as well —
+ * a menu folded on a desktop session would collapse the drawer's rows on a
+ * phone, hide their labels and centre their icons.
+ *
+ * That is why the drawer used to carry its own copy of every row in plain
+ * markup, and why the copies drifted: the account block was made foldable on
+ * one side only, and the notifications bell went missing on the other. Scoping
+ * these is what lets one component serve both.
+ */
 :root { --sidemenu-width: 240px; }
 
 #sidemenu { width: var(--sidemenu-width); transition: width 200ms ease; }
@@ -29,18 +40,18 @@
     background: var(--color-accent-500, #6366f1);
     opacity: 0.5;
 }
-.sidemenu-collapsed .sidemenu-resize-handle { display: none; }
+.sidemenu-collapsed #sidemenu .sidemenu-resize-handle { display: none; }
 @media (max-width: 1023px) {
     .sidemenu-resize-handle { display: none; }
 }
 
 .sh-wrap { justify-content: space-between; padding-left: 1rem; padding-right: 1rem; }
-.sidemenu-collapsed .sh-wrap { justify-content: center; padding-left: 0; padding-right: 0; }
+.sidemenu-collapsed #sidemenu .sh-wrap { justify-content: center; padding-left: 0; padding-right: 0; }
 
 .sh-logo-expanded { display: flex; }
 .sh-logo-collapsed { display: none; }
-.sidemenu-collapsed .sh-logo-expanded { display: none; }
-.sidemenu-collapsed .sh-logo-collapsed { display: flex; }
+.sidemenu-collapsed #sidemenu .sh-logo-expanded { display: none; }
+.sidemenu-collapsed #sidemenu .sh-logo-collapsed { display: flex; }
 
 
 
@@ -50,28 +61,28 @@
     overflow-y: auto;
     overflow-x: hidden;
 }
-.sidemenu-collapsed .sidemenu-nav { padding-left: 0.4rem; padding-right: 0.4rem; }
+.sidemenu-collapsed #sidemenu .sidemenu-nav { padding-left: 0.4rem; padding-right: 0.4rem; }
 .sidemenu-bottom { padding-left: 0.74rem; padding-right: 0.74rem; }
-.sidemenu-collapsed .sidemenu-bottom { padding-left: 0.4rem; padding-right: 0.4rem; }
+.sidemenu-collapsed #sidemenu .sidemenu-bottom { padding-left: 0.4rem; padding-right: 0.4rem; }
 
 .si { gap: 0.74rem; padding: 0.624rem 0.74rem; }
-.sidemenu-collapsed .si { justify-content: center; padding: 0.624rem 0; gap: 0; }
+.sidemenu-collapsed #sidemenu .si { justify-content: center; padding: 0.624rem 0; gap: 0; }
 
 .si-label { display: block; min-width: 0; }
-.sidemenu-collapsed .si-label { display: none; }
+.sidemenu-collapsed #sidemenu .si-label { display: none; }
 
 .si-tooltip { display: none; }
-.sidemenu-collapsed .si:hover .si-tooltip { display: block; }
+.sidemenu-collapsed #sidemenu .si:hover .si-tooltip { display: block; }
 
-.sidemenu-collapsed .sh-search-section { padding-left: 0.4rem; padding-right: 0.4rem; }
+.sidemenu-collapsed #sidemenu .sh-search-section { padding-left: 0.4rem; padding-right: 0.4rem; }
 
 /* Section headers (collapsible groups) — hidden when sidemenu is collapsed */
 .si-section-header { padding: 0.374rem 0.74rem; }
-.sidemenu-collapsed .si-section-header { display: none; }
+.sidemenu-collapsed #sidemenu .si-section-header { display: none; }
 /* In collapsed (icon-only) mode, force all items visible regardless of section toggle state */
-.sidemenu-collapsed .sidemenu-nav .si { display: flex !important; }
+.sidemenu-collapsed #sidemenu .sidemenu-nav .si { display: flex !important; }
 
 /* Sub-items container: hidden in collapsed mode */
-.sidemenu-collapsed .si-children { display: none !important; }
+.sidemenu-collapsed #sidemenu .si-children { display: none !important; }
 /* Chevron on group parent: hidden in collapsed mode */
-.sidemenu-collapsed .si-group-chevron { display: none !important; }
+.sidemenu-collapsed #sidemenu .si-group-chevron { display: none !important; }
