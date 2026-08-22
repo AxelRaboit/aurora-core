@@ -148,43 +148,6 @@ function openSearchFromMobile() {
         </div>
 
         <div class="sh-search-section px-3 py-2 border-b border-line shrink-0 space-y-1.5">
-            <!-- Icons row — expanded -->
-            <div class="sh-logo-expanded items-center gap-1 w-full">
-                <button
-                    type="button"
-                    class="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-surface-2 transition-colors"
-                    :title="t('backend.search.button')"
-                    v-on:click="openPalette"
-                >
-                    <Search class="w-5 h-5" :stroke-width="2" />
-                </button>
-                <AppNotificationsBell
-                    v-if="notificationsListPath"
-                    :list-path="notificationsListPath"
-                    :mark-read-path="notificationsMarkReadPath"
-                    :mark-all-read-path="notificationsMarkAllReadPath"
-                    :delete-path="notificationsDeletePath"
-                    :delete-all-path="notificationsDeleteAllPath"
-                />
-            </div>
-            <!-- Palette trigger — collapsed -->
-            <AppNavButton
-                class="sh-logo-collapsed"
-                :tooltip-title="t('backend.search.button')"
-                v-on:click="openPalette"
-            >
-                <Search class="w-5 h-5 shrink-0" :stroke-width="2" />
-            </AppNavButton>
-            <!-- Notifications bell — collapsed -->
-            <div v-if="notificationsListPath" class="sh-logo-collapsed justify-center">
-                <AppNotificationsBell
-                    :list-path="notificationsListPath"
-                    :mark-read-path="notificationsMarkReadPath"
-                    :mark-all-read-path="notificationsMarkAllReadPath"
-                    :delete-path="notificationsDeletePath"
-                    :delete-all-path="notificationsDeleteAllPath"
-                />
-            </div>
             <!-- Nav filter — expanded only -->
             <div class="sh-logo-expanded relative flex items-center">
                 <Filter class="absolute left-2.5 w-3 h-3 text-muted pointer-events-none" :stroke-width="2" />

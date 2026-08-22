@@ -10,6 +10,15 @@ import { useDebounce } from "@/shared/composables/useDebounce.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
+/**
+ * Announced by the search button in the page header.
+ *
+ * The button lives in one Vue app and this palette in another, so the two
+ * cannot see each other's refs. The event is how the trigger reaches the
+ * feature without the feature having to move — see pattern_cross_mount_state_sync.
+ */
+export const SEARCH_OPEN_EVENT = "aurora:open-search";
+
 // ── Recent pages ─────────────────────────────────────────────────────────────
 
 const RECENT_KEY = "aurora-search-recent";
@@ -154,6 +163,16 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
         searchHighlightedIndex.value = 0;
         nextTick(() => searchInputRef.value?.focus());
     }
+
+    // The button that opens this sits in the page header — a different Vue app,
+    // which cannot reach `openPalette` directly. Registered here rather than in
+    // the menu's SFC so the composable that owns the palette also owns the way
+    // in, which is where `useSidemenuCollapse` and `useSidemenuLiveColors` keep
+    // theirs. See pattern_cross_mount_state_sync.
+    onMounted(() => window.addEventListener(SEARCH_OPEN_EVENT, openPalette));
+    onBeforeUnmount(() =>
+        window.removeEventListener(SEARCH_OPEN_EVENT, openPalette),
+    );
 
     function closePalette() {
         searchOpen.value = false;

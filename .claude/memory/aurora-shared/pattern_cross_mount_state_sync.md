@@ -66,6 +66,30 @@ faisait juste un toast).
    pas capturer la valeur dans le closure au call time, sinon la
    réactivité ne passe pas.
 
+## Les trois usages en place (2026-08)
+
+Le patron ne sert plus seulement à propager un état après un save : il sert
+aussi à ce qu'un **bouton déplacé** atteigne la fonctionnalité qu'il déclenche,
+restée où elle était.
+
+| Événement | Déclaré dans | Sert à |
+|---|---|---|
+| `aurora:sidemenu-prefs-updated` | `useSidemenuLiveColors` | recolorer la sidemenu après un save de préférences |
+| `aurora:sidemenu-collapsed` | `useSidemenuCollapse` | tenir le menu et le bouton de pliage de la topbar au même état |
+| `aurora:open-search` | `useBackendSearch` | ouvrir la palette depuis la topbar, la palette restant dans la sidemenu |
+
+**Règle qui vaut pour les trois** : l'événement est déclaré et **écouté dans le
+composable qui possède la fonctionnalité**, jamais dans le SFC. Un
+`onMounted` + `addEventListener` dans un `<script setup>` est ce que
+[[convention_sfc_thin_presentation]] refuse, et ça sépare le nom de
+l'événement de l'endroit qui sait quoi en faire.
+
+**Le nom de l'événement est un contrat entre deux fichiers qui ne s'importent
+jamais** — donc il s'épingle dans un test. Voir `useBackendSearch.test.js` :
+il assère la chaîne, l'ouverture, et le fait que l'écouteur disparaisse au
+démontage (il y en a un par page ; sans nettoyage, un composant mort continue
+de réagir).
+
 ## Why
 
 - **Toast survit** : pas de reload, le toast Sonner reste affiché son
