@@ -4,8 +4,7 @@
  * about it.
  *
  * **One component for both menus.** This file's markup used to exist twice —
- * once in the desktop `<aside>` with tooltips and icon-mode support, once in
- * the mobile drawer in plain classes — and the two drifted exactly as two
+ * once in the desktop `<aside>`, once in the mobile drawer in plain classes — and the two drifted exactly as two
  * copies do: the block was made foldable on the desktop side only, and the
  * notifications bell went missing on the mobile side. Each was a separate bug
  * report.
@@ -14,9 +13,6 @@
  * `<html>`, so the aside's collapsed rules reached the drawer too and a menu
  * folded on a desktop session would fold the drawer's rows on a phone. Those
  * rules are scoped to `#sidemenu` now, which is what makes this possible.
- *
- * `iconMode` decides in the template rather than through a class, so the caller
- * says which shape it wants instead of inheriting one from a global.
  */
 import { useI18n } from "vue-i18n";
 import { ChevronDown, LogOut, Mail, Moon, SlidersHorizontal, Sun, User } from "lucide-vue-next";
@@ -37,10 +33,8 @@ const props = defineProps({
     profileActive: { type: Boolean, default: false },
     preferencesActive: { type: Boolean, default: false },
     theme: { type: String, default: "light" },
-    /** Whether the rows are showing. Ignored in icon mode — see below. */
+    /** Whether the rows are showing. */
     expanded: { type: Boolean, default: true },
-    /** Icons only, no labels: the desktop menu folded to a rail. */
-    iconMode: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["toggle", "toggle-theme"]);
@@ -53,7 +47,6 @@ const { t } = useI18n();
         <!-- The account's own name heads the block that acts on it, and doubles
              as the fold control: the name is both the label and the button. -->
         <button
-            v-if="!iconMode"
             type="button"
             class="w-full flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-surface-2"
             :aria-expanded="expanded"
@@ -77,14 +70,7 @@ const { t } = useI18n();
             />
         </button>
 
-        <!-- In icon mode the avatar is a picture and nothing more: the rows are
-             always shown there, so a fold control would have nothing to fold,
-             and a button that does nothing is worse than none. -->
-        <div v-else class="flex justify-center py-1" :title="`${userName} — ${userEmail}`">
-            <AppAvatar variant="solid" :name="userName" :photo-url="userPhotoUrl" size="md" />
-        </div>
-
-        <template v-if="iconMode || expanded">
+        <template v-if="expanded">
             <AppNavLink
                 v-if="mailpitUrl"
                 :href="mailpitUrl"
@@ -93,7 +79,7 @@ const { t } = useI18n();
                 tooltip-title="Mailpit"
             >
                 <Mail class="w-5 h-5 shrink-0 text-muted group-hover:text-amber-400 transition-colors" :stroke-width="2" />
-                <span v-if="!iconMode">Mailpit</span>
+                <span>Mailpit</span>
             </AppNavLink>
 
             <AppNavButton
@@ -102,24 +88,24 @@ const { t } = useI18n();
             >
                 <Moon v-if="theme !== 'dark'" class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
                 <Sun v-else class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                <span v-if="!iconMode">{{ theme === "dark" ? t("backend.nav.light_mode") : t("backend.nav.dark_mode") }}</span>
+                <span>{{ theme === "dark" ? t("backend.nav.light_mode") : t("backend.nav.dark_mode") }}</span>
             </AppNavButton>
 
             <AppNavLink :href="profilePath" :active="profileActive" :tooltip-title="t('backend.nav.profile')">
                 <User class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                <span v-if="!iconMode" class="truncate">{{ t("backend.nav.profile") }}</span>
+                <span class="truncate">{{ t("backend.nav.profile") }}</span>
             </AppNavLink>
 
             <AppNavLink :href="preferencesPath" :active="preferencesActive" :tooltip-title="t('backend.profile.preferences.title')">
                 <SlidersHorizontal class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                <span v-if="!iconMode" class="truncate">{{ t("backend.profile.preferences.title") }}</span>
+                <span class="truncate">{{ t("backend.profile.preferences.title") }}</span>
             </AppNavLink>
 
             <form :action="logoutPath" method="POST">
                 <input type="hidden" name="_token" :value="logoutCsrf">
                 <AppNavButton type="submit" hover-color="rose" :tooltip-title="t('backend.nav.logout')">
                     <LogOut class="w-5 h-5 shrink-0 text-muted group-hover:text-rose-400 transition-colors" :stroke-width="2" />
-                    <span v-if="!iconMode">{{ t("backend.nav.logout") }}</span>
+                    <span>{{ t("backend.nav.logout") }}</span>
                 </AppNavButton>
             </form>
         </template>

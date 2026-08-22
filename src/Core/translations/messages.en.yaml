@@ -138,8 +138,8 @@ backend:
     go_back: Previous page
     go_forward: Next page
     hard_reload: Reload and clear caches
-    expand_menu: Expand the menu
-    collapse_menu: Collapse the menu
+    expand_menu: Show the menu
+    collapse_menu: Hide the menu
     administration: Developer access
     administration_description: 'Technical tools, audit log, access requests and advanced configuration'
     dashboard: Dashboard

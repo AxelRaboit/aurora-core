@@ -6,10 +6,10 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
 const POLL_INTERVAL_MS = 30_000; // 30s — light enough not to hammer.
 
-// Module-level singleton state. The notifications bell is mounted twice
-// in the sidemenu (one for the expanded layout, one for the collapsed
-// layout) — without this singleton, each instance would fetch + poll
-// independently, doubling the network traffic.
+// Module-level singleton state. The bell is mounted twice — once in the page
+// header for desktop, once in the mobile top bar — because neither is on screen
+// at the breakpoint the other serves. Without this singleton each instance
+// would fetch and poll independently, doubling the network traffic.
 let sharedState = null;
 let refCount = 0;
 let pollTimer = null;
@@ -65,8 +65,8 @@ export function useNotifications(paths) {
 
     onMounted(() => {
         // First mount triggers the initial fetch + the shared poll timer.
-        // Subsequent mounts (e.g. the collapsed/expanded sidemenu bells)
-        // just join the existing ref-counted singleton.
+        // Subsequent mounts (the desktop and mobile bells) just join the
+        // existing ref-counted singleton.
         refCount += 1;
         if (1 === refCount) {
             load();

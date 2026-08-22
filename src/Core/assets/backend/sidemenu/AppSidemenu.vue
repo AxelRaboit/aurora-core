@@ -64,7 +64,7 @@ const props = defineProps({
 const { t } = useI18n();
 const { theme, toggle: toggleTheme } = useTheme();
 const { liveSectionColors } = useSidemenuLiveColors(props.navSectionColors);
-const { collapsed, mobileOpen, openMobile, closeMobile } = useSidemenuCollapse(props.sidemenuCollapsedPath);
+const { mobileOpen, openMobile, closeMobile } = useSidemenuCollapse(props.sidemenuCollapsedPath);
 
 const { dragging: sidemenuDragging, startResize: startSidemenuResize, reset: resetSidemenuWidth } = useResizable({
     key: "aurora-sidemenu-width",
@@ -116,17 +116,13 @@ function openSearchFromMobile() {
 <template>
     <aside id="sidemenu" class="hidden lg:flex flex-col fixed inset-y-0 left-0 bg-surface border-r border-line z-30 overflow-hidden">
         <div class="sh-wrap flex items-center h-16 border-b border-line shrink-0 transition-all duration-200">
-            <a :href="dashboardPath" class="sh-logo-expanded flex items-center gap-2.5 min-w-0 flex-1">
+            <a :href="dashboardPath" class="flex items-center gap-2.5 min-w-0 flex-1">
                 <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 shrink-0 object-cover rounded-xl">
                 <AppLogo v-else :size="32" class="shrink-0" />
                 <div class="flex flex-col min-w-0">
                     <span class="text-primary font-bold text-lg tracking-tight truncate leading-tight">{{ siteName }}</span>
                     <span v-if="appVersion" class="text-xs text-muted/50 leading-none">{{ appVersion }}</span>
                 </div>
-            </a>
-            <a :href="dashboardPath" class="sh-logo-collapsed">
-                <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 object-cover rounded-xl">
-                <AppLogo v-else :size="32" />
             </a>
         </div>
 
@@ -143,8 +139,7 @@ function openSearchFromMobile() {
         </div>
 
         <div class="sh-search-section px-3 py-2 border-b border-line shrink-0 space-y-1.5">
-            <!-- Nav filter — expanded only -->
-            <div class="sh-logo-expanded relative flex items-center">
+            <div class="relative flex items-center">
                 <Filter class="absolute left-2.5 w-3 h-3 text-muted pointer-events-none" :stroke-width="2" />
                 <input
                     v-model="navFilter"
@@ -159,7 +154,7 @@ function openSearchFromMobile() {
         </div>
 
         <nav class="sidemenu-nav flex-1 min-h-0 overflow-y-auto scrollbar-thin py-4 space-y-3">
-            <p v-if="navFilter && !displayedSections.length" class="sh-logo-expanded px-3 text-xs text-muted">
+            <p v-if="navFilter && !displayedSections.length" class="px-3 text-xs text-muted">
                 {{ t("backend.nav.filter_nav_empty") }}
             </p>
             <AppSidemenuNav
@@ -167,7 +162,6 @@ function openSearchFromMobile() {
                 :nav="nav"
                 :theme="sectionTheme"
                 :nav-filter="navFilter"
-                :icon-mode="collapsed"
             />
         </nav>
 
@@ -185,13 +179,12 @@ function openSearchFromMobile() {
                 :preferences-active="isActive('backend_general_profile_sidemenu')"
                 :theme="theme"
                 :expanded="isAccountExpanded()"
-                :icon-mode="collapsed"
                 v-on:toggle="toggleAccount"
                 v-on:toggle-theme="toggleTheme"
             />
         </div>
 
-        <div class="sh-logo-expanded justify-center py-2 border-t border-line/30">
+        <div class="flex justify-center py-2 border-t border-line/30">
             <a href="https://github.com/AxelRaboit" target="_blank" rel="noopener" class="text-xs text-muted/40 hover:text-muted/70 transition-colors tracking-wide select-none">
                 {{ t('shared.common.built_with') }}
             </a>
@@ -296,8 +289,7 @@ function openSearchFromMobile() {
                      degraded one: no item descriptions in the tooltips, no
                      `data-sidemenu-active`, and two dead `#tooltip` slots
                      `AppNavLink` never declared — so those child links had no
-                     tooltip at all. A drawer is never a rail, hence no
-                     `icon-mode`, and it has no filter of its own. -->
+                     tooltip at all. No filter here: the drawer has none. -->
                 <AppSidemenuNav
                     :sections="groupedSections"
                     :nav="nav"
@@ -307,9 +299,8 @@ function openSearchFromMobile() {
 
             <!-- The same component the aside uses. It carried its own copy
                  in plain markup until the collapsed rules were scoped to
-                 `#sidemenu`; before that, a menu folded on desktop would have
-                 folded this drawer's rows on a phone. `icon-mode` is false
-                 here — a drawer is never a rail. -->
+                 `#sidemenu`; before that, hiding the menu on a desktop session
+                 would have hidden this drawer on a phone. -->
             <div class="shrink-0 border-t border-line px-3 py-3">
                 <AppSidemenuAccount
                     :user-name="userName"

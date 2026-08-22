@@ -10,9 +10,8 @@
  * long as the copy has existed. That is what a second copy costs.
  *
  * They could not be merged before `.sidemenu-collapsed` was scoped to
- * `#sidemenu`: its rules are what turn a row into an icon, and while they
- * reached the whole document a shared row would have collapsed inside the
- * drawer whenever the desktop menu was folded.
+ * `#sidemenu`: while its rules reached the whole document, hiding the desktop
+ * menu hid the drawer with it.
  *
  * The helpers arrive as two bags rather than ten function props — `nav` from
  * `useSidemenuNav`, `theme` from `useSidemenuSectionTheme`. Ten props would
@@ -36,8 +35,6 @@ defineProps({
      * is folded — a search that obeyed the folds would hide its own results.
      */
     navFilter: { type: String, default: "" },
-    /** Icons only, no labels: the desktop menu folded to a rail. */
-    iconMode: { type: Boolean, default: false },
 });
 </script>
 
@@ -50,10 +47,9 @@ defineProps({
             :class="[theme.headerClasses(section.id), theme.labelClasses(section.id)]"
             v-on:click="nav.toggleSection(section)"
         >
-            <span v-if="!iconMode" class="truncate">{{ section.label }}</span>
+            <span class="truncate">{{ section.label }}</span>
             <ChevronDown
-                v-if="!iconMode"
-                class="si-chevron w-3.5 h-3.5 shrink-0 transition-transform"
+                class="w-3.5 h-3.5 shrink-0 transition-transform"
                 :class="{ '-rotate-90': !nav.isSectionExpanded(section) }"
                 :stroke-width="2.5"
             />
@@ -76,12 +72,11 @@ defineProps({
                                 class="flex items-center flex-1 min-w-0 gap-3 py-[0.625rem] pl-3"
                             >
                                 <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, section.id)" :stroke-width="2" />
-                                <span v-if="!iconMode" class="flex-1 truncate">{{ item.label }}</span>
+                                <span class="flex-1 truncate">{{ item.label }}</span>
                             </a>
                             <AppIconButton
-                                v-if="!iconMode"
                                 :title="item.label"
-                                class="si-group-chevron mr-1 opacity-50 hover:opacity-100 hover:!bg-transparent"
+                                class="mr-1 opacity-50 hover:opacity-100 hover:!bg-transparent"
                                 v-on:click.stop="nav.toggleGroup(item.route)"
                             >
                                 <ChevronDown class="w-3.5 h-3.5 transition-transform" :class="{ '-rotate-90': !nav.isGroupExpanded(item.route) }" :stroke-width="2.5" />
@@ -89,7 +84,7 @@ defineProps({
                         </div>
                     </AppTooltip>
 
-                    <div v-show="nav.isGroupExpanded(item.route)" class="si-children space-y-0.5">
+                    <div v-show="nav.isGroupExpanded(item.route)" class="space-y-0.5">
                         <AppNavLink
                             v-for="child in item.children"
                             :key="child.route"
@@ -101,7 +96,7 @@ defineProps({
                             :tooltip-description="child.description"
                         >
                             <component :is="child.icon" class="w-4 h-4 shrink-0" :class="nav.iconClasses(child, section.id)" :stroke-width="2" />
-                            <span v-if="!iconMode" class="truncate">{{ child.label }}</span>
+                            <span class="truncate">{{ child.label }}</span>
                         </AppNavLink>
                     </div>
                 </template>
@@ -118,7 +113,7 @@ defineProps({
                     :tooltip-description="item.description"
                 >
                     <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, section.id)" :stroke-width="2" />
-                    <span v-if="!iconMode" class="truncate">{{ item.label }}</span>
+                    <span class="truncate">{{ item.label }}</span>
                 </AppNavLink>
             </template>
         </template>

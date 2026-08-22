@@ -1,29 +1,50 @@
 /*
- * `.sidemenu-collapsed` sits on `<html>`, so every rule below has to name the
- * aside it applies to. Without that they reached the *mobile drawer* as well —
- * a menu folded on a desktop session would collapse the drawer's rows on a
- * phone, hide their labels and centre their icons.
- *
- * That is why the drawer used to carry its own copy of every row in plain
- * markup, and why the copies drifted: the account block was made foldable on
- * one side only, and the notifications bell went missing on the other. Scoping
- * these is what lets one component serve both.
+ * `.sidemenu-collapsed` sits on `<html>`, so the rule that acts on it has to
+ * name the aside. Unscoped it reached the *mobile drawer* too — a menu hidden
+ * on a desktop session would have hidden the drawer on a phone, leaving no way
+ * to navigate at all. That is what kept the drawer a hand-written copy of every
+ * row, and what let the copies drift apart.
  */
 :root { --sidemenu-width: 240px; }
 
-#sidemenu { width: var(--sidemenu-width); transition: width 200ms ease; }
-.sidemenu-collapsed #sidemenu { width: 4rem; }
-/* Disable the width transition while the user is actively resizing so the
-   handle tracks the cursor 1:1 instead of trailing behind. */
+#sidemenu {
+    width: var(--sidemenu-width);
+    transition: transform 200ms ease;
+}
+
+/*
+ * Hidden means gone, not a rail of icons.
+ *
+ * It slides out rather than shrinking: an aside narrowing to nothing drags its
+ * contents through a series of broken layouts on the way, and the eye follows
+ * every one of them. Sliding leaves the inside untouched.
+ *
+ * `visibility` is what actually takes it away — off-screen is not out of reach,
+ * and a hidden menu whose links still answered Tab would hand keyboard users a
+ * list of destinations they cannot see. Delayed by the length of the slide so
+ * the exit stays visible, and returned with no delay so it is focusable again
+ * the instant it starts coming back.
+ */
+#sidemenu { visibility: visible; }
+.sidemenu-collapsed #sidemenu {
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 200ms ease, visibility 0s linear 200ms;
+}
+
+/* Disable the transitions while the user is actively resizing so the handle
+   tracks the cursor 1:1 instead of trailing behind. */
 .sidemenu-resizing #sidemenu,
 .sidemenu-resizing #main-content { transition: none !important; }
 
 @media (min-width: 1024px) {
     #main-content { padding-left: var(--sidemenu-width); transition: padding-left 200ms ease; }
-    .sidemenu-collapsed #main-content { padding-left: 4rem; }
+    /* The whole point: the page takes the width back. */
+    .sidemenu-collapsed #main-content { padding-left: 0; }
 }
 
-/* Resize handle on the right edge of the sidemenu — only active when not collapsed. */
+/* Resize handle on the right edge of the sidemenu. It needs no collapsed rule:
+   `visibility: hidden` on the aside covers everything inside it. */
 .sidemenu-resize-handle {
     position: absolute;
     top: 0;
@@ -40,20 +61,11 @@
     background: var(--color-accent-500, #6366f1);
     opacity: 0.5;
 }
-.sidemenu-collapsed #sidemenu .sidemenu-resize-handle { display: none; }
 @media (max-width: 1023px) {
     .sidemenu-resize-handle { display: none; }
 }
 
 .sh-wrap { justify-content: space-between; padding-left: 1rem; padding-right: 1rem; }
-.sidemenu-collapsed #sidemenu .sh-wrap { justify-content: center; padding-left: 0; padding-right: 0; }
-
-.sh-logo-expanded { display: flex; }
-.sh-logo-collapsed { display: none; }
-.sidemenu-collapsed #sidemenu .sh-logo-expanded { display: none; }
-.sidemenu-collapsed #sidemenu .sh-logo-collapsed { display: flex; }
-
-
 
 .sidemenu-nav {
     padding-left: 0.74rem;
@@ -61,28 +73,8 @@
     overflow-y: auto;
     overflow-x: hidden;
 }
-.sidemenu-collapsed #sidemenu .sidemenu-nav { padding-left: 0.4rem; padding-right: 0.4rem; }
 .sidemenu-bottom { padding-left: 0.74rem; padding-right: 0.74rem; }
-.sidemenu-collapsed #sidemenu .sidemenu-bottom { padding-left: 0.4rem; padding-right: 0.4rem; }
 
 .si { gap: 0.74rem; padding: 0.624rem 0.74rem; }
-.sidemenu-collapsed #sidemenu .si { justify-content: center; padding: 0.624rem 0; gap: 0; }
-
 .si-label { display: block; min-width: 0; }
-.sidemenu-collapsed #sidemenu .si-label { display: none; }
-
-.si-tooltip { display: none; }
-.sidemenu-collapsed #sidemenu .si:hover .si-tooltip { display: block; }
-
-.sidemenu-collapsed #sidemenu .sh-search-section { padding-left: 0.4rem; padding-right: 0.4rem; }
-
-/* Section headers (collapsible groups) — hidden when sidemenu is collapsed */
 .si-section-header { padding: 0.374rem 0.74rem; }
-.sidemenu-collapsed #sidemenu .si-section-header { display: none; }
-/* In collapsed (icon-only) mode, force all items visible regardless of section toggle state */
-.sidemenu-collapsed #sidemenu .sidemenu-nav .si { display: flex !important; }
-
-/* Sub-items container: hidden in collapsed mode */
-.sidemenu-collapsed #sidemenu .si-children { display: none !important; }
-/* Chevron on group parent: hidden in collapsed mode */
-.sidemenu-collapsed #sidemenu .si-group-chevron { display: none !important; }

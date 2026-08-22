@@ -14,7 +14,14 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
 export const SIDEMENU_COLLAPSE_EVENT = "aurora:sidemenu-collapsed";
 
 /**
- * Collapsing and expanding the sidemenu.
+ * Hiding and showing the sidemenu.
+ *
+ * Hidden means gone. It used to fold to a rail of icons, which cost a column of
+ * the page for a row of glyphs nobody reads twice and forced every row in the
+ * menu to have a second shape — labels hidden, icons centred, section headers
+ * suppressed, and a special case so the logout row stayed reachable with its
+ * own header off screen. Taking the menu away entirely deleted all of it, and
+ * the page gets the width back.
  *
  * The choice is saved on the user rather than in the browser, beside the
  * sections they hid and the colours they picked — one object, one place. It
@@ -31,14 +38,13 @@ export const SIDEMENU_COLLAPSE_EVENT = "aurora:sidemenu-collapsed";
  */
 export function useSidemenuCollapse(collapsedPath = "") {
     /**
-     * Whether the menu is showing icons only.
+     * Whether the menu is hidden.
      *
      * Read from the class the server already renders on first paint, so it is
-     * right before any script has run. Kept as a ref because the template needs
-     * to *reason* about it and not merely be styled by it: the account block
-     * folds behind a header, and that header is hidden in icon mode — so
-     * something has to keep its items on screen, or there would be no way left
-     * to log out.
+     * right before any script has run. Kept as a ref for the one thing that
+     * still has to reason about it rather than be styled by it: the button in
+     * the page header, which shows a different icon each way and is the only
+     * way back once the menu is gone.
      */
     const collapsed = ref(
         document.documentElement.classList.contains("sidemenu-collapsed"),

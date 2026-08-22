@@ -16,13 +16,13 @@ import { useSidemenuNav } from "./useSidemenuNav.js";
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
 
 /**
- * The account block at the foot of the menu, and the one way it could lock
- * somebody out.
+ * The account block at the foot of the menu.
  *
- * It folds like a nav section, and its header is hidden by the stylesheet when
- * the menu shows icons only (`.sidemenu-collapsed .si-section-header`). So a
- * block that stayed folded in icon mode would have no control left to unfold it
- * — and the logout form is inside it.
+ * It folds like a nav section, and the logout form is inside it — so the header
+ * that unfolds it has to be on screen whenever the block is, or a folded block
+ * is a locked door. It used to have a second shape for the icon rail where the
+ * header was hidden and the rows shown regardless; the menu no longer has a
+ * rail, and that special case is gone with it.
  */
 describe("the account block", () => {
     beforeEach(() => {
@@ -78,7 +78,7 @@ describe("the account block", () => {
     });
 });
 
-describe("the collapsed menu", () => {
+describe("the hidden menu", () => {
     beforeEach(() => {
         localStorage.clear();
         document.documentElement.className = "";
@@ -86,7 +86,7 @@ describe("the collapsed menu", () => {
 
     // Read from the class the server renders on first paint, so it is right
     // before any script has run — the menu no longer starts wide and snaps shut.
-    it("knows it is showing icons before anything runs", () => {
+    it("knows it is hidden before anything runs", () => {
         document.documentElement.classList.add("sidemenu-collapsed");
 
         expect(useSidemenuCollapse().collapsed.value).toBe(true);
@@ -120,7 +120,7 @@ describe("the collapsed menu", () => {
         holders.forEach((h) => h.unmount());
     });
 
-    it("folds and unfolds with one gesture", () => {
+    it("hides and shows with one gesture", () => {
         const { collapsed, toggle } = useSidemenuCollapse();
 
         toggle();
@@ -149,18 +149,22 @@ describe("the collapsed menu", () => {
     });
 
     /**
-     * The invariant the template leans on: `collapsed || isAccountExpanded()`.
-     * Folded *and* in icon mode is the one combination where the rows must show
-     * anyway, because the header that would unfold them is not on screen.
+     * The fold and the hide are independent, and have to stay that way: the
+     * template used to read `collapsed || isAccountExpanded()`, because a rail
+     * hid the header that unfolds the block. Nothing hides that header now, so
+     * `expanded` alone decides the rows — and hiding the menu must not quietly
+     * unfold what the user folded.
      */
-    it("shows the account rows even when they are folded", () => {
-        const { collapsed, collapse } = useSidemenuCollapse();
+    it("leaves the account fold alone", () => {
+        const { collapse, expand } = useSidemenuCollapse();
         const { isAccountExpanded, toggleAccount } = useSidemenuNav([], "");
 
         toggleAccount();
+        expect(isAccountExpanded()).toBe(false);
+
         collapse();
+        expand();
 
         expect(isAccountExpanded()).toBe(false);
-        expect(collapsed.value || isAccountExpanded()).toBe(true);
     });
 });
