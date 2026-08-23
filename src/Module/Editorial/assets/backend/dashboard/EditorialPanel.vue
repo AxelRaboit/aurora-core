@@ -3,6 +3,9 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { FileText, LayoutTemplate, Tags, Trash2 } from "lucide-vue-next";
 import AppShareBar from "@/shared/components/chart/AppShareBar.vue";
+import AppChart from "@/shared/components/display/AppChart.vue";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+import { useChartPalette } from "@/shared/composables/chart/useChartPalette.js";
 
 /**
  * Editorial's dashboard panel: how much content the site holds, and how it
@@ -17,6 +20,9 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+const { formatMonthYear } = useDateFormat();
+// Resolved, not `var(--chart-cat-1)`: a canvas cannot read a CSS property.
+const { colours, withAlpha } = useChartPalette(1);
 
 /**
  * The four figures, and the one that is not like the others.
@@ -48,6 +54,43 @@ const totals = computed(() => [
  * `AppShareBar` assigns a colour per position, so keeping this stable keeps a
  * status the same colour from one visit to the next.
  */
+/**
+ * Publishing over the last twelve months: the only question on this panel that
+ * is about change rather than about a current state, and the only one a bar or a
+ * share cannot answer.
+ *
+ * Drawn with Chart.js rather than in DOM because it needs axes and ticks, which
+ * is the line the house convention draws between the two - see
+ * `convention_chart_palette`.
+ */
+const publishedByMonth = computed(() => {
+    const months = Object.entries(props.stats.publishedByMonth ?? {});
+
+    return {
+        labels: months.map(([month]) => formatMonthYear(month)),
+        datasets: [
+            {
+                label: t("backend.stats.editorial.published_per_month"),
+                data: months.map(([, count]) => count),
+                // One series, so no categorical palette: the first slot, and the
+                // area under it at low opacity to give the line some weight
+                // without a second colour.
+                borderColor: colours.value[0],
+                backgroundColor: withAlpha(0, 0.18),
+                borderWidth: 2,
+                pointRadius: 3,
+                pointHoverRadius: 5,
+                tension: 0.3,
+                fill: true,
+            },
+        ],
+    };
+});
+
+const hasActivity = computed(() =>
+    Object.values(props.stats.publishedByMonth ?? {}).some((count) => count > 0),
+);
+
 const byCommentStatus = computed(() =>
     Object.entries(props.stats.commentsByStatus ?? {}).map(([status, count]) => ({
         key: status,
@@ -96,6 +139,16 @@ const byStatus = computed(() =>
             <h3 class="text-sm font-semibold text-primary">{{ t("backend.stats.editorial.by_status") }}</h3>
 
             <AppShareBar :segments="byStatus" />
+        </div>
+
+        <div v-if="hasActivity" class="bg-surface border border-line rounded-xl p-5 space-y-4">
+            <h3 class="text-sm font-semibold text-primary">{{ t("backend.stats.editorial.published_per_month") }}</h3>
+
+            <!-- A fixed height, because the canvas has no content to be sized by
+                 and `maintainAspectRatio: false` leaves it to the parent. -->
+            <div class="h-48">
+                <AppChart type="line" :data="publishedByMonth" />
+            </div>
         </div>
 
         <!-- Its own card rather than a second bar in the one above: two

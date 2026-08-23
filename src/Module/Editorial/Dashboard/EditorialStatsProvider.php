@@ -55,6 +55,9 @@ final readonly class EditorialStatsProvider implements DashboardStatsProviderInt
                 // the reason the posts one does: a panel whose rows come and go
                 // is harder to read than one with a steady shape.
                 'commentsByStatus' => $this->commentRepository->countByStatus(),
+                // Twelve months including this one, gaps filled with zeroes by
+                // the repository - see why there.
+                'publishedByMonth' => $this->postRepository->countPublishedByMonth(),
             ],
         ];
     }

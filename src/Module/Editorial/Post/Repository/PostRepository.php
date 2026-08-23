@@ -276,6 +276,61 @@ class PostRepository extends ResolveTargetEntityRepository
         return $counts;
     }
 
+    /**
+     * Posts published per month, over the last `$months` including this one.
+     *
+     * Keyed `YYYY-MM`, and **every month is present**, with a zero where nothing
+     * went out. A series that only carries the months with activity is not a
+     * sparser chart, it is a wrong one: the gaps close up and a quiet August
+     * reads as a busy one sitting next to July.
+     *
+     * Counts `published_at`, not `created_at` - the question is when the site
+     * published, not when someone opened an editor. A draft written in March and
+     * published in May belongs to May, and one never published belongs nowhere.
+     * Soft-deleted rows are out for the same reason they are out of the list.
+     *
+     * Raw SQL because the truncation to a month has no DQL equivalent, following
+     * {@see UserRepository::countGroupedByStoredRoles()} which does the same for
+     * the same kind of reason. Postgres-only, which this project already is.
+     *
+     * @return array<string, int>
+     */
+    public function countPublishedByMonth(int $months = 12): array
+    {
+        $months = max(1, $months);
+        $first = new DateTimeImmutable(sprintf('first day of -%d month', $months - 1));
+
+        $series = [];
+        for ($offset = 0; $offset < $months; ++$offset) {
+            $series[$first->modify(sprintf('+%d month', $offset))->format('Y-m')] = 0;
+        }
+
+        $sql = <<<'SQL'
+            SELECT to_char(date_trunc('month', published_at), 'YYYY-MM') AS month, COUNT(*) AS total
+            FROM core_posts
+            WHERE published_at IS NOT NULL
+              AND deleted_at IS NULL
+              AND published_at >= :since
+            GROUP BY 1
+            SQL;
+
+        $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative($sql, [
+            'since' => $first->format('Y-m-d 00:00:00'),
+        ]);
+
+        foreach ($rows as $row) {
+            $month = (string) $row['month'];
+            // A row outside the window cannot happen given the WHERE, but a
+            // month that is not in the series is dropped rather than appended:
+            // the series defines the axis, not the data.
+            if (array_key_exists($month, $series)) {
+                $series[$month] = (int) $row['total'];
+            }
+        }
+
+        return $series;
+    }
+
     public function countTrashed(): int
     {
         return (int) $this->createQueryBuilder('p')

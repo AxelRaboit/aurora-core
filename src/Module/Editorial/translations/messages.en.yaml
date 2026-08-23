@@ -111,6 +111,7 @@ backend:
       trashed: In the trash
       by_status: Split by status
       comments_by_status: "Comments by status"
+      published_per_month: "Posts published per month"
   nav:
     sections:
       editorial: Editorial

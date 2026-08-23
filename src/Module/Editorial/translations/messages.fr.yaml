@@ -111,6 +111,7 @@ backend:
       trashed: À la corbeille
       by_status: Répartition par statut
       comments_by_status: "Commentaires par statut"
+      published_per_month: "Publications par mois"
   nav:
     sections:
       editorial: Éditorial
