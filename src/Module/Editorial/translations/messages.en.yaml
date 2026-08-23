@@ -13,6 +13,7 @@ backend:
           edit: Edit posts
           delete: Delete posts
           manage: Manage own posts
+          gallery: Manage post galleries only
         taxonomies:
           view: View taxonomies
           create: Create taxonomies
@@ -43,6 +44,7 @@ backend:
           deleted: Post moved to trash
           restored: Post restored from trash
           force_deleted: Post permanently deleted
+          gallery_updated: Gallery updated
           revision_restored: Revision restored
           published_on_schedule: Post published on schedule
           purged: Trashed post purged automatically
@@ -112,11 +114,23 @@ backend:
       by_status: Split by status
       comments_by_status: "Comments by status"
       published_per_month: "Posts published per month"
+  post_galleries:
+    search_placeholder: Search a publication
+    empty: No publications
+    untitled: Untitled
+    edit: Gallery
+    back: All publications
+    locales: Languages
+    saved: Saved
+    no_photos: No photos
+    photo_count: "{count, plural, one {# photo} other {# photos}}"
   nav:
     sections:
       editorial: Editorial
     posts: Posts
     posts_description: "Write and publish the site's content, in each of its languages."
+    post_galleries: Galleries
+    post_galleries_description: "Add and caption a publication's photographs, without touching anything else."
     post_types: Content types
     post_types_description: 'Define the kinds of content the site holds and the fields each one carries.'
     taxonomies: Taxonomies

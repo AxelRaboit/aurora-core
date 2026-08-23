@@ -15,6 +15,10 @@ use Doctrine\DBAL\ParameterType;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
+use function array_fill_keys;
+use function count;
+use function is_array;
+
 /**
  * @extends ResolveTargetEntityRepository<PostInterface>
  */
@@ -329,6 +333,52 @@ class PostRepository extends ResolveTargetEntityRepository
         }
 
         return $series;
+    }
+
+    /**
+     * How many pictures each of these publications has in its gallery.
+     *
+     * For the gallery screen, where the useful question about a row is whether it
+     * still needs photographs - a list of titles with no counts cannot answer it,
+     * and opening each one to find out is the work the screen exists to save.
+     *
+     * Keyed by id, and **every id asked for is present**, with a zero where the
+     * gallery is empty or was never configured. A map that omits the empty ones
+     * would make the caller write the same `?? 0` at every use, which is where a
+     * missing count silently reads as "not loaded yet".
+     *
+     * Counted in PHP rather than with Postgres' JSON functions: `galleryLayout` is
+     * a JSON column, `jsonb_array_length` would need a cast and a guard for the
+     * `[]` default, and the rows are one page of publications. Not worth
+     * Postgres-only SQL for a number next to a title.
+     *
+     * @param list<int> $ids
+     *
+     * @return array<int, int>
+     */
+    public function galleryItemCounts(array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('p')
+            ->select('p.id AS id', 'p.galleryLayout AS layout')
+            ->where('p.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = array_fill_keys($ids, 0);
+
+        foreach ($rows as $row) {
+            $layout = $row['layout'];
+            $items = is_array($layout) ? ($layout['items'] ?? []) : [];
+
+            $counts[(int) $row['id']] = is_array($items) ? count($items) : 0;
+        }
+
+        return $counts;
     }
 
     public function countTrashed(): int

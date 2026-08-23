@@ -35,6 +35,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             new NavPermission('editorial.posts.edit'),
             new NavPermission('editorial.posts.delete'),
             new NavPermission('editorial.posts.manage'),
+            new NavPermission('editorial.posts.gallery'),
             new NavPermission('editorial.post_types.view'),
             new NavPermission('editorial.post_types.create'),
             new NavPermission('editorial.post_types.edit'),
@@ -65,6 +66,10 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
 
         if ($this->editorialContext->isPostsEnabled()) {
             $items[] = $this->postsNavItem();
+            // Gated by the same toggle: a gallery belongs to a publication, so
+            // turning publications off has to take this with it rather than leave
+            // an entry that lists nothing.
+            $items[] = $this->postGalleriesNavItem();
         }
 
         if ($this->editorialContext->isPostTypesEnabled()) {
@@ -130,6 +135,30 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             'file-text',
             requiredPrivilege: 'editorial.posts.view',
             descriptionKey: 'backend.nav.posts_description',
+        );
+    }
+
+    /**
+     * A second way into the same publications, stopping at their galleries.
+     *
+     * Its own entry rather than a mode of the one above, because it answers a
+     * different question - "which publications can I add photos to" - and because
+     * somebody whose whole job is the pictures should not have to learn that the
+     * way in is a tab three clicks deep.
+     *
+     * `editorial.posts.gallery` is deliberately not implied by
+     * `editorial.posts.edit`: the point of the privilege is to be grantable *on
+     * its own*, to a contributor who must not be able to publish, retitle or
+     * refile anything.
+     */
+    private function postGalleriesNavItem(): NavItem
+    {
+        return new NavItem(
+            'backend_editorial_post_galleries',
+            'backend.nav.post_galleries',
+            'images',
+            requiredPrivilege: 'editorial.posts.gallery',
+            descriptionKey: 'backend.nav.post_galleries_description',
         );
     }
 

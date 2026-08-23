@@ -13,6 +13,7 @@ backend:
           edit: Modifier les publications
           delete: Supprimer les publications
           manage: Gérer ses propres publications
+          gallery: Gérer uniquement les galeries des publications
         taxonomies:
           view: Voir les taxonomies
           create: Créer des taxonomies
@@ -43,6 +44,7 @@ backend:
           deleted: Publication mise à la corbeille
           restored: Publication restaurée depuis la corbeille
           force_deleted: Publication supprimée définitivement
+          gallery_updated: Galerie modifiée
           revision_restored: Révision restaurée
           published_on_schedule: Publication mise en ligne à l'heure prévue
           purged: Publication purgée automatiquement de la corbeille
@@ -112,11 +114,23 @@ backend:
       by_status: Répartition par statut
       comments_by_status: "Commentaires par statut"
       published_per_month: "Publications par mois"
+  post_galleries:
+    search_placeholder: Rechercher une publication
+    empty: Aucune publication
+    untitled: Sans titre
+    edit: Galerie
+    back: Toutes les publications
+    locales: Langues
+    saved: Enregistré
+    no_photos: Aucune photo
+    photo_count: "{count, plural, one {# photo} other {# photos}}"
   nav:
     sections:
       editorial: Éditorial
     posts: Publications
     posts_description: "Rédiger et publier le contenu du site, dans chacune de ses langues."
+    post_galleries: Galeries
+    post_galleries_description: "Ajouter et légender les photos d'une publication, sans toucher au reste."
     post_types: Types de contenu
     post_types_description: "Définir les natures de contenu du site et les champs que chacune porte."
     taxonomies: Taxonomies

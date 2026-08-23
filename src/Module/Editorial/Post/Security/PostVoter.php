@@ -28,13 +28,22 @@ final class PostVoter extends Voter
 
     public const string PUBLISH = 'POST_PUBLISH';
 
+    /**
+     * May change this post's gallery, and nothing else about it.
+     *
+     * Separate from EDIT because it is granted separately: a contributor holding
+     * only `editorial.posts.gallery` gets this and not EDIT, and the narrow
+     * endpoint is what makes "and nothing else" true rather than polite.
+     */
+    public const string GALLERY_EDIT = 'POST_GALLERY_EDIT';
+
     public function __construct(
         private readonly AccessDecisionManagerInterface $accessDecisionManager,
     ) {}
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        if (!in_array($attribute, [self::VIEW, self::EDIT, self::DELETE, self::PUBLISH], true)) {
+        if (!in_array($attribute, [self::VIEW, self::EDIT, self::DELETE, self::PUBLISH, self::GALLERY_EDIT], true)) {
             return false;
         }
 
@@ -51,6 +60,14 @@ final class PostVoter extends Voter
         if ($this->accessDecisionManager->decide($token, [UserRoleEnum::Dev->value])
             || $this->accessDecisionManager->decide($token, [UserRoleEnum::Admin->value])) {
             return true;
+        }
+
+        // The gallery privilege on its own, which is the whole point of it: a
+        // photographer files pictures on any publication and can do nothing else
+        // to it. Not scoped to authorship - somebody brought in for the pictures
+        // did not write the article.
+        if (self::GALLERY_EDIT === $attribute) {
+            return $user->hasPrivilege('editorial.posts.gallery');
         }
 
         // An author manages their own posts, but publishing stays a decision

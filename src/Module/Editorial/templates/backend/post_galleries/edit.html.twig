@@ -1,0 +1,23 @@
+{% extends '@Core/backend/layout.html.twig' %}
+
+{% block title %}{{ 'backend.nav.post_galleries'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'backend.nav.sections.editorial'|trans},
+            {label: 'backend.nav.post_galleries'|trans, href: path('backend_editorial_post_galleries')},
+            {label: title|default('backend.post_galleries.untitled'|trans)},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('editorial/backend/post-galleries/PostGalleryEditorApp', {
+    post: post,
+    title: title,
+    locales: locales,
+    updatePath: path('backend_editorial_post_galleries_update', {id: post.id}),
+    listPath: path('backend_editorial_post_galleries'),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}
