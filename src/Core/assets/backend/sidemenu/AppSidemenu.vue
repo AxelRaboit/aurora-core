@@ -2,10 +2,11 @@
 import "./sidemenu.css";
 
 defineOptions({ inheritAttrs: false });
-import { watch } from "vue";
+import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useLayoutMount } from "@/shared/composables/useLayoutMount.js";
 import { useTheme } from "@/shared/composables/useTheme.js";
+import { searchSections } from "@/shared/search/searchSectionRegistry.js";
 import { useResizable } from "@/shared/composables/useResizable.js";
 import { useBackendSearch } from "@core/backend/sidemenu/composables/useBackendSearch.js";
 import { useSidemenuCollapse } from "@core/backend/sidemenu/composables/useSidemenuCollapse.js";
@@ -118,17 +119,27 @@ const {
 
 const sectionTheme = useSidemenuSectionTheme(liveSectionColors);
 
-const SECTION_CONFIG = {
-    recent:  { icon: Clock,         labelKey: "backend.search.sections.recent"   },
-    nav:     { icon: Layers,        labelKey: "backend.search.sections.nav"      },
-    project: { icon: FolderKanban,  labelKey: "backend.search.sections.projects" },
-    task:    { icon: CheckSquare,   labelKey: "backend.search.sections.tasks"    },
-    post:    { icon: FileText,      labelKey: "backend.search.sections.posts"    },
-    term:    { icon: TagsIcon,      labelKey: "backend.search.sections.terms"    },
-    media:   { icon: Image,         labelKey: "backend.search.sections.media"    },
-    event:   { icon: CalendarDays,  labelKey: "backend.search.sections.events"   },
-    reminder:{ icon: AlarmClock,    labelKey: "backend.search.sections.reminders"},
+/**
+ * The two sections core owns, plus whatever modules registered.
+ *
+ * `recent` and `nav` are not module data - they are the palette's own memory and
+ * the application's own pages - so they stay here. Everything else comes from the
+ * registry, which is what stops a new section needing an edit in this file.
+ */
+const CORE_SECTIONS = {
+    recent: { icon: Clock, labelKey: "backend.search.sections.recent" },
+    nav: { icon: Layers, labelKey: "backend.search.sections.nav" },
 };
+
+const sectionConfig = computed(() => {
+    const config = { ...CORE_SECTIONS };
+
+    for (const section of searchSections()) {
+        config[section.kind] = { icon: section.icon, labelKey: section.labelKey };
+    }
+
+    return config;
+});
 
 const {
     searchOpen, searchQuery, searchLoading,
@@ -430,8 +441,12 @@ function openSearchFromMobile() {
                             :class="{ 'border-t border-line': idx > 0 }"
                         >
                             <p class="px-2 py-1 text-xs uppercase tracking-wide text-muted font-semibold flex items-center gap-1.5">
-                                <component :is="SECTION_CONFIG[section.kind].icon" class="w-3 h-3" :stroke-width="2" />
-                                {{ t(SECTION_CONFIG[section.kind].labelKey) }}
+                                <component
+                                    :is="sectionConfig[section.kind]?.icon ?? Layers"
+                                    class="w-3 h-3"
+                                    :stroke-width="2"
+                                />
+                                {{ t(sectionConfig[section.kind]?.labelKey ?? "backend.search.sections.nav") }}
                             </p>
 
                             <button
@@ -462,21 +477,6 @@ function openSearchFromMobile() {
                                 </template>
 
                                 <!-- project -->
-                                <template v-else-if="section.kind === 'project'">
-                                    <div class="flex-1 min-w-0">
-                                        <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.title ?? '-', searchQuery)" />
-                                        <div class="text-xs text-muted">{{ item.reference }} · {{ item.status }}</div>
-                                    </div>
-                                </template>
-
-                                <!-- task -->
-                                <template v-else-if="section.kind === 'task'">
-                                    <div class="flex-1 min-w-0">
-                                        <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.title ?? '-', searchQuery)" />
-                                        <div class="text-xs text-muted">{{ item.reference }} · {{ item.projectTitle }}</div>
-                                    </div>
-                                </template>
-
                                 <!-- term -->
                                 <template v-else-if="section.kind === 'term'">
                                     <div class="flex-1 min-w-0">
@@ -510,6 +510,22 @@ function openSearchFromMobile() {
                                         <div class="text-xs text-muted">
                                             {{ item.calendar }} · {{ d(new Date(item.at), item.allDay ? "long" : "short") }}
                                         </div>
+                                    </div>
+                                </template>
+
+                                <!-- Anything a module registered without a row of
+                                     its own. `title` or `name`, and a subtitle if
+                                     it sent one: enough for a result to be
+                                     readable and clickable without core knowing
+                                     what it is. Before this, a new section drew an
+                                     empty row. -->
+                                <template v-else>
+                                    <div class="flex-1 min-w-0">
+                                        <div
+                                            class="text-sm font-medium text-primary truncate"
+                                            v-html="highlightMatch(item.title ?? item.name ?? '-', searchQuery)"
+                                        />
+                                        <div v-if="item.subtitle" class="text-xs text-muted">{{ item.subtitle }}</div>
                                     </div>
                                 </template>
                             </button>

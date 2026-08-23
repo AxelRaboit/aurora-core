@@ -9,6 +9,10 @@ import {
 import { useDebounce } from "@/shared/composables/useDebounce.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
+import {
+    searchSectionKeys,
+    searchSections,
+} from "@/shared/search/searchSectionRegistry.js";
 
 /**
  * Announced by the search button in the page header.
@@ -61,15 +65,19 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
     const searchHighlightedIndex = ref(0);
     const searchInputRef = ref(null);
 
-    const apiResults = ref({
-        posts: [],
-        terms: [],
-        media: [],
-        projects: [],
-        tasks: [],
-        events: [],
-        reminders: [],
-    });
+    /**
+     * Whatever the registered sections returned, keyed as the API sent it.
+     *
+     * Built from the registry rather than written out here. It used to be a fixed
+     * object, and a module contributing a section without editing this file had
+     * its results dropped after its provider had already run - so the registry the
+     * PHP interface promises did not exist on this side.
+     */
+    const apiResults = ref(emptyResults());
+
+    function emptyResults() {
+        return Object.fromEntries(searchSectionKeys().map((key) => [key, []]));
+    }
 
     // ── Local results ─────────────────────────────────────────────────────────
 
@@ -100,14 +108,13 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
                 : [];
         }
         return [
+            // Navigation is core's own and always first: a reader typing a page
+            // name wants the page, not a record that mentions it.
             { kind: "nav", items: navResults.value },
-            { kind: "project", items: apiResults.value.projects },
-            { kind: "task", items: apiResults.value.tasks },
-            { kind: "post", items: apiResults.value.posts },
-            { kind: "term", items: apiResults.value.terms },
-            { kind: "media", items: apiResults.value.media },
-            { kind: "event", items: apiResults.value.events },
-            { kind: "reminder", items: apiResults.value.reminders },
+            ...searchSections().map((section) => ({
+                kind: section.kind,
+                items: apiResults.value[section.key] ?? [],
+            })),
         ].filter((s) => s.items.length > 0);
     });
 
@@ -124,15 +131,7 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
     async function runSearch() {
         const trimmed = searchQuery.value.trim();
         if (!trimmed) {
-            apiResults.value = {
-                posts: [],
-                terms: [],
-                media: [],
-                projects: [],
-                tasks: [],
-                events: [],
-                reminders: [],
-            };
+            apiResults.value = emptyResults();
             return;
         }
         searchLoading.value = true;
@@ -144,15 +143,12 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
                 noGuard: true,
             });
             if (data) {
-                apiResults.value = {
-                    posts: data.posts ?? [],
-                    terms: data.terms ?? [],
-                    media: data.media ?? [],
-                    projects: data.projects ?? [],
-                    tasks: data.tasks ?? [],
-                    events: data.events ?? [],
-                    reminders: data.reminders ?? [],
-                };
+                // Every registered key, and nothing else: a provider answering
+                // with a key nobody registered has no section to be drawn in, and
+                // silently keeping it would be a row that never appears.
+                apiResults.value = Object.fromEntries(
+                    searchSectionKeys().map((key) => [key, data[key] ?? []]),
+                );
                 searchHighlightedIndex.value = 0;
             }
         } finally {
