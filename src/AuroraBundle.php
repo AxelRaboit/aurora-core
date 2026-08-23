@@ -79,6 +79,8 @@ use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminder;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminderInterface;
+use Aurora\Module\Planning\Share\Entity\PlanningShare;
+use Aurora\Module\Planning\Share\Entity\PlanningShareInterface;
 use Aurora\Module\Platform\Auth\Entity\AccessRequest;
 use Aurora\Module\Platform\Auth\Entity\AccessRequestInterface;
 use Aurora\Module\Platform\Auth\Entity\ResetPasswordRequest;
@@ -161,6 +163,7 @@ class AuroraBundle extends AbstractBundle
                     PlanningEventAlertInterface::class => PlanningEventAlert::class,
                     PlanningReminderInterface::class => PlanningReminder::class,
                     PlanningEventAttendeeInterface::class => PlanningEventAttendee::class,
+                    PlanningShareInterface::class => PlanningShare::class,
                     CommentInterface::class => Comment::class,
                     CommentReactionInterface::class => CommentReaction::class,
                     FormInterface::class => Form::class,

@@ -40,6 +40,7 @@ const props = defineProps({
     createCalendarPath: { type: String, required: true },
     feedCalendarPathTemplate: { type: String, required: true },
     revokeFeedCalendarPathTemplate: { type: String, required: true },
+    sharesCalendarPathTemplate: { type: String, required: true },
     updateCalendarPathTemplate: { type: String, required: true },
     deleteCalendarPathTemplate: { type: String, required: true },
     createEventPath: { type: String, required: true },
@@ -194,6 +195,17 @@ async function publishFeed(calendar) {
     upsertCalendar(data.calendar);
     openCalendar.value = data.calendar;
     feedUrl.value = data.feedUrl ?? "";
+}
+
+async function setShares({ calendar, shares }) {
+    const data = await request(
+        props.sharesCalendarPathTemplate.replace("__id__", String(calendar.id)),
+        { shares: shares.map((share) => ({ userId: share.userId, canWrite: share.canWrite })) },
+    );
+    if (!data) return;
+
+    upsertCalendar(data.calendar);
+    openCalendar.value = data.calendar;
 }
 
 async function revokeFeed(calendar) {
@@ -725,6 +737,9 @@ async function sendDelete(id, body) {
             :errors="calendarErrors"
             :saving="savingCalendar"
             :feed-url="feedUrl"
+            :people="people"
+            :current-user-id="currentUserId"
+            v-on:set-shares="setShares"
             v-on:publish-feed="publishFeed"
             v-on:revoke-feed="revokeFeed"
             v-on:close="closeCalendar"

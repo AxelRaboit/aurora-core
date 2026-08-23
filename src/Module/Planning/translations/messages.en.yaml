@@ -65,6 +65,13 @@ backend:
       label: Visibility
       private: Private
       shared: Shared
+    shares:
+      label: "Shared with"
+      placeholder: "Add somebody…"
+      can_write: "Can edit"
+      save: "Save sharing"
+      errors:
+        owner_only: "Only the calendar's owner can change its sharing."
     feed:
       label: "Subscription (.ics)"
       hint: "A secret address for reading this calendar from a phone, without signing in. Anyone who has the address can read it."

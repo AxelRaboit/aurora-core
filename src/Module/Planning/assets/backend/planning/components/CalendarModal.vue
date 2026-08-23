@@ -9,7 +9,9 @@
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Rss, Trash2 } from "lucide-vue-next";
+import { Rss, Trash2, X } from "lucide-vue-next";
+import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
+import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -24,13 +26,16 @@ const props = defineProps({
     /** Every calendar on screen, so a new one can take a colour nobody uses. */
     calendars: { type: Array, default: () => [] },
     timezones: { type: Array, default: () => [] },
+    /** Accounts that can be shared with, as `{ value, label }`. */
+    people: { type: Array, default: () => [] },
+    currentUserId: { type: [Number, null], default: null },
     errors: { type: Object, default: () => ({}) },
     saving: { type: Boolean, default: false },
     /** The address, returned only by the request that created it. */
     feedUrl: { type: String, default: "" },
 });
 
-const emit = defineEmits(["close", "save", "delete", "publish-feed", "revoke-feed"]);
+const emit = defineEmits(["close", "save", "delete", "publish-feed", "revoke-feed", "set-shares"]);
 
 const { t } = useI18n();
 
@@ -69,6 +74,50 @@ function defaultTimezone() {
 }
 
 const isNew = computed(() => !props.calendar?.id);
+
+/**
+ * Only the owner decides who else gets in.
+ *
+ * Somebody granted write access can put things on a calendar; handing out keys is
+ * not the same authority, and the server refuses it either way - this is the half
+ * that stops the reader trying.
+ */
+const isOwner = computed(
+    () => null !== props.currentUserId && props.calendar?.ownerId === props.currentUserId,
+);
+
+/** The share list being edited, as ids for the picker plus a level per person. */
+const shares = ref([]);
+
+watch(
+    () => props.calendar,
+    () => {
+        shares.value = (props.calendar?.shares ?? []).map((share) => ({ ...share }));
+    },
+    { immediate: true },
+);
+
+const sharedIds = computed({
+    get: () => shares.value.map((share) => share.userId),
+    set: (ids) => {
+        // Kept by id, so somebody already in the list keeps their level when
+        // another person is added - rebuilding would reset everybody to read-only.
+        const existing = new Map(shares.value.map((share) => [share.userId, share]));
+
+        shares.value = ids.map(
+            (id) => existing.get(id) ?? {
+                userId: id,
+                name: props.people.find((person) => person.value === id)?.label ?? String(id),
+                canWrite: false,
+            },
+        );
+    },
+});
+
+/** Everybody but the reader: sharing a calendar with yourself is not a thing. */
+const shareCandidates = computed(() =>
+    props.people.filter((person) => person.value !== props.currentUserId),
+);
 
 watch(
     () => props.calendar,
@@ -152,6 +201,44 @@ const visibilityOptions = computed(() =>
                 :hint="t('backend.plannings.timezone_hint')"
                 :error="errors.timezone"
             />
+
+            <!-- Sharing by name, which is the middle ground the visibility select
+                 cannot express: private is nobody, shared is everybody who can
+                 reach the module. -->
+            <div v-if="!isNew && isOwner" class="flex flex-col gap-1.5 border-t border-line pt-3">
+                <AppMultiselect
+                    v-model="sharedIds"
+                    multiple
+                    :label="t('backend.plannings.shares.label')"
+                    :placeholder="t('backend.plannings.shares.placeholder')"
+                    :options="shareCandidates"
+                />
+
+                <div v-for="share in shares" :key="share.userId" class="flex items-center gap-2">
+                    <span class="min-w-0 flex-1 truncate text-sm text-secondary">{{ share.name }}</span>
+                    <AppToggle
+                        v-model="share.canWrite"
+                        :label="t('backend.plannings.shares.can_write')"
+                    />
+                    <button
+                        type="button"
+                        class="shrink-0 cursor-pointer p-1 text-muted transition-colors hover:text-primary"
+                        :title="t('shared.common.delete')"
+                        v-on:click="sharedIds = sharedIds.filter((id) => id !== share.userId)"
+                    >
+                        <X class="h-3.5 w-3.5" :stroke-width="2" />
+                    </button>
+                </div>
+
+                <AppButton
+                    variant="secondary"
+                    size="sm"
+                    class="self-start"
+                    v-on:click="emit('set-shares', { calendar, shares })"
+                >
+                    {{ t("backend.plannings.shares.save") }}
+                </AppButton>
+            </div>
 
             <!-- The feed. Only for a calendar that exists: publishing needs an
                  id, and offering it on a form that has not saved yet would be a

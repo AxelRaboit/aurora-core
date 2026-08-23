@@ -8,6 +8,7 @@ use Aurora\Core\Timestampable\TimestampableInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Planning\Enum\PlanningVisibilityEnum;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminderInterface;
+use Aurora\Module\Planning\Share\Entity\PlanningShareInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Doctrine\Common\Collections\Collection;
 
@@ -56,6 +57,17 @@ interface PlanningInterface extends TimestampableInterface
      * @return Collection<int, PlanningReminderInterface>
      */
     public function getReminders(): Collection;
+
+    /**
+     * @return Collection<int, PlanningShareInterface>
+     */
+    public function getShares(): Collection;
+
+    public function addShare(PlanningShareInterface $share): static;
+
+    public function removeShare(PlanningShareInterface $share): static;
+
+    public function isWritableBy(CoreUserInterface $user): bool;
 
     public function getVisibility(): PlanningVisibilityEnum;
 

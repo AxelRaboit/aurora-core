@@ -26,6 +26,7 @@ use Aurora\Module\Planning\Reminder\Entity\PlanningReminder;
 use Aurora\Module\Planning\Reminder\Manager\PlanningReminderManagerInterface;
 use Aurora\Module\Planning\Reminder\Repository\PlanningReminderRepository;
 use Aurora\Module\Planning\Reminder\Serializer\PlanningReminderSerializer;
+use Aurora\Module\Planning\Share\Entity\PlanningShare;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -169,6 +170,76 @@ final class PlanningController extends AbstractController
      * The URL comes back absolute. A relative one would be useless - it is meant
      * to be pasted into a phone.
      */
+    /**
+     * Sets who a calendar is shared with, by name.
+     *
+     * The whole list every time, like the alerts and the attendees: the form shows
+     * all of it at once, so a diff computed here would only be a diff the client
+     * already made.
+     *
+     * Only the owner may change it. Somebody granted write access can put things on
+     * a calendar; deciding who else gets in is not the same authority, and treating
+     * it as one would let a guest hand out keys.
+     */
+    #[Route('/calendars/{id}/shares', name: '_calendars_shares', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('planning.calendars.manage')]
+    public function setShares(Planning $planning, Request $request): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user instanceof CoreUserInterface || $planning->getOwner()?->getId() !== $user->getId()) {
+            return $this->jsonInvalidInput(['shares' => 'backend.plannings.shares.errors.owner_only']);
+        }
+
+        $wanted = [];
+        foreach ((array) ($this->decodeJson($request)['shares'] ?? []) as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            if (!is_numeric($row['userId'] ?? null)) {
+                continue;
+            }
+            $wanted[(int) $row['userId']] = (bool) ($row['canWrite'] ?? false);
+        }
+
+        // The owner is never in the list: they already have every right this table
+        // can grant, and a row saying so would be a row somebody could delete.
+        unset($wanted[(int) $user->getId()]);
+
+        foreach ($planning->getShares() as $existing) {
+            $id = (int) $existing->getUser()->getId();
+
+            if (!array_key_exists($id, $wanted)) {
+                $planning->removeShare($existing);
+                $this->entityManager->remove($existing);
+
+                continue;
+            }
+
+            // Kept, so a change of level is an update rather than a delete and an
+            // insert - which the unique index would refuse in that order anyway.
+            $existing->setCanWrite($wanted[$id]);
+            unset($wanted[$id]);
+        }
+
+        foreach ($wanted as $id => $canWrite) {
+            $person = $this->users->find($id);
+            if (!$person instanceof CoreUserInterface) {
+                continue;
+            }
+
+            $share = new PlanningShare();
+            $share->setUser($person);
+            $share->setCanWrite($canWrite);
+            $planning->addShare($share);
+            $this->entityManager->persist($share);
+        }
+
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess(['calendar' => $this->planningSerializer->serialize($planning)]);
+    }
+
     #[Route('/calendars/{id}/feed', name: '_calendars_feed', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('planning.calendars.manage')]
     public function publishFeed(Planning $planning): JsonResponse
@@ -393,11 +464,25 @@ final class PlanningController extends AbstractController
      * arriving in a payload is a claim, and a reader who cannot see a calendar
      * must not be able to drop an event into it.
      */
+    /**
+     * The calendar this id names, if the reader may write into it.
+     *
+     * Two questions and not one, which it used to conflate: seeing a calendar and
+     * writing into it became different the moment a calendar could be shared
+     * read-only. Resolved through the visible list first, so an id naming a
+     * calendar nobody can see is answered the same way as one naming nothing -
+     * saying "you cannot write to that one" would confirm it exists.
+     */
     private function writableCalendar(int $id): ?PlanningInterface
     {
+        $user = $this->getUser();
+        if (!$user instanceof CoreUserInterface) {
+            return null;
+        }
+
         foreach ($this->visibleCalendars() as $planning) {
             if ($planning->getId() === $id) {
-                return $planning;
+                return $planning->isWritableBy($user) ? $planning : null;
             }
         }
 

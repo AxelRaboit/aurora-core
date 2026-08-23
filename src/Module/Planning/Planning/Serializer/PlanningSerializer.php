@@ -42,7 +42,33 @@ final readonly class PlanningSerializer
             // back only from the request that created it, which is the one moment
             // somebody asked to see it.
             'hasFeed' => $planning->hasFeed(),
+            'shares' => $this->shares($planning),
+            // The id, not a boolean: this serializer has no idea who is asking, and
+            // an `isOwner` computed here would have said "has an owner" - which is
+            // true of every calendar somebody made.
+            'ownerId' => $planning->getOwner()?->getId(),
         ];
+    }
+
+    /**
+     * Who this calendar is shared with, by name.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function shares(PlanningInterface $planning): array
+    {
+        $rows = [];
+        foreach ($planning->getShares() as $share) {
+            $rows[] = [
+                'userId' => $share->getUser()->getId(),
+                'name' => $share->getUser()->getName(),
+                'canWrite' => $share->canWrite(),
+            ];
+        }
+
+        usort($rows, static fn (array $a, array $b): int => strcmp((string) $a['name'], (string) $b['name']));
+
+        return $rows;
     }
 
     /**

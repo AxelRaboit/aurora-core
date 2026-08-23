@@ -65,6 +65,13 @@ backend:
       label: Visibilité
       private: Privé
       shared: Partagé
+    shares:
+      label: "Partagé avec"
+      placeholder: "Ajouter quelqu'un…"
+      can_write: "Peut modifier"
+      save: "Enregistrer le partage"
+      errors:
+        owner_only: "Seul le propriétaire du calendrier peut changer son partage."
     feed:
       label: "Abonnement (.ics)"
       hint: "Une adresse secrète pour consulter ce calendrier depuis un téléphone, sans se connecter. Toute personne qui a l'adresse peut le lire."

@@ -52,6 +52,7 @@ final class PlanningScreenWiringTest extends IntegrationTestCase
             'deleteCalendarPathTemplate' => '/backend/planning/calendars/__id__/delete',
             'feedCalendarPathTemplate' => '/backend/planning/calendars/__id__/feed',
             'revokeFeedCalendarPathTemplate' => '/backend/planning/calendars/__id__/feed/revoke',
+            'sharesCalendarPathTemplate' => '/backend/planning/calendars/__id__/shares',
             'createReminderPath' => '/backend/planning/reminders/create',
             'updateReminderPathTemplate' => '/backend/planning/reminders/__id__/update',
             'deleteReminderPathTemplate' => '/backend/planning/reminders/__id__/delete',

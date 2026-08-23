@@ -8,6 +8,7 @@ use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Planning\Enum\PlanningVisibilityEnum;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminderInterface;
+use Aurora\Module\Planning\Share\Entity\PlanningShareInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -115,6 +116,14 @@ abstract class AbstractPlanning implements PlanningInterface
     #[ORM\OneToMany(targetEntity: PlanningReminderInterface::class, mappedBy: 'planning', cascade: ['remove'], orphanRemoval: true)]
     protected Collection $reminders;
 
+    /**
+     * The people this calendar is shared with by name.
+     *
+     * @var Collection<int, PlanningShareInterface>
+     */
+    #[ORM\OneToMany(targetEntity: PlanningShareInterface::class, mappedBy: 'planning', cascade: ['remove'], orphanRemoval: true)]
+    protected Collection $shares;
+
     public function __construct()
     {
         // Initialised here rather than at the property, per
@@ -122,6 +131,7 @@ abstract class AbstractPlanning implements PlanningInterface
         // null and the first `add()` is a crash.
         $this->events = new ArrayCollection();
         $this->reminders = new ArrayCollection();
+        $this->shares = new ArrayCollection();
     }
 
     public function getName(): string
@@ -269,5 +279,60 @@ abstract class AbstractPlanning implements PlanningInterface
     public function getReminders(): Collection
     {
         return $this->reminders;
+    }
+
+    /**
+     * @return Collection<int, PlanningShareInterface>
+     */
+    public function getShares(): Collection
+    {
+        return $this->shares;
+    }
+
+    public function addShare(PlanningShareInterface $share): static
+    {
+        if (!$this->shares->contains($share)) {
+            $this->shares->add($share);
+            $share->setPlanning($this);
+        }
+
+        return $this;
+    }
+
+    public function removeShare(PlanningShareInterface $share): static
+    {
+        $this->shares->removeElement($share);
+
+        return $this;
+    }
+
+    /**
+     * Whether this person may add and change things here.
+     *
+     * Three ways in, in the order they were added to the product: you own it, it is
+     * shared with everybody who can reach the module, or it is shared with you
+     * specifically and with writing allowed.
+     *
+     * Asked on the entity rather than in the controller, because the same question
+     * is asked by every write route and one of them would have answered it
+     * differently.
+     */
+    public function isWritableBy(CoreUserInterface $user): bool
+    {
+        if ($this->owner?->getId() === $user->getId()) {
+            return true;
+        }
+
+        if (PlanningVisibilityEnum::Shared === $this->visibility) {
+            return true;
+        }
+
+        foreach ($this->shares as $share) {
+            if ($share->getUser()->getId() === $user->getId() && $share->canWrite()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
