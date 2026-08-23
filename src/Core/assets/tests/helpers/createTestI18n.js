@@ -5,19 +5,6 @@ import { createI18n } from "vue-i18n";
  * Messages are merged on top of a small default that covers the translation
  * keys shared by many admin components (common, locales, posts labels).
  */
-export function createTestI18n(messages = {}, locale = "fr") {
-    return createI18n({
-        legacy: false,
-        locale,
-        fallbackLocale: locale,
-        missingWarn: false,
-        fallbackWarn: false,
-        messages: {
-            [locale]: deepMerge(baseMessages, messages),
-        },
-    });
-}
-
 const baseMessages = {
     shared: {
         common: {
@@ -74,6 +61,19 @@ const baseMessages = {
         },
     },
 };
+
+export function createTestI18n(messages = {}, locale = "fr") {
+    return createI18n({
+        legacy: false,
+        locale,
+        fallbackLocale: locale,
+        missingWarn: false,
+        fallbackWarn: false,
+        messages: {
+            [locale]: deepMerge(baseMessages, messages),
+        },
+    });
+}
 
 function deepMerge(target, source) {
     const out = { ...target };

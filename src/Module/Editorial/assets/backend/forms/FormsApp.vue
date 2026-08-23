@@ -48,6 +48,15 @@ const {
     pendingDelete, deleteLoading, doDelete,
 } = useFormsList(props);
 
+
+const {
+    fields, showField, editingField, fieldForm, fieldErrors, fieldLoading,
+    typeMeta, typeOptions, logicOptions, conditionSources,
+    openFieldCreate, openFieldEdit, submitField,
+    addCondition, removeCondition,
+    pendingFieldDelete, fieldDeleteLoading, deleteField, move,
+} = useFormFields(props, selected, upsert);
+
 // The two actions a field row offers. The reorder arrows beside them stay as they
 // are: they are pressed repeatedly, and a sheet would turn each nudge into
 // open-click-close.
@@ -62,14 +71,6 @@ const fieldActions = useEditDeleteActions({
     editDescription: "backend.forms.fields.row_actions.edit_description",
     deleteDescription: "backend.forms.fields.row_actions.delete_description",
 });
-
-const {
-    fields, showField, editingField, fieldForm, fieldErrors, fieldLoading,
-    typeMeta, typeOptions, logicOptions, conditionSources,
-    openFieldCreate, openFieldEdit, submitField,
-    addCondition, removeCondition,
-    pendingFieldDelete, fieldDeleteLoading, deleteField, move,
-} = useFormFields(props, selected, upsert);
 
 const {
     submissions, total, page, totalPages, load, goToPage, exportUrl,

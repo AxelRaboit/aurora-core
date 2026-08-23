@@ -41,8 +41,12 @@ function createLoader(loaderEl) {
     const hide = () => {
         if (done) return;
         done = true;
+        // Both handlers call back into `hide`, so one of the two has to be
+        // written first. Read only when `hide` runs, by which point both exist.
+        /* eslint-disable no-use-before-define */
         document.removeEventListener("vue:mount", onVueMount, true);
         document.removeEventListener(AppEvents.LayoutMounted, onLayoutMounted);
+        /* eslint-enable no-use-before-define */
         loaderEl.classList.add("is-done");
         setTimeout(() => loaderEl.remove(), FADE_OUT_MS);
     };

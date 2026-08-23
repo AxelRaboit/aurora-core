@@ -89,6 +89,9 @@ function permalinkFor(doc) {
 const {
     filterCategoryId, filterTagId, filterStatus, filterMimeGroup,
     hasActiveFilter, extraParams: filterExtraParams, applyFilter, resetFilters,
+    // The arrow defers the read: `reset` comes from useListPage, which needs
+    // these refs to exist before it is called.
+    // eslint-disable-next-line no-use-before-define
 } = useDocumentFilters(() => reset());
 
 const mimeGroupOptions = [
@@ -106,6 +109,7 @@ const {
     folders, currentFolderId, allDocumentsView, rootOnly,
     navigateTo, navigateToRoot, navigateToAll,
     onListResponse, extraParams: navExtraParams,
+    // eslint-disable-next-line no-use-before-define -- same cycle as above.
 } = useDocumentNavigation(props, () => reset(), clearSelection);
 
 // Sidebar (folderId / rootOnly) drives the folder filter — strip the legacy

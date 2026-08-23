@@ -38,6 +38,15 @@ const {
     showEdit, editForm, editErrors, editLoading, openEdit, submitEdit,
 } = useMenus(props);
 
+
+const {
+    rows, labelOf, showItem, editingItem, form, itemErrors, itemLoading,
+    parentOptions, targetTypeMeta, targetTypeOptions, visibilityOptions,
+    targetOptions, targetSearch, targetLoading,
+    openItemCreate, openItemEdit, submitItem,
+    pendingItemDelete, itemDeleteLoading, deleteItem, move,
+} = useMenuItems(props, selected, upsert);
+
 // The two actions a item row offers. The reorder arrows beside them stay as they
 // are: they are pressed repeatedly, and a sheet would turn each nudge into
 // open-click-close.
@@ -52,14 +61,6 @@ const itemActions = useEditDeleteActions({
     editDescription: "backend.menus.row_actions.edit_description",
     deleteDescription: "backend.menus.row_actions.delete_description",
 });
-
-const {
-    rows, labelOf, showItem, editingItem, form, itemErrors, itemLoading,
-    parentOptions, targetTypeMeta, targetTypeOptions, visibilityOptions,
-    targetOptions, targetSearch, targetLoading,
-    openItemCreate, openItemEdit, submitItem,
-    pendingItemDelete, itemDeleteLoading, deleteItem, move,
-} = useMenuItems(props, selected, upsert);
 
 /**
  * An entry with children but nothing to link to is a heading, not a

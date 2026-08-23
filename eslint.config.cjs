@@ -47,6 +47,17 @@ module.exports = [
             // asking for a cleanup.
             'no-var': 'error',
             'no-undef': 'error',
+            // The companion to `no-undef` above, for the case where the name
+            // *is* declared — just lower down. `const` and `let` are not
+            // hoisted, so reading one earlier in `setup` throws
+            // "Cannot access 'x' before initialization" and the component
+            // renders nothing. Three pages shipped that way: a row-actions
+            // composable was handed a handler that the destructuring twelve
+            // lines below had not bound yet. Build, tests and lint were green.
+            //
+            // `functions: false` on purpose — function declarations *are*
+            // hoisted, and calling one defined further down is normal here.
+            'no-use-before-define': ['error', { functions: false, classes: true, variables: true }],
             'prettier/prettier': ['error', PRETTIER_OPTIONS],
         },
     },
@@ -93,6 +104,17 @@ module.exports = [
             // component threw on setup and rendered nothing, while build, tests
             // and lint were all green. A ReferenceError is not a style question.
             'no-undef': 'error',
+            // The companion to `no-undef` above, for the case where the name
+            // *is* declared — just lower down. `const` and `let` are not
+            // hoisted, so reading one earlier in `setup` throws
+            // "Cannot access 'x' before initialization" and the component
+            // renders nothing. Three pages shipped that way: a row-actions
+            // composable was handed a handler that the destructuring twelve
+            // lines below had not bound yet. Build, tests and lint were green.
+            //
+            // `functions: false` on purpose — function declarations *are*
+            // hoisted, and calling one defined further down is normal here.
+            'no-use-before-define': ['error', { functions: false, classes: true, variables: true }],
             'vue/multi-word-component-names': 'off',
             'vue/v-on-style': ['error', 'longform'],
             'vue/v-bind-style': ['error', 'shorthand'],

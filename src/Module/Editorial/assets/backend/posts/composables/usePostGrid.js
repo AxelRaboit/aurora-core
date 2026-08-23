@@ -378,6 +378,16 @@ export function usePostGrid(layout, content) {
         })),
     );
 
+    // The figures are the same in every language, so they stay literal; the
+    // spelt-out name rides along as the tooltip.
+    const widthOptions = computed(() =>
+        WIDTH_FRACTIONS.map((fraction) => ({
+            value: fraction.columns,
+            label: fraction.label,
+            title: t(`backend.posts.grid.fractions.${fraction.name}`),
+        })),
+    );
+
     /**
      * The same fractions, less "the whole thing".
      *
@@ -388,16 +398,6 @@ export function usePostGrid(layout, content) {
      */
     const shareOptions = computed(() =>
         widthOptions.value.filter((option) => option.value !== COLUMNS),
-    );
-
-    // The figures are the same in every language, so they stay literal; the
-    // spelt-out name rides along as the tooltip.
-    const widthOptions = computed(() =>
-        WIDTH_FRACTIONS.map((fraction) => ({
-            value: fraction.columns,
-            label: fraction.label,
-            title: t(`backend.posts.grid.fractions.${fraction.name}`),
-        })),
     );
 
     /**

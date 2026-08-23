@@ -33,6 +33,10 @@ export function openDocumentPicker({
             resolved = true;
             show.value = false;
             setTimeout(() => {
+                // `finish` is passed into the app it tears down, so it is
+                // written before `app` exists. Read inside a timeout, long
+                // after mounting.
+                // eslint-disable-next-line no-use-before-define
                 app.unmount();
                 host.remove();
             }, 250);

@@ -42,6 +42,13 @@ const {
     togglePostType,
 } = useTaxonomiesForm(props);
 
+
+const {
+    rows, showTerm, editingTerm, form, termErrors, termLoading, parentOptions,
+    openTermCreate, openTermEdit, submitTerm,
+    pendingTermDelete, termDeleteLoading, deleteTerm, move,
+} = useTaxonomyTerms(props, selected, upsert);
+
 // The two actions a term row offers. The reorder arrows beside them stay as they
 // are: they are pressed repeatedly, and a sheet would turn each nudge into
 // open-click-close.
@@ -56,12 +63,6 @@ const termActions = useEditDeleteActions({
     editDescription: "backend.taxonomies.terms.row_actions.edit_description",
     deleteDescription: "backend.taxonomies.terms.row_actions.delete_description",
 });
-
-const {
-    rows, showTerm, editingTerm, form, termErrors, termLoading, parentOptions,
-    openTermCreate, openTermEdit, submitTerm,
-    pendingTermDelete, termDeleteLoading, deleteTerm, move,
-} = useTaxonomyTerms(props, selected, upsert);
 
 const primaryLocale = computed(() => props.locales[0] ?? "en");
 
