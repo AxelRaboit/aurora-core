@@ -31,6 +31,8 @@ backend:
     planning_description: "Voir les événements des calendriers, en mois, semaine ou jour."
   plannings:
     title: Calendrier
+    today: "Aujourd'hui"
+    more: "+{count} autre(s)"
     calendars: Mes calendriers
     new_calendar: Nouveau calendrier
     empty: "Aucun calendrier pour l'instant."
@@ -53,6 +55,7 @@ backend:
       starts: Début
       ends: Fin
       location: Lieu
+      location_placeholder: "Une salle, une adresse, un lien"
       status:
         tentative: À confirmer
         confirmed: Confirmé

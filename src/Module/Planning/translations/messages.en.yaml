@@ -31,6 +31,8 @@ backend:
     planning_description: "See what is on your calendars, by month, week or day."
   plannings:
     title: Calendar
+    today: Today
+    more: "+{count} more"
     calendars: My calendars
     new_calendar: New calendar
     empty: "No calendar yet."
@@ -53,6 +55,7 @@ backend:
       starts: Starts
       ends: Ends
       location: Location
+      location_placeholder: "A room, an address, a link"
       status:
         tentative: Tentative
         confirmed: Confirmed

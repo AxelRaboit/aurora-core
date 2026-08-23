@@ -237,4 +237,29 @@ final class PlanningApiTest extends IntegrationTestCase
 
         self::assertResponseStatusCodeSame(422);
     }
+
+    /**
+     * The page renders, mounts the app, and hands it the calendars.
+     *
+     * A smoke test and not a UI one: what it proves is the wiring - the route,
+     * the privilege, the template namespace `@Planning` resolving without a
+     * bundle, and the payload reaching the mount point. Everything the grid does
+     * with that payload is tested in `monthGrid.test.js`, without a browser.
+     */
+    public function testThePageMountsTheCalendarWithItsPayload(): void
+    {
+        $planning = $this->calendar('Travail');
+
+        $crawler = $this->client->request('GET', $this->urlGenerator->generate('backend_planning_calendar'));
+
+        self::assertResponseIsSuccessful();
+
+        $mount = $crawler->filter('[data-vue-component], [data-v-component], div[data-props]');
+        $html = (string) $this->client->getResponse()->getContent();
+
+        self::assertStringContainsString('PlanningApp', $html);
+        self::assertStringContainsString('Travail', $html);
+        self::assertGreaterThan(0, $mount->count() + mb_substr_count($html, 'PlanningApp'));
+        self::assertSame('Travail', $planning->getName());
+    }
 }

@@ -32,4 +32,5 @@ export const aliases = {
     "@dev": moduleAlias("Dev"),
     "@ged": moduleAlias("Ged"),
     "@editorial": moduleAlias("Editorial"),
+    "@planning": moduleAlias("Planning"),
 };
