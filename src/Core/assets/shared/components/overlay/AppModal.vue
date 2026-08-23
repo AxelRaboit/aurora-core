@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { X } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useBackButtonClose } from "@/shared/composables/overlay/useBackButtonClose.js";
+import AppRetainedSlot from "@/shared/components/overlay/AppRetainedSlot.vue";
 
 const props = defineProps({
     show: { type: Boolean, default: false },
@@ -35,6 +36,24 @@ const props = defineProps({
 const { t } = useI18n();
 const emit = defineEmits(["close"]);
 const showSlot = ref(props.show);
+
+/**
+ * The header, held for the length of the leave transition.
+ *
+ * Same reason as {@see AppRetainedSlot}, one layer up: a caller that computes its
+ * title from the record being shown hands us an empty string the moment that
+ * record goes away, and the header disappeared out from under a panel that was
+ * still on screen. Held here because a prop cannot be frozen by the slot holder.
+ */
+const heldTitle = ref(props.title);
+const heldIcon = ref(props.icon);
+
+watch(() => [props.show, props.title, props.icon], () => {
+    if (props.show) {
+        heldTitle.value = props.title;
+        heldIcon.value = props.icon;
+    }
+}, { immediate: true });
 
 watch(() => props.show, (show) => {
     if (show) {
@@ -164,10 +183,10 @@ const contentClass = computed(() => [
                     :class="panelClass"
                 >
                     <!-- Header -->
-                    <div v-if="title" class="shrink-0 flex items-center justify-between gap-4 px-6 pt-6 pb-2">
+                    <div v-if="heldTitle" class="shrink-0 flex items-center justify-between gap-4 px-6 pt-6 pb-2">
                         <div class="flex items-center gap-2 min-w-0">
-                            <component :is="icon" v-if="icon" class="w-4 h-4 shrink-0 text-muted" :stroke-width="2" />
-                            <h2 class="text-lg font-semibold text-primary truncate">{{ title }}</h2>
+                            <component :is="heldIcon" v-if="heldIcon" class="w-4 h-4 shrink-0 text-muted" :stroke-width="2" />
+                            <h2 class="text-lg font-semibold text-primary truncate">{{ heldTitle }}</h2>
                         </div>
                         <button
                             v-if="closeable"
@@ -183,12 +202,16 @@ const contentClass = computed(() => [
 
                     <!-- Scrollable content -->
                     <div :class="contentClass">
-                        <slot />
+                        <AppRetainedSlot :live="show">
+                            <slot />
+                        </AppRetainedSlot>
                     </div>
 
                     <!-- Sticky footer -->
                     <div v-if="$slots.footer" class="shrink-0 px-6 pb-6 pt-3 border-t border-line">
-                        <slot name="footer" />
+                        <AppRetainedSlot :live="show">
+                            <slot name="footer" />
+                        </AppRetainedSlot>
                     </div>
                 </div>
             </Transition>
