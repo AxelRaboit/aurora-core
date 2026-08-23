@@ -10,6 +10,7 @@ use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -130,6 +131,113 @@ final class PlanningApiTest extends IntegrationTestCase
         self::assertArrayHasKey('colourSlot', $body['errors'] ?? []);
     }
 
+    public function testAnEventCarriesItsRemindersBothWays(): void
+    {
+        $planning = $this->calendar('Rappels');
+
+        $created = $this->post('backend_planning_events_create', [
+            'planningId' => $planning->getId(),
+            'title' => 'Point hebdo',
+            'startAt' => '2026-09-01T10:00',
+            'endAt' => '2026-09-01T11:00',
+            // Sent out of order and with a duplicate, the way a form that lets
+            // you toggle chips actually produces them.
+            'reminders' => [60, 10, 60],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        self::assertSame([10, 60], $created['event']['reminders']);
+
+        $this->created[] = [PlanningEvent::class, (int) $created['event']['id']];
+    }
+
+    /**
+     * An offset the picker does not offer is dropped, not refused.
+     *
+     * Unlike a missing date, which fails the save and names the field: there is
+     * no control that can produce 7 minutes, so it means a hand-written request,
+     * and failing an otherwise valid event over it would be the wrong trade.
+     */
+    public function testAnUnknownOffsetIsIgnoredWithoutFailingTheSave(): void
+    {
+        $planning = $this->calendar('Offsets');
+
+        $created = $this->post('backend_planning_events_create', [
+            'planningId' => $planning->getId(),
+            'title' => 'Sept minutes',
+            'startAt' => '2026-09-01T10:00',
+            'endAt' => '2026-09-01T11:00',
+            'reminders' => [7, 15],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        self::assertSame([15], $created['event']['reminders']);
+
+        $this->created[] = [PlanningEvent::class, (int) $created['event']['id']];
+    }
+
+    /**
+     * Editing an event keeps the reminders it still has.
+     *
+     * The manager diffs rather than clearing and re-adding, and this is what that
+     * buys: a reminder that survives an edit keeps its `sentAt`, so renaming an
+     * event just after its reminder fired does not fire it again.
+     */
+    public function testEditingAnEventKeepsASentReminderSent(): void
+    {
+        $planning = $this->calendar('Édition');
+
+        $created = $this->post('backend_planning_events_create', [
+            'planningId' => $planning->getId(),
+            'title' => 'Avant',
+            'startAt' => '2026-09-01T10:00',
+            'endAt' => '2026-09-01T11:00',
+            'reminders' => [15, 60],
+        ]);
+        self::assertResponseIsSuccessful();
+
+        $eventId = (int) $created['event']['id'];
+        $this->created[] = [PlanningEvent::class, $eventId];
+
+        $event = $this->entityManager->find(PlanningEvent::class, $eventId);
+        self::assertInstanceOf(PlanningEvent::class, $event);
+
+        $kept = null;
+        foreach ($event->getReminders() as $reminder) {
+            if (15 === $reminder->getMinutesBefore()) {
+                $reminder->markSent(new DateTimeImmutable('2026-09-01T09:45'));
+                $kept = $reminder->getId();
+            }
+        }
+        $this->entityManager->flush();
+        self::assertNotNull($kept);
+
+        $updated = $this->post(
+            'backend_planning_events_update',
+            [
+                'planningId' => $planning->getId(),
+                'title' => 'Après',
+                'startAt' => '2026-09-01T10:00',
+                'endAt' => '2026-09-01T11:00',
+                'reminders' => [15],
+            ],
+            ['id' => $eventId],
+        );
+
+        self::assertResponseIsSuccessful();
+        self::assertSame([15], $updated['event']['reminders']);
+
+        $this->entityManager->clear();
+        $event = $this->entityManager->find(PlanningEvent::class, $eventId);
+        self::assertInstanceOf(PlanningEvent::class, $event);
+        self::assertCount(1, $event->getReminders());
+
+        $survivor = $event->getReminders()->first();
+        self::assertNotFalse($survivor);
+        self::assertSame($kept, $survivor->getId());
+        self::assertNotNull($survivor->getSentAt());
+    }
+
     public function testAnEventNeedsBothEndsAndTheRightOrder(): void
     {
         $planning = $this->calendar();
@@ -155,22 +263,108 @@ final class PlanningApiTest extends IntegrationTestCase
      * An all-day event owns whole days. Without the snap a day-long event created
      * at 14:00 runs to 14:00 the next day, and a month grid draws it across two
      * cells.
+     *
+     * The day is the calendar's day, not UTC's: the instant sent here is 16:32 in
+     * Paris, so "the whole day" runs from midnight Paris - which is 22:00 UTC the
+     * evening before. Asserting the UTC digits instead would pass with the snap
+     * done in the wrong zone, and a reader in Paris would see a day off that
+     * starts at 02:00 and spills into a second cell.
      */
-    public function testAnAllDayEventIsSnappedToItsDay(): void
+    public function testAnAllDayEventIsSnappedToTheCalendarsWholeDay(): void
     {
         $planning = $this->calendar();
+        self::assertSame('Europe/Paris', $planning->getTimezone());
 
         $body = $this->post('backend_planning_events_create', [
             'planningId' => $planning->getId(),
             'title' => 'Congé',
-            'startAt' => '2026-08-23T14:32:00',
-            'endAt' => '2026-08-23T14:32:00',
+            'startAt' => '2026-08-23T14:32:00+00:00',
+            'endAt' => '2026-08-23T14:32:00+00:00',
             'allDay' => true,
         ]);
 
         self::assertResponseIsSuccessful(json_encode($body, JSON_THROW_ON_ERROR));
-        self::assertStringContainsString('T00:00:00', $body['event']['startAt']);
-        self::assertStringContainsString('T23:59:59', $body['event']['endAt']);
+
+        $zone = new DateTimeZone('Europe/Paris');
+        $start = (new DateTimeImmutable((string) $body['event']['startAt']))->setTimezone($zone);
+        $end = (new DateTimeImmutable((string) $body['event']['endAt']))->setTimezone($zone);
+
+        self::assertSame('2026-08-23 00:00:00', $start->format('Y-m-d H:i:s'));
+        self::assertSame('2026-08-23 23:59:59', $end->format('Y-m-d H:i:s'));
+
+        $this->created[] = [PlanningEvent::class, (int) $body['event']['id']];
+    }
+
+    /**
+     * The defect this whole timezone pass exists for.
+     *
+     * The wire carries an instant and the column holds UTC, so what comes back
+     * has to be the same moment that went in. Before this, a naked
+     * `2026-09-01T10:00` was read as UTC, stored, and served back as
+     * `10:00+00:00` - which a browser in Paris draws at 12:00. Typing a time and
+     * reopening the event showed a different one.
+     */
+    public function testAnEventComesBackAtTheInstantItWasSentFor(): void
+    {
+        $planning = $this->calendar('Instants');
+
+        $body = $this->post('backend_planning_events_create', [
+            'planningId' => $planning->getId(),
+            'title' => 'Dix heures à Paris',
+            'startAt' => '2026-09-01T10:00:00+02:00',
+            'endAt' => '2026-09-01T11:00:00+02:00',
+        ]);
+
+        self::assertResponseIsSuccessful(json_encode($body, JSON_THROW_ON_ERROR));
+
+        $start = new DateTimeImmutable((string) $body['event']['startAt']);
+        self::assertSame(
+            (new DateTimeImmutable('2026-09-01T10:00:00+02:00'))->getTimestamp(),
+            $start->getTimestamp(),
+        );
+        self::assertSame(
+            '2026-09-01 10:00',
+            $start->setTimezone(new DateTimeZone('Europe/Paris'))->format('Y-m-d H:i'),
+        );
+
+        $this->created[] = [PlanningEvent::class, (int) $body['event']['id']];
+    }
+
+    /**
+     * A reminder is due at an instant, not at a wall clock.
+     *
+     * 30 minutes before 10:00 Paris is 09:30 Paris, whatever UTC calls it. Worth
+     * its own case because `remindAt` is stored: the subtraction happens once, on
+     * write, so getting the stored instant wrong means the reminder fires at the
+     * wrong moment for ever after.
+     */
+    public function testAReminderIsDueRelativeToTheRealInstant(): void
+    {
+        $planning = $this->calendar('Rappel instant');
+
+        $body = $this->post('backend_planning_events_create', [
+            'planningId' => $planning->getId(),
+            'title' => 'Dix heures moins le quart',
+            'startAt' => '2026-09-01T10:00:00+02:00',
+            'endAt' => '2026-09-01T11:00:00+02:00',
+            'reminders' => [30],
+        ]);
+
+        self::assertResponseIsSuccessful(json_encode($body, JSON_THROW_ON_ERROR));
+
+        $eventId = (int) $body['event']['id'];
+        $this->created[] = [PlanningEvent::class, $eventId];
+
+        $this->entityManager->clear();
+        $event = $this->entityManager->find(PlanningEvent::class, $eventId);
+        self::assertInstanceOf(PlanningEvent::class, $event);
+
+        $reminder = $event->getReminders()->first();
+        self::assertNotFalse($reminder);
+        self::assertSame(
+            '2026-09-01 09:30',
+            $reminder->getRemindAt()->setTimezone(new DateTimeZone('Europe/Paris'))->format('Y-m-d H:i'),
+        );
     }
 
     /**

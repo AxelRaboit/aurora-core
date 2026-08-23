@@ -48,12 +48,30 @@ backend:
       colour_out_of_range: "Cette couleur n'existe pas dans la palette."
       timezone_unknown: Ce fuseau horaire est inconnu.
       window_invalid: "La période demandée est invalide."
+    reminders:
+      label: "Rappels"
+      none: "Aucun rappel pour cet événement."
+      notification: "%calendar% · commence à %when%"
+      # One key per offset, so a translator reads phrases and not a
+      # number plus a unit that needs a plural rule.
+      offsets:
+        0: "À l'heure"
+        5: "5 minutes avant"
+        10: "10 minutes avant"
+        15: "15 minutes avant"
+        30: "30 minutes avant"
+        60: "1 heure avant"
+        120: "2 heures avant"
+        1440: "1 jour avant"
+        10080: "1 semaine avant"
     events:
       title: Événements
       new: Nouvel événement
       all_day: Toute la journée
       starts: Début
       ends: Fin
+      starts_placeholder: "Le jour et l'heure de début"
+      ends_placeholder: "Le jour et l'heure de fin"
       location: Lieu
       location_placeholder: "Une salle, une adresse, un lien"
       status:

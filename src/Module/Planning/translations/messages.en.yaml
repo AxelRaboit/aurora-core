@@ -48,12 +48,30 @@ backend:
       colour_out_of_range: "That colour is not in the palette."
       timezone_unknown: That time zone is unknown.
       window_invalid: "The requested range is not valid."
+    reminders:
+      label: "Reminders"
+      none: "No reminder on this event."
+      notification: "%calendar% · starts at %when%"
+      # One key per offset, so a translator reads phrases and not a
+      # number plus a unit that needs a plural rule.
+      offsets:
+        0: "At the start"
+        5: "5 minutes before"
+        10: "10 minutes before"
+        15: "15 minutes before"
+        30: "30 minutes before"
+        60: "1 hour before"
+        120: "2 hours before"
+        1440: "1 day before"
+        10080: "1 week before"
     events:
       title: Events
       new: New event
       all_day: All day
       starts: Starts
       ends: Ends
+      starts_placeholder: "The day and time it starts"
+      ends_placeholder: "The day and time it ends"
       location: Location
       location_placeholder: "A room, an address, a link"
       status:

@@ -8,6 +8,8 @@ use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
@@ -74,9 +76,54 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
     #[ORM\Column(length: 255, nullable: true)]
     protected ?string $sourceLabel = null;
 
+    /**
+     * @var Collection<int, PlanningEventReminderInterface>
+     */
+    #[ORM\OneToMany(targetEntity: PlanningEventReminderInterface::class, mappedBy: 'event', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    protected Collection $reminders;
+
     #[ORM\ManyToOne(targetEntity: PlanningInterface::class, inversedBy: 'events')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     protected PlanningInterface $planning;
+
+    public function __construct()
+    {
+        // `convention_collection_on_concrete`: uninitialised is null, and the
+        // first `add()` is a crash nobody sees until a fixture runs.
+        $this->reminders = new ArrayCollection();
+    }
+
+    /**
+     * @return Collection<int, PlanningEventReminderInterface>
+     */
+    public function getReminders(): Collection
+    {
+        return $this->reminders;
+    }
+
+    /**
+     * Sets both sides, and that is the point of the method existing.
+     *
+     * A reminder computes its due time from its event, so one added through the
+     * collection alone has no event to compute against and Doctrine writes a row
+     * with no event_id.
+     */
+    public function addReminder(PlanningEventReminderInterface $reminder): static
+    {
+        if (!$this->reminders->contains($reminder)) {
+            $this->reminders->add($reminder);
+            $reminder->setEvent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReminder(PlanningEventReminderInterface $reminder): static
+    {
+        $this->reminders->removeElement($reminder);
+
+        return $this;
+    }
 
     public function getTitle(): string
     {
@@ -140,6 +187,16 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
 
         $this->startAt = $startAt;
         $this->endAt = $endAt;
+
+        // The reminders follow. `remindAt` is a stored column so the worker can
+        // index it, which means moving the event has to move them too - and here
+        // is the only place that knows the event moved.
+        foreach ($this->reminders as $reminder) {
+            // Re-setting the offset is what recomputes the stored due time. Not
+            // a no-op, and not a trick: the offset is the input, `remindAt` is
+            // derived, and the reminder owns that derivation.
+            $reminder->setMinutesBefore($reminder->getMinutesBefore());
+        }
 
         return $this;
     }

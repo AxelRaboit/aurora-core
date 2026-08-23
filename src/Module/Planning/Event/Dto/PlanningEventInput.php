@@ -24,6 +24,16 @@ class PlanningEventInput implements PlanningEventInputInterface
         public readonly ?DateTimeImmutable $endAt = null,
         public readonly bool $allDay = false,
         public readonly PlanningEventStatusEnum $status = PlanningEventStatusEnum::Confirmed,
+        /**
+         * Offsets in minutes, already sifted by the factory.
+         *
+         * A list and not a count, because the whole set arrives every save: the
+         * form shows every reminder at once, so a diff computed here would only
+         * be a diff the client already made.
+         *
+         * @var list<int>
+         */
+        public readonly array $reminderOffsets = [],
     ) {}
 
     public function getPlanningId(): int
@@ -98,5 +108,11 @@ class PlanningEventInput implements PlanningEventInputInterface
     public function getStatus(): PlanningEventStatusEnum
     {
         return $this->status;
+    }
+
+    /** @return list<int> */
+    public function getReminderOffsets(): array
+    {
+        return $this->reminderOffsets;
     }
 }

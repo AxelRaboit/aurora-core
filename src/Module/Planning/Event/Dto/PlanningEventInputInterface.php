@@ -24,4 +24,7 @@ interface PlanningEventInputInterface
     public function isAllDay(): bool;
 
     public function getStatus(): PlanningEventStatusEnum;
+
+    /** @return list<int> */
+    public function getReminderOffsets(): array;
 }

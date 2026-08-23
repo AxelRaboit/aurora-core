@@ -7,6 +7,7 @@ namespace Aurora\Module\Planning\Event\Entity;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\Collection;
 
 interface PlanningEventInterface
 {
@@ -51,4 +52,13 @@ interface PlanningEventInterface
     public function setSource(?string $sourceType, ?int $sourceId, ?string $sourceLabel): static;
 
     public function isFromModule(): bool;
+
+    /**
+     * @return Collection<int, PlanningEventReminderInterface>
+     */
+    public function getReminders(): Collection;
+
+    public function addReminder(PlanningEventReminderInterface $reminder): static;
+
+    public function removeReminder(PlanningEventReminderInterface $reminder): static;
 }

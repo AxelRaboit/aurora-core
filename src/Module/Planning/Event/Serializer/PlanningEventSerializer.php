@@ -42,8 +42,24 @@ final readonly class PlanningEventSerializer
             // and not a lookup into the calendar list.
             'colourSlot' => $planning->getColourSlot(),
             'sourceLabel' => $event->getSourceLabel(),
+            // Offsets only. The form draws its own labels from them, and
+            // remindAt is derived from the start the client already has.
+            'reminders' => $this->reminderOffsets($event),
             'readOnly' => $event->isFromModule(),
         ];
+    }
+
+    /** @return list<int> */
+    private function reminderOffsets(PlanningEventInterface $event): array
+    {
+        $offsets = [];
+        foreach ($event->getReminders() as $reminder) {
+            $offsets[] = $reminder->getMinutesBefore();
+        }
+
+        sort($offsets);
+
+        return $offsets;
     }
 
     /**

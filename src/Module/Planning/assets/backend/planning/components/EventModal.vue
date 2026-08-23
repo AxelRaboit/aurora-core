@@ -14,15 +14,18 @@
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { MapPin, Pencil, Trash2 } from "lucide-vue-next";
+import { Bell, MapPin, Pencil, Trash2 } from "lucide-vue-next";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
+import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
+import { DEFAULT_REMINDER_OFFSET, REMINDER_OFFSETS, reminderLabel, toggleReminder } from "../composables/reminderOffsets.js";
+import { toInstant, toPickerValue } from "../composables/eventTime.js";
 
 const props = defineProps({
     /** The event being looked at, or null when the modal is closed. */
@@ -50,16 +53,11 @@ function blank() {
         endAt: "",
         allDay: false,
         status: "confirmed",
+        // A new event comes with one reminder already on, which is what
+        // every calendar people already use does. Nobody sets a reminder
+        // they forgot the form offered.
+        reminders: [DEFAULT_REMINDER_OFFSET],
     };
-}
-
-/** `datetime-local` wants `YYYY-MM-DDTHH:mm` and nothing else. */
-function forInput(iso) {
-    if (!iso) return "";
-    const date = new Date(iso);
-    const pad = (n) => String(n).padStart(2, "0");
-
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 // Refilled whenever a different event opens, so the form never shows the
@@ -75,10 +73,11 @@ watch(
                 title: props.event.title,
                 description: props.event.description ?? "",
                 location: props.event.location ?? "",
-                startAt: forInput(props.event.startAt),
-                endAt: forInput(props.event.endAt),
+                startAt: toPickerValue(props.event.startAt),
+                endAt: toPickerValue(props.event.endAt),
                 allDay: props.event.allDay,
                 status: props.event.status,
+                reminders: [...(props.event.reminders ?? [])],
             }
             : { ...blank(), ...(props.event ?? {}) };
     },
@@ -95,6 +94,29 @@ const statusOptions = computed(() =>
         label: t(`backend.plannings.events.status.${value}`),
     })),
 );
+
+const reminderChips = computed(() =>
+    REMINDER_OFFSETS.map((minutes) => ({ minutes, label: reminderLabel(minutes, t) })),
+);
+
+/** The read view's summary, in the same words the chips use. */
+const reminderSummary = computed(() =>
+    (props.event?.reminders ?? []).map((minutes) => reminderLabel(minutes, t)).join(" · "),
+);
+
+/**
+ * The form, with its two wall clocks turned into instants.
+ *
+ * Converted on the way out and not inside the picker, so the field the reader
+ * edits and the value the server stores stay two clearly different things.
+ */
+function payload() {
+    return {
+        ...form.value,
+        startAt: toInstant(form.value.startAt),
+        endAt: toInstant(form.value.endAt),
+    };
+}
 
 const when = computed(() => {
     if (!props.event) return "";
@@ -137,6 +159,11 @@ const when = computed(() => {
 
             <p v-if="event.description" class="text-sm text-secondary whitespace-pre-line">{{ event.description }}</p>
 
+            <p v-if="reminderSummary" class="flex items-center gap-1.5 text-sm text-secondary">
+                <Bell class="w-3.5 h-3.5 shrink-0 text-muted" :stroke-width="2" />
+                {{ reminderSummary }}
+            </p>
+
             <!-- An event a module pushed says where it came from and offers
                  nothing else: it reflects a date that lives elsewhere, and the
                  only useful gesture is to go to the source. -->
@@ -161,18 +188,23 @@ const when = computed(() => {
             />
             <AppToggle v-model="form.allDay" :label="t('backend.plannings.events.all_day')" />
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <AppInput
+                <!-- The shared picker, not a bare `datetime-local`: it is what
+                     every other date field in the backend uses, so it carries
+                     the theme, the locale and the same keyboard behaviour. Its
+                     value contract is the wall clock the reader sees; the
+                     instant is built on save. -->
+                <AppDatePicker
                     v-model="form.startAt"
-                    type="datetime-local"
+                    enable-time
                     :label="t('backend.plannings.events.starts')"
-                    :placeholder="t('backend.posts.scheduled_at_placeholder')"
+                    :placeholder="t('backend.plannings.events.starts_placeholder')"
                     :error="errors.startAt"
                 />
-                <AppInput
+                <AppDatePicker
                     v-model="form.endAt"
-                    type="datetime-local"
+                    enable-time
                     :label="t('backend.plannings.events.ends')"
-                    :placeholder="t('backend.posts.scheduled_at_placeholder')"
+                    :placeholder="t('backend.plannings.events.ends_placeholder')"
                     :error="errors.endAt"
                 />
             </div>
@@ -188,6 +220,32 @@ const when = computed(() => {
                 :placeholder="t('shared.placeholders.description')"
                 :rows="3"
             />
+
+            <!-- Chips and not a select-plus-add-plus-remove: the offsets are a
+                 closed list of nine, so one tap is the whole gesture, and the
+                 form shows at a glance which are on. A picker would hide the
+                 answer behind opening it. -->
+            <div class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium text-primary">{{ t("backend.plannings.reminders.label") }}</span>
+                <div class="flex flex-wrap gap-1.5">
+                    <button
+                        v-for="chip in reminderChips"
+                        :key="chip.minutes"
+                        type="button"
+                        class="px-2.5 py-1 text-xs rounded-full border transition-colors cursor-pointer"
+                        :class="form.reminders.includes(chip.minutes)
+                            ? 'border-accent bg-accent/10 text-primary font-medium'
+                            : 'border-line bg-surface-1 text-secondary hover:border-secondary'"
+                        :aria-pressed="form.reminders.includes(chip.minutes)"
+                        v-on:click="form.reminders = toggleReminder(form.reminders, chip.minutes)"
+                    >
+                        {{ chip.label }}
+                    </button>
+                </div>
+                <span v-if="!form.reminders.length" class="text-xs text-muted">
+                    {{ t("backend.plannings.reminders.none") }}
+                </span>
+            </div>
         </div>
 
         <template #footer>
@@ -207,7 +265,7 @@ const when = computed(() => {
                     <AppButton variant="ghost" size="md" v-on:click="emit('close')">
                         {{ t("shared.common.cancel") }}
                     </AppButton>
-                    <AppButton variant="primary" size="md" :loading="saving" v-on:click="emit('save', form)">
+                    <AppButton variant="primary" size="md" :loading="saving" v-on:click="emit('save', payload())">
                         {{ t("shared.common.save") }}
                     </AppButton>
                 </template>

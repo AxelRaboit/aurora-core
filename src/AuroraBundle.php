@@ -71,6 +71,8 @@ use Aurora\Module\Ged\DocumentTag\Entity\DocumentTag;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTagInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
+use Aurora\Module\Planning\Event\Entity\PlanningEventReminder;
+use Aurora\Module\Planning\Event\Entity\PlanningEventReminderInterface;
 use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Platform\Auth\Entity\AccessRequest;
@@ -152,6 +154,7 @@ class AuroraBundle extends AbstractBundle
                     MountPointInterface::class => MountPoint::class,
                     PlanningInterface::class => Planning::class,
                     PlanningEventInterface::class => PlanningEvent::class,
+                    PlanningEventReminderInterface::class => PlanningEventReminder::class,
                     CommentInterface::class => Comment::class,
                     CommentReactionInterface::class => CommentReaction::class,
                     FormInterface::class => Form::class,
