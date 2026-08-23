@@ -69,6 +69,10 @@ use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolder;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTag;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTagInterface;
+use Aurora\Module\Planning\Event\Entity\PlanningEvent;
+use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
+use Aurora\Module\Planning\Planning\Entity\Planning;
+use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Platform\Auth\Entity\AccessRequest;
 use Aurora\Module\Platform\Auth\Entity\AccessRequestInterface;
 use Aurora\Module\Platform\Auth\Entity\ResetPasswordRequest;
@@ -146,6 +150,8 @@ class AuroraBundle extends AbstractBundle
                     DocumentTagInterface::class => DocumentTag::class,
                     DocumentFolderInterface::class => DocumentFolder::class,
                     MountPointInterface::class => MountPoint::class,
+                    PlanningInterface::class => Planning::class,
+                    PlanningEventInterface::class => PlanningEvent::class,
                     CommentInterface::class => Comment::class,
                     CommentReactionInterface::class => CommentReaction::class,
                     FormInterface::class => Form::class,

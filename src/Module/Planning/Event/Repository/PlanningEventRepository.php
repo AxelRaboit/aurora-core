@@ -1,0 +1,69 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Aurora\Module\Planning\Event\Repository;
+
+use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Module\Planning\Event\Entity\PlanningEvent;
+use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
+use DateTimeImmutable;
+use Doctrine\Common\Collections\Order;
+use Doctrine\Persistence\ManagerRegistry;
+
+/** @extends ResolveTargetEntityRepository<PlanningEventInterface> */
+class PlanningEventRepository extends ResolveTargetEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, PlanningEvent::class, PlanningEventInterface::class);
+    }
+
+    /**
+     * Everything visible in a window, across the given calendars.
+     *
+     * **Overlap, not containment.** The condition is `start < windowEnd AND end >
+     * windowStart`, which is the only one that catches an event running through
+     * the window from before it: a week of holiday that began last month belongs
+     * on this month's grid, and a naive `start BETWEEN` drops it. That is the
+     * bug every calendar has once.
+     *
+     * @param list<int> $planningIds
+     *
+     * @return list<PlanningEventInterface>
+     */
+    public function findInWindow(array $planningIds, DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        if ([] === $planningIds) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('e')
+            ->addSelect('p')
+            // Joined and selected in the same query: a month grid draws the
+            // calendar's colour on every chip, and lazy-loading it would be one
+            // query per event.
+            ->innerJoin('e.planning', 'p')
+            ->where('e.planning IN (:plannings)')
+            ->andWhere('e.startAt < :to')
+            ->andWhere('e.endAt > :from')
+            ->setParameter('plannings', $planningIds)
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->orderBy('e.startAt', Order::Ascending->value)
+            ->addOrderBy('e.id', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * The event a module pushed for one of its own records, if it exists.
+     *
+     * Reads the unique pair the table already indexes, so a module re-announcing
+     * the same record updates its event instead of adding a second one.
+     */
+    public function findBySource(string $sourceType, int $sourceId): ?PlanningEventInterface
+    {
+        return $this->findOneBy(['sourceType' => $sourceType, 'sourceId' => $sourceId]);
+    }
+}
