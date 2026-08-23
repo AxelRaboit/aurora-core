@@ -34,9 +34,9 @@ backend:
     sections:
       ged: DMS
     documents: Documents
-    documents_description: "File and find internal documents: contracts, HR, finance, marketing."
+    documents_description: "Upload, file and find the documents in the library."
     ged_categories: Categories
-    ged_categories_description: "Sort documents by nature — one category per document."
+    ged_categories_description: "Sort documents by nature, one category per document."
     ged_tags: Tags
     ged_tags_description: "Tag a document freely, with as many tags as it needs."
     ged_folders: Folders
@@ -45,7 +45,7 @@ backend:
     bootstrap:
       categories:
         inline_uploads: Editorial media
-        inline_uploads_description: Images uploaded from an editing form — banners, featured images, custom fields.
+        inline_uploads_description: "Images uploaded from an editing form : banners, featured images, custom fields."
     documents:
       row_actions:
         view_description: Opens the preview, its versions and where it is used.

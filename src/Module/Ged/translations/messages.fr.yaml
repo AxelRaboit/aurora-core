@@ -34,9 +34,9 @@ backend:
     sections:
       ged: GED
     documents: Documents
-    documents_description: "Classer et retrouver les documents internes : contrats, RH, finance, marketing."
+    documents_description: "Déposer, classer et retrouver les documents de la bibliothèque."
     ged_categories: Catégories
-    ged_categories_description: "Classer les documents par nature — une catégorie par document."
+    ged_categories_description: "Classer les documents par nature, une catégorie par document."
     ged_tags: Étiquettes
     ged_tags_description: "Étiqueter librement un document, autant d'étiquettes que nécessaire."
     ged_folders: Dossiers
@@ -45,7 +45,7 @@ backend:
     bootstrap:
       categories:
         inline_uploads: Médias éditoriaux
-        inline_uploads_description: Images importées depuis un formulaire d'édition — bannières, images à la une, champs personnalisés.
+        inline_uploads_description: "Images importées depuis un formulaire d'édition : bannières, images à la une, champs personnalisés."
     documents:
       row_actions:
         view_description: Ouvre l'aperçu, ses versions et où il est utilisé.
