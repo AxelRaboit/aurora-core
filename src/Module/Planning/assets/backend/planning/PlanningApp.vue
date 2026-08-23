@@ -306,12 +306,18 @@ async function remove(event) {
 
                     <!-- Events in the range on screen, not a lifetime total.
                          Titled, because a bare number next to a calendar reads
-                         as "everything in it" and this one moves as you page. -->
+                         as "everything in it" and this one moves as you page.
+
+                         Absent rather than "0" when there is nothing: a zero in
+                         figures reads as a fact about the calendar, and this one
+                         is a fact about the month. No number says "nothing here
+                         right now", which is what it means. -->
                     <span
+                        v-if="countsByCalendar[calendar.id]"
                         class="text-2xs text-muted tabular-nums shrink-0 group-hover:hidden"
                         :title="t('backend.plannings.events_in_range')"
                     >
-                        {{ countsByCalendar[calendar.id] ?? 0 }}
+                        {{ countsByCalendar[calendar.id] }}
                     </span>
                     <!-- Takes the count's place on hover rather than sitting
                          beside it, so the row does not change width and the
