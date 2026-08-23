@@ -76,5 +76,22 @@
 .sidemenu-bottom { padding-left: 0.74rem; padding-right: 0.74rem; }
 
 .si { gap: 0.74rem; padding: 0.624rem 0.74rem; }
+
+/*
+ * The "view site" row is pinned to 40px so its border lines up with the
+ * breadcrumb band's. A `.si` link is 40px too — 0.624rem above and below a 20px
+ * row — so inside that band it fits exactly, and its hover fill runs into both
+ * borders with the rounded corners clipping flat against them.
+ *
+ * 0.375rem instead makes the link 32px, which the row centres with 4px of
+ * clearance top and bottom. Only here: everywhere else a `.si` sits in a
+ * scrolling list that already has room around it.
+ */
+.sh-view-site .si {
+    padding-block: 0.375rem;
+    /* The row centres the link, which makes it a flex item that would otherwise
+       shrink to its text — leaving a hover fill narrower than every row below. */
+    width: 100%;
+}
 .si-label { display: block; min-width: 0; }
 .si-section-header { padding: 0.374rem 0.74rem; }

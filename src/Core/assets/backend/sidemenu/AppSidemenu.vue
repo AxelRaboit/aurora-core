@@ -126,7 +126,20 @@ function openSearchFromMobile() {
             </a>
         </div>
 
-        <div v-if="hasEnabledFronts" class="px-3 py-2 border-b border-line shrink-0">
+        <!-- `h-10`, to the pixel, because this row and the breadcrumb band are
+             meant to read as one line across the page: the menu's header and
+             the page header's upper band are both `h-16`, so whatever comes next
+             on each side has to match too. The link already measures 40px on its
+             own — `.si` gives it 0.624rem above and below a 20px row — so the
+             `py-2` this used to carry was the whole discrepancy. Pinned rather
+             than left implicit so a change to `.si` cannot quietly break the
+             alignment.
+
+             The row keeps its height, so the *link* has to be shorter than it:
+             at a full 40px its hover fill reaches both borders and the rounded
+             corners clip against them. `.sh-view-site` trims it to 32px, which
+             centres with 4px of clearance — see sidemenu.css. -->
+        <div v-if="hasEnabledFronts" class="sh-view-site h-10 flex items-center px-3 border-b border-line shrink-0">
             <AppNavLink
                 :href="frontPath"
                 target="_blank"
