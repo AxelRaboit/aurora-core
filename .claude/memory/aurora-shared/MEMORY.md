@@ -15,7 +15,7 @@ Distribué via composer : les clients lisent ces mémoires depuis
   **règle dure** : pas d'import entre modules **du consommateur**
   (`App\Module\Tracking` → `App\Module\Bnb`). Le câblage passe par des
   points d'extension typés (`extraXxx` props/DTO) remplis par le projet.
-  **Ne s'applique pas** aux six modules d'aurora-core, qui forment un seul
+  **Ne s'applique pas** aux sept modules d'aurora-core, qui forment un seul
   noyau au couplage assumé jusque dans les entités - ne pas les relever en
   audit.
 - [convention_edit_vs_update_route_naming.md](convention_edit_vs_update_route_naming.md) -
@@ -132,6 +132,11 @@ Distribué via composer : les clients lisent ces mémoires depuis
   vendor patché fait passer le pipeline local tout en cassant la CI.
 - [process_make_ft_before_commit.md](process_make_ft_before_commit.md) -
   lancer `make ft` (= fix + test) avant chaque commit ; aucune échappatoire
+- [pitfall_mapping_index_schema_drift.md](pitfall_mapping_index_schema_drift.md) -
+  un index ou un type de colonne créé par une migration mais non déclaré dans le
+  mapping est un diff **permanent** de `schema:update`. Invisible sur une base de
+  dev bruitée : le contrôle se fait chez un consommateur propre, où la sortie
+  attendue est « Nothing to update ».
 - [pref_no_co_authored.md](pref_no_co_authored.md) - ne jamais ajouter
   `Co-Authored-By: Claude` dans les commits
 - [pref_commit_language.md](pref_commit_language.md) - messages de commit

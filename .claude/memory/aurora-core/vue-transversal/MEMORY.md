@@ -19,3 +19,4 @@
 - [utility_pick_translation.md](utility_pick_translation.md) - `pickTranslation` / `translatedField` avec fallback locale → en → première dispo
 - [convention_twig_locale_extension.md](convention_twig_locale_extension.md) - `locale_flag()` / `locale_name()` Twig depuis `LocaleExtension.php`
 - [pattern_settings_tab_vue_registry.md](pattern_settings_tab_vue_registry.md) - `registerSettingsTabComponent()` : plugin pattern pour fournir un composant Vue custom à un onglet de la page Settings (côté Vue de l'extension PHP `ConfigurationTabProvider`)
+- [pattern_display_timezone_shift.md](pattern_display_timezone_shift.md) - dessiner des instants UTC dans un fuseau choisi sans réécrire l'arithmétique de dates : réécrire l'instant en horloge murale **sans offset**, que `new Date()` relit en local (`toDisplay` / `fromDisplay`). Deux corollaires durs : ne jamais envoyer un `Date` d'affichage au serveur, et jamais `toISOString()` pour une clé de jour.
