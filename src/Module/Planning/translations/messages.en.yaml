@@ -39,6 +39,7 @@ backend:
     nothing_upcoming: "Nothing coming up."
     open_calendar: "Open the calendar"
     shortcuts: "Shortcuts: D day, W week, M month, T today, N/P navigate, C event, R reminder"
+    display_zone: "Display timezone"
     today: Today
     views:
       day: Day

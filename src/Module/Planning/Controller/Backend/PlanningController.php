@@ -196,9 +196,11 @@ final class PlanningController extends AbstractController
             if (!is_array($row)) {
                 continue;
             }
+
             if (!is_numeric($row['userId'] ?? null)) {
                 continue;
             }
+
             $wanted[(int) $row['userId']] = (bool) ($row['canWrite'] ?? false);
         }
 

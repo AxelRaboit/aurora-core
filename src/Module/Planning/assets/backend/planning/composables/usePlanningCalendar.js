@@ -4,6 +4,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { gridWindow, monthGrid } from "./monthGrid.js";
 import { timeGridWindow, visibleDays } from "./timeGrid.js";
+import { toDisplayRow, useDisplayZone } from "./displayZone.js";
 
 /**
  * Where the reader is, which calendars are showing, and the events between.
@@ -38,6 +39,14 @@ export function usePlanningCalendar(props) {
      * readable: at 375px a day column is 46 pixels wide.
      */
     const { matches: narrow } = useMediaQuery("(max-width: 767px)");
+
+    /**
+     * The zone the screen is drawn in, which every grid works from.
+     *
+     * One for the screen and not one per calendar: a grid shows several calendars
+     * at once and a "Tuesday" column cannot be Tuesday in two zones.
+     */
+    const { zone, setZone } = useDisplayZone();
 
     const params = new URLSearchParams(window.location.search);
     const anchor = ref(readDateFromUrl(params) ?? new Date());
@@ -300,6 +309,8 @@ export function usePlanningCalendar(props) {
         calendars,
         events,
         visibleEvents,
+        zone,
+        setZone,
         reminders,
         visibleReminders,
         countsByCalendar,

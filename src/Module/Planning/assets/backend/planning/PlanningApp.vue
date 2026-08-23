@@ -29,6 +29,7 @@ import EventModal from "./components/EventModal.vue";
 import { usePlanningCalendar } from "./composables/usePlanningCalendar.js";
 import { defaultTimeOn, draftAt } from "./composables/timeGrid.js";
 import { usePlanningShortcuts } from "./composables/usePlanningShortcuts.js";
+import { fromDisplay } from "./composables/displayZone.js";
 
 const props = defineProps({
     calendars: { type: Array, default: () => [] },
@@ -60,6 +61,8 @@ const { request } = useRequest();
 const {
     calendars,
     visibleEvents,
+    zone,
+    setZone,
     visibleReminders,
     countsByCalendar,
     hidden,
@@ -321,6 +324,25 @@ function viewEvent(event) {
     errors.value = {};
 }
 
+/**
+ * Turns a draft the grid built into real instants.
+ *
+ * The grid's columns are display days, so a click on one names a wall clock in the
+ * display zone rather than a moment. Converted at this boundary and the drag one
+ * below, which are the only two places a shifted value would otherwise be sent.
+ */
+function realSpan(draft) {
+    if (!draft.startAt) {
+        return draft;
+    }
+
+    return {
+        ...draft,
+        startAt: fromDisplay(new Date(draft.startAt), zone.value),
+        endAt: draft.endAt ? fromDisplay(new Date(draft.endAt), zone.value) : draft.endAt,
+    };
+}
+
 function create(draft = {}) {
     // The same gate the button carries. A click on the grid is a second way in,
     // and without this it would open a form whose save is refused - or one with
@@ -332,7 +354,7 @@ function create(draft = {}) {
     // An empty object rather than null: the modal opens on `event !== null`, and
     // a new event has no id yet. A click on the grid hands in a draft with its
     // two instants, so the form opens already on the day that was pointed at.
-    openEvent.value = draft;
+    openEvent.value = realSpan(draft);
     editing.value = true;
     errors.value = {};
     sheetOpen.value = false;
@@ -345,7 +367,10 @@ function close() {
 
 async function save(form) {
     if (needsScope(openEvent.value)) {
-        askScope("save", "edit", { ...form, occurrenceAt: openEvent.value.occurrenceAt });
+        askScope("save", "edit", {
+            ...form,
+            occurrenceAt: openEvent.value.realOccurrenceAt ?? openEvent.value.occurrenceAt,
+        });
 
         return;
     }
@@ -499,18 +524,22 @@ function createOnDay(date) {
  * too.
  */
 async function moveEvent(moved) {
+    // The grid worked in display wall clocks, so the span comes back in them; and
+    // `occurrenceAt` has to be the real instant, because the server matches it
+    // against a date a rule produced.
+    const span = realSpan({ startAt: moved.startAt, endAt: moved.endAt });
+
     if (needsScope(moved.event)) {
         askScope("move", "edit", {
             id: moved.id,
-            startAt: moved.startAt,
-            endAt: moved.endAt,
-            occurrenceAt: moved.event.occurrenceAt,
+            ...span,
+            occurrenceAt: moved.event.realOccurrenceAt ?? moved.event.occurrenceAt,
         });
 
         return;
     }
 
-    await sendMove(moved.id, { startAt: moved.startAt, endAt: moved.endAt });
+    await sendMove(moved.id, span);
 }
 
 async function sendMove(id, body) {
@@ -540,7 +569,10 @@ async function respond({ event, status }) {
 
 async function remove(event) {
     if (needsScope(event)) {
-        askScope("delete", "delete", { id: event.id, occurrenceAt: event.occurrenceAt });
+        askScope("delete", "delete", {
+            id: event.id,
+            occurrenceAt: event.realOccurrenceAt ?? event.occurrenceAt,
+        });
 
         return;
     }
@@ -571,6 +603,9 @@ async function sendDelete(id, body) {
             :counts-by-calendar="countsByCalendar"
             :can-create-events="canCreateEvents"
             :can-manage-calendars="canManageCalendars"
+            :zone="zone"
+            :timezones="timezones"
+            v-on:set-zone="setZone"
             v-on:create-event="create"
             v-on:create-reminder="createReminder"
             v-on:create-calendar="createCalendar"

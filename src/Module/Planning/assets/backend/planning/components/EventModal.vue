@@ -96,8 +96,12 @@ watch(
                 title: props.event.title,
                 description: props.event.description ?? "",
                 location: props.event.location ?? "",
-                startAt: toPickerValue(props.event.startAt, eventZone),
-                endAt: toPickerValue(props.event.endAt, eventZone),
+                // The real instants, not the display ones: the grid shifted those
+                // to the screen's zone, and the form converts from an instant into
+                // the calendar's own clock. Reading the shifted value would convert
+                // twice.
+                startAt: toPickerValue(props.event.realStartAt ?? props.event.startAt, eventZone),
+                endAt: toPickerValue(props.event.realEndAt ?? props.event.endAt, eventZone),
                 allDay: props.event.allDay,
                 status: props.event.status,
                 colourSlot: props.event.ownColourSlot ?? null,

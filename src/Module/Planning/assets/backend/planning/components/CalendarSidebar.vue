@@ -7,14 +7,19 @@
  * 167 pixels for a seven-day grid. Both Google and Apple put it behind a button
  * there. Duplicating the markup would mean fixing every future change twice.
  */
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { CalendarPlus, BellPlus, Pencil, Plus } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
+import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 
-defineProps({
+const props = defineProps({
     calendars: { type: Array, required: true },
+    /** The zone the screen draws in, and the names it may take. */
+    zone: { type: String, default: "" },
+    timezones: { type: Array, default: () => [] },
     /** Ids the reader has folded away, as a Set. */
     hidden: { type: Set, required: true },
     /** Items per calendar in the range on screen, keyed by id. */
@@ -24,6 +29,7 @@ defineProps({
 });
 
 const emit = defineEmits([
+    "set-zone",
     "create-event",
     "create-reminder",
     "create-calendar",
@@ -32,6 +38,10 @@ const emit = defineEmits([
 ]);
 
 const { t } = useI18n();
+
+const zoneOptions = computed(() =>
+    (props.timezones ?? []).map((name) => ({ value: name, label: name.replace(/_/g, " ") })),
+);
 </script>
 
 <template>
@@ -148,6 +158,20 @@ const { t } = useI18n();
                     <Pencil class="w-3.5 h-3.5" :stroke-width="2" />
                 </button>
             </div>
+        </div>
+
+        <!-- One zone for the screen, not one per calendar: a grid shows several at
+             once and a "Tuesday" column cannot be Tuesday in two zones. Kept here
+             rather than in the toolbar because it is set once and then forgotten. -->
+        <div class="bg-surface border border-line rounded-xl p-4 space-y-2">
+            <p class="text-2xs font-semibold uppercase tracking-wider text-muted">
+                {{ t("backend.plannings.display_zone") }}
+            </p>
+            <AppSelect
+                :model-value="zone"
+                :options="zoneOptions"
+                v-on:update:model-value="emit('set-zone', $event)"
+            />
         </div>
     </div>
 </template>

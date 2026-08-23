@@ -6,10 +6,15 @@
  * events touch which week, and how two events that overlap avoid each other -
  * and none of it needs a component mounted to be wrong.
  *
- * Dates are handled in the viewer's own zone. A calendar carries a timezone and
- * this does not read it yet: doing that properly means every comparison happens
- * in that zone, not just the display, and it is a change to make deliberately
- * rather than half.
+ * Dates are handled with a plain `Date` and its local getters, which is what keeps
+ * this readable - and the screen's chosen display zone is applied *before* anything
+ * reaches here. `displayZone.js` rewrites each instant as the wall clock it reads
+ * in that zone, so every comparison below is already in it without knowing.
+ *
+ * That is the resolution of what this note used to say was owed. Reading "the
+ * calendar's timezone" here was never possible: a grid shows several calendars at
+ * once and a "Tuesday" column cannot be Tuesday in two zones. One display zone for
+ * the screen can be, and it is what Google does.
  */
 
 /** Monday. A grid that started on Sunday would be a different product here. */

@@ -71,7 +71,12 @@ watch(
         const baseZone =
             props.calendars.find((calendar) => calendar.id === base.planningId)?.timezone ?? "";
 
-        form.value = { ...base, dueAt: base.dueAt ? toPickerValue(base.dueAt, baseZone) : "" };
+        // The real instant, for the reason the event form uses one: the grid
+        // shifted the drawn value into the screen's zone, and this converts from an
+        // instant into the calendar's clock.
+        const dueAt = base.realDueAt ?? base.dueAt;
+
+        form.value = { ...base, dueAt: dueAt ? toPickerValue(dueAt, baseZone) : "" };
     },
     { immediate: true },
 );
