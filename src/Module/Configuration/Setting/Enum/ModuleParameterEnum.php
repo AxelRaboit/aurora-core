@@ -17,6 +17,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     case MediaBackend = 'modules_media_backend';
     case EditorialBackend = 'modules_editorial_backend';
     case GedBackend = 'modules_ged_backend';
+    case PlanningBackend = 'modules_planning_backend';
 
     // Top-level modules - frontend (public site)
 
@@ -77,6 +78,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::EditorialComments => 'backend.nav.comments',
             self::EditorialForms => 'backend.nav.forms',
             self::GedBackend => 'backend.modules.ged_backend',
+            self::PlanningBackend => 'backend.modules.planning_backend',
 
             self::GedDocuments => 'backend.nav.documents',
             self::GedCategories => 'backend.nav.ged_categories',
@@ -108,6 +110,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::EditorialComments => 'backend.nav.comments_description',
             self::EditorialForms => 'backend.nav.forms_description',
             self::GedBackend => 'backend.modules.ged_backend_description',
+            self::PlanningBackend => 'backend.modules.planning_backend_description',
 
             self::GedDocuments => 'backend.nav.documents_description',
             self::GedCategories => 'backend.nav.ged_categories_description',
@@ -243,6 +246,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::MediaBackend => 'media',
             self::EditorialBackend => 'editorial',
             self::GedBackend => 'ged',
+            self::PlanningBackend => 'planning',
             default => null,
         };
     }

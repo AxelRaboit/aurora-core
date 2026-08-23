@@ -1,0 +1,67 @@
+backend:
+  audit:
+    actions:
+      planning:
+        calendar:
+          created: Calendar created
+          updated: Calendar updated
+          deleted: Calendar deleted
+        event:
+          created: Event created
+          updated: Event updated
+          deleted: Event deleted
+  permissions:
+    names:
+      planning:
+        calendars:
+          view: View the calendar
+          manage: Manage calendars
+        events:
+          create: Create events
+          edit: Edit events
+          delete: Delete events
+  modules:
+    planning: Calendar
+    planning_backend: Calendar
+    planning_backend_description: "Enables the calendar in the admin."
+  nav:
+    sections:
+      planning: Calendar
+    planning: Calendar
+    planning_description: "See what is on your calendars, by month, week or day."
+  plannings:
+    title: Calendar
+    calendars: My calendars
+    new_calendar: New calendar
+    empty: "No calendar yet."
+    name: Name
+    description: Description
+    colour: Colour
+    timezone: Time zone
+    visibility:
+      private: Private
+      shared: Shared
+    errors:
+      name_required: A calendar needs a name.
+      colour_out_of_range: "That colour is not in the palette."
+      timezone_unknown: That time zone is unknown.
+      window_invalid: "The requested range is not valid."
+    events:
+      title: Events
+      new: New event
+      all_day: All day
+      starts: Starts
+      ends: Ends
+      location: Location
+      status:
+        tentative: Tentative
+        confirmed: Confirmed
+        cancelled: Cancelled
+      from_module: "From a module"
+      errors:
+        title_required: "An event needs a title."
+        calendar_required: Pick a calendar.
+        start_required: "An event needs a start date."
+        end_required: "An event needs an end date."
+        end_before_start: "The end cannot come before the start."
+        read_only: "This event comes from another module: change it at its source."
