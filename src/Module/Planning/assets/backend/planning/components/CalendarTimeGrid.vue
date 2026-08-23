@@ -57,10 +57,36 @@ const columns = computed(() =>
 const now = ref(new Date());
 let ticker = null;
 
+/** The scrolling box, so the day can open somewhere worth looking at. */
+const hours = ref(null);
+
+/**
+ * The hour the grid opens on.
+ *
+ * An hour before now when today is on screen, so there is context above the line
+ * rather than it sitting against the top edge; 08:00 otherwise, because a range
+ * that is not today has no "now" and a working day is the useful guess.
+ *
+ * Without this the grid opened at 00:00 and the reader arrived in the middle of
+ * the night, which is a scroll every single time.
+ */
+function openingHour() {
+    const today = days.value.some((day) => sameDay(day, new Date()));
+
+    return today ? Math.max(0, new Date().getHours() - 1) : 8;
+}
+
 onMounted(() => {
     ticker = window.setInterval(() => {
         now.value = new Date();
     }, 60000);
+
+    if (null !== hours.value) {
+        // Read off the element rather than converting rem to pixels here: the box
+        // knows its own scroll height, and a hard-coded 16 would be wrong the day
+        // somebody changes the root font size.
+        hours.value.scrollTop = (openingHour() / HOURS.length) * hours.value.scrollHeight;
+    }
 });
 
 onBeforeUnmount(() => {
@@ -241,12 +267,17 @@ function addAllDayOn(day) {
         <!-- Taller than the viewport by design, so it scrolls inside itself and
              the header stays put. Capped shorter on a phone, where a 36rem box
              pushes everything else off the screen. -->
-        <div class="flex max-h-[24rem] overflow-y-auto sm:max-h-[36rem]">
+        <div ref="hours" class="flex max-h-[24rem] overflow-y-auto sm:max-h-[36rem]">
             <div class="w-11 shrink-0 border-r border-line sm:w-14">
+                <!-- No bottom border here. The rule belongs to the columns, and
+                     a gutter drawing its own turned each hour into a tick mark
+                     stopping at the labels - which is where the grid stopped
+                     looking like a grid. Google starts the rule after the gutter
+                     too. -->
                 <div
                     v-for="hour in HOURS"
                     :key="`g-${hour}`"
-                    class="relative border-b border-line last:border-b-0"
+                    class="relative"
                     :style="{ height: `${HOUR_REM}rem` }"
                 >
                     <!-- Pulled up half a line and hidden on the first row: an
@@ -272,11 +303,16 @@ function addAllDayOn(day) {
                 >
                     <!-- Hour lines, drawn per column rather than once behind the
                          grid, so they stop at the column's own border instead of
-                         crossing it. -->
+                         crossing it.
+
+                         At the same strength as the vertical separators. At 60%
+                         they were almost invisible in the dark theme, where
+                         `--color-line` is already a dark slate - so the grid read
+                         as seven empty columns with tick marks beside them. -->
                     <div
                         v-for="hour in HOURS"
                         :key="`l-${column.key}-${hour}`"
-                        class="absolute inset-x-0 border-b border-line/60 pointer-events-none"
+                        class="absolute inset-x-0 border-b border-line pointer-events-none"
                         :style="{ top: `${hour * HOUR_REM}rem`, height: `${HOUR_REM}rem` }"
                     />
 
