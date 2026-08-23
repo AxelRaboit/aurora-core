@@ -78,6 +78,12 @@ interface PostInterface
     /** @param array<string, mixed> $gridLayout */
     public function setGridLayout(array $gridLayout): static;
 
+    /** @return array<string, mixed> */
+    public function getGalleryLayout(): array;
+
+    /** @param array<string, mixed> $galleryLayout */
+    public function setGalleryLayout(array $galleryLayout): static;
+
     public function getPostType(): PostTypeInterface;
 
     public function setPostType(PostTypeInterface $postType): static;

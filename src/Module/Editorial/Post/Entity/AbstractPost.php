@@ -97,6 +97,21 @@ abstract class AbstractPost implements PostInterface
     #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
     protected array $gridLayout = [];
 
+    /**
+     * The gallery's arrangement: which pictures, in what order, and the rule
+     * that lays them out. Shape and defaults belong to
+     * {@see GalleryNormalizer}; an empty array means "never configured".
+     *
+     * On the post for the same reason as the two above - a gallery is designed
+     * once and every language inherits it. The alt text and captions live on the
+     * translation ({@see AbstractPostTranslation::$gallery}) and join back by
+     * item id.
+     *
+     * @var array<string, mixed>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
+    protected array $galleryLayout = [];
+
     #[ORM\ManyToOne(targetEntity: PostTypeInterface::class, inversedBy: 'posts')]
     #[ORM\JoinColumn(nullable: false)]
     protected PostTypeInterface $postType;
@@ -268,6 +283,20 @@ abstract class AbstractPost implements PostInterface
     public function setGridLayout(array $gridLayout): static
     {
         $this->gridLayout = $gridLayout;
+
+        return $this;
+    }
+
+    /** @return array<string, mixed> */
+    public function getGalleryLayout(): array
+    {
+        return $this->galleryLayout;
+    }
+
+    /** @param array<string, mixed> $galleryLayout */
+    public function setGalleryLayout(array $galleryLayout): static
+    {
+        $this->galleryLayout = $galleryLayout;
 
         return $this;
     }

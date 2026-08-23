@@ -35,6 +35,7 @@ class PostInput implements PostInputInterface
         public readonly bool $titleVisible = true,
         public readonly array $bannerLayout = [],
         public readonly array $gridLayout = [],
+        public readonly array $galleryLayout = [],
         public readonly string $thumbnailFit = 'cover',
         public readonly ?float $thumbnailFocalX = null,
         public readonly ?float $thumbnailFocalY = null,
@@ -56,6 +57,7 @@ class PostInput implements PostInputInterface
             titleVisible: $this->titleVisible,
             bannerLayout: $this->bannerLayout,
             gridLayout: $this->gridLayout,
+            galleryLayout: $this->galleryLayout,
             thumbnailFit: $this->thumbnailFit,
             thumbnailFocalX: $this->thumbnailFocalX,
             thumbnailFocalY: $this->thumbnailFocalY,
@@ -140,6 +142,12 @@ class PostInput implements PostInputInterface
     public function getGridLayout(): array
     {
         return $this->gridLayout;
+    }
+
+    /** @return array<string, mixed> */
+    public function getGalleryLayout(): array
+    {
+        return $this->galleryLayout;
     }
 
     /**

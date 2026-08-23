@@ -71,6 +71,19 @@ abstract class AbstractPostTranslation implements PostTranslationInterface
     #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
     protected array $grid = [];
 
+    /**
+     * What each gallery picture says in this locale - its alt text and its
+     * caption - keyed by the id of the item on the post. Shape belongs to
+     * {@see GalleryNormalizer}.
+     *
+     * Only the words. The arrangement lives once on the post
+     * ({@see AbstractPost::$galleryLayout}).
+     *
+     * @var array<string, mixed>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
+    protected array $gallery = [];
+
     #[ORM\ManyToOne(targetEntity: DocumentInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?DocumentInterface $ogImage = null;
@@ -160,6 +173,20 @@ abstract class AbstractPostTranslation implements PostTranslationInterface
     public function setGrid(array $grid): static
     {
         $this->grid = $grid;
+
+        return $this;
+    }
+
+    /** @return array<string, mixed> */
+    public function getGallery(): array
+    {
+        return $this->gallery;
+    }
+
+    /** @param array<string, mixed> $gallery */
+    public function setGallery(array $gallery): static
+    {
+        $this->gallery = $gallery;
 
         return $this;
     }

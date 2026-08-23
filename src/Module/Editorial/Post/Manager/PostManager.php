@@ -18,6 +18,7 @@ use Aurora\Module\Editorial\Post\Entity\PostRevisionInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
+use Aurora\Module\Editorial\Post\Gallery\GalleryNormalizer;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Repository\PostRevisionRepository;
@@ -62,6 +63,7 @@ class PostManager implements PostManagerInterface
         protected readonly SequenceGenerator $sequenceGenerator,
         protected readonly BannerNormalizer $bannerNormalizer,
         protected readonly GridNormalizer $gridNormalizer,
+        protected readonly GalleryNormalizer $galleryNormalizer,
     ) {}
 
     public function create(PostInputInterface $input): PostInterface
@@ -240,6 +242,11 @@ class PostManager implements PostManagerInterface
         $gridLayout = $this->gridNormalizer->normalizeLayout($input->getGridLayout());
         $post->setGridLayout($gridLayout);
 
+        // And the gallery, for the third time and the same reason: its items'
+        // ids are what each language's alt text and captions hang off.
+        $galleryLayout = $this->galleryNormalizer->normalizeLayout($input->getGalleryLayout());
+        $post->setGalleryLayout($galleryLayout);
+
         $this->syncTerms($post, $input->getTermIds());
         $this->syncRelatedPosts($post, $input->getRelatedPostIds());
 
@@ -248,7 +255,7 @@ class PostManager implements PostManagerInterface
         )));
 
         foreach ($input->getTranslations() as $locale => $translationInput) {
-            $this->applyTranslation($post, (string) $locale, $translationInput, $ogImages, $bannerLayout, $gridLayout);
+            $this->applyTranslation($post, (string) $locale, $translationInput, $ogImages, $bannerLayout, $gridLayout, $galleryLayout);
         }
     }
 
@@ -258,10 +265,11 @@ class PostManager implements PostManagerInterface
      * dropping a block must not delete a file another post still shows.
      *
      * @param array<int, DocumentInterface> $ogImages
-     * @param array<string, mixed>          $bannerLayout the already-normalised layout, which says which banner items exist
-     * @param array<string, mixed>          $gridLayout   likewise, for the content grid's zones
+     * @param array<string, mixed>          $bannerLayout  the already-normalised layout, which says which banner items exist
+     * @param array<string, mixed>          $gridLayout    likewise, for the content grid's zones
+     * @param array<string, mixed>          $galleryLayout likewise, for the gallery's items
      */
-    protected function applyTranslation(PostInterface $post, string $locale, PostTranslationInput $input, array $ogImages = [], array $bannerLayout = [], array $gridLayout = []): void
+    protected function applyTranslation(PostInterface $post, string $locale, PostTranslationInput $input, array $ogImages = [], array $bannerLayout = [], array $gridLayout = [], array $galleryLayout = []): void
     {
         $translation = $post->translate($locale);
 
@@ -270,6 +278,7 @@ class PostManager implements PostManagerInterface
         // item that no longer exists is dropped instead of lingering unseen.
         $translation->setBanner($this->bannerNormalizer->normalizeTexts($input->banner, $bannerLayout));
         $translation->setGrid($this->gridNormalizer->normalizeContent($input->grid, $gridLayout));
+        $translation->setGallery($this->galleryNormalizer->normalizeContent($input->gallery, $galleryLayout));
         $translation->setDescription($input->description);
         $translation->setMetaTitle($input->metaTitle);
         $translation->setMetaDescription($input->metaDescription);

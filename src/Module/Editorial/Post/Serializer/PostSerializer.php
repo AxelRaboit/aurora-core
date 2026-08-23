@@ -8,6 +8,7 @@ use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
+use Aurora\Module\Editorial\Post\Gallery\GalleryViewBuilder;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Editorial\Post\Service\ThumbnailPresenter;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
@@ -23,6 +24,7 @@ class PostSerializer implements PostSerializerInterface
         protected readonly DocumentUrlGenerator $documentUrlGenerator,
         protected readonly BannerViewBuilder $bannerViewBuilder,
         protected readonly GridViewBuilder $gridViewBuilder,
+        protected readonly GalleryViewBuilder $galleryViewBuilder,
         protected readonly ThumbnailPresenter $thumbnailPresenter,
     ) {}
 
@@ -100,6 +102,10 @@ class PostSerializer implements PostSerializerInterface
                 [],
                 $this->localeContext->getDefaultLocale(),
             ),
+            // And the gallery, for the same reason as the two above: resolved so
+            // the picker previews the pictures it already holds, and its words
+            // left out because they belong to whichever locale is open.
+            'galleryLayout' => $this->galleryViewBuilder->buildForEditor($post->getGalleryLayout(), []),
             'translations' => $translations,
             'relatedPosts' => array_map(
                 $this->serializeReference(...),
@@ -146,6 +152,7 @@ class PostSerializer implements PostSerializerInterface
             // layout standing - which is the whole point of the split.
             'banner' => $translation->getBanner(),
             'grid' => $translation->getGrid(),
+            'gallery' => $translation->getGallery(),
             'description' => $translation->getDescription(),
             'metaTitle' => $translation->getMetaTitle(),
             'metaDescription' => $translation->getMetaDescription(),

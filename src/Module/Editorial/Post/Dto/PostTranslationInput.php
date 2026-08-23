@@ -18,6 +18,7 @@ final readonly class PostTranslationInput
      * @param array<string, mixed>|null $jsonLd
      * @param array<string, mixed>      $banner       raw; normalised at the write boundary by BannerNormalizer
      * @param array<string, mixed>      $grid         raw; normalised at the write boundary by GridNormalizer
+     * @param array<string, mixed>      $gallery      raw; normalised at the write boundary by GalleryNormalizer
      */
     public function __construct(
         public ?string $title,
@@ -33,6 +34,7 @@ final readonly class PostTranslationInput
         public ?array $jsonLd = null,
         public array $banner = [],
         public array $grid = [],
+        public array $gallery = [],
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -52,6 +54,7 @@ final readonly class PostTranslationInput
             jsonLd: self::decodeJsonLd($data['jsonLd'] ?? null),
             banner: is_array($data['banner'] ?? null) ? $data['banner'] : [],
             grid: is_array($data['grid'] ?? null) ? $data['grid'] : [],
+            gallery: is_array($data['gallery'] ?? null) ? $data['gallery'] : [],
         );
     }
 

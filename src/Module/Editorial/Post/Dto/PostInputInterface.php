@@ -57,6 +57,9 @@ interface PostInputInterface
      */
     public function getGridLayout(): array;
 
+    /** @return array<string, mixed> */
+    public function getGalleryLayout(): array;
+
     /** Returns a copy with a different status, leaving everything else alone. */
     public function withStatus(string $status): self;
 }

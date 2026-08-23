@@ -33,6 +33,7 @@ class PostInputFactory implements PostInputFactoryInterface
             // On the post, not the translation: one design for every language.
             bannerLayout: is_array($data['bannerLayout'] ?? null) ? $data['bannerLayout'] : [],
             gridLayout: is_array($data['gridLayout'] ?? null) ? $data['gridLayout'] : [],
+            galleryLayout: is_array($data['galleryLayout'] ?? null) ? $data['galleryLayout'] : [],
             thumbnailFit: Str::trimOrNull((string) ($data['thumbnailFit'] ?? '')) ?? ThumbnailFitEnum::Cover->value,
             thumbnailFocalX: $this->fractionOrNull($data['thumbnailFocalX'] ?? null),
             thumbnailFocalY: $this->fractionOrNull($data['thumbnailFocalY'] ?? null),
