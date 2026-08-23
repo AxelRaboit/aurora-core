@@ -51,6 +51,25 @@ use function sprintf;
  * fine for a demo and is why the tests build their own rows instead of leaning on
  * this.
  *
+ * **Re-running it is safe.** `make demo` loads with `--append` and is documented
+ * as idempotent, which this fixture used to break: it created its calendars
+ * unconditionally, so a second run produced a second "Pro" holding a second copy
+ * of everything. Calendars are now found by name and owner, and content is only
+ * seeded into a calendar that this run just created - so a reload adds nothing and
+ * destroys nothing, including events somebody added by hand.
+ *
+ * The trade-off is that a reload does not *refresh* the dates. To move the demo to
+ * the current week, delete the calendars and load again - the cascade takes their
+ * contents with them:
+ *
+ * ```
+ * php bin/console dbal:run-sql "DELETE FROM core_plannings WHERE owner_id = <id>"
+ * make demo
+ * ```
+ *
+ * That is deliberately a manual step. The alternative - wiping a demo calendar's
+ * contents on every load - would silently delete work somebody had put on it.
+ *
  * Dev/test only, `demo` group.
  */
 class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
@@ -61,6 +80,17 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
      * @var list<User>
      */
     private array $people = [];
+
+    /**
+     * Whether this run created the calendars, and may therefore fill them.
+     *
+     * False as soon as one of them already existed, and then nothing is seeded at
+     * all - not even into the ones that are new. Partial seeding would be worse
+     * than none: the demo's point is that the shapes sit next to each other, and
+     * half of them against a calendar somebody has been using is not a demo, it is
+     * clutter in their calendar.
+     */
+    private bool $fresh = true;
 
     public function __construct(private readonly UserRepository $userRepository) {}
 
@@ -123,7 +153,23 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
 
         // A published feed, so the modal has a live address to show and revoke.
         $courses = $this->calendar($manager, $owner, 'Formations', 6, 'Abonnable depuis un téléphone.');
-        $courses->publishFeed();
+
+        // Only once. `publishFeed()` issues a new token, so calling it on every
+        // load would silently break a phone that had already subscribed - the old
+        // address stops resolving and the calendar just goes quiet.
+        if (!$courses->hasFeed()) {
+            $courses->publishFeed();
+        }
+
+        // Nothing else to do on a database that already has this demo on it. The
+        // calendars above were found rather than made, and their settings are
+        // refreshed by the setters either way - which is the one part it is safe to
+        // reapply, since it overwrites a value rather than adding a row.
+        if (!$this->fresh) {
+            $manager->flush();
+
+            return;
+        }
 
         $this->recurring($manager, $work, $team);
         $this->overlapping($manager, $work);
@@ -164,6 +210,14 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
         return $found;
     }
 
+    /**
+     * The demo calendar of that name, made if it is not there yet.
+     *
+     * Name plus owner is the key. Neither is unique in the schema - somebody may
+     * legitimately have two calendars called "Perso" - but for a demo seeding
+     * fixed names into one account it identifies the row, and it is what stops a
+     * second run producing a second "Pro".
+     */
     private function calendar(
         EntityManagerInterface $manager,
         User $owner,
@@ -171,20 +225,41 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
         int $colourSlot,
         string $description,
     ): PlanningInterface {
-        $planning = new Planning();
+        $planning = $manager->getRepository(Planning::class)
+            ->findOneBy(['name' => $name, 'owner' => $owner]);
+
+        if (!$planning instanceof Planning) {
+            $planning = new Planning();
+            $manager->persist($planning);
+        } else {
+            $this->fresh = false;
+        }
+
         $planning->setName($name);
         $planning->setDescription($description);
         $planning->setColourSlot($colourSlot);
         $planning->setOwner($owner);
         $planning->setVisibility(PlanningVisibilityEnum::Private);
 
-        $manager->persist($planning);
-
         return $planning;
     }
 
+    /**
+     * Named on the calendar, once.
+     *
+     * Guarded separately from `$fresh` because it runs before that is known to be
+     * final, and because a share is the one thing here with a real natural key:
+     * one row per person per calendar. Adding a second would be a bug the modal
+     * would show as a duplicated name.
+     */
     private function shareWithEverybody(EntityManagerInterface $manager, PlanningInterface $planning): void
     {
+        foreach ($planning->getShares() as $existing) {
+            if (null !== $existing->getId()) {
+                return;
+            }
+        }
+
         foreach ($this->people as $index => $person) {
             $share = new PlanningShare();
             $share->setUser($person);
