@@ -35,12 +35,18 @@ backend:
     more: "+{count} autre(s)"
     calendars: Mes calendriers
     new_calendar: Nouveau calendrier
+    edit_calendar: Modifier le calendrier
+    name_placeholder: "Travail, Perso, Photo…"
+    colour_slot: "Couleur {slot}"
+    visibility_hint: "Un calendrier partagé est visible par tous ceux qui ont accès au calendrier."
+    timezone_hint: "Le fuseau qui découpe les journées entières de ce calendrier."
     empty: "Aucun calendrier pour l'instant."
     name: Nom
     description: Description
     colour: Couleur
     timezone: Fuseau horaire
     visibility:
+      label: Visibilité
       private: Privé
       shared: Partagé
     errors:

@@ -21,6 +21,7 @@ use Aurora\Module\Planning\Planning\Repository\PlanningRepository;
 use Aurora\Module\Planning\Planning\Serializer\PlanningSerializer;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
+use DateTimeZone;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -61,6 +62,11 @@ final class PlanningController extends AbstractController
     {
         return $this->render('@Planning/backend/index.html.twig', [
             'calendars' => $this->planningSerializer->serializeMany($this->visibleCalendars()),
+            // The zones the runtime can actually resolve, which is what the DTO
+            // validates against. A list of our own would drift from PHP's, and a
+            // calendar cutting its days in a zone the runtime cannot resolve puts
+            // every all-day event on the wrong day.
+            'timezones' => DateTimeZone::listIdentifiers(),
         ]);
     }
 

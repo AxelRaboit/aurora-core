@@ -101,6 +101,50 @@ export function usePlanningCalendar(props) {
         month.value = now.getMonth();
     }
 
+    /**
+     * Puts a saved calendar into the list, in place or at the end.
+     *
+     * Spliced rather than refetched, because the write already answered with the
+     * serialised calendar: asking the server again for something it just sent
+     * would make the sidebar blink for no new information.
+     */
+    function upsertCalendar(calendar) {
+        const at = calendars.value.findIndex(
+            (existing) => existing.id === calendar.id,
+        );
+
+        if (-1 === at) {
+            calendars.value = [...calendars.value, calendar].sort((a, b) =>
+                a.name.localeCompare(b.name),
+            );
+
+            return;
+        }
+
+        const next = [...calendars.value];
+        next[at] = calendar;
+        calendars.value = next;
+    }
+
+    /**
+     * Drops a deleted calendar, and stops hiding an id that no longer exists.
+     *
+     * The second half matters: the hidden set is keyed by id, and leaving a dead
+     * id in it would silently hide a future calendar that happens to reuse the
+     * number.
+     */
+    function removeCalendar(id) {
+        calendars.value = calendars.value.filter(
+            (calendar) => calendar.id !== id,
+        );
+
+        if (hidden.value.has(id)) {
+            const next = new Set(hidden.value);
+            next.delete(id);
+            hidden.value = next;
+        }
+    }
+
     function toggleCalendar(id) {
         const next = new Set(hidden.value);
         next.has(id) ? next.delete(id) : next.add(id);
@@ -132,5 +176,7 @@ export function usePlanningCalendar(props) {
         goToMonth,
         goToToday,
         toggleCalendar,
+        upsertCalendar,
+        removeCalendar,
     };
 }

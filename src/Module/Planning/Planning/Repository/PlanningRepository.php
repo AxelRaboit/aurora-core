@@ -38,29 +38,4 @@ class PlanningRepository extends ResolveTargetEntityRepository
             ->getQuery()
             ->getResult();
     }
-
-    /**
-     * The next free colour for a new calendar.
-     *
-     * Walks the palette in order and takes the first slot nobody is using, so two
-     * calendars made in a row look different without anybody choosing. Once every
-     * slot is taken it starts over: eight is the palette's ceiling, and a ninth
-     * calendar sharing a colour is better than a ninth colour nobody can tell
-     * from the first.
-     */
-    public function nextFreeColourSlot(): int
-    {
-        $taken = array_column(
-            $this->createQueryBuilder('p')->select('DISTINCT p.colourSlot AS slot')->getQuery()->getArrayResult(),
-            'slot',
-        );
-
-        for ($slot = 1; $slot <= 8; ++$slot) {
-            if (!in_array($slot, $taken, true)) {
-                return $slot;
-            }
-        }
-
-        return 1;
-    }
 }

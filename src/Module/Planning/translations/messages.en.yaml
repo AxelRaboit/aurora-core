@@ -35,12 +35,18 @@ backend:
     more: "+{count} more"
     calendars: My calendars
     new_calendar: New calendar
+    edit_calendar: Edit calendar
+    name_placeholder: "Work, Personal, Photo…"
+    colour_slot: "Colour {slot}"
+    visibility_hint: "A shared calendar is visible to everyone who can reach the calendar."
+    timezone_hint: "The zone this calendar cuts its whole days in."
     empty: "No calendar yet."
     name: Name
     description: Description
     colour: Colour
     timezone: Time zone
     visibility:
+      label: Visibility
       private: Private
       shared: Shared
     errors:

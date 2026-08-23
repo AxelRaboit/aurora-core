@@ -9,20 +9,25 @@
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { CalendarPlus, ChevronLeft, ChevronRight } from "lucide-vue-next";
+import { CalendarPlus, ChevronLeft, ChevronRight, Pencil, Plus } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import CalendarModal from "./components/CalendarModal.vue";
 import CalendarMonth from "./components/CalendarMonth.vue";
 import EventModal from "./components/EventModal.vue";
 import { usePlanningCalendar } from "./composables/usePlanningCalendar.js";
 
 const props = defineProps({
     calendars: { type: Array, default: () => [] },
+    timezones: { type: Array, default: () => [] },
     eventsPath: { type: String, required: true },
+    createCalendarPath: { type: String, required: true },
+    updateCalendarPathTemplate: { type: String, required: true },
+    deleteCalendarPathTemplate: { type: String, required: true },
     createEventPath: { type: String, required: true },
     updateEventPathTemplate: { type: String, required: true },
     deleteEventPathTemplate: { type: String, required: true },
@@ -44,11 +49,73 @@ const {
     goToMonth,
     goToToday,
     toggleCalendar,
+    upsertCalendar,
+    removeCalendar,
 } = usePlanningCalendar(props);
 
 const monthLabel = computed(() =>
     d(new Date(year.value, month.value, 1), { month: "long", year: "numeric" }),
 );
+
+const openCalendar = ref(null);
+const calendarErrors = ref({});
+const savingCalendar = ref(false);
+
+const canManageCalendars = computed(() => can("planning.calendars.manage"));
+
+function createCalendar() {
+    // `{}` and not null: the modal opens on `calendar !== null`, and a new
+    // calendar has no id yet.
+    openCalendar.value = {};
+    calendarErrors.value = {};
+}
+
+function editCalendar(calendar) {
+    openCalendar.value = calendar;
+    calendarErrors.value = {};
+}
+
+function closeCalendar() {
+    openCalendar.value = null;
+}
+
+async function saveCalendar(form) {
+    savingCalendar.value = true;
+    calendarErrors.value = {};
+
+    try {
+        const id = openCalendar.value?.id;
+        const path = id
+            ? props.updateCalendarPathTemplate.replace("__id__", String(id))
+            : props.createCalendarPath;
+
+        const data = await request(path, form);
+
+        if (!data) return;
+        if (data.errors) {
+            calendarErrors.value = data.errors;
+
+            return;
+        }
+
+        upsertCalendar(data.calendar);
+        closeCalendar();
+        // Reloaded because a calendar's colour is drawn on every one of its
+        // events, and renaming it changes what the popover says.
+        await load();
+    } finally {
+        savingCalendar.value = false;
+    }
+}
+
+async function removeCalendarAndItsEvents(calendar) {
+    const data = await request(props.deleteCalendarPathTemplate.replace("__id__", String(calendar.id)));
+    if (!data) return;
+
+    removeCalendar(calendar.id);
+    closeCalendar();
+    await load();
+}
 
 const openEvent = ref(null);
 const editing = ref(false);
@@ -127,33 +194,82 @@ async function remove(event) {
             </AppButton>
 
             <div class="bg-surface border border-line rounded-xl p-4 space-y-2.5">
-                <p class="text-2xs font-semibold uppercase tracking-wider text-muted">
-                    {{ t("backend.plannings.calendars") }}
-                </p>
+                <div class="flex items-center gap-2">
+                    <p class="text-2xs font-semibold uppercase tracking-wider text-muted">
+                        {{ t("backend.plannings.calendars") }}
+                    </p>
+                    <AppIconButton
+                        v-if="canManageCalendars"
+                        class="ml-auto -my-1"
+                        :title="t('backend.plannings.new_calendar')"
+                        v-on:click="createCalendar"
+                    >
+                        <Plus class="w-4 h-4" :stroke-width="2" />
+                    </AppIconButton>
+                </div>
 
-                <AppNoData v-if="!calendars.length" :message="t('backend.plannings.empty')" />
+                <!-- The empty state used to be the end of the road: no calendar
+                     meant no way to make one, and the "new event" button below
+                     is hidden without one. -->
+                <template v-if="!calendars.length">
+                    <AppNoData :message="t('backend.plannings.empty')" />
+                    <AppButton
+                        v-if="canManageCalendars"
+                        variant="primary"
+                        size="sm"
+                        class="w-full"
+                        v-on:click="createCalendar"
+                    >
+                        <CalendarPlus class="w-4 h-4" :stroke-width="2" />
+                        {{ t("backend.plannings.new_calendar") }}
+                    </AppButton>
+                </template>
 
                 <!-- A calendar folded away is a display decision, so it toggles
                      without a round trip and without touching the URL: which of
                      your own calendars you have hidden is not something you send
-                     anyone. -->
-                <button
+                     anyone.
+
+                     A row, not a button, because it now holds two actions: the
+                     name toggles, the pencil edits. A button inside a button is
+                     invalid HTML and the inner one never fires. -->
+                <div
                     v-for="calendar in calendars"
                     :key="calendar.id"
-                    type="button"
-                    class="flex w-full items-center gap-2 text-left text-sm transition-opacity"
+                    class="group flex items-center gap-2 text-sm transition-opacity"
                     :class="hidden.has(calendar.id) ? 'opacity-40' : ''"
-                    v-on:click="toggleCalendar(calendar.id)"
                 >
-                    <span
-                        class="w-3 h-3 rounded shrink-0"
-                        :style="hidden.has(calendar.id)
-                            ? { border: '1.5px solid var(--th-muted)' }
-                            : { backgroundColor: `var(--chart-cat-${calendar.colourSlot})` }"
-                    />
-                    <span class="text-secondary truncate">{{ calendar.name }}</span>
-                    <span class="ml-auto text-2xs text-muted tabular-nums shrink-0">{{ calendar.eventCount }}</span>
-                </button>
+                    <button
+                        type="button"
+                        class="flex min-w-0 flex-1 items-center gap-2 text-left cursor-pointer"
+                        :aria-pressed="!hidden.has(calendar.id)"
+                        v-on:click="toggleCalendar(calendar.id)"
+                    >
+                        <span
+                            class="w-3 h-3 rounded shrink-0"
+                            :style="hidden.has(calendar.id)
+                                ? { border: '1.5px solid var(--th-muted)' }
+                                : { backgroundColor: `var(--chart-cat-${calendar.colourSlot})` }"
+                        />
+                        <span class="text-secondary truncate">{{ calendar.name }}</span>
+                    </button>
+
+                    <span class="text-2xs text-muted tabular-nums shrink-0 group-hover:hidden">
+                        {{ calendar.eventCount }}
+                    </span>
+                    <!-- Takes the count's place on hover rather than sitting
+                         beside it, so the row does not change width and the
+                         names stay lined up. -->
+                    <button
+                        v-if="canManageCalendars"
+                        type="button"
+                        class="hidden shrink-0 cursor-pointer text-muted hover:text-primary group-hover:block"
+                        :title="t('backend.plannings.edit_calendar')"
+                        v-on:click="editCalendar(calendar)"
+                    >
+                        <Pencil class="w-3.5 h-3.5" :stroke-width="2" />
+                    </button>
+                </div>
             </div>
         </aside>
 
@@ -176,6 +292,17 @@ async function remove(event) {
 
             <CalendarMonth :cells="cells" :events="visibleEvents" v-on:open-event="view" />
         </div>
+
+        <CalendarModal
+            :calendar="openCalendar"
+            :calendars="calendars"
+            :timezones="timezones"
+            :errors="calendarErrors"
+            :saving="savingCalendar"
+            v-on:close="closeCalendar"
+            v-on:save="saveCalendar"
+            v-on:delete="removeCalendarAndItsEvents"
+        />
 
         <EventModal
             :event="openEvent"
