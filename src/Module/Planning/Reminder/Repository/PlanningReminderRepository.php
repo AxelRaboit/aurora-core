@@ -45,6 +45,39 @@ class PlanningReminderRepository extends ServiceEntityRepository
     }
 
     /**
+     * Reminders whose title matches, among the calendars the reader may see.
+     *
+     * Completed ones included, unlike `findUpcoming`: searching is how you find
+     * out whether you already did something.
+     *
+     * @param list<int> $planningIds
+     *
+     * @return list<PlanningReminderInterface>
+     */
+    public function searchVisible(array $planningIds, string $query, int $limit = 10): array
+    {
+        $term = mb_trim($query);
+        if ([] === $planningIds || '' === $term) {
+            return [];
+        }
+
+        /** @var list<PlanningReminderInterface> $result */
+        $result = $this->createQueryBuilder('r')
+            ->addSelect('p')
+            ->innerJoin('r.planning', 'p')
+            ->where('r.planning IN (:plannings)')
+            ->andWhere('LOWER(r.title) LIKE :term')
+            ->setParameter('plannings', $planningIds)
+            ->setParameter('term', '%'.mb_strtolower($term).'%')
+            ->orderBy('r.dueAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
+
+    /**
      * The next few reminders still to do.
      *
      * Completed ones are excluded, because "what is coming" means what is still

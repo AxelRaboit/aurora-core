@@ -67,6 +67,8 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
         media: [],
         projects: [],
         tasks: [],
+        events: [],
+        reminders: [],
     });
 
     // ── Local results ─────────────────────────────────────────────────────────
@@ -104,6 +106,8 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
             { kind: "post", items: apiResults.value.posts },
             { kind: "term", items: apiResults.value.terms },
             { kind: "media", items: apiResults.value.media },
+            { kind: "event", items: apiResults.value.events },
+            { kind: "reminder", items: apiResults.value.reminders },
         ].filter((s) => s.items.length > 0);
     });
 
@@ -126,6 +130,8 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
                 media: [],
                 projects: [],
                 tasks: [],
+                events: [],
+                reminders: [],
             };
             return;
         }
@@ -144,6 +150,8 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
                     media: data.media ?? [],
                     projects: data.projects ?? [],
                     tasks: data.tasks ?? [],
+                    events: data.events ?? [],
+                    reminders: data.reminders ?? [],
                 };
                 searchHighlightedIndex.value = 0;
             }
@@ -198,7 +206,11 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
         if (!entry) return;
         const { kind, item } = entry;
 
-        if (kind === "recent" || kind === "nav") {
+        // A row that carries its own path goes there, whatever kind it is. The
+        // branches below predate this and stay because those rows do not: adding
+        // one per module was how core's search ended up knowing route names that
+        // belong to modules.
+        if (kind === "recent" || kind === "nav" || item.path) {
             window.location.href = item.path;
         } else if (kind === "post") {
             const path = findNavPath("admin_posts");

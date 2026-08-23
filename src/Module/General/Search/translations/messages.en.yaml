@@ -16,3 +16,5 @@ backend:
       posts: Content
       terms: Terms
       media: Media
+      events: Events
+      reminders: Reminders

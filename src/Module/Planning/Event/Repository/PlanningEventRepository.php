@@ -73,6 +73,42 @@ class PlanningEventRepository extends ResolveTargetEntityRepository
      *
      * @return list<PlanningEventInterface>
      */
+    /**
+     * Events whose title matches, among the calendars the reader may see.
+     *
+     * Scoped, and that is not optional: global search reaches every screen, so an
+     * unscoped title match is the shortest path there is to reading somebody
+     * else's private calendar.
+     *
+     * @param list<int> $planningIds
+     *
+     * @return list<PlanningEventInterface>
+     */
+    public function searchVisible(array $planningIds, string $query, int $limit = 10): array
+    {
+        $term = mb_trim($query);
+        if ([] === $planningIds || '' === $term) {
+            return [];
+        }
+
+        /** @var list<PlanningEventInterface> $result */
+        $result = $this->createQueryBuilder('e')
+            ->addSelect('p')
+            ->innerJoin('e.planning', 'p')
+            ->where('e.planning IN (:plannings)')
+            ->andWhere('LOWER(e.title) LIKE :term')
+            ->setParameter('plannings', $planningIds)
+            ->setParameter('term', '%'.mb_strtolower($term).'%')
+            // Most recent first: a search for "recette" usually means the one
+            // coming up or the one just gone, not the first ever held.
+            ->orderBy('e.startAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
+
     public function findUpcoming(array $planningIds, DateTimeImmutable $from, int $limit = 5): array
     {
         if ([] === $planningIds) {

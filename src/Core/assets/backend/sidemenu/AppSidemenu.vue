@@ -25,10 +25,30 @@ import AppNotificationsBell from "@core/backend/notifications/AppNotificationsBe
 import AppSidemenuAccount from "./AppSidemenuAccount.vue";
 import AppSidemenuNav from "./AppSidemenuNav.vue";
 import {
-    Globe, ShieldCheck, LogOut, Mail, Moon, Sun, User, SlidersHorizontal,
-    PanelLeft, PanelLeftClose, X,
-    Search, Loader2, ChevronDown, Filter,
-    Clock, Layers, FileText, Tags as TagsIcon, Image, FolderKanban, CheckSquare,
+    AlarmClock,
+    CalendarDays,
+    CheckSquare,
+    ChevronDown,
+    Clock,
+    FileText,
+    Filter,
+    FolderKanban,
+    Globe,
+    Image,
+    Layers,
+    Loader2,
+    LogOut,
+    Mail,
+    Moon,
+    PanelLeft,
+    PanelLeftClose,
+    Search,
+    ShieldCheck,
+    SlidersHorizontal,
+    Sun,
+    Tags as TagsIcon,
+    User,
+    X,
 } from "lucide-vue-next";
 import { statusBadge } from "@/shared/utils/format/statusStyles.js";
 import { highlightMatch } from "@/shared/utils/format/highlightMatch.js";
@@ -65,7 +85,7 @@ const props = defineProps({
     navSectionColors: { type: Object, default: () => ({}) },
 });
 
-const { t } = useI18n();
+const { t, d } = useI18n();
 const { theme, toggle: toggleTheme } = useTheme();
 const { liveSectionColors } = useSidemenuLiveColors(props.navSectionColors);
 const { mobileOpen, openMobile, closeMobile } = useSidemenuCollapse(props.sidemenuCollapsedPath);
@@ -106,6 +126,8 @@ const SECTION_CONFIG = {
     post:    { icon: FileText,      labelKey: "backend.search.sections.posts"    },
     term:    { icon: TagsIcon,      labelKey: "backend.search.sections.terms"    },
     media:   { icon: Image,         labelKey: "backend.search.sections.media"    },
+    event:   { icon: CalendarDays,  labelKey: "backend.search.sections.events"   },
+    reminder:{ icon: AlarmClock,    labelKey: "backend.search.sections.reminders"},
 };
 
 const {
@@ -468,6 +490,26 @@ function openSearchFromMobile() {
                                     <div class="flex-1 min-w-0">
                                         <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.name ?? '-', searchQuery)" />
                                         <div class="text-xs text-muted">{{ item.mimeType }}</div>
+                                    </div>
+                                </template>
+
+                                <!-- calendar: an event or a reminder. The dot
+                                     carries the calendar's colour, which is the
+                                     fastest way to tell whose it is. -->
+                                <template v-else-if="section.kind === 'event' || section.kind === 'reminder'">
+                                    <span
+                                        class="w-1.5 h-1.5 rounded-full shrink-0"
+                                        :style="{ backgroundColor: `var(--chart-cat-${item.colourSlot})` }"
+                                    />
+                                    <div class="flex-1 min-w-0">
+                                        <div
+                                            class="text-sm font-medium truncate"
+                                            :class="item.completed ? 'line-through text-muted' : 'text-primary'"
+                                            v-html="highlightMatch(item.title ?? '-', searchQuery)"
+                                        />
+                                        <div class="text-xs text-muted">
+                                            {{ item.calendar }} · {{ d(new Date(item.at), item.allDay ? "long" : "short") }}
+                                        </div>
                                     </div>
                                 </template>
                             </button>
