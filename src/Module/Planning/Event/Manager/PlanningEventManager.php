@@ -13,14 +13,13 @@ use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
-use Aurora\Module\Planning\Recurrence\RecurrenceEditor;
+use Aurora\Module\Planning\Recurrence\Manager\RecurrenceEditor;
 use Aurora\Module\Planning\Recurrence\RecurrenceScopeEnum;
+use Aurora\Module\Planning\Time\PlanningClock;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use DateTimeImmutable;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -318,16 +317,8 @@ class PlanningEventManager implements PlanningEventManagerInterface
         DateTimeImmutable $endAt,
         PlanningInterface $planning,
     ): array {
-        $utc = new DateTimeZone('UTC');
-
-        try {
-            $local = new DateTimeZone($planning->getTimezone());
-        } catch (Exception) {
-            // A stored timezone that no longer exists in the database is not a
-            // reason to refuse the save. UTC is the honest fallback: it is what
-            // the column holds anyway.
-            $local = $utc;
-        }
+        $utc = PlanningClock::utcZone();
+        $local = PlanningClock::zone($planning);
 
         $start = $startAt->setTimezone($local)->setTime(0, 0);
         $end = $endAt->setTimezone($local)->setTime(23, 59, 59);

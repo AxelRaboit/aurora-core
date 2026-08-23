@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Aurora\Module\Planning\Recurrence;
 
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
+use Aurora\Module\Planning\Time\PlanningClock;
 use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
-use Exception;
 use Recurr\Exception\InvalidRRule;
 use Recurr\Exception\InvalidWeekday;
 use Recurr\Rule;
@@ -63,7 +63,7 @@ final readonly class OccurrenceExpander
             return [];
         }
 
-        $zone = $this->zone($master);
+        $zone = PlanningClock::zone($master->getPlanning());
         $duration = $master->getEndAt()->getTimestamp() - $master->getStartAt()->getTimestamp();
         $skip = $this->datesToSkip($master);
 
@@ -141,7 +141,7 @@ final readonly class OccurrenceExpander
             return null;
         }
 
-        $zone = $this->zone($master);
+        $zone = PlanningClock::zone($master->getPlanning());
 
         try {
             $rule = new Rule(
@@ -191,14 +191,5 @@ final readonly class OccurrenceExpander
         }
 
         return $skip;
-    }
-
-    private function zone(PlanningEventInterface $master): DateTimeZone
-    {
-        try {
-            return new DateTimeZone($master->getPlanning()->getTimezone());
-        } catch (Exception) {
-            return new DateTimeZone('UTC');
-        }
     }
 }

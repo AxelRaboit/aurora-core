@@ -7,9 +7,9 @@ namespace Aurora\Module\Planning\Feed;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminderInterface;
+use Aurora\Module\Planning\Time\PlanningClock;
 use DateTimeImmutable;
 use DateTimeZone;
-use Exception;
 
 /**
  * One calendar as an iCalendar document.
@@ -80,7 +80,7 @@ final readonly class IcalWriter
             // A whole day is a date and not an instant, and its end is exclusive -
             // a one-day event ends on the following day. Written in the calendar's
             // zone, because that is the zone whose days these are.
-            $zone = $this->zone($event->getPlanning());
+            $zone = PlanningClock::zone($event->getPlanning());
             $lines[] = 'DTSTART;VALUE=DATE:'.$event->getStartAt()->setTimezone($zone)->format('Ymd');
             $lines[] = 'DTEND;VALUE=DATE:'.$event->getEndAt()->setTimezone($zone)->modify('+1 day')->format('Ymd');
         } else {
@@ -126,7 +126,7 @@ final readonly class IcalWriter
 
         if ($reminder->isAllDay()) {
             $lines[] = 'DUE;VALUE=DATE:'.$reminder->getDueAt()
-                ->setTimezone($this->zone($reminder->getPlanning()))
+                ->setTimezone(PlanningClock::zone($reminder->getPlanning()))
                 ->format('Ymd');
         } else {
             $lines[] = 'DUE:'.$this->stamp($reminder->getDueAt());
@@ -177,15 +177,6 @@ final readonly class IcalWriter
     private function stamp(DateTimeImmutable $at): string
     {
         return $at->setTimezone(new DateTimeZone('UTC'))->format('Ymd\THis\Z');
-    }
-
-    private function zone(PlanningInterface $planning): DateTimeZone
-    {
-        try {
-            return new DateTimeZone($planning->getTimezone());
-        } catch (Exception) {
-            return new DateTimeZone('UTC');
-        }
     }
 
     /**

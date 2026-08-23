@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Module\Planning\Recurrence;
+namespace Aurora\Module\Planning\Recurrence\Manager;
 
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
+use Aurora\Module\Planning\Recurrence\OccurrenceExpander;
 use DateTimeImmutable;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;

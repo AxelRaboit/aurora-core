@@ -28,12 +28,11 @@ use Aurora\Module\Planning\Reminder\Manager\PlanningReminderManagerInterface;
 use Aurora\Module\Planning\Reminder\Repository\PlanningReminderRepository;
 use Aurora\Module\Planning\Reminder\Serializer\PlanningReminderSerializer;
 use Aurora\Module\Planning\Share\Manager\PlanningShareManagerInterface;
+use Aurora\Module\Planning\Time\PlanningClock;
 use Aurora\Module\Planning\View\PlanningViewBuilder;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
-use DateTimeZone;
-use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -566,14 +565,6 @@ final class PlanningController extends AbstractController
      */
     private function date(mixed $value): ?DateTimeImmutable
     {
-        if (!is_string($value) || '' === mb_trim($value)) {
-            return null;
-        }
-
-        try {
-            return new DateTimeImmutable($value)->setTimezone(new DateTimeZone('UTC'));
-        } catch (Exception) {
-            return null;
-        }
+        return PlanningClock::utc($value);
     }
 }

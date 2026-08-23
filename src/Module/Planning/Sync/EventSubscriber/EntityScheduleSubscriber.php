@@ -10,7 +10,7 @@ use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Event\Repository\PlanningEventRepository;
 use Aurora\Module\Planning\PlanningContext;
-use Aurora\Module\Planning\Sync\Service\ModuleCalendarProvider;
+use Aurora\Module\Planning\Sync\Manager\ModuleCalendarProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 

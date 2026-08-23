@@ -6,9 +6,8 @@ namespace Aurora\Module\Planning\Reminder\Dto;
 
 use Aurora\Core\Support\Str;
 use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
+use Aurora\Module\Planning\Time\PlanningClock;
 use DateTimeImmutable;
-use DateTimeZone;
-use Exception;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 #[AsAlias(PlanningReminderInputFactoryInterface::class)]
@@ -39,14 +38,6 @@ class PlanningReminderInputFactory implements PlanningReminderInputFactoryInterf
      */
     private function date(mixed $value): ?DateTimeImmutable
     {
-        if (!is_string($value) || '' === mb_trim($value)) {
-            return null;
-        }
-
-        try {
-            return new DateTimeImmutable($value)->setTimezone(new DateTimeZone('UTC'));
-        } catch (Exception) {
-            return null;
-        }
+        return PlanningClock::utc($value);
     }
 }

@@ -12,11 +12,10 @@ use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use Aurora\Module\Planning\Event\Repository\PlanningEventAlertRepository;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminderInterface;
 use Aurora\Module\Planning\Reminder\Repository\PlanningReminderRepository;
+use Aurora\Module\Planning\Time\PlanningClock;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
-use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -27,8 +26,14 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * their own. A calendar alert is the same kind of thing as "a comment needs
  * moderation" - something that happened which you may want to look at - and a
  * second inbox would mean a second bell for the reader to remember to check.
+ *
+ * Not `final`, per `convention_service_final_vs_readonly`: this is a thin shell
+ * over two external side-effects - the notification pipeline and the mailer - and
+ * a manager-level test that wants to assert "the alert was dispatched" cannot
+ * double a final class. It also has no immutability invariant tied to its own
+ * identity, so a deployment swapping the delivery has nothing to break.
  */
-final readonly class PlanningNotifier
+readonly class PlanningNotifier
 {
     public function __construct(
         private PlanningEventAlertRepository $alerts,
@@ -140,15 +145,7 @@ final readonly class PlanningNotifier
      */
     private function localTime(PlanningEventInterface $event): string
     {
-        $planning = $event->getPlanning();
-
-        try {
-            $zone = new DateTimeZone($planning->getTimezone());
-        } catch (Exception) {
-            $zone = new DateTimeZone('UTC');
-        }
-
-        return $event->getStartAt()->setTimezone($zone)->format('H:i');
+        return $this->local($event, 'H:i');
     }
 
     /**
@@ -230,15 +227,21 @@ final readonly class PlanningNotifier
     /** The event's start, spelled out on the calendar's clock. */
     private function localDateTime(PlanningEventInterface $event): string
     {
-        $planning = $event->getPlanning();
+        return $this->local($event, 'd/m/Y H:i');
+    }
 
-        try {
-            $zone = new DateTimeZone($planning->getTimezone());
-        } catch (Exception) {
-            $zone = new DateTimeZone('UTC');
-        }
-
-        return $event->getStartAt()->setTimezone($zone)->format('d/m/Y H:i');
+    /**
+     * The start on the calendar's clock, in the shape the caller needs.
+     *
+     * A notification says the time and a mail says the date and the time, which is
+     * the whole difference between the two callers - so it is a format string and
+     * not two methods that each resolve a zone.
+     */
+    private function local(PlanningEventInterface $event, string $format): string
+    {
+        return $event->getStartAt()
+            ->setTimezone(PlanningClock::zone($event->getPlanning()))
+            ->format($format);
     }
 
     private function notify(CoreUserInterface $recipient, PlanningEventAlertInterface $alert): void
