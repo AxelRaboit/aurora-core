@@ -29,7 +29,9 @@ export function usePlanningCalendar(props) {
     /** Ids the reader has folded away. Absent means showing. */
     const hidden = ref(new Set());
 
-    const VIEWS = ["day", "week", "month"];
+    // The agenda shares the month's range, so paging means the same thing in both
+    // and `gridWindow` serves them both.
+    const VIEWS = ["day", "week", "month", "agenda"];
 
     /**
      * Below Tailwind's `md`, which is where a seven-column hour grid stops being
@@ -100,6 +102,12 @@ export function usePlanningCalendar(props) {
         narrow.value && "week" === view.value ? "day" : view.value,
     );
 
+    /** Whether the current view draws the month's range rather than a few days. */
+    const usesMonthRange = computed(
+        () =>
+            "month" === effectiveView.value || "agenda" === effectiveView.value,
+    );
+
     const cells = computed(() => monthGrid(year.value, month.value));
 
     /** The days the hourly views draw. Empty in the month view, which uses cells. */
@@ -156,10 +164,9 @@ export function usePlanningCalendar(props) {
         loading.value = true;
 
         try {
-            const { from, to } =
-                "month" === effectiveView.value
-                    ? gridWindow(year.value, month.value)
-                    : timeGridWindow(anchor.value, effectiveView.value);
+            const { from, to } = usesMonthRange.value
+                ? gridWindow(year.value, month.value)
+                : timeGridWindow(anchor.value, effectiveView.value);
             const url = new URL(props.eventsPath, window.location.origin);
             url.searchParams.set("from", from.toISOString());
             url.searchParams.set("to", to.toISOString());
@@ -192,7 +199,7 @@ export function usePlanningCalendar(props) {
      * reader in each - and three would be three places to keep the URL writing.
      */
     function go(offset) {
-        if ("month" === effectiveView.value) {
+        if (usesMonthRange.value) {
             // The first of the month, so paging from the 31st does not skip
             // February: `new Date(2026, 0, 31)` plus one month is 3 March.
             anchor.value = new Date(year.value, month.value + offset, 1);
@@ -302,6 +309,7 @@ export function usePlanningCalendar(props) {
         month,
         view,
         effectiveView,
+        usesMonthRange,
         narrow,
         anchor,
         cells,

@@ -19,6 +19,7 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import CalendarModal from "./components/CalendarModal.vue";
 import CalendarDayList from "./components/CalendarDayList.vue";
+import CalendarAgenda from "./components/CalendarAgenda.vue";
 import CalendarSidebar from "./components/CalendarSidebar.vue";
 import CalendarMonth from "./components/CalendarMonth.vue";
 import CalendarTimeGrid from "./components/CalendarTimeGrid.vue";
@@ -60,6 +61,7 @@ const {
     month,
     view,
     effectiveView,
+    usesMonthRange,
     narrow,
     anchor,
     cells,
@@ -82,7 +84,7 @@ const {
  * repeating it is noise.
  */
 const rangeLabel = computed(() => {
-    if ("month" === view.value) {
+    if (usesMonthRange.value) {
         return d(new Date(year.value, month.value, 1), { month: "long", year: "numeric" });
     }
 
@@ -104,7 +106,7 @@ const rangeLabel = computed(() => {
 });
 
 const viewOptions = computed(() =>
-    ["day", "week", "month"].map((value) => ({
+    ["day", "week", "month", "agenda"].map((value) => ({
         value,
         label: t(`backend.plannings.views.${value}`),
     })),
@@ -509,6 +511,15 @@ async function remove(event) {
                 v-on:open-reminder="editReminder"
                 v-on:toggle-reminder="toggleReminderItem"
                 v-on:add="createOnDay"
+            />
+            <CalendarAgenda
+                v-else-if="'agenda' === effectiveView"
+                :cells="cells"
+                :events="visibleEvents"
+                :reminders="visibleReminders"
+                v-on:open-event="viewEvent"
+                v-on:open-reminder="editReminder"
+                v-on:toggle-reminder="toggleReminderItem"
             />
             <CalendarTimeGrid
                 v-else

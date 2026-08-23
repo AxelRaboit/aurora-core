@@ -44,6 +44,7 @@ backend:
       day: Jour
       week: Semaine
       month: Mois
+      agenda: Agenda
     more: "+{count} autre(s)"
     calendars: Mes calendriers
     new_calendar: Nouveau calendrier
@@ -53,6 +54,7 @@ backend:
     visibility_hint: "Un calendrier partagé est visible par tous ceux qui ont accès au calendrier."
     timezone_hint: "Le fuseau qui découpe les journées entières de ce calendrier."
     events_in_range: "Événements dans la période affichée"
+    nothing_in_range: "Rien dans cette période."
     nothing_on_day: "Rien ce jour-là."
     empty: "Aucun calendrier pour l'instant."
     name: Nom

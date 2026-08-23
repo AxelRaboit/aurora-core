@@ -44,6 +44,7 @@ backend:
       day: Day
       week: Week
       month: Month
+      agenda: Agenda
     more: "+{count} more"
     calendars: My calendars
     new_calendar: New calendar
@@ -53,6 +54,7 @@ backend:
     visibility_hint: "A shared calendar is visible to everyone who can reach the calendar."
     timezone_hint: "The zone this calendar cuts its whole days in."
     events_in_range: "Events in the range on screen"
+    nothing_in_range: "Nothing in this range."
     nothing_on_day: "Nothing on this day."
     empty: "No calendar yet."
     name: Name

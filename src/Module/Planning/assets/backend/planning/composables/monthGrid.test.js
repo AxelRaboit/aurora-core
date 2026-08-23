@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
     MAX_LANES,
     WEEKS_SHOWN,
+    agendaDays,
     countsPerDay,
     dayKey,
     gridStart,
@@ -404,5 +405,71 @@ describe("dayKey", () => {
         for (const cell of cells) {
             expect(cell.key).toBe(dayKey(cell.date));
         }
+    });
+});
+
+describe("agendaDays", () => {
+    const cells = monthGrid(2026, 7);
+
+    function timed(id, startAt, endAt) {
+        return {
+            id,
+            startAt: new Date(startAt).toISOString(),
+            endAt: new Date(endAt).toISOString(),
+            allDay: false,
+        };
+    }
+
+    it("keeps only the days that hold something", () => {
+        // What separates an agenda from a grid: the grid shows the month's shape
+        // including its gaps, the agenda shows the sequence without them.
+        const days = agendaDays(
+            cells,
+            [
+                timed(1, "2026-08-24T09:00", "2026-08-24T10:00"),
+                timed(2, "2026-08-26T09:00", "2026-08-26T10:00"),
+            ],
+            [],
+        );
+
+        expect(days.map((day) => day.key)).toEqual([
+            "2026-08-24",
+            "2026-08-26",
+        ]);
+    });
+
+    it("keeps the days in order", () => {
+        const days = agendaDays(
+            cells,
+            [
+                timed(1, "2026-08-26T09:00", "2026-08-26T10:00"),
+                timed(2, "2026-08-24T09:00", "2026-08-24T10:00"),
+            ],
+            [],
+        );
+
+        expect(days.map((day) => day.key)).toEqual([
+            "2026-08-24",
+            "2026-08-26",
+        ]);
+    });
+
+    it("lists a run of days on each day it covers", () => {
+        const leave = {
+            id: 9,
+            startAt: new Date("2026-08-24T00:00").toISOString(),
+            endAt: new Date("2026-08-26T23:59:59").toISOString(),
+            allDay: true,
+        };
+
+        expect(agendaDays(cells, [leave], []).map((day) => day.key)).toEqual([
+            "2026-08-24",
+            "2026-08-25",
+            "2026-08-26",
+        ]);
+    });
+
+    it("has nothing to show for an empty month", () => {
+        expect(agendaDays(cells, [], [])).toEqual([]);
     });
 });

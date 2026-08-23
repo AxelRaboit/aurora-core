@@ -325,3 +325,26 @@ export function itemsOn(date, events, reminders) {
 export function countsPerDay(cells, events, reminders) {
     return cells.map((cell) => itemsOn(cell.date, events, reminders).length);
 }
+
+/**
+ * The days of a range that hold something, each with its contents.
+ *
+ * Empty days are left out, which is what separates an agenda from a grid: the
+ * grid's job is to show the shape of the month including its gaps, and the
+ * agenda's is to show the sequence without them. A list with "nothing on the
+ * 12th" in it would be a grid drawn in one column.
+ *
+ * @param {Array<{date: Date, key: string}>} cells
+ * @param {Array<object>} events
+ * @param {Array<object>} reminders
+ * @returns {Array<{date: Date, key: string, items: Array<object>}>}
+ */
+export function agendaDays(cells, events, reminders) {
+    return cells
+        .map((cell) => ({
+            date: cell.date,
+            key: cell.key,
+            items: itemsOn(cell.date, events, reminders),
+        }))
+        .filter((day) => day.items.length > 0);
+}
