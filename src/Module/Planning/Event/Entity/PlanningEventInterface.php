@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Event\Entity;
 
+use Aurora\Core\Timestampable\TimestampableInterface;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Collection;
 
-interface PlanningEventInterface
+interface PlanningEventInterface extends TimestampableInterface
 {
     public function getId(): ?int;
 

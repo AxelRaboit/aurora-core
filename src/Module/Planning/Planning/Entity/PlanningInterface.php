@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Planning\Entity;
 
+use Aurora\Core\Timestampable\TimestampableInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Planning\Enum\PlanningVisibilityEnum;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminderInterface;
@@ -17,7 +18,7 @@ use Doctrine\Common\Collections\Collection;
  * project can add a field to its own subclass without forking anything - see
  * `docs/aurora-core/dev/entity_extensibility_convention.md`.
  */
-interface PlanningInterface
+interface PlanningInterface extends TimestampableInterface
 {
     public function getId(): ?int;
 
@@ -42,6 +43,14 @@ interface PlanningInterface
     public function setSourceType(?string $sourceType): static;
 
     public function isFromModule(): bool;
+
+    public function getFeedToken(): ?string;
+
+    public function hasFeed(): bool;
+
+    public function publishFeed(): static;
+
+    public function revokeFeed(): static;
 
     /**
      * @return Collection<int, PlanningReminderInterface>

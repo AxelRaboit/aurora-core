@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 // invisible on a database carrying the orphan sequences of the module split, and
 // obvious the first time the migrations ran on an empty one.
 #[ORM\UniqueConstraint(name: 'uniq_planning_source', columns: ['source_type'])]
+#[ORM\UniqueConstraint(name: 'uniq_planning_feed_token', columns: ['feed_token'])]
 class Planning extends AbstractPlanning
 {
     #[ORM\Id]

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Reminder\Entity;
 
+use Aurora\Core\Timestampable\TimestampableInterface;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
 
-interface PlanningReminderInterface
+interface PlanningReminderInterface extends TimestampableInterface
 {
     public function getId(): ?int;
 

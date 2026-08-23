@@ -65,6 +65,13 @@ backend:
       label: Visibilité
       private: Privé
       shared: Partagé
+    feed:
+      label: "Abonnement (.ics)"
+      hint: "Une adresse secrète pour consulter ce calendrier depuis un téléphone, sans se connecter. Toute personne qui a l'adresse peut le lire."
+      publish: "Publier une adresse"
+      replace: "Remplacer l'adresse"
+      revoke: "Révoquer"
+      shown_once: "Copiez-la maintenant : elle ne sera plus affichée."
     errors:
       name_required: Le calendrier a besoin d'un nom.
       colour_out_of_range: "Cette couleur n'existe pas dans la palette."

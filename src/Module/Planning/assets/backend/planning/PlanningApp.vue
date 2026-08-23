@@ -34,6 +34,8 @@ const props = defineProps({
     timezones: { type: Array, default: () => [] },
     eventsPath: { type: String, required: true },
     createCalendarPath: { type: String, required: true },
+    feedCalendarPathTemplate: { type: String, required: true },
+    revokeFeedCalendarPathTemplate: { type: String, required: true },
     updateCalendarPathTemplate: { type: String, required: true },
     deleteCalendarPathTemplate: { type: String, required: true },
     createEventPath: { type: String, required: true },
@@ -142,6 +144,15 @@ watch([year, month], () => {
 
 const openCalendar = ref(null);
 const calendarErrors = ref({});
+
+/**
+ * The feed address, held only between the request that created it and the modal
+ * closing.
+ *
+ * Not kept in the calendar list: that payload is on every page, and a live
+ * credential does not belong there for the sake of showing it a second time.
+ */
+const feedUrl = ref("");
 const savingCalendar = ref(false);
 
 const canManageCalendars = computed(() => can("planning.calendars.manage"));
@@ -161,11 +172,35 @@ function createCalendar() {
 function editCalendar(calendar) {
     openCalendar.value = calendar;
     calendarErrors.value = {};
+    feedUrl.value = "";
     sheetOpen.value = false;
 }
 
 function closeCalendar() {
     openCalendar.value = null;
+    feedUrl.value = "";
+}
+
+async function publishFeed(calendar) {
+    const data = await request(
+        props.feedCalendarPathTemplate.replace("__id__", String(calendar.id)),
+    );
+    if (!data) return;
+
+    upsertCalendar(data.calendar);
+    openCalendar.value = data.calendar;
+    feedUrl.value = data.feedUrl ?? "";
+}
+
+async function revokeFeed(calendar) {
+    const data = await request(
+        props.revokeFeedCalendarPathTemplate.replace("__id__", String(calendar.id)),
+    );
+    if (!data) return;
+
+    upsertCalendar(data.calendar);
+    openCalendar.value = data.calendar;
+    feedUrl.value = "";
 }
 
 async function saveCalendar(form) {
@@ -576,6 +611,9 @@ async function remove(event) {
             :timezones="timezones"
             :errors="calendarErrors"
             :saving="savingCalendar"
+            :feed-url="feedUrl"
+            v-on:publish-feed="publishFeed"
+            v-on:revoke-feed="revokeFeed"
             v-on:close="closeCalendar"
             v-on:save="saveCalendar"
             v-on:delete="removeCalendarAndItsEvents"

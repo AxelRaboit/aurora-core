@@ -27,12 +27,14 @@ use Aurora\Module\Planning\Reminder\Serializer\PlanningReminderSerializer;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
 use DateTimeZone;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
@@ -64,6 +66,7 @@ final class PlanningController extends AbstractController
         private readonly PlanningReminderManagerInterface $reminderManager,
         private readonly PlanningReminderInputFactoryInterface $reminderInputFactory,
         private readonly PayloadValidator $payloadValidator,
+        private readonly EntityManagerInterface $entityManager,
     ) {}
 
     #[Route('/calendar', name: '_calendar', methods: [HttpMethodEnum::Get->value])]
@@ -140,6 +143,47 @@ final class PlanningController extends AbstractController
         }
 
         $this->planningManager->update($planning, $input);
+
+        return $this->jsonSuccess(['calendar' => $this->planningSerializer->serialize($planning)]);
+    }
+
+    /**
+     * Publishes a feed for this calendar, or replaces the address if one exists.
+     *
+     * One route for both, because they are the same request: asking to publish
+     * again is how somebody revokes an address they shared too widely, and a
+     * separate "rotate" would be a second name for it.
+     *
+     * The URL comes back absolute. A relative one would be useless - it is meant
+     * to be pasted into a phone.
+     */
+    #[Route('/calendars/{id}/feed', name: '_calendars_feed', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('planning.calendars.manage')]
+    public function publishFeed(Planning $planning): JsonResponse
+    {
+        if (!$this->writableCalendar((int) $planning->getId()) instanceof PlanningInterface) {
+            return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
+        }
+
+        $planning->publishFeed();
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess([
+            'calendar' => $this->planningSerializer->serialize($planning),
+            'feedUrl' => $this->feedUrl($planning),
+        ]);
+    }
+
+    #[Route('/calendars/{id}/feed/revoke', name: '_calendars_feed_revoke', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('planning.calendars.manage')]
+    public function revokeFeed(Planning $planning): JsonResponse
+    {
+        if (!$this->writableCalendar((int) $planning->getId()) instanceof PlanningInterface) {
+            return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
+        }
+
+        $planning->revokeFeed();
+        $this->entityManager->flush();
 
         return $this->jsonSuccess(['calendar' => $this->planningSerializer->serialize($planning)]);
     }
@@ -381,6 +425,15 @@ final class PlanningController extends AbstractController
     private function canReach(PlanningReminder $reminder): bool
     {
         return $this->writableCalendar((int) $reminder->getPlanning()->getId()) instanceof PlanningInterface;
+    }
+
+    private function feedUrl(Planning $planning): ?string
+    {
+        $token = $planning->getFeedToken();
+
+        return null === $token
+            ? null
+            : $this->generateUrl('planning_feed_show', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
     }
 
     private function date(mixed $value): ?DateTimeImmutable
