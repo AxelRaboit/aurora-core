@@ -72,6 +72,45 @@ backend:
       replace: "Remplacer l'adresse"
       revoke: "Révoquer"
       shown_once: "Copiez-la maintenant : elle ne sera plus affichée."
+    scope:
+      title_edit: "Modifier l'événement récurrent"
+      title_delete: "Supprimer l'événement récurrent"
+      this: "Cette occurrence"
+      this_hint_edit: "Les autres restent où elles sont."
+      this_hint_delete: "Les autres sont conservées."
+      following: "Celle-ci et les suivantes"
+      following_hint_edit: "Les occurrences passées ne changent pas."
+      following_hint_delete: "Les occurrences passées sont conservées."
+      all: "Toute la série"
+      all_hint_edit: "Y compris les occurrences déjà passées."
+      all_hint_delete: "Y compris les occurrences déjà passées."
+    recurrence:
+      label: "Récurrence"
+      none: "Ne se répète pas"
+      daily: "Chaque jour"
+      weekly: "Chaque semaine"
+      monthly: "Chaque mois"
+      yearly: "Chaque année"
+      custom: "Personnalisé…"
+      every: "Tous les"
+      freq_DAILY: "jours"
+      freq_WEEKLY: "semaines"
+      freq_MONTHLY: "mois"
+      freq_YEARLY: "ans"
+      on_days: "Les jours"
+      ends: "Se termine"
+      until_placeholder: "JJ/MM/AAAA"
+      end_never: "Jamais"
+      end_until: "Le"
+      end_count: "Après"
+      occurrences: "occurrences"
+      day_MO: L
+      day_TU: M
+      day_WE: M
+      day_TH: J
+      day_FR: V
+      day_SA: S
+      day_SU: D
     errors:
       name_required: Le calendrier a besoin d'un nom.
       colour_out_of_range: "Cette couleur n'existe pas dans la palette."

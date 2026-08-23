@@ -72,6 +72,45 @@ backend:
       replace: "Replace the address"
       revoke: "Revoke"
       shown_once: "Copy it now - it will not be shown again."
+    scope:
+      title_edit: "Edit the recurring event"
+      title_delete: "Delete the recurring event"
+      this: "This occurrence"
+      this_hint_edit: "The others stay where they are."
+      this_hint_delete: "The others are kept."
+      following: "This and the following ones"
+      following_hint_edit: "The past occurrences do not change."
+      following_hint_delete: "The past occurrences are kept."
+      all: "The whole series"
+      all_hint_edit: "Including the occurrences already past."
+      all_hint_delete: "Including the occurrences already past."
+    recurrence:
+      label: "Repeat"
+      none: "Does not repeat"
+      daily: "Every day"
+      weekly: "Every week"
+      monthly: "Every month"
+      yearly: "Every year"
+      custom: "Custom…"
+      every: "Every"
+      freq_DAILY: "days"
+      freq_WEEKLY: "weeks"
+      freq_MONTHLY: "months"
+      freq_YEARLY: "years"
+      on_days: "On"
+      ends: "Ends"
+      until_placeholder: "DD/MM/YYYY"
+      end_never: "Never"
+      end_until: "On"
+      end_count: "After"
+      occurrences: "occurrences"
+      day_MO: M
+      day_TU: T
+      day_WE: W
+      day_TH: T
+      day_FR: F
+      day_SA: S
+      day_SU: S
     errors:
       name_required: A calendar needs a name.
       colour_out_of_range: "That colour is not in the palette."

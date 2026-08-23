@@ -241,6 +241,9 @@ function onPointerUp(pointerEvent) {
 
     emit("move-event", {
         id: current.event.id,
+        // Carried for the same reason the hourly grid carries it: the app has to
+        // know whether this is one occurrence of a series before it writes.
+        event: current.event,
         ...shiftedSpan(current.event.startAt, current.event.endAt, 0, days),
     });
 }

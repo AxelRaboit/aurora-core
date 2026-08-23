@@ -23,6 +23,7 @@ import CalendarAgenda from "./components/CalendarAgenda.vue";
 import CalendarSidebar from "./components/CalendarSidebar.vue";
 import CalendarMonth from "./components/CalendarMonth.vue";
 import CalendarTimeGrid from "./components/CalendarTimeGrid.vue";
+import RecurrenceScopeModal from "./components/RecurrenceScopeModal.vue";
 import ReminderModal from "./components/ReminderModal.vue";
 import EventModal from "./components/EventModal.vue";
 import { usePlanningCalendar } from "./composables/usePlanningCalendar.js";
@@ -241,6 +242,59 @@ async function removeCalendarAndItsEvents(calendar) {
     await load();
 }
 
+/**
+ * A write to a series, held while the reader is asked what it applies to.
+ *
+ * One ref rather than three, so a pending question cannot be half-formed: either
+ * something is waiting on an answer or nothing is.
+ */
+const pendingScope = ref(null);
+
+/**
+ * Whether an appearance belongs to a series and therefore needs the question.
+ *
+ * `occurrenceAt` is what makes it a generated appearance rather than a row. A
+ * detached occurrence has a master but no rule of its own, so it is a single event
+ * and asking about it would offer three answers to a question with one.
+ */
+function needsScope(event) {
+    return Boolean(event?.recurring && event?.occurrenceAt);
+}
+
+function askScope(kind, intent, payload) {
+    pendingScope.value = { kind, intent, payload };
+}
+
+function cancelScope() {
+    pendingScope.value = null;
+}
+
+/**
+ * Runs the held write, now that the scope is known.
+ *
+ * The scope and the occurrence travel in the same body as the fields, which is why
+ * all three writes take them the same way: the server resolves which row to touch,
+ * and nothing here has to know whether a row was detached or a series split.
+ */
+async function confirmScope(scope) {
+    const pending = pendingScope.value;
+    pendingScope.value = null;
+
+    if (null === pending) {
+        return;
+    }
+
+    const scoped = { ...pending.payload, scope };
+
+    if ("save" === pending.kind) {
+        await sendSave(scoped);
+    } else if ("delete" === pending.kind) {
+        await sendDelete(pending.payload.id, scoped);
+    } else {
+        await sendMove(pending.payload.id, scoped);
+    }
+}
+
 const openEvent = ref(null);
 const editing = ref(false);
 const errors = ref({});
@@ -275,6 +329,16 @@ function close() {
 }
 
 async function save(form) {
+    if (needsScope(openEvent.value)) {
+        askScope("save", "edit", { ...form, occurrenceAt: openEvent.value.occurrenceAt });
+
+        return;
+    }
+
+    await sendSave(form);
+}
+
+async function sendSave(form) {
     saving.value = true;
     errors.value = {};
 
@@ -420,18 +484,39 @@ function createOnDay(date) {
  * too.
  */
 async function moveEvent(moved) {
-    const data = await request(
-        props.moveEventPathTemplate.replace("__id__", String(moved.id)),
-        { startAt: moved.startAt, endAt: moved.endAt },
-    );
+    if (needsScope(moved.event)) {
+        askScope("move", "edit", {
+            id: moved.id,
+            startAt: moved.startAt,
+            endAt: moved.endAt,
+            occurrenceAt: moved.event.occurrenceAt,
+        });
 
+        return;
+    }
+
+    await sendMove(moved.id, { startAt: moved.startAt, endAt: moved.endAt });
+}
+
+async function sendMove(id, body) {
+    const data = await request(props.moveEventPathTemplate.replace("__id__", String(id)), body);
     if (!data) return;
 
     await load();
 }
 
 async function remove(event) {
-    const data = await request(props.deleteEventPathTemplate.replace("__id__", String(event.id)));
+    if (needsScope(event)) {
+        askScope("delete", "delete", { id: event.id, occurrenceAt: event.occurrenceAt });
+
+        return;
+    }
+
+    await sendDelete(event.id, {});
+}
+
+async function sendDelete(id, body) {
+    const data = await request(props.deleteEventPathTemplate.replace("__id__", String(id)), body);
     if (!data) return;
 
     close();
@@ -594,6 +679,13 @@ async function remove(event) {
                 v-on:toggle-calendar="toggleCalendar"
             />
         </AppModal>
+
+        <RecurrenceScopeModal
+            :show="null !== pendingScope"
+            :intent="pendingScope?.intent ?? 'edit'"
+            v-on:close="cancelScope"
+            v-on:confirm="confirmScope"
+        />
 
         <ReminderModal
             :reminder="openReminder"

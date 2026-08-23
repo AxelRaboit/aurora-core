@@ -114,6 +114,10 @@ function onBlockPointerDown(block, mode, pointerEvent) {
 
     drag.value = {
         id: block.event.id,
+        // Carried so the app can tell a series from a single event without looking
+        // it up. Without it a drag on one occurrence moved the whole series, and
+        // silently: nothing asked which it meant.
+        event: block.event,
         mode,
         startAt: block.event.startAt,
         endAt: block.event.endAt,
@@ -173,7 +177,7 @@ function onPointerUp() {
         ? shiftedSpan(current.startAt, current.endAt, current.minutes, current.days)
         : resizedSpan(current.startAt, current.endAt, current.minutes);
 
-    emit("move-event", { id: current.id, ...span });
+    emit("move-event", { id: current.id, event: current.event, ...span });
 }
 
 onBeforeUnmount(() => {

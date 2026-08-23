@@ -27,6 +27,16 @@ import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import { CUSTOM, alertLabel, alertOptions, blankRow, fromRow, toRow } from "../composables/alertOffsets.js";
 import { toInstant, toPickerValue, zoneDiffersFromViewer } from "../composables/eventTime.js";
 import { COLOUR_SLOTS } from "../composables/calendarColours.js";
+import {
+    ENDS,
+    FREQUENCIES,
+    PRESETS,
+    WEEKDAYS,
+    blankRecurrence,
+    formForPreset,
+    fromRrule,
+    toRrule,
+} from "../composables/recurrenceRule.js";
 
 const props = defineProps({
     /** The event being looked at, or null when the modal is closed. */
@@ -55,6 +65,7 @@ function blank() {
         allDay: false,
         status: "confirmed",
         colourSlot: null,
+        recurrence: blankRecurrence(),
         // A new event comes with one alert already on, which is what every
         // calendar people already use does. Nobody sets an alert they forgot the
         // form offered.
@@ -84,6 +95,7 @@ watch(
                 allDay: props.event.allDay,
                 status: props.event.status,
                 colourSlot: props.event.ownColourSlot ?? null,
+                recurrence: fromRrule(props.event.rrule, new Date(props.event.startAt)),
                 alerts: (props.event.alerts ?? []).map(toRow),
             }
             : draft();
@@ -159,6 +171,46 @@ const statusOptions = computed(() =>
 );
 
 const alertSelectOptions = computed(() => alertOptions(t));
+
+const recurrenceOptions = computed(() =>
+    PRESETS.map((preset) => ({ value: preset, label: t(`backend.plannings.recurrence.${preset}`) })),
+);
+
+const frequencyOptions = computed(() =>
+    FREQUENCIES.map((freq) => ({ value: freq, label: t(`backend.plannings.recurrence.freq_${freq}`) })),
+);
+
+const endOptions = computed(() =>
+    ENDS.map((end) => ({ value: end, label: t(`backend.plannings.recurrence.end_${end}`) })),
+);
+
+/**
+ * Choosing a preset rebuilds the whole shape from the event's own start.
+ *
+ * So "every week" means every week on the day being repeated, and switching back
+ * and forth cannot leave a day ticked that the preset did not ask for.
+ */
+function onPresetChange(preset) {
+    if ("custom" === preset) {
+        // Custom keeps what the preset had produced, so the panel opens on the
+        // rule that was in force rather than on a blank one.
+        form.value.recurrence = { ...form.value.recurrence, preset };
+
+        return;
+    }
+
+    const start = form.value.startAt ? new Date(form.value.startAt) : null;
+    form.value.recurrence = formForPreset(preset, start);
+}
+
+function toggleWeekday(day) {
+    const days = form.value.recurrence.byDay;
+
+    form.value.recurrence = {
+        ...form.value.recurrence,
+        byDay: days.includes(day) ? days.filter((d) => d !== day) : [...days, day],
+    };
+}
 
 /**
  * The read view's summary.
@@ -356,6 +408,84 @@ const when = computed(() => {
                  use. A row of chips said the same thing in fewer clicks but in a
                  control that exists nowhere else in this application, and it
                  could not express a moment at all. -->
+            <!-- Recurrence. A select with four presets and a custom panel, which
+                 is the shape Google and Apple both use: almost every real series
+                 is one of the four, and the panel is for the rest. -->
+            <div class="flex flex-col gap-1.5">
+                <AppSelect
+                    :model-value="form.recurrence.preset"
+                    :label="t('backend.plannings.recurrence.label')"
+                    :options="recurrenceOptions"
+                    v-on:update:model-value="onPresetChange"
+                />
+
+                <div v-if="'custom' === form.recurrence.preset" class="flex flex-col gap-2 pt-1">
+                    <div class="flex items-end gap-2">
+                        <span class="pb-1.5 text-xs text-muted">{{ t("backend.plannings.recurrence.every") }}</span>
+                        <!-- The example is the default. A digit is the same in every
+                             language, so it is a literal rather than a key. -->
+                        <AppInput
+                            v-model="form.recurrence.interval"
+                            type="number"
+                            min="1"
+                            placeholder="1"
+                            class="w-16"
+                        />
+                        <AppSelect v-model="form.recurrence.freq" class="flex-1" :options="frequencyOptions" />
+                    </div>
+
+                    <!-- Only for a weekly rule: "the 3rd of every month on a
+                         Tuesday" is not something this form offers, and showing
+                         the days would suggest it does. -->
+                    <div v-if="'WEEKLY' === form.recurrence.freq" class="flex flex-col gap-1">
+                        <span class="text-xs text-muted">{{ t("backend.plannings.recurrence.on_days") }}</span>
+                        <div class="flex flex-wrap gap-1">
+                            <button
+                                v-for="day in WEEKDAYS"
+                                :key="day"
+                                type="button"
+                                class="h-7 w-7 cursor-pointer rounded-full border text-xs transition-colors"
+                                :class="form.recurrence.byDay.includes(day)
+                                    ? 'border-accent bg-accent/10 font-medium text-primary'
+                                    : 'border-line text-secondary hover:border-secondary'"
+                                :aria-pressed="form.recurrence.byDay.includes(day)"
+                                v-on:click="toggleWeekday(day)"
+                            >
+                                {{ t(`backend.plannings.recurrence.day_${day}`) }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-end gap-2">
+                        <AppSelect
+                            v-model="form.recurrence.end"
+                            class="flex-1"
+                            :label="t('backend.plannings.recurrence.ends')"
+                            :options="endOptions"
+                        />
+                        <AppInput
+                            v-if="'until' === form.recurrence.end"
+                            v-model="form.recurrence.until"
+                            type="date"
+                            :placeholder="t('backend.plannings.recurrence.until_placeholder')"
+                            class="flex-1"
+                        />
+                        <template v-if="'count' === form.recurrence.end">
+                            <AppInput
+                                v-model="form.recurrence.count"
+                                type="number"
+                                min="1"
+                                placeholder="10"
+                                class="w-20"
+                            />
+                            <span class="pb-1.5 text-xs text-muted">
+                                {{ t("backend.plannings.recurrence.occurrences") }}
+                            </span>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
             <div class="flex flex-col gap-1.5">
                 <span class="text-sm font-medium text-primary">{{ t("backend.plannings.alerts.label") }}</span>
 
