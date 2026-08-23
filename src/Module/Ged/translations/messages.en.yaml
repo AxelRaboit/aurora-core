@@ -1,4 +1,11 @@
 backend:
+  stats:
+    ged:
+      documents: "Documents"
+      categories: "Categories"
+      tags: "Tags"
+      folders: "Folders"
+      by_type: "Split by file type"
   parameters:
     ged_document_prefix:
       label: DMS document reference prefix

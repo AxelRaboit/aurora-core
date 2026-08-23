@@ -1,4 +1,8 @@
 backend:
+  stats:
+    platform:
+      users: "Users"
+      by_role: "Split by role"
   users:
     intro: Manage administration users and their roles.
     name: Name

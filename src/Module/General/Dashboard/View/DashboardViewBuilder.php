@@ -10,8 +10,10 @@ use Aurora\Module\General\Dashboard\Service\StatsService;
 /**
  * Builds the Twig payload for the backend dashboard.
  *
- * A module joins by adding a line to MODULE_TOGGLES below and a matching
- * entry to the Vue `MODULE_DEFINITIONS`. Its figures reach `stats` through a
+ * A module joins by adding a line to MODULE_TOGGLES below and a
+ * `*-panel.register.js` on the Vue side, which fills the panel registry before
+ * any app mounts. (That register file replaced a `MODULE_DEFINITIONS` constant
+ * this comment still named.) Its figures reach `stats` through a
  * DashboardStatsProviderInterface, which {@see StatsService} filters by the
  * module ids reported enabled here. With nothing listed, the Vue shell draws
  * its empty state.
@@ -32,6 +34,8 @@ final readonly class DashboardViewBuilder
      */
     private const array MODULE_TOGGLES = [
         'editorial' => 'modules_editorial_backend',
+        'ged' => 'modules_ged_backend',
+        'platform' => 'modules_platform_backend',
     ];
 
     public function __construct(

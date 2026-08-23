@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Dashboard;
 
 use Aurora\Core\Dashboard\DashboardStatsProviderInterface;
+use Aurora\Module\Editorial\Comment\Repository\CommentRepository;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
@@ -21,6 +22,7 @@ final readonly class EditorialStatsProvider implements DashboardStatsProviderInt
 {
     public function __construct(
         private PostRepository $postRepository,
+        private CommentRepository $commentRepository,
         private PostTypeRepository $postTypeRepository,
         private TaxonomyRepository $taxonomyRepository,
     ) {}
@@ -49,6 +51,10 @@ final readonly class EditorialStatsProvider implements DashboardStatsProviderInt
                 'trashed' => $this->postRepository->countTrashed(),
                 'postTypes' => count($this->postTypeRepository->findAllWithRelations()),
                 'taxonomies' => count($this->taxonomyRepository->findAllForIndex()),
+                // `countByStatus()` already fills every status with a zero, for
+                // the reason the posts one does: a panel whose rows come and go
+                // is harder to read than one with a steady shape.
+                'commentsByStatus' => $this->commentRepository->countByStatus(),
             ],
         ];
     }

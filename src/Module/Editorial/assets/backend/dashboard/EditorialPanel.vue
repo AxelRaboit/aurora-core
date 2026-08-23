@@ -48,6 +48,14 @@ const totals = computed(() => [
  * `AppShareBar` assigns a colour per position, so keeping this stable keeps a
  * status the same colour from one visit to the next.
  */
+const byCommentStatus = computed(() =>
+    Object.entries(props.stats.commentsByStatus ?? {}).map(([status, count]) => ({
+        key: status,
+        label: t(`backend.comments.status.${status}`),
+        value: count,
+    })),
+);
+
 const byStatus = computed(() =>
     Object.entries(props.stats.byStatus ?? {}).map(([status, count]) => ({
         key: status,
@@ -88,6 +96,15 @@ const byStatus = computed(() =>
             <h3 class="text-sm font-semibold text-primary">{{ t("backend.stats.editorial.by_status") }}</h3>
 
             <AppShareBar :segments="byStatus" />
+        </div>
+
+        <!-- Its own card rather than a second bar in the one above: two
+             compositions of two different wholes under one heading would invite
+             comparing their widths, which mean nothing to each other. -->
+        <div v-if="byCommentStatus.length" class="bg-surface border border-line rounded-xl p-5 space-y-4">
+            <h3 class="text-sm font-semibold text-primary">{{ t("backend.stats.editorial.comments_by_status") }}</h3>
+
+            <AppShareBar :segments="byCommentStatus" />
         </div>
     </div>
 </template>

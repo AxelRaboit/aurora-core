@@ -85,6 +85,37 @@ class UserRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * Backend users grouped by the roles they actually store, for counting.
+     *
+     * One row per distinct roles array, not one per user, so this stays a
+     * handful of rows however many accounts exist. The caller folds them into
+     * effective roles with {@see UserRoleEnum::highestPriorityForRoles()}.
+     *
+     * **Not three `countByRoleAndType()` calls.** That method matches the stored
+     * column with a LIKE, and `getRoles()` appends `ROLE_USER` to every user on
+     * the way out - so counting `ROLE_USER` that way answers a different
+     * question from the badge the users list draws, and the dashboard would
+     * quietly disagree with the page it summarises.
+     *
+     * @return array<string, int> map of the stored roles JSON => user count
+     */
+    public function countGroupedByStoredRoles(): array
+    {
+        $sql = 'SELECT roles::text AS roles, COUNT(*) AS cnt FROM core_users WHERE type = :type GROUP BY roles::text';
+
+        $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative($sql, [
+            'type' => UserTypeEnum::Backend->value,
+        ]);
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(string) $row['roles']] = (int) $row['cnt'];
+        }
+
+        return $counts;
+    }
+
+    /**
      * @return list<int>
      */
     private function findIdsWithRole(string $role): array

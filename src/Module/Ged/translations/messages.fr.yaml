@@ -1,4 +1,11 @@
 backend:
+  stats:
+    ged:
+      documents: "Documents"
+      categories: "Catégories"
+      tags: "Étiquettes"
+      folders: "Dossiers"
+      by_type: "Répartition par type de fichier"
   parameters:
     ged_document_prefix:
       label: Préfixe des références documents GED

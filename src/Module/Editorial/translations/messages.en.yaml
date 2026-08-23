@@ -110,6 +110,7 @@ backend:
       taxonomies: Taxonomies
       trashed: In the trash
       by_status: Split by status
+      comments_by_status: "Comments by status"
   nav:
     sections:
       editorial: Editorial

@@ -110,6 +110,7 @@ backend:
       taxonomies: Taxonomies
       trashed: À la corbeille
       by_status: Répartition par statut
+      comments_by_status: "Commentaires par statut"
   nav:
     sections:
       editorial: Éditorial
