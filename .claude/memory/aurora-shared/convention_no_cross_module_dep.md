@@ -1,6 +1,6 @@
 ---
 name: convention-no-cross-module-dep
-description: Un module **du consommateur** (`App\Module\X`) ne dépend jamais d'un module frère - le câblage passe par un point d'extension. Ne s'applique PAS aux six modules d'aurora-core, qui forment un seul noyau au couplage assumé jusque dans les entités.
+description: Un module **du consommateur** (`App\Module\X`) ne dépend jamais d'un module frère - le câblage passe par un point d'extension. Ne s'applique PAS aux sept modules d'aurora-core, qui forment un seul noyau au couplage assumé jusque dans les entités.
 metadata:
   type: feedback
 ---
@@ -23,9 +23,9 @@ finit par être recopié comme un précédent.
 
 ## Ce à quoi elle ne s'applique pas
 
-**Les six modules d'aurora-core** - `Configuration`, `Dev`, `Editorial`, `Ged`,
-`General`, `Platform` - ne sont pas des modules à la carte. Ils forment un seul
-noyau, et leur graphe de dépendances est dense et cyclique :
+**Les sept modules d'aurora-core** - `Configuration`, `Dev`, `Editorial`, `Ged`,
+`General`, `Planning`, `Platform` - ne sont pas des modules à la carte. Ils
+forment un seul noyau, et leur graphe de dépendances est dense et cyclique :
 
 ```
 Configuration  ->  Dev Ged Platform
@@ -33,8 +33,17 @@ Dev            ->  Configuration Platform
 Editorial      ->  Configuration Dev Ged Platform
 Ged            ->  Configuration Dev
 General        ->  Configuration Platform
+Planning       ->  Configuration Dev Platform
 Platform       ->  Configuration Dev
 ```
+
+`Planning` est le seul à être **une feuille** : il dépend de trois modules et
+aucun ne dépend de lui. Ce n'est pas une invitation à l'extraire - il utilise
+`CoreUserInterface` dans ses entités comme les autres - mais c'est la raison pour
+laquelle les autres modules atteignent le calendrier par un point d'extension
+(`ModuleCalendarProvider` + `EntityScheduleSubscriber`) plutôt qu'en important
+`PlanningEventManager`. Si un jour un `use Aurora\Module\Planning\…` apparaît
+dans `src/Module/Editorial`, c'est que ce point d'extension a été contourné.
 
 Ce n'est pas de la dette. Le couplage descend jusqu'aux entités -
 `AbstractPost::$thumbnail` est un `ManyToOne` vers `DocumentInterface`, et

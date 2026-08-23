@@ -233,10 +233,40 @@ Module/<Name>/<Domain>/{Entity,Manager,Repository,Dto,Service,Serializer,Enum,Co
 
 ### 4.9 Module/Planning
 
-| Domain        | What it contains |
-|---------------|-----------------|
-| Planning      | Entity (Planning - container/calendar), Manager, Repository, DTO, Serializer, Controller (backend CRUD) |
-| PlanningEvent | Entity (PlanningEvent - individual event in a planning), Manager, Repository, DTO, Serializer, Controller |
+| Domain     | What it contains |
+|------------|-----------------|
+| Planning   | Entity (Planning - a calendar: name, colour, timezone, visibility, `feedToken`), Manager, Repository, DTO, Serializer, Enum (PlanningVisibilityEnum) |
+| Event      | Entity (PlanningEvent + PlanningEventAlert), Manager, Repository, DTO, Serializer, Enum (PlanningEventStatusEnum, PlanningAlertChannelEnum), Service (PlanningNotifier), Message + Handler |
+| Reminder   | Entity (PlanningReminder - a due date with no span), Manager, Repository, DTO, Serializer |
+| Attendee   | Entity (PlanningEventAttendee), Manager (respond), Repository, Enum (PlanningAttendeeStatusEnum) |
+| Share      | Entity (PlanningShare - read or write, per user), Manager, Repository |
+| Recurrence | RRULE expansion (OccurrenceExpander over `simshaun/recurr`), RecurrenceScopeEnum, Manager (RecurrenceEditor - detach / split / end-before) |
+| Feed       | IcalWriter (RFC 5545 VEVENT/VTODO) + an unauthenticated `GET /planning/feed/{token}.ics` |
+| Sync       | Manager (ModuleCalendarProvider - the shared calendar other modules' dates land in), EventSubscriber |
+| Time       | PlanningClock - the module's single UTC/zone rule |
+| View       | PlanningViewBuilder - the calendar screen's payload |
+| Scheduler  | RecurringMessageProvider driving the alert worker |
+| Search     | BackendSearchProvider |
+| Dashboard  | DashboardStatsProvider |
+
+**Three rules worth knowing before touching it.**
+
+Every instant in every one of these tables is UTC; a wall clock exists only on a
+screen. `PlanningClock::utc()` normalises at the edge and
+`PlanningClock::zone()` resolves a calendar's own zone for anything with no
+browser to convert for it (mail, notifications, the `.ics` feed). Do not add a
+fourth copy of either.
+
+A recurring event is one row plus a rule, and its occurrences are generated on
+read. Writing to one of them therefore has to say what it means -
+`RecurrenceScopeEnum`: this occurrence, this and the following, or all - and
+`RecurrenceEditor` is the only thing allowed to answer.
+
+The Vue side keeps three lists the server owns: alert channels
+(`alertOffsets.js`), recurrence scopes (`RecurrenceScopeModal.vue`) and
+attendee answers (`EventModal.vue`). Each is held by a test that reads the file
+(`PlanningContractMirrorTest`, `PlanningEventAlertTest`) - see
+`convention_mirrored_contract_php_js`.
 
 ### 4.10 Module/Project
 
