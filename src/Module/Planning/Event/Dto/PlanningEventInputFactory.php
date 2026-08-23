@@ -6,6 +6,7 @@ namespace Aurora\Module\Planning\Event\Dto;
 
 use Aurora\Core\Support\Str;
 use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
+use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -45,12 +46,13 @@ class PlanningEventInputFactory implements PlanningEventInputFactoryInterface
      * produce, so it means a hand-written request, and failing the save of an
      * otherwise valid event over it would be the wrong trade.
      *
-     * Deduplicated on the offset, because two "30 minutes before" is a double
-     * notification and the kind of duplicate a form produces by being submitted
+     * Deduplicated on the offset **and the channel**, because "tell me and email
+     * me, both thirty minutes before" is two alerts and not a duplicate - while
+     * two of either is the kind of duplicate a form produces by being submitted
      * twice rather than by anyone meaning it. Pinned moments are left alone here
      * and constrained by the table instead, which is where their identity lives.
      *
-     * @return list<array{minutes: int|null, at: DateTimeImmutable|null}>
+     * @return list<array{minutes: int|null, at: DateTimeImmutable|null, channel: PlanningAlertChannelEnum}>
      */
     private function alerts(mixed $value): array
     {
@@ -66,21 +68,25 @@ class PlanningEventInputFactory implements PlanningEventInputFactoryInterface
                 continue;
             }
 
+            $channel = PlanningAlertChannelEnum::tryFrom((string) ($row['channel'] ?? ''))
+                ?? PlanningAlertChannelEnum::Notification;
+
             $minutes = $row['minutes'] ?? null;
             if (is_numeric($minutes) && in_array((int) $minutes, PlanningEventAlert::OFFSETS, true)) {
-                if (in_array((int) $minutes, $offsetsSeen, true)) {
+                $key = $minutes.'@'.$channel->value;
+                if (in_array($key, $offsetsSeen, true)) {
                     continue;
                 }
 
-                $offsetsSeen[] = (int) $minutes;
-                $alerts[] = ['minutes' => (int) $minutes, 'at' => null];
+                $offsetsSeen[] = $key;
+                $alerts[] = ['minutes' => (int) $minutes, 'at' => null, 'channel' => $channel];
 
                 continue;
             }
 
             $at = $this->date($row['at'] ?? null);
             if ($at instanceof DateTimeImmutable) {
-                $alerts[] = ['minutes' => null, 'at' => $at];
+                $alerts[] = ['minutes' => null, 'at' => $at, 'channel' => $channel];
             }
         }
 

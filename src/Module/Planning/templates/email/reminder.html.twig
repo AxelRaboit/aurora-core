@@ -1,0 +1,18 @@
+{% extends '@Shared/email/layout/base.html.twig' %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<p>{{ 'backend.plannings.mail.reminder_intro'|trans({'%calendar%': calendarName}) }}</p>
+
+{% if notes %}
+    <table class="panel" role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+            <td class="panel-content"><p style="margin:0;"><em>{{ notes|nl2br }}</em></p></td>
+        </tr>
+    </table>
+{% endif %}
+
+{% if url %}
+    <p><a href="{{ url }}">{{ 'backend.plannings.mail.open'|trans }}</a></p>
+{% endif %}
+{% endblock %}

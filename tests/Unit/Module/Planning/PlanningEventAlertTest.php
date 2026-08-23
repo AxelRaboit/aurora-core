@@ -6,6 +6,7 @@ namespace Aurora\Tests\Unit\Module\Planning;
 
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
+use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
@@ -203,6 +204,62 @@ final class PlanningEventAlertTest extends TestCase
 
         self::assertNull($alert->getMinutesBefore());
         self::assertSame('2026-08-22 09:00', $alert->getRemindAt()->format('Y-m-d H:i'));
+    }
+
+    /**
+     * The JavaScript list of channels mirrors the enum, and the two must agree.
+     *
+     * A channel the form offers and the server refuses is a save that fails for a
+     * reason the reader cannot see.
+     */
+    public function testTheFormOffersExactlyTheChannelsTheServerAccepts(): void
+    {
+        $js = file_get_contents(__DIR__.'/../../../../src/Module/Planning/assets/backend/planning/composables/alertOffsets.js');
+        self::assertIsString($js);
+
+        self::assertSame(1, preg_match('/CHANNELS = \[([^\]]+)\]/', $js, $matches));
+
+        $offered = array_map(
+            static fn (string $value): string => mb_trim($value, " \t\n\"'"),
+            explode(',', $matches[1]),
+        );
+
+        self::assertSame(PlanningAlertChannelEnum::values(), $offered);
+    }
+
+    /**
+     * Two alerts at one instant on different channels are two alerts.
+     *
+     * "Tell me and email me, both thirty minutes before" is an ordinary thing to
+     * want, and it is why the channel is part of what identifies an alert.
+     */
+    public function testTheChannelIsPartOfWhatIdentifiesAnAlert(): void
+    {
+        $event = $this->eventAt('2026-08-23 14:00');
+
+        $notify = new PlanningEventAlert();
+        $notify->setChannel(PlanningAlertChannelEnum::Notification);
+        $event->addAlert($notify);
+        $notify->setMinutesBefore(30);
+
+        $email = new PlanningEventAlert();
+        $email->setChannel(PlanningAlertChannelEnum::Email);
+        $event->addAlert($email);
+        $email->setMinutesBefore(30);
+
+        self::assertCount(2, $event->getAlerts());
+        self::assertSame(
+            $notify->getRemindAt()->getTimestamp(),
+            $email->getRemindAt()->getTimestamp(),
+        );
+        self::assertNotSame($notify->getChannel(), $email->getChannel());
+    }
+
+    public function testANewAlertGoesToTheNotificationList(): void
+    {
+        // The channel that existed before this column did, so nothing that already
+        // works changes behaviour.
+        self::assertSame(PlanningAlertChannelEnum::Notification, (new PlanningEventAlert())->getChannel());
     }
 
     private function eventAt(string $start): PlanningEvent

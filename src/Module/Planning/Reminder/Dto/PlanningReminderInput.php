@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Reminder\Dto;
 
+use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use DateTimeImmutable;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -28,6 +29,8 @@ class PlanningReminderInput implements PlanningReminderInputInterface
          * grid's checkbox has its own route, which only touches this.
          */
         public readonly bool $completed = false,
+        /** How it announces itself. A reminder has no alert rows to carry this. */
+        public readonly PlanningAlertChannelEnum $channel = PlanningAlertChannelEnum::Notification,
     ) {}
 
     public function getPlanningId(): int
@@ -75,5 +78,10 @@ class PlanningReminderInput implements PlanningReminderInputInterface
     public function isCompleted(): bool
     {
         return $this->completed;
+    }
+
+    public function getChannel(): PlanningAlertChannelEnum
+    {
+        return $this->channel;
     }
 }

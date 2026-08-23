@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Planning\Reminder\Dto;
 
 use Aurora\Core\Support\Str;
+use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
@@ -23,6 +24,8 @@ class PlanningReminderInputFactory implements PlanningReminderInputFactoryInterf
             dueAt: $this->date($data['dueAt'] ?? null),
             allDay: (bool) ($data['allDay'] ?? false),
             completed: (bool) ($data['completed'] ?? false),
+            channel: PlanningAlertChannelEnum::tryFrom((string) ($data['channel'] ?? ''))
+                ?? PlanningAlertChannelEnum::Notification,
         );
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Event\Entity;
 
+use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use DateTimeImmutable;
 
 interface PlanningEventAlertInterface
@@ -21,6 +22,10 @@ interface PlanningEventAlertInterface
     public function setAbsoluteAt(DateTimeImmutable $at): static;
 
     public function isRelative(): bool;
+
+    public function getChannel(): PlanningAlertChannelEnum;
+
+    public function setChannel(PlanningAlertChannelEnum $channel): static;
 
     public function getRemindAt(): DateTimeImmutable;
 

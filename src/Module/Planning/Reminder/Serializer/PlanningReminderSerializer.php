@@ -30,6 +30,7 @@ final readonly class PlanningReminderSerializer
             'notes' => $reminder->getNotes(),
             'dueAt' => $reminder->getDueAt()->format(DATE_ATOM),
             'allDay' => $reminder->isAllDay(),
+            'channel' => $reminder->getChannel()->value,
             'completed' => $reminder->isCompleted(),
             'completedAt' => $reminder->getCompletedAt()?->format(DATE_ATOM),
             // Computed here rather than left to the screen: "late" is a

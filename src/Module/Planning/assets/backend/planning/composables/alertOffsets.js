@@ -22,6 +22,15 @@ export const DEFAULT_ALERT_OFFSET = 30;
 export const CUSTOM = "custom";
 
 /**
+ * How an alert reaches the reader.
+ *
+ * Mirrors PlanningAlertChannelEnum, and a test asserts the two agree. No push,
+ * because this application has no push channel and offering one the form cannot
+ * deliver would be worse than not offering it.
+ */
+export const CHANNELS = ["notification", "email"];
+
+/**
  * Names an offset.
  *
  * One key per offset rather than a number and a unit, because the list is closed
@@ -43,6 +52,18 @@ export function alertLabel(minutes, t) {
  * @param {(key: string) => string} t
  * @returns {Array<{value: number|string, label: string}>}
  */
+/**
+ * The channels a row can be delivered on.
+ *
+ * @param {(key: string) => string} t
+ */
+export function channelOptions(t) {
+    return CHANNELS.map((channel) => ({
+        value: channel,
+        label: t(`backend.plannings.alerts.channel_${channel}`),
+    }));
+}
+
 export function alertOptions(t) {
     return [
         ...ALERT_OFFSETS.map((minutes) => ({
@@ -65,9 +86,13 @@ export function alertOptions(t) {
  * @returns {{choice: number|string, at: string|null}}
  */
 export function toRow(alert) {
+    const channel = CHANNELS.includes(alert.channel)
+        ? alert.channel
+        : "notification";
+
     return null === alert.minutes
-        ? { choice: CUSTOM, at: alert.at }
-        : { choice: alert.minutes, at: null };
+        ? { choice: CUSTOM, at: alert.at, channel }
+        : { choice: alert.minutes, at: null, channel };
 }
 
 /**
@@ -81,14 +106,18 @@ export function toRow(alert) {
  * @returns {{minutes: number|null, at: string}|null}
  */
 export function fromRow(row) {
+    const channel = CHANNELS.includes(row.channel)
+        ? row.channel
+        : "notification";
+
     if (CUSTOM !== row.choice) {
-        return { minutes: row.choice, at: null };
+        return { minutes: row.choice, at: null, channel };
     }
 
-    return row.at ? { minutes: null, at: row.at } : null;
+    return row.at ? { minutes: null, at: row.at, channel } : null;
 }
 
 /** A fresh row, on the offset most calendars default to. */
 export function blankRow() {
-    return { choice: DEFAULT_ALERT_OFFSET, at: null };
+    return { choice: DEFAULT_ALERT_OFFSET, at: null, channel: "notification" };
 }

@@ -111,6 +111,12 @@ backend:
       day_FR: F
       day_SA: S
       day_SU: S
+    mail:
+      alert_subject: "Coming up: %title%"
+      alert_intro: "This event on the %calendar% calendar is coming up."
+      reminder_subject: "Reminder: %title%"
+      reminder_intro: "This reminder on the %calendar% calendar is due."
+      open: "Open the calendar"
     errors:
       name_required: A calendar needs a name.
       colour_out_of_range: "That colour is not in the palette."
@@ -134,6 +140,10 @@ backend:
         title_required: "The reminder needs a title."
         due_required: "The reminder needs a due date."
     alerts:
+      channel: "By"
+      channel_hint: "An alert that only arrives in the application is only seen by somebody already in it."
+      channel_notification: "Notification"
+      channel_email: "Email"
       custom: "Custom…"
       add: Add an alert
       at_placeholder: "The day and time of the alert"

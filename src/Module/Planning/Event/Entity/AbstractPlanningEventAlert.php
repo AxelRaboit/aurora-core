@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Event\Entity;
 
+use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
@@ -62,6 +63,16 @@ abstract class AbstractPlanningEventAlert implements PlanningEventAlertInterface
      */
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     protected ?DateTimeImmutable $sentAt = null;
+
+    /**
+     * How this alert reaches the reader.
+     *
+     * Part of what identifies an alert, not a detail of it: "tell me and email me,
+     * both thirty minutes before" is two alerts at one instant, which is why the
+     * unique key includes this.
+     */
+    #[ORM\Column(length: 20, enumType: PlanningAlertChannelEnum::class, options: ['default' => PlanningAlertChannelEnum::Notification->value])]
+    protected PlanningAlertChannelEnum $channel = PlanningAlertChannelEnum::Notification;
 
     public function getEvent(): PlanningEventInterface
     {
@@ -124,6 +135,18 @@ abstract class AbstractPlanningEventAlert implements PlanningEventAlertInterface
     {
         $this->minutesBefore = null;
         $this->remindAt = $at;
+
+        return $this;
+    }
+
+    public function getChannel(): PlanningAlertChannelEnum
+    {
+        return $this->channel;
+    }
+
+    public function setChannel(PlanningAlertChannelEnum $channel): static
+    {
+        $this->channel = $channel;
 
         return $this;
     }

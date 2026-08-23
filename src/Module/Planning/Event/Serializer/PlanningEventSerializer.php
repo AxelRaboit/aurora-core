@@ -100,6 +100,7 @@ final readonly class PlanningEventSerializer
         foreach ($event->getAlerts() as $alert) {
             $alerts[] = [
                 'minutes' => $alert->getMinutesBefore(),
+                'channel' => $alert->getChannel()->value,
                 'at' => $alert->isRelative() ? null : $alert->getRemindAt()->format(DATE_ATOM),
                 // Sent for both kinds, so a screen can show when a relative alert
                 // actually lands without recomputing the subtraction itself.

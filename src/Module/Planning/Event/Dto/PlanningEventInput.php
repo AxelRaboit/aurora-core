@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Event\Dto;
 
+use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use Aurora\Module\Planning\Planning\Entity\AbstractPlanning;
 use DateTimeImmutable;
@@ -43,7 +44,7 @@ class PlanningEventInput implements PlanningEventInputInterface
          * once, so a diff computed here would only be a diff the client already
          * made.
          *
-         * @var list<array{minutes: int|null, at: DateTimeImmutable|null}>
+         * @var list<array{minutes: int|null, at: DateTimeImmutable|null, channel: PlanningAlertChannelEnum}>
          */
         public readonly array $alerts = [],
     ) {}
@@ -132,7 +133,7 @@ class PlanningEventInput implements PlanningEventInputInterface
         return $this->rrule;
     }
 
-    /** @return list<array{minutes: int|null, at: DateTimeImmutable|null}> */
+    /** @return list<array{minutes: int|null, at: DateTimeImmutable|null, channel: PlanningAlertChannelEnum}> */
     public function getAlerts(): array
     {
         return $this->alerts;

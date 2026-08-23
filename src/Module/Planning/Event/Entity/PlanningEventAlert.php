@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: PlanningEventAlertRepository::class)]
 #[ORM\Table(name: 'core_planning_event_alerts')]
 #[ORM\Index(name: 'idx_planning_alert_due', columns: ['remind_at', 'sent_at'])]
-#[ORM\UniqueConstraint(name: 'uniq_planning_alert_moment', columns: ['event_id', 'remind_at'])]
+#[ORM\UniqueConstraint(name: 'uniq_planning_alert_moment', columns: ['event_id', 'remind_at', 'channel'])]
 class PlanningEventAlert extends AbstractPlanningEventAlert
 {
     #[ORM\Id]

@@ -19,6 +19,7 @@ import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import { toInstant, toPickerValue, zoneDiffersFromViewer } from "../composables/eventTime.js";
+import { channelOptions } from "../composables/alertOffsets.js";
 
 const props = defineProps({
     /** The reminder being edited, `{}` for a new one, null when closed. */
@@ -42,6 +43,7 @@ function blank() {
         dueAt: "",
         allDay: false,
         completed: false,
+        channel: "notification",
     };
 }
 
@@ -73,6 +75,8 @@ watch(
     },
     { immediate: true },
 );
+
+const reminderChannelOptions = computed(() => channelOptions(t));
 
 const calendarOptions = computed(() =>
     props.calendars.map((calendar) => ({ value: calendar.id, label: calendar.name })),
@@ -116,6 +120,12 @@ function payload() {
             <p v-if="showZone" class="-mt-1.5 text-xs text-muted">
                 {{ t("backend.plannings.events.in_zone", { zone }) }}
             </p>
+            <AppSelect
+                v-model="form.channel"
+                :label="t('backend.plannings.alerts.channel')"
+                :options="reminderChannelOptions"
+                :hint="t('backend.plannings.alerts.channel_hint')"
+            />
             <AppTextarea
                 v-model="form.notes"
                 :label="t('backend.plannings.reminders.notes')"

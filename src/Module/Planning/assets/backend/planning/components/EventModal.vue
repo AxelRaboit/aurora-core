@@ -24,7 +24,7 @@ import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
-import { CUSTOM, alertLabel, alertOptions, blankRow, fromRow, toRow } from "../composables/alertOffsets.js";
+import { CUSTOM, alertLabel, alertOptions, blankRow, channelOptions, fromRow, toRow } from "../composables/alertOffsets.js";
 import { toInstant, toPickerValue, zoneDiffersFromViewer } from "../composables/eventTime.js";
 import { COLOUR_SLOTS } from "../composables/calendarColours.js";
 import {
@@ -171,6 +171,7 @@ const statusOptions = computed(() =>
 );
 
 const alertSelectOptions = computed(() => alertOptions(t));
+const alertChannelOptions = computed(() => channelOptions(t));
 
 const recurrenceOptions = computed(() =>
     PRESETS.map((preset) => ({ value: preset, label: t(`backend.plannings.recurrence.${preset}`) })),
@@ -495,7 +496,13 @@ const when = computed(() => {
                          the width the remove button occupies and sit wider than
                          the select above it. -->
                     <div class="flex min-w-0 flex-1 flex-col gap-1.5">
-                        <AppSelect v-model="row.choice" :options="alertSelectOptions" />
+                        <div class="flex gap-2">
+                            <AppSelect v-model="row.choice" class="flex-1" :options="alertSelectOptions" />
+                            <!-- The channel beside the offset rather than under
+                                 it: "thirty minutes before, by email" is one
+                                 sentence and reads as one row. -->
+                            <AppSelect v-model="row.channel" class="w-40" :options="alertChannelOptions" />
+                        </div>
                         <AppDatePicker
                             v-if="CUSTOM === row.choice"
                             v-model="row.at"

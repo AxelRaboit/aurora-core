@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Planning\Reminder\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
+use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
@@ -90,6 +91,16 @@ abstract class AbstractPlanningReminder implements PlanningReminderInterface
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     protected ?DateTimeImmutable $notifiedAt = null;
 
+    /**
+     * How this reminder announces itself.
+     *
+     * On the reminder rather than on an alert row, because a reminder has none: it
+     * announces itself at its due time, so the choice belongs to the thing that
+     * announces.
+     */
+    #[ORM\Column(length: 20, enumType: PlanningAlertChannelEnum::class, options: ['default' => PlanningAlertChannelEnum::Notification->value])]
+    protected PlanningAlertChannelEnum $channel = PlanningAlertChannelEnum::Notification;
+
     abstract public function getId(): ?int;
 
     public function getPlanning(): PlanningInterface
@@ -160,6 +171,18 @@ abstract class AbstractPlanningReminder implements PlanningReminderInterface
     public function setAllDay(bool $allDay): static
     {
         $this->allDay = $allDay;
+
+        return $this;
+    }
+
+    public function getChannel(): PlanningAlertChannelEnum
+    {
+        return $this->channel;
+    }
+
+    public function setChannel(PlanningAlertChannelEnum $channel): static
+    {
+        $this->channel = $channel;
 
         return $this;
     }

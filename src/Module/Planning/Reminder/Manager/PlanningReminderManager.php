@@ -87,6 +87,7 @@ class PlanningReminderManager implements PlanningReminderManagerInterface
         $reminder->setTitle($input->getTitle());
         $reminder->setNotes($input->getNotes());
         $reminder->setAllDay($input->isAllDay());
+        $reminder->setChannel($input->getChannel());
         // Before the completion flag, because moving the date clears `notifiedAt`
         // and the order should be the one that reads as cause then consequence.
         $reminder->setDueAt($input->getDueAt());

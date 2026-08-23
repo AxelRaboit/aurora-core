@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Reminder\Dto;
 
+use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use DateTimeImmutable;
 
 interface PlanningReminderInputInterface
@@ -19,4 +20,6 @@ interface PlanningReminderInputInterface
     public function isAllDay(): bool;
 
     public function isCompleted(): bool;
+
+    public function getChannel(): PlanningAlertChannelEnum;
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Event\Dto;
 
+use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use DateTimeImmutable;
 
@@ -29,6 +30,6 @@ interface PlanningEventInputInterface
 
     public function getRrule(): ?string;
 
-    /** @return list<array{minutes: int|null, at: DateTimeImmutable|null}> */
+    /** @return list<array{minutes: int|null, at: DateTimeImmutable|null, channel: PlanningAlertChannelEnum}> */
     public function getAlerts(): array;
 }

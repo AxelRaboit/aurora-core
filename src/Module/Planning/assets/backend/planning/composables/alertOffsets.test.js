@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
     ALERT_OFFSETS,
+    CHANNELS,
     CUSTOM,
     DEFAULT_ALERT_OFFSET,
     alertLabel,
     alertOptions,
     blankRow,
+    channelOptions,
     fromRow,
     toRow,
 } from "./alertOffsets.js";
@@ -45,6 +47,7 @@ describe("alert rows", () => {
         expect(toRow({ minutes: 30, at: null })).toEqual({
             choice: 30,
             at: null,
+            channel: "notification",
         });
     });
 
@@ -54,6 +57,7 @@ describe("alert rows", () => {
         ).toEqual({
             choice: CUSTOM,
             at: "2026-09-01T07:00:00+00:00",
+            channel: "notification",
         });
     });
 
@@ -61,6 +65,7 @@ describe("alert rows", () => {
         expect(fromRow({ choice: 60, at: null })).toEqual({
             minutes: 60,
             at: null,
+            channel: "notification",
         });
     });
 
@@ -70,6 +75,7 @@ describe("alert rows", () => {
         ).toEqual({
             minutes: null,
             at: "2026-09-01T07:00:00+00:00",
+            channel: "notification",
         });
     });
 
@@ -84,10 +90,14 @@ describe("alert rows", () => {
         expect(fromRow(toRow({ minutes: 15, at: null }))).toEqual({
             minutes: 15,
             at: null,
+            channel: "notification",
         });
 
         const pinned = { minutes: null, at: "2026-09-01T07:00:00+00:00" };
-        expect(fromRow(toRow(pinned))).toEqual(pinned);
+        expect(fromRow(toRow(pinned))).toEqual({
+            ...pinned,
+            channel: "notification",
+        });
     });
 
     it("keeps zero as an offset rather than losing it to a falsy test", () => {
@@ -96,10 +106,56 @@ describe("alert rows", () => {
         expect(toRow({ minutes: 0, at: null })).toEqual({
             choice: 0,
             at: null,
+            channel: "notification",
         });
         expect(fromRow({ choice: 0, at: null })).toEqual({
             minutes: 0,
             at: null,
+            channel: "notification",
         });
+    });
+});
+
+describe("alert channels", () => {
+    it("defaults a new row to a notification", () => {
+        expect(blankRow().channel).toBe("notification");
+    });
+
+    it("carries the channel both ways", () => {
+        expect(toRow({ minutes: 30, at: null, channel: "email" }).channel).toBe(
+            "email",
+        );
+        expect(fromRow({ choice: 30, at: null, channel: "email" })).toEqual({
+            minutes: 30,
+            at: null,
+            channel: "email",
+        });
+    });
+
+    it("falls back on a notification for a channel it does not know", () => {
+        // A payload written by hand, or by a version of this that offered more.
+        expect(
+            toRow({ minutes: 30, at: null, channel: "pigeon" }).channel,
+        ).toBe("notification");
+        expect(
+            fromRow({ choice: 30, at: null, channel: "pigeon" }).channel,
+        ).toBe("notification");
+    });
+
+    it("offers exactly the channels that can be delivered", () => {
+        // No push: this application has no push channel, and offering one the form
+        // cannot deliver would be worse than not offering it.
+        expect(CHANNELS).toEqual(["notification", "email"]);
+        expect(channelOptions((key) => key)).toHaveLength(2);
+    });
+
+    it("survives a round trip on either channel", () => {
+        for (const channel of CHANNELS) {
+            expect(fromRow(toRow({ minutes: 15, at: null, channel }))).toEqual({
+                minutes: 15,
+                at: null,
+                channel,
+            });
+        }
     });
 });

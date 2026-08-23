@@ -9,6 +9,7 @@ use Aurora\Module\Planning\Event\Dto\PlanningEventInputInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
+use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Recurrence\RecurrenceEditor;
 use Aurora\Module\Planning\Recurrence\RecurrenceScopeEnum;
@@ -328,36 +329,29 @@ class PlanningEventManager implements PlanningEventManagerInterface
      * Runs after setSpan for the same reason it exists at all: a surviving
      * relative alert has just been recomputed against the new start.
      *
-     * @param list<array{minutes: int|null, at: DateTimeImmutable|null}> $alerts
+     * @param list<array{minutes: int|null, at: DateTimeImmutable|null, channel: PlanningAlertChannelEnum}> $alerts
      */
     protected function applyAlerts(PlanningEventInterface $event, array $alerts): void
     {
-        $wantedOffsets = [];
-        $wantedMoments = [];
+        // Keyed on what identifies an alert, which now includes the channel: "tell
+        // me and email me, both thirty minutes before" is two alerts, and matching
+        // on the offset alone would keep one and delete the other on every save.
+        $wanted = [];
         foreach ($alerts as $alert) {
-            if (null !== $alert['minutes']) {
-                $wantedOffsets[] = $alert['minutes'];
-
-                continue;
-            }
-
-            if ($alert['at'] instanceof DateTimeImmutable) {
-                $wantedMoments[] = $alert['at']->getTimestamp();
-            }
+            $wanted[] = $this->alertKey($alert['minutes'], $alert['at'], $alert['channel']);
         }
 
-        $keptOffsets = [];
-        $keptMoments = [];
+        $kept = [];
 
         foreach ($event->getAlerts() as $existing) {
-            if ($existing->isRelative()) {
-                if (in_array($existing->getMinutesBefore(), $wantedOffsets, true)) {
-                    $keptOffsets[] = $existing->getMinutesBefore();
+            $key = $this->alertKey(
+                $existing->getMinutesBefore(),
+                $existing->isRelative() ? null : $existing->getRemindAt(),
+                $existing->getChannel(),
+            );
 
-                    continue;
-                }
-            } elseif (in_array($existing->getRemindAt()->getTimestamp(), $wantedMoments, true)) {
-                $keptMoments[] = $existing->getRemindAt()->getTimestamp();
+            if (in_array($key, $wanted, true)) {
+                $kept[] = $key;
 
                 continue;
             }
@@ -367,24 +361,8 @@ class PlanningEventManager implements PlanningEventManagerInterface
         }
 
         foreach ($alerts as $alert) {
-            if (null !== $alert['minutes']) {
-                if (in_array($alert['minutes'], $keptOffsets, true)) {
-                    continue;
-                }
-
-                $created = new PlanningEventAlert();
-                $event->addAlert($created);
-                $created->setMinutesBefore($alert['minutes']);
-                $this->entityManager->persist($created);
-
-                continue;
-            }
-
-            if (!$alert['at'] instanceof DateTimeImmutable) {
-                continue;
-            }
-
-            if (in_array($alert['at']->getTimestamp(), $keptMoments, true)) {
+            $key = $this->alertKey($alert['minutes'], $alert['at'], $alert['channel']);
+            if (in_array($key, $kept, true)) {
                 continue;
             }
 
@@ -393,9 +371,33 @@ class PlanningEventManager implements PlanningEventManagerInterface
             // directly and `addAlert` would otherwise recompute it from the
             // default offset the moment the two sides are joined.
             $event->addAlert($created);
-            $created->setAbsoluteAt($alert['at']);
+            $created->setChannel($alert['channel']);
+
+            if (null !== $alert['minutes']) {
+                $created->setMinutesBefore($alert['minutes']);
+            } elseif ($alert['at'] instanceof DateTimeImmutable) {
+                $created->setAbsoluteAt($alert['at']);
+            }
+
             $this->entityManager->persist($created);
         }
+    }
+
+    /**
+     * What makes two alerts the same alert.
+     *
+     * One string rather than three comparisons, so the diff above cannot compare
+     * two of the three parts and miss the last - which is exactly what happened
+     * when the channel arrived.
+     */
+    private function alertKey(?int $minutes, ?DateTimeImmutable $at, PlanningAlertChannelEnum $channel): string
+    {
+        return sprintf(
+            '%s|%s|%s',
+            $minutes ?? 'x',
+            $at?->getTimestamp() ?? 'x',
+            $channel->value,
+        );
     }
 
     /**

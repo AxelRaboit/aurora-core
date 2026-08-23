@@ -111,6 +111,12 @@ backend:
       day_FR: V
       day_SA: S
       day_SU: D
+    mail:
+      alert_subject: "Bientôt : %title%"
+      alert_intro: "Cet événement du calendrier %calendar% approche."
+      reminder_subject: "Rappel : %title%"
+      reminder_intro: "Ce rappel du calendrier %calendar% est arrivé à échéance."
+      open: "Ouvrir le calendrier"
     errors:
       name_required: Le calendrier a besoin d'un nom.
       colour_out_of_range: "Cette couleur n'existe pas dans la palette."
@@ -134,6 +140,10 @@ backend:
         title_required: "Le rappel a besoin d'un titre."
         due_required: "Le rappel a besoin d'une échéance."
     alerts:
+      channel: "Par"
+      channel_hint: "Une alerte qui n'arrive que dans l'application ne se voit qu'en y étant déjà."
+      channel_notification: "Notification"
+      channel_email: "E-mail"
       custom: "Personnalisé…"
       add: Ajouter une alerte
       at_placeholder: "Le jour et l'heure de l'alerte"

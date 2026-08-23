@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Planning\Reminder\Entity;
 
 use Aurora\Core\Timestampable\TimestampableInterface;
+use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
 
@@ -31,6 +32,10 @@ interface PlanningReminderInterface extends TimestampableInterface
     public function isAllDay(): bool;
 
     public function setAllDay(bool $allDay): static;
+
+    public function getChannel(): PlanningAlertChannelEnum;
+
+    public function setChannel(PlanningAlertChannelEnum $channel): static;
 
     public function getCompletedAt(): ?DateTimeImmutable;
 
