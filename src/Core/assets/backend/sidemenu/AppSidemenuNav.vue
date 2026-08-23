@@ -35,6 +35,15 @@ defineProps({
      * is folded — a search that obeyed the folds would hide its own results.
      */
     navFilter: { type: String, default: "" },
+    /**
+     * Show each item's description under its label instead of only on hover.
+     *
+     * Same rule as `AppActionButton`: the label goes bold only when a
+     * description sits under it, because bold is what separates the two. An
+     * item with no description keeps a normal label — bolding it would promise
+     * a second line that never comes.
+     */
+    showDescriptions: { type: Boolean, default: false },
 });
 </script>
 
@@ -66,7 +75,7 @@ defineProps({
                      Two targets in one row, because the parent is itself a
                      page — collapsing them into one would cost the page. -->
                 <template v-if="!navFilter && item.children?.length">
-                    <AppTooltip :title="item.label" :description="item.description" placement="right">
+                    <AppTooltip :title="item.label" :description="showDescriptions ? '' : item.description" placement="right">
                         <div
                             class="flex items-center rounded-lg text-sm font-medium transition-colors group relative"
                             :class="nav.itemClasses(item, section.id)"
@@ -77,7 +86,10 @@ defineProps({
                                 class="flex items-center flex-1 min-w-0 gap-3 py-[0.625rem] pl-3"
                             >
                                 <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, section.id)" :stroke-width="2" />
-                                <span class="flex-1 truncate">{{ item.label }}</span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
+                                    <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ item.description }}</span>
+                                </span>
                             </a>
                             <AppIconButton
                                 :title="item.label"
@@ -98,10 +110,13 @@ defineProps({
                             :sidemenu-active="nav.isActive(child.route)"
                             :link-classes-override="nav.itemClasses(child, section.id)"
                             :tooltip-title="child.label"
-                            :tooltip-description="child.description"
+                            :tooltip-description="showDescriptions ? '' : child.description"
                         >
                             <component :is="child.icon" class="w-4 h-4 shrink-0" :class="nav.iconClasses(child, section.id)" :stroke-width="2" />
-                            <span class="truncate">{{ child.label }}</span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate" :class="showDescriptions && child.description ? 'font-semibold' : ''">{{ child.label }}</span>
+                                <span v-if="showDescriptions && child.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ child.description }}</span>
+                            </span>
                         </AppNavLink>
                     </div>
                 </template>
@@ -115,10 +130,16 @@ defineProps({
                     :sidemenu-active="nav.itemIsActive(item)"
                     :link-classes-override="nav.itemClasses(item, section.id)"
                     :tooltip-title="item.label"
-                    :tooltip-description="item.description"
+                    :tooltip-description="showDescriptions ? '' : item.description"
                 >
                     <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, section.id)" :stroke-width="2" />
-                    <span class="truncate">{{ item.label }}</span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
+                        <!-- Not truncated: a description cut at one line is
+                             worse than no description, and the row is allowed
+                             to grow when the reader asked for the text. -->
+                        <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ item.description }}</span>
+                    </span>
                 </AppNavLink>
             </template>
         </template>

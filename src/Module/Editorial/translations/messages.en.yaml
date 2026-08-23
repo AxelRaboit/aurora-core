@@ -114,7 +114,7 @@ backend:
     sections:
       editorial: Editorial
     posts: Posts
-    posts_description: 'Write and publish the site content.'
+    posts_description: "Write and publish the site's content, in each of its languages."
     post_types: Content types
     post_types_description: 'Define the kinds of content the site holds and the fields each one carries.'
     taxonomies: Taxonomies
@@ -126,7 +126,7 @@ backend:
     forms: Forms
     forms_description: 'Compose public forms and read what they collect.'
     comments: Comments
-    comments_description: 'Moderate the comments readers leave.'
+    comments_description: "Moderate readers' comments and turn away the unwanted ones."
   post_types:
     title: Content types
     empty: No content type yet.

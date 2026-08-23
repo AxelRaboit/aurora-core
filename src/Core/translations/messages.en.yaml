@@ -141,21 +141,22 @@ backend:
     expand_menu: Show the menu
     collapse_menu: Hide the menu
     administration: Developer access
-    administration_description: 'Technical tools, audit log, access requests and advanced configuration'
+    administration_description: "Technical tools: audit, access requests, permissions, modules and mount points."
     dashboard: Dashboard
-    dashboard_description: Overview of activity and key metrics
+    dashboard_description: "An overview of recent activity and the site's key figures."
     media: Media
-    media_description: 'Centralized library of images, videos and files'
+    media_description: "The shared library of reusable images, videos and files."
     profile: My profile
     settings: Settings
-    settings_description: Global application parameters and preferences
+    settings_description: "Application-wide settings and default preferences."
     themes: Themes
-    themes_description: 'Visual customization (colors, logo, favicon)'
+    themes_description: "Dress the site: colours, logo and favicon."
     users: Users
-    users_description: 'Manage user accounts, roles and privileges'
+    users_description: "Manage accounts, their roles and the detail of their privileges."
     resize_hint: Drag to resize — double-click to reset
     filter_nav: Filter menu…
     breadcrumb: Breadcrumb
+    show_descriptions: Show descriptions
     filter_nav_empty: No items found
     view_site: View site
     logout: Log out

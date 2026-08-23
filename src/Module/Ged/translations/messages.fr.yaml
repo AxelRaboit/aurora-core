@@ -34,13 +34,13 @@ backend:
     sections:
       ged: GED
     documents: Documents
-    documents_description: Bibliothèque de documents (contrats, RH, finance, marketing…)
+    documents_description: "Classer et retrouver les documents internes : contrats, RH, finance, marketing."
     ged_categories: Catégories
-    ged_categories_description: Organiser les documents par catégorie
+    ged_categories_description: "Classer les documents par nature — une catégorie par document."
     ged_tags: Étiquettes
-    ged_tags_description: Gérer les étiquettes de documents
+    ged_tags_description: "Étiqueter librement un document, autant d'étiquettes que nécessaire."
     ged_folders: Dossiers
-    ged_folders_description: Organiser les documents par dossier
+    ged_folders_description: "Ranger les documents dans une arborescence de dossiers imbriqués."
   ged:
     bootstrap:
       categories:

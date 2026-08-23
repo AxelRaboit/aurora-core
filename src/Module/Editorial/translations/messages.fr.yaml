@@ -114,7 +114,7 @@ backend:
     sections:
       editorial: Éditorial
     posts: Publications
-    posts_description: "Rédiger et publier le contenu du site."
+    posts_description: "Rédiger et publier le contenu du site, dans chacune de ses langues."
     post_types: Types de contenu
     post_types_description: "Définir les natures de contenu du site et les champs que chacune porte."
     taxonomies: Taxonomies
@@ -126,7 +126,7 @@ backend:
     forms: Formulaires
     forms_description: "Composer des formulaires publics et relire leurs soumissions."
     comments: Commentaires
-    comments_description: "Modérer les commentaires laissés par les lecteurs."
+    comments_description: "Modérer les commentaires des lecteurs et écarter les indésirables."
   post_types:
     title: Types de contenu
     empty: Aucun type de contenu.

@@ -9,6 +9,7 @@ import { useTheme } from "@/shared/composables/useTheme.js";
 import { useResizable } from "@/shared/composables/useResizable.js";
 import { useBackendSearch } from "@core/backend/sidemenu/composables/useBackendSearch.js";
 import { useSidemenuCollapse } from "@core/backend/sidemenu/composables/useSidemenuCollapse.js";
+import { useSidemenuDescriptions } from "@core/backend/sidemenu/composables/useSidemenuDescriptions.js";
 import { useSidemenuNav } from "@core/backend/sidemenu/composables/useSidemenuNav.js";
 import { useSidemenuSectionTheme } from "@core/backend/sidemenu/composables/useSidemenuSectionTheme.js";
 import { useSidemenuLiveColors } from "@core/backend/sidemenu/composables/useSidemenuLiveColors.js";
@@ -17,6 +18,7 @@ import AppAvatar from "@/shared/components/display/AppAvatar.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppNavLink from "@/shared/components/nav/AppNavLink.vue";
+import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppNavButton from "@/shared/components/nav/AppNavButton.vue";
 import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
 import AppNotificationsBell from "@core/backend/notifications/AppNotificationsBell.vue";
@@ -44,6 +46,8 @@ const props = defineProps({
     profilePath: { type: String, default: "/backend/general/profile" },
     sidemenuPreferencesPath: { type: String, default: "/backend/general/profile/sidemenu" },
     sidemenuCollapsedPath: { type: String, default: "/backend/general/profile/sidemenu/collapsed" },
+    sidemenuDescriptionsPath: { type: String, default: "/backend/general/profile/sidemenu/descriptions" },
+    sidemenuShowDescriptions: { type: Boolean, default: true },
     logoutPath: { type: String, default: "/logout" },
     mailpitUrl: { type: String, default: "" },
     siteName: { type: String, default: "Aurora" },
@@ -65,6 +69,10 @@ const { t } = useI18n();
 const { theme, toggle: toggleTheme } = useTheme();
 const { liveSectionColors } = useSidemenuLiveColors(props.navSectionColors);
 const { mobileOpen, openMobile, closeMobile } = useSidemenuCollapse(props.sidemenuCollapsedPath);
+const { showDescriptions, toggleDescriptions } = useSidemenuDescriptions(
+    props.sidemenuDescriptionsPath,
+    props.sidemenuShowDescriptions,
+);
 
 const { dragging: sidemenuDragging, startResize: startSidemenuResize, reset: resetSidemenuWidth } = useResizable({
     key: "aurora-sidemenu-width",
@@ -164,6 +172,18 @@ function openSearchFromMobile() {
                     <X class="w-3 h-3" :stroke-width="2.5" />
                 </button>
             </div>
+
+            <!-- Beside the filter because both act on the menu itself rather
+                 than leading anywhere. `AppToggle` carries its own label above
+                 the switch, which is a form layout; here the row is tight, so
+                 the label sits alongside instead. -->
+            <div class="flex items-center justify-between gap-2">
+                <span class="text-xs text-muted truncate">{{ t("backend.nav.show_descriptions") }}</span>
+                <AppToggle
+                    :model-value="showDescriptions"
+                    v-on:update:model-value="toggleDescriptions"
+                />
+            </div>
         </div>
 
         <!-- `py-1`, not `py-4`: 16px of padding left the first header and the
@@ -181,6 +201,7 @@ function openSearchFromMobile() {
                 :nav="nav"
                 :theme="sectionTheme"
                 :nav-filter="navFilter"
+                :show-descriptions="showDescriptions"
             />
         </nav>
 
@@ -313,6 +334,7 @@ function openSearchFromMobile() {
                     :sections="groupedSections"
                     :nav="nav"
                     :theme="sectionTheme"
+                    :show-descriptions="showDescriptions"
                 />
             </nav>
 

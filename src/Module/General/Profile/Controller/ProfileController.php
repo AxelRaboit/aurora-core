@@ -258,6 +258,22 @@ final class ProfileController extends AbstractController
         return $this->jsonSuccess(['collapsed' => $user->isSidemenuCollapsed()]);
     }
 
+    /**
+     * Its own call too, and for the same reason: the switch sits at the top of
+     * the menu, and turning it on should not have to know the rest of the
+     * user's customisation to send it back unchanged.
+     */
+    #[Route('/sidemenu/descriptions', name: '_sidemenu_descriptions', methods: [HttpMethodEnum::Post->value])]
+    public function sidemenuShowDescriptions(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $this->userManager->updateSidemenuShowDescriptions($user, (bool) ($this->decodeJson($request)['show'] ?? false));
+
+        return $this->jsonSuccess(['show' => $user->isSidemenuShowDescriptions()]);
+    }
+
     #[Route('/sidemenu/reset', name: '_sidemenu_reset', methods: [HttpMethodEnum::Post->value])]
     public function sidemenuReset(): JsonResponse
     {

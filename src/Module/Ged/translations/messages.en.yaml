@@ -34,13 +34,13 @@ backend:
     sections:
       ged: DMS
     documents: Documents
-    documents_description: Document library (contracts, HR, finance, marketing…)
+    documents_description: "File and find internal documents: contracts, HR, finance, marketing."
     ged_categories: Categories
-    ged_categories_description: Organize documents by category
+    ged_categories_description: "Sort documents by nature — one category per document."
     ged_tags: Tags
-    ged_tags_description: Manage document tags
+    ged_tags_description: "Tag a document freely, with as many tags as it needs."
     ged_folders: Folders
-    ged_folders_description: Organize documents by folder
+    ged_folders_description: "Keep documents in a tree of nested folders."
   ged:
     bootstrap:
       categories:

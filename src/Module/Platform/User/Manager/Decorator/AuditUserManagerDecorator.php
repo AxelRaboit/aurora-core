@@ -186,6 +186,11 @@ final readonly class AuditUserManagerDecorator implements UserManagerInterface
         $this->inner->updateSidemenuCollapsed($user, $collapsed);
     }
 
+    public function updateSidemenuShowDescriptions(User $user, bool $show): void
+    {
+        $this->inner->updateSidemenuShowDescriptions($user, $show);
+    }
+
     public function updateSidemenuPreferences(
         User $user,
         array $hiddenNavSections,

@@ -141,21 +141,22 @@ backend:
     expand_menu: Afficher le menu
     collapse_menu: Masquer le menu
     administration: Accès développeur
-    administration_description: "Outils techniques, audit, requêtes d'accès et configuration avancée"
+    administration_description: "Outils techniques : audit, requêtes d'accès, permissions, modules et points de montage."
     dashboard: Tableau de bord
-    dashboard_description: Vue d'ensemble de l'activité et indicateurs clés
+    dashboard_description: "Vue d'ensemble de l'activité récente et des indicateurs clés du site."
     media: Médias
-    media_description: 'Bibliothèque centralisée des images, vidéos et fichiers'
+    media_description: "Bibliothèque centralisée des images, vidéos et fichiers réutilisables."
     profile: Mon profil
     settings: Réglages
-    settings_description: Paramètres globaux de l'application et préférences
+    settings_description: "Réglages globaux de l'application et préférences par défaut."
     themes: Thèmes
-    themes_description: 'Personnalisation visuelle (couleurs, logo, favicon)'
+    themes_description: "Habiller le site : couleurs, logo et favicon."
     users: Utilisateurs
-    users_description: 'Gérer les comptes, rôles et privilèges'
+    users_description: "Gérer les comptes, leurs rôles et le détail de leurs privilèges."
     resize_hint: Glisser pour redimensionner — double-clic pour réinitialiser
     filter_nav: Filtrer le menu…
     breadcrumb: Fil d'Ariane
+    show_descriptions: Afficher les descriptions
     filter_nav_empty: Aucun élément trouvé
     view_site: Voir le site
     logout: Déconnexion

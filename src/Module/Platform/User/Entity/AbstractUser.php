@@ -91,6 +91,22 @@ abstract class AbstractUser implements CoreUserInterface
     #[Groups(['user:read'])]
     protected bool $sidemenuCollapsed = false;
 
+    /**
+     * Whether this user wants each menu item's description under its label.
+     *
+     * The descriptions exist either way — they are the tooltips. This turns them
+     * into standing text. Beside the other sidemenu preferences for the reason
+     * given above: one object, one place.
+     *
+     * **On by default.** A menu that explains itself is the better first
+     * impression, and someone who does not want the second line turns it off
+     * once and is never asked again — whereas a description nobody knows exists
+     * is a tooltip nobody hovers.
+     */
+    #[ORM\Column(options: ['default' => true])]
+    #[Groups(['user:read'])]
+    protected bool $sidemenuShowDescriptions = true;
+
     #[ORM\Column]
     protected string $password;
 
@@ -412,6 +428,18 @@ abstract class AbstractUser implements CoreUserInterface
     public function setSidemenuCollapsed(bool $sidemenuCollapsed): static
     {
         $this->sidemenuCollapsed = $sidemenuCollapsed;
+
+        return $this;
+    }
+
+    public function isSidemenuShowDescriptions(): bool
+    {
+        return $this->sidemenuShowDescriptions;
+    }
+
+    public function setSidemenuShowDescriptions(bool $sidemenuShowDescriptions): static
+    {
+        $this->sidemenuShowDescriptions = $sidemenuShowDescriptions;
 
         return $this;
     }

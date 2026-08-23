@@ -66,6 +66,13 @@ interface UserManagerInterface
      */
     public function updateSidemenuCollapsed(User $user, bool $collapsed): void;
 
+    /**
+     * Whether this user wants each menu item's description shown under its
+     * label. Its own call rather than part of the preferences form, like
+     * collapsing: it is toggled from the menu itself, one switch at a time.
+     */
+    public function updateSidemenuShowDescriptions(User $user, bool $show): void;
+
     public function updateSidemenuPreferences(
         User $user,
         array $hiddenNavSections,
