@@ -19,6 +19,7 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import CalendarModal from "./components/CalendarModal.vue";
 import CalendarDayList from "./components/CalendarDayList.vue";
 import CalendarAgenda from "./components/CalendarAgenda.vue";
+import CalendarBar from "./components/CalendarBar.vue";
 import CalendarSidebar from "./components/CalendarSidebar.vue";
 import CalendarMonth from "./components/CalendarMonth.vue";
 import CalendarTimeGrid from "./components/CalendarTimeGrid.vue";
@@ -255,30 +256,31 @@ usePlanningShortcuts({
 </script>
 
 <template>
-    <div class="relative grid grid-cols-1 lg:grid-cols-[13rem_1fr] gap-4">
+    <div class="relative">
         <AppLoader :active="loading" />
 
-        <!-- The column on a wide screen. On a phone the same component is drawn
-             inside the sheet below, because a 13rem sidebar there would leave 167
-             pixels for a seven-day grid. -->
-        <CalendarSidebar
-            class="hidden lg:block"
-            :calendars="calendars"
-            :hidden="hidden"
-            :counts-by-calendar="countsByCalendar"
-            :can-create-events="canCreateEvents"
-            :can-manage-calendars="canManageCalendars"
-            :zone="zone"
-            :timezones="timezones"
-            v-on:set-zone="setZone"
-            v-on:create-event="create"
-            v-on:create-reminder="createReminder"
-            v-on:create-calendar="createCalendar"
-            v-on:edit-calendar="editCalendar"
-            v-on:toggle-calendar="toggleCalendar"
-        />
-
         <div class="min-w-0 space-y-3">
+            <!-- Everything the sidebar used to hold, on one line. Hidden below
+                 `lg`, where the same content is drawn as a column in the sheet:
+                 at 375px a row of pills would scroll further than the grid it
+                 filters. -->
+            <CalendarBar
+                class="hidden lg:flex"
+                :calendars="calendars"
+                :hidden="hidden"
+                :counts-by-calendar="countsByCalendar"
+                :can-create-events="canCreateEvents"
+                :can-manage-calendars="canManageCalendars"
+                :zone="zone"
+                :timezones="timezones"
+                v-on:set-zone="setZone"
+                v-on:create-event="create"
+                v-on:create-reminder="createReminder"
+                v-on:create-calendar="createCalendar"
+                v-on:edit-calendar="editCalendar"
+                v-on:toggle-calendar="toggleCalendar"
+            />
+
             <!-- Two rows below `md`. Everything on one line needs about 366
                  pixels of controls at 375 of viewport, so the label truncated to
                  nothing and the switcher wrapped under the chevrons. -->
@@ -405,6 +407,9 @@ usePlanningShortcuts({
                 :counts-by-calendar="countsByCalendar"
                 :can-create-events="canCreateEvents"
                 :can-manage-calendars="canManageCalendars"
+                :zone="zone"
+                :timezones="timezones"
+                v-on:set-zone="setZone"
                 v-on:create-event="create"
                 v-on:create-reminder="createReminder"
                 v-on:create-calendar="createCalendar"

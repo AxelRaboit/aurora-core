@@ -1,19 +1,21 @@
 <script setup>
 /**
- * The calendar list and the three things you can make.
+ * The calendar list and the two things you can make, as a column.
  *
- * Its own component because it is drawn in two places: a column beside the grid
- * on a wide screen, and a sheet on a phone, where a 13rem sidebar would leave
- * 167 pixels for a seven-day grid. Both Google and Apple put it behind a button
- * there. Duplicating the markup would mean fixing every future change twice.
+ * The phone's shape only, since the wide screen moved all of this into
+ * `CalendarBar` above the grid. It stays a separate component rather than a
+ * breakpoint on that one because the two are not the same layout with different
+ * padding: this one stacks full-width blocks in a sheet, that one fits on a single
+ * line. What they genuinely share - drawing one calendar - is `CalendarToggle`.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { CalendarPlus, BellPlus, Pencil, Plus } from "lucide-vue-next";
+import { CalendarPlus, BellPlus, Plus } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import CalendarToggle from "./CalendarToggle.vue";
 
 const props = defineProps({
     calendars: { type: Array, required: true },
@@ -104,60 +106,17 @@ const zoneOptions = computed(() =>
             <!-- A calendar folded away is a display decision, so it toggles
                  without a round trip and without touching the URL: which of
                  your own calendars you have hidden is not something you send
-                 anyone.
-
-                 A row, not a button, because it now holds two actions: the
-                 name toggles, the pencil edits. A button inside a button is
-                 invalid HTML and the inner one never fires. -->
-            <div
+                 anyone. -->
+            <CalendarToggle
                 v-for="calendar in calendars"
                 :key="calendar.id"
-                class="group flex items-center gap-2 text-sm transition-opacity"
-                :class="hidden.has(calendar.id) ? 'opacity-40' : ''"
-            >
-                <button
-                    type="button"
-                    class="flex min-w-0 flex-1 items-center gap-2 text-left cursor-pointer"
-                    :aria-pressed="!hidden.has(calendar.id)"
-                    v-on:click="emit('toggle-calendar', calendar.id)"
-                >
-                    <span
-                        class="w-3 h-3 rounded shrink-0"
-                        :style="hidden.has(calendar.id)
-                            ? { border: '1.5px solid var(--th-muted)' }
-                            : { backgroundColor: `var(--chart-cat-${calendar.colourSlot})` }"
-                    />
-                    <span class="text-secondary truncate">{{ calendar.name }}</span>
-                </button>
-
-                <!-- Events in the range on screen, not a lifetime total.
-                     Titled, because a bare number next to a calendar reads
-                     as "everything in it" and this one moves as you page.
-
-                     Absent rather than "0" when there is nothing: a zero in
-                     figures reads as a fact about the calendar, and this one
-                     is a fact about the month. No number says "nothing here
-                     right now", which is what it means. -->
-                <span
-                    v-if="countsByCalendar[calendar.id]"
-                    class="text-2xs text-muted tabular-nums shrink-0 group-hover:hidden"
-                    :title="t('backend.plannings.events_in_range')"
-                >
-                    {{ countsByCalendar[calendar.id] }}
-                </span>
-                <!-- Takes the count's place on hover rather than sitting
-                     beside it, so the row does not change width and the
-                     names stay lined up. -->
-                <button
-                    v-if="canManageCalendars"
-                    type="button"
-                    class="hidden shrink-0 cursor-pointer text-muted hover:text-primary group-hover:block"
-                    :title="t('backend.plannings.edit_calendar')"
-                    v-on:click="emit('edit-calendar', calendar)"
-                >
-                    <Pencil class="w-3.5 h-3.5" :stroke-width="2" />
-                </button>
-            </div>
+                :calendar="calendar"
+                :hidden="hidden.has(calendar.id)"
+                :count="countsByCalendar[calendar.id] ?? 0"
+                :can-manage="canManageCalendars"
+                v-on:toggle="emit('toggle-calendar', $event)"
+                v-on:edit="emit('edit-calendar', $event)"
+            />
         </div>
 
         <!-- One zone for the screen, not one per calendar: a grid shows several at
