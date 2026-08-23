@@ -6,7 +6,7 @@
     {{ include('@Shared/components/page_header.html.twig', {
         crumbs: [
             {label: 'backend.nav.sections.editorial'|trans},
-            {label: 'backend.nav.posts'|trans, path: path('backend_editorial_posts')},
+            {label: 'backend.nav.posts'|trans, href: path('backend_editorial_posts')},
             {label: post ? 'backend.posts.edit'|trans : 'backend.posts.create'|trans},
         ],
     }) }}

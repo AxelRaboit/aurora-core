@@ -76,10 +76,15 @@ final class PageHeaderTest extends IntegrationTestCase
     /**
      * Three levels, and the middle one is a link back. This is the path the
      * single band used to truncate, which is what the split was for.
+     *
+     * The dev dashboard, because a third level has to be a genuine detail of a
+     * nav item — a tab here, a document or a post elsewhere. This test used to
+     * point at the GED categories page, which claimed a parent it did not have;
+     * fixing that took its third level away, and rightly so.
      */
     public function testADeeperPageShowsEveryLevel(): void
     {
-        $crawler = $this->client->request('GET', $this->urlGenerator->generate('backend_ged_categories'));
+        $crawler = $this->client->request('GET', $this->urlGenerator->generate('dev_dashboard'));
 
         self::assertResponseIsSuccessful();
 
@@ -104,20 +109,22 @@ final class PageHeaderTest extends IntegrationTestCase
     }
 
     /**
-     * The one page with no ancestors.
+     * The profile page, which used to be the exception.
      *
-     * One crumb, so a trail of one — which is the shape this test file exists to
-     * forbid everywhere else. Here it is not a lost level, it is the whole path,
-     * and there is nothing above the profile to link back to.
+     * It began its trail at itself — the only page in the backend that did — so
+     * it could not say where it sat, and it was the one page whose trail held a
+     * single item. It sits under the account section now, like every other page
+     * sits under its own.
      */
-    public function testAPageWithoutAncestorsStillSaysWhereYouAre(): void
+    public function testTheProfilePageSitsUnderASectionLikeEveryOther(): void
     {
         $crawler = $this->client->request('GET', $this->urlGenerator->generate('backend_general_profile'));
 
         self::assertResponseIsSuccessful();
 
-        $trail = mb_trim($crawler->filter('header nav[aria-label]')->text());
-        self::assertNotSame('', $trail, 'With no trail to draw, the band must still name the page.');
-        self::assertSame(mb_trim($crawler->filter('header h2')->text()), $trail);
+        $trail = $crawler->filter('header nav[aria-label]');
+        self::assertSame(1, $trail->filter('span.select-none')->count(), 'A section and the page: one separator.');
+        self::assertStringContainsString(mb_trim($crawler->filter('header h2')->text()), mb_trim($trail->text()));
+        self::assertSame(1, $trail->filter('[aria-current="page"]')->count());
     }
 }

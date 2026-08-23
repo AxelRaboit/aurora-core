@@ -5,6 +5,7 @@
 {% block page_header_slot %}
     {{ include('@Shared/components/page_header.html.twig', {
         crumbs: [
+            {label: 'backend.nav.sections.account'|trans},
             {label: 'backend.nav.profile'|trans},
         ],
     }) }}
