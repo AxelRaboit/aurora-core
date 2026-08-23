@@ -8,7 +8,6 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use DateTimeImmutable;
-use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ResolveTargetEntityRepository<PlanningEventInterface> */
@@ -32,58 +31,84 @@ class PlanningEventRepository extends ResolveTargetEntityRepository
      *
      * @return list<PlanningEventInterface>
      */
-    public function findInWindow(array $planningIds, DateTimeImmutable $from, DateTimeImmutable $to): array
+    /**
+     * The events that are one event, overlapping a window.
+     *
+     * `rrule IS NULL` covers both a plain event and an occurrence somebody edited
+     * into a row of its own: the second is a real event that happens once, and
+     * nothing about drawing it differs.
+     *
+     * The overlap test is `start < to AND end > from`, not "starts inside": an
+     * event running from before the window into it is on the screen, and a query
+     * comparing only starts is the bug every calendar has once.
+     *
+     * @param list<int> $planningIds
+     *
+     * @return list<PlanningEventInterface>
+     */
+    public function findSinglesInWindow(array $planningIds, DateTimeImmutable $from, DateTimeImmutable $to): array
     {
         if ([] === $planningIds) {
             return [];
         }
 
-        return $this->createQueryBuilder('e')
+        /** @var list<PlanningEventInterface> $result */
+        $result = $this->createQueryBuilder('e')
             ->addSelect('p')
-            // Joined and selected in the same query: a month grid draws the
-            // calendar's colour on every chip, and lazy-loading it would be one
-            // query per event.
             ->innerJoin('e.planning', 'p')
             ->where('e.planning IN (:plannings)')
+            ->andWhere('e.rrule IS NULL')
             ->andWhere('e.startAt < :to')
             ->andWhere('e.endAt > :from')
             ->setParameter('plannings', $planningIds)
             ->setParameter('from', $from)
             ->setParameter('to', $to)
-            ->orderBy('e.startAt', Order::Ascending->value)
-            ->addOrderBy('e.id', Order::Ascending->value)
+            ->orderBy('e.startAt', 'ASC')
             ->getQuery()
             ->getResult();
+
+        return $result;
     }
 
     /**
-     * The event a module pushed for one of its own records, if it exists.
+     * The series that could reach a window, without expanding any of them.
      *
-     * Reads the unique pair the table already indexes, so a module re-announcing
-     * the same record updates its event instead of adding a second one.
-     */
-    /**
-     * The next few events starting after a moment.
+     * This is what `recurrence_until` is for. A series qualifies when it starts
+     * before the window ends and has not already finished before the window
+     * begins - two column comparisons. Working it out from the rules instead would
+     * mean expanding every recurring event in the table on every fetch, for ever.
      *
-     * Starting after, not overlapping: a dashboard answers "what is coming",
-     * and something already under way is not coming. The grid's window query is
-     * the one that needs the overlap test.
+     * Whether a qualifying series actually lands inside the window is the
+     * expander's answer, and it is cheap once the candidates are this few.
      *
      * @param list<int> $planningIds
      *
      * @return list<PlanningEventInterface>
      */
-    /**
-     * Events whose title matches, among the calendars the reader may see.
-     *
-     * Scoped, and that is not optional: global search reaches every screen, so an
-     * unscoped title match is the shortest path there is to reading somebody
-     * else's private calendar.
-     *
-     * @param list<int> $planningIds
-     *
-     * @return list<PlanningEventInterface>
-     */
+    public function findSeriesReaching(array $planningIds, DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        if ([] === $planningIds) {
+            return [];
+        }
+
+        /** @var list<PlanningEventInterface> $result */
+        $result = $this->createQueryBuilder('e')
+            ->addSelect('p')
+            ->innerJoin('e.planning', 'p')
+            ->where('e.planning IN (:plannings)')
+            ->andWhere('e.rrule IS NOT NULL')
+            ->andWhere('e.startAt < :to')
+            ->andWhere('e.recurrenceUntil IS NULL OR e.recurrenceUntil > :from')
+            ->setParameter('plannings', $planningIds)
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->orderBy('e.startAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
+
     public function searchVisible(array $planningIds, string $query, int $limit = 10): array
     {
         $term = mb_trim($query);

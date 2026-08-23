@@ -73,7 +73,7 @@ final class PlanningEventWindowTest extends IntegrationTestCase
      */
     private function titlesInAugust(): array
     {
-        $found = $this->events->findInWindow(
+        $found = $this->events->findSinglesInWindow(
             [(int) $this->planning->getId()],
             new DateTimeImmutable('2026-08-01 00:00'),
             new DateTimeImmutable('2026-09-01 00:00'),
@@ -138,7 +138,7 @@ final class PlanningEventWindowTest extends IntegrationTestCase
     {
         $this->event('Réunion', '2026-08-14 14:00', '2026-08-14 15:30');
 
-        self::assertSame([], $this->events->findInWindow(
+        self::assertSame([], $this->events->findSinglesInWindow(
             [],
             new DateTimeImmutable('2026-08-01 00:00'),
             new DateTimeImmutable('2026-09-01 00:00'),

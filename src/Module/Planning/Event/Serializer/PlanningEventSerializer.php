@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Planning\Event\Serializer;
 
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
+use Aurora\Module\Planning\Recurrence\PlanningOccurrence;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -23,6 +24,20 @@ final readonly class PlanningEventSerializer
     /** @return array<string, mixed> */
     public function serialize(PlanningEventInterface $event): array
     {
+        return $this->serializeOccurrence(PlanningOccurrence::of($event));
+    }
+
+    /**
+     * One appearance on a calendar, whether it is a row or a date a rule produced.
+     *
+     * The span comes from the occurrence rather than the event, which is the whole
+     * point: a series is one row and every appearance of it has a different one.
+     *
+     * @return array<string, mixed>
+     */
+    public function serializeOccurrence(PlanningOccurrence $occurrence): array
+    {
+        $event = $occurrence->event;
         $planning = $event->getPlanning();
 
         return [
@@ -34,8 +49,8 @@ final readonly class PlanningEventSerializer
             'title' => $event->getTitle(),
             'description' => $event->getDescription(),
             'location' => $event->getLocation(),
-            'startAt' => $event->getStartAt()->format(DATE_ATOM),
-            'endAt' => $event->getEndAt()->format(DATE_ATOM),
+            'startAt' => $occurrence->startAt->format(DATE_ATOM),
+            'endAt' => $occurrence->endAt->format(DATE_ATOM),
             'allDay' => $event->isAllDay(),
             'status' => $event->getStatus()->value,
             'statusLabel' => $this->translator->trans($event->getStatus()->getLabelKey()),
@@ -54,6 +69,14 @@ final readonly class PlanningEventSerializer
             'sourceLabel' => $event->getSourceLabel(),
             'sourceUrl' => $event->getSourceUrl(),
             'alerts' => $this->alerts($event),
+            'recurring' => $event->isRecurring(),
+            'rrule' => $event->getRrule(),
+            // Which appearance this is, and the identity a client sends back to
+            // say "this one". Null on a row, because a row already has an id.
+            'occurrenceAt' => $occurrence->occurrenceAt?->format(DATE_ATOM),
+            // Set on an occurrence somebody edited, so a screen can say it belongs
+            // to a series without having to look the series up.
+            'masterId' => $event->getMaster()?->getId(),
             'readOnly' => $event->isFromModule(),
         ];
     }
@@ -90,15 +113,15 @@ final readonly class PlanningEventSerializer
     }
 
     /**
-     * @param iterable<PlanningEventInterface> $events
+     * @param iterable<PlanningOccurrence> $occurrences
      *
      * @return list<array<string, mixed>>
      */
-    public function serializeMany(iterable $events): array
+    public function serializeMany(iterable $occurrences): array
     {
         $out = [];
-        foreach ($events as $event) {
-            $out[] = $this->serialize($event);
+        foreach ($occurrences as $occurrence) {
+            $out[] = $this->serializeOccurrence($occurrence);
         }
 
         return $out;

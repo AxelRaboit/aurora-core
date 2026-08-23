@@ -56,6 +56,37 @@ interface PlanningEventInterface extends TimestampableInterface
 
     public function setSourceUrl(?string $sourceUrl): static;
 
+    public function getRrule(): ?string;
+
+    public function setRrule(?string $rrule): static;
+
+    public function isRecurring(): bool;
+
+    public function getRecurrenceUntil(): ?DateTimeImmutable;
+
+    public function setRecurrenceUntil(?DateTimeImmutable $recurrenceUntil): static;
+
+    /** @return list<string> */
+    public function getExdates(): array;
+
+    public function excludeOccurrence(DateTimeImmutable $at): static;
+
+    /** @param list<string> $exdates */
+    public function setExdates(array $exdates): static;
+
+    public function getMaster(): ?PlanningEventInterface;
+
+    public function setMaster(?PlanningEventInterface $master): static;
+
+    public function getOccurrenceAt(): ?DateTimeImmutable;
+
+    public function setOccurrenceAt(?DateTimeImmutable $occurrenceAt): static;
+
+    /**
+     * @return Collection<int, PlanningEventInterface>
+     */
+    public function getOccurrences(): Collection;
+
     public function getColourSlot(): ?int;
 
     public function setColourSlot(?int $colourSlot): static;

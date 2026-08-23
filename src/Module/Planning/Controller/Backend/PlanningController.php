@@ -11,7 +11,6 @@ use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Planning\Event\Dto\PlanningEventInputFactoryInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Manager\PlanningEventManagerInterface;
-use Aurora\Module\Planning\Event\Repository\PlanningEventRepository;
 use Aurora\Module\Planning\Event\Serializer\PlanningEventSerializer;
 use Aurora\Module\Planning\Planning\Dto\PlanningInputFactoryInterface;
 use Aurora\Module\Planning\Planning\Entity\Planning;
@@ -19,6 +18,7 @@ use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Planning\Manager\PlanningManagerInterface;
 use Aurora\Module\Planning\Planning\Repository\PlanningRepository;
 use Aurora\Module\Planning\Planning\Serializer\PlanningSerializer;
+use Aurora\Module\Planning\Recurrence\PlanningOccurrenceFinder;
 use Aurora\Module\Planning\Reminder\Dto\PlanningReminderInputFactoryInterface;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminder;
 use Aurora\Module\Planning\Reminder\Manager\PlanningReminderManagerInterface;
@@ -54,7 +54,7 @@ final class PlanningController extends AbstractController
 
     public function __construct(
         private readonly PlanningRepository $planningRepository,
-        private readonly PlanningEventRepository $eventRepository,
+        private readonly PlanningOccurrenceFinder $occurrences,
         private readonly PlanningSerializer $planningSerializer,
         private readonly PlanningEventSerializer $eventSerializer,
         private readonly PlanningManagerInterface $planningManager,
@@ -109,7 +109,7 @@ final class PlanningController extends AbstractController
         // draws both in the same grid. Two endpoints would be two round trips
         // whose results have to arrive together to be drawn at all.
         return $this->json([
-            'events' => $this->eventSerializer->serializeMany($this->eventRepository->findInWindow($ids, $from, $to)),
+            'events' => $this->eventSerializer->serializeMany($this->occurrences->find($ids, $from, $to)),
             'reminders' => $this->reminderSerializer->serializeMany($this->reminderRepository->findInWindow($ids, $from, $to)),
         ]);
     }

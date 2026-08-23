@@ -9,6 +9,7 @@ use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use Aurora\Module\Planning\Planning\Entity\AbstractPlanning;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -89,6 +90,65 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
     protected ?string $sourceUrl = null;
 
     /**
+     * The recurrence rule as RFC 5545 writes it, or null for a single event.
+     *
+     * Stored as the standard's own string rather than parsed into columns, so it
+     * round-trips through the iCalendar feed unchanged and can be widened later
+     * without a data migration. The expander is the only thing that reads it.
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    protected ?string $rrule = null;
+
+    /**
+     * When the last occurrence ends, or null for a series with no end.
+     *
+     * Denormalised on purpose: this is what lets the window query ask which series
+     * could reach a month, instead of expanding every rule in the table on every
+     * fetch. Recomputed whenever the rule or the span changes, which is why
+     * nothing outside the manager sets it.
+     */
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    protected ?DateTimeImmutable $recurrenceUntil = null;
+
+    /**
+     * The occurrences somebody deleted, as their original starts.
+     *
+     * A JSON array in a column rather than a table, because nothing queries these
+     * except the expander and it has the row in hand already.
+     *
+     * @var list<string>|null
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    protected ?array $exdates = null;
+
+    /**
+     * The series this row left, when it is an edited occurrence.
+     *
+     * An occurrence somebody changed stops being generated and becomes a row of
+     * its own. It keeps a pointer home so the two can be told apart from a single
+     * event, and so deleting the series takes its exceptions with it.
+     */
+    #[ORM\ManyToOne(targetEntity: PlanningEventInterface::class, inversedBy: 'occurrences')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    protected ?PlanningEventInterface $master = null;
+
+    /**
+     * Which occurrence this row replaces, by its original start.
+     *
+     * Not the row's own start: the point of an exception is usually that it moved,
+     * and the expander has to know which generated date to stop emitting - which
+     * is the date it used to be at, not the date it is now.
+     */
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    protected ?DateTimeImmutable $occurrenceAt = null;
+
+    /**
+     * @var Collection<int, PlanningEventInterface>
+     */
+    #[ORM\OneToMany(targetEntity: PlanningEventInterface::class, mappedBy: 'master', cascade: ['remove'], orphanRemoval: true)]
+    protected Collection $occurrences;
+
+    /**
      * A colour of this event's own, or null to take the calendar's.
      *
      * Null is the common case and the useful default: a calendar's colour is how
@@ -114,6 +174,7 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
         // `convention_collection_on_concrete`: uninitialised is null, and the
         // first `add()` is a crash nobody sees until a fixture runs.
         $this->alerts = new ArrayCollection();
+        $this->occurrences = new ArrayCollection();
     }
 
     /**
@@ -320,6 +381,101 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
         $this->sourceUrl = $sourceUrl;
 
         return $this;
+    }
+
+    public function getRrule(): ?string
+    {
+        return $this->rrule;
+    }
+
+    public function setRrule(?string $rrule): static
+    {
+        $this->rrule = $rrule;
+
+        return $this;
+    }
+
+    public function isRecurring(): bool
+    {
+        return null !== $this->rrule;
+    }
+
+    public function getRecurrenceUntil(): ?DateTimeImmutable
+    {
+        return $this->recurrenceUntil;
+    }
+
+    public function setRecurrenceUntil(?DateTimeImmutable $recurrenceUntil): static
+    {
+        $this->recurrenceUntil = $recurrenceUntil;
+
+        return $this;
+    }
+
+    /** @return list<string> */
+    public function getExdates(): array
+    {
+        return $this->exdates ?? [];
+    }
+
+    /**
+     * Records that one occurrence is gone.
+     *
+     * Stored as the instant in UTC, formatted the one way, because these are
+     * compared as strings against generated dates - and two spellings of the same
+     * moment would never match.
+     */
+    public function excludeOccurrence(DateTimeImmutable $at): static
+    {
+        $key = $at->setTimezone(new DateTimeZone('UTC'))->format(DATE_ATOM);
+        $existing = $this->getExdates();
+
+        if (!in_array($key, $existing, true)) {
+            $existing[] = $key;
+            $this->exdates = $existing;
+        }
+
+        return $this;
+    }
+
+    /** @param list<string> $exdates */
+    public function setExdates(array $exdates): static
+    {
+        $this->exdates = [] === $exdates ? null : $exdates;
+
+        return $this;
+    }
+
+    public function getMaster(): ?PlanningEventInterface
+    {
+        return $this->master;
+    }
+
+    public function setMaster(?PlanningEventInterface $master): static
+    {
+        $this->master = $master;
+
+        return $this;
+    }
+
+    public function getOccurrenceAt(): ?DateTimeImmutable
+    {
+        return $this->occurrenceAt;
+    }
+
+    public function setOccurrenceAt(?DateTimeImmutable $occurrenceAt): static
+    {
+        $this->occurrenceAt = $occurrenceAt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PlanningEventInterface>
+     */
+    public function getOccurrences(): Collection
+    {
+        return $this->occurrences;
     }
 
     public function getColourSlot(): ?int
