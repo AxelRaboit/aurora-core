@@ -1,4 +1,26 @@
 <script setup>
+/**
+ * `display: contents` on the trigger, so wrapping a row in a tooltip does not add
+ * a box to its parent's layout: the trigger disappears and the slot's own element
+ * takes its place.
+ *
+ * The catch, for anyone laying out a list of these: **margins on that div do
+ * nothing**, because it generates no box. A parent using `space-y-*` silently
+ * gets no gaps at all, which is what happened to the whole side menu. Lay these
+ * out with `gap` instead - a `display: contents` child's own children are
+ * promoted to flex items, and gaps do reach them.
+ *
+ * Both notes live here rather than above the root element so they are not
+ * rendered into the page as comment nodes.
+ *
+ * Worth knowing either way: this component **cannot** receive a class from its
+ * parent. The `<Teleport>` below is a second root, so there is no single element
+ * for Vue to put a parent's attributes on, and any `class="..."` written on an
+ * `<AppTooltip>` is dropped without a warning. Not worth restructuring for - the
+ * trigger is `display: contents`, so a class landing there would generate no box
+ * and do almost nothing - but do not expect it to work. Style the slot content
+ * instead.
+ */
 import { ref, computed, onBeforeUnmount, nextTick } from "vue";
 
 /**
@@ -124,17 +146,6 @@ onBeforeUnmount(() => clearShowTimer());
 </script>
 
 <template>
-    <!--
-        `display: contents` so wrapping a row in a tooltip does not add a box to
-        its parent's layout - the trigger disappears and the slot's own element
-        takes its place.
-
-        The catch, for anyone laying out a list of these: **margins on this div
-        do nothing**, because it generates no box. A parent using `space-y-*`
-        silently gets no gaps at all, which is what happened to the whole side
-        menu. Lay these out with `gap` instead - a `display: contents` child's
-        own children are promoted to flex items and gaps do reach them.
-    -->
     <div
         ref="triggerEl"
         class="contents"

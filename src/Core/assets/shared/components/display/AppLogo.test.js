@@ -33,4 +33,29 @@ describe("AppLogo", () => {
         expect(gradient.exists()).toBe(true);
         expect(gradient.attributes("id")).toMatch(/^aurora-bg-\d+$/);
     });
+
+    /**
+     * A class from the parent has to land on the svg.
+     *
+     * It did not, and silently: the template opened with a comment *before* the
+     * root element, which gives the component two root nodes, and Vue cannot pass
+     * a parent's attributes to a component with no single root. `AppSidemenu`
+     * passes `class="shrink-0"` here, so the logo could squash when the sidebar
+     * narrowed - no warning, no error, just a class that evaporated.
+     *
+     * Guarding it with a test rather than a comment, because the mistake is one
+     * character of formatting and reads as tidy.
+     */
+    it("keeps a class the parent passes it", () => {
+        const wrapper = mount(AppLogo, { attrs: { class: "shrink-0" } });
+
+        expect(wrapper.classes()).toContain("shrink-0");
+        // Its own class survives the merge rather than being replaced.
+        expect(wrapper.classes()).toContain("text-accent-500");
+    });
+
+    /** One root node, which is what makes the above possible. */
+    it("has a single root element", () => {
+        expect(mount(AppLogo).element.nodeType).toBe(Node.ELEMENT_NODE);
+    });
 });

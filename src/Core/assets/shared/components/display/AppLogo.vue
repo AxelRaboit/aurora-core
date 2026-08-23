@@ -1,4 +1,17 @@
 <script setup>
+/**
+ * The mark, drawn to follow whatever accent colour the admin picked.
+ *
+ * `currentColor` plus `text-accent-500` makes it track the active theme's primary
+ * colour, which defines `--color-accent-*` at runtime. The gradient uses two
+ * opacities of the same hue so the depth survives any colour.
+ *
+ * The note is here and not above the `<svg>` on purpose: a comment before the
+ * root element gives the component two root nodes, and Vue cannot pass a parent's
+ * attributes to a component that has no single root. That is not theoretical -
+ * `AppSidemenu` passes `class="shrink-0"` to this component and it was being
+ * dropped, so the logo could squash when the sidebar narrowed.
+ */
 import { getCurrentInstance } from "vue";
 
 defineProps({
@@ -10,11 +23,6 @@ const gradientId = `aurora-bg-${instanceUid}`;
 </script>
 
 <template>
-    <!--
-        currentColor + Tailwind text-accent-500 makes the logo follow the active theme primary
-        colour (which defines --color-accent-* at runtime). The gradient uses two opacities of
-        the same hue to keep the depth effect across any colour the admin picks.
-    -->
     <svg
         :width="size"
         :height="size"

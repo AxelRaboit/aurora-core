@@ -1,5 +1,17 @@
 <script setup>
 /**
+ * `gap`, never `space-y`: every row here is wrapped in `AppTooltip`, whose root is
+ * `display: contents`, and margins on those are ignored. The section gap matches
+ * the row gap so the last row of a section is spaced like every other - the
+ * coloured header band is what separates sections, it does not need a gutter as
+ * well.
+ *
+ * The note is here rather than above the root so it is not rendered into the page
+ * as a comment node. It does not change attribute fallthrough: the root is a
+ * `v-for`, so this component is multi-root regardless and cannot take a class
+ * from its parent.
+ */
+/**
  * The menu's sections and their items - one component for both menus.
  *
  * This loop was written twice: once in the desktop `<aside>` and once in the
@@ -48,11 +60,6 @@ defineProps({
 </script>
 
 <template>
-    <!-- `gap`, never `space-y`: every row here is wrapped in AppTooltip, whose
-         root is `display: contents`, and margins on those are ignored. The
-         section gap matches the row gap so the last row of a section is spaced
-         like every other - the coloured header band is what separates sections,
-         it does not need a gutter as well. -->
     <div v-for="section in sections" :key="section.id" class="flex flex-col gap-0.5">
         <button
             v-if="!navFilter"
