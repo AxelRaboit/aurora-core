@@ -18,14 +18,12 @@ import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import CalendarModal from "./components/CalendarModal.vue";
-import CalendarDayList from "./components/CalendarDayList.vue";
 import CalendarSidebar from "./components/CalendarSidebar.vue";
 import CalendarMonth from "./components/CalendarMonth.vue";
 import CalendarTimeGrid from "./components/CalendarTimeGrid.vue";
 import ReminderModal from "./components/ReminderModal.vue";
 import EventModal from "./components/EventModal.vue";
 import { usePlanningCalendar } from "./composables/usePlanningCalendar.js";
-import { defaultTimeOn, draftAt } from "./composables/timeGrid.js";
 
 const props = defineProps({
     calendars: { type: Array, default: () => [] },
@@ -117,30 +115,24 @@ const viewOptions = computed(() =>
  */
 const sheetOpen = ref(false);
 
-/**
- * The day the phone's list is showing.
- *
- * Only meaningful in the compact month view. Defaults to today, and follows the
- * month when the reader pages so the list is never about a day the grid no longer
- * shows.
- */
-const selectedDay = ref(new Date());
-
-watch([year, month], () => {
-    // The first of the month, unless today is in it - paging to a month you are
-    // not in and landing on "the 23rd" would be arbitrary.
-    const today = new Date();
-    selectedDay.value =
-        today.getFullYear() === year.value && today.getMonth() === month.value
-            ? today
-            : new Date(year.value, month.value, 1);
-});
-
 const openCalendar = ref(null);
 const calendarErrors = ref({});
 const savingCalendar = ref(false);
 
 const canManageCalendars = computed(() => can("planning.calendars.manage"));
+
+/**
+ * Opens a day picked from the compact month grid.
+ *
+ * Google and Apple both list the day under the grid instead; this was asked for
+ * the other way round, and it holds up: the grid on a phone is an index, and
+ * following an index means going where it points. One tap, no panel, and the day
+ * view is already the one that works best on a narrow screen.
+ */
+function openDay(date) {
+    anchor.value = date;
+    setView("day");
+}
 
 /** An event needs a calendar to live in, so an empty sidebar closes this too. */
 const canCreateEvents = computed(() => can("planning.events.create") && calendars.value.length > 0);
@@ -334,16 +326,6 @@ async function toggleReminderItem(reminder) {
     await load();
 }
 
-/**
- * Starts an event on the day the phone's list is showing.
- *
- * The same draft a cell click builds on a wide screen, at the constant hour a day
- * with no time in it gets.
- */
-function createOnDay(date) {
-    create(draftAt(defaultTimeOn(date)));
-}
-
 async function remove(event) {
     const data = await request(props.deleteEventPathTemplate.replace("__id__", String(event.id)));
     if (!data) return;
@@ -431,37 +413,11 @@ async function remove(event) {
                 :events="visibleEvents"
                 :reminders="visibleReminders"
                 :compact="narrow"
-                :selected="narrow ? selectedDay : null"
                 v-on:open-event="viewEvent"
                 v-on:open-reminder="editReminder"
                 v-on:toggle-reminder="toggleReminderItem"
                 v-on:add-on="create"
-                v-on:select-day="selectedDay = $event"
-            />
-
-            <!-- The list under the compact grid. The grid says which days have
-                 something; this says what. -->
-            <CalendarDayList
-                v-if="'month' === effectiveView && narrow"
-                :date="selectedDay"
-                :events="visibleEvents"
-                :reminders="visibleReminders"
-                :can-create="canCreateEvents"
-                v-on:open-event="viewEvent"
-                v-on:open-reminder="editReminder"
-                v-on:toggle-reminder="toggleReminderItem"
-                v-on:add="createOnDay"
-            />
-            <CalendarTimeGrid
-                v-else
-                :anchor="anchor"
-                :view="effectiveView"
-                :events="visibleEvents"
-                :reminders="visibleReminders"
-                v-on:open-event="viewEvent"
-                v-on:open-reminder="editReminder"
-                v-on:toggle-reminder="toggleReminderItem"
-                v-on:add-on="create"
+                v-on:select-day="openDay"
             />
         </div>
 

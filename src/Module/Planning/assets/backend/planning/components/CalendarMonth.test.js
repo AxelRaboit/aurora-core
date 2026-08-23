@@ -43,9 +43,9 @@ describe("CalendarMonth", () => {
      * The phone grid is an index, not a list.
      *
      * A cell there is about fifty pixels wide - enough for a day number and a few
-     * dots, nothing like enough for a title. Both Google and Apple show the grid
-     * as an index and put the contents in a list underneath, which is what
-     * `CalendarDayList` is for.
+     * dots, nothing like enough for a title. Google and Apple put the contents in
+     * a panel under the grid; here a tap opens the day view instead, so following
+     * the index means going where it points.
      */
     it("shows no titles when compact", () => {
         const wrapper = mountMonth({
