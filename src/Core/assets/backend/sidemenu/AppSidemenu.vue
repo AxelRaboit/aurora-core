@@ -467,7 +467,7 @@ function openSearchFromMobile() {
                                 <!-- post -->
                                 <template v-else-if="section.kind === 'post'">
                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium shrink-0" :class="statusBadge(item.status)">
-                                        {{ t("backend.posts.status_options." + item.status) }}
+                                        {{ item.statusLabel }}
                                     </span>
                                     <div class="flex-1 min-w-0">
                                         <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.title ?? '-', searchQuery)" />

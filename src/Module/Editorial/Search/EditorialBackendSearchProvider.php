@@ -10,6 +10,7 @@ use Aurora\Module\Editorial\EditorialContext;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Service\PostAccessService;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
 /**
@@ -30,6 +31,7 @@ final readonly class EditorialBackendSearchProvider implements BackendSearchProv
         private PostAccessService $postAccessService,
         private EditorialContext $editorialContext,
         private LocaleContextInterface $localeContext,
+        private TranslatorInterface $translator,
     ) {}
 
     public function search(string $query): array
@@ -64,12 +66,25 @@ final readonly class EditorialBackendSearchProvider implements BackendSearchProv
     {
         $translation = $post->getTranslation($locale) ?? ($post->getTranslations()->first() ?: null);
 
+        $status = $post->getStatus();
+
         return [
             'id' => $post->getId(),
             'title' => $translation?->getTitle(),
             'slug' => $translation?->getSlug(),
             'postType' => $post->getPostType()->getLabel(),
-            'status' => $post->getStatus()->value,
+            // The raw value, for the badge's colour.
+            'status' => $status->value,
+            // And the words, translated here.
+            //
+            // The interface asks for rows "ready for the frontend", and this is
+            // what that has to mean for anything module-specific: the search box
+            // lives in Core, and Core guessing at Editorial's key layout is how it
+            // came to render `backend.posts.status_options.draft` on screen - a
+            // prefix that has never existed. Core cannot be expected to know, and
+            // a key built by concatenation is invisible to the test that checks
+            // Vue keys resolve.
+            'statusLabel' => $this->translator->trans($status->getLabelKey()),
         ];
     }
 }
