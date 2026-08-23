@@ -18,11 +18,28 @@ const props = defineProps({
 
 const { t } = useI18n();
 
+/**
+ * The four figures, and the one that is not like the others.
+ *
+ * The trash tile is tinted rose, which is the colour every destructive action in
+ * the backend already wears - so the tile reads as "retired" rather than as a
+ * fourth count of something the site has.
+ *
+ * **Only when there is something in it.** An empty bin is not a destructive
+ * state, and a tile that is always red says nothing by always saying it. The
+ * icon and the label carry the meaning either way; the colour is what changes
+ * when there is something to go and empty.
+ */
 const totals = computed(() => [
     { key: "posts", icon: FileText, value: props.stats.posts ?? 0 },
     { key: "post_types", icon: LayoutTemplate, value: props.stats.postTypes ?? 0 },
     { key: "taxonomies", icon: Tags, value: props.stats.taxonomies ?? 0 },
-    { key: "trashed", icon: Trash2, value: props.stats.trashed ?? 0 },
+    {
+        key: "trashed",
+        icon: Trash2,
+        value: props.stats.trashed ?? 0,
+        danger: (props.stats.trashed ?? 0) > 0,
+    },
 ]);
 
 /**
@@ -46,13 +63,24 @@ const byStatus = computed(() =>
             <div
                 v-for="total in totals"
                 :key="total.key"
-                class="bg-surface border border-line rounded-xl p-4"
+                class="border rounded-xl p-4 transition-colors"
+                :class="total.danger
+                    ? 'bg-rose-500/10 border-rose-500/30'
+                    : 'bg-surface border-line'"
             >
-                <div class="flex items-center gap-2 text-secondary text-xs uppercase tracking-wide">
+                <div
+                    class="flex items-center gap-2 text-xs uppercase tracking-wide"
+                    :class="total.danger ? 'text-rose-400' : 'text-secondary'"
+                >
                     <component :is="total.icon" class="w-4 h-4 shrink-0" :stroke-width="2" />
                     {{ t(`backend.stats.editorial.${total.key}`) }}
                 </div>
-                <p class="text-2xl font-semibold text-primary mt-2">{{ total.value }}</p>
+                <p
+                    class="text-2xl font-semibold mt-2"
+                    :class="total.danger ? 'text-rose-400' : 'text-primary'"
+                >
+                    {{ total.value }}
+                </p>
             </div>
         </div>
 
