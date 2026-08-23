@@ -39,7 +39,12 @@ defineProps({
 </script>
 
 <template>
-    <div v-for="section in sections" :key="section.id" class="space-y-0.5">
+    <!-- `gap`, never `space-y`: every row here is wrapped in AppTooltip, whose
+         root is `display: contents`, and margins on those are ignored. The
+         section gap matches the row gap so the last row of a section is spaced
+         like every other — the coloured header band is what separates sections,
+         it does not need a gutter as well. -->
+    <div v-for="section in sections" :key="section.id" class="flex flex-col gap-0.5">
         <button
             v-if="!navFilter"
             type="button"
@@ -84,7 +89,7 @@ defineProps({
                         </div>
                     </AppTooltip>
 
-                    <div v-show="nav.isGroupExpanded(item.route)" class="space-y-0.5">
+                    <div v-show="nav.isGroupExpanded(item.route)" class="flex flex-col gap-0.5">
                         <AppNavLink
                             v-for="child in item.children"
                             :key="child.route"

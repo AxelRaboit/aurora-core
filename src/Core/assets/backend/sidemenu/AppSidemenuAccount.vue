@@ -43,7 +43,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-    <div class="space-y-0.5">
+    <div class="flex flex-col gap-0.5">
         <!-- The account's own name heads the block that acts on it, and doubles
              as the fold control: the name is both the label and the button. -->
         <button

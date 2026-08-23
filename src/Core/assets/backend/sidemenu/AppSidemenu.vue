@@ -166,7 +166,13 @@ function openSearchFromMobile() {
             </div>
         </div>
 
-        <nav class="sidemenu-nav flex-1 min-h-0 overflow-y-auto scrollbar-thin py-4 space-y-3">
+        <!-- `py-1`, not `py-4`: 16px of padding left the first header and the
+             last row of the last section standing 16px off their borders while
+             every row between them sat 2px from its neighbour — the same odd
+             gap as the section gutter, at the two ends of the list. 4px is the
+             clearance a row's hover fill needs to keep off a border, the figure
+             the "view site" row above already uses. -->
+        <nav class="sidemenu-nav flex flex-col gap-0.5 flex-1 min-h-0 overflow-y-auto scrollbar-thin py-1">
             <p v-if="navFilter && !displayedSections.length" class="px-3 text-xs text-muted">
                 {{ t("backend.nav.filter_nav_empty") }}
             </p>
@@ -297,7 +303,7 @@ function openSearchFromMobile() {
                 <hr class="border-line mt-1">
             </div>
 
-            <nav class="flex-1 overflow-y-auto scrollbar-thin px-3 py-2 space-y-3">
+            <nav class="flex flex-col gap-0.5 flex-1 overflow-y-auto scrollbar-thin px-3 py-2">
                 <!-- The same component the aside uses. Its own copy was a
                      degraded one: no item descriptions in the tooltips, no
                      `data-sidemenu-active`, and two dead `#tooltip` slots

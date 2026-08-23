@@ -124,6 +124,17 @@ onBeforeUnmount(() => clearShowTimer());
 </script>
 
 <template>
+    <!--
+        `display: contents` so wrapping a row in a tooltip does not add a box to
+        its parent's layout — the trigger disappears and the slot's own element
+        takes its place.
+
+        The catch, for anyone laying out a list of these: **margins on this div
+        do nothing**, because it generates no box. A parent using `space-y-*`
+        silently gets no gaps at all, which is what happened to the whole side
+        menu. Lay these out with `gap` instead — a `display: contents` child's
+        own children are promoted to flex items and gaps do reach them.
+    -->
     <div
         ref="triggerEl"
         class="contents"
