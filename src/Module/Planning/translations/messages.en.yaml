@@ -35,6 +35,9 @@ backend:
     planning_description: "See what is on your calendars, by month, week or day."
   plannings:
     title: Calendar
+    upcoming: "Coming up"
+    nothing_upcoming: "Nothing coming up."
+    open_calendar: "Open the calendar"
     today: Today
     views:
       day: Day

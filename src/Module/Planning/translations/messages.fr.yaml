@@ -35,6 +35,9 @@ backend:
     planning_description: "Voir les événements et les rappels des calendriers, en mois, semaine ou jour."
   plannings:
     title: Calendrier
+    upcoming: "À venir"
+    nothing_upcoming: "Rien de prévu pour le moment."
+    open_calendar: "Ouvrir le calendrier"
     today: "Aujourd'hui"
     views:
       day: Jour

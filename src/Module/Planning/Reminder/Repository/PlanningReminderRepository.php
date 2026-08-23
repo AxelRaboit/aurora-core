@@ -45,6 +45,65 @@ class PlanningReminderRepository extends ServiceEntityRepository
     }
 
     /**
+     * The next few reminders still to do.
+     *
+     * Completed ones are excluded, because "what is coming" means what is still
+     * owed - a done reminder due tomorrow is not something to be reminded of.
+     *
+     * @param list<int> $planningIds
+     *
+     * @return list<PlanningReminderInterface>
+     */
+    public function findUpcoming(array $planningIds, DateTimeImmutable $from, int $limit = 5): array
+    {
+        if ([] === $planningIds) {
+            return [];
+        }
+
+        /** @var list<PlanningReminderInterface> $result */
+        $result = $this->createQueryBuilder('r')
+            ->addSelect('p')
+            ->innerJoin('r.planning', 'p')
+            ->where('r.planning IN (:plannings)')
+            ->andWhere('r.dueAt >= :from')
+            ->andWhere('r.completedAt IS NULL')
+            ->setParameter('plannings', $planningIds)
+            ->setParameter('from', $from)
+            ->orderBy('r.dueAt', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
+
+    /**
+     * How many reminders are past due and still not done.
+     *
+     * The one figure on the dashboard that asks for something rather than
+     * reporting it, which is why it is a count and not a list: the number is what
+     * makes somebody click, and the list is what they find when they do.
+     *
+     * @param list<int> $planningIds
+     */
+    public function countOverdue(array $planningIds, DateTimeImmutable $now): int
+    {
+        if ([] === $planningIds) {
+            return 0;
+        }
+
+        return (int) $this->createQueryBuilder('r')
+            ->select('COUNT(r.id)')
+            ->where('r.planning IN (:plannings)')
+            ->andWhere('r.dueAt < :now')
+            ->andWhere('r.completedAt IS NULL')
+            ->setParameter('plannings', $planningIds)
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
      * What the worker should announce now.
      *
      * Three conditions, and each one is a bug if it is missing: due, or it fires

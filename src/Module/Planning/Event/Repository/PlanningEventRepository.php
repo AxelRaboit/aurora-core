@@ -62,6 +62,39 @@ class PlanningEventRepository extends ResolveTargetEntityRepository
      * Reads the unique pair the table already indexes, so a module re-announcing
      * the same record updates its event instead of adding a second one.
      */
+    /**
+     * The next few events starting after a moment.
+     *
+     * Starting after, not overlapping: a dashboard answers "what is coming",
+     * and something already under way is not coming. The grid's window query is
+     * the one that needs the overlap test.
+     *
+     * @param list<int> $planningIds
+     *
+     * @return list<PlanningEventInterface>
+     */
+    public function findUpcoming(array $planningIds, DateTimeImmutable $from, int $limit = 5): array
+    {
+        if ([] === $planningIds) {
+            return [];
+        }
+
+        /** @var list<PlanningEventInterface> $result */
+        $result = $this->createQueryBuilder('e')
+            ->addSelect('p')
+            ->innerJoin('e.planning', 'p')
+            ->where('e.planning IN (:plannings)')
+            ->andWhere('e.startAt >= :from')
+            ->setParameter('plannings', $planningIds)
+            ->setParameter('from', $from)
+            ->orderBy('e.startAt', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
+
     public function findBySource(string $sourceType, int $sourceId): ?PlanningEventInterface
     {
         return $this->findOneBy(['sourceType' => $sourceType, 'sourceId' => $sourceId]);
