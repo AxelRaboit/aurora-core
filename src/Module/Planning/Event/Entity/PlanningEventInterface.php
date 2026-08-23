@@ -58,11 +58,11 @@ interface PlanningEventInterface
     public function isFromModule(): bool;
 
     /**
-     * @return Collection<int, PlanningEventReminderInterface>
+     * @return Collection<int, PlanningEventAlertInterface>
      */
-    public function getReminders(): Collection;
+    public function getAlerts(): Collection;
 
-    public function addReminder(PlanningEventReminderInterface $reminder): static;
+    public function addAlert(PlanningEventAlertInterface $alert): static;
 
-    public function removeReminder(PlanningEventReminderInterface $reminder): static;
+    public function removeAlert(PlanningEventAlertInterface $alert): static;
 }

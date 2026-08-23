@@ -24,7 +24,7 @@ import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
-import { DEFAULT_REMINDER_OFFSET, REMINDER_OFFSETS, reminderLabel, toggleReminder } from "../composables/reminderOffsets.js";
+import { DEFAULT_ALERT_OFFSET, ALERT_OFFSETS, alertLabel, toggleAlert } from "../composables/alertOffsets.js";
 import { toInstant, toPickerValue, zoneDiffersFromViewer } from "../composables/eventTime.js";
 
 const props = defineProps({
@@ -53,10 +53,10 @@ function blank() {
         endAt: "",
         allDay: false,
         status: "confirmed",
-        // A new event comes with one reminder already on, which is what
-        // every calendar people already use does. Nobody sets a reminder
+        // A new event comes with one alert already on, which is what
+        // every calendar people already use does. Nobody sets a alert
         // they forgot the form offered.
-        reminders: [DEFAULT_REMINDER_OFFSET],
+        alerts: [DEFAULT_ALERT_OFFSET],
     };
 }
 
@@ -81,7 +81,7 @@ watch(
                 endAt: toPickerValue(props.event.endAt, eventZone),
                 allDay: props.event.allDay,
                 status: props.event.status,
-                reminders: [...(props.event.reminders ?? [])],
+                alerts: [...(props.event.alerts ?? [])],
             }
             : draft();
     },
@@ -144,13 +144,13 @@ const statusOptions = computed(() =>
     })),
 );
 
-const reminderChips = computed(() =>
-    REMINDER_OFFSETS.map((minutes) => ({ minutes, label: reminderLabel(minutes, t) })),
+const alertChips = computed(() =>
+    ALERT_OFFSETS.map((minutes) => ({ minutes, label: alertLabel(minutes, t) })),
 );
 
 /** The read view's summary, in the same words the chips use. */
-const reminderSummary = computed(() =>
-    (props.event?.reminders ?? []).map((minutes) => reminderLabel(minutes, t)).join(" · "),
+const alertSummary = computed(() =>
+    (props.event?.alerts ?? []).map((minutes) => alertLabel(minutes, t)).join(" · "),
 );
 
 /**
@@ -218,9 +218,9 @@ const when = computed(() => {
 
             <p v-if="event.description" class="text-sm text-secondary whitespace-pre-line">{{ event.description }}</p>
 
-            <p v-if="reminderSummary" class="flex items-center gap-1.5 text-sm text-secondary">
+            <p v-if="alertSummary" class="flex items-center gap-1.5 text-sm text-secondary">
                 <Bell class="w-3.5 h-3.5 shrink-0 text-muted" :stroke-width="2" />
-                {{ reminderSummary }}
+                {{ alertSummary }}
             </p>
 
             <!-- An event a module pushed says where it came from and offers
@@ -303,24 +303,24 @@ const when = computed(() => {
                  form shows at a glance which are on. A picker would hide the
                  answer behind opening it. -->
             <div class="flex flex-col gap-1.5">
-                <span class="text-sm font-medium text-primary">{{ t("backend.plannings.reminders.label") }}</span>
+                <span class="text-sm font-medium text-primary">{{ t("backend.plannings.alerts.label") }}</span>
                 <div class="flex flex-wrap gap-1.5">
                     <button
-                        v-for="chip in reminderChips"
+                        v-for="chip in alertChips"
                         :key="chip.minutes"
                         type="button"
                         class="px-2.5 py-1 text-xs rounded-full border transition-colors cursor-pointer"
-                        :class="form.reminders.includes(chip.minutes)
+                        :class="form.alerts.includes(chip.minutes)
                             ? 'border-accent bg-accent/10 text-primary font-medium'
                             : 'border-line bg-surface-1 text-secondary hover:border-secondary'"
-                        :aria-pressed="form.reminders.includes(chip.minutes)"
-                        v-on:click="form.reminders = toggleReminder(form.reminders, chip.minutes)"
+                        :aria-pressed="form.alerts.includes(chip.minutes)"
+                        v-on:click="form.alerts = toggleAlert(form.alerts, chip.minutes)"
                     >
                         {{ chip.label }}
                     </button>
                 </div>
-                <span v-if="!form.reminders.length" class="text-xs text-muted">
-                    {{ t("backend.plannings.reminders.none") }}
+                <span v-if="!form.alerts.length" class="text-xs text-muted">
+                    {{ t("backend.plannings.alerts.none") }}
                 </span>
             </div>
         </div>

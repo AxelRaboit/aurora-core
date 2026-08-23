@@ -6,7 +6,7 @@ namespace Aurora\Module\Planning\Event\Entity;
 
 use DateTimeImmutable;
 
-interface PlanningEventReminderInterface
+interface PlanningEventAlertInterface
 {
     public function getId(): ?int;
 

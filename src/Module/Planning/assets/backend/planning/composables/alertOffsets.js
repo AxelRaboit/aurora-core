@@ -1,7 +1,7 @@
 /**
- * The reminder offsets, and how to say them.
+ * The alert offsets, and how to say them.
  *
- * The list is duplicated from AbstractPlanningEventReminder::OFFSETS, and that
+ * The list is duplicated from AbstractPlanningEventAlert::OFFSETS, and that
  * is deliberate rather than fetched: it is a fixed vocabulary that changes when
  * someone edits both files in the same commit, and a round trip to learn nine
  * integers would make the form wait on the network to draw its own controls.
@@ -9,9 +9,9 @@
  *
  * No Vue in here, so the labelling is testable without mounting a modal.
  */
-export const REMINDER_OFFSETS = [0, 5, 10, 15, 30, 60, 120, 1440, 10080];
+export const ALERT_OFFSETS = [0, 5, 10, 15, 30, 60, 120, 1440, 10080];
 
-export const DEFAULT_REMINDER_OFFSET = 30;
+export const DEFAULT_ALERT_OFFSET = 30;
 
 /**
  * Names an offset.
@@ -25,8 +25,8 @@ export const DEFAULT_REMINDER_OFFSET = 30;
  * @param {(key: string) => string} t
  * @returns {string}
  */
-export function reminderLabel(minutes, t) {
-    return t(`backend.plannings.reminders.offsets.${minutes}`);
+export function alertLabel(minutes, t) {
+    return t(`backend.plannings.alerts.offsets.${minutes}`);
 }
 
 /**
@@ -39,7 +39,7 @@ export function reminderLabel(minutes, t) {
  * @param {number} offset
  * @returns {number[]}
  */
-export function toggleReminder(offsets, offset) {
+export function toggleAlert(offsets, offset) {
     const next = offsets.includes(offset)
         ? offsets.filter((value) => value !== offset)
         : [...offsets, offset];

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Planning;
 
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
-use Aurora\Module\Planning\Event\Entity\PlanningEventReminder;
-use Aurora\Module\Planning\Event\Repository\PlanningEventReminderRepository;
-use Aurora\Module\Planning\Event\Service\PlanningReminderNotifier;
+use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
+use Aurora\Module\Planning\Event\Repository\PlanningEventAlertRepository;
+use Aurora\Module\Planning\Event\Service\PlanningNotifier;
 use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -17,19 +17,19 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * When a reminder goes out, and when it does not go out again.
+ * When a alert goes out, and when it does not go out again.
  *
  * The worker runs every minute for the life of the application, so the two things
  * worth proving are the two failures the reader would actually notice: a
- * reminder that never arrives, and one that arrives twice.
+ * alert that never arrives, and one that arrives twice.
  */
-final class PlanningReminderDeliveryTest extends IntegrationTestCase
+final class PlanningNotificationDeliveryTest extends IntegrationTestCase
 {
     private EntityManagerInterface $entityManager;
 
-    private PlanningReminderNotifier $notifier;
+    private PlanningNotifier $notifier;
 
-    private PlanningEventReminderRepository $reminders;
+    private PlanningEventAlertRepository $alerts;
 
     private User $admin;
 
@@ -44,8 +44,8 @@ final class PlanningReminderDeliveryTest extends IntegrationTestCase
         // absolute URL for the notification's link.
         static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->notifier = static::getContainer()->get(PlanningReminderNotifier::class);
-        $this->reminders = static::getContainer()->get(PlanningEventReminderRepository::class);
+        $this->notifier = static::getContainer()->get(PlanningNotifier::class);
+        $this->alerts = static::getContainer()->get(PlanningEventAlertRepository::class);
         static::getContainer()->get(UrlGeneratorInterface::class);
 
         $admin = static::getContainer()->get(UserRepository::class)
@@ -68,42 +68,42 @@ final class PlanningReminderDeliveryTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    public function testAReminderThatIsDueIsSentAndStampedOnce(): void
+    public function testAAlertThatIsDueIsSentAndStampedOnce(): void
     {
-        $reminder = $this->reminder('2026-08-23 14:00', 30);
+        $alert = $this->alert('2026-08-23 14:00', 30);
         $now = new DateTimeImmutable('2026-08-23 13:30');
 
         self::assertSame(1, $this->notifier->sendDue($now));
-        self::assertNotNull($reminder->getSentAt());
+        self::assertNotNull($alert->getSentAt());
 
         // The second run is the one that matters. Nothing changed between them
-        // except the stamp, so a reminder going out twice here is the bug the
+        // except the stamp, so a alert going out twice here is the bug the
         // reader reports as "it told me twice".
         self::assertSame(0, $this->notifier->sendDue($now->modify('+1 minute')));
     }
 
-    public function testAReminderNotYetDueIsLeftAlone(): void
+    public function testAAlertNotYetDueIsLeftAlone(): void
     {
-        $reminder = $this->reminder('2026-08-23 14:00', 30);
+        $alert = $this->alert('2026-08-23 14:00', 30);
 
         self::assertSame(0, $this->notifier->sendDue(new DateTimeImmutable('2026-08-23 13:29')));
-        self::assertNull($reminder->getSentAt());
+        self::assertNull($alert->getSentAt());
     }
 
     /**
-     * A worker stopped for an hour comes back to an hour of reminders.
+     * A worker stopped for an hour comes back to an hour of alerts.
      *
-     * `findDue` has no lower bound on lateness for this: a reminder arriving late
+     * `findDue` has no lower bound on lateness for this: a alert arriving late
      * is information, and one that never arrives is a bug. The alternative -
      * skipping anything older than a few minutes - would silently drop every
-     * reminder of a deploy window.
+     * alert of a deploy window.
      */
     public function testALateWorkerStillSends(): void
     {
-        $reminder = $this->reminder('2026-08-23 14:00', 30);
+        $alert = $this->alert('2026-08-23 14:00', 30);
 
         self::assertSame(1, $this->notifier->sendDue(new DateTimeImmutable('2026-08-23 15:45')));
-        self::assertNotNull($reminder->getSentAt());
+        self::assertNotNull($alert->getSentAt());
     }
 
     /**
@@ -115,15 +115,15 @@ final class PlanningReminderDeliveryTest extends IntegrationTestCase
      */
     public function testFindDueWantsBothDueAndUnsent(): void
     {
-        $due = $this->reminder('2026-08-23 14:00', 30);
-        $later = $this->reminder('2026-08-23 18:00', 30);
-        $alreadySent = $this->reminder('2026-08-23 12:00', 30);
+        $due = $this->alert('2026-08-23 14:00', 30);
+        $later = $this->alert('2026-08-23 18:00', 30);
+        $alreadySent = $this->alert('2026-08-23 12:00', 30);
         $alreadySent->markSent(new DateTimeImmutable('2026-08-23 11:30'));
         $this->entityManager->flush();
 
         $found = [];
-        foreach ($this->reminders->findDue(new DateTimeImmutable('2026-08-23 13:30')) as $reminder) {
-            $found[] = $reminder->getId();
+        foreach ($this->alerts->findDue(new DateTimeImmutable('2026-08-23 13:30')) as $alert) {
+            $found[] = $alert->getId();
         }
 
         self::assertContains($due->getId(), $found);
@@ -131,7 +131,7 @@ final class PlanningReminderDeliveryTest extends IntegrationTestCase
         self::assertNotContains($alreadySent->getId(), $found);
     }
 
-    private function reminder(string $start, int $minutesBefore): PlanningEventReminder
+    private function alert(string $start, int $minutesBefore): PlanningEventAlert
     {
         $planning = new Planning();
         $planning->setName('Rappels '.$start);
@@ -145,16 +145,16 @@ final class PlanningReminderDeliveryTest extends IntegrationTestCase
         $event->setSpan($startAt, $startAt->modify('+1 hour'));
         $this->entityManager->persist($event);
 
-        $reminder = new PlanningEventReminder();
-        $reminder->setMinutesBefore($minutesBefore);
-        $event->addReminder($reminder);
-        $this->entityManager->persist($reminder);
+        $alert = new PlanningEventAlert();
+        $alert->setMinutesBefore($minutesBefore);
+        $event->addAlert($alert);
+        $this->entityManager->persist($alert);
 
         $this->entityManager->flush();
 
         $this->created[] = [Planning::class, (int) $planning->getId()];
         $this->created[] = [PlanningEvent::class, (int) $event->getId()];
 
-        return $reminder;
+        return $alert;
     }
 }

@@ -59,9 +59,9 @@ backend:
       colour_out_of_range: "Cette couleur n'existe pas dans la palette."
       timezone_unknown: Ce fuseau horaire est inconnu.
       window_invalid: "La période demandée est invalide."
-    reminders:
-      label: "Rappels"
-      none: "Aucun rappel pour cet événement."
+    alerts:
+      label: "Alertes"
+      none: "Aucune alerte pour cet événement."
       notification: "%calendar% · commence à %when%"
       # One key per offset, so a translator reads phrases and not a
       # number plus a unit that needs a plural rule.

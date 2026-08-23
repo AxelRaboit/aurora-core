@@ -45,17 +45,17 @@ final readonly class PlanningEventSerializer
             'sourceUrl' => $event->getSourceUrl(),
             // Offsets only. The form draws its own labels from them, and
             // remindAt is derived from the start the client already has.
-            'reminders' => $this->reminderOffsets($event),
+            'alerts' => $this->alertOffsets($event),
             'readOnly' => $event->isFromModule(),
         ];
     }
 
     /** @return list<int> */
-    private function reminderOffsets(PlanningEventInterface $event): array
+    private function alertOffsets(PlanningEventInterface $event): array
     {
         $offsets = [];
-        foreach ($event->getReminders() as $reminder) {
-            $offsets[] = $reminder->getMinutesBefore();
+        foreach ($event->getAlerts() as $alert) {
+            $offsets[] = $alert->getMinutesBefore();
         }
 
         sort($offsets);

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Planning\Event\Dto;
 
 use Aurora\Core\Support\Str;
-use Aurora\Module\Planning\Event\Entity\PlanningEventReminder;
+use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -28,7 +28,7 @@ class PlanningEventInputFactory implements PlanningEventInputFactoryInterface
             allDay: (bool) ($data['allDay'] ?? false),
             status: PlanningEventStatusEnum::tryFrom((string) ($data['status'] ?? ''))
                 ?? PlanningEventStatusEnum::Confirmed,
-            reminderOffsets: $this->reminderOffsets($data['reminders'] ?? null),
+            alertOffsets: $this->alertOffsets($data['alerts'] ?? null),
         );
     }
 
@@ -46,7 +46,7 @@ class PlanningEventInputFactory implements PlanningEventInputFactoryInterface
      *
      * @return list<int>
      */
-    private function reminderOffsets(mixed $value): array
+    private function alertOffsets(mixed $value): array
     {
         if (!is_array($value)) {
             return [];
@@ -54,7 +54,7 @@ class PlanningEventInputFactory implements PlanningEventInputFactoryInterface
 
         $offsets = [];
         foreach ($value as $offset) {
-            if (is_numeric($offset) && in_array((int) $offset, PlanningEventReminder::OFFSETS, true)) {
+            if (is_numeric($offset) && in_array((int) $offset, PlanningEventAlert::OFFSETS, true)) {
                 $offsets[] = (int) $offset;
             }
         }

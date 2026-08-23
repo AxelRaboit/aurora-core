@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace Aurora\Module\Planning\Event\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
-use Aurora\Module\Planning\Event\Entity\PlanningEventReminder;
-use Aurora\Module\Planning\Event\Entity\PlanningEventReminderInterface;
+use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
+use Aurora\Module\Planning\Event\Entity\PlanningEventAlertInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
 
-/** @extends ResolveTargetEntityRepository<PlanningEventReminderInterface> */
-class PlanningEventReminderRepository extends ResolveTargetEntityRepository
+/** @extends ResolveTargetEntityRepository<PlanningEventAlertInterface> */
+class PlanningEventAlertRepository extends ResolveTargetEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, PlanningEventReminder::class, PlanningEventReminderInterface::class);
+        parent::__construct($registry, PlanningEventAlert::class, PlanningEventAlertInterface::class);
     }
 
     /**
-     * The reminders that should have fired by now and have not.
+     * The alerts that should have fired by now and have not.
      *
      * `remindAt <= now AND sentAt IS NULL`, which is exactly the index on the
      * table. Runs once a minute for the life of the application, so it is the one
@@ -29,17 +29,17 @@ class PlanningEventReminderRepository extends ResolveTargetEntityRepository
      * an interval.
      *
      * **No lower bound on how late.** A worker stopped for an hour comes back to
-     * an hour of reminders and sends them, rather than deciding they are stale
-     * and dropping them silently. A reminder arriving late is information; one
+     * an hour of alerts and sends them, rather than deciding they are stale
+     * and dropping them silently. A alert arriving late is information; one
      * that never arrives is a bug the user reports as "it did not work".
      *
-     * @return list<PlanningEventReminderInterface>
+     * @return list<PlanningEventAlertInterface>
      */
     public function findDue(DateTimeImmutable $now, int $limit = 200): array
     {
         return $this->createQueryBuilder('r')
             // The event and its calendar come along: the notification names both,
-            // and lazy-loading them would be two queries per reminder.
+            // and lazy-loading them would be two queries per alert.
             ->addSelect('e', 'p')
             ->innerJoin('r.event', 'e')
             ->innerJoin('e.planning', 'p')

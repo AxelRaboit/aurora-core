@@ -28,12 +28,12 @@ class PlanningEventInput implements PlanningEventInputInterface
          * Offsets in minutes, already sifted by the factory.
          *
          * A list and not a count, because the whole set arrives every save: the
-         * form shows every reminder at once, so a diff computed here would only
+         * form shows every alert at once, so a diff computed here would only
          * be a diff the client already made.
          *
          * @var list<int>
          */
-        public readonly array $reminderOffsets = [],
+        public readonly array $alertOffsets = [],
     ) {}
 
     public function getPlanningId(): int
@@ -111,8 +111,8 @@ class PlanningEventInput implements PlanningEventInputInterface
     }
 
     /** @return list<int> */
-    public function getReminderOffsets(): array
+    public function getAlertOffsets(): array
     {
-        return $this->reminderOffsets;
+        return $this->alertOffsets;
     }
 }

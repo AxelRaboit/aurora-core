@@ -131,7 +131,7 @@ final class PlanningApiTest extends IntegrationTestCase
         self::assertArrayHasKey('colourSlot', $body['errors'] ?? []);
     }
 
-    public function testAnEventCarriesItsRemindersBothWays(): void
+    public function testAnEventCarriesItsAlertsBothWays(): void
     {
         $planning = $this->calendar('Rappels');
 
@@ -142,11 +142,11 @@ final class PlanningApiTest extends IntegrationTestCase
             'endAt' => '2026-09-01T11:00',
             // Sent out of order and with a duplicate, the way a form that lets
             // you toggle chips actually produces them.
-            'reminders' => [60, 10, 60],
+            'alerts' => [60, 10, 60],
         ]);
 
         self::assertResponseIsSuccessful();
-        self::assertSame([10, 60], $created['event']['reminders']);
+        self::assertSame([10, 60], $created['event']['alerts']);
 
         $this->created[] = [PlanningEvent::class, (int) $created['event']['id']];
     }
@@ -167,23 +167,23 @@ final class PlanningApiTest extends IntegrationTestCase
             'title' => 'Sept minutes',
             'startAt' => '2026-09-01T10:00',
             'endAt' => '2026-09-01T11:00',
-            'reminders' => [7, 15],
+            'alerts' => [7, 15],
         ]);
 
         self::assertResponseIsSuccessful();
-        self::assertSame([15], $created['event']['reminders']);
+        self::assertSame([15], $created['event']['alerts']);
 
         $this->created[] = [PlanningEvent::class, (int) $created['event']['id']];
     }
 
     /**
-     * Editing an event keeps the reminders it still has.
+     * Editing an event keeps the alerts it still has.
      *
      * The manager diffs rather than clearing and re-adding, and this is what that
-     * buys: a reminder that survives an edit keeps its `sentAt`, so renaming an
-     * event just after its reminder fired does not fire it again.
+     * buys: a alert that survives an edit keeps its `sentAt`, so renaming an
+     * event just after its alert fired does not fire it again.
      */
-    public function testEditingAnEventKeepsASentReminderSent(): void
+    public function testEditingAnEventKeepsASentAlertSent(): void
     {
         $planning = $this->calendar('Édition');
 
@@ -192,7 +192,7 @@ final class PlanningApiTest extends IntegrationTestCase
             'title' => 'Avant',
             'startAt' => '2026-09-01T10:00',
             'endAt' => '2026-09-01T11:00',
-            'reminders' => [15, 60],
+            'alerts' => [15, 60],
         ]);
         self::assertResponseIsSuccessful();
 
@@ -203,10 +203,10 @@ final class PlanningApiTest extends IntegrationTestCase
         self::assertInstanceOf(PlanningEvent::class, $event);
 
         $kept = null;
-        foreach ($event->getReminders() as $reminder) {
-            if (15 === $reminder->getMinutesBefore()) {
-                $reminder->markSent(new DateTimeImmutable('2026-09-01T09:45'));
-                $kept = $reminder->getId();
+        foreach ($event->getAlerts() as $alert) {
+            if (15 === $alert->getMinutesBefore()) {
+                $alert->markSent(new DateTimeImmutable('2026-09-01T09:45'));
+                $kept = $alert->getId();
             }
         }
         $this->entityManager->flush();
@@ -219,20 +219,20 @@ final class PlanningApiTest extends IntegrationTestCase
                 'title' => 'Après',
                 'startAt' => '2026-09-01T10:00',
                 'endAt' => '2026-09-01T11:00',
-                'reminders' => [15],
+                'alerts' => [15],
             ],
             ['id' => $eventId],
         );
 
         self::assertResponseIsSuccessful();
-        self::assertSame([15], $updated['event']['reminders']);
+        self::assertSame([15], $updated['event']['alerts']);
 
         $this->entityManager->clear();
         $event = $this->entityManager->find(PlanningEvent::class, $eventId);
         self::assertInstanceOf(PlanningEvent::class, $event);
-        self::assertCount(1, $event->getReminders());
+        self::assertCount(1, $event->getAlerts());
 
-        $survivor = $event->getReminders()->first();
+        $survivor = $event->getAlerts()->first();
         self::assertNotFalse($survivor);
         self::assertSame($kept, $survivor->getId());
         self::assertNotNull($survivor->getSentAt());
@@ -331,14 +331,14 @@ final class PlanningApiTest extends IntegrationTestCase
     }
 
     /**
-     * A reminder is due at an instant, not at a wall clock.
+     * A alert is due at an instant, not at a wall clock.
      *
      * 30 minutes before 10:00 Paris is 09:30 Paris, whatever UTC calls it. Worth
      * its own case because `remindAt` is stored: the subtraction happens once, on
-     * write, so getting the stored instant wrong means the reminder fires at the
+     * write, so getting the stored instant wrong means the alert fires at the
      * wrong moment for ever after.
      */
-    public function testAReminderIsDueRelativeToTheRealInstant(): void
+    public function testAAlertIsDueRelativeToTheRealInstant(): void
     {
         $planning = $this->calendar('Rappel instant');
 
@@ -347,7 +347,7 @@ final class PlanningApiTest extends IntegrationTestCase
             'title' => 'Dix heures moins le quart',
             'startAt' => '2026-09-01T10:00:00+02:00',
             'endAt' => '2026-09-01T11:00:00+02:00',
-            'reminders' => [30],
+            'alerts' => [30],
         ]);
 
         self::assertResponseIsSuccessful(json_encode($body, JSON_THROW_ON_ERROR));
@@ -359,11 +359,11 @@ final class PlanningApiTest extends IntegrationTestCase
         $event = $this->entityManager->find(PlanningEvent::class, $eventId);
         self::assertInstanceOf(PlanningEvent::class, $event);
 
-        $reminder = $event->getReminders()->first();
-        self::assertNotFalse($reminder);
+        $alert = $event->getAlerts()->first();
+        self::assertNotFalse($alert);
         self::assertSame(
             '2026-09-01 09:30',
-            $reminder->getRemindAt()->setTimezone(new DateTimeZone('Europe/Paris'))->format('Y-m-d H:i'),
+            $alert->getRemindAt()->setTimezone(new DateTimeZone('Europe/Paris'))->format('Y-m-d H:i'),
         );
     }
 

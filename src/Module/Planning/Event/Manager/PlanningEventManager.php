@@ -7,8 +7,8 @@ namespace Aurora\Module\Planning\Event\Manager;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Planning\Event\Dto\PlanningEventInputInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
+use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
-use Aurora\Module\Planning\Event\Entity\PlanningEventReminder;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -89,7 +89,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
         // Last, and in one call: the entity refuses an end before a start, so
         // the two have to arrive together and after nothing else can throw.
         $event->setSpan($startAt, $endAt);
-        $this->applyReminders($event, $input->getReminderOffsets());
+        $this->applyAlerts($event, $input->getAlertOffsets());
     }
 
     /**
@@ -135,38 +135,38 @@ class PlanningEventManager implements PlanningEventManagerInterface
     }
 
     /**
-     * Brings the event's reminders in line with the offsets the form sent.
+     * Brings the event's alerts in line with the offsets the form sent.
      *
      * Kept as a diff rather than "remove them all and add them back", and the
-     * difference is visible to the user: a reminder that survives an edit keeps
+     * difference is visible to the user: a alert that survives an edit keeps
      * its `sentAt`, so renaming an event at 14:05 does not resend the 14:00
-     * reminder. Clearing the collection would make every save a resend.
+     * alert. Clearing the collection would make every save a resend.
      *
      * Runs after setSpan for the same reason it exists at all - a surviving
-     * reminder has just been recomputed against the new start.
+     * alert has just been recomputed against the new start.
      *
      * @param list<int> $offsets
      */
-    protected function applyReminders(PlanningEventInterface $event, array $offsets): void
+    protected function applyAlerts(PlanningEventInterface $event, array $offsets): void
     {
-        foreach ($event->getReminders() as $reminder) {
-            if (!in_array($reminder->getMinutesBefore(), $offsets, true)) {
-                $event->removeReminder($reminder);
-                $this->entityManager->remove($reminder);
+        foreach ($event->getAlerts() as $alert) {
+            if (!in_array($alert->getMinutesBefore(), $offsets, true)) {
+                $event->removeAlert($alert);
+                $this->entityManager->remove($alert);
             }
         }
 
         $existing = [];
-        foreach ($event->getReminders() as $reminder) {
-            $existing[] = $reminder->getMinutesBefore();
+        foreach ($event->getAlerts() as $alert) {
+            $existing[] = $alert->getMinutesBefore();
         }
 
         foreach ($offsets as $offset) {
             if (!in_array($offset, $existing, true)) {
-                $reminder = new PlanningEventReminder();
-                $reminder->setMinutesBefore($offset);
-                $event->addReminder($reminder);
-                $this->entityManager->persist($reminder);
+                $alert = new PlanningEventAlert();
+                $alert->setMinutesBefore($offset);
+                $event->addAlert($alert);
+                $this->entityManager->persist($alert);
             }
         }
     }

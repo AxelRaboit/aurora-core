@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Aurora\Module\Planning\Event\Service;
 
 use Aurora\Core\Notification\Manager\NotificationManagerInterface;
+use Aurora\Module\Planning\Event\Entity\PlanningEventAlertInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
-use Aurora\Module\Planning\Event\Entity\PlanningEventReminderInterface;
-use Aurora\Module\Planning\Event\Repository\PlanningEventReminderRepository;
+use Aurora\Module\Planning\Event\Repository\PlanningEventAlertRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -17,17 +17,17 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * Turns due reminders into notifications.
+ * Turns due alerts into notifications.
  *
  * They land on the backend's existing notification list rather than a channel of
- * their own. A calendar reminder is the same kind of thing as "a comment needs
+ * their own. A calendar alert is the same kind of thing as "a comment needs
  * moderation" - something that happened which you may want to look at - and a
  * second inbox would mean a second bell for the reader to remember to check.
  */
-final readonly class PlanningReminderNotifier
+final readonly class PlanningNotifier
 {
     public function __construct(
-        private PlanningEventReminderRepository $reminders,
+        private PlanningEventAlertRepository $alerts,
         private NotificationManagerInterface $notifications,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
@@ -37,7 +37,7 @@ final readonly class PlanningReminderNotifier
     /**
      * Sends what is due and returns how many went out.
      *
-     * Marked sent **before** the flush and one flush for the batch: a reminder
+     * Marked sent **before** the flush and one flush for the batch: a alert
      * sent twice is worse than one sent late, and a crash between the
      * notification and the mark would do exactly that on the next minute's run.
      */
@@ -46,17 +46,17 @@ final readonly class PlanningReminderNotifier
         $now ??= new DateTimeImmutable();
         $sent = 0;
 
-        foreach ($this->reminders->findDue($now) as $reminder) {
-            $recipient = $reminder->getEvent()->getPlanning()->getOwner();
+        foreach ($this->alerts->findDue($now) as $alert) {
+            $recipient = $alert->getEvent()->getPlanning()->getOwner();
 
             // A calendar with no owner has nobody to tell. Marked sent anyway,
             // or the worker picks it up again every minute for ever.
             if ($recipient instanceof CoreUserInterface) {
-                $this->notify($recipient, $reminder);
+                $this->notify($recipient, $alert);
                 ++$sent;
             }
 
-            $reminder->markSent($now);
+            $alert->markSent($now);
         }
 
         $this->entityManager->flush();
@@ -69,7 +69,7 @@ final readonly class PlanningReminderNotifier
      *
      * Stored instants are UTC, so formatting one straight out of the entity
      * would tell somebody in Paris their 10:00 meeting starts at 08:00 - and a
-     * reminder that names the wrong time is worse than no reminder. This is a
+     * alert that names the wrong time is worse than no alert. This is a
      * notification and not a screen, so there is no browser to do the
      * conversion: the calendar's own timezone is the closest thing to the
      * reader's, and it is the timezone they set when they made it.
@@ -87,27 +87,27 @@ final readonly class PlanningReminderNotifier
         return $event->getStartAt()->setTimezone($zone)->format('H:i');
     }
 
-    private function notify(CoreUserInterface $recipient, PlanningEventReminderInterface $reminder): void
+    private function notify(CoreUserInterface $recipient, PlanningEventAlertInterface $alert): void
     {
-        $event = $reminder->getEvent();
+        $event = $alert->getEvent();
 
         $this->notifications->notify(
             $recipient,
-            'planning.reminder',
+            'planning.alert',
             $event->getTitle(),
-            $this->translator->trans('backend.plannings.reminders.notification', [
+            $this->translator->trans('backend.plannings.alerts.notification', [
                 '%calendar%' => $event->getPlanning()->getName(),
                 '%when%' => $this->localTime($event),
             ]),
             $this->urlGenerator->generate(
                 'backend_planning_calendar',
-                // The day, not the month: a reminder is about one event, and the
+                // The day, not the month: a alert is about one event, and the
                 // day view is where it is the thing you are looking at rather
                 // than one chip among forty.
                 ['view' => 'day', 'date' => $event->getStartAt()->format('Y-m-d')],
                 UrlGeneratorInterface::ABSOLUTE_URL,
             ),
-            ['eventId' => $event->getId(), 'minutesBefore' => $reminder->getMinutesBefore()],
+            ['eventId' => $event->getId(), 'minutesBefore' => $alert->getMinutesBefore()],
         );
     }
 }

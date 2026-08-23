@@ -9,10 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
 
 #[ORM\MappedSuperclass]
-abstract class AbstractPlanningEventReminder implements PlanningEventReminderInterface
+abstract class AbstractPlanningEventAlert implements PlanningEventAlertInterface
 {
     /**
-     * The offsets a reminder may take, in minutes.
+     * The offsets a alert may take, in minutes.
      *
      * A list and not a free number: every calendar offers a menu, because "37
      * minutes before" is a value nobody wants and a field everybody has to fill
@@ -23,7 +23,7 @@ abstract class AbstractPlanningEventReminder implements PlanningEventReminderInt
 
     public const int DEFAULT_OFFSET = 30;
 
-    #[ORM\ManyToOne(targetEntity: PlanningEventInterface::class, inversedBy: 'reminders')]
+    #[ORM\ManyToOne(targetEntity: PlanningEventInterface::class, inversedBy: 'alerts')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     protected PlanningEventInterface $event;
 
@@ -31,7 +31,7 @@ abstract class AbstractPlanningEventReminder implements PlanningEventReminderInt
     protected int $minutesBefore = self::DEFAULT_OFFSET;
 
     /**
-     * When this reminder is due, stored rather than computed.
+     * When this alert is due, stored rather than computed.
      *
      * The worker asks "what is due now" every minute, and that has to be an
      * indexed comparison against a column. Computed from the event's start it
@@ -39,7 +39,7 @@ abstract class AbstractPlanningEventReminder implements PlanningEventReminderInt
      * for the rest of the application's life.
      *
      * The cost is that it has to be recomputed when the event moves, which is
-     * why {@see PlanningEventReminderManager} owns both writes and no screen
+     * why {@see PlanningEventAlertManager} owns both writes and no screen
      * sets this directly.
      */
     #[ORM\Column(type: 'datetime_immutable')]
@@ -49,7 +49,7 @@ abstract class AbstractPlanningEventReminder implements PlanningEventReminderInt
      * Null until it fires, then never null again.
      *
      * A flag would have answered "has it fired", and this answers "when", which
-     * is the question asked the day somebody says they got a reminder twice.
+     * is the question asked the day somebody says they got a alert twice.
      */
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     protected ?DateTimeImmutable $sentAt = null;
@@ -76,13 +76,13 @@ abstract class AbstractPlanningEventReminder implements PlanningEventReminderInt
      * Refuses an offset outside the menu.
      *
      * Not clamped, unlike a colour slot: a colour landing on the wrong step is
-     * cosmetic, and a reminder landing at the wrong time is the whole feature
+     * cosmetic, and a alert landing at the wrong time is the whole feature
      * being wrong quietly.
      */
     public function setMinutesBefore(int $minutesBefore): static
     {
         if (!in_array($minutesBefore, self::OFFSETS, true)) {
-            throw new InvalidArgumentException(sprintf('%d is not one of the reminder offsets.', $minutesBefore));
+            throw new InvalidArgumentException(sprintf('%d is not one of the alert offsets.', $minutesBefore));
         }
 
         $this->minutesBefore = $minutesBefore;
@@ -111,7 +111,7 @@ abstract class AbstractPlanningEventReminder implements PlanningEventReminderInt
     /**
      * Whether it still has to fire.
      *
-     * What the worker filters on together with the due time, so a reminder that
+     * What the worker filters on together with the due time, so a alert that
      * has already gone out cannot be picked up by a second worker or by a retry.
      */
     public function isPending(): bool
@@ -122,7 +122,7 @@ abstract class AbstractPlanningEventReminder implements PlanningEventReminderInt
     /**
      * Kept in step with the event and the offset, whichever of the two moved.
      *
-     * Guarded because the event is set before the offset on a fresh reminder and
+     * Guarded because the event is set before the offset on a fresh alert and
      * `$event` is not initialised yet on the first call.
      */
     protected function recompute(): void
