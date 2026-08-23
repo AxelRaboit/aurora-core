@@ -60,7 +60,7 @@ final readonly class DocumentsViewBuilder
             'cropPath' => $this->urlGenerator->generate('backend_ged_documents_crop', ['id' => '__id__']),
             'bulkDeletePath' => $this->urlGenerator->generate('backend_ged_documents_bulk_delete'),
             'listPath' => $this->urlGenerator->generate('backend_ged_documents_list'),
-            // Media-style move endpoints (single + bulk) — power the sidebar
+            // Media-style move endpoints (single + bulk) - power the sidebar
             // drag&drop and the bulk-move modal. The dedicated /backend/ged/folders
             // page remains untouched and continues to handle folder-tree management.
             'movePath' => $this->urlGenerator->generate('backend_ged_documents_move', ['id' => '__id__']),
@@ -71,7 +71,7 @@ final readonly class DocumentsViewBuilder
             'folderEditPath' => $this->urlGenerator->generate('backend_ged_folders_update', ['id' => '__id__']),
             'folderDeletePath' => $this->urlGenerator->generate('backend_ged_folders_delete', ['id' => '__id__']),
             'folderMovePath' => $this->urlGenerator->generate('backend_ged_folders_move', ['id' => '__id__']),
-            // GED-owned upload endpoint — no coupling to the Media library.
+            // GED-owned upload endpoint - no coupling to the Media library.
             // The form POSTs the file here, gets back the metadata, then
             // submits the regular JSON create/update with that metadata.
             'uploadPath' => $this->urlGenerator->generate('backend_ged_documents_upload'),

@@ -84,10 +84,10 @@ backend:
     enable_confirm: 'Réactiver le compte de {name} ?'
     view: Voir le profil
     row_actions:
-      title: "Actions — {name}"
+      title: "Actions : {name}"
       open: "Actions pour {name}"
       view_description: Consulter la fiche complète sans rien modifier.
-      revoke_dev_description: Retire le rôle Dev — l'accès aux outils techniques disparaît.
+      revoke_dev_description: Retire le rôle Dev, l'accès aux outils techniques disparaît.
       grant_dev_description: Donne le rôle Dev, et l'accès aux outils techniques.
       dev_delete_description: Supprime le compte définitivement. Sans retour possible.
       resend_description: Envoie une nouvelle invitation à la même adresse.

@@ -10,7 +10,7 @@ defineProps({
     label: { type: String, default: '' },
     error: { type: String, default: '' },
     /**
-     * Help text under the control — explains the field, unlike `error` which
+     * Help text under the control - explains the field, unlike `error` which
      * reports it. Ignored by the `ghost` variant, which has no chrome to hang
      * it on.
      */
@@ -20,7 +20,7 @@ defineProps({
     mono: { type: Boolean, default: false },
     maxlength: { type: Number, default: null },
     /**
-     * Visual flavor — same semantics as {@link AppInput.vue}. `ghost`
+     * Visual flavor - same semantics as {@link AppInput.vue}. `ghost`
      * yields a transparent, label-less textarea that inherits the
      * parent's text color (useful for inline editing inside cards,
      * post-its, editable rows…). Sizing / decoration is the consumer's

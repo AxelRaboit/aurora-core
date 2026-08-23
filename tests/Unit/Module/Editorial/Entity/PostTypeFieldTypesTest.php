@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
  *
  * `media` and `reference` were in the list while the editor drew neither, so
  * an admin could define a "featured product" field and the writer would be
- * asked to type a raw database id into a text box — the editor's `v-else`
+ * asked to type a raw database id into a text box - the editor's `v-else`
  * fallback. They belong here again when their pickers exist.
  *
  * The vocabulary is asserted whole rather than by absence: adding a type

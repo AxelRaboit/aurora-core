@@ -1,7 +1,7 @@
 /**
  * Server-side validation responses follow the project convention of returning
  * translation keys (e.g. "photo.galleries.errors.slug_taken") rather than
- * pre-translated strings — see Aurora\Core\Validation\Service\PayloadValidator.
+ * pre-translated strings - see Aurora\Core\Validation\Service\PayloadValidator.
  *
  * UI components (AppInput, AppTextarea…) display the `error` prop literally,
  * so admin screens must run the server payload through vue-i18n before

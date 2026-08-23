@@ -8,7 +8,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Squash migration — full aurora-core schema as of mai 2026.
+ * Squash migration - full aurora-core schema as of mai 2026.
  *
  * Replaces the previous 64 incremental migrations accumulated during
  * the bundle's development. Generated via `doctrine:migrations:diff` on
@@ -23,13 +23,13 @@ use Doctrine\Migrations\AbstractMigration;
  * the old migrations need a one-time cleanup of doctrine_migration_versions :
  *     DELETE FROM doctrine_migration_versions;
  *     php bin/console doctrine:migrations:version --add --all
- * The data is untouched — only the bookkeeping table is reset.
+ * The data is untouched - only the bookkeeping table is reset.
  */
 final class Version20260524091527 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Squash — full aurora-core schema as of mai 2026 (replaces the previous 64 incremental migrations)';
+        return 'Squash - full aurora-core schema as of mai 2026 (replaces the previous 64 incremental migrations)';
     }
 
     public function up(Schema $schema): void

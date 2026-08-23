@@ -1,6 +1,6 @@
 {
     "name": "axelraboit/aurora-client",
-    "description": "Aurora-based client application — à-la-carte modules over VCS (no Packagist).",
+    "description": "Aurora-based client application - à-la-carte modules over VCS (no Packagist).",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "dev",

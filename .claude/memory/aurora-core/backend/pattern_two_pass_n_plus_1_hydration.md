@@ -1,6 +1,6 @@
 ---
 name: pattern_two_pass_n_plus_1_hydration
-description: Pagination + collections ManyToMany — paginer d'abord, puis hydrater les collections via une 2e query sur les ids.
+description: Pagination + collections ManyToMany - paginer d'abord, puis hydrater les collections via une 2e query sur les ids.
 metadata:
   type: feedback
 ---
@@ -9,7 +9,7 @@ metadata:
 
 Quand un repository **paginate** (`setMaxResults`/`setFirstResult`) **et** que
 le serializer consomme ensuite une collection ManyToMany (ou OneToMany-many),
-ne **JAMAIS** joindre la collection dans la query principale paginée — ça
+ne **JAMAIS** joindre la collection dans la query principale paginée - ça
 produit un produit cartésien qui fausse le slice (n entités × m liens = bien
 plus que `pageSize` lignes ; le `setMaxResults` coupe au milieu d'une entité
 hydratée).
@@ -40,7 +40,7 @@ public function findVisibleByCategoryIdsPaginated(array $categoryIds, int $page,
         ->leftJoin('l2.tags', 'tag')->addSelect('tag')
         ->where('l2.id IN (:ids)')->setParameter('ids', $ids)
         ->getQuery()
-        ->getResult(); // résultat ignoré — Doctrine peuple l'identity map
+        ->getResult(); // résultat ignoré - Doctrine peuple l'identity map
 
     return $listings;
 }
@@ -62,13 +62,13 @@ Précédents établis cette session :
 `ListingRepository::findVisibleByTagIdsPaginated`.
 
 Lié : [[convention_repository_eager_loading]] (le pattern y est documenté
-sous "Pagination + collections — batch hydration"). Cette mémoire est le
+sous "Pagination + collections - batch hydration"). Cette mémoire est le
 zoom détaillé avec exemple concret.
 
 ## Comment l'appliquer
 
 1. Le repo paginate + le serializer touche une collection → split en 2 passes.
-2. La passe 1 peut joindre les ToOne (`leftJoin` + `addSelect`) — pas de
+2. La passe 1 peut joindre les ToOne (`leftJoin` + `addSelect`) - pas de
    cartésien.
 3. La passe 2 charge **toutes** les collections nécessaires en un coup
    (multiple `leftJoin` + `addSelect`). Ne pas faire une passe par collection.

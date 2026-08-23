@@ -50,7 +50,7 @@ const extraFields = {
 
         <template #extra-cells="{ agency }">
             <td class="px-6 py-3 font-mono text-sm">
-                {{ agency.code ?? '—' }}
+                {{ agency.code ?? '-' }}
             </td>
         </template>
 
@@ -74,7 +74,7 @@ APRÈS `auroraModules` dans `vueContext` (cf. `src/Core/assets/app.js`),
 ton fichier wins. Le template Aurora
 `@Platform/backend/agencies/index.html.twig` qui appelle
 `vue_component('platform/backend/agencies/AgenciesApp', ...)` résout
-directement ton wrapper — zéro override Twig à écrire.
+directement ton wrapper - zéro override Twig à écrire.
 
 ### 3. Hydratation côté backend
 
@@ -126,7 +126,7 @@ Pour les variantes :
 ### 1. Reactive vs ref
 
 ```js
-// ❌ MAUVAIS — ref dans reactive
+// ❌ MAUVAIS - ref dans reactive
 const editForm = reactive({
     name: "",
     selectedTags: ref([]),  // ref imbriqué dans reactive
@@ -140,5 +140,5 @@ const selectedTags = ref([]);  // séparé
 ### 2. `extraFields` pas réactif
 
 `extraFields` est destructuré au mount. Pas la peine de le faire
-`reactive` côté client — il est lu une fois pour initialiser la config du
+`reactive` côté client - il est lu une fois pour initialiser la config du
 composable.

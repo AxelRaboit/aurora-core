@@ -3,8 +3,8 @@
  * The account block at the foot of the menu: who you are, and what you can do
  * about it.
  *
- * **One component for both menus.** This file's markup used to exist twice —
- * once in the desktop `<aside>`, once in the mobile drawer in plain classes — and the two drifted exactly as two
+ * **One component for both menus.** This file's markup used to exist twice -
+ * once in the desktop `<aside>`, once in the mobile drawer in plain classes - and the two drifted exactly as two
  * copies do: the block was made foldable on the desktop side only, and the
  * notifications bell went missing on the mobile side. Each was a separate bug
  * report.
@@ -24,7 +24,7 @@ const props = defineProps({
     userName: { type: String, default: "" },
     userEmail: { type: String, default: "" },
     userPhotoUrl: { type: String, default: "" },
-    /** Dev only — empty in production, and the row disappears with it. */
+    /** Dev only - empty in production, and the row disappears with it. */
     mailpitUrl: { type: String, default: "" },
     profilePath: { type: String, required: true },
     preferencesPath: { type: String, required: true },

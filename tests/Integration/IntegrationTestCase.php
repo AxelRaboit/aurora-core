@@ -25,20 +25,20 @@ abstract class IntegrationTestCase extends WebTestCase
         // Purge first, then seed the mandatory rows, then the dev accounts.
         // The bootstrap providers run here rather than being duplicated into a
         // fixture: a test database that is seeded differently from a real
-        // install is a test database that can hide breakage — this suite went
+        // install is a test database that can hide breakage - this suite went
         // red precisely because the locales and the theme moved, which is the
         // signal working as intended.
         $executor = new ORMExecutor($entityManager, new ORMPurger($entityManager));
         $executor->purge();
 
         // Every provider, through the same runner `aurora:install` uses. Core's
-        // was once named here on its own — true when it was the only one, and
+        // was once named here on its own - true when it was the only one, and
         // silently wrong once Editorial and GED had theirs. The bug that
         // surfaced it: an upload filed into a category the suite had never
         // created, so a test could only pass by asserting the absence of the
         // filing this seeds.
         foreach ($container->get(BootstrapRunner::class)->run() as $result) {
-            self::assertTrue($result->success, sprintf('bootstrap failed: %s — %s', $result->label, (string) $result->error));
+            self::assertTrue($result->success, sprintf('bootstrap failed: %s - %s', $result->label, (string) $result->error));
         }
 
         $executor->execute([$container->get(AppFixtures::class)], true);

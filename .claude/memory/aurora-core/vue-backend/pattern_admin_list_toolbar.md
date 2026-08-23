@@ -12,9 +12,9 @@ Pour le toolbar standard d'une page admin (search à gauche, bouton(s) d'action
 `@/shared/components/list/AppListToolbar.vue` :
 
 - **Slot par défaut** : contenu de gauche (typiquement `AppSearchInput`, mais
-  peut être un `AppMultiselect` ou autre — cf. `OcrJobsApp`).
+  peut être un `AppMultiselect` ou autre - cf. `OcrJobsApp`).
 - **Slot `#actions`** : contenu de droite (un ou plusieurs `AppButton`, ou un
-  groupe `<div class="flex …">` quand il y a plusieurs boutons / toggles —
+  groupe `<div class="flex …">` quand il y a plusieurs boutons / toggles -
   cf. `PostsApp` avec view-mode toggles + add/trash buttons).
 
 ```vue
@@ -26,7 +26,7 @@ Pour le toolbar standard d'une page admin (search à gauche, bouton(s) d'action
 </AppListToolbar>
 ```
 
-Le composant est purement layout — pas de props, pas de logique, juste deux
+Le composant est purement layout - pas de props, pas de logique, juste deux
 slots et le grid responsive.
 
 ## Pourquoi
@@ -47,5 +47,5 @@ unique verrouille la cohérence et rend les futures évolutions (ex: passer à
 - **Plusieurs boutons à droite** : les regrouper dans un `<div class="flex
   items-center gap-2 w-full sm:w-auto">` à l'intérieur de `#actions`.
 
-Lien : [[convention_mobile_card_layout]] — le toolbar est le pendant haut de
+Lien : [[convention_mobile_card_layout]] - le toolbar est le pendant haut de
 ce pattern de carte mobile (search + add au-dessus, cards en dessous).

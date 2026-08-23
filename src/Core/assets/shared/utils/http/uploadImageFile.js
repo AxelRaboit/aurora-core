@@ -5,7 +5,7 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
  *
  * One constant because three callers need to agree on it, and the last time
  * they did not the block editor spent months posting to
- * `/backend/media/media/upload` — a route removed with the Media module, which
+ * `/backend/media/media/upload` - a route removed with the Media module, which
  * no test noticed because nothing asserted the route existed.
  */
 export const IMAGE_UPLOAD_ENDPOINT = "/backend/ged/documents/upload-image";
@@ -18,7 +18,7 @@ export const IMAGE_UPLOAD_ENDPOINT = "/backend/ged/documents/upload-image";
  * an injection context is unusable there. `useImageUpload` wraps this for the
  * Vue callers that do want loading state and a toast.
  *
- * Returns null for every failure — a refused file, a network error, a body
+ * Returns null for every failure - a refused file, a network error, a body
  * that is not the shape agreed. Callers decide what to say about it; there is
  * nothing useful to distinguish between "the server said no" and "the server
  * said something unexpected" at a picker's level.

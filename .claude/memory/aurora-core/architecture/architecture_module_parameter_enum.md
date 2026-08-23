@@ -1,6 +1,6 @@
 ---
 name: Architecture ModuleParameterEnum
-description: Toggles de modules — depuis le monorepo-split, chaque module métier a son <Module>ModuleParameterEnum + provider ; l'enum central est core-infra only
+description: Toggles de modules - depuis le monorepo-split, chaque module métier a son <Module>ModuleParameterEnum + provider ; l'enum central est core-infra only
 type: project
 ---
 
@@ -72,7 +72,7 @@ au lieu de stockage : `SettingsService` (cascade), `ModulesViewBuilder`, `UsersV
 
 ## Liens
 
-- [[project_monorepo_split_chantier]] — le chantier qui a distribué les enums.
-- [[pattern_core_submodules_split]] — "1 module = 1 toggle root = 1 context".
+- [[project_monorepo_split_chantier]] - le chantier qui a distribué les enums.
+- [[pattern_core_submodules_split]] - "1 module = 1 toggle root = 1 context".
 - Outils alignés sur ce pattern : skills `/add-module`, `/register-module-toggle`,
   `/audit-module-toggles`, `/add-submodule` + doc `docs/aurora-core/dev/add_module.md`.

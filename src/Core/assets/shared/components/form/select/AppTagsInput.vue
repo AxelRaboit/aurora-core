@@ -9,7 +9,7 @@ const props = defineProps({
     label: { type: String, default: "" },
     placeholder: { type: String, default: "" },
     error: { type: String, default: "" },
-    /** Help text under the control — explains the field, unlike `error` which reports it. */
+    /** Help text under the control - explains the field, unlike `error` which reports it. */
     hint: { type: String, default: "" },
 });
 const emit = defineEmits(["update:modelValue"]);

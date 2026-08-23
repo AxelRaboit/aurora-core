@@ -10,12 +10,12 @@ use Symfony\Component\Routing\Router;
 use Twig\Attribute\AsTwigFunction;
 
 /**
- * `path_template('route', {id: '__id__'})` — a URL with a hole in it.
+ * `path_template('route', {id: '__id__'})` - a URL with a hole in it.
  *
  * A Vue app is handed a path it will complete at click time, so Twig has to
  * generate `/backend/editorial/posts/__id__/edit` from a route whose `id` is
  * declared `\d+`. The generator refuses, because `__id__` is not a number, and
- * it refuses *while rendering the page* — so the screen answers 500 before
+ * it refuses *while rendering the page* - so the screen answers 500 before
  * anyone reaches the endpoint the requirement was protecting.
  *
  * That was previously worked around by loosening the requirement itself, which
@@ -28,8 +28,8 @@ use Twig\Attribute\AsTwigFunction;
  * Symfony already separates the two concerns. Requirements are enforced both
  * when matching a request and when generating a URL, and
  * {@see ConfigurableRequirementsInterface} turns off only the second. So
- * routes keep their honest `\d+` — junk in the URL bar is rejected by the
- * router, as it should be — and generation is relaxed here, for the one call
+ * routes keep their honest `\d+` - junk in the URL bar is rejected by the
+ * router, as it should be - and generation is relaxed here, for the one call
  * that means to leave a hole.
  */
 final readonly class PathTemplateExtension
@@ -48,7 +48,7 @@ final readonly class PathTemplateExtension
 
         $strict = $generator->isStrictRequirements();
 
-        // `null` means "generate anyway, check nothing" — as opposed to
+        // `null` means "generate anyway, check nothing" - as opposed to
         // `false`, which returns an empty string and logs.
         $generator->setStrictRequirements(null);
 
@@ -66,7 +66,7 @@ final readonly class PathTemplateExtension
     /**
      * The object that actually holds the flag.
      *
-     * `Router` is what gets injected, and it is not itself configurable — it
+     * `Router` is what gets injected, and it is not itself configurable - it
      * delegates to an inner generator built on demand and configured from its
      * own options. Testing the injected service directly therefore always
      * failed, silently, and the relaxation never happened.

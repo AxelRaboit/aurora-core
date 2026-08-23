@@ -3,8 +3,8 @@ import { defineAsyncComponent, markRaw } from "vue";
 /**
  * The dashboard panels modules contribute.
  *
- * The PHP side already keeps the General shell free of business modules —
- * figures arrive through DashboardStatsProviderInterface — and this is the
+ * The PHP side already keeps the General shell free of business modules -
+ * figures arrive through DashboardStatsProviderInterface - and this is the
  * same arrangement for the Vue side. Without it the shell would have to
  * `import EditorialPanel from "@editorial/..."`, which is exactly the
  * cross-module dependency the provider registry exists to avoid, and which
@@ -21,7 +21,7 @@ const panels = [];
  * @param {string}   panel.id        matches the module id the PHP side reports enabled
  * @param {string}   panel.labelKey  i18n key for the module switcher tab
  * @param {object}   panel.icon      lucide component for that tab
- * @param {Function} panel.component `() => import("...")` — kept lazy so a panel
+ * @param {Function} panel.component `() => import("...")` - kept lazy so a panel
  *                                   nobody looks at is never downloaded
  */
 export function registerDashboardPanel({ id, labelKey, icon, component }) {

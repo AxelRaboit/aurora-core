@@ -4,7 +4,7 @@
  *
  * The same job a `<select>` does, laid out so that every option is already on
  * screen and one click away. Worth the space when the options are few and named
- * — a width of "a half" reads as what it does, where a number reads as a
+ * - a width of "a half" reads as what it does, where a number reads as a
  * coordinate to work out.
  *
  * Built as a radio group rather than a row of buttons, because that is what it
@@ -13,7 +13,7 @@
  * is a single stop rather than N. That last part is the whole reason this is a
  * shared component instead of a handful of buttons at the call site.
  *
- * `modelValue` may sit outside the options — a width set by other means has no
+ * `modelValue` may sit outside the options - a width set by other means has no
  * choice to light up. The group stays reachable in that case: the first option
  * takes the tab stop, and nothing reads as checked.
  */
@@ -38,7 +38,7 @@ const checkedIndex = computed(() =>
 );
 
 /**
- * One tab stop for the group, on the checked option — or on the first, when
+ * One tab stop for the group, on the checked option - or on the first, when
  * nothing is checked, so the group can still be reached from the keyboard.
  */
 function tabIndexFor(index) {
@@ -73,7 +73,7 @@ function onKeydown(index, event) {
 
     event.preventDefault();
 
-    // Arrows wrap, which is what a radio group does — Home and End are already
+    // Arrows wrap, which is what a radio group does - Home and End are already
     // in range, so the modulo leaves them alone.
     const target = (asked + props.options.length) % props.options.length;
 

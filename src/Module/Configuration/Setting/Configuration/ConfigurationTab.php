@@ -24,7 +24,7 @@ class ConfigurationTab
         public readonly int $priority,
         public readonly array $fields,
         /**
-         * Forces the tab to render even when `$fields` is empty — for tabs
+         * Forces the tab to render even when `$fields` is empty - for tabs
          * whose body is a custom Vue component (e.g. navigation aliases,
          * appearance palette) that draws its own content.
          */
@@ -58,7 +58,7 @@ class ConfigurationTab
          * (e.g. `'modules_<module_id>_backend'`).
          *
          * Shared tabs that aggregate fields across modules (notably
-         * `sequences`) MUST leave this null — they should remain visible
+         * `sequences`) MUST leave this null - they should remain visible
          * as long as at least one contributing module is enabled, and the
          * merged-field semantics already handle that.
          */

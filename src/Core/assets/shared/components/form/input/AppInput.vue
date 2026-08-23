@@ -12,7 +12,7 @@ const props = defineProps({
     label: { type: String, default: '' },
     error: { type: String, default: '' },
     /**
-     * Help text under the control — explains the field, unlike `error` which
+     * Help text under the control - explains the field, unlike `error` which
      * reports it. Ignored by the `ghost` variant, which has no chrome to hang
      * it on.
      */
@@ -24,7 +24,7 @@ const props = defineProps({
      * Visual flavor. `default` ships the full form-field chrome (border,
      * surface background, label slot, error message). `ghost` strips
      * everything to a transparent, label-less input that inherits its
-     * parent's text color — for inline editing inside cards, post-its,
+     * parent's text color - for inline editing inside cards, post-its,
      * editable table cells, etc. The consumer is expected to size /
      * decorate it via the merged `class` attribute.
      */

@@ -60,7 +60,7 @@ backend:
     confirm_password_invalid: Incorrect password.
     confirm_password_confirm: Confirm
     browse_media: Browse media
-    no_page_selected: No page selected — showing the article list by default.
+    no_page_selected: "No page selected : showing the article list by default."
     search_post: Search a page…
     or_id: 'or enter ID:'
     sequence_search: Search a sequence…
@@ -68,7 +68,7 @@ backend:
     site_name:
       label: Site name
       description: Name displayed on the public site and in emails
-      placeholder: Aurora — Application de gestion
+      placeholder: "Aurora : Application de gestion"
     site_description:
       label: Site description
       description: Short description used as the default meta description
@@ -131,7 +131,7 @@ backend:
       description: Maximum number of revisions kept per post (oldest are deleted)
     file_versions_limit:
       label: File versions kept
-      description: Maximum number of versions kept per GED file — beyond that, the oldest are deleted along with their file. 0 = unlimited.
+      description: Maximum number of versions kept per GED file. Beyond that, the oldest are deleted along with their file. 0 = unlimited.
     trash_auto_purge_days:
       label: Auto-purge trash (days)
       description: Number of days before permanent deletion of trashed posts (0 = never)
@@ -154,7 +154,7 @@ backend:
     seo_default_description:
       label: Default SEO description
       description: Meta description used when no specific description is defined
-      placeholder: Business management platform — CRM, sales, document management…
+      placeholder: "Business management platform : CRM, sales, document management…"
     seo_default_og_image:
       label: Default Open Graph image
       description: Image used for social previews (Facebook, LinkedIn, Twitter…) when the page doesn't define one. 1200×630 px recommended.
@@ -205,7 +205,7 @@ backend:
     search_placeholder: Search by key…
     all_groups: All groups
   title: Administration
-  # Dashboard shell only — a module that draws a panel ships its own labels.
+  # Dashboard shell only - a module that draws a panel ships its own labels.
   stats:
     no_module_enabled: No dashboard module is enabled.
   forms:

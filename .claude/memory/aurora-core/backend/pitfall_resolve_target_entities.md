@@ -51,7 +51,7 @@ protected function createAgency(): AgencyInterface
 ### Côté client
 
 Override le hook + déclarer dans `resolve_target_entities` (pour les
-relations Doctrine — c'est complémentaire) :
+relations Doctrine - c'est complémentaire) :
 
 ```php
 // App\Module\Core\Agency\Manager\AgencyManager
@@ -74,11 +74,11 @@ Les **deux mécanismes sont nécessaires** :
   Managers.
 - `resolve_target_entities` → couvre les relations Doctrine (`@ManyToOne(targetEntity: AgencyInterface::class)`).
 
-## Piège bonus — constructeur du repo prend 3 args, pas 2
+## Piège bonus - constructeur du repo prend 3 args, pas 2
 
 `ResolveTargetEntityRepository::__construct(registry, defaultClass, interfaceClass)`
 **exige 3 arguments**, pas 2. La signature `ServiceEntityRepository` standard
-(2 args) ne suffit pas — le 3e (`interfaceClass`) est ce qui permet à la base
+(2 args) ne suffit pas - le 3e (`interfaceClass`) est ce qui permet à la base
 de résoudre la classe substituée via les metadata Doctrine.
 
 ```php
@@ -102,5 +102,5 @@ endpoint qui injecte le repo.
 ## Source
 
 Découvert au début du rollout (Agency pilot). Cf le doc convention,
-section "Couche bonus — ResolveTargetEntityRepository" et la note de la
+section "Couche bonus - ResolveTargetEntityRepository" et la note de la
 section 3.1 sur les hooks d'instanciation.

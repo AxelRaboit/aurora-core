@@ -1,4 +1,4 @@
-# Chantier — Split aurora-core en monorepo de N packages Composer
+# Chantier - Split aurora-core en monorepo de N packages Composer
 
 > ## ⚠️ Editorial est revenu dans le core (août 2026)
 >
@@ -11,7 +11,7 @@
 > niveau que Ged ou Platform : bumps Composer manuels, boucle de dev via zip
 > GitHub, et une présentation déjà éclatée puisque les templates du thème
 > par défaut d'Editorial vivaient dans le core. Editorial a donc été
-> **reconstruit** — pas recopié — dans `src/Module/Editorial/`, comme module
+> **reconstruit** - pas recopié - dans `src/Module/Editorial/`, comme module
 > core simple : glob central de `services.yaml`, entités dans
 > `AuroraBundle::$resolve_target_entities`, ni `composer.json` ni
 > `AuroraEditorialBundle`. Le repo `aurora-editorial` a servi de
@@ -41,7 +41,7 @@ findings ci-dessous.
 
 > **Recentrage (juillet 2026)** : le split de ces 13 packages était complet
 > et validé, mais le nettoyage côté monorepo (Phase 3 de
-> `extracting_a_module.md` — retirer le code désormais dupliqué de
+> `extracting_a_module.md` - retirer le code désormais dupliqué de
 > `src/Module/<X>`) n'avait jamais été fait pour les 11 modules métier
 > (Editorial excepté). C'est désormais chose faite : Aurora a été recentré
 > sur **Core + Editorial** seulement. Les 11 autres packages restent sur
@@ -51,36 +51,36 @@ findings ci-dessous.
 > **Outillage de split supprimé (2026-08-01)** : `bin/split-modules.sh` et
 > les cibles `make split-module` / `make split-modules` ont été retirés.
 > Depuis l'extraction complète d'Editorial, `src/Module/Editorial` n'existe
-> plus dans `develop` et le script ne pouvait plus rien splitter — le
+> plus dans `develop` et le script ne pouvait plus rien splitter - le
 > `git subtree split` échoue, vérifié. Restaient donc un script inopérant et
 > une doc `Usage:` mensongère, pour un script dont l'étape suivante est un
 > `git push -f` sur la branche `master` du repo cible. **Le repo standalone
 > `aurora-editorial` est désormais la source de vérité** : on y code
 > directement et on pousse sur `master`, on ne repasse plus par le core.
-> (Le récit historique ci-dessous mentionne encore le script — il décrit ce
+> (Le récit historique ci-dessous mentionne encore le script - il décrit ce
 > qui s'est passé à l'époque, pas un runbook courant.)
 >
 > **Pourquoi ne pas avoir touché aux migrations** : le fichier
 > `migrations/Version20260524091527.php` crée toutes les tables (core +
 > les 11 modules) dans un seul `up()`/`down()` entrelacé par ordre
 > alphabétique avec des FK croisées (Billing→Ged, Project→Ged,
-> Ecommerce→Ged, etc.) — découper ce SQL à la main est risqué pour un
+> Ecommerce→Ged, etc.) - découper ce SQL à la main est risqué pour un
 > bénéfice cosmétique, puisque Doctrine Migrations exécute du SQL brut
 > indépendamment du mapping des entités PHP. Seuls 3 fichiers
 > **purement** croisés entre modules retirés (Billing↔Crm, Photo↔Crm,
 > Project↔Crm) ont été supprimés sans risque. Sur une base neuve, le
 > `schema:create` (piloté par les entités, déjà la procédure
 > documentée pour tout fresh install) ne crée que les tables des
-> entités restantes — zéro table orpheline.
+> entités restantes - zéro table orpheline.
 >
 > **Retrouver le retrait exact, pour une réintégration future** :
 > - Tag `pre-simplify-editorial-only` sur aurora-core = état du monorepo
 >   juste **avant** le retrait (les 12 modules encore présents).
-> - `develop` : 5 commits juste après ce tag —
+> - `develop` : 5 commits juste après ce tag -
 >   `1482e4d9` (rm -rf du code source des 11 modules),
 >   `b4c9d2b7` (dé-branchement bundles.php/aliases.js/services.yaml/...),
 >   `eeef9c6f` (docs + mémoire marqués « extrait »),
->   `779bd769` (bugs de code mort trouvés en relançant `make ft` — Twig
+>   `779bd769` (bugs de code mort trouvés en relançant `make ft` - Twig
 >   `is_ecommerce_shop_enabled()`, `MenuItemTargetTypeEnum::FrontShop`,
 >   ~70 tests orphelins, trait `ScalarCoercionTrait` mort, dashboard qui
 >   affichait des onglets vides pour les modules absents),
@@ -98,25 +98,25 @@ findings ci-dessous.
 >   de `composer.json` est `refactor: strip aurora-myspace down to
 >   Core + Editorial`.
 
-> **Suite du recentrage — Ollama/Stripe + Agency/Service (juillet 2026)** :
+> **Suite du recentrage - Ollama/Stripe + Agency/Service (juillet 2026)** :
 > deux oublis du recentrage ci-dessus, trouvés a posteriori (l'app disait
-> encore "Ollama non joignable" en dev, et le duo Agency/Service — org
-> chart "qui travaille où" — n'avait plus aucune utilité sans Hr/Crm/etc.).
+> encore "Ollama non joignable" en dev, et le duo Agency/Service - org
+> chart "qui travaille où" - n'avait plus aucune utilité sans Hr/Crm/etc.).
 > Sur `develop` : `bc1c2f46` (retire les dernières refs Ollama/Billing-OCR/
-> Stripe — `.env`, `composer.json` (stripe/stripe-php, zipstream,
+> Stripe - `.env`, `composer.json` (stripe/stripe-php, zipstream,
 > phpspreadsheet), `security.yaml`, `DevPrerequisiteChecker`, docs) puis
 > `bab23e68` (supprime `src/Module/Platform/{Agency,Service}/` en entier +
 > tout leur câblage dans `AbstractUser`, `UserManager`, `PlatformModule`,
 > `ModuleParameterEnum`, `UsersViewBuilder`/`UsersApp.vue`,
 > `ProfileViewBuilder`/`ProfileApp.vue`, `CoreDemoFixtures`). Sur
-> `split/core` : commit squashé `07bd5fee` (même logique que plus haut —
+> `split/core` : commit squashé `07bd5fee` (même logique que plus haut -
 > Editorial étant absent de cette branche, son fix `EditorialDemoFixtures`
-> — contenu démo "Bienvenue sur Aurora" réécrit sans CRM/Stripe — est
+> - contenu démo "Bienvenue sur Aurora" réécrit sans CRM/Stripe - est
 > reparti séparément vers `aurora-editorial` via `bin/split-modules.sh`).
 > Migrations non touchées, même rationale (`core_agencies`/`core_services`
 > + `agency_id`/`service_id` sur `core_users` viennent de la même migration
 > initiale géante ; `schema:create` sur base neuve ne les crée simplement
-> plus). `make ft` vert (1238 tests, contre 1262 avant — les ~24 tests
+> plus). `make ft` vert (1238 tests, contre 1262 avant - les ~24 tests
 > Agency/Service en moins). Branche `feat/extract-welding-to-client`
 > (entièrement fusionnée dans `develop` depuis l'extraction Welding)
 > supprimée du dépôt GitHub à cette occasion, ne restent que `develop` et
@@ -125,7 +125,7 @@ findings ci-dessous.
 > **Reliquat Agency/Service trouvé après coup (juillet 2026)** : le retrait
 > de `bab23e68` avait nettoyé le PHP/Vue mais oublié `src/Module/Platform/
 > templates/backend/users/index.html.twig`, qui continuait de passer
-> `agencies: agencies, services: services` à `UsersApp` — Twig plantait
+> `agencies: agencies, services: services` à `UsersApp` - Twig plantait
 > avec `Variable "agencies" does not exist` dès l'ouverture de la page
 > Utilisateurs (le composant Vue, lui, avait bien été nettoyé, donc rien
 > ne consommait ces props côté JS). Retiré ces deux lignes, plus quelques
@@ -135,22 +135,22 @@ findings ci-dessous.
 > `split/core` : `cea2bdeb` (cherry-pick propre, le fichier existait déjà
 > tel quel). `make ft` toujours vert (1238 tests). Balayage fait à cette
 > occasion sur tout le monorepo (grep PHP/twig/JS/YAML/SQL) pour confirmer
-> qu'il ne reste plus aucune autre trace d'Agency/Service — si un nouveau
+> qu'il ne reste plus aucune autre trace d'Agency/Service - si un nouveau
 > symptôme apparaît, il est probablement lié et mérite d'être ajouté ici
 > plutôt qu'une nouvelle note séparée.
 
-> **URLs frontend aplaties — /{locale}/editorial → /{locale} (juillet
-> 2026)** : suite logique du recentrage — tant qu'il restait plusieurs
+> **URLs frontend aplaties - /{locale}/editorial → /{locale} (juillet
+> 2026)** : suite logique du recentrage - tant qu'il restait plusieurs
 > modules avec front public (Ecommerce/Photo/etc.), le préfixe
 > `/{locale}/editorial/...` servait à distinguer le "front" de chaque
 > module dans l'espace d'URL (cf. `Registry`/`FrontendInterface`,
 > `RootDispatchController::firstEnabledFront()`). Editorial étant
 > maintenant le seul front, ce préfixe n'est plus qu'un segment
-> superflu — retiré des 10 routes front d'Editorial (Post/Comment/Form,
+> superflu - retiré des 10 routes front d'Editorial (Post/Comment/Form,
 > `PageController.php`, `CommentController.php`, `FormController.php`).
 > Les noms de route ne changent pas (`editorial_home`, `editorial_post`,
 > `editorial_form`, ...) donc tout `path()`/`generateUrl()` (Twig, sitemap,
-> menu) suit automatiquement — seuls deux endroits construisaient une URL
+> menu) suit automatiquement - seuls deux endroits construisaient une URL
 > à partir d'un littéral au lieu du nom de route et ont dû être corrigés à
 > la main : `HomeApp.vue` (lien post côté client) et les assertions de
 > `tests/Integration/Service/MenuRendererTest.php`. Ce test-là est
@@ -162,16 +162,16 @@ findings ci-dessous.
 > branche `master`, puis `composer update axelraboit/aurora-editorial`
 > côté `aurora-myspace` (`e407625`). Vérifié en live : `/fr` → 200,
 > `/fr/editorial` → 404 (route disparue, comme attendu).
-> `RootDispatchController` n'a pas eu besoin d'édition — il redirige déjà
+> `RootDispatchController` n'a pas eu besoin d'édition - il redirige déjà
 > par nom de route (`editorial_home`), pas par chemin littéral.
 
-> **Editorial complètement sorti du monorepo — develop devient Core seul
+> **Editorial complètement sorti du monorepo - develop devient Core seul
 > (juillet 2026)** : dernière étape du recentrage, décidée explicitement
 > par l'utilisateur ("tout ce qui est sur split/core, je veux que ce soit
 > officiel et qu'on mette ça sur develop"). Jusque-là `develop` contenait
 > Core+Editorial et `split/core` en était un filtrage dérivé (maintenu à
 > la main via cherry-pick à chaque commit non-Editorial, cf. notes
-> ci-dessus) ; désormais `develop` **est** ce que `split/core` était —
+> ci-dessus) ; désormais `develop` **est** ce que `split/core` était -
 > Editorial ne vit plus que dans `aurora-editorial`, même statut que les
 > 11 autres modules déjà extraits.
 >
@@ -185,7 +185,7 @@ findings ci-dessous.
 > `develop`, pas un fast-forward.
 >
 > **Reliquats découverts en conséquence** : `split/core` n'avait en fait
-> *jamais* tourné comme application autonome — il n'était consommé que via
+> *jamais* tourné comme application autonome - il n'était consommé que via
 > Composer par les projets client, dont le kernel prenait le relais pour
 > tout ce qui est bundles/config/DI. Une fois `develop` = ce contenu, trois
 > bugs latents sont remontés au premier `make ft` (jamais exécuté "pour de
@@ -195,12 +195,12 @@ findings ci-dessous.
 >   (`ClassNotFoundError` sur toute commande console/CI).
 > - `AuroraBundle.php::prependExtension()` avait un filtre
 >   `$extractedModules = ['Editorial']` qui "simulait" l'absence
->   d'Editorial dans le monorepo — devenu mort une fois l'absence réelle.
+>   d'Editorial dans le monorepo - devenu mort une fois l'absence réelle.
 > - Le thème frontend par défaut (`layout.html.twig`, utilisé même par les
 >   pages Auth/login puisque c'est le layout partagé) dépendait en dur
 >   d'Editorial : fonction Twig `menu_items()` (Twig valide l'existence
 >   d'une fonction à la *compilation*, indépendamment du `showFrontMenus|default(false) ? ... : []`
->   qui l'entourait — donc ça cassait même quand la branche n'était
+>   qui l'entourait - donc ça cassait même quand la branche n'était
 >   jamais prise), route `editorial_home` (lien nom du site + switcher de
 >   langue), composants Vue `editorial/frontend/site/SiteHeaderApp`/`SiteFooterApp`.
 >   Et `head.html.twig` référençait la route `frontend_rss` (flux RSS,
@@ -208,20 +208,20 @@ findings ci-dessous.
 >
 > Corrections : `develop` `d9ff538b` (bundles.php + AuroraBundle.php) et
 > `4320d159` (thème frontend). Le nouveau layout est volontairement
-> minimal et générique — nom du site + logo (via `ThemeContext`, déjà
+> minimal et générique - nom du site + logo (via `ThemeContext`, déjà
 > Core) + sélecteur de langue, sans système de menu (ça reste un concept
 > propre à un module de contenu). Nouvelle fonction Twig Core
 > `default_front_home_path(locale)` (`FrontendExtension.php`) : résout
 > vers `Router::getDefault()->getHomeRoute()`, donc vers *quel que soit*
-> le `FrontendInterface` réellement enregistré — sur Core seul c'est
+> le `FrontendInterface` réellement enregistré - sur Core seul c'est
 > `GedFrontendDescriptor` (bibliothèque publique GED, priorité 2), avant
 > c'était Editorial (priorité 10). Zéro route en dur. `make ft` vert après
 > 3 itérations (673 tests PHP, 90 fichiers vitest).
 >
-> **Réintégration d'Editorial — fait (2026-08-01)** : le thème frontend
+> **Réintégration d'Editorial - fait (2026-08-01)** : le thème frontend
 > `default` de Core reste délibérément pauvre (pas de nav menu, pas de flux
 > RSS, pas de dropdown compte). Ce chantier annonçait qu'`aurora-editorial`
-> « devrait surcharger `layout.html.twig` (mécanisme déjà en place) » —
+> « devrait surcharger `layout.html.twig` (mécanisme déjà en place) » -
 > inexact sur les deux points : personne ne le faisait, et **aucun mécanisme
 > ne le permettait**. `AbstractAuroraModuleBundle` n'enregistrait les templates
 > d'un module que sous son propre namespace (`@Editorial`), jamais sous le null
@@ -234,7 +234,7 @@ findings ci-dessous.
 > namespace, devant Core. Un dossier dédié plutôt que tout `templates/`, pour
 > que masquer un template du core reste un geste explicite. Corollaire à
 > connaître : l'override ne peut pas s'étendre lui-même via son nom logique
-> (récursion infinie) — d'où l'alias `@AuroraTheme` vers
+> (récursion infinie) - d'où l'alias `@AuroraTheme` vers
 > `src/Core/templates/Frontend/themes/`. Editorial livre désormais son layout
 > dans `templates/_theme/`, avec un interrupteur backend par emplacement de
 > menu. Détail dans `docs/aurora-core/dev/frontend_theme_override.md`.
@@ -251,7 +251,7 @@ findings ci-dessous.
 > Les docs de **planning** du chantier (audits 9/11 phases, workplan J0-J6,
 > snapshots inventory/dependency_graph/baseline/coupling/package_layout,
 > compte-rendu POC) ont été **supprimés** une fois le chantier terminé (voir git
-> si besoin) — la rationale durable vit dans cette mémoire + les 3 docs vivants.
+> si besoin) - la rationale durable vit dans cette mémoire + les 3 docs vivants.
 
 ## Pourquoi
 
@@ -266,13 +266,13 @@ findings ci-dessous.
 
 ## Docs vivants (la planning a été supprimée)
 
-- **[`decoupling_strategy.md`](../../../../docs/aurora-core/dev/audit/decoupling_strategy.md)** —
+- **[`decoupling_strategy.md`](../../../../docs/aurora-core/dev/audit/decoupling_strategy.md)** -
   le **pourquoi** : graphe en étoile, taxonomie cat A-E, fusion commerce.
-- **[`packaging_playbook.md`](../../../../docs/aurora-core/dev/audit/packaging_playbook.md)** —
+- **[`packaging_playbook.md`](../../../../docs/aurora-core/dev/audit/packaging_playbook.md)** -
   le **comment** : anatomie d'un package + findings ; runbook = `bin/split-modules.sh`
   (wrappé : `make split-module REPO=aurora-crm` pour un module, `make split-modules`
   pour tous).
-- **[`installing_modules.md`](../../../../docs/aurora-client/getting-started/installing_modules.md)** —
+- **[`installing_modules.md`](../../../../docs/aurora-client/getting-started/installing_modules.md)** -
   l'**adoption client** à la carte + kit `.claude/client_template/`.
 
 **Migration clients existants** : pas de migration forcée. Un client monolithique
@@ -285,20 +285,20 @@ de Packagist » : install VCS, repos pré-listés dans le template).
 
 | Date | Jalon | État |
 |---|---|---|
-| 2026-05-30 | J0 — Préparation | ✅ Fait (branche `feat/monorepo-audit`, tag `pre-monorepo-audit`, dossier `docs/aurora-core/dev/audit/`, baseline) |
-| 2026-05-30 | J1 — Cartographie commune | ✅ Fait (3 livrables posés, voir ci-dessous) |
-| 2026-05-30 | Gate 1 — Décision groupings | ✅ **TRANCHÉ : graphe en étoile** (aucune dép. latérale ; 1 seule fusion Ecommerce+Erp). Voir `audit/decoupling_strategy.md`. |
-| 2026-05-30 | **J1.5 — Pass de découplage (PRÉREQUIS)** | ✅ **TERMINÉ** — cat. A/B/C/D/E toutes faites. Invariant atteint : tous les modules métier ne dépendent que du core (sauf Ecommerce↔Erp = intra-package `aurora-commerce`). cat. D : soft-ref via `EntityReferenceResolver` core (Billing/Photo/Project→Crm + migrations DB) ; Project→Billing relocalisé client. |
-| 2026-05-30 | **J3 — Bundling tous modules** | ✅ **TERMINÉ** — **13 `Aurora<X>Bundle`** (tous les modules métier) via `AbstractAuroraModuleBundle`. `AuroraBundle` = bundle **core pur** (16 RTE Platform/Config/Dev/Ged). `bundles.php` : 1 ligne = 1 module on/off. Suite verte 2747 à chaque étape. |
+| 2026-05-30 | J0 - Préparation | ✅ Fait (branche `feat/monorepo-audit`, tag `pre-monorepo-audit`, dossier `docs/aurora-core/dev/audit/`, baseline) |
+| 2026-05-30 | J1 - Cartographie commune | ✅ Fait (3 livrables posés, voir ci-dessous) |
+| 2026-05-30 | Gate 1 - Décision groupings | ✅ **TRANCHÉ : graphe en étoile** (aucune dép. latérale ; 1 seule fusion Ecommerce+Erp). Voir `audit/decoupling_strategy.md`. |
+| 2026-05-30 | **J1.5 - Pass de découplage (PRÉREQUIS)** | ✅ **TERMINÉ** - cat. A/B/C/D/E toutes faites. Invariant atteint : tous les modules métier ne dépendent que du core (sauf Ecommerce↔Erp = intra-package `aurora-commerce`). cat. D : soft-ref via `EntityReferenceResolver` core (Billing/Photo/Project→Crm + migrations DB) ; Project→Billing relocalisé client. |
+| 2026-05-30 | **J3 - Bundling tous modules** | ✅ **TERMINÉ** - **13 `Aurora<X>Bundle`** (tous les modules métier) via `AbstractAuroraModuleBundle`. `AuroraBundle` = bundle **core pur** (16 RTE Platform/Config/Dev/Ged). `bundles.php` : 1 ligne = 1 module on/off. Suite verte 2747 à chaque étape. |
 | 2026-05-30 | **ModuleParameterEnum extensible** | ✅ **TERMINÉ** (mécanisme + distribution). Consommateurs registry-driven (`SettingsService` cascade, `ModulesViewBuilder`, `UsersViewBuilder`) ; `ModuleToggle.displayParentKey` (structurel ≠ `parentKey` cascade) + `getDisplayTopLevel()`/`getDisplayChildrenOf()`. **Distribution** : les 13 modules métier ont chacun leur `<Module>ModuleParameterEnum` + `<Module>ModuleParameterProvider` (settings préservés, tous tagués) ; central `ModuleParameterEnum` = **17 cases core only** (General/Platform/Configuration/Media/Ged). Consommateurs cross-module (DashboardViewBuilder, MenuRenderer) → clés string. Tests migrés (per-module + 5 cross-cutting réécrits sur cases core). Fait via sous-agents parallèles (template Notes). Commits `3ba05725`, `ec930116`. Suite verte 2744. ⚠️ `<Module>Context::isEnabled` prend la string `->value` (ModuleAccessChecker accepte `ModuleParameterEnum|string`). |
-| — | J2 — Audit technique parallélisé | Bloqué (J1.5) |
-| 2026-05-30 | **Gate 2 — Stratégie assets Vue** | ✅ **TRANCHÉ : option B** (glob étendu au vendor). aurora-core ship un **plugin Vite** qui, en mode vendored, découvre les packages `vendor/axelraboit/aurora-*` (hors core) et expose leurs `assets/**/*.vue` via un module virtuel. **Finding** : un glob relatif naïf (`../../../../aurora-*`) **collisionne en dev** (le parent du monorepo contient `aurora-client`/`aurora-core`) → l'implémentation **doit** détecter le mode (`__dirname` contient `/vendor/`) et générer un module virtuel, pas un `import.meta.glob` statique relatif. `dedupe` (vue/vue-i18n/…) déjà en place gère le version-skew des deps partagées. |
-| 2026-05-30 | **J3 — POC + rollout bundles (8 leaves)** | ✅ **FAIT** — `AbstractAuroraModuleBundle` (core) + **8 `Aurora<X>Bundle`** (Tools, Assistant, Crm, Editorial, Hr, Notes, PersonalFinance, Planning). AuroraBundle les exclut tous (RTE+use retirés) et ne pilote plus que Core + 5 modules couplés. Preuve toggle bundle = module on/off. 189 entités mappées, 2747 tests verts. Reste pour package Composer complet : composer.json + services/routes embarqués + `ModuleParameterEnum` extensible + splitsh. |
-| — | Gate 3 — Go / No-Go final | de facto **Go** (chantier mené jusqu'au bout in-monorepo) |
-| 2026-05-30 | **J4 — Planification packaging** | ✅ **Playbook posé** (`audit/packaging_playbook.md`) : anatomie d'un package (composer.json + `config/services.php` dans le subtree ; routes.php INUTILE), templates, splitsh, ordre (Tools POC d'abord), validation Phase 9.3, migrations côté client, transition Option C. |
-| 2026-05-30 | **J5 — POC packaging `aurora-tools` end-to-end** | ✅ **FAIT (sauf install réelle, bloquée infra)**. **Finding clé** : `instanceof()` dans le `config/services.php` d'un bundle est *file-scoped* → **aucun** conflit de merge avec le `_instanceof` central (contrairement à `#[AutoconfigureTag]` global). Donc **le câblage services/tags par package se valide DANS le monorepo**, package par package — ça dé-risque tout le chantier (la conclusion J4 antérieure « seulement au split réel » était fausse). Monté : `Tools/composer.json` (PSR-4 `Aurora\Module\Tools\: ""`), `Tools/config/services.php` (load + 2 `instanceof` locaux), `AbstractAuroraModuleBundle::loadExtension()` importe le services.php si présent, exclusion de Tools du glob central. Vérifs : cache:clear test+dev, lint:container, tags présents, **2744 tests verts**. **Routes** : pas de routes.php (le loader `routing.controllers` découvre les contrôleurs via leur enregistrement service). **Split** : `git subtree split` (substitut splitsh-lite absent) → composer.json+bundle+config à la racine, PSR-4 `""` correct. |
-| 2026-05-30 | **J5 — Install RÉELLE à la carte validée (aurora-tools)** | ✅ **FAIT end-to-end sur 2 vrais repos GitHub**. Repo `aurora-tools` (subtree split poussé) + branche `split/core-no-tools` sur le repo core (= develop moins `src/Module/Tools`, package toujours `axelraboit/aurora`). `aurora-client` câblé en VCS (`axelraboit/aurora: dev-split/core-no-tools` + `axelraboit/aurora-tools: dev-master`). **Résultat** : `composer install` OK, `cache:clear` OK, `make build` OK avec **VaultApp + 14 composants Vault bundlés DEPUIS `vendor/axelraboit/aurora-tools`** (le core n'a plus Tools → preuve Gate 2 B en vrai), `ToolsModule` tagué `aurora.module` (finding services.php confirmé en install réelle), entités Vault mappées, **routes `backend_tools_*` résolues**, `doctrine:schema:validate` OK. Findings ci-dessous. |
-| 2026-05-30 | **J5b — Template généralisé aux 13 modules (in-monorepo)** | ✅ **FAIT**. Les 13 modules ont chacun `composer.json` + `config/services.php` (load + `instanceof` file-scoped) et sont **exclus du glob central**. Defs d'args spéciales déplacées du central vers le services.php du module (Editorial MenuLocationRegistry, Billing OCR×2, Assistant LLM×4, Ecommerce Stripe, Photo GalleryAccess). **Merge `aurora-commerce`** : Ecommerce+Erp = 1 seul `Ecommerce/config/services.php` chargeant **les 2 namespaces** (les contrôleurs Ecommerce autowire le `ProductRepository` concret d'Erp). Validé : cache:clear + lint:container OK, tags intacts (module 18, param 15, dashboard 6, front 4, block 1), **2744 tests verts**. Reste hors-code : repos GitHub (11 autres) + Packagist. |
+| - | J2 - Audit technique parallélisé | Bloqué (J1.5) |
+| 2026-05-30 | **Gate 2 - Stratégie assets Vue** | ✅ **TRANCHÉ : option B** (glob étendu au vendor). aurora-core ship un **plugin Vite** qui, en mode vendored, découvre les packages `vendor/axelraboit/aurora-*` (hors core) et expose leurs `assets/**/*.vue` via un module virtuel. **Finding** : un glob relatif naïf (`../../../../aurora-*`) **collisionne en dev** (le parent du monorepo contient `aurora-client`/`aurora-core`) → l'implémentation **doit** détecter le mode (`__dirname` contient `/vendor/`) et générer un module virtuel, pas un `import.meta.glob` statique relatif. `dedupe` (vue/vue-i18n/…) déjà en place gère le version-skew des deps partagées. |
+| 2026-05-30 | **J3 - POC + rollout bundles (8 leaves)** | ✅ **FAIT** - `AbstractAuroraModuleBundle` (core) + **8 `Aurora<X>Bundle`** (Tools, Assistant, Crm, Editorial, Hr, Notes, PersonalFinance, Planning). AuroraBundle les exclut tous (RTE+use retirés) et ne pilote plus que Core + 5 modules couplés. Preuve toggle bundle = module on/off. 189 entités mappées, 2747 tests verts. Reste pour package Composer complet : composer.json + services/routes embarqués + `ModuleParameterEnum` extensible + splitsh. |
+| - | Gate 3 - Go / No-Go final | de facto **Go** (chantier mené jusqu'au bout in-monorepo) |
+| 2026-05-30 | **J4 - Planification packaging** | ✅ **Playbook posé** (`audit/packaging_playbook.md`) : anatomie d'un package (composer.json + `config/services.php` dans le subtree ; routes.php INUTILE), templates, splitsh, ordre (Tools POC d'abord), validation Phase 9.3, migrations côté client, transition Option C. |
+| 2026-05-30 | **J5 - POC packaging `aurora-tools` end-to-end** | ✅ **FAIT (sauf install réelle, bloquée infra)**. **Finding clé** : `instanceof()` dans le `config/services.php` d'un bundle est *file-scoped* → **aucun** conflit de merge avec le `_instanceof` central (contrairement à `#[AutoconfigureTag]` global). Donc **le câblage services/tags par package se valide DANS le monorepo**, package par package - ça dé-risque tout le chantier (la conclusion J4 antérieure « seulement au split réel » était fausse). Monté : `Tools/composer.json` (PSR-4 `Aurora\Module\Tools\: ""`), `Tools/config/services.php` (load + 2 `instanceof` locaux), `AbstractAuroraModuleBundle::loadExtension()` importe le services.php si présent, exclusion de Tools du glob central. Vérifs : cache:clear test+dev, lint:container, tags présents, **2744 tests verts**. **Routes** : pas de routes.php (le loader `routing.controllers` découvre les contrôleurs via leur enregistrement service). **Split** : `git subtree split` (substitut splitsh-lite absent) → composer.json+bundle+config à la racine, PSR-4 `""` correct. |
+| 2026-05-30 | **J5 - Install RÉELLE à la carte validée (aurora-tools)** | ✅ **FAIT end-to-end sur 2 vrais repos GitHub**. Repo `aurora-tools` (subtree split poussé) + branche `split/core-no-tools` sur le repo core (= develop moins `src/Module/Tools`, package toujours `axelraboit/aurora`). `aurora-client` câblé en VCS (`axelraboit/aurora: dev-split/core-no-tools` + `axelraboit/aurora-tools: dev-master`). **Résultat** : `composer install` OK, `cache:clear` OK, `make build` OK avec **VaultApp + 14 composants Vault bundlés DEPUIS `vendor/axelraboit/aurora-tools`** (le core n'a plus Tools → preuve Gate 2 B en vrai), `ToolsModule` tagué `aurora.module` (finding services.php confirmé en install réelle), entités Vault mappées, **routes `backend_tools_*` résolues**, `doctrine:schema:validate` OK. Findings ci-dessous. |
+| 2026-05-30 | **J5b - Template généralisé aux 13 modules (in-monorepo)** | ✅ **FAIT**. Les 13 modules ont chacun `composer.json` + `config/services.php` (load + `instanceof` file-scoped) et sont **exclus du glob central**. Defs d'args spéciales déplacées du central vers le services.php du module (Editorial MenuLocationRegistry, Billing OCR×2, Assistant LLM×4, Ecommerce Stripe, Photo GalleryAccess). **Merge `aurora-commerce`** : Ecommerce+Erp = 1 seul `Ecommerce/config/services.php` chargeant **les 2 namespaces** (les contrôleurs Ecommerce autowire le `ProductRepository` concret d'Erp). Validé : cache:clear + lint:container OK, tags intacts (module 18, param 15, dashboard 6, front 4, block 1), **2744 tests verts**. Reste hors-code : repos GitHub (11 autres) + Packagist. |
 
 ### 🔑 Finding merge / exclusion (2026-05-30)
 
@@ -314,16 +314,16 @@ sans couplage concret → split séparé OK.
 
 ### 🔑 Findings install réelle (2026-05-30)
 
-1. **Gate 2 B = 2 pièces** : (a) `vite-plugin-aurora-modules.js` (découverte des `vendor/axelraboit/aurora-*`), **+** (b) `aliases.js` rendu *vendored-aware* (`moduleAlias` fallback sur `../aurora-<kebab>/assets` quand `src/Module/<X>/assets` absent) — sinon les imports intra-module `@tools/...` cassent. Les deux shippées dans aurora-core.
-2. **Routing — nuance du finding « routes.php inutile »** : vrai seulement pour le routing **service-based** (`routing.controllers`). `aurora-client` fait du **directory attribute scanning** (`resource: '../vendor/axelraboit/aurora/src/'`) → il faut **une entrée routing par package extrait** (`resource: '../vendor/axelraboit/aurora-tools/'`). Migration client documentée.
+1. **Gate 2 B = 2 pièces** : (a) `vite-plugin-aurora-modules.js` (découverte des `vendor/axelraboit/aurora-*`), **+** (b) `aliases.js` rendu *vendored-aware* (`moduleAlias` fallback sur `../aurora-<kebab>/assets` quand `src/Module/<X>/assets` absent) - sinon les imports intra-module `@tools/...` cassent. Les deux shippées dans aurora-core.
+2. **Routing - nuance du finding « routes.php inutile »** : vrai seulement pour le routing **service-based** (`routing.controllers`). `aurora-client` fait du **directory attribute scanning** (`resource: '../vendor/axelraboit/aurora/src/'`) → il faut **une entrée routing par package extrait** (`resource: '../vendor/axelraboit/aurora-tools/'`). Migration client documentée.
 3. **Migration client du bundle-split** : `config/bundles.php` du client doit enregistrer les **13 bundles modules** (avant, archi monolithique = `AuroraBundle` seul). 1 ligne = 1 module on/off.
 4. **Composer VCS = 1 nom de package par repo** (celui de la branche par défaut). D'où POC en `axelraboit/aurora` partout ; le rename `aurora-core` exigera un **repo dédié** (rollout).
 5. **Symfony 7.4 sans Flex** : le sandbox ne joint pas les recipes Flex (404) → `composer update -W --no-plugins` fait dériver les **transitifs** symfony en 8.x (aurora épingle ses ~25 deps directes en `7.4.*`, mais pas les transitifs string/process/security-core/… que seul le pin global `extra.symfony.require` de Flex couvre). **Solution validée** : restaurer le `composer.lock` 7.4 (`git checkout HEAD -- composer.lock`) + **update ciblé sans `-w`** (`composer update axelraboit/aurora axelraboit/aurora-tools --no-plugins`) → ne re-résout que les 2 packages nommés, les transitifs restent verrouillés en 7.4. Résultat final validé : **stack full symfony 7.4** (seul `pentatrion/vite-bundle v8.x` = versioning propre du bundle, pas une dérive), boot + build + Vault depuis le vendor OK.
-| 2026-05-30 | **J6 — Rollout : 11 repos splittés + poussés** | ✅ **FAIT**. `bin/split-modules.sh` a splitté + poussé les 11 packages restants vers leurs repos GitHub : aurora-{crm,billing,editorial,photo,project,hr,notes,personal-finance,planning,assistant} (single-prefix, historique préservé) + **aurora-commerce** (Ecommerce+Erp combinés sous `Ecommerce/`+`Erp/` + composer.json racine, snapshot). Avec aurora-tools (déjà fait) + aurora-core (le monorepo) = **les 13 packages existent sur GitHub**. |
-| 2026-05-30 | **Validation RÉELLE multi-modules (12 packages, build vert)** | ✅ **FAIT end-to-end**. Branche `split/core` (aurora-core core-only, sans les 13 modules) + **12 packages modules** installés en VCS dans `aurora-client`. Résultat : `composer install` (**symfony 7.4 tenu** via update ciblé sans `-w`), `cache:clear` OK, **442 routes** + entités + bundles **auto-découverts**, `make build` **VERT** avec la Vue des 12 modules bundlée depuis leurs packages vendored (310 chunks : editorial 19, personal-finance 16, tools 15, notes 11, commerce 10, …). **Bugs trouvés + corrigés** : (a) merge commerce — `@ecommerce`/`@erp` → `aurora-commerce/{Ecommerce,Erp}/assets` + clés plugin par sous-dossier ; (b) **dedupe-all** des deps aurora-core (un module vendored important `vue-draggable-plus` ne résolvait pas — Rolldown ne remonte pas jusqu'au node_modules d'aurora-core). **Findings cat-F** (couplage app↔module dans le core) — ✅ **3 découplés + 1 géré** : (1) **MainSchedule** → registry `RecurringMessageProviderInterface` (tag `aurora.recurring_message_provider`), chaque module ship son provider (`1502d038`) ; (2) **messenger routing** Billing → `AuroraBillingBundle::prependExtension` (`1502d038`) ; (3) **tabRegistry.js** Vue → **boot hooks par module** : `app.js` eager-globe `**/assets/**/*.register.js` (monorepo+client) + module virtuel `virtual:aurora-vendor-boot` (vendored), Assistant ship `assistantSettingsTab.register.js` qui self-register son onglet ; core n'importe plus `@assistant` (`3388cab4`). Mécanisme réutilisable pour toute registration de module au boot. (4) **DataFixtures** (92 refs) = **données démo app-level** (require-dev, `use` lazy) → **pas du code lib** ; retirées du package au split (`split/core`), relocalisation per-module hors scope (faible valeur). |
+| 2026-05-30 | **J6 - Rollout : 11 repos splittés + poussés** | ✅ **FAIT**. `bin/split-modules.sh` a splitté + poussé les 11 packages restants vers leurs repos GitHub : aurora-{crm,billing,editorial,photo,project,hr,notes,personal-finance,planning,assistant} (single-prefix, historique préservé) + **aurora-commerce** (Ecommerce+Erp combinés sous `Ecommerce/`+`Erp/` + composer.json racine, snapshot). Avec aurora-tools (déjà fait) + aurora-core (le monorepo) = **les 13 packages existent sur GitHub**. |
+| 2026-05-30 | **Validation RÉELLE multi-modules (12 packages, build vert)** | ✅ **FAIT end-to-end**. Branche `split/core` (aurora-core core-only, sans les 13 modules) + **12 packages modules** installés en VCS dans `aurora-client`. Résultat : `composer install` (**symfony 7.4 tenu** via update ciblé sans `-w`), `cache:clear` OK, **442 routes** + entités + bundles **auto-découverts**, `make build` **VERT** avec la Vue des 12 modules bundlée depuis leurs packages vendored (310 chunks : editorial 19, personal-finance 16, tools 15, notes 11, commerce 10, …). **Bugs trouvés + corrigés** : (a) merge commerce - `@ecommerce`/`@erp` → `aurora-commerce/{Ecommerce,Erp}/assets` + clés plugin par sous-dossier ; (b) **dedupe-all** des deps aurora-core (un module vendored important `vue-draggable-plus` ne résolvait pas - Rolldown ne remonte pas jusqu'au node_modules d'aurora-core). **Findings cat-F** (couplage app↔module dans le core) - ✅ **3 découplés + 1 géré** : (1) **MainSchedule** → registry `RecurringMessageProviderInterface` (tag `aurora.recurring_message_provider`), chaque module ship son provider (`1502d038`) ; (2) **messenger routing** Billing → `AuroraBillingBundle::prependExtension` (`1502d038`) ; (3) **tabRegistry.js** Vue → **boot hooks par module** : `app.js` eager-globe `**/assets/**/*.register.js` (monorepo+client) + module virtuel `virtual:aurora-vendor-boot` (vendored), Assistant ship `assistantSettingsTab.register.js` qui self-register son onglet ; core n'importe plus `@assistant` (`3388cab4`). Mécanisme réutilisable pour toute registration de module au boot. (4) **DataFixtures** (92 refs) = **données démo app-level** (require-dev, `use` lazy) → **pas du code lib** ; retirées du package au split (`split/core`), relocalisation per-module hors scope (faible valeur). |
 | 2026-05-30 | **Adoption client turnkey (sans Packagist)** | ✅ **FAIT**. Décision : **pas de Packagist**, install VCS. Pour réduire le boilerplate par module : `AuroraModuleBundles::all($projectDir)` (scanne `vendor/axelraboit/aurora-*/composer.json` → `extra.aurora.bundles`\|`extra.symfony.bundle`, le client spread dans `bundles.php`) + `AuroraModuleRouteLoader` (`type: aurora_modules`, 1 entrée routing importe les contrôleurs de tous les packages installés). Assets Vue déjà auto (Gate 2 B). Donc adoption = `repositories` VCS + `require` ; bundles/routes/assets **auto-découverts**. Guide : `docs/aurora-client/getting-started/installing_modules.md`. Reste : méta-package de transition (quand bascule des clients existants). |
 
-### 🔑 Décision Gate 1 — graphe en étoile (2026-05-30)
+### 🔑 Décision Gate 1 - graphe en étoile (2026-05-30)
 
 **Invariant** : un module distribuable n'importe JAMAIS un autre module
 distribuable (seulement `aurora-core` = Core+Platform+Configuration+Dev+Ged).
@@ -333,10 +333,10 @@ topologie. Remplace l'option bridges/require initiale.
 
 **Taxonomie des arêtes** (toutes auditées, cf. `decoupling_strategy.md`) :
 - **A** value enum partagé → remonter en core (`CurrencyEnum`,
-  `EcommerceSettingEnum`) — casse le seul cycle.
+  `EcommerceSettingEnum`) - casse le seul cycle.
 - **B** event cross-module → contrat d'event core (2 listeners Crm).
 - **C** embed/agrégation → registry de providers core (Editorial blocks +
-  **General** dashboard/search — sinon core dépendrait des modules).
+  **General** dashboard/search - sinon core dépendrait des modules).
 - **D** lien entité→Crm → **soft reference** (id+type, pas de FK Doctrine) :
   Billing/Project/Photo. **Risque #1 du chantier**, à valider en POC.
 - **E** mono-domaine réel → **fusion** : Ecommerce+Erp = `aurora-commerce`
@@ -360,17 +360,17 @@ topologie. Remplace l'option bridges/require initiale.
 
 ## Liens
 
-- [[pitfall_instanceof_scoping]] — le *file-scoping* de `_instanceof`
+- [[pitfall_instanceof_scoping]] - le *file-scoping* de `_instanceof`
   (déjà documenté côté client) **est** le mécanisme qui rend le finding J5
   possible : un `instanceof()` local au `services.php` d'un package ne
   conflicte pas avec le `_instanceof` central. Le piège côté client devient
   une **propriété exploitée** côté packaging.
-- [[pattern_core_submodules_split]] — la philosophie « 1 module = 1
+- [[pattern_core_submodules_split]] - la philosophie « 1 module = 1
   toggle root » qui sous-tend le découpage actuel et la motivation du
   split.
-- [[decision_core_submodule_nesting]] — précédent breaking change
+- [[decision_core_submodule_nesting]] - précédent breaking change
   (0.4.0) qui a déjà obligé les clients à migrer ; donne un précédent
   méthodologique pour gérer la transition v2.0.
-- [`extracting_a_module.md`](../../../../docs/aurora-core/dev/extracting_a_module.md) —
+- [`extracting_a_module.md`](../../../../docs/aurora-core/dev/extracting_a_module.md) -
   playbook complémentaire (spin-off d'un module vers un client dédié,
   pattern 1-to-1). À ne pas confondre avec le split monorepo.

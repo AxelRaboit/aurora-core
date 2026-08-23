@@ -46,7 +46,7 @@ enum UserRoleEnum: string
     }
 
     /**
-     * Roles that admins can assign to other users (Dev excluded — only Dev can self-assign Dev).
+     * Roles that admins can assign to other users (Dev excluded - only Dev can self-assign Dev).
      *
      * @return list<self>
      */

@@ -16,7 +16,7 @@ final class Aurora{{MODULE}}Bundle extends AbstractAuroraModuleBundle
 
     /**
      * Entity interface → concrete class map for this module. Empty until
-     * `/add-entity` adds entities — each new entity appends one line here
+     * `/add-entity` adds entities - each new entity appends one line here
      * (this REPLACES the central `AuroraBundle::$resolve_target_entities`
      * for a packaged module).
      *

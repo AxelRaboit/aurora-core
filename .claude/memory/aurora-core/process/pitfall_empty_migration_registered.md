@@ -1,6 +1,6 @@
 ---
 name: pitfall-empty-migration-registered
-description: Écrire le contenu d'une migration Doctrine **avant** son premier `migrations:migrate` — sinon le template auto-généré vide est marqué comme exécuté et il faut une migration de rattrapage.
+description: Écrire le contenu d'une migration Doctrine **avant** son premier `migrations:migrate` - sinon le template auto-généré vide est marqué comme exécuté et il faut une migration de rattrapage.
 metadata:
   type: feedback
 ---
@@ -17,7 +17,7 @@ auto-généré (où `up()` contient juste `// this up() migration is
 auto-generated, please modify it to your needs`), la migration passe
 silencieusement (rien à faire = pas d'erreur) et est marquée
 exécutée. Si tu écris le vrai contenu après coup, **il ne sera jamais
-appliqué** — tu te retrouves avec un schéma desync et un
+appliqué** - tu te retrouves avec un schéma desync et un
 `doctrine:schema:validate` qui rapporte des objets fantômes.
 
 **Comment l'avoir flairé** : `doctrine:schema:validate` vérifie le

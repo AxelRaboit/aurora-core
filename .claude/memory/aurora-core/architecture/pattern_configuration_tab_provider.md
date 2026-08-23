@@ -1,6 +1,6 @@
 ---
 name: pattern-configuration-tab-provider
-description: ConfigurationTabProviderInterface — comment un module contribue ses propres onglets dans la page admin Settings, via tagged-iterator + SettingDefinitionRegistry.
+description: ConfigurationTabProviderInterface - comment un module contribue ses propres onglets dans la page admin Settings, via tagged-iterator + SettingDefinitionRegistry.
 metadata:
   type: project
 ---
@@ -20,12 +20,12 @@ La page admin Settings est extensible : tout service implémentant
   client si besoin). Le champ `moduleToggle` (depuis bf8bd2fe) accepte un
   `ModuleParameterEnum|string|null` et masque l'onglet quand le module
   est désactivé. Le champ `placeholderKey` (depuis 5ee3b1b9) est une
-  clé i18n qui apparaît dans le placeholder de l'input — `null` =
+  clé i18n qui apparaît dans le placeholder de l'input - `null` =
   champ vide (le label + la description suffisent).
 - Registry méthodes : `getTabs()` (triées par priority), `getField($key)`,
   `isAdminAccessible($key)`.
 - L'implémentation built-in `CoreConfigurationTabProvider` wrappe la legacy
-  `ApplicationParameterEnum` — chaque groupe enum (`general`, `reading`, …)
+  `ApplicationParameterEnum` - chaque groupe enum (`general`, `reading`, …)
   devient une `ConfigurationTab`. À mesure que des modules s'approprient leurs
   settings, leurs cases quittent l'enum et réapparaissent dans le provider du
   module.
@@ -33,7 +33,7 @@ La page admin Settings est extensible : tout service implémentant
   `$registry->getField($key)` au lieu de `ApplicationParameterEnum::tryFrom`.
   Toute clé connue du registry est admin-writable par construction.
 - Wire format Twig → Vue : `groups` (Record<tabId, field[]>) +
-  `tabs` (list<{id, priority, alwaysVisible}>) — la JS dérive l'ordre du
+  `tabs` (list<{id, priority, alwaysVisible}>) - la JS dérive l'ordre du
   backend, plus de `GROUP_ORDER` hardcodé.
 - `alwaysVisible: true` sur une tab préserve les onglets à UI custom Vue
   (`navigation`, `appearance`) qui n'ont pas de champs persistés propres.
@@ -47,7 +47,7 @@ pour aurora-client d'ajouter ses propres settings sans forker.
 
 Le pattern suit la même mécanique que les autres registries d'extension
 Aurora (`ModuleInterface`, `MediaUsageProviderInterface`,
-`MenuLocationProviderInterface`) — service tagué + iterator dans un registry.
+`MenuLocationProviderInterface`) - service tagué + iterator dans un registry.
 Cohérent avec la convention "Sylius-style" : le core fournit le contrat, le
 client/module implémente.
 
@@ -57,20 +57,20 @@ pour vivre avec leur module. L'enum core a perdu 26 cases sur 39 (~70%
 plus petit). Les cases restantes sont strictement core (User/Media/Audit
 prefixes, site globals, nav aliases, color presets). Convention :
 
-- `src/Module/<Name>/Setting/<Name>SettingEnum.php` — enum implémentant
+- `src/Module/<Name>/Setting/<Name>SettingEnum.php` - enum implémentant
   `ApplicationParameterEnumInterface` (port direct du contrat existant).
-- `src/Module/<Name>/Setting/<Name>ConfigurationTabProvider.php` — itère
+- `src/Module/<Name>/Setting/<Name>ConfigurationTabProvider.php` - itère
   l'enum, construit la `ConfigurationTab`. `final readonly`.
 - Traductions `backend.parameters.<key>.*` + `backend.settings.tabs.<id>` +
   `_description` vivent dans le `messages.<locale>.yaml` du module.
 - Setting keys persistées **inchangées** entre core et module (zéro
   migration SQL).
-- `SettingRepository::getOrDefault()` accepte l'interface — les enums
+- `SettingRepository::getOrDefault()` accepte l'interface - les enums
   modules y passent directement.
 
 Modules migrés en Phase B : ecommerce, crm, billing, editorial, photo,
 ged, pdfform, erp. Le tab partagé `sequences` est maintenant alimenté
-par 9 providers (Core + 8 modules) via le merge-by-id du registry —
+par 9 providers (Core + 8 modules) via le merge-by-id du registry -
 première mise à l'épreuve grandeur nature de ce mécanisme.
 
 Modules sans prefix dédié (project, planning, hr, vault) : pas de
@@ -125,5 +125,5 @@ via un registre Vue, mais pour l'instant c'est un patch ciblé.
 Voir [[architecture-module-parameter-enum]] pour la distinction
 `ApplicationParameterEnum` / `ModuleParameterEnum` (toggles on/off, à part).
 
-Doc canonique : commits `3404e167` (Phase A intro) — pas de fichier doc
+Doc canonique : commits `3404e167` (Phase A intro) - pas de fichier doc
 dédié dans `docs/aurora-core/dev/` à date, à créer si Phase B/C sont engagées.

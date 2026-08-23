@@ -1,4 +1,4 @@
-# FileTransfer — Admin backend
+# FileTransfer - Admin backend
 
 > Pages backend pour l'admin : liste des transferts, stats agrégées,
 > settings Configuration.
@@ -38,7 +38,7 @@ Source Nimbus :
 | `/backend/file-transfer/my-transfers` | `MyTransfersApp.vue` | `ROLE_USER` | Liste des transferts du user courant |
 | `/backend/file-transfer/new` | `NewTransferApp.vue` | `ROLE_USER` ou anon (selon setting) | Formulaire de création (cf. [frontend.md](frontend.md)) |
 
-Aucune page "Parameters" — les settings sont éditables via le module
+Aucune page "Parameters" - les settings sont éditables via le module
 Configuration standard d'Aurora (onglet "File Transfer").
 
 ## NavItems
@@ -105,11 +105,11 @@ automatiquement les contrôles `#[IsGranted('file_transfer.use')]` /
 `#[IsGranted('file_transfer.admin')]` sur les controllers.
 
 Permissions exposées :
-- `file_transfer.use` — créer un transfer + voir les siens (mappé à `ROLE_USER` par défaut, configurable côté admin)
-- `file_transfer.admin` — gérer tous les transferts + voir stats (mappé à `ROLE_ADMIN`)
+- `file_transfer.use` - créer un transfer + voir les siens (mappé à `ROLE_USER` par défaut, configurable côté admin)
+- `file_transfer.admin` - gérer tous les transferts + voir stats (mappé à `ROLE_ADMIN`)
 
 L'attribution des privilèges à des rôles est gérée par le système de
-permissions Aurora (`PermissionRegistry`) — pas de code spécifique à
+permissions Aurora (`PermissionRegistry`) - pas de code spécifique à
 écrire dans le module au-delà des `NavPermission` ci-dessus.
 
 ## Settings Configuration
@@ -154,7 +154,7 @@ final readonly class FileTransferConfigurationTabProvider implements Configurati
 }
 ```
 
-Settings exposés (clés de `FileTransferSettingEnum`) — groupés par thème
+Settings exposés (clés de `FileTransferSettingEnum`) - groupés par thème
 pour lisibilité, mais l'enum reste plat :
 
 **Quotas** : `fileTransfer.maxSizeMb` (int, 100), `fileTransfer.maxFiles`
@@ -262,9 +262,9 @@ suppressions (pour mémoire post-soft-delete).
 | `deletedFilesCount` | int | idem |
 | `deletedFilesSize` | bigint | bytes |
 | `deletedRecipientsCount` | int | idem |
-| `updatedAt` | timestamp | — |
+| `updatedAt` | timestamp | - |
 
-Pas de DTO/Manager 5-couches sur cette entité — service simple
+Pas de DTO/Manager 5-couches sur cette entité - service simple
 `FileTransferStatsRepository::increment($transfers, $files, $bytes, $recipients)`.
 
 ## Décisions ouvertes

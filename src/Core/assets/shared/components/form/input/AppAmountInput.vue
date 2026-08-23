@@ -1,6 +1,6 @@
 <script setup>
 /**
- * AppAmountInput — decimal amount input with optional arithmetic evaluation
+ * AppAmountInput - decimal amount input with optional arithmetic evaluation
  * on blur. Type "100+50" then leave the field → value becomes "150.00".
  *
  * Inspired by Spendly's UX: type math expressions (+, -, *, /, parens) to
@@ -9,7 +9,7 @@
  * Allowed input chars: digits, `.`, operators `+ - * /`, parens, spaces.
  * Other chars are stripped silently. The actual evaluation lives in the
  * shared utility `evaluateAmount.js` so callers (parent SFC) can also
- * normalize the value before submit — useful when the user clicks the
+ * normalize the value before submit - useful when the user clicks the
  * submit button without blurring the field first.
  *
  * Defines `evaluate()` via defineExpose so a parent can force evaluation
@@ -25,7 +25,7 @@ const props = defineProps({
     label: { type: String, default: "" },
     placeholder: { type: String, default: "" },
     error: { type: String, default: "" },
-    /** Help text under the control — explains the field, unlike `error` which reports it. */
+    /** Help text under the control - explains the field, unlike `error` which reports it. */
     hint: { type: String, default: "" },
     required: { type: Boolean, default: false },
     decimals: { type: Number, default: 2 },

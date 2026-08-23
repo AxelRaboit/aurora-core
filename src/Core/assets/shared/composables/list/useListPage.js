@@ -10,8 +10,8 @@ import { useUrlSearchSync } from "@/shared/composables/list/useUrlSearchSync.js"
  *
  * Returns { items, loading, page, totalPages, total, search, onSearch, goToPage, reload, load }.
  *
- * @param {string|(()=>string)} listPath        — list endpoint URL or factory
- * @param {object}              opts            — { initialSearch, initialData, extraParams, searchParam, onData }
+ * @param {string|(()=>string)} listPath        - list endpoint URL or factory
+ * @param {object}              opts            - { initialSearch, initialData, extraParams, searchParam, onData }
  * @param {string}              opts.initialSearch       Default search value (typically `props.search`)
  * @param {object|null}         opts.initialData         SSR-rendered first page payload (skip first XHR)
  * @param {() => object}        opts.extraParams         Extra URL params (filters, etc.)

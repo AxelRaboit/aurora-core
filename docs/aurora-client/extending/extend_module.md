@@ -18,26 +18,26 @@ Pour un tutoriel pas-à-pas qui ajoute un champ `code` à `Agency`, voir
 
 ---
 
-## 0. Vue d'ensemble — les 5 couches
+## 0. Vue d'ensemble - les 5 couches
 
 | Couche | Mécanisme côté client | Section |
 |---|---|---|
-| 1 — Entité Doctrine | `extends Abstract<Name>`, `repositoryClass`, `resolve_target_entities` | [§1](#1-layer-1--entité-doctrine) |
-| 2 — DTO d'entrée + Factory | `extends <Name>Input` + `#[AsAlias(<Name>InputFactoryInterface::class)]` sur la factory client | [§2](#2-layer-2--dto-dentrée-et-factory) |
-| 3 — Manager | `extends <Name>Manager` + `#[AsAlias(<Name>ManagerInterface::class)]` + override des hooks `protected` | [§3](#3-layer-3--manager) |
-| 4 — Serializer | `extends <Name>Serializer` + `#[AsAlias(<Name>SerializerInterface::class)]` | [§4](#4-layer-4--serializer) |
-| 5 — Vue admin | prop `extraFields` + slots scoped `extra-headers` / `extra-cells` / `extra-form-fields` | [§5](#5-layer-5--vue-admin) |
+| 1 - Entité Doctrine | `extends Abstract<Name>`, `repositoryClass`, `resolve_target_entities` | [§1](#1-layer-1--entité-doctrine) |
+| 2 - DTO d'entrée + Factory | `extends <Name>Input` + `#[AsAlias(<Name>InputFactoryInterface::class)]` sur la factory client | [§2](#2-layer-2--dto-dentrée-et-factory) |
+| 3 - Manager | `extends <Name>Manager` + `#[AsAlias(<Name>ManagerInterface::class)]` + override des hooks `protected` | [§3](#3-layer-3--manager) |
+| 4 - Serializer | `extends <Name>Serializer` + `#[AsAlias(<Name>SerializerInterface::class)]` | [§4](#4-layer-4--serializer) |
+| 5 - Vue admin | prop `extraFields` + slots scoped `extra-headers` / `extra-cells` / `extra-form-fields` | [§5](#5-layer-5--vue-admin) |
 
 Hors des 5 couches :
 
-- **Twig** — namespace prepend automatique. Voir [§6](#6-override-twig).
-- **Repository finders custom** — pattern simple sans interface aurora-core. Voir [§7](#7-finder-method-custom).
-- **Décorer un service Aurora autre** (event listener, helper) — voir [§8](#8-décorer-un-service-aurora-arbitraire).
-- **Permissions / module toggles** — voir [§9](#9-permissions-et-modules).
+- **Twig** - namespace prepend automatique. Voir [§6](#6-override-twig).
+- **Repository finders custom** - pattern simple sans interface aurora-core. Voir [§7](#7-finder-method-custom).
+- **Décorer un service Aurora autre** (event listener, helper) - voir [§8](#8-décorer-un-service-aurora-arbitraire).
+- **Permissions / module toggles** - voir [§9](#9-permissions-et-modules).
 
 ---
 
-## 1. Layer 1 — Entité Doctrine
+## 1. Layer 1 - Entité Doctrine
 
 ### Cas : je veux ajouter un champ à `Agency`.
 
@@ -71,7 +71,7 @@ class Agency extends AbstractAgency implements AgencyInterface
 }
 ```
 
-`config/packages/doctrine.yaml` — ajouter la ligne `resolve_target_entities` :
+`config/packages/doctrine.yaml` - ajouter la ligne `resolve_target_entities` :
 
 ```yaml
 doctrine:
@@ -84,14 +84,14 @@ doctrine:
 
 - On étend **`AbstractAgency`** (le `MappedSuperclass`), pas la classe
   concrète `Aurora\Module\Platform\Agency\Entity\Agency`. Sinon Doctrine exige une
-  inheritance type + discriminator — non voulu.
+  inheritance type + discriminator - non voulu.
 - Table : préfixe **`app_*`** (jamais `core_*` qui est réservé à Aurora,
   jamais sans préfixe).
 - Séquence : préfixe **`seq_app_*`** (jamais `seq_core_*`).
 - L'`id` + le `SequenceGenerator` sont **redéclarés côté client** parce que
   Doctrine ne propage pas un `SequenceGenerator` à travers un
   `MappedSuperclass`.
-- Pas besoin de redéclarer un repository client — `AgencyRepository` (qui
+- Pas besoin de redéclarer un repository client - `AgencyRepository` (qui
   étend `ResolveTargetEntityRepository`) querie automatiquement votre table
   dès que `resolve_target_entities` route l'interface.
 
@@ -112,13 +112,13 @@ Le reste est identique au cas Agency.
 
 ---
 
-## 2. Layer 2 — DTO d'entrée et Factory
+## 2. Layer 2 - DTO d'entrée et Factory
 
 ### Cas : j'ai ajouté `code` à `Agency`, le formulaire admin doit l'envoyer.
 
 **Diff côté client** :
 
-`src/Module/Platform/Agency/Dto/AgencyInput.php` — étend le DTO Aurora :
+`src/Module/Platform/Agency/Dto/AgencyInput.php` - étend le DTO Aurora :
 
 ```php
 namespace App\Module\Platform\Agency\Dto;
@@ -143,7 +143,7 @@ class AgencyInput extends AuroraAgencyInput
 }
 ```
 
-`src/Module/Platform/Agency/Dto/AgencyInputFactory.php` — étend la factory et
+`src/Module/Platform/Agency/Dto/AgencyInputFactory.php` - étend la factory et
 écrase l'alias :
 
 ```php
@@ -175,8 +175,8 @@ class AgencyInputFactory extends AuroraAgencyInputFactory
   d'ajouter une propriété mutable.
 - **`#[AsAlias]` se met sur la Factory cliente**, qui prend la place de la
   factory Aurora pour l'interface `AgencyInputFactoryInterface`. Le DTO
-  lui-même n'a pas besoin d'alias — il est instancié par la factory.
-- Pas de méthode statique `fromArray()` dans le DTO — c'est la factory qui
+  lui-même n'a pas besoin d'alias - il est instancié par la factory.
+- Pas de méthode statique `fromArray()` dans le DTO - c'est la factory qui
   s'en charge (c'est elle qu'on peut décorer).
 - Le contrôleur Aurora type-hint déjà `AgencyInputFactoryInterface`, donc il
   reçoit votre factory cliente sans aucune autre modification.
@@ -187,11 +187,11 @@ le DTO racine et fournissez vos propres sub-DTO via la factory cliente.
 
 ---
 
-## 3. Layer 3 — Manager
+## 3. Layer 3 - Manager
 
 ### Cas : persister + auditer le champ `code` à la création / édition
 
-**Diff côté client** — `src/Module/Platform/Agency/Manager/AgencyManager.php` :
+**Diff côté client** - `src/Module/Platform/Agency/Manager/AgencyManager.php` :
 
 ```php
 namespace App\Module\Platform\Agency\Manager;
@@ -233,24 +233,24 @@ class AgencyManager extends AuroraAgencyManager
 
 ### Trois familles de hooks à override
 
-1. **`create<X>()`** — un hook par classe instanciée par le Manager. **Sans
+1. **`create<X>()`** - un hook par classe instanciée par le Manager. **Sans
    exception** : si vous étendez l'entité, vous **devez** override
    `create<X>()` sinon Doctrine `persist()` votre vieille classe Aurora et
    tous vos champs custom sont perdus à la sauvegarde. Pour
    `ProjectManager`, ça veut dire 4 hooks (`createProject`, `createProjectColumn`,
    `createProjectLabel`, `createProjectSprint`).
 
-2. **`applyInput()`** — toujours appeler `parent::applyInput()` **d'abord**,
+2. **`applyInput()`** - toujours appeler `parent::applyInput()` **d'abord**,
    sinon les champs Aurora ne sont pas hydratés.
 
-3. **`auditCreated` / `auditUpdated` / `auditDeleted` / `auditPayload`** —
+3. **`auditCreated` / `auditUpdated` / `auditDeleted` / `auditPayload`** -
    override **uniquement** `auditPayload()` 99% du temps. Le splat-merge
    (`[...parent::auditPayload($entity), 'code' => …]`) garde les champs
    Aurora et ajoute les vôtres.
 
 ### Variante Manager à hooks multiples (User-style)
 
-Pour `User`, il n'existe **pas** de `applyInput()` unifié — `User` a 6+
+Pour `User`, il n'existe **pas** de `applyInput()` unifié - `User` a 6+
 méthodes métier distinctes (`changePassword`, `consumeInvitation`,
 `toggleDevRole`, `updateProfile`, …). Vous override ces méthodes
 individuellement. Les hooks `create<X>()` et `audit*` restent obligatoires.
@@ -263,15 +263,15 @@ Cf. [`entity_extensibility_convention.md §4.bis.1`](../../aurora-core/dev/entit
 - **Oublier `parent::applyInput()`** → tous les champs Aurora restent à null
   / valeur par défaut.
 - Les propriétés DI dans `AgencyManager` Aurora sont `protected readonly`
-  (jamais `private`) — accessibles depuis votre sous-classe.
+  (jamais `private`) - accessibles depuis votre sous-classe.
 
 ---
 
-## 4. Layer 4 — Serializer
+## 4. Layer 4 - Serializer
 
 ### Cas : exposer `code` dans le JSON envoyé au front
 
-**Diff côté client** —
+**Diff côté client** -
 `src/Module/Platform/Agency/Serializer/AgencySerializer.php` :
 
 ```php
@@ -301,18 +301,18 @@ parent + champs custom. C'est la couche la plus simple.
 
 ---
 
-## 5. Layer 5 — Vue admin
+## 5. Layer 5 - Vue admin
 
 Le composant Aurora `<Plural>App.vue` expose une **prop `extraFields`** + 3
 slots scoped (`extra-headers`, `extra-cells`, `extra-form-fields`). Côté
-client, on ne réécrit pas le composant — on le **wrap**, **co-localisé
+client, on ne réécrit pas le composant - on le **wrap**, **co-localisé
 avec l'extension PHP** sous `src/Module/<AuroraModule>/<Feature>/assets/`.
 
 > **Comment ça shadow ?** Le glob `src/Module/**/assets/**/*.vue` flatten
 > les feature folders (e.g. `Platform/Agency/assets/...`) → la clé exposée
 > est identique à celle d'Aurora (`platform/backend/agencies/AgenciesApp`).
 > Comme le bloc `clientModules` est spread APRÈS `auroraModules`, ton
-> fichier wins automatiquement — pas de Twig override à écrire. Détail
+> fichier wins automatiquement - pas de Twig override à écrire. Détail
 > et règle des deux mirrors (PHP vs URL) :
 > [`convention_overrides_vs_modules.md`](../../../.claude/memory/aurora-client/convention_overrides_vs_modules.md).
 
@@ -320,7 +320,7 @@ Exemple détaillé (slots, composables, gotchas `editForm`) :
 [`../dev/assets_vue.md`](../dev/assets_vue.md) et la mémoire dédiée
 [`pattern_extend_vue.md`](../../../.claude/memory/aurora-client/pattern_extend_vue.md).
 
-Squelette d'override Vue —
+Squelette d'override Vue -
 `src/Module/Platform/Agency/assets/backend/agencies/AgenciesApp.vue` :
 
 ```vue
@@ -345,7 +345,7 @@ import AuroraAgenciesApp from '@platform/backend/agencies/AgenciesApp.vue';
 
 > **Piège `editForm`** : `editForm` doit contenir **uniquement** les champs
 > envoyés au backend (string/number/boolean). Pas d'état UI, pas de computed,
-> pas de refs imbriqués. Le submit fait `request(url, { ...editForm })` —
+> pas de refs imbriqués. Le submit fait `request(url, { ...editForm })` -
 > tout ce qui est dedans part au backend. Détail dans [`../dev/assets_vue.md`](../dev/assets_vue.md).
 
 ---
@@ -363,14 +363,14 @@ l'original côté client. Deux conventions de chemin sont reconnues :
 |---|---|---|
 | `@Core/backend/agencies/index.html.twig` | `src/Core/templates/Core/backend/agencies/index.html.twig` | `templates/Core/backend/agencies/index.html.twig` |
 | `@Ecommerce/backend/listings/edit.html.twig` | `src/Module/Ecommerce/templates/backend/listings/edit.html.twig` | `templates/Module/Ecommerce/backend/listings/edit.html.twig` |
-| `Frontend/themes/default/editorial/home.html.twig` (null namespace, thèmes) | — | `templates/Frontend/themes/default/editorial/home.html.twig` |
+| `Frontend/themes/default/editorial/home.html.twig` (null namespace, thèmes) | - | `templates/Frontend/themes/default/editorial/home.html.twig` |
 
 > Les thèmes frontend custom restent à la racine client
 > (`<client>/templates/Frontend/themes/<slug>/...`) car ils sont
 > considérés comme de la data utilisateur, pas du code Aurora à étendre.
 
 Pour le frontend (site public), le **ThemeResolver** ajoute encore une
-couche de résolution par slug de thème — voir
+couche de résolution par slug de thème - voir
 [`../../aurora-core/dev/frontend_theme_override.md`](../../aurora-core/dev/frontend_theme_override.md).
 
 ---
@@ -378,7 +378,7 @@ couche de résolution par slug de thème — voir
 ## 7. Finder method custom
 
 Aurora **n'expose pas** d'interface `<Name>RepositoryInterface` (coût/bénéfice
-non justifié — voir
+non justifié - voir
 [`entity_extensibility_convention.md §3 Couche bonus`](../../aurora-core/dev/entity_extensibility_convention.md)).
 
 Le pattern côté client est simple : étendre le repo Aurora, déclarer le
@@ -409,7 +409,7 @@ Puis dans l'entité cliente :
 class Agency extends AbstractAgency implements AgencyInterface { … }
 ```
 
-Aurora continue de type-hint `AgencyRepository` — la metadata résolue par
+Aurora continue de type-hint `AgencyRepository` - la metadata résolue par
 `ResolveTargetEntityRepository` route les queries vers la bonne table. Vous
 type-hint `AppAgencyRepository` dans votre propre code uniquement.
 
@@ -426,7 +426,7 @@ Hors des 5 couches, deux mécanismes Symfony :
 final class MyService implements \Aurora\Core\…\SomeInterface { … }
 ```
 
-Aurora type-hint l'interface partout — votre classe prend sa place.
+Aurora type-hint l'interface partout - votre classe prend sa place.
 
 ### b) Décorer (chaîne)
 
@@ -470,7 +470,7 @@ Placement standard : `src/EventListener/MyListener.php` (autoconfiguré) ou
 
 Quand un projet client a besoin de permissions supplémentaires sur un module
 Aurora existant (ex. `crm.contacts.export`, `crm.deals.archive`), créer un
-**module de permissions** dédié — un service qui implémente `ModuleInterface`
+**module de permissions** dédié - un service qui implémente `ModuleInterface`
 avec le **même `getId()`** que le module Aurora cible (pour grouper les
 permissions sous la même section dans `/dev/dashboard/permissions`).
 
@@ -498,7 +498,7 @@ final readonly class ClientCrmPermissionsModule implements ModuleInterface
 }
 ```
 
-Pas besoin de toucher `services.yaml` — le bloc `_instanceof: ModuleInterface`
+Pas besoin de toucher `services.yaml` - le bloc `_instanceof: ModuleInterface`
 (cf. [`add_module.md` §2.1](add_module.md)) tague automatiquement.
 
 **Traduction obligatoire** (sans elle, le dashboard affiche la clé brute) :
@@ -530,12 +530,12 @@ Cf. memory [`pattern_add_custom_permissions.md`](../../../.claude/memory/aurora-
 
 ### 9.2 Bonne pratique : permissions granulaires
 
-Toujours décomposer en actions atomiques plutôt qu'un `manage` fourre-tout —
+Toujours décomposer en actions atomiques plutôt qu'un `manage` fourre-tout -
 permet d'attribuer des profils de droits fins aux utilisateurs `ROLE_USER`
 (lecture seule, création sans suppression, etc.) :
 
 ```php
-// ✅ Granulaire — recommandé
+// ✅ Granulaire - recommandé
 return [
     new NavPermission('crm.contacts.view'),
     new NavPermission('crm.contacts.create'),
@@ -596,7 +596,7 @@ src/Module/ClientHr/ClientHrPermissionsModule.php         → id 'hr'
 pour exposer un module au panel "Accès aux modules par user". Exemple
 complet : le module d'exemple `Tracking` déroulé dans
 [`add_module.md` §5](add_module.md#5-cas-2--module-avec-toggles--context-class)
-(générique — pas un module fourni dans le template).
+(générique - pas un module fourni dans le template).
 Doc core : [`../../aurora-core/dev/per_user_module_access.md`](../../aurora-core/dev/per_user_module_access.md).
 
 ### 9.6 Sync après chaque ajout

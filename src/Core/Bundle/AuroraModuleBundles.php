@@ -11,7 +11,7 @@ use function is_string;
 /**
  * Auto-discovers the Symfony bundle classes of every installed Aurora module
  * package (vendor/axelraboit/aurora-*) so a client never edits config/bundles.php
- * when it (un)installs a module — `composer require` is enough.
+ * when it (un)installs a module - `composer require` is enough.
  *
  * Bundles are registered before the container exists, so this cannot be a
  * service; the client spreads it into its bundles.php array:

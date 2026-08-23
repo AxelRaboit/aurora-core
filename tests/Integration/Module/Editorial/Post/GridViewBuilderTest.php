@@ -14,7 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
  * template actually receives.
  *
  * Written as an integration test because half of what it does is resolve ids
- * against the database — a unit test with mocked repositories would assert
+ * against the database - a unit test with mocked repositories would assert
  * that the mocks were called, which is not the thing that breaks.
  */
 final class GridViewBuilderTest extends IntegrationTestCase
@@ -99,7 +99,7 @@ final class GridViewBuilderTest extends IntegrationTestCase
     }
 
     /**
-     * A stack's children are resolved like any other zone — the whole point of
+     * A stack's children are resolved like any other zone - the whole point of
      * the type is that what fills a stacked zone is not a special case.
      */
     public function testAStacksChildrenAreResolvedLikeAnyOtherZone(): void
@@ -165,10 +165,10 @@ final class GridViewBuilderTest extends IntegrationTestCase
 
     /**
      * Blocks are the one part written raw, so this is where the sanitiser has
-     * to run — the same path the plain block column took.
+     * to run - the same path the plain block column took.
      */
     /**
-     * `fill` is a height, not a ratio, so it emits no declaration — the
+     * `fill` is a height, not a ratio, so it emits no declaration - the
      * template turns it into classes instead. Asserting the empty string is
      * what stops someone "fixing" it later by inventing an `aspect-ratio` for
      * it, which would pin the very height it exists to inherit.
@@ -188,7 +188,7 @@ final class GridViewBuilderTest extends IntegrationTestCase
     /**
      * The point of `fill`: not "half each", which leaves a hole under three
      * lines of text, but "the text takes what it needs and the picture has the
-     * rest". Shares stop applying the moment one zone claims the remainder —
+     * rest". Shares stop applying the moment one zone claims the remainder -
      * a zone cannot both leave room and take everything left.
      */
     public function testAFillingZoneTakesTheRemainderAndItsNeighboursTheirOwnHeight(): void
@@ -369,7 +369,7 @@ final class GridViewBuilderTest extends IntegrationTestCase
     }
 
     /**
-     * An address no provider claims must not reach an iframe — but it should
+     * An address no provider claims must not reach an iframe - but it should
      * still reach the reader, which is why the raw url travels beside the
      * embed rather than instead of it.
      */
@@ -417,7 +417,7 @@ final class GridViewBuilderTest extends IntegrationTestCase
     /**
      * A media zone renders an `<img>`, so what it points at has to be an
      * image. The picker only offers those, but a fixture, an API write, or a
-     * document whose file is replaced afterwards all reach past it — and this
+     * document whose file is replaced afterwards all reach past it - and this
      * is the one that reads as nothing at all rather than as an error: a
      * browser handed an mp4 in an `<img>` shows a broken image and says
      * nothing anywhere.
@@ -456,7 +456,7 @@ final class GridViewBuilderTest extends IntegrationTestCase
     /**
      * The library keeps documents with no file on purpose, so the upload flow
      * has something to be tested against. One of those in a media zone used to
-     * produce `<img src="">` — a broken image, not an absent one.
+     * produce `<img src="">` - a broken image, not an absent one.
      */
     public function testAMediaZoneWhoseDocumentHasNoFileResolvesToNothing(): void
     {

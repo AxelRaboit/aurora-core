@@ -1,4 +1,4 @@
-# FileTransfer — nouveau module Aurora
+# FileTransfer - nouveau module Aurora
 
 Port du projet [`Nimbus`](https://github.com/AxelRaboit/nimbus) (Symfony 7 +
 Vue 3, TUS, R2) vers un module Aurora Symfony, sur le même modèle que les
@@ -10,7 +10,7 @@ upload TUS résumable (gros fichiers fragmentés), stockage R2/local, lien
 personnel par destinataire, protection par mot de passe, expiration
 configurable, notifications email, suivi des téléchargements.
 
-## Nom du module — tranché
+## Nom du module - tranché
 
 **`FileTransfer`** (proposé, mai 2026). Choisi pour :
 
@@ -32,14 +32,14 @@ Implications concrètes :
 - DB tables : `core_file_transfer_*`
 - Sequences : `seq_core_file_transfer_<entity>_id` (cf. [convention extensibilité §1.1](../../dev/entity_extensibility_convention.md))
 - Routes backend : `/backend/file-transfer/*`
-- Routes publiques : `/t/{token}` (identique à Nimbus — voir [public_routes.md](public_routes.md))
+- Routes publiques : `/t/{token}` (identique à Nimbus - voir [public_routes.md](public_routes.md))
 - Twig namespace : `@FileTransfer/`
 - Translations : `translations/file_transfer.<locale>.yaml`
 - Storage local : `var/uploads/file-transfer/{transfer.token}/{filename}`
-- Storage R2 : bucket Cloudflare, clé `{transfer.token}/{filename}` (préservée depuis Nimbus — voir [storage.md](storage.md))
+- Storage R2 : bucket Cloudflare, clé `{transfer.token}/{filename}` (préservée depuis Nimbus - voir [storage.md](storage.md))
 - Commande console : `file-transfer:cleanup-tus`, `file-transfer:expire`, `file-transfer:send-reminders`
 
-## Scope — inclus / exclu
+## Scope - inclus / exclu
 
 > Contrainte explicite (mai 2026) : **on réutilise les mêmes ids R2 que
 > Nimbus**. La clé R2 d'un fichier `{transfer.token}/{filename}` doit être
@@ -63,7 +63,7 @@ Implications concrètes :
 | Admin backend (liste, stats) | [`admin.md`](admin.md) | ⏳ |
 | Frontend Vue (drop zone, manage, download) | [`frontend.md`](frontend.md) | ⏳ |
 
-### Exclu (à NE PAS porter — Aurora couvre déjà)
+### Exclu (à NE PAS porter - Aurora couvre déjà)
 
 | Fonctionnalité Nimbus | Couvert par | Note |
 |---|---|---|
@@ -75,7 +75,7 @@ Implications concrètes :
 | Démo seeder (`is_demo`, `nimbus:demo-seed`) | (rien) | Pas porté. Si utile → fixture standard côté client |
 | Dev password (`/dev/...` shortcut auth) | (rien) | Pas porté. Aurora a son propre back-office |
 
-### Plan tiers — non porté
+### Plan tiers - non porté
 
 Nimbus a `PlanService` + `User.plan` (Free/Pro/Trial) qui gate :
 - Taille max d'un transfert
@@ -119,7 +119,7 @@ src/Module/FileTransfer/
 ├── Storage/                               # abstraction backend
 │   ├── StorageAdapterInterface.php
 │   ├── LocalStorageAdapter.php            # var/uploads/file-transfer/{token}/{filename}
-│   ├── R2StorageAdapter.php               # bucket R2 — clés identiques Nimbus
+│   ├── R2StorageAdapter.php               # bucket R2 - clés identiques Nimbus
 │   ├── StorageManager.php                 # build key, route adapter
 │   └── BinaryFileServer/                  # path-traversal guard + X-Sendfile (réutiliser Aurora\Core\Storage\BinaryFileServer ?)
 ├── Tus/                                   # protocole TUS résumable
@@ -134,7 +134,7 @@ src/Module/FileTransfer/
 │   └── FileTransferNotifierInterface.php  # AsAlias-able
 ├── Scheduler/                             # async jobs Symfony Messenger
 │   ├── Message/                           # CleanupExpiredTransfersMessage, SendRemindersMessage, CleanupTusOrphansMessage
-│   └── MessageHandler/                    # ⚠ pas de Schedule séparé — les RecurringMessage::cron(...) sont ajoutés dans Aurora\Core\Scheduler\MainSchedule
+│   └── MessageHandler/                    # ⚠ pas de Schedule séparé - les RecurringMessage::cron(...) sont ajoutés dans Aurora\Core\Scheduler\MainSchedule
 ├── Stats/                                 # TransferStats single-row
 │   ├── Entity/  Repository/  Service/     # FileTransferStatsService
 │   └── Controller/Backend/                # admin stats view
@@ -172,12 +172,12 @@ Interface + Abstract + concrete non-`final`, DTO non-`final` + Factory
 
 ## Décisions structurelles transverses
 
-### 1. Tokens cryptographiques — préservés tels quels depuis Nimbus
+### 1. Tokens cryptographiques - préservés tels quels depuis Nimbus
 
 Trois colonnes token sur `FileTransfer` :
-- `token` (varchar 64, unique) — lien public/recipient `/t/{token}`
-- `ownerToken` (varchar 64, unique) — lien de gestion `/manage/{ownerToken}`
-- `reference` (varchar 9, unique) — code court lisible affiché en UI
+- `token` (varchar 64, unique) - lien public/recipient `/t/{token}`
+- `ownerToken` (varchar 64, unique) - lien de gestion `/manage/{ownerToken}`
+- `reference` (varchar 9, unique) - code court lisible affiché en UI
 
 Génération : `bin2hex(random_bytes(32))` pour les longs, `bin2hex(random_bytes(4))` (slug humain) pour reference.
 
@@ -185,7 +185,7 @@ Génération : `bin2hex(random_bytes(32))` pour les longs, `bin2hex(random_bytes
 telles quelles (pas de régénération) → les liens email déjà envoyés
 restent valides.
 
-### 2. Storage R2 — clés identiques à Nimbus
+### 2. Storage R2 - clés identiques à Nimbus
 
 Formule : `{transfer.token}/{filename}` où `filename` est la valeur
 randomisée stockée dans `FileTransferFile.filename` (préfixe 8-byte hex +
@@ -194,16 +194,16 @@ randomisée stockée dans `FileTransferFile.filename` (préfixe 8-byte hex +
 Cf. [storage.md](storage.md) pour la stratégie de migration complète :
 import DB, conservation token + filename, validation accessibilité R2.
 
-### 3. TUS protocol — pas de queue Aurora, écriture filesystem comme Nimbus
+### 3. TUS protocol - pas de queue Aurora, écriture filesystem comme Nimbus
 
 Reprise du pattern Nimbus : `tus-php` côté serveur, chunks écrits dans
 `var/uploads/file-transfer/tus_tmp/`, métadonnées en `var/uploads/file-transfer/tus_cache/`
 via `TusFileStore`. Finalize = move atomique chunk → backend actif.
 
-Pas de bascule sur Messenger pour TUS — overkill (protocole HTTP synchrone par chunk).
+Pas de bascule sur Messenger pour TUS - overkill (protocole HTTP synchrone par chunk).
 Voir [tus.md](tus.md).
 
-### 4. Notifications — bridge sur Aurora\Core\Notification (confirmé)
+### 4. Notifications - bridge sur Aurora\Core\Notification (confirmé)
 
 Pas de port direct de `TransferNotifier` Nimbus (qui dispatche un
 `EmailQueueMessage` custom). On utilise l'infra Aurora confirmée :
@@ -221,7 +221,7 @@ Symfony Mailer + `MessageBusInterface` pour le dispatch async.
 
 Voir [notifications.md](notifications.md).
 
-### 5. Scheduler — réutiliser MainSchedule global
+### 5. Scheduler - réutiliser MainSchedule global
 
 ⚠️ **Aurora a UN seul schedule** : `Aurora\Core\Scheduler\MainSchedule`
 (`#[AsSchedule('main')]`). Les modules y ajoutent leurs
@@ -238,7 +238,7 @@ debugging/cron-manuel.
 
 Voir [scheduler.md](scheduler.md).
 
-### 6. Storage convention — `var/uploads/file-transfer/`
+### 6. Storage convention - `var/uploads/file-transfer/`
 
 Conforme à la [convention storage Aurora](../../../.claude/memory/aurora-shared/convention_storage_var_uploads.md) :
 - Pas dans le document root
@@ -254,7 +254,7 @@ var/uploads/file-transfer/
 └── tus_cache/{uploadKey}.cache         # métadonnées TUS (file_path, name, size, …)
 ```
 
-### 7. i18n — 4 langues comme Nimbus
+### 7. i18n - 4 langues comme Nimbus
 
 `fr`, `en`, `es`, `de`. Reprendre les YAML Nimbus
 (`translations/messages.<locale>.yaml`) et les couler dans
@@ -274,19 +274,19 @@ var/uploads/file-transfer/
 
 ## Précédents à respecter
 
-- **Port `Onyx → Notes`** (🟢 terminé) — décisions DTO/Manager/Serializer
-- **Port `Spendly → PersonalFinance`** (⏳ en cours) — pattern de port d'app
+- **Port `Onyx → Notes`** (🟢 terminé) - décisions DTO/Manager/Serializer
+- **Port `Spendly → PersonalFinance`** (⏳ en cours) - pattern de port d'app
   Symfony → module Aurora avec entités préfixées
-- **Convention 5-couches** — [`../../dev/entity_extensibility_convention.md`](../../dev/entity_extensibility_convention.md)
+- **Convention 5-couches** - [`../../dev/entity_extensibility_convention.md`](../../dev/entity_extensibility_convention.md)
 
 ## Ordre d'exécution recommandé
 
 Dépendances dures notées entre crochets `[dep: X]`.
 
-1. **Storage abstraction** [aucune] — interface + Local + R2 + StorageManager + tests
+1. **Storage abstraction** [aucune] - interface + Local + R2 + StorageManager + tests
 2. **Transfer + TransferFile entities + DTO + Manager + Serializer** [dep: Storage]
 3. **Recipient entity + DTO + Manager** [dep: Transfer]
-4. **TUS upload service + TusController** [dep: Storage] — utilisable seul (upload sans finaliser de Transfer encore)
+4. **TUS upload service + TusController** [dep: Storage] - utilisable seul (upload sans finaliser de Transfer encore)
 5. **Validators (file type + zip-bomb)** [dep: aucune]
 6. **Settings Configuration (max size, expiry, etc.)** [dep: aucune]
 7. **Notifications (notifier + 3 events)** [dep: Transfer + Recipient]

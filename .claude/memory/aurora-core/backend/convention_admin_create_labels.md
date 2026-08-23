@@ -1,4 +1,4 @@
-# Convention — labels admin create/add (FR + EN)
+# Convention - labels admin create/add (FR + EN)
 
 ## Règle
 
@@ -16,14 +16,14 @@ Ecommerce) :
 
 ### EN (`messages.en.yaml`)
 - `<entity>.add` = `"Add <entity>"` (capitalisation minimale, lowercase
-  entity — pas de title case style américain).
+  entity - pas de title case style américain).
 - `<entity>.create` = `"New <entity>"`.
 
 ### Interdits
 - Pas de `"Créer un <entity>"`, `"Créer le <entity>"`, `"Créer l'<entity>"`
   pour des labels d'action sur entité (le verbe "Créer" reste réservé au
   bouton submit générique `shared.common.create` = "Créer").
-- Pas de clé `new:` pour une entité — utiliser `create:`.
+- Pas de clé `new:` pour une entité - utiliser `create:`.
 
 ## Pourquoi
 

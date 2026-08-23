@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * One reader's reaction to one comment.
  *
- * Uniqueness is on (comment, fingerprint) — deliberately not including the
+ * Uniqueness is on (comment, fingerprint) - deliberately not including the
  * type. A reader holds one reaction per comment, so picking a different emoji
  * replaces the previous one rather than stacking; picking the same one again
  * withdraws it.

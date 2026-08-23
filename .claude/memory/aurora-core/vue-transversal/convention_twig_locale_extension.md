@@ -1,6 +1,6 @@
 ---
 name: convention_twig_locale_extension
-description: locale_flag() et locale_name() Twig pour les switchers de locale — éditer LocaleExtension pour ajouter un locale.
+description: locale_flag() et locale_name() Twig pour les switchers de locale - éditer LocaleExtension pour ajouter un locale.
 metadata:
   type: reference
 ---
@@ -43,6 +43,6 @@ reste dans le markup : un drapeau désigne un pays, pas une langue.
 2. Utiliser uniquement `locale_flag()` / `locale_name()` dans les templates ;
    ne pas re-créer un dict Twig local.
 3. Si une vue Vue (admin) a besoin du même mapping, exposer les données via
-   le ViewBuilder — ne pas hardcoder côté JS non plus.
+   le ViewBuilder - ne pas hardcoder côté JS non plus.
 4. Consommateur de référence : le switcher de langue frontend, cf.
    [[pattern_details_dropdown]].

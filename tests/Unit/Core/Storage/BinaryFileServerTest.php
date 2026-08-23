@@ -69,7 +69,7 @@ final class BinaryFileServerTest extends TestCase
 
     public function testServeRefusesPrefixSiblingDirectory(): void
     {
-        // Sibling root that *prefix-matches* the allowed one — must be rejected
+        // Sibling root that *prefix-matches* the allowed one - must be rejected
         // (the normalised root comparison uses a trailing separator).
         $sibling = $this->rootDir.'-twin';
         $this->filesystem->mkdir($sibling);

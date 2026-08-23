@@ -22,7 +22,7 @@ use ReflectionProperty;
  * The reference had no server-side notion of conditions at all: it walked
  * every field and enforced `required` on each. So a required field that only
  * appears for one answer was demanded of every visitor, including the ones who
- * could not see it — the form was unsubmittable for them, permanently, with a
+ * could not see it - the form was unsubmittable for them, permanently, with a
  * validation error pointing at an input that was not on their screen.
  * Conditions are a headline feature of the builder, so that was every form
  * using them.

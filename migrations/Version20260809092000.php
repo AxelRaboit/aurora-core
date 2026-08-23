@@ -13,7 +13,7 @@ use Doctrine\Migrations\AbstractMigration;
  * It was three things at once: the picture a listing card shows, the image a
  * shared link previews, and a second hero printed at the top of the page under
  * the custom header. The third stopped making sense the day the header could
- * carry its own picture — the page rendered both, one above the other. What is
+ * carry its own picture - the page rendered both, one above the other. What is
  * left is what the new name says.
  *
  * `RENAME COLUMN`, not drop-and-add: every post that has a picture keeps it.
@@ -27,7 +27,7 @@ use Doctrine\Migrations\AbstractMigration;
  *
  * Written by hand, as with every migration in this module: `migrations:diff`
  * still wants to drop the tables of the extracted modules, and would bury
- * these four statements under hundreds that must not run — and it would have
+ * these four statements under hundreds that must not run - and it would have
  * written the rename as a drop and an add, losing the data.
  */
 final class Version20260809092000 extends AbstractMigration

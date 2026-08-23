@@ -1,4 +1,4 @@
-# Convention d'extensibilité — résumé exécutif
+# Convention d'extensibilité - résumé exécutif
 
 ## Règle
 
@@ -42,11 +42,11 @@ Les 5 couches :
 
 ## Variantes acceptées
 
-1. **Manager à hooks multiples** (User, Menu pré-DTO, Order, Billing) — pas
+1. **Manager à hooks multiples** (User, Menu pré-DTO, Order, Billing) - pas
    d'`applyInput`, méthodes spécialisées customisables individuellement.
 2. **Composables Vue séparés** `useXxxCreate` + `useXxxEdit` (User
-   invite/edit, Theme) — quand les forms n'ont rien en commun.
-3. **Editor full-page** (Post) — au lieu de modal, slot placé sémantiquement
+   invite/edit, Theme) - quand les forms n'ont rien en commun.
+3. **Editor full-page** (Post) - au lieu de modal, slot placé sémantiquement
    près d'un panel proche par fonction.
 
 Ce sont des **vraies contraintes structurelles**, pas des écarts à la

@@ -53,7 +53,7 @@ describe("detailsDropdown", () => {
         first.open = true;
 
         // The browser toggles `open` after the click event, so at listener time
-        // the second one is still closed — same shape as clicking its summary.
+        // the second one is still closed - same shape as clicking its summary.
         click(second.querySelector("summary"));
 
         expect(first.open).toBe(false);

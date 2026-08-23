@@ -12,9 +12,9 @@ use Doctrine\Migrations\AbstractMigration;
  * indexes get the names the entities now declare.
  *
  * The foreign key is the load-bearing half. MenuManager::deleteItem()
- * promotes an entry's children to their grandparent before removing it — an
+ * promotes an entry's children to their grandparent before removing it - an
  * editor deleting a heading means "drop this label", not "drop the six links
- * under it" — and `ON DELETE CASCADE` had the database undo that promotion
+ * under it" - and `ON DELETE CASCADE` had the database undo that promotion
  * immediately afterwards. `AbstractTaxonomyTerm` already had the right shape;
  * this brings the menu tree in line with it.
  *

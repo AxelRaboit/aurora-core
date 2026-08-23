@@ -1,35 +1,35 @@
 ---
 name: convention_modal_and_confirmation
-description: 'CRITIQUE — avant d''écrire un delete dans un Vue : JAMAIS `confirm()` natif. TOUJOURS AppModal + useDelete composable. Erreur récurrente Claude (fix Sep 2025, fix Mai 2026 sur PersonalFinance) — lire AVANT toute action delete/destructive en Vue.'
+description: 'CRITIQUE - avant d''écrire un delete dans un Vue : JAMAIS `confirm()` natif. TOUJOURS AppModal + useDelete composable. Erreur récurrente Claude (fix Sep 2025, fix Mai 2026 sur PersonalFinance) - lire AVANT toute action delete/destructive en Vue.'
 metadata:
   type: feedback
 ---
 
-> ⛔ **STOP — Si tu es sur le point de taper `confirm(`, `alert(`, ou `prompt(`
+> ⛔ **STOP - Si tu es sur le point de taper `confirm(`, `alert(`, ou `prompt(`
 > dans un fichier Vue/JS Aurora, RELIS cette mémoire d'abord.**
 >
 > Erreur **récurrente** : Claude utilise `confirm()` natif par défaut pour les
 > deletes, alors qu'Aurora a un pattern `AppModal + useDelete` documenté
 > depuis longtemps. Refixé en mai 2026 sur les 3 Vue du module
 > PersonalFinance (wallets, categories, transactions). Si tu lis ça en
-> écrivant un nouveau CRUD, applique le pattern directement — n'attends pas
+> écrivant un nouveau CRUD, applique le pattern directement - n'attends pas
 > que l'utilisateur te le signale.
 
 ## Règle
 
-### 1. AppModal — API à respecter
+### 1. AppModal - API à respecter
 
 `AppModal` attend :
-- `:show` (Boolean) — visibilité contrôlée par le parent
-- `v-on:close` (event) — émis quand l'utilisateur veut fermer (ESC, clic overlay, bouton X)
-- `:title` (String, optionnel) — header avec close button automatique
-- `max-width` — `sm` / `md` / `lg` / `xl` / `2xl`
-- `:close-on-overlay` (Boolean, default `true`) — passer `false` pour les
+- `:show` (Boolean) - visibilité contrôlée par le parent
+- `v-on:close` (event) - émis quand l'utilisateur veut fermer (ESC, clic overlay, bouton X)
+- `:title` (String, optionnel) - header avec close button automatique
+- `max-width` - `sm` / `md` / `lg` / `xl` / `2xl`
+- `:close-on-overlay` (Boolean, default `true`) - passer `false` pour les
   **modales avec formulaire**. ESC + bouton X ferment toujours, mais
   un clic dans le backdrop noir n'efface plus la saisie en cours.
   Confirmations Yes/No : garder le défaut `true` (overlay click = cancel).
 
-**Règle absolue** : les boutons d'action vont **toujours** dans `<template #footer><AppModalFooter>` — jamais inline dans le body.
+**Règle absolue** : les boutons d'action vont **toujours** dans `<template #footer><AppModalFooter>` - jamais inline dans le body.
 
 ```vue
 <AppModal
@@ -55,7 +55,7 @@ metadata:
 </AppModal>
 ```
 
-**Piège classique** : ne pas utiliser `v-model:open` — ça ne marche pas, les modales restent fermées sans erreur visible.
+**Piège classique** : ne pas utiliser `v-model:open` - ça ne marche pas, les modales restent fermées sans erreur visible.
 
 ### 1bis. Variants AppButton pour actions destructives
 
@@ -65,7 +65,7 @@ metadata:
 | `danger-subtle` (rose teinté) | Bouton destructeur qui **ouvre** une confirmation |
 | `<AppIconButton color="rose">` | Icône poubelle dans table/toolbar |
 
-### 2. Confirmation de suppression — toujours via modale
+### 2. Confirmation de suppression - toujours via modale
 
 **Jamais** `confirm("Êtes-vous sûr ?")`. **Toujours** une `AppModal` de confirmation avec un composable `use<Entity>Delete.js` dédié.
 

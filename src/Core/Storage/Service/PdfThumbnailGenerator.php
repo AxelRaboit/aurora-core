@@ -18,13 +18,13 @@ use Throwable;
  * Generates a JPEG thumbnail of the first page of a PDF.
  *
  * Strategy order (first available wins):
- *   1. `pdftoppm` (poppler-utils) — best quality, fastest, the industry default.
- *   2. `gs` (Ghostscript)        — works everywhere LaTeX/printing tooling lives.
+ *   1. `pdftoppm` (poppler-utils) - best quality, fastest, the industry default.
+ *   2. `gs` (Ghostscript)        - works everywhere LaTeX/printing tooling lives.
  *
  * If neither binary is found, `generate()` returns `null` and logs a warning
- * rather than throwing — the GED list keeps working with the icon fallback.
+ * rather than throwing - the GED list keeps working with the icon fallback.
  *
- * Output is a JPEG (~30–50 KB at scale-to 400 px) suitable for in-list
+ * Output is a JPEG (~30-50 KB at scale-to 400 px) suitable for in-list
  * previews. Callers receive the relative path under `var/uploads/` to be
  * stored alongside the source document.
  */

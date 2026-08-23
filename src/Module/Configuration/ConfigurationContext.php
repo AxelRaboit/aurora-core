@@ -10,8 +10,8 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 /**
  * Toggle façade for the "Configuration" section of the backend (Settings,
  * Themes). Sibling of {@see PlatformContext}; split from it in Jalon 4 so
- * admin-config tooling is its own module — peer of Platform at the
- * toggle/permission/nav-section levels — instead of being a sub-tab of it.
+ * admin-config tooling is its own module - peer of Platform at the
+ * toggle/permission/nav-section levels - instead of being a sub-tab of it.
  */
 final readonly class ConfigurationContext
 {

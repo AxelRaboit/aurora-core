@@ -14,8 +14,8 @@ use Doctrine\ORM\EntityManagerInterface;
  * partial did not change when the storage split in two.
  *
  * It had no test of its own: the split was covered at the normaliser and at
- * the write boundary, and this — the piece that decides what a template
- * actually receives — was only ever exercised sideways, through a page render
+ * the write boundary, and this - the piece that decides what a template
+ * actually receives - was only ever exercised sideways, through a page render
  * that would have passed on a merge quietly dropping half its fields.
  */
 final class BannerViewBuilderTest extends IntegrationTestCase
@@ -71,7 +71,7 @@ final class BannerViewBuilderTest extends IntegrationTestCase
 
     /**
      * A banner replaces the page's own heading, so one of its titles has to
-     * become the `<h1>`. This is computed from the words, not the design —
+     * become the `<h1>`. This is computed from the words, not the design -
      * a language nobody has written yet has no title to promote.
      */
     public function testTheHeadingIsTheFirstTitleThatExistsInThisLanguage(): void
@@ -186,7 +186,7 @@ final class BannerViewBuilderTest extends IntegrationTestCase
 
     /**
      * Text for an item the layout dropped must not reappear on the page
-     * through the merge — the normaliser drops it, and this is what proves
+     * through the merge - the normaliser drops it, and this is what proves
      * the builder goes through the normaliser rather than around it.
      */
     public function testWordsWithNoItemLeftDoNotComeBackThroughTheMerge(): void
@@ -225,7 +225,7 @@ final class BannerViewBuilderTest extends IntegrationTestCase
      * The background, the logo and an image item all end up in an `<img>`, so
      * all three have to hold an image. The picker only offers those, but a
      * fixture, an API write, or a document whose file is replaced afterwards
-     * reach past it — and a browser handed an mp4 in an `<img>` shows a broken
+     * reach past it - and a browser handed an mp4 in an `<img>` shows a broken
      * image and says nothing anywhere.
      */
     public function testNoneOfTheThreePicturesResolvesToAVideo(): void
@@ -313,7 +313,7 @@ final class BannerViewBuilderTest extends IntegrationTestCase
     /**
      * And the other end of it: a banner whose only content was that picture has
      * nothing left, so `build` switches it off and the page puts back its own
-     * header — and with it the `<h1>` the banner was going to carry.
+     * header - and with it the `<h1>` the banner was going to carry.
      */
     public function testABannerLeftWithNothingButAnUndrawablePictureIsOff(): void
     {

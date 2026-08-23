@@ -73,7 +73,7 @@ final readonly class MailService
 
             foreach ($cc as $ccAddress) {
                 if ('' !== $ccAddress && $ccAddress !== $to) {
-                    // `cc()` is a SETTER that replaces the whole list — use
+                    // `cc()` is a SETTER that replaces the whole list - use
                     // `addCc()` to append each address so multiple CCs stick.
                     $email->addCc($ccAddress);
                 }

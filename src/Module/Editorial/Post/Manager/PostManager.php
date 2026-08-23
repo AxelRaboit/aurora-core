@@ -136,7 +136,7 @@ class PostManager implements PostManagerInterface
 
         $this->entityManager->flush();
 
-        // Restoring is itself a change worth a revision — otherwise stepping
+        // Restoring is itself a change worth a revision - otherwise stepping
         // back loses whatever it stepped back from.
         $this->snapshotRevision($post);
 
@@ -229,7 +229,7 @@ class PostManager implements PostManagerInterface
         // Normalised here rather than in the DTO: this is the write boundary,
         // and it is the only place guaranteed to run whatever built the input.
         // Before the translations, because their texts are keyed by the ids
-        // this call settles — an item the layout dropped must not keep its
+        // this call settles - an item the layout dropped must not keep its
         // words in five languages.
         $bannerLayout = $this->bannerNormalizer->normalizeLayout($input->getBannerLayout());
         $post->setBannerLayout($bannerLayout);
@@ -254,7 +254,7 @@ class PostManager implements PostManagerInterface
 
     /**
      * Block images are deliberately not garbage-collected here. They point at
-     * media-library entries, which are shared and addressable by id — a post
+     * media-library entries, which are shared and addressable by id - a post
      * dropping a block must not delete a file another post still shows.
      *
      * @param array<int, DocumentInterface> $ogImages

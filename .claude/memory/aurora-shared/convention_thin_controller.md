@@ -15,7 +15,7 @@ metadata:
 4. **Déléguer** à un Manager (mutation + flush) ou Service (calcul / lecture)
 5. **Sérialiser et renvoyer** via le Serializer + `jsonSuccess()` / `jsonInvalidInput()` / `jsonNotFound()`
 
-**Tout le reste — calcul, transformation, orchestration, branchement métier, hydration côté entité, audit, side-effects — est interdit dans le controller.**
+**Tout le reste - calcul, transformation, orchestration, branchement métier, hydration côté entité, audit, side-effects - est interdit dans le controller.**
 
 ## Manager vs Service : quel choix ?
 
@@ -82,8 +82,8 @@ Un controller backend complet (CRUD + 2-3 actions métier) ne devrait **pas dép
 Au-delà de **~10 endpoints** ou **~250 lignes**, splitter par **sous-domaine cohérent** plutôt que de tout entasser. Critère du split : un groupe d'endpoints qui forme une **feature cross-cutting** vs le CRUD de l'entité racine.
 
 Exemple : `Module/Notes/Markdown/Controller/Backend/`
-- `MarkdownNotesController` — CRUD note + actions liées à une note (move, backlinks, mentions, graph, reorder)
-- `MarkdownTagsController` — opérations cross-cutting sur les tags (list/rename/merge/delete) qui touchent N notes simultanément
+- `MarkdownNotesController` - CRUD note + actions liées à une note (move, backlinks, mentions, graph, reorder)
+- `MarkdownTagsController` - opérations cross-cutting sur les tags (list/rename/merge/delete) qui touchent N notes simultanément
 
 **Préserver les noms de routes** lors d'un split : si l'ancien controller avait `backend_notes_markdown_tags_list`, le nouveau controller doit conserver ce nom exact via `#[Route('/backend/notes/markdown/tags', name: 'backend_notes_markdown_tags')]` au niveau classe + `name: '_list'` au niveau méthode. Sinon le ViewBuilder + les `urlGenerator->generate(...)` callers cassent silencieusement.
 
@@ -115,7 +115,7 @@ Si une méthode dépasse **30 lignes**, c'est qu'elle fait trop. Découper.
 - Override le **Serializer** pour ajouter un champ à la réponse.
 - Override le **ViewBuilder** pour ajouter une variable au template.
 
-**Mais le controller ne devrait JAMAIS avoir besoin d'être override.** Si la logique métier vit dans le controller, le client devra dupliquer la route entière pour étendre un détail — perte d'extensibilité.
+**Mais le controller ne devrait JAMAIS avoir besoin d'être override.** Si la logique métier vit dans le controller, le client devra dupliquer la route entière pour étendre un détail - perte d'extensibilité.
 
 **Le controller est l'orchestrateur HTTP. Son rôle est de connecter routing → DTO → Manager/Service → Serializer.** Rien d'autre.
 
@@ -151,6 +151,6 @@ doivent etre dans des services quand non mutable, et managers quand
 mutable (set / flush etc)"*.
 
 Voir aussi (mémoires `aurora-core/backend/`, applicables uniquement quand on écrit du code dans le bundle core) :
-- `convention_dto_factory.md` — pattern Input + InputFactory + AsAlias (extensibilité Sylius-style)
-- `convention_extensibility.md` — résumé exécutif des 5 couches
-- `structure_manager_vs_service.md` — distinction détaillée Manager / Service
+- `convention_dto_factory.md` - pattern Input + InputFactory + AsAlias (extensibilité Sylius-style)
+- `convention_extensibility.md` - résumé exécutif des 5 couches
+- `structure_manager_vs_service.md` - distinction détaillée Manager / Service

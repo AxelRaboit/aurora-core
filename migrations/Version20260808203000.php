@@ -21,7 +21,7 @@ use Doctrine\Migrations\AbstractMigration;
  * table belonging to the extracted modules, so it buries the one statement
  * that matters under hundreds that must not run.
  *
- * The data move runs in `postUp`, after the column exists — statements queued
+ * The data move runs in `postUp`, after the column exists - statements queued
  * with `addSql` have not been executed yet while `up()` is still running.
  */
 final class Version20260808203000 extends AbstractMigration
@@ -52,7 +52,7 @@ final class Version20260808203000 extends AbstractMigration
     {
         // Deliberately one-way for the data. Rebuilding a per-translation
         // banner would mean copying the shared layout into every locale, which
-        // recreates by hand exactly the duplication this migration removes —
+        // recreates by hand exactly the duplication this migration removes -
         // and a later `up` could not tell the copies from edits. The column
         // goes; the texts stay where they are, which is where they were.
         $this->addSql('ALTER TABLE core_posts DROP banner_layout');
@@ -111,7 +111,7 @@ final class Version20260808203000 extends AbstractMigration
 
     /**
      * The language that actually holds a design. An enabled banner wins over a
-     * merely non-empty one, and among equals the first locale alphabetically —
+     * merely non-empty one, and among equals the first locale alphabetically -
      * arbitrary, but stable, so re-running on a copy of the database gives the
      * same answer.
      *

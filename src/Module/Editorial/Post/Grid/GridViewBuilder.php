@@ -20,7 +20,7 @@ use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
  *
  * The arrangement is stored on the post and what fills it on one translation;
  * a template wants neither, it wants zones carrying both. Merging here is what
- * keeps Twig from knowing the split exists — the same arrangement the banner
+ * keeps Twig from knowing the split exists - the same arrangement the banner
  * uses, and the reason its partial survived the storage changing underneath.
  *
  * Every id is resolved in one query per kind rather than one per zone: a page
@@ -29,7 +29,7 @@ use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
  * One class rather than a resolver per zone type. Four types is not enough to
  * earn an interface, and a per-type resolver would fetch its own rows, which
  * is exactly the N+1 the batching above avoids. When a project needs a zone
- * type of its own, that is the moment to invert this — not before.
+ * type of its own, that is the moment to invert this - not before.
  */
 final readonly class GridViewBuilder
 {
@@ -99,7 +99,7 @@ final readonly class GridViewBuilder
                 'spanStyle' => $this->values->spanStyle($zone['span']),
                 'ratioStyle' => $this->ratioStyle($zone['ratio']),
                 // Empty at full width, which is every zone that has not asked
-                // for anything — so a theme reading this puts no style on the
+                // for anything - so a theme reading this puts no style on the
                 // figure at all unless there is something to say. The margin
                 // travels with the width because it only means anything
                 // alongside it: a picture filling its zone has no side to sit
@@ -114,7 +114,7 @@ final readonly class GridViewBuilder
                     ),
                 // A stack's own children, resolved the same way. The
                 // recursion is bounded by the normaliser, which refuses a
-                // stack inside a stack — so this descends once and stops.
+                // stack inside a stack - so this descends once and stops.
                 'children' => $this->shareOut(array_map($resolve, $zone['children'] ?? [])),
                 // What a child contributes to the stack's height, as a
                 // share out of 48. `flex-basis: 0` is what makes the grow
@@ -158,7 +158,7 @@ final readonly class GridViewBuilder
         //
         // Large screen only. Below that breakpoint every zone is full width, so
         // there is nothing to arrange, and the stylesheet reads an unset
-        // property as `auto` — which is the plain flow this started as, and
+        // property as `auto` - which is the plain flow this started as, and
         // what a theme that never emits this still gets.
         foreach (GridNormalizer::place($layout['zones']) as $index => $place) {
             $zones[$index]['startStyle'] = sprintf(
@@ -238,7 +238,7 @@ final readonly class GridViewBuilder
      * translations and picking the right one is the renderer's job.
      *
      * Built here rather than through PostSerializer, for two reasons. It would
-     * be a circular dependency — the serialiser calls this builder to hand the
+     * be a circular dependency - the serialiser calls this builder to hand the
      * editor a resolved layout. And `serializeCard` computes terms and custom
      * fields, which cost queries and which a grid card does not show: six
      * fields is the whole of it.
@@ -285,14 +285,14 @@ final readonly class GridViewBuilder
      *
      * Normally by their shares, which is what `shareStyle` already says. But a
      * zone set to **fill** claims what is left over instead, and that only
-     * means something if its neighbours stop claiming a share of their own —
+     * means something if its neighbours stop claiming a share of their own -
      * so they fall back to their own content height and the filling one takes
      * the rest.
      *
      * This is what an author asks for with a short paragraph beside a picture:
      * not "half each", which leaves a hole under three lines of text, but
      * "the text takes what it needs and the picture has the remainder". Shares
-     * stop applying the moment one zone says it wants the remainder — one zone
+     * stop applying the moment one zone says it wants the remainder - one zone
      * cannot both leave room and take everything left.
      *
      * @param list<array<string, mixed>> $children
@@ -328,7 +328,7 @@ final readonly class GridViewBuilder
     /**
      * The crop, as a declaration rather than a class.
      *
-     * A Tailwind class would have to be written out somewhere Tailwind reads —
+     * A Tailwind class would have to be written out somewhere Tailwind reads -
      * `aspect-video` happens to appear in this module's Twig, but
      * `aspect-square` and `aspect-[3/4]` appear nowhere, so choosing them here
      * would emit nothing and the crop would silently not happen. The project
@@ -349,7 +349,7 @@ final readonly class GridViewBuilder
             '3x4' => 'aspect-ratio: 3 / 4;',
             // `fill` and `natural` both land here: neither states a ratio. What
             // separates them is a height, which is a class on the element
-            // rather than a declaration — see `_grid_zone.html.twig`.
+            // rather than a declaration - see `_grid_zone.html.twig`.
             default => '',
         };
     }
@@ -399,13 +399,13 @@ final readonly class GridViewBuilder
 
         // A media zone renders an `<img>`, so what it holds has to be an
         // image. The backend picker only ever offers those, but three paths
-        // reach past it — a fixture, an API write, and a document whose file
-        // is replaced after the zone was configured — and an `<img>` pointed
+        // reach past it - a fixture, an API write, and a document whose file
+        // is replaced after the zone was configured - and an `<img>` pointed
         // at an mp4 is a broken image with nothing said anywhere.
         //
         // Asked here rather than refused in `GridNormalizer` for two reasons.
         // The normaliser has no database and runs on every render, not only on
-        // the way in — giving it a repository would put a query behind every
+        // the way in - giving it a repository would put a query behind every
         // page view. And the third path above has no write to refuse: a layout
         // that was valid the day it was saved stops being valid the day the
         // file behind it changes. Only the render knows.
@@ -416,7 +416,7 @@ final readonly class GridViewBuilder
         $url = $this->documentUrlGenerator->variantUrl($media, 'large')
             ?? $this->documentUrlGenerator->publicUrl($media);
 
-        // A document can carry no file at all — the demo library keeps three
+        // A document can carry no file at all - the demo library keeps three
         // that way on purpose, so the upload flow has something to be tested
         // against. Without this the zone emitted `<img src="">`, which is a
         // broken image rather than an absent one.

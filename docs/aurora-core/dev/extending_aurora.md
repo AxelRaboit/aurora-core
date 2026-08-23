@@ -30,32 +30,32 @@ The path **mirrors the Aurora namespace** of the entity or feature being extende
 
 ```
 client-app/
-├── vendor/axelraboit/aurora/   # Aurora core (read-only — never edited directly)
+├── vendor/axelraboit/aurora/   # Aurora core (read-only - never edited directly)
 ├── src/
-│   ├── Module/                 # App\Module\* — ALL client PHP code
+│   ├── Module/                 # App\Module\* - ALL client PHP code
 │   │   ├── Core/               #   Extensions of Aurora\Core\* entities
 │   │   │   └── Agency/         #     Entity/ Dto/ Manager/ Serializer/
 │   │   ├── Crm/                #   Extensions of Aurora\Module\Crm\* entities
 │   │   └── <Name>/             #   Client-owned feature modules
-│   ├── Service/                # App\Service\* — cross-module stateless helpers (rare)
-│   └── EventListener/          # App\EventListener\* — global listeners (rare)
+│   ├── Service/                # App\Service\* - cross-module stateless helpers (rare)
+│   └── EventListener/          # App\EventListener\* - global listeners (rare)
 ├── templates/
 │   ├── Core/                   # Overrides for @Core/... templates (auto-resolved before Aurora's)
 │   └── Module/<Name>/          # Module-specific templates
 ├── assets/client/
-│   ├── Module/<Name>/          # Vue components for first-party feature modules — exposed as <name>/<rest>
-│   └── Overrides/              # Wrappers around Aurora's Vue components — exposed without module prefix
+│   ├── Module/<Name>/          # Vue components for first-party feature modules - exposed as <name>/<rest>
+│   └── Overrides/              # Wrappers around Aurora's Vue components - exposed without module prefix
 ├── migrations/                 # Client-specific Doctrine migrations
 ├── config/
-│   ├── packages/               # doctrine.yaml, twig.yaml, etc. — client overrides
+│   ├── packages/               # doctrine.yaml, twig.yaml, etc. - client overrides
 │   └── services.yaml           # Service registration / decorators
-├── bin/console                 # Entry point — delegates to Aurora's Kernel
+├── bin/console                 # Entry point - delegates to Aurora's Kernel
 ├── public/index.php            # Web entry point
 └── .env                        # Client env overrides
 ```
 
 Rule of thumb: **the client never edits files under `vendor/axelraboit/aurora/`.** All
-customisation happens through the extension points below — overrides live
+customisation happens through the extension points below - overrides live
 under the matching responsibility folder, never under a generic `Custom/`
 bucket. Updating Aurora is then a one-liner (`make aurora-update`).
 
@@ -64,13 +64,13 @@ bucket. Updating Aurora is then a one-liner (`make aurora-update`).
 Aurora's `Kernel` automatically detects when it runs as a submodule inside a
 `vendor/` directory. When detected, it:
 
-1. Loads `config/packages-custom.yaml` — bundle configuration (Doctrine mappings, etc.)
-2. Loads `config/services-custom.yaml` — service definitions
+1. Loads `config/packages-custom.yaml` - bundle configuration (Doctrine mappings, etc.)
+2. Loads `config/services-custom.yaml` - service definitions
 3. Adds `templates/` to Twig's lookup path
-4. Loads `config/routes-custom.yaml` — custom routes
+4. Loads `config/routes-custom.yaml` - custom routes
 5. Exposes `%aurora.client_dir%` as a Symfony parameter pointing to the client root
 
-No manual wiring required — the three config files are the entire contract.
+No manual wiring required - the three config files are the entire contract.
 
 ---
 
@@ -162,7 +162,7 @@ Aurora template, mirror its logical path in your client project:
 # Aurora template (bundle side)
 vendor/aurora/src/Core/templates/Core/backend/layout.html.twig
 
-# Client override — two paths are recognized (either works)
+# Client override - two paths are recognized (either works)
 #   1. New (recommended, matches the bundle layout):
 src/Core/templates/Core/backend/layout.html.twig
 #   2. Legacy (kept for backward compat with pre-move client projects):
@@ -181,7 +181,7 @@ with the module's PHP code, like `assets/` and `translations/`) or under
 
 > Client backward compat: existing client projects that store overrides under
 > `templates/Module/<Name>/` or `templates/Core/`, `templates/Shared/` still
-> resolve — Aurora registers those legacy paths too for any namespace it
+> resolve - Aurora registers those legacy paths too for any namespace it
 > knows about.
 
 ### 6. Custom entities & migrations
@@ -219,12 +219,12 @@ php bin/console doctrine:migrations:migrate
 Aurora utilise le pattern **ResolveTargetEntity** de Doctrine. Chaque entité
 Core extensible expose :
 
-- `Aurora\...\Entity\<Name>Interface` — le contrat public (getters/setters)
-- `Aurora\...\Entity\Abstract<Name>` — `MappedSuperclass` Doctrine avec le mapping (sans `id`)
-- `Aurora\...\Entity\<Name>` — l'entité concrète, non-`final`, avec `id` + sequence
+- `Aurora\...\Entity\<Name>Interface` - le contrat public (getters/setters)
+- `Aurora\...\Entity\Abstract<Name>` - `MappedSuperclass` Doctrine avec le mapping (sans `id`)
+- `Aurora\...\Entity\<Name>` - l'entité concrète, non-`final`, avec `id` + sequence
 
 Pour étendre une entité côté client, **étendez le `MappedSuperclass`** (pattern
-Sylius) et déclarez votre propre table — c'est le seul pattern qui marche
+Sylius) et déclarez votre propre table - c'est le seul pattern qui marche
 proprement avec Doctrine (étendre la classe concrète exigerait un type
 d'héritage et un discriminator).
 
@@ -256,7 +256,7 @@ class Deal extends AbstractDeal implements DealInterface
 }
 ```
 
-**Substitution** — dans `config/packages/doctrine.yaml` :
+**Substitution** - dans `config/packages/doctrine.yaml` :
 
 ```yaml
 doctrine:
@@ -265,10 +265,10 @@ doctrine:
             Aurora\Module\Crm\Deal\Entity\DealInterface: App\Module\Crm\Deal\Entity\Deal
 ```
 
-**Repository** — réutilisez `Aurora\...\Repository\<Name>Repository` directement
+**Repository** - réutilisez `Aurora\...\Repository\<Name>Repository` directement
 via `#[ORM\Entity(repositoryClass: ...)]`. Toutes les repositories Aurora
 étendent `Aurora\Core\Repository\ResolveTargetEntityRepository` qui résout
-l'entité concrète à la construction via les class metadata Doctrine — la même
+l'entité concrète à la construction via les class metadata Doctrine - la même
 instance de repo querie automatiquement votre table dès que
 `resolve_target_entities` route l'interface vers votre classe. Vous n'avez à
 créer un repository client que si vous voulez ajouter vos propres méthodes
@@ -278,13 +278,13 @@ de votre entité).
 À partir de là, toutes les associations Aurora qui pointent `DealInterface`
 (ex: `Project::$crmDeal`) résolvent automatiquement vers `App\Module\Crm\Deal\Entity\Deal`.
 
-**Migration de données** — si la table Aurora `core_deals` contient déjà des
+**Migration de données** - si la table Aurora `core_deals` contient déjà des
 lignes (fixtures, données de prod) et que les FK Aurora pointent vers son `id`,
 ajoutez à la migration générée un `INSERT INTO app_deals … SELECT … FROM core_deals
 core_deals` avant de basculer la contrainte FK. Cf. la migration pilote
 `Version20260508123924` côté aurora-client pour un exemple complet.
 
-**Manager / création** — `DealManager::create()` instancie `new Deal()`
+**Manager / création** - `DealManager::create()` instancie `new Deal()`
 (la classe Aurora) par défaut. Pour qu'il instancie votre `App\Module\Crm\Deal\Entity\Deal`,
 étendez `DealManager` ou décorez `DealManagerInterface` (cf. section 2).
 
@@ -294,7 +294,7 @@ Pour ajouter un champ visible/éditable depuis le backoffice (formulaire +
 tableau), il faut intervenir sur 5 couches : Entity, DTO, Manager, Serializer
 et le composant Vue. Aurora expose des points d'extension pour chacune.
 
-Le module **Agency** sert de pilote complet — voir
+Le module **Agency** sert de pilote complet - voir
 [`extending_agency_pilot.md`](./extending_agency_pilot.md) pour la recette
 end-to-end : factory `AgencyInputFactoryInterface` (`#[AsAlias]`),
 `AgencyManagerInterface` / `AgencySerializerInterface` (décoration),
@@ -302,7 +302,7 @@ slots Vue (`extra-headers` / `extra-cells` / `extra-form-fields`) et
 override Twig.
 
 **Toutes les entités Aurora avec page backend CRUD sont instrumentées** (26 entités
-au total — voir `entity_extensibility_convention.md` section 2.1). Le pattern
+au total - voir `entity_extensibility_convention.md` section 2.1). Le pattern
 Agency s'applique identiquement à chacune.
 
 ### 7. Bundle configuration
@@ -325,11 +325,11 @@ default here. Common overrides:
 - `DATABASE_URL`
 - `MAILER_DSN`, `MAILER_FROM`, `ADMIN_EMAIL`
 
-Never commit secrets — use `.env.local` (gitignored) for local values.
+Never commit secrets - use `.env.local` (gitignored) for local values.
 
 ### 9. Theme & branding
 
-Configure the active theme's `primary_color` in the admin UI — `ThemeContext`
+Configure the active theme's `primary_color` in the admin UI - `ThemeContext`
 regenerates the full accent palette (50 → 950) from that single seed.
 
 For deeper branding (logo, footer, header text), use the theme config fields
@@ -341,7 +341,7 @@ Aurora génère des références numérotées pour toutes ses entités (`FAC-000
 via `SequenceGenerator`, qui crée une séquence PostgreSQL par préfixe.
 
 Si une entité cliente doit elle aussi avoir des références numérotées, elle doit déclarer
-ses propres préfixes — **sans jamais utiliser un préfixe déjà pris par le Core.**
+ses propres préfixes - **sans jamais utiliser un préfixe déjà pris par le Core.**
 
 #### Déclarer des préfixes clients
 
@@ -375,7 +375,7 @@ enum ClientPrefixEnum: string
 ```
 
 (Add `App\Sequence\:` and `App\Enum\:` PSR-4 prefixes to `services.yaml` if
-you create those folders — the scaffold ships with the most common ones
+you create those folders - the scaffold ships with the most common ones
 (Controller, Entity, Dto, Manager, Serializer, Service, EventListener) and
 you extend the list as needed.)
 
@@ -389,17 +389,17 @@ Aurora lève une `LogicException` à la première requête :
 
 ```
 [Aurora] Sequence prefix conflict: "OFC" is declared by both "Aurora Core"
-and "My Client App". Each prefix must be globally unique — rename one of them.
+and "My Client App". Each prefix must be globally unique - rename one of them.
 ```
 
 Cela se déclenche au boot après un `aurora-update` si le Core a introduit une valeur
-déjà utilisée côté client — l'erreur est visible immédiatement, avant la mise en prod.
+déjà utilisée côté client - l'erreur est visible immédiatement, avant la mise en prod.
 
 **Renommer un préfixe déjà en production implique une migration de données** (update de
 toutes les colonnes `reference` concernées + renommage de la séquence PostgreSQL). La
 prévention vaut mieux que la correction.
 
-#### Préfixes réservés — Aurora Core
+#### Préfixes réservés - Aurora Core
 
 Ces valeurs sont définies dans `SequencePrefixEnum` et **ne doivent jamais être utilisées
 côté client.** La liste est mise à jour à chaque ajout dans le Core.
@@ -450,7 +450,7 @@ côté client.** La liste est mise à jour à chaque ajout dans le Core.
 Pour éviter les conflits futurs, les préfixes clients doivent :
 
 - Être distincts de tous les préfixes Core listés ci-dessus
-- Inclure un suffixe ou préfixe propre au projet pour réduire le risque de collision lors d'une mise à jour Core future — ex. : `ACME_CTR` plutôt que `CTR`
+- Inclure un suffixe ou préfixe propre au projet pour réduire le risque de collision lors d'une mise à jour Core future - ex. : `ACME_CTR` plutôt que `CTR`
 - Avoir une longueur ≥ 4 caractères (les préfixes Core courts de 2-3 chars sont dans la zone de danger)
 
 ---

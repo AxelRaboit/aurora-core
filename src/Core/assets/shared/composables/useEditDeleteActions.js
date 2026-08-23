@@ -5,8 +5,8 @@ import { Pencil, Trash2 } from "lucide-vue-next";
  * The two actions most list rows have, and nothing else.
  *
  * Edit and delete, each behind its own permission. Half the lists in the
- * backend offer exactly this pair and no more — tags, categories, folders,
- * taxonomies, post types — and writing the same twenty lines in each of their
+ * backend offer exactly this pair and no more - tags, categories, folders,
+ * taxonomies, post types - and writing the same twenty lines in each of their
  * modules would be five copies of one rule, drifting apart the first time the
  * wording of a description changes.
  *
@@ -15,7 +15,7 @@ import { Pencil, Trash2 } from "lucide-vue-next";
  * different shapes forced through one signature is a knot.
  *
  * Returns a function rather than a computed, because a list renders one of
- * these per row — see `usePostRowActions` for the same reasoning at length.
+ * these per row - see `usePostRowActions` for the same reasoning at length.
  *
  * @param {object} deps
  * @param {(permission: string) => boolean} deps.can

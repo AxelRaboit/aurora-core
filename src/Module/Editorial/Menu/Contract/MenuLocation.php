@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Menu\Contract;
 
 /**
- * A slot a theme renders a menu into — a header bar, a footer column, an
+ * A slot a theme renders a menu into - a header bar, a footer column, an
  * account dropdown. The key is what a template passes to `menu_items()`.
  */
 final readonly class MenuLocation

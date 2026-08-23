@@ -1,4 +1,4 @@
-# FileTransfer — Scheduler & async jobs
+# FileTransfer - Scheduler & async jobs
 
 > 3 jobs `@AsSchedule` Symfony Messenger + 3 commandes console
 > miroirs pour debugging et cron manuel.
@@ -9,9 +9,9 @@ Nimbus utilise `#[AsSchedule]` + `MainSchedule.php` qui dispatche 3
 messages à chaque minute :
 - `CleanupExpiredTransfersMessage`
 - `SendRemindersMessage`
-- `ExpireTrialsMessage` (non porté — pas de notion de trial dans Aurora)
+- `ExpireTrialsMessage` (non porté - pas de notion de trial dans Aurora)
 
-Les handlers sont **idempotents** (skip si rien à faire) — la fréquence
+Les handlers sont **idempotents** (skip si rien à faire) - la fréquence
 1/min est sûre.
 
 Source Nimbus :
@@ -47,7 +47,7 @@ Le pattern Aurora utilise `RecurringMessage::cron('* * * * *', ...)`
 (expression cron classique) plutôt que `every('1 minute')`. À respecter
 pour cohérence avec les schedules existants.
 
-## Job 1 — CleanupExpiredTransfers
+## Job 1 - CleanupExpiredTransfers
 
 **Fréquence** : 1/min
 
@@ -92,7 +92,7 @@ final readonly class CleanupExpiredTransfersHandler
 
 **Commande miroir** : `file-transfer:expire` (utile pour cron manuel ou cluster sans worker Messenger).
 
-## Job 2 — SendReminders
+## Job 2 - SendReminders
 
 **Fréquence** : 1/min
 
@@ -108,9 +108,9 @@ final readonly class CleanupExpiredTransfersHandler
 
 **Commande miroir** : `file-transfer:send-reminders`.
 
-## Job 3 — CleanupTusOrphans
+## Job 3 - CleanupTusOrphans
 
-**Fréquence** : 5/min (moins urgent — espace disque)
+**Fréquence** : 5/min (moins urgent - espace disque)
 
 **Logique** :
 - `TusUploadService::cleanupOrphanedUploads(maxAgeSeconds)`
@@ -151,7 +151,7 @@ final class ExpireCommand extends Command
 ## Configuration des routes Messenger
 
 ```yaml
-# config/packages/messenger.yaml — si déjà existant, ajouter
+# config/packages/messenger.yaml - si déjà existant, ajouter
 framework:
   messenger:
     transports:

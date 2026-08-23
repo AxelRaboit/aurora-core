@@ -18,7 +18,7 @@ Utilisateur soumet  →  [Client] validation minimale (required, email)
 
 ## Backend
 
-### 1. DTO — structure obligatoire
+### 1. DTO - structure obligatoire
 
 Deux variantes selon l'usage :
 
@@ -38,7 +38,7 @@ interface FooInputInterface
     public function getStatus(): string;
 }
 
-// src/Module/Foo/Dto/FooInput.php — NON-final pour permettre extends côté client
+// src/Module/Foo/Dto/FooInput.php - NON-final pour permettre extends côté client
 class FooInput implements FooInputInterface
 {
     public function __construct(
@@ -96,9 +96,9 @@ final readonly class FooLineInput  // sub-DTO inclus dans FooInput.lines[]
 ```
 
 **Règles communes (A et B)** :
-- Propriétés publiques, pas de getters (sauf si Interface contrainte de Manager les exige — cf. variante A)
+- Propriétés publiques, pas de getters (sauf si Interface contrainte de Manager les exige - cf. variante A)
 - Messages de contrainte = clé de traduction (ex: `'backend.foo.errors.name_required'`)
-- **Pas** de méthode statique `fromArray()` dans le DTO en cas A — c'est la factory qui le fait (elle peut être décorée par un client)
+- **Pas** de méthode statique `fromArray()` dans le DTO en cas A - c'est la factory qui le fait (elle peut être décorée par un client)
 - Normalisation (`trim()`, cast, nullification) toujours dans la factory ou le constructeur
 
 ---
@@ -120,7 +120,7 @@ public function create(Request $request): JsonResponse
         return $this->jsonInvalidInput($errors);   // → 422, pas de 2e argument
     }
 
-    // 3. Business logic — erreurs métier mappées sur un champ
+    // 3. Business logic - erreurs métier mappées sur un champ
     try {
         $foo = $this->fooManager->create($input);
     } catch (SlugConflictException) {
@@ -135,7 +135,7 @@ public function create(Request $request): JsonResponse
 - `jsonInvalidInput($errors)` **sans** second argument → HTTP 422 par défaut
 - Ne jamais passer `Response::HTTP_OK` comme second argument
 - Erreurs métier (unicité, contrainte fonctionnelle) → `jsonInvalidInput(['field' => 'translation.key'])`
-- Le champ vide `''` n'est pas un message valide — toujours une clé de traduction
+- Le champ vide `''` n'est pas un message valide - toujours une clé de traduction
 
 ---
 
@@ -164,7 +164,7 @@ public function create(Request $request): JsonResponse
 { "success": false, "error": "conflict" }
 ```
 
-Les valeurs du champ `errors` sont **toujours des clés de traduction** — jamais du texte en clair.
+Les valeurs du champ `errors` sont **toujours des clés de traduction** - jamais du texte en clair.
 
 ---
 
@@ -178,7 +178,7 @@ Les valeurs du champ `errors` sont **toujours des clés de traduction** — jama
 | Valeur dans une liste | `#[Assert\Choice(callback: [Enum::class, 'values'])]` |
 | Entier positif | `#[Assert\Positive]` ou `#[Assert\PositiveOrZero]` |
 | Tableau d'entiers | `#[Assert\All([new Assert\Positive()])]` |
-| Unicité email | `#[UniqueEmail]` (custom — `src/Core/Auth/Validator/`) |
+| Unicité email | `#[UniqueEmail]` (custom - `src/Core/Auth/Validator/`) |
 | Égalité (confirmation mdp) | `#[Assert\EqualTo(propertyPath: 'password')]` |
 
 ---
@@ -213,7 +213,7 @@ const { errors, validate, setErrors, clearErrors } = useForm();
 
 | Méthode | Usage |
 |---|---|
-| `errors.value` | `ref({})` — objet `{ field: "message traduit" }` |
+| `errors.value` | `ref({})` - objet `{ field: "message traduit" }` |
 | `validate(checks)` | Validation client-side, retourne `boolean` |
 | `setErrors(obj)` | Injecte les erreurs serveur (déjà traduites) |
 | `clearErrors()` | Vide les erreurs (à l'ouverture d'une modal) |
@@ -258,7 +258,7 @@ async function submitCreate() {
 
 ---
 
-### 3. Fetch — utiliser `useRequest`
+### 3. Fetch - utiliser `useRequest`
 
 ```js
 import { useRequest } from "@/shared/composables/http/useRequest.js";
@@ -314,7 +314,7 @@ La prop `:error` attend une **chaîne déjà traduite** (pas une clé).
 
 ---
 
-### 6. Pattern complet — composable de création
+### 6. Pattern complet - composable de création
 
 ```js
 // src/Module/Foo/assets/backend/composables/useFooCreate.js
@@ -365,7 +365,7 @@ export function useFooCreate(createPath, onCreated) {
 
 ---
 
-### 7. Pattern complet — composable d'édition
+### 7. Pattern complet - composable d'édition
 
 ```js
 // src/Module/Foo/assets/backend/composables/useFooEdit.js
@@ -410,10 +410,10 @@ export function useFooEdit(updatePath, onUpdated) {
 
 ---
 
-## Checklist — nouveau formulaire
+## Checklist - nouveau formulaire
 
 ### Backend
-- [ ] Créer `src/Module/Foo/Dto/FooInput.php` — `final readonly`, factory `fromArray()`
+- [ ] Créer `src/Module/Foo/Dto/FooInput.php` - `final readonly`, factory `fromArray()`
 - [ ] Ajouter les `#[Assert\...]` sur chaque propriété avec des clés de traduction
 - [ ] Ajouter les clés dans `messages.fr.yaml` et `messages.en.yaml`
 - [ ] Dans le controller : `$errors = $this->payloadValidator->errors($input);`

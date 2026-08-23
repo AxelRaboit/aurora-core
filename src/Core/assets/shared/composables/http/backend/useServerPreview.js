@@ -6,15 +6,15 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
  * Keeps a rendered preview in step with what is being edited.
  *
  * The markup comes from the server, through the same Twig the public page
- * uses. Rebuilding it in Vue would be faster and would drift — two renderers
+ * uses. Rebuilding it in Vue would be faster and would drift - two renderers
  * for one thing is exactly how `twoColumn` ended up writing a shape its
  * renderer could not read. A preview that can disagree with the published page
  * is worse than none, because it is believed.
  *
  * Generic over what is being previewed: the caller says what to send. The
  * banner sends its two halves, the content grid sends its two plus the locale
- * its cards link with. Everything else — the debounce, the out-of-order guard,
- * the loading flag — was identical between them, and a second copy of a guard
+ * its cards link with. Everything else - the debounce, the out-of-order guard,
+ * the loading flag - was identical between them, and a second copy of a guard
  * is a second place for it to be dropped.
  *
  * Debounced: every keystroke in a title would otherwise be a request. 400ms is
@@ -74,7 +74,7 @@ export function useServerPreview(
     /**
      * Strips the reactive proxies so what goes over the wire is plain data.
      * Tolerates undefined, which is what a translation that has not finished
-     * loading looks like — throwing inside a debounced callback would surface
+     * loading looks like - throwing inside a debounced callback would surface
      * 400ms later as a preview that simply stopped updating.
      */
     function snapshot(value) {

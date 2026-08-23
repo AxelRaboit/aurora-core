@@ -16,7 +16,7 @@ class DocumentInput implements DocumentInputInterface
         public readonly ?string $description = null,
         public readonly DocumentStatusEnum $status = DocumentStatusEnum::Draft,
         public readonly ?int $categoryId = null,
-        // File metadata — populated by the upload endpoint, then carried
+        // File metadata - populated by the upload endpoint, then carried
         // through the form submit. The actual bytes already live on disk
         // under `var/uploads/<filePath>` by the time the form is submitted.
         public readonly ?string $filePath = null,
@@ -31,7 +31,7 @@ class DocumentInput implements DocumentInputInterface
         public readonly ?string $caption = null,
         public readonly array $tagIds = [],
         public readonly ?int $folderId = null,
-        // Focal point — normalized [0, 1] coordinates from the editor's
+        // Focal point - normalized [0, 1] coordinates from the editor's
         // click-on-image picker. `null` = center. Variants stay server-owned
         // (regenerated on upload/crop), so they are NOT carried by the DTO.
         public readonly ?float $focalX = null,

@@ -21,7 +21,7 @@ final class Context
 {
     /**
      * What the `site_url` parameter ships with. Not a host anyone deploys
-     * on — see siteUrl().
+     * on - see siteUrl().
      */
     private const string PLACEHOLDER_SITE_URL = 'http://localhost';
 
@@ -103,7 +103,7 @@ final class Context
     }
 
     /**
-     * The origin every public absolute URL is built on — canonical tags,
+     * The origin every public absolute URL is built on - canonical tags,
      * hreflang, og:image, the sitemap.
      *
      * The setting wins when an administrator has actually set it: pinning one
@@ -114,7 +114,7 @@ final class Context
      * But the parameter ships seeded with `http://localhost`, which nobody
      * chose. Taking that at face value is how a production deploy ends up
      * telling search engines that the canonical address of every page is a
-     * host they cannot reach — a failure with no symptom anywhere in the
+     * host they cannot reach - a failure with no symptom anywhere in the
      * application. Left at the placeholder, the request's own origin is the
      * better answer, and the only one available on a live site.
      */
@@ -131,7 +131,7 @@ final class Context
             return $request->getSchemeAndHttpHost();
         }
 
-        // No request to learn from — a console command building URLs. The
+        // No request to learn from - a console command building URLs. The
         // placeholder is wrong but it is all there is, and returning an empty
         // string would produce URLs that are wrong in a harder-to-spot way.
         return '' !== $configured ? $configured : self::PLACEHOLDER_SITE_URL;

@@ -1,6 +1,6 @@
 ---
 name: pattern-settings-tab-vue-registry
-description: registerSettingsTabComponent() — comment fournir un composant Vue custom pour un onglet de la page admin Settings, depuis aurora-core ou aurora-client.
+description: registerSettingsTabComponent() - comment fournir un composant Vue custom pour un onglet de la page admin Settings, depuis aurora-core ou aurora-client.
 metadata:
   type: project
 ---
@@ -26,7 +26,7 @@ registerSettingsTabComponent("my-tab-name", MyCustomTab);
 ```
 
 Les composants reçoivent les props suivantes (passées par `SettingsApp.vue`) :
-- `groups` : `Record<tabId, fieldDescriptor[]>` — payload complet.
+- `groups` : `Record<tabId, fieldDescriptor[]>` - payload complet.
 - `updatePath` : endpoint POST pour persister les writes.
 - `navSections` : metadata sidemenu (utile pour navigation aliases).
 - `postSearchPath` : endpoint de recherche de posts.

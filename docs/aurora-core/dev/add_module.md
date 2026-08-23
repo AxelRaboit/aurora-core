@@ -5,11 +5,11 @@ Couvre **5 cas types** par ordre de complexité croissante, plus l'infrastructur
 auto-découverte commune.
 
 > **Mémoires architecture connexes** (à lire pour les décisions transverses) :
-> - [`pattern_core_submodules_split.md`](../../../.claude/memory/aurora-core/architecture/pattern_core_submodules_split.md) — "1 module = 1 section = 1 toggle root = 1 context"
-> - [`architecture_module_parameter_enum.md`](../../../.claude/memory/aurora-core/architecture/architecture_module_parameter_enum.md) — toggles cascade graph + convention clés
-> - [`pattern_user_scoped_module_access.md`](../../../.claude/memory/aurora-core/architecture/pattern_user_scoped_module_access.md) — `ModuleAccessChecker` global + per-user
-> - [`pattern_frontend_descriptor.md`](../../../.claude/memory/aurora-core/architecture/pattern_frontend_descriptor.md) — `<Module>FrontendDescriptor` pattern
-> - [`pattern_configuration_tab_provider.md`](../../../.claude/memory/aurora-core/architecture/pattern_configuration_tab_provider.md) — onglets Settings
+> - [`pattern_core_submodules_split.md`](../../../.claude/memory/aurora-core/architecture/pattern_core_submodules_split.md) - "1 module = 1 section = 1 toggle root = 1 context"
+> - [`architecture_module_parameter_enum.md`](../../../.claude/memory/aurora-core/architecture/architecture_module_parameter_enum.md) - toggles cascade graph + convention clés
+> - [`pattern_user_scoped_module_access.md`](../../../.claude/memory/aurora-core/architecture/pattern_user_scoped_module_access.md) - `ModuleAccessChecker` global + per-user
+> - [`pattern_frontend_descriptor.md`](../../../.claude/memory/aurora-core/architecture/pattern_frontend_descriptor.md) - `<Module>FrontendDescriptor` pattern
+> - [`pattern_configuration_tab_provider.md`](../../../.claude/memory/aurora-core/architecture/pattern_configuration_tab_provider.md) - onglets Settings
 
 ---
 
@@ -27,7 +27,7 @@ types se cumulent (un module complexe en assemble plusieurs) :
 | **5. Avec settings** | Onglet dans la page admin Settings | `Crm`, `Photo`, `Ged`, `Editorial`, … |
 
 Chaque cas se construit sur le précédent. Si tu démarres avec un module simple,
-commence par le cas 1 — tu pourras ajouter les autres au fur et à mesure.
+commence par le cas 1 - tu pourras ajouter les autres au fur et à mesure.
 
 ---
 
@@ -48,7 +48,7 @@ Invoquer `/add-module` et donner le nom du module (PascalCase) + les options :
 | Option | Effet |
 |---|---|
 | _(défaut)_ | Cas 1 + Cas 2 : module togglable depuis l'admin "Modules access" panel |
-| `--no-toggle` | Opt-out du toggle backend ; le module est always-on (réservé aux infras type Dev — reste câblé centralement par `AuroraBundle`) |
+| `--no-toggle` | Opt-out du toggle backend ; le module est always-on (réservé aux infras type Dev - reste câblé centralement par `AuroraBundle`) |
 | `--with-frontend` | Cas 4 : ajoute `<X>FrontendDescriptor.php` (pages publiques) |
 | `--with-settings` | Cas 5 : ajoute `Setting/<X>SettingEnum.php` + `<X>ConfigurationTabProvider.php` |
 
@@ -108,7 +108,7 @@ make cc                                      # clear cache (Twig + Symfony)
 
 ### 2.4 Étapes complémentaires après scaffold
 
-Le skill ne couvre **que** Cas 1, 2, 4, 5 — pas le contenu métier. Pour
+Le skill ne couvre **que** Cas 1, 2, 4, 5 - pas le contenu métier. Pour
 aller plus loin :
 
 - **Ajouter une entité CRUD** (cas 3) : lancer `/add-entity` en ciblant le
@@ -120,9 +120,9 @@ aller plus loin :
 
 ---
 
-## 3. Cas 1 — module stateless minimal
+## 3. Cas 1 - module stateless minimal
 
-### 3.1 `<Module>Module.php` — inscription
+### 3.1 `<Module>Module.php` - inscription
 
 ```php
 // src/Module/MyModule/MyModuleModule.php
@@ -182,7 +182,7 @@ final class MyModuleController extends AbstractController
 ```
 
 **Règles :**
-- `final class` (pas `final readonly`) — les controllers Symfony ne peuvent pas
+- `final class` (pas `final readonly`) - les controllers Symfony ne peuvent pas
   être `readonly` car `setContainer()` est appelé après instanciation.
 - Permission string = `<module_id>.<action>` (`my_module.use`, `vault.password_generator.use`).
 - Route prefix kebab-case = `/backend/<module-id-en-kebab>`.
@@ -211,13 +211,13 @@ final class MyModuleController extends AbstractController
 
 - Le namespace `@MyModule` est auto-monté par le bundle du module
   (`Aurora<Module>Bundle::prependExtension`, via `AbstractAuroraModuleBundle`)
-  à partir de `src/Module/<Module>/templates/` — templates co-localisés avec le
+  à partir de `src/Module/<Module>/templates/` - templates co-localisés avec le
   code PHP du module (parallèle à `assets/` et `translations/`).
 - `vue_component('<module_id_lowercase>/<path>', props)` : le helper Twig
   résout vers le composant Vue chargé via le glob `src/Module/**/assets/**/*.vue`
-  (le `**` accepte les feature folders intermédiaires — cf. règle de
+  (le `**` accepte les feature folders intermédiaires - cf. règle de
   co-localisation Vue + PHP sous `<Module>/<Feature>/assets/`)
-  (`src/Core/assets/app.js:33+57-65` — lowercase conversion appliquée au nom du module).
+  (`src/Core/assets/app.js:33+57-65` - lowercase conversion appliquée au nom du module).
 
 ### 3.4 Traductions
 
@@ -270,7 +270,7 @@ const { /* ... */ } = useMyFeature();
 
 ---
 
-## 4. Auto-découverte — wiring après le split
+## 4. Auto-découverte - wiring après le split
 
 Depuis le monorepo-split, chaque module métier porte son propre
 `Aurora<Module>Bundle` (extends `AbstractAuroraModuleBundle`) qui `prepend`
@@ -292,17 +292,17 @@ ses mappings Doctrine, son namespace Twig, ses paths de traduction et son
 - `config/bundles.php` : enregistrer `Aurora<Module>Bundle`
 - `config/services.yaml` : exclure `../src/Module/<Module>/` du glob central
 - `Aurora<Module>Bundle::resolveTargetEntities()` : 1 ligne par entité Doctrine
-  (cf. cas 3) — **remplace** l'ancien `AuroraBundle::$resolve_target_entities`.
+  (cf. cas 3) - **remplace** l'ancien `AuroraBundle::$resolve_target_entities`.
 
 ---
 
-## 5. Cas 2 — module avec sous-features togglables
+## 5. Cas 2 - module avec sous-features togglables
 
 Quand un module a plusieurs sous-features indépendamment activables (Vault =
 Safe + PasswordGenerator, Editorial = blog + pages, …), suivre le pattern
 **`ModuleToggleProviderInterface` + Context class** :
 
-### 5.1 `<Module>Context` — orchestration des feature-flags
+### 5.1 `<Module>Context` - orchestration des feature-flags
 
 Centralise les checks de toggles dans une classe dédiée injectée dans le module
 et tous les services concernés. Permet de garder les `if (! $context->isXEnabled())`
@@ -340,7 +340,7 @@ final readonly class ToolsContext
 > le type-hint de l'enum central, et `ModuleAccessChecker::isEnabled()` accepte
 > `ModuleParameterEnum|string`.
 
-### 5.2 `<Module>ModuleParameterEnum` + provider — déclarer les toggles
+### 5.2 `<Module>ModuleParameterEnum` + provider - déclarer les toggles
 
 Depuis le split, chaque module métier porte ses toggles dans son **propre**
 enum `src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php` (PAS l'enum
@@ -348,7 +348,7 @@ central `Configuration/Setting/Enum/ModuleParameterEnum.php`, désormais
 core-infra only) :
 - Cases courtes (`Backend`, `<Sub>`), la **valeur** garde la clé legacy
   `modules_<module>_<feature>` (pas de migration BDD).
-- Convention clés : `<module>_<feature>` (pas `_enabled` à la fin —
+- Convention clés : `<module>_<feature>` (pas `_enabled` à la fin -
   cf. [`architecture_module_parameter_enum.md`](../../../.claude/memory/aurora-core/architecture/architecture_module_parameter_enum.md))
 - Cascade encodée dans `getCascadeRequires()` (→ `self::Backend->value`) et
   hiérarchie d'affichage dans `getDisplayParent()`.
@@ -363,7 +363,7 @@ Mirror canonique : `src/Module/Tools/Setting/ToolsModuleParameterEnum.php`.
 
 ```php
 // Exemple illustratif (module fictif "Vault" à sous-features). En vrai,
-// Vault est un sous-module de Tools — cf. src/Module/Tools/ToolsModule.php.
+// Vault est un sous-module de Tools - cf. src/Module/Tools/ToolsModule.php.
 final readonly class VaultModule implements ModuleInterface, ModuleToggleProviderInterface
 {
     public function __construct(private VaultContext $vaultContext) {}
@@ -398,7 +398,7 @@ final readonly class VaultModule implements ModuleInterface, ModuleToggleProvide
         return [] === $items ? [] : [new NavSection('vault', $items, priority: 20)];
     }
 
-    /** Retourne TOUS les items même si désactivés — pour le picker catalogue. */
+    /** Retourne TOUS les items même si désactivés - pour le picker catalogue. */
     public function getCatalogNavSections(): array
     {
         return [
@@ -426,10 +426,10 @@ final readonly class VaultModule implements ModuleInterface, ModuleToggleProvide
 ```
 
 **Points clés :**
-- `ModuleToggleProviderInterface::getToggles(): list<ModuleToggle>` — agrégé
+- `ModuleToggleProviderInterface::getToggles(): list<ModuleToggle>` - agrégé
   par `ModuleToggleRegistry` et consommé par `ModuleAccessChecker` (global +
   per-user + cascade) et `UsersViewBuilder` (picker UI).
-- Chaque toggle vient de `<Module>ModuleParameterEnum::<Case>->toToggle()` — le
+- Chaque toggle vient de `<Module>ModuleParameterEnum::<Case>->toToggle()` - le
   `ModuleToggle` (`{key, labelKey, descriptionKey, parentKey, moduleId,
   displayParentKey}`) est construit dans `toToggle()`, la cascade
   (`parentKey`) sortant de `getCascadeRequires()`.
@@ -441,12 +441,12 @@ final readonly class VaultModule implements ModuleInterface, ModuleToggleProvide
 Voir `src/Module/Tools/ToolsModule.php` (Vault + PasswordGenerator) + son
 `src/Module/Tools/Setting/ToolsModuleParameterEnum.php`. Avant la fusion
 PasswordGenerator → Vault (commit `dee99658`), le pattern était documenté via
-un module standalone PasswordGenerator (commit `167aafa`) — historiquement
+un module standalone PasswordGenerator (commit `167aafa`) - historiquement
 utile mais plus représentatif aujourd'hui : **Vault est l'exemple à jour**.
 
 ---
 
-## 6. Cas 3 — module avec entités CRUD
+## 6. Cas 3 - module avec entités CRUD
 
 Pour un module avec persistance Doctrine + UI CRUD, suivre **en plus** des
 cas 1-2 :
@@ -511,7 +511,7 @@ pour la décision "pas d'interface Repository".
 
 ---
 
-## 7. Cas 4 — module avec frontend public
+## 7. Cas 4 - module avec frontend public
 
 Pour un module qui expose des pages publiques (pas que back-office), créer
 **`<Module>FrontendDescriptor.php`** à la racine du module :
@@ -538,7 +538,7 @@ final class PhotoFrontendDescriptor implements FrontendInterface
 - Convention nom : `<Module>FrontendDescriptor` à la racine `src/Module/<Module>/`
   (symétrie avec les autres modules : Ged, Photo, Editorial, Ecommerce).
 - `getModuleSettingKey()` pointe vers `<Module>ModuleParameterEnum::Frontend->value`
-  (enum propre au module) — toggle dédié frontend, distinct du toggle backend.
+  (enum propre au module) - toggle dédié frontend, distinct du toggle backend.
 - `FrontendRouteGateSubscriber` 404 automatiquement les routes du frontend
   désactivé (matche par `getRoutePrefixes()`).
 
@@ -548,7 +548,7 @@ Doc référence :
 
 ---
 
-## 8. Cas 5 — module avec settings (onglet Configuration)
+## 8. Cas 5 - module avec settings (onglet Configuration)
 
 Pour contribuer un onglet à la page admin Settings, implémenter
 **`ConfigurationTabProviderInterface`** :
@@ -583,7 +583,7 @@ final readonly class MyModuleConfigurationTabProvider implements ConfigurationTa
         }
 
         // Construire les ConfigurationTab à partir des fields groupés
-        // (cf. CrmConfigurationTabProvider pour le pattern complet — et le
+        // (cf. CrmConfigurationTabProvider pour le pattern complet - et le
         // ConfigurationTab `moduleToggle:` pour gater l'onglet sur l'état
         // du toggle module dans /dev/dashboard/modules)
     }
@@ -595,15 +595,15 @@ final readonly class MyModuleConfigurationTabProvider implements ConfigurationTa
   onglets partagés comme `sequences` qui agrège les préfixes de référence de
   tous les modules).
 - `SettingDefinitionRegistry` agrège tous les providers et merge par `id`
-  d'onglet — pas de patch sur core nécessaire.
+  d'onglet - pas de patch sur core nécessaire.
 - Enum dédié `MyModuleSettingEnum` (cases avec `getKey/getType/getLabel/
   getDescription/getDefaultValue/getGroup/getPlaceholder`). `getPlaceholder()`
-  retourne `null` par défaut — surcharge `match` sur les cases où un
+  retourne `null` par défaut - surcharge `match` sur les cases où un
   exemple concret est plus parlant que la description seule (préfixe,
   email, template SEO…).
 - Pour gater l'onglet sur l'état du module : passer
   `moduleToggle: <Module>ModuleParameterEnum::Backend->value` (string) sur le
-  `ConfigurationTab` du module — cf. `CrmConfigurationTabProvider`.
+  `ConfigurationTab` du module - cf. `CrmConfigurationTabProvider`.
   L'onglet disparaît automatiquement quand le module est désactivé
   dans `/dev/dashboard/modules`. Les onglets partagés (`sequences`)
   laissent `moduleToggle: null`.
@@ -637,7 +637,7 @@ Choisir une icône, ajouter l'import + l'entrée `'kebab-name': IconComponent`.
 
 ---
 
-## 10. Checklist récap — nouveau module
+## 10. Checklist récap - nouveau module
 
 Pour un module **avec entités CRUD + frontend + settings + sous-features
 togglables** (cas le plus complet) :
@@ -650,11 +650,11 @@ togglables** (cas le plus complet) :
 1. [ ] `src/Module/<Module>/<Module>Module.php` (`ModuleInterface` +
    `ModuleToggleProviderInterface` par défaut)
 2. [ ] `src/Module/<Module>/<Module>Context.php` (à la racine du folder
-   du module — pas sous `Service/` depuis 0.4 ; cf.
+   du module - pas sous `Service/` depuis 0.4 ; cf.
    [`pattern_core_submodules_split.md`](../../../.claude/memory/aurora-core/architecture/pattern_core_submodules_split.md))
 3. [ ] `src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php` +
    `<Module>ModuleParameterProvider.php` (toggles propres au module, cascade
-   via `getCascadeRequires()` — **pas** l'enum central)
+   via `getCascadeRequires()` - **pas** l'enum central)
 3bis. [ ] Package shape : `Aurora<Module>Bundle.php` + `composer.json` +
    `config/services.php` ; enregistrer le bundle dans `config/bundles.php` +
    exclure `../src/Module/<Module>/` du glob de `config/services.yaml`
@@ -662,7 +662,7 @@ togglables** (cas le plus complet) :
    `<Name>` non-`final` avec sequence `seq_core_<entity>_id`
 5. [ ] Ajouter au `Aurora<Module>Bundle::resolveTargetEntities()` (une ligne
    par entité)
-6. [ ] DTO + Manager + Serializer + Repository (convention 5 couches —
+6. [ ] DTO + Manager + Serializer + Repository (convention 5 couches -
    cf. [`entity_extensibility_convention.md`](entity_extensibility_convention.md))
 7. [ ] `Controller/Backend/<Name>Controller.php` (type-hint les **interfaces**,
    pas les classes concrètes)
@@ -698,7 +698,7 @@ configuration tab merging, frontend toggle gating, Vue components glob.
 - **Sub-DTO** (ex. `<Name>TranslationInput` dans `<Name>Input`) : restent
   `final readonly`, **pas instrumentés**. Seul le DTO racine consommé par le
   controller a une factory + interface.
-- **Templates co-localisés au module** : `src/Module/<Module>/templates/` —
+- **Templates co-localisés au module** : `src/Module/<Module>/templates/` -
   parallèle à `assets/` et `translations/`. L'auto-discovery globe
   `src/Module/*/templates/` (cf. `AuroraBundle::prependExtension`).
   Les clients peuvent override soit via le même chemin

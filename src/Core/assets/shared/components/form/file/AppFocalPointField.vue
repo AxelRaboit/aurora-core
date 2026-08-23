@@ -2,7 +2,7 @@
 /**
  * Picks the point a picture is cropped around, by clicking on the picture.
  *
- * Two numbers between 0 and 1 — the fraction across and the fraction down.
+ * Two numbers between 0 and 1 - the fraction across and the fraction down.
  * They become `object-position` at render, which is what decides what survives
  * when a wide photo has to fill a narrow frame.
  *
@@ -10,7 +10,7 @@
  * *this* picture matters", and that is a question about the picture: you point
  * at the face, you do not compute where the face is.
  *
- * `null` on both axes means "no override" — the point stored on the document
+ * `null` on both axes means "no override" - the point stored on the document
  * itself is used instead. Half an override is not a position, so clearing
  * clears both, and the crosshair falls back to showing the inherited point
  * rather than disappearing.
@@ -35,7 +35,7 @@ const props = defineProps({
      * the centre when the document says otherwise.
      */
     inherited: { type: String, default: "50% 50%" },
-    /** How the picture fills its own preview — mirrors what a card will do. */
+    /** How the picture fills its own preview - mirrors what a card will do. */
     fitClass: { type: String, default: "object-cover" },
 });
 
@@ -96,7 +96,7 @@ function reset() {
                 <img :src="src" alt="" class="h-full w-full pointer-events-none" :class="fitClass">
                 <!-- Two rings so the marker stays visible on a light picture
                      and on a dark one, without a backdrop hiding what is under
-                     it — which is the thing being aimed at. -->
+                     it - which is the thing being aimed at. -->
                 <span
                     class="pointer-events-none absolute h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white ring-2 ring-black/50"
                     :style="marker"

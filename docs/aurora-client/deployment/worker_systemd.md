@@ -1,4 +1,4 @@
-# aurora_worker — systemd service setup
+# aurora_worker - systemd service setup
 
 > **Status**: à mettre en place sur le serveur de production si un module utilise le transport `async`.
 

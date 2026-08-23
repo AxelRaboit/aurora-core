@@ -11,16 +11,16 @@ Pour toute logique qui dépend de la **liste des locales actives**, passer
 par les services dans `src/Core/Locale/Service/` plutôt que d'injecter
 `kernel.enabled_locales` ou d'utiliser `LocaleEnum::values()` :
 
-- `LocaleContextInterface::getActiveLocales()` — pour itérer dans le code
+- `LocaleContextInterface::getActiveLocales()` - pour itérer dans le code
   applicatif (Managers, ViewBuilders, Serializers, etc.).
-- `LocaleContextInterface::getAllLocales()` — pour les **outils statiques**
+- `LocaleContextInterface::getAllLocales()` - pour les **outils statiques**
   indépendants du runtime (ex: `DumpJsTranslationsCommand`, dump
   d'assets) qui doivent traiter toutes les locales du bundle quelque
   soit le mode.
-- `LocaleOptionsProviderInterface::getActiveOptions()` — pour produire
+- `LocaleOptionsProviderInterface::getActiveOptions()` - pour produire
   `[{code, label}, ...]` aux composants Vue (onglets/selects). Combine
   `LocaleContext` + `LocaleRepository`.
-- `TranslationLocaleSyncerInterface::stale($existing, $inputLocales)` —
+- `TranslationLocaleSyncerInterface::stale($existing, $inputLocales)` -
   pour calculer quelles `XxxTranslation` supprimer lors d'un `update()`.
   Préserve **toujours** les locales hors mode actif (réversibilité du
   single mode).

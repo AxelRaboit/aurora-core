@@ -29,8 +29,8 @@ use PHPUnit\Framework\TestCase;
  * The reference did it the other way round: a decorator called `submit()`,
  * which persisted the comment, wrote the audit entry **and sent the email**,
  * and only then flipped the result to spam. Every spam comment therefore
- * mailed the administrator — the one outcome a spam filter exists to
- * prevent — and with moderation switched off it mailed the address the
+ * mailed the administrator - the one outcome a spam filter exists to
+ * prevent - and with moderation switched off it mailed the address the
  * spammer had typed, which turns the site into a relay for anyone who can
  * fill a form.
  *
@@ -97,7 +97,7 @@ final class CommentManagerTest extends TestCase
     }
 
     /**
-     * Re-approving something already live must not tell the author twice —
+     * Re-approving something already live must not tell the author twice -
      * a moderator un-spamming a comment they had flagged by mistake, say.
      */
     public function testApprovingAnAlreadyApprovedCommentSendsNothing(): void
@@ -110,7 +110,7 @@ final class CommentManagerTest extends TestCase
         self::assertSame(CommentStatusEnum::Approved, $comment->getStatus());
     }
 
-    /** A comment as it comes back from the database — every column filled. */
+    /** A comment as it comes back from the database - every column filled. */
     private function storedComment(CommentStatusEnum $status): Comment
     {
         return new Comment()
@@ -123,7 +123,7 @@ final class CommentManagerTest extends TestCase
 
     /**
      * A real generator over a stubbed connection: the class is final, and
-     * what it hands back does not matter here — only that asking for a
+     * what it hands back does not matter here - only that asking for a
      * reference does not stop the flow being tested.
      */
     private function sequenceGenerator(): SequenceGenerator

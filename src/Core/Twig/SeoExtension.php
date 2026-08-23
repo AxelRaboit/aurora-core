@@ -93,7 +93,7 @@ final readonly class SeoExtension
             'image' => $image,
             // Only when there is an image to describe: `og:image:alt` without
             // an `og:image` describes nothing, and an empty one is worse than
-            // absent — it tells a screen reader the picture is decorative when
+            // absent - it tells a screen reader the picture is decorative when
             // it is the whole preview of a shared link.
             'imageAlt' => '' !== $image && is_string($data['imageAlt'] ?? null)
                 ? mb_trim($data['imageAlt'])
@@ -171,7 +171,7 @@ final readonly class SeoExtension
 
     /**
      * Accepts a DocumentInterface entity, a serialized document array (with
-     * `publicUrl` key — also recognises the historical Media array shape) or
+     * `publicUrl` key - also recognises the historical Media array shape) or
      * a raw URL string. The historical shape stayed compatible because the
      * `publicUrl` key spans both serializers.
      */

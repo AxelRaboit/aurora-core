@@ -23,7 +23,7 @@ async function openPicker(page) {
         .getByRole("button", { name: /choose|choisir|elegir|wählen/i })
         .first();
     await trigger.click();
-    // Modal title is `t("shared.media.picker.title")` — locale-agnostic match by role.
+    // Modal title is `t("shared.media.picker.title")` - locale-agnostic match by role.
     await expect(
         page.getByRole("dialog").getByRole("heading").first(),
     ).toBeVisible({ timeout: 5_000 });
@@ -34,7 +34,7 @@ test.describe("Media Picker Modal", () => {
         await loginAsAdmin(page);
         await openPicker(page);
 
-        // Press Escape — the modal should close.
+        // Press Escape - the modal should close.
         await page.keyboard.press("Escape");
         await expect(
             page.getByRole("dialog").getByRole("heading").first(),
@@ -59,7 +59,7 @@ test.describe("Media Picker Modal", () => {
 
         const search = page.locator("input[type='search']").first();
         await search.fill("nonexistent-zzz-query-xyz");
-        // Debounced 250ms — wait a bit then check empty state.
+        // Debounced 250ms - wait a bit then check empty state.
         await page.waitForTimeout(500);
         const emptyMessage = page.getByText(
             /no media found|aucun média|ningún medio|kein medium/i,
@@ -72,14 +72,14 @@ test.describe("Media Picker Modal", () => {
     }) => {
         await loginAsAdmin(page);
         // Settings logo picker uses imagesOnly:true so type filters are hidden.
-        // Skip if we can't find the type buttons — that's expected behaviour.
+        // Skip if we can't find the type buttons - that's expected behaviour.
         await openPicker(page);
 
         const allBtn = page
             .getByRole("button", { name: /^(all|tous|todos|alle)$/i })
             .first();
         // Either it's there (non-imagesOnly context) or hidden (imagesOnly).
-        // Both are acceptable — we just check the picker rendered correctly.
+        // Both are acceptable - we just check the picker rendered correctly.
         if (await allBtn.count()) {
             await expect(allBtn).toBeVisible();
         }

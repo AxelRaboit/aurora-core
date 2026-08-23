@@ -35,7 +35,7 @@ export function useModules(
         );
     });
 
-    // Password gate — verified once per page load, then all toggles are free
+    // Password gate - verified once per page load, then all toggles are free
     const passwordVerified = ref(false);
     const showPasswordModal = ref(false);
     const password = ref("");

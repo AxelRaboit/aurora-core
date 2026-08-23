@@ -27,12 +27,12 @@ final readonly class ContentValueNormalizer
      */
     public const int COLUMNS = 48;
 
-    /** Smallest first — an absent step inherits the one below it. */
+    /** Smallest first - an absent step inherits the one below it. */
     public const array BREAKPOINTS = ['base', 'md', 'lg'];
 
     /**
      * Schemes a link may use. `javascript:` and `data:` are the reason this is
-     * a whitelist rather than a blocklist — the value lands in an `href`, and
+     * a whitelist rather than a blocklist - the value lands in an `href`, and
      * an author is not the only one who can reach these fields.
      */
     private const array URL_PREFIXES = ['/', '#', 'http://', 'https://', 'mailto:', 'tel:'];
@@ -92,7 +92,7 @@ final readonly class ContentValueNormalizer
 
     /**
      * Widths per breakpoint, smallest first. An absent step inherits the one
-     * below it — which is why only `base` is guaranteed: an item that says
+     * below it - which is why only `base` is guaranteed: an item that says
      * nothing is full width on a phone and stays full width until something
      * says otherwise.
      *
@@ -121,7 +121,7 @@ final readonly class ContentValueNormalizer
      * Keeps the editor's id when it is usable and unique, and assigns one
      * otherwise. Generated rather than rejected: an item with no id is still
      * an item an author placed, and dropping it to punish the payload would
-     * lose work. Collisions resolve the same way — the second claimant gets a
+     * lose work. Collisions resolve the same way - the second claimant gets a
      * fresh id, so two items can never share a translation's content.
      *
      * @param array<string, bool> $used

@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
  *
  * Replaces the static {@code public/favicon.svg} with a dynamic version so the browser tab
  * icon follows the admin's chosen primary colour. We don't go through the normal Symfony
- * controller route lookup chain — this route is registered with high priority so it takes
+ * controller route lookup chain - this route is registered with high priority so it takes
  * precedence over the static file (which the symfony local server would serve otherwise).
  *
  * Cache-Control + ETag based on the colour mean the browser only re-fetches when the admin
@@ -50,7 +50,7 @@ final readonly class FaviconController
 
         $response = new Response($svg, HttpStatusEnum::Ok->value, [
             'Content-Type' => 'image/svg+xml',
-            // Public + ETag — the browser re-fetches only when the colour changes.
+            // Public + ETag - the browser re-fetches only when the colour changes.
             'Cache-Control' => 'public, max-age=300, must-revalidate',
         ]);
         $response->setEtag(md5($hex));

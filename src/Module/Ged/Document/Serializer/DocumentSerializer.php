@@ -37,14 +37,14 @@ class DocumentSerializer implements DocumentSerializerInterface
             'statusLabel' => $this->translator->trans($document->getStatus()->getLabelKey()),
             'categoryId' => $category?->getId(),
             'categoryName' => $category?->getName(),
-            // Self-owned file fields — no Media coupling. URL is built via
+            // Self-owned file fields - no Media coupling. URL is built via
             // the canonical `uploads_serve` route through UploadUrlGenerator
             // (no hardcoded `/uploads/` prefix).
             'filePath' => $document->getFilePath(),
             'fileName' => $document->getFileName(),
             'originalName' => $document->getOriginalName(),
             'fileUrl' => $this->uploadUrlGenerator->publicUrl($document->getFilePath()),
-            // Stable canonical URL that survives file renames/re-uploads —
+            // Stable canonical URL that survives file renames/re-uploads -
             // /document/{id} redirects to the current file (cf. MediaViewController).
             'permalink' => null === $document->getId()
                 ? null

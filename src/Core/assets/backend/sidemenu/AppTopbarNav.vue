@@ -7,7 +7,7 @@
  * its own history behind the browser's toolbar is one gesture further from
  * everything.
  *
- * Presentation only — what each one actually does, and what it honestly can and
+ * Presentation only - what each one actually does, and what it honestly can and
  * cannot do, lives in `useTopbarNavigation`.
  */
 import { useI18n } from "vue-i18n";

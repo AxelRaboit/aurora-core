@@ -1,7 +1,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 
 /**
- * Sidebar navigation state — mirrors Media's pattern of (currentFolderId,
+ * Sidebar navigation state - mirrors Media's pattern of (currentFolderId,
  * allDocumentsView) refs synced with the URL via history.pushState.
  *
  * The list itself is fetched by `useListPage` (pagination + search), which

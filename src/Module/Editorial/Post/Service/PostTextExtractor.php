@@ -28,7 +28,7 @@ final readonly class PostTextExtractor
             $translation->getMetaDescription(),
             $translation->getFocusKeyword(),
             // The body lives in the grid since it became the only one. Reading
-            // `blocks` alone stopped finding a word of it — and nothing would
+            // `blocks` alone stopped finding a word of it - and nothing would
             // have said so: the column still holds what it held before the
             // migration, so search kept answering, with answers a version out
             // of date.
@@ -60,7 +60,7 @@ final readonly class PostTextExtractor
      *
      * Captions and alt text are collected beside the blocks: they are words an
      * author wrote for a reader, which is the whole test for whether something
-     * belongs in a search index. The video address is not — it is a location,
+     * belongs in a search index. The video address is not - it is a location,
      * and a reader searching for "youtube" wants pages about it rather than
      * every page carrying a clip.
      *

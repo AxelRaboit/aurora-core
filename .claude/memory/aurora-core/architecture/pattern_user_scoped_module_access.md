@@ -18,7 +18,7 @@ checker, donc plus de chained `&& $this->isParentEnabled()` dans les contexts.
 
 **Source de vérité du cascade graph** : `ModuleToggleRegistry`, alimenté
 par chaque module implémentant `ModuleToggleProviderInterface::getToggles()`.
-Aurora-core et aurora-client utilisent le **même mécanisme** — un module
+Aurora-core et aurora-client utilisent le **même mécanisme** - un module
 client (ex: Tracking) ajoute son toggle en implémentant cette interface
 et apparaît automatiquement dans la modale "Accès aux modules". Plus aucun
 patch sur l'enum ou `UsersViewBuilder` requis côté client.
@@ -29,7 +29,7 @@ l'existence du module (action plateforme).
 
 **How to apply:**
 - Jamais appeler `settingRepository->getBoolean(ModuleParameterEnum::*)`
-  directement — passer par le `*Context` ou directement par
+  directement - passer par le `*Context` ou directement par
   `ModuleAccessChecker::isEnabled()`.
 - Pour ajouter un nouveau module **core** : suit le pattern existant
   (Context `final readonly`, `private ModuleAccessChecker $moduleAccessChecker`),

@@ -32,7 +32,7 @@ Indispensable après :
 ### Tests + qualité
 
 ```bash
-make ft             # fix (linters) + test — à lancer avant chaque commit
+make ft             # fix (linters) + test - à lancer avant chaque commit
 make test           # tests complets (PHP + JS)
 make test-backend   # PHPUnit uniquement
 make test-frontend  # Vitest uniquement

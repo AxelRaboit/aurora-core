@@ -17,7 +17,7 @@ const colors = {
     amber:   { text: "text-secondary hover:text-amber-400",   bg: "hover:bg-surface-2" },
     // For use on bright, non-Aurora surfaces (post-it sticky notes, light
     // overlays, custom-colored cards). Aurora tokens (text-secondary etc.)
-    // assume a dark surface and become invisible on bright backgrounds —
+    // assume a dark surface and become invisible on bright backgrounds -
     // this variant ships a dark-on-light palette tuned for that case.
     "on-light": { text: "text-black/50 hover:text-black/80",  bg: "hover:bg-black/10" },
 };
@@ -28,7 +28,7 @@ const sizes = {
 };
 
 // Always project a label to assistive tech: prefer explicit ariaLabel, fall back to title.
-// Components that pass neither will render an unlabelled button — caught by lint:a11y in CI.
+// Components that pass neither will render an unlabelled button - caught by lint:a11y in CI.
 const computedAriaLabel = props.ariaLabel ?? props.title ?? undefined;
 const resolvedColor = colors[props.color] ?? colors.default;
 </script>

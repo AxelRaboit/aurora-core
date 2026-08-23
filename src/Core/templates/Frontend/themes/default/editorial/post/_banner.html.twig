@@ -1,4 +1,4 @@
-{# Post banner — rendered above the article when the translation configures one.
+{# Post banner - rendered above the article when the translation configures one.
    `banner` comes from BannerViewBuilder and is null when disabled or empty, so
    the caller guards on it rather than this file second-guessing.
 
@@ -8,7 +8,7 @@
    classes it can read in the source.
 
    The height and alignment maps below are written out literally for the same
-   reason — a class assembled by concatenation is one Tailwind never sees. #}
+   reason - a class assembled by concatenation is one Tailwind never sees. #}
 
 {% set heights = {
     sm: 'min-h-48',
@@ -37,15 +37,15 @@
 } %}
 
 {# Three placements:
-   - contained    — the banner sits in the article column, rounded like a card
-   - full_aligned — background spans the viewport, content keeps the page's
+   - contained    - the banner sits in the article column, rounded like a card
+   - full_aligned - background spans the viewport, content keeps the page's
                     own left edge, so the title lines up with the text below
-   - full         — background and content both span, edge to edge
+   - full         - background and content both span, edge to edge
 
    The two full modes drop the rounding: a corner radius against the window
    edge reads as a mistake.
 
-   `full_aligned` mirrors <main>'s own box — max-w-7xl, centred, px-4 — rather
+   `full_aligned` mirrors <main>'s own box - max-w-7xl, centred, px-4 - rather
    than guessing a value, so the two stay aligned if that ever changes. #}
 {% set isFull = banner.width starts with 'full' %}
 
@@ -84,14 +84,14 @@
     {# The box and the grid are two elements, not one, and that is what makes
        the alignment work.
 
-       `.aurora-grid` spaces its items with their own `padding-inline` — the
-       gutter — so the first item's content sits a gutter inside the grid box.
+       `.aurora-grid` spaces its items with their own `padding-inline` - the
+       gutter - so the first item's content sits a gutter inside the grid box.
        Against a page column that has no such gutter, that is a permanent
        sixteen-pixel offset: `full_aligned` promised the page's own left edge
        and missed it by exactly one gutter, every time.
 
        `.aurora-grid-flush` pulls those two outer edges back, which is the
-       whole reason it exists — but it cannot share an element with `mx-auto`,
+       whole reason it exists - but it cannot share an element with `mx-auto`,
        because a negative `margin-inline` cancels the centring. So the box
        (`max-w-7xl mx-auto px-4`, or the full-bleed padding) goes on the
        wrapper, and the grid goes inside it. The negative margin then works

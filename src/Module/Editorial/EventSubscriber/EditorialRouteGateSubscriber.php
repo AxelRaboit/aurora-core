@@ -16,12 +16,12 @@ use Aurora\Module\Editorial\EditorialFrontendDescriptor;
  * turns off Taxonomies alone expects the taxonomy screens to go and the
  * posts to stay.
  *
- * The public content routes are not listed here — they are gated by
+ * The public content routes are not listed here - they are gated by
  * {@see FrontendRouteGateSubscriber} through the prefixes
  * {@see EditorialFrontendDescriptor} declares, and gating them twice would
  * only give the rule two places to drift from. The crawler-facing files are
  * the exception: they carry a toggle of their own, so an administrator can
- * keep the site public and stop publishing a sitemap — something Core's gate
+ * keep the site public and stop publishing a sitemap - something Core's gate
  * knows nothing about.
  */
 final readonly class EditorialRouteGateSubscriber extends AbstractModuleRouteGateSubscriber

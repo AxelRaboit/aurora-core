@@ -6,7 +6,7 @@ function makeFolder(id, name, parentId = null, position = 0) {
     return { id, name, parentId, position };
 }
 
-describe("useDocumentFolderTree — toggleCollapse", () => {
+describe("useDocumentFolderTree - toggleCollapse", () => {
     it("adds id to collapsedIds when not present", () => {
         const { collapsedIds, toggleCollapse } = useDocumentFolderTree(ref([]));
         toggleCollapse(3);
@@ -36,7 +36,7 @@ describe("useDocumentFolderTree — toggleCollapse", () => {
     });
 });
 
-describe("useDocumentFolderTree — flatTree", () => {
+describe("useDocumentFolderTree - flatTree", () => {
     it("returns flat list of all folders", () => {
         const items = ref([makeFolder(1, "Alpha"), makeFolder(2, "Beta")]);
         const { flatTree } = useDocumentFolderTree(items);
@@ -72,7 +72,7 @@ describe("useDocumentFolderTree — flatTree", () => {
     });
 });
 
-describe("useDocumentFolderTree — filteredTree", () => {
+describe("useDocumentFolderTree - filteredTree", () => {
     it("returns full tree when search is empty", () => {
         const items = ref([makeFolder(1, "Alpha"), makeFolder(2, "Beta")]);
         const { filteredTree } = useDocumentFolderTree(items);

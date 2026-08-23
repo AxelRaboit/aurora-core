@@ -4,10 +4,10 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
-const POLL_INTERVAL_MS = 30_000; // 30s — light enough not to hammer.
+const POLL_INTERVAL_MS = 30_000; // 30s - light enough not to hammer.
 
-// Module-level singleton state. The bell is mounted twice — once in the page
-// header for desktop, once in the mobile top bar — because neither is on screen
+// Module-level singleton state. The bell is mounted twice - once in the page
+// header for desktop, once in the mobile top bar - because neither is on screen
 // at the breakpoint the other serves. Without this singleton each instance
 // would fetch and poll independently, doubling the network traffic.
 let sharedState = null;

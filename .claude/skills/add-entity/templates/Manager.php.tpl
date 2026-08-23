@@ -50,7 +50,7 @@ class {{NAME}}Manager implements {{NAME}}ManagerInterface
 
     /**
      * Instantiates the concrete entity. Override in a subclass to return a
-     * client-substituted class — `resolve_target_entities` only affects
+     * client-substituted class - `resolve_target_entities` only affects
      * Doctrine relation resolution, not direct `new` calls.
      */
     protected function create{{NAME}}(): {{NAME}}Interface

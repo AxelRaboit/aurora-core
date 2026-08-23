@@ -63,7 +63,7 @@ export function usePostComments(props) {
 
             if (!data.success) {
                 // Server messages arrive as translation keys, the same as
-                // everywhere else in Aurora — a reader must never be shown a
+                // everywhere else in Aurora - a reader must never be shown a
                 // raw `frontend.editorial.…` string.
                 errors.value = Object.fromEntries(
                     Object.entries(data.errors ?? {}).map(([field, key]) => [
@@ -104,7 +104,7 @@ export function usePostComments(props) {
         if (!data?.success) return;
 
         // Only the counts come back, so the thread is patched in place rather
-        // than refetched — a reaction should not scroll the page or drop a
+        // than refetched - a reaction should not scroll the page or drop a
         // half-typed reply.
         patchReactions(comment.id, data.counts ?? {});
     }

@@ -1,6 +1,6 @@
 ---
 name: convention-storage-var-uploads
-description: All files stored by Aurora (core OR client extensions) live under var/uploads/<category>/. Apache never serves directly — every byte goes through PHP via a serve controller. URL building lives in dedicated services, never on entities.
+description: All files stored by Aurora (core OR client extensions) live under var/uploads/<category>/. Apache never serves directly - every byte goes through PHP via a serve controller. URL building lives in dedicated services, never on entities.
 metadata:
   type: feedback
 ---
@@ -8,7 +8,7 @@ metadata:
 **Aurora stocke tous les fichiers** (médias éditoriaux, photos profil,
 images notes, factures OCR, PDF signés, et toute future catégorie
 ajoutée par un client) **sous `var/uploads/<categorie>/`**, hors
-document root. **Aucun fichier n'est servable directement par Apache** —
+document root. **Aucun fichier n'est servable directement par Apache** -
 chaque accès passe par un controller PHP qui délègue à
 `Aurora\Core\Storage\BinaryFileServer` (path-traversal guard +
 `BinaryFileResponse` + X-Sendfile en prod).
@@ -23,7 +23,7 @@ vers `var/uploads/`.
 
 1. **Nouveau stockage** → `var/uploads/<categorie>/` (jamais `public/`)
 2. **Service** qui écrit/lit injecte
-   `#[Autowire('%app.upload_dir%/<categorie>')]` — la valeur
+   `#[Autowire('%app.upload_dir%/<categorie>')]` - la valeur
    `app.upload_dir` pointe vers `var/uploads`.
 3. **URL serve** : un controller dédié (route nommée `<module>_serve`)
    délègue à `BinaryFileServer::serve()` ou `servePublic()`. Le
@@ -34,7 +34,7 @@ vers `var/uploads/`.
 4. **URL construction** : injecter `UrlGeneratorInterface` ou un URL
    generator dédié (cf. `DocumentUrlGenerator`, `UserProfilePhotoUrlGenerator`
    comme exemples canoniques côté core). **Jamais** concaténer
-   `'/uploads/...'` dans une entité — l'URL est presentation, pas
+   `'/uploads/...'` dans une entité - l'URL est presentation, pas
    domaine.
 5. **Cleanup orphelines** : si la catégorie a un cycle de vie (notes
    images, OCR files, …), définir un hook `protected cleanup<X>` dans

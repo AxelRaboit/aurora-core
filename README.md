@@ -24,18 +24,18 @@ L'administration est une SPA Vue intégrée à Symfony via `symfony/ux-vue`. Le 
 
 ## Fonctionnalités
 
-- **Éditeur bloc Editor.js** — titres, listes, images, tableaux, code, citations, intégrations (YouTube, Vimeo…), plus trois blocs custom : Callout, MediaText et Two Columns
-- **Templates de démarrage** — 12 modèles prêts à l'emploi regroupés en catégories (Article, Marketing, Mise en page, Technique) applicables en un clic
-- **Multi-langue** — traductions indépendantes par locale (fr, en, es, de) avec champ `slug` verrouillé/déverrouillé par traduction
-- **Types de contenu dynamiques** — définir des types de post (Article, Page, etc.) depuis l'admin
-- **Tags, médias vedettes, SEO** — méta-titre et méta-description comptés en temps réel
-- **Optimistic locking** — deux admins peuvent éditer le même contenu ; le second est prévenu d'un conflit lors de sa sauvegarde et peut fusionner les modifications
-- **Résolution de conflits 3-way** — comparaison bloc par bloc entre base / local / remote avec acceptation manuelle par bloc ou en batch (inspiré de Git merge)
-- **Rôles** — utilisateurs et développeurs avec impersonification depuis l'admin
-- **Demandes d'accès** — visiteurs peuvent demander l'accès, l'admin approuve ou refuse par e-mail
-- **Invitations** — envoi d'invitations par e-mail avec message et identifiants optionnels
-- **Thème** — mode sombre et mode clair
-- **Prévisualisation** — rendu fidèle du contenu avant publication
+- **Éditeur bloc Editor.js** - titres, listes, images, tableaux, code, citations, intégrations (YouTube, Vimeo…), plus trois blocs custom : Callout, MediaText et Two Columns
+- **Templates de démarrage** - 12 modèles prêts à l'emploi regroupés en catégories (Article, Marketing, Mise en page, Technique) applicables en un clic
+- **Multi-langue** - traductions indépendantes par locale (fr, en, es, de) avec champ `slug` verrouillé/déverrouillé par traduction
+- **Types de contenu dynamiques** - définir des types de post (Article, Page, etc.) depuis l'admin
+- **Tags, médias vedettes, SEO** - méta-titre et méta-description comptés en temps réel
+- **Optimistic locking** - deux admins peuvent éditer le même contenu ; le second est prévenu d'un conflit lors de sa sauvegarde et peut fusionner les modifications
+- **Résolution de conflits 3-way** - comparaison bloc par bloc entre base / local / remote avec acceptation manuelle par bloc ou en batch (inspiré de Git merge)
+- **Rôles** - utilisateurs et développeurs avec impersonification depuis l'admin
+- **Demandes d'accès** - visiteurs peuvent demander l'accès, l'admin approuve ou refuse par e-mail
+- **Invitations** - envoi d'invitations par e-mail avec message et identifiants optionnels
+- **Thème** - mode sombre et mode clair
+- **Prévisualisation** - rendu fidèle du contenu avant publication
 
 ---
 
@@ -43,9 +43,9 @@ L'administration est une SPA Vue intégrée à Symfony via `symfony/ux-vue`. Le 
 
 Quand deux administrateurs modifient simultanément le même contenu, le second voit ses modifications bloquées à la sauvegarde. Aurora propose alors trois actions :
 
-1. **Voir la version actuelle** — aperçu de la version en base sans perdre son travail local
-2. **Fusionner** — ouvre un merge editor plein écran qui diffe les blocs Editor.js entre l'état de base (au chargement), local (en cours) et remote (en base), classifie chaque bloc (`unchanged`, `local-modified`, `remote-modified`, `local-added`, `remote-added`, `conflict`…) et permet de choisir version par version
-3. **Forcer ma sauvegarde** — écrase la version en base (Doctrine incrémente quand même le `@Version` pour bloquer les futures sauvegardes conflictuelles)
+1. **Voir la version actuelle** - aperçu de la version en base sans perdre son travail local
+2. **Fusionner** - ouvre un merge editor plein écran qui diffe les blocs Editor.js entre l'état de base (au chargement), local (en cours) et remote (en base), classifie chaque bloc (`unchanged`, `local-modified`, `remote-modified`, `local-added`, `remote-added`, `conflict`…) et permet de choisir version par version
+3. **Forcer ma sauvegarde** - écrase la version en base (Doctrine incrémente quand même le `@Version` pour bloquer les futures sauvegardes conflictuelles)
 
 Le verrouillage optimiste utilise la colonne `#[ORM\Version]` de Doctrine combinée à `EntityManager::lock()` pour détecter les conflits de manière atomique.
 
@@ -78,7 +78,7 @@ Le verrouillage optimiste utilise la colonne `#[ORM\Version]` de Doctrine combin
 | Node.js | 20+ | |
 | Composer | 2+ | |
 | pnpm | 9+ | |
-| Docker + docker compose | v2+ | Mailpit (SMTP dev) — seul service conteneurisé |
+| Docker + docker compose | v2+ | Mailpit (SMTP dev) - seul service conteneurisé |
 
 **Binaires système optionnels**
 
@@ -91,7 +91,7 @@ Le verrouillage optimiste utilise la colonne `#[ORM\Version]` de Doctrine combin
 > `gs`, puis renvoie l'icône de repli. Rien ne casse si aucun des deux n'est là.
 
 > 📋 **Liste exhaustive** des prérequis (système, extensions PHP, binaires CLI, services externes, vars d'env, spécificités prod) :
-> [`docs/aurora-core/ops/prerequisites.md`](docs/aurora-core/ops/prerequisites.md) — à consulter avant chaque install/déploiement.
+> [`docs/aurora-core/ops/prerequisites.md`](docs/aurora-core/ops/prerequisites.md) - à consulter avant chaque install/déploiement.
 
 ### Services externes
 
@@ -99,8 +99,8 @@ Aucun, au-delà de PostgreSQL et d'un SMTP de développement. Les transports
 Messenger sont en `doctrine://default`, donc **aucun broker** (RabbitMQ, Redis)
 n'est requis pour faire tourner Aurora tel quel.
 
-Les modules qui demandaient un Ollama local ou un microservice docTR — Billing
-OCR, Assistant IA — ont été extraits puis archivés en août 2026. Voir
+Les modules qui demandaient un Ollama local ou un microservice docTR - Billing
+OCR, Assistant IA - ont été extraits puis archivés en août 2026. Voir
 [`docs/aurora-client/getting-started/installing_modules.md`](docs/aurora-client/getting-started/installing_modules.md).
 
 ### Mise en place
@@ -128,7 +128,7 @@ MAILER_DSN="smtp://localhost:25"
 APP_SECRET=your-secret-here
 ```
 
-Charger des données de démonstration (optionnel — recrée la base entièrement) :
+Charger des données de démonstration (optionnel - recrée la base entièrement) :
 
 ```bash
 make fixtures
@@ -138,7 +138,7 @@ make fixtures
 
 ```bash
 make start              # serveur Symfony (démarré en arrière-plan)
-make watch              # Vite HMR — dans un second terminal
+make watch              # Vite HMR - dans un second terminal
 ```
 
 `make start` ne lance plus Vite : les deux serveurs sont indépendants, et un
@@ -163,14 +163,14 @@ make deploy-prod
 Aurora est testé à trois niveaux :
 
 ```bash
-make test-frontend             # Vitest — composables et composants Vue
-make test-backend-unit         # PHPUnit — tests unitaires
-make test-backend-integration  # PHPUnit — tests d'intégration (contrôleurs)
-make test-e2e                  # Playwright — end-to-end
+make test-frontend             # Vitest - composables et composants Vue
+make test-backend-unit         # PHPUnit - tests unitaires
+make test-backend-integration  # PHPUnit - tests d'intégration (contrôleurs)
+make test-e2e                  # Playwright - end-to-end
 make test                      # tout lancer (frontend + backend)
 ```
 
-### Playwright (E2E) — prérequis WSL/Linux
+### Playwright (E2E) - prérequis WSL/Linux
 
 Les navigateurs Playwright ont besoin de quelques bibliothèques système :
 

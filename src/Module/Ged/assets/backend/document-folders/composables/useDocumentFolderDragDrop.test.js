@@ -55,7 +55,7 @@ afterEach(() => {
     vi.unstubAllGlobals();
 });
 
-describe("useDocumentFolderDragDrop — onDragStart", () => {
+describe("useDocumentFolderDragDrop - onDragStart", () => {
     it("sets draggingId to the folder id", () => {
         const { draggingId, onDragStart } = mountDragDrop();
         const event = makeDragEvent();
@@ -71,7 +71,7 @@ describe("useDocumentFolderDragDrop — onDragStart", () => {
     });
 });
 
-describe("useDocumentFolderDragDrop — getZone (via onDragOver dropTarget)", () => {
+describe("useDocumentFolderDragDrop - getZone (via onDragOver dropTarget)", () => {
     it("zone is 'before' when cursor is in top 40%", () => {
         const { draggingId, dropTarget, onDragStart, onDragOver } =
             mountDragDrop();
@@ -97,7 +97,7 @@ describe("useDocumentFolderDragDrop — getZone (via onDragOver dropTarget)", ()
     });
 });
 
-describe("useDocumentFolderDragDrop — onDragOver", () => {
+describe("useDocumentFolderDragDrop - onDragOver", () => {
     it("does not set dropTarget when dragging over self", () => {
         const { dropTarget, onDragStart, onDragOver } = mountDragDrop();
         onDragStart(makeDragEvent(), makeFolder(3, "A"));
@@ -113,7 +113,7 @@ describe("useDocumentFolderDragDrop — onDragOver", () => {
     });
 });
 
-describe("useDocumentFolderDragDrop — onDragEnd", () => {
+describe("useDocumentFolderDragDrop - onDragEnd", () => {
     it("resets draggingId and dropTarget", () => {
         const { draggingId, dropTarget, onDragStart, onDragOver, onDragEnd } =
             mountDragDrop();
@@ -125,7 +125,7 @@ describe("useDocumentFolderDragDrop — onDragEnd", () => {
     });
 });
 
-describe("useDocumentFolderDragDrop — onDrop", () => {
+describe("useDocumentFolderDragDrop - onDrop", () => {
     it("calls reparent (POST to movePath) when zone is 'into'", async () => {
         const onSuccess = vi.fn();
         const fetchMock = vi.fn().mockResolvedValue({
@@ -226,7 +226,7 @@ describe("useDocumentFolderDragDrop — onDrop", () => {
     });
 });
 
-describe("useDocumentFolderDragDrop — reorderSiblings insert position", () => {
+describe("useDocumentFolderDragDrop - reorderSiblings insert position", () => {
     it("inserts dragged folder before target when zone is 'before'", async () => {
         let capturedBody;
         vi.stubGlobal(

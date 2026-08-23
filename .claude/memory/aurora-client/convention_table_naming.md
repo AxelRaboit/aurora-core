@@ -15,8 +15,8 @@ suivent le même préfixe : `seq_app_<entity>_id`.
 - Séquence : `seq_app_agency_id`, `seq_app_deal_id`
 
 **Exemples incorrects :**
-- `client_agencies`, `seq_client_agency_id` — préfixe `client_` non standard
-- `core_agencies` — réservé à Aurora-core, collision garantie
+- `client_agencies`, `seq_client_agency_id` - préfixe `client_` non standard
+- `core_agencies` - réservé à Aurora-core, collision garantie
 
 ## Pourquoi
 
@@ -26,7 +26,7 @@ suivent le même préfixe : `seq_app_<entity>_id`.
 - Le préfixe `app_` est idiomatique Symfony (namespace `App\`), cohérent avec
   l'organisation du projet client.
 - Les séquences `seq_app_*` sont exclues du `schema_filter` Aurora qui cible
-  `seq_core_*` — elles ne perturbent pas les `doctrine:migrations:diff`
+  `seq_core_*` - elles ne perturbent pas les `doctrine:migrations:diff`
   d'aurora-core.
 
 ## Comment l'appliquer

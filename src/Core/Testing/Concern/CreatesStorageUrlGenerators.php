@@ -21,7 +21,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  *
  * Lives under `src/Core/Testing/` (rather than `tests/`) so client
  * projects consuming aurora-core via composer can `use` the trait too
- * — keeps the helper single-sourced across the ecosystem.
+ * - keeps the helper single-sourced across the ecosystem.
  *
  * @api Test-only utility consumed exclusively from `tests/` directories
  *      across the ecosystem. PHPStan only scans `src/`, so without this

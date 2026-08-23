@@ -6,7 +6,7 @@ import { Check } from "lucide-vue-next";
  * visual language for "this item is selected" across the app: filled accent
  * pill with a white check when active, semi-transparent dark pill otherwise.
  *
- * Display only — wrap in a clickable element (button, AppOverlayIconButton)
+ * Display only - wrap in a clickable element (button, AppOverlayIconButton)
  * for the actual toggle behavior.
  */
 defineProps({

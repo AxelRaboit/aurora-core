@@ -61,8 +61,8 @@ grep -rn "KernelEvents::REQUEST.*onKernelRequest" src/ \
 ```
 
 Tout résultat non-trivial = trap potentiel. À vérifier au cas par cas
-(certains usages très spécifiques peuvent vouloir fire avant le firewall
-— ex: rewriting d'URL, locale resolution — mais c'est très rare).
+(certains usages très spécifiques peuvent vouloir fire avant le firewall,
+ex: rewriting d'URL, locale resolution - mais c'est très rare).
 
 ## Source
 
@@ -73,6 +73,6 @@ GeneralRouteGateSubscriber priorité 16 → firewall n'avait pas encore
 authentifié → ModuleAccessChecker ne voyait pas l'user → seul le global
 setting comptait → pas de redirect.
 
-Fix : commit `8e6cc9ac` — 11 RouteGateSubscribers passés en priorité 0
+Fix : commit `8e6cc9ac` - 11 RouteGateSubscribers passés en priorité 0
 (Core/General, Core/Platform + 9 modules), plus 1 côté aurora-client
 (Tracking).

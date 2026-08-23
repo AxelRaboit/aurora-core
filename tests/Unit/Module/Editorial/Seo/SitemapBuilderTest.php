@@ -26,7 +26,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * that way.
  *
  * The reference this was rebuilt from looked at the default locale's flag
- * first and skipped the whole post when it was set — so a post the editor
+ * first and skipped the whole post when it was set - so a post the editor
  * had hidden in French disappeared in English too, from a page they never
  * touched. The counter that reports how many URLs were withheld sat after
  * that skip, so it under-reported by exactly the URLs nobody meant to lose:
@@ -155,7 +155,7 @@ final class SitemapBuilderTest extends TestCase
     /**
      * A real Context over stubbed repositories: the class is final, and
      * doubling what it reads is closer to the truth than doubling what it
-     * answers — the locale filtering it applies is part of what is under test.
+     * answers - the locale filtering it applies is part of what is under test.
      *
      * @param list<string> $activeLocales
      */

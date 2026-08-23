@@ -43,8 +43,8 @@ export function seoPixelWidth(text, kind) {
 
 /**
  * Colour for an SEO field's counter: by measured width when the environment can
- * measure, by character count otherwise. The counter keeps showing characters —
- * that is the number an author can act on — while the colour tells the truth
+ * measure, by character count otherwise. The counter keeps showing characters -
+ * that is the number an author can act on - while the colour tells the truth
  * about whether the text will actually fit.
  */
 export function seoFieldClass(text, kind, maxChars) {

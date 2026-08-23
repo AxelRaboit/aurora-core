@@ -19,7 +19,7 @@ describe("highlightMatch", () => {
     });
 
     it("ignores tokens shorter than 2 characters", () => {
-        // Single-character tokens are filtered out — prevents wrapping every "a".
+        // Single-character tokens are filtered out - prevents wrapping every "a".
         const result = highlightMatch("apple", "a");
         expect(result).toBe("apple");
     });

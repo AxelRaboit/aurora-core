@@ -1,6 +1,6 @@
 ---
 name: Convention réponses HTTP dans les controllers (JsonResponseTrait + HttpStatusEnum)
-description: Toujours utiliser JsonResponseTrait et HttpStatusEnum — jamais $this->json() brut ni de code HTTP en dur
+description: Toujours utiliser JsonResponseTrait et HttpStatusEnum - jamais $this->json() brut ni de code HTTP en dur
 type: feedback
 ---
 
@@ -31,8 +31,8 @@ return $this->jsonForbidden();
 ## Pourquoi
 
 - `$this->json(['success' => false], 503)` n'est pas dans l'enveloppe standardisée (`{ success, error }`)
-- Les codes HTTP magiques (`503`, `422`) sont illisibles — `HttpStatusEnum::ServiceUnavailable` est auto-documenté
-- `jsonFailure` accepte `string|JsonErrorCode` — utiliser une string descriptive pour les codes domaine-spécifiques, `JsonErrorCode` pour les codes universels (`not_found`, `forbidden`…)
+- Les codes HTTP magiques (`503`, `422`) sont illisibles - `HttpStatusEnum::ServiceUnavailable` est auto-documenté
+- `jsonFailure` accepte `string|JsonErrorCode` - utiliser une string descriptive pour les codes domaine-spécifiques, `JsonErrorCode` pour les codes universels (`not_found`, `forbidden`…)
 
 ## Comment l'appliquer
 

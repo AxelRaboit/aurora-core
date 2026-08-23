@@ -3,7 +3,7 @@
  * Scoped loader overlay.
  *
  * Renders a semi-transparent overlay with a centered spinner. Must be placed
- * inside a `position: relative` parent (e.g. a list/table wrapper) — the
+ * inside a `position: relative` parent (e.g. a list/table wrapper) - the
  * overlay covers the parent only, not the whole viewport.
  *
  * Visual: shares the spinner styling with the global app loader (loader.css).

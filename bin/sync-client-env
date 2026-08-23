@@ -16,7 +16,7 @@
 # ---------
 #   - The divider line is added at the end of `.env` if absent (first run).
 #   - A missing `###> aurora/* ###` block is inserted just ABOVE the
-#     divider — never inside the CLIENT CUSTOM region.
+#     divider - never inside the CLIENT CUSTOM region.
 #   - Existing blocks (with any customised values) are never modified.
 #   - Lines under the divider are 100% client-owned and untouched.
 #
@@ -24,7 +24,7 @@
 # --------------------------------
 #   bash vendor/axelraboit/aurora/bin/sync-client-env
 #
-# Idempotent — safe to call repeatedly from `make aurora-update`.
+# Idempotent - safe to call repeatedly from `make aurora-update`.
 
 set -euo pipefail
 
@@ -47,7 +47,7 @@ if [[ ! -f "${VENDOR_ENV}" ]]; then
 fi
 
 if [[ ! -f "${CLIENT_ENV}" ]]; then
-    echo "❌ Client .env not found at ${CLIENT_ENV} — run from the project root." >&2
+    echo "❌ Client .env not found at ${CLIENT_ENV} - run from the project root." >&2
     exit 1
 fi
 
@@ -66,8 +66,8 @@ if ! grep -qxF "${DIVIDER}" "${CLIENT_ENV}"; then
 fi
 
 # ── Step 2: enumerate aurora/* blocks declared in vendor .env ────────
-# `mapfile` is a bash 4 builtin. macOS ships bash 3.2 — Apple never moved
-# past it — so on a Mac this line aborted the script outright and took
+# `mapfile` is a bash 4 builtin. macOS ships bash 3.2 - Apple never moved
+# past it - so on a Mac this line aborted the script outright and took
 # `make aurora-update` down with it. A read loop is equivalent and runs on
 # both. `if` rather than `&&` because `set -e` is on: an empty last line
 # would make the loop body exit non-zero and kill the script.
@@ -83,7 +83,7 @@ done < <(
 )
 
 if [[ ${#vendor_blocks[@]} -eq 0 ]]; then
-    echo "ℹ️  No aurora/* blocks in vendor .env — nothing to sync."
+    echo "ℹ️  No aurora/* blocks in vendor .env - nothing to sync."
     exit 0
 fi
 
@@ -130,5 +130,5 @@ for block in "${vendor_blocks[@]}"; do
 done
 
 if [[ ${added} -eq 0 ]]; then
-    echo "✅ Client .env already has every aurora/* block — no changes."
+    echo "✅ Client .env already has every aurora/* block - no changes."
 fi

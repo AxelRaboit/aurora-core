@@ -5,8 +5,8 @@ const prettierPlugin = require('eslint-plugin-prettier');
 // Stated here rather than left to Prettier's defaults, which are 2-space.
 // With no options Prettier resolves indent width from .editorconfig, so the
 // whole ruleset silently hinged on that file being present: aurora-editorial
-// was extracted without one and every indented line in its 52 .js files —
-// 4109 of them — was reported as an error, on sources that had not changed.
+// was extracted without one and every indented line in its 52 .js files -
+// 4109 of them - was reported as an error, on sources that had not changed.
 // It also put Prettier's implicit 2 against the vue/*-indent rules below,
 // which ask for 4; they now agree. .editorconfig stays for editors, but
 // nothing here depends on it any more.
@@ -19,7 +19,7 @@ const PRETTIER_OPTIONS = {
 /** @type {import('eslint').Linter.FlatConfig[]} */
 module.exports = [
     {
-        // `.claude/worktrees/**` holds throwaway git worktrees — a second copy
+        // `.claude/worktrees/**` holds throwaway git worktrees - a second copy
         // of this whole project, config files and all. Linting them fails on
         // the root configs, which are Node scripts the browser globals here do
         // not cover, so `make ft` went red for as long as one existed. They are
@@ -27,7 +27,7 @@ module.exports = [
         ignores: ['node_modules/**', 'vendor/**', 'public/**', 'assets/vendor/**', 'tools/**', 'var/**', '.claude/worktrees/**', 'vite.config.js'],
     },
 
-    // JS files — Prettier formatting
+    // JS files - Prettier formatting
     {
         files: ['**/*.js'],
         plugins: { prettier: prettierPlugin },
@@ -43,19 +43,19 @@ module.exports = [
             // enforced it: `prefer-const` says nothing about `var`, so the one
             // declaration the convention forbids was the one that slipped
             // through. Added while moving to eslint 10, with the codebase
-            // already at zero occurrences — so it locks a state rather than
+            // already at zero occurrences - so it locks a state rather than
             // asking for a cleanup.
             'no-var': 'error',
             'no-undef': 'error',
             // The companion to `no-undef` above, for the case where the name
-            // *is* declared — just lower down. `const` and `let` are not
+            // *is* declared - just lower down. `const` and `let` are not
             // hoisted, so reading one earlier in `setup` throws
             // "Cannot access 'x' before initialization" and the component
             // renders nothing. Three pages shipped that way: a row-actions
             // composable was handed a handler that the destructuring twelve
             // lines below had not bound yet. Build, tests and lint were green.
             //
-            // `functions: false` on purpose — function declarations *are*
+            // `functions: false` on purpose - function declarations *are*
             // hoisted, and calling one defined further down is normal here.
             'no-use-before-define': ['error', { functions: false, classes: true, variables: true }],
             'prettier/prettier': ['error', PRETTIER_OPTIONS],
@@ -77,7 +77,7 @@ module.exports = [
         },
     },
 
-    // Vue files — Vue rules
+    // Vue files - Vue rules
     ...pluginVue.configs['flat/recommended'],
     {
         files: ['**/*.vue'],
@@ -105,14 +105,14 @@ module.exports = [
             // and lint were all green. A ReferenceError is not a style question.
             'no-undef': 'error',
             // The companion to `no-undef` above, for the case where the name
-            // *is* declared — just lower down. `const` and `let` are not
+            // *is* declared - just lower down. `const` and `let` are not
             // hoisted, so reading one earlier in `setup` throws
             // "Cannot access 'x' before initialization" and the component
             // renders nothing. Three pages shipped that way: a row-actions
             // composable was handed a handler that the destructuring twelve
             // lines below had not bound yet. Build, tests and lint were green.
             //
-            // `functions: false` on purpose — function declarations *are*
+            // `functions: false` on purpose - function declarations *are*
             // hoisted, and calling one defined further down is normal here.
             'no-use-before-define': ['error', { functions: false, classes: true, variables: true }],
             'vue/multi-word-component-names': 'off',

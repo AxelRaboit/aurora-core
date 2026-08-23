@@ -11,7 +11,7 @@ function zone(id, lg, overrides = {}) {
 }
 
 /**
- * The canvas reads its own width off the DOM, and jsdom lays nothing out — so
+ * The canvas reads its own width off the DOM, and jsdom lays nothing out - so
  * the grid is given a rect and the assertions work in columns from there. 480px
  * across 48 columns is a round 10px a column, which keeps the arithmetic in the
  * tests readable.
@@ -41,7 +41,7 @@ function mountCanvas(zones, props = {}) {
 
 /**
  * Pointer events go out by hand rather than through `trigger`, which builds its
- * event first and assigns the extras after — and `clientX` on a jsdom MouseEvent
+ * event first and assigns the extras after - and `clientX` on a jsdom MouseEvent
  * has only a getter. Passing it to the constructor is the way it takes. The
  * type is what listeners are keyed on, so a MouseEvent named `pointermove`
  * reaches a `v-on:pointermove` perfectly well.
@@ -76,7 +76,7 @@ describe("PostGridCanvas", () => {
     /**
      * The 48 tracks span the grid's content box, while a drag is measured
      * against `getBoundingClientRect()`, which is its border box. Padding on
-     * that element offsets every column by it — invisible in the middle of the
+     * that element offsets every column by it - invisible in the middle of the
      * canvas and a column or so out near an edge. jsdom lays nothing out, so
      * the invariant is pinned on the markup: whatever carries the padding, it
      * is not the element being measured.
@@ -156,7 +156,7 @@ describe("PostGridCanvas", () => {
     /**
      * jsdom lays nothing out, so every box reports a zero rect. Giving each one
      * the rectangle its placement implies is what lets the drop maths be tested
-     * at all — 480px across 48 columns, 80px tall rows.
+     * at all - 480px across 48 columns, 80px tall rows.
      */
     function layOut(wrapper, rows) {
         wrapper.findAll("[data-zone]").forEach((item, index) => {
@@ -194,8 +194,8 @@ describe("PostGridCanvas", () => {
             { row: 0, column: 24, span: 24 },
         ]);
 
-        // The second zone, dropped in the empty space below both — between
-        // rows, so it asks for one of its own — a quarter of the way across.
+        // The second zone, dropped in the empty space below both - between
+        // rows, so it asks for one of its own - a quarter of the way across.
         dragTo(wrapper, 1, 120, 250);
 
         expect(wrapper.emitted("move").at(-1)).toEqual([1, 1, 12, true]);
@@ -218,7 +218,7 @@ describe("PostGridCanvas", () => {
     /**
      * A box means exchange, and the canvas behind it means move. Both would
      * fire on one drop without the stop, and hovering a zone's own box cancelled
-     * the dragover through the grid then dropped to nothing — a cursor promising
+     * the dragover through the grid then dropped to nothing - a cursor promising
      * a move that never came.
      */
     it("leaves a drop on another box to mean an exchange", () => {
@@ -264,7 +264,7 @@ describe("PostGridCanvas", () => {
         const ghost = wrapper.find("[data-ghost]");
         expect(ghost.exists()).toBe(true);
         // Column 31 is under the pointer, and a 24-wide zone cannot start
-        // there without running off the row — so the ghost shows 25, which is
+        // there without running off the row - so the ghost shows 25, which is
         // where the drop will actually put it. Showing the pointer's own column
         // would be promising a place the clamp is about to refuse.
         expect(ghost.attributes("style")).toContain("--start-base: 25");
@@ -273,7 +273,7 @@ describe("PostGridCanvas", () => {
     /**
      * A zone moved on the row leaves the list before it is put back, so its own
      * box must not be counted. A slice leaving a stack takes nothing off the
-     * row — the stack is still there, and still ahead of a drop past it.
+     * row - the stack is still there, and still ahead of a drop past it.
      * Skipping it named the place one too early, and the zone came out to the
      * left of the stack it had just left.
      */
@@ -306,7 +306,7 @@ describe("PostGridCanvas", () => {
             }),
         );
 
-        // Past both boxes on the row, so third in the order — not second.
+        // Past both boxes on the row, so third in the order - not second.
         expect(wrapper.emitted("moveOut").at(-1)).toEqual([0, 0, 2, 46, false]);
     });
 
@@ -325,7 +325,7 @@ describe("PostGridCanvas", () => {
     });
 
     // The right edge is the one that stays put, so the two never move together
-    // — and the floor and the width clamp live downstream, in one place.
+    // - and the floor and the width clamp live downstream, in one place.
     it("leaves the right edge to its own handle", () => {
         const wrapper = mountCanvas([zone("a", 24)]);
         const handle = wrapper.find('[data-handle="start"]');
@@ -415,7 +415,7 @@ describe("PostGridCanvas", () => {
 
     /**
      * A stack holds zones rather than content, so one made from a hole is an
-     * empty frame the author then has to go and fill — the opposite of the
+     * empty frame the author then has to go and fill - the opposite of the
      * one-click this is for. It stays on the row of buttons under the canvas.
      */
     it("keeps the stack out of what a hole may become", async () => {
@@ -649,7 +649,7 @@ describe("PostGridCanvas", () => {
     /**
      * The picture is absolutely positioned, so it fills whichever ancestor is
      * positioned. If that is the grid item rather than the box, it fills the
-     * item's padding box — gutters included — and spills a gutter either side
+     * item's padding box - gutters included - and spills a gutter either side
      * of its own border, making the zone read as wider than it is and its row
      * as tighter than the others. Nothing throws and no layout is wrong; it
      * just looks off, which is why this is pinned rather than left to the eye.
@@ -729,7 +729,7 @@ describe("PostGridCanvas", () => {
 
     /**
      * Two intents need two targets. The stack's own box keeps the meaning every
-     * zone has — exchange — and its slices say "inside, here". Aiming at a
+     * zone has - exchange - and its slices say "inside, here". Aiming at a
      * slice is aiming at a rectangle that holds still, which is the same reason
      * dropping *between* zones was refused on the row axis.
      */
@@ -753,7 +753,7 @@ describe("PostGridCanvas", () => {
     });
 
     /**
-     * A stack cannot go inside a stack, so a slice refuses it — and the event
+     * A stack cannot go inside a stack, so a slice refuses it - and the event
      * carries on up to the box, which accepts it as the exchange every drop
      * means by default. The author is not left with a gesture that does
      * nothing, and the highlight says which of the two happened: the box

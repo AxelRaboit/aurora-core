@@ -1,4 +1,4 @@
-# GitHub Actions CI — setup d'un projet aurora-client
+# GitHub Actions CI - setup d'un projet aurora-client
 
 Le template aurora-client embarque un workflow GitHub Actions
 (`.github/workflows/ci.yml`) qui exécute, à chaque push sur les branches
@@ -9,7 +9,7 @@ long-lived (`master`, `develop`) et sur chaque PR :
 - Linters : `make lint-php`, `make lint-twig`, `make lint-js`, `make rector`
 - Static analysis : `make stan` (PHPStan)
 - Setup DB de test (schema:create from entity metadata + mark all
-  migrations applied — workaround multi-namespace, cf. §2 ci-dessous)
+  migrations applied - workaround multi-namespace, cf. §2 ci-dessous)
 - Tests : `make test-frontend` + `make test-backend-unit`
 
 Le workflow utilise un **PostgreSQL 18** en service GitHub Actions, **PHP
@@ -21,7 +21,7 @@ workflow tourne directement.
 
 ---
 
-## 1. Setup initial — rien à faire 🎉
+## 1. Setup initial - rien à faire 🎉
 
 1. Cloner aurora-client (ou ton fork) pour démarrer un projet
 2. Pousser sur GitHub
@@ -33,7 +33,7 @@ utilise `main` au lieu de `master`.
 
 ---
 
-## 2. Setup DB de test — pourquoi `schema:create` au lieu de `migrations:migrate`
+## 2. Setup DB de test - pourquoi `schema:create` au lieu de `migrations:migrate`
 
 Le workflow CI initialise la DB de test via :
 
@@ -51,11 +51,11 @@ Le workflow CI initialise la DB de test via :
 
 Aurora-client utilise deux namespaces de migrations :
 
-- `DoctrineMigrations` — celles du vendor `axelraboit/aurora`
-- `ClientMigrations` — celles du projet client (sous `migrations/`)
+- `DoctrineMigrations` - celles du vendor `axelraboit/aurora`
+- `ClientMigrations` - celles du projet client (sous `migrations/`)
 
 Sur une DB fresh, Doctrine Migrations 3.x **ne mélange pas
-strictement par version timestamp** à travers les namespaces — il
+strictement par version timestamp** à travers les namespaces - il
 traite chaque namespace dans son ordre de déclaration. Quand une
 migration `ClientMigrations\Version20260508123924` (par exemple, une
 extension de table Aurora) tente d'ALTER une table créée par
@@ -69,7 +69,7 @@ migrations comme déjà appliquées. Résultat équivalent en moins
 d'opérations, et **sans dépendre de l'ordre de migrations**.
 
 > ⚠️ Cette approche fonctionne **uniquement** parce que les migrations
-> du projet sont purement structurelles (CREATE / ALTER / RENAME) — pas
+> du projet sont purement structurelles (CREATE / ALTER / RENAME) - pas
 > de migrations de données (data backfills). Si vous ajoutez une
 > migration qui insère / convertit des données via SQL, le CI
 > *raterait* ce backfill. Dans ce cas, exécuter manuellement la
@@ -77,7 +77,7 @@ d'opérations, et **sans dépendre de l'ordre de migrations**.
 > donnée via les fixtures.
 
 > En **runtime quotidien dev / prod**, `make migrate-f` (qui fait
-> `doctrine:migrations:migrate`) marche normalement — vous n'ajoutez
+> `doctrine:migrations:migrate`) marche normalement - vous n'ajoutez
 > qu'**une seule** migration neuve à la fois (un namespace), pas un
 > mélange historique entier.
 
@@ -86,7 +86,7 @@ d'opérations, et **sans dépendre de l'ordre de migrations**.
 ## 3. Modifier le workflow CI
 
 Le fichier `.github/workflows/ci.yml` est **owned par le projet
-client** — pas synchronisé par `make aurora-update`. Libre à toi de :
+client** - pas synchronisé par `make aurora-update`. Libre à toi de :
 
 - Ajouter une matrice (multi-PHP, multi-PostgreSQL)
 - Ajouter des steps de déploiement post-tests (push Docker image, deploy
@@ -100,7 +100,7 @@ client** — pas synchronisé par `make aurora-update`. Libre à toi de :
 ## 4. Pièges connus
 
 - **Cache pnpm/composer périmé** : la clé de cache contient le hash
-  du lockfile correspondant — un changement de lockfile invalide le
+  du lockfile correspondant - un changement de lockfile invalide le
   cache automatiquement. Si tu suspectes un cache corrompu, supprime
   les caches via *Actions → Caches → Delete*.
 - **Workflow trigger sur `main` vs `master`** : aurora-client par
@@ -109,7 +109,7 @@ client** — pas synchronisé par `make aurora-update`. Libre à toi de :
 
 ---
 
-## 5. Variants — autres CI providers
+## 5. Variants - autres CI providers
 
 Le workflow GitHub Actions est le seul fourni dans le template. Pour
 GitLab CI / Bitbucket Pipelines / Jenkins, recréer la même séquence
@@ -126,7 +126,7 @@ make test-frontend test-backend-unit
 
 ---
 
-## Annexe — si vous forkez aurora-core et le rendez privé
+## Annexe - si vous forkez aurora-core et le rendez privé
 
 Le `GITHUB_TOKEN` auto-fourni par GitHub Actions sur le repo client
 n'a **pas** accès à d'autres repos privés du même propriétaire (frontière
@@ -135,7 +135,7 @@ garder le fork privé :
 
 ### Setup en 2 étapes
 
-#### Étape A — Créer un fine-grained PAT
+#### Étape A - Créer un fine-grained PAT
 
 1. Aller sur https://github.com/settings/personal-access-tokens/new
 2. **Token name** : ex. `aurora-core read-only for CI of <projet>`
@@ -146,7 +146,7 @@ garder le fork privé :
    - **Contents** → `Read-only`
 6. Cliquer *Generate token* et **copier la valeur** immédiatement
 
-#### Étape B — Ajouter le PAT en repo secret
+#### Étape B - Ajouter le PAT en repo secret
 
 Sur le repo client :
 
@@ -154,7 +154,7 @@ Sur le repo client :
 2. **Name** : `AURORA_CORE_READ_TOKEN`
 3. **Value** : coller le PAT
 
-#### Étape C — Réactiver l'étape composer auth dans le workflow
+#### Étape C - Réactiver l'étape composer auth dans le workflow
 
 Avant `Install PHP dependencies`, ajouter :
 

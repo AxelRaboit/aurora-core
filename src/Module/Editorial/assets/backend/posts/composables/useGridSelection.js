@@ -4,14 +4,14 @@ import { ref } from "vue";
  * Which zone the panel is showing, kept pointing at the same zone as it moves.
  *
  * Only one zone's fields are on screen at a time, so the selection is not a
- * nicety — it is what the panel *is*. Every operation that reorders, removes or
+ * nicety - it is what the panel *is*. Every operation that reorders, removes or
  * relocates a zone has to say what becomes of it, and each answer is arithmetic
  * on indices rather than a search: two stacks would make a search pick the wrong
  * one.
  *
  * Pulled out of `PostGridPanel.vue` because six functions modelling one thing is
  * exactly what the SFC convention calls a state machine, and because getting any
- * of them wrong leaves the highlight on whichever zone slid into the slot — a
+ * of them wrong leaves the highlight on whichever zone slid into the slot - a
  * defect that is invisible until an author edits the wrong box.
  *
  * UI state, so it lives here rather than in `usePostGrid`: nothing about it is
@@ -48,7 +48,7 @@ export function useGridSelection(grid) {
         }
     }
 
-    /** Reordering by one step — the path that works without a pointer. */
+    /** Reordering by one step - the path that works without a pointer. */
     function moveZone(index, offset) {
         const target = index + offset;
 
@@ -66,7 +66,7 @@ export function useGridSelection(grid) {
     }
 
     /**
-     * Only this language's entry is created, and only if the cap allowed it —
+     * Only this language's entry is created, and only if the cap allowed it -
      * hence the length check rather than assuming the add worked. A zone added
      * without being selected would land on the canvas and open nothing, which
      * reads as the button having failed.
@@ -93,7 +93,7 @@ export function useGridSelection(grid) {
 
     /**
      * The moved zone leaves the row and lands inside the stack, so the selection
-     * follows it there — the stack is what holds it now, and its card is where
+     * follows it there - the stack is what holds it now, and its card is where
      * the fields are. Taking a zone out from *before* the stack shifts the stack
      * down one.
      */

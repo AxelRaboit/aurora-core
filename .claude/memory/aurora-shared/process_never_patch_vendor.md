@@ -1,7 +1,7 @@
 # Ne jamais éditer `vendor/` à la main
 
 **Règle dure** : côté client, `vendor/axelraboit/aurora*` est en lecture seule.
-Aucun `cp`, aucun `Edit`, aucun patch — même temporaire, même « juste pour
+Aucun `cp`, aucun `Edit`, aucun patch - même temporaire, même « juste pour
 tester ».
 
 ## Pourquoi
@@ -9,7 +9,7 @@ tester ».
 Copier un fichier modifié de aurora-core dans le vendor du client raccourcit la
 boucle de test : on voit l'effet sans passer par commit → push → `composer
 update`. C'est précisément ce qui la rend dangereuse, parce que **l'état local
-cesse de représenter ce que quiconque d'autre obtiendra** — CI comprise.
+cesse de représenter ce que quiconque d'autre obtiendra** - CI comprise.
 
 Constaté en session (2026-08-02, ajout du champ `description` sur
 `PostTranslation`) :
@@ -36,12 +36,12 @@ module :
 2. côté client : `composer update axelraboit/aurora axelraboit/aurora-<module>`
    (ou `make aurora-update` pour la mise à jour complète, symlinks compris) ;
 3. relancer le pipeline **après** cette mise à jour, jamais avant ;
-4. committer le `composer.lock` avec le changement client qui en dépend — sans
+4. committer le `composer.lock` avec le changement client qui en dépend - sans
    ça, la CI construit contre l'ancienne version.
 
 Corollaire : si le pipeline passe en local mais échoue en CI sur une méthode ou
 une classe « inexistante », le premier réflexe est de comparer le lock au HEAD
-publié — pas de chercher un bug dans le code.
+publié - pas de chercher un bug dans le code.
 
 Voir aussi [[process_check_aurora_client_sync]] pour le sens inverse (vérifier
 que le client suit après une modif du core).

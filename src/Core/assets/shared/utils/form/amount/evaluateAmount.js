@@ -2,7 +2,7 @@
  * Evaluate a decimal amount expression and return the result as a fixed-
  * decimal string. Used by AppAmountInput (on blur) and by callers that
  * want to normalize an expression before submit (in case the user clicks
- * the submit button without blurring the field first — some browsers fire
+ * the submit button without blurring the field first - some browsers fire
  * click before blur in modals).
  *
  * Allowed expression chars: digits, `.`, operators `+ - * /`, parens, spaces.

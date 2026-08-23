@@ -46,7 +46,7 @@ class ApplicationParameterCommand extends Command
         $dryRun = (bool) $input->getOption('dry-run');
 
         if ($dryRun) {
-            $symfonyStyle->note('Mode dry-run — aucun changement ne sera enregistré.');
+            $symfonyStyle->note('Mode dry-run - aucun changement ne sera enregistré.');
         }
 
         /** @var ApplicationParameterEnumInterface[] $enumCases */
@@ -148,7 +148,7 @@ class ApplicationParameterCommand extends Command
 
     /**
      * Flattens enum cases yielded by every tagged provider, deduplicating
-     * by key in case two providers expose the same enum (defensive — the
+     * by key in case two providers expose the same enum (defensive - the
      * sync logic itself is key-keyed anyway).
      *
      * @return ApplicationParameterEnumInterface[]

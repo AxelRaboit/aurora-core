@@ -13,8 +13,8 @@ use Twig\Environment;
  *
  * `TwigErrorRenderer` looks up `@Twig/Exception/error<status>.html.twig`, and
  * `templates/bundles/TwigBundle/` is the convention for an *application*
- * overriding a bundle. So these pages resolved while developing aurora-core —
- * where the package is the application — and resolved nowhere else. Every
+ * overriding a bundle. So these pages resolved while developing aurora-core -
+ * where the package is the application - and resolved nowhere else. Every
  * client project fell back to Symfony's bare "Oops! An Error Occurred", and no
  * amount of looking at aurora-core would have shown it.
  *

@@ -291,7 +291,7 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                         <dd class="mt-1 flex items-center gap-1 flex-wrap">
                             <AppBadge v-if="viewingUser.isDev" color="rose">Dev</AppBadge>
                             <AppBadge v-if="viewingUser.roleLabel" color="accent">{{ viewingUser.roleLabel }}</AppBadge>
-                            <span v-if="!viewingUser.isDev && !viewingUser.roleLabel" class="text-muted">—</span>
+                            <span v-if="!viewingUser.isDev && !viewingUser.roleLabel" class="text-muted">-</span>
                         </dd>
                     </div>
                     <div>
@@ -414,7 +414,7 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
             </template>
         </AppModal>
 
-        <!-- Privileges modal — dedicated, Dev only -->
+        <!-- Privileges modal - dedicated, Dev only -->
         <AppModal :show="privilegesModal.open" max-width="2xl" :closeable="false" v-on:close="privilegesModal.open = false">
             <div v-if="privilegesModal.user" class="space-y-4">
                 <div class="flex items-center gap-3">
@@ -449,7 +449,7 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
             </template>
         </AppModal>
 
-        <!-- Per-user module access modal — gated by platform.users.module_access.manage -->
+        <!-- Per-user module access modal - gated by platform.users.module_access.manage -->
         <AppModal :show="modulesModal.open" max-width="2xl" :closeable="false" v-on:close="modulesModal.open = false">
             <div v-if="modulesModal.user" class="space-y-4">
                 <div class="flex items-center gap-3">

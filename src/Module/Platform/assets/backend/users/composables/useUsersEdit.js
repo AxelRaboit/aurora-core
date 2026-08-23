@@ -41,7 +41,7 @@ export function useUsersEdit(props, fetchUsers, options = {}) {
     const managerOptions = computed(() => {
         const editingId = editModal.editing?.id ?? 0;
         return [
-            { value: "", label: "—" },
+            { value: "", label: "-" },
             ...selectableUsers.value
                 .filter((user) => user.id !== editingId)
                 .map((user) => ({ value: String(user.id), label: user.name })),

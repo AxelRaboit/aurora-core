@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * `matches()` is the PHP half of what `applyTo()` says in SQL, and the two
- * have to answer the same question — a document the library files under
+ * have to answer the same question - a document the library files under
  * Images that a renderer then refuses to draw is a disagreement with nothing
  * to say which side is wrong.
  */
@@ -35,7 +35,7 @@ final class MimeGroupEnumTest extends TestCase
     /**
      * The prefix, not a whitelist: the query side is `LIKE 'image/%'`, so a
      * subtype nobody has enumerated is still an image. A closed list here
-     * would refuse `image/avif` — which the library lists under Images and
+     * would refuse `image/avif` - which the library lists under Images and
      * every browser draws.
      */
     public function testAnUnenumeratedSubtypeStillBelongsToItsGroup(): void

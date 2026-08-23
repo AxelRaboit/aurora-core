@@ -3,7 +3,7 @@ import { createAppI18n } from "@/i18n.js";
 import DocumentPickerModal from "@ged/backend/documents/components/DocumentPickerModal.vue";
 
 /**
- * Imperative wrapper around <DocumentPickerModal> — mirror of
+ * Imperative wrapper around <DocumentPickerModal> - mirror of
  * `openMediaPicker()` so Phase 2 consumers (Erp Product, Ecommerce Listing,
  * branding, etc.) can swap in a single line as their backing FK migrates
  * from `core_media` to `core_ged_documents`.

@@ -21,7 +21,7 @@ Pour le toolbar standard d'une page admin (search à gauche, bouton(s) d'action 
 </AppListToolbar>
 ```
 
-Le composant est purement layout — pas de props, pas de logique, juste deux slots et le grid responsive.
+Le composant est purement layout - pas de props, pas de logique, juste deux slots et le grid responsive.
 
 **Plusieurs boutons à droite** : les regrouper dans un `<div class="flex items-center gap-2 w-full sm:w-auto">` à l'intérieur de `#actions`.
 
@@ -35,4 +35,4 @@ Sans wrapper partagé, chaque page duplique `grid grid-cols-1 sm:grid-cols-[1fr_
 - **Mobile** (par défaut) : empilement vertical, le bouton garde `class="w-full sm:w-auto"`.
 - **Desktop sm+** : search à gauche (1fr), actions à droite (auto).
 
-Lien : [[convention_mobile_card_layout]] — le toolbar est le pendant haut du pattern de carte mobile.
+Lien : [[convention_mobile_card_layout]] - le toolbar est le pendant haut du pattern de carte mobile.

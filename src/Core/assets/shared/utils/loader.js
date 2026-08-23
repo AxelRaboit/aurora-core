@@ -6,7 +6,7 @@
  *   2. All layout components have dispatched AppEvents.LayoutMounted.
  *
  * Layout components signal readiness via useLayoutMount(), which dispatches
- * LayoutMounted in onMounted — guaranteed after this module has initialized.
+ * LayoutMounted in onMounted - guaranteed after this module has initialized.
  * The window.load fallback handles error/timeout cases.
  *
  * Markup: templates/Shared/components/app_loader.html.twig
@@ -29,7 +29,7 @@ const LAYOUT_COMPONENT_COUNT = 1;
 
 function createLoader(loaderEl) {
     // Guest pages (auth, password reset, etc.) have no sidemenu shell and no
-    // #main-content main wrapper — they mount a single Vue app directly under
+    // #main-content main wrapper - they mount a single Vue app directly under
     // <body>. In that mode we just wait for the first vue:mount anywhere.
     const isGuest = loaderEl.dataset.mode === "guest";
     const main = isGuest ? null : document.querySelector("#main-content main");

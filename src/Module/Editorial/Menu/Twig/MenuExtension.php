@@ -10,7 +10,7 @@ use Aurora\Module\Editorial\Menu\Service\MenuRenderer;
 use Twig\Attribute\AsTwigFunction;
 
 /**
- * `menu_items('primary', locale)` — what a theme calls to render navigation.
+ * `menu_items('primary', locale)` - what a theme calls to render navigation.
  *
  * An empty list is the answer to every "no": menus switched off, a location
  * nobody declared, no menu bound there, nothing in it visible to whoever is

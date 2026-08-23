@@ -41,9 +41,9 @@ export function getSettingsTabComponent(name) {
     return components.get(name) ?? null;
 }
 
-// Built-in registrations — Aurora's own custom-UI tabs.
+// Built-in registrations - Aurora's own custom-UI tabs.
 
 registerSettingsTabComponent("navigation", NavigationTab);
 registerSettingsTabComponent("appearance", AppearanceTab);
 // Module tabs (e.g. assistant-settings) self-register via their module's
-// *.register.js boot hook — aurora-core no longer imports module components.
+// *.register.js boot hook - aurora-core no longer imports module components.

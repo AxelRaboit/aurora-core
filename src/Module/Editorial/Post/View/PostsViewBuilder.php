@@ -34,7 +34,7 @@ final readonly class PostsViewBuilder
 
     /**
      * Shared by the first render and by every later filter change, which
-     * fetches this same payload as JSON — one shape, so the list cannot
+     * fetches this same payload as JSON - one shape, so the list cannot
      * drift between how it arrives and how it refreshes.
      *
      * @param list<int>    $postTypeIds
@@ -101,7 +101,7 @@ final readonly class PostsViewBuilder
     }
 
     /**
-     * The editor is a page of its own rather than a modal — a post is too
+     * The editor is a page of its own rather than a modal - a post is too
      * big for one. Null means create mode; the front swaps the URL for
      * /{id}/edit once the first save comes back.
      *

@@ -112,7 +112,7 @@ const {
     // eslint-disable-next-line no-use-before-define -- same cycle as above.
 } = useDocumentNavigation(props, () => reset(), clearSelection);
 
-// Sidebar (folderId / rootOnly) drives the folder filter — strip the legacy
+// Sidebar (folderId / rootOnly) drives the folder filter - strip the legacy
 // chip's folderId from the existing useDocumentFilters payload to avoid
 // double-writing the same query param.
 function combinedExtraParams() {
@@ -156,7 +156,7 @@ const {
 );
 
 // Two sets on this screen: what a document offers, and what a folder in the
-// tree does. Both were written twice — once for the cards, once for the table —
+// tree does. Both were written twice - once for the cards, once for the table -
 // so the two copies could already disagree.
 const documentActions = useDocumentRowActions({
     can,
@@ -627,11 +627,11 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                                     </td>
                                     <td class="px-6 py-3 hidden lg:table-cell">
                                         <span v-if="doc.fileName" class="flex items-center gap-1 text-xs text-muted"><Paperclip class="w-3 h-3" :stroke-width="2" /> {{ doc.fileName }}</span>
-                                        <span v-else class="text-muted text-xs">—</span>
+                                        <span v-else class="text-muted text-xs">-</span>
                                     </td>
                                     <td class="px-6 py-3 text-right hidden lg:table-cell text-xs text-muted tabular-nums">
                                         <span v-if="doc.fileSize">{{ formatSize(doc.fileSize) }}</span>
-                                        <span v-else>—</span>
+                                        <span v-else>-</span>
                                     </td>
                                     <td class="px-6 py-3 hidden xl:table-cell">
                                         <AppThumbnail
@@ -644,9 +644,9 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                                             <FileText class="w-5 h-5 shrink-0 text-rose-400" :stroke-width="1.5" /> PDF
                                         </div>
                                         <div v-else-if="doc.fileUrl" class="flex items-center gap-1.5 text-xs text-muted">
-                                            <FileText class="w-5 h-5 shrink-0" :stroke-width="1.5" /> {{ doc.fileMime ?? '—' }}
+                                            <FileText class="w-5 h-5 shrink-0" :stroke-width="1.5" /> {{ doc.fileMime ?? '-' }}
                                         </div>
-                                        <span v-else class="text-muted text-xs">—</span>
+                                        <span v-else class="text-muted text-xs">-</span>
                                     </td>
                                     <td class="px-6 py-3">
                                         <div class="flex items-center justify-end gap-0.5">

@@ -1,10 +1,10 @@
-# Architecture — Structure du projet
+# Architecture - Structure du projet
 
 ## Vue d'ensemble
 
 Aurora-client est une **application Symfony cliente** qui consomme `axelraboit/aurora`
 (aurora-core) comme package Composer. Aurora-core fournit toute l'infrastructure
-(modules métier, entités, UI admin, assets Vue) — aurora-client n'écrit que le **delta** :
+(modules métier, entités, UI admin, assets Vue) - aurora-client n'écrit que le **delta** :
 les extensions, les modules propres au projet, les overrides.
 
 ```
@@ -72,8 +72,8 @@ doctrine:
             Aurora\Module\Platform\Agency\Entity\AgencyInterface: App\Module\Platform\Agency\Entity\Agency
 ```
 
-- **AuroraClient** — couvre tout `src/Module/` : extensions Aurora ET modules propres au client
-- **resolve_target_entities** — substitue une interface Aurora par l'entité cliente (chemin miroir)
+- **AuroraClient** - couvre tout `src/Module/` : extensions Aurora ET modules propres au client
+- **resolve_target_entities** - substitue une interface Aurora par l'entité cliente (chemin miroir)
 
 ---
 

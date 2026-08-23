@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * 404s the Platform admin routes (Users) when their toggle is OFF —
+ * 404s the Platform admin routes (Users) when their toggle is OFF -
  * globally or for the current user. Media routes are gated by
  * {@see MediaRouteGateSubscriber} (Jalon 4.5), Configuration routes by
  * {@see ConfigurationRouteGateSubscriber} (Jalon 4).

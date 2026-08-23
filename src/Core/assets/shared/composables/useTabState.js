@@ -9,7 +9,7 @@ import { ref, onMounted, onUnmounted } from "vue";
  * divide a page someone might send.
  *
  * It replaces remembering the tab in `localStorage`, which this used to do.
- * A remembered key is one key for every instance of the screen — fine while
+ * A remembered key is one key for every instance of the screen - fine while
  * there was one settings page, wrong the moment tabs appeared on a per-record
  * editor, where two browser tabs on two records would overwrite each other.
  * The URL belongs to the page being looked at, which is what the tab does too.
@@ -19,8 +19,8 @@ import { ref, onMounted, onUnmounted } from "vue";
  *
  * The fragment never reaches the server, so nothing about the initial render
  * changes; the tab is chosen on mount. `replaceState` rather than assigning
- * `location.hash`, which would push a history entry per click — turning Back
- * into "previous tab" and trapping anyone trying to leave the page — and
+ * `location.hash`, which would push a history entry per click - turning Back
+ * into "previous tab" and trapping anyone trying to leave the page - and
  * would scroll to any element that happens to share the id.
  *
  * @param {string[]}    validKeys Allowed tab keys (used to discard stale values).

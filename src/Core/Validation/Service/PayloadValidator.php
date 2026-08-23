@@ -9,7 +9,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 /**
  * Thin wrapper around the Symfony validator dedicated to validating
  * Request DTOs. Returns either a flat field→message map or just the
- * first violation message — whichever fits the controller's response shape.
+ * first violation message - whichever fits the controller's response shape.
  *
  * Messages are returned as-is (typically translation keys defined in the
  * DTO's Assert constraints); translation happens at the rendering layer.

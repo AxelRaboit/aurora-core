@@ -39,7 +39,7 @@ describe("the header's navigation buttons", () => {
     /**
      * The only half of the question the platform answers. `history.length` of 1
      * means this page is where the tab started, so there is nowhere to go back
-     * to — and nothing anywhere says whether a *forward* entry exists, which is
+     * to - and nothing anywhere says whether a *forward* entry exists, which is
      * why that button is never disabled.
      */
     it("knows when there is nowhere to go back to", () => {
@@ -62,7 +62,7 @@ describe("the reload button", () => {
         unregister = vi.fn().mockResolvedValue(true);
 
         // jsdom has neither, and the composable is written to survive a browser
-        // that refuses either one — so both are given, then taken away.
+        // that refuses either one - so both are given, then taken away.
         navigator.serviceWorker = {
             getRegistrations: vi.fn().mockResolvedValue([{ unregister }]),
         };
@@ -80,7 +80,7 @@ describe("the reload button", () => {
     /**
      * The three things a script can actually reach, in the order that matters.
      * A service worker registered by another project on the same localhost
-     * origin will answer for this one — found happening on this very port.
+     * origin will answer for this one - found happening on this very port.
      */
     it("clears what a script is allowed to clear, then reloads", async () => {
         await mountHolder().vm.api.hardReload();

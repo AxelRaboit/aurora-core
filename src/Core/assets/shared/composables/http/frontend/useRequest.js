@@ -6,9 +6,9 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
  * Lightweight HTTP composable for public-facing frontend pages.
  *
  * Differs from useRequest (admin) in two key ways:
- *   1. Never shows automatic toasts — errors are returned to the caller
+ *   1. Never shows automatic toasts - errors are returned to the caller
  *      for inline display (field errors, banners, etc.)
- *   2. No loading guard — concurrent requests are allowed
+ *   2. No loading guard - concurrent requests are allowed
  *
  * Returns the parsed JSON response, or null on network/unexpected error.
  * The caller is responsible for deciding how to surface errors to the user.

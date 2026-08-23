@@ -11,8 +11,8 @@ use stdClass;
  *
  * Writing block JSON by hand is how content ends up rendering on the public
  * site while the backend shows "The block can not be displayed correctly":
- * the server-side renderer is forgiving — it accepts every shape a tool has
- * ever emitted — and the tool itself is not. A list written as
+ * the server-side renderer is forgiving - it accepts every shape a tool has
+ * ever emitted - and the tool itself is not. A list written as
  * `items: [{content: 'x'}]` is neither the old shape (`items: ['x']`) nor the
  * current one (`{content, meta, items}`), so it reads on the site and breaks
  * in the editor, which is the worst way round: nobody notices until an editor
@@ -37,7 +37,7 @@ final class EditorBlocks
     }
 
     /**
-     * `meta` is an object, not an array — `[]` encodes to `[]` in JSON and the
+     * `meta` is an object, not an array - `[]` encodes to `[]` in JSON and the
      * tool expects `{}`. Every item carries its own `meta` and `items` too:
      * the tool reads them unconditionally when the list is not in its legacy
      * string form.

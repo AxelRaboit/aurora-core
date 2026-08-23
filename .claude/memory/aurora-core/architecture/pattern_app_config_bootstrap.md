@@ -10,7 +10,7 @@ metadata:
 ## Règle
 
 Pour exposer un `ApplicationParameter` (ou tout paramètre serveur) aux
-composants Vue — admin OU frontend — on l'injecte dans
+composants Vue - admin OU frontend - on l'injecte dans
 `window.__auroraConfig.<key>` depuis la layout Twig (`src/Core/templates/Core/backend/layout.html.twig`,
 section `<script>` après les déclarations `__flash__`/`__privileges__`).
 
@@ -19,7 +19,7 @@ La valeur est produite par une **extension Twig dédiée par domaine** (ex:
 seule fois par requête (cache in-memory dans l'extension).
 
 Les composants Vue lisent depuis `window.__auroraConfig?.<key>` **avec un
-fallback hardcodé** dans le composant — pas de crash si la clé n'est pas
+fallback hardcodé** dans le composant - pas de crash si la clé n'est pas
 là (tests Vitest, SSR shell, frontend sans bootstrap admin).
 
 ## Pourquoi
@@ -37,7 +37,7 @@ là (tests Vitest, SSR shell, frontend sans bootstrap admin).
 
 1. **Nouvelle extension Twig par domaine** (un fichier par groupe de
    settings, ex: `AppearanceExtension`, `BrandingExtension`). Pas tout
-   dans un seul mega-helper — un domaine = une extension. Pattern :
+   dans un seul mega-helper - un domaine = une extension. Pattern :
 
    ```php
    final class AppearanceExtension
@@ -84,7 +84,7 @@ là (tests Vitest, SSR shell, frontend sans bootstrap admin).
 
 ## Liens
 
-- [[convention_twig_locale_extension]] — précédent : `LocaleExtension`
+- [[convention_twig_locale_extension]] - précédent : `LocaleExtension`
   expose `locale_flag()` / `locale_name()` au layout, même style
   d'attribut `#[AsTwigFunction]`.
 - Précédent : `SidemenuExtension::getNavSectionAliases()` lit un

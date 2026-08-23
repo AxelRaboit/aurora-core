@@ -20,7 +20,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * events on both KernelEvents::REQUEST and ConsoleEvents::COMMAND covers
  * HTTP requests, fixtures, migrations and any other command.
  *
- * The actual injection happens in the constructor — being instantiated by
+ * The actual injection happens in the constructor - being instantiated by
  * the event dispatcher is enough.
  */
 final readonly class EncryptedTypeBootstrapper implements EventSubscriberInterface

@@ -20,7 +20,7 @@ something**, and it is the part that is invisible in a commit list.
 Establish it before running anything, and say it out loud (step 2). Everything
 else in this file is bookkeeping by comparison.
 
-## Step 0 — Know what you are propagating
+## Step 0 - Know what you are propagating
 
 ```bash
 cd <aurora-core>
@@ -28,11 +28,11 @@ git log --oneline origin/develop -1        # the sha consumers will pull
 git status --short                          # must be clean
 ```
 
-Consumers pull `dev-develop` from GitHub. **An unpushed commit bumps nothing**
-— if `git log origin/develop..HEAD` is not empty, the work is not propagatable
+Consumers pull `dev-develop` from GitHub. **An unpushed commit bumps nothing**,
+if `git log origin/develop..HEAD` is not empty, the work is not propagatable
 yet; `ship` owns getting it there.
 
-## Step 1 — Refuse a red or unfinished CI
+## Step 1 - Refuse a red or unfinished CI
 
 Bumping a sha whose pipeline has not passed propagates red into the consumer,
 where it will look like the consumer's fault.
@@ -47,7 +47,7 @@ gh run view <id> --json conclusion -q '.conclusion'
 - `failure` → stop. Report it; the fix belongs in aurora-core, not here.
 - still running → wait. Do not start the bump "while it finishes".
 
-## Step 2 — Name the range, and its migrations
+## Step 2 - Name the range, and its migrations
 
 Find what the consumer currently pins, and list what it is about to take:
 
@@ -65,16 +65,16 @@ not empty:
 
 - say so plainly, name each migration and what it does;
 - for a **production** consumer, the database backup happens *before*
-  `make aurora-update`, not after — the command migrates on its own;
+  `make aurora-update`, not after - the command migrates on its own;
 - check whether any of them is irreversible (an empty or lossy `down()`), and
-  say which. `Version20260809170000` — the one that drops the plain block
-  column — is the worked example: reversible in schema, not in content.
+  say which. `Version20260809170000` - the one that drops the plain block
+  column - is the worked example: reversible in schema, not in content.
 
 A range with no migration needs no ceremony. Say "no migration in the range"
 and move on; that sentence is what makes its absence a fact rather than an
 assumption.
 
-## Step 3 — aurora-client first, always
+## Step 3 - aurora-client first, always
 
 `aurora-client` is the reference project and the canary. If it breaks, stop
 before touching anything with real data in it.
@@ -86,7 +86,7 @@ make ft
 ```
 
 - `make aurora-update` bumps to the latest `develop` and runs `migrate-f`.
-- `make ft` is the gate — treat a red here as **the propagation's** problem,
+- `make ft` is the gate - treat a red here as **the propagation's** problem,
   not the consumer's. It is the canary doing its job: something in core does
   not survive contact with a project that overrides it.
 
@@ -94,10 +94,10 @@ Do not use `make pull-update` here: it installs from the lock and bumps
 nothing. `make pull-and-bump` is the combo when the consumer also has team
 commits to pull first.
 
-## Step 4 — Commit the bump
+## Step 4 - Commit the bump
 
 Only `composer.lock` should have changed. If anything else did, look at it
-before committing — a bump that rewrites project files is a bump doing
+before committing - a bump that rewrites project files is a bump doing
 something it was not asked to.
 
 ```bash
@@ -105,7 +105,7 @@ git status --short
 git add composer.lock
 ```
 
-The message says what the consumer is getting, in the consumer's terms — not
+The message says what the consumer is getting, in the consumer's terms - not
 a copy of the core commit subjects:
 
 ```
@@ -132,7 +132,7 @@ gh run watch <id> --exit-status
 A propagation is not finished when the bump is pushed. It is finished when the
 consumer's pipeline is green.
 
-## Step 5 — The other consumers
+## Step 5 - The other consumers
 
 The list lives in `docs/aurora-core/dev/propagating_updates.md`. Today it holds
 aurora-client alone; anything added there gets steps 3 and 4, in the same
@@ -143,12 +143,12 @@ order, after the canary is green.
 - **Don't commit in aurora-core.** `ship` owns that. If the core is not
   pushed, this skill has nothing to do yet.
 - **Don't fix core defects from the consumer.** A red `make ft` after a bump
-  is a finding to carry back, not something to patch locally — a fix applied
+  is a finding to carry back, not something to patch locally - a fix applied
   in the consumer is a fix the next project will not get.
 - **Don't skip the canary** because a change "only touches Twig". The
   weekend of 2026-08-09 propagated eleven times, and the client caught the
   featured-media rename, a theme ignoring the grid, `setBlocks()` in fixtures
-  and a non-extensible `DocumentCategory` — none of which failed in core.
+  and a non-extensible `DocumentCategory` - none of which failed in core.
 - **Don't touch production databases.** Say what needs backing up and let the
   user do it.
 

@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
  * A backend URL that matches no route: 404 when signed in, login page otherwise.
  *
  * The listener that draws this line asked the token storage whether anybody was
- * signed in, which cannot work for the case it exists to handle — an unmatched
+ * signed in, which cannot work for the case it exists to handle - an unmatched
  * path is rejected by `RouterListener` before the firewall runs, so the storage
  * is empty for everyone. Every mistyped backend URL bounced an administrator to
  * the login page.
@@ -24,7 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
  * it was failing to deliver.
  *
  * The path used here must not match any route. Routes with a `\d+` id are not
- * a substitute — those 404 from the argument resolver, after the firewall, and
+ * a substitute - those 404 from the argument resolver, after the firewall, and
  * they passed throughout.
  */
 final class UnknownBackendPathTest extends IntegrationTestCase
@@ -63,7 +63,7 @@ final class UnknownBackendPathTest extends IntegrationTestCase
      * Signed in through the login form, not through `loginUser()`.
      *
      * `loginUser()` puts the token straight into the token storage, so it is
-     * already there when the exception is raised — which is the one thing that
+     * already there when the exception is raised - which is the one thing that
      * never happens in production for an unmatched path, and it made this test
      * pass against the very defect it was written for. Posting the form leaves
      * the session cookie as the only carrier, and the kernel reboots between

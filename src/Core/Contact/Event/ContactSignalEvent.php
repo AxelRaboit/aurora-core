@@ -11,7 +11,7 @@ namespace Aurora\Core\Contact\Event;
  * present the event has no listener and is a harmless no-op.
  *
  * Lives in core precisely so producers (Ecommerce, Editorial, ...) and the
- * consumer (Crm) never depend on one another — they only know this event.
+ * consumer (Crm) never depend on one another - they only know this event.
  * `sourceKey` is a free string (e.g. 'order', 'form') the consumer may map
  * to its own taxonomy; `tagSlugs` are optional tag hints.
  */

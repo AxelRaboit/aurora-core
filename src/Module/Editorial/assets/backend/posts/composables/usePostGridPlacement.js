@@ -7,13 +7,13 @@ import { COLUMNS, placeZones } from "./usePostGrid.js";
  *
  * Pure geometry, derived from the zones and the snap and nothing else. Pulled
  * out of `PostGridCanvas.vue` because it is the kind of thing the SFC convention
- * names outright — computed values derived from several sources — and because
+ * names outright - computed values derived from several sources - and because
  * arithmetic that decides where boxes land should be testable without mounting a
  * component.
  *
  * **The canvas lays zones on every *other* grid track.** `placeZones` numbers
  * rows 1, 2, 3; `styleOf` emits 2, 4, 6, leaving the odd tracks free for the
- * strips that sit between rows. The page is untouched — it emits the walk's own
+ * strips that sit between rows. The page is untouched - it emits the walk's own
  * numbers, and only this drawing doubles them.
  *
  * @param {import("vue").Ref<Array<object>>} zones the arrangement, in order
@@ -26,7 +26,7 @@ export function usePostGridPlacement(zones, snap) {
         return zones.value[index]?.span?.lg ?? COLUMNS;
     }
 
-    /** The column a zone begins on, zero-based — what its left edge is holding. */
+    /** The column a zone begins on, zero-based - what its left edge is holding. */
     function startOf(index) {
         return (placements.value[index]?.column ?? 1) - 1;
     }
@@ -59,8 +59,8 @@ export function usePostGridPlacement(zones, snap) {
      * Two kinds of hole, and both are safe to fill without moving anything else.
      * A hole *before* a zone can only exist because that zone asked for a
      * column, so it stays where it asked to be. A hole at the *end* of a row is
-     * space the next zone already declined — it is elsewhere because it broke
-     * the row or because it did not fit — and taking more of that room cannot
+     * space the next zone already declined - it is elsewhere because it broke
+     * the row or because it did not fit - and taking more of that room cannot
      * change either answer.
      *
      * Holes narrower than the step are left alone: a zone that thin is not one
@@ -122,7 +122,7 @@ export function usePostGridPlacement(zones, snap) {
      * where there is no row to break out of.
      *
      * There is no strip for an *empty* row, because there is no such thing to
-     * make. A row is what zones put on it — it appears with the first and goes
+     * make. A row is what zones put on it - it appears with the first and goes
      * when the last leaves, so one can never be left behind empty and never
      * needs deleting.
      */

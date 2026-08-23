@@ -63,7 +63,7 @@ final class NotificationManagerTest extends TestCase
         self::assertSame('Order #42 is paid', $notification->getBody());
         self::assertSame('/backend/orders/42', $notification->getUrl());
         self::assertSame(['orderId' => 42], $notification->getData());
-        // Fresh notification — not read yet.
+        // Fresh notification - not read yet.
         self::assertNull($notification->getReadAt());
     }
 
@@ -81,7 +81,7 @@ final class NotificationManagerTest extends TestCase
         self::assertNull($notification->getBody());
         self::assertNull($notification->getUrl());
         // Empty data array is the documented default (the entity coerces
-        // to nullable array — getData() returning [] is the contract).
+        // to nullable array - getData() returning [] is the contract).
         self::assertSame([], $notification->getData());
     }
 

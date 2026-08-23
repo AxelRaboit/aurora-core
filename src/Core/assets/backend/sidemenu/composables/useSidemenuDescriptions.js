@@ -3,7 +3,7 @@ import { ref } from "vue";
 /**
  * Whether each menu item shows its description under its label.
  *
- * The descriptions are not new — they are the tooltips every row already has.
+ * The descriptions are not new - they are the tooltips every row already has.
  * This turns them into standing text, which is what someone still learning the
  * backend wants and what someone who knows it does not, so it is a preference
  * rather than a decision taken for everybody.
@@ -16,7 +16,7 @@ import { ref } from "vue";
  * No cross-mount event here, unlike collapsing: the switch and the rows it
  * affects are in the same component tree, so a ref reaches both. Adding an
  * event for a value nothing outside this mount reads would be machinery with
- * no second party — see pattern_cross_mount_state_sync, which is about the
+ * no second party - see pattern_cross_mount_state_sync, which is about the
  * case where there *is* one.
  *
  * The request is not awaited. A switch that waits for a round-trip before
@@ -38,7 +38,7 @@ export function useSidemenuDescriptions(path = "", initial = true) {
             },
             body: JSON.stringify({ show }),
         }).catch(() => {
-            /* ignored — see above: the menu keeps working either way */
+            /* ignored - see above: the menu keeps working either way */
         });
     }
 

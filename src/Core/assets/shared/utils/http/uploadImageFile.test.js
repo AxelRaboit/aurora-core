@@ -30,7 +30,7 @@ describe("uploadImageFile", () => {
 
     /**
      * The block editor posted to /backend/media/media/upload for months after
-     * that route was removed with the Media module. Nothing failed loudly —
+     * that route was removed with the Media module. Nothing failed loudly -
      * the request 404'd and the image simply never appeared.
      */
     it("posts to the endpoint that exists", async () => {

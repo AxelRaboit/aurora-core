@@ -9,10 +9,10 @@ Quand une entité d'aurora-core a (a) une liste paginée d'items et (b) une noti
 de dossier (Media, Ged/Document, etc.), la convention est d'offrir **deux points
 d'accès** :
 
-1. **Page d'admin dédiée** `/backend/<module>/folders` — gestion lourde
+1. **Page d'admin dédiée** `/backend/<module>/folders` - gestion lourde
    (drag&drop reorder, modals create/edit/delete avec arborescence complète).
    Inchangée par cette convention.
-2. **Sidebar sur la page liste** `/backend/<module>/<entities>` — accès rapide
+2. **Sidebar sur la page liste** `/backend/<module>/<entities>` - accès rapide
    pour naviguer/filtrer + raccourcis CRUD légers.
 
 **Why** : utilisateur peut naviguer par dossier sans quitter la liste (filtrage
@@ -42,23 +42,23 @@ façon Media »).
   (ces 4 derniers réutilisent les routes du `/backend/<module>/folders` existant).
 
 **Côté Vue** : 5 composables co-localisés sous `assets/backend/<entities>/composables/` :
-- `use<Entity>Navigation.js` — refs `currentFolderId`, `allDocumentsView`, `rootOnly`,
+- `use<Entity>Navigation.js` - refs `currentFolderId`, `allDocumentsView`, `rootOnly`,
   history.pushState, `navigateTo/Root/All`, `onListResponse` callback pour
   `useListPage({ onData })`, et `extraParams()` qui s'intègre via
   `combinedExtraParams()` aux filtres existants (le sidebar gagne sur le filtre
   multiselect dossier, qui est retiré).
-- `use<Entity>SidebarTree.js` — tree + flat list (collapse-aware), favoris,
+- `use<Entity>SidebarTree.js` - tree + flat list (collapse-aware), favoris,
   collapse persistés en `localStorage` sous `aurora-<module>-favourite-folders` /
   `aurora-<module>-collapsed-folders`. Réutilise `@/shared/utils/tree/folderTree.js`
   (`buildFolderTree` + `flattenFolders`).
-- `use<Entity>SidebarFolders.js` — modal create/edit/delete des dossiers, branché
+- `use<Entity>SidebarFolders.js` - modal create/edit/delete des dossiers, branché
   sur les endpoints `/backend/<module>/folders/{create,update,delete}` existants.
   **Doit appeler `reload?.()`** après chaque save pour refresh les counts via le
   prochain payload `/list`.
-- `use<Entity>DragDrop.js` — drag d'un item sur un dossier (MIME `application/x-aurora-<entity>`)
+- `use<Entity>DragDrop.js` - drag d'un item sur un dossier (MIME `application/x-aurora-<entity>`)
   + drag d'un dossier sur un dossier (MIME `application/x-aurora-<entity>-folder`).
   Utiliser **deux MIME distincts** pour ne pas confondre les drops.
-- `use<Entity>BulkMove.js` — bulk-move modal indépendant du bulk-delete existant.
+- `use<Entity>BulkMove.js` - bulk-move modal indépendant du bulk-delete existant.
 
 **Côté layout** (`<Entity>App.vue`) :
 - Header sticky : breadcrumb (rebuilt depuis `currentFolder` + `folders`) ou
@@ -95,6 +95,6 @@ en pleine largeur en dessous de `sm:`, retrouve le layout horizontal
 `src/Module/Ged/translations/messages.{fr,en}.yaml` pour la liste canonique.
 
 **Précédents** :
-- `src/Module/Media/Library/` + `src/Module/Media/assets/backend/media/` — source du pattern.
-- `src/Module/Ged/Document/` + `src/Module/Ged/assets/backend/documents/` —
+- `src/Module/Media/Library/` + `src/Module/Media/assets/backend/media/` - source du pattern.
+- `src/Module/Ged/Document/` + `src/Module/Ged/assets/backend/documents/` -
   application du pattern en 2026-05-30 (gardant `/backend/ged/folders` intact).

@@ -5,11 +5,11 @@ const props = defineProps({
     modelValue: { type: [String, Number], default: '' },
     label: { type: String, default: '' },
     error: { type: String, default: '' },
-    /** Help text under the control — explains the field, unlike `error` which reports it. */
+    /** Help text under the control - explains the field, unlike `error` which reports it. */
     hint: { type: String, default: '' },
     required: { type: Boolean, default: false },
     placeholder: { type: String, default: '' },
-    // Array of { value, label } OR object { value: label } — leave empty to use slot
+    // Array of { value, label } OR object { value: label } - leave empty to use slot
     options: { type: [Array, Object], default: null },
 });
 

@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  * Makes the front auth routes vanish when the install has no front-end accounts.
  *
  * Dropping the menu entries is not enough on its own: the routes stay in the
- * router, so the login form remains reachable — and indexable — by anyone who
+ * router, so the login form remains reachable - and indexable - by anyone who
  * types the URL. 404 rather than 403 matches how the same controller already
  * answers for an inactive locale; on a site without accounts the page
  * genuinely does not exist.

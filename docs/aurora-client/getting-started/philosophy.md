@@ -10,7 +10,7 @@ modules et extensions par-dessus, sans toucher à `vendor/`.
 > **Modules d'exemple dans cette doc.** Les guides ci-dessous s'appuient sur
 > deux exemples génériques pour illustrer les patterns : un **module client
 > from scratch** (`Tracking`) et une **extension d'entité Aurora** (`Agency`
-> + champ `code`). Ce sont des supports pédagogiques — ils **ne sont pas
+> + champ `code`). Ce sont des supports pédagogiques - ils **ne sont pas
 > forcément présents** dans le template ; les chemins `src/Module/Tracking/…`
 > ou `src/Module/Platform/Agency/…` montrent simplement *où* ce code irait si
 > tu suivais l'exemple.
@@ -20,12 +20,12 @@ modules et extensions par-dessus, sans toucher à `vendor/`.
 ## Ce qu'est un projet Aurora Client (en général)
 
 Un projet Aurora Client est une **application Symfony** qui consomme
-`axelraboit/aurora` comme package Composer. Aurora Core fournit la plateforme —
+`axelraboit/aurora` comme package Composer. Aurora Core fournit la plateforme -
 le client ne code que ce qui est propre à son métier.
 
 La relation est asymétrique par design : Aurora Core est stable et versionné,
 le client est agile et spécifique. Le client ne doit jamais avoir à choisir
-entre "mettre à jour Aurora" et "conserver mes customisations" — les deux
+entre "mettre à jour Aurora" et "conserver mes customisations" - les deux
 doivent coexister naturellement.
 
 ---
@@ -37,14 +37,14 @@ d'enrichir l'application. Le bon choix dépend du contexte.
 
 ---
 
-### Mode 1 — Étendre un module Aurora existant
+### Mode 1 - Étendre un module Aurora existant
 
 **Quand l'utiliser** : tu veux personnaliser quelque chose qu'Aurora fournit
-déjà — ajouter un champ à `Agency`, changer le comportement du `DealManager`,
+déjà - ajouter un champ à `Agency`, changer le comportement du `DealManager`,
 ajouter une colonne dans la liste des factures.
 
 **Le principe** : Aurora expose des points d'extension typés à chaque couche.
-Tu n'écris que le delta — les setters de ton champ, le hook `applyInput()`, le
+Tu n'écris que le delta - les setters de ton champ, le hook `applyInput()`, le
 slot Vue. Tu ne copies rien, tu n'overrides que ce qui diffère.
 
 ```
@@ -65,10 +65,10 @@ Pour le guide technique pas-à-pas : [../extending/extend_module.md](../extendin
 
 ---
 
-### Mode 2 — Créer un module entier from scratch
+### Mode 2 - Créer un module entier from scratch
 
 **Quand l'utiliser** : tu veux ajouter une fonctionnalité qui n'existe pas dans
-Aurora et qui est propre au projet — un module de suivi de chantiers, un système
+Aurora et qui est propre au projet - un module de suivi de chantiers, un système
 de réservations, un configurateur de produits.
 
 **Le principe** : le module client suit exactement la même architecture que les
@@ -96,7 +96,7 @@ Pour le guide technique pas-à-pas : [add_module.md](add_module.md).
 
 ---
 
-### Mode 3 — Les deux combinés
+### Mode 3 - Les deux combinés
 
 Les deux modes ne sont pas exclusifs. Un projet mature fait typiquement :
 
@@ -115,7 +115,7 @@ Les deux modes ne sont pas exclusifs. Un projet mature fait typiquement :
 Modifier un fichier sous `vendor/axelraboit/aurora/` est interdit. C'est la
 règle fondamentale. Si quelque chose dans Aurora ne peut pas être personnalisé
 par les points d'extension existants, la solution est d'ajouter un point
-d'extension dans Aurora (et de le pousser sur `develop`) — pas de copier le
+d'extension dans Aurora (et de le pousser sur `develop`) - pas de copier le
 fichier dans le projet client.
 
 ### On ne réimplémente pas ce qu'Aurora fournit
@@ -123,7 +123,7 @@ fichier dans le projet client.
 Aurora embarque : authentification, gestion des utilisateurs et des rôles,
 upload de fichiers, internationalisation, système de menus, audit log, séquences
 numérotées, thème et palette de couleurs, composants Vue partagés (`AppInput`,
-`AppModal`, `AppButton`…). Le client n'a pas à réécrire ces briques — il les
+`AppModal`, `AppButton`…). Le client n'a pas à réécrire ces briques - il les
 consomme.
 
 ### On n'utilise pas les préfixes de séquences réservés
@@ -139,7 +139,7 @@ caractères, suffixe projet). Un conflit est détecté au boot.
 `make aurora-update` met à jour le package Composer, joue les migrations,
 resynchronise les permissions, le jsconfig, le CLAUDE.md, les symlinks de
 documentation et de mémoire. La commande est conçue pour être lancée
-fréquemment et sans risque — les fichiers propres au client (`src/`, `assets/client/`,
+fréquemment et sans risque - les fichiers propres au client (`src/`, `assets/client/`,
 `.env.local`, `Makefile.local`, `CLAUDE.local.md`) ne sont jamais touchés.
 
 La philosophie est qu'**une mise à jour d'Aurora ne doit jamais nécessiter
@@ -153,10 +153,10 @@ manquant à ajouter dans Aurora.
 
 En échange de la discipline "zéro fork", le projet client bénéficie de :
 
-- **Mises à jour sans douleur** — `make aurora-update` suffit
-- **Modules métier gratuits** — chaque nouveau module Aurora est disponible
+- **Mises à jour sans douleur** - `make aurora-update` suffit
+- **Modules métier gratuits** - chaque nouveau module Aurora est disponible
   immédiatement
-- **Infrastructure maintenue** — sécurité, performances, compatibilité PHP/Symfony
+- **Infrastructure maintenue** - sécurité, performances, compatibilité PHP/Symfony
   gérées dans Aurora
-- **Documentation et mémoire synchronisées** — les docs et les mémoires Claude
+- **Documentation et mémoire synchronisées** - les docs et les mémoires Claude
   sont distribuées avec le package et toujours à jour

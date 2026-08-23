@@ -15,7 +15,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 /**
  * Development accounts, and nothing else.
  *
- * This used to also create the locales, the default theme and four settings —
+ * This used to also create the locales, the default theme and four settings -
  * bootstrap data, which never reached production because DoctrineFixturesBundle
  * is dev/test only. Locales and theme moved to {@see CoreBootstrapProvider},
  * run by `aurora:install` in every environment; the four settings were already
@@ -37,7 +37,7 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        // One account per side. Same address on purpose — the backend and the
+        // One account per side. Same address on purpose - the backend and the
         // frontend are two logins, and the unique key is the pair.
         $this->account($manager, UserTypeEnum::Backend);
         $this->account($manager, UserTypeEnum::Frontend);
@@ -49,7 +49,7 @@ class AppFixtures extends Fixture
      * Created once and left alone afterwards.
      *
      * It used to always insert, so a second `doctrine:fixtures:load --append`
-     * died on the unique (email, type) — and `make demo` runs exactly that,
+     * died on the unique (email, type) - and `make demo` runs exactly that,
      * after purging var/uploads. A reload that half-runs is worse than one
      * that refuses: the pictures were gone and the rows were not replaced.
      */

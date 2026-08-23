@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * GED Document thumbnails: add nullable thumbnail_path column for the
  * server-side rendered preview of opaque formats (PDFs). Native image
- * MIMEs keep `thumbnail_path` null — the serializer falls back on the
+ * MIMEs keep `thumbnail_path` null - the serializer falls back on the
  * source file itself.
  *
  * Existing rows ship with NULL; run `aurora:ged:thumbnails:generate` to

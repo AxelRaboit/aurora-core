@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
 /**
- * The trash is a list, not a filter — and the composable has to agree with the
+ * The trash is a list, not a filter - and the composable has to agree with the
  * screen about that.
  *
  * The list used to count the trash among the active filters, so "Clear" offered

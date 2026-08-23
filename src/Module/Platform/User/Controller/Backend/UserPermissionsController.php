@@ -19,7 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * User permissions sub-domain — privileges (per-action allowlist, dev
+ * User permissions sub-domain - privileges (per-action allowlist, dev
  * only) + disabled modules (per-user module gating). Split from
  * `UsersController`. Route names preserved (`backend_platform_users_privileges`,
  * `_disabled_modules`).

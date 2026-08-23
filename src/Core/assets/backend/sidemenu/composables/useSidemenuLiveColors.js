@@ -9,7 +9,7 @@ export const SIDEMENU_PREFS_EVENT = "aurora:sidemenu-prefs-updated";
 
 /**
  * PHP's `json_encode([])` returns `[]` (Array) for an empty associative
- * array — Vue prop typing accepts it as Object since arrays are objects
+ * array - Vue prop typing accepts it as Object since arrays are objects
  * in JS, but our consumers expect a plain `Record<string, string>`.
  * This normalises both the seed and event payloads to a fresh object.
  */
@@ -25,7 +25,7 @@ function normaliseColorMap(value) {
  * Reactive mirror of `app.user.navSectionColors`. The Twig layout seeds
  * the value via prop on first render; from then on, the profile
  * settings page broadcasts `SIDEMENU_PREFS_EVENT` after a save so the
- * sidemenu — which lives in a separate Vue mount point — can update
+ * sidemenu - which lives in a separate Vue mount point - can update
  * its colour overrides without a full page reload.
  *
  * @param {unknown} initial seed value coming from the Twig-provided prop

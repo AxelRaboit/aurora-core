@@ -11,7 +11,7 @@ defineProps({
 
 const emit = defineEmits(["update:modelValue"]);
 
-// Same palette as `useSidemenuSectionTheme` — keep in sync.
+// Same palette as `useSidemenuSectionTheme` - keep in sync.
 const PALETTE = [
     { name: "slate",   swatch: "bg-slate-500" },
     { name: "stone",   swatch: "bg-stone-500" },

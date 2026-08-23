@@ -1,5 +1,5 @@
 ---
-name: Langue des commits — anglais obligatoire
+name: Langue des commits - anglais obligatoire
 description: Les messages de commit doivent toujours être rédigés en anglais, jamais en français
 type: feedback
 ---

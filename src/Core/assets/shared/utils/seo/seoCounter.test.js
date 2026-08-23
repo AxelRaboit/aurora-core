@@ -34,7 +34,7 @@ describe("seoFieldClass", () => {
     });
 
     it("falls back to counting characters where nothing can measure text", () => {
-        // jsdom has no canvas backend, so this is the real path here — and the
+        // jsdom has no canvas backend, so this is the real path here - and the
         // one that runs server-side too.
         expect(seoPixelWidth("anything", "title")).toBeNull();
         expect(seoFieldClass("x".repeat(30), "title", 60)).toBe(
@@ -55,7 +55,7 @@ describe("seoFieldClass", () => {
         const { seoFieldClass: measured } = await import("./seoCounter.js");
 
         // 100 characters sits comfortably under the 160-character mark, yet
-        // 1000px overruns the description's 920px budget — the disagreement
+        // 1000px overruns the description's 920px budget - the disagreement
         // that makes measuring worth doing.
         expect(seoCounterClass(100, 160)).toBe("text-green-500");
         expect(measured("x".repeat(100), "description", 160)).toBe(

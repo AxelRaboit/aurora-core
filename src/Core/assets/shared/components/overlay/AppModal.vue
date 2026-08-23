@@ -26,7 +26,7 @@ const props = defineProps({
      * Allow clicks on the dark overlay to close the modal. Default `true`
      * matches the historical behavior (lightweight modals = overlay click
      * cancels). Set to `false` for form modals so an accidental click on
-     * the backdrop doesn't wipe in-flight user input — ESC + the X button
+     * the backdrop doesn't wipe in-flight user input - ESC + the X button
      * still close.
      */
     closeOnOverlay: { type: Boolean, default: true },
@@ -76,7 +76,7 @@ onUnmounted(() => {
 });
 
 // Two parallel maps so Tailwind's class scanner sees every literal
-// at build time (no runtime string concat — JIT would miss them).
+// at build time (no runtime string concat - JIT would miss them).
 const MAX_WIDTH = {
     sm: "max-w-sm",
     md: "max-w-md",

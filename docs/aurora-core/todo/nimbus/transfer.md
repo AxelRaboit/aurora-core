@@ -1,4 +1,4 @@
-# FileTransfer — Transfer
+# FileTransfer - Transfer
 
 > Entité racine du module. Représente une session de transfert : N
 > fichiers + M destinataires + état + expiration + protection password.
@@ -36,22 +36,22 @@ Source Nimbus :
 | `publicDownloadCount` | int | compteur pour le mode public |
 | `senderName` | varchar(255) nullable | affiché aux recipients (fallback : `user.name`) |
 | `senderMessage` | text nullable | message libre du sender |
-| `createdAt` / `updatedAt` | timestamps | — |
+| `createdAt` / `updatedAt` | timestamps | - |
 | `deletedAt` | datetime_immutable nullable | soft delete (laisse les stats remonter) |
 
 Index requis :
 - `(token)` unique
 - `(ownerToken)` unique
 - `(reference)` unique
-- `(user_id, status, created_at DESC)` — listing "Mes transferts" Pro
-- `(status, expires_at)` — scheduler cleanup
+- `(user_id, status, created_at DESC)` - listing "Mes transferts" Pro
+- `(status, expires_at)` - scheduler cleanup
 
 Enum :
 ```php
 enum FileTransferStatusEnum: string {
     case Pending  = 'pending';   // upload en cours (TUS)
     case Ready    = 'ready';     // finalisé, téléchargeable
-    case Expired  = 'expired';   // passé expiresAt — fichiers supprimés
+    case Expired  = 'expired';   // passé expiresAt - fichiers supprimés
     case Deleted  = 'deleted';   // soft-delete manuel
 }
 ```
@@ -60,7 +60,7 @@ enum FileTransferStatusEnum: string {
 
 ### Entity (couche 1)
 - `FileTransferInterface` (getters/setters typés)
-- `AbstractFileTransfer` (MappedSuperclass — toute la logique Doctrine)
+- `AbstractFileTransfer` (MappedSuperclass - toute la logique Doctrine)
 - `FileTransfer` (concrete non-`final`, `#[Entity]` + `#[Table('core_file_transfer_transfer')]`)
 
 Référencer dans `AuroraBundle::$resolve_target_entities`.
@@ -226,7 +226,7 @@ class FileTransferRepository extends ResolveTargetEntityRepository
 
 ## Controller backend
 
-`Aurora\Module\FileTransfer\Transfer\Controller\Backend\FileTransferController` —
+`Aurora\Module\FileTransfer\Transfer\Controller\Backend\FileTransferController` -
 endpoints `JsonResponse` :
 
 | Méthode | Route | Auth |
@@ -241,7 +241,7 @@ endpoints `JsonResponse` :
 
 ## Décisions ouvertes
 
-- **Anonymous upload** : porter le flow Nimbus où un visiteur non-authentifié peut créer un transfer ? (avec rate-limit + limites stricter) ou réserver à `ROLE_USER` ? — défaut : porter le flow anonyme, rate-limit via Symfony RateLimiter.
+- **Anonymous upload** : porter le flow Nimbus où un visiteur non-authentifié peut créer un transfer ? (avec rate-limit + limites stricter) ou réserver à `ROLE_USER` ? - défaut : porter le flow anonyme, rate-limit via Symfony RateLimiter.
 - **Soft-delete vs hard-delete** : Nimbus marque `status=deleted` mais garde la ligne pour les stats (`TransferStats`). On garde ce pattern.
 - **Audit log** : Aurora a `AuditLog` ? Si oui, brancher les hooks `auditCreated/Updated/Deleted`. Si non, no-op hooks.
 

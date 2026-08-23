@@ -78,7 +78,7 @@ grep -rn "<old_filename>" docs/ .claude/memory/ CLAUDE.md
 ```
 
 Mettre à jour les références dans le même commit (cf. consolidation
-`extend_module.md` du 17 mai 2026 — 12 références à ajuster).
+`extend_module.md` du 17 mai 2026 - 12 références à ajuster).
 
 ### 4. Échappatoire
 
@@ -103,7 +103,7 @@ find docs -name "*.md" -exec grep -Hn "\](.*\.md)" {} \;
 
 Convention demandée par l'utilisateur le 17 mai 2026 après 3 commits
 consécutifs de rattrapage doc (`c2ffaa01`, `28d2b44b`, `b217cfad`) qui
-ont révélé un drift massif sur `add_module.md` et `extend_entity.md` —
+ont révélé un drift massif sur `add_module.md` et `extend_entity.md` -
 docs jamais maintenues au rythme de l'évolution du code.
 
 Application **systématique** désormais. Lié à

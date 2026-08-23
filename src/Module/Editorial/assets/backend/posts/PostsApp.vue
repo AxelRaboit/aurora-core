@@ -52,7 +52,7 @@ const {
 } = usePostsList(props);
 
 // What a row offers depends on the permission and on whether the post sits in
-// the trash — a rule about the record, not a layout decision, so it is not four
+// the trash - a rule about the record, not a layout decision, so it is not four
 // `v-if` in a table cell. `pendingForceDelete` rather than `forceDelete`: that
 // one cannot be undone and keeps its confirmation.
 const actionsFor = usePostRowActions({
@@ -103,7 +103,7 @@ const allTerms = computed(() =>
         </AppListToolbar>
 
         <!-- Two lists, not one list narrowed. A trashed post supports different
-             actions from a live one — restore and delete for good, never edit —
+             actions from a live one - restore and delete for good, never edit -
              so this picks *which* list you are working on, the same job the
              tabs do everywhere else in the backend. A toggle button read as
              "apply something to what I'm looking at", which is not what it does. -->

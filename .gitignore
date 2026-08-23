@@ -38,7 +38,7 @@ yarn.lock
 .DS_Store
 
 # pnpm-workspace.yaml is deliberately NOT ignored. `allowBuilds` is a policy
-# call about a dependency — identical on every machine — and tracking it is the
+# call about a dependency - identical on every machine - and tracking it is the
 # only way clients get it. While ignored it never reached the composer package,
 # so any client running `pnpm install` inside vendor/axelraboit/aurora got
 # pnpm's unanswered placeholder written back and the build died on
@@ -53,7 +53,7 @@ yarn.lock
 # Twig CS Fixer
 .twig-cs-fixer.cache
 
-# Tools vendors — the lock files ARE versioned, on purpose: CI runs
+# Tools vendors - the lock files ARE versioned, on purpose: CI runs
 # `composer install` in each tools/ dir, so without a lock it resolves the
 # newest release every run and green-locally stops meaning green-in-CI.
 /tools/*/vendor/

@@ -1,6 +1,6 @@
 ---
 name: register-module-toggle
-description: Register a module (and its sub-modules) in the `/dev/dashboard/modules` admin panel by wiring its OWN `<Module>ModuleParameterEnum` + `<Module>ModuleParameterProvider`, a `<Module>Context`, and the `ModuleToggleProviderInterface` on the module class. Use when the user asks "why does my module not show up in /dev/dashboard/modules", "the module is missing from the modules dashboard", "register Notes in the toggle dashboard", "expose toggles for <Module>", or when a fresh module/sub-module needs to become user-toggleable. Idempotent — re-running on an already-registered module is a no-op.
+description: Register a module (and its sub-modules) in the `/dev/dashboard/modules` admin panel by wiring its OWN `<Module>ModuleParameterEnum` + `<Module>ModuleParameterProvider`, a `<Module>Context`, and the `ModuleToggleProviderInterface` on the module class. Use when the user asks "why does my module not show up in /dev/dashboard/modules", "the module is missing from the modules dashboard", "register Notes in the toggle dashboard", "expose toggles for <Module>", or when a fresh module/sub-module needs to become user-toggleable. Idempotent - re-running on an already-registered module is a no-op.
 scope: shared
 ---
 
@@ -12,12 +12,12 @@ panel and gate the live nav at runtime.
 
 This skill targets a module that already exists in `src/Module/<Module>/`
 (or `src/Core/<Module>/` for core modules) but is **missing from the
-dashboard** — typically because it was scaffolded without
+dashboard** - typically because it was scaffolded without
 `ModuleToggleProviderInterface` and without a `<Module>Context`.
 
 > **Monorepo-split convention (since 2026-05-30).** Each business module
 > owns its toggles in its **own** `<Module>ModuleParameterEnum` (under
-> `src/Module/<Module>/Setting/`) + a `<Module>ModuleParameterProvider` —
+> `src/Module/<Module>/Setting/`) + a `<Module>ModuleParameterProvider` -
 > NOT the central `ModuleParameterEnum` (`src/Module/Configuration/Setting/Enum/`),
 > which is now core-infra only (General/Platform/Configuration/Media/Ged).
 > Mirror `src/Module/Notes/Setting/NotesModuleParameterEnum.php` (sub-toggles)
@@ -46,17 +46,17 @@ Symptoms that should trigger this skill:
 
 ## Required inputs (ask upfront if missing)
 
-1. **Parent module** (PascalCase) — must exist. Verify by globbing
+1. **Parent module** (PascalCase) - must exist. Verify by globbing
    `src/Module/<Parent>/<Parent>Module.php` or `src/Core/<Parent>Module.php`.
    If neither found, stop and report.
 2. **List of sub-modules** to register as nested toggles. Inspect the
-   parent's `getNavSections()` for the existing `NavItem`s — each one is
+   parent's `getNavSections()` for the existing `NavItem`s - each one is
    a candidate sub-module. Ask the user to confirm the list and labels.
    If the parent has zero sub-modules, only the parent toggle is wired.
-3. **Trans key strategy** — by convention, the parent label/description
+3. **Trans key strategy** - by convention, the parent label/description
    uses `backend.modules.<module_id>_backend` and `backend.modules.<module_id>_backend_description`
    (in the module's `translations/messages.<locale>.yaml`). Sub-module
-   toggles reuse the existing `backend.nav.<route_id>` keys — they're
+   toggles reuse the existing `backend.nav.<route_id>` keys - they're
    already defined for the NavItem.
 
 ## What gets generated/edited
@@ -64,7 +64,7 @@ Symptoms that should trigger this skill:
 ### 1. Create the module's own `<Module>ModuleParameterEnum` + provider
 
 File: `src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php`
-(create it — do **not** touch the central `ModuleParameterEnum`).
+(create it - do **not** touch the central `ModuleParameterEnum`).
 
 Mirror `NotesModuleParameterEnum` exactly. Case names are **short**
 (`Backend`, `<Sub1>`, …) and the stored VALUE keeps the legacy key
@@ -143,7 +143,7 @@ enum <Module>ModuleParameterEnum: string implements ApplicationParameterEnumInte
 }
 ```
 
-> The match arms (`getLabel` / `getDescription`) must be **exhaustive** —
+> The match arms (`getLabel` / `getDescription`) must be **exhaustive** -
 > one arm per case, no `default`. That is the forcing function : adding a
 > sub-module case without its arms is a compile error.
 
@@ -256,7 +256,7 @@ public function getNavSections(): array
 ```
 
 **Do not touch `getCatalogNavSections()`.** It must always return the
-full list (the catalog is the picker UI for module-by-module config —
+full list (the catalog is the picker UI for module-by-module config -
 it shows *all* available items regardless of current toggle state).
 
 #### d) Add `getToggles()` method
@@ -287,7 +287,7 @@ backend:
 ```
 
 Sub-module trans keys (`backend.nav.<route_id>` + `_description`) are
-**already present** — they were created when the NavItem was defined.
+**already present** - they were created when the NavItem was defined.
 Do not re-add them.
 
 ### 5. Run post-generation commands
@@ -312,9 +312,9 @@ The `aurora:application-parameter` output should show:
 ```
 
 If `N` differs from the number of cases you added, something didn't
-wire — re-check the enum cases and `getToggles()` method.
+wire - re-check the enum cases and `getToggles()` method.
 
-## Runtime gating — default behavior
+## Runtime gating - default behavior
 
 `ModuleAccessChecker::getGlobal()` calls `SettingRepository::getBoolean($key, true)`,
 which **defaults to `true`** when the row is missing. So users see no
@@ -322,35 +322,35 @@ visible change until they actively toggle something OFF in the
 dashboard. The seed step is for surfacing the toggles in the UI, not
 for changing visibility.
 
-## Auto-discovery — what works without extra wiring
+## Auto-discovery - what works without extra wiring
 
 - Symfony autowires the `<Module>Context` into the module
   constructor (both are services, both `final readonly`).
 - `ModuleToggleRegistry` collects toggles from every service implementing
-  `ModuleToggleProviderInterface` (tagged automatically) — no manual
+  `ModuleToggleProviderInterface` (tagged automatically) - no manual
   registration needed.
 - The dashboard reads the toggles returned by every `getToggles()`, so the
   new `<Module>ModuleParameterEnum` cases show up immediately after
   `aurora:application-parameter` seeds their rows.
 - `<Module>ModuleParameterProvider` is auto-tagged
-  `aurora.application_parameter_provider` — by the module's own
+  `aurora.application_parameter_provider` - by the module's own
   `config/services.php` if it's a package, else by the central `_instanceof`.
   Without the provider, the sync command would flag the rows obsolete.
 
 ## Boundaries
 
 - **One module per invocation.** If the user has two modules to
-  register, run the skill twice — each module's enum + Context + Module
+  register, run the skill twice - each module's enum + Context + Module
   edits should be a separate atomic change.
 - **Never create the parent module from scratch.** If the parent doesn't
   exist, point at `/add-module`.
 - **Never add sub-module entries that don't have a NavItem.** The
   dashboard shows nav-item-backed toggles. Pure-data sub-modules (no
   visible UI) shouldn't appear in the panel.
-- **Do not modify `getCatalogNavSections()`.** It's the picker UI — must
+- **Do not modify `getCatalogNavSections()`.** It's the picker UI - must
   show everything regardless of toggle state.
 - **Always pair `getCascadeRequires()` and `getDisplayParent()`** for the
-  same sub-module — they encode the cascade rule and the visual hierarchy
+  same sub-module - they encode the cascade rule and the visual hierarchy
   respectively, and the dashboard cross-references both.
 - **Never touch the central `ModuleParameterEnum`.** Business-module
   toggles live in the module's own `<Module>ModuleParameterEnum`. The

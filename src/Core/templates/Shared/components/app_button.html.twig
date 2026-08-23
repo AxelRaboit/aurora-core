@@ -7,16 +7,16 @@
     Variants and sizes MUST stay in sync with AppButton.vue.
 
     Params:
-      - href     (optional) — renders as <a>; otherwise <button>
-      - type     (optional) — button[type], default 'button'
-      - variant  (optional) — primary | secondary | danger | danger-outline
+      - href     (optional) - renders as <a>; otherwise <button>
+      - type     (optional) - button[type], default 'button'
+      - variant  (optional) - primary | secondary | danger | danger-outline
                               | danger-subtle | accent | ghost | link | link-accent,
                               default 'primary'
-      - size     (optional) — sm | md | lg | none, default 'md'
-      - icon     (optional) — name from @Shared/components/icon.html.twig
-      - label    (optional) — text label; can also be passed via the `content` block
-      - target / rel (optional) — fall through onto <a>
-      - extraClass   (optional) — extra Tailwind classes
+      - size     (optional) - sm | md | lg | none, default 'md'
+      - icon     (optional) - name from @Shared/components/icon.html.twig
+      - label    (optional) - text label; can also be passed via the `content` block
+      - target / rel (optional) - fall through onto <a>
+      - extraClass   (optional) - extra Tailwind classes
 #}
 {% set _variant = variant|default('primary') %}
 {% set _size = size|default('md') %}

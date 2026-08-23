@@ -8,7 +8,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Phase 5 follow-up — actually drop the Media tables.
+ * Phase 5 follow-up - actually drop the Media tables.
  *
  * `Version20260530082245` was registered as executed with an empty body
  * (the auto-generated template ran before the DROP statements were
@@ -17,7 +17,7 @@ use Doctrine\Migrations\AbstractMigration;
  * This migration ships the real DROP statements; CASCADE handles the
  * still-present FK constraints from `core_media`.
  *
- * Test DBs created fresh after this migration are unaffected — the
+ * Test DBs created fresh after this migration are unaffected - the
  * IF EXISTS guard makes both runs (existing dev DB + fresh test DB)
  * idempotent.
  */
@@ -40,7 +40,7 @@ final class Version20260530083658 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        // No restore — recovering Media data requires backups taken before
+        // No restore - recovering Media data requires backups taken before
         // Phase 5 ran.
     }
 }

@@ -1,6 +1,6 @@
 /*
  * `.sidemenu-collapsed` sits on `<html>`, so the rule that acts on it has to
- * name the aside. Unscoped it reached the *mobile drawer* too — a menu hidden
+ * name the aside. Unscoped it reached the *mobile drawer* too - a menu hidden
  * on a desktop session would have hidden the drawer on a phone, leaving no way
  * to navigate at all. That is what kept the drawer a hand-written copy of every
  * row, and what let the copies drift apart.
@@ -19,7 +19,7 @@
  * contents through a series of broken layouts on the way, and the eye follows
  * every one of them. Sliding leaves the inside untouched.
  *
- * `visibility` is what actually takes it away — off-screen is not out of reach,
+ * `visibility` is what actually takes it away - off-screen is not out of reach,
  * and a hidden menu whose links still answered Tab would hand keyboard users a
  * list of destinations they cannot see. Delayed by the length of the slide so
  * the exit stays visible, and returned with no delay so it is focusable again
@@ -79,8 +79,8 @@
 
 /*
  * The "view site" row is pinned to 40px so its border lines up with the
- * breadcrumb band's. A `.si` link is 40px too — 0.624rem above and below a 20px
- * row — so inside that band it fits exactly, and its hover fill runs into both
+ * breadcrumb band's. A `.si` link is 40px too - 0.624rem above and below a 20px
+ * row - so inside that band it fits exactly, and its hover fill runs into both
  * borders with the rounded corners clipping flat against them.
  *
  * 0.375rem instead makes the link 32px, which the row centres with 4px of
@@ -90,7 +90,7 @@
 .sh-view-site .si {
     padding-block: 0.375rem;
     /* The row centres the link, which makes it a flex item that would otherwise
-       shrink to its text — leaving a hover fill narrower than every row below. */
+       shrink to its text - leaving a hover fill narrower than every row below. */
     width: 100%;
 }
 .si-label { display: block; min-width: 0; }

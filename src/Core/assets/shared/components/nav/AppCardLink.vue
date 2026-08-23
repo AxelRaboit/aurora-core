@@ -17,7 +17,7 @@ defineProps({
         default: "accent",
         validator: (v) => ["accent", "emerald", "amber", "rose"].includes(v),
     },
-    /** Hide the trailing chevron — useful for non-navigational uses. */
+    /** Hide the trailing chevron - useful for non-navigational uses. */
     hideChevron: { type: Boolean, default: false },
 });
 

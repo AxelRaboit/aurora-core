@@ -9,7 +9,7 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
 /**
  * Contributes a set of `ApplicationParameterEnumInterface` cases to the
  * `aurora:application-parameter` sync command. Implementations are
- * auto-tagged via `_instanceof` in services.yaml — any service
+ * auto-tagged via `_instanceof` in services.yaml - any service
  * implementing this interface gets tagged `aurora.application_parameter_provider`
  * and is picked up by the command's tagged iterator.
  *
@@ -34,12 +34,12 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
  * `_instanceof` block so client-side implementations get the tag too
  * (the aurora-core `_instanceof` only applies inside the bundle config).
  * The template `client_template/config/services.yaml` ships this block
- * by default — newer clients inherit it automatically.
+ * by default - newer clients inherit it automatically.
  *
  * Critically: the `aurora:application-parameter` command **deletes**
  * any `core_settings` row whose key isn't returned by *any* provider
  * (flagged "obsolète"). So a client custom enum **must** be exposed via
- * a provider — otherwise saved values will be wiped on the next sync.
+ * a provider - otherwise saved values will be wiped on the next sync.
  */
 interface ApplicationParameterProviderInterface
 {

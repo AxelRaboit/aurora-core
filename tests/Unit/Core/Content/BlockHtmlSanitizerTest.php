@@ -136,13 +136,13 @@ final class BlockHtmlSanitizerTest extends TestCase
 
     /**
      * DOMDocument reads Latin-1 unless told otherwise, which turns every
-     * accent into mojibake — on a French-first application, silently.
+     * accent into mojibake - on a French-first application, silently.
      */
     public function testAccentsAndEntitiesComeOutIntact(): void
     {
         self::assertSame(
-            'Éléphant à Nîmes &amp; Cie — <b>déjà</b>',
-            $this->sanitizer->safe('Éléphant à Nîmes &amp; Cie — <b>déjà</b>'),
+            'Éléphant à Nîmes &amp; Cie - <b>déjà</b>',
+            $this->sanitizer->safe('Éléphant à Nîmes &amp; Cie - <b>déjà</b>'),
         );
     }
 

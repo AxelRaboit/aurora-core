@@ -14,7 +14,7 @@ import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 
 /**
  * Reusable picker for an existing GED Document. Mirrors the role of
- * `MediaPickerModal` but for the document-management module — semantically
+ * `MediaPickerModal` but for the document-management module - semantically
  * the right place when callers need a business document (welding PDF
  * templates, contract attachments, …) rather than a content asset.
  *
@@ -25,9 +25,9 @@ import { useFileSize } from "@/shared/composables/format/useFileSize.js";
  *   - No inline edit of title/description for the same reason.
  *
  * Optional filters:
- *   - `mimeFilter` — restrict the visible documents to a single MIME
+ *   - `mimeFilter` - restrict the visible documents to a single MIME
  *     (e.g. "application/pdf"). Applied client-side from the list payload.
- *   - `status` query — defaults to "published".
+ *   - `status` query - defaults to "published".
  *
  * Emits `select` with the full serialized document so the consumer can
  * extract whichever field it needs (`fileId`, `fileName`, etc.).

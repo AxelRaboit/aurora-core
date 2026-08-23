@@ -6,7 +6,7 @@
  * this user is a set of rules and lives in `useUserActions`; the trigger, the
  * modal and the rows are `AppRowActions`, shared with every other list.
  *
- * What is left here is the translation between the two — an action carrying an
+ * What is left here is the translation between the two - an action carrying an
  * `emitName` becomes an `onSelect` that emits it, because the page above owns
  * what actually happens.
  */

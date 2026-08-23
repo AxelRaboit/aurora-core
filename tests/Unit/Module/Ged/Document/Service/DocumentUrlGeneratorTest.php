@@ -139,7 +139,7 @@ final class DocumentUrlGeneratorTest extends TestCase
 
     public function testThumbUrlFallsBackToOriginalWhenNoVariantExists(): void
     {
-        // Non-image documents (PDF, SVG) — no variant was produced, so the
+        // Non-image documents (PDF, SVG) - no variant was produced, so the
         // thumb cascade must end on the original public path.
         $document = $this->makeDocument('ged/2026/05/contract.pdf');
         $this->urlGenerator->expects(self::once())

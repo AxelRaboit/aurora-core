@@ -3,7 +3,7 @@
    Pulled out of `_grid.html.twig` when stacks arrived: a stacked child renders
    exactly like a zone on a row, and the alternative was the same forty lines
    written twice, drifting apart on the first change. `twoColumn` is in this
-   file's history as the cost of that drift — a renderer reading a shape its own
+   file's history as the cost of that drift - a renderer reading a shape its own
    tool no longer wrote.
 
    Takes `zone` and `locale`. Nothing about where the zone sits belongs here:
@@ -11,7 +11,7 @@
 
     {% if zone.type == 'text' and zone.html %}
         {# Already sanitised by BlocksRenderer, which every block type
-           goes through — the same path the plain block column uses. #}
+           goes through - the same path the plain block column uses. #}
         <div class="prose max-w-none">{{ zone.html|raw }}</div>
 
     {% elseif zone.type == 'media' and zone.media %}
@@ -22,7 +22,7 @@
            declaration from the view builder.
 
            Only from `lg` up. Below it every zone is alone on its row, so the
-           box has no height of its own to fill — `flex-1` against an auto
+           box has no height of its own to fill - `flex-1` against an auto
            height would collapse the picture to nothing. There it reads as
            `natural`, which is what a picture alone on a phone should be
            anyway. #}
@@ -39,7 +39,7 @@
         <figure class="m-0 not-prose{{ fills ? ' lg:flex lg:h-full lg:flex-col' : '' }}" style="{{ zone.scaleStyle|default('')|raw }}">
             {# `ratioStyle` is empty unless the zone asks to be cropped.
                With a width of 100% and `height: auto`, an `aspect-ratio`
-               settles the height on its own — no wrapper, no second
+               settles the height on its own - no wrapper, no second
                element.
                `object-cover` and the focal position, both already here,
                are what make the crop land where the picture matters. #}
@@ -87,7 +87,7 @@
     {% elseif zone.type == 'video' %}
         {% if zone.video %}
             {# The src is built from an extracted id against a whitelist
-               of three providers — see VideoEmbedResolver. An iframe
+               of three providers - see VideoEmbedResolver. An iframe
                runs what its host serves, so an arbitrary address is
                never put here. #}
             <div class="relative aspect-video overflow-hidden rounded-lg not-prose">

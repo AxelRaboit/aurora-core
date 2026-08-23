@@ -116,13 +116,13 @@ final class MailServiceTest extends TestCase
         $this->translator->expects(self::once())
             ->method('trans')
             ->with('photo.subject_invite', ['{title}' => 'My Gallery'])
-            ->willReturn('My Gallery — Photos ready');
+            ->willReturn('My Gallery - Photos ready');
         $this->twig->method('render')->willReturn('b');
 
         $this->mailer->expects(self::once())
             ->method('send')
             ->with(self::callback(function (Email $email): bool {
-                self::assertSame('[Aurora] My Gallery — Photos ready', $email->getSubject());
+                self::assertSame('[Aurora] My Gallery - Photos ready', $email->getSubject());
 
                 return true;
             }));
@@ -209,7 +209,7 @@ final class MailServiceTest extends TestCase
     public function testAdminEmailTreatsEmptyStringAsUnset(): void
     {
         // Empty-string settings come from the UI when an admin clears the
-        // field — caller must see this as "not configured", not "empty addr".
+        // field - caller must see this as "not configured", not "empty addr".
         $this->settings->expects(self::atLeastOnce())
             ->method('get')
             ->with(ApplicationParameterEnum::AdminEmail->value)

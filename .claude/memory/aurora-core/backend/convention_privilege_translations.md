@@ -40,7 +40,7 @@ backend:
 
 ```yaml
 # Les clés plates avec quotes se chargent dans le JSON sous forme de
-# string-clé, mais vue-i18n ne les trouve JAMAIS — son resolver
+# string-clé, mais vue-i18n ne les trouve JAMAIS - son resolver
 # traverse `names → planning → plannings → view`, pas la chaîne
 # littérale "planning.plannings.view".
 backend:
@@ -89,7 +89,7 @@ grep -rE "'[a-z_]+\.[a-z_]+\.[a-z_]+':" src/Core/translations/ \
   | grep "permissions:" -A 100 | head -50
 ```
 
-Les deux listes doivent matcher (modulo le nombre — chaque clé apparaît
+Les deux listes doivent matcher (modulo le nombre - chaque clé apparaît
 2× dans les translations : fr + en).
 
 ## Localisation par module

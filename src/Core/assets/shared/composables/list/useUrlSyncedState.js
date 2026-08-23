@@ -4,16 +4,16 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
  * Reactive state mirrored to the browser URL via history.pushState/popstate.
  *
  * Used to make tab/filter switches client-side while keeping the URL bar in
- * sync — back/forward navigation re-runs the consumer's `onSync` callback.
+ * sync - back/forward navigation re-runs the consumer's `onSync` callback.
  *
  * The consumer owns:
- *   - `serialize(value)` — returns a URL or string for the new state, or null
+ *   - `serialize(value)` - returns a URL or string for the new state, or null
  *     to skip pushState (e.g. when no URL change is needed).
- *   - `deserialize(event)` — given a popstate event, returns the value to
+ *   - `deserialize(event)` - given a popstate event, returns the value to
  *     restore. Should fall back to parsing window.location when state is
  *     missing (initial load + Back).
  *
- * Returns `{ state, set }`. Use `set(next)` from click handlers — it updates
+ * Returns `{ state, set }`. Use `set(next)` from click handlers - it updates
  * the state, calls pushState, and invokes `onSync`. Read `state.value` in
  * templates.
  *

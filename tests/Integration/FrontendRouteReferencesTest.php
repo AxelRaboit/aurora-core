@@ -19,7 +19,7 @@ use function sprintf;
  *
  * The block editor posted its image uploads to `/backend/media/media/upload`
  * for months after that route left with the Media module. Nothing failed
- * loudly — the request 404'd, the upload silently did nothing, and no test
+ * loudly - the request 404'd, the upload silently did nothing, and no test
  * looked. A literal path in a `.js` or `.vue` file is a contract with the
  * router that nothing else checks.
  *
@@ -34,7 +34,7 @@ final class FrontendRouteReferencesTest extends IntegrationTestCase
 
     /**
      * Backtick templates: `` `/backend/ged/documents/${id}/usage` ``. Only the
-     * static head is checked, against the *start* of a route — the rest is a
+     * static head is checked, against the *start* of a route - the rest is a
      * runtime value.
      *
      * Added because the first version of this test missed exactly this shape,
@@ -87,7 +87,7 @@ final class FrontendRouteReferencesTest extends IntegrationTestCase
     }
 
     /**
-     * Docblocks quote example paths — `buildPath` documents itself with one —
+     * Docblocks quote example paths - `buildPath` documents itself with one -
      * and an example is not a dependency. Block comments and whole-line `//`
      * only: stripping to the end of any `//` would eat a real path sitting
      * after a `https://` in the same line.

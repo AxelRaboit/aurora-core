@@ -1,6 +1,6 @@
 ---
-name: Structure en module — tout le code client va dans src/Module/
-description: Pas de dossiers plats src/Entity/, src/Dto/, etc. — même les extensions Aurora vont dans un module miroir
+name: Structure en module - tout le code client va dans src/Module/
+description: Pas de dossiers plats src/Entity/, src/Dto/, etc. - même les extensions Aurora vont dans un module miroir
 type: feedback
 ---
 
@@ -21,7 +21,7 @@ Le chemin du module **miroir** le namespace Aurora de l'entité étendue :
 | `Aurora\Module\Crm\Deal\…` | `src/Module/Crm/Deal/…` |
 
 > **Note 0.4.0** : les entités Core ont été nichées sous leur module
-> parent (Platform, Configuration, Media, General, Dev) — cf.
+> parent (Platform, Configuration, Media, General, Dev) - cf.
 > [`docs/aurora-client/MIGRATION_0.4.md`](../../docs/aurora-client/MIGRATION_0.4.md)
 > et [[decision-core-submodule-nesting]] côté aurora-core.
 

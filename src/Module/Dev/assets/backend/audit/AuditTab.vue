@@ -56,7 +56,7 @@ onMounted(() => {
                         <td class="px-4 py-3">
                             <span class="text-primary text-sm font-medium">{{ t(`backend.audit.actions.${log.module}.${log.action}`) }}</span>
                             <span v-if="log.entityType" class="ml-2 text-muted text-xs">{{ log.entityType }} #{{ log.entityId }}</span>
-                            <span v-if="log.data?.name" class="ml-2 text-secondary text-xs truncate">— {{ log.data.name }}</span>
+                            <span v-if="log.data?.name" class="ml-2 text-secondary text-xs truncate">· {{ log.data.name }}</span>
                         </td>
                         <td class="px-4 py-3 hidden sm:table-cell">
                             <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-surface-2 text-secondary">{{ t(`backend.modules.${log.module}`) }}</span>
@@ -65,7 +65,7 @@ onMounted(() => {
                             <template v-if="log.userName">{{ log.userName }}</template>
                             <template v-if="log.userName && log.userEmail"> · </template>
                             <span v-if="log.userEmail" class="text-muted">{{ log.userEmail }}</span>
-                            <template v-if="!log.userName && !log.userEmail">—</template>
+                            <template v-if="!log.userName && !log.userEmail">-</template>
                         </td>
                         <td class="px-4 py-3 text-secondary text-xs">{{ formatDateTime(log.createdAt) }}</td>
                     </tr>

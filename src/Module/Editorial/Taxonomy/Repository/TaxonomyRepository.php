@@ -26,7 +26,7 @@ class TaxonomyRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Enough to serialize a taxonomy without its terms — the shape the
+     * Enough to serialize a taxonomy without its terms - the shape the
      * post-types screen needs when it lists which taxonomies apply.
      *
      * @return list<TaxonomyInterface>

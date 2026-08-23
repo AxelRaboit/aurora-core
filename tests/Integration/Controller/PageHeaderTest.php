@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  *
  * The first version of the split dropped the last crumb, on the grounds that the
  * band above already names the page. Fourteen of the nineteen pages have exactly
- * two crumbs, so the trail collapsed to one word — the section name, which the
+ * two crumbs, so the trail collapsed to one word - the section name, which the
  * side menu was already showing. Nothing failed: the page rendered, the tests
  * passed, and `/backend/platform/users` said only "Plateforme".
  *
@@ -47,7 +47,7 @@ final class PageHeaderTest extends IntegrationTestCase
     }
 
     /**
-     * The common shape: a section and a page. Both levels have to be there —
+     * The common shape: a section and a page. Both levels have to be there -
      * this is the exact case that shipped broken, showing the section alone.
      */
     public function testTheTrailKeepsTheSectionAndThePage(): void
@@ -78,7 +78,7 @@ final class PageHeaderTest extends IntegrationTestCase
      * single band used to truncate, which is what the split was for.
      *
      * The dev dashboard, because a third level has to be a genuine detail of a
-     * nav item — a tab here, a document or a post elsewhere. This test used to
+     * nav item - a tab here, a document or a post elsewhere. This test used to
      * point at the GED categories page, which claimed a parent it did not have;
      * fixing that took its third level away, and rightly so.
      */
@@ -98,7 +98,7 @@ final class PageHeaderTest extends IntegrationTestCase
 
     /**
      * One title element, not two. The name appears in both bands by design, but
-     * only the upper one is a heading — a second would leave the page with two.
+     * only the upper one is a heading - a second would leave the page with two.
      */
     public function testTheHeaderHasASingleHeading(): void
     {
@@ -111,7 +111,7 @@ final class PageHeaderTest extends IntegrationTestCase
     /**
      * The profile page, which used to be the exception.
      *
-     * It began its trail at itself — the only page in the backend that did — so
+     * It began its trail at itself - the only page in the backend that did - so
      * it could not say where it sat, and it was the one page whose trail held a
      * single item. It sits under the account section now, like every other page
      * sits under its own.

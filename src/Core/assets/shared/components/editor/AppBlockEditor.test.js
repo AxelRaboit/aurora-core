@@ -3,8 +3,8 @@ import { mount } from "@vue/test-utils";
 
 /**
  * Editor.js boots asynchronously and reads `modelValue` exactly once, when it
- * is constructed. A parent that hydrates its form in its own onMounted — which
- * Vue runs *after* the child's — therefore hands this component an empty array,
+ * is constructed. A parent that hydrates its form in its own onMounted - which
+ * Vue runs *after* the child's - therefore hands this component an empty array,
  * and the editor comes up blank on a document that has content.
  *
  * That is what these cover: the catch-up render once the editor is ready, and

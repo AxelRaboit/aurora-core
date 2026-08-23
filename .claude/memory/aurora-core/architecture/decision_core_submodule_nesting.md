@@ -1,6 +1,6 @@
 ---
 name: decision-core-submodule-nesting
-description: Décision (mai 2026) — les sous-modules Core (User, Agency, Service, Auth, Setting, Theme, Audit, Dashboard, Profile, Search, Media) vivent désormais sous le dossier de leur module parent (Aurora\Module\Platform\User, etc.) pour aligner avec la convention Vault-style déjà en place côté src/Module/.
+description: Décision (mai 2026) - les sous-modules Core (User, Agency, Service, Auth, Setting, Theme, Audit, Dashboard, Profile, Search, Media) vivent désormais sous le dossier de leur module parent (Aurora\Module\Platform\User, etc.) pour aligner avec la convention Vault-style déjà en place côté src/Module/.
 metadata:
   type: project
 ---
@@ -10,7 +10,7 @@ metadata:
 ## Décision (mai 2026, finalisée dans 0.4.0)
 
 **Tout module (avec NavItem dans la sidemenu) vit sous `src/Module/`.**
-Plus de séparation src/Core ≠ src/Module pour les modules — ils sont
+Plus de séparation src/Core ≠ src/Module pour les modules - ils sont
 tous au même endroit. `src/Core/` héberge **uniquement** de l'infrastructure
 cross-cutting (sans NavItem propre).
 
@@ -33,7 +33,7 @@ Avant : 2 conventions co-existaient. Côté `src/Module/` (Vault, Notes,
 Editorial…) les sous-modules vivaient dans un sous-dossier
 (`src/Module/Vault/Safe/`, `src/Module/Notes/Markdown/`). Côté
 `src/Core/`, les sous-modules étaient à plat (`src/Core/User/`,
-`src/Core/Agency/` — alors que ces 3 entités appartiennent à
+`src/Core/Agency/` - alors que ces 3 entités appartiennent à
 `PlatformModule`). Incohérence pénible :
 
 - **Discoverabilité** : un dev nouveau cherchant "tout ce qui est
@@ -41,7 +41,7 @@ Editorial…) les sous-modules vivaient dans un sous-dossier
 - **Cohésion logique** : module = vue abstraite (sidemenu + permissions
   + toggles) dispersée à travers le tree de fichiers.
 - **Skills Claude / scaffold** : `/add-module` et `/add-submodule`
-  doivent encoder 2 conventions au lieu d'1 — friction sur l'outillage.
+  doivent encoder 2 conventions au lieu d'1 - friction sur l'outillage.
 
 ## How to apply
 
@@ -83,17 +83,17 @@ L'historique : avant l'alignement, les Core contexts vivaient à
 intermédiaire éphémère), avant d'atterrir à la racine du folder du
 module. Les Business contexts vivaient à
 `src/Module/<X>/Service/<X>Context.php` (10/12 modules n'avaient QUE le
-Context dans Service/ — dossier trompeur). Le pattern actuel reflète
+Context dans Service/ - dossier trompeur). Le pattern actuel reflète
 mieux la réalité : le Context **appartient** au module et vit à sa
 racine, comme `<Module>FrontendDescriptor.php`.
 
 Le dossier `Service/` reste valide pour des **vrais services métier**
 (ex. `Crm/Service/CrmNotificationService.php`,
-`PdfForm/Service/PdfManipulator.php`) — pas pour le Context.
+`PdfForm/Service/PdfManipulator.php`) - pas pour le Context.
 
 ## Périmètre exclu
 
-`src/Core/Notification/` reste à plat — n'a pas de NavItem dédié,
+`src/Core/Notification/` reste à plat - n'a pas de NavItem dédié,
 c'est de l'infra cross-cutting (Project + d'autres modules émettent
 des notifs). Idem pour Encryption, Frontend, Locale, Mail, Migration,
 Module, Repository, Scheduler, Sequence, Storage, Support, Timestampable,
@@ -116,7 +116,7 @@ Pour décider si un folder doit aller sous `src/Module/<X>/` ou rester en
 | A un NavItem dans la sidemenu | `src/Module/<X>/` (module ou sous-module) | Platform, Editorial, Vault |
 | Pas de NavItem mais cross-cutting (utilisé par plusieurs modules pour leur fonctionnement) | `src/Core/<X>/` (infra) | Mail, Notification, Sequence, Storage, Locale, Encryption, Twig |
 | Définit ce qu'est un Module (Contract, Nav, Toggle…) | `src/Core/Module/` | ModuleInterface, NavItem, ModuleToggle |
-| Pas de NavItem mais c'est une feature à part entière (entité + UI minimale + 1 seul usage) | À discuter — par défaut **module** sous src/Module/ | (rare) |
+| Pas de NavItem mais c'est une feature à part entière (entité + UI minimale + 1 seul usage) | À discuter - par défaut **module** sous src/Module/ | (rare) |
 
 ### Le cas Notification (pédagogique)
 
@@ -138,12 +138,12 @@ Pour Editorial, désactiver = juste plus de CMS, le reste tourne. → Module.
 ## Commits du refacto
 
 Le refacto a été exécuté en 5 commits atomiques :
-- `71b4151c` — Prep (élargir glob translations à depth 2)
-- `db277d5d` — Étape 1 : General (Dashboard + Profile + Search)
-- `996a7f64` — Étape 2 : Dev (Audit)
-- `4c34062d` — Étape 3 : Configuration (Setting + Theme)
-- `ff9c9e16` — Étape 4 : Media (Library)
-- `a380781e` — Étape 5 : Platform (User + Agency + Auth + Service)
+- `71b4151c` - Prep (élargir glob translations à depth 2)
+- `db277d5d` - Étape 1 : General (Dashboard + Profile + Search)
+- `996a7f64` - Étape 2 : Dev (Audit)
+- `4c34062d` - Étape 3 : Configuration (Setting + Theme)
+- `ff9c9e16` - Étape 4 : Media (Library)
+- `a380781e` - Étape 5 : Platform (User + Agency + Auth + Service)
 
 Méthode : `git mv` puis `sed -i` sur les namespaces (RenameNamespaceRector
 absent de la version Rector installée). Pattern sed validé sur la plus
@@ -162,7 +162,7 @@ fichiers).
    les deux (MediaModule n'a pas de `\` après "Media").
 3. **`src/Core/Service/` dual-purpose au moment du refacto initial** : hébergeait à la fois l'entité Service ET les contextes
    globaux. Le pattern sed doit cibler explicitement les 7 sous-namespaces
-   de Service (`Entity`, `Dto`, `Manager`, …) — pas le préfixe
+   de Service (`Entity`, `Dto`, `Manager`, …) - pas le préfixe
    `Aurora\\Core\\Service\\` qui capturerait aussi les contextes.
 
 Voir aussi [[pattern-core-submodules-split]] (le pattern "1 module = 1

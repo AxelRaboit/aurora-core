@@ -2,7 +2,7 @@
 
 ## Règle
 
-Un Manager n'expose **pas** de hook `applyInput()` — uniquement des hooks
+Un Manager n'expose **pas** de hook `applyInput()` - uniquement des hooks
 `create<X>()` + audit + ses méthodes publiques métier overridables une par
 une. Réservée aux Managers qui réunissent les **3 critères** :
 
@@ -45,10 +45,10 @@ class UserManager implements UserManagerInterface
 
     // PAS de applyInput
 
-    // Hook audit (toujours requis si AuditLogger utilisé) — mais souvent
+    // Hook audit (toujours requis si AuditLogger utilisé) - mais souvent
     // remplacé par un AuditUserManagerDecorator (pattern d'aurora-core User)
 
-    // Méthodes publiques métier — overridables individuellement par le client
+    // Méthodes publiques métier - overridables individuellement par le client
     public function changePassword(UserInterface $user, string $newPassword): void { … }
     public function consumeInvitation(UserInterface $user, …): void { … }
     public function toggleDevRole(UserInterface $user): void { … }
@@ -65,7 +65,7 @@ Ajouter un commentaire au-dessus du hook `create<X>()` :
  * Single instantiation hook : business operations are overridden via
  * individual public methods (changePassword, consumeInvitation, …).
  * The Manager does not expose applyInput() because no simple create+update
- * via DTO unique exists — see CLAUDE.md memory variant_user_style.
+ * via DTO unique exists - see CLAUDE.md memory variant_user_style.
  */
 protected function createUser(): UserInterface
 {
@@ -85,10 +85,10 @@ Critère unique : **la signature publique ne contient pas de `<Name>InputInterfa
 
 Exemples dans aurora-core :
 - ✅ `BudgetManager` → `ensureForMonth(user, wallet, month)`, `updateNotes(budget, ?string)`,
-  `lastRolloverCount()`, `delete(budget)` — pas de DTO, juste user / wallet /
+  `lastRolloverCount()`, `delete(budget)` - pas de DTO, juste user / wallet /
   date / nullable string.
 - ✅ `WalletMemberManager` → `create(wallet, user, role)`,
-  `updateRole(member, newRole)`, `removeMember(member)` — primitives
+  `updateRole(member, newRole)`, `removeMember(member)` - primitives
   uniquement (wallet, user, role enum).
 
 Garde-fou : si un controller commence à parser un payload riche pour
@@ -98,7 +98,7 @@ hook `applyInput()`. Tant qu'on reste sur 2-3 primitives simples, la
 variante "no DTO root" est légitime.
 
 Différence avec la variante User-style : pas besoin des 3 critères
-(≥6 méthodes, security distincte par op, etc.) — juste « pas de DTO
+(≥6 méthodes, security distincte par op, etc.) - juste « pas de DTO
 en signature ». Souvent vrai pour des Managers gateways (member
 attach/detach, balance lifecycle, etc.).
 

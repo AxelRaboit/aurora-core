@@ -1,4 +1,4 @@
-# Audit — `translateServerErrors` non appliqué côté Vue
+# Audit - `translateServerErrors` non appliqué côté Vue
 
 ## Contexte
 
@@ -32,7 +32,7 @@ l'utilisent. Le reste est un mix de **vrais bugs d'affichage** et de
    - **Toast-only** : `toast.error(t(data.error))` n'a pas besoin du
      helper (seule valeur, traduite inline)
    - **Composables génériques** (`useForm`, `useFormAction`, …) qui
-     acceptent un map déjà traduit en entrée — la translation se fait
+     acceptent un map déjà traduit en entrée - la translation se fait
      chez l'appelant
 
 4. PR séparée, commit `audit(forms): translate server errors consistently`.
@@ -44,5 +44,5 @@ l'utilisent. Le reste est un mix de **vrais bugs d'affichage** et de
   `.claude/memory/aurora-shared/convention_domain_exception_translation_key.md`
   (même philosophie côté exceptions PHP, via `DomainException::TRANSLATION_KEY`)
 - Usage de référence : chercher `translateServerErrors` dans
-  `src/Module/Editorial/` ou `src/Module/Crm/` — convention appliquée
+  `src/Module/Editorial/` ou `src/Module/Crm/` - convention appliquée
   partout depuis l'audit forms de mai 2026.

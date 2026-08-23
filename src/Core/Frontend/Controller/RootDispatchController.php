@@ -30,7 +30,7 @@ final class RootDispatchController extends AbstractController
         // No front is enabled (all of their module settings are OFF, or none
         // is registered). Send the visitor to /backend, which itself cascades
         // to /backend/profile when the Dashboard is also masked. Anonymous
-        // visitors will hit the backend login firewall — the expected
+        // visitors will hit the backend login firewall - the expected
         // entrypoint when there is no public site left to serve.
         if (!$enabled instanceof FrontendInterface) {
             return $this->redirectToRoute('backend_dashboard');
@@ -43,7 +43,7 @@ final class RootDispatchController extends AbstractController
     {
         // Prefer the configured default if it is enabled, otherwise fall back
         // to whichever registered front is currently on (highest priority first
-        // — Registry::all() is already sorted by priority).
+        // - Registry::all() is already sorted by priority).
         if ($this->registry->highest() instanceof FrontendInterface) {
             $default = $this->router->getDefault();
             if ($this->isFrontEnabled($default)) {

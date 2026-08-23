@@ -39,7 +39,7 @@ restent en base et **réapparaissent dès qu'on rebascule en multi-langue**.
 6. **Sitemap / RSS** : les services SEO itèrent sur `Context::activeLocales()`
    et n'émettent donc des entrées que pour la locale par défaut.
 
-## Architecture — les 3 services centraux
+## Architecture - les 3 services centraux
 
 Le mode est piloté par 3 services dans `src/Core/Locale/Service/` qui
 suivent le pattern Sylius (interface + classe non-`final` + `#[AsAlias]`
@@ -113,7 +113,7 @@ interface TranslationLocaleSyncerInterface
 `applyInput()` doit passer par ce syncer. Sinon, basculer en single FR
 détruirait les contenus EN.
 
-## Cheatsheet — étendre une entité multilingue
+## Cheatsheet - étendre une entité multilingue
 
 Quand tu crées une nouvelle entité avec `XxxTranslation` qui doit
 respecter le mode mono-langue :
@@ -163,10 +163,10 @@ au bundle). Règles :
 **Exceptions légitimes** (à laisser tel quel) :
 - `LocaleEnum.php` lui-même (table de référence).
 - `Twig/LocaleExtension.php` (mappings `'fr' => 'Français'`,
-  `'fr' => 'fr'` flag, etc. — c'est la table de correspondance).
+  `'fr' => 'fr'` flag, etc. - c'est la table de correspondance).
 - DataFixtures (seed bilingue, sans intérêt à enum-ifier).
 - Propriétés `protected string $locale = 'fr'` sur les entités
-  (`AbstractOrder`) et DTO `readonly` (`UserInput`) — pas de DI possible.
+  (`AbstractOrder`) et DTO `readonly` (`UserInput`) - pas de DI possible.
 - Méthodes statiques d'enums (`CountryEnum::label/options`).
 
 ## Selects de locale dans `/backend/configuration/settings`
@@ -225,7 +225,7 @@ C'est tout. Le reste suit automatiquement :
 
 Les `#[Route('/{locale}/...')]` restent déclarées. C'est
 `SingleLocaleRedirectSubscriber` qui canonicalise (`/en/shop` → 301
-`/fr/shop`). **Ne pas** retirer le segment `/{locale}` des routes — ça
+`/fr/shop`). **Ne pas** retirer le segment `/{locale}` des routes - ça
 garderait l'extensibilité multi-langue et permettrait à un projet client
 de désactiver le single mode sans modifier les URLs.
 

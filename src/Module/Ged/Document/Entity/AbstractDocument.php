@@ -39,7 +39,7 @@ abstract class AbstractDocument implements DocumentInterface
     // ── Self-owned file storage ──────────────────────────────────────────
     // Documents are stored under `var/uploads/ged/documents/Y/m/<file>`
     // and served via the `/uploads/{path}` catch-all. No coupling to the
-    // Media library — GED owns its own physical files so it can evolve
+    // Media library - GED owns its own physical files so it can evolve
     // its own retention / encryption / versioning policies later.
 
     /** Relative path within var/uploads/ (e.g. ged/documents/2026/05/contract-abc.pdf). */
@@ -50,7 +50,7 @@ abstract class AbstractDocument implements DocumentInterface
     #[ORM\Column(length: 255, nullable: true)]
     protected ?string $fileName = null;
 
-    /** Filename the user originally uploaded — kept for the Content-Disposition header on download. */
+    /** Filename the user originally uploaded - kept for the Content-Disposition header on download. */
     #[ORM\Column(length: 255, nullable: true)]
     protected ?string $originalName = null;
 
@@ -60,7 +60,7 @@ abstract class AbstractDocument implements DocumentInterface
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     protected ?int $size = null;
 
-    /** Pixel dimensions — populated at upload for image documents only. */
+    /** Pixel dimensions - populated at upload for image documents only. */
     #[ORM\Column(type: Types::INTEGER, nullable: true)]
     protected ?int $width = null;
 
@@ -77,7 +77,7 @@ abstract class AbstractDocument implements DocumentInterface
     #[ORM\Column(length: 255, nullable: true)]
     protected ?string $thumbnailPath = null;
 
-    /** Alternative text — accessibility/SEO, only meaningful for image documents. */
+    /** Alternative text - accessibility/SEO, only meaningful for image documents. */
     #[ORM\Column(length: 255, nullable: true)]
     protected ?string $alt = null;
 
@@ -86,7 +86,7 @@ abstract class AbstractDocument implements DocumentInterface
     protected ?string $caption = null;
 
     /**
-     * Focal point — normalized [0, 1] coordinates anchoring the visually-important
+     * Focal point - normalized [0, 1] coordinates anchoring the visually-important
      * area of an image. Consumed by `DocumentUrlGenerator::focalPositionCss()` to
      * drive `object-position` in the frontend renderer. `null` = center.
      */

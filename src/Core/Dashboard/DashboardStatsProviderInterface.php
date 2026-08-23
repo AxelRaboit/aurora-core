@@ -16,7 +16,7 @@ namespace Aurora\Core\Dashboard;
 interface DashboardStatsProviderInterface
 {
     /**
-     * Module key gating this provider — must match the entries the dashboard
+     * Module key gating this provider - must match the entries the dashboard
      * passes as "enabled modules" (e.g. 'editorial', 'crm', 'billing').
      */
     public function getModuleKey(): string;

@@ -4,7 +4,7 @@ defineProps({
     label: { type: String, default: '' },
     /**
      * Help text under the box. Sits outside the `<label>` so clicking it does
-     * not toggle — a paragraph of explanation is meant to be read, not hit.
+     * not toggle - a paragraph of explanation is meant to be read, not hit.
      */
     hint: { type: String, default: '' },
     name: { type: String, default: '' },

@@ -31,11 +31,11 @@ casse à la moindre refacto du wording, et ne se voit pas dans le typage.
 
 **How to apply** :
 - Manager : `throw new <X>Exception(...)` avec les ids/valeurs en props
-  publiques pour le debug — le message reste lisible pour humain (logs,
+  publiques pour le debug - le message reste lisible pour humain (logs,
   stack traces).
 - Controller : `try { ... } catch (<X>Exception) { return $this->jsonFailure(<X>Exception::TRANSLATION_KEY); }`.
 - Anti-pattern : capter `RuntimeException` générique + sniffer le message.
 - Anti-pattern : mettre la clé i18n dans le `$message` du parent constructor.
 
 Lié : [[convention-thin-controller]] (le controller mappe domaine ↔ HTTP,
-il ne décide pas du wording — la clé de trad est exposée par le domaine).
+il ne décide pas du wording - la clé de trad est exposée par le domaine).

@@ -13,11 +13,11 @@ use Twig\TwigFunction;
 /**
  * Dev-environment helpers for Twig templates.
  *
- *   aurora_is_dev()       — true when kernel.environment === 'dev'.
+ *   aurora_is_dev()       - true when kernel.environment === 'dev'.
  *                           Replaces the magic string `app.environment == 'dev'`
  *                           everywhere in templates.
  *
- *   aurora_dev_warnings() — list of {@see PrerequisiteWarning}
+ *   aurora_dev_warnings() - list of {@see PrerequisiteWarning}
  *                           for missing dev prerequisites (PHP extensions,
  *                           Node.js…).
  */

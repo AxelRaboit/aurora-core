@@ -13,7 +13,7 @@ use Aurora\Core\Module\Contract\ModuleToggleProviderInterface;
  * for the cascade graph and the per-user access picker list.
  *
  * The same module list as {@see ModuleRegistry} is injected (DI tag), so
- * any module — core or aurora-client — contributes its toggles by
+ * any module - core or aurora-client - contributes its toggles by
  * implementing the provider interface. No central enum to edit.
  */
 final class ModuleToggleRegistry
@@ -41,8 +41,8 @@ final class ModuleToggleRegistry
     }
 
     /**
-     * Returns toggles that represent the "top-level" entry of a module —
-     * one per module — used by the admin per-user access picker.
+     * Returns toggles that represent the "top-level" entry of a module -
+     * one per module - used by the admin per-user access picker.
      *
      * @return list<ModuleToggle>
      */
@@ -56,7 +56,7 @@ final class ModuleToggleRegistry
 
     /**
      * Returns the toggles whose `parentKey` matches the given key (one level
-     * only — callers recurse if they need the full subtree).
+     * only - callers recurse if they need the full subtree).
      *
      * @return list<ModuleToggle>
      */
@@ -84,7 +84,7 @@ final class ModuleToggleRegistry
     }
 
     /**
-     * Top-level toggles for the modules dashboard — those with no structural
+     * Top-level toggles for the modules dashboard - those with no structural
      * parent (`displayParentKey === null`). Distinct from {@see getTopLevel()}
      * (moduleId-based): a few standalone toggles (e.g. an ecommerce/photo
      * "frontend" switch) are top-level cards without being a module's root.
@@ -101,7 +101,7 @@ final class ModuleToggleRegistry
 
     /**
      * All transitive descendant keys of a toggle (children, grandchildren, …)
-     * via the `parentKey` graph — i.e. the set to force OFF when this toggle is
+     * via the `parentKey` graph - i.e. the set to force OFF when this toggle is
      * disabled. Replaces `ModuleParameterEnum::getCascadeDisableTargets()` so the
      * cascade is computed from the aggregated toggles, not from a central enum.
      *

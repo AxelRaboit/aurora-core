@@ -1,6 +1,6 @@
 ---
 name: convention_vue_directives
-description: Directives Vue — toujours v-on: (forme longue) pour les events, jamais @; le raccourci : reste OK pour v-bind
+description: Directives Vue - toujours v-on: (forme longue) pour les events, jamais @; le raccourci : reste OK pour v-bind
 metadata:
   type: feedback
 ---

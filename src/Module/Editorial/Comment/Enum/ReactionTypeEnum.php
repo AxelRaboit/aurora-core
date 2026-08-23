@@ -27,7 +27,7 @@ enum ReactionTypeEnum: string
 
     /**
      * A key, not a word. The reference returned French literals here, so an
-     * English reader hovering a reaction was told "J'adore" — on the public
+     * English reader hovering a reaction was told "J'adore" - on the public
      * site, where the visitor has no say in the matter.
      */
     public function labelKey(): string

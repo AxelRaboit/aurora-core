@@ -30,7 +30,7 @@ final readonly class ModuleRegistry
      *
      * Sections and items hidden by the current user (via their personal sidemenu
      * preferences) are excluded from the returned structure but remain reachable
-     * by direct URL — the hide is a display preference, not an access control.
+     * by direct URL - the hide is a display preference, not an access control.
      *
      * After the priority-based sort, applies the admin-defined order overrides
      * stored in `nav_section_order` and `nav_item_order`. IDs / routes present
@@ -93,7 +93,7 @@ final readonly class ModuleRegistry
      * Returns the full nav structure available to the current user (filtered only by
      * privilege), annotated with the user's current hidden flags. Used by the
      * sidemenu preferences UI so users can toggle visibility for every available
-     * section/item — including ones they have already hidden.
+     * section/item - including ones they have already hidden.
      *
      * @return array<int, array{id: string, hidden: bool, items: array<int, array<string, mixed>>}>
      */
@@ -225,7 +225,7 @@ final readonly class ModuleRegistry
             }
         }
 
-        // Anything left in $byId wasn't mentioned in the override — keep its
+        // Anything left in $byId wasn't mentioned in the override - keep its
         // natural priority/insertion order (still iterable in the original list
         // order since we built $byId from the already-sorted $sections).
         return array_merge($ordered, array_values($byId));

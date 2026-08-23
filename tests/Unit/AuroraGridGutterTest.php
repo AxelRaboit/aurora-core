@@ -20,7 +20,7 @@ use function sprintf;
  * The grid has 48 tracks, so `column-gap` is 47 gutters rather than one
  * between items. The banner shipped with `gap-8`: that is 47 × 2rem = 1504px
  * of gap inside a 1280px container, which collapsed every track to zero width
- * and pushed a full-width item 240px past the edge — a right-aligned button
+ * and pushed a full-width item 240px past the edge - a right-aligned button
  * ended up half outside the banner. Gutters come from item padding instead
  * (see css/base/aurora-grid.css).
  *
@@ -29,7 +29,7 @@ use function sprintf;
  * regression from being pushed. This is a static read of the markup, which
  * costs nothing and fails in the pipeline.
  *
- * `gap-y-*` is allowed: the row axis is unaffected — items wrap onto new rows
+ * `gap-y-*` is allowed: the row axis is unaffected - items wrap onto new rows
  * and want space between them.
  */
 final class AuroraGridGutterTest extends TestCase
@@ -38,7 +38,7 @@ final class AuroraGridGutterTest extends TestCase
 
     /**
      * Matches the utilities that set a column gap: `gap-*` (both axes) and
-     * `gap-x-*`. Responsive and state prefixes count too — `md:gap-8` is the
+     * `gap-x-*`. Responsive and state prefixes count too - `md:gap-8` is the
      * same bug above 768px.
      */
     private const string COLUMN_GAP = '/(?:^|\s)(?:[a-z0-9-]+:)*gap(?:-x)?-(?!y-)[^\s"]+/';
@@ -92,7 +92,7 @@ final class AuroraGridGutterTest extends TestCase
 
         // Collected and asserted once rather than asserted inside the loop: a
         // file can name `aurora-grid` in a comment and carry no such class at
-        // all — `PostGridPanel.vue` does — and a loop that never runs is a test
+        // all - `PostGridPanel.vue` does - and a loop that never runs is a test
         // that never asserts, which PHPUnit rightly calls risky.
         self::assertSame(
             [],
@@ -128,7 +128,7 @@ final class AuroraGridGutterTest extends TestCase
      * inside a box that has padding of its own and very visible in the article
      * flow: the content grid sat a gutter to the right of the title above it.
      *
-     * The modifier cancels exactly that, from the same variable — two numbers
+     * The modifier cancels exactly that, from the same variable - two numbers
      * that have to match are two numbers that will stop matching.
      */
     public function testTheFlushModifierCancelsExactlyTheGutter(): void

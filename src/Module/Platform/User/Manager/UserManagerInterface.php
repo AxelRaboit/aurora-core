@@ -45,7 +45,7 @@ interface UserManagerInterface
      * as `$actor`. When `$actor` is non-null, the actor's rank must be ≥ the
      * target user's rank (enforced via `canActOn`). `$actor = null` is
      * reserved for internal / system flows (e.g. fixtures, CLI, migrations)
-     * where authorization is already guaranteed upstream — never default
+     * where authorization is already guaranteed upstream - never default
      * `$actor` to null in a controller action.
      *
      * @param list<string> $disabledModules
@@ -56,7 +56,7 @@ interface UserManagerInterface
      * Replaces the user's personal sidemenu visibility + colouring preferences.
      * Each list is sanitized against the user's current resolved nav catalog:
      * unknown / privilege-filtered entries are silently dropped. This is a
-     * user-initiated action — the target user is always the actor themselves
+     * user-initiated action - the target user is always the actor themselves
      * (no rank check).
      */
     /**

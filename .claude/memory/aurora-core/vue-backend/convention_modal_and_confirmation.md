@@ -2,18 +2,18 @@
 
 ## Règle
 
-### 1. AppModal — API à respecter
+### 1. AppModal - API à respecter
 
 `AppModal` (`src/Core/assets/shared/components/overlay/AppModal.vue`) attend :
 
-- `:show` (Boolean) — visibilité contrôlée par le parent
-- `v-on:close` (event) — émis quand l'utilisateur veut fermer (ESC, clic overlay, bouton X)
-- `:title` (String, optionnel) — header avec close button automatique
-- `max-width` — `sm` / `md` / `lg` / `xl` / `2xl` / etc.
+- `:show` (Boolean) - visibilité contrôlée par le parent
+- `v-on:close` (event) - émis quand l'utilisateur veut fermer (ESC, clic overlay, bouton X)
+- `:title` (String, optionnel) - header avec close button automatique
+- `max-width` - `sm` / `md` / `lg` / `xl` / `2xl` / etc.
 
 **Règle absolue sur les boutons** : dès qu'une modale contient des
 boutons d'action (annuler, confirmer, sauvegarder…), ils vont
-**toujours** dans `<template #footer><AppModalFooter>` — jamais en
+**toujours** dans `<template #footer><AppModalFooter>` - jamais en
 inline à la fin du body. Le slot `#footer` est un footer sticky séparé
 par un `border-t` avec la bonne mise en page responsive
 (`flex-col sm:flex-row sm:justify-end`).
@@ -44,15 +44,15 @@ par un `border-t` avec la bonne mise en page responsive
 </AppModal>
 ```
 
-**❌ NE PAS** utiliser `v-model:open` — ça ne marche pas, les modales
+**❌ NE PAS** utiliser `v-model:open` - ça ne marche pas, les modales
 restent fermées sans erreur visible. C'est le piège classique.
 
-**❌ NE PAS** mettre les boutons dans le body (`<div class="flex justify-end gap-2">`) —
+**❌ NE PAS** mettre les boutons dans le body (`<div class="flex justify-end gap-2">`) -
 ils doivent être dans `#footer`.
 
 ### 1bis. Variants AppButton pour actions destructives
 
-Trois niveaux d'intensité — choisir selon le contexte :
+Trois niveaux d'intensité - choisir selon le contexte :
 
 | Variant | Utilisation | Exemple |
 |---------|-------------|---------|
@@ -60,14 +60,14 @@ Trois niveaux d'intensité — choisir selon le contexte :
 | `danger-subtle` (rose teinté) | Bouton destructeur **qui ouvre une confirmation** (pas l'action finale) | « Supprimer » dans une modale d'édition |
 | `<AppIconButton color="rose">` | Icône poubelle dans table/toolbar | Trash dans une row |
 
-**Mauvais** : mettre `danger` plein partout — l'œil est saturé de rouge,
+**Mauvais** : mettre `danger` plein partout - l'œil est saturé de rouge,
 on ne distingue plus le bouton qui va effectivement supprimer (le
 final) des boutons qui ouvrent un flow.
 
 **Bon** : la cascade visuelle suit le degré d'engagement
 (icône < subtle < danger plein).
 
-### 2. Confirmation de suppression — toujours via modale
+### 2. Confirmation de suppression - toujours via modale
 
 **❌ Jamais** `confirm("Êtes-vous sûr ?")` (alert JS native, dégueu et
 pas accessible).

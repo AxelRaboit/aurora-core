@@ -1,6 +1,6 @@
 ---
 name: convention_testing_php
-description: Convention de test PHP/PHPUnit — Unit vs Integration, structure, base classes, helpers, nommage.
+description: Convention de test PHP/PHPUnit - Unit vs Integration, structure, base classes, helpers, nommage.
 metadata:
   type: feedback
 ---
@@ -14,7 +14,7 @@ src/Module/Billing/Service/InvoiceExtractor.php
 tests/Unit/Module/Billing/Service/InvoiceExtractorTest.php   ← miroir
 ```
 
-C'est intentionnellement différent des tests Vue/JS (co-localisés) — deux écosystèmes, deux conventions établies. Ne pas mélanger : pas de `.test.php` co-localisé dans `src/`.
+C'est intentionnellement différent des tests Vue/JS (co-localisés) - deux écosystèmes, deux conventions établies. Ne pas mélanger : pas de `.test.php` co-localisé dans `src/`.
 
 ```
 tests/
@@ -93,6 +93,6 @@ Créer un user ad hoc : `use CreatesTestUsers` + `$this->createTestUser('Alice',
 
 **Why:** Documenté lors de l'audit testing (2026-05-14). Cohérence avec la convention Vue/JS (co-location, guide dédié).
 
-**How to apply:** Nouveau service/manager → test Unit en miroir dans `tests/Unit/`. Nouveau Controller → test Integration dans `tests/Integration/Controller/`. 3–5 assertions ciblées par test.
+**How to apply:** Nouveau service/manager → test Unit en miroir dans `tests/Unit/`. Nouveau Controller → test Integration dans `tests/Integration/Controller/`. 3-5 assertions ciblées par test.
 
 **Doc canonique** : [`docs/aurora-shared/testing_php.md`](../../../docs/aurora-shared/testing_php.md)

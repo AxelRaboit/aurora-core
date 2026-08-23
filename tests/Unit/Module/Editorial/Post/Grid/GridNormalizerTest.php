@@ -206,7 +206,7 @@ final class GridNormalizerTest extends TestCase
 
     /**
      * A picture alone on its row has no imposed height, so `fill` has nothing
-     * to fill — it is stored all the same, because the arrangement is written
+     * to fill - it is stored all the same, because the arrangement is written
      * for the large screen and the template is where "nothing to fill" is
      * decided, not the normaliser.
      */
@@ -250,7 +250,7 @@ final class GridNormalizerTest extends TestCase
     }
 
     /**
-     * Cropping is design, and the design is written once — the same argument
+     * Cropping is design, and the design is written once - the same argument
      * that puts the span on the post rather than on the translation.
      */
     public function testTheRatioIsSharedAndCannotBeTranslated(): void
@@ -296,8 +296,8 @@ final class GridNormalizerTest extends TestCase
 
     /**
      * The second: two zones that would sit side by side, and should not. An
-     * offset cannot say this — pushing the second one right leaves it on the
-     * same row — so it takes a field of its own.
+     * offset cannot say this - pushing the second one right leaves it on the
+     * same row - so it takes a field of its own.
      */
     public function testANewRowDropsAZoneBelowOneItWouldFitBeside(): void
     {
@@ -312,7 +312,7 @@ final class GridNormalizerTest extends TestCase
     /**
      * The case that made the row worth working out at all.
      *
-     * Left to the browser's auto-placement — which was the first attempt — the
+     * Left to the browser's auto-placement - which was the first attempt - the
      * second zone was put beside the first: columns 33 to 48 were free there,
      * and a grid places an item with a definite column in the first row that
      * can take it. The break did nothing, silently.
@@ -556,7 +556,7 @@ final class GridNormalizerTest extends TestCase
 
     /**
      * Depth stops at one. Nesting further turns a page into a layout tree,
-     * where what a zone renders as can no longer be read off the list — and
+     * where what a zone renders as can no longer be read off the list - and
      * every consumer of this shape would have to recurse without bound.
      */
     public function testAStackInsideAStackIsRefused(): void
@@ -671,7 +671,7 @@ final class GridNormalizerTest extends TestCase
     }
 
     /**
-     * Blocks are the one thing written raw — Editor.js owns that shape and the
+     * Blocks are the one thing written raw - Editor.js owns that shape and the
      * sanitiser runs at render, as it always has for `blocks`.
      */
     public function testTextBlocksAreKeptAsTheEditorWroteThem(): void

@@ -22,7 +22,7 @@ class TaxonomyTermInputFactory implements TaxonomyTermInputFactoryInterface
     }
 
     /**
-     * The slug stays null when the editor left it blank — the Manager
+     * The slug stays null when the editor left it blank - the Manager
      * derives it from the name, which is where the slugger lives.
      *
      * @return array<string, array{name: string, slug: ?string, description: ?string}>

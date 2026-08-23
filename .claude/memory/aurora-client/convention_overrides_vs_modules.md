@@ -1,6 +1,6 @@
 ---
 name: convention-overrides-vs-modules
-description: Where to place client-side Vue files — co-location with the PHP extension under `src/Module/<Module>/<Feature>/assets/`. The path "Agency" (PascalCase PHP feature folder) + "agencies/" (kebab plural URL segment) are two mirrors of two different layers, not a duplication.
+description: Where to place client-side Vue files - co-location with the PHP extension under `src/Module/<Module>/<Feature>/assets/`. The path "Agency" (PascalCase PHP feature folder) + "agencies/" (kebab plural URL segment) are two mirrors of two different layers, not a duplication.
 metadata:
   type: project
 ---
@@ -26,7 +26,7 @@ src/Module/Platform/Agency/             ← tout ce qui concerne Agency vit ici
 ```
 
 Le glob `@client/src/Module/**/assets/**/*.vue` détecte ce fichier et
-l'expose comme **`platform/backend/agencies/AgenciesApp`** — **même clé**
+l'expose comme **`platform/backend/agencies/AgenciesApp`** - **même clé**
 que le composant Aurora. Comme `clientModules` est spread après
 `auroraModules` dans `vueContext`, le client win automatiquement → shadow
 direct sans Twig override.
@@ -54,7 +54,7 @@ src/Module/Platform/Agency/assets/backend/agencies/AgenciesApp.vue
   `backend/agencies/AgenciesApp.vue` = route `/backend/platform/agencies/` + composant
   SPA. kebab pluriel, convention REST/Symfony.
 
-`Agency/` et `agencies/` ne sont **pas un doublon** — ce sont deux
+`Agency/` et `agencies/` ne sont **pas un doublon** - ce sont deux
 abstractions distinctes du même domaine, exprimées chacune dans sa
 convention naturelle. Aurora-core utilise les deux partout (`AgencyManager`
 + `AgenciesController` + route `/backend/platform/agencies/`).
@@ -92,31 +92,31 @@ Conséquence :
 
 ## `src/Overrides/` reste là, mais en escape hatch
 
-Le bucket `src/Overrides/` continue de fonctionner — son glob `Overrides/**/*.vue`
+Le bucket `src/Overrides/` continue de fonctionner - son glob `Overrides/**/*.vue`
 expose le path tel quel. Utile pour **shadow des composants non-module**
 d'aurora-core (ceux sous `src/Core/assets/backend/...`, exposés sous la clé
 `./core/backend/...`). Pour ces cas-là, mettre le fichier à
 `src/Overrides/core/backend/<X>.vue` shadow directement la clé `./core/backend/<X>`.
 
 **Mais pour les modules Aurora (Platform, Editorial, Crm, ...), préférer
-la co-localisation** — c'est plus propre, plus traçable, et co-loyalty avec
+la co-localisation** - c'est plus propre, plus traçable, et co-loyalty avec
 l'extension PHP.
 
 ## Anti-patterns
 
 - ❌ Mettre l'override Vue sous `src/Module/<X>/assets/` quand il existe une
-  extension PHP au niveau `<Feature>/` — le path ne reflète pas la portée
+  extension PHP au niveau `<Feature>/` - le path ne reflète pas la portée
   réelle de l'override
 - ❌ Override un composant via `src/Overrides/` quand il vit dans un module
   Aurora (la co-localisation sous `Module/<AuroraModule>/<Feature>/assets/`
   est plus propre et utilise le même mécanisme `clientModules`)
 - ❌ Confondre le segment **avant** `/assets/` (mirror PHP) avec celui
-  **après** (mirror URL) — ils répondent à deux conventions différentes
+  **après** (mirror URL) - ils répondent à deux conventions différentes
 
 ## Source
 
-- `src/Core/assets/app.js` — les 3 globs `auroraModules`, `clientModules`,
+- `src/Core/assets/app.js` - les 3 globs `auroraModules`, `clientModules`,
   `clientOverrides` (cf. commentaires + constante `MODULE_PATH_RE`)
 - Aurora-core commit qui a introduit le `**/` dans les globs (cherche
   "co-localisation PHP+Vue" dans `git log`)
-- Lien : [[pattern_extend_vue]] — pattern wrapper Vue avec `extraFields` + slots
+- Lien : [[pattern_extend_vue]] - pattern wrapper Vue avec `extraFields` + slots

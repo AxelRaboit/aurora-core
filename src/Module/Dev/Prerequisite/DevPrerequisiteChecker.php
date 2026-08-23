@@ -14,8 +14,8 @@ use function extension_loaded;
  * Designed to be cheap enough to call on every admin page load in the
  * `dev` environment:
  *
- *  - PHP extension checks  → `extension_loaded()` — essentially free.
- *  - Binary checks         → single `exec()` per binary — milliseconds.
+ *  - PHP extension checks  → `extension_loaded()` - essentially free.
+ *  - Binary checks         → single `exec()` per binary - milliseconds.
  *
  * Results are also cached in-instance so multiple Twig calls per request
  * (e.g. layout + embed) hit the file cache once at most.

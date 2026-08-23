@@ -1,6 +1,6 @@
 ---
 name: utility_pick_translation
-description: pickTranslation et translatedField centralisent la résolution de translations Doctrine — fallback chain locale → en → première dispo.
+description: pickTranslation et translatedField centralisent la résolution de translations Doctrine - fallback chain locale → en → première dispo.
 metadata:
   type: feedback
 ---
@@ -30,7 +30,7 @@ const title = translatedField(post, 'title', currentLocale, 'en')
 4. `null`
 
 Le 3ᵉ niveau est essentiel : une entité peut n'avoir aucune translation FR ni
-EN mais une DE — il faut afficher quelque chose plutôt que rien.
+EN mais une DE - il faut afficher quelque chose plutôt que rien.
 
 ## Pourquoi
 

@@ -18,13 +18,13 @@ use RuntimeException;
  * On demand and not only at install, because the install is the one step that
  * can be skipped. A project upgrading from a version that predates this would
  * have no such category until someone remembered to run `aurora:install`, and
- * every image uploaded in between would land uncategorised — the exact litter
+ * every image uploaded in between would land uncategorised - the exact litter
  * this exists to prevent, arriving through the one door left open. The
  * bootstrap provider still seeds it so it shows up in the category list before
  * anyone uploads anything; this is what makes the upload independent of it.
  *
- * The slug is the identity. An administrator is free to rename the category —
- * it sits in their own list next to their own — and renaming it must not
+ * The slug is the identity. An administrator is free to rename the category -
+ * it sits in their own list next to their own - and renaming it must not
  * silently create a second one.
  */
 final readonly class InlineUploadCategoryProvider

@@ -13,7 +13,7 @@ use Doctrine\DBAL\Connection;
  *   - global  (year = 0):    ORD-000001, LOG-000031
  *   - yearly  (year = YYYY): FAC-2026-0001
  *
- * Increments use INSERT … ON CONFLICT DO UPDATE RETURNING — a single atomic
+ * Increments use INSERT … ON CONFLICT DO UPDATE RETURNING - a single atomic
  * statement that requires no explicit lock or transaction and handles the
  * first-use (INSERT) and subsequent uses (UPDATE) transparently.
  *
@@ -28,7 +28,7 @@ final readonly class SequenceGenerator
     public function __construct(private Connection $connection) {}
 
     /**
-     * Yearly sequence — resets to 1 each calendar year.
+     * Yearly sequence - resets to 1 each calendar year.
      * Format: {PREFIX}-{YEAR}-{NNNN}.
      */
     public function nextYearly(string $prefix, int $year, int $pad = 4): string
@@ -39,7 +39,7 @@ final readonly class SequenceGenerator
     }
 
     /**
-     * Global sequence — never resets.
+     * Global sequence - never resets.
      * Format: {PREFIX}-{NNNNNN}.
      */
     public function next(string $prefix, int $pad = 6): string

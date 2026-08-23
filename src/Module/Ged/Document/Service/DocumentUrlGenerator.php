@@ -13,11 +13,11 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * presentation helpers (focal-point CSS, best-variant cascade).
  *
  * Lives here rather than on `AbstractDocument` so the entity stays a pure
- * domain object — URL building requires `UrlGeneratorInterface`, a
+ * domain object - URL building requires `UrlGeneratorInterface`, a
  * presentation concern entities should not depend on (CLAUDE.md §3bis).
  *
  * Sole storage URL generator since the Media library was retired in
- * Phase 5 of the Media → GED merge — see
+ * Phase 5 of the Media → GED merge - see
  * `docs/aurora-core/todo/media-ged-merge.md`.
  *
  * All methods accept `null` so call sites can fold `$doc?->getPublicUrl()`

@@ -1,4 +1,4 @@
-# Convention : privacy en JavaScript — `#` pour les classes, jamais `_`
+# Convention : privacy en JavaScript - `#` pour les classes, jamais `_`
 
 ## Règle
 
@@ -34,7 +34,7 @@ TypeError si on tente `cache.#store`. C'est plus sûr et plus correct.
 
 ### Hors classe (module-level, fonction, composable)
 
-Le `#` **ne marche pas** — il est syntaxique aux classes uniquement.
+Le `#` **ne marche pas** - il est syntaxique aux classes uniquement.
 
 Pour des variables module-level (par exemple cache d'un composable), le
 fait de **ne pas exporter** la variable suffit à la rendre inaccessible
@@ -87,11 +87,11 @@ des variables module-level avec `_`, juste retirer le préfixe.
 ### Cas particulier : éléments DOM ou data-attrs
 
 Les data attributes HTML (`data-internal-id`) ou les noms de fichiers
-ne sont pas concernés — c'est du namespace, pas de la privacy JS.
+ne sont pas concernés - c'est du namespace, pas de la privacy JS.
 
 ## Source
 
 Convention validée par l'utilisateur le 2026-05-08 après refacto du
 composable `useNotifications.js` qui utilisait `_state`, `_refCount`,
-`_pollTimer` au niveau module — renommés en `sharedState`, `refCount`,
+`_pollTimer` au niveau module - renommés en `sharedState`, `refCount`,
 `pollTimer` (le scope module les rend déjà privés).

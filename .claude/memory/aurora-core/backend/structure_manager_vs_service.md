@@ -1,4 +1,4 @@
-# Manager vs Service — qu'est-ce qui va où
+# Manager vs Service - qu'est-ce qui va où
 
 ## Règle (rappel concis)
 
@@ -126,6 +126,6 @@ un Service ou un Builder.
 
 - ❌ Un "ServiceManager" qui mélange persist + helper stateless. Splitter.
 - ❌ Un Service qui fait `$em->flush()` quelque part. C'est un Manager
-  caché — refactoriser.
+  caché - refactoriser.
 - ❌ Un Manager qui ne persiste rien (juste des calculs). Renommer en
   Service.

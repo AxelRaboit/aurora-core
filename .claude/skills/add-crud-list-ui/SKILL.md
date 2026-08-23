@@ -1,6 +1,6 @@
 ---
 name: add-crud-list-ui
-description: Scaffold the Vue UI for a backend CRUD list page following the Aurora pattern — toolbar with search + primary action, mobile card layout + desktop table, AppModal create/edit forms, AppModal delete confirmation. Use when the user asks to "create a list page", "add CRUD UI", "scaffold the Vue for an entity", or after `/add-entity` left the Vue stubbed out. Stops at backend (assumes Controller + ViewBuilder already exist with index + create + update + delete endpoints).
+description: Scaffold the Vue UI for a backend CRUD list page following the Aurora pattern - toolbar with search + primary action, mobile card layout + desktop table, AppModal create/edit forms, AppModal delete confirmation. Use when the user asks to "create a list page", "add CRUD UI", "scaffold the Vue for an entity", or after `/add-entity` left the Vue stubbed out. Stops at backend (assumes Controller + ViewBuilder already exist with index + create + update + delete endpoints).
 scope: core-and-client
 ---
 
@@ -14,10 +14,10 @@ output: a thin SFC + two composables (`use<Plural>Create.js`,
 
 > ⛔ **Before generating, RELOAD these two memories**:
 >
-> 1. `convention_modal_and_confirmation.md` — `confirm()` natif est
+> 1. `convention_modal_and_confirmation.md` - `confirm()` natif est
 >    INTERDIT. Always `AppModal` + `useDelete` shared composable for
 >    deletes.
-> 2. `convention_sfc_thin_presentation.md` — NO business logic inside
+> 2. `convention_sfc_thin_presentation.md` - NO business logic inside
 >    the `.vue`. Every CRUD flow goes into `composables/use<Plural><Action>.js`
 >    co-located in the feature folder. The SFC only owns template +
 >    UI-only refs (search input, modal toggles when not already managed
@@ -43,19 +43,19 @@ forms with no validation. Otherwise extract from the start.
 
 ## Required inputs
 
-1. **Entity name** in PascalCase singular (`Wallet`, `Contact`) — used as
+1. **Entity name** in PascalCase singular (`Wallet`, `Contact`) - used as
    `<Singular>`. Plural auto-derived; ask if irregular.
-2. **Module path under `assets/backend/`** — e.g. `wallet/`, `companies/`,
+2. **Module path under `assets/backend/`** - e.g. `wallet/`, `companies/`,
    `category/`. Determines the Vue path used by `vue_component(…)`.
-3. **Backend route names already wired in the Twig view-builder** — names
+3. **Backend route names already wired in the Twig view-builder** - names
    of the props the Twig passes (e.g. `createWalletPath`, `updateWalletPath`,
    `deleteWalletPath`, and the list of items itself).
-4. **Fields to render in the form** — name, type (text / decimal / select /
+4. **Fields to render in the form** - name, type (text / decimal / select /
    date / boolean), validation (required, label). For each select: source
    of the options list.
-5. **Searchable** (yes/no) — adds `AppSearchInput` in the toolbar with
+5. **Searchable** (yes/no) - adds `AppSearchInput` in the toolbar with
    client-side filter on the local state. Default: yes.
-6. **i18n base** — the `personal_finance.wallets` (or equivalent) namespace
+6. **i18n base** - the `personal_finance.wallets` (or equivalent) namespace
    for keys.
 
 ## What gets generated
@@ -231,7 +231,7 @@ async function submitEdit() {
             </template>
         </AppModal>
 
-        <!-- EDIT modal — same structure, title via t('<base>.edit', { name: editingItem?.name ?? '' }) -->
+        <!-- EDIT modal - same structure, title via t('<base>.edit', { name: editingItem?.name ?? '' }) -->
 
         <!-- DELETE modal -->
         <AppModal :show="!!pendingDelete" max-width="sm" :closeable="false" :title="t('shared.common.delete')" :icon="Trash2" v-on:close="pendingDelete = null">
@@ -266,10 +266,10 @@ Under `<base>` namespace (e.g. `personal_finance.wallets`):
 | `placeholders.<x>` | field placeholders | "ex. Compte courant" |
 | `errors.<x>_required` etc | server validation labels | "Le nom est requis." |
 
-Don't add `actions.delete` / `actions.create` under `<base>` — use
+Don't add `actions.delete` / `actions.create` under `<base>` - use
 `shared.common.{delete,cancel,save,edit,actions}` (already present).
 
-## Choice cheatsheet — which input component for which field
+## Choice cheatsheet - which input component for which field
 
 | Field | Component |
 |---|---|
@@ -277,7 +277,7 @@ Don't add `actions.delete` / `actions.create` under `<base>` — use
 | Text (long) | `AppTextarea` |
 | Email | `AppInput` with `type="email"` |
 | Password | `AppInput` with `:toggleable="true"` |
-| Decimal amount (with calc) | `AppAmountInput` — accepts `100+50` |
+| Decimal amount (with calc) | `AppAmountInput` - accepts `100+50` |
 | Plain number | `AppInput` with `inputmode="numeric"` |
 | Single-select | `AppMultiselect` with `:multiple="false"` `:allow-empty="false"` |
 | Multi-select / tags-like | `AppMultiselect` with `:multiple="true"` |
@@ -293,7 +293,7 @@ Don't add `actions.delete` / `actions.create` under `<base>` — use
 - **Heavy form (>6 fields, multi-tab)** : extract `use<Plural>Create.js` +
   `use<Plural>Edit.js` composables (cf. `CompaniesApp` for the canonical
   pattern). Otherwise inline is fine.
-- (~~Server-side pagination~~ — promoted to default, see "What gets generated".)
+- (~~Server-side pagination~~ - promoted to default, see "What gets generated".)
 - **Show/Detail page link** : add `<AppIconButton color="sky"
   :href="buildPath(showPath, { id: i.id })"><Eye/></AppIconButton>` before
   edit/delete (eye icon).
@@ -302,19 +302,19 @@ Don't add `actions.delete` / `actions.create` under `<base>` — use
 
 ## Anti-patterns to avoid
 
-- ❌ `confirm()` / `alert()` / `prompt()` — see
+- ❌ `confirm()` / `alert()` / `prompt()` - see
   `convention_modal_and_confirmation.md`
-- ❌ Inline `<button>` for actions — always `AppButton` (forms) or
+- ❌ Inline `<button>` for actions - always `AppButton` (forms) or
   `AppIconButton` (table actions)
-- ❌ Raw HTML `<input>` — always `AppInput` / `AppAmountInput` / etc
-- ❌ Raw `<select>` — always `AppMultiselect`
-- ❌ `vue_component('module-name/...')` with kebab-case — must be
+- ❌ Raw HTML `<input>` - always `AppInput` / `AppAmountInput` / etc
+- ❌ Raw `<select>` - always `AppMultiselect`
+- ❌ `vue_component('module-name/...')` with kebab-case - must be
   `vue_component('modulename/...')` (lowercase compact, cf.
   `convention_naming.md` §"Cas particulier")
 
 ## Post-generation
 
-1. Run `pnpm dev` (or check Vite is up) — Vite hot-reloads the new Vue.
+1. Run `pnpm dev` (or check Vite is up) - Vite hot-reloads the new Vue.
 2. Verify the Twig template uses the correct `vue_component('<module-lowercase>/backend/<folder>/<Plural>App')` reference.
 3. Test the golden path : create → list updates → edit → list updates → delete (with modal) → list updates.
 4. Translations should auto-dump via `predev` hook ; otherwise `php bin/console app:translations:dump-js`.

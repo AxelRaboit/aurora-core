@@ -1,4 +1,4 @@
-# FileTransfer — Storage abstraction
+# FileTransfer - Storage abstraction
 
 > **Pièce critique du port**. Contient la stratégie pour réutiliser les
 > mêmes ids R2 que Nimbus afin que les objets existants restent
@@ -11,11 +11,11 @@ implémentations : `LocalStorageAdapter` (filesystem) et `R2StorageAdapter`
 (Cloudflare R2 via AWS SDK). La sélection du backend actif est lue
 depuis `ApplicationParameter.storage_backend`.
 
-Chaque `TransferFile` enregistre son backend dans `storageBackend` —
+Chaque `TransferFile` enregistre son backend dans `storageBackend` -
 permet de migrer progressivement et de servir des fichiers depuis
 plusieurs backends en parallèle.
 
-## Formule de la clé — invariante
+## Formule de la clé - invariante
 
 ```
 storageKey = "{transfer.token}/{transferFile.filename}"
@@ -77,7 +77,7 @@ interface StorageAdapterInterface
     /** Move a temp file into permanent storage at $storageKey. */
     public function store(string $sourcePath, string $storageKey): void;
 
-    /** Delete the stored object (idempotent — no error if missing). */
+    /** Delete the stored object (idempotent - no error if missing). */
     public function delete(string $storageKey): void;
 
     public function exists(string $storageKey): bool;
@@ -141,7 +141,7 @@ final readonly class R2StorageAdapter implements StorageAdapterInterface
 {
     public function __construct(
         private S3Client $s3,        // AWS SDK v3 configured for R2 endpoint
-        private string $bucket,      // %env(R2_BUCKET)% — DOIT être identique à celui de Nimbus pour réutilisation
+        private string $bucket,      // %env(R2_BUCKET)% - DOIT être identique à celui de Nimbus pour réutilisation
     ) {}
 
     public function store(string $source, string $key): void
@@ -158,7 +158,7 @@ final readonly class R2StorageAdapter implements StorageAdapterInterface
     public function delete(string $key): void
     {
         try { $this->s3->deleteObject(['Bucket' => $this->bucket, 'Key' => $key]); }
-        catch (S3Exception $e) { /* idempotent — log et continue */ }
+        catch (S3Exception $e) { /* idempotent - log et continue */ }
     }
 
     public function exists(string $key): bool
@@ -199,24 +199,24 @@ Settings exposés via le module Configuration Aurora :
 | Setting key | Type | Défaut | Description |
 |---|---|---|---|
 | `fileTransfer.storageBackend` | enum | `local` | `local` ou `r2` |
-| `fileTransfer.r2Endpoint` | string | — | URL R2 (ex: `https://<account>.r2.cloudflarestorage.com`) |
-| `fileTransfer.r2Bucket` | string | — | Nom du bucket (**identique à Nimbus pour la migration**) |
-| `fileTransfer.r2AccessKeyId` | secret | — | Credential R2 |
-| `fileTransfer.r2SecretAccessKey` | secret | — | Credential R2 |
+| `fileTransfer.r2Endpoint` | string | - | URL R2 (ex: `https://<account>.r2.cloudflarestorage.com`) |
+| `fileTransfer.r2Bucket` | string | - | Nom du bucket (**identique à Nimbus pour la migration**) |
+| `fileTransfer.r2AccessKeyId` | secret | - | Credential R2 |
+| `fileTransfer.r2SecretAccessKey` | secret | - | Credential R2 |
 
 Les secrets passent par Symfony Vault (`secrets:set`) plutôt que la table
-Configuration en clair — fournir un `SettingResolver` qui lit `%env(R2_…)%`
+Configuration en clair - fournir un `SettingResolver` qui lit `%env(R2_…)%`
 en priorité.
 
 ## Migration depuis Nimbus
 
-### Étape 1 — Mêmes credentials R2
+### Étape 1 - Mêmes credentials R2
 
 Définir `R2_BUCKET`, `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`
 **identiques** à ceux de Nimbus dans l'env du serveur Aurora. Aucun objet
 ne bouge.
 
-### Étape 2 — Dump SQL Nimbus → import Aurora
+### Étape 2 - Dump SQL Nimbus → import Aurora
 
 Script PHP (idéalement une commande `file-transfer:import-from-nimbus
 <sql-dump-path>`) qui :
@@ -228,7 +228,7 @@ Script PHP (idéalement une commande `file-transfer:import-from-nimbus
      `isPublic`, `publicDownloadCount`, `senderName`, `senderMessage`
    - Mappe `userId` Nimbus → `userId` Aurora (lookup par email, ou table
      de correspondance fournie en option)
-   - `id` est régénéré via la sequence Aurora (PK différente — OK)
+   - `id` est régénéré via la sequence Aurora (PK différente - OK)
 3. Pour chaque `transfer_files` row :
    - Crée un `core_file_transfer_file` row en préservant `originalName`,
      `filename`, `mimeType`, `fileSize`, `storageBackend`
@@ -240,14 +240,14 @@ Script PHP (idéalement une commande `file-transfer:import-from-nimbus
 **Critère de succès** : `findByToken($oldToken)` retourne le Transfer
 importé ; `getStorageKey($file)` reconstitue exactement la clé Nimbus.
 
-### Étape 3 — Validation R2
+### Étape 3 - Validation R2
 
 Commande `file-transfer:verify-r2` qui :
 - itère sur tous les `FileTransferFile` avec `storageBackend = r2`
 - pour chacun, calcule la clé et appelle `R2StorageAdapter::exists($key)`
 - log les manquants (≥1 fichier absent → cutover bloqué)
 
-### Étape 4 — Cutover
+### Étape 4 - Cutover
 
 - DNS / reverse-proxy : redirection `nimbus.tld/t/*` → `aurora.tld/t/*` (préservation path → token identique → match côté Aurora)
 - Surveillance 7 jours
@@ -256,7 +256,7 @@ Commande `file-transfer:verify-r2` qui :
 ## Décisions ouvertes
 
 - **Réutiliser `Aurora\Core\Storage\BinaryFileServer`** côté LocalAdapter pour le path-traversal guard + X-Sendfile (déjà battle-tested dans Aurora). Pas besoin de réécrire.
-- **R2 vs S3 vs MinIO** : on garde une seule classe `R2StorageAdapter` (l'API est S3-compatible). Si plus tard un client veut MinIO ou AWS S3 vrai, il étend `R2StorageAdapter` et change l'endpoint via setting — pas de surface API nouvelle.
+- **R2 vs S3 vs MinIO** : on garde une seule classe `R2StorageAdapter` (l'API est S3-compatible). Si plus tard un client veut MinIO ou AWS S3 vrai, il étend `R2StorageAdapter` et change l'endpoint via setting - pas de surface API nouvelle.
 - **Presigned vs proxy** : R2 sert via redirect presigned URL (offload du trafic depuis le serveur PHP). Risque : URL exposée fuite si elle finit en log proxy → TTL court (5 min) est la mitigation.
 
 ## Tests obligatoires

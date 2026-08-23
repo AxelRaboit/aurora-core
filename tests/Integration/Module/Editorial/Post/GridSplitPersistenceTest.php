@@ -102,7 +102,7 @@ final class GridSplitPersistenceTest extends IntegrationTestCase
 
     /**
      * Removing a zone from the shared arrangement has to clear what it held in
-     * every language at once — otherwise a translation nobody can open keeps
+     * every language at once - otherwise a translation nobody can open keeps
      * content for something that is not on the page any more.
      */
     public function testDroppingAZoneClearsItsContentInEveryLanguage(): void

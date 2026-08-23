@@ -12,7 +12,7 @@ use Doctrine\Migrations\AbstractMigration;
  * Document. Single file per OCR upload, shared by the OcrJob and the
  * Invoice produced from it. Cf. pattern_self_owned_storage.
  *
- * Existing rows have their FKs nulled — they used to reference Media IDs
+ * Existing rows have their FKs nulled - they used to reference Media IDs
  * which won't match the new GED Document IDs. Fixtures repopulate
  * proper values on the next `make demo`.
  */

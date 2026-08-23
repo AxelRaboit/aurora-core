@@ -1,6 +1,6 @@
 ---
 name: convention_form_components
-description: Toujours utiliser les composants App* (AppButton, AppInput, AppSelect…) — jamais les éléments HTML bruts dans les vues métier
+description: Toujours utiliser les composants App* (AppButton, AppInput, AppSelect…) - jamais les éléments HTML bruts dans les vues métier
 metadata:
   type: feedback
 ---
@@ -37,12 +37,12 @@ metadata:
 | Lien texte/nav | `AppLink` (variant `admin`, `front`, `front-accent`, `front-nav`) |
 
 ### Cas légitimes pour le HTML brut
-- `<div>`, `<span>`, `<p>`, `<h1>`–`<h6>`, `<table>` (présentation pure)
+- `<div>`, `<span>`, `<p>`, `<h1>`-`<h6>`, `<table>` (présentation pure)
 - `<input type="hidden">` pour CSRF tokens
 - `<label>` wrapper avec `<input type="checkbox" class="sr-only">` pour toggle pill custom
 - `<a class="block">` wrappant une carte/image (lien bloc)
 
-## Règle complémentaire — Required-ness : astérisque, jamais « (optionnel) »
+## Règle complémentaire - Required-ness : astérisque, jamais « (optionnel) »
 
 **Règle dure** : la présence/absence de l'astérisque rouge code la required-ness, **jamais** le texte du label.
 
@@ -86,9 +86,9 @@ grep -rnE "optionnel|optional\)|\\(opt\\)" src/Module/*/translations/ \
   | grep -vE "Placeholder:|placeholder:"
 ```
 
-(Les placeholders peuvent à la rigueur évoquer l'optionalité par leur contenu — « Ex. courses du samedi… » est mieux mais « (optionnel) » dans un placeholder reste toléré. Dans un **label**, jamais.)
+(Les placeholders peuvent à la rigueur évoquer l'optionalité par leur contenu - « Ex. courses du samedi… » est mieux mais « (optionnel) » dans un placeholder reste toléré. Dans un **label**, jamais.)
 
-## Règle complémentaire — DTO ↔ UI required mirror
+## Règle complémentaire - DTO ↔ UI required mirror
 
 L'attribut `required` côté Vue doit être miroir de la contrainte côté DTO :
 
@@ -101,7 +101,7 @@ L'attribut `required` côté Vue doit être miroir de la contrainte côté DTO :
 
 **Pourquoi** : un champ requis côté UI mais non-validé côté serveur passe en silence (utilisateur soumet vide → 200, données pourries). L'inverse (validé serveur mais pas marqué côté UI) frustre l'utilisateur qui se prend une erreur après submit sans signal préalable.
 
-## Règle complémentaire — Erreurs : `:error` toujours bindé
+## Règle complémentaire - Erreurs : `:error` toujours bindé
 
 Tout champ d'un formulaire qui peut échouer côté serveur doit binder `:error="formErrors.fieldName"` où `formErrors` est un `ref({})` peuplé par la réponse `{ success: false, errors: {…} }` du backend.
 
@@ -117,7 +117,7 @@ Tout champ d'un formulaire qui peut échouer côté serveur doit binder `:error=
 
 Le composable form gère la mécanique (`errors.value = payload.errors ?? {}` en cas de `success === false`). Voir [[convention_vue_form_validation]] pour `useForm` + `required()` côté validators.
 
-## Règle complémentaire — Placeholder obligatoire
+## Règle complémentaire - Placeholder obligatoire
 
 Tout `AppInput`, `AppTextarea`, `AppDatePicker`, `AppSearchInput`, `AppAmountInput` doit recevoir un `:placeholder` traduit.
 
@@ -130,7 +130,7 @@ Tout `AppInput`, `AppTextarea`, `AppDatePicker`, `AppSearchInput`, `AppAmountInp
 />
 ```
 
-**Contenu du placeholder** : exemple concret (« Ex. courses du samedi, abonnement Netflix… »), format attendu (« AAAA-MM-JJ »), ou imperatif court (« Rechercher… »). **Jamais** « (optionnel) » — l'absence d'asterisk encode déjà l'optionalité.
+**Contenu du placeholder** : exemple concret (« Ex. courses du samedi, abonnement Netflix… »), format attendu (« AAAA-MM-JJ »), ou imperatif court (« Rechercher… »). **Jamais** « (optionnel) » - l'absence d'asterisk encode déjà l'optionalité.
 
 **Convention de clé i18n** (deux patterns coexistent, choisir selon le module) :
 - `<field>Placeholder` à côté de `<field>` (Editorial, Crm, Billing…)
@@ -138,7 +138,7 @@ Tout `AppInput`, `AppTextarea`, `AppDatePicker`, `AppSearchInput`, `AppAmountInp
 
 Choisir un pattern par module et s'y tenir.
 
-## Règle complémentaire — Date/heure : AppDatePicker uniquement
+## Règle complémentaire - Date/heure : AppDatePicker uniquement
 
 **Jamais** `<AppInput type="date">` ou `<input type="date">` natif. Toujours `AppDatePicker`.
 
@@ -147,9 +147,9 @@ Choisir un pattern par module et s'y tenir.
 
 Compatible avec `new DateTimeImmutable($input)` côté Symfony sans transformation.
 
-## Règle complémentaire — Listes énumérées : AppSelect avec liste curée
+## Règle complémentaire - Listes énumérées : AppSelect avec liste curée
 
-Pour `timezone`, `country`, `language`, `currency`, `role` — toujours un `AppSelect` peuplé via une liste curée dans un composable `use<Plural>FormOptions.js`.
+Pour `timezone`, `country`, `language`, `currency`, `role` - toujours un `AppSelect` peuplé via une liste curée dans un composable `use<Plural>FormOptions.js`.
 
 ## Pourquoi
 

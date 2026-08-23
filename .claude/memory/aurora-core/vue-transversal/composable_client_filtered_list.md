@@ -1,6 +1,6 @@
 ---
 name: composable-client-filtered-list
-description: useClientFilteredList — items + recherche client-side + reload pour listes admin courtes (vs useListPage server-side).
+description: useClientFilteredList - items + recherche client-side + reload pour listes admin courtes (vs useListPage server-side).
 metadata:
   type: feedback
 ---
@@ -52,9 +52,9 @@ basculer sur `useListPage`.
 ## Comment l'appliquer
 
 1. Liste flat avec recherche client-side ? → `useClientFilteredList`.
-2. Le matcher est passé à l'appel — donne accès aux champs spécifiques
+2. Le matcher est passé à l'appel - donne accès aux champs spécifiques
    de l'entité (label/name/slug/tags imbriqués…).
-3. `listPath` est **optionnel**. Si `null`, `reload()` est un no-op —
+3. `listPath` est **optionnel**. Si `null`, `reload()` est un no-op -
    utile quand les updates viennent du payload d'un form action plutôt
    que d'un endpoint list dédié (cf `useDocumentTagsForm.js`).
 4. Le retour expose `items` (ref) si tu as besoin d'inspecter / muter
@@ -62,8 +62,8 @@ basculer sur `useListPage`.
 
 ## Précédents d'usage
 
-- `ContactTagsApp` (CRM) — items hydratés via SSR, `reload()` sur listPath
-- `ListingTagsApp` (Ecommerce) — idem
-- `useDocumentTagsForm` (Ged) — items hydratés via SSR, **pas de listPath**
+- `ContactTagsApp` (CRM) - items hydratés via SSR, `reload()` sur listPath
+- `ListingTagsApp` (Ecommerce) - idem
+- `useDocumentTagsForm` (Ged) - items hydratés via SSR, **pas de listPath**
   car le composable form-action retourne la liste mise à jour dans son
   payload (`applyUpdatedList(data)`). Démontre l'usage de `listPath: null`.

@@ -19,7 +19,7 @@ Quand un `*ViewBuilder` (ou tout autre appelant) déclenche des N+1 sur des coll
 
 ### Patterns selon le cas
 
-**1. Pas de pagination — charger toutes les collections en une query DQL :**
+**1. Pas de pagination - charger toutes les collections en une query DQL :**
 ```php
 public function findAllForIndex(): array
 {
@@ -46,7 +46,7 @@ public function findAllWithTranslationsAndPostTypes(): array
 }
 ```
 
-**3. Pagination + collections — batch hydration APRÈS pagination (jamais de JOIN collection avec LIMIT) :**
+**3. Pagination + collections - batch hydration APRÈS pagination (jamais de JOIN collection avec LIMIT) :**
 ```php
 private function hydratePostCollections(array $posts): void
 {
@@ -75,5 +75,5 @@ Appeler cette méthode juste après `$this->paginate(...)`.
 ## Comment l'appliquer
 
 1. Dès qu'un `*ViewBuilder` appelle `findAll()` ou `findBy()`, vérifier si le serializer accède à des collections → si oui, ajouter la méthode dédiée.
-2. Pour les queries paginées : ne jamais ajouter de JOIN collection dans la query principale, toujours hydration batch post-pagination — pattern détaillé dans [[pattern_two_pass_n_plus_1_hydration]] (cas spécifique ManyToMany + `setMaxResults` qui crée un produit cartésien).
+2. Pour les queries paginées : ne jamais ajouter de JOIN collection dans la query principale, toujours hydration batch post-pagination - pattern détaillé dans [[pattern_two_pass_n_plus_1_hydration]] (cas spécifique ManyToMany + `setMaxResults` qui crée un produit cartésien).
 3. Ne pas utiliser `findAll()` / `findBy()` dans un `*ViewBuilder` si le serializer touche une relation.

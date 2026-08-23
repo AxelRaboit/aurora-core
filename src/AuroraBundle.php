@@ -84,18 +84,18 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 class AuroraBundle extends AbstractBundle
 {
     /**
-     * Override AbstractBundle::getPath() — the default returns
+     * Override AbstractBundle::getPath() - the default returns
      * `dirname(file, 2)` which resolves to the project root (or vendor
      * package root when used by a client). That makes Symfony's
      * `assets:install` treat the project's `public/` as the bundle's
      * `Resources/public` and copy it recursively into
-     * `public/bundles/aurora/` — infinite nesting.
+     * `public/bundles/aurora/` - infinite nesting.
      *
      * Returning `__DIR__` (the `src/` dir) scopes the bundle to its
      * code dir; no `src/public/` exists, so no asset copy happens.
      * All internal paths in this bundle use `dirname(__DIR__)` directly,
      * so the override doesn't affect translations / Doctrine mappings /
-     * Twig namespaces — they still resolve against the project root.
+     * Twig namespaces - they still resolve against the project root.
      */
     #[Override]
     public function getPath(): string
@@ -197,14 +197,14 @@ class AuroraBundle extends AbstractBundle
         // Client templates take priority over Aurora's. For each Aurora namespace
         // we prepend the client-side path(s) first; the bundle path is registered
         // last as the fallback. Client overrides are recognized in two locations
-        // for each namespace — the new co-located path (mirroring core's layout
+        // for each namespace - the new co-located path (mirroring core's layout
         // since templates were moved under src/) AND the legacy top-level path
         // (kept for backward compat with existing client projects).
         $projectDir = (string) $builder->getParameter('kernel.project_dir');
 
         $twigPaths = [];
 
-        // 1. Client-side overrides (highest priority — registered first).
+        // 1. Client-side overrides (highest priority - registered first).
         foreach ($moduleDirs as $moduleDir) {
             $moduleName = basename($moduleDir);
             $clientColocated = $projectDir.'/src/Module/'.$moduleName.'/templates';
@@ -221,7 +221,7 @@ class AuroraBundle extends AbstractBundle
 
         // 1bis. Modules the client owns outright. The loop above only covers
         // names aurora ships, so a module that exists solely in the client
-        // project had no namespace at all and its templates were unreachable —
+        // project had no namespace at all and its templates were unreachable -
         // it had to fall back to the project's default templates/ directory,
         // breaking the co-location the convention asks for everywhere else.
         if ($projectDir !== $dir) {
@@ -256,7 +256,7 @@ class AuroraBundle extends AbstractBundle
             }
         }
 
-        // 2. Bundle defaults (lowest priority — registered last).
+        // 2. Bundle defaults (lowest priority - registered last).
         // Null namespace covers both the bundle's src/Core/templates/ (so
         // relative refs like 'Frontend/themes/default/...' still resolve) and
         // the legacy <bundle>/templates/ (still hosts templates/bundles/TwigBundle/
@@ -269,7 +269,7 @@ class AuroraBundle extends AbstractBundle
         //
         // `<bundle>/templates/bundles/TwigBundle/` is the convention for an
         // *application* overriding a bundle, so Symfony only honours it when
-        // this package is the application — which it is when developing
+        // this package is the application - which it is when developing
         // aurora-core, and never in a client project. The error pages therefore
         // worked everywhere we looked at them and nowhere they were needed: a
         // 404 in production fell back to Symfony's bare "Oops!" page.
@@ -277,7 +277,7 @@ class AuroraBundle extends AbstractBundle
         // Registering the namespace ourselves is enough, but only when the
         // project has no `templates/bundles/TwigBundle/` of its own. Twig
         // resolves a namespace by first matching path, and user-configured
-        // paths are registered before per-bundle override paths — so doing this
+        // paths are registered before per-bundle override paths - so doing this
         // unconditionally would make the bundle's pages win over the client's,
         // which is precisely backwards.
         if (!is_dir($projectDir.'/templates/bundles/TwigBundle')) {
@@ -324,8 +324,8 @@ class AuroraBundle extends AbstractBundle
 
         // A client module carries its own catalogue, co-located like aurora's
         // own do. Without this every path below resolved inside the bundle, so
-        // a client had exactly one place to put translations — the project's
-        // root catalogue — however many modules it owned. Depth 1 and 2, to
+        // a client had exactly one place to put translations - the project's
+        // root catalogue - however many modules it owned. Depth 1 and 2, to
         // match `src/Module/<Domain>/<Feature>/`.
         $clientTranslationDirs = $projectDir === $dir ? [] : array_merge(
             glob($projectDir.'/src/Module/*/translations', GLOB_ONLYDIR) ?: [],
@@ -339,7 +339,7 @@ class AuroraBundle extends AbstractBundle
                 'default_path' => $dir.'/src/Core/translations',
                 // Client catalogues come LAST on purpose: a later path wins on
                 // a shared key, so trailing position is what lets a client
-                // restate an aurora string — the priority client templates
+                // restate an aurora string - the priority client templates
                 // already get. Listed first, they were loaded and immediately
                 // overwritten by the bundle's own. Verified on a real project:
                 // a client entry for `backend.ged.categories.name` has no

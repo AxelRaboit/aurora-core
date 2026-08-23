@@ -12,7 +12,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  * The reference validated these fields through a hand-written service that
  * ran the same constraints one at a time. A DTO with attributes is how every
  * other input in Aurora is checked, and the shape the frontend already knows
- * how to read errors from — one fewer way of doing the same thing.
+ * how to read errors from - one fewer way of doing the same thing.
  *
  * Messages are fully-qualified keys. The validator hands them back
  * untranslated and the Vue side looks them up, so a bare `comment.errors.*`

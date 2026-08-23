@@ -17,7 +17,7 @@ abstract class AbstractPostType implements PostTypeInterface
     /**
      * What a post of this type can carry. `blocks` gives it a body in the
      * block editor, `thumbnail` a featured image. Only capabilities with
-     * something behind them belong here — an entry nothing reads is a
+     * something behind them belong here - an entry nothing reads is a
      * checkbox that lies to the editor.
      */
     public const array SUPPORTS = ['blocks', 'thumbnail'];

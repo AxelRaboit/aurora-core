@@ -9,32 +9,32 @@ scope: shared
 Add a new **toggleable sub-feature** to an existing Aurora module. Targets
 the canonical Vault-style nesting : the sub-module gets a sub-folder under
 the parent module (`src/Module/<Parent>/<Sub>/` côté business modules,
-`src/Core/<Parent>/<Sub>/` côté Core modules since 0.4.0 — cf.
+`src/Core/<Parent>/<Sub>/` côté Core modules since 0.4.0 - cf.
 `.claude/memory/aurora-core/architecture/decision_core_submodule_nesting.md`).
 
 > **For a fully new module** (no existing parent), use `/add-module`.
 > **For just a CRUD entity inside an existing module** (no new toggle,
-> no new NavItem — just a new entity), use `/add-entity`.
+> no new NavItem - just a new entity), use `/add-entity`.
 
-## Step 0 — Detect context (CORE vs CLIENT)
+## Step 0 - Detect context (CORE vs CLIENT)
 
 Same detection as `/add-module` (composer.json check). Adapts :
 
 | | CORE | CLIENT |
 |---|---|---|
-| Toggle key | new `case <Sub>` in the parent's own `<Parent>ModuleParameterEnum` (business module) — central `ModuleParameterEnum` only for core-infra parents | constant on `<Parent>Context` (`app_<parent>_<sub>`) |
-| Sub-folder | `src/Core/<Parent>/<Sub>/` or `src/Module/<Parent>/<Sub>/` | `src/Module/<Parent>/<Sub>/` (assuming `<Parent>` is a client module — for extending an Aurora module, use `/extend-aurora-entity` instead) |
+| Toggle key | new `case <Sub>` in the parent's own `<Parent>ModuleParameterEnum` (business module) - central `ModuleParameterEnum` only for core-infra parents | constant on `<Parent>Context` (`app_<parent>_<sub>`) |
+| Sub-folder | `src/Core/<Parent>/<Sub>/` or `src/Module/<Parent>/<Sub>/` | `src/Module/<Parent>/<Sub>/` (assuming `<Parent>` is a client module - for extending an Aurora module, use `/extend-aurora-entity` instead) |
 | Sequence prefix (if entity) | `seq_core_<sub>_id` | `seq_app_<sub>_id` |
 | Asset path | `src/Module/<Parent>/assets/backend/<sub>/` or `src/Core/assets/<parent>/<sub>/` | `src/Module/<Parent>/assets/backend/<sub>/` (co-located since 0.5) |
 
 ## Required inputs (ask upfront if missing)
 
-1. **Parent module** (PascalCase) — must exist. Verify by globbing :
+1. **Parent module** (PascalCase) - must exist. Verify by globbing :
    - `src/Module/<Parent>/<Parent>Module.php` (business module)
    - `src/Core/<Parent>Module.php` (core module : PlatformModule,
      ConfigurationModule, MediaModule, GeneralModule, DevModule)
    - If neither found, stop and report.
-2. **Sub-module name** (PascalCase) — `Webhook`, `Block`, `Slack`,
+2. **Sub-module name** (PascalCase) - `Webhook`, `Block`, `Slack`,
    `PasswordGenerator`. Used as `<Sub>`. Auto-derives :
    - `<sub_id>` (snake_case)
    - `<sub-kebab>` for URL
@@ -43,14 +43,14 @@ Same detection as `/add-module` (composer.json check). Adapts :
    grep -l "implements.*ModuleToggleProviderInterface" src/Module/<Parent>/<Parent>Module.php \
      src/Core/<Parent>Module.php 2>/dev/null
    ```
-   If no — stop and tell the user : "Parent module doesn't implement
+   If no - stop and tell the user : "Parent module doesn't implement
    `ModuleToggleProviderInterface`. Add it first (cf. `/add-module` cas 2)
    before adding togglable sub-modules."
 4. **Confirm parent has a `<Parent>Context` class** :
    - Business : `src/Module/<Parent>/<Parent>Context.php` (à la racine du module)
    - Core : `src/Core/<Parent>/<Parent>Context.php` (à la racine du folder du module)
    - If absent, stop with same message as 3.
-5. **Permission(s)** — single (`<parent>.<sub>.use`) or granular
+5. **Permission(s)** - single (`<parent>.<sub>.use`) or granular
    (`view`/`create`/`edit`/`delete`) ? Ask the user.
 6. **Icon** for the NavItem (kebab-case Lucide). Add to `ICON_MAP` in
    `src/Core/assets/backend/sidemenu/composables/useSidemenuNav.js` if missing.
@@ -82,7 +82,7 @@ final readonly class <Parent>Context
 }
 ```
 
-**CORE** — monorepo-split: add the case to the parent's **own**
+**CORE** - monorepo-split: add the case to the parent's **own**
 `<Parent>ModuleParameterEnum`, NOT the central enum.
 
 ```php
@@ -95,7 +95,7 @@ Then extend the enum's exhaustive `match ($this)` arms for the new case :
 - `getDescription()` → `'…_<sub_id>_description'`
 - `getCascadeRequires()` / `getDisplayParent()` : if the enum uses the generic
   ternary form (`self::Backend === $this ? null : self::Backend->value`, as in
-  `NotesModuleParameterEnum`) the new sub-case cascades automatically — no
+  `NotesModuleParameterEnum`) the new sub-case cascades automatically - no
   change. If it uses a `match` (as in `PhotoModuleParameterEnum`), add a
   `self::<Sub>` arm returning `self::Backend->value`.
 
@@ -111,7 +111,7 @@ public function is<Sub>Enabled(): bool
 ```
 
 > **Core-infra parents only** (Configuration / Platform / Media / General /
-> Dev — the modules still wired by the central `ModuleParameterEnum`) keep
+> Dev - the modules still wired by the central `ModuleParameterEnum`) keep
 > their sub-cases in `src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php`.
 > Detect: if `src/Module/<Parent>/Setting/<Parent>ModuleParameterEnum.php`
 > exists, use the per-module enum; otherwise the parent is core-infra.
@@ -185,7 +185,7 @@ public function getCatalogNavSections(): array
 
 #### d) Add the ModuleToggle in `getToggles()`
 
-**CORE** — just add the enum case's `->toToggle()` (the cascade is encoded
+**CORE** - just add the enum case's `->toToggle()` (the cascade is encoded
 inside the enum via `getCascadeRequires()`/`getDisplayParent()`, so nothing to
 wire by hand) :
 
@@ -200,7 +200,7 @@ public function getToggles(): array
 }
 ```
 
-**CLIENT** — construct the `ModuleToggle` manually (no per-module enum), wiring
+**CLIENT** - construct the `ModuleToggle` manually (no per-module enum), wiring
 `parentKey` to the parent's `BACKEND_KEY` :
 
 ```php
@@ -216,14 +216,14 @@ new ModuleToggle(
 > module from the picker, all its sub-modules cascade-off automatically. Core
 > encodes it in the enum's `getCascadeRequires()` (→ `self::Backend->value`);
 > client passes `BACKEND_KEY` explicitly. Always wire to the parent's backend
-> key (or a deeper sub-key for nested hierarchies — rare).
+> key (or a deeper sub-key for nested hierarchies - rare).
 
 ### 3. Scaffold the sub-module folder + files
 
 ```
 src/Module/<Parent>/<Sub>/
 ├── Controller/Backend/<Sub>Controller.php
-└── (Entity/, Dto/, Manager/, Repository/, Serializer/, View/  if CRUD — defer to /add-entity)
+└── (Entity/, Dto/, Manager/, Repository/, Serializer/, View/  if CRUD - defer to /add-entity)
 
 src/Module/<Parent>/templates/backend/<sub_id>/index.html.twig
 
@@ -280,15 +280,15 @@ backend:
 > Keep all translations under the parent module's translations file so a
 > client disabling the parent module gets a self-contained removal.
 
-## Auto-discovery — what works without extra wiring
+## Auto-discovery - what works without extra wiring
 
 If the parent module is properly wired (cf. `/add-module`), the new
 sub-module benefits from :
 - Symfony service auto-tag (controllers auto-discovered)
 - Twig namespace `@<Parent>` already mounted (new sub-template resolves
   automatically)
-- Translations glob (depth 1 + 2 since 0.4.0 — cf. AuroraBundle.php)
-- Vue component glob (`src/Module/*/assets/**/*.vue`) — same path
+- Translations glob (depth 1 + 2 since 0.4.0 - cf. AuroraBundle.php)
+- Vue component glob (`src/Module/*/assets/**/*.vue`) - same path
   convention CORE + CLIENT since 0.5
 
 ## Post-generation steps
@@ -301,7 +301,7 @@ make sf CMD="aurora:privileges:sync"
 make translation
 
 # Sync settings (seeds the new <Parent>ModuleParameterEnum case in core_settings
-# — the parent's <Parent>ModuleParameterProvider already yields all its cases)
+# - the parent's <Parent>ModuleParameterProvider already yields all its cases)
 make sf CMD="aurora:application-parameter"
 
 # Clear cache (mandatory after #[AsAlias] / DI / new toggle)

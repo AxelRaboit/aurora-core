@@ -1,5 +1,5 @@
 ---
-name: Piège — `_instanceof` ne traverse pas les fichiers de config
+name: Piège - `_instanceof` ne traverse pas les fichiers de config
 description: Le `_instanceof` d'aurora-core ne tague pas les services du client. Le client doit déclarer son propre bloc dans `config/services.yaml`.
 type: feedback
 ---
@@ -38,7 +38,7 @@ services:
         autowire: true
         autoconfigure: true
 
-    # `_instanceof` est scopé à ce fichier — sans ce bloc, les services
+    # `_instanceof` est scopé à ce fichier - sans ce bloc, les services
     # client implémentant ces interfaces ne sont jamais tagués.
     _instanceof:
         Aurora\Core\Module\Contract\ModuleInterface:
@@ -51,7 +51,7 @@ services:
 ```
 
 Avec ça, tout nouveau module client est auto-tagué dès qu'il implémente
-l'interface — pas besoin de déclaration explicite par service.
+l'interface - pas besoin de déclaration explicite par service.
 
 ## Quand ajouter une autre marker interface
 

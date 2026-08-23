@@ -1,6 +1,6 @@
 ---
 name: convention_css_organization
-description: Organisation du CSS Aurora — global sous css/base/ importé par app.css, CSS de feature co-localisé à côté du SFC qui le consomme (pas de miroir css/modules/)
+description: Organisation du CSS Aurora - global sous css/base/ importé par app.css, CSS de feature co-localisé à côté du SFC qui le consomme (pas de miroir css/modules/)
 metadata:
   type: feedback
 ---
@@ -9,11 +9,11 @@ metadata:
 
 Deux emplacements, selon la portée :
 
-1. **Global** — `src/Core/assets/css/base/`, importé par `app.css`. Réservé
+1. **Global** - `src/Core/assets/css/base/`, importé par `app.css`. Réservé
    à ce qui est chargé sur (presque) toutes les pages : tokens de thème,
    base, scrollbar, et les composants shared universels (`input.css`,
    `modal.css`, `loader.css`).
-2. **Feature / module** — **co-localisé à côté du SFC** qui le consomme, et
+2. **Feature / module** - **co-localisé à côté du SFC** qui le consomme, et
    importé par ce SFC.
 
 ```
@@ -22,7 +22,7 @@ src/Core/assets/backend/sidemenu/
 └── sidemenu.css
 ```
 
-**Il n'y a pas de miroir `src/Core/assets/css/modules/<name>/`** — ce
+**Il n'y a pas de miroir `src/Core/assets/css/modules/<name>/`** - ce
 dossier n'existe pas. Le CSS vit avec le composant qui le consomme, comme
 le reste de `src/` depuis 0.5 : on le trouve sans chercher, il se supprime
 avec son composant, et un module packagé séparément emporte ses styles.
@@ -48,7 +48,7 @@ d'application navigateur.
 
 - **Tailwind via `:class`** pour 95 % des cas.
 - **Fichier externe co-localisé** dès qu'on style du contenu rendu
-  (`v-html`, EditorJS, marked) ou qu'on dépasse ~5 règles cohérentes — des
+  (`v-html`, EditorJS, marked) ou qu'on dépasse ~5 règles cohérentes - des
   `:deep()` partout dans un `<style scoped>` sont un anti-pattern.
 - **Inline `<style scoped>`** uniquement pour 1-2 règles très locales ou
   des keyframes propres au composant.

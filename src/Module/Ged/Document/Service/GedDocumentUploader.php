@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
 /**
- * Owns the on-disk handling for GED documents — slugifies the upload name,
+ * Owns the on-disk handling for GED documents - slugifies the upload name,
  * picks a `var/uploads/ged/Y/m/<slug>-<uniqid>.<ext>` destination, moves
  * the uploaded bytes, returns the metadata the form needs to persist on
  * the `Document` entity.
@@ -139,7 +139,7 @@ final readonly class GedDocumentUploader
 
     /**
      * Reads pixel dimensions for raster images. Returns [null, null] for
-     * non-images or unreadable files — never throws.
+     * non-images or unreadable files - never throws.
      *
      * @return array{0: int|null, 1: int|null}
      */

@@ -83,7 +83,7 @@ test.describe("Admin Media", () => {
             await nameSort.click();
             await expect(nameSort).toHaveClass(/bg-surface-3|text-primary/);
 
-            // Reload — sort should be restored from localStorage.
+            // Reload - sort should be restored from localStorage.
             await page.reload();
             const restored = page.getByRole("button", { name: /A-Z/ }).first();
             await expect(restored).toHaveClass(/bg-surface-3|text-primary/);

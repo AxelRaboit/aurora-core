@@ -8,7 +8,7 @@ use Doctrine\ORM\QueryBuilder;
 
 /**
  * Coarse-grained file type buckets, the same shape the Media module uses for
- * its list filters — exposed in Core so any list view that wants the same
+ * its list filters - exposed in Core so any list view that wants the same
  * "Images / Videos / PDF / Other" UX (GED Documents, future modules) can plug
  * the same enum into its repository + UI without duplicating the logic.
  *
@@ -44,7 +44,7 @@ enum MimeGroupEnum: string
      * Deliberately beside `applyTo` and not wherever it is first needed: these
      * two are one definition of what an image is, split across a WHERE clause
      * and a value. Let them drift and the library files a document under
-     * Images that a renderer then refuses to draw — with nothing saying which
+     * Images that a renderer then refuses to draw - with nothing saying which
      * of the two is wrong. Anything holding a mime type asks here rather than
      * writing its own `str_starts_with`.
      *

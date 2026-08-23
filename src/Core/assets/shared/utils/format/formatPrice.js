@@ -3,7 +3,7 @@ export function formatCurrency(
     currency = "EUR",
     { fallbackDecimals = 2 } = {},
 ) {
-    if (amount === null || amount === undefined) return "—";
+    if (amount === null || amount === undefined) return "-";
     try {
         return new Intl.NumberFormat(undefined, {
             style: "currency",
@@ -19,7 +19,7 @@ export function formatCurrency(
 }
 
 export function formatProductPrice(product) {
-    if (!product) return "—";
+    if (!product) return "-";
     return formatCurrency(product.price, product.currency, {
         fallbackDecimals: product.currencyDecimals ?? 2,
     });
@@ -32,9 +32,9 @@ export function formatProductPrice(product) {
  *
  * @param {?number} cents
  * @param {string} [currency="EUR"]
- * @param {string} [placeholder="—"]
+ * @param {string} [placeholder="-"]
  */
-export function formatCents(cents, currency = "EUR", placeholder = "—") {
+export function formatCents(cents, currency = "EUR", placeholder = "-") {
     if (cents === null || cents === undefined) return placeholder;
     return formatCurrency(cents / 100, currency);
 }
@@ -44,9 +44,9 @@ export function formatCents(cents, currency = "EUR", placeholder = "—") {
  * percentage string. Use for invoice line vat_rate_bp display.
  *
  * @param {?number} bp
- * @param {string} [placeholder="—"]
+ * @param {string} [placeholder="-"]
  */
-export function formatBpAsPercent(bp, placeholder = "—") {
+export function formatBpAsPercent(bp, placeholder = "-") {
     if (bp === null || bp === undefined) return placeholder;
     return (
         (bp / 100).toLocaleString(undefined, {

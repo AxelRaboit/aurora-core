@@ -1,6 +1,6 @@
 ---
 name: convention_mobile_card_layout
-description: Pattern de carte mobile pour les listes CRUD — sm:hidden cards + hidden sm:block table, avec footer d'actions
+description: Pattern de carte mobile pour les listes CRUD - sm:hidden cards + hidden sm:block table, avec footer d'actions
 metadata:
   type: feedback
 ---

@@ -13,7 +13,7 @@ use Doctrine\Migrations\AbstractMigration;
  * Written by hand rather than kept as generated. `migrations:diff` produced
  * 688 statements here, because this database still holds the tables of the
  * modules that were extracted (Agency, Invoice, Cart, Listing, Employee and
- * the rest) while the mapping no longer declares them — so the diff wanted to
+ * the rest) while the mapping no longer declares them - so the diff wanted to
  * drop every one of them. Two of those statements were the banner. Dropping
  * the extracted tables may well be worth doing, but it is its own decision and
  * its own migration, not a side effect of adding a column.

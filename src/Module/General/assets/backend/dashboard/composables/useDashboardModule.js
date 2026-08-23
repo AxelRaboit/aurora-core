@@ -5,7 +5,7 @@ import { useQueryState } from "@/shared/composables/useQueryState.js";
 
 /**
  * Panels come from the Core registry, filled by each module's
- * `*.register.js` at boot — the shell names no module and imports none.
+ * `*.register.js` at boot - the shell names no module and imports none.
  * With nothing registered, `visibleModules` is empty and the shell renders
  * its empty state.
  */
@@ -15,7 +15,7 @@ export function useDashboardModule(enabledModules) {
 
     // In the URL: which module's dashboard is on screen is what the page is
     // showing, so a link to it should say so. Validated on read rather than
-    // against a fixed list — the panels come from a registry each module
+    // against a fixed list - the panels come from a registry each module
     // fills at boot, so what is valid is only known here.
     const { value: activeModule, set: selectModule } = useQueryState("module");
 

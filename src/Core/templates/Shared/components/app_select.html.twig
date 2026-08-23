@@ -3,14 +3,14 @@
     Use for native <select> elements in Twig-rendered pages (front theme, auth, checkout…).
 
     Params:
-      name        — form field name (required)
-      label       — visible label (optional, omit for inline use)
-      options     — { value: 'displayed text', … } — typically CountryEnum::options(locale)
-      selected    — currently-selected value
-      placeholder — first <option value=""> label; omit to skip
-      required    — boolean, default false
-      error       — translation key or message for validation feedback
-      class       — extra utility classes appended to the wrapper
+      name        - form field name (required)
+      label       - visible label (optional, omit for inline use)
+      options     - { value: 'displayed text', … } - typically CountryEnum::options(locale)
+      selected    - currently-selected value
+      placeholder - first <option value=""> label; omit to skip
+      required    - boolean, default false
+      error       - translation key or message for validation feedback
+      class       - extra utility classes appended to the wrapper
 #}
 <div class="flex flex-col gap-1.5 {{ class|default('') }}">
     {% if label is defined and label %}

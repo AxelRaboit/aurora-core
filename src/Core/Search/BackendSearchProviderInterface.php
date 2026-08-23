@@ -18,7 +18,7 @@ interface BackendSearchProviderInterface
      * Run the search and return one or more named result sections. Each section
      * key (e.g. 'posts', 'projects', 'media') maps to a list of already-
      * serialized result rows ready for the frontend. Return an empty array when
-     * nothing matches. MUST swallow internal errors — never throw.
+     * nothing matches. MUST swallow internal errors - never throw.
      *
      * @return array<string, list<array<string, mixed>>>
      */

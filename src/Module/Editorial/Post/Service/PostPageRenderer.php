@@ -45,7 +45,7 @@ final readonly class PostPageRenderer
     {
         $translation = $post->getTranslation($locale);
         if (!$translation instanceof PostTranslationInterface) {
-            // The caller decides what a missing translation means — a 404, or
+            // The caller decides what a missing translation means - a 404, or
             // a redirect to a locale that has one. Guessing here would hide it.
             throw new LogicException(sprintf('Post #%d has no translation for locale "%s".', $post->getId(), $locale));
         }
@@ -112,7 +112,7 @@ final readonly class PostPageRenderer
                     // The document's focal point, for a theme that prints this
                     // picture as a hero. A wide photo in a shallow band crops
                     // to its middle without it, which is where a sky usually
-                    // is. Not the post's own focal point — that one belongs to
+                    // is. Not the post's own focal point - that one belongs to
                     // the thumbnail, and answers a different question: how this
                     // publication should look in a card.
                     'focalPosition' => $this->documentUrlGenerator->focalPositionCss($ogImage),

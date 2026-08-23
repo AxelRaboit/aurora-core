@@ -9,7 +9,7 @@ use Aurora\Module\Editorial\Comment\Entity\CommentInterface;
 interface CommentSerializerInterface
 {
     /**
-     * The moderation queue's shape. Carries what only a moderator may see —
+     * The moderation queue's shape. Carries what only a moderator may see -
      * the author's address, the status.
      *
      * @param array<int, array<string, int>> $reactionCounts comment id → type → count

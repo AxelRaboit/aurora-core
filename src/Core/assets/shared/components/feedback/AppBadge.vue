@@ -3,7 +3,7 @@ import { computed } from "vue";
 
 /**
  * Coloured pill. Renders as a `<span>` by default, or as an `<a>` when an
- * `href` is provided — handy for status filters / counts that link to a
+ * `href` is provided - handy for status filters / counts that link to a
  * filtered list. The hover state is only added in linked mode.
  *
  * `color` accepts either a preset name (accent/rose/sky/amber/emerald/violet/

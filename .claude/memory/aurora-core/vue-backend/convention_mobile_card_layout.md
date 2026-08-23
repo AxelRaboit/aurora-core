@@ -1,6 +1,6 @@
 ---
 name: convention_mobile_card_layout
-description: Pattern de carte mobile pour les listes CRUD — sm:hidden cards + hidden sm:block table, avec footer d'actions
+description: Pattern de carte mobile pour les listes CRUD - sm:hidden cards + hidden sm:block table, avec footer d'actions
 metadata:
   type: feedback
 ---
@@ -39,6 +39,6 @@ Toute page de liste CRUD avec tableau doit avoir deux vues :
 
 ## Pourquoi
 
-Référence implémentée dans `UsersApp.vue`. Appliqué sur GED (documents, categories, tags) — commit `df603eb3`.
+Référence implémentée dans `UsersApp.vue`. Appliqué sur GED (documents, categories, tags) - commit `df603eb3`.
 
 **How to apply:** Dès qu'on ajoute ou retouche une page de liste CRUD, vérifier que le pattern mobile card est présent. Si absent, l'ajouter dans le même commit.

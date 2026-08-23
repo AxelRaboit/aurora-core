@@ -3,7 +3,7 @@
  * The actions a developer row offers, handed to the shared sheet.
  *
  * Presentation only: what may be done to whom lives in `useDevUserActions`,
- * where the rule that matters is visible — nothing that could lock the last
+ * where the rule that matters is visible - nothing that could lock the last
  * developer out is offered on your own account.
  */
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";

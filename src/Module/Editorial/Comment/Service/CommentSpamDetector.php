@@ -12,8 +12,8 @@ use Aurora\Module\Editorial\Comment\Dto\CommentInputInterface;
  * The reference did this the other way round: a decorator called `submit()`,
  * which persisted the comment, wrote an audit entry **and sent the
  * notification email**, and only then marked the result as spam. So every
- * spam comment mailed the administrator — the exact outcome a spam filter
- * exists to prevent — and with moderation switched off it mailed the address
+ * spam comment mailed the administrator - the exact outcome a spam filter
+ * exists to prevent - and with moderation switched off it mailed the address
  * the spammer had typed, turning the site into a relay for anyone who filled
  * the form.
  *

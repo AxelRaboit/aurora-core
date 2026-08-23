@@ -3,7 +3,7 @@
 > **Statut (2026-08-09) : les six étapes livrées, plus le réglage de
 > largeur.** Le contrat, le rendu public, les quatre types de zone, l'éditeur et
 > l'aperçu sont en place et testés. Le réglage de largeur est passé à une toile
-> manipulable doublée d'une rangée de fractions au clavier — voir le chapitre
+> manipulable doublée d'une rangée de fractions au clavier - voir le chapitre
 > qui lui est consacré, et une **pile** permet à une zone haute de côtoyer deux
 > zones empilées. `blocks` a été migré dans la grille : elle est désormais le
 > seul corps d'une publication.
@@ -31,7 +31,7 @@ quand on veut affiner. Choisir le pas plutôt que changer de grille évite d'avo
 deux systèmes de coordonnées à réconcilier.
 
 **Largeurs responsives en `{base, md, lg}`**, comme la bannière. Un palier
-absent hérite de celui du dessous par la chaîne de repli de la variable CSS —
+absent hérite de celui du dessous par la chaîne de repli de la variable CSS -
 c'est ce qui évite une règle par combinaison.
 
 **Types de contenu par zone** (v1) :
@@ -39,10 +39,10 @@ c'est ce qui évite une règle par combinaison.
 | Type | Note |
 |---|---|
 | Texte Editor.js | l'éditeur actuel, dans une zone |
-| Une autre publication | choisie par select — c'est la « carte » |
-| Un média direct | **images seulement** depuis la GED — la vidéo directe est annoncée ici depuis le début et n'a jamais été construite ; voir « une zone média ne rend que des images » |
+| Une autre publication | choisie par select - c'est la « carte » |
+| Un média direct | **images seulement** depuis la GED - la vidéo directe est annoncée ici depuis le début et n'a jamais été construite ; voir « une zone média ne rend que des images » |
 | Une URL vidéo | YouTube, Vimeo, Dailymotion |
-| Une pile | *ajouté le 2026-08-09* — des zones empilées qui se partagent la hauteur de la ligne |
+| Une pile | *ajouté le 2026-08-09* - des zones empilées qui se partagent la hauteur de la ligne |
 
 ## Ce qui existe déjà et qu'il faut réutiliser
 
@@ -67,37 +67,37 @@ de revenir.
 **Où vit le contenu de la grille ?** Par le précédent de la bannière, pas par un
 arbitrage neuf.
 
-| Partagé — sur le post | Par langue — sur la traduction |
+| Partagé - sur le post | Par langue - sur la traduction |
 |---|---|
 | id de zone, **type**, span, ordre | blocs de texte |
 | `mediaId`, `mediaUrl`, `ratio`, `scale`, `align` | `alt`, `caption` |
 | `postId` de la publication liée | URL vidéo |
 
 Chaque côté se justifie. Une zone qui serait du texte en français et une vidéo
-en anglais n'est pas une zone. Une publication liée a ses propres traductions —
+en anglais n'est pas une zone. Une publication liée a ses propres traductions -
 c'est au rendu de choisir la bonne, pas à l'éditeur de la re-choisir. Une image
 est la même image ; la décrire, c'est écrire. Et l'adresse d'une vidéo est du
 contenu : la première bannière écrite pointait vers `/fr/page/premiers-pas`.
 
-`mediaUrl` (2026-08-09) est du même côté que `mediaId`, et pour la même raison —
+`mediaUrl` (2026-08-09) est du même côté que `mediaId`, et pour la même raison -
 c'est la même image dans toutes les langues. Elle sert de repli, jamais de
 concurrente : dès qu'un document est choisi, c'est lui qui rend, parce que lui
 seul porte un point focal, une variante à la bonne taille et un alt à lui.
-L'adresse existe pour le visuel provisoire — une maquette, une démo — et le
+L'adresse existe pour le visuel provisoire - une maquette, une démo - et le
 normaliseur ne laisse passer que `/`, `http://` et `https://` : la valeur finit
 dans un `src` que le navigateur suit.
 
 `scale` (2026-08-09) répond à « je veux cette image plus petite, mais toujours
 proportionnelle ». C'est une **largeur** en pourcentage de la zone, pas une
 hauteur : une image garde ses proportions, donc demander la moitié de la largeur
-donne la moitié de la hauteur — les deux questions n'en font qu'une. Une hauteur
+donne la moitié de la hauteur - les deux questions n'en font qu'une. Une hauteur
 en pixels, elle, ne survivrait pas au téléphone, et c'est exactement ce que le
 choix d'un rapport plutôt que d'une hauteur avait déjà écarté.
 
 Rétrécir la zone ferait aussi l'affaire et fait autre chose : ça déplace les
 voisines. `scale` laisse la zone où elle est et ne change que ce qui la remplit.
 `align` va avec : une fois l'image plus étroite que sa zone, elle peut se caler
-à gauche, à droite ou rester centrée — centrée par défaut, puisque c'est ce
+à gauche, à droite ou rester centrée - centrée par défaut, puisque c'est ce
 qu'une image réduite faisait avant que ce soit un choix. La marge n'est émise
 qu'avec la largeur, parce qu'elle ne veut rien dire sans elle : une image qui
 remplit sa zone n'a pas de côté. La légende suit la figure, donc elle prend la
@@ -105,7 +105,7 @@ largeur de l'image et son côté, pas ceux de la colonne.
 
 **Les zones s'enchaînent**, elles ne sont pas posées en coordonnées.
 Redimensionner change un span, déplacer réordonne. Pas de cellule vide à gérer,
-et le placement libre reste ajoutable — l'inverse ne l'est pas.
+et le placement libre reste ajoutable - l'inverse ne l'est pas.
 
 ### Ce qui a été ajouté le 2026-08-09 : deux annotations sur l'enchaînement
 
@@ -128,23 +128,23 @@ Ce **n'est pas** le placement libre refusé plus haut. L'auteur écrit toujours
 une suite ; la ligne et la colonne sont *déduites* de cette suite, par le même
 calcul dans `GridNormalizer::place()` et dans `placeZones()` côté canvas. Rien
 n'est stocké en coordonnées, il n'y a toujours pas de cellule vide à arbitrer, et
-en dessous du grand écran rien n'est émis du tout — le téléphone n'a pas à
+en dessous du grand écran rien n'est émis du tout - le téléphone n'a pas à
 répondre à la question.
 
 **La ligne est calculée, pas laissée au navigateur.** C'était la première
 version et elle ne suffit pas : une grille place un élément à colonne définie
 dans la première ligne où ces colonnes sont libres, donc une zone demandant une
 nouvelle ligne alors que ses colonnes étaient libres à côté de sa voisine y
-était posée, et la rupture ne faisait rien — silencieusement. Trouvé dans le
+était posée, et la rupture ne faisait rien - silencieusement. Trouvé dans le
 navigateur, pas déduit.
 
-## Défauts du voisinage — corrigés le 2026-08-08
+## Défauts du voisinage - corrigés le 2026-08-08
 
 Quatre choses cassées ont été trouvées sur ce terrain en préparant ce document.
 Toutes corrigées avant d'écrire la grille, pour ne pas construire dessus.
 Conservées ici parce qu'elles expliquent des choix qui suivront.
 
-**1. `BlockHtmlSanitizer` supprimait les `<span>`** — donc la couleur de
+**1. `BlockHtmlSanitizer` supprimait les `<span>`** - donc la couleur de
 texte, la couleur de fond et la taille de police, visibles dans l'éditeur et
 nulle part ailleurs. En creusant, bien pire : `strip_tags` garde une balise
 entière ou la jette entière, donc `<a href="javascript:…">` et
@@ -153,12 +153,12 @@ filtre désormais les attributs un par un, via DOM. **Toute nouvelle balise
 autorisée doit déclarer ses attributs dans `ALLOWED`.**
 
 **2. `twoColumn` publiait deux div vides**, et **`mediaText` publiait son
-texte sans image** — même cause : le renderer lisait une forme que l'outil
+texte sans image** - même cause : le renderer lisait une forme que l'outil
 n'écrit pas. Les deux lisent maintenant la vraie forme. La grille rend
 probablement `twoColumn` obsolète : deux zones côte à côte, c'est exactement ce
 qu'elle fait. À supprimer le moment venu, avec conversion des contenus.
 
-**3. `.two-column` et `.media-text` n'avaient aucune CSS publique** — seul
+**3. `.two-column` et `.media-text` n'avaient aucune CSS publique** - seul
 `.media-text-block`, la classe de l'éditeur, était stylée. Les deux blocs
 publiaient des div nues. Styles ajoutés dans `base/content-blocks.css`, qui est
 le fichier des blocs **rendus** ; `components/editor/blocks.css` ne sert qu'à
@@ -168,37 +168,37 @@ l'éditeur. **La grille doit poser ses styles dans le premier, pas le second.**
 
 Chacune verte et livrable, comme pour la fusion Media → GED.
 
-1. ✅ **Modèle et normaliseur** — `GridNormalizer`, deux colonnes, migration,
+1. ✅ **Modèle et normaliseur** - `GridNormalizer`, deux colonnes, migration,
    passage par le DTO et le manager. 19 tests unitaires, 3 d'intégration sur la
    frontière d'écriture. *(32927c47)*
-2. ✅ **Rendu public** — `GridViewBuilder` + `_grid.html.twig` sur
+2. ✅ **Rendu public** - `GridViewBuilder` + `_grid.html.twig` sur
    `.aurora-grid`, branché dans `PostPageRenderer`. La grille **remplace** la
    colonne de blocs, elle ne s'y ajoute pas. 13 tests. *(c50fd299)*
-3. ✅ **Éditeur** — `usePostGrid` + `PostGridPanel`, dans l'onglet Contenu.
+3. ✅ **Éditeur** - `usePostGrid` + `PostGridPanel`, dans l'onglet Contenu.
    Largeur au curseur par pas d'aimantation, réordonnancement par
    monter/descendre. 17 tests. *(0a4095f6)*
-4. ✅ **Les quatre types de zone** — livrés avec l'étape 2 plutôt qu'après :
+4. ✅ **Les quatre types de zone** - livrés avec l'étape 2 plutôt qu'après :
    une zone configurée qui ne rend rien ressemble à un bug pour qui vient de la
    configurer. Les vidéos passent par `VideoEmbedResolver`, 21 tests.
-5. ✅ **Aperçu** — `GridPreviewController` rend le vrai Twig, le panneau
+5. ✅ **Aperçu** - `GridPreviewController` rend le vrai Twig, le panneau
    l'affiche au-dessus des zones. Le composable d'aperçu de la bannière a été
    généralisé en `useServerPreview` au passage plutôt que dupliqué : seul le
    format de charge différait. 6 tests d'intégration, 7 sur le composable.
-6. ✅ **Sort de `blocks`** — tranché le 2026-08-09 : **la grille devient le
+6. ✅ **Sort de `blocks`** - tranché le 2026-08-09 : **la grille devient le
    corps, seule.** Chaque colonne de blocs est passée en une zone texte pleine
    largeur, ce qu'elle a toujours été. Le panneau de blocs disparaît de
    l'éditeur ; `supportsBlocks` nomme toujours les types qui ont un corps, seul
    ce qu'il ouvre a changé.
 
    **Décidé sur mesure, pas sur intuition.** Une publication rendue des deux
-   façons place son paragraphe, son h2 et sa liste au même pixel — même gauche,
+   façons place son paragraphe, son h2 et sa liste au même pixel - même gauche,
    même largeur, même hauteur. Le HTML intérieur est identique, seuls trois
    conteneurs l'entourent, et `prose` remet à zéro la marge du premier enfant là
    où le chemin bloc la donnait. **Rien ne bouge sur une page publiée**, ce qui
    était le seul vrai risque puisque la migration tourne aussi chez les clients.
 
-   **La colonne `blocks` a été supprimée ensuite**, une fois — et seulement une
-   fois — que plus rien ne la lisait : ni le renderer, ni les thèmes, ni la
+   **La colonne `blocks` a été supprimée ensuite**, une fois - et seulement une
+   fois - que plus rien ne la lisait : ni le renderer, ni les thèmes, ni la
    recherche, ni les fixtures, ni les instantanés de révision, ni le thème du
    client. C'est la seule migration du chantier qui **ne se défait pas** : son
    `down()` rend une colonne vide, parce que prétendre le contraire serait pire
@@ -209,7 +209,7 @@ Chacune verte et livrable, comme pour la fusion Media → GED.
    **Trois choses ont failli partir en silence** en retirant `content` :
 
    - les **fixtures** écrivaient encore les corps dans `blocks`, et la migration
-     ne repasse pas sur une base rechargée — `make fixtures` produisait des
+     ne repasse pas sur une base rechargée - `make fixtures` produisait des
      pages HTTP 200 sans corps ;
    - `PostTextExtractor` ne lisait que `getBlocks()`, donc la **recherche**
      cessait d'indexer le corps tout en continuant de répondre, avec la chaîne
@@ -217,13 +217,13 @@ Chacune verte et livrable, comme pour la fusion Media → GED.
    - les **révisions** capturaient `blocks` et jamais la grille : une révision
      prise après la migration ne contenait plus rien du contenu, et la
      restaurer ne le rendait pas. L'instantané prend désormais la grille **et**
-     son arrangement, et l'arrangement est restauré en premier — le contenu se
+     son arrangement, et l'arrangement est restauré en premier - le contenu se
      normalise contre lui, donc l'inverse jetterait chaque zone.
 
 ### Ce qui a été fait en plus du plan
 
 - **Fixtures de démo** : la page d'accueil et l'article portent chacun une
-  grille, arrangées différemment — 48/24+24/32+16/48 pour l'une, 48/16+32/24+24
+  grille, arrangées différemment - 48/24+24/32+16/48 pour l'une, 48/16+32/24+24
   pour l'autre. *(abfb5fde, 4d6b8998)*. La page d'accueil montre désormais une
   **pile** : une image en portrait à gauche, et à droite un texte et une image
   qui se partagent la hauteur exactement.
@@ -240,7 +240,7 @@ Chacune verte et livrable, comme pour la fusion Media → GED.
 ## Réglage de largeur : tranché et livré le 2026-08-09
 
 > **Décision : la toile d'abord, avec les fractions comme chemin clavier.** La
-> piste E (toile manipulable), allégée d'un cran — la liste verticale des zones
+> piste E (toile manipulable), allégée d'un cran - la liste verticale des zones
 > reste, seul le réglage de largeur change. La piste A n'est pas une alternative
 > à E, c'est la façon d'y accéder au clavier.
 >
@@ -251,10 +251,10 @@ Chacune verte et livrable, comme pour la fusion Media → GED.
 
 | Brique | Où |
 |---|---|
-| La toile | `PostGridCanvas.vue` — une boîte par zone sur `.aurora-grid`, poignée de bord droit, sélection au clic |
-| Le placement | `placeZones()` dans `usePostGrid.js` — ligne et colonne de départ de chaque zone |
+| La toile | `PostGridCanvas.vue` - une boîte par zone sur `.aurora-grid`, poignée de bord droit, sélection au clic |
+| Le placement | `placeZones()` dans `usePostGrid.js` - ligne et colonne de départ de chaque zone |
 | Les fractions | `WIDTH_FRACTIONS` + `widthOptions` dans `usePostGrid.js`, rendues par `AppChoiceRow` |
-| La rangée de choix | `Core/assets/shared/components/form/select/AppChoiceRow.vue` — radiogroup, un seul arrêt de tabulation |
+| La rangée de choix | `Core/assets/shared/components/form/select/AppChoiceRow.vue` - radiogroup, un seul arrêt de tabulation |
 
 **Ce qui n'a pas bougé** : le modèle. `span.lg`, `layout.zones`, `GridNormalizer`,
 le Twig, le rendu public, `GridNormalizer::SNAPS` et le champ `snap` persisté
@@ -273,28 +273,28 @@ de quelques centaines de pixels ; une page dessinée sur 48 colonnes n'y montre
 rien d'utile. La modale est le premier endroit où l'aperçu est à l'échelle, et
 elle rend au panneau la place qu'il prenait. `no-padding` sur la modale : la
 grille apporte ses propres gouttières, et y ajouter celles de la modale
-décalerait les deux bords extérieurs — exactement ce que `.aurora-grid-flush`
+décalerait les deux bords extérieurs - exactement ce que `.aurora-grid-flush`
 existe pour empêcher.
 
 **`useServerPreview` sait désormais que personne ne regarde.** Il prend une
 option `enabled` ; tant qu'elle est fausse, une modification marque l'aperçu
-périmé sans déclencher de requête, et l'ouverture rattrape immédiatement —
+périmé sans déclencher de requête, et l'ouverture rattrape immédiatement -
 sans le debounce, qui existe pour absorber la frappe et pas pour faire attendre
 quelqu'un qui vient de cliquer. Réouvrir sans avoir rien changé ne coûte rien.
 Le défaut reste « toujours actif », donc l'aperçu de la bannière, qui est en
 ligne, n'a pas bougé.
 
-**Les cartes non sélectionnées sont masquées, pas démontées — `v-show`, jamais
+**Les cartes non sélectionnées sont masquées, pas démontées - `v-show`, jamais
 `v-if`.** Chaque zone de texte porte une instance vivante d'Editor.js ; la
 démonter perd sa pile d'annulation. `AppBlockEditor` fait bien un `flush()` dans
-son `onBeforeUnmount`, donc le contenu ne serait pas perdu — mais l'annulation
+son `onBeforeUnmount`, donc le contenu ne serait pas perdu - mais l'annulation
 si, et silencieusement. C'est le même choix que les onglets de langue au-dessus
 de ce panneau (`PostEditorApp.vue`, « v-show, not v-if: the block editor holds
 its own state »), ce qui prouve au passage qu'Editor.js supporte d'être
 initialisé dans un conteneur masqué ici.
 
 **Ajouter une zone la sélectionne.** Sans ça, le bouton poserait une boîte sur
-la toile et n'ouvrirait rien — ce qui se lit comme un bouton qui n'a pas marché.
+la toile et n'ouvrirait rien - ce qui se lit comme un bouton qui n'a pas marché.
 
 ### La toile est le constructeur, pas un afficheur
 
@@ -307,21 +307,21 @@ occuperait de vraies colonnes, donc elle déplacerait les retours à la ligne. U
 toile qui ne passe pas à la ligne comme la page vaut moins qu'une toile plus
 sobre qui le fait.
 
-**Convertir une zone** — un choix de type sur la zone sélectionnée. Le modèle
+**Convertir une zone** - un choix de type sur la zone sélectionnée. Le modèle
 était déjà prêt : le normaliseur écrit toutes les clés quel que soit le type, et
 convertir garde l'id, donc les autres langues gardent ce qu'elles ont, et la
 largeur comme la place dans l'ordre survivent. Seuls les blocs se perdent, et
 seulement à l'enregistrement : ils restent en mémoire côté client, donc repasser
-en Texte les restaure. D'où un **avertissement** et non un blocage — bloquer
+en Texte les restaure. D'où un **avertissement** et non un blocage - bloquer
 serait faux, prévenir après coup serait inutile.
 
-**Échanger deux zones** — on glisse une boîte sur une autre. Le doc avait écarté
+**Échanger deux zones** - on glisse une boîte sur une autre. Le doc avait écarté
 le glissé, à raison : viser un *intervalle* dans une grille qui reflue est
 difficile parce que l'intervalle bouge pendant qu'on le vise. Mais déposer **sur**
 une boîte est une autre cible, et une boîte ne bouge pas. Glisser-déposer natif
 plutôt que des événements pointeur à seuil : le navigateur sait déjà distinguer
 un clic d'un glissé et laisse le clic continuer à sélectionner. Pas d'équivalent
-clavier, et il n'en est pas dû — les chevrons monter/descendre réordonnent sans
+clavier, et il n'en est pas dû - les chevrons monter/descendre réordonnent sans
 pointeur.
 
 ### Trois pièges de mesure et de positionnement, trouvés à l'œil
@@ -329,7 +329,7 @@ pointeur.
 Aucun n'a levé d'erreur ni fait échouer un test. Tous ont été vus en regardant.
 
 **L'image d'une zone débordait de sa boîte.** Elle est en `absolute inset-0`, et
-la boîte n'était pas `relative` — l'ancêtre positionné était donc l'item de
+la boîte n'était pas `relative` - l'ancêtre positionné était donc l'item de
 grille, dont la boîte de padding **inclut les gouttières**. L'image dépassait
 d'une gouttière de chaque côté, la zone paraissait plus large, et sa ligne
 paraissait plus serrée. `overflow-hidden` ne rattrape pas ça : un bloc ne rogne
@@ -338,14 +338,14 @@ pas un descendant absolu dont le bloc conteneur est un de ses ancêtres.
 **Les lignes se touchaient pendant que les colonnes respiraient.** Deux voisines
 d'une même ligne montrent deux gouttières entre elles ; l'axe des lignes n'avait
 rien. `gap-y-2` = 0,5rem rétablit le maillage. Mesuré sur la page publique :
-padding d'item 16px, donc 32px entre deux zones, et `gap-y-8` = 32px — le Twig
+padding d'item 16px, donc 32px entre deux zones, et `gap-y-8` = 32px - le Twig
 avait déjà fait ce calcul.
 
 **Le glissé mesurait la mauvaise boîte.** Le `p-2` était sur l'élément
 `.aurora-grid`, celui que `getBoundingClientRect()` mesure. Les 48 pistes vivent
 dans la boîte de **contenu**, le rect renvoie la boîte de **bordure** : l'erreur
 valait zéro au centre et environ une colonne à chaque bord. Le padding est passé
-sur un conteneur intermédiaire, et un test épingle l'invariant — l'élément mesuré
+sur un conteneur intermédiaire, et un test épingle l'invariant - l'élément mesuré
 ne porte aucune classe de padding.
 
 ### Trois décisions à ne pas défaire
@@ -370,7 +370,7 @@ dessine une disposition et la page en rend une autre.
 
 ### Les fractions : six, pas huit
 
-`1/4, 1/3, 1/2, 2/3, 3/4, 1/1` — soit 12, 16, 24, 32, 36, 48.
+`1/4, 1/3, 1/2, 2/3, 3/4, 1/1` - soit 12, 16, 24, 32, 36, 48.
 
 **Toutes sont des multiples de 4**, donc `clampToSnap` les laisse intactes au
 pas 4 comme au pas 1. C'est ce qui a rendu le chantier purement additif : ni le
@@ -389,10 +389,10 @@ que la poignée qui élargit sur la toile.
 
 ### Ce qui reste ouvert
 
-- **`blocks`** — étape 6, intacte.
+- **`blocks`** - étape 6, intacte.
 - **L'indication de ligne** est devenue inutile : la toile fait passer à la
   ligne au même endroit que le site, donc on le voit.
-- **Le rapport d'image** est livré, sur la zone média seulement — voir plus bas.
+- **Le rapport d'image** est livré, sur la zone média seulement - voir plus bas.
   La vignette de carte et la vidéo gardent leur `aspect-video` en dur.
 - **Le placement absolu** reste écarté pour la *hauteur*. Le bord gauche, lui,
   ne l'est plus depuis le 2026-08-09 : voir « Redimensionner dans les quatre
@@ -419,42 +419,42 @@ que la poignée qui élargit sur la toile.
 > Conservées telles qu'elles ont été écrites avant l'arbitrage. **E et A ont été
 > retenues ensemble** ; B et D ne l'ont pas été, et C reste écartée pour la
 > raison qui y est notée. La reco initiale disait « A d'abord, la toile ensuite
-> si le besoin se confirme » — le besoin s'est confirmé tout de suite, et
+> si le besoin se confirme » - le besoin s'est confirmé tout de suite, et
 > vérifier que `.aurora-grid` est déjà chargée dans le backend a fait tomber le
 > principal coût supposé de E.
 
-**A — Fractions nommées.** Une rangée de puces : 1/1, 1/2, 1/3, 2/3, 1/4, 3/4,
+**A - Fractions nommées.** Une rangée de puces : 1/1, 1/2, 1/3, 2/3, 1/4, 3/4,
 1/6, 5/6. Discret, nommé dans l'unité de l'auteur, atteignable au clavier.
 Toutes tombent juste sur 48 (48, 24, 16, 32, 12, 36, 8, 40). Perd les largeurs
-arbitraires — à moins de garder une échappatoire « précis » qui rouvre le
+arbitraires - à moins de garder une échappatoire « précis » qui rouvre le
 curseur. **Le pas d'aimantation devient probablement inutile**, ou une option
 avancée : c'est la fraction qui porte le sens.
 
-**B — Sélecteur en cellules.** Douze cases cliquables (au pas 4) qu'on parcourt
+**B - Sélecteur en cellules.** Douze cases cliquables (au pas 4) qu'on parcourt
 au clic-glissé, comme une mini-grille. Manipulation directe, la proportion se
-voit. Reste à décider ce qu'il devient au pas 1 — 48 cases sont trop fines.
+voit. Reste à décider ce qu'il devient au pas 1 - 48 cases sont trop fines.
 
-**C — Poignées sur l'aperçu serveur.** Redimensionner en tirant le bord d'une
+**C - Poignées sur l'aperçu serveur.** Redimensionner en tirant le bord d'une
 zone dans l'aperçu lui-même. **À écarter** : l'aperçu est du HTML rendu par le
 serveur, injecté en `v-html` (`useServerPreview`, `GridPreviewController`).
 Poser des poignées dessus veut dire calculer des positions sur du markup qu'on
 ne contrôle pas, et le recalculer à chaque re-rendu débounced. Voir E, qui
 obtient le même geste sans ce problème.
 
-**D — Gabarits de ligne.** Choisir une ligne (50/50, 33/67, tiers, …) et y
+**D - Gabarits de ligne.** Choisir une ligne (50/50, 33/67, tiers, …) et y
 déposer les zones. Le plus lisible pour un débutant, mais **ça change le
 modèle** : on passerait de « zones qui s'enchaînent avec un span » à « lignes
 qui contiennent des zones ». Le normaliseur, le rendu et la migration suivent.
 
-**E — Une toile de structure, manipulable.** La cible la plus ambitieuse et,
+**E - Une toile de structure, manipulable.** La cible la plus ambitieuse et,
 sur le fond, la plus juste : on voit la grille, on tire le bord d'une zone pour
 la redimensionner, on clique dedans pour ouvrir son contenu.
 
 *L'objection que je croyais rédhibitoire ne l'est pas.* Une toile qui dessine la
 **structure** n'est pas un second moteur de rendu : elle pose des boîtes sur
 `.aurora-grid` avec les mêmes `--span-*`, donc **la géométrie est celle du site,
-littéralement le même CSS**. Une zone y affiche une icône de type et un libellé
-— jamais ses blocs, son image ou sa vidéo. L'aperçu serveur reste l'autorité
+littéralement le même CSS**. Une zone y affiche une icône de type et un libellé,
+jamais ses blocs, son image ou sa vidéo. L'aperçu serveur reste l'autorité
 sur le contenu ; la toile ne parle que de disposition. C'est la distinction qui
 rend cette piste abordable, et je l'avais manquée en écartant C.
 
@@ -464,7 +464,7 @@ Ce qu'elle demande vraiment :
   déduite de la position en x dans la grille, aimantée. `layout.zones` est déjà
   la seule source ; la toile écrit dedans comme le curseur le fait aujourd'hui.
 - **Ouvrir une zone** : les champs par type sortent de la liste verticale pour
-  aller dans un panneau latéral ou une modale. **Attention à Editor.js** — le
+  aller dans un panneau latéral ou une modale. **Attention à Editor.js** - le
   démonter en fermant perd la pile d'annulation. Il faut `v-show`, ou garder les
   instances vivantes (le registre de `usePostEditor` est fait pour ça).
 - **Réordonner** : le glissé dans une grille qui reflue est difficile à viser.
@@ -474,26 +474,26 @@ Ce qu'elle demande vraiment :
 **Le piège à ne pas reproduire.** Ce chantier est né d'une remarque
 d'accessibilité : viser un curseur est difficile pour certaines personnes. Une
 toile *uniquement* manipulable à la souris recrée le même problème en pire. Il
-faut un chemin discret et clavier — les fractions nommées de A, sur la zone
+faut un chemin discret et clavier - les fractions nommées de A, sur la zone
 sélectionnée. **A et E ne sont donc pas concurrentes : A est le chemin
 accessible de E.**
 
 ### Redimensionner dans les quatre sens : ce que le modèle permet
 
 Question posée le 2026-08-09, et qui touche le modèle plus que l'interface. Une
-zone portait alors `id, type, span, mediaId, postId` — **ni hauteur, ni ligne,
+zone portait alors `id, type, span, mediaId, postId` - **ni hauteur, ni ligne,
 ni colonne de départ**.
 
 > **Périmé le même jour, gardé pour le raisonnement.** Ce qui suit sur le bord
 > gauche a été écrit le matin et dépassé l'après-midi : `offset` et `newRow` ont
 > livré la colonne de départ. Le paragraphe reste parce que sa conclusion
-> — « il faudrait une colonne de départ explicite » — était juste, et que c'est
+> - « il faudrait une colonne de départ explicite » - était juste, et que c'est
 > exactement ce qui a été ajouté ; ce qui était faux, c'est d'en déduire qu'il
 > fallait le placement absolu. La suite sur la hauteur, elle, tient toujours.
 
 **Gauche et droite : possible, mais les deux bords font la même chose.** Les
 zones s'enchaînent : une zone commence là où la précédente finit. Tirer son bord
-gauche ne peut donc que changer sa largeur, exactement comme le bord droit —
+gauche ne peut donc que changer sa largeur, exactement comme le bord droit -
 alors que le geste laisse attendre un déplacement du point de départ. Un bord
 gauche véritablement indépendant suppose une colonne de départ explicite, donc
 le **placement absolu** : cellules vides possibles, collisions à arbitrer, et la
@@ -504,13 +504,13 @@ une colonne ?).
 plutôt que stockée. L'auteur écrit toujours une suite ; `offset` et `newRow`
 l'annotent, et `GridNormalizer::place()` en tire ligne et colonne. Rien n'est
 stocké en coordonnées, il n'y a pas de cellule vide à arbitrer, et rien n'est
-émis en dessous du grand écran — le téléphone n'a donc pas à répondre à la
+émis en dessous du grand écran - le téléphone n'a donc pas à répondre à la
 question. Le bord gauche de la toile redimensionne depuis le 2026-08-09 : il
 déplace le début de la zone et laisse le bord droit en place.
 
 **Haut et bas : n'existe pas du tout.** La hauteur d'une zone est celle de son
 contenu. La régler suppose soit des `grid-row: span N` avec une hauteur de ligne
-fixée — une vraie grille 2D, mêmes conséquences que ci-dessus — soit une hauteur
+fixée - une vraie grille 2D, mêmes conséquences que ci-dessus - soit une hauteur
 minimale par zone.
 
 **Et il faut se demander si on la veut.** Imposer une hauteur à du contenu
@@ -539,7 +539,7 @@ faudrait un `grid-row: span 2`, donc le placement explicite que ce document
 écarte depuis le début.
 
 **La réponse : un cinquième type de zone**, `stack`, dont le contenu est
-d'autres zones. Le placement ne change pas — une pile est une zone de plus, qui
+d'autres zones. Le placement ne change pas - une pile est une zone de plus, qui
 se trouve en contenir d'autres.
 
 **La hauteur n'est déclarée nulle part.** `.aurora-grid` ne pose aucun
@@ -556,7 +556,7 @@ un vocabulaire, et la rangée de fractions marche telle quelle.
 **« Remplir » : la sixième forme, qui n'en est pas une.** Ajoutée le 2026-08-09
 après avoir mesuré la démo : trois lignes de texte dans une case de 403px
 laissaient **275px de vide** avant l'image. Une part fixe honore sa promesse,
-et c'est le problème — elle la tient même quand le contenu ne la remplit pas.
+et c'est le problème - elle la tient même quand le contenu ne la remplit pas.
 
 `fill` veut dire « prends ce qui reste ». Dès qu'une zone le demande, **les
 parts cessent de s'appliquer** : les autres prennent leur hauteur de contenu et
@@ -566,10 +566,10 @@ prendre tout ce qui reste.
 Deux détails qui ont coûté deux essais ratés :
 
 - il ne suffit pas que l'image remplisse *sa case*. La première version faisait
-  ça, et le trou restait — parce qu'il était sous le **texte**, pas sous
+  ça, et le trou restait - parce qu'il était sous le **texte**, pas sous
   l'image ;
 - la case qui remplit doit lever son `min-height: auto`. Sans ça l'image impose
-  sa hauteur naturelle et ce sont ses voisines qui reculent — l'inverse exact
+  sa hauteur naturelle et ce sont ses voisines qui reculent - l'inverse exact
   de ce que le bouton annonce. Une zone qui demande à remplir a déjà consenti à
   être recadrée, donc le plancher saute pour elle seule et pour personne
   d'autre.
@@ -580,7 +580,7 @@ donc il n'y a aucune hauteur imposée à remplir.
 **Rendu en `flex-grow: <span>; flex-basis: 0`, sans `min-height: 0`.** La basis
 donne les proportions exactes plutôt qu'un partage du reste ; l'absence du
 min-height empêche un enfant d'être écrasé sous son propre contenu. Proportions
-quand ça tient, croissance quand ça ne tient pas, **texte coupé jamais** — c'est
+quand ça tient, croissance quand ça ne tient pas, **texte coupé jamais** - c'est
 le reproche que ce document fait aux autres constructeurs de page depuis le
 début, et il fallait ne pas le mériter.
 
@@ -589,7 +589,7 @@ sur 2/3 pendant que sa voisine reste à 1/2 donnait 57 % et 43 %. Changer une
 part rend désormais le reste aux autres, proportionnellement à ce qu'elles
 avaient, avec un plancher d'une unité. Et « 1/1 » n'est pas offert comme part :
 une zone qui partage sa hauteur par définition ne peut pas la prendre entière.
-Le panneau affiche en plus le pourcentage réel — le nombre qui ne peut pas
+Le panneau affiche en plus le pourcentage réel - le nombre qui ne peut pas
 mentir.
 
 **Deux bornes, testées.** Profondeur d'un niveau : au-delà, une page devient un
@@ -598,7 +598,7 @@ uniques sur tout l'arbre : le contenu est indexé par id dans une carte plate, e
 deux zones qui partagent un id partageraient leurs mots dans toutes les langues.
 
 **Sur la toile**, une pile dessine ses zones aux mêmes `flex-grow` que la page.
-Aucune poignée sur les tranches — une part est une hauteur, et la toile n'a
+Aucune poignée sur les tranches - une part est une hauteur, et la toile n'a
 jamais redimensionné que des largeurs. **Un lâcher sur une pile reste un
 échange** : un geste, un sens, sinon l'auteur ne peut plus prédire ce qu'il
 obtient.
@@ -607,58 +607,58 @@ Livrée en trois tranches : `55f8cdb4` (modèle et rendu public), `2efde2f6`
 (panneau), `98835f47` (toile).
 
 **Déplacer une zone existante dans une pile** se fait en la glissant sur une
-**tranche** de la pile — pas sur la pile elle-même. Deux intentions demandent
+**tranche** de la pile - pas sur la pile elle-même. Deux intentions demandent
 deux cibles : la boîte garde le sens qu'ont toutes les autres, l'échange, et les
 tranches disent « dedans, ici ». Une tranche est un rectangle qui ne bouge pas,
 ce qui est la raison pour laquelle déposer *entre* deux zones avait été refusé
 sur l'axe horizontal.
 
-Une tranche refuse ce qu'elle ne peut pas prendre — une pile, puisque la
-profondeur s'arrête à un — et laisse alors l'événement remonter : la boîte
+Une tranche refuse ce qu'elle ne peut pas prendre - une pile, puisque la
+profondeur s'arrête à un - et laisse alors l'événement remonter : la boîte
 derrière le prend comme un échange, donc le geste fait quelque chose plutôt que
 rien. Le surlignage dit lequel des deux : la boîte s'allume, la tranche non.
 *(`52dc2b5f`)*
 
 **Sortir une zone d'une pile** se fait en glissant sa tranche sur une boîte de
-la ligne — le miroir exact du geste inverse. Sans ça une pile serait un piège :
+la ligne - le miroir exact du geste inverse. Sans ça une pile serait un piège :
 une zone construite dedans ne pourrait en sortir qu'en étant supprimée, ce qui
 efface ce que chaque langue en tient.
 
 Son span est **remis à la moitié** plutôt que conservé. Dans la pile le nombre
 était une part de hauteur ; sur la ligne le même nombre est une largeur. Le
 garder réinterpréterait 36 en silence, de « trois quarts de la hauteur » à
-« trois quarts de la ligne » — une valeur que personne n'a choisie, obtenue
+« trois quarts de la ligne » - une valeur que personne n'a choisie, obtenue
 parce qu'un champ veut dire deux choses.
 
 ### Livré le 2026-08-09 : le rapport d'image, sur la zone média
 
-`ratio` sur la zone — `natural` (défaut), `16x9`, `4x3`, `1x1`, `3x4`. **Partagé
+`ratio` sur la zone - `natural` (défaut), `16x9`, `4x3`, `1x1`, `3x4`. **Partagé
 comme le span** : recadrer est du dessin, écrit une fois pour toutes les langues.
 
 **Un fait qui reformule la question et qui n'était pas dans l'analyse
 ci-dessous.** `.aurora-grid` ne pose aucun `align-items`, donc les items d'une
 grille CSS sont en `stretch` : **deux zones d'une même ligne ont déjà la même
-hauteur**. Ce qui ne remplit pas, c'est le contenu — l'image est en `h-auto`.
+hauteur**. Ce qui ne remplit pas, c'est le contenu - l'image est en `h-auto`.
 « Aligner une image sur le texte à côté » ne demandait donc jamais une hauteur,
 seulement de dire à l'image quelle forme prendre.
 
 **Le ratio sort en style inline, pas en classe Tailwind.** Le doc proposait une
 classe littérale ; c'est un piège. `aspect-video` existe par hasard dans ce Twig,
 mais `aspect-square` et `aspect-[3/4]` n'apparaissent dans aucune source que
-Tailwind lit — choisies en PHP, elles n'émettraient rien et le recadrage ne se
+Tailwind lit - choisies en PHP, elles n'émettraient rien et le recadrage ne se
 ferait pas, en silence. Le projet avait déjà répondu à cette question pour les
 spans, qui sortent en propriétés personnalisées pour la même raison.
 `GridViewBuilder::ratioStyle()` rend donc `aspect-ratio: 16 / 9;` ou la chaîne
 vide. Aucune ligne à ajouter dans `@source inline`, rien à se rappeler.
 
 **Et c'est vraiment une ligne dans le Twig.** Avec `width: 100%` et
-`height: auto`, un `aspect-ratio` fixe la hauteur seul — pas de conteneur, pas de
+`height: auto`, un `aspect-ratio` fixe la hauteur seul - pas de conteneur, pas de
 second élément. Le style s'ajoute à celui qui portait déjà `object-position`, et
 c'est le point focal, déjà là, qui fait tomber le recadrage au bon endroit.
 
 **Pas de migration** : `grid_layout` est une colonne JSON et le normaliseur
 défaut à `natural`. Les zones enregistrées avant ce champ rendent exactement ce
-qu'elles rendaient — un test l'affirme.
+qu'elles rendaient - un test l'affirme.
 
 **La toile ne montre pas le ratio.** Ses boîtes sont à hauteur uniforme, ce qui
 est ce qui rend les lignes lisibles en tant que lignes ; lui faire montrer les
@@ -674,11 +674,11 @@ appartient au fournisseur, pas à l'auteur.
 
 > **Décision : le garde-fou est au rendu, pas à l'écriture.**
 > `GridViewBuilder::mediaData()` renvoie `null` dès que le document n'est pas
-> une image, et la zone ne rend alors rien — exactement comme une zone dont la
+> une image, et la zone ne rend alors rien - exactement comme une zone dont la
 > cible a été supprimée.
 
 **Le défaut.** Rien ne lisait le `mime_type`. Une zone média pointée sur une
-vidéo — `demo-video.mp4`, document 5 des fixtures GED — publiait
+vidéo - `demo-video.mp4`, document 5 des fixtures GED - publiait
 `<img src="…/demo-video.mp4">` : une image cassée, et aucune erreur nulle part.
 Trouvé en écrivant une fixture qui visait le mauvais document.
 
@@ -688,18 +688,18 @@ fichier est remplacé après coup.
 
 **Pourquoi pas un refus dans `GridNormalizer`.** Deux raisons, et la seconde est
 la vraie. Le normaliseur n'a pas de base de données et ne tourne pas qu'à
-l'écriture — `GridViewBuilder::resolve()` l'appelle à chaque rendu, donc lui
+l'écriture - `GridViewBuilder::resolve()` l'appelle à chaque rendu, donc lui
 donner un repository mettrait une requête derrière chaque page vue. Surtout, le
 troisième chemin n'a aucune écriture à refuser : **une disposition valide le
 jour où elle est enregistrée cesse de l'être le jour où le fichier derrière
 change.** Seul le rendu peut le savoir, donc c'est là que la question se pose.
 
-**Pourquoi pas un `<video>` — pour l'instant.** Le tableau des types de zone
+**Pourquoi pas un `<video>` - pour l'instant.** Le tableau des types de zone
 plus haut annonce « image ou vidéo depuis la GED », et cette moitié-là n'a
 jamais été construite. La livrer veut dire ouvrir le sélecteur aux vidéos
 (`AppImagePickerField`, `accept="image/*"`, utilisé à six endroits), dire dans
 le panneau et sur la toile de quelle nature est une zone, et trancher poster,
-contrôles, préchargement et rapport — rien de tout ça n'est le défaut du jour,
+contrôles, préchargement et rapport - rien de tout ça n'est le défaut du jour,
 et le type `video` existant couvre déjà les fournisseurs embarqués. **Le
 garde-fou ne ferme pas cette porte** : un `mediaData()` qui renvoie `null`
 aujourd'hui peut renvoyer une clé `kind` demain sans toucher au stockage,
@@ -707,15 +707,15 @@ puisqu'un `mediaId` désigne déjà n'importe quel document. C'est le refus à
 l'écriture qui l'aurait fermée, en refusant précisément les documents dont
 cette suite aurait besoin.
 
-**« Une zone configurée qui ne rend rien ressemble à un bug »** — l'objection de
+**« Une zone configurée qui ne rend rien ressemble à un bug »** - l'objection de
 ce document tient toujours, mais elle a été écrite pour l'étape 4, où le cas
 touchait chaque auteur parce qu'un *type* entier n'avait pas de renderer. Ici
 l'auteur ne peut pas produire l'état ; qui l'atteint a écrit une fixture ou une
-charge API, et reçoit le même signal qu'en pointant un document supprimé — ce
+charge API, et reçoit le même signal qu'en pointant un document supprimé - ce
 que le code avait déjà tranché, et que son test épingle depuis l'étape 2.
 
-**Trouvé au passage, même fonction, même famille.** Un document sans fichier —
-la démo en garde trois exprès, pour qu'il y ait de quoi tester l'upload — donnait
+**Trouvé au passage, même fonction, même famille.** Un document sans fichier -
+la démo en garde trois exprès, pour qu'il y ait de quoi tester l'upload - donnait
 `url => null`, donc `<img src="">` : une image cassée, pas une image absente.
 Même garde, deux lignes plus bas.
 
@@ -728,25 +728,25 @@ qu'il reflète : `image/avif` est une image.
 
 ### Livré le 2026-08-09 : la bannière, décidée pour elle-même
 
-`BannerViewBuilder::mediaData()` portait le même défaut — les deux gardes, le
+`BannerViewBuilder::mediaData()` portait le même défaut - les deux gardes, le
 mime et l'URL nulle. Mais pas la même décision : la bannière alimente **trois**
-images depuis cette seule fonction — le fond du hero, le logo, et le média d'un
+images depuis cette seule fonction - le fond du hero, le logo, et le média d'un
 item. Un fond qui ne rend rien se voit bien davantage qu'une zone de grille
 vide, donc « renvoyer `null` » demandait à être justifié plutôt que recopié.
 
 **Il l'est, parce que la bannière sait déjà se passer d'image.** Le repli
 n'était pas à inventer, il était écrit :
 
-- le remplissage est résolu séparément — `fillStyle` ne dépend pas du document,
+- le remplissage est résolu séparément - `fillStyle` ne dépend pas du document,
   donc une bannière qui a un aplat ou un dégradé rend l'en-tête que son auteur a
   dessiné, pas une boîte transparente ;
 - une bannière à qui il ne reste rien est **éteinte par `build()`**, et la page
-  remet son propre en-tête — avec le `<h1>` que la bannière allait porter. Cette
+  remet son propre en-tête - avec le `<h1>` que la bannière allait porter. Cette
   règle existait pour l'auteur qui avait tout effacé ; elle couvre le fond
   refusé sans une ligne de plus.
 
 **Ce qu'on n'a pas fait : une image de remplacement, ou un aplat gris par
-défaut.** Les deux inventent une décision de design que personne n'a prise — la
+défaut.** Les deux inventent une décision de design que personne n'a prise - la
 raison exacte pour laquelle, six fonctions plus haut dans le même fichier, un
 dégradé auquel il manque une borne ne rend aucun dégradé plutôt qu'un dégradé
 deviné.
@@ -754,47 +754,47 @@ deviné.
 **Ni une garde sur deux des trois appels.** Le logo et l'item sortent en `<img>`
 avec un `alt` non vide, donc une vidéo y affiche l'icône d'image cassée *et* son
 texte. Le fond a `alt=""` et `aria-hidden`, ce qui rend le dégât visuel plus
-discret — mais `<img src="">` reste un second chargement de la page à chaque vue,
+discret - mais `<img src="">` reste un second chargement de la page à chaque vue,
 pour échouer à la décoder. Trois `<img>`, une garde, un endroit.
 
 Six tests dans `BannerViewBuilderTest` : les trois emplacements refusant une
-vidéo, les trois acceptant une image — une garde écrite trop large passerait le
-premier test —, le document sans fichier, le remplissage qui survit, et la
+vidéo, les trois acceptant une image - une garde écrite trop large passerait le
+premier test -, le document sans fichier, le remplissage qui survit, et la
 bannière éteinte faute de contenu.
 
 ---
 
 **Le chemin intermédiaire, probablement le bon** : pas une hauteur libre, mais
-un **rapport d'image par zone** — 16:9, 4:3, carré, ou naturel. Ça couvre
+un **rapport d'image par zone** - 16:9, 4:3, carré, ou naturel. Ça couvre
 l'essentiel de ce à quoi sert « redimensionner en hauteur » (une image et une
 vidéo côte à côte qui s'alignent, une rangée de cartes régulière) sans introduire
 de modèle 2D. Une zone média a déjà `aspect-video` en dur dans les cartes ; le
 rendre réglable est une ligne dans le normaliseur et une classe littérale de
-plus dans le Twig — **littérale, pas assemblée** : Tailwind n'émet que ce qu'il
+plus dans le Twig - **littérale, pas assemblée** : Tailwind n'émet que ce qu'il
 lit.
 
-### Ce que ça gagnera vraiment — et ce que ça ne réglera pas
+### Ce que ça gagnera vraiment - et ce que ça ne réglera pas
 
 **Le gain est dans l'unité, pas dans le contrôle.** « 24 colonnes sur 48 » est
 une coordonnée ; « la moitié » est une pensée. C'est le seul point où changer
-l'interface change réellement ce que l'auteur a à faire — et c'est la piste A
+l'interface change réellement ce que l'auteur a à faire - et c'est la piste A
 qui l'obtient, la moins chère des quatre. Un bouton nommé se décrit lui-même,
 ce qui dissout au passage une bonne part du besoin de retour pendant le geste :
 on n'a pas besoin de voir le résultat d'un réglage qui dit ce qu'il fait.
 
 **Le coût est mesurable et faible.** Au pas 4, douze largeurs sont atteignables.
 Les huit fractions en couvrent huit. Les quatre perdues sont 1/12, 5/12, 7/12
-et 11/12 — des proportions qu'on ne dessine pas. Une échappatoire « précis »
+et 11/12 - des proportions qu'on ne dessine pas. Une échappatoire « précis »
 peut les rendre, mais elle ne se justifie qu'à l'usage.
 
 **Ce qui ne sera pas réglé pour autant : rien ne dit si une ligne tient.** Deux
 zones à 2/3 ne rentrent pas ensemble, et l'auteur ne l'apprend qu'en regardant
-l'aperçu. Ni A ni B ne corrigent ça — c'est un problème de *relation entre
+l'aperçu. Ni A ni B ne corrigent ça - c'est un problème de *relation entre
 zones*, pas de réglage d'une zone. E le règle par construction, puisqu'on voit
 la ligne.
 
 Le remède est indépendant et moins cher que n'importe laquelle des pistes : une
-**indication de ligne** dans le panneau — « cette ligne : 32 + 16 = 48, pleine »
+**indication de ligne** dans le panneau - « cette ligne : 32 + 16 = 48, pleine »
 ou « 32 + 32 = 64, la seconde passe à la ligne ». Le total est déjà calculable
 à partir de `layout.zones`, sans requête ni rendu. Fait avec la piste A, ça
 couvre probablement l'essentiel du sujet ; fait seul, ça aiderait déjà.
@@ -806,12 +806,12 @@ couvre probablement l'essentiel du sujet ; fait seul, ça aiderait déjà.
 - **Tailwind n'émet que les classes qu'il lit dans les sources.** Une largeur
   est un nombre choisi à l'exécution : elle passe par les propriétés
   personnalisées `--span-*`, jamais par une classe assemblée.
-- **Les gouttières viennent du padding des items**, pas d'un `column-gap` — 47
+- **Les gouttières viennent du padding des items**, pas d'un `column-gap` - 47
   gouttières sur 48 pistes. `AuroraGridGutterTest` le fait échouer en CI.
 - **`.aurora-grid-flush`** annule le décalage des bords extérieurs. Toute
   nouvelle grille rendue dans le flux d'un article en a besoin.
 
-### Ce qu'on craignait de casser — et qui n'a pas bougé
+### Ce qu'on craignait de casser - et qui n'a pas bougé
 
 Cette section annonçait trois ruptures. Aucune n'a eu lieu, parce que les
 fractions passent par le même computed `width` que la jauge :
@@ -822,7 +822,7 @@ fractions passent par le même computed `width` que la jauge :
 - **Les clés `width`, `width_label`, `snap`, `snap_hint`, `snaps.*`** servent
   toutes encore. `width_label` a changé de rôle : de libellé principal, elle est
   devenue le repli qui affiche le compte exact quand aucune fraction ne
-  correspond — et c'est là qu'elle est enfin à sa place, puisque c'est le moment
+  correspond - et c'est là qu'elle est enfin à sa place, puisque c'est le moment
   où l'auteur compte réellement des colonnes.
 - **`GridNormalizer::SNAPS` et le champ `snap`** sont inchangés, donc les deux
   publications de démo qui le portent en base n'ont rien eu à migrer.
@@ -832,7 +832,7 @@ Ajoutées : `canvas`, `canvas_empty`, `canvas_hint`, `resize_zone`, `precise`,
 
 **Trouvé en chemin** : `AppSelect`, `AppInput` et les autres champs partagés ne
 déclaraient pas de prop `hint`. Les 26 `:hint` du projet tombaient en attribut
-sur la div racine et ne s'affichaient nulle part — dont `snap_hint`,
+sur la div racine et ne s'affichaient nulle part - dont `snap_hint`,
 `zone_post_hint` et `zone_video_hint` de ce panneau. Corrigé dans les composants
 partagés en parallèle de ce lot.
 
@@ -841,13 +841,13 @@ partagés en parallèle de ce lot.
 - **Le pas d'aimantation est une option d'auteur**, pas une constante : 4 par
   défaut, 2 et 1 disponibles.
 - **L'aperçu passe par le vrai Twig.** Réimplémenter le rendu en Vue serait plus
-  rapide et divergerait — c'est exactement comme ça que `twoColumn` en est
+  rapide et divergerait - c'est exactement comme ça que `twoColumn` en est
   arrivé à écrire une forme que son renderer ne sait pas lire.
 - **Tailwind ne voit que les classes qu'il peut lire dans les sources.** Un span
   est un nombre choisi à l'exécution : il passe par une propriété
   personnalisée, jamais par une classe assemblée par concaténation.
 - **Un `<h1>` par page.** La bannière prend la main quand elle porte un titre,
   sinon c'est le titre de la publication. Si une zone de grille peut produire un
-  titre de niveau 1, ce calcul est à revoir — aujourd'hui l'éditeur de blocs
+  titre de niveau 1, ce calcul est à revoir - aujourd'hui l'éditeur de blocs
   n'offre que les niveaux 2 à 4, ce qui garantit qu'il n'y a que deux sources
   possibles.

@@ -20,7 +20,7 @@ abstract class AbstractMenu implements MenuInterface
     protected string $name;
 
     /**
-     * Where the theme renders this menu — `primary`, `footer`, `account`.
+     * Where the theme renders this menu - `primary`, `footer`, `account`.
      * Unique: a location holds one menu, so a template asking for it never
      * has to choose between two.
      */

@@ -1,10 +1,10 @@
 import fs from "fs";
 import path from "path";
 
-// Gate 2 — option B (monorepo-split). When aurora-core is consumed as an
+// Gate 2 - option B (monorepo-split). When aurora-core is consumed as an
 // installed Composer package (vendor/axelraboit/aurora-core), the build runs
 // from inside vendor/ and app.js's static glob `../../Module/**` no longer sees
-// the module packages — each lives in a SIBLING package dir
+// the module packages - each lives in a SIBLING package dir
 // (vendor/axelraboit/aurora-tools, …). This plugin discovers those sibling
 // packages at build time and exposes their Vue components through a virtual
 // module, so the client's single Vite build bundles them like first-party

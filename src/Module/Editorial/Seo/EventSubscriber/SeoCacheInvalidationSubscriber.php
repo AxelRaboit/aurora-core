@@ -25,7 +25,7 @@ use Doctrine\ORM\Events;
  * Drops the sitemap and feed caches the moment anything they list changes.
  *
  * Without this an editor publishes a post and it is absent from
- * `/sitemap.xml` for up to an hour, with nothing to explain the delay — the
+ * `/sitemap.xml` for up to an hour, with nothing to explain the delay - the
  * TTL on those caches is a backstop for an idle site, not the mechanism.
  *
  * No attempt is made to work out whether a given edit actually changed a
@@ -74,7 +74,7 @@ final readonly class SeoCacheInvalidationSubscriber
             return;
         }
 
-        // Structure the sitemap lists and the feed does not — the feed only
+        // Structure the sitemap lists and the feed does not - the feed only
         // carries posts.
         if ($entity instanceof PostTypeInterface
             || $entity instanceof TaxonomyInterface

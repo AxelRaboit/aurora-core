@@ -20,12 +20,12 @@ const props = defineProps({
     placeholder: { type: String, default: "" },
     required: { type: Boolean, default: false },
     error: { type: String, default: "" },
-    /** Help text under the control — explains the field, unlike `error` which reports it. */
+    /** Help text under the control - explains the field, unlike `error` which reports it. */
     hint: { type: String, default: "" },
     enableTime: { type: Boolean, default: false },
     /**
      * Month-only picker. `modelValue` is then expected/emitted as
-     * `YYYY-MM` (e.g. `2026-05`) instead of a full ISO date — handy
+     * `YYYY-MM` (e.g. `2026-05`) instead of a full ISO date - handy
      * for budget months, monthly reports, etc.
      */
     monthOnly: { type: Boolean, default: false },
@@ -54,7 +54,7 @@ function onUpdate(val) {
 const internalValue = computed(() => {
     if (!props.modelValue) return null;
     if (props.monthOnly) {
-        // Accept either YYYY-MM or YYYY-MM-DD — pull year + month index back out
+        // Accept either YYYY-MM or YYYY-MM-DD - pull year + month index back out
         // and feed VueDatePicker's `{ month, year }` shape.
         const match = /^(\d{4})-(\d{2})/.exec(props.modelValue);
         if (!match) return null;

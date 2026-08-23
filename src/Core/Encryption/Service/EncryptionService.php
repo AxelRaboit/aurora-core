@@ -30,7 +30,7 @@ final readonly class EncryptionService implements EncryptionServiceInterface
     ) {
         $key = base64_decode($encodedKey, strict: true);
 
-        // '8bit' encoding counts bytes, not multibyte characters — required for binary data.
+        // '8bit' encoding counts bytes, not multibyte characters - required for binary data.
         if (false === $key || SODIUM_CRYPTO_SECRETBOX_KEYBYTES !== mb_strlen($key, '8bit')) {
             throw new RuntimeException('AURORA_ENCRYPTION_KEY must be a base64-encoded 32-byte key.');
         }

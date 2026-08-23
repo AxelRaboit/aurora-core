@@ -13,7 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
  * The always-on core's own floor: the active locales, and a theme to render in.
  *
  * Both used to be created by AppFixtures, which never runs in production.
- * Missing locales are the severe half — Context::activeLocaleCodes() comes back
+ * Missing locales are the severe half - Context::activeLocaleCodes() comes back
  * empty, assertActiveLocale() throws, and every frontend URL answers 404 on a
  * site that otherwise looks correctly installed.
  */
@@ -37,7 +37,7 @@ final readonly class CoreBootstrapProvider implements BootstrapProviderInterface
     }
 
     /**
-     * One row per supported locale, French default — matching what LocaleEnum
+     * One row per supported locale, French default - matching what LocaleEnum
      * declares, so the enum stays the single list of what Aurora speaks.
      *
      * Matched on code: an administrator may rename "Français" or reorder the
@@ -71,7 +71,7 @@ final readonly class CoreBootstrapProvider implements BootstrapProviderInterface
 
     /**
      * ThemeResolver falls back to the bundle's templates when no theme is
-     * active, so this is not load-bearing — but an empty themes screen on a
+     * active, so this is not load-bearing - but an empty themes screen on a
      * fresh install reads as something being broken.
      *
      * @return iterable<string>

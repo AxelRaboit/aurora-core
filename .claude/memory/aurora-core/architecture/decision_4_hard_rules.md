@@ -5,7 +5,7 @@
 Issues de l'audit post-Editorial (Octobre 2025), 4 règles **non-négociables**
 appliquées uniformément sur les 24 entités :
 
-### 1. `create<X>()` pour chaque classe instanciée — sans exception
+### 1. `create<X>()` pour chaque classe instanciée - sans exception
 
 Plus de notion "cascade" vs "inline child". Toute classe que le Manager
 instancie via `new` doit avoir son hook `create<X>()`. Exemples :
@@ -59,7 +59,7 @@ Ces règles **éliminent les variantes accidentelles** qui prolifèrent
 inévitablement quand on applique une convention sans les fixer. Avant
 l'audit, j'avais 5 "variantes structurelles" documentées en 4.bis du doc.
 Après audit, **2 vraies variantes** restent (Manager hooks multiples,
-Editor full-page) — les 3 autres étaient des règles mal formulées.
+Editor full-page) - les 3 autres étaient des règles mal formulées.
 
 ## Comment l'appliquer
 

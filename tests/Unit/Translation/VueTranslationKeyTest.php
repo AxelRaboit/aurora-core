@@ -14,7 +14,7 @@ use Symfony\Component\Yaml\Yaml;
 /**
  * Every `t('…')` a Vue component writes must resolve to a sentence.
  *
- * When it does not, vue-i18n renders the key itself — so the screen shows
+ * When it does not, vue-i18n renders the key itself - so the screen shows
  * `shared.media.choose` where a button label belongs. Nothing throws, no test
  * fails, and the only way it surfaces is somebody looking at the page and
  * saying "I think that translation is missing". That has now happened three
@@ -28,7 +28,7 @@ use Symfony\Component\Yaml\Yaml;
  *  - keys built by concatenation (`t('backend.modules.' + id)`), which end at
  *    a dot and cannot be resolved statically. What they resolve to is the
  *    caller's business;
- *  - occurrences inside comments, which are documentation rather than code —
+ *  - occurrences inside comments, which are documentation rather than code -
  *    `useAutoSave.js` has a `t("xxx.save_failed")` in its usage example.
  */
 final class VueTranslationKeyTest extends TestCase

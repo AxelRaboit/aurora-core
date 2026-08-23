@@ -44,8 +44,8 @@ abstract class AbstractPostTranslation implements PostTranslationInterface
     protected array $customFields = [];
 
     /**
-     * The banner's words for this locale — titles, descriptions, alt text and
-     * button links — keyed by the id of the layout item they belong to. Shape
+     * The banner's words for this locale - titles, descriptions, alt text and
+     * button links - keyed by the id of the layout item they belong to. Shape
      * and defaults belong to {@see BannerNormalizer}, which every write goes
      * through.
      *
@@ -59,8 +59,8 @@ abstract class AbstractPostTranslation implements PostTranslationInterface
     protected array $banner = [];
 
     /**
-     * What each content-grid zone holds in this locale — the text blocks, the
-     * alt text, the caption, the video address — keyed by the id of the zone
+     * What each content-grid zone holds in this locale - the text blocks, the
+     * alt text, the caption, the video address - keyed by the id of the zone
      * on the post. Shape belongs to {@see GridNormalizer}.
      *
      * Only the content. The arrangement lives once on the post

@@ -7,7 +7,7 @@ namespace Aurora\Core\Storage\Enum;
 /**
  * Document mime types known to Aurora.
  *
- * @see src/Core/assets/utils/enums/media/mimeType.js — JavaScript mirror used by
+ * @see src/Core/assets/utils/enums/media/mimeType.js - JavaScript mirror used by
  *      Vue components. **Keep the two in sync**: every case added here must be
  *      reflected there (and vice-versa) so the front-end and back-end agree on
  *      what's supported.
@@ -65,7 +65,7 @@ enum MimeTypeEnum: string
     }
 
     /**
-     * Canonical filesystem extension (no leading dot) — used when an
+     * Canonical filesystem extension (no leading dot) - used when an
      * uploaded file is renamed by the server (e.g. UUID-based names in
      * `MarkdownNoteImageService`) and the original client filename is dropped.
      */

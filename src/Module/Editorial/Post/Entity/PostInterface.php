@@ -17,7 +17,7 @@ interface PostInterface
 {
     public function getId(): ?int;
 
-    /** From TimestampableTrait — declared here so callers can type on the interface. */
+    /** From TimestampableTrait - declared here so callers can type on the interface. */
     public function getCreatedAt(): DateTimeImmutable;
 
     public function getUpdatedAt(): DateTimeImmutable;
@@ -84,7 +84,7 @@ interface PostInterface
 
     /**
      * The picture that stands for this publication wherever it is listed. Not
-     * rendered at the top of the page any more — the custom header does that.
+     * rendered at the top of the page any more - the custom header does that.
      */
     public function getThumbnail(): ?DocumentInterface;
 

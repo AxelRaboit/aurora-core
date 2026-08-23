@@ -12,7 +12,7 @@ use Doctrine\Migrations\AbstractMigration;
  * the screen that reads them needs.
  *
  * `conditions` and `conditions_logic` were both nullable, so "this field is
- * always shown" had two spellings — `NULL` and `[]` — and every reader had to
+ * always shown" had two spellings - `NULL` and `[]` - and every reader had to
  * handle both. One of them is enough, and the empty list is the one that says
  * what it means. `conditions_logic` gains a default for the same reason: a
  * row with no logic was neither "all" nor "any".

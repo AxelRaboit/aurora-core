@@ -7,14 +7,14 @@ scope: core-only
 # check-extensibility
 
 Audit one Aurora entity against the extensibility convention. The canonical
-spec lives at `docs/aurora-core/dev/entity_extensibility_convention.md` — this
+spec lives at `docs/aurora-core/dev/entity_extensibility_convention.md` - this
 skill operationalizes its hard rules into a mechanical checklist.
 
 ## Inputs
 
-- **Entity name** (e.g., `Agency`, `Post`, `Order`) — required. If the user
+- **Entity name** (e.g., `Agency`, `Post`, `Order`) - required. If the user
   did not provide one, ask before proceeding.
-- **Module** — inferred by globbing `src/**/<Name>/Entity/<Name>.php`. If
+- **Module** - inferred by globbing `src/**/<Name>/Entity/<Name>.php`. If
   ambiguous (multiple matches), ask.
 
 ## What to check
@@ -23,9 +23,9 @@ Run the checks below **in order**. For each, report ✅ / ❌ / ⚠️ (warning,
 optional layer absent because the entity has no backend CRUD).
 
 Use `Read`, `Bash` (`grep`, `rg`, `find`), and the project structure.
-Do NOT modify files — this skill is read-only.
+Do NOT modify files - this skill is read-only.
 
-### Layer 1 — Entity
+### Layer 1 - Entity
 
 In `src/<Module>/<Name>/Entity/` (or `src/Module/<Module>/<Name>/Entity/`):
 
@@ -37,31 +37,31 @@ In `src/<Module>/<Name>/Entity/` (or `src/Module/<Module>/<Name>/Entity/`):
 5. `<Name>::class` is listed as a key in
    `src/AuroraBundle.php` → `$resolve_target_entities`.
 
-### Layer 1bis — Repository
+### Layer 1bis - Repository
 
 In `src/<Module>/<Name>/Repository/<Name>Repository.php`:
 
 6. Class extends `Aurora\Core\Repository\ResolveTargetEntityRepository`
    (NOT `ServiceEntityRepository`).
 
-### Layer 2 — DTO (only if backend CRUD)
+### Layer 2 - DTO (only if backend CRUD)
 
 Check whether a CRUD controller exists: `find src -path "*<Name>/Controller/Backend*"`.
-If none, mark layers 2–5 as ⚠️ "n/a — no backend CRUD" and skip.
+If none, mark layers 2-5 as ⚠️ "n/a - no backend CRUD" and skip.
 
 In `src/<Module>/<Name>/Dto/`:
 
 7. `<Name>InputInterface.php` exists.
 8. `<Name>Input.php` exists, is **not** `final`, implements
    `<Name>InputInterface`. Class declaration must NOT use `readonly class`
-   (individual `public readonly` props only — grep for `^readonly class`).
+   (individual `public readonly` props only - grep for `^readonly class`).
 9. No static `fromArray()` method on `<Name>Input` (grep for
    `public static function fromArray`).
 10. `<Name>InputFactoryInterface.php` exists.
 11. `<Name>InputFactory.php` exists, carries
     `#[AsAlias(<Name>InputFactoryInterface::class)]`.
 
-### Layer 3 — Manager (only if Manager exists)
+### Layer 3 - Manager (only if Manager exists)
 
 The Manager MUST live in `Manager/`, not `Contract/`. If you find a
 `Contract/` directory containing `<Name>ManagerInterface.php`, that's a
@@ -73,15 +73,15 @@ In `src/<Module>/<Name>/Manager/`:
 13. `<Name>Manager.php` is **not** `final`, **not** `readonly class`.
 14. Carries `#[AsAlias(<Name>ManagerInterface::class)]`.
 15. Constructor properties are `protected readonly` (NOT `private readonly`).
-    Grep for `private readonly` in the file — any hit is ❌.
-16. **Instantiation hooks** — for every `new <X>()` in the file (excluding
+    Grep for `private readonly` in the file - any hit is ❌.
+16. **Instantiation hooks** - for every `new <X>()` in the file (excluding
     DTOs and value objects), there must be a `protected function create<X>()`
     that returns the interface. Grep `new [A-Z][a-zA-Z]+\(\)` in the Manager,
     then check each has a matching `protected function create<X>`.
-17. **Hydration hook** — `protected function applyInput(` exists, UNLESS
+17. **Hydration hook** - `protected function applyInput(` exists, UNLESS
     the entity qualifies for the User-style variant (≥6 specialized public
     methods, no simple create+update flow, distinct security per operation).
-    Only `User` currently qualifies — for anything else, missing `applyInput`
+    Only `User` currently qualifies - for anything else, missing `applyInput`
     is ❌.
 17b. **If `applyInput()` is missing, verify it's a legitimate User-style variant** :
     - Count public methods on the Manager (must be ≥6 specialized, beyond
@@ -95,12 +95,12 @@ In `src/<Module>/<Name>/Manager/`:
     Reference list of legitimate variants : User, Order, Invoice, Tiers, OcrJob,
     Comment (per `decision_variant_user_style.md`). Anything else missing
     `applyInput()` is a bug.
-18. **Audit hooks** — if the Manager uses `AuditLogger`, then
+18. **Audit hooks** - if the Manager uses `AuditLogger`, then
     `protected function auditCreated`, `auditUpdated`, `auditDeleted`, and
     `auditPayload` all exist. Inline domain events (paid, validated, …) are
     fine but should splat-merge `$this->auditPayload(...)`.
 
-### Layer 4 — Serializer (only if entity is JSON-serialized for the front)
+### Layer 4 - Serializer (only if entity is JSON-serialized for the front)
 
 In `src/<Module>/<Name>/Serializer/`:
 
@@ -108,7 +108,7 @@ In `src/<Module>/<Name>/Serializer/`:
 20. `<Name>Serializer.php` is **not** `final`, carries
     `#[AsAlias(<Name>SerializerInterface::class)]`.
 
-### Layer 5 — Vue (only if backend CRUD page exists)
+### Layer 5 - Vue (only if backend CRUD page exists)
 
 In `src/Module/<Module>/assets/backend/<plural>/`
 (or `src/Core/assets/backend/<plural>/` for Core entities):
@@ -126,7 +126,7 @@ In `src/Module/<Module>/assets/backend/<plural>/`
       the spread internally. In that case, verify that `empty()` and
       `fromEntity()` both merge `Object.fromEntries(Object.entries(extraFields)...)`
       so client extras land in the form. This is the canonical Agency
-      pattern — accept it as ✅.
+      pattern - accept it as ✅.
 
 ### Controller wiring
 
@@ -145,7 +145,7 @@ In `src/<Module>/<Name>/Controller/Backend/`:
     Vault.Safe, Vault.PasswordGenerator), the parent `<Module>Module.php`
     should implement `Aurora\Core\Module\Contract\ModuleToggleProviderInterface`
     and the Controller / Nav should gate via `<Module>Context`. This is a
-    module-level concern — flag it as a note ("toggle present ✅" / "toggle
+    module-level concern - flag it as a note ("toggle present ✅" / "toggle
     missing, consider adding ⚠️"), don't ❌ if missing.
     Cf. `pattern_user_scoped_module_access.md` and the Vault example.
 
@@ -155,14 +155,14 @@ Produce a compact markdown report. One section per layer. For each check, a
 single line. End with a "Verdict" summary line.
 
 ```
-# Extensibility audit — <Name>
+# Extensibility audit - <Name>
 
-## Layer 1 — Entity
+## Layer 1 - Entity
 ✅ Interface, Abstract, concrete present
 ✅ Sequence `seq_core_agency_id` correct
 ❌ Not registered in AuroraBundle::$resolve_target_entities
 
-## Layer 2 — DTO
+## Layer 2 - DTO
 ✅ …
 
 …
@@ -178,7 +178,7 @@ from `src/Core/Agency/Manager/AgencyManager.php:14`").
 ## Boundaries
 
 - **Read-only.** Never edit, never run `php bin/console` mutations. If the
-  user asks to fix the gaps after the audit, that's a separate request — do
+  user asks to fix the gaps after the audit, that's a separate request - do
   it as normal editing work, don't extend this skill.
 - **One entity at a time.** If the user asks to audit "all entities", ask
   which one to start with, or propose looping the skill (but each invocation

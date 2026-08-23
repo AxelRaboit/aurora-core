@@ -4,7 +4,7 @@
 > **le composant Aurora à utiliser** au lieu d'un élément HTML brut. Tous les
 > `App*` recensés ici vivent dans
 > `vendor/axelraboit/aurora/src/Core/assets/shared/components/` (alias Vite `@shared`).
-> Ce doc est une **référence** — pour les conventions générales (imports,
+> Ce doc est une **référence** - pour les conventions générales (imports,
 > overrides, directives), voir [assets_vue.md](assets_vue.md).
 >
 > Règle de base (rappel) : **toujours préférer un `App*` à un élément HTML
@@ -14,12 +14,12 @@
 
 ## Index
 
-- [Action](#action) — `AppButton`, `AppIconButton`, `AppFilePickerButton`, `AppListItemButton`, `AppOverlayIconButton`, `AppTextLinkButton`, `AppThemeToggle`
-- [Form](#form) — `AppInput`, `AppTextarea`, `AppSelect`, `AppMultiselect`, `AppCheckbox`, `AppToggle`, `AppRange`, `AppFieldLabel`, `AppSearchInput`, `AppDatePicker`, `AppColorField`, `AppColorPicker`, `AppColorSwatch`, `AppImagePickerField`, `AppFileInput`, `AppDropZone`, `AppTagsInput`, `AppPasswordStrength`
-- [Feedback](#feedback) — `AppBadge`, `AppMessage`, `AppNoData`, `AppProgressBar`, `AppSelectionCheck`
-- [Overlay](#overlay) — `AppModal`, `AppModalFooter`, `AppTooltip`
-- [Nav](#nav) — `AppLink`, `AppNavLink`, `AppNavButton`, `AppPagination`, `AppLoadMore`, `AppTab`, `AppStagePicker`
-- [Display](#display) — `AppImage`, `AppImagePreview`, `AppThumbnail`, `AppAvatar`, `AppLogo`, `AppChart`
+- [Action](#action) - `AppButton`, `AppIconButton`, `AppFilePickerButton`, `AppListItemButton`, `AppOverlayIconButton`, `AppTextLinkButton`, `AppThemeToggle`
+- [Form](#form) - `AppInput`, `AppTextarea`, `AppSelect`, `AppMultiselect`, `AppCheckbox`, `AppToggle`, `AppRange`, `AppFieldLabel`, `AppSearchInput`, `AppDatePicker`, `AppColorField`, `AppColorPicker`, `AppColorSwatch`, `AppImagePickerField`, `AppFileInput`, `AppDropZone`, `AppTagsInput`, `AppPasswordStrength`
+- [Feedback](#feedback) - `AppBadge`, `AppMessage`, `AppNoData`, `AppProgressBar`, `AppSelectionCheck`
+- [Overlay](#overlay) - `AppModal`, `AppModalFooter`, `AppTooltip`
+- [Nav](#nav) - `AppLink`, `AppNavLink`, `AppNavButton`, `AppPagination`, `AppLoadMore`, `AppTab`, `AppStagePicker`
+- [Display](#display) - `AppImage`, `AppImagePreview`, `AppThumbnail`, `AppAvatar`, `AppLogo`, `AppChart`
 
 ---
 
@@ -55,7 +55,7 @@ sombres, voir `AppOverlayIconButton`.
 
 | Prop | Type | Défaut | Description |
 |---|---|---|---|
-| `color` | `String` | `"default"` | `default` `sky` `accent` `rose` `emerald` `amber` `on-light` (à utiliser sur fonds clairs custom — post-it, cards colorées : injecte `text-black/50 hover:text-black/80 hover:bg-black/10`). |
+| `color` | `String` | `"default"` | `default` `sky` `accent` `rose` `emerald` `amber` `on-light` (à utiliser sur fonds clairs custom - post-it, cards colorées : injecte `text-black/50 hover:text-black/80 hover:bg-black/10`). |
 | `size` | `String` | `"md"` | `md` (p-1.5) ou `compact` (24×24). |
 | `title` | `String` | `null` | Tooltip natif (`title` attribut). |
 | `ariaLabel` | `String` | `null` | Étiquette a11y (fallback sur `title`). |
@@ -165,7 +165,7 @@ Champ texte. Gère password toggle, focus/select expose, error message sous le c
 | `error` | `String` | `""` | Message d'erreur affiché sous le champ. |
 | `required` | `Boolean` | `false` | Étoile rouge sur le label. |
 | `toggleable` | `Boolean` | `false` | Bouton œil pour révéler un password. |
-| `variant` | `String` | `"default"` | `default` (chrome form complet) ou `ghost` (rendu direct sans wrapper/label/bordure, `bg-transparent` + `text-inherit` — pour l'édition inline dans des cards / post-it / tableaux). Le sizing / decoration est fourni par le consumer via `class`. |
+| `variant` | `String` | `"default"` | `default` (chrome form complet) ou `ghost` (rendu direct sans wrapper/label/bordure, `bg-transparent` + `text-inherit` - pour l'édition inline dans des cards / post-it / tableaux). Le sizing / decoration est fourni par le consumer via `class`. |
 
 **Emits** : `update:modelValue`.
 **Expose** : `focus()`, `select()`, `blur()`.
@@ -191,7 +191,7 @@ Champ texte. Gère password toggle, focus/select expose, error message sous le c
 | `rows` | `Number` | `3` |
 | `mono` | `Boolean` | `false` (font monospace) |
 | `maxlength` | `Number` | `null` |
-| `variant` | `String` | `"default"` | Même sémantique que `AppInput` — `ghost` retire le chrome de formulaire et hérite de la couleur du parent. |
+| `variant` | `String` | `"default"` | Même sémantique que `AppInput` - `ghost` retire le chrome de formulaire et hérite de la couleur du parent. |
 
 ```vue
 <AppTextarea v-model="form.description" :rows="5" :error="errors.description" />
@@ -233,7 +233,7 @@ Wrapper sur `vue-multiselect`. **Le composant le plus subtil** côté props.
 | `optionLabel` | `String` | `"label"` | Nom de la propriété label sur les options. |
 | `openDirection` | `String` | `"bottom"` | `bottom` / `top`. |
 
-Gotcha : `modelValue` n'est pas l'option entière — c'est **la valeur de
+Gotcha : `modelValue` n'est pas l'option entière - c'est **la valeur de
 `trackBy`** (le composant fait la résolution interne). En multi, c'est un
 `Array` de ces valeurs.
 
@@ -285,7 +285,7 @@ Slider numérique.
 ### `AppFieldLabel`
 
 Composant primitif utilisé par tous les autres champs. Rarement utilisé
-seul — sortez-le quand vous montez un champ custom (DateRange, éditeur
+seul - sortez-le quand vous montez un champ custom (DateRange, éditeur
 Markdown, etc.) qui ne peut pas réutiliser un `App*` existant.
 
 | Prop | Type | Défaut |
@@ -313,7 +313,7 @@ Markdown, etc.) qui ne peut pas réutiliser un `App*` existant.
 
 ### `AppDatePicker`
 
-Wrapper `@vuepic/vue-datepicker`. **Ne jamais utiliser `<input type="date">`** —
+Wrapper `@vuepic/vue-datepicker`. **Ne jamais utiliser `<input type="date">`** -
 mauvais rendu cross-browser et incohérent avec le thème.
 
 | Prop | Type | Défaut |
@@ -333,9 +333,9 @@ mauvais rendu cross-browser et incohérent avec le thème.
 
 Trois rôles distincts, à ne pas confondre (cf. mémoire `convention_color_picker`).
 
-- **`AppColorSwatch`** — pastille couleur nue (cliquable, display only). Props : `modelValue`, `size` (`sm`/`md`), `disabled`.
-- **`AppColorField`** — champ de formulaire avec swatch + hex input + label + error. Le plus courant.
-- **`AppColorPicker`** — grille de 16 presets + hex input + clear. Pour les sélections sans contrainte hex saisie.
+- **`AppColorSwatch`** - pastille couleur nue (cliquable, display only). Props : `modelValue`, `size` (`sm`/`md`), `disabled`.
+- **`AppColorField`** - champ de formulaire avec swatch + hex input + label + error. Le plus courant.
+- **`AppColorPicker`** - grille de 16 presets + hex input + clear. Pour les sélections sans contrainte hex saisie.
 
 `AppColorField` props :
 
@@ -372,7 +372,7 @@ Champ "image" basé sur le MediaPicker Aurora. Stocke `{id, url}`.
 
 ### `AppFileInput`
 
-Input fichier nu (rare en utilisation directe — préférez `AppFilePickerButton` ou `AppDropZone`).
+Input fichier nu (rare en utilisation directe - préférez `AppFilePickerButton` ou `AppDropZone`).
 
 | Prop | Type | Défaut |
 |---|---|---|
@@ -436,7 +436,7 @@ Pill coloré statut. `<span>` ou `<a>` si `href`.
 | `spinning` | `Boolean` | `false` (icône qui tourne, ex « En cours ») |
 
 Couleurs supportées : `accent`, `rose`, `sky`, `amber`, `emerald`, `violet`,
-`slate`, `gray`. **Pas de hex personnalisé** — c'est un set fermé.
+`slate`, `gray`. **Pas de hex personnalisé** - c'est un set fermé.
 
 ```vue
 <AppBadge color="emerald">{{ $t('status.active') }}</AppBadge>
@@ -475,7 +475,7 @@ Bannière info/success/warning/danger avec icône.
 
 ### `AppSelectionCheck`
 
-Pastille ronde « sélectionné » à overlay sur une carte. **Affichage uniquement** —
+Pastille ronde « sélectionné » à overlay sur une carte. **Affichage uniquement** -
 le toggle vient de l'élément cliquable parent.
 
 | Prop | Type | Défaut |
@@ -489,7 +489,7 @@ le toggle vient de l'élément cliquable parent.
 
 ### `AppModal`
 
-Modale principale du backend. API : `:show` + `v-on:close` — **pas
+Modale principale du backend. API : `:show` + `v-on:close` - **pas
 `v-model:open`**. Empêche le scroll body, gère Escape, Back button et
 focus-trap.
 
@@ -524,7 +524,7 @@ focus-trap.
 </AppModal>
 ```
 
-Gotcha : **pas de `confirm()` natif** dans le code — pour une confirmation,
+Gotcha : **pas de `confirm()` natif** dans le code - pour une confirmation,
 utiliser une seconde `AppModal` avec `max-width="sm"` (cf. mémoire
 `convention_modal_and_confirmation`).
 
@@ -633,7 +633,7 @@ Bouton "Charger plus" pour endpoints paginés.
 ### `AppTab`
 
 Onglet unitaire (utilisé en boucle avec `v-for`). **Pas de composant
-`AppTabs` parent** — vous gérez l'état actif dans le composant
+`AppTabs` parent** - vous gérez l'état actif dans le composant
 consommateur.
 
 | Prop | Type | Défaut | Description |
@@ -719,7 +719,7 @@ Avatar utilisateur. Affiche la photo si fournie, sinon les initiales.
 | `lastName` | `String` | `""` |
 | `email` | `String` | `""` |
 | `photoUrl` | `String` | `""` |
-| `size` | `String` / `Number` | `"md"` (`sm` `md` `lg` `xl`) — ou nombre de px |
+| `size` | `String` / `Number` | `"md"` (`sm` `md` `lg` `xl`) - ou nombre de px |
 | `variant` | `String` | `"soft"` (`soft` ou `solid`) |
 
 ```vue
@@ -822,7 +822,7 @@ applicable ; `AppLoader` est pour les zones de chargement page-level.
 ### `AppColorPicker` (détail complet)
 
 `AppColorPicker` est mentionné §Form (`AppColorField` / `AppColorPicker` /
-`AppColorSwatch`) — précision sur le picker lui-même :
+`AppColorSwatch`) - précision sur le picker lui-même :
 
 | Prop | Type | Défaut |
 |---|---|---|
@@ -840,7 +840,7 @@ read-only utilisée en cell de tableau ou badge.
 Volontairement omis car internes ou trop nichés pour un usage client courant :
 
 - Tous les composants spécifiques à un module (`PostEditor.vue`,
-  `MediaPickerModal.vue`, etc.) — voir l'arborescence
+  `MediaPickerModal.vue`, etc.) - voir l'arborescence
   `src/Module/<Module>/assets/` et les docs correspondantes.
 
 Pour la liste complète à un instant T :

@@ -7,7 +7,7 @@ scope: core-only
 # sync-memory
 
 Wraps `make sync-claude-memory` with the **mandatory hygiene loop** from
-CLAUDE.md. Just running the rsync isn't the goal — the goal is to keep the
+CLAUDE.md. Just running the rsync isn't the goal - the goal is to keep the
 versioned memory (`/.claude/memory/`) coherent before pushing it to the
 per-user `~/.claude/projects/.../memory/`.
 
@@ -27,7 +27,7 @@ title in `MEMORY.md`). For deletions, infer from the removed file's path
 what the memory was about so you can sanity-check the deletion was
 intentional.
 
-### 3. Freshness check (CRITICAL — most common source of stale memory)
+### 3. Freshness check (CRITICAL - most common source of stale memory)
 
 For every memory that asserts the existence of a file, class, flag, command,
 or directory:
@@ -46,15 +46,15 @@ Report each stale reference to the user with the fix you applied.
 
 ### 4. Placement check
 
-Aurora has 3 memory scopes — verify each new/modified file is in the right
+Aurora has 3 memory scopes - verify each new/modified file is in the right
 subdir (see `.claude/memory/MEMORY.md` for the rule):
 
-- `aurora-core/` — convention/decision/piège **propre au bundle core**
+- `aurora-core/` - convention/decision/piège **propre au bundle core**
   (PHP/Symfony backend de aurora-core, ne s'applique pas aux clients).
-- `aurora-shared/` — convention transversale qui concerne **tout dev**
-  (Vue, HTTP, JS, i18n, process, naming) — **lue à la fois par aurora-core
+- `aurora-shared/` - convention transversale qui concerne **tout dev**
+  (Vue, HTTP, JS, i18n, process, naming) - **lue à la fois par aurora-core
   et par les projets clients** via `vendor/axelraboit/aurora/`.
-- `aurora-client/` — pattern d'extension **côté consommateur uniquement**
+- `aurora-client/` - pattern d'extension **côté consommateur uniquement**
   (Sylius-style extends, `App\AuroraBundle::$resolve_target_entities`, etc.).
 
 Misplaced file → move it (`git mv`) and update the line in the relevant
@@ -101,13 +101,13 @@ suspects the dest is stale.
 ## Boundaries
 
 - **Never sync without the hygiene loop.** A blind rsync propagates stale
-  memory to the next session — that's exactly what the loop prevents.
-- **Never delete a memory just because its referenced file moved** — first
+  memory to the next session - that's exactly what the loop prevents.
+- **Never delete a memory just because its referenced file moved** - first
   try to repoint it; deletion is for when the underlying convention is
   truly gone.
 - **Never write new memories opportunistically here.** This skill is a
   curator, not an author. If the user discovers a new convention worth
   saving mid-sync, save it as a normal memory write (the auto-memory
   instructions cover the format), then run the sync as a separate step.
-- **Read-only on `~/.claude/projects/.../memory/`** — only the Makefile
+- **Read-only on `~/.claude/projects/.../memory/`** - only the Makefile
   rsync writes to it. Never edit those files directly.

@@ -13,12 +13,12 @@ use Symfony\Component\Yaml\Yaml;
 final class TranslationConsistencyTest extends TestCase
 {
     private const PLACEHOLDER_EXCEPTIONS = [
-        // ICU plural syntax — accolades imbriquées contiennent du texte traduit, pas des placeholders
+        // ICU plural syntax - accolades imbriquées contiennent du texte traduit, pas des placeholders
         'photo.galleries.usage.item_count',
     ];
 
     private const PARITY_EXCEPTIONS = [
-        // Laisse vide pour l'instant — on ajoutera au fur et à mesure
+        // Laisse vide pour l'instant - on ajoutera au fur et à mesure
     ];
 
     /** @return list<array{string, array<string, mixed>, array<string, mixed>}> */
@@ -29,7 +29,7 @@ final class TranslationConsistencyTest extends TestCase
 
         // Discovered by walking src/ rather than by a fixed list of glob
         // depths. The previous globs stopped at src/Module/*/translations,
-        // which silently skipped 8 of the 14 translation directories — every
+        // which silently skipped 8 of the 14 translation directories - every
         // sub-module one (Dev/Audit, Platform/User, Configuration/Theme, …).
         // Audit's messages.en.yaml sat half-filled with French text for that
         // exact reason: no test ever looked at it.
@@ -187,7 +187,7 @@ final class TranslationConsistencyTest extends TestCase
         self::assertEmpty(
             $violationsFr,
             sprintf(
-                '[%s] FR YAML contains pre-escaped {\'@\'} — use bare @ instead, DumpJsTranslationsCommand handles escaping: %s',
+                '[%s] FR YAML contains pre-escaped {\'@\'} - use bare @ instead, DumpJsTranslationsCommand handles escaping: %s',
                 $module,
                 implode(', ', array_keys($violationsFr)),
             ),
@@ -196,7 +196,7 @@ final class TranslationConsistencyTest extends TestCase
         self::assertEmpty(
             $violationsEn,
             sprintf(
-                '[%s] EN YAML contains pre-escaped {\'@\'} — use bare @ instead, DumpJsTranslationsCommand handles escaping: %s',
+                '[%s] EN YAML contains pre-escaped {\'@\'} - use bare @ instead, DumpJsTranslationsCommand handles escaping: %s',
                 $module,
                 implode(', ', array_keys($violationsEn)),
             ),

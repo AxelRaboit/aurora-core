@@ -20,7 +20,7 @@ import { COLUMNS, largeSpan, planMove } from "./usePostGrid.js";
  *
  * A box **stops** its own dragover rather than letting it reach the canvas
  * behind. Without that, hovering the zone you are holding cancelled the dragover
- * through the grid and then dropped to nothing — a cursor promising a move that
+ * through the grid and then dropped to nothing - a cursor promising a move that
  * never came.
  *
  * No keyboard equivalent, and none is owed: the up/down buttons on the selected
@@ -39,7 +39,7 @@ export function usePostGridDrop({ zones, gridEl, emit }) {
      * The slice being dragged out of a stack, as `{stackIndex, childIndex}`.
      *
      * Held apart from `draggingFrom` because the two answer different questions
-     * — one names a zone on the row, the other a zone inside a stack — and a
+     * - one names a zone on the row, the other a zone inside a stack - and a
      * single field would have to be read twice to tell which.
      */
     const draggingSlice = ref(null);
@@ -68,7 +68,7 @@ export function usePostGridDrop({ zones, gridEl, emit }) {
         event.stopPropagation();
         dropPlan.value = null;
 
-        // A slice on its way out of a stack lands here too — the box says "on
+        // A slice on its way out of a stack lands here too - the box says "on
         // the row, at this place", which is the only thing leaving can mean.
         if (null !== draggingSlice.value) {
             event.preventDefault();
@@ -92,7 +92,7 @@ export function usePostGridDrop({ zones, gridEl, emit }) {
      *
      * One predicate for both handlers. A browser will not fire `drop` on a
      * target whose `dragover` was not cancelled, so asking twice looks
-     * redundant — but that is the browser enforcing our rule for us, and a rule
+     * redundant - but that is the browser enforcing our rule for us, and a rule
      * enforced somewhere we do not control is a rule that holds until it does
      * not.
      *
@@ -190,13 +190,13 @@ export function usePostGridDrop({ zones, gridEl, emit }) {
      * the answer.
      *
      * A zone counts as "before the drop" when it is on an earlier row, or on the
-     * same one and more than half passed — the midpoint rather than the edge, so
+     * same one and more than half passed - the midpoint rather than the edge, so
      * the answer changes where the pointer visibly crosses a box rather than at
      * the moment it leaves one.
      *
      * `newRow` is true when the pointer is in none of the rows: the gap between
      * two, or the space below the last. That is the only place a break can be
-     * asked for with a drop, and it reads as one — you are putting the zone
+     * asked for with a drop, and it reads as one - you are putting the zone
      * between things.
      *
      * @param {number} ignoreIndex the box not to count, because it is about to
@@ -262,7 +262,7 @@ export function usePostGridDrop({ zones, gridEl, emit }) {
     function onGridOver(event) {
         if (null === draggingFrom.value) {
             // A slice on its way out of a stack: the canvas takes it as readily
-            // as a box does, and says so by cancelling. It gets no ghost — where
+            // as a box does, and says so by cancelling. It gets no ghost - where
             // it lands depends on a width it does not have yet, since a share of
             // a height is not a width and it is given a fresh one on the way out.
             if (null !== draggingSlice.value) {
@@ -320,7 +320,7 @@ export function usePostGridDrop({ zones, gridEl, emit }) {
         if (null !== at && null !== draggingFrom.value) {
             emit("move", draggingFrom.value, at.target, at.column, at.newRow);
             // The zone the author was holding has moved, and it is the one they
-            // were working on — its new index is where it was put.
+            // were working on - its new index is where it was put.
             emit("update:selectedIndex", at.target);
         }
 
@@ -330,7 +330,7 @@ export function usePostGridDrop({ zones, gridEl, emit }) {
     /**
      * Where the dragged zone would land, in the properties every box uses.
      *
-     * Drawn from `planMove`, which is also what applies the move — so what is
+     * Drawn from `planMove`, which is also what applies the move - so what is
      * promised under the pointer is what letting go produces, rather than a
      * second guess at it.
      */

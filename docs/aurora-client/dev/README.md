@@ -1,4 +1,4 @@
-# Documentation développeur — aurora-client
+# Documentation développeur - aurora-client
 
 Documentation à destination d'un développeur qui :
 - démarre un nouveau projet client sur aurora-core,
@@ -15,30 +15,30 @@ Documentation à destination d'un développeur qui :
 Selon ce que vous faites, lisez dans cet ordre :
 
 ### Nouveau dev sur le projet
-1. [Getting started](getting-started.md) — prérequis, premier `make setup`, structure obligatoire, premier déploiement local.
-2. [Workflow de développement](dev_workflow.md) — commandes du quotidien, debug, ajout d'une feature.
-3. [Assets Vue](assets_vue.md) — structure des assets côté client, aliases Vite, locales Vue.
-4. [Mise à jour aurora-core](update_aurora.md) — `make aurora-update`, breaking changes.
+1. [Getting started](getting-started.md) - prérequis, premier `make setup`, structure obligatoire, premier déploiement local.
+2. [Workflow de développement](dev_workflow.md) - commandes du quotidien, debug, ajout d'une feature.
+3. [Assets Vue](assets_vue.md) - structure des assets côté client, aliases Vite, locales Vue.
+4. [Mise à jour aurora-core](update_aurora.md) - `make aurora-update`, breaking changes.
 
 ### J'étends une entité / un Manager / une Vue d'aurora-core
-1. [Étendre un module Aurora](../extending/extend_module.md) — recettes concrètes pour chaque couche (entité, DTO, Manager, Serializer, Vue, Twig) + permissions + décorer un service.
-2. [Pattern `extraFields`](extra_fields_pattern.md) — ajouter des champs à un formulaire admin via slots Vue.
+1. [Étendre un module Aurora](../extending/extend_module.md) - recettes concrètes pour chaque couche (entité, DTO, Manager, Serializer, Vue, Twig) + permissions + décorer un service.
+2. [Pattern `extraFields`](extra_fields_pattern.md) - ajouter des champs à un formulaire admin via slots Vue.
 3. [Doc canonique de la convention 5 couches](../../aurora-core/dev/entity_extensibility_convention.md) (côté core).
 4. [Tutoriel pas-à-pas Agency](../../aurora-core/dev/extending_agency_pilot.md) (côté core).
 
 ### J'ai besoin de l'API d'un composant Vue ou d'un composable
-- [Catalogue des composants Vue partagés](shared_components_catalog.md) — `AppMultiselect`, `AppTab`, `AppBadge`, `AppModal`, etc.
-- [Catalogue des composables et utils](composables_catalog.md) — `useFormAction`, `useDelete`, `useListPage`, `useHierarchicalTree`, `pickTranslation`, `slugify`, etc.
+- [Catalogue des composants Vue partagés](shared_components_catalog.md) - `AppMultiselect`, `AppTab`, `AppBadge`, `AppModal`, etc.
+- [Catalogue des composables et utils](composables_catalog.md) - `useFormAction`, `useDelete`, `useListPage`, `useHierarchicalTree`, `pickTranslation`, `slugify`, etc.
 
 ### Je travaille sur la persistance
-- [Base de données](database.md) — migrations, séquences, fixtures, ApplicationParameters.
+- [Base de données](database.md) - migrations, séquences, fixtures, ApplicationParameters.
 
 ### Je dois tester / déployer
-- [Tests côté client](testing_client.md) — comment tester un override, mocking, pitfalls.
-- [Déploiement](deployment.md) — séquence prod, env vars critiques, post-deploy.
+- [Tests côté client](testing_client.md) - comment tester un override, mocking, pitfalls.
+- [Déploiement](deployment.md) - séquence prod, env vars critiques, post-deploy.
 
 ### Je configure l'outillage IA (Claude Code etc.)
-- [Mémoire IA](memory_for_ai.md) — structure `.claude/memory/aurora-client/`, hygiène, sync.
+- [Mémoire IA](memory_for_ai.md) - structure `.claude/memory/aurora-client/`, hygiène, sync.
 
 ---
 

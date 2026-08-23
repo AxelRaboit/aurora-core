@@ -22,7 +22,7 @@ final class SettingsServiceTest extends TestCase
     private function makeService(SettingRepository $repository, AuditLogger $auditLogger): SettingsService
     {
         // Build a real registry from a fake module exposing every current
-        // ModuleParameterEnum toggle — the cascade graph the service relies on.
+        // ModuleParameterEnum toggle - the cascade graph the service relies on.
         $module = new class implements ModuleInterface, ModuleToggleProviderInterface {
             public function getId(): string
             {

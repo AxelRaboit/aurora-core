@@ -60,7 +60,7 @@ class CommentRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Every approved comment on a post — roots and replies at any depth — in
+     * Every approved comment on a post - roots and replies at any depth - in
      * the order they were written. The tree is assembled in PHP: a thread is
      * small, and one query beats a recursive walk.
      *
@@ -114,7 +114,7 @@ class CommentRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * How many comments this fingerprint has left in the given window —
+     * How many comments this fingerprint has left in the given window -
      * the flood check the public endpoint runs before writing anything.
      */
     public function countRecentByEmail(string $email, DateTimeImmutable $since): int

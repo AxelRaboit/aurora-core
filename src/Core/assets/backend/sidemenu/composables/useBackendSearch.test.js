@@ -28,7 +28,7 @@ describe("the search palette", () => {
     });
 
     /**
-     * The button that opens it lives in the page header — a different Vue app,
+     * The button that opens it lives in the page header - a different Vue app,
      * which cannot reach `openPalette` directly. The palette stays in the menu
      * because it is a large piece of markup, and moving a feature to move a
      * button would be the wrong trade; the event is the way in.

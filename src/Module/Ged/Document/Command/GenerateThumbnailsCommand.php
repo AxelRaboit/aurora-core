@@ -23,7 +23,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * Run after the migration that added the column, or after importing a
  * batch of docs through means other than the upload endpoint (e.g. a
- * data migration from another system). Idempotent — re-running won't
+ * data migration from another system). Idempotent - re-running won't
  * regenerate thumbs that already exist unless `--force` is passed.
  */
 #[AsCommand(

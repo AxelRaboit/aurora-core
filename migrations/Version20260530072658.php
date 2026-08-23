@@ -8,14 +8,14 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Phase 2 of the Media → GED merge — migrate Photo Gallery.cover_media_id
+ * Phase 2 of the Media → GED merge - migrate Photo Gallery.cover_media_id
  * and GalleryItem.media_id to reference core_ged_documents.
  *
  * GalleryItem.media_id is NOT NULL (every item owns one image) so the data
  * copy + UPDATE must happen before the FK swap can succeed. Same NOT EXISTS
  * guard so cross-module re-use doesn't duplicate Document rows.
  *
- * The DB columns keep their "media_id" name to minimize churn — Phase 5
+ * The DB columns keep their "media_id" name to minimize churn - Phase 5
  * will rename `media_id` → `document_id` (or similar) after Media is gone.
  */
 final class Version20260530072658 extends AbstractMigration

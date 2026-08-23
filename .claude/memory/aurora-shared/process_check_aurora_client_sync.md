@@ -1,6 +1,6 @@
 ---
 name: process_check_aurora_client_sync
-description: Après tout changement dans aurora-core (nouvelle feature, refacto, breaking change), TOUJOURS vérifier que le projet aurora-client est à jour et fonctionne avec la nouvelle version. À répéter à chaque session — c'est une lacune récurrente.
+description: Après tout changement dans aurora-core (nouvelle feature, refacto, breaking change), TOUJOURS vérifier que le projet aurora-client est à jour et fonctionne avec la nouvelle version. À répéter à chaque session - c'est une lacune récurrente.
 metadata:
   type: feedback
 ---
@@ -23,14 +23,14 @@ aurora-client est le **projet de démonstration et template de départ** d'auror
 
 | Changement dans aurora-core | Vérif obligatoire côté aurora-client |
 |---|---|
-| Split de controller (`X → X + Y`) | Recherche les routes par leur nom (`urlGenerator->generate('backend_xxx')`) — les noms doivent rester fonctionnels |
+| Split de controller (`X → X + Y`) | Recherche les routes par leur nom (`urlGenerator->generate('backend_xxx')`) - les noms doivent rester fonctionnels |
 | Nouvelle entité instrumentée (Sylius 5-couches) | Possible nouvel exemple d'extension à ajouter dans aurora-client (vérifie `App\AuroraBundle::$resolve_target_entities`) |
 | Nouvelle convention dure (thin controller, thin SFC, autosave, etc.) | Audit du code client : applique-t-il déjà la convention ? Sinon, ouvrir un follow-up |
 | Refacto de Manager (changement de signature de hook protected) | Si le client override le hook, sa signature doit suivre |
 | Nouvelle interface / nouveau type-hint exposé | Vérifie que les overrides client typehint l'interface, pas la concrete |
-| Suppression / renommage d'une méthode publique | Breaking change — grep dans aurora-client AVANT de merger |
-| Nouveau composable Vue partagé (`src/Core/assets/shared/composables/`) | Le client peut bénéficier — chercher si des composables locaux dupliquent la logique |
-| Nouvelle clé i18n `shared.common.*` ou similar | Le client charge ces clés via vendor — vérifier qu'aucun client-side override de la même clé ne crée de conflit |
+| Suppression / renommage d'une méthode publique | Breaking change - grep dans aurora-client AVANT de merger |
+| Nouveau composable Vue partagé (`src/Core/assets/shared/composables/`) | Le client peut bénéficier - chercher si des composables locaux dupliquent la logique |
+| Nouvelle clé i18n `shared.common.*` ou similar | Le client charge ces clés via vendor - vérifier qu'aucun client-side override de la même clé ne crée de conflit |
 | Nouveau hook d'extension (`#[AsAlias]` exposé) | Documenter dans `docs/aurora-core/dev/extending_*.md` comment le client peut l'utiliser |
 
 ## Comment l'appliquer
@@ -58,7 +58,7 @@ grep -rn "backend_" assets/ | grep -v node_modules
 
 ### 3. Après un changement de convention (mémoire dans aurora-shared)
 
-Une nouvelle règle dans `aurora-shared/` s'applique au client aussi. Le client peut être non-conforme — c'est OK historiquement, mais documenter le gap et ouvrir une todo si le périmètre client est en violation flagrante.
+Une nouvelle règle dans `aurora-shared/` s'applique au client aussi. Le client peut être non-conforme - c'est OK historiquement, mais documenter le gap et ouvrir une todo si le périmètre client est en violation flagrante.
 
 ### 4. Si le changement core est breaking
 
@@ -112,7 +112,7 @@ composer install --working-dir=vendor/axelraboit/aurora --no-scripts
 pnpm --dir=vendor/axelraboit/aurora install
 ```
 
-Mais **le bon réflexe est `make aurora-update`** dès le départ — ça
+Mais **le bon réflexe est `make aurora-update`** dès le départ - ça
 inclut composer + pnpm + migrate + syncs config en une commande.
 
 ### 5. Reporter dans le commit aurora-core
@@ -122,7 +122,7 @@ Quand un changement core impacte le client, le mentionner dans le commit :
 ```
 refactor(xxx): rename Foo::bar() to Foo::baz()
 
-BREAKING for clients overriding Foo::bar() — see aurora-client commit
+BREAKING for clients overriding Foo::bar() - see aurora-client commit
 abc1234 for the corresponding update.
 ```
 
@@ -130,7 +130,7 @@ abc1234 for the corresponding update.
 
 **Why:** Aurora-client est à la fois (1) le **showcase** présentable aux nouveaux utilisateurs et (2) le **template de départ** que les nouveaux projets clients clonent. Si client diverge de core :
 - Les nouveaux clients héritent d'un point de départ obsolète (overrides cassés, conventions non appliquées)
-- La démo perd en crédibilité — un visiteur qui ouvre aurora-client voit du code qui ne reflète plus core
+- La démo perd en crédibilité - un visiteur qui ouvre aurora-client voit du code qui ne reflète plus core
 - Les anciens conseils ("regarde comment Agency est étendu") cessent d'être valables
 
 **How to apply (résumé):**
@@ -149,4 +149,4 @@ on oublie le client). Cette mémoire existe pour ramener systématiquement
 le réflexe au début de chaque session.
 
 Voir aussi : `aurora-core/architecture/project_aurora_client_role.md`
-(côté user-memory non versionnée) — rôle d'aurora-client comme démo + template.
+(côté user-memory non versionnée) - rôle d'aurora-client comme démo + template.

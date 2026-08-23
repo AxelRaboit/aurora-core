@@ -60,7 +60,7 @@ abstract class AbstractPost implements PostInterface
      * every language. A page with a heading in French and none in German would
      * be two different pages.
      *
-     * Turning it off never leaves the document without an `<h1>` — the
+     * Turning it off never leaves the document without an `<h1>` - the
      * template keeps one for readers who cannot see the layout. What it hides
      * is the visible pair.
      */
@@ -75,7 +75,7 @@ abstract class AbstractPost implements PostInterface
      *
      * On the post rather than on each translation, so a banner is designed
      * once and every language inherits it. The words live on the translation
-     * — see {@see AbstractPostTranslation::$banner} — joined back to these
+     * - see {@see AbstractPostTranslation::$banner} - joined back to these
      * items by id.
      *
      * @var array<string, mixed>
@@ -88,7 +88,7 @@ abstract class AbstractPost implements PostInterface
      * wide, and of what kind. Shape and defaults belong to
      * {@see GridNormalizer}; an empty array means "never configured".
      *
-     * On the post for the same reason as the banner's layout — see
+     * On the post for the same reason as the banner's layout - see
      * {@see AbstractPost::$bannerLayout}. What each zone *holds* lives on the
      * translation and joins back by zone id.
      *
@@ -123,7 +123,7 @@ abstract class AbstractPost implements PostInterface
      * point stored on the document itself.
      *
      * Null means "use the document's". The document's answer is about the file
-     * — a face is in the same place wherever it appears — and this one is about
+     * - a face is in the same place wherever it appears - and this one is about
      * this publication's card, which is a different question the moment a wide
      * photo has to work in a narrow frame.
      */

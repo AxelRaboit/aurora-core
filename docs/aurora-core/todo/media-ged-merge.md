@@ -1,6 +1,6 @@
-# DONE — Fusion Media → GED (un seul système de fichiers)
+# DONE - Fusion Media → GED (un seul système de fichiers)
 
-> **Statut (2026-05-30) : ✅ terminée — toutes les phases livrées.**
+> **Statut (2026-05-30) : ✅ terminée - toutes les phases livrées.**
 > `Document` (GED) est désormais **l'unique entité fichier** d'Aurora. Le
 > module Media a été supprimé en Phase 5, les tables `core_media*` droppées,
 > et tous les consommateurs migrés. Voir l'historique git (préfixes
@@ -15,7 +15,7 @@
 >
 > **Mode d'exécution : par phases, chacune verte et livrable.** Tant que la
 > Phase 5 n'est pas faite, Media reste en place → réversible. (✅ toutes
-> les phases sont passées le 2026-05-30 — historique conservé pour la
+> les phases sont passées le 2026-05-30 - historique conservé pour la
 > traçabilité.)
 
 ---
@@ -50,7 +50,7 @@ WebP, srcset), focal point, pipeline d'URL de variants. À bâtir en Phase 1.
 
 ---
 
-## Phase 1 — Parité de rendu sur `Document` (additif, ZÉRO régression) ✅ DONE 2026-05-30
+## Phase 1 - Parité de rendu sur `Document` (additif, ZÉRO régression) ✅ DONE 2026-05-30
 
 Socle obligatoire : `Document` doit savoir rendre des images frontend avant
 qu'un seul consommateur puisse migrer.
@@ -63,13 +63,13 @@ qu'un seul consommateur puisse migrer.
 - [ ] Générer les variants à l'upload GED (`GedDocumentUploader`) + au crop
       (`DocumentManager::cropImage`) ; stocker dans `variants`.
 - [ ] Créer `DocumentUrlGenerator` (Core ou Ged) : `publicUrl`, `variantUrl`,
-      `focalPositionCss` — calqué sur `MediaUrlGenerator`.
+      `focalPositionCss` - calqué sur `MediaUrlGenerator`.
 - [ ] Exposer variants/focal dans `DocumentSerializer`.
 - [ ] Migration : `ALTER TABLE core_ged_documents ADD focal_x, focal_y, variants`.
 - [ ] Tests : variants générés à l'upload/crop, URLs de variants.
 - **Risque : nul** (aucun consommateur touché, Media intact).
 
-## Phase 2 — Migrer les consommateurs FK (un module à la fois) ✅ DONE 2026-05-30
+## Phase 2 - Migrer les consommateurs FK (un module à la fois) ✅ DONE 2026-05-30
 
 Pour chaque module : `media_id → document_id`, serializer/renderer basculé sur
 `DocumentUrlGenerator`, picker basculé. **+ migration de données** (copier les
@@ -79,12 +79,12 @@ lignes `core_media` utilisées vers `core_ged_documents`, remapper la FK).
 - [ ] Ecommerce Listing + ListingCategory
 - [ ] Erp Product
 - [ ] Photo Gallery + GalleryItem (cover + items)
-- [ ] Branding (logo/favicon/og:image) — settings `*_media_id`
+- [ ] Branding (logo/favicon/og:image) - settings `*_media_id`
 - [ ] Photos de profil utilisateur
 - **Risque : élevé** (FK + données). Un module = un lot de commits + une
       migration testée. Garder Media lisible en parallèle pour comparer.
 
-## Phase 3 — Contenu embarqué (JSONB) ✅ DONE 2026-05-30
+## Phase 3 - Contenu embarqué (JSONB) ✅ DONE 2026-05-30
 
 - [ ] Remapper `{"type":"image","data":{"mediaId":N}}` →
       `{"documentId":M}` dans `core_post_translations.blocks` (et tout autre
@@ -92,14 +92,14 @@ lignes `core_media` utilisées vers `core_ged_documents`, remapper la FK).
       (`MediaTextBlock` → `DocumentTextBlock` ou param générique).
 - **Risque : élevé** (parsing JSONB, ne pas perdre de contenu).
 
-## Phase 4 — Picker unifié + nav ✅ DONE 2026-05-30
+## Phase 4 - Picker unifié + nav ✅ DONE 2026-05-30
 
 - [ ] `DocumentPickerModal` partout : `AppBlockEditor`, `AppImagePickerField`
       (form partagé), `PostFeaturedImagePanel`, `PostSeoPanel`, galerie.
 - [ ] `shared/utils/mediaPicker.js` → `documentPicker.js`.
 - [ ] Retirer le NavItem `/backend/media/media` (toggle module Media).
 
-## Phase 5 — Suppression de Media ✅ DONE 2026-05-30
+## Phase 5 - Suppression de Media ✅ DONE 2026-05-30
 
 Une fois TOUTES les données migrées et vérifiées :
 
@@ -117,14 +117,14 @@ Une fois TOUTES les données migrées et vérifiées :
 
 1. **Entité bi-domaine** : `Document` mélange rendu (variants/focal) et records
    (statut/OCR/catégorie). C'est l'inverse de la séparation propre bâtie en
-   début de session — accepté pour avoir un seul stockage.
+   début de session - accepté pour avoir un seul stockage.
 2. **Migrations de données irréversibles** : faire des backups avant Phase 2/3.
    Tester chaque migration sur une copie.
 3. **Clients (aurora-welding, aurora-client)** : si un client référence
    `MediaInterface`, sa migration devra suivre. Auditer côté client avant
    Phase 5.
 4. **Frontend** : tout `srcset`/`og:image`/`variantUrl` doit continuer à
-   marcher après bascule — tests de rendu (PostPageRenderer, SEO) indispensables.
+   marcher après bascule - tests de rendu (PostPageRenderer, SEO) indispensables.
 
 ## Point de départ
 

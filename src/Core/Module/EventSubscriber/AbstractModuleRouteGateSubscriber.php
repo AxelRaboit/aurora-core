@@ -14,14 +14,14 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * 404s a module's routes while the toggle behind them is off.
  *
  * Switching a module off removes its side-menu entries, and that is all it
- * removes — the controllers stay registered and answer 200 to anyone who
+ * removes - the controllers stay registered and answer 200 to anyone who
  * kept the URL or guessed it. A disabled module has to be disabled at the
  * door, not merely hidden from the menu.
  *
  * The public front has its own version of this driven by
  * {@see FrontendInterface::getRoutePrefixes()};
  * this is the backend half, and it works at sub-module granularity because
- * that is where the toggles are — turning off "Taxonomies" alone must close
+ * that is where the toggles are - turning off "Taxonomies" alone must close
  * the taxonomy screens and leave the rest of Editorial open.
  *
  * Matching is on the route name rather than the path: paths can be

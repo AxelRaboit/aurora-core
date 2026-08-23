@@ -8,7 +8,7 @@ type: project
 
 Chaque module porte ses propres données de démo dans
 `src/Module/<X>/DataFixtures/<X>DemoFixtures.php` (ex. `HrDemoFixtures`,
-`EditorialDemoFixtures`). Plus de `DemoFixtures` monolithique central — il
+`EditorialDemoFixtures`). Plus de `DemoFixtures` monolithique central - il
 couplait le core à toutes les entités modules et cassait les clients à-la-carte
 qui n'installent qu'un sous-ensemble. Chaque classe :
 
@@ -28,7 +28,7 @@ un build `--no-dev` :
   `class_exists(Fixture::class)`. Le `config/services.php` du module **exclut**
   `DataFixtures` de son glob (`{config,templates,translations,assets,DataFixtures}`)
   pour éviter une double-registration.
-- **Core + modules core-kept** (Ged, etc. — chargés par le glob central
+- **Core + modules core-kept** (Ged, etc. - chargés par le glob central
   `Aurora\:`, pas un bundle) : `config/services.yaml` **exclut**
   `src/Core/DataFixtures/` et `src/Module/Ged/DataFixtures/` du glob, et les
   recharge via `when@dev:` / `when@test:`. `AuroraBundle` importe ce
@@ -76,7 +76,7 @@ les libellés nav des modules s'affichent en clés brutes (`backend.nav.posts`).
 
 ## Scaffolding
 
-`/add-module` ne scaffolde **pas encore** de `<Module>DemoFixtures` — à créer à
+`/add-module` ne scaffolde **pas encore** de `<Module>DemoFixtures` - à créer à
 la main pour l'instant (gap connu). Modèles de référence : `HrDemoFixtures`
 (users only), `EcommerceDemoFixtures` (multi-refs), `GedDemoFixtures` (producteur
 média + favicon).

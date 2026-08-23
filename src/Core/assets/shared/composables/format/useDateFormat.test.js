@@ -19,18 +19,18 @@ function mountWithComposable(locale = "fr") {
 describe("useDateFormat", () => {
     it("formatDateNumeric returns placeholder for null", () => {
         const { formatDateNumeric } = mountWithComposable();
-        expect(formatDateNumeric(null)).toBe("—");
+        expect(formatDateNumeric(null)).toBe("-");
         expect(formatDateNumeric(null, "N/A")).toBe("N/A");
     });
 
     it("formatDateNumeric returns placeholder for empty string", () => {
         const { formatDateNumeric } = mountWithComposable();
-        expect(formatDateNumeric("")).toBe("—");
+        expect(formatDateNumeric("")).toBe("-");
     });
 
     it("formatDateTimeNumeric returns placeholder for null", () => {
         const { formatDateTimeNumeric } = mountWithComposable();
-        expect(formatDateTimeNumeric(null)).toBe("—");
+        expect(formatDateTimeNumeric(null)).toBe("-");
     });
 
     it("formatDateNumeric formats a date string (FR locale → DD/MM/YYYY)", () => {
@@ -64,8 +64,8 @@ describe("useDateFormat", () => {
 
     it("formatMonthYear returns placeholder for null/empty", () => {
         const { formatMonthYear } = mountWithComposable("fr");
-        expect(formatMonthYear(null)).toBe("—");
-        expect(formatMonthYear("")).toBe("—");
+        expect(formatMonthYear(null)).toBe("-");
+        expect(formatMonthYear("")).toBe("-");
         expect(formatMonthYear(null, "N/A")).toBe("N/A");
     });
 });

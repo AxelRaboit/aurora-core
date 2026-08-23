@@ -35,7 +35,7 @@
 
 /*
  * Editor.js sets `z-index: 1` on the editor root, which makes it a stacking
- * context — and a stacking context caps everything inside it. The inline
+ * context - and a stacking context caps everything inside it. The inline
  * toolbar asks for 3 and the block popover for 4, but 3 inside a context of 1
  * is still 1 to the rest of the page: a toolbar that spilled left of a narrow
  * column was painted under the fixed side menu at z-30.
@@ -46,7 +46,7 @@
  * has to go on passing under.
  *
  * 40 is above the side menu and the mobile top bar, both z-30, and below the
- * mobile navigation drawer at z-50 — a drawer covering the page should cover
+ * mobile navigation drawer at z-50 - a drawer covering the page should cover
  * a toolbar too.
  */
 .codex-editor {

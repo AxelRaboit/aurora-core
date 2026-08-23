@@ -1,6 +1,6 @@
 # Convention : composants de formulaire + placeholders + UI primitives
 
-## Règle 1 — Toujours utiliser les composants `App*`, jamais les éléments HTML bruts
+## Règle 1 - Toujours utiliser les composants `App*`, jamais les éléments HTML bruts
 
 **❌ Interdit** dans tout fichier `.vue` métier (sous `src/Core/assets/` ou
 `src/Module/`) :
@@ -11,9 +11,9 @@
   `AppSearchInput`, `AppFileInput`, `AppDatePicker` selon le type.
 - `<select>` brut → utiliser `AppSelect` ou `AppMultiselect`.
 - `<a>` brut pour un lien texte/nav → `AppLink` (variant `admin`, `front`, `front-accent`, `front-nav`)
-  - `front-nav` : hérite la couleur du parent — pour les liens dans un header qui fixe déjà la couleur via CSS variable
+  - `front-nav` : hérite la couleur du parent - pour les liens dans un header qui fixe déjà la couleur via CSS variable
   - `extraClass` prop disponible pour les classes layout (`flex items-center gap-2 text-lg`)
-  - **Exception** : `<a class="block">` ou `<a class="block ...">` wrappant une carte/image — `AppLink` n'est pas conçu pour les liens blocs
+  - **Exception** : `<a class="block">` ou `<a class="block ...">` wrappant une carte/image - `AppLink` n'est pas conçu pour les liens blocs
 
 Le seul cas où le HTML brut est OK : les éléments de présentation pure
 (`<div>`, `<span>`, `<p>`, `<h1>` à `<h6>`, `<table>`, etc.) ou les
@@ -71,7 +71,7 @@ Cas légitimes :
 
 Sinon refacto.
 
-## Règle 2 — Toujours fournir un `placeholder` sur les inputs
+## Règle 2 - Toujours fournir un `placeholder` sur les inputs
 
 Tout `AppInput`, `AppTextarea`, `AppDatePicker`, `AppSearchInput` doit
 recevoir un `:placeholder` traduit. C'est :
@@ -102,9 +102,9 @@ Convention : `<field>Placeholder` à côté de `<field>`.
 ### Exception
 Si le label est explicite et qu'aucun exemple n'a de sens
 (ex: champ couleur `<input type="color">`), le placeholder peut être
-omis — mais c'est rare.
+omis - mais c'est rare.
 
-## Règle 3 — Champs date/heure : `AppDatePicker` uniquement
+## Règle 3 - Champs date/heure : `AppDatePicker` uniquement
 
 **❌ Jamais** `<AppInput type="date">` ou `<AppInput type="datetime-local">`
 ou `<input type="date">` natif. Le natif :
@@ -142,10 +142,10 @@ ou `<input type="date">` natif. Le natif :
 → Compatible avec `new DateTimeImmutable($input)` côté backend, et
 avec les format string ISO. Pas de transformation nécessaire.
 
-## Règle 4 — Listes énumérées : un select avec choix
+## Règle 4 - Listes énumérées : un select avec choix
 
 Pour des champs comme `timezone`, `country`, `language`, `currency`,
-`role`, **toujours** un `AppSelect` peuplé via une liste curée — pas
+`role`, **toujours** un `AppSelect` peuplé via une liste curée - pas
 un `AppInput` libre.
 
 Pourquoi : éviter les fautes de frappe, garantir la validité

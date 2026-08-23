@@ -9,7 +9,7 @@ use Symfony\Component\Intl\Countries;
 /**
  * ISO 3166-1 alpha-2 country codes the application currently supports for shipping and billing.
  *
- * Distinct from {@see LocaleEnum} — a locale is a language tag (fr, en, es, de),
+ * Distinct from {@see LocaleEnum} - a locale is a language tag (fr, en, es, de),
  * a country is a territory (FR, BE, CH, …). A user can be in fr_BE.
  *
  * Add cases as needed when expanding to new markets. Display names come from Symfony Intl

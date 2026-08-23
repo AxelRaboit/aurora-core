@@ -23,7 +23,7 @@ class AppAgencyManagerDecorator implements AgencyManagerInterface { … }
 ```
 
 → Le decorator est créé et substitue le service `AgencyManagerInterface`.
-**Mais le controller n'utilise pas ce service** — il a injecté
+**Mais le controller n'utilise pas ce service** - il a injecté
 `AgencyManager` (la concrete) directement, qui reste non-décorée.
 
 ## Comment l'appliquer
@@ -62,7 +62,7 @@ interfaces pour les 4 services suivants :
 - `<Name>ManagerInterface`
 - `<Name>InputFactoryInterface`
 - `<Name>SerializerInterface`
-- (Repository : exception assumée — type-hint concrete, cf
+- (Repository : exception assumée - type-hint concrete, cf
   `decision_repository_no_interface.md`)
 
 ## Source

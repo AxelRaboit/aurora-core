@@ -1,7 +1,7 @@
 import { useQueryState } from "@/shared/composables/useQueryState.js";
 
 /**
- * List view toggle — "grid" ↔ "list", or whatever a caller declares.
+ * List view toggle - "grid" ↔ "list", or whatever a caller declares.
  *
  * In the query string rather than localStorage, for the same reason as the
  * sort beside it: it describes the page being looked at, so it belongs to the

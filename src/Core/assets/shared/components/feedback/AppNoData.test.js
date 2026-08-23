@@ -48,7 +48,7 @@ describe("AppNoData", () => {
     // A page whose entire content is "nothing here yet" is where the button
     // creating the first thing belongs. Four master-detail pages used to keep it
     // in a sidebar that the empty state replaced, so the emptiness was a dead
-    // end — nothing on screen but a message.
+    // end - nothing on screen but a message.
     it("renders an action when one is given", () => {
         const wrapper = mount(AppNoData, {
             props: { message: "No forms yet." },

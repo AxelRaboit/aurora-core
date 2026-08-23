@@ -1,6 +1,6 @@
 ---
-name: Nouveau module Aurora — seul resolve_target_entities est manuel dans AuroraBundle.php
-description: Créer un dossier src/Module/Xxx/ suffit pour Doctrine mappings, Twig namespaces et traductions — seul resolve_target_entities nécessite une entrée manuelle par entité
+name: Nouveau module Aurora - seul resolve_target_entities est manuel dans AuroraBundle.php
+description: Créer un dossier src/Module/Xxx/ suffit pour Doctrine mappings, Twig namespaces et traductions - seul resolve_target_entities nécessite une entrée manuelle par entité
 type: feedback
 ---
 
@@ -18,7 +18,7 @@ Quand tu crées un **nouveau module** `src/Module/<Module>/`, tout est auto-déc
 | DumpJsTranslationsCommand (vue-i18n) | `glob('src/Module/*/translations')` | `translations/` doit exister |
 | `services.yaml` + `app.js` | `_instanceof ModuleInterface` + glob Vite | classe `<Module>Module` implémente `ModuleInterface` |
 
-### Ce qui est encore manuel — `resolve_target_entities`
+### Ce qui est encore manuel - `resolve_target_entities`
 
 Pour **chaque entité** du module, ajouter dans `src/AuroraBundle.php` :
 
@@ -52,4 +52,4 @@ php bin/console debug:twig --filter=<Module>
 
 - Avant 2026-05-09 : 2 enregistrements manuels (AuroraBundle.php + DumpJsTranslationsCommand)
 - 2026-05-09 : DumpJsTranslationsCommand automatisé par glob
-- 2026-05-09 : AuroraBundle.php automatisé pour mappings/Twig/translations — seul resolve_target_entities reste manuel
+- 2026-05-09 : AuroraBundle.php automatisé pour mappings/Twig/translations - seul resolve_target_entities reste manuel

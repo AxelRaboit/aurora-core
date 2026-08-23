@@ -58,7 +58,7 @@ final class UploadsServeControllerTest extends IntegrationTestCase
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         // Cache-Control directives are normalised + potentially overridden by
-        // Symfony's session listener at request end — we only assert the
+        // Symfony's session listener at request end - we only assert the
         // `immutable` hint we added explicitly survives. The full
         // `public, max-age=…` story is validated at the unit level via
         // `BinaryFileServerTest::testServePublicUsesPublicCacheControl`.

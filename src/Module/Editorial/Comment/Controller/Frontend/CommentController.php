@@ -162,8 +162,8 @@ class CommentController extends AbstractController
 
     /**
      * A reply must answer something on this post that a reader can already
-     * see. Anything else — another post's comment, one awaiting moderation,
-     * an id that never existed — becomes a root comment rather than an error:
+     * see. Anything else - another post's comment, one awaiting moderation,
+     * an id that never existed - becomes a root comment rather than an error:
      * the reader's words are worth keeping either way.
      */
     private function resolveParent(PostInterface $post, ?int $parentId): ?CommentInterface
@@ -187,7 +187,7 @@ class CommentController extends AbstractController
     /**
      * Counted per address rather than per connection: an address is what the
      * comment is attributed to, and it is the thing a moderator will act on.
-     * It is a speed bump, not a wall — the honeypot and the content filter do
+     * It is a speed bump, not a wall - the honeypot and the content filter do
      * the rest.
      */
     private function isFlooding(string $email): bool

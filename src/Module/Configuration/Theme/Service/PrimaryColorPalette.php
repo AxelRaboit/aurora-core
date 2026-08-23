@@ -35,7 +35,7 @@ final class PrimaryColorPalette
 
     /**
      * Returns the palette as `[stop => oklch(...)]`. Note: PHP coerces numeric-string array
-     * keys to int, so '500' becomes 500 — this is intentional and harmless since callers
+     * keys to int, so '500' becomes 500 - this is intentional and harmless since callers
      * iterate the array and use the stop only for CSS interpolation.
      *
      * @return array<int, string> stop number → CSS oklch() value

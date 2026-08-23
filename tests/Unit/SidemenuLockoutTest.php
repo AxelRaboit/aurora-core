@@ -15,8 +15,8 @@ use function str_contains;
 /**
  * The control that brings the sidemenu back must not live inside the sidemenu.
  *
- * Hiding the menu now removes it completely — `visibility: hidden`, off-screen,
- * out of the tab order — where it used to fold to a rail of icons that always
+ * Hiding the menu now removes it completely - `visibility: hidden`, off-screen,
+ * out of the tab order - where it used to fold to a rail of icons that always
  * kept something clickable on screen. That rail was an accidental safety net:
  * while it existed, a toggle placed inside the menu still worked. It does not
  * any more. A toggle rendered inside the `<aside>` would disappear along with

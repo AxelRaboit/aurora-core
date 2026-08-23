@@ -16,7 +16,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
  * worse than none, because it is believed.
  *
  * Covered here because the panel sits behind a login and cannot be opened from
- * a terminal — this is what verifies it is plugged in at all.
+ * a terminal - this is what verifies it is plugged in at all.
  */
 final class PostEditorGridPreviewTest extends IntegrationTestCase
 {

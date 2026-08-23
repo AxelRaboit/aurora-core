@@ -6,7 +6,7 @@ scope: core-only
 
 # add-entity
 
-Scaffold a new Aurora entity. The skill is the **only** entry point —
+Scaffold a new Aurora entity. The skill is the **only** entry point -
 the previous `aurora:make:entity` CLI wizard was removed to prevent
 drift (devs running it bare were skipping the smart-edit phase that
 fleshes out `AbstractX` with the real fields, drafts the ViewBuilder,
@@ -15,7 +15,7 @@ and writes proper translations).
 The shape of every generated file lives in
 `.claude/skills/add-entity/templates/*.tpl`. The skill reads each
 template, applies the placeholder substitution, and writes the result
-via the `Write` tool. **Don't reimplement the file contents** — read
+via the `Write` tool. **Don't reimplement the file contents** - read
 the template, substitute, write.
 
 > Doc canonique : `docs/aurora-core/dev/entity_extensibility_convention.md`.
@@ -30,21 +30,21 @@ the template, substitute, write.
    - `Module/<Module>` (e.g. `Module/Billing`, `Module/Editorial`)
    - The path must already exist. If not, stop and point at
      `/add-module` first.
-3. **Plural** — defaults to `<Name>s`. Ask only if irregular
+3. **Plural** - defaults to `<Name>s`. Ask only if irregular
    (`Taxonomy` → `Taxonomies`).
-4. **Backend CRUD?** (default yes) — skip Layers 2-5 if no (translation
+4. **Backend CRUD?** (default yes) - skip Layers 2-5 if no (translation
    pivots, audit logs, sub-entities). Always generates Layer 1
    (Entity triplet + Repository).
-5. **Fields** — the columns the user wants on `AbstractX`. The
+5. **Fields** - the columns the user wants on `AbstractX`. The
    templates ship a single `name: string(150)` placeholder; you flesh
-   out the real fields in Step 4a below. **Never invent fields** — ask
+   out the real fields in Step 4a below. **Never invent fields** - ask
    explicitly for the list.
-6. **Permission** (optional override) — defaults to
+6. **Permission** (optional override) - defaults to
    `<module_id>.<plural_snake>.manage`. Ask only if non-standard.
-7. **Audit channel** (optional override) — defaults to `core`. Used by
+7. **Audit channel** (optional override) - defaults to `core`. Used by
    `AuditLogger` (`<entity>.created` logged under `core/<entity>.created`).
 
-## Step 1 — Derive the variable map
+## Step 1 - Derive the variable map
 
 Compute from the entity name + module path :
 
@@ -63,7 +63,7 @@ Compute from the entity name + module path :
 | `{{PERMISSION}}` | user input or `<twig_ns_lc>.<plural_snake>.manage` | `core.workspaces.manage` |
 | `{{AUDIT_CHANNEL}}` | user input or `core` | `core` |
 
-## Step 2 — Pick templates and target paths
+## Step 2 - Pick templates and target paths
 
 Always generate (Layer 1) :
 
@@ -93,7 +93,7 @@ If CRUD AND user didn't skip the controller (Layer 5) :
 |---|---|
 | `Controller.php.tpl` | `src/<ModulePath>/<Name>/Controller/Backend/<Plural>Controller.php` |
 
-## Step 3 — Read, substitute, write
+## Step 3 - Read, substitute, write
 
 For each chosen template :
 
@@ -101,10 +101,10 @@ For each chosen template :
 2. Apply `str_replace`-style substitution for every `{{KEY}}` token.
 3. `Write` the result to the computed target path.
 
-The templates are mechanical — no logic, just placeholders. The hard
+The templates are mechanical - no logic, just placeholders. The hard
 work is in Step 4.
 
-## Step 4 — The smart post-edits (Claude-only work)
+## Step 4 - The smart post-edits (Claude-only work)
 
 ### 4a. Flesh out `Abstract<Name>` with the real fields
 
@@ -147,7 +147,7 @@ as `DATE_ATOM`.
 
 ### 4e. Patch `src/AuroraBundle.php`
 
-CRITICAL — without this, Doctrine relations targeting `<Name>Interface`
+CRITICAL - without this, Doctrine relations targeting `<Name>Interface`
 won't resolve to the concrete class on the client side.
 
 1. Add two `use` clauses near the top-of-file `use` cluster :
@@ -161,7 +161,7 @@ won't resolve to the concrete class on the client side.
    <Name>Interface::class => <Name>::class,
    ```
 
-Idempotent — if the entry is already there (re-running the skill), skip
+Idempotent - if the entry is already there (re-running the skill), skip
 the patch.
 
 ### 4f. Translations
@@ -192,7 +192,7 @@ backend:
 ```
 
 The error keys MUST match what `<Name>Input` references
-(`backend.<plural_snake>.errors.name_required` etc.) — keep them in
+(`backend.<plural_snake>.errors.name_required` etc.) - keep them in
 sync.
 
 ### 4g. Index ViewBuilder + Twig + Vue (optional)
@@ -210,7 +210,7 @@ fields). After fleshing out the backend :
   `<Plural>App.vue` + `use<Plural>Form.js` with the toolbar / table /
   modals.
 
-## Step 5 — Migration + verify
+## Step 5 - Migration + verify
 
 ```bash
 make migration                              # generates src/Migrations/Version*.php
@@ -230,7 +230,7 @@ once `make ft` is green.
 - **One entity per invocation.** The AuroraBundle patch is sequential;
   batching two entities would interleave the resolve_target_entities
   edits and require manual reordering.
-- **Never run migrations or apply schema changes** — leave `make migrate`
+- **Never run migrations or apply schema changes** - leave `make migrate`
   to the user after they've reviewed the SQL.
 - **Never invent fields.** Ask the user for the list. The template
   ships the `name: string(150)` placeholder explicitly so you don't
@@ -248,4 +248,4 @@ once `make ft` is green.
 - **Apply the doc-audit convention** (cf.
   `process_doc_audit_before_commit.md`) : the new entity probably
   belongs in the "instrumented entities" table in
-  `entity_extensibility_convention.md` — append the row.
+  `entity_extensibility_convention.md` - append the row.

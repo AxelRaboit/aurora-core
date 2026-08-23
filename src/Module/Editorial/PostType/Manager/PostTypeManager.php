@@ -48,7 +48,7 @@ class PostTypeManager implements PostTypeManagerInterface
     {
         // A built-in type keeps its slug: routes and existing content point at
         // it. The form disables the field, so a differing slug here is a client
-        // that ignored that — silently keeping the old one beats failing.
+        // that ignored that - silently keeping the old one beats failing.
         if (!$postType->isBuiltIn() && $input->getSlug() !== $postType->getSlug()) {
             $this->assertSlugIsFree($input->getSlug());
         }

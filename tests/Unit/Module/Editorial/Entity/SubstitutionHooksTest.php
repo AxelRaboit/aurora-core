@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * `translate()` used to write `new TaxonomyTranslation()` straight into the
  * abstract class. resolve_target_entities rewrites Doctrine associations,
- * never a `new` in application code — so a client substituting the
+ * never a `new` in application code - so a client substituting the
  * translation entity got core's class back and had no way to intervene.
  *
  * These stand in for a client's own subclass. Nothing here would compile if

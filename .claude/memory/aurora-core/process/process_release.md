@@ -1,6 +1,6 @@
 ---
 name: process_release
-description: Processus de release aurora-core — CHANGELOG, tag, communication vers aurora-client et projets clients.
+description: Processus de release aurora-core - CHANGELOG, tag, communication vers aurora-client et projets clients.
 metadata:
   type: project
 ---
@@ -11,17 +11,17 @@ metadata:
 
 Chaque feature/fix notable → noter une ligne sous `## [Unreleased]` dans
 `CHANGELOG.md` à la racine d'aurora-core. Quatre sections :
-- `### Ajouté` — nouvelles features
-- `### Changé` — modifications comportement existant
-- `### Dans aurora-client` — **ce que les projets clients devront faire**
+- `### Ajouté` - nouvelles features
+- `### Changé` - modifications comportement existant
+- `### Dans aurora-client` - **ce que les projets clients devront faire**
   après `make aurora-update` pour cette version (tableau action / commande)
-- `### Breaking changes` — si API publique cassée (AsAlias renommé, hook supprimé, etc.)
+- `### Breaking changes` - si API publique cassée (AsAlias renommé, hook supprimé, etc.)
 
 ### 2. Au moment du release
 
 ```bash
 # 1. Fermer [Unreleased] dans CHANGELOG.md
-#    → remplacer "## [Unreleased]" par "## [X.Y.Z] — YYYY-MM-DD"
+#    → remplacer "## [Unreleased]" par "## [X.Y.Z] - YYYY-MM-DD"
 #    → ajouter un nouveau "## [Unreleased]" vide au-dessus
 
 # 2. Commit du CHANGELOG
@@ -54,9 +54,9 @@ make aurora-update   # composer update axelraboit/aurora + tous les syncs
 
 | Incrément | Quand |
 |-----------|-------|
-| **PATCH** `0.x.Y` | Bug fix, refacto interne, docs — aucune action côté client requise |
-| **MINOR** `0.X.0` | Nouvelle feature non-cassante — section "Dans aurora-client" peut avoir des étapes optionnelles |
-| **MAJOR** `X.0.0` | Breaking change API publique (renommage AsAlias, suppression hook, migration forcée) — section "Dans aurora-client" aura des étapes obligatoires |
+| **PATCH** `0.x.Y` | Bug fix, refacto interne, docs - aucune action côté client requise |
+| **MINOR** `0.X.0` | Nouvelle feature non-cassante - section "Dans aurora-client" peut avoir des étapes optionnelles |
+| **MAJOR** `X.0.0` | Breaking change API publique (renommage AsAlias, suppression hook, migration forcée) - section "Dans aurora-client" aura des étapes obligatoires |
 
 Tant qu'on est en `0.x`, les MINOR peuvent inclure des breaking changes mineurs
 (conventions de préparation avant la stabilité `1.0`).
@@ -64,7 +64,7 @@ Tant qu'on est en `0.x`, les MINOR peuvent inclure des breaking changes mineurs
 ## Pourquoi
 
 Sans CHANGELOG avec section "Dans aurora-client" explicite, les projets clients
-ne savent pas quoi faire manuellement après `make aurora-update` — ce qui ne se
+ne savent pas quoi faire manuellement après `make aurora-update` - ce qui ne se
 sync pas automatiquement (services.yaml, nouveau privilège renommé, etc.) reste
 invisible jusqu'à ce que ça plante.
 
@@ -75,4 +75,4 @@ invisible jusqu'à ce que ça plante.
   `make aurora-update` ne fait pas seul. Si sync-env/sync-makefile/sync-security
   gèrent, ne pas mentionner.
 - Après chaque release, vérifier que `aurora-client` (template) est à jour en
-  appliquant les mêmes actions — c'est le garant que la prochaine clone part propre.
+  appliquant les mêmes actions - c'est le garant que la prochaine clone part propre.

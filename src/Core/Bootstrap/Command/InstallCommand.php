@@ -23,7 +23,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * It does not create an administrator. Shipping a known email and password to
  * production would be a hole rather than a convenience, so that stays a
- * deliberate act — `aurora:user:create` — which this command points at when it
+ * deliberate act - `aurora:user:create` - which this command points at when it
  * finds no user.
  */
 #[AsCommand(
@@ -79,7 +79,7 @@ final class InstallCommand extends Command
     }
 
     /**
-     * An install with no user is unusable — nobody can reach the backend — and
+     * An install with no user is unusable - nobody can reach the backend - and
      * it is the one gap this command deliberately leaves, so it says so loudly
      * rather than reporting success on a site nobody can log into.
      */

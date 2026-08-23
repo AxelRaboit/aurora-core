@@ -8,7 +8,7 @@ declare(strict_types=1);
  * resource` glob does not cover {{MODULE}} (it is excluded in
  * config/services.yaml), so the module registers its own services + the tags
  * for the core interfaces it implements. Loaded by Aurora{{MODULE}}Bundle's
- * loadExtension (via AbstractAuroraModuleBundle) — the `instanceof()` calls are
+ * loadExtension (via AbstractAuroraModuleBundle) - the `instanceof()` calls are
  * file-scoped, so they never collide with the central `_instanceof`.
  */
 

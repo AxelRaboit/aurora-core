@@ -13,7 +13,7 @@ use Aurora\Module\Dev\Audit\Service\AuditLogger;
 /**
  * Orchestrates writes to application parameters. Enforces the module
  * dependency graph (aggregated by {@see ModuleToggleRegistry} from every
- * module's own toggles — no central enum) on top of the pure-persistence
+ * module's own toggles - no central enum) on top of the pure-persistence
  * concerns owned by SettingRepository.
  *
  *  - Refuses enabling a parameter whose parent module is off

@@ -60,7 +60,7 @@ backend:
     confirm_password_invalid: Mot de passe incorrect.
     confirm_password_confirm: Confirmer
     browse_media: Parcourir les médias
-    no_page_selected: Aucune page sélectionnée — affichage de la liste des articles par défaut.
+    no_page_selected: "Aucune page sélectionnée : affichage de la liste des articles par défaut."
     search_post: Rechercher une page…
     or_id: "ou saisir l'ID :"
     sequence_search: Rechercher une séquence…
@@ -68,7 +68,7 @@ backend:
     site_name:
       label: Nom du site
       description: Nom affiché sur le site public et dans les emails
-      placeholder: Aurora — Application de gestion
+      placeholder: "Aurora : Application de gestion"
     site_description:
       label: Description du site
       description: Courte description utilisée comme meta description par défaut
@@ -131,7 +131,7 @@ backend:
       description: Nombre maximal de révisions conservées par article (les plus anciennes sont supprimées)
     file_versions_limit:
       label: Versions de fichier conservées
-      description: Nombre maximal de versions gardées par fichier GED — au-delà, les plus anciennes sont supprimées avec leur fichier. 0 = illimité.
+      description: Nombre maximal de versions gardées par fichier GED. Au-delà, les plus anciennes sont supprimées avec leur fichier. 0 = illimité.
     trash_auto_purge_days:
       label: Purge auto de la corbeille (jours)
       description: Nombre de jours avant suppression définitive des articles en corbeille (0 = jamais)
@@ -154,7 +154,7 @@ backend:
     seo_default_description:
       label: Description SEO par défaut
       description: Meta description utilisée quand aucune description spécifique n'est définie
-      placeholder: Plateforme de gestion d'entreprise — modules CRM, ventes, GED…
+      placeholder: "Plateforme de gestion d'entreprise : modules CRM, ventes, GED…"
     seo_default_og_image:
       label: Image Open Graph par défaut
       description: Image utilisée pour les previews sociaux (Facebook, LinkedIn, Twitter…) quand la page n'en définit pas. 1200×630 px recommandé.
@@ -205,7 +205,7 @@ backend:
     search_placeholder: Rechercher par clé…
     all_groups: Tous les groupes
   title: Administration
-  # Coquille du dashboard uniquement — un module qui dessine un panneau
+  # Coquille du dashboard uniquement - un module qui dessine un panneau
   # embarque ses propres libellés.
   stats:
     no_module_enabled: Aucun module de dashboard activé.

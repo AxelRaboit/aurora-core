@@ -90,12 +90,12 @@ final readonly class UsersViewBuilder
 
         usort($privilegesByModule, fn (array $a, array $b): int => $this->priorityFor($a['module']) <=> $this->priorityFor($b['module']));
 
-        // Modules currently enabled globally — surfaced to the per-user
+        // Modules currently enabled globally - surfaced to the per-user
         // disabled-modules picker as a hierarchical tree
         // (top-level → sub-modules, recursive). Source = ModuleToggleRegistry,
         // so aurora-client modules can plug their own toggles without
         // patching this builder. Sub-toggles whose global setting is OFF are
-        // filtered out — they cannot be enabled per-user.
+        // filtered out - they cannot be enabled per-user.
         $modulesForAccess = [];
         foreach ($this->moduleToggleRegistry->getTopLevel() as $toggle) {
             if (!$this->settingRepository->getBoolean($toggle->key, true)) {
@@ -125,7 +125,7 @@ final readonly class UsersViewBuilder
     /**
      * Builds the hierarchical payload for a single toggle (top-level or sub-),
      * including its enabled children recursively. Sub-toggles whose global
-     * setting is OFF are filtered out — they cannot be enabled per-user.
+     * setting is OFF are filtered out - they cannot be enabled per-user.
      *
      * @return array<string, mixed>
      */

@@ -9,12 +9,12 @@ aurora_modules:
     resource: .
     type: aurora_modules
 
-# Client controllers — flat, outside any module.
+# Client controllers - flat, outside any module.
 client:
     resource: '../src/Controller/'
     type: attribute
 
-# Client feature modules — controllers under src/Module/<Name>/Controller/.
+# Client feature modules - controllers under src/Module/<Name>/Controller/.
 modules:
     resource: '../src/Module/'
     type: attribute

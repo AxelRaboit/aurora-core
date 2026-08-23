@@ -84,10 +84,10 @@ backend:
     enable_confirm: "Re-enable {name}'s account?"
     view: View profile
     row_actions:
-      title: "Actions — {name}"
+      title: "Actions : {name}"
       open: "Actions for {name}"
       view_description: Read the full record without changing anything.
-      revoke_dev_description: Removes the Dev role — access to the technical tools goes with it.
+      revoke_dev_description: Removes the Dev role, access to the technical tools goes with it.
       grant_dev_description: Grants the Dev role, and the technical tools with it.
       dev_delete_description: Removes the account for good. There is no undo.
       resend_description: Sends a fresh invitation to the same address.

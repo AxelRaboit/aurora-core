@@ -32,7 +32,7 @@
 
     /* Tailwind-style accent palette (50 → 950). Forwarded from :root so utilities
        like bg-accent-500 emit `var(--color-accent-500)` instead of the literal
-       value — the runtime override from ThemeContext::primaryColorCss() then
+       value - the runtime override from ThemeContext::primaryColorCss() then
        takes effect when a theme sets a primary colour. */
     --color-accent-50:  var(--th-accent-50);
     --color-accent-100: var(--th-accent-100);

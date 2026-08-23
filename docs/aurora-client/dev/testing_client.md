@@ -5,8 +5,8 @@ kernel utilisé, comment tester une extension d'entité ou un override de
 service. Pour le détail de l'écriture des tests (Unit vs Integration,
 fixtures, helpers, conventions), lire **avant** :
 
-- [`../../aurora-shared/testing_php.md`](../../aurora-shared/testing_php.md) — tests PHP (Unit/Integration, PHPUnit)
-- [`../../aurora-shared/testing_vue.md`](../../aurora-shared/testing_vue.md) — tests Vue (Vitest)
+- [`../../aurora-shared/testing_php.md`](../../aurora-shared/testing_php.md) - tests PHP (Unit/Integration, PHPUnit)
+- [`../../aurora-shared/testing_vue.md`](../../aurora-shared/testing_vue.md) - tests Vue (Vitest)
 
 ---
 
@@ -16,13 +16,13 @@ fixtures, helpers, conventions), lire **avant** :
 make test               # frontend + backend
 make test-backend       # PHPUnit (recrée la DB de test, joue le schéma)
 make test-frontend      # Vitest (i18n régénéré au préalable)
-make ft                 # fix (linters) + test — à passer avant chaque commit
+make ft                 # fix (linters) + test - à passer avant chaque commit
 make coverage           # rapport de couverture HTML dans var/coverage/ (nécessite php8.4-pcov)
 ```
 
 `make test-backend` enchaîne :
 
-1. `make db-test` — drop + recreate la DB de test, `doctrine:schema:create`,
+1. `make db-test` - drop + recreate la DB de test, `doctrine:schema:create`,
    `doctrine:migrations:sync-metadata-storage`, `migrations:version --add --all`.
    On utilise **`schema:create`** plutôt que rejouer les migrations pour
    éviter les problèmes d'ordre entre les deux namespaces (`DoctrineMigrations`
@@ -72,7 +72,7 @@ Règle simple :
 Pour les classes de base et helpers (`IntegrationTestCase`, fixtures
 loaders), voir
 [`../../aurora-shared/testing_php.md`](../../aurora-shared/testing_php.md).
-Aurora les expose en tant que classes du vendor — vous pouvez les hériter
+Aurora les expose en tant que classes du vendor - vous pouvez les hériter
 directement.
 
 ---
@@ -117,7 +117,7 @@ final class AgencyManagerTest extends TestCase
 ```
 
 Points utiles :
-- On instancie `App\…\AgencyManager` directement — pas besoin du conteneur,
+- On instancie `App\…\AgencyManager` directement - pas besoin du conteneur,
   les hooks `protected` sont scellés par le test du `extends`.
 - On vérifie que `parent::auditPayload()` a bien splat-mergé (clé `name`
   conservée) en plus de `code`.
@@ -146,7 +146,7 @@ résout vers votre classe, pas vers celle d'Aurora.
 
 ## 5. Mocker / ne pas mocker les services Aurora
 
-**Règle** : 99% du temps, **ne pas mocker** un service Aurora — utiliser
+**Règle** : 99% du temps, **ne pas mocker** un service Aurora - utiliser
 le conteneur réel via `IntegrationTestCase`. La DI Aurora est suffisamment
 légère pour qu'un test Integration soit rapide, et c'est le seul moyen de
 vérifier que vos `#[AsAlias]` ne sont pas cassés.
@@ -173,7 +173,7 @@ php vendor/axelraboit/aurora/bin/phpunit ...   # déjà appelé via make test
 ```
 
 `make test-backend` recrée la DB de test mais **ne vide pas systématiquement
-le cache du conteneur** — un `make cc` ou un changement d'env sur un fichier
+le cache du conteneur** - un `make cc` ou un changement d'env sur un fichier
 PHP suffisent à l'invalider.
 
 ### b) Validation du schéma en test
@@ -184,7 +184,7 @@ make schema-validate
 
 ⚠️ La validation est très sensible aux conflits entre `app_*` et `core_*`.
 Si vous voyez une erreur du type *"Sequence already exists"*, c'est qu'une
-de vos entités cliente partage un nom de séquence avec une entité Aurora —
+de vos entités cliente partage un nom de séquence avec une entité Aurora -
 préfixez **`seq_app_*`** systématiquement (cf.
 [`../extending/extend_module.md`](../extending/extend_module.md) §1).
 
@@ -210,7 +210,7 @@ Vérifier :
 - `.env.test.local` n'est pas committé (et donc absent en CI)
 - `make db-test` est bien exécuté en CI avant `phpunit`
 - `make sf CMD="aurora:application-parameter"` en CI si vos tests dépendent
-  de `Setting`/`ApplicationParameter` (rarement nécessaire — `IntegrationTestCase`
+  de `Setting`/`ApplicationParameter` (rarement nécessaire - `IntegrationTestCase`
   le fait normalement)
 
 ---
@@ -228,5 +228,5 @@ Vérifier :
 À ne pas dupliquer :
 
 - Les tests Aurora-core (déjà 492+ verts dans le vendor). Si vous étendez
-  une entité, vous testez **uniquement le delta** — pas le flow Aurora
+  une entité, vous testez **uniquement le delta** - pas le flow Aurora
   complet.

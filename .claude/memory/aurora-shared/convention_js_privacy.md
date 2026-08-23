@@ -1,6 +1,6 @@
 ---
 name: convention_js_privacy
-description: Privacy JS — # pour les classes ES2022, jamais _; les variables module-level non exportées sont déjà privées
+description: Privacy JS - # pour les classes ES2022, jamais _; les variables module-level non exportées sont déjà privées
 metadata:
   type: feedback
 ---
@@ -31,7 +31,7 @@ class Cache {
 
 ### Hors classe (module-level, composable)
 
-Le `#` ne marche pas hors classe. Ne pas exporter une variable la rend déjà inaccessible depuis d'autres modules — c'est suffisant. **Pas de préfixe `_`.**
+Le `#` ne marche pas hors classe. Ne pas exporter une variable la rend déjà inaccessible depuis d'autres modules - c'est suffisant. **Pas de préfixe `_`.**
 
 ```js
 // useNotifications.js
@@ -47,7 +47,7 @@ export function useNotifications(paths) {
 
 - `#` est strict : TypeError si on tente d'y accéder depuis l'extérieur.
 - `_` est trompeur : juste une convention, le code appelant peut quand même y toucher.
-- Les variables module-level non exportées sont déjà protégées par le scope ES module — le préfixe `_` est du bruit visuel inutile.
+- Les variables module-level non exportées sont déjà protégées par le scope ES module - le préfixe `_` est du bruit visuel inutile.
 
 ## Comment l'appliquer
 

@@ -5,20 +5,20 @@ consomme `axelraboit/aurora` via composer). Un module client vit entièrement
 sous `src/Module/<Module>/` avec namespace `App\Module\<Module>\`.
 
 > **Pendant côté core** : [`docs/aurora-core/dev/add_module.md`](../../aurora-core/dev/add_module.md)
-> — même philosophie, mêmes patterns, namespace `Aurora\Module\` et
+> - même philosophie, mêmes patterns, namespace `Aurora\Module\` et
 > sequences `seq_core_*`.
 >
 > **Mémoires aurora-client** (lire d'abord) :
-> - [`convention_module_structure.md`](../../../.claude/memory/aurora-client/convention_module_structure.md) — structure `src/Module/<Module>/`
-> - [`convention_table_naming.md`](../../../.claude/memory/aurora-client/convention_table_naming.md) — tables `app_*`, sequences `seq_app_*`
-> - [`pattern_add_module_toggle.md`](../../../.claude/memory/aurora-client/pattern_add_module_toggle.md) — toggles + context class
-> - [`pattern_add_custom_permissions.md`](../../../.claude/memory/aurora-client/pattern_add_custom_permissions.md) — permissions custom
-> - [`pitfall_instanceof_scoping.md`](../../../.claude/memory/aurora-client/pitfall_instanceof_scoping.md) — pourquoi le `_instanceof` côté client n'hérite pas du core
+> - [`convention_module_structure.md`](../../../.claude/memory/aurora-client/convention_module_structure.md) - structure `src/Module/<Module>/`
+> - [`convention_table_naming.md`](../../../.claude/memory/aurora-client/convention_table_naming.md) - tables `app_*`, sequences `seq_app_*`
+> - [`pattern_add_module_toggle.md`](../../../.claude/memory/aurora-client/pattern_add_module_toggle.md) - toggles + context class
+> - [`pattern_add_custom_permissions.md`](../../../.claude/memory/aurora-client/pattern_add_custom_permissions.md) - permissions custom
+> - [`pitfall_instanceof_scoping.md`](../../../.claude/memory/aurora-client/pitfall_instanceof_scoping.md) - pourquoi le `_instanceof` côté client n'hérite pas du core
 > - Pour étendre une entité Aurora plutôt que créer un module client : voir
 >   [`extending_aurora.md`](../../aurora-core/dev/extending_aurora.md)
 
 Le guide utilise un module d'exemple **Tracking** pour illustrer chaque étape.
-C'est un exemple **générique** — il n'est pas (forcément) présent dans ton
+C'est un exemple **générique** - il n'est pas (forcément) présent dans ton
 projet ; les chemins `src/Module/Tracking/…` montrent simplement *où* le code
 irait si tu suivais l'exemple.
 
@@ -38,7 +38,7 @@ couvert par aurora-core. Cinq cas types qui se cumulent :
 | **5. Avec settings** | Onglet dans la page admin Settings | §7 |
 
 Si la feature **étend une entité Aurora existante** (ex : ajouter un champ à
-`Agency`), ce n'est PAS un module client mais une **extension** — voir
+`Agency`), ce n'est PAS un module client mais une **extension** - voir
 [`extending_aurora.md`](../../aurora-core/dev/extending_aurora.md) et
 les patterns `pattern_extend_*` dans `.claude/memory/aurora-client/`.
 
@@ -47,10 +47,10 @@ les patterns `pattern_extend_*` dans `.claude/memory/aurora-client/`.
 ## 2. Wiring obligatoire côté client (à faire une seule fois)
 
 Le client doit **dupliquer** certains mécanismes d'auto-discovery
-qu'aurora-core fournit en interne — ils ne traversent pas les frontières du
+qu'aurora-core fournit en interne - ils ne traversent pas les frontières du
 bundle. Vérifier ces 3 blocs dans le projet **avant** de scaffolder un module :
 
-### 2.1 `config/services.yaml` — `_instanceof` mirroring
+### 2.1 `config/services.yaml` - `_instanceof` mirroring
 
 ```yaml
 # config/services.yaml
@@ -60,7 +60,7 @@ services:
         autoconfigure: true
 
     # Mirror aurora-core's `_instanceof` autoconfig. `_instanceof` scopes to the
-    # current YAML file only — it does NOT inherit across bundle service configs.
+    # current YAML file only - it does NOT inherit across bundle service configs.
     # Sans ce bloc, les modules client implémentant les interfaces marker du core
     # ne seraient jamais ramassés par les registries correspondantes.
     _instanceof:
@@ -78,7 +78,7 @@ services:
 > `vendor/axelraboit/aurora/config/services.yaml`. Sans ce bloc côté client,
 > ton `TrackingModule` ne sera **jamais tagué `aurora.module`**.
 
-### 2.2 `config/packages/twig.yaml` — chemin Twig manuel par module
+### 2.2 `config/packages/twig.yaml` - chemin Twig manuel par module
 
 ```yaml
 # config/packages/twig.yaml
@@ -93,7 +93,7 @@ twig:
 > client n'a pas cette auto-discovery. **Chaque module client doit déclarer
 > son namespace Twig** ici (sinon `@Tracking/...` ne se résout pas).
 
-### 2.3 `config/services.yaml` — `DumpJsTranslationsCommand` `$extraSourceDirs`
+### 2.3 `config/services.yaml` - `DumpJsTranslationsCommand` `$extraSourceDirs`
 
 ```yaml
 services:
@@ -124,7 +124,7 @@ auto-patchés.
 ### 3.1 Utilisation
 
 ```bash
-# Module togglable minimal (cas 1 + 2 — défaut)
+# Module togglable minimal (cas 1 + 2 - défaut)
 php bin/console aurora:make:module Loyalty
 
 # Avec frontend public
@@ -167,7 +167,7 @@ auto-découvrir les modules client (son glob ne voit que
 | Fichier | Ce que le maker ajoute | À quoi ça sert |
 |---|---|---|
 | `config/packages/twig.yaml` | `'%kernel.project_dir%/src/Module/<X>/templates': '<X>'` sous `twig.paths` | namespace Twig `@<X>` (sans ça : `LoaderError: No registered paths for namespace "<X>"`) |
-| `config/packages/framework.yaml` | `- '%kernel.project_dir%/src/Module/<X>/translations'` sous `framework.translator.paths` | Symfony Translator (utilisé par Twig `\|trans`) — sans ça : `backend.nav.<x>` rendu en clé brute |
+| `config/packages/framework.yaml` | `- '%kernel.project_dir%/src/Module/<X>/translations'` sous `framework.translator.paths` | Symfony Translator (utilisé par Twig `\|trans`) - sans ça : `backend.nav.<x>` rendu en clé brute |
 | `config/services.yaml` | même chemin sous `DumpJsTranslationsCommand.$extraSourceDirs` | vue-i18n côté JS (cf. section 2.3) |
 
 > ✓ Ces 3 entrées sont les sections 2.2, 2.3 + un nouveau patch pour Symfony
@@ -180,14 +180,14 @@ auto-découvrir les modules client (son glob ne voit que
 Sans `--no-interaction`, deux confirms + deux inputs textuels :
 - **Public-facing pages?** → équivalent à `--with-frontend`
 - **Own tab in /backend/configuration/settings?** → équivalent à `--with-settings`
-- **Display label** (défaut = nom du module en PascalCase) — texte libre nav
-- **NavSection priority** (défaut = 60) — plus bas = plus haut dans le sidemenu
+- **Display label** (défaut = nom du module en PascalCase) - texte libre nav
+- **NavSection priority** (défaut = 60) - plus bas = plus haut dans le sidemenu
 
 L'icône du NavItem est **hardcodée à `flame`** (Lucide). Change la string
 dans `<X>Module.php` après scaffold si tu veux autre chose, en piochant
 dans
 `vendor/.../src/Core/assets/backend/sidemenu/composables/useSidemenuNav.js`
-ICON_MAP (~33 icônes pré-importées — toute icône hors map → fallback FileText).
+ICON_MAP (~33 icônes pré-importées - toute icône hors map → fallback FileText).
 
 ### 3.5 Next steps après scaffold
 
@@ -203,12 +203,12 @@ make cc                                      # clear cache (Twig + Symfony)
 ### 3.6 Limites de la commande
 
 - **Refondre un module existant** : la commande refuse si
-  `src/Module/<X>/` existe déjà — édition manuelle nécessaire (ou
+  `src/Module/<X>/` existe déjà - édition manuelle nécessaire (ou
   supprimer le module avant de relancer le scaffold).
 
 ### 3.7 Étapes complémentaires après scaffold
 
-Le maker ne couvre **que** Cas 1, 2, 4, 5 — pas le contenu métier. Pour
+Le maker ne couvre **que** Cas 1, 2, 4, 5 - pas le contenu métier. Pour
 aller plus loin :
 
 - **Ajouter une entité CRUD** (cas 3 dans ce doc) : lancer `/add-entity`
@@ -219,9 +219,9 @@ aller plus loin :
 
 ---
 
-## 4. Cas 1 — module minimal (stateless)
+## 4. Cas 1 - module minimal (stateless)
 
-### 4.1 `<Module>Module.php` — squelette minimal
+### 4.1 `<Module>Module.php` - squelette minimal
 
 ```php
 // src/Module/MyModule/MyModuleModule.php
@@ -269,7 +269,7 @@ final readonly class MyModuleModule implements ModuleInterface
   `route`, `labelKey`, `icon` sont **positionnels et obligatoires**.
   `requiredPrivilege` est un named param optionnel.
 - `NavSection(string $id, array $items, int $priority = 100)` :
-  pas de `label`, pas de `icon` sur la section — uniquement `id`, `items`, `priority`.
+  pas de `label`, pas de `icon` sur la section - uniquement `id`, `items`, `priority`.
 - `NavPermission(string $name)` : la permission string utilisée par
   `#[IsGranted]` côté controller.
 
@@ -310,7 +310,7 @@ final class MyModuleController extends AbstractController
 }
 ```
 
-- `final class` (pas `final readonly` — `setContainer()` est appelé après
+- `final class` (pas `final readonly` - `setContainer()` est appelé après
   `__construct`).
 - Route prefix `/backend/<kebab-case>`, name `backend_<snake_case>` (pattern
   identique au core).
@@ -340,7 +340,7 @@ src/Module/MyModule/assets/backend/MyModuleApp.vue
 ```
 
 Le Vue est **co-localisé** avec le code PHP du module sous `src/Module/<X>/assets/`,
-en miroir du layout aurora-core (depuis aurora-client commit `9d77f67` —
+en miroir du layout aurora-core (depuis aurora-client commit `9d77f67` -
 `refactor(assets): co-locate client extensions under src/, drop assets/`).
 Vite résout l'alias `@<kebab>` vers ce dossier via `aliases.js` (vendor) +
 `jsconfig.json` (auto-généré par `make sync-jsconfig`).
@@ -374,14 +374,14 @@ make translation
 
 ---
 
-## 5. Cas 2 — module avec toggles + Context class
+## 5. Cas 2 - module avec toggles + Context class
 
 Quand le module a plusieurs sous-features activables séparément (backend on/off,
 frontend on/off, etc.), suivre le pattern **`ModuleToggleProviderInterface`
 + `<Module>Context`**. Les snippets ci-dessous déroulent le module d'exemple
 `Tracking` (générique, non fourni).
 
-### 5.1 `<Module>Context` — façade ModuleAccessChecker
+### 5.1 `<Module>Context` - façade ModuleAccessChecker
 
 ```php
 // src/Module/Tracking/Service/TrackingContext.php
@@ -470,7 +470,7 @@ final readonly class TrackingModule implements ModuleInterface, ModuleToggleProv
         return [] === $items ? [] : [new NavSection('tracking', $items, priority: 60)];
     }
 
-    /** Retourne TOUS les items même si module désactivé — pour le picker catalogue. */
+    /** Retourne TOUS les items même si module désactivé - pour le picker catalogue. */
     public function getCatalogNavSections(): array
     {
         return [
@@ -508,7 +508,7 @@ final readonly class TrackingModule implements ModuleInterface, ModuleToggleProv
 ```
 
 **Points clés** :
-- `ModuleToggleProviderInterface` est **optionnel** — uniquement si tu veux
+- `ModuleToggleProviderInterface` est **optionnel** - uniquement si tu veux
   exposer ton module dans la page admin Settings + permettre le disable
   per-user via `core_users.disabled_modules`
 - `ModuleToggle.parentKey` matérialise la cascade : `PROJECTS_KEY` est OFF
@@ -520,7 +520,7 @@ Doc référence : [`pattern_add_module_toggle.md`](../../../.claude/memory/auror
 
 ---
 
-## 6. Cas 3 — module avec entités CRUD (convention 5 couches)
+## 6. Cas 3 - module avec entités CRUD (convention 5 couches)
 
 Pour la persistance Doctrine + UI CRUD, suivre la **même convention 5
 couches Sylius-style** qu'aurora-core ([§ canonique](../../aurora-core/dev/entity_extensibility_convention.md)) :
@@ -529,7 +529,7 @@ Manager Interface + hooks `protected` → Serializer → Vue.
 
 Le client peut **omettre l'Abstract** (pas de plan d'extension par d'autres
 consommateurs), mais doit **garder l'Interface + Factory** parce que c'est
-le bon pattern long terme (préférence "penser long terme" — voir CLAUDE.md
+le bon pattern long terme (préférence "penser long terme" - voir CLAUDE.md
 §3bis).
 
 ### 6.1 Entity + Interface
@@ -576,7 +576,7 @@ class Project implements ProjectInterface
 
 **Conventions de naming** (cf.
 [`convention_table_naming.md`](../../../.claude/memory/aurora-client/convention_table_naming.md)) :
-- **Tables** : nom simple (`projects`, `invoices`) — pas de préfixe
+- **Tables** : nom simple (`projects`, `invoices`) - pas de préfixe
   `client_` ni `app_` côté table. Aurora-core utilise `core_*` pour ses
   tables, le client peut donc utiliser n'importe quoi qui ne commence pas
   par `core_`.
@@ -742,9 +742,9 @@ class ProjectManager implements ProjectManagerInterface
 ```
 
 **Règles dures** :
-- `protected readonly` sur les dépendances (pas `private`) — sinon un manager
+- `protected readonly` sur les dépendances (pas `private`) - sinon un manager
   enfant ne peut pas y accéder
-- `#[AsAlias(<Interface>::class)]` sur l'implémentation — permet
+- `#[AsAlias(<Interface>::class)]` sur l'implémentation - permet
   l'override via décoration sans patcher le code
 - Hook `createProject()` **obligatoire** pour chaque classe que le manager
   instancie (cf. [`pitfall_create_hook_required.md`](../../../.claude/memory/aurora-client/pitfall_create_hook_required.md))
@@ -782,8 +782,8 @@ class ProjectRepository extends ResolveTargetEntityRepository
 }
 ```
 
-`ResolveTargetEntityRepository` (jamais `ServiceEntityRepository` directement)
-— même côté client, le pattern est de tracer l'interface dès le départ pour
+`ResolveTargetEntityRepository` (jamais `ServiceEntityRepository` directement),
+même côté client, le pattern est de tracer l'interface dès le départ pour
 permettre une éventuelle substitution future.
 
 Doc référence : [`pattern_extend_repository.md`](../../../.claude/memory/aurora-client/pattern_extend_repository.md).
@@ -851,7 +851,7 @@ final class ProjectsController extends AbstractController
     use JsonResponseTrait;
 
     public function __construct(
-        // Type-hint les INTERFACES partout — permet la substitution via AsAlias
+        // Type-hint les INTERFACES partout - permet la substitution via AsAlias
         private readonly ProjectSerializerInterface $projectSerializer,
         private readonly ProjectManagerInterface $projectManager,
         private readonly ProjectInputFactoryInterface $projectInputFactory,
@@ -939,7 +939,7 @@ Génère + applique le schéma. Le nom de la table viendra de l'attribut
 
 ---
 
-## 7. Cas 4 — module avec frontend public
+## 7. Cas 4 - module avec frontend public
 
 Si le module expose des pages publiques (pas que back-office), créer
 **`<Module>FrontendDescriptor.php`** à la racine du module. Tagué
@@ -963,17 +963,17 @@ final class TrackingFrontendDescriptor implements FrontendInterface
 }
 ```
 
-- `getModuleSettingKey()` pointe vers la clé du toggle frontend (cf. §4) —
+- `getModuleSettingKey()` pointe vers la clé du toggle frontend (cf. §4) -
   `FrontendRouteGateSubscriber` 404 automatiquement toutes les routes
   matchant `getRoutePrefixes()` quand le toggle est OFF.
 - Tagué auto via `_instanceof: Aurora\Core\Frontend\Contract\FrontendInterface:
-  tags: [aurora.front]` — déjà déclaré dans `config/services.yaml` (§2.1).
+  tags: [aurora.front]` - déjà déclaré dans `config/services.yaml` (§2.1).
 
 Mémoire référence : [`pattern_frontend_descriptor.md`](../../../.claude/memory/aurora-core/architecture/pattern_frontend_descriptor.md).
 
 ---
 
-## 8. Cas 5 — module avec settings (onglet Configuration)
+## 8. Cas 5 - module avec settings (onglet Configuration)
 
 Pour contribuer un onglet à la page admin Settings, implémenter
 **`ConfigurationTabProviderInterface`** (pattern identique au core) :
@@ -1009,7 +1009,7 @@ Mémoire référence : [`pattern_configuration_tab_provider.md`](../../../.claud
 
 ---
 
-## 9. Checklist finale — module complet
+## 9. Checklist finale - module complet
 
 Pour un module client **avec entités CRUD + toggles + frontend public** (cas
 le plus complet, comme le module d'exemple `Tracking`) :
@@ -1019,11 +1019,11 @@ le plus complet, comme le module d'exemple `Tracking`) :
 > config de l'étape 1 (twig.yaml + framework.yaml + services.yaml). Cf.
 > section 3 plus haut.
 
-1. [ ] §2 — `services.yaml` `_instanceof` + `App\Module\` resource (one-time
+1. [ ] §2 - `services.yaml` `_instanceof` + `App\Module\` resource (one-time
    per project ; les paths twig/translations sont auto-patchés par le maker)
 2. [ ] `<Module>Module.php` (4 méthodes `ModuleInterface` +
    `ModuleToggleProviderInterface` par défaut)
-3. [ ] `<Module>Context.php` (à la racine du folder du module — pas sous
+3. [ ] `<Module>Context.php` (à la racine du folder du module - pas sous
    `Service/` depuis 0.4)
 4. [ ] Entité `Entity/<Name>Interface` + `<Name>` non-final avec sequence
    `seq_app_<module>_<entity>_id`
@@ -1038,9 +1038,9 @@ le plus complet, comme le module d'exemple `Tracking`) :
 13. [ ] Traductions `src/Module/<Module>/translations/messages.{fr,en}.yaml`
 14. [ ] `<Module>FrontendDescriptor.php` (si front public)
 15. [ ] `Setting/<Module>ConfigurationTabProvider.php` (si settings)
-16. [ ] `make migration && make migrate` — schéma DB
-17. [ ] `make sf CMD="aurora:privileges:sync"` — permissions enregistrées
-18. [ ] `make translation` — dump JSON des traductions
+16. [ ] `make migration && make migrate` - schéma DB
+17. [ ] `make sf CMD="aurora:privileges:sync"` - permissions enregistrées
+18. [ ] `make translation` - dump JSON des traductions
 19. [ ] `make ft` vert (fix code + tous les tests)
 
 ---

@@ -7,7 +7,7 @@ metadata:
 
 ## Règle
 
-**Toutes les clés de traduction sont en `snake_case`, sans exception** — qu'elles
+**Toutes les clés de traduction sont en `snake_case`, sans exception** - qu'elles
 soient construites par le code (enums, ids système) ou nommées manuellement pour
 l'UI. Le `camelCase` dans une clé i18n est **interdit**. C'est la convention
 d'identifiant interne du projet (CLAUDE.md §4 : route, setting, colonne DB,
@@ -28,7 +28,7 @@ i18n → `snake_case` ; cf. [[convention_naming]]).
 - **Piège (cassé en silence)** : `src/Core/assets/i18n.js` utilise vue-i18n
   **vanilla, sans `messageResolver`** ; le translator Symfony fait pareil. Lookup
   **exact** : une référence camelCase qui ne matche pas le YAML snake_case ne
-  lève aucune erreur — elle affiche la clé brute dans l'UI. Une dérive passe
+  lève aucune erreur - elle affiche la clé brute dans l'UI. Une dérive passe
   donc inaperçue jusqu'à ce qu'on regarde l'écran concerné.
 
 ## Comment l'appliquer
@@ -48,4 +48,4 @@ i18n → `snake_case` ; cf. [[convention_naming]]).
 
 ## Référence
 
-Doc complète : `docs/aurora-shared/translations.md` § "Casse des clés — toujours snake_case".
+Doc complète : `docs/aurora-shared/translations.md` § "Casse des clés - toujours snake_case".

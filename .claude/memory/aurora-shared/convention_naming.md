@@ -42,7 +42,7 @@ compact** (sans tiret) comme premier segment, **pas** kebab-case :
 
 Pourquoi : le résolveur Vue (`@symfony_ux-vue`) construit ses clés à partir
 du glob `import.meta.glob('./Module/**/*.vue')` et applique `strtolower()`
-sur le nom du folder Module — sans transformation kebab. Conséquence : le
+sur le nom du folder Module - sans transformation kebab. Conséquence : le
 nom Vue côté Twig **ne suit pas** la convention URL.
 
 Les segments **après** `<module>/backend/` reflètent le chemin réel sous
@@ -56,7 +56,7 @@ Les segments **après** `<module>/backend/` reflètent le chemin réel sous
 
 Le piège vient du fait que l'URL est `/backend/personal-finance/...` (kebab)
 mais que la référence Vue est `personalfinance/...` (compact). Les deux
-cohabitent pour le même module — c'est inhabituel mais c'est la règle.
+cohabitent pour le même module - c'est inhabituel mais c'est la règle.
 
 ## Anti-patterns
 
@@ -83,7 +83,7 @@ de l'ancien temps a été supprimé pour éviter le double-emploi avec CLAUDE.md
 - **Outillage** : grep / IDE fuzzy find / autocomplétion plus
   prévisibles quand la casse est uniforme.
 
-S'applique à **aurora-core ET aurora-client** — quand un client ajoute
+S'applique à **aurora-core ET aurora-client** - quand un client ajoute
 un module / un dossier asset / un setting, il suit la même grille.
 
 Lié à [[pref_think_long_term]] (la cohérence cross-écosystème fait

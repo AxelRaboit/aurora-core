@@ -18,7 +18,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
  * preview endpoint has to answer with markup rather than a redirect.
  *
  * Written because the panel itself sits behind a login and cannot be opened
- * from a terminal — this is what verifies it is plugged in at all.
+ * from a terminal - this is what verifies it is plugged in at all.
  */
 final class PostEditorBannerTest extends IntegrationTestCase
 {
@@ -55,7 +55,7 @@ final class PostEditorBannerTest extends IntegrationTestCase
     /**
      * The focal picker reads `thumbnailFocalPosition` to show what clearing an
      * override falls back to. It bound to a key the serialiser never emitted,
-     * so the marker always claimed the centre — silently, because a missing
+     * so the marker always claimed the centre - silently, because a missing
      * key in a prop reads as a default rather than as an error.
      */
     public function testTheEditorReceivesEveryThumbnailControlItBindsTo(): void

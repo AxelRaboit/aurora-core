@@ -55,7 +55,7 @@ class PostsTrashController extends AbstractController
 
     /**
      * Declared before the /{id} routes of the sibling controller would not
-     * help — Symfony matches on the pattern, and `empty-trash` cannot pass
+     * help - Symfony matches on the pattern, and `empty-trash` cannot pass
      * the numeric id requirement, so there is no ambiguity to resolve.
      */
     #[Route('/empty-trash', name: '_empty_trash', methods: [HttpMethodEnum::Post->value])]

@@ -14,7 +14,7 @@ use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 
 /**
  * supports() matched the concrete Post. A client substituting the entity
- * therefore fell straight through it and got ABSTAIN — which, with nothing
+ * therefore fell straight through it and got ABSTAIN - which, with nothing
  * else voting, reads as denied. An author would have been locked out of
  * their own posts with no error worth acting on.
  */

@@ -6,7 +6,7 @@ import { useFormRender } from "./composables/useFormRender.js";
  * A published form, as a visitor fills it in.
  *
  * Conditions are evaluated here so a field appears the moment the answer it
- * depends on changes — and again on the server, which is the copy that
+ * depends on changes - and again on the server, which is the copy that
  * decides what is stored. See useFormRender for why the two must agree.
  */
 const props = defineProps({

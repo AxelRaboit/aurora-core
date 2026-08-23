@@ -119,8 +119,8 @@ export function useSidemenuPreferences({
     }
 
     /**
-     * Broadcasts the new prefs so the sidemenu — which lives in a
-     * separate Vue mount point fed by Twig props — can update its
+     * Broadcasts the new prefs so the sidemenu - which lives in a
+     * separate Vue mount point fed by Twig props - can update its
      * colour overrides without a page reload. Hidden sections/items
      * are server-filtered on the next navigation, so we only push the
      * colour map live; the rest naturally syncs on next request.

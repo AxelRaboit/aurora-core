@@ -17,11 +17,11 @@ camelCase**. Si le service s'appelle `MySuperCoolFoo`, la variable est
 ❌ `$mgr`, `$svc`, `$pcm`, `$gds`, `$foo` (perd le contexte)
 
 ### Dossiers / namespaces
-- `Dto/` (pas `DTO/`) — l'acronyme reste "DTO" en prose mais le namespace
+- `Dto/` (pas `DTO/`) - l'acronyme reste "DTO" en prose mais le namespace
   est `Dto` PascalCase comme tous les autres.
 - `Manager/` pour les classes qui persistent/flushent une entité.
 - `Service/` pour la logique stateless pure (helpers, calculs, validateurs).
-- **Plus jamais `Contract/`** pour les Managers instrumentés — l'interface
+- **Plus jamais `Contract/`** pour les Managers instrumentés - l'interface
   vit dans `Manager/`. `Contract/` reste OK pour des interfaces non-Manager
   légitimes (provider patterns, location registries).
 
@@ -29,10 +29,10 @@ camelCase**. Si le service s'appelle `MySuperCoolFoo`, la variable est
 - **Pas de préfixe `Admin` dans les noms de fichiers/classes**. Le contexte
   (backend vs frontend) se déduit du dossier (`Controller/Backend/`,
   `Controller/Frontend/`, `Security/Backend/`…). Un préfixe `Admin` est
-  l'ancienne convention — toujours renommer si rencontré.
+  l'ancienne convention - toujours renommer si rencontré.
   ✅ `UserChecker.php` dans `Security/Backend/`
   ❌ `BackendUserChecker.php` ou `AdminUserChecker.php` à la racine de `Security/`
-- `<Name>Interface` (jamais `<Name>InterfaceInterface` — celui-là on l'a vu)
+- `<Name>Interface` (jamais `<Name>InterfaceInterface` - celui-là on l'a vu)
 - `<Name>InputInterface` + `<Name>InputFactory` + `<Name>InputFactoryInterface`
   + `<Name>Input` (concrete)
 - `<Name>ManagerInterface` + `<Name>Manager` (concrete)
@@ -46,7 +46,7 @@ camelCase**. Si le service s'appelle `MySuperCoolFoo`, la variable est
   deux composables car les forms n'ont rien en commun.
 - Slots scoped : `extra-headers`, `extra-cells`, `extra-form-fields`.
 - Callback de hydratation depuis une entité : `fromEntity(entity)` (jamais
-  `fromAgency`, `fromDeal`, etc — le nom doit rester générique).
+  `fromAgency`, `fromDeal`, etc - le nom doit rester générique).
 
 ## Pourquoi
 

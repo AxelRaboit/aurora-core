@@ -2,7 +2,7 @@
 <html lang="{{ locale }}" data-theme>
 <head>
     {% set alternates = alternates|default([]) %}
-    {# Passerelles override `seo_define` to call `{% do seo({...}) %}` — must render before head include. #}
+    {# Passerelles override `seo_define` to call `{% do seo({...}) %}` - must render before head include. #}
     {% block seo_define %}{% do seo({}) %}{% endblock %}
     <!-- Built with Aurora · © axelraboit · https://github.com/AxelRaboit -->
     <meta name="generator" content="Aurora by axelraboit">

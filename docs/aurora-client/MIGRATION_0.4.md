@@ -1,6 +1,6 @@
 # Migration aurora-core 0.3.x → 0.4.0
 
-**Type** : breaking — namespaces déplacés.
+**Type** : breaking - namespaces déplacés.
 
 Les entités Core qui appartenaient logiquement à un module parent (Platform,
 Configuration, General, Media, Dev) vivent désormais dans un sous-dossier
@@ -105,7 +105,7 @@ aussi été déplacés vers les modules promus :
 | `templates/Core/backend/{settings,themes}/` | `templates/Module/Configuration/backend/<X>/` |
 | `templates/Core/backend/media/` | `templates/Module/Media/backend/media/` |
 | `templates/Core/backend/{dashboard,profile}/` | `templates/Module/General/backend/<X>/` |
-| `templates/Core/backend/dev/` | `templates/Module/Dev/backend/` (flattened — plus de `dev/` middle dir) |
+| `templates/Core/backend/dev/` | `templates/Module/Dev/backend/` (flattened - plus de `dev/` middle dir) |
 | `assets/Core/backend/<X>/` (mêmes 10) | `src/Module/<NewModule>/assets/backend/<X>/` (mêmes 10) |
 | `assets/Core/backend/AdministrationApp.vue` | `src/Module/Dev/assets/backend/AdministrationApp.vue` |
 
@@ -161,7 +161,7 @@ grep -rl "@core/backend/\(agencies\|auth\|services\|users\)" assets src 2>/dev/n
 > **Aliases Vite** : 5 nouveaux aliases ont été ajoutés à `aliases.js`
 > côté vendor : `@platform`, `@configuration`, `@media`, `@general`,
 > `@dev`. Côté client, `make aurora-update` re-synchronise
-> `jsconfig.json` automatiquement (`make sync-jsconfig`) — les imports
+> `jsconfig.json` automatiquement (`make sync-jsconfig`) - les imports
 > avec les nouveaux aliases marchent immédiatement.
 
 ### Inchangé (cross-cutting infra)

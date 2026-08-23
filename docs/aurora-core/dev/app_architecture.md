@@ -68,16 +68,16 @@ import anything from `App\Module\*`.
 |------------|-----------------|
 | User       | Entity, Managers (UserManager, FrontUserManager), Repository, DTO, Serializer, Enum (UserRole, UserStatus, UserType), Command |
 | Auth       | Entities (AccessRequest, ResetPasswordRequest), Managers (AccessRequest, Invitation, PasswordReset, EmailVerification), Security (providers, checkers, authenticator, entry point), EventListeners, Validator, Controllers, DTO |
-| Setting    | Entity (Setting), Repository, Enum (ApplicationParameter — includes Sequences group), Command, Controller |
-| Sequence   | `SequenceGenerator` (PostgreSQL NEXTVAL wrapper), `SequencePrefixEnum` (canonical prefix per entity), `ResyncSequencesCommand` (`aurora:sequences:resync`) — see §6.8 |
+| Setting    | Entity (Setting), Repository, Enum (ApplicationParameter - includes Sequences group), Command, Controller |
+| Sequence   | `SequenceGenerator` (PostgreSQL NEXTVAL wrapper), `SequencePrefixEnum` (canonical prefix per entity), `ResyncSequencesCommand` (`aurora:sequences:resync`) - see §6.8 |
 | Theme      | Entity, Manager, Repository, Services (ThemeContext, ThemeResolver), DTO, Serializer, Controller |
 | Locale     | Entity, Repository, Enum (LocaleEnum), EventSubscriber |
 | Menu       | Entities (Menu, MenuItem, MenuItemTranslation), Manager, Repository, Services, DTO, Serializer, Twig extension, Command, Controller |
-| Module     | ModuleInterface, ModuleRegistry, PermissionRegistry, ModulePermissionVoter, NavItem, NavSection, NavPermission — see §3 |
+| Module     | ModuleInterface, ModuleRegistry, PermissionRegistry, ModulePermissionVoter, NavItem, NavSection, NavPermission - see §3 |
 | Profile    | Controller |
 | Search     | Service (SearchSnippetBuilder), Command, Controller |
 | Dashboard  | Service (AdminStatsService), Controllers |
-| Audit      | Entity (AuditLog), Service (AuditLogger) — records cross-module actions |
+| Audit      | Entity (AuditLog), Service (AuditLogger) - records cross-module actions |
 | Frontend   | Services (FrontContext, HttpCacheService) |
 | Validation | Service (PayloadValidator), ArgumentResolver, DTO (PaginationRequest) |
 | (misc)     | Twig extensions, Enums (HttpMethod), Support (Str), Trait (Timestampable, TimestampableTrait), Scheduler |
@@ -126,9 +126,9 @@ Aurora uses **three flat roles** instead of a hierarchy:
 
 | Role | Priority | Description |
 |---|---|---|
-| `ROLE_DEV` | 100 | Developer — bypasses **all** privilege checks |
-| `ROLE_ADMIN` | 80 | Administrator — full access to all module features |
-| `ROLE_USER` | 0 | Regular user — access limited to explicitly granted privileges |
+| `ROLE_DEV` | 100 | Developer - bypasses **all** privilege checks |
+| `ROLE_ADMIN` | 80 | Administrator - full access to all module features |
+| `ROLE_USER` | 0 | Regular user - access limited to explicitly granted privileges |
 
 Role hierarchy in `security.yaml`: `ROLE_DEV → ROLE_ADMIN → ROLE_USER`.
 
@@ -151,7 +151,7 @@ The custom `ModulePermissionVoter` resolves `#[IsGranted('crm.contacts.view')]` 
 Assigning privileges to users is done via the Dev-only section in the user detail modal
 (`/admin/users`) or programmatically.
 
-**Sync command** — run after adding/removing module privileges to purge obsolete entries
+**Sync command** - run after adding/removing module privileges to purge obsolete entries
 and report new ones:
 
 ```bash
@@ -201,8 +201,8 @@ Module/<Name>/<Domain>/{Entity,Manager,Repository,Dto,Service,Serializer,Enum,Co
 | Domain  | What it contains |
 |---------|-----------------|
 | Listing | Entity (FK to `Erp\Product`, `reference` auto-generated), Repository, DTO, Serializer, Manager, Controllers (backend CRUD + public Frontend) |
-| Cart    | Entities (Cart, CartItem — `reference` auto-generated), Manager + Contract, Repository, Serializer, Controller |
-| Order   | Entities (Order — `number` sequential via `SequenceGenerator`, OrderLine — `reference` auto-generated), Manager + Contract, Repository, Serializer, Enum (OrderStatusEnum), Services (OrderNotificationService, OrderRefundService), Payment (StripeService), Controllers (admin + front) |
+| Cart    | Entities (Cart, CartItem - `reference` auto-generated), Manager + Contract, Repository, Serializer, Controller |
+| Order   | Entities (Order - `number` sequential via `SequenceGenerator`, OrderLine - `reference` auto-generated), Manager + Contract, Repository, Serializer, Enum (OrderStatusEnum), Services (OrderNotificationService, OrderRefundService), Payment (StripeService), Controllers (admin + front) |
 
 ### 4.5 Module/Billing
 
@@ -216,7 +216,7 @@ Module/<Name>/<Domain>/{Entity,Manager,Repository,Dto,Service,Serializer,Enum,Co
 
 | Domain  | What it contains |
 |---------|-----------------|
-| Gallery | Entities (Gallery, GalleryItem, GalleryInvite, GalleryFinalization, GalleryPick, GalleryItemComment — all with `reference`), Manager, Repository, Serializer, Enum, Services (GalleryWatermarkService, GalleryDownloadService, GalleryAccessService, GalleryNotificationService, GalleryPickService), Controllers (admin + front) |
+| Gallery | Entities (Gallery, GalleryItem, GalleryInvite, GalleryFinalization, GalleryPick, GalleryItemComment - all with `reference`), Manager, Repository, Serializer, Enum, Services (GalleryWatermarkService, GalleryDownloadService, GalleryAccessService, GalleryNotificationService, GalleryPickService), Controllers (admin + front) |
 
 ### 4.7 Module/Ged
 
@@ -229,14 +229,14 @@ Module/<Name>/<Domain>/{Entity,Manager,Repository,Dto,Service,Serializer,Enum,Co
 
 | Domain     | What it contains |
 |------------|-----------------|
-| Employee   | Entity (HrEmployee — employee record linked to a User), Manager, Repository, DTO, Serializer, Controller (backend CRUD). Syncs agency/service from User via `UserAgencyServiceUpdatingEvent`. |
+| Employee   | Entity (HrEmployee - employee record linked to a User), Manager, Repository, DTO, Serializer, Controller (backend CRUD). Syncs agency/service from User via `UserAgencyServiceUpdatingEvent`. |
 
 ### 4.9 Module/Planning
 
 | Domain        | What it contains |
 |---------------|-----------------|
-| Planning      | Entity (Planning — container/calendar), Manager, Repository, DTO, Serializer, Controller (backend CRUD) |
-| PlanningEvent | Entity (PlanningEvent — individual event in a planning), Manager, Repository, DTO, Serializer, Controller |
+| Planning      | Entity (Planning - container/calendar), Manager, Repository, DTO, Serializer, Controller (backend CRUD) |
+| PlanningEvent | Entity (PlanningEvent - individual event in a planning), Manager, Repository, DTO, Serializer, Controller |
 
 ### 4.10 Module/Project
 
@@ -275,7 +275,7 @@ src/Module/Editorial/assets/admin/<C>.vue    → vue_component('editorial/admin/
 src/Module/Crm/assets/admin/<C>.vue          → vue_component('crm/admin/<C>')
 ```
 
-Il n'y a pas de dossier `vue/` dans aurora-core — les controllers vivent directement sous
+Il n'y a pas de dossier `vue/` dans aurora-core - les controllers vivent directement sous
 `admin/`, `front/` etc. Le dossier `vue/` existe uniquement dans campus (projet legacy/V2).
 
 `src/Core/assets/app.js` merges one glob per module. Add a new glob + key-replace when adding a module.
@@ -351,7 +351,7 @@ See the client `Makefile` variables `CLIENT_ASSETS` and `AURORA_ENV` for how thi
 ### 5.7 Adding a new module (checklist)
 
 1. Create `src/Module/<Name>/` with domain subfolders
-2. Implement `<Name>Module.php` (ModuleInterface) — declare nav + permissions
+2. Implement `<Name>Module.php` (ModuleInterface) - declare nav + permissions
 3. Tag it `aurora.module` in `config/services.yaml`
 4. Add Doctrine mapping to `config/packages/doctrine.yaml`
 5. Add Twig namespace to `config/packages/twig.yaml`
@@ -362,7 +362,7 @@ See the client `Makefile` variables `CLIENT_ASSETS` and `AURORA_ENV` for how thi
 10. Add Vue-only labels (form fields, editor blocks…) under `src/Core/assets/locales/source/{locale}.js`
 11. Add validator messages to `src/Core/translations/validators.*.yaml` if needed (or to the module's own file)
 12. Generate + run Doctrine migration
-13. **Sequences**: for each new entity, add `#[ORM\GeneratedValue(strategy: 'SEQUENCE')]` + `#[ORM\SequenceGenerator(sequenceName: 'seq_core_{entity}_id')]`; for business sequential references (human-readable `reference` field), add a `SequencePrefixEnum` case + `ApplicationParameterEnum` case (group `sequences`) — `SequenceGenerator` stores counters in `app_sequence_counters` table (rows created automatically on first use, no extra setup); run `make sync-params`
+13. **Sequences**: for each new entity, add `#[ORM\GeneratedValue(strategy: 'SEQUENCE')]` + `#[ORM\SequenceGenerator(sequenceName: 'seq_core_{entity}_id')]`; for business sequential references (human-readable `reference` field), add a `SequencePrefixEnum` case + `ApplicationParameterEnum` case (group `sequences`) - `SequenceGenerator` stores counters in `app_sequence_counters` table (rows created automatically on first use, no extra setup); run `make sync-params`
 
 ---
 
@@ -384,7 +384,7 @@ Front keys are namespaced by feature, not module: `front.shop.*`, `front.cart.*`
 ### 6.3 Front-end theming per module
 
 `templates/front/themes/<slug>/` is kept flat. ThemeResolver expects a single path per
-theme. Splitting requires making ThemeResolver multi-path aware — do this when a module
+theme. Splitting requires making ThemeResolver multi-path aware - do this when a module
 needs its own front-end templates.
 
 ### 6.4 Backend-only vs front-facing modules
@@ -397,21 +397,21 @@ a `Module/<Name>/Frontend/Controller/` directory with public routes (typically p
 |------------|--------|-----|
 | Editorial  | ✅ Yes | A CMS exists to serve public pages |
 | Ecommerce  | ✅ Yes | Catalog (`/shop`), cart, checkout, order confirmation |
-| Photo      | ✅ Yes | Client gallery pages (`/g/{slug}`) — password-protected |
+| Photo      | ✅ Yes | Client gallery pages (`/g/{slug}`) - password-protected |
 | Ged        | ✅ Yes | Published documents exposed at `/{locale}/ged` |
 | CRM        | ❌ Never | Contacts/companies/deals are private business data |
 | ERP        | ❌ Internal-only | Inventory stays backend; the public catalog lives in Ecommerce |
-| Billing    | ❌ Internal-only | Invoice management, suppliers, OCR — admin only |
-| Hr         | ❌ Internal-only | Employee records — admin only |
-| Planning   | ❌ Internal-only | Internal planning/agenda — admin only |
-| Project    | ❌ Internal-only | Project & task management — admin only |
+| Billing    | ❌ Internal-only | Invoice management, suppliers, OCR - admin only |
+| Hr         | ❌ Internal-only | Employee records - admin only |
+| Planning   | ❌ Internal-only | Internal planning/agenda - admin only |
+| Project    | ❌ Internal-only | Project & task management - admin only |
 | Core       | n/a | Infrastructure |
 
 **Frontend controller conventions:**
 
 Every frontend controller must call `ViewBuilder::baseView(string $locale)` and merge
 its own variables into the result. This injects `locale`, `context`, `themeContext`,
-`pageDescription` and `alternates` — required by the default layout.
+`pageDescription` and `alternates` - required by the default layout.
 
 ```php
 return $this->render($this->themeResolver->resolve('...'), $this->viewBuilder->baseView($locale) + [
@@ -422,7 +422,7 @@ return $this->render($this->themeResolver->resolve('...'), $this->viewBuilder->b
 The `showFrontMenus` parameter (default `false`) controls whether the header and footer
 load the Editorial nav menus (`primary`, `account`, `footer`). Pass `true` only for
 modules that are part of the main site navigation (Editorial, Ecommerce). Standalone
-modules like GED or Photo keep it `false` — they have their own layout or simply no
+modules like GED or Photo keep it `false` - they have their own layout or simply no
 global nav.
 
 ### 6.5 Module dependencies & shared entities
@@ -433,10 +433,10 @@ Allowed direction of dependencies (import only downward):
 Ecommerce  →  Erp          (catalog reads inventory)
 Ecommerce  →  CRM          (Customer ↔ Contact link)
 Billing    →  CRM          (Tiers can be linked to Company)
-Editorial  →  (none)       — independent
-CRM        →  (none)       — independent
-ERP        →  (none)       — independent of business modules
-Photo      →  (none)       — independent
+Editorial  →  (none)       - independent
+CRM        →  (none)       - independent
+ERP        →  (none)       - independent of business modules
+Photo      →  (none)       - independent
 All        →  Core
 ```
 
@@ -466,29 +466,29 @@ Each module owns its translations:
 | Planning | `src/Module/Planning/translations/messages.{locale}.yaml` |
 | Project | `src/Module/Project/translations/messages.{locale}.yaml` |
 
-Symfony's translator merges all paths automatically — keys can share top-level prefixes
+Symfony's translator merges all paths automatically - keys can share top-level prefixes
 (e.g. `admin.nav.*` is partially defined by every module that contributes a sidemenu entry).
 Paths are registered in `config/packages/translation.yaml` (`framework.translator.paths`).
 
 **Two consumers**: Twig/PHP (Symfony's translator) and vue-i18n (Vue components). To avoid
 duplicating shared keys, vue-i18n receives a deep-merge of two sources (`src/Core/assets/i18n.js`):
 
-1. `src/Core/assets/locales/source/{locale}.js` — manual content for **Vue-only** keys (admin form labels,
+1. `src/Core/assets/locales/source/{locale}.js` - manual content for **Vue-only** keys (admin form labels,
    editor block labels, client-side validation messages…). Edit by hand.
-2. `src/Core/assets/locales/generated/{locale}.json` — generated from the per-module YAMLs via
+2. `src/Core/assets/locales/generated/{locale}.json` - generated from the per-module YAMLs via
    `php bin/console app:translations:dump-js`. **Gitignored.** Auto-rebuilt by `pnpm dev` /
    `pnpm build` (npm `predev` / `prebuild` hooks). YAML wins on conflict.
 
 The dump command iterates `SOURCE_DIRS` (the same list as `framework.translator.paths`),
 deep-merges each module's YAML, then converts Symfony's `%var%` placeholders to vue-i18n's
-`{var}` syntax automatically — write naturally in YAML.
+`{var}` syntax automatically - write naturally in YAML.
 
 **Convention**: a key used in **both** Twig and Vue lives in YAML. A key used **only** in Vue
 stays in the JS source. Never duplicate the same key in both files.
 
 ### 6.8 Sequences and business references
 
-Two distinct mechanisms coexist — never confuse them:
+Two distinct mechanisms coexist - never confuse them:
 
 | Family | Mechanism | Example | Owner |
 |---|---|---|---|
@@ -496,7 +496,7 @@ Two distinct mechanisms coexist — never confuse them:
 | Business references | Table `app_sequence_counters` | row `(prefix='FAC', year=2026)` | `SequenceGenerator` |
 
 All entity PKs use Doctrine's `SEQUENCE` strategy with explicit named sequences (`seq_core_<entity>_id`).
-This makes sequences visible and manageable in PostgreSQL — no silent `IDENTITY` columns.
+This makes sequences visible and manageable in PostgreSQL - no silent `IDENTITY` columns.
 
 All business entities also carry a human-readable `reference` field (e.g. `FAC-2026-0001`,
 `ORD-000001`) generated atomically via `Core\Sequence\SequenceGenerator::next()` or
@@ -504,7 +504,7 @@ All business entities also carry a human-readable `reference` field (e.g. `FAC-2
 cases with group `sequences`). Canonical defaults live in `SequencePrefixEnum`.
 
 Business references are backed by the **`app_sequence_counters`** table, fully managed by
-Doctrine migrations — no PostgreSQL sequences, no `schema_filter` needed.
+Doctrine migrations - no PostgreSQL sequences, no `schema_filter` needed.
 
 ```
 Schema: app_sequence_counters(prefix VARCHAR(30), year INT, last_value INT)
@@ -515,7 +515,7 @@ year = YYYY → yearly sequence   → nextYearly('FAC', 2026) → FAC-2026-0001
 ```
 
 Increment is atomic via PostgreSQL upsert: `INSERT … ON CONFLICT DO UPDATE RETURNING`.
-A new prefix row is created automatically on first use — no manual setup required.
+A new prefix row is created automatically on first use - no manual setup required.
 To inspect current values: `SELECT * FROM app_sequence_counters ORDER BY prefix, year;`
 
 After data imports or fixture loads, run:
@@ -546,28 +546,28 @@ ecommerce_listings, ecommerce_orders, ecommerce_carts, ecommerce_customers
 
 ## 7. Roadmap
 
-> Historical record. A `[x]` means the work was done — not that the module
+> Historical record. A `[x]` means the work was done - not that the module
 > still lives in this repository; most were extracted in July 2026, and
 > Editorial is being rebuilt here as a native module.
 
 - [x] Module manifest + ModuleRegistry + dynamic admin sidemenu
-- [x] Module/Editorial — full editorial CMS (posts, taxonomies, comments, forms, SEO, sitemap)
-- [x] Module/Crm — Contact, Company, Deal (CRUD + Kanban)
+- [x] Module/Editorial - full editorial CMS (posts, taxonomies, comments, forms, SEO, sitemap)
+- [x] Module/Crm - Contact, Company, Deal (CRUD + Kanban)
 - [x] Permission registry (ModulePermissionVoter + per-module `#[IsGranted]`)
-- [x] Audit log / Activity timeline (Core — cross-module action logging, dev viewer)
-- [x] Module/Erp — Product entity (inventory backend, backend CRUD)
-- [x] Module/Ecommerce — Listing, Cart, Order, Payment (Stripe), public Frontend
-- [x] Module/Billing — Invoice management, Tiers (supplier/client/…), OCR pipeline (docTR + Ollama VLM), compliance
-- [x] Module/Photo — Client gallery delivery (galleries, items, invites, picks, watermarking)
-- [x] Module/Ged — Document management (documents, categories)
-- [x] Module/Hr — Human resources, employee records (HrEmployee + User link, agency/service sync via domain events)
-- [x] Module/Planning — Planning & agenda (plannings, events)
-- [x] Module/Project — Project & task management (projects, tasks, sprints, kanban, time tracking)
-- [x] Core/Sequence — Named PostgreSQL sequences for all PKs + configurable business reference numbers
-- [x] Core/Media — Module-scoped upload dirs (`media/`, `ocr/`, `users/`, `photo/`) with `%app.upload_dir%`
+- [x] Audit log / Activity timeline (Core - cross-module action logging, dev viewer)
+- [x] Module/Erp - Product entity (inventory backend, backend CRUD)
+- [x] Module/Ecommerce - Listing, Cart, Order, Payment (Stripe), public Frontend
+- [x] Module/Billing - Invoice management, Tiers (supplier/client/…), OCR pipeline (docTR + Ollama VLM), compliance
+- [x] Module/Photo - Client gallery delivery (galleries, items, invites, picks, watermarking)
+- [x] Module/Ged - Document management (documents, categories)
+- [x] Module/Hr - Human resources, employee records (HrEmployee + User link, agency/service sync via domain events)
+- [x] Module/Planning - Planning & agenda (plannings, events)
+- [x] Module/Project - Project & task management (projects, tasks, sprints, kanban, time tracking)
+- [x] Core/Sequence - Named PostgreSQL sequences for all PKs + configurable business reference numbers
+- [x] Core/Media - Module-scoped upload dirs (`media/`, `ocr/`, `users/`, `photo/`) with `%app.upload_dir%`
 - [x] Auth: simplified 3-role system (User/Admin/Dev) + per-user fine-grained privileges
-- [x] Privileges UI — Dev can assign module privileges to users from the user detail modal
-- [x] `aurora:privileges:sync` — purges obsolete privilege strings after module changes
-- [x] Client extension system — `AURORA_CLIENT_DIR` + `@client` alias for custom Vue modules in client projects
+- [x] Privileges UI - Dev can assign module privileges to users from the user detail modal
+- [x] `aurora:privileges:sync` - purges obsolete privilege strings after module changes
+- [x] Client extension system - `AURORA_CLIENT_DIR` + `@client` alias for custom Vue modules in client projects
 - [ ] Editor.js block: ProductGrid (Editorial → Ecommerce, embed listings in posts/pages)
 - [ ] ThemeResolver multi-path (per-module front templates)

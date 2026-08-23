@@ -67,7 +67,7 @@ describe("AppRowActions", () => {
         expect(wrapper.find('[data-test="sheet"]').exists()).toBe(false);
     });
 
-    // Some actions are navigations — impersonating a user, opening a file —
+    // Some actions are navigations - impersonating a user, opening a file -
     // and have to stay openable in a new tab.
     it("renders a link for an action that navigates", async () => {
         const wrapper = mountActions([

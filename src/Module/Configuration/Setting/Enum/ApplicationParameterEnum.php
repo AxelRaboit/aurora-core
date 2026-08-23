@@ -194,7 +194,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::DefaultFront => '',
             self::LogoMediaId => '',
             self::FaviconMediaId => '',
-            self::SeoTitleTemplate => '{title} — {siteName}',
+            self::SeoTitleTemplate => '{title} - {siteName}',
             self::SeoDefaultDescription => '',
             self::SeoDefaultOgImage => '',
             self::SeoTwitterHandle => '',
@@ -254,7 +254,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
 
     /**
      * Sample value shown inside the input. Only set on the fields where
-     * an example is meaningfully clearer than the description alone —
+     * an example is meaningfully clearer than the description alone -
      * the rest fall through to the `default => null` arm.
      */
     public function getPlaceholder(): ?string

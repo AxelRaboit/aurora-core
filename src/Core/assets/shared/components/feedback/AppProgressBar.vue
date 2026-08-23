@@ -1,10 +1,10 @@
 <script setup>
 defineProps({
-    /** 0–100 */
+    /** 0-100 */
     value: { type: Number, required: true },
     /** Show percentage label below the bar */
     showLabel: { type: Boolean, default: false },
-    /** Label text — defaults to "{value}%" */
+    /** Label text - defaults to "{value}%" */
     label: { type: String, default: null },
     color: { type: String, default: "accent" },
     /** sm = h-1.5, md = h-2 */

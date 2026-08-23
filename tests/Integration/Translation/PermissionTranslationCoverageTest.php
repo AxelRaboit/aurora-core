@@ -48,7 +48,7 @@ final class PermissionTranslationCoverageTest extends KernelTestCase
             $key,
             $translated,
             sprintf(
-                'Missing %s translation for privilege "%s" — expected key "%s" in a permissions YAML.',
+                'Missing %s translation for privilege "%s" - expected key "%s" in a permissions YAML.',
                 mb_strtoupper($locale),
                 $privilegeName,
                 $key,

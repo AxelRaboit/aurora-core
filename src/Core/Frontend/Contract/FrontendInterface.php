@@ -23,7 +23,7 @@ interface FrontendInterface
      * to 404 every front route when the front is disabled.
      *
      * Return an empty list if the front uses route names that cannot be
-     * matched by prefix — the gate will not enforce 404 then (the
+     * matched by prefix - the gate will not enforce 404 then (the
      * per-controller IsGranted / route-level guards still apply).
      *
      * @return list<string>

@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Indexes the two columns every comment query filters on together.
  *
- * Both callers ask the same question — one post's comments in one status:
+ * Both callers ask the same question - one post's comments in one status:
  * the public thread wants the approved ones, the moderation queue wants the
  * pending ones. The table had an index on `post_id` alone, so the status
  * filter fell to a scan of every comment on the post.

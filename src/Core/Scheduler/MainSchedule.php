@@ -14,7 +14,7 @@ use Symfony\Contracts\Cache\CacheInterface;
 /**
  * The 'main' schedule. Only core's own recurring jobs are declared here; every
  * module contributes its cron messages through a
- * {@see RecurringMessageProviderInterface}, aggregated below — so aurora-core
+ * {@see RecurringMessageProviderInterface}, aggregated below - so aurora-core
  * has no dependency on module message classes.
  */
 #[AsSchedule('main')]

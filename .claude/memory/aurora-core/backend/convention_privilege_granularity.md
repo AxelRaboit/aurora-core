@@ -1,4 +1,4 @@
-# Convention : privilèges granulaires — préférer view/create/edit/delete
+# Convention : privilèges granulaires - préférer view/create/edit/delete
 
 ## Règle
 

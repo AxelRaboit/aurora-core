@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 /**
  * Stable canonical URL for a GED document: /document/{id} always redirects
  * to the current file regardless of renames, re-uploads or future crops.
- * Mirrors MediaViewController — the permalink stays valid even when the
+ * Mirrors MediaViewController - the permalink stays valid even when the
  * underlying file path changes.
  */
 class DocumentViewController extends AbstractController

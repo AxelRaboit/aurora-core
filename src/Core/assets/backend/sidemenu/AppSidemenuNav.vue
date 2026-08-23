@@ -1,10 +1,10 @@
 <script setup>
 /**
- * The menu's sections and their items — one component for both menus.
+ * The menu's sections and their items - one component for both menus.
  *
  * This loop was written twice: once in the desktop `<aside>` and once in the
  * mobile drawer. Structurally the same, but the drawer's copy was a degraded
- * one — no item descriptions in its tooltips, no `data-sidemenu-active`, and
+ * one - no item descriptions in its tooltips, no `data-sidemenu-active`, and
  * two `<template #tooltip>` blocks handed to `AppNavLink`, which declares no
  * such slot. Those two child links have had no tooltip at all, silently, for as
  * long as the copy has existed. That is what a second copy costs.
@@ -13,7 +13,7 @@
  * `#sidemenu`: while its rules reached the whole document, hiding the desktop
  * menu hid the drawer with it.
  *
- * The helpers arrive as two bags rather than ten function props — `nav` from
+ * The helpers arrive as two bags rather than ten function props - `nav` from
  * `useSidemenuNav`, `theme` from `useSidemenuSectionTheme`. Ten props would
  * have to be edited in three files every time one is added.
  */
@@ -32,7 +32,7 @@ defineProps({
     /**
      * The nav filter's current text. While it is set, section headers are
      * hidden and every matching item shows regardless of whether its section
-     * is folded — a search that obeyed the folds would hide its own results.
+     * is folded - a search that obeyed the folds would hide its own results.
      */
     navFilter: { type: String, default: "" },
     /**
@@ -40,7 +40,7 @@ defineProps({
      *
      * Same rule as `AppActionButton`: the label goes bold only when a
      * description sits under it, because bold is what separates the two. An
-     * item with no description keeps a normal label — bolding it would promise
+     * item with no description keeps a normal label - bolding it would promise
      * a second line that never comes.
      */
     showDescriptions: { type: Boolean, default: false },
@@ -51,7 +51,7 @@ defineProps({
     <!-- `gap`, never `space-y`: every row here is wrapped in AppTooltip, whose
          root is `display: contents`, and margins on those are ignored. The
          section gap matches the row gap so the last row of a section is spaced
-         like every other — the coloured header band is what separates sections,
+         like every other - the coloured header band is what separates sections,
          it does not need a gutter as well. -->
     <div v-for="section in sections" :key="section.id" class="flex flex-col gap-0.5">
         <button
@@ -73,7 +73,7 @@ defineProps({
             <template v-if="navFilter || nav.isSectionExpanded(section)">
                 <!-- A group parent: the label navigates, the chevron unfolds.
                      Two targets in one row, because the parent is itself a
-                     page — collapsing them into one would cost the page. -->
+                     page - collapsing them into one would cost the page. -->
                 <template v-if="!navFilter && item.children?.length">
                     <AppTooltip :title="item.label" :description="showDescriptions ? '' : item.description" placement="right">
                         <div

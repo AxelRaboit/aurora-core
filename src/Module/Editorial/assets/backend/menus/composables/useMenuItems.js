@@ -40,8 +40,8 @@ function itemForm(item, locales) {
 }
 
 /**
- * Flattens a menu's entries into display order — parents immediately
- * followed by their children — carrying the depth so the template can
+ * Flattens a menu's entries into display order - parents immediately
+ * followed by their children - carrying the depth so the template can
  * indent without recursing.
  */
 function flatten(items) {
@@ -116,7 +116,7 @@ export function useMenuItems(props, selected, upsert) {
             .filter((row) => !excluded.has(row.id))
             .map((row) => ({
                 value: row.id,
-                label: `${"— ".repeat(row.depth)}${labelOf(row)}`,
+                label: `${"\u00a0\u00a0".repeat(row.depth)}${labelOf(row)}`,
             }));
     });
 
@@ -153,7 +153,7 @@ export function useMenuItems(props, selected, upsert) {
             targetOptions.value = (data?.options ?? []).map((option) => ({
                 value: option.id,
                 label: option.hint
-                    ? `${option.label} — ${option.hint}`
+                    ? `${option.label} - ${option.hint}`
                     : option.label,
             }));
         } finally {
@@ -245,7 +245,7 @@ export function useMenuItems(props, selected, upsert) {
 
     /**
      * Swaps an entry with the sibling above or below it and posts the whole
-     * sibling set — the endpoint takes a tree, not a single move, so that a
+     * sibling set - the endpoint takes a tree, not a single move, so that a
      * reorder and a re-parent travel the same path.
      */
     async function move(item, offset) {

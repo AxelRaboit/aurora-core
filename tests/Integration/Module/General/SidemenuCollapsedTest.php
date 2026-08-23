@@ -16,7 +16,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
  *
  * The part worth pinning is not the column but the render: the layout has to
  * emit the class itself, or the menu starts expanded on every page and snaps
- * shut once a script has run — which is what storing it in the browser could
+ * shut once a script has run - which is what storing it in the browser could
  * never avoid.
  */
 final class SidemenuCollapsedTest extends IntegrationTestCase

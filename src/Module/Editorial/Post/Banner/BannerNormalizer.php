@@ -13,7 +13,7 @@ use Aurora\Core\Content\ContentValueNormalizer;
  * arrangement, the widths, the colours, the pictures. The **texts** live on
  * each translation: the words, their alt text, and the link a button points
  * at. Writing the banner once and translating only the copy is the whole
- * point of the split — the previous shape kept everything per translation, so
+ * point of the split - the previous shape kept everything per translation, so
  * a second language meant rebuilding the design by hand, and the two could
  * drift apart with nothing to say which was right.
  *
@@ -22,13 +22,13 @@ use Aurora\Core\Content\ContentValueNormalizer;
  * at the wrong item, silently. An id survives reordering, insertion and
  * removal.
  *
- * A link is text, not layout, and the data says so — the first banner written
+ * A link is text, not layout, and the data says so - the first banner written
  * against this module stored `/fr/page/premiers-pas`. A localised page has a
  * localised address.
  *
  * Every value that reaches the database goes through here, and anything not
  * explicitly allowed is dropped. That is a deliberate contrast with `blocks`,
- * which is written raw and only sanitised at render time — the reason two
+ * which is written raw and only sanitised at render time - the reason two
  * block types have been shipping a shape the renderer cannot read without
  * anyone noticing. A banner that survives a round-trip is a banner the
  * renderer can trust.
@@ -58,13 +58,13 @@ final readonly class BannerNormalizer
      * Background spans the viewport, content keeps the page's own left edge.
      *
      * What "full width" is almost always meant to look like, and now the only
-     * full-width there is — see {@see WIDTH_FULL_RETIRED} for the one that went.
+     * full-width there is - see {@see WIDTH_FULL_RETIRED} for the one that went.
      */
     public const string WIDTH_FULL_ALIGNED = 'full_aligned';
 
     /**
      * Retired on 2026-08-09: background and content both went to the window
-     * edge, so a banner's title started nowhere near the text under it — at
+     * edge, so a banner's title started nowhere near the text under it - at
      * 1920px, 267 pixels apart.
      *
      * Full-bleed hero text is a real parti pris, but it needs type and imagery
@@ -76,8 +76,8 @@ final readonly class BannerNormalizer
      * Kept as a constant, and not merely deleted, because the value is stored:
      * `oneOf` would answer the default for it and quietly re-lay-out every page
      * that had chosen it. {@see Version20260809210000} rewrites those to
-     * `full_aligned` — the nearest neighbour, same full-width background, same
-     * height, only the text moving into line — and this constant is what the
+     * `full_aligned` - the nearest neighbour, same full-width background, same
+     * height, only the text moving into line - and this constant is what the
      * migration and its test name.
      */
     public const string WIDTH_FULL_RETIRED = 'full';
@@ -93,7 +93,7 @@ final readonly class BannerNormalizer
 
     /**
      * A banner is a header, not a page. The cap is here so a runaway payload
-     * cannot turn one into an unbounded list — the content grid is where many
+     * cannot turn one into an unbounded list - the content grid is where many
      * items belong.
      */
     private const int MAX_ITEMS = 6;
@@ -160,7 +160,7 @@ final readonly class BannerNormalizer
         $data = is_array($raw) ? $raw : [];
 
         // Read defensively rather than trusting the caller to have normalised:
-        // an empty layout is a legitimate argument — a post with no banner —
+        // an empty layout is a legitimate argument - a post with no banner -
         // and reaching for a key that is not there would turn it into a crash.
         $items = is_array($layout['items'] ?? null) ? $layout['items'] : [];
         $ids = array_values(array_filter(array_map(
@@ -196,13 +196,13 @@ final readonly class BannerNormalizer
         return ['items' => $texts];
     }
 
-    /** An empty layout — what a post starts life with. */
+    /** An empty layout - what a post starts life with. */
     public function emptyLayout(): array
     {
         return $this->normalizeLayout([]);
     }
 
-    /** Empty texts — what a translation starts life with. */
+    /** Empty texts - what a translation starts life with. */
     public function emptyTexts(): array
     {
         return ['items' => []];
@@ -285,7 +285,7 @@ final readonly class BannerNormalizer
 
     /**
      * True when the list carries item *definitions* rather than texts keyed by
-     * id — the pre-split shape. A `type` key is what distinguishes them: texts
+     * id - the pre-split shape. A `type` key is what distinguishes them: texts
      * have never had one.
      *
      * @param array<mixed> $stored
@@ -359,7 +359,7 @@ final readonly class BannerNormalizer
      * The placement, with the retired full-bleed folded into its neighbour.
      *
      * A layout saved before 2026-08-09 can still say `full`, and the migration
-     * only rewrites what was in the database when it ran — a revision snapshot
+     * only rewrites what was in the database when it ran - a revision snapshot
      * restored afterwards, or a client posting an old payload, arrives here
      * saying it too. Answering the *default* for those would move a banner from
      * full width to the page column, which is a bigger change than the one

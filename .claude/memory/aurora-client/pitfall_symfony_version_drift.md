@@ -15,7 +15,7 @@ Le client n'a **pas** de garde-fou `extra.symfony.require` dans son
 (`runtime`, `browser-kit`, `css-selector`, `web-profiler-bundle`).
 
 aurora-core, lui, a bien `extra.symfony.require: "7.4.*"` + chaque composant
-pinné — **mais ce réglage ne vaut que pour l'install racine d'aurora-core**,
+pinné - **mais ce réglage ne vaut que pour l'install racine d'aurora-core**,
 pas quand il est tiré comme dépendance. Côté client, aurora-core n'impose que
 ses propres `require` (ex: `framework-bundle: 7.4.*`). Or `http-kernel` n'est
 pas une dépendance directe d'aurora-core (transitif), et `framework-bundle`

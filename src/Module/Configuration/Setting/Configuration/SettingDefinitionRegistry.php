@@ -42,7 +42,7 @@ final class SettingDefinitionRegistry
      * Tabs sharing the same `$id` across providers are MERGED: their fields
      * are concatenated in provider iteration order, the lowest priority wins
      * for the placement of the merged tab, and `$alwaysVisible` is OR-ed.
-     * This is what lets several modules feed a single shared tab — most
+     * This is what lets several modules feed a single shared tab - most
      * notably `sequences`, where each module contributes its own prefix
      * settings to one unified screen.
      *
@@ -107,7 +107,7 @@ final class SettingDefinitionRegistry
 
     /**
      * True when the key belongs to a tab marked `devOnly`. Such keys must
-     * only be written by users with ROLE_DEV — the controller enforces this
+     * only be written by users with ROLE_DEV - the controller enforces this
      * at the HTTP boundary so it cannot be bypassed by a crafted POST even
      * when the key IS technically in the registry.
      */

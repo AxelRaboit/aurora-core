@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * GED documents + versions: drop the Media coupling, switch to self-owned
  * file storage. Each row now carries its own filePath / fileName /
- * originalName / mimeType / size — files live under
+ * originalName / mimeType / size - files live under
  * `var/uploads/ged/Y/m/<slug>-<uniq>.<ext>` served by the catch-all
  * `/uploads/{path}` route.
  *

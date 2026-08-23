@@ -21,7 +21,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
  *
  * The sub-module cases are the point of the test. Editorial's toggles are
  * per-domain, so turning off Taxonomies alone must close the taxonomy
- * screens and leave posts and menus open — a single module-wide gate would
+ * screens and leave posts and menus open - a single module-wide gate would
  * pass this file's first two tests and fail every one after them.
  */
 final class EditorialRouteGateSubscriberTest extends TestCase
@@ -56,7 +56,7 @@ final class EditorialRouteGateSubscriberTest extends TestCase
 
     /**
      * `backend_editorial_posts` must not swallow `backend_editorial_post_types`
-     * — they share a prefix up to the `s`, and getting this wrong closes the
+     * - they share a prefix up to the `s`, and getting this wrong closes the
      * post-types screen whenever posts are off.
      */
     public function testDoesNotConfuseTwoRouteNamesThatShareAPrefix(): void

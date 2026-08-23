@@ -52,7 +52,7 @@ backend:
       status: Status
       manager: Manager
       created_at: Created
-      unset: —
+      unset: Not set
     preferences:
       title: Preferences
       subtitle: Customize your experience.
@@ -60,7 +60,7 @@ backend:
         sidemenu: Sidemenu
     sidemenu:
       title: Sidemenu preferences
-      subtitle: Customise the nav — hide sections or modules you don't use, or recolour a section to spot it faster. Pages stay reachable by direct URL.
+      subtitle: "Customise the nav : hide sections or modules you don't use, or recolour a section to spot it faster. Pages stay reachable by direct URL."
       section_hint: Turn off the toggle to hide the whole section, or adjust module by module.
       hide_all: Hide all
       show_all: Show all

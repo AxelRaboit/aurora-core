@@ -39,13 +39,13 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 #[AsAlias(AgencyManagerInterface::class)]
 class AgencyManager extends BaseAgencyManager
 {
-    // Hook 1 : instanciation — retourne la classe client
+    // Hook 1 : instanciation - retourne la classe client
     protected function createAgency(): AgencyInterface
     {
         return new AppAgency();
     }
 
-    // Hook 2 : hydratation — toujours parent::applyInput() AVANT
+    // Hook 2 : hydratation - toujours parent::applyInput() AVANT
     protected function applyInput(AgencyInterface $agency, AgencyInputInterface $input): void
     {
         parent::applyInput($agency, $input);
@@ -55,7 +55,7 @@ class AgencyManager extends BaseAgencyManager
         }
     }
 
-    // Hook 3 : audit payload — splat-merge parent puis ajouter
+    // Hook 3 : audit payload - splat-merge parent puis ajouter
     protected function auditPayload(AgencyInterface $agency): array
     {
         $payload = parent::auditPayload($agency);
@@ -74,7 +74,7 @@ class AgencyManager extends BaseAgencyManager
 ### 1. Oublier de override `createX()`
 
 Si `createAgency()` n'est pas override, le Manager Aurora fait `new
-\Aurora\…\Agency()` — la classe Aurora, pas `App\Module\Platform\Agency\Entity\Agency`. Doctrine
+\Aurora\…\Agency()` - la classe Aurora, pas `App\Module\Platform\Agency\Entity\Agency`. Doctrine
 persiste la classe Aurora et **les champs custom du client sont perdus
 silencieusement**.
 

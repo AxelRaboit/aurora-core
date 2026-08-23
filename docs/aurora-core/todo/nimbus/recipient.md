@@ -1,4 +1,4 @@
-# FileTransfer — Recipient
+# FileTransfer - Recipient
 
 > Destinataire d'un Transfer en mode email. Chaque recipient reçoit son
 > propre lien personnel `/t/{recipient.token}` et son téléchargement est
@@ -8,15 +8,15 @@
 
 Un `FileTransferRecipient` représente une adresse email à qui le sender
 veut faire parvenir le transfer. Chaque recipient a :
-- son propre `token` (différent du `Transfer.token`) — permet de
+- son propre `token` (différent du `Transfer.token`) - permet de
   distinguer "qui a téléchargé"
-- un `downloadedAt` (datetime nullable) — timestamp du premier download
-- un `lastReminderSentAt` (datetime nullable) — anti-spam pour les
+- un `downloadedAt` (datetime nullable) - timestamp du premier download
+- un `lastReminderSentAt` (datetime nullable) - anti-spam pour les
   reminders
 
 Source Nimbus :
 - `app/Entity/Recipient.php`
-- `app/Manager/RecipientManager.php` (si existe — sinon logique dans TransferManager)
+- `app/Manager/RecipientManager.php` (si existe - sinon logique dans TransferManager)
 - `app/Repository/RecipientRepository.php`
 
 ## Entité `FileTransferRecipient`
@@ -29,12 +29,12 @@ Source Nimbus :
 | `email` | varchar(255) | validation `assert.email` ; case-insensitive uniqueness intra-transfer |
 | `downloadedAt` | datetime_immutable nullable | premier téléchargement ; null = pas encore |
 | `lastReminderSentAt` | datetime_immutable nullable | dernier reminder envoyé (auto ou manuel) |
-| `passwordHash` | text nullable | si on veut un mot de passe per-recipient (V2 ?) — V1 = null |
-| `createdAt` | timestamp | — |
+| `passwordHash` | text nullable | si on veut un mot de passe per-recipient (V2 ?) - V1 = null |
+| `createdAt` | timestamp | - |
 
 Index requis :
 - `(token)` unique
-- `(transfer_id)` — listing
+- `(transfer_id)` - listing
 - `(transfer_id, email)` unique (case-insensitive via `LOWER(email)` index si Postgres)
 
 ## Convention 5-couches

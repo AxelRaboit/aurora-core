@@ -4,16 +4,16 @@
 
 Le bundle Aurora prepend automatiquement les paths côté projet client
 devant ses propres paths sous chaque namespace `@<Namespace>`. Un
-override client met juste son fichier au bon endroit — résolu en
+override client met juste son fichier au bon endroit - résolu en
 priorité.
 
-**Pour `@Core` / `@Shared`** : deux paths reconnus —
+**Pour `@Core` / `@Shared`** : deux paths reconnus -
 1. **Nouveau** : `<client>/src/Core/templates/Core/...` ou
    `<client>/src/Core/templates/Shared/...` (aligné sur la convention core
    depuis le déplacement complet de `templates/` sous `src/`)
 2. **Legacy** : `<client>/templates/Core/...` ou `<client>/templates/Shared/...`
 
-**Pour `@<Module>`** : deux paths reconnus —
+**Pour `@<Module>`** : deux paths reconnus -
 1. **Nouveau** : `<client>/src/Module/<Module>/templates/...`
 2. **Legacy** : `<client>/templates/Module/<Module>/...`
 
@@ -39,17 +39,17 @@ Le template Aurora vit dans
 Pour l'override côté client (deux options équivalentes) :
 
 ```bash
-# Option recommandée — co-localisé
+# Option recommandée - co-localisé
 mkdir -p src/Module/Platform/templates/backend/agencies
 # Créer src/Module/Platform/templates/backend/agencies/index.html.twig
 
-# Option legacy — supportée pour backward compat
+# Option legacy - supportée pour backward compat
 mkdir -p templates/Module/Platform/backend/agencies
 # Créer templates/Module/Platform/backend/agencies/index.html.twig
 ```
 
 Le template client est résolu en priorité dès qu'il existe. Le namespace
-Twig `@Platform/...` reste le même — c'est juste l'ordre des paths qui change.
+Twig `@Platform/...` reste le même - c'est juste l'ordre des paths qui change.
 
 ### Mappings utiles
 
@@ -66,7 +66,7 @@ Twig `@Platform/...` reste le même — c'est juste l'ordre des paths qui change
 | `@Ecommerce` | `vendor/.../src/Module/Ecommerce/templates/` | `src/Module/Ecommerce/templates/` | `templates/Module/Ecommerce/` |
 | `@Ged` | `vendor/.../src/Module/Ged/templates/` | `src/Module/Ged/templates/` | `templates/Module/Ged/` |
 | `@Platform` | `vendor/.../src/Module/Platform/templates/` | `src/Module/Platform/templates/` | `templates/Module/Platform/` |
-| _(null — themes)_ | `vendor/.../src/Core/templates/Frontend/themes/default/` | `templates/Frontend/themes/<slug>/` | — |
+| _(null - themes)_ | `vendor/.../src/Core/templates/Frontend/themes/default/` | `templates/Frontend/themes/<slug>/` | - |
 
 ### Étendre plutôt que remplacer
 
@@ -77,7 +77,7 @@ remplacer entièrement :
 {# src/Module/Platform/templates/backend/agencies/index.html.twig (override client) #}
 {% extends '@Platform/backend/agencies/index.html.twig' %}
 
-{# Pas du tout possible — on étendrait soi-même, infinite loop. #}
+{# Pas du tout possible - on étendrait soi-même, infinite loop. #}
 ```
 
 ❌ Ce pattern ne marche pas (extension récursive). À la place, deux options :

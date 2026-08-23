@@ -1,6 +1,6 @@
 ---
 name: composable_hierarchical_tree
-description: Toute manipulation parent/enfant côté Vue passe par useHierarchicalTree — ne pas dupliquer buildTree / flatten / collectDescendants.
+description: Toute manipulation parent/enfant côté Vue passe par useHierarchicalTree - ne pas dupliquer buildTree / flatten / collectDescendants.
 metadata:
   type: feedback
 ---
@@ -45,5 +45,5 @@ silencieusement. La factorisation impose un comportement unique et testable.
    l'ajouter au composable partagé (avec tests), pas en local.
 3. Lié côté backend : [[convention_collection_on_concrete]] (les `Collection`
    parent↔children vivent sur la classe concrete).
-4. Piège connexe : [[pitfall_nested_drag_drop_clone]] — ne pas shallow-cloner
+4. Piège connexe : [[pitfall_nested_drag_drop_clone]] - ne pas shallow-cloner
    `node.children` dans un node récursif VueDraggable.

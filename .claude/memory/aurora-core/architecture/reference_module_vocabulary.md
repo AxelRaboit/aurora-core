@@ -29,7 +29,7 @@ Vocabulaire de référence pour nommer les éléments de l'architecture modulair
   `<X>Backend`) ; la **permission** gate l'accès ; le **NavItem** est l'entrée
   visible ; le **sous-domaine** est le code ; l'**entité** est la donnée.
 
-## Exemple canonique — Ecommerce
+## Exemple canonique - Ecommerce
 
 ```
 Section "E-commerce"            (= module Ecommerce, NavSection 'ecommerce')
@@ -44,8 +44,8 @@ Section "E-commerce"            (= module Ecommerce, NavSection 'ecommerce')
 Donc : « E-commerce » = **module** (et sa **section**) ; « Boutique » = un
 **NavItem** rattaché au **sous-module** Listings, dont le code est le
 **sous-domaine** `Listing/` (entité `Listing`). Boutique/Catégories/Tags = 3
-NavItems mais 1 seul sous-module (Listings) — Catégories/Tags n'ont pas de
+NavItems mais 1 seul sous-module (Listings) - Catégories/Tags n'ont pas de
 toggle propre.
 
 Contre-exemple « 1 sous-module = 1 NavItem » : Tools (ToolsVault, ToolsPasswordGenerator)
-et Notes (NotesMarkdown/Block/PostIt) — cf. [[project_url_namespacing_backlog]].
+et Notes (NotesMarkdown/Block/PostIt) - cf. [[project_url_namespacing_backlog]].

@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 /**
  * End-to-end test for optimistic locking conflict flow.
  *
- * This test is a scaffold — it assumes a seeded admin user (admin@aurora.app / password)
+ * This test is a scaffold - it assumes a seeded admin user (admin@aurora.app / password)
  * and an existing post. Two browser contexts simulate two concurrent admins.
  *
  * Skipped by default; enable with E2E_FULL=1 once fixtures are loaded against the E2E target.
@@ -51,7 +51,7 @@ test.describe("Optimistic locking conflict", () => {
         await pageB.keyboard.press("Control+S");
         await expect(pageB.locator("text=/mis à jour|updated/i")).toBeVisible();
 
-        // A tries to save — should see the conflict banner
+        // A tries to save - should see the conflict banner
         await pageA.keyboard.press("Control+S");
         await expect(
             pageA.locator("text=/modifié par un autre|modified by another/i"),

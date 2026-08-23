@@ -14,7 +14,7 @@ use Aurora\Module\Editorial\Form\Enum\ConditionLogicEnum;
  * The browser hides a field whose conditions are unmet; the server has to
  * reach the same conclusion, and it is the server's answer that counts. The
  * reference had no server-side equivalent at all, so a required field hidden
- * by its own conditions was still validated as required — meaning any visitor
+ * by its own conditions was still validated as required - meaning any visitor
  * who did not meet the condition could never submit the form. Conditions are
  * a headline feature of the builder, so that was every form using them.
  */
@@ -41,7 +41,7 @@ final readonly class FormConditionEvaluator
      * Answers arrive keyed by field id. The keys are `array-key`, not
      * `string`: they come from JSON as `"3"`, and PHP turns a numeric string
      * key into the integer 3 the moment it lands in an array. Claiming
-     * `array<string, …>` describes something PHP cannot hold — and reading
+     * `array<string, …>` describes something PHP cannot hold - and reading
      * such an array by a string key is a lookup that can only ever miss.
      *
      * @param array<array-key, mixed> $answers

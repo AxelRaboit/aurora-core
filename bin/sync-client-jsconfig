@@ -23,20 +23,20 @@ const AURORA_VENDOR = "vendor/axelraboit/aurora";
 //
 // These MUST mirror aurora-core's aliases.js + vite.config.js, which are what
 // actually resolve at build time. A jsconfig that disagrees breaks nothing at
-// runtime — only editor navigation and autocomplete — which is exactly how all
+// runtime - only editor navigation and autocomplete - which is exactly how all
 // four of these drifted unnoticed: `src/Core/Frontend/` holds PHP, not a single
 // .js or .vue file.
 const paths = {
     "@/*":       [`./${AURORA_VENDOR}/src/Core/assets/*`],
     "@core/*":   [`./${AURORA_VENDOR}/src/Core/assets/*`],
     "@shared/*": [`./${AURORA_VENDOR}/src/Core/assets/shared/*`],
-    // vite.config.js maps `@client` to CLIENT_DIR — the client project root —
+    // vite.config.js maps `@client` to CLIENT_DIR - the client project root -
     // and app.js globs `@client/src/Module/**` and `@client/src/Overrides/**`.
     // There is no `assets/client/` directory in a 0.5+ project.
     "@client/*": ["./*"],
 };
 
-// Dynamic aurora module aliases — one per src/Module/<Name>/assets/ in aurora
+// Dynamic aurora module aliases - one per src/Module/<Name>/assets/ in aurora
 const auroraModulesDir = join(AURORA_DIR, "src", "Module");
 if (existsSync(auroraModulesDir)) {
     for (const entry of readdirSync(auroraModulesDir, { withFileTypes: true })) {
@@ -49,7 +49,7 @@ if (existsSync(auroraModulesDir)) {
     }
 }
 
-// Dynamic client module aliases — one per <client>/src/Module/<Name>/assets/.
+// Dynamic client module aliases - one per <client>/src/Module/<Name>/assets/.
 // Client aliases override aurora aliases with the same name.
 const clientSrcModulesDir = join(CLIENT_DIR, "src", "Module");
 if (existsSync(clientSrcModulesDir)) {

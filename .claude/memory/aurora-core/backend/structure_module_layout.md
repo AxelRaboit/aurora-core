@@ -33,7 +33,7 @@ src/Module/<Module>/<Feature>/                  ← ex: src/Module/Editorial/Pos
   (`src/Controller/`, `src/Manager/`, …).
 - **Module isolé** : on peut ajouter / supprimer un module entier en
   ajoutant / supprimant un dossier `src/Module/<Module>/`.
-- **Découverte** : navigation IDE simple — chercher `Post` ouvre
+- **Découverte** : navigation IDE simple - chercher `Post` ouvre
   `src/Module/Editorial/Post/`.
 
 ## Comment l'appliquer

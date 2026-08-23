@@ -12,8 +12,8 @@ use PHPUnit\Framework\TestCase;
  *
  * Worth its own test because the failure it guards against is silent. The body
  * moved into the grid when the grid became the only one; an extractor still
- * reading `blocks` alone goes on returning a string — the pre-migration one,
- * since that column is deliberately kept — so search keeps answering, with
+ * reading `blocks` alone goes on returning a string - the pre-migration one,
+ * since that column is deliberately kept - so search keeps answering, with
  * answers a version out of date. Nothing throws, nothing is red, and the only
  * symptom is a page nobody can find.
  */

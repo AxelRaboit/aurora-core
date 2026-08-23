@@ -1,4 +1,4 @@
-# Aurora-shared — Documentation transversale
+# Aurora-shared - Documentation transversale
 
 Documents qui s'appliquent **aussi bien** à un développeur travaillant
 dans aurora-core qu'à un développeur travaillant dans un projet
@@ -21,7 +21,7 @@ symlink que `aurora-core/` et `aurora-client/`.
 
 | Fichier | Contenu |
 |---|---|
-| [form_validation.md](form_validation.md) | DTO + `PayloadValidator` côté PHP + `useForm` côté Vue — le contrat entre les trois |
+| [form_validation.md](form_validation.md) | DTO + `PayloadValidator` côté PHP + `useForm` côté Vue - le contrat entre les trois |
 | [convention_seo_head.md](convention_seo_head.md) | Macros / blocs Twig pour `<head>` SEO (Open Graph, canonical, JSON-LD) |
 | [translations.md](translations.md) | Workflow i18n : extraction, scopes, override client |
 
@@ -36,7 +36,7 @@ symlink que `aurora-core/` et `aurora-client/`.
 
 | Fichier | Contenu |
 |---|---|
-| [scheduler.md](scheduler.md) | Symfony Scheduler — ajouter des tâches périodiques, conventions de nommage, worker systemd |
+| [scheduler.md](scheduler.md) | Symfony Scheduler - ajouter des tâches périodiques, conventions de nommage, worker systemd |
 
 ---
 

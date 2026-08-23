@@ -11,7 +11,7 @@ const props = defineProps({
 defineEmits(["toggle"]);
 
 // A node is effectively masked if it's in the user's disabled list OR any
-// ancestor is — cascade is enforced server-side, but we reflect it visually
+// ancestor is - cascade is enforced server-side, but we reflect it visually
 // so admins immediately see why a child is greyed out.
 function isMasked(key) {
     return props.parentMasked || props.disabledKeys.includes(key);

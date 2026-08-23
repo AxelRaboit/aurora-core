@@ -11,7 +11,7 @@ import { ref, computed, onBeforeUnmount, nextTick } from "vue";
  *   </AppTooltip>
  *
  * The default slot is the trigger element. The `content` slot can be used to
- * render fully custom HTML inside the tooltip — when provided it replaces the
+ * render fully custom HTML inside the tooltip - when provided it replaces the
  * title/description rendering.
  */
 const props = defineProps({
@@ -23,7 +23,7 @@ const props = defineProps({
         default: "right",
         validator: (value) => ["right", "left", "top", "bottom"].includes(value),
     },
-    /** Show delay in ms — prevents flicker when sweeping over multiple items. */
+    /** Show delay in ms - prevents flicker when sweeping over multiple items. */
     delay: { type: Number, default: 200 },
     /** Disable entirely (e.g. when sidemenu is expanded and labels are already visible). */
     disabled: { type: Boolean, default: false },
@@ -65,7 +65,7 @@ function hide() {
 
 function position() {
     if (!triggerEl.value || !tooltipEl.value) return;
-    // The wrapper uses `display: contents` so it has no layout box of its own —
+    // The wrapper uses `display: contents` so it has no layout box of its own -
     // measure the first real child element instead (the actual nav button/link).
     const anchor = triggerEl.value.firstElementChild ?? triggerEl.value;
     const triggerRect = anchor.getBoundingClientRect();
@@ -126,13 +126,13 @@ onBeforeUnmount(() => clearShowTimer());
 <template>
     <!--
         `display: contents` so wrapping a row in a tooltip does not add a box to
-        its parent's layout — the trigger disappears and the slot's own element
+        its parent's layout - the trigger disappears and the slot's own element
         takes its place.
 
         The catch, for anyone laying out a list of these: **margins on this div
         do nothing**, because it generates no box. A parent using `space-y-*`
         silently gets no gaps at all, which is what happened to the whole side
-        menu. Lay these out with `gap` instead — a `display: contents` child's
+        menu. Lay these out with `gap` instead - a `display: contents` child's
         own children are promoted to flex items and gaps do reach them.
     -->
     <div

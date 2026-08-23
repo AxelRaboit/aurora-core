@@ -12,7 +12,7 @@ use function is_int;
 use function is_string;
 
 /**
- * Phase 3 of the Media → GED merge — remap the JSONB-embedded `mediaId`
+ * Phase 3 of the Media → GED merge - remap the JSONB-embedded `mediaId`
  * references in EditorJS blocks (`core_post_translations.blocks` and
  * `core_block_notes.blocks`) to point at Document IDs instead.
  *
@@ -35,7 +35,7 @@ final class Version20260530080934 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Phase 3: JSONB content blocks — remap embedded mediaId → Document id';
+        return 'Phase 3: JSONB content blocks - remap embedded mediaId → Document id';
     }
 
     public function up(Schema $schema): void
@@ -52,7 +52,7 @@ final class Version20260530080934 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        // Forward-only — content migration is not safely reversible. The
+        // Forward-only - content migration is not safely reversible. The
         // original `core_media` rows are still intact until Phase 5 drops
         // them, so a manual roll-back script is possible if needed.
     }

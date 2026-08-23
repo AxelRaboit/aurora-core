@@ -33,8 +33,8 @@ use Symfony\Component\Routing\Attribute\Route;
 /**
  * The public pages.
  *
- * The URL shapes overlap on purpose — a two-segment path is both a post
- * under its type and a term under its taxonomy — and routing cannot tell
+ * The URL shapes overlap on purpose - a two-segment path is both a post
+ * under its type and a term under its taxonomy - and routing cannot tell
  * them apart without asking the database. Priorities decide which is tried
  * first; see post() for how the other stays reachable.
  */
@@ -61,7 +61,7 @@ class PageController extends AbstractController
         $request->setLocale($locale);
 
         // A site can nominate a post as its front page. When it is missing,
-        // unpublished or untranslated here, the listing is the safe answer —
+        // unpublished or untranslated here, the listing is the safe answer -
         // a blank home page would be the alternative.
         $homepage = $this->homepagePost($locale);
         if ($homepage instanceof PostInterface) {
@@ -114,7 +114,7 @@ class PageController extends AbstractController
 
             // `/{locale}/{a}/{b}` is a post under a type and equally a term
             // under a taxonomy. This route wins on priority, so the term
-            // route was simply never reached — every taxonomy page answered
+            // route was simply never reached - every taxonomy page answered
             // 404. Falling through in code keeps both readable, and a post
             // still wins a slug collision, which is the right way round: it
             // is the more specific page.
@@ -215,7 +215,7 @@ class PageController extends AbstractController
 
     /**
      * A renamed post keeps answering on its old address, permanently
-     * redirected — otherwise every link ever shared to it breaks.
+     * redirected - otherwise every link ever shared to it breaks.
      */
     private function redirectFromSlugHistory(string $locale, string $slug): ?RedirectResponse
     {

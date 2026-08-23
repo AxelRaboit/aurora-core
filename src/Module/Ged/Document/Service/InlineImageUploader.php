@@ -22,14 +22,14 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  *
  * **Published, not draft.** The picker lists published documents only. An
  * inline upload left as a draft would show up in the field that created it,
- * render on the public page — and be unfindable in "choose an image" ever
+ * render on the public page - and be unfindable in "choose an image" ever
  * after. An asset nobody can reach again is the disorder this is meant to
  * avoid, not a safe default.
  *
  * **The dedicated category**, created on the first upload if it is not there
  * yet. A project's categories describe its filing; a banner image belongs to
  * none of them, and an uncategorised document is exactly the litter this
- * exists to prevent — so the category is resolved rather than looked up, and
+ * exists to prevent - so the category is resolved rather than looked up, and
  * an install that skipped the bootstrap still files correctly.
  */
 final readonly class InlineImageUploader

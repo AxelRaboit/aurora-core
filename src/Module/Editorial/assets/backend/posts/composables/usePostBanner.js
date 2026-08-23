@@ -7,17 +7,17 @@ import { useI18n } from "vue-i18n";
  * Holds no state of its own, and reads from two places on purpose: the
  * **layout** lives on the post and is shared by every language, the **texts**
  * live in the current translation. Switching locale therefore swaps the words
- * and leaves the design standing — which is the whole point of the split, and
+ * and leaves the design standing - which is the whole point of the split, and
  * it costs nothing here because `texts` is a computed the caller re-points.
  *
- * The banner is a list an author builds — add a text, add an image, reorder,
+ * The banner is a list an author builds - add a text, add an image, reorder,
  * remove. Arrangements like "text then image" or "two images" are what that
  * list produces, not options this file enumerates.
  *
  * Every field is exposed as a writable computed rather than being bound
  * straight in the template. Two reasons, and the second is the real one: the
  * panel stays a pure template, and `v-model` on a prop's property is a
- * mutation ESLint rightly refuses — the write belongs here, next to the
+ * mutation ESLint rightly refuses - the write belongs here, next to the
  * mapping it goes through.
  */
 const COLUMNS = 48;
@@ -140,7 +140,7 @@ export function usePostBanner(layout, texts) {
         const item = newItem(type);
         banner.value.items.push(item);
         // Only this language's entry. The others gain theirs when the server
-        // normalises their texts against the layout — an empty string is what
+        // normalises their texts against the layout - an empty string is what
         // an untranslated item means, and inventing entries here would just be
         // guessing at state the editor cannot see.
         texts.value.items[item.id] = newItemText();
@@ -157,7 +157,7 @@ export function usePostBanner(layout, texts) {
     /**
      * Up/down rather than drag: the project already reorders menu items, form
      * fields and post-type fields this way, and a banner holds at most six
-     * entries — not enough to be worth a second interaction model.
+     * entries - not enough to be worth a second interaction model.
      */
     function moveItem(index, offset) {
         const target = index + offset;
@@ -249,13 +249,13 @@ export function usePostBanner(layout, texts) {
     /**
      * A live swatch of the fill being composed. Cheap to derive here, and it
      * spares an author from saving just to find out which way the gradient
-     * runs — the panel has no preview of the banner itself yet.
+     * runs - the panel has no preview of the banner itself yet.
      */
     /**
      * Why the fill will not render, when it will not.
      *
-     * `fillPreviewStyle` already knows — it answers null for a solid with no
-     * colour and for a gradient missing a stop — but a 64×36 swatch that turns
+     * `fillPreviewStyle` already knows - it answers null for a solid with no
+     * colour and for a gradient missing a stop - but a 64×36 swatch that turns
      * blank is not an explanation. The renderer refuses an incomplete fill on
      * purpose, so that nobody's half-finished gradient is guessed at; the cost
      * is a header that draws nothing, and white text on a white panel reads as
@@ -337,14 +337,14 @@ export function usePostBanner(layout, texts) {
                 );
 
             itemFieldsCache.set(index, {
-                // Per language — the copy.
+                // Per language - the copy.
                 title: localised("title"),
                 description: localised("description"),
                 alt: localised("alt"),
                 label: localised("label"),
                 // A link is copy too: a localised page has a localised address.
                 url: localised("url"),
-                // Shared — the design.
+                // Shared - the design.
                 titleColor: scalar("titleColor"),
                 descriptionColor: scalar("descriptionColor"),
                 align: scalar("align"),

@@ -24,7 +24,7 @@ pour la collaboration.
 
 - ❌ Anglicismes francisés inutiles ("review-er", "merge-er")
 - ❌ Surutilisation des emojis (sauf ✅/❌/⚠️ pour les états)
-- ❌ Tournures "j'ai fait X" trop répétitives — varier (je viens de, c'est
+- ❌ Tournures "j'ai fait X" trop répétitives - varier (je viens de, c'est
   fait, terminé, etc.)
 
 ### Style à privilégier

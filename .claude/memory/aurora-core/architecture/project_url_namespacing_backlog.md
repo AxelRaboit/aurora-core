@@ -1,4 +1,4 @@
-# Namespacing des routes backend par module — décision + backlog
+# Namespacing des routes backend par module - décision + backlog
 
 ## Règle
 
@@ -27,7 +27,7 @@ Méthode rodée sur Editorial (commit `17890cb2`) :
 1. Sur chaque controller backend du module : changer le `#[Route]` de **classe**
    (path + `name:`). Les routes de méthode héritent du préfixe.
 2. Remplacer toutes les références de nom de route (`path()`, `redirectToRoute`,
-   `generateUrl`, nav `getNavSections`) — PHP + Twig.
+   `generateUrl`, nav `getNavSections`) - PHP + Twig.
 3. URLs **hardcodées** en JS (rares) : remplacer en ancrant sur un délimiteur
    de chaîne (`'`, `"`, backtick) **avant** `/backend/` pour ne PAS casser les
    alias d'import Vite `@<module>/backend/…` (qui contiennent aussi `/backend/`).
@@ -36,7 +36,7 @@ Méthode rodée sur Editorial (commit `17890cb2`) :
 5. `cache:clear` + `debug:router` (0 ancien nom) + `npm run build` + `phpunit` +
    `make fix`. Commit atomique par module.
 
-## Backlog (état) — ✅ TERMINÉ (2026-05)
+## Backlog (état) - ✅ TERMINÉ (2026-05)
 
 - ✅ **Editorial** : posts, post-types, forms, comments, taxonomies, menus, sitemap.
 - ✅ **Photo** : galleries → `/backend/photo/galleries`.
@@ -57,7 +57,7 @@ Méthode rodée sur Editorial (commit `17890cb2`) :
 - **`backend_dashboard` = `/backend`** : c'est le home backend ; le namespacer
   (`/backend/general/dashboard`) laisserait la racine sans page. Laissé tel quel.
 
-### Module Tools (Outils) — Vault + PasswordGenerator
+### Module Tools (Outils) - Vault + PasswordGenerator
 
 "Outils" est un **module conteneur** (`src/Module/Tools/`, `Aurora\Module\Tools`)
 qui regroupe des outils utilitaires **indépendants**, exactement comme Notes
@@ -75,7 +75,7 @@ au niveau module, alias Vite `@tools`.
   group dashboard) annulée comme sur-ingénierie ; refait proprement à la Notes.
   Cf. [[feedback_prefer_existing_pattern]].
 
-## Suites structurelles — ✅ FAIT (2026-05)
+## Suites structurelles - ✅ FAIT (2026-05)
 
 - ✅ **Dette nav-trads** : `backend.nav.*` (sections + items Platform/General/
   Configuration/Media + chrome sidemenu) déplacé de `Editorial/Menu/translations/`

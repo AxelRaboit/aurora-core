@@ -8,7 +8,7 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 
 /**
  * Default provider for aurora-core's `ModuleParameterEnum` (module
- * toggle settings — modules_<x>_backend/_frontend keys driving the
+ * toggle settings - modules_<x>_backend/_frontend keys driving the
  * /dev/dashboard/modules admin). Auto-discovered by the
  * `aurora:application-parameter` command via the tagged iterator.
  */

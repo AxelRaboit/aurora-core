@@ -18,7 +18,7 @@ vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
 /**
  * The account block at the foot of the menu.
  *
- * It folds like a nav section, and the logout form is inside it — so the header
+ * It folds like a nav section, and the logout form is inside it - so the header
  * that unfolds it has to be on screen whenever the block is, or a folded block
  * is a locked door. It used to have a second shape for the icon rail where the
  * header was hidden and the rows shown regardless; the menu no longer has a
@@ -51,8 +51,8 @@ describe("the account block", () => {
     });
 
     /**
-     * The menu is rendered twice in one file — an `<aside>` for desktop and a
-     * drawer for mobile — and the drawer's copy was left unfoldable when the
+     * The menu is rendered twice in one file - an `<aside>` for desktop and a
+     * drawer for mobile - and the drawer's copy was left unfoldable when the
      * desktop one gained its header. Both now read the same store, so folding
      * in either place is remembered in both, and neither can drift.
      */
@@ -85,7 +85,7 @@ describe("the hidden menu", () => {
     });
 
     // Read from the class the server renders on first paint, so it is right
-    // before any script has run — the menu no longer starts wide and snaps shut.
+    // before any script has run - the menu no longer starts wide and snaps shut.
     it("knows it is hidden before anything runs", () => {
         document.documentElement.classList.add("sidemenu-collapsed");
 
@@ -95,12 +95,12 @@ describe("the hidden menu", () => {
     /**
      * The menu and the button that toggles it are two Vue apps that cannot see
      * each other's refs. The class on `<html>` is the shared truth, and this
-     * event is how each learns it changed — without it the header's icon would
+     * event is how each learns it changed - without it the header's icon would
      * keep saying "open" over a folded menu.
      */
     it("tells the other mount when it changes", () => {
         // Mounted rather than called bare: the listener is registered in
-        // `onMounted`, which is where it belongs — the same shape
+        // `onMounted`, which is where it belongs - the same shape
         // `useSidemenuLiveColors` uses for the other cross-mount value. A test
         // that called the composable directly would be testing a way it is
         // never used, and would pass against a version that never listens.
@@ -152,7 +152,7 @@ describe("the hidden menu", () => {
      * The fold and the hide are independent, and have to stay that way: the
      * template used to read `collapsed || isAccountExpanded()`, because a rail
      * hid the header that unfolds the block. Nothing hides that header now, so
-     * `expanded` alone decides the rows — and hiding the menu must not quietly
+     * `expanded` alone decides the rows - and hiding the menu must not quietly
      * unfold what the user folded.
      */
     it("leaves the account fold alone", () => {

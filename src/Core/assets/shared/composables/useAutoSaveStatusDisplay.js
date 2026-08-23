@@ -6,7 +6,7 @@ import { Check, Loader2, AlertCircle } from "lucide-vue-next";
  * Maps a `useAutoSave` status ref to a presentation object the template
  * can spread directly into an icon + label badge.
  *
- * Pairs with `src/Core/assets/shared/composables/useAutoSave.js` — keeps the
+ * Pairs with `src/Core/assets/shared/composables/useAutoSave.js` - keeps the
  * mapping out of every consumer SFC.
  *
  * Returned shape per state:

@@ -16,7 +16,7 @@ use Aurora\Core\Module\Toggle\ModuleToggle;
  * Aurora-core's own modules implement this and expose their
  * `ModuleParameterEnum` cases as toggles. Aurora-client modules implement
  * the same interface to plug their custom modules (e.g. "tracking",
- * "marketing-automation") into the same machinery — no patch on core.
+ * "marketing-automation") into the same machinery - no patch on core.
  *
  * Module classes that do not need their own toggles can simply NOT implement
  * this interface; the registry will skip them.

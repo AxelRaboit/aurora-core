@@ -14,7 +14,7 @@ interface PostManagerInterface
 
     public function update(PostInterface $post, PostInputInterface $input): void;
 
-    /** Soft delete — the post goes to the trash and can come back. */
+    /** Soft delete - the post goes to the trash and can come back. */
     public function delete(PostInterface $post): void;
 
     public function restore(PostInterface $post): void;

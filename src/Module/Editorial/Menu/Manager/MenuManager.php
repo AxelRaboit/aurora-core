@@ -242,8 +242,8 @@ class MenuManager implements MenuManagerInterface
 
     /**
      * Last among its siblings. The new entry is already in the collection by
-     * now — it had to be, for `resolveParent()` to know which menu it belongs
-     * to — so it is skipped here rather than counted as its own sibling.
+     * now - it had to be, for `resolveParent()` to know which menu it belongs
+     * to - so it is skipped here rather than counted as its own sibling.
      */
     private function nextPositionFor(MenuInterface $menu, MenuItemInterface $item): int
     {

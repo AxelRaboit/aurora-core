@@ -24,7 +24,7 @@ class FormInputFactory implements FormInputFactoryInterface
     }
 
     /**
-     * The slug stays null when left blank — the Manager derives it from the
+     * The slug stays null when left blank - the Manager derives it from the
      * title, which is where the slugger lives.
      *
      * @return array<string, array{title: string, slug: ?string, description: ?string}>

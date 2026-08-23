@@ -1,5 +1,5 @@
 /**
- * Returns 1–2 uppercase letters representing a person.
+ * Returns 1-2 uppercase letters representing a person.
  *
  * Priority:
  *  - first + last initial of the full name

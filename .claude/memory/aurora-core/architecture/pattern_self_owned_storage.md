@@ -1,6 +1,6 @@
 ---
 name: pattern-self-owned-storage
-description: Convention pour les modules qui stockent leurs propres fichiers — 5 colonnes standard, UploadUrlGenerator, var/uploads/<module>/Y/m/, jamais de FK vers Media library.
+description: Convention pour les modules qui stockent leurs propres fichiers - 5 colonnes standard, UploadUrlGenerator, var/uploads/<module>/Y/m/, jamais de FK vers Media library.
 metadata:
   type: project
 ---
@@ -10,7 +10,7 @@ metadata:
 Tout nouveau module aurora-core (ou client) qui doit stocker des fichiers
 **internes au domaine** (PDFs métier générés, exports, archives
 temporaires, OCR raw uploads…) **possède son propre stockage** sous
-`var/uploads/<module>/Y/m/<slug>-<uniq>.<ext>` — **jamais** une FK vers
+`var/uploads/<module>/Y/m/<slug>-<uniq>.<ext>` - **jamais** une FK vers
 une entité partagée.
 
 **Why** : un module métier qui FK'ait une entité-fichier partagée se
@@ -19,7 +19,7 @@ versioning), ce qui empêchait les politiques spécifiques d'évoluer
 indépendamment. Le risque historique venait du module `Media` (supprimé
 en 2026-05-30 lors de la fusion Media → GED) ; depuis, **les assets de
 contenu utilisateur (images, documents administratifs, etc.) FK'ent vers
-`Aurora\Module\Ged\Document\Entity\Document`** — c'est l'entité-fichier
+`Aurora\Module\Ged\Document\Entity\Document`** - c'est l'entité-fichier
 canonique d'Aurora, qui a *justement* été conçue pour porter ce lifecycle
 partagé. La règle de self-owned ne concerne donc que les fichiers
 *internes* dont aucun autre module ne doit avoir vue.
@@ -28,7 +28,7 @@ partagé. La règle de self-owned ne concerne donc que les fichiers
 documenté ci-dessous. Exemples vivants : `WeldingPdfDocument`,
 `Aurora\Module\Ged\Document` (depuis la refacto du 2026-05-24).
 
-## Schéma standard — 5 colonnes sur l'entité
+## Schéma standard - 5 colonnes sur l'entité
 
 ```php
 abstract class AbstractMyEntity implements MyEntityInterface
@@ -58,14 +58,14 @@ abstract class AbstractMyEntity implements MyEntityInterface
 ```
 
 Sur des entités où le fichier est **obligatoire** (ex: `DocumentVersion`),
-les colonnes sont en NOT NULL — sinon `nullable: true`.
+les colonnes sont en NOT NULL - sinon `nullable: true`.
 
 ## Storage sur disque
 
 - **Path** : `var/uploads/<module>/Y/m/<slug>-<uniq>.<ext>`
 - **Module slug** : ajouter un case dans
   `Aurora\Core\Storage\Enum\StorageAreaEnum` (infra de stockage transverse,
-  vit dans Core — pas dans un module feature). Cases existants : `Media`,
+  vit dans Core - pas dans un module feature). Cases existants : `Media`,
   `Ocr`, `Photo`, `Users`, `Ged`.
 - **Upload** : créer un petit service `<Module>Uploader` qui slugifie le
   nom, génère un uniqid, déplace le fichier via `Filesystem`, retourne les
@@ -75,7 +75,7 @@ les colonnes sont en NOT NULL — sinon `nullable: true`.
   `UploadedFile`, appelle le uploader, renvoie les 5 champs en JSON. Le
   form Vue les stocke dans le state et les envoie avec le submit.
 
-## URLs publiques — toujours via UploadUrlGenerator
+## URLs publiques - toujours via UploadUrlGenerator
 
 ```php
 use Aurora\Core\Storage\Service\UploadUrlGenerator;
@@ -97,7 +97,7 @@ class MyEntitySerializer
 ```
 
 **Jamais** `'/uploads/'.$path` en hardcode. Le route name `uploads_serve`
-peut changer demain — `UploadUrlGenerator` encapsule cette dépendance.
+peut changer demain - `UploadUrlGenerator` encapsule cette dépendance.
 
 Pour les URLs absolues (emails, RSS) : `publicUrlAbsolute()`.
 
@@ -105,7 +105,7 @@ Pour les URLs absolues (emails, RSS) : `publicUrlAbsolute()`.
 
 Si une entité a besoin de **référencer un fichier appartenant à un autre
 module** (ex: `WeldingPdfTemplate` référence un `Document` GED), ne PAS
-copier le fichier — stocker une FK vers l'entité propriétaire :
+copier le fichier - stocker une FK vers l'entité propriétaire :
 
 ```php
 #[ORM\ManyToOne(targetEntity: DocumentInterface::class)]
@@ -122,7 +122,7 @@ dans la refacto Welding → GED.
 - `BillingInvoice.document` + `BillingOcrJob.document` (mêmes Document
   partagé entre OcrJob et Invoice produit)
 - `ProjectTask.attachments` (`ManyToMany<DocumentInterface>` via
-  `core_project_task_documents` — refacto 2026-05-24, commit `ba6b55c5`)
+  `core_project_task_documents` - refacto 2026-05-24, commit `ba6b55c5`)
 
 **Règle d'arbitrage** : un module qui veut "attacher un fichier" à une
 entité métier doit FK-référencer un GED `Document` (= ce pattern), pas
@@ -135,15 +135,15 @@ est exposé via le registre `DocumentUsageProviderInterface` (tag
 `aurora.document_usage_provider`, agrégé par `DocumentUsageService`, endpoint
 `GET /backend/ged/documents/{id}/usage`, affiché dans le panneau détail).
 **Tout nouveau consommateur W3 doit fournir son provider** (un par module qui
-FK-référence un Document) — sinon ses usages n'apparaîtront pas. Core en a 3 :
+FK-référence un Document) - sinon ses usages n'apparaîtront pas. Core en a 3 :
 `BillingInvoiceDocumentUsageProvider`, `BillingOcrDocumentUsageProvider`,
 `ProjectDocumentUsageProvider` ; Welding ajoute le sien côté client. C'est le
 miroir exact de `MediaUsageProviderInterface`, mais en **query builder Doctrine**
-(FK typées, pas de scan de contenu — contrairement à Media qui scanne le JSONB).
+(FK typées, pas de scan de contenu - contrairement à Media qui scanne le JSONB).
 
-## Re-traiter une image self-owned (crop/rotate/…) — toujours vers un NOUVEAU path
+## Re-traiter une image self-owned (crop/rotate/…) - toujours vers un NOUVEAU path
 
-**Piège** : `recordVersion()` ne duplique PAS le fichier sur disque — la
+**Piège** : `recordVersion()` ne duplique PAS le fichier sur disque - la
 ligne `DocumentVersion` pointe sur le **même** `filePath` que le document.
 Donc un crop/rotate **en place** (overwrite du fichier) écraserait aussi
 les bytes de la version précédente → original perdu.
@@ -166,7 +166,7 @@ Implémentation de référence (2026-05-25, commit `2616e07e`) :
 > **Media vs GED** : les deux cropent **vers une nouvelle version** (nouveau
 > fichier `destAbs !== sourceAbs`, original gardé via la ligne de version
 > précédente). Différence : Media régénère ses **variants**
-> (thumbnail/medium/large) sur le fichier courant — les versions ne stockent
+> (thumbnail/medium/large) sur le fichier courant - les versions ne stockent
 > que le fichier brut (pas de variants par version) ; GED n'a pas de variants.
 > Même `ImageCropper`. Entités d'historique : `DocumentVersion`
 > (`core_ged_document_versions`) et `MediaVersion` (`core_media_versions`),
@@ -191,7 +191,7 @@ Pattern de migration testé :
 
 1. DROP la FK + DROP l'index
 2. `UPDATE table SET file_id = NULL` (les anciennes valeurs pointaient
-   vers Media — invalides après le swap de cible)
+   vers Media - invalides après le swap de cible)
 3. Si on switch vers une autre FK : RENAME `file_id` → `<new>_id` + ADD
    la nouvelle FK
 4. Si on switch vers self-owned : DROP `file_id`, ADD les 5 colonnes
@@ -222,6 +222,6 @@ assertions de URL shape restent simples et stables.
 
 ## Voir aussi
 
-- [[pattern-core-submodules-split]] — chaque module owne son domaine
-- [[decision-4-hard-rules]] — pas d'import `Core → Module`
+- [[pattern-core-submodules-split]] - chaque module owne son domaine
+- [[decision-4-hard-rules]] - pas d'import `Core → Module`
 - Migration de référence : `aurora-core 2026-05-24` (commit `f66ffaf1`)

@@ -35,7 +35,7 @@ backend:
     testing: Testing…
     test_success: Connection successful.
     test_failure: Connection failed.
-    test_title: 'Connection test — {name}'
+    test_title: 'Connection test : {name}'
     retry: Retry
     last_tested: Last tested
     never: Never tested

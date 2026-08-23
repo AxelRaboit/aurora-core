@@ -143,7 +143,7 @@ class PostInput implements PostInputInterface
     }
 
     /**
-     * A scheduled post needs a date, and one in the future — otherwise the
+     * A scheduled post needs a date, and one in the future - otherwise the
      * publisher would either never fire or fire on its next tick, which is
      * not what "schedule" means to the editor who set it.
      */

@@ -6,7 +6,7 @@ namespace Aurora\Core\Module\Toggle;
 
 /**
  * Declarative description of a single module toggle (one row in core_settings,
- * one entry of `ModuleParameterEnum` for core modules — or any custom key
+ * one entry of `ModuleParameterEnum` for core modules - or any custom key
  * declared by a client module).
  *
  * Each module describes its own toggles via {@see ModuleToggleProviderInterface}.
@@ -26,7 +26,7 @@ final readonly class ModuleToggle
         /** Translation key for the longer description (tooltip, settings page). */
         public string $descriptionKey,
         /**
-         * Optional parent toggle key — when the parent is OFF (globally or
+         * Optional parent toggle key - when the parent is OFF (globally or
          * per-user), this child is treated as OFF too. Matches the existing
          * `ModuleParameterEnum::getCascadeRequires()` semantics.
          */
@@ -39,7 +39,7 @@ final readonly class ModuleToggle
         public ?string $moduleId = null,
         /**
          * Optional structural parent for DISPLAY grouping in the modules
-         * dashboard — the module's top-level toggle this sub-toggle nests under
+         * dashboard - the module's top-level toggle this sub-toggle nests under
          * (vs {@see $parentKey} which is the cascade dependency, possibly a
          * sibling). Null for top-level toggles. Matches
          * `ModuleParameterEnum::getParentCase()` semantics.

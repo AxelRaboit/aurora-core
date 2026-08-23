@@ -5,10 +5,10 @@ import { onBeforeUnmount, onMounted, ref, unref, watch } from "vue";
  *
  * On open: pushes a history entry. On Back: popstate fires and we call onClose.
  * Programmatic close (X, Escape, backdrop, parent state change) flips `show`
- * which triggers the watch — the watch cleans up the history entry by calling
+ * which triggers the watch - the watch cleans up the history entry by calling
  * `history.back()` itself.
  *
- * Stacked overlays work naturally — each instance pushes its own entry and the
+ * Stacked overlays work naturally - each instance pushes its own entry and the
  * browser pops them LIFO.
  *
  * Chained close+open (modal A closes while modal B opens in the same tick) is

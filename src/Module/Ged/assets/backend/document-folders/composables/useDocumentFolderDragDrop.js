@@ -94,7 +94,7 @@ export function useDocumentFolderDragDrop(movePath, reorderPath, onSuccess) {
         const filtered = siblings.filter((id) => id !== draggedId);
         const targetIdx = filtered.indexOf(targetFolder.id);
         if (targetIdx === -1) {
-            // Dragged comes from a different level — reparent first
+            // Dragged comes from a different level - reparent first
             await reparent(draggedId, parentId);
             return;
         }

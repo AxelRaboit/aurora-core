@@ -1,4 +1,4 @@
-# Convention : breadcrumb — premier fil = section de navigation
+# Convention : breadcrumb - premier fil = section de navigation
 
 ## Règle
 
@@ -11,7 +11,7 @@ Chaque `page_header` backend commence son breadcrumb par le label de section :
 {label: element.name},                         {# page détail : nom de l'entité #}
 ```
 
-**Ne jamais utiliser `backend.modules.*` dans un breadcrumb** — ces clés dupliquent souvent le label de section (ex : `backend.modules.crm` = "CRM" = `backend.nav.sections.crm`). Utiliser directement le label de liste (`backend.nav.contacts`, etc.).
+**Ne jamais utiliser `backend.modules.*` dans un breadcrumb** - ces clés dupliquent souvent le label de section (ex : `backend.modules.crm` = "CRM" = `backend.nav.sections.crm`). Utiliser directement le label de liste (`backend.nav.contacts`, etc.).
 
 ## Clés de section disponibles (moduleId → clé → valeur FR)
 
@@ -34,9 +34,9 @@ Chaque `page_header` backend commence son breadcrumb par le label de section :
 ## Cas particuliers
 
 - **Dashboard** : utilise `backend.nav.sections.general` comme premier crumb (moduleId `general`).
-- **Profil** : page standalone sans section parente — pas de premier crumb section.
+- **Profil** : page standalone sans section parente - pas de premier crumb section.
 - **Editorial** : malgré plusieurs sous-sections dans la sidemenu (`home`, `posts`, `terms`), toutes les pages Editorial utilisent `backend.nav.sections.editorial`. Pas de distinction par sous-section.
-- **GED Catégories** : `GED / Documents(→documents_url) / Catégories` — les catégories sont sous-éléments de documents.
+- **GED Catégories** : `GED / Documents(→documents_url) / Catégories` - les catégories sont sous-éléments de documents.
 
 ## Pourquoi
 

@@ -10,7 +10,7 @@
  *
  * The geometry is not an imitation. `app.css` is the project's single CSS entry
  * and the backend layout loads it, so `.aurora-grid` is the very stylesheet the
- * public page uses — 48 tracks, `column-gap: 0`, gutters from the items' own
+ * public page uses - 48 tracks, `column-gap: 0`, gutters from the items' own
  * padding.
  *
  * Two deliberate departures from the public rendering, both because this is a
@@ -38,7 +38,7 @@ import { usePostGridResize } from "../composables/usePostGridResize.js";
 import { usePostGridDrop } from "../composables/usePostGridDrop.js";
 
 const props = defineProps({
-    /** The arrangement, in order. Read-only here — every change is emitted. */
+    /** The arrangement, in order. Read-only here - every change is emitted. */
     zones: { type: Array, required: true },
     /** The snap in force, for how far an arrow key moves a handle. */
     snap: { type: Number, default: 4 },
@@ -106,7 +106,7 @@ const imageOf = zoneImage;
  * Which strip or hole is being filled, if any, so it can offer the types.
  *
  * UI-only, which is why it stays here: nothing about it is saved, and no other
- * component could want it. One picker open at a time — opening a second closes
+ * component could want it. One picker open at a time - opening a second closes
  * the first, because two open pickers are two half-finished sentences.
  */
 const picking = ref(null);
@@ -120,7 +120,7 @@ function openPicker(id) {
  *
  * A stack is left out on purpose. It holds zones rather than content, so one
  * created from a hole would be an empty frame the author then has to go and fill
- * from the panel — the opposite of the one click this is for. It stays on the
+ * from the panel - the opposite of the one click this is for. It stays on the
  * row of buttons below the canvas, where adding an empty thing is what the
  * gesture already means.
  */
@@ -142,13 +142,13 @@ const fillTypes = computed(() =>
 
             <!-- The padding lives here and never on the grid itself. The 48
                  tracks span the grid's *content* box, while the rect a drag is
-                 measured against is its border box — padding on that element
+                 measured against is its border box - padding on that element
                  would offset every column by it, and a handle near an edge
                  would answer a column or so off. -->
             <div v-else class="p-2">
                 <!-- A quarter of the page's gutter. The real one is a flat 1rem
                  whatever the container is wide, so at panel width it would eat
-                 most of a narrow zone — scaling it down keeps the proportions
+                 most of a narrow zone - scaling it down keeps the proportions
                  honest rather than breaking them.
 
                  `gap-y-2` is 0.5rem, which is what two neighbours on one row
@@ -158,7 +158,7 @@ const fillTypes = computed(() =>
                  that touch while columns breathe.
 
                  The row axis is the only one that may take a gap. `column-gap`
-                 on 48 tracks is 47 gutters, not one — `AuroraGridGutterTest`
+                 on 48 tracks is 47 gutters, not one - `AuroraGridGutterTest`
                  reads this file and fails the build for `gap-*` or `gap-x-*`,
                  while allowing `gap-y-*` for exactly this reason. -->
                 <div
@@ -198,7 +198,7 @@ const fillTypes = computed(() =>
                         >
                             <!-- The box above is `relative` for this one element.
                              Without it the nearest positioned ancestor is the
-                             grid item, whose padding box includes the gutters —
+                             grid item, whose padding box includes the gutters -
                              so the picture spilled a gutter either side of its
                              own border and the zone read as wider than it is,
                              which also made its row look tighter than the rest.
@@ -213,7 +213,7 @@ const fillTypes = computed(() =>
                             >
                             <!-- On a zone carrying a picture the label needs a
                                  plate of its own. Laid straight over the image
-                                 it was unreadable — the column count in
+                                 it was unreadable - the column count in
                                  `text-muted` disappeared entirely against a
                                  photo, which is the one part of the box that
                                  has to stay legible. Only where there is an
@@ -222,7 +222,7 @@ const fillTypes = computed(() =>
                             <!-- A stack draws what it holds, at the shares it
                                  holds it at: the same `flex-grow` the page uses,
                                  so the picture is right rather than merely
-                                 suggestive. Icons only — a slice of an 80px box
+                                 suggestive. Icons only - a slice of an 80px box
                                  has no room for a word, and the panel below
                                  names every zone anyway.
 
@@ -288,7 +288,7 @@ const fillTypes = computed(() =>
                         <!-- The other edge, and the same gesture: what moves
                          is where the zone starts, and the right edge stays put.
                          A zone is moved by taking hold of it in the middle, not
-                         by an edge — an edge that moved the whole box would be
+                         by an edge - an edge that moved the whole box would be
                          two controls wearing one shape. -->
                         <button
                             type="button"
@@ -334,7 +334,7 @@ const fillTypes = computed(() =>
                     </div>
 
                     <!-- One per hole in a row. Quiet at rest and lit on
-                         hover, like the strips between rows — the same idea on
+                         hover, like the strips between rows - the same idea on
                          the other axis, so the two read as one system rather
                          than two inventions. -->
                     <div
@@ -425,7 +425,7 @@ const fillTypes = computed(() =>
                     </div>
 
                     <!-- Where the zone being dragged would land, drawn with the
-                         very properties the boxes use — so what is promised
+                         very properties the boxes use - so what is promised
                          under the pointer is what the drop produces, rather than
                          a second guess at it. Last in the DOM and marked, so the
                          walk above skips it when working out the order. -->
@@ -444,7 +444,7 @@ const fillTypes = computed(() =>
                  panel, so one frame answers the whole question of what the
                  page is made of: the zones, their widths, and how to get
                  another. A `+` cell inside the grid itself would read better
-                 still and is deliberately not that — it would claim real
+                 still and is deliberately not that - it would claim real
                  columns, so it would change where the rows wrap, and a canvas
                  that wraps differently from the page is worth less than a
                  slightly plainer one that does not. -->

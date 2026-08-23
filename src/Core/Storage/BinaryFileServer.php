@@ -20,18 +20,18 @@ use const DIRECTORY_SEPARATOR;
  *
  * Encapsulates three concerns that were duplicated across modules:
  *
- *  1. **Path-traversal guard** — `serve()` accepts the absolute path
+ *  1. **Path-traversal guard** - `serve()` accepts the absolute path
  *     plus the absolute allow-list root, refuses anything that doesn't
  *     resolve under that root (`realpath` based).
- *  2. **Cache headers** — public/private + max-age, with an opinionated
+ *  2. **Cache headers** - public/private + max-age, with an opinionated
  *     default of `private, max-age=3600` (auth-gated assets) and an
  *     explicit `public(...)` factory for assets meant to be CDN-cached.
- *  3. **X-Sendfile offload** — `BinaryFileResponse::trustXSendfileTypeHeader()`
+ *  3. **X-Sendfile offload** - `BinaryFileResponse::trustXSendfileTypeHeader()`
  *     is enabled at boot, so this helper just sets the header. In dev
- *     (no `mod_xsendfile`) Symfony falls back to `readfile()` —
+ *     (no `mod_xsendfile`) Symfony falls back to `readfile()` -
  *     transparent.
  *
- * Stateless and `final readonly` — pure helper, no DI.
+ * Stateless and `final readonly` - pure helper, no DI.
  */
 final readonly class BinaryFileServer
 {
@@ -63,7 +63,7 @@ final readonly class BinaryFileServer
             throw new RuntimeException(sprintf('Allowed root does not exist: %s', $allowedRoot));
         }
 
-        // The file must reside *under* the allowed root — never alongside
+        // The file must reside *under* the allowed root - never alongside
         // or above. We compare with a trailing separator so a path that
         // simply shares a prefix (e.g. `/var/uploadsX/...`) is rejected.
         $normalisedRoot = mb_rtrim($rootReal, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
@@ -99,7 +99,7 @@ final readonly class BinaryFileServer
 
     /**
      * Join a relative path under a root, returning the absolute path
-     * suitable to hand to `serve()`. Does not check existence — the
+     * suitable to hand to `serve()`. Does not check existence - the
      * caller's `serve()` call does. Useful for the common pattern
      * `$server->serve($server->path($root, $userInput), $root)`.
      */

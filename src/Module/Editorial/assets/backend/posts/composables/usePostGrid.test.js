@@ -60,7 +60,7 @@ describe("usePostGrid", () => {
     });
 
     /**
-     * Content is keyed by zone id, so a swap must not move it — the ids travel
+     * Content is keyed by zone id, so a swap must not move it - the ids travel
      * with the zones. Getting this wrong would hand a zone the other one's
      * text in every language at once.
      */
@@ -407,7 +407,7 @@ describe("usePostGrid", () => {
     });
 
     it("treats the crop as arrangement, not content", () => {
-        // How a picture is cropped is design, written once — the same argument
+        // How a picture is cropped is design, written once - the same argument
         // that puts the span on the post rather than on the translation.
         const { layout, content, api } = make();
 
@@ -468,7 +468,7 @@ describe("usePostGrid", () => {
         expect(children.map((c) => c.type)).toEqual(["media", "media"]);
         expect(children.map((c) => c.span.lg)).toEqual(
             [24, 24],
-            "two zones, half the height each — and they sum to 48 so the fraction row can say so",
+            "two zones, half the height each - and they sum to 48 so the fraction row can say so",
         );
 
         api.addChild(0, "text");
@@ -544,7 +544,7 @@ describe("usePostGrid", () => {
 
     /**
      * The point of rebalancing: a button that says "2/3" has to give two
-     * thirds. Left alone, 32 beside an untouched 24 is 57% and 43% — close
+     * thirds. Left alone, 32 beside an untouched 24 is 57% and 43% - close
      * enough to look right and wrong enough to be a bug report.
      */
     it("gives the rest of the height back when one zone's share changes", () => {
@@ -579,7 +579,7 @@ describe("usePostGrid", () => {
 
         api.zoneFields(0, 0).width.value = 24;
 
-        // 24 left for two that stood 16 to 24 — two fifths and three fifths.
+        // 24 left for two that stood 16 to 24 - two fifths and three fifths.
         expect(children.map((c) => c.span.lg)).toEqual([24, 10, 14]);
         expect(children.reduce((sum, c) => sum + c.span.lg, 0)).toBe(48);
     });
@@ -648,7 +648,7 @@ describe("usePostGrid", () => {
     /**
      * The splice that lifts the zone off the row shifts every index after it,
      * including the stack's own when the zone sat before it. Holding the stack
-     * by reference is what makes that a non-issue — this pins it.
+     * by reference is what makes that a non-issue - this pins it.
      */
     it("finds the right stack when the zone sat before it", () => {
         const { layout, api } = make();
@@ -731,7 +731,7 @@ describe("usePostGrid", () => {
 
     /**
      * The number meant a share of the height inside the stack and would mean a
-     * width on the row. Carrying it over would reinterpret it silently — 36
+     * width on the row. Carrying it over would reinterpret it silently - 36
      * going from "three quarters of the height" to "three quarters of the row",
      * a value nobody chose.
      */
@@ -881,7 +881,7 @@ describe("placeZones", () => {
      * The case that made the row worth naming at all. Left to auto-placement
      * the second zone was put beside the first, because columns 33 to 48 were
      * free there and a grid places a definite column in the first row that can
-     * take it — so the break did nothing.
+     * take it - so the break did nothing.
      */
     it("holds a break even when the columns are free beside the neighbour", () => {
         expect(
@@ -930,7 +930,7 @@ describe("placeZones", () => {
 });
 
 describe("resizeZoneFromLeft", () => {
-    // The right edge is the fixed point — that is what makes this a resize and
+    // The right edge is the fixed point - that is what makes this a resize and
     // not the push it replaced.
     it("moves the left edge and leaves the right one where it is", () => {
         const { layout, api } = make();
@@ -947,7 +947,7 @@ describe("resizeZoneFromLeft", () => {
     /**
      * Dragging past where the order puts the zone would ask it to start before
      * its neighbour ends, and the walk answers that by dropping it to the next
-     * row — the zone would jump out from under the pointer.
+     * row - the zone would jump out from under the pointer.
      */
     it("will not take the edge left of where the order puts the zone", () => {
         const { layout, api } = make();

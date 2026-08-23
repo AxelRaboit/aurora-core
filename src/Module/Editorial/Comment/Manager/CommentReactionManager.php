@@ -55,7 +55,7 @@ class CommentReactionManager implements CommentReactionManagerInterface
      * Stands in for a reader who is not signed in.
      *
      * Salted with the application secret. An unsalted sha256 of an address
-     * and a user agent is not anonymous — the space is small enough to walk,
+     * and a user agent is not anonymous - the space is small enough to walk,
      * so anyone with the table and a suspected visitor could confirm what
      * they reacted to. The salt makes the stored value useless outside this
      * installation, which is all it ever needs to be.

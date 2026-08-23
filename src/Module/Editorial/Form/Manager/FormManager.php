@@ -116,7 +116,7 @@ class FormManager implements FormManagerInterface
      * Deleting a field also unhooks every condition that referred to it.
      *
      * A condition pointing at a field that no longer exists can never be met,
-     * so the fields depending on it would vanish from the form for good —
+     * so the fields depending on it would vanish from the form for good -
      * silently, and with nothing in the builder to explain it.
      */
     public function deleteField(FormFieldInterface $field): void
@@ -346,7 +346,7 @@ class FormManager implements FormManagerInterface
 
     /**
      * The slug is a public URL segment, so two forms cannot share one in the
-     * same locale — and the database says so too. Caught here to answer with
+     * same locale - and the database says so too. Caught here to answer with
      * a sentence rather than a constraint violation.
      */
     private function assertSlugIsFree(string $locale, string $slug, ?int $formId): void

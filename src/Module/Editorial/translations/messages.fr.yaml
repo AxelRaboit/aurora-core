@@ -196,7 +196,7 @@ backend:
         full_aligned: Pleine largeur
       height: Hauteur
       fill_needs_color: "Choisissez une couleur, sinon l'en-tête ne dessinera pas de fond."
-      fill_needs_both_stops: "Un dégradé demande ses deux couleurs. Tant qu'il en manque une, l'en-tête ne dessine aucun fond — et un texte blanc s'y perd."
+      fill_needs_both_stops: "Un dégradé demande ses deux couleurs. Tant qu'il en manque une, l'en-tête ne dessine aucun fond, et un texte blanc s'y perd."
       color_unset: aucune couleur
       clear_color: Effacer la couleur
       empty: Aucun élément. Ajoutez un texte ou une image.
@@ -217,8 +217,8 @@ backend:
         half: Moitié
         third: Un tiers
         quarter: Un quart
-      disabled_hint: "Désactivé — la publication garde son titre habituel. La mise en page est commune à toutes les langues ; seuls les textes se traduisent."
-      translated_fields: "Textes — {locale}"
+      disabled_hint: "Désactivé : la publication garde son titre habituel. La mise en page est commune à toutes les langues ; seuls les textes se traduisent."
+      translated_fields: "Textes : {locale}"
       preview: Aperçu
       vertical_align: Position verticale
       verticals:
@@ -291,10 +291,10 @@ backend:
     updated: Publication enregistrée.
     restore: Restaurer
     row_actions:
-      edit_description: Ouvrir l'éditeur — contenu, en-tête, disposition.
+      edit_description: "Ouvrir l'éditeur : contenu, en-tête, disposition."
       restore_description: Sort la publication de la corbeille, telle qu'elle était.
       force_delete_description: Supprime définitivement. Sans retour possible.
-      delete_description: Met à la corbeille — récupérable tant qu'elle n'est pas vidée.
+      delete_description: Met à la corbeille, récupérable tant qu'elle n'est pas vidée.
     restored: Publication restaurée.
     force_delete: Supprimer définitivement
     force_deleted: Publication supprimée définitivement.
@@ -310,10 +310,10 @@ backend:
     grid:
       title: Grille de contenu
       enabled: Utiliser une grille de contenu
-      disabled_hint: "Désactivée — la publication garde sa colonne de contenu habituelle. L'activer la remplace par des zones posées sur une grille de 48 colonnes."
+      disabled_hint: "Désactivée : la publication garde sa colonne de contenu habituelle. L'activer la remplace par des zones posées sur une grille de 48 colonnes."
       preview: Aperçu
       canvas: Disposition
-      canvas_empty: "Aucune zone — ajoutez-en une plus bas et elle apparaîtra ici."
+      canvas_empty: "Aucune zone : ajoutez-en une plus bas et elle apparaîtra ici."
       pick_zone: "Cliquez une zone ci-dessus pour modifier son contenu."
       canvas_hint: "Tirez l'un ou l'autre bord d'une zone pour la redimensionner ; les flèches font la même chose au clavier. Ces réglages sont ceux du grand écran ; en dessous, une zone occupe toujours toute la largeur."
       resize_zone: "Largeur de la zone « {zone} »"
@@ -334,10 +334,10 @@ backend:
         two_thirds: Deux tiers
         three_quarters: Trois quarts
         full: Pleine largeur
-      translated_fields: "Contenu — {locale}"
+      translated_fields: "Contenu : {locale}"
       zone_type: Type de zone
       stack_children: Zones empilées
-      stack_empty: "Vide — ajoutez une zone ci-dessous. Elles se partageront la hauteur de la ligne."
+      stack_empty: "Vide : ajoutez une zone ci-dessous. Elles se partageront la hauteur de la ligne."
       stack_share: Part de hauteur
       stack_share_effective: "Soit {percent} % de la hauteur de la pile."
       type_drops_text: "Le texte de cette zone sera supprimé à l'enregistrement. Repassez la zone en Texte pour le conserver."
@@ -359,7 +359,7 @@ backend:
         left: À gauche
         right: À droite
       ratio: Proportions
-      ratio_hint: "Recadre l'image à cette forme. « Naturelles » la laisse à ses propres proportions. « Remplir » lui donne toute la hauteur qui reste dans la pile : les autres zones prennent la leur, celle-ci prend le reste — c'est ce qui ferme l'écart sous un texte court."
+      ratio_hint: "Recadre l'image à cette forme. « Naturelles » la laisse à ses propres proportions. « Remplir » lui donne toute la hauteur qui reste dans la pile : les autres zones prennent la leur, celle-ci prend le reste, c'est ce qui ferme l'écart sous un texte court."
       ratios:
         natural: Naturelles
         16x9: "16:9"
@@ -392,7 +392,7 @@ backend:
       move_down: Descendre
       remove_zone: Supprimer la zone
     title_visible: Afficher le titre et le résumé sur la page
-    title_visible_hint: "Décoché, la page n'affiche ni l'un ni l'autre — à réserver aux pages dont l'en-tête ou la première zone dit déjà de quoi il s'agit. Le titre reste dans le document pour les lecteurs d'écran et les moteurs de recherche."
+    title_visible_hint: "Décoché, la page n'affiche ni l'un ni l'autre : à réserver aux pages dont l'en-tête ou la première zone dit déjà de quoi il s'agit. Le titre reste dans le document pour les lecteurs d'écran et les moteurs de recherche."
     identity_hint: "Servent à retrouver la publication dans la liste et sur les cartes qui la présentent. Ils coiffent aussi la page, mais seulement si l'en-tête personnalisé n'a pas de titre."
     seo: Moteurs de recherche
     tabs:
@@ -642,7 +642,7 @@ backend:
     move_up: Monter
     move_down: Descendre
     heading_hint: "Sans lien résoluble mais avec des sous-entrées, cette entrée s'affiche comme un titre."
-    unresolved: Cible introuvable — cette entrée ne s'affiche pas sur le site.
+    unresolved: "Cible introuvable : cette entrée ne s'affiche pas sur le site."
     locations:
       primary: Navigation principale
       primary_description: "Affichée dans l'en-tête, sur toutes les pages du site public."

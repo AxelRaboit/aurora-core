@@ -10,7 +10,7 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
 /**
  * {{MODULE_LABEL}} module's own access toggles (one row each in core_settings,
  * group `modules`). Self-contained so the {{MODULE}} module declares its
- * toggles WITHOUT the central `ModuleParameterEnum` — each module owns its own
+ * toggles WITHOUT the central `ModuleParameterEnum` - each module owns its own
  * toggle definitions (monorepo-split). Sub-toggles are appended by
  * `/add-submodule`; a public-facing `Frontend` case is added when the module
  * has a FrontendDescriptor (see `--with-frontend`).

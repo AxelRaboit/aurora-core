@@ -20,7 +20,7 @@ use function sprintf;
  * loudly rather than silently producing a broken downstream operation.
  *
  * Renamed + relocated out of `Module/Media/Library/Service/` during the
- * Phase 5 Media → GED merge — only the entity-agnostic
+ * Phase 5 Media → GED merge - only the entity-agnostic
  * `resolveByRelativePath()` method was kept (the Media-specific
  * `resolveAbsolutePath(MediaInterface)` was dropped along with Media).
  */

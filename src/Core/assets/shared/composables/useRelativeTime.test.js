@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { ref } from "vue";
 import { useRelativeTime } from "./useRelativeTime.js";
 
-// onBeforeUnmount needs a component context — stub it for plain unit tests.
+// onBeforeUnmount needs a component context - stub it for plain unit tests.
 vi.mock("vue", async () => {
     const actual = await vi.importActual("vue");
     return { ...actual, onBeforeUnmount: () => {} };
@@ -26,7 +26,7 @@ describe("useRelativeTime", () => {
         const { relative } = useRelativeTime(date);
 
         // Intl.RelativeTimeFormat with numeric:"auto" produces strings like
-        // "3 seconds ago" — we only assert the shape since exact wording is
+        // "3 seconds ago" - we only assert the shape since exact wording is
         // locale/Node-version dependent.
         expect(relative.value).toMatch(/seconds? ago|now/);
     });

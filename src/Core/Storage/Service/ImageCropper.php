@@ -14,7 +14,7 @@ use Symfony\Component\Filesystem\Path;
  * Crops a raster image to a pixel rectangle and writes the result, preserving
  * the source format and its encoding quality.
  *
- * Pure pixel work — no entity/persistence concerns. Shared by every feature
+ * Pure pixel work - no entity/persistence concerns. Shared by every feature
  * that lets a user re-frame an image (Media library in-place, GED documents
  * to a fresh file, …) so the GD load/crop/save logic lives in exactly one
  * place. The crop rectangle is clamped to the image bounds, so callers can

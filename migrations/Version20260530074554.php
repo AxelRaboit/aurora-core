@@ -8,10 +8,10 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Phase 2 of the Media → GED merge — migrate Editorial Post.featured_media_id
+ * Phase 2 of the Media → GED merge - migrate Editorial Post.featured_media_id
  * and PostTranslation.og_image_id to reference core_ged_documents. The
  * JSONB-embedded `mediaId` inside core_post_translations.blocks is NOT
- * migrated here — Phase 3 owns that.
+ * migrated here - Phase 3 owns that.
  */
 final class Version20260530074554 extends AbstractMigration
 {

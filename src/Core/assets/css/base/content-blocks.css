@@ -1,5 +1,5 @@
 /*
- * Styling for blocks as they are RENDERED — on the site by BlocksRenderer, and
+ * Styling for blocks as they are RENDERED - on the site by BlocksRenderer, and
  * in the editor's preview.
  *
  * Split out of the editor's own blocks.css, which only AppBlockEditor imports:
@@ -7,7 +7,7 @@
  * site came out as an uncoloured box with no border, and a standfirst as an
  * ordinary paragraph. app.css is loaded by both, which is where they belong.
  *
- * The colour rules carry both selectors on purpose — `.callout-block--info` is
+ * The colour rules carry both selectors on purpose - `.callout-block--info` is
  * the editor's live block, `.callout--info` the rendered one, and they must not
  * drift apart.
  */
@@ -54,7 +54,7 @@
  * They had no rules at all: `blocks.css` styles `.media-text-block`, which is
  * the *editor's* class, and nothing styled `.two-column` or `.media-text`.
  * Both published as bare divs, so two columns stacked and an image sat above
- * its text at full width — the layout the author chose existed only in the
+ * its text at full width - the layout the author chose existed only in the
  * editor.
  *
  * One column below `md`. Side-by-side text on a phone is two columns of four
@@ -77,7 +77,7 @@
         align-items: center;
     }
 
-    /* "Image on the right" — an option the editor offered and the page ignored. */
+    /* "Image on the right" - an option the editor offered and the page ignored. */
     .media-text--flip {
         grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     }
@@ -117,7 +117,7 @@
 /*
  * A heading belongs to the text under it, not to the section above.
  *
- * Typography ships one em below a heading — 24px under a 24px h2 — against the
+ * Typography ships one em below a heading - 24px under a 24px h2 - against the
  * two em it puts above. The ratio was already right; the absolute value was
  * not, and a title floated free of the paragraph it introduces. Half an em
  * reads as one block: the space above still says "new section", the space
@@ -125,7 +125,7 @@
  *
  * In `em`, so it stays proportional. A paragraph following a heading already
  * has `margin-top: 0` from Typography's `h2 + *` rule, so this margin is the
- * whole of the gap — there is nothing collapsing against it to soften a value
+ * whole of the gap - there is nothing collapsing against it to soften a value
  * chosen here.
  *
  * `h1` is left alone. A page title is set beside its summary in the post

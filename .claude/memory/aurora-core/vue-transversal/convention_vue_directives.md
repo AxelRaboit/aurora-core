@@ -1,4 +1,4 @@
-# Convention : directives Vue — `v-on:` jamais `@`
+# Convention : directives Vue - `v-on:` jamais `@`
 
 ## Règle
 

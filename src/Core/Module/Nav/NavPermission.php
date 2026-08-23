@@ -12,7 +12,7 @@ final readonly class NavPermission
          * Optional override for the group the permission is shown under in
          * the privileges modal. Defaults to the declaring module's id
          * (via `ModuleInterface::getId()`). Rarely needed since Jalon 4
-         * split CoreModule into one class per section — each module's
+         * split CoreModule into one class per section - each module's
          * permissions naturally land under its own group. Kept as a
          * safety valve for cross-cutting privileges that conceptually
          * belong elsewhere than the class declaring them.

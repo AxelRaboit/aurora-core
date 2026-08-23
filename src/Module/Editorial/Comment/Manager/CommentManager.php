@@ -35,8 +35,8 @@ class CommentManager implements CommentManagerInterface
 
     /**
      * The spam verdict is reached before the comment is stored, and it is what
-     * decides whether anybody is emailed. Filtering afterwards — submit, then
-     * mark — means the notification has already gone out, which is how a spam
+     * decides whether anybody is emailed. Filtering afterwards - submit, then
+     * mark - means the notification has already gone out, which is how a spam
      * filter ends up delivering the spam it caught.
      */
     public function submit(PostInterface $post, CommentInputInterface $input, ?CommentInterface $parent = null): CommentInterface
@@ -67,7 +67,7 @@ class CommentManager implements CommentManagerInterface
     public function approve(CommentInterface $comment): void
     {
         // Only a first approval is worth an email. Re-approving something
-        // that was already live — after a moderator un-spams it, say —
+        // that was already live - after a moderator un-spams it, say -
         // should not tell the author again.
         $wasApproved = $comment->isApproved();
 
@@ -91,7 +91,7 @@ class CommentManager implements CommentManagerInterface
 
     public function delete(CommentInterface $comment): void
     {
-        // Replies outlive the comment they answered — deleting one message
+        // Replies outlive the comment they answered - deleting one message
         // should not take the conversation under it. The database agrees:
         // the parent column is SET NULL.
         foreach ($comment->getReplies() as $reply) {
@@ -106,7 +106,7 @@ class CommentManager implements CommentManagerInterface
 
     /**
      * The one question everything asks: can this post take a comment right
-     * now. Three answers have to agree — the module is installed and on, the
+     * now. Three answers have to agree - the module is installed and on, the
      * site accepts comments at all, and this post has not closed its own.
      *
      * All three in one place because the alternative is a page that renders
@@ -160,8 +160,8 @@ class CommentManager implements CommentManagerInterface
     }
 
     /**
-     * A comment has no create/update/delete cycle — it is submitted, approved,
-     * flagged or removed — so the actions are named after what happened.
+     * A comment has no create/update/delete cycle - it is submitted, approved,
+     * flagged or removed - so the actions are named after what happened.
      *
      * @return array<string, mixed>
      */
@@ -192,7 +192,7 @@ class CommentManager implements CommentManagerInterface
 
     /**
      * Spam is filed and forgotten. It is kept so a moderator can look at what
-     * is being caught, but nobody is told about it — mailing an administrator
+     * is being caught, but nobody is told about it - mailing an administrator
      * once per spam comment is how a moderation queue becomes something people
      * stop reading.
      */

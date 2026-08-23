@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { useDocumentFilters } from "@ged/backend/documents/composables/useDocumentFilters.js";
 
-describe("useDocumentFilters — initial state", () => {
+describe("useDocumentFilters - initial state", () => {
     it("starts with all filters null", () => {
         const { filterCategoryId, filterTagId, filterFolderId, filterStatus } =
             useDocumentFilters(vi.fn());
@@ -18,7 +18,7 @@ describe("useDocumentFilters — initial state", () => {
     });
 });
 
-describe("useDocumentFilters — hasActiveFilter", () => {
+describe("useDocumentFilters - hasActiveFilter", () => {
     it("becomes true when categoryId is set", () => {
         const { filterCategoryId, hasActiveFilter } = useDocumentFilters(
             vi.fn(),
@@ -56,7 +56,7 @@ describe("useDocumentFilters — hasActiveFilter", () => {
     });
 });
 
-describe("useDocumentFilters — extraParams", () => {
+describe("useDocumentFilters - extraParams", () => {
     it("returns undefined for null filters", () => {
         const { extraParams } = useDocumentFilters(vi.fn());
         const params = extraParams();
@@ -95,7 +95,7 @@ describe("useDocumentFilters — extraParams", () => {
     });
 });
 
-describe("useDocumentFilters — applyFilter / resetFilters", () => {
+describe("useDocumentFilters - applyFilter / resetFilters", () => {
     it("applyFilter calls reload once", () => {
         const reload = vi.fn();
         const { applyFilter } = useDocumentFilters(reload);

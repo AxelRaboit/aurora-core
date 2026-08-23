@@ -10,7 +10,7 @@ final class {{MODULE}}FrontendDescriptor implements FrontendInterface
 {
     /**
      * Client-side frontend descriptor. The `FRONTEND_KEY` constant must
-     * exist on {{MODULE}}Context — add it when you run aurora:make:module
+     * exist on {{MODULE}}Context - add it when you run aurora:make:module
      * with both --with-toggles AND --with-frontend, or define it manually.
      */
     public function getSlug(): string

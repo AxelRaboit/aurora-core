@@ -48,7 +48,7 @@ Pas de `src/public/` → `assets:install` ne copie rien → instantané.
 ### Pour tout futur bundle Aurora
 
 Si tu crées un nouveau bundle qui suit la convention "src/Bundle.php +
-project root contains public/", **toujours** override `getPath()` —
+project root contains public/", **toujours** override `getPath()` -
 sinon même piège.
 
 ### Comment détecter le piège tôt

@@ -1,6 +1,6 @@
 ---
 name: convention_no_bem_tailwind_first
-description: Pas de BEM dans les templates Twig/Vue — utility-first Tailwind exclusivement.
+description: Pas de BEM dans les templates Twig/Vue - utility-first Tailwind exclusivement.
 metadata:
   type: feedback
 ---

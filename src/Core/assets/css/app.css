@@ -18,7 +18,7 @@
 
 /*
  * Only TRULY global styles are imported here. Feature/module CSS sits
- * next to the component that consumes it and is imported by that SFC —
+ * next to the component that consumes it and is imported by that SFC -
  * Vite then ships the CSS in the same chunk as the JS that consumes it,
  * so users only download what they actually load.
  * See docs/aurora-core/dev/css_conventions.md for the rule.

@@ -25,7 +25,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  * Turns a stored menu into the tree a template renders.
  *
  * Entries hold what they point at, not a URL, so every render resolves
- * them. That is what keeps a renamed post's menu entry working — and what
+ * them. That is what keeps a renamed post's menu entry working - and what
  * makes batching the lookups matter, since navigation renders on every
  * page of the site.
  */
@@ -60,8 +60,8 @@ final class MenuRenderer
     {
         $authenticated = $this->security->getUser() instanceof UserInterface;
 
-        // A page can ask for the same location more than once — a header and
-        // a mobile drawer, say — and who is looking changes the answer.
+        // A page can ask for the same location more than once - a header and
+        // a mobile drawer, say - and who is looking changes the answer.
         $key = sprintf('%s|%s|%d', $location, $locale, (int) $authenticated);
         if (isset($this->rendered[$key])) {
             return $this->rendered[$key];
@@ -120,7 +120,7 @@ final class MenuRenderer
 
         $url = $this->resolveUrl($item, $locale);
 
-        // An entry that resolves to nothing is dropped — but only after its
+        // An entry that resolves to nothing is dropped - but only after its
         // children, and only if it has none. A label with children and no URL
         // is a heading, a footer column title say; dropping it here would take
         // the whole branch with it, since children are only reached through
@@ -165,7 +165,7 @@ final class MenuRenderer
         // An install can turn front-end accounts off entirely, for a site that
         // is pure brochure. Reading the parameter beats asking the Auth module:
         // navigation stays free of a dependency on a front that may not be
-        // installed at all — the same reason the lookups below tolerate a
+        // installed at all - the same reason the lookups below tolerate a
         // missing route. Resolving to null drops the entry, so the sign-in
         // link leaves the header without anyone editing the menu.
         if ($item->getTargetType()->isAccountLink() && !$this->frontAccountsEnabled()) {

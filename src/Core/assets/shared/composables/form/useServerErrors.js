@@ -7,14 +7,14 @@ import { translateServerErrors } from "@/shared/utils/validation/translateServer
  * Extends useForm with server-side error handling.
  *
  * handleErrors(serverErrors)
- *   — translates i18n keys via translateServerErrors
- *   — toasts data.errors._global if present, falls back to generic message
- *   — pushes field errors into errors ref (readable via :error="errors.field")
+ *   - translates i18n keys via translateServerErrors
+ *   - toasts data.errors._global if present, falls back to generic message
+ *   - pushes field errors into errors ref (readable via :error="errors.field")
  *
  * handleResponse(data, onSuccess?)
- *   — null data (network error already handled by useRequest) → no-op
- *   — data.success → clears errors, calls onSuccess(data)
- *   — data.errors → delegates to handleErrors
+ *   - null data (network error already handled by useRequest) → no-op
+ *   - data.success → clears errors, calls onSuccess(data)
+ *   - data.errors → delegates to handleErrors
  *
  * Usage:
  *   const { errors, validate, handleResponse } = useServerErrors();

@@ -61,7 +61,7 @@ const props = defineProps({
     notificationsDeleteAllPath: { type: String, default: "" },
     navSectionAliases: { type: Object, default: () => ({}) },
     navItemAliases: { type: Object, default: () => ({}) },
-    /** Per-section colour overrides — `{sectionId: colorName}`. */
+    /** Per-section colour overrides - `{sectionId: colorName}`. */
     navSectionColors: { type: Object, default: () => ({}) },
 });
 
@@ -138,7 +138,7 @@ function openSearchFromMobile() {
              meant to read as one line across the page: the menu's header and
              the page header's upper band are both `h-16`, so whatever comes next
              on each side has to match too. The link already measures 40px on its
-             own — `.si` gives it 0.624rem above and below a 20px row — so the
+             own - `.si` gives it 0.624rem above and below a 20px row - so the
              `py-2` this used to carry was the whole discrepancy. Pinned rather
              than left implicit so a change to `.si` cannot quietly break the
              alignment.
@@ -146,7 +146,7 @@ function openSearchFromMobile() {
              The row keeps its height, so the *link* has to be shorter than it:
              at a full 40px its hover fill reaches both borders and the rounded
              corners clip against them. `.sh-view-site` trims it to 32px, which
-             centres with 4px of clearance — see sidemenu.css. -->
+             centres with 4px of clearance - see sidemenu.css. -->
         <div v-if="hasEnabledFronts" class="sh-view-site h-10 flex items-center px-3 border-b border-line shrink-0">
             <AppNavLink
                 :href="frontPath"
@@ -188,7 +188,7 @@ function openSearchFromMobile() {
 
         <!-- `py-1`, not `py-4`: 16px of padding left the first header and the
              last row of the last section standing 16px off their borders while
-             every row between them sat 2px from its neighbour — the same odd
+             every row between them sat 2px from its neighbour - the same odd
              gap as the section gutter, at the two ends of the list. 4px is the
              clearance a row's hover fill needs to keep off a border, the figure
              the "view site" row above already uses. -->
@@ -249,7 +249,7 @@ function openSearchFromMobile() {
                 <Search class="w-5 h-5" :stroke-width="2" />
             </AppButton>
             <!-- The bell belongs here too. On desktop it moved to the page
-                 header, which is hidden below the large breakpoint — so without
+                 header, which is hidden below the large breakpoint - so without
                  this, a phone had no way to reach notifications at all. -->
             <AppNotificationsBell
                 v-if="notificationsListPath"
@@ -264,7 +264,7 @@ function openSearchFromMobile() {
                  Both controls open the same menu, so showing two different
                  glyphs for it would be two names for one thing.
 
-                 The icon shows the state, not the action — same reason as on
+                 The icon shows the state, not the action - same reason as on
                  desktop: a control that announced what it would do flips under
                  the finger at the moment of tapping. -->
             <AppButton
@@ -328,7 +328,7 @@ function openSearchFromMobile() {
                 <!-- The same component the aside uses. Its own copy was a
                      degraded one: no item descriptions in the tooltips, no
                      `data-sidemenu-active`, and two dead `#tooltip` slots
-                     `AppNavLink` never declared — so those child links had no
+                     `AppNavLink` never declared - so those child links had no
                      tooltip at all. No filter here: the drawer has none. -->
                 <AppSidemenuNav
                     :sections="groupedSections"
@@ -433,7 +433,7 @@ function openSearchFromMobile() {
                                         {{ t("backend.posts.status_options." + item.status) }}
                                     </span>
                                     <div class="flex-1 min-w-0">
-                                        <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.title ?? '(—)', searchQuery)" />
+                                        <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.title ?? '-', searchQuery)" />
                                         <div v-if="item.snippet" class="text-xs text-muted line-clamp-2" v-html="highlightMatch(item.snippet, searchQuery)" />
                                         <div class="text-xs text-muted mt-0.5">{{ item.postType }}</div>
                                     </div>
@@ -442,7 +442,7 @@ function openSearchFromMobile() {
                                 <!-- project -->
                                 <template v-else-if="section.kind === 'project'">
                                     <div class="flex-1 min-w-0">
-                                        <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.title ?? '(—)', searchQuery)" />
+                                        <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.title ?? '-', searchQuery)" />
                                         <div class="text-xs text-muted">{{ item.reference }} · {{ item.status }}</div>
                                     </div>
                                 </template>
@@ -450,7 +450,7 @@ function openSearchFromMobile() {
                                 <!-- task -->
                                 <template v-else-if="section.kind === 'task'">
                                     <div class="flex-1 min-w-0">
-                                        <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.title ?? '(—)', searchQuery)" />
+                                        <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.title ?? '-', searchQuery)" />
                                         <div class="text-xs text-muted">{{ item.reference }} · {{ item.projectTitle }}</div>
                                     </div>
                                 </template>
@@ -458,7 +458,7 @@ function openSearchFromMobile() {
                                 <!-- term -->
                                 <template v-else-if="section.kind === 'term'">
                                     <div class="flex-1 min-w-0">
-                                        <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.name ?? '(—)', searchQuery)" />
+                                        <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.name ?? '-', searchQuery)" />
                                         <div class="text-xs text-muted">{{ item.taxonomy }}</div>
                                     </div>
                                 </template>
@@ -466,7 +466,7 @@ function openSearchFromMobile() {
                                 <!-- media -->
                                 <template v-else-if="section.kind === 'media'">
                                     <div class="flex-1 min-w-0">
-                                        <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.name ?? '(—)', searchQuery)" />
+                                        <div class="text-sm font-medium text-primary truncate" v-html="highlightMatch(item.name ?? '-', searchQuery)" />
                                         <div class="text-xs text-muted">{{ item.mimeType }}</div>
                                     </div>
                                 </template>

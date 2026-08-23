@@ -1,4 +1,4 @@
-# Prérequis — checklist Aurora
+# Prérequis - checklist Aurora
 
 Inventaire **complet** de ce qu'il faut avoir pour qu'un Aurora (core ou
 client) tourne *intégralement*, sur ta machine de dev comme sur un serveur.
@@ -7,7 +7,7 @@ Lis ce fichier avant d'ouvrir un ticket "ça marche pas".
 Les modules dont une dépendance manque se **dégradent proprement** : ils
 n'empêchent pas le boot du framework ; ils renvoient une erreur métier
 parlante au premier usage. Tu n'es donc pas obligé de tout installer pour
-démarrer — seulement ce que les modules que tu actives demandent.
+démarrer - seulement ce que les modules que tu actives demandent.
 
 ---
 
@@ -43,13 +43,13 @@ php -m | grep -iE "pdo_pgsql|intl|mbstring|xml|curl|zip|gd|opcache|ctype|iconv"
 
 ## 2. Binaires CLI optionnels (par module)
 
-Aurora-core dégrade les modules dont l'outil est absent — tu ne casses
+Aurora-core dégrade les modules dont l'outil est absent - tu ne casses
 rien en les omettant.
 
 | Binaire | Module | Dégradation si absent | Install |
 |---------|--------|-----------------------|---------|
-| `pdftoppm` (poppler-utils) | GED — aperçus PDF | Recours auto à `gs` (qualité moindre) ; si ni l'un ni l'autre n'est présent, fallback sur l'icône | `sudo apt install poppler-utils` |
-| `gs` (Ghostscript) | GED — aperçus PDF (fallback) | Même chose que ci-dessus quand `pdftoppm` est aussi absent | `sudo apt install ghostscript` |
+| `pdftoppm` (poppler-utils) | GED - aperçus PDF | Recours auto à `gs` (qualité moindre) ; si ni l'un ni l'autre n'est présent, fallback sur l'icône | `sudo apt install poppler-utils` |
+| `gs` (Ghostscript) | GED - aperçus PDF (fallback) | Même chose que ci-dessus quand `pdftoppm` est aussi absent | `sudo apt install ghostscript` |
 
 > **GED PDF thumbnails** : `PdfThumbnailGenerator` essaie d'abord `pdftoppm`,
 > puis `gs`, puis renvoie `null` (icône fallback côté Vue). Pour
@@ -65,8 +65,8 @@ rien en les omettant.
 | **PostgreSQL** | 5432 | Tous | `sudo systemctl start postgresql` |
 | **SMTP** (Mailpit / Mailhog en dev) | 1025 | Mailer | `docker run -p 1025:1025 -p 8025:8025 axllent/mailpit` |
 
-Les transports Symfony Messenger sont en `doctrine://default` par défaut
-— **aucun broker externe** (RabbitMQ/Redis) requis pour faire tourner
+Les transports Symfony Messenger sont en `doctrine://default` par défaut,
+**aucun broker externe** (RabbitMQ/Redis) requis pour faire tourner
 Aurora tel quel.
 
 ---
@@ -88,7 +88,7 @@ Les blocs à connaître (regroupés par `###> aurora/<truc> ###` markers) :
 | `symfony/mailer` | `MAILER_DSN`, `MAILER_FROM`, `ADMIN_EMAIL` | DSN `smtp://localhost:1025` en dev |
 
 ⚠ **Les clés de chiffrement ne doivent PAS rester sur leurs valeurs
-placeholder** (`replace_with_base64_32_bytes_key`) — `EncryptedTextType`
+placeholder** (`replace_with_base64_32_bytes_key`) - `EncryptedTextType`
 plantera silencieusement au déchiffrement, et tout champ chiffré déjà écrit
 devient illisible.
 
@@ -99,7 +99,7 @@ silencieux.
 
 ---
 
-## 5. Production — spécificités
+## 5. Production - spécificités
 
 Au-delà du dev :
 
@@ -140,6 +140,6 @@ Sortie attendue :
 
 Toute **nouvelle dépendance** (binaire CLI, service externe, modèle IA,
 var d'env critique) ajoutée à un module Aurora **doit** être listée ici
-dans le même PR. C'est l'unique source-of-truth — si tu ajoutes le
+dans le même PR. C'est l'unique source-of-truth - si tu ajoutes le
 support d'un nouveau modèle ou d'une nouvelle commande système sans
 toucher ce fichier, un onboarding va péter en silence.

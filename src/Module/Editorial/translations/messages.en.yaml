@@ -196,7 +196,7 @@ backend:
         full_aligned: Full width
       height: Height
       fill_needs_color: "Pick a colour, or the header draws no background at all."
-      fill_needs_both_stops: "A gradient needs both of its colours. While one is missing the header draws no background — and white text is lost on it."
+      fill_needs_both_stops: "A gradient needs both of its colours. While one is missing the header draws no background, and white text is lost on it."
       color_unset: no colour
       clear_color: Clear colour
       empty: Nothing yet. Add a text or an image.
@@ -217,8 +217,8 @@ backend:
         half: Half
         third: One third
         quarter: One quarter
-      disabled_hint: "Off — the post keeps its usual title. The design is shared by every language; only the text is translated."
-      translated_fields: "Text — {locale}"
+      disabled_hint: "Off : the post keeps its usual title. The design is shared by every language; only the text is translated."
+      translated_fields: "Text : {locale}"
       preview: Preview
       vertical_align: Vertical position
       verticals:
@@ -291,10 +291,10 @@ backend:
     updated: Post saved.
     restore: Restore
     row_actions:
-      edit_description: Open the editor — content, header, layout.
+      edit_description: "Open the editor : content, header, layout."
       restore_description: Takes the publication out of the trash, as it was.
       force_delete_description: Deletes for good. There is no undo.
-      delete_description: Moves it to the trash — recoverable until the trash is emptied.
+      delete_description: Moves it to the trash, recoverable until the trash is emptied.
     restored: Post restored.
     force_delete: Delete for good
     force_deleted: Post deleted for good.
@@ -310,10 +310,10 @@ backend:
     grid:
       title: Content grid
       enabled: Use a content grid
-      disabled_hint: "Off — the publication keeps its usual content column. Turning this on replaces it with zones laid out on a 48-column grid."
+      disabled_hint: "Off : the publication keeps its usual content column. Turning this on replaces it with zones laid out on a 48-column grid."
       preview: Preview
       canvas: Layout
-      canvas_empty: "No zone yet — add one below and it appears here."
+      canvas_empty: "No zone yet : add one below and it appears here."
       pick_zone: "Click a zone above to edit what it holds."
       canvas_hint: "Drag either edge of a zone to resize it; the arrow keys do the same from the keyboard. These are the large-screen settings; below that a zone is always full width."
       resize_zone: "Width of the “{zone}” zone"
@@ -334,10 +334,10 @@ backend:
         two_thirds: Two thirds
         three_quarters: Three quarters
         full: Full width
-      translated_fields: "Content — {locale}"
+      translated_fields: "Content : {locale}"
       zone_type: Zone type
       stack_children: Stacked zones
-      stack_empty: "Empty — add a zone below. They will share the height of the row."
+      stack_empty: "Empty : add a zone below. They will share the height of the row."
       stack_share: Height share
       stack_share_effective: "That is {percent}% of the stack's height."
       type_drops_text: "This zone's text will be dropped when you save. Set the zone back to Text to keep it."
@@ -359,7 +359,7 @@ backend:
         left: Left
         right: Right
       ratio: Shape
-      ratio_hint: "Crops the picture to this shape. “Natural” leaves it at its own proportions. “Fill” gives it whatever height is left in the stack: the other zones take theirs, this one takes the rest — which is what closes the gap under a short text."
+      ratio_hint: "Crops the picture to this shape. “Natural” leaves it at its own proportions. “Fill” gives it whatever height is left in the stack: the other zones take theirs, this one takes the rest, which is what closes the gap under a short text."
       ratios:
         natural: Natural
         16x9: "16:9"
@@ -392,7 +392,7 @@ backend:
       move_down: Move down
       remove_zone: Remove zone
     title_visible: Show the title and summary on the page
-    title_visible_hint: "Unchecked, the page shows neither — for pages whose header or first zone already says what they are. The title stays in the document for screen readers and search engines."
+    title_visible_hint: "Unchecked, the page shows neither : for pages whose header or first zone already says what they are. The title stays in the document for screen readers and search engines."
     identity_hint: "Used to find this publication in the list and on any card that presents it. They also head the page itself, but only when the custom header carries no title."
     seo: Search engines
     tabs:
@@ -642,7 +642,7 @@ backend:
     move_up: Move up
     move_down: Move down
     heading_hint: 'With no resolvable link but sub-items under it, this item renders as a heading.'
-    unresolved: Target not found — this item does not render on the site.
+    unresolved: "Target not found : this item does not render on the site."
     locations:
       primary: Main navigation
       primary_description: 'Rendered in the header, on every page of the public site.'

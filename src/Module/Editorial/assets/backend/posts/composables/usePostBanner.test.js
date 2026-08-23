@@ -44,7 +44,7 @@ function make(overrides = {}) {
 describe("usePostBanner", () => {
     /**
      * The composable shipped returning two option lists it never declared. The
-     * panel threw on setup and rendered nothing at all — while the build, the
+     * panel threw on setup and rendered nothing at all - while the build, the
      * PHP tests and the linter were every one of them green, because no code
      * anywhere called this function.
      *
@@ -252,7 +252,7 @@ describe("fillWarning", () => {
      * The defect this exists for: a gradient saved with one stop rendered a
      * header with no background at all, and its white text vanished into the
      * white panel. The renderer is right to refuse a half-finished gradient
-     * rather than guess the other end — it just said nothing about it.
+     * rather than guess the other end - it just said nothing about it.
      */
     it("says which half of a gradient is missing", () => {
         const { layout, api } = make();
@@ -286,7 +286,7 @@ describe("fillWarning", () => {
         expect(api.fillWarning.value).toBeNull();
     });
 
-    // It answers only for a fill that will not draw — a picture or "none" has
+    // It answers only for a fill that will not draw - a picture or "none" has
     // nothing to be incomplete about.
     it("has nothing to say when there is no fill to complete", () => {
         const { api } = make();

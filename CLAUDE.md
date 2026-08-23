@@ -1,4 +1,4 @@
-# Aurora-core — Guide pour Claude
+# Aurora-core - Guide pour Claude
 
 Ce fichier est chargé automatiquement par Claude Code à chaque session dans ce
 dépôt. Il résume les conventions et points d'entrée nécessaires pour bien
@@ -6,16 +6,16 @@ travailler sur `aurora-core` et son écosystème (`aurora-client`).
 
 > **📚 Base de mémoire structurée** : voir [`.claude/memory/MEMORY.md`](.claude/memory/MEMORY.md)
 > pour l'index racine. Les mémoires sont organisées en deux sous-dossiers :
-> - [`.claude/memory/aurora-core/`](.claude/memory/aurora-core/MEMORY.md) —
+> - [`.claude/memory/aurora-core/`](.claude/memory/aurora-core/MEMORY.md) -
 >   conventions, décisions, pièges et préférences propres au bundle core.
 >   Toute nouvelle mémoire core va ici (un fichier `.md` + ligne dans l'index).
-> - [`.claude/memory/aurora-client/`](.claude/memory/aurora-client/MEMORY.md) —
+> - [`.claude/memory/aurora-client/`](.claude/memory/aurora-client/MEMORY.md) -
 >   patterns d'extension côté consommateur, distribués via composer
 >   (lus depuis `vendor/axelraboit/aurora/.claude/memory/aurora-client/`).
 
 > **🧠 Règle d'hygiène mémoire (obligatoire)** :
 > Toujours travailler avec la **mémoire projet versionnée**
-> (`.claude/memory/aurora-core/`, suivie par git, partagée avec l'équipe) —
+> (`.claude/memory/aurora-core/`, suivie par git, partagée avec l'équipe) -
 > **pas** la mémoire user-level Claude Code (`~/.claude/projects/...`).
 > Cette dernière est personnelle et invisible aux autres devs.
 >
@@ -23,18 +23,18 @@ travailler sur `aurora-core` et son écosystème (`aurora-client`).
 > feature, refacto, fix non-trivial, décision d'archi), faire ce cycle :
 >
 > 1. **Lire** les mémoires potentiellement concernées par la tâche (ne pas se
->    limiter au titre dans l'index — ouvrir les fichiers source).
+>    limiter au titre dans l'index - ouvrir les fichiers source).
 > 2. **Vérifier la fraîcheur** : si une mémoire affirme l'existence d'un
 >    fichier/classe/flag, le vérifier dans le code courant avant de s'y fier
 >    (cf. la section "Before recommending from memory" de l'auto-memory).
 > 3. **Corriger ou supprimer** les mémoires devenues obsolètes (refacto,
->    décision changée) — ne pas accumuler de fausse info.
+>    décision changée) - ne pas accumuler de fausse info.
 > 4. **Ajouter** une nouvelle mémoire dès qu'une convention émerge, qu'un
 >    piège est découvert, ou qu'une décision d'archi est prise. Format :
 >    `<type>_<topic>.md` (un fichier par sujet) + une ligne dans
 >    `.claude/memory/aurora-core/MEMORY.md`. Capturer **règle**, **pourquoi**,
->    **comment l'appliquer** — pas du contenu dérivable du code/git.
-> 5. **Ne pas dupliquer** les docs `docs/aurora-core/dev/*.md` — y pointer
+>    **comment l'appliquer** - pas du contenu dérivable du code/git.
+> 5. **Ne pas dupliquer** les docs `docs/aurora-core/dev/*.md` - y pointer
 >    depuis la mémoire si besoin.
 > 6. **Synchroniser** : après tout ajout/modif/suppression dans
 >    `.claude/memory/aurora-core/`, lancer `make sync-claude-memory`. Cette
@@ -70,18 +70,18 @@ en 5 couches. **Doc canonique** :
 
 **Résumé des règles dures** :
 
-1. **Couche 1 — Entity** : `<Name>Interface` + `Abstract<Name>` (MappedSuperclass)
+1. **Couche 1 - Entity** : `<Name>Interface` + `Abstract<Name>` (MappedSuperclass)
    + concrete `<Name>` non-`final`. Sequence nommée `seq_core_<entity>_id` (le
    préfixe `seq_core_` est obligatoire pour éviter les collisions avec des
    entités client homonymes). Référencé dans `AuroraBundle::$resolve_target_entities`.
-2. **Couche 2 — DTO** : `<Name>InputInterface` + `<Name>InputFactoryInterface`
+2. **Couche 2 - DTO** : `<Name>InputInterface` + `<Name>InputFactoryInterface`
    + `<Name>InputFactory` (avec `#[AsAlias(<Name>InputFactoryInterface::class)]`)
    + `<Name>Input` non-`final` avec `public readonly` sur chaque propriété
-   (PAS `readonly class` global — ça empêcherait un client d'ajouter une
+   (PAS `readonly class` global - ça empêcherait un client d'ajouter une
    propriété mutable en étendant). Pas de `static fromArray()` dans le DTO,
    c'est la factory qui le fait.
-3. **Couche 3 — Manager** : `<Name>ManagerInterface` dans `Manager/` (jamais
-   `Contract/` — l'ancien dossier est interdit pour les Managers
+3. **Couche 3 - Manager** : `<Name>ManagerInterface` dans `Manager/` (jamais
+   `Contract/` - l'ancien dossier est interdit pour les Managers
    instrumentés). `<Name>Manager` non-`final` + props `protected readonly` +
    `#[AsAlias(<Name>ManagerInterface::class)]`. Trois familles de hooks :
    - **Instanciation** : `protected create<X>(): <X>Interface` pour
@@ -92,9 +92,9 @@ en 5 couches. **Doc canonique** :
    - **Audit** : `protected auditCreated/Updated/Deleted` + `auditPayload`.
      Les domain events (validate, paid, stage_changed, …) restent inline mais
      splat-mergent `auditPayload()` pour rester extensibles.
-4. **Couche 4 — Serializer** : `<Name>SerializerInterface` + `<Name>Serializer`
+4. **Couche 4 - Serializer** : `<Name>SerializerInterface` + `<Name>Serializer`
    non-`final` + `#[AsAlias]`.
-5. **Couche 5 — Vue** : `<Plural>App.vue` avec props `extraFields` + slots
+5. **Couche 5 - Vue** : `<Plural>App.vue` avec props `extraFields` + slots
    `extra-headers`/`extra-cells`/`extra-form-fields` ; composable
    `useXxxForm.js` unifié create+edit avec option `extraFields`.
 
@@ -103,13 +103,13 @@ en 5 couches. **Doc canonique** :
   Order)
 - Composables Vue séparés `useXxxCreate` + `useXxxEdit` (User invite/edit, Theme)
 - Editor full-page au lieu de modal (Post)
-- Tree-based editor sans table (MarkdownNote) — slots adaptés au layout
+- Tree-based editor sans table (MarkdownNote) - slots adaptés au layout
   arbre + éditeur, `extra-cells` propagé récursivement via `NoteTreeItem`
 
 **Repository** : `<Name>Repository` étend
 `Aurora\Core\Repository\ResolveTargetEntityRepository` (jamais
 `ServiceEntityRepository` directement). Pas d'interface aurora-core pour les
-finder methods custom — limite documentée, le client étend le repo et
+finder methods custom - limite documentée, le client étend le repo et
 déclare son propre `repositoryClass` sur l'entité concrète.
 
 ---
@@ -137,12 +137,12 @@ Patterns clés pour étendre :
 
 ---
 
-## 3bis. Philosophie d'architecture — "penser long terme"
+## 3bis. Philosophie d'architecture - "penser long terme"
 
 **Préférence utilisateur (2026-05-16)** : sur ce projet, on **anticipe**
 les évolutions plutôt que d'attendre qu'un besoin force la refacto. Le
 défaut Aurora n'est PAS "Three similar lines is better than a premature
-abstraction" — c'est l'inverse :
+abstraction" - c'est l'inverse :
 
 > **Si une abstraction est architecturalement saine (SOLID, séparation
 > des concerns, extensibilité documentée), faire la refacto MAINTENANT
@@ -165,14 +165,14 @@ Exemples qui passent le filtre :
 3. **Pas de config sans utilisateur** (un setting Aurora-bundle = OK
    car les clients consommateurs peuvent en avoir besoin ; un setting
    sur une app one-shot = non)
-4. **Le coût doit rester proportionnel** — refactor 22 fichiers pour
+4. **Le coût doit rester proportionnel** - refactor 22 fichiers pour
    séparer domaine/HTTP = OK. Ajouter 8 classes d'abstraction pour un
    cas hypothétique = non.
 
 Cette philosophie remplace la règle générique "Don't design for
 hypothetical future requirements" pour **l'écosystème Aurora entier**
 (core + clients). Voir la mémoire shared
-[`pref_think_long_term.md`](.claude/memory/aurora-shared/pref_think_long_term.md) —
+[`pref_think_long_term.md`](.claude/memory/aurora-shared/pref_think_long_term.md) -
 distribuée via composer aux clients.
 
 ---
@@ -196,7 +196,7 @@ distribuée via composer aux clients.
   - `Manager/` = classes qui persistent / flushent / orchestrent un cycle
     de vie d'entité.
   - `Service/` = logique stateless pure (helpers, calculs, validateurs).
-- **DTO** : dossier `Dto/` (jamais `DTO/` majuscules — l'acronyme reste
+- **DTO** : dossier `Dto/` (jamais `DTO/` majuscules - l'acronyme reste
   "DTO" en prose mais le namespace est `Dto`).
 - **Tests** : helper d'instanciation dans le test si l'API DTO change
   beaucoup, plutôt que recopier `new XxxInput(...)` partout.
@@ -231,7 +231,7 @@ php bin/console doctrine:migrations:diff
 ## 5bis. Storage des fichiers
 
 **Tous les fichiers uploadés/générés vivent sous `var/uploads/`**, hors
-document root. Aucun fichier n'est servable directement par Apache —
+document root. Aucun fichier n'est servable directement par Apache -
 chaque accès passe par un controller PHP via la route catch-all
 `/uploads/{path}` (`UploadsServeController` côté `Core/Storage/`) qui
 délègue à `Aurora\Core\Storage\BinaryFileServer` (path-traversal guard
@@ -242,7 +242,7 @@ Conventions :
 - Sous-dossier par module : `var/uploads/media/`, `var/uploads/profile-photos/`,
   `var/uploads/notes-markdown/`, etc.
 - Entités exposent `getPublicUrl()` retournant la forme `/uploads/<path>`
-  (URL stable que la route Symfony intercepte — pas de fuite du
+  (URL stable que la route Symfony intercepte - pas de fuite du
   storage backend dans l'URL côté front)
 - Auth granulaire : pour gater une catégorie (factures OCR, PDF
   signés, notes per-user), définir une route plus spécifique sous
@@ -294,7 +294,7 @@ patterns, location registries, etc.).
 
 1. Créer `Interface + Abstract + concrete` dans `Entity/` avec sequence
    `seq_core_<entity>_id`.
-2. Ajouter au `resolve_target_entities` de `AuroraBundle.php` — **seule
+2. Ajouter au `resolve_target_entities` de `AuroraBundle.php` - **seule
    ligne manuelle nécessaire**. Tout le reste est auto-découvert par glob :
    Doctrine mappings, Twig namespaces, Symfony translator paths,
    DumpJsTranslationsCommand.
@@ -304,7 +304,7 @@ patterns, location registries, etc.).
    + AsAlias + hooks) + Serializer (Interface + class non-final + AsAlias) +
    Controller (type-hint les interfaces) + Vue (extraFields + slots) sous
    `src/Module/<Module>/assets/backend/` (co-localisé avec les classes PHP du
-   module — plus de root `assets/` depuis 0.5).
+   module - plus de root `assets/` depuis 0.5).
 5. Ajouter à la table 2.1 de `entity_extensibility_convention.md` si la
    liste change.
 6. Tests + build verts, commit atomique.
@@ -314,7 +314,7 @@ patterns, location registries, etc.).
 > automatiquement. Seul `resolve_target_entities` est à renseigner
 > manuellement pour chaque entité du module.
 > **Doc + commit de référence** : [`docs/aurora-core/dev/add_module.md`](docs/aurora-core/dev/add_module.md)
-> — commit `167aafa` (PasswordGenerator) illustre la checklist complète.
+> - commit `167aafa` (PasswordGenerator) illustre la checklist complète.
 
 ---
 

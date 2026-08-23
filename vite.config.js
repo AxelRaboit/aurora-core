@@ -10,13 +10,13 @@ import { auroraVendorModules } from './vite-plugin-aurora-modules.js';
 // Every npm dependency of aurora-core. Deduping them all forces resolution to
 // aurora-core's own node_modules, so a VENDORED module package
 // (vendor/axelraboit/aurora-<x>) that imports e.g. `vue-draggable-plus` resolves
-// it — otherwise Rolldown walks up from the package dir and never reaches
+// it - otherwise Rolldown walks up from the package dir and never reaches
 // aurora-core's node_modules. No-op in the monorepo (single node_modules).
 const auroraPkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
 const sharedDeps = Object.keys({ ...auroraPkg.dependencies, ...auroraPkg.devDependencies });
 
 // AURORA_CLIENT_DIR points to a client project's ROOT (e.g. aurora-client/),
-// not to a subdirectory — app.js globs `@client/src/Module/**` and
+// not to a subdirectory - app.js globs `@client/src/Module/**` and
 // `@client/src/Overrides/**` off it. When set, aurora's Vite scans that dir for
 // additional Vue components, controllers and CSS, exposed under the @client
 // alias. Standalone aurora dev leaves the var unset; the alias then resolves
@@ -26,7 +26,7 @@ const CLIENT_DIR = process.env.AURORA_CLIENT_DIR
     : path.resolve(__dirname, 'src/Core/assets/.client-fallback');
 
 // Tailwind v4 discovers its sources from the CSS file's own package, so nothing
-// a client project writes — its Twig themes, its Vue components — ever reaches
+// a client project writes - its Twig themes, its Vue components - ever reaches
 // the scanner, and a class used only there is silently missing from the build.
 // The CSS cannot name the client directory itself (it is only known at build
 // time through AURORA_CLIENT_DIR), so the @source lines are injected here.
@@ -38,7 +38,7 @@ function clientTailwindSources(clientDir, enabled) {
         enforce: 'pre',
         transform(code, id) {
             // Match on the path alone. The dev server appends a query to the
-            // id (`app.css?direct`, `?used`), which a bare endsWith rejects —
+            // id (`app.css?direct`, `?used`), which a bare endsWith rejects -
             // so this ran in build and never in dev, and `make dev` served a
             // stylesheet missing every class used only by the client. The two
             // modes disagreeing is worse than neither working: the built site

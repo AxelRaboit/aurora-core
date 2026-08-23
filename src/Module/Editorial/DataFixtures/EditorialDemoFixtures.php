@@ -43,7 +43,7 @@ use function assert;
  * under, and a primary menu that points at them.
  *
  * Builds on what `aurora:install` already created rather than creating it
- * again — the post types and the taxonomies are the product's floor, not
+ * again - the post types and the taxonomies are the product's floor, not
  * demo data, and a fixture that made its own would give the site two
  * "Articles" types the day someone ran both. It looks them up and fails
  * loudly if they are absent, which means the install step was skipped.
@@ -81,7 +81,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         if (!$article instanceof PostTypeInterface || !$page instanceof PostTypeInterface) {
             // Better than a fatal further down with no clue why: the demo
             // stands on the install step, and saying so is the whole message.
-            throw new RuntimeException('Run `aurora:install` before loading the demo fixtures — the built-in post types are missing.');
+            throw new RuntimeException('Run `aurora:install` before loading the demo fixtures - the built-in post types are missing.');
         }
 
         $terms = $this->createTerms($manager);
@@ -250,7 +250,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // Reused when it is already there, so a second `make demo`
             // refreshes the demo rather than dying on the unique reference.
             // Everything below is a setter, and `addTerm` already refuses a
-            // term it holds — so one path serves both cases and there is no
+            // term it holds - so one path serves both cases and there is no
             // second one to keep in step.
             $post = $repository->findOneBy(['reference' => $reference]) ?? new Post();
 
@@ -278,7 +278,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             }
 
             // A body is a grid of one full-width text zone. It used to be the
-            // `blocks` column, which is the same thing said the old way — the
+            // `blocks` column, which is the same thing said the old way - the
             // migration that moved every publication over does not run again on
             // a freshly loaded fixture set, so the fixtures have to speak the
             // new shape themselves or the demo pages come up empty.
@@ -318,11 +318,11 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
     /**
      * The welcome page shows what a content grid can do: every zone type,
-     * several widths, and a stack — the one arrangement the grid could not
+     * several widths, and a stack - the one arrangement the grid could not
      * make while zones only ever flowed along a row.
      *
      * Widths are all multiples of four, so every one of them is reachable at
-     * the default snap — a demo an author cannot reproduce with the controls
+     * the default snap - a demo an author cannot reproduce with the controls
      * in front of them teaches the wrong thing.
      *
      * The arrangement is written once and both languages share it; only what
@@ -349,7 +349,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // this one rather than beside it.
             //
             // The portrait ratio is what gives the left zone a height that was
-            // decided rather than inherited from its content — without it
+            // decided rather than inherited from its content - without it
             // "taller than its neighbours" is not something a picture can be
             // asked for.
             ['id' => 'picture', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => '3x4', 'mediaId' => $picture->getId()],
@@ -364,7 +364,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                     ['id' => 'beside', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 24]],
                     // `fill`, not a ratio and not a half. The text above is
                     // three lines and its share was 403px, so an even split
-                    // left 275px of nothing between the two — the gap this
+                    // left 275px of nothing between the two - the gap this
                     // shape exists to close. The paragraph now takes what it
                     // says and the picture has the rest, which is what an
                     // author means by "a picture beside a short text".
@@ -387,14 +387,14 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $content = [
             'fr' => [
                 'intro' => [EditorBlocks::header('Une page composée par zones'),
-                    EditorBlocks::paragraph('Chaque bloc ci-dessous est une zone posée sur une grille de 48 colonnes. Leur largeur se règle indépendamment, et ce qui les remplit se traduit — la disposition, elle, est écrite une seule fois.')],
+                    EditorBlocks::paragraph('Chaque bloc ci-dessous est une zone posée sur une grille de 48 colonnes. Leur largeur se règle indépendamment, et ce qui les remplit se traduit - la disposition, elle, est écrite une seule fois.')],
                 'beside' => [EditorBlocks::header('Une zone haute, deux zones à côté', 3),
                     EditorBlocks::paragraph('À gauche une image en portrait ; à droite une pile, qui prend la hauteur de la ligne et la partage entre ce texte et l\'image du dessous. Aucune hauteur n\'est réglée nulle part.')],
                 'outro' => [EditorBlocks::paragraph("Une zone pleine largeur pour refermer. Modifiez tout ceci depuis l'administration, onglet Contenu.")],
             ],
             'en' => [
                 'intro' => [EditorBlocks::header('A page laid out in zones'),
-                    EditorBlocks::paragraph('Every block below is a zone on a 48-column grid. Widths are set independently, and what fills them is translated — the arrangement is written once.')],
+                    EditorBlocks::paragraph('Every block below is a zone on a 48-column grid. Widths are set independently, and what fills them is translated - the arrangement is written once.')],
                 'beside' => [EditorBlocks::header('One tall zone, two beside it', 3),
                     EditorBlocks::paragraph('A portrait picture on the left; on the right a stack, which takes the height of the row and splits it between this text and the picture under it. No height is set anywhere.')],
                 'outro' => [EditorBlocks::paragraph('A full-width zone to close. Change any of this from the backend, under Content.')],
@@ -402,8 +402,8 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         ];
 
         $captions = [
-            'fr' => ['alt' => 'Un paysage de démonstration', 'caption' => 'Une image, avec sa légende — les deux se traduisent, l\'image non.'],
-            'en' => ['alt' => 'A demo landscape', 'caption' => 'A picture and its caption — both translated, the picture itself is not.'],
+            'fr' => ['alt' => 'Un paysage de démonstration', 'caption' => 'Une image, avec sa légende - les deux se traduisent, l\'image non.'],
+            'en' => ['alt' => 'A demo landscape', 'caption' => 'A picture and its caption - both translated, the picture itself is not.'],
         ];
 
         foreach (['fr', 'en'] as $locale) {
@@ -417,7 +417,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                     'under' => 'fr' === $locale
                         ? ['alt' => 'Un bureau de démonstration', 'caption' => 'La seconde moitié de la pile.']
                         : ['alt' => 'A demo desk', 'caption' => 'The second half of the stack.'],
-                    // Big Buck Bunny — Blender's open movie, which is here
+                    // Big Buck Bunny - Blender's open movie, which is here
                     // because a demo address that refuses to embed looks like
                     // a broken feature rather than a placeholder.
                     'film' => [
@@ -435,7 +435,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     /**
      * The article the welcome page links to gets a grid of its own, arranged
      * differently: a picture at a third beside its explanation at two thirds,
-     * then two cards sharing a row — a "read next" strip, which is the shape
+     * then two cards sharing a row - a "read next" strip, which is the shape
      * the linked-publication zone was added for.
      *
      * Different on purpose. Two demo pages laid out identically show one
@@ -468,7 +468,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 ],
                 'explain' => [
                     EditorBlocks::header('Une image au tiers, le texte aux deux tiers', 3),
-                    EditorBlocks::paragraph('16 colonnes sur 48 pour la photo, 32 pour ce paragraphe. La page d\'accueil utilise l\'inverse — rien n\'impose une seule façon de découper une ligne.'),
+                    EditorBlocks::paragraph('16 colonnes sur 48 pour la photo, 32 pour ce paragraphe. La page d\'accueil utilise l\'inverse - rien n\'impose une seule façon de découper une ligne.'),
                     EditorBlocks::list(['Ajoutez une zone', 'Réglez sa largeur au curseur', 'Remplissez-la']),
                 ],
                 'shot' => ['alt' => 'Un poste de travail', 'caption' => 'Une photo au tiers de la largeur.'],
@@ -480,7 +480,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 ],
                 'explain' => [
                     EditorBlocks::header('A picture at a third, the text at two thirds', 3),
-                    EditorBlocks::paragraph('16 of 48 columns for the photo, 32 for this paragraph. The welcome page uses the reverse — nothing forces one way of splitting a row.'),
+                    EditorBlocks::paragraph('16 of 48 columns for the photo, 32 for this paragraph. The welcome page uses the reverse - nothing forces one way of splitting a row.'),
                     EditorBlocks::list(['Add a zone', 'Set its width with the slider', 'Fill it']),
                 ],
                 'shot' => ['alt' => 'A workstation', 'caption' => 'A photo at a third of the width.'],
@@ -503,7 +503,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * A body in the shape the *editor* expects — which is stricter than what
+     * A body in the shape the *editor* expects - which is stricter than what
      * the renderer accepts, and the reason these go through EditorBlocks
      * rather than being written out by hand.
      *
@@ -559,7 +559,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
             // Reused when this menu already points at that publication.
             // Without it every `make demo` appended another entry, and the
-            // topbar grew a copy of each link per run — which is exactly what
+            // topbar grew a copy of each link per run - which is exactly what
             // it did here before this line existed.
             $item = $this->menuItemRepository->findOneBy([
                 'menu' => $menu,

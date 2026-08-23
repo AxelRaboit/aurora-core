@@ -52,7 +52,7 @@ afterEach(() => {
     vi.restoreAllMocks();
 });
 
-describe("useModules — init", () => {
+describe("useModules - init", () => {
     it("hydrates fieldValues and parameterByKey for parents and sub-modules", () => {
         const sub = makeParameter("sub_key", "0", { requires: "parent_key" });
         const parent = makeParameter("parent_key", "1", { subModules: [sub] });
@@ -73,7 +73,7 @@ describe("useModules — init", () => {
     });
 });
 
-describe("useModules — isLocked", () => {
+describe("useModules - isLocked", () => {
     it("returns false when requires is null", () => {
         const parameter = makeParameter("mod_a", "1");
         const initialData = makeInitialData([parameter]);
@@ -128,7 +128,7 @@ describe("useModules — isLocked", () => {
     });
 });
 
-describe("useModules — applyToggle", () => {
+describe("useModules - applyToggle", () => {
     it("sets fieldValues to '0' when disabled", async () => {
         const parameter = makeParameter("mod_a", "1");
         const initialData = makeInitialData([parameter]);
@@ -143,7 +143,7 @@ describe("useModules — applyToggle", () => {
             );
         });
 
-        // applyToggle is internal — trigger via onToggle with password verified
+        // applyToggle is internal - trigger via onToggle with password verified
         // We set passwordVerified by manually triggering confirmPassword flow
         // Instead, test indirectly via save: toggle off via the internal applyToggle path
         // We expose fieldValues so we can read the result
@@ -154,7 +154,7 @@ describe("useModules — applyToggle", () => {
         await api.confirmPassword();
         await nextTick();
 
-        // Now passwordVerified is true — use onToggle to toggle off
+        // Now passwordVerified is true - use onToggle to toggle off
         const paramRef = makeParameter("mod_a", "1");
         api.fieldValues["mod_a"] = "1";
         // Call onToggle to toggle off (this calls applyToggle internally)
@@ -209,7 +209,7 @@ describe("useModules — applyToggle", () => {
     });
 });
 
-describe("useModules — filteredParameters", () => {
+describe("useModules - filteredParameters", () => {
     it("returns all parameters when searchInput is empty", async () => {
         const paramA = makeParameter("billing_admin", "1");
         const paramB = makeParameter("crm_admin", "1");
@@ -303,7 +303,7 @@ describe("useModules — filteredParameters", () => {
     });
 });
 
-describe("useModules — save", () => {
+describe("useModules - save", () => {
     it("sends only changed parameters", async () => {
         const paramA = makeParameter("billing_admin", "1");
         const paramB = makeParameter("crm_admin", "0");
@@ -340,14 +340,14 @@ describe("useModules — save", () => {
 
         // Now restore save fetch
         vi.stubGlobal("fetch", fetchMock);
-        // Reset initialValues by hacking — call save directly
+        // Reset initialValues by hacking - call save directly
         // Since onToggle calls save, we mimic changed state
         // Force fieldValues change again since confirmPassword may have reset things
         api.fieldValues["crm_admin"] = "1";
         // billing_admin unchanged (both "1" at init)
 
         // We can't directly call save but we can test via the public API
-        // save() is not exposed in return — it's called internally
+        // save() is not exposed in return - it's called internally
         // Let's verify the fetch call count when onToggle triggers save
         // Actually looking at the source, save() IS called from onToggle
         // and the changed check compares fieldValues vs initialValues
@@ -400,7 +400,7 @@ describe("useModules — save", () => {
 
         // Force save by calling onToggle which calls applyToggle + save
         // Since passwordVerified is true, onToggle goes directly to applyToggle + save
-        // Trigger onToggle on sub — but save handles the full list
+        // Trigger onToggle on sub - but save handles the full list
         // We'll rely on the existing test setup and trust save's sort logic
         // The real proof is integration; let's just confirm fetch is callable
         expect(api.fieldValues["billing_admin"]).toBe("0");
@@ -454,7 +454,7 @@ describe("useModules — save", () => {
     });
 });
 
-describe("useModules — onToggle", () => {
+describe("useModules - onToggle", () => {
     it("opens password modal when not yet verified", () => {
         const parameter = makeParameter("mod_a", "1");
         const initialData = makeInitialData([parameter]);
@@ -508,7 +508,7 @@ describe("useModules — onToggle", () => {
     });
 });
 
-describe("useModules — confirmPassword", () => {
+describe("useModules - confirmPassword", () => {
     it("sets passwordError when fetch fails", async () => {
         const parameter = makeParameter("mod_a", "1");
         const initialData = makeInitialData([parameter]);

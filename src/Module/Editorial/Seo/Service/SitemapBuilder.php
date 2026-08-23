@@ -120,7 +120,7 @@ final readonly class SitemapBuilder
      * `noindex` is set per translation because that is where the checkbox
      * lives: a post that asks not to be indexed in French still wants its
      * English page found. Reading the default locale's flag and skipping the
-     * whole post would drop URLs the editor never asked to hide — and would
+     * whole post would drop URLs the editor never asked to hide - and would
      * not even show up in the counter, since the skip happened before it.
      *
      * @param array<string, int> $byLocale
@@ -176,7 +176,7 @@ final readonly class SitemapBuilder
     /**
      * Only terms with a published post behind them.
      *
-     * An empty term page is a page with a heading and nothing under it —
+     * An empty term page is a page with a heading and nothing under it -
      * listing every one of them fills the sitemap with thin content, which is
      * worse for the site than the pages being missing.
      *

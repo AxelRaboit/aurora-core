@@ -9,13 +9,13 @@
  *
  * **The list is the caller's, the sheet is this component's.** Which actions a
  * row offers depends on permissions and on the record's own state, and that
- * belongs beside the list that knows them — usually in a composable, never in a
+ * belongs beside the list that knows them - usually in a composable, never in a
  * template. What every list shares is the trigger, the modal, the ordering of
  * the rows and the closing behaviour, and sharing those is the whole point:
  * twelve lists each growing their own modal is twelve places for it to drift.
  *
  * An action is `{ key, title, description?, color?, icon?, href?, onSelect?,
- * disabled? }`. `href` makes it a link — some actions are navigations and
+ * disabled? }`. `href` makes it a link - some actions are navigations and
  * should stay openable in a new tab; `onSelect` is called for the rest.
  */
 import { ref } from "vue";
@@ -61,7 +61,7 @@ function run(action) {
              footer" does not reach this case: it is written for form modals,
              where the footer carries Cancel and Save beside a body being filled
              in. Here the body *is* the actions, and a footer would hold one
-             more button undoing the opening — which ESC and the overlay do. -->
+             more button undoing the opening - which ESC and the overlay do. -->
         <AppModal
             :show="open"
             max-width="sm"

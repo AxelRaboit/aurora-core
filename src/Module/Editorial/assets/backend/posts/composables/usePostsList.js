@@ -24,7 +24,7 @@ export function usePostsList(props) {
     const trashed = ref(Boolean(props.trashed));
 
     /**
-     * Which list is on screen right now — not which one has been asked for.
+     * Which list is on screen right now - not which one has been asked for.
      *
      * The two differ for the length of a request, and the trash controls used
      * to read the intent while the rows were still the previous list's. Ticking
@@ -38,8 +38,8 @@ export function usePostsList(props) {
     const statuses = ref([...(props.statuses ?? [])]);
 
     // The trash deliberately does not count. It is not a filter narrowing the
-    // list, it is the choice of *which* list — the screen says so with its own
-    // tabs — and counting it made "Clear" offer to leave the trash, which is a
+    // list, it is the choice of *which* list - the screen says so with its own
+    // tabs - and counting it made "Clear" offer to leave the trash, which is a
     // different thing from clearing the filters applied inside it.
     const activeFilterCount = computed(
         () =>

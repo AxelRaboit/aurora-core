@@ -48,7 +48,7 @@ final readonly class TrackingModule implements ModuleInterface, ModuleToggleProv
 
 Aurora-core fournit un `ModuleToggleRegistry` (cf. `pattern_user_scoped_module_access`
 côté core) qui agrège **tous** les `ModuleToggleProviderInterface`.
-Aucun patch sur l'enum core ou sur `UsersViewBuilder` n'est requis — le
+Aucun patch sur l'enum core ou sur `UsersViewBuilder` n'est requis - le
 mécanisme est strictement parallèle à `PermissionRegistry`.
 
 ## How to apply
@@ -63,6 +63,6 @@ mécanisme est strictement parallèle à `PermissionRegistry`.
    sont pas exposés dans la modale. Disabler le parent (global ou per-user)
    suffit à désactiver les enfants.
 5. Côté Context du module client, route via `ModuleAccessChecker::isEnabled('app_tracking_admin')`
-   ou via une dépendance directe au checker — jamais `SettingRepository::getBoolean()` direct.
+   ou via une dépendance directe au checker - jamais `SettingRepository::getBoolean()` direct.
 6. Privilege admin de gestion : `platform.users.module_access.manage` (déjà fourni par core,
-   réutilisable tel quel — pas besoin d'un nouveau privilege client).
+   réutilisable tel quel - pas besoin d'un nouveau privilege client).

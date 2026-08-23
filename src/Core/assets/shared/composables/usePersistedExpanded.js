@@ -2,7 +2,7 @@ import { ref } from "vue";
 
 /**
  * Manages a map of expanded/collapsed states persisted in localStorage.
- * Default state is expanded (true) — only explicit collapses are stored.
+ * Default state is expanded (true) - only explicit collapses are stored.
  */
 export function usePersistedExpanded(storageKey) {
     const expanded = ref(load());

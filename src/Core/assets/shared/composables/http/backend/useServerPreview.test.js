@@ -146,7 +146,7 @@ describe("useServerPreview", () => {
 
     /**
      * A translation that has not finished loading is undefined, and the
-     * snapshot runs inside a debounced callback — a throw there would surface
+     * snapshot runs inside a debounced callback - a throw there would surface
      * 400ms later as a preview that simply stopped updating.
      *
      * The half that is missing drops out of the payload rather than arriving

@@ -14,12 +14,12 @@ use DOMNode;
  * Attribute-aware, which `strip_tags` is not: it keeps a tag whole or drops it
  * whole. The previous version allowed `<a>` and therefore also allowed
  * `<a href="javascript:alert(1)">`, and allowed `<b>` and therefore also
- * `<b onmouseover="alert(1)">` — every handler an author, or anyone who could
+ * `<b onmouseover="alert(1)">` - every handler an author, or anyone who could
  * reach the field, cared to write. Every attribute here is named, and anything
  * unnamed is dropped.
  *
- * `<span>` is allowed for the three inline tools that need it — text colour,
- * background colour and font size — but only carrying the class one of them
+ * `<span>` is allowed for the three inline tools that need it - text colour,
+ * background colour and font size - but only carrying the class one of them
  * sets and only the one style property that class implies. That is the whole
  * reason this stopped being a `strip_tags` call: those tools have been
  * shipping styles that were stripped on the public page, so the colours an
@@ -76,7 +76,7 @@ final readonly class BlockHtmlSanitizer
 
     private const string HEX_COLOR = '/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i';
 
-    /** Relative units only — what the font-size tool offers. */
+    /** Relative units only - what the font-size tool offers. */
     private const string FONT_SIZE = '/^\d+(?:\.\d+)?(?:em|rem|%)$/';
 
     /** The wrapper the fragment is parsed inside and read back out of. */
@@ -97,7 +97,7 @@ final readonly class BlockHtmlSanitizer
         //
         // The wrapper is what the content is read back out of. Serialising the
         // document's own children instead loses the whitespace *between* top
-        // level tags — `<b>a</b> <em>b</em>` comes back as `<b>a</b><em>b</em>`
+        // level tags - `<b>a</b> <em>b</em>` comes back as `<b>a</b><em>b</em>`
         // and two words run together.
         $loaded = @$document->loadHTML(
             '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">'
@@ -157,7 +157,7 @@ final readonly class BlockHtmlSanitizer
     }
 
     /**
-     * @return bool false when the element cannot be kept at all — a span whose
+     * @return bool false when the element cannot be kept at all - a span whose
      *              class names no known tool, or a link with no usable target
      */
     private function cleanAttributes(DOMElement $element, string $tag): bool

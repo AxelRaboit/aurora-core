@@ -1,4 +1,4 @@
-# FileTransfer — Notifications email
+# FileTransfer - Notifications email
 
 > 3 événements emails : recipient reçoit son lien, owner reçoit
 > confirmation de téléchargement, recipient reçoit un reminder.
@@ -66,7 +66,7 @@ class FileTransferNotifier implements FileTransferNotifierInterface
                 ->from($this->fromAddress)
                 ->to($recipient->getEmail())
                 ->subject($this->translator->trans('file_transfer.email.ready.subject', [
-                    'sender' => $transfer->getSenderName() ?? '—',
+                    'sender' => $transfer->getSenderName() ?? '-',
                 ]))
                 ->htmlTemplate('@FileTransfer/email/ready.html.twig')
                 ->context([
@@ -81,7 +81,7 @@ class FileTransferNotifier implements FileTransferNotifierInterface
         }
     }
 
-    // notifyDownloaded, notifyReminder, notifyExpired — même pattern
+    // notifyDownloaded, notifyReminder, notifyExpired - même pattern
 }
 ```
 
@@ -129,7 +129,7 @@ file_transfer:
       body: "Le transfert {reference} a expiré le {date}. Les fichiers ont été supprimés."
 ```
 
-4 locales (fr/en/es/de) — reprendre les YAML Nimbus et préfixer toutes
+4 locales (fr/en/es/de) - reprendre les YAML Nimbus et préfixer toutes
 les clés par `file_transfer.email.`.
 
 ## Bridge vers Aurora Notifications

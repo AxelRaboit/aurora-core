@@ -13,7 +13,7 @@ abstract class AbstractPostTypeField implements PostTypeFieldInterface
      * The field types the post editor knows how to draw. `select` reads its
      * choices from `options.choices`; the rest need no extras.
      *
-     * Only types with an input behind them belong here — same rule as
+     * Only types with an input behind them belong here - same rule as
      * {@see AbstractPostType::SUPPORTS}. `media` and `reference` were offered
      * on the post-types screen while the editor drew neither, so an admin
      * could define a "featured product" field and the writer would be asked

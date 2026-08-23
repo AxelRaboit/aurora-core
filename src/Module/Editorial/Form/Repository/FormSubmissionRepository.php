@@ -43,7 +43,7 @@ class FormSubmissionRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Every submission of one form, oldest first — what an export writes.
+     * Every submission of one form, oldest first - what an export writes.
      *
      * @return list<FormSubmissionInterface>
      */

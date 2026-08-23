@@ -34,8 +34,8 @@ function termForm(term, locales) {
 }
 
 /**
- * Flattens the terms of the selected taxonomy into display order —
- * parents immediately followed by their children — carrying the depth so
+ * Flattens the terms of the selected taxonomy into display order -
+ * parents immediately followed by their children - carrying the depth so
  * the template can indent without recursing.
  */
 function flatten(terms) {
@@ -89,7 +89,7 @@ export function useTaxonomyTerms(props, selected, upsert) {
             .filter((row) => !excluded.has(row.id))
             .map((row) => ({
                 value: row.id,
-                label: `${"— ".repeat(row.depth)}${row.translations?.[props.locales[0]]?.name ?? row.id}`,
+                label: `${"\u00a0\u00a0".repeat(row.depth)}${row.translations?.[props.locales[0]]?.name ?? row.id}`,
             }));
     });
 
@@ -162,7 +162,7 @@ export function useTaxonomyTerms(props, selected, upsert) {
 
     /**
      * Swaps a term with the sibling above or below it and posts the whole
-     * sibling set — the endpoint takes a tree, not a single move, so that
+     * sibling set - the endpoint takes a tree, not a single move, so that
      * a reorder and a re-parent travel the same path.
      */
     async function move(term, offset) {

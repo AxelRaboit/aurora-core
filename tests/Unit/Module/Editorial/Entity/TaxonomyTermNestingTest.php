@@ -12,7 +12,7 @@ use ReflectionProperty;
 /**
  * isDescendantOf() guards the move that would make a term its own parent.
  * It compared with `===` alone, and walking up a ManyToOne hands back
- * Doctrine proxies — so an ancestor loaded as a proxy never matched the
+ * Doctrine proxies - so an ancestor loaded as a proxy never matched the
  * candidate loaded as a real entity, and the guard passed a move it was
  * there to stop.
  */

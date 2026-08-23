@@ -32,7 +32,7 @@ class ClientCrmPermissionsModule implements ModuleInterface
 
     public function getNavSections(): array
     {
-        // Pas de nav supplémentaire — uniquement des permissions
+        // Pas de nav supplémentaire - uniquement des permissions
         return [];
     }
 }
@@ -49,7 +49,7 @@ public function export(): Response { ... }
 `PermissionRegistry` regroupe les permissions par module id. Si `getId()` retourne
 `'crm'`, les permissions apparaissent dans la section **CRM** du dashboard
 `/dev/dashboard/permissions`. Si tu retournes un id différent (`'crm_client'`),
-une section séparée est créée — acceptable, mais moins propre visuellement.
+une section séparée est créée - acceptable, mais moins propre visuellement.
 
 ## Traduction obligatoire (seul pas manuel)
 

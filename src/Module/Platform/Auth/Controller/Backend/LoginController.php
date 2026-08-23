@@ -32,6 +32,6 @@ final class LoginController extends AbstractController
     #[Route('/backend/platform/logout', name: 'backend_platform_logout')]
     public function logout(): never
     {
-        throw new LogicException('This method can be blank — it will be intercepted by the logout key on your firewall.');
+        throw new LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
 }

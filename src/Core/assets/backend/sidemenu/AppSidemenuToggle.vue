@@ -5,12 +5,12 @@
  * It lives in the page header rather than in the menu, which is where a menu
  * that can disappear has to put it: a control inside the thing it hides has to
  * grow a second copy somewhere else to bring it back, and Aurora had exactly
- * that — a chevron beside the logo to fold, another at the top of the account
+ * that - a chevron beside the logo to fold, another at the top of the account
  * block to unfold. Two buttons, two places, one gesture.
  *
  * Mounted by `page_header.html.twig` as its own Vue app, so it cannot see the
  * menu's refs. The class on `<html>` is the shared truth and
- * `SIDEMENU_COLLAPSE_EVENT` is how the two mounts stay level — see
+ * `SIDEMENU_COLLAPSE_EVENT` is how the two mounts stay level - see
  * pattern_cross_mount_state_sync.
  *
  * Presentation only: the state, the persistence and the announcement all live

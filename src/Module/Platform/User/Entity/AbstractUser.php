@@ -63,7 +63,7 @@ abstract class AbstractUser implements CoreUserInterface
     protected array $hiddenNavItems = [];
 
     /**
-     * Per-section colour overrides for the sidemenu — `{sectionId: colorName}`
+     * Per-section colour overrides for the sidemenu - `{sectionId: colorName}`
      * (e.g. `{"ged": "emerald", "configuration": "rose"}`). Unknown
      * sections fall back to the default palette defined in
      * `useSidemenuSectionTheme`. User-managed via /backend/profile/sidemenu.
@@ -94,13 +94,13 @@ abstract class AbstractUser implements CoreUserInterface
     /**
      * Whether this user wants each menu item's description under its label.
      *
-     * The descriptions exist either way — they are the tooltips. This turns them
+     * The descriptions exist either way - they are the tooltips. This turns them
      * into standing text. Beside the other sidemenu preferences for the reason
      * given above: one object, one place.
      *
      * **On by default.** A menu that explains itself is the better first
      * impression, and someone who does not want the second line turns it off
-     * once and is never asked again — whereas a description nobody knows exists
+     * once and is never asked again - whereas a description nobody knows exists
      * is a tooltip nobody hovers.
      */
     #[ORM\Column(options: ['default' => true])]

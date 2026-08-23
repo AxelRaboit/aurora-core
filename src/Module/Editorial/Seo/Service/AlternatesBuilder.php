@@ -88,7 +88,7 @@ final readonly class AlternatesBuilder
     }
 
     /**
-     * A form is only listed in the locales it was actually translated into —
+     * A form is only listed in the locales it was actually translated into -
      * the slug differs per locale, and a locale with no translation has no
      * page to point at.
      *
@@ -120,8 +120,8 @@ final readonly class AlternatesBuilder
     }
 
     /**
-     * For pages that exist in every locale by construction — the home page,
-     * an archive — where there is no translation to check for.
+     * For pages that exist in every locale by construction - the home page,
+     * an archive - where there is no translation to check for.
      *
      * @param array<string, string> $extraParams
      *

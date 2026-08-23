@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
  * Blocks have to satisfy the *editor*, which is stricter than the renderer.
  *
  * BlocksRenderer accepts every shape an Editor.js tool has ever emitted, so
- * malformed content renders perfectly well on the public site — and then the
+ * malformed content renders perfectly well on the public site - and then the
  * backend shows "The block can not be displayed correctly" when an editor
  * opens the post. That is the worst way round: nothing fails until someone
  * tries to edit.

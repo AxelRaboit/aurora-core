@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * `supports` used to default to ['blocks', 'thumbnail', 'excerpt'] while
- * nothing read 'excerpt' — no column held it and the backend had already
+ * nothing read 'excerpt' - no column held it and the backend had already
  * dropped its checkbox. Every install advertised a capability that did
  * nothing.
  */

@@ -1,4 +1,4 @@
-# Frontend — Convention SEO / Open Graph / Twitter Cards
+# Frontend - Convention SEO / Open Graph / Twitter Cards
 
 Aurora rend ses pages publiques en server-side Twig minimal qui monte une app Vue.js.
 Les crawlers Google (en mode fallback) et **surtout** les previews sociaux
@@ -29,7 +29,7 @@ Chaque passerelle override le block `seo_define` du layout pour appeler `seo({..
 ```
 
 Le head produit automatiquement :
-- `<title>Chaussure running — MonShop</title>` (template `SeoTitleTemplate` appliqué)
+- `<title>Chaussure running - MonShop</title>` (template `SeoTitleTemplate` appliqué)
 - `<meta name="description" content="…">`
 - `<meta property="og:title|description|type|site_name|url|image|locale|locale:alternate" …>`
 - `<meta name="twitter:card|site|title|description|image" …>` (handle Twitter global)
@@ -45,7 +45,7 @@ Toutes optionnelles. Defaults raisonnables appliqués automatiquement.
 
 | Clé           | Type                                | Default                                          | Effet                                                          |
 |---------------|-------------------------------------|--------------------------------------------------|----------------------------------------------------------------|
-| `title`       | string                              | `context.siteName`                               | Appliqué dans `SeoTitleTemplate` (`{title} — {siteName}`)      |
+| `title`       | string                              | `context.siteName`                               | Appliqué dans `SeoTitleTemplate` (`{title} - {siteName}`)      |
 | `description` | string                              | `SeoDefaultDescription` ou `context.siteDescription` | Meta description / og / twitter                            |
 | `image`       | Media / array sérialisé / URL       | `SeoDefaultOgImage` ou logo                       | `og:image` / `twitter:image`. URLs relatives → absolues auto. |
 | `canonical`   | string (path ou URL)                | `context.siteUrl ~ app.request.pathInfo`         | `<link rel="canonical">` ET `og:url`. Path relatif accepté.   |
@@ -63,7 +63,7 @@ Toutes optionnelles. Defaults raisonnables appliqués automatiquement.
 
 ## 3. Mécanique interne (pourquoi un block + un side-effect)
 
-`partials/head.html.twig` est **inclus** par `layout.html.twig` via `{{ include(...) }}` —
+`partials/head.html.twig` est **inclus** par `layout.html.twig` via `{{ include(...) }}` -
 pas via `extends`. Deux conséquences importantes pour les contributeurs :
 
 1. **Les `{% block %}` à l'intérieur de `head.html.twig` ne sont pas overridables**
@@ -72,7 +72,7 @@ pas via `extends`. Deux conséquences importantes pour les contributeurs :
 
 2. **Le `{% set %}` au top-level d'une passerelle ne traverse qu'un seul niveau d'extends**.
    Pour une chaîne `auth/login → auth/layout → layout`, le `{% set %}` du leaf est
-   silencieusement perdu — seul celui de `auth/layout` (l'enfant direct du layout)
+   silencieusement perdu - seul celui de `auth/layout` (l'enfant direct du layout)
    propage. Vérifié empiriquement.
 
 D'où la mécanique adoptée :
@@ -80,13 +80,13 @@ D'où la mécanique adoptée :
   request courante**, et le retourne.
 - Le layout expose un `{% block seo_define %}{% do seo({}) %}{% endblock %}` rendu
   **avant** l'include du head.
-- Chaque passerelle override ce block — les **blocks**, eux, traversent toute la chaîne
+- Chaque passerelle override ce block - les **blocks**, eux, traversent toute la chaîne
   d'extends (testé).
 - Le head appelle `seo_current()` qui lit le payload stocké dans la request.
 
 Trade-off : `SeoExtension` porte un état per-request (via `RequestStack`). En mode FPM
 (standard) chaque request a une instance vierge, donc safe. En worker-mode
-(Swoole/RoadRunner) l'état request est nettoyé entre requêtes — toujours safe car
+(Swoole/RoadRunner) l'état request est nettoyé entre requêtes - toujours safe car
 on lit depuis `Request::$attributes`.
 
 ---
@@ -127,15 +127,15 @@ on lit depuis `Request::$attributes`.
 
 > Limite Twig connue : les pages auth extendent `auth/layout` qui extend `layout`.
 > Chaque page auth doit donc inclure `noindex: true` dans **son propre** appel `seo()`
-> (l'astuce de centraliser dans `auth/layout` ne fonctionne pas — cf. section 3, point 2).
+> (l'astuce de centraliser dans `auth/layout` ne fonctionne pas - cf. section 3, point 2).
 
-### 4.4 Page simple (home, archive — titre seul suffit)
+### 4.4 Page simple (home, archive - titre seul suffit)
 
 ```twig
 {% block seo_define %}{% do seo({title: postType.label}) %}{% endblock %}
 ```
 
-Ou pour pure home (titre = siteName) — aucun argument :
+Ou pour pure home (titre = siteName) - aucun argument :
 
 ```twig
 {% block seo_define %}{% do seo({}) %}{% endblock %}
@@ -171,9 +171,9 @@ Dans `/backend/dev/parameters`, groupe **SEO** :
 ## 7. Limites connues / TODO
 
 - **`Listing` (Ecommerce) n'a pas tous les champs SEO** que `PostTranslation`
-  possède — pas de `ogImage` dédié, `canonicalUrl`, `noindex`, `jsonLd`. Aligner les
+  possède - pas de `ogImage` dédié, `canonicalUrl`, `noindex`, `jsonLd`. Aligner les
   deux entités si Ecommerce devient un usage premier.
-- **Variantes locales du `SeoTitleTemplate`** non supportées — un seul template
+- **Variantes locales du `SeoTitleTemplate`** non supportées - un seul template
   pour toutes les locales. Si besoin : étendre le settings model.
 
 ---
@@ -185,5 +185,5 @@ Dans `/backend/dev/parameters`, groupe **SEO** :
    paramètres pertinents (cf. tableau section 2).
 3. `{% block body %}` = un seul `vue_component(...)`.
 4. Pages privées (cart, checkout, account, login…) → `noindex: true` obligatoire.
-5. **Ne JAMAIS** utiliser `{% block title %}`, `{% block og_image %}`, etc. — ces
+5. **Ne JAMAIS** utiliser `{% block title %}`, `{% block og_image %}`, etc. - ces
    blocks n'existent pas, leur output serait ignoré silencieusement.

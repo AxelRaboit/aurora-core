@@ -11,7 +11,7 @@ namespace Aurora\Core\Reference;
  * {@see EntityReferenceResolver}, which delegates to the provider the owning
  * module registers via the `aurora.entity_reference_provider` tag. If that
  * module isn't installed, no provider answers and the reference resolves to
- * null — the holder degrades gracefully.
+ * null - the holder degrades gracefully.
  */
 interface EntityReferenceProviderInterface
 {

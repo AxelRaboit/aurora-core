@@ -5,7 +5,7 @@ import { Check, ShieldAlert, Trash2 } from "lucide-vue-next";
  * What a comment offers, which depends on where it already sits.
  *
  * Approving an approved comment and spamming a spammed one are both no-ops, so
- * neither is offered — a rule about the record's state that was two conditions
+ * neither is offered - a rule about the record's state that was two conditions
  * in a template and is now readable in one place.
  *
  * Returns a function rather than a computed: a list renders one per row.

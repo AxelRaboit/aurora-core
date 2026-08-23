@@ -1,6 +1,6 @@
 ---
 name: convention-service-final-vs-readonly
-description: Aurora services are `final readonly` by default — but thin shells (notifications, webhooks, audit-style wrappers) demote to just `readonly` so they stay mock-able in unit tests. Use the decision matrix here.
+description: Aurora services are `final readonly` by default - but thin shells (notifications, webhooks, audit-style wrappers) demote to just `readonly` so they stay mock-able in unit tests. Use the decision matrix here.
 metadata:
   type: feedback
 ---
@@ -19,7 +19,7 @@ that the rest of the app shouldn't substitute :
   encryption services)
 
 **Exception** : a service that's a **thin shell over an external
-side-effect** — mail dispatch, HTTP webhook, audit log, event emit —
+side-effect** - mail dispatch, HTTP webhook, audit log, event emit -
 should be just `readonly class` (drop `final`). Reasons:
 
 1. **Mock-ability** : PHPUnit's `createMock(X)` can't double a `final`
@@ -31,14 +31,14 @@ should be just `readonly class` (drop `final`). Reasons:
 
 2. **Substitution** : a client deployment may want to swap the
    dispatcher (different mail backend, different webhook signing
-   scheme). `final` blocks that without justification — these classes
+   scheme). `final` blocks that without justification - these classes
    have no immutability invariant tied to the class identity.
 
 3. **Pattern precedent** : `AuditLogger` itself is `readonly class`
    (no `final`). The 4 thin-shell services I demoted in the test
-   coverage work — `CommentNotificationService`,
+   coverage work - `CommentNotificationService`,
    `CommentReactionRepository`, `FormNotificationService`,
-   `FormWebhookService` — all match this shape.
+   `FormWebhookService` - all match this shape.
 
 **Decision matrix** :
 
@@ -53,7 +53,7 @@ should be just `readonly class` (drop `final`). Reasons:
 **Why** : the test surface tells you. If you find yourself reaching
 for `createMock(MyService::class)` in a Manager test and it fails
 with `ClassIsFinalException`, that's the linter signal saying "this
-service is shell, not core" — demote `final`.
+service is shell, not core" - demote `final`.
 
 **Drive-by enforcement** :
 
@@ -64,5 +64,5 @@ grep -rln "^final readonly class .*Webhook\b" src/
 ```
 
 Voir aussi [[convention-thin-controller]] (les controllers délèguent au
-Manager qui délègue au Service — chaque niveau a sa propre raison
+Manager qui délègue au Service - chaque niveau a sa propre raison
 d'être final ou pas).

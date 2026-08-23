@@ -44,7 +44,7 @@ class AgencySerializer extends BaseAgencySerializer
 ### 1. Ne pas overrider tout le payload
 
 ```php
-// ❌ MAUVAIS — perd les champs Aurora si Aurora évolue
+// ❌ MAUVAIS - perd les champs Aurora si Aurora évolue
 public function serialize(AgencyInterface $agency): array
 {
     return [
@@ -72,7 +72,7 @@ accéder à `getCode()`, vérifier `instanceof AppAgency`.
 ## Cas particulier : Serializer avec multiples méthodes publiques
 
 Certains Serializers exposent plusieurs méthodes (`serialize`,
-`serializeFull`, `serializeListPayload`, etc — ex: `MenuSerializer`,
+`serializeFull`, `serializeListPayload`, etc - ex: `MenuSerializer`,
 `GallerySerializer`). Override seulement celles qu'on veut enrichir :
 
 ```php
@@ -86,7 +86,7 @@ class MenuSerializer extends BaseMenuSerializer
         ];
     }
 
-    // Ne pas override serializeFull si on n'a rien à ajouter — il appelle
+    // Ne pas override serializeFull si on n'a rien à ajouter - il appelle
     // serialize() en interne, donc le custom field sera inclus
     // automatiquement dans le payload "full".
 }

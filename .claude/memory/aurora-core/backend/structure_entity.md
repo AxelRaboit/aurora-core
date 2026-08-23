@@ -1,4 +1,4 @@
-# Entity — Interface + Abstract + concrete
+# Entity - Interface + Abstract + concrete
 
 ## Règle
 
@@ -7,7 +7,7 @@ Chaque entité Aurora se décompose en **3 fichiers** :
 ```
 src/<Module>/<Feature>/Entity/
 ├── <Name>Interface.php       ← contrat public (getters + setters)
-├── Abstract<Name>.php         ← MappedSuperclass Doctrine — toutes les colonnes SAUF id + sequence + ManyToMany
+├── Abstract<Name>.php         ← MappedSuperclass Doctrine - toutes les colonnes SAUF id + sequence + ManyToMany
 └── <Name>.php                 ← entité concrète, non-`final`, juste id + sequence + ManyToMany
 ```
 
@@ -88,15 +88,15 @@ abstract class AbstractAgency implements AgencyInterface
 **Notes** :
 - `#[ORM\MappedSuperclass]` (pas `#[ORM\Entity]`).
 - `#[ORM\HasLifecycleCallbacks]` obligatoire dès que `TimestampableTrait`
-  est utilisé — sans lui les callbacks ne tournent pas et les dates
+  est utilisé - sans lui les callbacks ne tournent pas et les dates
   restent nulles. Le trait vient de `Aurora\Core\Timestampable`,
   **jamais de Knp** (cf. [[convention_timestampable]]).
 - `abstract class` (pas instanciable).
 - Propriétés `protected` (pas `private`) pour que la concrete y accède
   directement si besoin de surcharger.
-- Pas d'`id` ni de `SequenceGenerator` ici — Doctrine ne les propage pas
+- Pas d'`id` ni de `SequenceGenerator` ici - Doctrine ne les propage pas
   au MappedSuperclass.
-- Pas de ManyToMany ici — Doctrine ne supporte pas proprement les
+- Pas de ManyToMany ici - Doctrine ne supporte pas proprement les
   ManyToMany sur MappedSuperclass.
 
 ### `<Name>.php` (concrete Aurora)
@@ -131,7 +131,7 @@ class Agency extends AbstractAgency implements AgencyInterface
   les modules (ex: `editorial_posts`, `crm_deals`).
 - Sequence nommée `seq_core_<entity>_id` (préfixe `seq_core_` obligatoire).
   Cf [`convention_naming.md`](convention_naming.md).
-- Pas de logique métier — uniquement `id` (et ManyToMany éventuels).
+- Pas de logique métier - uniquement `id` (et ManyToMany éventuels).
 
 ### Concrete avec ManyToMany
 

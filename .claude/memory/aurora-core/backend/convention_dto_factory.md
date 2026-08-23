@@ -28,9 +28,9 @@ Aurora\<Module>\<Feature>\Dto\
 2. Marquer la Factory avec `#[AsAlias(<Name>InputFactoryInterface::class)]`
    (Symfony 7+).
 3. Le controller injecte l'**Interface** de la factory, jamais la concrete.
-4. **Pas** de `static fromArray()` dans `<Name>Input` — la responsabilité
+4. **Pas** de `static fromArray()` dans `<Name>Input` - la responsabilité
    est dans `<Name>InputFactory`.
-5. **Pas** `readonly class <Name>Input` — utiliser `class <Name>Input
+5. **Pas** `readonly class <Name>Input` - utiliser `class <Name>Input
    implements <Name>InputInterface { public readonly string $foo; … }`. Cf
    `pitfall_readonly_class.md`.
 

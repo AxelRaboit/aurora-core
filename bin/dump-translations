@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Wrapper for the i18n dump command, used by package.json's predev/prebuild
 # hooks. When AURORA_CLIENT_DIR is set, we're running inside a client project
-# (pnpm cwd is vendor/aurora) — in that case, run the client's bin/console so
+# (pnpm cwd is vendor/aurora) - in that case, run the client's bin/console so
 # the client's services.yaml override (with $extraSourceDirs) is applied.
 # Since aurora 0.5, AURORA_CLIENT_DIR points at the client project root
 # directly (no longer at <client>/assets/client/).

@@ -19,7 +19,7 @@ Pour ajouter un champ à une entité Aurora (ex: `code` sur `Agency`), 4 étapes
 - L'**Abstract** Aurora apporte les colonnes communes (MappedSuperclass).
 - La concrete client a son propre `id` + sequence + champs custom.
 - `resolve_target_entities` route les relations Doctrine vers la classe
-  client (mais pas les `new` directs — cf
+  client (mais pas les `new` directs - cf
   `pitfall_create_hook_required.md`).
 
 ## Comment l'appliquer

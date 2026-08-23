@@ -2,7 +2,7 @@ import { ref } from "vue";
 
 /**
  * Track which sections are collapsed, keyed by an arbitrary id (typically
- * the section/parameter `key`). Default state is "all expanded" — only
+ * the section/parameter `key`). Default state is "all expanded" - only
  * collapsed keys are stored, so a new section appearing later in the
  * payload is open by default without any pre-population.
  *

@@ -9,7 +9,7 @@ use Doctrine\Migrations\AbstractMigration;
 
 /**
  * Project task attachments: Media → GED Document. Drops the old
- * core_project_task_attachments join table (no production data — feature
+ * core_project_task_attachments join table (no production data - feature
  * was UI-incomplete, no fixtures used it) and recreates it as
  * core_project_task_documents pointing at core_ged_documents.
  * Cf. pattern_self_owned_storage.

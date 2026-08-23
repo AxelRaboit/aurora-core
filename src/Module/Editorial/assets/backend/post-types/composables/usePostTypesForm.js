@@ -18,7 +18,7 @@ function emptyForm(supportOptions) {
 
 /**
  * Post types are a short list, so the whole set stays client-side and
- * every write hands back the serialized type it touched — the list is
+ * every write hands back the serialized type it touched - the list is
  * patched from that rather than refetched.
  */
 export function usePostTypesForm(props) {

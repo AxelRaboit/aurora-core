@@ -9,7 +9,7 @@ Ne jamais commit avec des erreurs phpstan, des formatters non appliqués,
 ou des tests rouges.
 
 Si aucun asset (Vue / JS / CSS) n'a été touché, `make ftl` fait la même
-chose sans le build Vite — sensiblement plus rapide.
+chose sans le build Vite - sensiblement plus rapide.
 
 ## Pourquoi
 
@@ -24,7 +24,7 @@ chose sans le build Vite — sensiblement plus rapide.
 
 Sans `make ft`, des erreurs latentes s'accumulent silencieusement et
 créent une dette technique difficile à payer plus tard (cf l'historique
-récent du rollout — 100 erreurs phpstan accumulées car stan n'était pas
+récent du rollout - 100 erreurs phpstan accumulées car stan n'était pas
 lancé à chaque commit).
 
 ## Comment l'appliquer
@@ -68,7 +68,7 @@ make ftl        # = fix + test + migrate-check (sans build d'assets)
 make fix        # = translation + fix-js + fix-twig + fix-rector + fix-php + stan
 make stan       # phpstan (analyse statique PHP)
 make test       # = test-frontend (Vitest) + test-backend (PHPUnit)
-make rector     # rector en DRY-RUN — l'autofix, c'est `make fix-rector`
+make rector     # rector en DRY-RUN - l'autofix, c'est `make fix-rector`
 make fix-php    # php-cs-fixer (écriture)
 make fix-twig   # twig-cs-fixer (écriture)
 make fix-js     # eslint --fix

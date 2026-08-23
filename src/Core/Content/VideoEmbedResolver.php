@@ -9,7 +9,7 @@ namespace Aurora\Core\Content;
  *
  * A whitelist of three providers, and nothing else resolves. That is the whole
  * security model: an iframe runs whatever the host serves, so "any URL the
- * author typed" is not an option — the value would be an author-supplied frame
+ * author typed" is not an option - the value would be an author-supplied frame
  * on the public page. An unknown host returns null and the zone renders as a
  * link instead of a player.
  *
@@ -28,7 +28,7 @@ final readonly class VideoEmbedResolver
     /**
      * Patterns per provider, tried in order, each capturing the id.
      *
-     * The hosts are anchored, `www.` optional, and the scheme required — a
+     * The hosts are anchored, `www.` optional, and the scheme required - a
      * bare `youtube.com/...` typed without one is not accepted rather than
      * being guessed at.
      *

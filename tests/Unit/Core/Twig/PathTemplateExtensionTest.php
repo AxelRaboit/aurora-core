@@ -19,7 +19,7 @@ use Throwable;
  *
  * This was got wrong once in exactly the way a mock would not have caught: the
  * relaxation was applied to the injected service, which passes for a bare
- * {@see UrlGenerator} — it is configurable — and silently does nothing for a
+ * {@see UrlGenerator} - it is configurable - and silently does nothing for a
  * {@see Router}, which is what the container actually injects and which keeps
  * its generator one level down. The unit test looked right; every backend
  * screen answered 500.
@@ -62,7 +62,7 @@ final class PathTemplateExtensionTest extends TestCase
     /**
      * The generator is shared for the whole request. If the relaxation leaked,
      * every URL built after the first `path_template` call would skip its
-     * requirement check — the template helper would quietly disable routing
+     * requirement check - the template helper would quietly disable routing
      * validation sitewide.
      */
     public function testRestoresRequirementCheckingAfterwards(): void

@@ -220,14 +220,14 @@ final class DocumentsController extends AbstractController
     }
 
     /**
-     * One call for the pickers embedded in other forms — a banner image, a
+     * One call for the pickers embedded in other forms - a banner image, a
      * featured image, a custom field.
      *
      * Separate from `/upload` because that one deliberately stops at the bytes
      * and leaves the Document row to GED's own create form, which asks for a
      * category, a folder and tags. An author picking a picture mid-edit has no
      * such form, and chaining the two calls from the browser left them filing
-     * the result themselves — which meant nobody did.
+     * the result themselves - which meant nobody did.
      *
      * The destination is decided server-side by {@see InlineImageUploader}: a
      * request cannot name the category it lands in, or leave it a draft.
@@ -244,7 +244,7 @@ final class DocumentsController extends AbstractController
 
         // Images only. The endpoint is reachable by anyone who may create a
         // document, and the pickers that call it show what they get back as an
-        // <img> — a PDF would file silently and render as a broken picture.
+        // <img> - a PDF would file silently and render as a broken picture.
         if (!str_starts_with((string) $file->getMimeType(), 'image/')) {
             return $this->jsonFailure('backend.ged.documents.errors.image_required');
         }

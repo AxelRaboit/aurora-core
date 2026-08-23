@@ -48,7 +48,7 @@ final class ResyncSequencesCommand extends Command
         foreach ($sequences as $seqName) {
             $tableName = $this->resolveTableName($seqName);
             if (null === $tableName) {
-                $io->note(sprintf('Skipping %s — table not found', $seqName));
+                $io->note(sprintf('Skipping %s - table not found', $seqName));
                 ++$skipped;
                 continue;
             }

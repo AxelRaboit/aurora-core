@@ -41,7 +41,7 @@ override les valeurs avant qu'elles soient appliquées par le Manager. C'est le 
 
 ## Règle complémentaire
 
-Core ne doit jamais `use App\Module\...` — vérifier avec :
+Core ne doit jamais `use App\Module\...` - vérifier avec :
 ```bash
 grep -r "use App\\\\Module" src/Core/
 # doit retourner 0 ligne

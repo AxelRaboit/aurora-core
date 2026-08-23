@@ -1,6 +1,6 @@
 ---
 name: pref_french_dialogue
-description: L'utilisateur communique en français — les réponses Claude sont en français, le code et les commits en anglais
+description: L'utilisateur communique en français - les réponses Claude sont en français, le code et les commits en anglais
 metadata:
   type: user
 ---

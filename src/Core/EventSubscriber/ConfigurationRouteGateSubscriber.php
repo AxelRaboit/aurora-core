@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * 404s the Configuration admin routes (Settings, Themes) when their
- * toggle is OFF — globally or for the current user. Sibling of
+ * toggle is OFF - globally or for the current user. Sibling of
  * {@see PlatformRouteGateSubscriber}; split out of it in Jalon 4 so
  * route gating mirrors the module split.
  */

@@ -9,7 +9,7 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 /**
- * Caches the feed per locale, dropped on the same events as the sitemap —
+ * Caches the feed per locale, dropped on the same events as the sitemap -
  * publishing a post should reach both at once, and a reader polling every
  * few minutes should not cost a query each time.
  */

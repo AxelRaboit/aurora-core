@@ -1,6 +1,6 @@
 ---
 name: pattern_details_dropdown
-description: Dropdowns Twig frontend en `<details data-dropdown>` — l'ouverture est native, seul le clic-extérieur/Échap est ajouté en JS.
+description: Dropdowns Twig frontend en `<details data-dropdown>` - l'ouverture est native, seul le clic-extérieur/Échap est ajouté en JS.
 metadata:
   type: project
 ---

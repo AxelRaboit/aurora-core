@@ -52,7 +52,7 @@ backend:
       status: Statut
       manager: Manager
       created_at: Créé le
-      unset: —
+      unset: Non défini
     preferences:
       title: Préférences
       subtitle: Personnalisez votre expérience.
@@ -60,7 +60,7 @@ backend:
         sidemenu: Menu latéral
     sidemenu:
       title: Préférences du menu latéral
-      subtitle: Personnaliser la navigation — cacher les sections ou modules non utilisés, ou changer la couleur d'une section pour mieux la repérer. Les pages restent accessibles par URL directe.
+      subtitle: "Personnaliser la navigation : cacher les sections ou modules non utilisés, ou changer la couleur d'une section pour mieux la repérer. Les pages restent accessibles par URL directe."
       section_hint: Désactiver le bouton pour cacher toute la section, ou ajuster module par module.
       hide_all: Tout cacher
       show_all: Tout afficher

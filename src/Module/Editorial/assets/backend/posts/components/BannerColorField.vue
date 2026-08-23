@@ -2,14 +2,14 @@
 /**
  * A colour field for the banner: the swatch you can set, and nothing else.
  *
- * AppColorField on its own cannot express "unset" — it wraps an
+ * AppColorField on its own cannot express "unset" - it wraps an
  * `<input type="color">`, which always holds a value. The banner needs that
  * distinction: a null title colour inherits the theme, where a set one
  * overrides it. Hence the clear button, shown only once there is something to
  * clear.
  *
  * AppColorPicker would bring the client's configured palette, but it renders
- * an eight-column grid of swatches per field — far too much furniture for a
+ * an eight-column grid of swatches per field - far too much furniture for a
  * panel that carries five of these.
  */
 import { computed } from "vue";
@@ -54,7 +54,7 @@ const value = computed({
             class="flex-1"
             :class="modelValue ? '' : 'opacity-50'"
         />
-        <span class="sr-only">{{ label }} — {{ state }}</span>
+        <span class="sr-only">{{ label }} - {{ state }}</span>
         <AppIconButton
             v-if="modelValue"
             color="default"

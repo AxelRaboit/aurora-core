@@ -1,6 +1,6 @@
 ---
 name: NavPermission $group override (rarement nécessaire post-Jalon 5)
-description: Le paramètre $group de NavPermission existe encore mais sert rarement depuis que Core a été éclaté en 5 modules — chaque permission est déclarée par son module owner naturel.
+description: Le paramètre $group de NavPermission existe encore mais sert rarement depuis que Core a été éclaté en 5 modules - chaque permission est déclarée par son module owner naturel.
 type: project
 ---
 
@@ -26,7 +26,7 @@ exactement le préfixe attendu → pas besoin d'override.
 Cas conceptuel résiduel : un module PHP responsable de plusieurs
 sections d'UI distinctes, où une permission appartient
 *conceptuellement* à une autre section. Ce cas ne se produit plus
-aujourd'hui — la convention est `1 module class = 1 section`
+aujourd'hui - la convention est `1 module class = 1 section`
 (cf [[pattern-core-submodules-split]]).
 
 Garder le mécanisme évite de fermer la porte à un futur cas tordu

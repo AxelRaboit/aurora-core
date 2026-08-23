@@ -1,6 +1,6 @@
 ---
 name: convention_locale_options
-description: Toujours importer LOCALE_OPTIONS depuis @core/utils/locales.js — ne jamais redéclarer la liste inline
+description: Toujours importer LOCALE_OPTIONS depuis @core/utils/locales.js - ne jamais redéclarer la liste inline
 metadata:
   type: feedback
 ---
@@ -20,7 +20,7 @@ Les locales supportées sont **uniquement `fr` et `en`**, alignées avec `Locale
 
 ## Pourquoi
 
-Une liste inline (`[{ value: 'fr', label: 'Français' }, ...]`) duplique la source de vérité. Si une locale est ajoutée ou retirée du backend (`LocaleEnum`), il faut modifier tous les fichiers qui redéclarent la liste. `LOCALE_OPTIONS` est l'unique source — une seule mise à jour propage partout.
+Une liste inline (`[{ value: 'fr', label: 'Français' }, ...]`) duplique la source de vérité. Si une locale est ajoutée ou retirée du backend (`LocaleEnum`), il faut modifier tous les fichiers qui redéclarent la liste. `LOCALE_OPTIONS` est l'unique source - une seule mise à jour propage partout.
 
 ## Comment l'appliquer
 

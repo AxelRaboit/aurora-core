@@ -39,7 +39,7 @@ describe("buildPath", () => {
     });
 
     it("leaves unknown placeholders intact", () => {
-        // Caller should know what to fill — silent tolerance keeps it composable.
+        // Caller should know what to fill - silent tolerance keeps it composable.
         expect(buildPath("/backend/__a__/__b__", { a: 1 })).toBe(
             "/backend/1/__b__",
         );

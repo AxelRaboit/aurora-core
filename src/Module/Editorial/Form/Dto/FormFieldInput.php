@@ -27,7 +27,7 @@ class FormFieldInput implements FormFieldInputInterface
 
     /**
      * A select with nothing to select from renders as an empty dropdown that
-     * a required field then refuses to accept — a form no visitor can submit,
+     * a required field then refuses to accept - a form no visitor can submit,
      * and nothing in the builder says why.
      */
     #[Assert\Callback]

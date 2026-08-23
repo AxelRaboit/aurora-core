@@ -1,4 +1,4 @@
-# FileTransfer — TUS upload service
+# FileTransfer - TUS upload service
 
 > Protocole TUS résumable (https://tus.io) pour upload de gros fichiers
 > fragmentés. Permet de pause/reprendre, sans avoir besoin de réuploader
@@ -129,7 +129,7 @@ nécessaire. `tus-php` v2+ a un mode `getResponse()` directement compatible.
 
 ## Auth & rate-limit
 
-- **`/tus` est public** (anonymous upload Nimbus) — un visiteur peut uploader sans compte.
+- **`/tus` est public** (anonymous upload Nimbus) - un visiteur peut uploader sans compte.
 - **Rate-limit** : Symfony RateLimiter sur la route, par IP. Setting `fileTransfer.tusRateLimitPerHour` (défaut 50).
 - **Quota anonyme** : limites stricter (max size, max files) appliquées au `finalize`, pas au TUS lui-même.
 
@@ -186,8 +186,8 @@ Job scheduler `CleanupTusMessage` (cf. [scheduler.md](scheduler.md)) :
 
 ## Décisions ouvertes
 
-- **Bibliothèque** : `ankitpokhrel/tus-php` (battle-tested, maintenu). Si pas disponible en compatibilité Symfony 7, écrire un handler custom (verbose mais doable — la spec TUS est petite).
-- **Stockage chunks** : filesystem (comme Nimbus). Pas de Redis pour V1 — overkill et déploiement plus lourd.
+- **Bibliothèque** : `ankitpokhrel/tus-php` (battle-tested, maintenu). Si pas disponible en compatibilité Symfony 7, écrire un handler custom (verbose mais doable - la spec TUS est petite).
+- **Stockage chunks** : filesystem (comme Nimbus). Pas de Redis pour V1 - overkill et déploiement plus lourd.
 - **Direct-to-R2 upload** : V2 possible (TUS chunks écrits directement dans R2 multipart upload), mais V1 reste filesystem → finalize move vers R2. Coût : 1 lecture + 1 écriture par finalize ; acceptable pour la taille de Nimbus.
 
 ## Tests obligatoires

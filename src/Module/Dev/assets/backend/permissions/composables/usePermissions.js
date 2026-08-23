@@ -5,7 +5,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
 /**
  * Lazy-loaded module/permission registry for the dev dashboard Permissions
- * tab. Read-only — there is no mutation API.
+ * tab. Read-only - there is no mutation API.
  */
 export function usePermissions(permissionsPath, initialPermissions) {
     useI18n();

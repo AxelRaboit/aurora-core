@@ -17,13 +17,13 @@ import { useI18n } from "vue-i18n";
 export const COLUMNS = 48;
 const MAX_ZONES = 60;
 
-/** Mirrors GridNormalizer::SNAPS — four is twelfths, the usual way to talk about a layout. */
+/** Mirrors GridNormalizer::SNAPS - four is twelfths, the usual way to talk about a layout. */
 export const SNAPS = [4, 2, 1];
 
 /** What a zone may be inside a stack, where nesting stops. */
 export const LEAF_ZONE_TYPES = ["text", "media", "post", "video"];
 
-/** Mirrors GridNormalizer::ZONE_TYPES — a stack is top level only. */
+/** Mirrors GridNormalizer::ZONE_TYPES - a stack is top level only. */
 export const ZONE_TYPES = [...LEAF_ZONE_TYPES, "stack"];
 
 /**
@@ -34,14 +34,14 @@ export const ZONE_TYPES = [...LEAF_ZONE_TYPES, "stack"];
 const MAX_STACK_CHILDREN = 6;
 
 /**
- * Mirrors GridNormalizer::RATIOS — the shape a media zone is cropped to, and
+ * Mirrors GridNormalizer::RATIOS - the shape a media zone is cropped to, and
  * the only vertical control the grid offers. `natural` is what every zone
  * starts as, because the default has to be what is already published.
  */
 export const ZONE_RATIOS = ["natural", "16x9", "4x3", "1x1", "3x4", "fill"];
 
 /**
- * Mirrors GridNormalizer::SCALES — how much of its zone's width a picture
+ * Mirrors GridNormalizer::SCALES - how much of its zone's width a picture
  * takes. A width rather than a height because a picture keeps its proportions:
  * halving the width halves the height, and a percentage survives a phone where
  * a number of pixels does not.
@@ -49,7 +49,7 @@ export const ZONE_RATIOS = ["natural", "16x9", "4x3", "1x1", "3x4", "fill"];
 export const ZONE_SCALES = [25, 33, 50, 66, 75, 100];
 
 /**
- * Mirrors GridNormalizer::ALIGNMENTS — which side a picture sits on once it is
+ * Mirrors GridNormalizer::ALIGNMENTS - which side a picture sits on once it is
  * narrower than its zone. Centre first: it is what a smaller picture did before
  * this was a choice, and the default has to be the behaviour already published.
  */
@@ -59,7 +59,7 @@ export const ZONE_ALIGNMENTS = ["center", "left", "right"];
  * The widths an author actually draws with, named the way they think of them.
  *
  * "24 of 48 columns" is a coordinate; "a half" is a thought. Every one of these
- * lands on a whole number of columns because 48 is 4 × 12 — and, as it happens,
+ * lands on a whole number of columns because 48 is 4 × 12 - and, as it happens,
  * every one is a multiple of four, so they survive `clampToSnap` at any step.
  * The snap and the fractions never disagree.
  *
@@ -95,7 +95,7 @@ export function largeSpan(zone) {
 }
 
 /**
- * An offset the row can actually hold — never more than what is left once the
+ * An offset the row can actually hold - never more than what is left once the
  * zone has taken its own width.
  *
  * Mirrors GridNormalizer::clampOffset. Written here as well as at the write
@@ -121,7 +121,7 @@ export function clampOffset(offset, zone) {
  * The row is worked out here rather than left to auto-placement, which was the
  * first attempt and was not enough: a grid puts an item with a definite column
  * in the first row where those columns are free, so a zone asked to start a new
- * row — whose columns happened to be free beside its neighbour — was placed
+ * row - whose columns happened to be free beside its neighbour - was placed
  * there and the break did nothing.
  *
  * Widths come from `span.lg`: the large-screen arrangement is the one an author
@@ -183,7 +183,7 @@ export function placeZones(zones) {
  * fell between rows rather than beside a zone.
  *
  * **The flow is preferred over an annotation.** If the zone lands on the asked
- * column with no offset at all — dropped right after its neighbour, say — that
+ * column with no offset at all - dropped right after its neighbour, say - that
  * is what is kept, because a layout that flows survives its neighbours changing
  * width and one pinned to a column does not.
  *
@@ -215,7 +215,7 @@ export function planMove(zones, index, target, column, newRow) {
  * The picture a media zone shows, or null.
  *
  * Pure, and exported so the canvas can draw the same one the page will. A picked
- * document first, the address only when there is none — the order the renderer
+ * document first, the address only when there is none - the order the renderer
  * uses. A canvas showing the other one would be a picture of a page nobody is
  * going to get.
  */
@@ -281,7 +281,7 @@ function newZone(type) {
         media: null,
         mediaUrl: "",
         postId: null,
-        // Empty on every zone, filled only by a stack — the same reason every
+        // Empty on every zone, filled only by a stack - the same reason every
         // other key is always present: switching a type back and forth in the
         // editor must not lose what was picked.
         children: [],
@@ -293,7 +293,7 @@ function newZone(type) {
  *
  * `flex-grow` is relative, so equal values would already split evenly whatever
  * they are. Making them sum to 48 is for the author, not the browser: it is
- * what lets the fraction row say the truth — with three children at 16, "1/3"
+ * what lets the fraction row say the truth - with three children at 16, "1/3"
  * really is a third of the height.
  */
 function shareEvenly(children) {
@@ -402,7 +402,7 @@ export function usePostGrid(layout, content) {
 
     /**
      * How far a zone may be pushed from the left of its row, in the same
-     * fractions its width is set in — so "1/2 wide, pushed by 1/2" reads as one
+     * fractions its width is set in - so "1/2 wide, pushed by 1/2" reads as one
      * thought rather than as two unrelated numbers.
      *
      * "None" leads, and is what every zone has: pushing one is the exception,
@@ -456,7 +456,7 @@ export function usePostGrid(layout, content) {
         layout.value.zones.splice(at, 0, zone);
 
         // The flow first, an annotation only if it does not already land there
-        // — the same preference `planMove` applies, and for the same reason: a
+        // - the same preference `planMove` applies, and for the same reason: a
         // zone that flows survives its neighbours changing width.
         if (
             null !== (options.column ?? null) &&
@@ -465,7 +465,7 @@ export function usePostGrid(layout, content) {
             zone.offset = clampOffset(options.column, zone);
         }
         // Only this language's entry. The others gain theirs when the server
-        // normalises their content against the layout — an empty zone is what
+        // normalises their content against the layout - an empty zone is what
         // an untranslated one means.
         content.value.zones[zone.id] = newZoneContent();
 
@@ -477,7 +477,7 @@ export function usePostGrid(layout, content) {
     }
 
     /**
-     * The zones a stack holds, or an empty list for anything else — so a caller
+     * The zones a stack holds, or an empty list for anything else - so a caller
      * can ask any zone without first checking what it is.
      */
     function childrenOf(index) {
@@ -532,7 +532,7 @@ export function usePostGrid(layout, content) {
      *
      * The spans are grow factors, so what counts is each one against their
      * total, not against 48. They sum to 48 when the editor set them and can
-     * stop doing so the moment an author picks fractions by hand — at which
+     * stop doing so the moment an author picks fractions by hand - at which
      * point "2/3" on both zones would be two lies. This is the number that
      * cannot lie, and the panel shows it beside the buttons.
      */
@@ -540,12 +540,12 @@ export function usePostGrid(layout, content) {
      * Take a zone off its row and put it inside a stack.
      *
      * The other half of "add a zone to a stack": that one makes a new zone,
-     * this one moves the zone already laid out — which is the thing an author
+     * this one moves the zone already laid out - which is the thing an author
      * has no other way to do, short of deleting and rebuilding it and losing
      * what every other language holds for it.
      *
      * The stack is held by reference rather than by index, because the splice
-     * that removes the zone shifts every index after it — including, half the
+     * that removes the zone shifts every index after it - including, half the
      * time, the stack's own.
      *
      * Content is not touched: it is keyed by zone id, and the id travels.
@@ -566,7 +566,7 @@ export function usePostGrid(layout, content) {
             return false;
         }
 
-        // Depth stops at one, so a stack cannot go inside a stack — the
+        // Depth stops at one, so a stack cannot go inside a stack - the
         // normaliser would drop it on the way out, which is a zone silently
         // lost rather than a move refused.
         if ("stack" !== stack.type || "stack" === moving.type) {
@@ -599,7 +599,7 @@ export function usePostGrid(layout, content) {
      * **Its span is reset rather than carried over.** Inside a stack the number
      * was a share of the height; on a row the same number is a width. Keeping
      * it would silently reinterpret 36 from "three quarters of the height" to
-     * "three quarters of the row" — a value nobody chose, arrived at by the
+     * "three quarters of the row" - a value nobody chose, arrived at by the
      * field meaning two things. Half is what a new zone gets.
      *
      * `column` and `newRow` come from a drop on the empty canvas, which says
@@ -632,7 +632,7 @@ export function usePostGrid(layout, content) {
         layout.value.zones.splice(at, 0, moving);
 
         // Dropped on the empty canvas rather than on a box, so the drop said a
-        // column as well as a place. The flow first, as everywhere else — the
+        // column as well as a place. The flow first, as everywhere else - the
         // zone only takes an offset when it would not land there anyway.
         if (
             null !== column &&
@@ -647,7 +647,7 @@ export function usePostGrid(layout, content) {
     /**
      * Hand the rest of the height back to the other zones of a stack.
      *
-     * Shares are grow factors, so only their ratio matters — but an author
+     * Shares are grow factors, so only their ratio matters - but an author
      * reading "2/3" means two thirds of the stack, not two parts against
      * whatever the neighbour happens to hold. Keeping the total at 48 is what
      * makes the fraction row honest.
@@ -718,7 +718,7 @@ export function usePostGrid(layout, content) {
      * A swap rather than a move-to-position, because that is the gesture the
      * canvas offers: a zone is dropped **on** another one. Dropping *between*
      * two zones would be the more expressive move and is much harder to aim
-     * at — the rows re-flow as the widths shift, so the gap being aimed for
+     * at - the rows re-flow as the widths shift, so the gap being aimed for
      * moves while it is being aimed at. A box is a target that stays still.
      *
      * Content follows without being touched: it is keyed by zone id, and the
@@ -740,7 +740,7 @@ export function usePostGrid(layout, content) {
      * The mirror of the width handle rather than a second kind of control: both
      * edges resize, and moving a zone is done by taking hold of it in the
      * middle. The left edge used to push the zone instead, which read as a move
-     * and was not one — the width stayed put and the zone slid sideways.
+     * and was not one - the width stayed put and the zone slid sideways.
      *
      * Two values change together, which is why this lives here rather than
      * being two writes from the panel: the edge that moves sets where the zone
@@ -748,7 +748,7 @@ export function usePostGrid(layout, content) {
      *
      * **The edge cannot go left of where the order puts the zone.** Dragging it
      * past that would ask the zone to start before its own neighbour ends, and
-     * the placement walk answers that by dropping it to the next row — the zone
+     * the placement walk answers that by dropping it to the next row - the zone
      * would jump out from under the pointer. The floor is that flow position,
      * and reaching it clears the offset rather than pinning the zone to a column
      * it would have taken anyway.
@@ -786,7 +786,7 @@ export function usePostGrid(layout, content) {
      * leave it.
      *
      * The gesture the canvas offers alongside the swap, and the one that makes
-     * a zone feel movable: drop it in empty space and it goes there — into that
+     * a zone feel movable: drop it in empty space and it goes there - into that
      * place in the order, at that column, on a row of its own if it was dropped
      * between two. Before this, moving a zone rightwards meant dragging a
      * three-pixel handle, which is a resize gesture wearing a move's clothes.
@@ -812,7 +812,7 @@ export function usePostGrid(layout, content) {
     }
 
     /**
-     * Reordering by one step, which is what the up/down buttons do — and the
+     * Reordering by one step, which is what the up/down buttons do - and the
      * path that works without a pointer, so it stays whatever the canvas
      * offers.
      */
@@ -875,7 +875,7 @@ export function usePostGrid(layout, content) {
                 );
 
             zoneFieldsCache.set(key, {
-                // Shared — the arrangement.
+                // Shared - the arrangement.
                 type: shared("type"),
                 postId: shared("postId"),
                 ratio: shared("ratio"),
@@ -917,7 +917,7 @@ export function usePostGrid(layout, content) {
                         // A wider zone leaves less room to its left. Without
                         // this a zone pushed to the right and then widened to
                         // the full row would keep an offset the row cannot
-                        // hold — and the server, which clamps on the way in,
+                        // hold - and the server, which clamps on the way in,
                         // would give back a layout the editor never showed.
                         if (null === childIndex) {
                             zone().offset = clampOffset(zone().offset, zone());
@@ -925,7 +925,7 @@ export function usePostGrid(layout, content) {
 
                         // Inside a stack the shares are relative to each other,
                         // so setting one without touching the rest gives an
-                        // author who picked "2/3" something else — 24 and 32
+                        // author who picked "2/3" something else - 24 and 32
                         // are 43% and 57%, not a third and two thirds. Giving
                         // the remainder back to the others is what makes the
                         // button mean what it says.
@@ -949,7 +949,7 @@ export function usePostGrid(layout, content) {
                             : null;
                     },
                 ),
-                // Per language — what fills it.
+                // Per language - what fills it.
                 blocks: localised("blocks"),
                 alt: localised("alt"),
                 caption: localised("caption"),
@@ -962,8 +962,8 @@ export function usePostGrid(layout, content) {
 
     /**
      * A width the author can actually reach with the current step. Changing the
-     * step does not rewrite the zones already placed — a layout should not
-     * shift because someone went looking for finer control — but every new
+     * step does not rewrite the zones already placed - a layout should not
+     * shift because someone went looking for finer control - but every new
      * width lands on it.
      */
     function clampToSnap(value, step) {

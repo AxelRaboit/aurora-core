@@ -24,7 +24,7 @@ abstract class AbstractFormFieldTranslation implements FormFieldTranslationInter
     protected ?string $placeholder = null;
 
     /**
-     * The choices of a select, checkbox or radio — translated, because a
+     * The choices of a select, checkbox or radio - translated, because a
      * reader picks from words rather than from keys.
      *
      * @var list<string>

@@ -28,7 +28,7 @@ shared:
       message: The site is temporarily closed for maintenance. Please check back in a few moments.
   actions:
     plain_title: Actions
-    title: "Actions — {name}"
+    title: "Actions : {name}"
     open: "Actions for {name}"
   common:
     search: Search
@@ -123,7 +123,7 @@ shared:
     apply: Apply crop
     cropped: Image cropped
 
-# Editor.js — keys shared by all consumers of AppBlockEditor. Labels for
+# Editor.js - keys shared by all consumers of AppBlockEditor. Labels for
 # module-specific tools injected via `extraTools` stay in that module's
 # own messages.en.yaml.
 backend:
@@ -153,7 +153,7 @@ backend:
     themes_description: "Dress the site: colours, logo and favicon."
     users: Users
     users_description: "Manage accounts, their roles and the detail of their privileges."
-    resize_hint: Drag to resize — double-click to reset
+    resize_hint: Drag to resize, double-click to reset
     filter_nav: Filter menu…
     breadcrumb: Breadcrumb
     show_descriptions: Show descriptions

@@ -6,8 +6,8 @@ import {
 
 describe("formatCurrency", () => {
     it("returns em-dash for null/undefined amount", () => {
-        expect(formatCurrency(null)).toBe("—");
-        expect(formatCurrency(undefined)).toBe("—");
+        expect(formatCurrency(null)).toBe("-");
+        expect(formatCurrency(undefined)).toBe("-");
     });
 
     it("formats with default EUR currency", () => {
@@ -36,8 +36,8 @@ describe("formatCurrency", () => {
 
 describe("formatProductPrice", () => {
     it("returns em-dash for null product", () => {
-        expect(formatProductPrice(null)).toBe("—");
-        expect(formatProductPrice(undefined)).toBe("—");
+        expect(formatProductPrice(null)).toBe("-");
+        expect(formatProductPrice(undefined)).toBe("-");
     });
 
     it("formats with product currency", () => {

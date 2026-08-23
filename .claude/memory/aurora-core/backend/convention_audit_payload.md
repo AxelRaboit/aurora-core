@@ -1,4 +1,4 @@
-# Audit log — payload extensible via auditPayload()
+# Audit log - payload extensible via auditPayload()
 
 ## Règle
 
@@ -37,7 +37,7 @@ méthodes publiques.
 ### Pour les events CRUD standard (created/updated/deleted)
 
 Utiliser les hooks dédiés `auditCreated/Updated/Deleted` qui appellent
-`auditPayload()` directement — pas de splat-merge nécessaire :
+`auditPayload()` directement - pas de splat-merge nécessaire :
 
 ```php
 protected function auditCreated(DealInterface $deal): void

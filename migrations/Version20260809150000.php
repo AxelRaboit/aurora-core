@@ -13,7 +13,7 @@ use Doctrine\Migrations\AbstractMigration;
  * The grid and the plain block column have cohabited since the grid shipped:
  * the editor hid one when the other was on, and the template picked between
  * them. Two systems doing one job is a cost paid on every editorial change
- * afterwards, and the grid is a strict superset — a single full-width text zone
+ * afterwards, and the grid is a strict superset - a single full-width text zone
  * *is* the plain column.
  *
  * **Measured before deciding, not assumed.** A post rendered both ways puts its
@@ -26,7 +26,7 @@ use Doctrine\Migrations\AbstractMigration;
  * **`blocks` is deliberately not dropped.** The column keeps every value it
  * had, which is what makes this reversible: `down()` only has to switch the
  * grid off again, because the words never left. Dropping it is a later
- * decision, taken once nothing has read it for a while — not the same day the
+ * decision, taken once nothing has read it for a while - not the same day the
  * data moves.
  *
  * Only posts that have no grid are touched. The two that already had one keep
@@ -53,7 +53,7 @@ final class Version20260809150000 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // The arrangement, on the post: one text zone, full width at every
-        // breakpoint — which is exactly what the plain column was.
+        // breakpoint - which is exactly what the plain column was.
         $this->addSql(<<<'SQL'
             UPDATE core_posts SET grid_layout = json_build_object(
                 'enabled', true,

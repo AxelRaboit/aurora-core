@@ -38,15 +38,15 @@ voici les étapes ordonnées. Chaque étape pointe vers le pattern détaillé.
 
 - [ ] Étendre `Aurora\…\<Name>Manager`, `#[AsAlias(<Name>ManagerInterface::class)]`.
 - [ ] **Override `create<X>()`** pour retourner `new App\Module\<Mirror>\<X>\Entity\<X>()`
-      (sinon les champs custom sont perdus —
+      (sinon les champs custom sont perdus -
       [pitfall_create_hook_required.md](pitfall_create_hook_required.md)).
 - [ ] Override `applyInput()` avec `parent::applyInput()` AVANT (sinon
-      les champs Aurora ne sont pas hydratés —
+      les champs Aurora ne sont pas hydratés -
       [pitfall_call_parent_apply_input.md](pitfall_call_parent_apply_input.md)).
 - [ ] Si tu veux que `code` apparaisse dans les audit logs : override
       `auditPayload()` avec `[...parent::auditPayload($entity), 'code' =>
       $entity->getCode()]`.
-- [ ] Variante User-style (Manager à hooks multiples — User, Order,
+- [ ] Variante User-style (Manager à hooks multiples - User, Order,
       Invoice, Tiers, OcrJob, Comment) : pas d'`applyInput()`. Override les
       méthodes publiques métier directement.
 
@@ -95,7 +95,7 @@ spécifiques que tu veux customiser (avec `parent::xxx()` AVANT).
 ### Cascade child sans page admin propre
 
 Si tu étends une entité cascade (ex: `OrderLine` géré par `OrderManager`),
-tu n'as pas de Vue / DTO / Manager dédié à ajouter — juste l'entité
+tu n'as pas de Vue / DTO / Manager dédié à ajouter - juste l'entité
 (étape 1) et override `createOrderLine()` dans ton `App\Module\Ecommerce\Order\Manager\OrderManager`
 étendu.
 

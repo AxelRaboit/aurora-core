@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# Aurora — make-frontend
+# Aurora - make-frontend
 # Scaffolds a new custom frontend module (header, footer, layout, home page).
 #
 # Usage (from an aurora-client project):
@@ -210,7 +210,7 @@ cat > "$LAYOUT_TWIG" << TWIGEOF
     }]) %}
 {% endfor %}
 {# accountMenuItems below is empty on purpose: feed it from whatever owns your
-   navigation — a module exposing a menu Twig function, or a hardcoded list. #}
+   navigation - a module exposing a menu Twig function, or a hardcoded list. #}
 <div {{ vue_component('${MODULE_SLUG}/frontend/${MODULE_NAME}HeaderApp', {
     locale: locale,
     siteName: context.siteName,

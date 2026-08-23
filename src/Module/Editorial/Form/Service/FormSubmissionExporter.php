@@ -22,7 +22,7 @@ final readonly class FormSubmissionExporter
      * A public form is exactly how a hostile value gets in: anyone can type
      * `=HYPERLINK(...)` into a text field, and it runs when a colleague opens
      * the export. The reference wrote every value through untouched. Prefixing
-     * with a quote is the standard neutralisation — the cell still reads as
+     * with a quote is the standard neutralisation - the cell still reads as
      * what was typed, it just is not evaluated.
      *
      * @var list<string>

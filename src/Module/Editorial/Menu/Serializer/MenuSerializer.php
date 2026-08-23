@@ -39,7 +39,7 @@ class MenuSerializer implements MenuSerializerInterface
             'description' => $menu->getDescription(),
             // A menu bound to a location no module declares any more still
             // exists in the database. The screen says so rather than showing
-            // it as normal — its entries render nowhere.
+            // it as normal - its entries render nowhere.
             'locationKnown' => $this->locationRegistry->has($menu->getLocation()),
             'items' => $items,
         ];

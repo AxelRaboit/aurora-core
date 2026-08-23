@@ -42,7 +42,7 @@ final readonly class DocumentsViewBuilder
     }
 
     /**
-     * Paginated + optionally filtered document list — used by both indexView and the JSON search endpoint.
+     * Paginated + optionally filtered document list - used by both indexView and the JSON search endpoint.
      *
      * @return array{items: array<mixed>, page: int, totalPages: int, total: int}
      */

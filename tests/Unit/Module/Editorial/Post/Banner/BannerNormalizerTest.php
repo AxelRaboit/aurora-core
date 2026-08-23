@@ -48,7 +48,7 @@ final class BannerNormalizerTest extends TestCase
 
     /**
      * Switching an item from text to image in the editor must not throw the
-     * typed text away — the item keeps its id, and the words hang off that.
+     * typed text away - the item keeps its id, and the words hang off that.
      */
     public function testAnImageItemKeepsTheTextItWasCarrying(): void
     {
@@ -355,7 +355,7 @@ final class BannerNormalizerTest extends TestCase
     /**
      * A banner stored whole, before the split. Its texts are positional and
      * the layout was built from the same list, so position is how they line
-     * up — a database restored from an older dump must not lose its copy.
+     * up - a database restored from an older dump must not lose its copy.
      */
     public function testAPreSplitBannerStillYieldsItsTexts(): void
     {
@@ -405,7 +405,7 @@ final class BannerNormalizerTest extends TestCase
      * default.
      *
      * `oneOf` answers `contained` for a value it no longer knows, and that
-     * would move a banner from full width into the article column — a larger
+     * would move a banner from full width into the article column - a larger
      * change than the one being made, on a page nobody edited.
      * {@see Version20260809210000} rewrites what was in
      * the database; this is what catches the rest, since a revision restored

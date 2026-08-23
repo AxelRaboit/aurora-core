@@ -1,6 +1,6 @@
 ---
 name: decision-locale-added-in-core
-description: Décision d'ajouter toute nouvelle locale dans aurora-core (LocaleEnum), jamais côté client — pour capitaliser et garantir la cohérence cross-écosystème
+description: Décision d'ajouter toute nouvelle locale dans aurora-core (LocaleEnum), jamais côté client - pour capitaliser et garantir la cohérence cross-écosystème
 metadata:
   type: project
 ---
@@ -25,7 +25,7 @@ fallbacks). Ajouter un case propage automatiquement la langue partout.
 
 Trois raisons concrètes :
 - **Cohérence** : une locale bricolée côté client ferait diverger les
-  patterns — certains Managers la connaîtraient, d'autres non.
+  patterns - certains Managers la connaîtraient, d'autres non.
 - **Capitalisation** : si un projet a besoin d'espagnol, il y a de
   bonnes chances qu'un autre projet en ait besoin aussi. Ajouter au
   core (+ stubs de traductions) bénéficie à tous.

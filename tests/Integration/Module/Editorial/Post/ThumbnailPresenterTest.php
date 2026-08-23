@@ -16,7 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
  * The thumbnail's crop has two possible sources, and which one wins is the
  * whole of this class.
  *
- * The document's focal point is about the file — a face is in the same place
+ * The document's focal point is about the file - a face is in the same place
  * wherever that photo appears. The publication's is about *this* card, which
  * becomes a different question the moment a wide photo has to work in a narrow
  * frame.

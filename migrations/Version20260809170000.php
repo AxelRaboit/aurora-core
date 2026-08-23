@@ -17,7 +17,7 @@ use Doctrine\Migrations\AbstractMigration;
  *
  * - `PostPageRenderer`, which no longer passes `content` to a template;
  * - the default theme, which no longer has a branch for it;
- * - `PostTextExtractor`, which reads the grid — it went on returning the
+ * - `PostTextExtractor`, which reads the grid - it went on returning the
  *   pre-migration string while this column existed, so search kept answering
  *   with answers a version out of date;
  * - the demo fixtures, which write a one-zone grid;
@@ -48,7 +48,7 @@ final class Version20260809170000 extends AbstractMigration
 
     /**
      * Gives the column back, empty. The words are in `grid` and this cannot
-     * put them here — a migration that pretended otherwise would be worse than
+     * put them here - a migration that pretended otherwise would be worse than
      * one that says so.
      */
     public function down(Schema $schema): void

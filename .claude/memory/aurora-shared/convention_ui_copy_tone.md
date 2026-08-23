@@ -1,6 +1,6 @@
 ---
 name: convention-ui-copy-tone
-description: Ton impersonnel et neutre pour le copy UI — pas de tu/vous, pas de référence au nom du produit, pas d'emojis dans le texte
+description: Ton impersonnel et neutre pour le copy UI - pas de tu/vous, pas de référence au nom du produit, pas d'emojis dans le texte
 metadata:
   type: feedback
 ---
@@ -41,7 +41,7 @@ Le copy UI (texte visible par l'utilisateur final dans les traductions) reste **
 - Tooltips au-delà d'un mot
 
 **Avec souplesse** :
-- Toasts (peuvent être plus directs — « Portefeuille créé. ») mais éviter quand même « tu / vous »
+- Toasts (peuvent être plus directs - « Portefeuille créé. ») mais éviter quand même « tu / vous »
 - Boutons (déjà courts par nature)
 - Validation error messages (souvent générés depuis Symfony Validator)
 
@@ -49,7 +49,7 @@ Le copy UI (texte visible par l'utilisateur final dans les traductions) reste **
 - Logos / branding pages (la marque y est légitime)
 - Login / welcome screens (un « Bienvenue sur X » est attendu)
 - Identifiants techniques (route names, classes CSS, etc.)
-- Code, namespaces, commentaires PHP / JS — `Aurora` reste partout dans les imports, c'est uniquement le **copy traduit visible** qui est concerné
+- Code, namespaces, commentaires PHP / JS - `Aurora` reste partout dans les imports, c'est uniquement le **copy traduit visible** qui est concerné
 
 ## Exemples de réécriture
 

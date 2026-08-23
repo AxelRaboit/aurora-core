@@ -1,4 +1,4 @@
-# Convention — Rendre une entité Aurora extensible par les clients
+# Convention - Rendre une entité Aurora extensible par les clients
 
 **Audience** : contributeurs d'aurora-core (pas les développeurs côté client).
 
@@ -7,7 +7,7 @@ puisse être étendue de bout en bout par un client** (ajout d'un champ
 persistable, validable, sérialisé, et éditable depuis le backoffice) **sans
 qu'aucun fichier de `vendor/aurora/` soit modifié côté client**.
 
-L'entité de référence est **Agency** — toute nouvelle entité Aurora doit
+L'entité de référence est **Agency** - toute nouvelle entité Aurora doit
 suivre ce pattern, et toute entité existante doit y être migrée si elle a
 vocation à être étendue par un client.
 
@@ -34,7 +34,7 @@ manuellement réconcilier ses copies forkées avec les changements upstream.
 
 Le pattern Sylius (qu'Aurora suit) répond à ce problème : aurora-core
 expose des **points d'extension typés** (interfaces, hooks `protected`,
-factories, slots Vue scoped), et le client n'écrit que **le delta** —
+factories, slots Vue scoped), et le client n'écrit que **le delta** -
 les setters de son champ, l'appel `parent::applyInput()`, le slot Vue qui
 ajoute son input, etc.
 
@@ -76,7 +76,7 @@ avec un tableau ET un formulaire de création/édition dédié ?*
 - `Setting` : éditeur clé-valeur sans CRUD (les clés sont définies par
   `ApplicationParameterEnum`, seule la valeur change via le panel)
 
-Pour ces 3 entités, **seule la couche 1 est requise** — déjà en place.
+Pour ces 3 entités, **seule la couche 1 est requise** - déjà en place.
 
 ### 2.2 Entités à exclure (≈ 40)
 
@@ -100,14 +100,14 @@ Pas de DTO, pas de Manager extensible, pas de Vue slots.
 Pour une entité éligible (= avec page admin), exposer **toutes** les couches
 ci-dessous. Ne pas en oublier une.
 
-### Couche 1 — Entité Doctrine
+### Couche 1 - Entité Doctrine
 
 **Toujours** (déjà appliqué sur les 86 entités Aurora) :
 
 ```
 Aurora\<Module>\<Feature>\Entity\
 ├── <Name>Interface.php       # contrat public (getters/setters)
-├── Abstract<Name>.php         # MappedSuperclass Doctrine — toutes les colonnes sauf id
+├── Abstract<Name>.php         # MappedSuperclass Doctrine - toutes les colonnes sauf id
 └── <Name>.php                 # entité concrète, non-final, juste id + sequence
 ```
 
@@ -120,19 +120,19 @@ Convention :
 - `<Name>` est `#[ORM\Entity]` non-`final`, contient uniquement l'`id` +
   `SequenceGenerator` + les ManyToMany éventuelles (Doctrine ne supporte pas
   les ManyToMany sur MappedSuperclass de manière propre)
-- Sequence nommée `seq_core_<entity>_id` — **règle dure**, le préfixe `core_`
+- Sequence nommée `seq_core_<entity>_id` - **règle dure**, le préfixe `core_`
   est obligatoire pour éviter les collisions avec des entités client
   homonymes (un client tracking app peut très bien avoir sa propre table
   `projects` avec son propre `seq_project_id` ; toutes les sequences Aurora
   doivent vivre sous leur propre namespace `seq_core_*`)
 - Référencé dans `src/AuroraBundle.php::$resolve_target_entities`
 
-### Couche 2 — DTO d'entrée + Factory
+### Couche 2 - DTO d'entrée + Factory
 
 **Scope** : on instrumente uniquement le DTO **racine** (celui que le
 controller reçoit). Les sub-DTO (DTO inclus dans un tableau du DTO racine,
 type `array<string, PostTranslationInput>`) restent `final readonly` et ne
-sont pas instrumentés — ils ne sont jamais désérialisés directement par un
+sont pas instrumentés - ils ne sont jamais désérialisés directement par un
 controller, ils sont construits par la factory du DTO racine. Si un client
 a besoin d'étendre une sub-DTO, il étend le DTO racine et fournit ses
 propres sub-DTO via la factory qu'il décore.
@@ -141,18 +141,18 @@ propres sub-DTO via la factory qu'il décore.
 
 ```
 Aurora\<Module>\<Feature>\Dto\
-├── <Name>InputInterface.php          # contrat — getters utilisés par le Manager
+├── <Name>InputInterface.php          # contrat - getters utilisés par le Manager
 ├── <Name>Input.php                    # implémentation par défaut, non-final, readonly
 ├── <Name>InputFactoryInterface.php   # contrat de la factory
 └── <Name>InputFactory.php            # factory par défaut, #[AsAlias(<Name>InputFactoryInterface::class)]
 ```
 
 **Pourquoi une factory ?** Le controller ne peut pas faire `new <Name>Input(...)`
-en dur — sinon le client ne peut pas substituer son propre DTO. La factory
+en dur - sinon le client ne peut pas substituer son propre DTO. La factory
 est un service injectable que le client peut décorer via `#[AsAlias]`.
 
 Le contrat `<Name>InputInterface` expose les **getters** des champs requis
-par Aurora (typiquement `getName(): string`). Pas de setters — le DTO est
+par Aurora (typiquement `getName(): string`). Pas de setters - le DTO est
 immutable.
 
 `<Name>Input` est :
@@ -191,7 +191,7 @@ class AgencyInput implements AgencyInputInterface
 - Utilise `Aurora\Core\Support\Str::trimFromArray($data, 'name')` pour le
   parsing standard
 
-### Couche 3 — Manager
+### Couche 3 - Manager
 
 **Si** l'entité a un Manager (création + update + delete via un service) :
 
@@ -214,7 +214,7 @@ persist + audit log.
 **Trois familles de hooks `protected`**, chacune répondant à un point
 d'extension distinct :
 
-#### 3.1 Hooks d'instanciation — `create<X>()`
+#### 3.1 Hooks d'instanciation - `create<X>()`
 
 **Règle dure, sans exception** : exposer un hook
 `protected create<X>(): <X>Interface` **pour chaque classe d'entité que le
@@ -231,7 +231,7 @@ Exemples : `AgencyManager` → `createAgency()` seul. `OrderManager` →
 > toujours avoir leur Couche 1 (Interface + Abstract + concrete) et un
 > hook `create<X>()` dans le Manager parent.
 
-#### 3.2 Hook d'hydratation — `applyInput()`
+#### 3.2 Hook d'hydratation - `applyInput()`
 
 **Requis par défaut**. Signature : `protected applyInput(<Name>Interface
 $entity, <Name>InputInterface $input): void`. Appelé par `create()` et
@@ -248,7 +248,7 @@ $entity, <Name>InputInterface $input): void`. Appelé par `create()` et
 `applyInput()` reste obligatoire même s'ils exposent quelques méthodes
 spécialisées en plus du flow standard.
 
-#### 3.3 Hooks d'audit log — `auditCreated/Updated/Deleted` + `auditPayload`
+#### 3.3 Hooks d'audit log - `auditCreated/Updated/Deleted` + `auditPayload`
 
 **Requis** dès qu'un Manager fait du logging via `AuditLogger`. Évite que
 le client copie tout le flow `persist + flush + log` pour ajouter un champ
@@ -342,13 +342,13 @@ class AgencyManager implements AgencyManagerInterface
 }
 ```
 
-### Couche 4 — Serializer
+### Couche 4 - Serializer
 
 **Si** l'entité est sérialisée en JSON pour le front :
 
 ```
 Aurora\<Module>\<Feature>\Serializer\
-├── <Name>SerializerInterface.php   # contrat — méthode serialize()
+├── <Name>SerializerInterface.php   # contrat - méthode serialize()
 └── <Name>Serializer.php             # implémentation par défaut, #[AsAlias(...)]
 ```
 
@@ -361,7 +361,7 @@ Aurora\<Module>\<Feature>\Serializer\
 Le client étend cette classe et override `serialize()` pour ajouter ses
 propres champs au tableau retourné par `parent::serialize($entity)`.
 
-### Couche 5 — Vue + Twig
+### Couche 5 - Vue + Twig
 
 **Si** l'entité a une page admin tableau + formulaire :
 
@@ -370,12 +370,12 @@ propres champs au tableau retourné par `parent::serialize($entity)`.
 `src/Module/<Module>/assets/backend/<plural>/<Plural>App.vue` doit exposer :
 
 - **Slots scoped** :
-  - `extra-headers` (sans scope) — `<th>` additionnels pour la table
-  - `extra-cells` (scoped sur `agency` — ou nom équivalent) — `<td>` par ligne
-  - `extra-form-fields` (scoped sur `editForm` + `errors`) — inputs additionnels
+  - `extra-headers` (sans scope) - `<th>` additionnels pour la table
+  - `extra-cells` (scoped sur `agency` - ou nom équivalent) - `<td>` par ligne
+  - `extra-form-fields` (scoped sur `editForm` + `errors`) - inputs additionnels
     dans le modal de création/édition
 
-- **Prop `extraFields`** (défaut `{}`) — config passée au composable :
+- **Prop `extraFields`** (défaut `{}`) - config passée au composable :
   ```js
   {
       <fieldName>: {
@@ -393,15 +393,15 @@ Doit :
   des `extraFields`**
 - Implémenter `resetExtras()` (utilisé par `openCreate`) et
   `loadExtrasFrom(entity)` (utilisé par `openEdit`)
-- Envoyer le payload via `request(url, { ...editForm })` (spread !) — pas
+- Envoyer le payload via `request(url, { ...editForm })` (spread !) - pas
   `{ name: editForm.name }` en dur, sinon les champs client ne sont pas envoyés
 
-> ⚠️ **`editForm` doit rester strict** — uniquement les champs primitifs
+> ⚠️ **`editForm` doit rester strict** - uniquement les champs primitifs
 > envoyés au backend (string, number, boolean, array de primitives). Le
 > spread `{ ...editForm }` sérialise *tout* ce qu'il contient ; toute valeur
 > non prévue pollue le payload et casse la validation Aurora.
 
-✅ Correct — uniquement les champs de l'entité :
+✅ Correct - uniquement les champs de l'entité :
 
 ```js
 const editForm = reactive({
@@ -412,7 +412,7 @@ const editForm = reactive({
 // submit envoie : { name, code, address } ✓
 ```
 
-❌ À éviter — formes courantes de pollution :
+❌ À éviter - formes courantes de pollution :
 
 ```js
 // 1. Computed property dans le reactive
@@ -440,11 +440,11 @@ const editForm = reactive({
 ```
 
 Pour l'état UI / computed / refs, utiliser un `reactive` ou des `ref()`
-**séparés** — pas `editForm`.
+**séparés** - pas `editForm`.
 
 #### 5.3 Override Twig automatique
 
-Aucun changement nécessaire côté aurora-core — le bundle prepend
+Aucun changement nécessaire côté aurora-core - le bundle prepend
 automatiquement les paths côté projet client devant ses propres paths
 sous chaque namespace. Pour chaque namespace deux paths d'override sont
 reconnus :
@@ -459,7 +459,7 @@ reconnus :
 Le client met simplement son override dans l'un ou l'autre, et c'est
 résolu en priorité.
 
-### Couche bonus — ResolveTargetEntityRepository
+### Couche bonus - ResolveTargetEntityRepository
 
 Le `<Name>Repository` doit étendre
 `Aurora\Core\Repository\ResolveTargetEntityRepository` (et non pas
@@ -483,7 +483,7 @@ client a substitué l'entité. **Tous les repos Aurora ont déjà été migrés.
 
 **Limite assumée** : Aurora **n'expose pas** de `<Name>RepositoryInterface`.
 Les controllers et Managers Aurora type-hint la classe concrète
-`<Name>Repository`, pas une interface. Coût/bénéfice non justifié — les
+`<Name>Repository`, pas une interface. Coût/bénéfice non justifié - les
 finders custom client n'ont pas vocation à être appelés depuis
 aurora-core.
 
@@ -543,9 +543,9 @@ Pour `<Name> = Agency` :
 | Repository | `AgencyRepository` |
 | Vue main app | `AgenciesApp.vue` |
 | Composable form | `useAgenciesForm.js` (unifié create+edit, option `extraFields`) |
-| Hooks Manager — instanciation | `createAgency()` (1 par classe instanciée, sans exception) |
-| Hook Manager — hydratation | `applyInput()` (sauf variante User) |
-| Hooks Manager — audit | `auditCreated()` + `auditUpdated()` + `auditDeleted()` + `auditPayload()` |
+| Hooks Manager - instanciation | `createAgency()` (1 par classe instanciée, sans exception) |
+| Hook Manager - hydratation | `applyInput()` (sauf variante User) |
+| Hooks Manager - audit | `auditCreated()` + `auditUpdated()` + `auditDeleted()` + `auditPayload()` |
 | Vue slots | `extra-headers`, `extra-cells`, `extra-form-fields` |
 
 **Exception** : pour `User`, l'interface s'appelle `CoreUserInterface` (et
@@ -559,7 +559,7 @@ namespace `Symfony\Component\Security\Core\User\UserInterface`.
 Le pattern Agency est la **référence canonique**. Les autres règles de la
 convention (scope du DTO, hooks par classe instanciée, `applyInput()` quand
 applicable, composables `useXxxForm` unifiés) sont décrites directement dans
-les couches 2/3/5 et ne constituent pas des variantes — juste des
+les couches 2/3/5 et ne constituent pas des variantes - juste des
 généralisations de la même règle.
 
 Restent **quatre variantes structurelles** où la forme du composant impose
@@ -567,7 +567,7 @@ réellement un écart au pattern de référence :
 
 ### 4.bis.1 Manager à hooks multiples (sans `applyInput()`)
 
-**Cas** : `User` — et seulement les entités qui matchent **les 3 critères**
+**Cas** : `User` - et seulement les entités qui matchent **les 3 critères**
 de la sous-section 3.2 :
 1. ≥ 6 méthodes publiques métier distinctes
 2. Aucun flow create+update simple via DTO unique n'existe
@@ -594,7 +594,7 @@ Slots correspondants : `extra-invite-form-fields` + `extra-form-fields`.
 **Cas additionnel** : `Theme`. Le form de création est minimal (slug, name,
 description) tandis que l'édition expose une interface CSS-config riche
 (variables thème, header/footer modes, primary color picker). Les deux
-forms ne partagent quasiment aucun champ — les unifier produirait un
+forms ne partagent quasiment aucun champ - les unifier produirait un
 composable plus complexe que les deux séparés.
 
 Pattern à appliquer : `useXxxCreate` + `useXxxEdit` avec `extraFields`
@@ -611,7 +611,7 @@ champ commun au-delà de `name`/`description`**. Sinon, le pattern unifié
 
 Quand le formulaire d'édition est une page entière (aside + main +
 multi-tabs locales + plusieurs panels) au lieu d'un `<AppModal>`, la logique
-de form vit directement dans le composant — pas de composable
+de form vit directement dans le composant - pas de composable
 `useXxxForm`. Le composant accepte une prop `extraFields` et expose un
 slot `extra-form-fields` placé **sémantiquement** près d'un panel existant
 proche par fonction (ex : juste après le panel "custom fields", avant
@@ -619,7 +619,7 @@ SeoPanel). L'hydratation des extras se fait dans `onMounted` après le
 chargement initial des données.
 
 Pour la liste (`PostsApp.vue`), les slots `extra-headers` / `extra-cells`
-restent identiques au pattern Agency — la complexité de l'editor ne change
+restent identiques au pattern Agency - la complexité de l'editor ne change
 pas la liste.
 
 ### 4.bis.3 Tree-based editor (pas une table)
@@ -638,7 +638,7 @@ adaptation :
   `NoteTreeItem`, qui forward le slot via une `<template #extra-cells>`
   imbriquée pour que tous les niveaux de profondeur le rendent.
 - **`extra-form-fields`** : à côté du titre/tags dans l'header de
-  l'éditeur (l'éditeur lui-même reste le textarea markdown — les champs
+  l'éditeur (l'éditeur lui-même reste le textarea markdown - les champs
   custom vivent dans le header au-dessus).
 
 Le composable form n'est pas `useXxxForm` mais `useNotesEditor` : il
@@ -651,10 +651,10 @@ de l'auto-save.
 
 ## 5. Anti-patterns à éviter
 
-❌ **`final readonly class <Name>Input`** — empêche l'extension
+❌ **`final readonly class <Name>Input`** - empêche l'extension
 ✅ `readonly class <Name>Input implements <Name>InputInterface`
 
-❌ **`final class <Name>Manager`** — empêche l'extension
+❌ **`final class <Name>Manager`** - empêche l'extension
 ✅ `class <Name>Manager implements <Name>ManagerInterface`
 
 ❌ **`private readonly EntityManagerInterface $entityManager`** dans le Manager
@@ -662,30 +662,30 @@ de l'auto-save.
    ont besoin d'y accéder)
 
 ❌ **Static `<Name>Input::fromArray($data)`** appelé directement dans le
-   controller — non-décorable
+   controller - non-décorable
 ✅ `<Name>InputFactoryInterface` injecté + `$this->factory->fromArray($data)`
 
-❌ **`new <Name>()` directement dans `Manager::create()`** — non-overridable
-✅ `$this->create<Name>()` (hook `protected`) — override-able
+❌ **`new <Name>()` directement dans `Manager::create()`** - non-overridable
+✅ `$this->create<Name>()` (hook `protected`) - override-able
 
 ❌ **Vue submit en dur** : `request(url, { name: editForm.name })`
-✅ `request(url, { ...editForm })` — spread tout le form, les champs client
+✅ `request(url, { ...editForm })` - spread tout le form, les champs client
    sont envoyés automatiquement
 
 ❌ **Repository extends `ServiceEntityRepository` directement**
 ✅ Repository extends `Aurora\Core\Repository\ResolveTargetEntityRepository`
 
-❌ **Sequence nommée `seq_<entity>_id`** (sans `core_`) — collision potentielle
+❌ **Sequence nommée `seq_<entity>_id`** (sans `core_`) - collision potentielle
    avec des entités client homonymes
 ✅ Sequence nommée `seq_core_<entity>_id`
 
-❌ **`<Name>Manager::create()` qui contourne `applyInput()`** — fait perdre
+❌ **`<Name>Manager::create()` qui contourne `applyInput()`** - fait perdre
    au client la capacité d'override la logique d'hydratation
 ✅ Toujours passer par les hooks `create<Name>()` + `applyInput()`
 
 ---
 
-## 6. Checklist — Retrofitter une entité existante
+## 6. Checklist - Retrofitter une entité existante
 
 Pour appliquer cette convention à une entité qui n'a pas encore le pattern
 complet (ex : Deal, Post, User, Project, Contact, Company, Order, etc.) :
@@ -735,9 +735,9 @@ complet (ex : Deal, Post, User, Project, Contact, Company, Order, etc.) :
 
 - [ ] `php bin/console cache:clear`
 - [ ] `php bin/console doctrine:schema:validate`
-- [ ] `vendor/bin/phpunit` — 494 tests doivent rester verts
+- [ ] `vendor/bin/phpunit` - 494 tests doivent rester verts
 - [ ] Lancer la page admin Aurora correspondante en navigateur, créer/éditer
-      une entité — comportement Aurora inchangé
+      une entité - comportement Aurora inchangé
 
 ### Côté doc
 
@@ -748,7 +748,7 @@ complet (ex : Deal, Post, User, Project, Contact, Company, Order, etc.) :
 
 ---
 
-## 7. Checklist — Créer une nouvelle entité Aurora
+## 7. Checklist - Créer une nouvelle entité Aurora
 
 Pour une nouvelle entité créée from-scratch dans aurora-core :
 

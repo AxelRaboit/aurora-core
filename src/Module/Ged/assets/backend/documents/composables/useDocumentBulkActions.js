@@ -5,7 +5,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
 /**
  * Bulk actions on the documents page (delete + move). Replaces the previous
- * inline `doBulkDelete` raw-fetch glue + `useDocumentBulkMove` — co-locates
+ * inline `doBulkDelete` raw-fetch glue + `useDocumentBulkMove` - co-locates
  * the two flows so the toolbar wiring lives in one spot and both go through
  * `useRequest` (loading / error handling / CSRF).
  */

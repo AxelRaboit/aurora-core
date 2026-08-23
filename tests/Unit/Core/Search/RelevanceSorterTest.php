@@ -41,7 +41,7 @@ final class RelevanceSorterTest extends TestCase
         $item99 = $this->makeItem(99);
         $item2 = $this->makeItem(2);
 
-        // item99 is not in orderedIds — should go last
+        // item99 is not in orderedIds - should go last
         $sorted = $sorter->sort([$item1, $item99, $item2], [2, 1], static fn (object $item): int => $item->id);
 
         self::assertSame($item2, $sorted[0]);

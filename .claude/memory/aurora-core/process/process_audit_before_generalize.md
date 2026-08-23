@@ -12,11 +12,11 @@ Une convention validée sur 1 entité (Agency) ne garantit rien. Sur Aurora,
 le pilote large (Agency / Deal / User / Post / Order) a révélé **5 cas non
 prévus** :
 
-1. Sub-DTOs (PostTranslationInput) — sont-ils instrumentés ?
-2. Manager à hooks multiples (User) — pas de `applyInput()` adapté
-3. Cascade (OrderLine instancié par OrderManager) — combien de hooks ?
-4. Composables Vue séparés (Deal create/edit) — un ou deux slots ?
-5. Editor full-page (Post) — placement du slot ?
+1. Sub-DTOs (PostTranslationInput) - sont-ils instrumentés ?
+2. Manager à hooks multiples (User) - pas de `applyInput()` adapté
+3. Cascade (OrderLine instancié par OrderManager) - combien de hooks ?
+4. Composables Vue séparés (Deal create/edit) - un ou deux slots ?
+5. Editor full-page (Post) - placement du slot ?
 
 L'audit a permis de **réduire 5 variantes apparentes à 2 vraies variantes
 structurelles** en reformulant les 3 autres comme règles dures dans la

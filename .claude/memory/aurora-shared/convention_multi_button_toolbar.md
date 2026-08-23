@@ -41,7 +41,7 @@ Le wrapper `flex flex-col sm:flex-row gap-2 w-full sm:w-auto` :
 
 ## Comment l'appliquer
 
-- 1 bouton : `<AppButton class="w-full sm:w-auto" ...>` — pas de wrapper
+- 1 bouton : `<AppButton class="w-full sm:w-auto" ...>` - pas de wrapper
 - 2+ boutons : wrapper `<div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">`
 - Quand un bouton est secondaire (ex: refresh) sur Dashboard ou Budgets,
   un seul bouton sans `w-full` reste acceptable (cas spécifique des
@@ -49,9 +49,9 @@ Le wrapper `flex flex-col sm:flex-row gap-2 w-full sm:w-auto` :
 
 ## Pointeurs
 
-- Lien : [[convention_mobile_card_layout]] — couvre le cas 1 bouton +
+- Lien : [[convention_mobile_card_layout]] - couvre le cas 1 bouton +
   pattern mobile cards/desktop table.
-- Lien : [[pattern_admin_list_toolbar]] — le wrapper `AppListToolbar`
+- Lien : [[pattern_admin_list_toolbar]] - le wrapper `AppListToolbar`
   lui-même.
 - Exemples en code : `PersonalFinanceTransactionsApp.vue` (Split +
   Transfer + Ajouter), `PersonalFinanceRecurringApp.vue` (1 bouton par

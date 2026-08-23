@@ -21,7 +21,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * rejected with a 404.
  *
  * The root dispatcher route (`frontend_root`) is intentionally NOT
- * matched here — when no front is available, its controller redirects
+ * matched here - when no front is available, its controller redirects
  * to the backend instead of throwing. Per-controller IsGranted /
  * route-level guards still apply on top of this gate.
  */

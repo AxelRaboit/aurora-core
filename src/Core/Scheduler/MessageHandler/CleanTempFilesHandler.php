@@ -12,7 +12,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
  * Cleans up orphaned temporary files left by Aurora processes.
  *
  * Covers:
- *   - /tmp/aurora_ssh_*  (SSH key files from MountPoint tunnels — crash orphans)
+ *   - /tmp/aurora_ssh_*  (SSH key files from MountPoint tunnels - crash orphans)
  */
 #[AsMessageHandler]
 final readonly class CleanTempFilesHandler

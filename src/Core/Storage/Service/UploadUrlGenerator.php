@@ -7,7 +7,7 @@ namespace Aurora\Core\Storage\Service;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * Builds public URLs for any file stored under `var/uploads/` — wraps the
+ * Builds public URLs for any file stored under `var/uploads/` - wraps the
  * `uploads_serve` route so callers don't hardcode the `/uploads/` prefix.
  * Generic equivalent of `MediaUrlGenerator`, usable by any module that
  * owns its own file storage (GED, Welding PdfDocument, etc.) without

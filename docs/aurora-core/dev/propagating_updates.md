@@ -1,4 +1,4 @@
-# Convention — Propager une mise à jour d'aurora-core aux projets consommateurs
+# Convention - Propager une mise à jour d'aurora-core aux projets consommateurs
 
 > **Règle dure** : dès qu'une modification d'aurora-core est mergée sur
 > `develop`, il faut la **propager à tous les projets consommateurs**. Une
@@ -51,7 +51,7 @@ via le dépôt VCS GitHub (composer) :
 
 - Les nouveaux projets consommateurs sont scaffoldés à partir du template
   livré par aurora-core dans [`.claude/client_template/`](../../../.claude/client_template/)
-  (CLAUDE.md, Makefile, README.md) — synchronisé via `make sync-claude-md`.
+  (CLAUDE.md, Makefile, README.md) - synchronisé via `make sync-claude-md`.
 - aurora-client est l'instance de référence de ce template : on le garde
   **volontairement épuré** (pas de logique métier lourde) pour qu'il serve de
   gabarit clair. Quand on doute de « comment un client doit faire X », c'est
@@ -127,7 +127,7 @@ Un garde-fou (`_no-recent-aurora-update`) refuse `pull-update` juste après un
 `propagate` (`.claude/skills/propagate/`) est la forme exécutable de cette
 page. Il ajoute deux refus que la checklist ci-dessous laisse à la vigilance :
 
-- il ne démarre pas si la CI d'aurora-core est rouge **ou encore en cours** —
+- il ne démarre pas si la CI d'aurora-core est rouge **ou encore en cours** -
   bumper sur un sha non validé propage du rouge chez le consommateur, où il
   aura l'air d'être de sa faute ;
 - il énonce les migrations du range **avant** de lancer `make aurora-update`,

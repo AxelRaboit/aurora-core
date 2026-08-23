@@ -19,11 +19,11 @@ use function assert;
 /**
  * Demo scaffolding shared by every module's demo fixtures: the demo users.
  * Each user is exposed via a fixture reference ({@see userRef}) so module
- * fixtures — which ship in their own Composer package and cannot import
- * this concrete data — stay decoupled: they only depend on this class and
+ * fixtures - which ship in their own Composer package and cannot import
+ * this concrete data - stay decoupled: they only depend on this class and
  * pull users by reference.
  *
- * Dev/test only — registered via `when@dev` in config/services.yaml.
+ * Dev/test only - registered via `when@dev` in config/services.yaml.
  */
 class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
@@ -82,7 +82,7 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
                 'role' => UserRoleEnum::User,
                 'privileges' => [
                     'general.dashboard.view',
-                    // GED — full document management
+                    // GED - full document management
                     'ged.documents.view', 'ged.documents.create', 'ged.documents.edit', 'ged.documents.delete',
                     'ged.categories.view', 'ged.categories.create', 'ged.categories.edit', 'ged.categories.delete',
                     'ged.tags.manage', 'ged.folders.manage',
@@ -96,7 +96,7 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
         foreach ($defs as $def) {
             // Reused when it is already there, so `make demo` can be run twice.
             // It used to always insert, and the second run died on the unique
-            // (email, type) — after purging var/uploads, which is the first
+            // (email, type) - after purging var/uploads, which is the first
             // thing that target does. A reload that half-runs is worse than one
             // that refuses.
             $user = $repository->findOneBy(['email' => $def['email']]) ?? new User();
@@ -109,8 +109,8 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
                  ->setMoodMessage($def['mood'])
                  ->setLocale(LocaleEnum::French);
 
-            // Only on creation: a reload refreshes what the demo describes —
-            // the name, the rights — without resetting a password somebody
+            // Only on creation: a reload refreshes what the demo describes -
+            // the name, the rights - without resetting a password somebody
             // changed in the meantime.
             if ($fresh) {
                 $user->setPassword($this->hasher->hashPassword($user, 'password'));

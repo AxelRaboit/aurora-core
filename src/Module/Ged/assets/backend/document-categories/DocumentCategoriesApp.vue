@@ -53,7 +53,7 @@ const actionsFor = useEditDeleteActions({
     deleteDescription: "backend.ged.categories.row_actions.delete_description",
 });
 
-// Name + slug + actions, plus whatever the client added — otherwise the empty
+// Name + slug + actions, plus whatever the client added - otherwise the empty
 // row stops spanning the table the moment an extra column exists.
 const columnCount = computed(() => 3 + Object.keys(props.extraFields).length);
 </script>

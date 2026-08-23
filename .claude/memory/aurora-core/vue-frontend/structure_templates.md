@@ -1,4 +1,4 @@
-# Templates Twig — convention de structure
+# Templates Twig - convention de structure
 
 ## Règle
 
@@ -40,7 +40,7 @@ src/Core/templates/                 ← templates cross-cutting (infra)
 templates/                          ← seul rescapé à la racine
 └── bundles/
     └── TwigBundle/    ← override de templates third-party (error pages, …)
-                         — convention Symfony hardcodée, non déplaçable
+                         - convention Symfony hardcodée, non déplaçable
 ```
 
 ## Namespaces Twig
@@ -50,13 +50,13 @@ templates/                          ← seul rescapé à la racine
 | `@Core` | `src/Core/templates/Core/` | `<client>/src/Core/templates/Core/` | `<client>/templates/Core/` |
 | `@Shared` | `src/Core/templates/Shared/` | `<client>/src/Core/templates/Shared/` | `<client>/templates/Shared/` |
 | `@<Module>` | `src/Module/<X>/templates/` | `<client>/src/Module/<X>/templates/` | `<client>/templates/Module/<X>/` |
-| _(null)_ | `src/Core/templates/` + `templates/` | — | — |
+| _(null)_ | `src/Core/templates/` + `templates/` | - | - |
 
-Le null namespace couvre les refs sans `@` — typiquement
+Le null namespace couvre les refs sans `@` - typiquement
 `Frontend/themes/default/layout.html.twig` consommé par `ThemeResolver`.
 
 Exemples : `@Editorial` → `src/Module/Editorial/templates/`, `@Crm` →
-`src/Module/Crm/templates/`, etc. — un namespace par dossier sous
+`src/Module/Crm/templates/`, etc. - un namespace par dossier sous
 `src/Module/*` avec un sous-dossier `templates/`.
 
 ## Override automatique côté client
@@ -72,7 +72,7 @@ fichier au chemin miroir → résolu en priorité.
 1. **Nouveau** : `<client>/src/Module/<Module>/templates/...` (mirror
    du layout core).
 2. **Legacy backward compat** : `<client>/templates/Module/<Module>/...`
-   — toujours supporté pour ne pas casser les projets existants.
+   - toujours supporté pour ne pas casser les projets existants.
 
 Ex: `vendor/axelraboit/aurora/src/Module/Platform/templates/backend/agencies/index.html.twig`
 peut être overridé soit par
@@ -87,7 +87,7 @@ pour les détails côté client.
 
 `ThemeResolver::resolve('editorial/post/index')` :
 1. Cherche `<project>/templates/Frontend/themes/<slug-actif>/editorial/post/index.html.twig`
-   (thèmes custom — toujours côté client, c'est de la data utilisateur)
+   (thèmes custom - toujours côté client, c'est de la data utilisateur)
 2. Si trouvé → l'utilise. Sinon → fallback sur `Frontend/themes/default/...` qui
    résout via le null namespace vers `<bundle>/src/Core/templates/Frontend/themes/default/`
 
@@ -97,7 +97,7 @@ Exemples de chemins résolus :
 - `editorial/post/show` → `themes/<slug>/editorial/post/show.html.twig`
 
 Le thème actif est lu en BDD (`core_themes WHERE active = true`).
-**Un seul thème actif à la fois.** Un thème custom n'override que les templates qu'il contient — tout le reste tombe sur `default`.
+**Un seul thème actif à la fois.** Un thème custom n'override que les templates qu'il contient - tout le reste tombe sur `default`.
 
 ### Créer et activer un thème custom
 
@@ -125,7 +125,7 @@ Retourne une map `nom → chemin résolu` pour les templates de pages + le layou
 de chaque thème. Les anciens partials `editorial/_post_card` et
 `editorial/_pagination` ont été supprimés (remplacés par les composants Vue
 `PostCard.vue` et `AppPagination`), donc `resolveAll()` ne pointe plus vers ces
-fichiers — il ne contient que les pages-passerelles et le layout.
+fichiers - il ne contient que les pages-passerelles et le layout.
 
 **Doc canonique** : [`docs/aurora-core/dev/frontend_theme_override.md`](../../../docs/aurora-core/dev/frontend_theme_override.md)
 
@@ -134,7 +134,7 @@ fichiers — il ne contient que les pages-passerelles et le layout.
 ### Pages admin
 - `<Module>/backend/<plural>/index.html.twig` : page liste + form admin
   d'une entité (ex: `Core/backend/agencies/index.html.twig`).
-- `<Module>/backend/<plural>/show.html.twig` : page détail (rare —
+- `<Module>/backend/<plural>/show.html.twig` : page détail (rare -
   souvent un overlay Vue suffit).
 - `<Module>/backend/<plural>/edit.html.twig` : page edit dédiée si trop
   complexe pour un modal (ex: `Editorial/backend/posts/edit.html.twig`
@@ -160,7 +160,7 @@ fichiers — il ne contient que les pages-passerelles et le layout.
 ## Pattern admin page (Vue mount)
 
 L'admin Aurora utilise Twig comme **shell** qui mount un composant Vue
-via le helper Twig `vue_component(...)` — **même pattern que le frontend**
+via le helper Twig `vue_component(...)` - **même pattern que le frontend**
 (cf [[convention_frontend_rendering]]). Pattern type :
 
 ```twig
@@ -181,7 +181,7 @@ via le helper Twig `vue_component(...)` — **même pattern que le frontend**
 
 Le helper `vue_component()` sérialise les props en attributs data et
 enregistre le mount. **Pas de logique inline en Twig** pour les pages
-admin SPA — toutes les données viennent du `*ViewBuilder`.
+admin SPA - toutes les données viennent du `*ViewBuilder`.
 
 > Note : l'ancien pattern `data-controller="vue-mount"` avec props
 > `json_encode | escape('html_attr')` n'est plus utilisé. Tout est passé

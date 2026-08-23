@@ -3,7 +3,7 @@ import { Inbox } from "lucide-vue-next";
 
 defineProps({
     message: { type: String, default: "Aucune donnée à afficher." },
-    /** Secondary line under the message — usually what to do about the emptiness. */
+    /** Secondary line under the message - usually what to do about the emptiness. */
     hint: { type: String, default: "" },
 });
 </script>

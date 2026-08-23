@@ -46,7 +46,7 @@ final class ImageVariantGeneratorTest extends TestCase
     public function testStillGeneratesLargeVariantWhenSourceIsSmaller(): void
     {
         // Even when the source is smaller than every preset, the largest
-        // variant is always generated — that's the EXIF-strip safety net so
+        // variant is always generated - that's the EXIF-strip safety net so
         // the public download path never falls back to the raw original.
         $relative = $this->createPngFixture('small.png', 100, 100);
 

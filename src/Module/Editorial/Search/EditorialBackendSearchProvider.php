@@ -16,7 +16,7 @@ use Throwable;
  * Editorial's slice of the backend global search: posts by title, slug or
  * body, through the same full-text path the posts list uses.
  *
- * Scoped like the list it mirrors — a writer who may only manage their own
+ * Scoped like the list it mirrors - a writer who may only manage their own
  * posts finds only their own here too. A search box that surfaces rows the
  * list refuses to show is a leak, and the surprise lands on whoever clicks
  * the result and gets a 403.

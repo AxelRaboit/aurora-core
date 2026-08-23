@@ -18,7 +18,7 @@ framework:
 
         # Module message routing is declared by each module's bundle
         # (prependExtension), e.g. AuroraBillingBundle routes ProcessOcrJobMessage
-        # → async — so aurora-core's messenger config stays module-agnostic.
+        # → async - so aurora-core's messenger config stays module-agnostic.
 
 when@test:
     framework:

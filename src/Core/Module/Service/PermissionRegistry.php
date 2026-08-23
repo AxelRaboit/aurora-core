@@ -24,7 +24,7 @@ final class PermissionRegistry
             foreach ($module->getPermissions() as $permission) {
                 $this->permissions[] = $permission->name;
                 // Permission can opt into a different display group via
-                // NavPermission::$group — used to surface a permission
+                // NavPermission::$group - used to surface a permission
                 // declared by one module under another section in the
                 // privileges modal. Rarely needed since Jalon 5 aligned
                 // every permission name on its owner module id.

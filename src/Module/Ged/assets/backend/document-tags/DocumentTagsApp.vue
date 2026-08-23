@@ -93,7 +93,7 @@ const actionsFor = useEditDeleteActions({
                             <span v-if="tag.color" class="inline-block w-3 h-3 rounded-full" :style="{ backgroundColor: tag.color }" />
                             {{ tag.name }}
                         </td>
-                        <td class="px-6 py-3 text-muted font-mono text-xs hidden md:table-cell">{{ tag.color ?? '—' }}</td>
+                        <td class="px-6 py-3 text-muted font-mono text-xs hidden md:table-cell">{{ tag.color ?? '-' }}</td>
                         <td class="px-6 py-3">
                             <div class="flex items-center justify-end gap-0.5">
                                 <AppRowActions :actions="actionsFor(tag)" :label="tag.name ?? tag.label ?? ''" />

@@ -1,7 +1,7 @@
 import { isRef } from "vue";
 
 /**
- * Per-section visual theme for the sidemenu — colour-codes each module
+ * Per-section visual theme for the sidemenu - colour-codes each module
  * group with a subtle tinted background, a 3 px left accent strip, and
  * a matching tinted label so scanning the nav feels structured even
  * with 20+ entries. The same hue is then reused for the section's
@@ -12,7 +12,7 @@ import { isRef } from "vue";
  * `useBudgetSectionTheme`) so the same eye habits transfer.
  *
  * The tints stay light (10 % alpha background + 400 text + 500 border)
- * — the sidemenu is a neutral surface and we don't want the colour
+ * - the sidemenu is a neutral surface and we don't want the colour
  * pulling focus away from the active item. Tailwind JIT picks up the
  * full class strings present in this map; no safelist needed.
  *
@@ -33,7 +33,7 @@ const FALLBACK_THEME = makeTheme("accent");
 /**
  * Builds a full theme bundle for a Tailwind colour name. Returns the
  * exact Tailwind class strings the JIT compiler needs to see at build
- * time — keep all references intact (no dynamic concat with the
+ * time - keep all references intact (no dynamic concat with the
  * colour name) so PurgeCSS doesn't drop them.
  */
 function makeTheme(c) {
@@ -349,7 +349,7 @@ export function useSidemenuSectionTheme(overrides = {}) {
     }
 
     /**
-     * Tailwind classes for the icon nested inside a nav item — picks up
+     * Tailwind classes for the icon nested inside a nav item - picks up
      * the section colour when its container is active/in-tree, slides
      * into it on hover otherwise.
      */

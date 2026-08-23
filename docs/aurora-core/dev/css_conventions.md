@@ -1,4 +1,4 @@
-# Aurora CSS — organisation & conventions
+# Aurora CSS - organisation & conventions
 
 CSS organisé pour **refléter la structure de `src/`** (Vue/JS et PHP
 co-localisés depuis 0.5). Chaque
@@ -9,11 +9,11 @@ styles à côté de leur code logique.
 
 Deux emplacements, selon la portée :
 
-**1. Global — `src/Core/assets/css/`**, importé par `app.css` :
+**1. Global - `src/Core/assets/css/`**, importé par `app.css` :
 
 ```
 src/Core/assets/css/
-├── app.css                    # Entry — orchestre les imports GLOBAUX uniquement
+├── app.css                    # Entry - orchestre les imports GLOBAUX uniquement
 ├── email.css                  # Standalone, monté par les emails seulement
 │
 └── base/                      # Tout ce qui est chargé sur (presque) toutes les pages
@@ -27,7 +27,7 @@ src/Core/assets/css/
     └── modal.css
 ```
 
-**2. Feature / module — co-localisé à côté du composant**, importé par le
+**2. Feature / module - co-localisé à côté du composant**, importé par le
 SFC lui-même :
 
 ```
@@ -46,7 +46,7 @@ src/Core/assets/shared/components/editor/
 > 0.5. On le trouve sans chercher, il se supprime avec son composant, et
 > un module packagé séparément emporte ses styles avec lui.
 
-## Règle d'or — où importer ?
+## Règle d'or - où importer ?
 
 Vite/Rolldown trackent les `import "...css"` par chunk JS : **le CSS est
 shipé dans le même chunk que la JS qui le consomme**. Donc :
@@ -59,7 +59,7 @@ shipé dans le même chunk que la JS qui le consomme**. Donc :
   navigateur ne télécharge le CSS que quand la page qui mount le SFC
   est chargée.
 
-### Exemple — AppBlockEditor
+### Exemple - AppBlockEditor
 
 ```vue
 <script setup>
@@ -102,11 +102,11 @@ les styles avant le rendu JS.
 
 **Préférer un fichier externe** dès qu'on a :
 - Plus de ~5 règles cohérentes
-- Du CSS qui cible du contenu **rendu** (`v-html`, EditorJS, marked, …) —
+- Du CSS qui cible du contenu **rendu** (`v-html`, EditorJS, marked, …) -
   les styles scopés Vue ne peuvent pas styler du HTML injecté sans
   `:deep()` partout, et le résultat est plus net dans un `.css` dédié.
 - Des règles qui dépendent d'une classe parente fixée par le composant
-  (`.note-preview`, `.prose-preview`, `.codex-editor`, …) — la portée
+  (`.note-preview`, `.prose-preview`, `.codex-editor`, …) - la portée
   est déjà naturelle, on peut sortir les rules d'un coup.
 
 **Garder inline `<style scoped>`** uniquement pour :
@@ -136,13 +136,13 @@ les styles avant le rendu JS.
 ### 5. Variables CSS / tokens de couleur
 
 Les tokens (`--th-primary`, `--th-surface`, `--color-accent-500`, …) sont
-définis dans `base/theme.css`. **Toujours** passer par les tokens — pas
+définis dans `base/theme.css`. **Toujours** passer par les tokens - pas
 de hex en dur dans les feuilles modulaires, sauf pour des accents
 type-spécifiques (cf. les `--callout-color` de markdown-preview).
 
 ### 6. `email.css`
 
-Standalone — chargé indépendamment par `src/Core/templates/Shared/email/layout/
+Standalone - chargé indépendamment par `src/Core/templates/Shared/email/layout/
 base.html.twig` via `inline_css()`. **Ne pas** l'importer dans
 `app.css` ni inclure des selectors Tailwind compliqués (les clients
 mail ne supportent que CSS inline limité).

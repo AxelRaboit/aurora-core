@@ -1,6 +1,6 @@
 ---
 name: pref-think-long-term
-description: User prefers "design for the long term" over Claude's default YAGNI rule. Architectural refactors happen as soon as the abstraction is sound, even without an immediate concrete user — within explicit guardrails. Applies to aurora-core AND aurora-client.
+description: User prefers "design for the long term" over Claude's default YAGNI rule. Architectural refactors happen as soon as the abstraction is sound, even without an immediate concrete user - within explicit guardrails. Applies to aurora-core AND aurora-client.
 metadata:
   type: feedback
 ---
@@ -45,7 +45,7 @@ que son code reste cohérent avec le bundle qu'il étend.
 
 **Exemples concrets validés côté core** :
 - 22 callers de `Media::getPublicUrl()` → refactor vers `MediaUrlGenerator`
-  injecté (séparation domaine/HTTP) ✅ — puis fusion Media→GED en
+  injecté (séparation domaine/HTTP) ✅ - puis fusion Media→GED en
   2026-05-30, c'est maintenant `DocumentUrlGenerator` qui sert tout
 - `Num::clamp` extrait dès 10+ sites inline ✅
 - Convention extensibilité Sylius 5 couches partout ✅
@@ -56,7 +56,7 @@ que son code reste cohérent avec le bundle qu'il étend.
 - Sous-dossiers dans `shared/components/overlay/` (4 composants) ❌
 
 Cette philosophie est documentée dans `CLAUDE.md` §3bis (côté core).
-Côté aurora-client, la même règle s'applique implicitement — le client
+Côté aurora-client, la même règle s'applique implicitement - le client
 hérite de ce préf via composer + sync mémoire. Toute nouvelle convention
 validée par l'utilisateur peut être actée comme mémoire ou doc, mais
 ce pref-là reste le défaut Claude pour toutes les sessions sur

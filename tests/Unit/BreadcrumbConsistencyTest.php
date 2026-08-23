@@ -21,7 +21,7 @@ use function str_replace;
  * Every backend page's trail, checked against the shape the header can render.
  *
  * A crumb is `{label: …}` plus an optional `href:`. Those are the only two keys
- * `page_header.html.twig` reads, and anything else is silently ignored — the
+ * `page_header.html.twig` reads, and anything else is silently ignored - the
  * post edit page spent its life writing `path:` instead of `href:`, so the
  * "Publications" level above it was plain text that looked like a link's
  * neighbour and did nothing. Nothing failed. That is why this is asserted.
@@ -106,7 +106,7 @@ final class BreadcrumbConsistencyTest extends TestCase
                 self::assertContains(
                     $key,
                     self::ALLOWED_KEYS,
-                    sprintf('`%s:` is not read by the header — the crumb renders, the link does not.', $key),
+                    sprintf('`%s:` is not read by the header - the crumb renders, the link does not.', $key),
                 );
             }
         }

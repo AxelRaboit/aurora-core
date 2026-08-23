@@ -1,6 +1,6 @@
 ---
 name: pattern-migration-drift-detection
-description: Système 2-couches qui alerte le dev quand sa base dev a des migrations Doctrine en attente — banner Twig dans l'admin + warning CLI dans `make ft`.
+description: Système 2-couches qui alerte le dev quand sa base dev a des migrations Doctrine en attente - banner Twig dans l'admin + warning CLI dans `make ft`.
 metadata:
   type: project
 ---
@@ -11,11 +11,11 @@ Aurora détecte automatiquement quand le **dev DB** est en retard sur le code
 (migrations présentes dans `migrations/Version*.php` mais pas exécutées).
 Deux surfaces de détection :
 
-1. **Banner Twig** (`src/Core/templates/Core/backend/layout.html.twig`) — affiché en
+1. **Banner Twig** (`src/Core/templates/Core/backend/layout.html.twig`) - affiché en
    haut de chaque page admin **uniquement en env dev** quand des migrations
    sont en attente. Mention "X migration(s) en attente sur la base dev" +
    code `make migrate` à exécuter.
-2. **CLI** (`make migrate-check`) — appelé automatiquement à la fin de
+2. **CLI** (`make migrate-check`) - appelé automatiquement à la fin de
    `make ft`. Warning jaune loud + liste des migrations en attente +
    instruction. Silencieux si DB à jour.
 
@@ -41,10 +41,10 @@ make migrate     # applique toutes les migrations en attente
 
 **Côté code** :
 
-- `MigrationStatusChecker` (`src/Core/Migration/Service/`) — compare le
+- `MigrationStatusChecker` (`src/Core/Migration/Service/`) - compare le
   nombre de fichiers `Version*.php` au COUNT(*) de
   `doctrine_migration_versions`. Renvoie `countPending(): int`.
-- `MigrationStatusExtension` (`src/Core/Twig/`) — Twig function
+- `MigrationStatusExtension` (`src/Core/Twig/`) - Twig function
   `aurora_pending_migrations()` exposée à tous les templates.
 - Layout admin : `{% if app.environment == 'dev' and aurora_pending_migrations() > 0 %}`.
 - Translations : `backend.migrations.pending.banner` dans

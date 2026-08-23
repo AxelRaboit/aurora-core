@@ -40,7 +40,7 @@ Si un commit accidentel contient le co-author :
 git log -1 | grep -i "co-author"
 ```
 
-Ne pas réécrire l'historique passé pour ça (déjà arrivé) — juste s'en
+Ne pas réécrire l'historique passé pour ça (déjà arrivé) - juste s'en
 souvenir pour les prochains commits.
 
 ## Source

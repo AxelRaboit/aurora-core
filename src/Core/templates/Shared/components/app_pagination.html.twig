@@ -1,11 +1,11 @@
 {#
-    Generic pagination bar — Twig-only, theme-agnostic.
+    Generic pagination bar - Twig-only, theme-agnostic.
 
     Params:
-      - page        (int)    — current page (1-based)
-      - totalPages  (int)    — total number of pages
-      - route       (string) — Symfony route name to generate page URLs
-      - params      (object) — extra route params merged with `page`; default {}
+      - page        (int)    - current page (1-based)
+      - totalPages  (int)    - total number of pages
+      - route       (string) - Symfony route name to generate page URLs
+      - params      (object) - extra route params merged with `page`; default {}
 #}
 {% set _params = params|default({}) %}
 

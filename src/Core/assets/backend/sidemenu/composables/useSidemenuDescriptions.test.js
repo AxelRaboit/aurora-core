@@ -52,7 +52,7 @@ describe("the menu's descriptions switch", () => {
         expect(JSON.parse(init.body)).toEqual({ show: false });
     });
 
-    // Nothing to save against, so nothing is sent — which is what keeps the
+    // Nothing to save against, so nothing is sent - which is what keeps the
     // composable usable in a test or a preview that has no route.
     it("sends nothing when it was given no route", () => {
         const fetchMock = vi.fn();

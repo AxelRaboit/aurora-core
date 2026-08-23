@@ -1,4 +1,4 @@
-# Setup — Installation locale
+# Setup - Installation locale
 
 > 🚀 **Tu rejoins un projet existant ?** Voir le quickstart 10 min :
 > [`joining_a_project.md`](joining_a_project.md). Procédure
@@ -22,8 +22,8 @@
 | PostgreSQL | 18+ | en prod et dans le template `.env.local.example` |
 | Node.js | 20+ | |
 | pnpm | 10+ | |
-| php8.4-pcov | — | driver de coverage PHPUnit (optionnel, pour `--coverage`) |
-| Docker (optionnel) | — | pour la base de données en local |
+| php8.4-pcov | - | driver de coverage PHPUnit (optionnel, pour `--coverage`) |
+| Docker (optionnel) | - | pour la base de données en local |
 
 Installer PCOV :
 
@@ -50,7 +50,7 @@ pnpm install                                    # deps JS client (Vue, axios, �
 (cd vendor/axelraboit/aurora && pnpm install)   # tooling Vite/Vitest (vendor)
 ```
 
-> ✅ `make install-dev` fait tout ça en un raccourci — composer +
+> ✅ `make install-dev` fait tout ça en un raccourci - composer +
 > pnpm install + drop/recrée DB + schema:create + fixtures + Vite.
 > C'est le chemin recommandé en pratique. Les étapes manuelles
 > ci-dessous (§3 + §4) sont la version détaillée si tu veux
@@ -87,13 +87,13 @@ APP_NAME=aurora-client
 
 ## 4. Base de données
 
-### Option A — Docker (recommandé)
+### Option A - Docker (recommandé)
 
 ```bash
 make docker-up     # démarre PostgreSQL en conteneur
 ```
 
-### Option B — PostgreSQL local
+### Option B - PostgreSQL local
 
 Crée la base manuellement :
 
@@ -118,7 +118,7 @@ php bin/console aurora:install
 php bin/console doctrine:fixtures:load --no-interaction      # données dev
 ```
 
-> ⚠️ Ne PAS faire `make migrate` directement sur une DB fresh — il
+> ⚠️ Ne PAS faire `make migrate` directement sur une DB fresh - il
 > plante à cause du quirk multi-namespace. Utiliser `make install-dev`
 > (qui contient le workaround) ou la séquence manuelle ci-dessus.
 > `make migrate` reste correct pour l'incrémental (pull d'un collègue).
@@ -155,7 +155,7 @@ Les fixtures créent un compte dev :
 |---|---|
 | Email | `admin@aurora-client.local` (ou valeur de `ADMIN_EMAIL`) |
 | Mot de passe | défini dans `DataFixtures/` |
-| Rôle | `ROLE_DEV` — accès complet, bypass de tous les privilege checks |
+| Rôle | `ROLE_DEV` - accès complet, bypass de tous les privilege checks |
 
 ---
 
@@ -204,7 +204,7 @@ Ensuite :
 3. Si ton point de départ contient des modules dont tu n'as pas besoin
    (exemples scaffoldés, reliquat d'un ancien template), les retirer
    (cf. checklist ci-dessous).
-4. Setup DB fresh — **ne pas faire `make install-dev` directement** sur
+4. Setup DB fresh - **ne pas faire `make install-dev` directement** sur
    un fresh clone (cf. note ci-dessous).
 5. `git commit -m "chore: init project from aurora-client template"`.
 
@@ -214,7 +214,7 @@ Ensuite :
 > public/*` en cleanup, recrée-le après. Détails dans
 > [`../dev/assets_vue.md`](../dev/assets_vue.md) §Symlink.
 
-### Checklist — retirer un module client
+### Checklist - retirer un module client
 
 > Le template démarre **propre** (aucun module métier livré). Cette checklist
 > sert quand tu retires un module que tu as scaffolté, un exemple que tu as
@@ -267,7 +267,7 @@ php bin/console doctrine:schema:validate                     # sanity check
 php bin/console aurora:application-parameter
 php bin/console aurora:privileges:sync
 php bin/console aurora:install
-php bin/console doctrine:fixtures:load --no-interaction      # optionnel — dev data
+php bin/console doctrine:fixtures:load --no-interaction      # optionnel - dev data
 ```
 
 Détails techniques dans [`../dev/database.md`](../dev/database.md)

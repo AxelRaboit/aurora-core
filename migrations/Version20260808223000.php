@@ -17,7 +17,7 @@ use Doctrine\Migrations\AbstractMigration;
  *
  * Nothing is carried over. The old value lived in each visitor's localStorage
  * and no server ever saw it, so everyone starts expanded and folds it once
- * more — the alternative being a piece of migration code that reads a browser
+ * more - the alternative being a piece of migration code that reads a browser
  * key, which does not exist.
  *
  * The width stays where it was: a number of pixels describes the screen it was

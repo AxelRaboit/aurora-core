@@ -8,7 +8,7 @@ import { FileText, LayoutTemplate, Tags, Trash2 } from "lucide-vue-next";
  * is spread across the publication statuses.
  *
  * The shell hands over whatever EditorialStatsProvider returned, so every
- * field is defaulted — a dashboard is not the place to throw because a
+ * field is defaulted - a dashboard is not the place to throw because a
  * figure was missing.
  */
 const props = defineProps({

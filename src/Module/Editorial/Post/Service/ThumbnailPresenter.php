@@ -13,13 +13,13 @@ use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
  * frame, and where the crop centres.
  *
  * The focal point has two possible sources and they answer different
- * questions. The document's is about the file — a face is in the same place
+ * questions. The document's is about the file - a face is in the same place
  * wherever that photo appears. The publication's is about *this* card, which
  * becomes a different question the moment a wide photo has to work in a narrow
  * frame. The publication's wins when it is set.
  *
- * One place because three templates draw this — the archive listing, a grid
- * zone linking to a publication, and any module that lists posts — and three
+ * One place because three templates draw this - the archive listing, a grid
+ * zone linking to a publication, and any module that lists posts - and three
  * copies of a fallback is three chances for one of them to forget it.
  */
 final readonly class ThumbnailPresenter

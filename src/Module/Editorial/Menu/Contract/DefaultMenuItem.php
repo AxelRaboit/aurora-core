@@ -12,7 +12,7 @@ use Aurora\Module\Editorial\Menu\Enum\MenuItemVisibilityEnum;
  *
  * The `reference` is what makes the sync idempotent and what makes editing
  * safe: it identifies the entry across runs, so a second sync recognises the
- * one it created before instead of adding a duplicate — and an admin who
+ * one it created before instead of adding a duplicate - and an admin who
  * renamed or moved it keeps their version.
  *
  * Defaults never point at content. A post's id does not exist at install

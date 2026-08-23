@@ -15,7 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
  * words on each translation, once each.
  *
  * Covered here rather than in a unit test because the thing that can break is
- * the wiring — the manager normalising one half against the other, and two
+ * the wiring - the manager normalising one half against the other, and two
  * entities each keeping their share. A normaliser test cannot see any of that,
  * and this is what would fail if either column stopped being written.
  */
@@ -100,7 +100,7 @@ final class BannerSplitPersistenceTest extends IntegrationTestCase
 
     /**
      * Removing an item from the shared design has to clear its words in every
-     * language at once — otherwise a translation nobody can open keeps text
+     * language at once - otherwise a translation nobody can open keeps text
      * for something that is not on the page any more.
      */
     public function testDroppingAnItemClearsItsTextInEveryLanguage(): void

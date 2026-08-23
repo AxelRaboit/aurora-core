@@ -56,7 +56,7 @@ final class ImageCropperTest extends TestCase
         $source = $this->writePng('clamp.png', 16, 16);
         $destination = $this->workDir.'/clamped.png';
 
-        // Requested width/height exceed the image — must clamp to what's left.
+        // Requested width/height exceed the image - must clamp to what's left.
         $dimensions = $this->cropper->crop($source, $destination, 'image/png', 10, 10, 100, 100);
 
         self::assertSame([6, 6], $dimensions);

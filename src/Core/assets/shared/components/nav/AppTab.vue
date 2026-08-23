@@ -3,7 +3,7 @@ import { computed } from "vue";
 
 const props = defineProps({
     active: { type: Boolean, default: false },
-    /** Visual variant — `pill` for filters/sidemenu, `underline` for in-card panel switchers. */
+    /** Visual variant - `pill` for filters/sidemenu, `underline` for in-card panel switchers. */
     variant: { type: String, default: "pill" }, // pill | underline
     color: { type: String, default: "accent" }, // accent | rose | violet
     size: { type: String, default: "md" }, // md | sm | xs

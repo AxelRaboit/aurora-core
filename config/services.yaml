@@ -9,7 +9,7 @@
 parameters:
     app.admin_email: '%env(ADMIN_EMAIL)%'
     app.mailer_from: '%env(MAILER_FROM)%'
-    # Tout fichier stocké par Aurora vit ICI — hors document root.
+    # Tout fichier stocké par Aurora vit ICI - hors document root.
     # Servi exclusivement via les controllers `*_serve` (voir
     # docs/aurora-core/dev/storage_policy.md). Apache ne sert rien
     # depuis ce dossier directement ; `mod_xsendfile` peut offload
@@ -27,7 +27,7 @@ services:
     Aurora\:
         resource: '../src/'
         # Extracted module packages ship their own config/services.php (loaded by
-        # their bundle) — exclude them here to avoid double registration.
+        # their bundle) - exclude them here to avoid double registration.
         # (Monorepo-split: each behaves as a separate Composer package.)
         exclude:
             # Fixtures extend doctrine/doctrine-fixtures-bundle's Fixture (a dev

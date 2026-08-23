@@ -12,11 +12,11 @@ use Aurora\Core\Module\Nav\NavSection;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 
 /**
- * Platform section — the organization layer of the backend (Users). Media
+ * Platform section - the organization layer of the backend (Users). Media
  * moved to {@see MediaModule} in Jalon 4.5 (cross-cutting infra),
  * Configuration (Settings, Themes) lives in {@see ConfigurationModule}
  * (admin params), and global search moved to {@see GeneralModule} in
- * Jalon 5.1 (it's a header feature, not a Platform-specific concern) —
+ * Jalon 5.1 (it's a header feature, not a Platform-specific concern) -
  * this class now strictly owns user management.
  */
 final readonly class PlatformModule implements ModuleInterface, ModuleToggleProviderInterface

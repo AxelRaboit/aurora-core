@@ -25,7 +25,7 @@ final readonly class MountPointEncryptionService
     ) {
         $key = base64_decode($encodedKey, strict: true);
 
-        // '8bit' encoding counts bytes, not multibyte characters — required for binary data.
+        // '8bit' encoding counts bytes, not multibyte characters - required for binary data.
         if (false === $key || SODIUM_CRYPTO_SECRETBOX_KEYBYTES !== mb_strlen($key, '8bit')) {
             throw new RuntimeException('AURORA_MOUNT_POINT_KEY must be a base64-encoded 32-byte key.');
         }
@@ -45,7 +45,7 @@ final readonly class MountPointEncryptionService
     {
         $decoded = base64_decode($encoded, strict: true);
 
-        // '8bit' encoding counts bytes, not multibyte characters — required for binary data.
+        // '8bit' encoding counts bytes, not multibyte characters - required for binary data.
         if (false === $decoded || mb_strlen($decoded, '8bit') < SODIUM_CRYPTO_SECRETBOX_NONCEBYTES) {
             return null;
         }

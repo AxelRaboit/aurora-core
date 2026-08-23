@@ -55,7 +55,7 @@ final readonly class MountPointTesterService
     private function openSshTunnel(MountPointInterface $mountPoint, array $config): SshTunnel
     {
         if (null === $mountPoint->getSshPrivateKey()) {
-            throw new RuntimeException('SSH tunnel requires a private key — none is configured.');
+            throw new RuntimeException('SSH tunnel requires a private key - none is configured.');
         }
 
         $privateKey = $this->encryptionService->decrypt($mountPoint->getSshPrivateKey());
@@ -134,6 +134,6 @@ final readonly class MountPointTesterService
             return MountPointTestResult::failure('Host is required.');
         }
 
-        return MountPointTestResult::success('Config looks valid — live SFTP test not implemented yet.');
+        return MountPointTestResult::success('Config looks valid - live SFTP test not implemented yet.');
     }
 }

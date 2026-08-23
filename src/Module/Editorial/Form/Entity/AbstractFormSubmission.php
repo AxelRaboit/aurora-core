@@ -37,7 +37,7 @@ abstract class AbstractFormSubmission implements FormSubmissionInterface
     /**
      * Kept for one purpose: letting an administrator recognise abuse in the
      * submissions list. It is personal data, so it never leaves the
-     * installation — in particular it is not in the webhook payload, where
+     * installation - in particular it is not in the webhook payload, where
      * the reference sent it to whatever third-party URL an admin had
      * configured. A visitor filled in a contact form; they did not agree to
      * have their address forwarded.

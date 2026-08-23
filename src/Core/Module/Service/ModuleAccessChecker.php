@@ -14,15 +14,15 @@ use Symfony\Bundle\SecurityBundle\Security;
  * Single source of truth for module enablement.
  *
  * Combines three layers, in order:
- *  1. Global setting (toggle stored in `core_settings`) — managed by dev panel.
- *  2. Per-user override (CoreUserInterface::getDisabledModules()) — managed by admin/dev.
- *  3. Cascade graph — if any ancestor toggle (via `parentKey`) is OFF at any
+ *  1. Global setting (toggle stored in `core_settings`) - managed by dev panel.
+ *  2. Per-user override (CoreUserInterface::getDisabledModules()) - managed by admin/dev.
+ *  3. Cascade graph - if any ancestor toggle (via `parentKey`) is OFF at any
  *     layer for this user, the toggle is OFF too.
  *
  * Toggles are resolved through {@see ModuleToggleRegistry}, which aggregates
  * declarations from every module implementing {@see ModuleToggleProviderInterface}.
  * This includes aurora-core's `ModuleParameterEnum` cases and any toggle
- * declared by an aurora-client module — they are treated uniformly.
+ * declared by an aurora-client module - they are treated uniformly.
  *
  * The public API accepts either a `ModuleParameterEnum` (for core call sites
  * that benefit from type safety) or a raw string key (for client modules

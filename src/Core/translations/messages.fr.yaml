@@ -28,7 +28,7 @@ shared:
       message: Le site est momentanément fermé pour maintenance. Merci de revenir dans quelques instants.
   actions:
     plain_title: Actions
-    title: "Actions — {name}"
+    title: "Actions : {name}"
     open: "Actions pour {name}"
   common:
     search: Rechercher
@@ -123,7 +123,7 @@ shared:
     apply: Appliquer le recadrage
     cropped: Image recadrée
 
-# Editor.js — clés partagées par tous les modules consommateurs de
+# Editor.js - clés partagées par tous les modules consommateurs de
 # AppBlockEditor. Les libellés des outils spécifiques à un module,
 # injectés via `extraTools`, restent dans son propre messages.fr.yaml.
 backend:
@@ -153,7 +153,7 @@ backend:
     themes_description: "Habiller le site : couleurs, logo et favicon."
     users: Utilisateurs
     users_description: "Gérer les comptes, leurs rôles et le détail de leurs privilèges."
-    resize_hint: Glisser pour redimensionner — double-clic pour réinitialiser
+    resize_hint: Glisser pour redimensionner, double-clic pour réinitialiser
     filter_nav: Filtrer le menu…
     breadcrumb: Fil d'Ariane
     show_descriptions: Afficher les descriptions

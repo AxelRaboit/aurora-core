@@ -9,7 +9,7 @@ const props = defineProps({
     loading: { type: Boolean, default: false },
     href: { type: String, default: null },
     /**
-     * Visual "selected" state. Currently honored by the `nav` variant —
+     * Visual "selected" state. Currently honored by the `nav` variant -
      * swaps the inactive surface styling for the accent-tinted look used
      * by sidemenu lists (taxonomies / post types).
      */
@@ -20,7 +20,7 @@ const props = defineProps({
  * Click handler that fixes the common modal-footer-submit pattern: a
  * `type="submit"` button placed in `<AppModalFooter>` lives OUTSIDE the
  * `<form>` it logically belongs to (form sits in the modal's default
- * slot, footer in `#footer` — they are siblings). Per HTML spec, a
+ * slot, footer in `#footer` - they are siblings). Per HTML spec, a
  * submit button without a form owner does nothing on click. To keep
  * the natural authoring pattern working, manually call `requestSubmit()`
  * on the form located in the same modal/dialog scope.
@@ -40,7 +40,7 @@ function onClick(event) {
     const form = scope.querySelector('form');
     if (form) {
         event.preventDefault();
-        // `requestSubmit()` without the submitter arg — passing the button
+        // `requestSubmit()` without the submitter arg - passing the button
         // would throw `NotFoundError: not owned by this form element`
         // precisely because the button lives in a sibling slot
         // (e.g. AppModal footer), which is the case we're working around.
@@ -64,7 +64,7 @@ const variants = {
     icon: 'bg-transparent p-0',
     // Sidemenu list entry: full-width, left-aligned, surface card. Combine with `active` to highlight the selected row.
     nav: '!justify-start text-left w-full bg-surface hover:bg-surface-2 text-primary border border-line/60',
-    // Frontend — use inside a parent that sets the text color via CSS variable
+    // Frontend - use inside a parent that sets the text color via CSS variable
     'front-ghost': 'bg-transparent hover:opacity-80 transition-opacity',
     'front-primary': 'bg-transparent text-primary hover:opacity-80 transition-opacity',
     'front-accent': 'bg-transparent font-medium text-accent hover:opacity-80 transition-opacity',

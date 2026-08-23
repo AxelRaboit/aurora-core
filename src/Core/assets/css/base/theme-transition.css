@@ -1,7 +1,7 @@
 /* While the theme class is being toggled on <html>, every CSS variable
-   resolves to its new value instantly — but Tailwind's `transition-colors`
+   resolves to its new value instantly - but Tailwind's `transition-colors`
    (and any custom transition on a colour property) interpolates the
-   computed colour over 150–300ms, which produces the visible "flash to
+   computed colour over 150-300ms, which produces the visible "flash to
    black/white" effect on borders + text observed across the app.
    Disabling all transitions during the switch makes the change snap. */
 .theme-transitioning,

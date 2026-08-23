@@ -1,4 +1,4 @@
-# Traductions — architecture et conventions
+# Traductions - architecture et conventions
 
 ## Vue d'ensemble
 
@@ -32,12 +32,12 @@ src/Module/<Module>/translations/
 └── messages.en.yaml
 ```
 
-Exemple — Billing :
+Exemple - Billing :
 ```
 src/Module/Billing/translations/messages.fr.yaml   → billing.*, backend.billing.*, backend.nav.invoices, ...
 ```
 
-### Core — pure infrastructure (depuis 0.4.0)
+### Core - pure infrastructure (depuis 0.4.0)
 
 `src/Core/` n'héberge plus de modules (Platform, Configuration, etc. sont
 sous `src/Module/`). Il contient uniquement de l'infrastructure cross-cutting
@@ -53,7 +53,7 @@ src/Core/
     └── validators.{fr,en,es,de}.yaml
 ```
 
-### Modules — chacun avec ses translations
+### Modules - chacun avec ses translations
 
 Tous les modules (Core promus + business) vivent sous `src/Module/<X>/` et
 ont leur dossier `translations/`. Sous-modules pareil (depth 2).
@@ -86,7 +86,7 @@ src/Module/
 - `src/Module/*/*/translations/` (sous-modules nichés)
 
 Ajouter un nouveau dossier `translations/` à un module ou sous-module
-suffit — aucune configuration manuelle requise.
+suffit - aucune configuration manuelle requise.
 
 ---
 
@@ -109,7 +109,7 @@ make translation
 php bin/console debug:translation fr --domain=messages | grep ma.cle
 ```
 
-**Ne jamais** toucher `src/Core/assets/locales/generated/*.json` directement — tout
+**Ne jamais** toucher `src/Core/assets/locales/generated/*.json` directement - tout
 changement sera écrasé par le prochain `make translation`.
 
 ---
@@ -175,9 +175,9 @@ backend:
 
 ---
 
-## Casse des clés — toujours `snake_case`
+## Casse des clés - toujours `snake_case`
 
-**Toutes les clés de traduction sont en `snake_case`, sans exception** — qu'elles
+**Toutes les clés de traduction sont en `snake_case`, sans exception** - qu'elles
 soient construites par le code ou nommées manuellement. C'est la convention
 d'identifiant interne du projet (cf. CLAUDE.md §4 : route, setting, colonne DB,
 i18n → `snake_case`). Le `camelCase` est **interdit** dans les clés.
@@ -207,7 +207,7 @@ ou par concaténation : le **segment fixe doit aussi être `snake_case`**
 
 ### Clés nommées manuellement dans l'UI
 
-Mêmes règles — `snake_case` :
+Mêmes règles - `snake_case` :
 
 ```yaml
 # ✅ snake_case
@@ -218,7 +218,7 @@ pdfform:
     field_count: Champs
     no_file: Aucun fichier
 
-# ❌ camelCase — interdit
+# ❌ camelCase - interdit
     searchPlaceholder: …
     deleteConfirm: …
 ```
@@ -230,11 +230,11 @@ Le résolveur Vue (`src/Core/assets/i18n.js` → vue-i18n **vanilla, sans
 Une référence `camelCase` qui ne matche pas la clé YAML `snake_case` ne lève
 **aucune erreur** : elle affiche la clé brute (`backend.mountPoints.search_placeholder`)
 dans l'UI. Une dérive `camelCase` passe donc inaperçue jusqu'à ce qu'on regarde
-l'écran concerné — d'où l'importance de l'audit ci-dessous.
+l'écran concerné - d'où l'importance de l'audit ci-dessous.
 
 ### Audit (détection des dérives)
 
-Pour repérer toute clé `camelCase` résiduelle — côté YAML **et** côté références
+Pour repérer toute clé `camelCase` résiduelle - côté YAML **et** côté références
 code (y compris les builders dynamiques d'enum `getLabelKey()` / `labelKey()`) :
 
 - **YAML** : grep des segments de clé matchant `[a-z0-9][A-Z]`.
@@ -257,8 +257,8 @@ tests/Unit/Translation/TranslationConsistencyTest.php
 Il couvre **toutes les paires FR/EN** des 13 features Core + 12 modules et
 valide :
 
-1. **Parité des clés** — toute clé FR doit exister en EN et vice versa
-2. **Pas de valeurs vides** — aucune clé sans traduction
-3. **Cohérence des placeholders** — `{name}` en FR = `{name}` en EN
+1. **Parité des clés** - toute clé FR doit exister en EN et vice versa
+2. **Pas de valeurs vides** - aucune clé sans traduction
+3. **Cohérence des placeholders** - `{name}` en FR = `{name}` en EN
 
 Si une violation est détectée, le test échoue avec le nom de la clé manquante.

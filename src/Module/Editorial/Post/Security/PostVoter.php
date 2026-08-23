@@ -15,7 +15,7 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 /**
  * Subjects are typed on PostInterface, not the concrete Post: a client
  * substituting the entity would otherwise fall through supports() and get
- * no vote at all — which reads as "denied" and silently locks them out of
+ * no vote at all - which reads as "denied" and silently locks them out of
  * their own posts.
  */
 final class PostVoter extends Voter

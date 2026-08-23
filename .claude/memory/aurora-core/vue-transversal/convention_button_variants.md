@@ -1,6 +1,6 @@
 ---
 name: convention_button_variants
-description: Conventions de variants + size + icônes pour les boutons d'action (AppButton/AppIconButton) — homogène à travers tous les modules
+description: Conventions de variants + size + icônes pour les boutons d'action (AppButton/AppIconButton) - homogène à travers tous les modules
 metadata:
   type: feedback
 ---
@@ -8,7 +8,7 @@ metadata:
 ## Règle
 
 **Tout bouton d'action sémantique** (créer, modifier, supprimer, enregistrer,
-annuler) suit un pattern unique selon son contexte. Pas de déviation —
+annuler) suit un pattern unique selon son contexte. Pas de déviation -
 si un cas n'entre pas dans la grille, le faire entrer.
 
 ## Pattern de référence
@@ -32,11 +32,11 @@ Module de référence : `Module/Editorial/backend/taxonomies/TaxonomiesApp.vue`.
 | Supprimer | `danger` | `md` | `Trash2` | `shared.common.delete` |
 
 **`variant="secondary"`** (et non `ghost`) pour Edit en page header. Ghost
-est trop discret (transparent) à côté d'un Delete rouge — `secondary`
+est trop discret (transparent) à côté d'un Delete rouge - `secondary`
 donne un fond gris neutre (`bg-surface-3`) avec une bordure (`border-line`)
 qui matche visuellement le poids du Delete.
 
-### Icônes — règles fixes
+### Icônes - règles fixes
 
 - **Taille** : `class="w-3.5 h-3.5"` (= 14px). Plus jamais `w-4 h-4` sur
   les boutons d'action.
@@ -48,7 +48,7 @@ qui matche visuellement le poids du Delete.
 ### Label
 
 Toujours **visible** sur les boutons d'action en header/footer. Le label
-ne doit jamais être en `sr-only` — l'utilisateur doit lire l'action.
+ne doit jamais être en `sr-only` - l'utilisateur doit lire l'action.
 
 Exception : actions toolbar dense (ex: tree row hover) où l'on peut
 utiliser `AppIconButton` (variant icon-only), mais alors il faut un
@@ -62,7 +62,7 @@ utiliser `AppIconButton` (variant icon-only), mais alors il faut un
 | **Titre de modale** de création | complet | `backend.<module>.addX` → "Ajouter un terme" |
 | **Tooltip d'AppIconButton** (icon-only) | complet | même clé que le titre de modale |
 
-Quand la modale ne montre que "Ajouter" comme titre, c'est trop sec —
+Quand la modale ne montre que "Ajouter" comme titre, c'est trop sec -
 l'utilisateur perd le contexte de ce qu'il crée. Réserver la clé
 spécifique (`addTerm`, `addTaxonomy`, `addProject`, …) pour la modale
 et utiliser `shared.common.add` sur le bouton si le contexte (header

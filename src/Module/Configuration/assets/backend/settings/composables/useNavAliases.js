@@ -40,7 +40,7 @@ export function useNavAliases({ groups, navSections, updatePath }) {
         parseJsonMap(findGroupValue(groups, "nav_item_aliases")),
     );
 
-    // Order overrides — persisted state. `sectionOrder` is the list of
+    // Order overrides - persisted state. `sectionOrder` is the list of
     // section IDs in the admin's chosen order; `itemOrder` maps section ID
     // to ordered list of NavItem route names.
     const sectionOrder = ref(

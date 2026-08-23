@@ -7,12 +7,12 @@ metadata:
 
 ## Règle
 
-Les taxonomies marketing — `ListingCategory`, `ListingTag`, et toute future
-taxonomie de présentation — sont attachées à `Listing` (la vitrine Ecommerce),
+Les taxonomies marketing - `ListingCategory`, `ListingTag`, et toute future
+taxonomie de présentation - sont attachées à `Listing` (la vitrine Ecommerce),
 **jamais** à `Product` (le catalogue ERP).
 
-- URL canonique produit : `/shop/<slug>` — découplée des taxonomies.
-- Routes de filtre : `/shop/category/<slug>` et `/shop/tag/<slug>` — pages
+- URL canonique produit : `/shop/<slug>` - découplée des taxonomies.
+- Routes de filtre : `/shop/category/<slug>` et `/shop/tag/<slug>` - pages
   séparées qui listent les `Listing` filtrés, sans changer le canonique de
   chaque produit.
 - ManyToMany : `Listing ↔ ListingCategory`, `Listing ↔ ListingTag`. **Aucun
@@ -27,9 +27,9 @@ taxonomie de présentation — sont attachées à `Listing` (la vitrine Ecommerc
    pas bouger quand on re-catégorise. Re-catégoriser un `Listing` ne change
    pas l'URL canonique du produit.
 3. **Séparation ERP vs Ecommerce** : `Product` (catalogue, prix, stock) vit
-   dans le module ERP — la catégorisation commerciale n'a rien à y faire.
+   dans le module ERP - la catégorisation commerciale n'a rien à y faire.
 4. Le sub-DTO `ListingCategoryTranslationInput` reste `final readonly`
-   (non-instrumenté) — cohérent avec la règle "seul le DTO racine consommé
+   (non-instrumenté) - cohérent avec la règle "seul le DTO racine consommé
    par le controller est instrumenté" ([[convention_extensibility]]).
 
 ## Comment l'appliquer
@@ -42,7 +42,7 @@ taxonomie de présentation — sont attachées à `Listing` (la vitrine Ecommerc
    `/shop/<slug>` (jamais `/shop/<category>/<product-slug>`).
 3. Si un besoin légitime émerge de catégoriser au niveau `Product` (ex:
    classification fiscale, famille produit pour reporting), créer une
-   taxonomie **séparée** côté ERP avec un nom distinct — ne pas réutiliser
+   taxonomie **séparée** côté ERP avec un nom distinct - ne pas réutiliser
    `ListingCategory`.
 
 ## Source

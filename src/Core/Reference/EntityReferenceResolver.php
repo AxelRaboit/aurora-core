@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
  * Aggregates every module-contributed {@see EntityReferenceProviderInterface}
  * and resolves soft cross-module references by type. Lets a module read a
  * reference it holds (gallery → contact, project → company, …) without
- * importing the owning module — and answer "is that module installed?" via
+ * importing the owning module - and answer "is that module installed?" via
  * {@see supports()}.
  */
 final readonly class EntityReferenceResolver

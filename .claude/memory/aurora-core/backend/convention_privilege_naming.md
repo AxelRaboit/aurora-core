@@ -1,6 +1,6 @@
 ---
-name: Convention privilege naming — <module_id>.<entity>.<action>
-description: Tous les privilèges Aurora suivent le pattern uniforme préfixé par le module id du owner — y compris les sous-modules Core depuis le Jalon 5
+name: Convention privilege naming - <module_id>.<entity>.<action>
+description: Tous les privilèges Aurora suivent le pattern uniforme préfixé par le module id du owner - y compris les sous-modules Core depuis le Jalon 5
 type: project
 ---
 
@@ -79,7 +79,7 @@ correspondait plus à un module class réel.
 
 1. Déterminer le module owner (celui qui contrôle la feature).
 2. Préfixer avec son `getId()`.
-3. Suivre la granularité CRUD (cf [[convention-privilege-granularity]] —
+3. Suivre la granularité CRUD (cf [[convention-privilege-granularity]] -
    préférer `view/create/edit/delete` à `manage` fourre-tout).
 4. Déclarer dans `<Module>Module.php::getPermissions()`.
 5. Ajouter les traductions FR + EN dans
@@ -118,6 +118,6 @@ editorial.post.list      ❌ Préférer `view` (action standardisée)
 ```
 
 Voir aussi :
-- [[convention-privilege-granularity]] — granularité CRUD obligatoire
-- [[convention-privilege-translations]] — clés YAML alignées sur le nom
-- [[pattern-core-submodules-split]] — pourquoi Core est éclaté en 5
+- [[convention-privilege-granularity]] - granularité CRUD obligatoire
+- [[convention-privilege-translations]] - clés YAML alignées sur le nom
+- [[pattern-core-submodules-split]] - pourquoi Core est éclaté en 5

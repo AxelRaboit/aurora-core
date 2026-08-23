@@ -21,7 +21,7 @@ use function in_array;
  * default front) are resolved here, dynamically per request.
  *
  * As module-owned settings get migrated out of the enum, their fields will
- * leave this provider and reappear in their own module's provider — no
+ * leave this provider and reappear in their own module's provider - no
  * change required on the Settings page itself.
  */
 final readonly class CoreConfigurationTabProvider implements ConfigurationTabProviderInterface
@@ -30,7 +30,7 @@ final readonly class CoreConfigurationTabProvider implements ConfigurationTabPro
      * Group → priority. Mirrors the previously hardcoded GROUP_ORDER in
      * `useSettingsTabs.js`. Groups missing from this map are not surfaced
      * (preserves prior behavior: `media`, `crm`, `ecommerce` were declared
-     * admin-accessible on the enum but filtered out by the JS — kept hidden
+     * admin-accessible on the enum but filtered out by the JS - kept hidden
      * here to avoid a surprise UI change. Re-enable by adding them when the
      * corresponding screens are designed).
      */
@@ -43,8 +43,8 @@ final readonly class CoreConfigurationTabProvider implements ConfigurationTabPro
         'seo' => 60,
         'system' => 70,
         'email' => 80,
-        'media' => 85,      // upload limits — visible to all admins
-        'sequences' => 90,  // internal prefixes — dev only
+        'media' => 85,      // upload limits - visible to all admins
+        'sequences' => 90,  // internal prefixes - dev only
         'navigation' => 100,
     ];
 

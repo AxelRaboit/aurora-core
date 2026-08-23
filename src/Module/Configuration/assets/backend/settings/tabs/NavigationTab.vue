@@ -22,7 +22,7 @@ const props = defineProps({
 const { t } = useI18n();
 
 // Destructure the composable so its refs / computeds end up as top-level
-// bindings of the setup return — that's the ONLY shape Vue 3 templates
+// bindings of the setup return - that's the ONLY shape Vue 3 templates
 // auto-unwrap. Accessing them via `navAliases.<x>` from a plain object
 // passes the ref *object*, not the value, which breaks every truthy check
 // (the save spinner stays on forever) and every iteration (VueDraggable

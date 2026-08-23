@@ -35,7 +35,7 @@ backend:
     testing: Test en cours…
     test_success: Connexion réussie.
     test_failure: Échec de la connexion.
-    test_title: 'Test de connexion — {name}'
+    test_title: 'Test de connexion : {name}'
     retry: Relancer
     last_tested: Dernier test
     never: Jamais testé

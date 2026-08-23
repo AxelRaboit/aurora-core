@@ -20,7 +20,7 @@ use function sprintf;
  * `GridNormalizer` is the write boundary: it decides which zone types exist,
  * which shapes a picture may be cropped to, how small it may be printed. The
  * editor's canvas cannot ask the server on every keystroke, so `usePostGrid.js`
- * carries the same lists — each one marked `Mirrors GridNormalizer::…`.
+ * carries the same lists - each one marked `Mirrors GridNormalizer::…`.
  *
  * **A comment is not a constraint.** Adding a ratio on one side and forgetting
  * the other breaks nothing loudly: the editor simply stops offering it, or
@@ -34,7 +34,7 @@ use function sprintf;
  *
  * Deliberately not covered here: `clampOffset` and `place`, which are behaviour
  * rather than vocabulary. They are mirrored too, and each side has its own
- * tests asserting the same cases — see `GridNormalizerTest` and
+ * tests asserting the same cases - see `GridNormalizerTest` and
  * `usePostGrid.test.js`. Comparing two implementations statically would mean
  * parsing them, which is a worse bargain than the tests already written.
  */
@@ -63,7 +63,7 @@ final class GridContractMirrorTest extends TestCase
             $this->jsList($constant),
             sprintf(
                 'GridNormalizer and usePostGrid.js disagree about %s. '
-                .'Whichever side was changed, change the other — the editor '
+                .'Whichever side was changed, change the other - the editor '
                 .'offers what this list says, and the server keeps what its own says.',
                 $constant,
             ),
@@ -93,8 +93,8 @@ final class GridContractMirrorTest extends TestCase
     }
 
     /**
-     * The named width fractions have no PHP counterpart — they are an editing
-     * convenience, not a stored value — but every one of them must be a whole
+     * The named width fractions have no PHP counterpart - they are an editing
+     * convenience, not a stored value - but every one of them must be a whole
      * number of columns the normaliser will keep, or a button lies.
      */
     public function testEveryNamedFractionIsAWidthTheServerKeeps(): void
@@ -150,7 +150,7 @@ final class GridContractMirrorTest extends TestCase
                 continue;
             }
 
-            // A spread of another list, which the editor flattens at load —
+            // A spread of another list, which the editor flattens at load -
             // so this reader flattens it too rather than reporting `...FOO`.
             foreach ($this->jsList($item[3]) as $spread) {
                 $values[] = $spread;

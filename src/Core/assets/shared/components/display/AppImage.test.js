@@ -53,7 +53,7 @@ describe("AppImage", () => {
             props: { src: "https://example.com/missing.jpg" },
         });
 
-        // Simulate the first image failing to load — Error pruned the <img>.
+        // Simulate the first image failing to load - Error pruned the <img>.
         await wrapper.find("img").trigger("error");
         expect(wrapper.find("img").exists()).toBe(false);
 

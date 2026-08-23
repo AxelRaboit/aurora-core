@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  *
  * Only `article` is fed: a feed is a chronology, and pages have no place in
  * one. A site whose `article` type has been deleted gets an empty but valid
- * channel rather than an error — a reader's feed client should say "nothing
+ * channel rather than an error - a reader's feed client should say "nothing
  * new", not fail to parse.
  */
 final readonly class RssFeedBuilder

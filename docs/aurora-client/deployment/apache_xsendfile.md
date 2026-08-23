@@ -1,9 +1,9 @@
-# Apache `mod_xsendfile` — offload `var/uploads/` to Apache
+# Apache `mod_xsendfile` - offload `var/uploads/` to Apache
 
 In production, Aurora stores every uploaded/generated file under
 `var/uploads/` and serves them exclusively through Symfony controllers
 (see `apache_xsendfile.md` here and CLAUDE.md §5bis in aurora-core). For high traffic, you
-don't want PHP-FPM to stream the bytes itself — `mod_xsendfile` lets
+don't want PHP-FPM to stream the bytes itself - `mod_xsendfile` lets
 PHP return *just the X-Sendfile header*, and Apache reads the file
 directly from disk.
 
@@ -36,7 +36,7 @@ sudo a2enmod xsendfile
     DocumentRoot /var/www/aurora/public
 
     # mod_xsendfile activation. XSendFilePath MUST list every
-    # directory the application might point at — `var/uploads/`
+    # directory the application might point at - `var/uploads/`
     # is the only one for Aurora.
     XSendFile On
     XSendFilePath /var/www/aurora/var/uploads
@@ -47,7 +47,7 @@ sudo a2enmod xsendfile
         Require all denied
     </Directory>
 
-    # Standard Symfony rewrites under /public — unchanged.
+    # Standard Symfony rewrites under /public - unchanged.
     <Directory /var/www/aurora/public>
         AllowOverride None
         Require all granted

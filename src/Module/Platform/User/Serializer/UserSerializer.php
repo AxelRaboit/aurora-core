@@ -23,13 +23,13 @@ class UserSerializer implements UserSerializerInterface
 
     /**
      * Lightweight payload used in paginated lists. Does NOT load the
-     * subordinates collection — use {@see serializeWithSubordinates()} for
+     * subordinates collection - use {@see serializeWithSubordinates()} for
      * single-user views (e.g. profile detail modal).
      */
     public function serialize(CoreUserInterface $user): array
     {
         // Visible role for the badge. Dev is hidden (shown via isDev flag). ROLE_USER is only
-        // shown when it is the user's actual highest role — it is excluded when Admin or Dev is
+        // shown when it is the user's actual highest role - it is excluded when Admin or Dev is
         // present because getRoles() always appends ROLE_USER via the entity getter.
         $effectivePriority = UserRoleEnum::highestPriorityForRoles($user->getRoles());
         $primaryRole = match (true) {
@@ -70,7 +70,7 @@ class UserSerializer implements UserSerializerInterface
 
     /**
      * Full payload including the subordinates collection. Triggers a lazy
-     * load — only call for a single user (detail endpoint), never inside
+     * load - only call for a single user (detail endpoint), never inside
      * a list loop.
      */
     public function serializeWithSubordinates(CoreUserInterface $user): array

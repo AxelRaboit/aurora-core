@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex,nofollow">
-    <title>{% block title %}{{ gallery.title }}{% endblock %} — {{ siteName }}</title>
+    <title>{% block title %}{{ gallery.title }}{% endblock %} - {{ siteName }}</title>
     {% if siteFaviconUrl %}<link rel="icon" href="{{ siteFaviconUrl }}">{% else %}<link rel="icon" type="image/svg+xml" href="/favicon.svg">{% endif %}
     {{ include('@Shared/components/theme_script.html.twig', {colorScheme: true}) }}
     {{ vite_entry_link_tags('app') }}

@@ -1,4 +1,4 @@
-# Tests Vue / JS — Guide
+# Tests Vue / JS - Guide
 
 ## Convention : co-location
 
@@ -6,7 +6,7 @@
 
 Tout fichier `.test.js` vit **à côté de son fichier source**, dans le même dossier.
 
-C'est intentionnellement différent des tests PHP (centralisés dans `tests/` — voir [testing_php.md](testing_php.md)). Deux écosystèmes, deux conventions établies.
+C'est intentionnellement différent des tests PHP (centralisés dans `tests/` - voir [testing_php.md](testing_php.md)). Deux écosystèmes, deux conventions établies.
 
 ```
 src/Core/assets/shared/components/form/
@@ -19,15 +19,15 @@ src/Module/Ged/assets/backend/documents/composables/
 ```
 
 **Jamais** dans un dossier `tests/` centralisé.  
-Exception : `src/Core/assets/tests/helpers/` — utilitaires de test partagés (ex: `createTestI18n.js`).
+Exception : `src/Core/assets/tests/helpers/` - utilitaires de test partagés (ex: `createTestI18n.js`).
 
 ---
 
 ## Stack
 
-- **Vitest** — runner de tests
-- **@vue/test-utils** — monte les composants Vue en mémoire
-- **happy-dom** — environnement DOM léger (défaut), ou jsdom si nécessaire
+- **Vitest** - runner de tests
+- **@vue/test-utils** - monte les composants Vue en mémoire
+- **happy-dom** - environnement DOM léger (défaut), ou jsdom si nécessaire
 
 Lancer tous les tests :
 ```bash
@@ -181,7 +181,7 @@ describe("deepMerge", () => {
 
 ---
 
-## Ce qu'on teste (3–5 tests par fichier)
+## Ce qu'on teste (3-5 tests par fichier)
 
 - **Props** : effets visuels (classes CSS, présence d'éléments DOM)
 - **États** : conditionnels (`v-if`, `v-show`, `disabled`)
@@ -192,7 +192,7 @@ describe("deepMerge", () => {
 
 | Type | Raison |
 |---|---|
-| Composables HTTP (`useRequest`, etc.) | Trop couplés à `fetch` — valeur faible vs complexité du mock |
+| Composables HTTP (`useRequest`, etc.) | Trop couplés à `fetch` - valeur faible vs complexité du mock |
 | Composables browser (`useResizable`, `useKeyboardShortcut`) | APIs DOM difficiles à isoler proprement |
 | Fichiers d'enum/constantes sans logique | Rien à tester |
 

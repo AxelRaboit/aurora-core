@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * Every constraint message in this module was once a bare key —
+ * Every constraint message in this module was once a bare key -
  * `post_types.errors.slug_required` and the like. Nothing resolves those:
  * PayloadValidator hands messages back untranslated by design, and the layer
  * that does translate them looks the key up in the catalogue. Every failed
@@ -22,7 +22,7 @@ use Symfony\Component\Yaml\Yaml;
  * The check is that the key **resolves**, not that it carries a particular
  * prefix. An earlier version of this test asserted `backend.`, which was true
  * of every DTO at the time and stopped being true the moment a public form
- * arrived — a rule read off a coincidence, which then blocked the correct
+ * arrived - a rule read off a coincidence, which then blocked the correct
  * work. Looking the key up in the catalogue asks the real question and
  * catches a typo besides.
  *

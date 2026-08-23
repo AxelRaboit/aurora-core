@@ -5,9 +5,9 @@ import { ref } from "vue";
  *
  * The counterpart to `useTabState`'s fragment mode, and the split between
  * them is what each answers. A fragment says *which section of this page*
- * you are on — there is one of those, so one `#` is enough. A query
- * parameter says *how this list is being looked at* — sorted by which field,
- * in which direction, as a grid or a list — and several of those are true at
+ * you are on - there is one of those, so one `#` is enough. A query
+ * parameter says *how this list is being looked at* - sorted by which field,
+ * in which direction, as a grid or a list - and several of those are true at
  * once, which is what a query string is for.
  *
  * Both replace this state being remembered in `localStorage`, where it used
@@ -20,7 +20,7 @@ import { ref } from "vue";
  * every list page would grow `?sort=name&dir=asc&view=grid` the moment it
  * opened, and a URL nobody chose is a URL nobody wants to copy.
  *
- * `replaceState`, so changing a sort does not put an entry in the history —
+ * `replaceState`, so changing a sort does not put an entry in the history -
  * Back should leave the page, not undo a column click.
  *
  * @param {string}        key       Query parameter name.

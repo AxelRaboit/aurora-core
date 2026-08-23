@@ -19,8 +19,8 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  *
  * The endpoint decides where it lands, and these are the two decisions that
  * are not the browser's: the category and the status. Pinned because getting
- * either wrong is invisible at the moment of upload — the picture appears in
- * the field and renders on the page — and only shows up later, as an asset
+ * either wrong is invisible at the moment of upload - the picture appears in
+ * the field and renders on the page - and only shows up later, as an asset
  * nobody can find again.
  */
 final class ImageUploadContractTest extends IntegrationTestCase
@@ -52,7 +52,7 @@ final class ImageUploadContractTest extends IntegrationTestCase
 
     /**
      * The picker lists published documents only. A draft would be usable once
-     * and then vanish from "choose an image" — the disorder the dedicated
+     * and then vanish from "choose an image" - the disorder the dedicated
      * category exists to prevent, arriving by another door.
      */
     public function testTheImageIsPublishedSoThePickerCanFindItAgain(): void
@@ -77,7 +77,7 @@ final class ImageUploadContractTest extends IntegrationTestCase
      * The bootstrap seeds the category, and the bootstrap is the one step a
      * project upgrading from an older version can skip. Every image uploaded
      * before someone remembered to run `aurora:install` would then land
-     * uncategorised — so the first upload creates it.
+     * uncategorised - so the first upload creates it.
      */
     public function testTheCategoryIsCreatedByTheFirstUploadWhenNothingSeededIt(): void
     {

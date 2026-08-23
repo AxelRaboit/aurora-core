@@ -16,7 +16,7 @@ use function count;
  * rows in the `doctrine_migration_versions` table.
  *
  * Used to surface a clear warning when a developer's dev database has
- * pending migrations — the symptom that bit us when the privileges
+ * pending migrations - the symptom that bit us when the privileges
  * modal kept showing `core.media.*` labels after the Jalon 5 rename
  * because the user hadn't run `make migrate` on their dev DB.
  *
@@ -65,7 +65,7 @@ final class MigrationStatusChecker
     private function countExecutedMigrations(): int
     {
         // The migrations table may not exist yet on a brand-new DB.
-        // Treat that as "everything is pending" — which is technically
+        // Treat that as "everything is pending" - which is technically
         // accurate and surfaces the right call-to-action.
         try {
             return (int) $this->connection->fetchOne('SELECT COUNT(*) FROM doctrine_migration_versions');

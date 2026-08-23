@@ -1,4 +1,4 @@
-# Frontend — Système de thèmes et override de templates
+# Frontend - Système de thèmes et override de templates
 
 ## Principe
 
@@ -8,7 +8,7 @@ Chaque template frontend est résolu ainsi :
 1. Un thème est marqué `active = true` en BDD.
 2. `ThemeResolver::resolve('editorial/home')` cherche d'abord
    `<project>/templates/Frontend/themes/<slug>/editorial/home.html.twig`
-   (les thèmes custom restent côté projet — c'est de la data utilisateur).
+   (les thèmes custom restent côté projet - c'est de la data utilisateur).
 3. S'il existe → ce fichier est utilisé. Sinon → fallback sur
    `Frontend/themes/default/editorial/home.html.twig`, résolu via le null
    namespace vers le bundle (`vendor/.../src/Core/templates/Frontend/themes/default/`).
@@ -24,8 +24,8 @@ Le mécanisme ci-dessus est réservé aux **clients** : il passe par un slug de
 thème différent, et `ThemeResolver` ne regarde `<project>/templates/` que pour
 un slug ≠ `default`. Un **package de module** (un module extrait, ou celui
 d'un client) qui veut
-enrichir le thème `default` lui-même — typiquement pour ajouter au layout un
-chrome que le core ne peut pas connaître — passe par un autre canal.
+enrichir le thème `default` lui-même - typiquement pour ajouter au layout un
+chrome que le core ne peut pas connaître - passe par un autre canal.
 
 Tout fichier déposé dans `<module>/templates/_theme/` est enregistré par
 `AbstractAuroraModuleBundle` sous le **null namespace**, devant celui du core
@@ -41,7 +41,7 @@ vendor/axelraboit/aurora/src/Core/templates/Frontend/themes/default/layout.html.
 Intérêt : les templates de page du bundle font `{% extends
 'Frontend/themes/default/layout.html.twig' %}` **en dur**. Comme l'override
 réutilise le même nom logique, ils récupèrent la nouvelle version sans être
-modifiés — pas besoin de recopier chaque page.
+modifiés - pas besoin de recopier chaque page.
 
 **Deux règles à respecter.**
 
@@ -72,7 +72,7 @@ partagerait un chemin. Ici, masquer est un geste explicite.
 **Aucun module ne s'en sert aujourd'hui**, et c'est voulu : Editorial vivait
 autrefois dans son propre package et remplaçait par ce canal le layout
 `default`, alors dépourvu de navigation. Depuis qu'il est livré dans le core,
-le layout appelle `menu_items()` directement — une fonction qui répond une
+le layout appelle `menu_items()` directement - une fonction qui répond une
 liste vide quand rien ne publie de menu, donc le core n'a plus besoin
 d'ignorer l'existence des menus pour rester autonome. Le mécanisme reste en
 place pour le cas qu'il vise vraiment : un module *extrait* qui a besoin
@@ -112,7 +112,7 @@ mkdir -p templates/Frontend/themes/mon-theme/
 
 ### 2. Copier uniquement les templates à modifier
 
-Ne copier que ce qu'on veut changer. Exemple — changer uniquement le layout :
+Ne copier que ce qu'on veut changer. Exemple - changer uniquement le layout :
 
 ```bash
 cp templates/Frontend/themes/default/layout.html.twig \
@@ -160,7 +160,7 @@ Tous les templates sous `Frontend/themes/default/` sont overridables :
 | Chemin | Rôle |
 |---|---|
 | `layout.html.twig` | Layout principal (nav, footer, `<head>`, **block `seo_define`**) |
-| `partials/head.html.twig` | Meta SEO, OG, Twitter Cards, scripts — lit `seo_current()` |
+| `partials/head.html.twig` | Meta SEO, OG, Twitter Cards, scripts - lit `seo_current()` |
 | `auth/layout.html.twig` | Sub-layout auth (header simplifié) |
 | `auth/{login,register,register_confirm,forgot_password,reset_password,verify_email,account}.html.twig` | Pages auth |
 | `editorial/home/index.html.twig` | Accueil éditorial |
@@ -171,12 +171,12 @@ Tous les templates sous `Frontend/themes/default/` sont overridables :
 | `ecommerce/shop/{index,product,category,tag}.html.twig` | Boutique |
 | `ecommerce/{cart,checkout}.html.twig` | Panier / Commande |
 | `ecommerce/order/show.html.twig` | Récap commande |
-| `ecommerce/account/orders.html.twig` | Compte — commandes |
+| `ecommerce/account/orders.html.twig` | Compte - commandes |
 | `photo/gallery/layout.html.twig` | Layout galerie photo |
 | `photo/gallery/{index,unlock}.html.twig` | Vue galerie photo |
 | `ged/documents/index.html.twig` | Bibliothèque GED |
 
-**SEO** : voir [`convention_seo_head.md`](convention_seo_head.md) — chaque passerelle
+**SEO** : voir [`convention_seo_head.md`](convention_seo_head.md) - chaque passerelle
 override `{% block seo_define %}{% do seo({...}) %}{% endblock %}` ; ne **pas** utiliser
 `{% block title %}` / `{% block og_image %}` etc. (code mort silencieux, cf. la doc).
 
@@ -208,7 +208,7 @@ Si le thème custom override `_post_card`, c'est sa version qui sera incluse.
 ```twig
 {% extends 'Frontend/themes/default/layout.html.twig' %}
 
-{% block seo_define %}{% do seo({title: 'Accueil — démo'}) %}{% endblock %}
+{% block seo_define %}{% do seo({title: 'Accueil - démo'}) %}{% endblock %}
 
 {% block body %}
     <div class="mb-6 p-4 bg-amber-500/20 border border-amber-500/40 rounded-lg text-sm">
@@ -219,5 +219,5 @@ Si le thème custom override `_post_card`, c'est sa version qui sera incluse.
 {% endblock %}
 ```
 
-Seul `editorial/home/index.html.twig` est overridé — tous les autres templates
+Seul `editorial/home/index.html.twig` est overridé - tous les autres templates
 (archive, post, shop, auth…) continuent d'utiliser `default`.

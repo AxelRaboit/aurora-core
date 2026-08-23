@@ -11,7 +11,7 @@ use Aurora\Module\Editorial\Form\Enum\FormFieldTypeEnum;
 /**
  * Checks a submission against the form that produced it.
  *
- * Only the fields the answers actually make visible are considered — for
+ * Only the fields the answers actually make visible are considered - for
  * both halves. Validating a hidden field's "required" makes the form
  * unsubmittable; keeping a hidden field's value stores an answer to a
  * question the visitor was never shown.

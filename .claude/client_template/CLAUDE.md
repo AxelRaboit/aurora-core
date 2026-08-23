@@ -1,20 +1,20 @@
-# Aurora-client — Guide pour Claude
+# Aurora-client - Guide pour Claude
 
 > 🔗 **Fichier symlinké** vers
 > `vendor/axelraboit/aurora/.claude/client_template/CLAUDE.md`.
-> Toujours à jour avec la version installée d'aurora-core — aucun sync manuel requis.
+> Toujours à jour avec la version installée d'aurora-core - aucun sync manuel requis.
 > Pour modifier le contenu : éditer le template dans aurora-core puis commit + push,
 > et lancer `make aurora-update` côté client (recrée le symlink).
 >
 > Pour ajouter du contenu **spécifique au projet client** : créer `CLAUDE.local.md`
-> à côté de ce fichier — Claude Code charge les deux automatiquement.
+> à côté de ce fichier - Claude Code charge les deux automatiquement.
 
 App Symfony cliente qui consomme `axelraboit/aurora` (aurora-core) comme
 bundle composer + assets npm.
 
 **Rôle** : **template de départ** pour tout nouveau projet client Aurora.
 
-`src/`, `assets/` et `templates/` arrivent vides — tout vient du vendor. Ce
+`src/`, `assets/` et `templates/` arrivent vides - tout vient du vendor. Ce
 fichier annonçait aussi un rôle de **démonstration** illustrant les patterns
 d'extension (Agency, module Tracking, overrides Vue) : ce contenu n'existe
 pas. Les patterns sont à lire dans les mémoires et la doc listées ci-dessous,
@@ -26,27 +26,27 @@ et les skills (`/extend-aurora-entity`, …) scaffoldent le code correspondant.
 
 Les mémoires sont des **symlinks** vers `vendor/axelraboit/aurora/.claude/memory/`
 créés par `make aurora-update`. Elles restent toujours en phase avec la version
-installée d'aurora-core. **Ne pas éditer ces fichiers** — ils vivent dans vendor.
+installée d'aurora-core. **Ne pas éditer ces fichiers** - ils vivent dans vendor.
 
 ### Conventions partagées aurora-shared (Vue, fetch, i18n, JS, process)
-[`.claude/memory/aurora-shared/MEMORY.md`](.claude/memory/aurora-shared/MEMORY.md)
-— conventions qui s'appliquent à tout code Aurora, core ou client : composants
+[`.claude/memory/aurora-shared/MEMORY.md`](.claude/memory/aurora-shared/MEMORY.md),
+conventions qui s'appliquent à tout code Aurora, core ou client : composants
 Vue, `useRequest`/fetch, i18n, JS, AppLoader, commits, préférences. **À lire
 en priorité** avant d'écrire du code Vue ou JS dans ce projet.
 
 ### Contexte aurora-core (conventions internes du bundle)
-[`.claude/memory/aurora-core/MEMORY.md`](.claude/memory/aurora-core/MEMORY.md)
-— conventions, décisions, pièges et heuristiques du bundle aurora-core.
+[`.claude/memory/aurora-core/MEMORY.md`](.claude/memory/aurora-core/MEMORY.md),
+conventions, décisions, pièges et heuristiques du bundle aurora-core.
 Utile pour comprendre *pourquoi* une API est faite ainsi avant de l'étendre.
 
 ### Patterns d'extension aurora-client
-[`.claude/memory/aurora-client/MEMORY.md`](.claude/memory/aurora-client/MEMORY.md)
-— tout pour étendre une entité, un DTO, un Manager, un Serializer, la Vue
+[`.claude/memory/aurora-client/MEMORY.md`](.claude/memory/aurora-client/MEMORY.md),
+tout pour étendre une entité, un DTO, un Manager, un Serializer, la Vue
 ou un template Twig depuis un projet client.
 
 **Checklist d'extension complète** :
-[`.claude/memory/aurora-client/checklist_extend_full_entity.md`](.claude/memory/aurora-client/checklist_extend_full_entity.md)
-— pas-à-pas pour étendre une entité de bout en bout.
+[`.claude/memory/aurora-client/checklist_extend_full_entity.md`](.claude/memory/aurora-client/checklist_extend_full_entity.md),
+pas-à-pas pour étendre une entité de bout en bout.
 
 **Pattern par couche** (5 couches Sylius) :
 - [Entité](.claude/memory/aurora-client/pattern_extend_entity.md)
@@ -72,50 +72,50 @@ Les skills marqués `scope: shared` dans
 `make sync-claude-md` (lancé automatiquement par `make aurora-update`).
 
 Skills aurora-shared disponibles côté client :
-- `/extend-aurora-entity` — scaffold les 5 couches d'extension d'une
+- `/extend-aurora-entity` - scaffold les 5 couches d'extension d'une
   entité aurora-core (entité concrète + DTO + Manager + Serializer + Vue
   wrapper) à partir d'un champ donné. Suit la convention canonique.
 
 Pour ajouter un skill **spécifique** au projet client (pas réutilisable
-ailleurs), créer un dossier dans `.claude/skills/<mon-skill>/SKILL.md` —
+ailleurs), créer un dossier dans `.claude/skills/<mon-skill>/SKILL.md` -
 il ne sera pas écrasé par le sync (qui ne touche que les noms symlinkés
 depuis vendor).
 
 ---
 
-## 📖 Documentation développeur (lue depuis vendor — pas de copie locale)
+## 📖 Documentation développeur (lue depuis vendor - pas de copie locale)
 
 Toute la documentation Aurora vit dans `vendor/axelraboit/aurora/docs/`.
 Pas de symlink, pas de sync : on lit directement le vendor. Tu obtiens
 toujours la version installée d'aurora-core, et un `composer update` met
 la doc à jour en même temps que le code.
 
-### vendor/axelraboit/aurora/docs/aurora-client/ — Guide dev pour ce projet
-- [getting-started/philosophy.md](vendor/axelraboit/aurora/docs/aurora-client/getting-started/philosophy.md) — Philosophie (deux modes : étendre Aurora vs créer un module)
-- [getting-started/setup.md](vendor/axelraboit/aurora/docs/aurora-client/getting-started/setup.md) — Installation locale
-- [getting-started/architecture.md](vendor/axelraboit/aurora/docs/aurora-client/getting-started/architecture.md) — Structure du projet
-- [dev/dev_workflow.md](vendor/axelraboit/aurora/docs/aurora-client/dev/dev_workflow.md) — Commandes du quotidien
-- [dev/database.md](vendor/axelraboit/aurora/docs/aurora-client/dev/database.md) — Migrations, fixtures, séquences
-- [dev/assets_vue.md](vendor/axelraboit/aurora/docs/aurora-client/dev/assets_vue.md) — Composants Vue côté client
-- [dev/update_aurora.md](vendor/axelraboit/aurora/docs/aurora-client/dev/update_aurora.md) — Mettre à jour aurora-core
-- [deployment/](vendor/axelraboit/aurora/docs/aurora-client/deployment/) — Tout le déploiement prod (systemd, mod_xsendfile, OCR)
-- [extending/add_module.md](vendor/axelraboit/aurora/docs/aurora-client/extending/add_module.md) — Créer un nouveau module client (5 cas types)
-- [extending/extend_module.md](vendor/axelraboit/aurora/docs/aurora-client/extending/extend_module.md) — Étendre un module Aurora (5 couches d'entité + Twig + finders + décorateurs + permissions custom)
+### vendor/axelraboit/aurora/docs/aurora-client/ - Guide dev pour ce projet
+- [getting-started/philosophy.md](vendor/axelraboit/aurora/docs/aurora-client/getting-started/philosophy.md) - Philosophie (deux modes : étendre Aurora vs créer un module)
+- [getting-started/setup.md](vendor/axelraboit/aurora/docs/aurora-client/getting-started/setup.md) - Installation locale
+- [getting-started/architecture.md](vendor/axelraboit/aurora/docs/aurora-client/getting-started/architecture.md) - Structure du projet
+- [dev/dev_workflow.md](vendor/axelraboit/aurora/docs/aurora-client/dev/dev_workflow.md) - Commandes du quotidien
+- [dev/database.md](vendor/axelraboit/aurora/docs/aurora-client/dev/database.md) - Migrations, fixtures, séquences
+- [dev/assets_vue.md](vendor/axelraboit/aurora/docs/aurora-client/dev/assets_vue.md) - Composants Vue côté client
+- [dev/update_aurora.md](vendor/axelraboit/aurora/docs/aurora-client/dev/update_aurora.md) - Mettre à jour aurora-core
+- [deployment/](vendor/axelraboit/aurora/docs/aurora-client/deployment/) - Tout le déploiement prod (systemd, mod_xsendfile, OCR)
+- [extending/add_module.md](vendor/axelraboit/aurora/docs/aurora-client/extending/add_module.md) - Créer un nouveau module client (5 cas types)
+- [extending/extend_module.md](vendor/axelraboit/aurora/docs/aurora-client/extending/extend_module.md) - Étendre un module Aurora (5 couches d'entité + Twig + finders + décorateurs + permissions custom)
 
-### vendor/axelraboit/aurora/docs/aurora-shared/ — Conventions trans-couches
-- [form_validation.md](vendor/axelraboit/aurora/docs/aurora-shared/form_validation.md) — DTO + PayloadValidator + useForm
-- [testing_php.md](vendor/axelraboit/aurora/docs/aurora-shared/testing_php.md) — Patterns PHPUnit
-- [testing_vue.md](vendor/axelraboit/aurora/docs/aurora-shared/testing_vue.md) — Patterns Vitest
-- [translations.md](vendor/axelraboit/aurora/docs/aurora-shared/translations.md) — Workflow i18n
-- [scheduler.md](vendor/axelraboit/aurora/docs/aurora-shared/scheduler.md) — Symfony Scheduler
-- [convention_seo_head.md](vendor/axelraboit/aurora/docs/aurora-shared/convention_seo_head.md) — SEO macros frontend
+### vendor/axelraboit/aurora/docs/aurora-shared/ - Conventions trans-couches
+- [form_validation.md](vendor/axelraboit/aurora/docs/aurora-shared/form_validation.md) - DTO + PayloadValidator + useForm
+- [testing_php.md](vendor/axelraboit/aurora/docs/aurora-shared/testing_php.md) - Patterns PHPUnit
+- [testing_vue.md](vendor/axelraboit/aurora/docs/aurora-shared/testing_vue.md) - Patterns Vitest
+- [translations.md](vendor/axelraboit/aurora/docs/aurora-shared/translations.md) - Workflow i18n
+- [scheduler.md](vendor/axelraboit/aurora/docs/aurora-shared/scheduler.md) - Symfony Scheduler
+- [convention_seo_head.md](vendor/axelraboit/aurora/docs/aurora-shared/convention_seo_head.md) - SEO macros frontend
 
-### vendor/axelraboit/aurora/docs/aurora-core/ — Architecture interne du bundle
-- [philosophy.md](vendor/axelraboit/aurora/docs/aurora-core/philosophy.md) — Philosophie (zéro fork, 5 couches, modules)
-- [dev/app_architecture.md](vendor/axelraboit/aurora/docs/aurora-core/dev/app_architecture.md) — Architecture, modules, Vite aliases
-- [dev/entity_extensibility_convention.md](vendor/axelraboit/aurora/docs/aurora-core/dev/entity_extensibility_convention.md) — Convention d'extensibilité des entités
-- [dev/extending_aurora.md](vendor/axelraboit/aurora/docs/aurora-core/dev/extending_aurora.md) — Points d'extension publics du bundle
-- [ops/prerequisites.md](vendor/axelraboit/aurora/docs/aurora-core/ops/prerequisites.md) — Checklist exhaustive des prérequis
+### vendor/axelraboit/aurora/docs/aurora-core/ - Architecture interne du bundle
+- [philosophy.md](vendor/axelraboit/aurora/docs/aurora-core/philosophy.md) - Philosophie (zéro fork, 5 couches, modules)
+- [dev/app_architecture.md](vendor/axelraboit/aurora/docs/aurora-core/dev/app_architecture.md) - Architecture, modules, Vite aliases
+- [dev/entity_extensibility_convention.md](vendor/axelraboit/aurora/docs/aurora-core/dev/entity_extensibility_convention.md) - Convention d'extensibilité des entités
+- [dev/extending_aurora.md](vendor/axelraboit/aurora/docs/aurora-core/dev/extending_aurora.md) - Points d'extension publics du bundle
+- [ops/prerequisites.md](vendor/axelraboit/aurora/docs/aurora-core/ops/prerequisites.md) - Checklist exhaustive des prérequis
 
 ---
 
@@ -203,17 +203,17 @@ sans les perdre :
 
 ---
 
-## Contrat de synchronisation — qui possède quoi
+## Contrat de synchronisation - qui possède quoi
 
 `make aurora-update` (et `make pull-update`) touchent au projet client.
 Voici exactement ce qui est écrasé vs ce qui appartient au client.
 
-### Sync agressif — écrasé à chaque run
+### Sync agressif - écrasé à chaque run
 
 | Fichier / dossier | Mécanisme |
 |---|---|
 | `CLAUDE.md` | symlink vers vendor (toujours canonique) |
-| `Makefile` | `cp` depuis vendor — **refuse si tu as des edits non commités** (sauf `FORCE=1`). Targets perso → `Makefile.local`. |
+| `Makefile` | `cp` depuis vendor - **refuse si tu as des edits non commités** (sauf `FORCE=1`). Targets perso → `Makefile.local`. |
 | `config/packages/security.yaml` | `cp` depuis vendor à chaque run. Custom-sec → `security_custom.yaml` chargé en complément, ou `EventSubscriber`. |
 | `jsconfig.json` | régénéré depuis les modules vendor (`bin/sync-client-jsconfig`) |
 | `.claude/memory/aurora-core/` | symlink vers vendor |
@@ -221,14 +221,14 @@ Voici exactement ce qui est écrasé vs ce qui appartient au client.
 | `.claude/memory/aurora-shared/` | symlink vers vendor |
 | `.claude/skills/<nom>/` (avec `scope: shared`) | symlink par skill vers vendor |
 
-### Sync partiel — bloc encadré écrasé, le reste du fichier client-owned
+### Sync partiel - bloc encadré écrasé, le reste du fichier client-owned
 
 | Fichier | Mécanisme |
 |---|---|
 | `README.md` | **bloc entre `<!-- aurora-canonical:start -->` et `<!-- aurora-canonical:end -->` écrasé** par `make sync-readme` (intégré à `aurora-update` / `pull-update`). Titre, intro et section "Spécifique à ce projet" préservés. Si les markers manquent (legacy README), le fichier est laissé tel quel avec un warning suggérant de les ajouter. |
 | `.env` blocs `###> aurora/* ###` | **ajoutés** si absents (`make sync-env`), insérés **au-dessus** du divider `# === CLIENT CUSTOM ===`. Valeurs existantes jamais touchées. |
 
-### Seed once — créé si absent, jamais écrasé
+### Seed once - créé si absent, jamais écrasé
 
 | Fichier | Mécanisme |
 |---|---|
@@ -271,10 +271,10 @@ nouveaux blocs aurora juste au-dessus.
 
 `sync-readme` détecte la paire de markers et remplace **uniquement** le
 contenu entre les deux. Sans markers (READMEs legacy), le fichier est
-laissé tel quel — le client doit ajouter les markers manuellement une
+laissé tel quel - le client doit ajouter les markers manuellement une
 fois pour opter dans le sync.
 
-### 100% client-owned — jamais touché par les sync
+### 100% client-owned - jamais touché par les sync
 
 - **Tout ce qui est sous le divider `# === CLIENT CUSTOM ===` du `.env`**
 - `composer.json` (le client ajoute ses propres deps)

@@ -14,7 +14,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
  * written to fail if it ever goes back to being decorative: each one asserts
  * on the status code the visitor actually receives.
  *
- * One request per test method — the kernel reboots between requests, which is
+ * One request per test method - the kernel reboots between requests, which is
  * what makes the freshly written setting visible to SettingRepository's
  * per-request cache.
  */

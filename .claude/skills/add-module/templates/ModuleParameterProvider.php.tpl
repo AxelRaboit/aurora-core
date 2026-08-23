@@ -9,7 +9,7 @@ use Aurora\Module\Configuration\Setting\Provider\ApplicationParameterProviderInt
 /**
  * Registers the {{MODULE}} module's toggle settings with the
  * `aurora:application-parameter` sync command, so the toggle rows in
- * core_settings are not flagged obsolete (and wiped) — the module owns its
+ * core_settings are not flagged obsolete (and wiped) - the module owns its
  * toggles instead of the central ModuleParameterEnum. Tagged
  * `aurora.application_parameter_provider` (by the central _instanceof in the
  * monorepo, or by the package's own config/services.php once split).

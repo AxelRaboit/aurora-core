@@ -1,4 +1,4 @@
-# Repository — convention
+# Repository - convention
 
 ## Règle
 
@@ -49,7 +49,7 @@ class AgencyRepository extends ResolveTargetEntityRepository
   pour aider PHPStan à inférer le type de retour de `find()` etc.
 - **Type de retour des finders** : `<Name>Interface[]` ou
   `?<Name>Interface` (l'interface, pas la concrete).
-- **Pas de classe `final`** — clients peuvent étendre.
+- **Pas de classe `final`** - clients peuvent étendre.
 
 ## Naming des finders
 

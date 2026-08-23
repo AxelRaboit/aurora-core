@@ -16,8 +16,8 @@ use Doctrine\ORM\Mapping as ORM;
  * A reader's comment on a post.
  *
  * Only `createdAt` is kept, and it is set once in the constructor rather than
- * through TimestampableTrait. A comment is not edited — it is approved,
- * marked as spam or deleted — and when each of those happened is already in
+ * through TimestampableTrait. A comment is not edited - it is approved,
+ * marked as spam or deleted - and when each of those happened is already in
  * the audit log, with who did it. A second column saying "something changed"
  * would answer less than what is already recorded.
  */
@@ -52,7 +52,7 @@ abstract class AbstractComment implements CommentInterface
 
     /**
      * `SET NULL`, so deleting a comment promotes its replies instead of
-     * silently taking a whole conversation with it — the same rule the menu
+     * silently taking a whole conversation with it - the same rule the menu
      * tree follows.
      */
     #[ORM\ManyToOne(targetEntity: CommentInterface::class, inversedBy: 'replies')]

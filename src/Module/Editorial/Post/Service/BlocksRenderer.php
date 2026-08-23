@@ -11,7 +11,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 /**
  * Renders Editor.js blocks to HTML on the server, so a page arrives as
- * static markup rather than waiting on JavaScript — which is what search
+ * static markup rather than waiting on JavaScript - which is what search
  * engines and readers without it get.
  *
  * The shapes here must match what the editor writes, not what seems
@@ -228,7 +228,7 @@ final readonly class BlocksRenderer
      * The tool saves `{type, title, message}` and the stylesheet keys its
      * colours on `.callout--info`. An earlier version of this read `text`
      * and emitted `.callout-info`, so a callout written in the backend came
-     * out as an uncoloured empty box — and only once published, since the
+     * out as an uncoloured empty box - and only once published, since the
      * editor's own preview had both right.
      *
      * @param array<string, mixed> $data
@@ -248,7 +248,7 @@ final readonly class BlocksRenderer
 
     /** @param array<string, mixed> $data */
     /**
-     * The editor saves each column as a string of inline HTML — the
+     * The editor saves each column as a string of inline HTML - the
      * `innerHTML` of a contenteditable. This required an *array* of nested
      * blocks and emitted nothing otherwise, so every two-column block ever
      * written published as `<div class="two-column"><div></div><div></div></div>`:
@@ -280,7 +280,7 @@ final readonly class BlocksRenderer
 
     /**
      * Same mismatch as the two-column block: this looked for the url under an
-     * `image` key the editor has never written — it saves `url` at the top
+     * `image` key the editor has never written - it saves `url` at the top
      * level, beside `caption` and `flip`. Every media-text block therefore
      * published its text with no picture at all.
      *

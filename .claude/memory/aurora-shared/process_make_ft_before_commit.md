@@ -1,6 +1,6 @@
 ---
 name: process_make_ft_before_commit
-description: Lancer make ft (= fix + test + migrate-check) avant chaque commit — résoudre tous les problèmes avant de committer
+description: Lancer make ft (= fix + test + migrate-check) avant chaque commit - résoudre tous les problèmes avant de committer
 metadata:
   type: feedback
 ---
@@ -45,4 +45,4 @@ make fix-js     # eslint --fix ; dry-run : make lint-js
 
 > Cibles telles que définies dans le Makefile d'un **projet client**.
 > Dans aurora-core lui-même, `make fix` commence en plus par `make translation`
-> et `make ft` inclut `make build` — voir la version core de cette mémoire.
+> et `make ft` inclut `make build` - voir la version core de cette mémoire.

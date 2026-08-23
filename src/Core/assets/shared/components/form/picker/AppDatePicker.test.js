@@ -3,7 +3,7 @@ import { mount } from "@vue/test-utils";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 import { ref } from "vue";
 
-// useTheme accesses localStorage + window.matchMedia at module level — stub it
+// useTheme accesses localStorage + window.matchMedia at module level - stub it
 vi.mock("@/shared/composables/useTheme.js", () => ({
     useTheme: () => ({ theme: ref("light"), toggle: vi.fn() }),
 }));

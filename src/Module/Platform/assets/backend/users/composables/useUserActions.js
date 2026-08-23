@@ -15,7 +15,7 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 /**
  * Which actions one operator may take on one user.
  *
- * This is not presentation: it is a set of rules about who may do what — an
+ * This is not presentation: it is a set of rules about who may do what - an
  * invited account can be re-invited and no other, a developer's privileges are
  * not editable, a frontend account is impersonated through a different route
  * than a backend one. It lived in the component's `<script setup>` and made it
@@ -29,8 +29,8 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
  * The order is the order they are meant to be read: look first, act in the
  * middle, destroy last.
  *
- * An action carries **either** `emitName` — the component emits it and the page
- * above decides what happens — **or** `href`, for the ones that are navigations
+ * An action carries **either** `emitName` - the component emits it and the page
+ * above decides what happens - **or** `href`, for the ones that are navigations
  * and should stay openable in a new tab.
  */
 export function useUserActions(props) {

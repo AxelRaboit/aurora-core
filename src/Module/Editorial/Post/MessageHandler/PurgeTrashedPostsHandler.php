@@ -32,7 +32,7 @@ final readonly class PurgeTrashedPostsHandler
             ApplicationParameterEnum::TrashAutoPurgeDays->getDefaultValue(),
         );
 
-        // Zero turns automatic purging off — the trash then keeps everything
+        // Zero turns automatic purging off - the trash then keeps everything
         // until someone empties it by hand.
         if ($days <= 0) {
             return;

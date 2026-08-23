@@ -6,7 +6,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
 /**
  * Sidebar-side folder CRUD modal. Talks to the existing `/backend/ged/folders`
- * endpoints (create / update / delete) — the dedicated /folders admin page
+ * endpoints (create / update / delete) - the dedicated /folders admin page
  * keeps using the same routes, so the two pages stay in sync.
  *
  * The create / update responses return the full refreshed folder list, which
@@ -66,7 +66,7 @@ export function useDocumentSidebarFolders(
                 return;
             }
             // The /folders endpoints return the refreshed full folder list
-            // (already with the new tree shape) — counts come from the next
+            // (already with the new tree shape) - counts come from the next
             // list response, but folder names/parents are live immediately.
             if (Array.isArray(data.folders)) {
                 folders.value = data.folders.map((folder) => ({
@@ -133,7 +133,7 @@ export function useDocumentSidebarFolders(
     function withDepthLabel(list) {
         return list.map((f) => ({
             ...f,
-            displayLabel: "— ".repeat(f.depth ?? 0) + f.name,
+            displayLabel: "\u00a0\u00a0".repeat(f.depth ?? 0) + f.name,
         }));
     }
 

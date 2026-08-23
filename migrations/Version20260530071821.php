@@ -8,13 +8,13 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Phase 2 of the Media → GED merge — migrate Ecommerce Listing.featured_image_id
+ * Phase 2 of the Media → GED merge - migrate Ecommerce Listing.featured_image_id
  * and ListingCategory.image_id to reference core_ged_documents.
  *
  * Same strategy as Version20260530070621 (Erp Product): copy used media rows
  * into core_ged_documents (NOT EXISTS guard so re-running across modules
  * doesn't duplicate), rewire FK via the unique file_path mapping, swap
- * constraint. Forward-only — original Media rows kept intact.
+ * constraint. Forward-only - original Media rows kept intact.
  */
 final class Version20260530071821 extends AbstractMigration
 {

@@ -8,8 +8,8 @@
  * exists on a desktop, and having to leave the page, upload it in the document
  * module and come back is a detour nobody wants mid-edit.
  *
- * The upload path goes through GED like everything else — the file becomes a
- * Document, addressable and reusable — so this adds a way in, not a second
+ * The upload path goes through GED like everything else - the file becomes a
+ * Document, addressable and reusable - so this adds a way in, not a second
  * kind of storage.
  */
 import { computed } from "vue";

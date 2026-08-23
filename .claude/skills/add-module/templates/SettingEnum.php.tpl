@@ -15,7 +15,7 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
  */
 enum {{MODULE}}SettingEnum: string implements ApplicationParameterEnumInterface
 {
-    // Example case — replace with your own.
+    // Example case - replace with your own.
     case ExampleFlag = '{{MODULE_ID}}_example_flag';
 
     public function getKey(): string

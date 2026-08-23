@@ -29,7 +29,7 @@ final class SeoExtensionTest extends TestCase
 
         $seo = $extension->build(['title' => 'Page A']);
 
-        self::assertSame('Page A — MonSite', $seo['title']);
+        self::assertSame('Page A - MonSite', $seo['title']);
         self::assertSame('website', $seo['type']);
         self::assertSame('summary', $seo['twitterCard']);
         self::assertFalse($seo['noindex']);
@@ -149,7 +149,7 @@ final class SeoExtensionTest extends TestCase
         $extension->build(['title' => 'Stored']);
         $seo = $extension->current();
 
-        self::assertSame('Stored — MonSite', $seo['title']);
+        self::assertSame('Stored - MonSite', $seo['title']);
     }
 
     public function testJsonLdPassedThrough(): void
@@ -187,7 +187,7 @@ final class SeoExtensionTest extends TestCase
         $settings->method('get')->willReturnCallback(
             static function (string $key, mixed $default = null) use ($siteUrl): mixed {
                 return match ($key) {
-                    ApplicationParameterEnum::SeoTitleTemplate->value => '{title} — {siteName}',
+                    ApplicationParameterEnum::SeoTitleTemplate->value => '{title} - {siteName}',
                     ApplicationParameterEnum::SiteUrl->value => $siteUrl,
                     default => $default,
                 };

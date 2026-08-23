@@ -2,7 +2,7 @@
 import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
 
 /**
- * Button-flavoured sibling of AppNavLink — used for action rows in the sidemenu
+ * Button-flavoured sibling of AppNavLink - used for action rows in the sidemenu
  * (theme toggle, search palette trigger, logout-like buttons, etc.).
  *
  * Same `.si` styling, same tooltip behaviour, but renders a <button> instead of an <a>.

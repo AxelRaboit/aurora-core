@@ -15,7 +15,7 @@ use Symfony\Component\Yaml\Yaml;
  * runtime from whatever the AuditLogger was handed. Nothing tied the two ends
  * together, so the label tree drifted from the call sites until 29 Core/Ged
  * actions rendered as their raw key and 24 labels described actions nothing
- * emitted any more — including three where the label existed under the old
+ * emitted any more - including three where the label existed under the old
  * name after a rename, leaving both sides dead at once.
  *
  * Renaming an action or adding one now fails here instead of shipping a raw
@@ -28,7 +28,7 @@ use Symfony\Component\Yaml\Yaml;
 final class AuditActionLabelTest extends TestCase
 {
     /**
-     * Actions whose label deliberately lives elsewhere. Empty by design —
+     * Actions whose label deliberately lives elsewhere. Empty by design -
      * an entry here means a raw key reaches a user, so it wants a comment
      * saying who renders it instead.
      *
@@ -40,7 +40,7 @@ final class AuditActionLabelTest extends TestCase
      * Labels this package owns for actions emitted from elsewhere.
      *
      * Editorial's MenuManager logs under the 'core' module rather than
-     * 'editorial' — Menu used to live in Core, and the value was kept so the
+     * 'editorial' - Menu used to live in Core, and the value was kept so the
      * audit rows already in the database keep resolving. The labels therefore
      * have to stay here even though nothing in this package emits them.
      *
@@ -70,7 +70,7 @@ final class AuditActionLabelTest extends TestCase
             [],
             array_values($missing),
             sprintf(
-                "Audit actions emitted by the code with no %s label — they render as the raw key:\n  %s",
+                "Audit actions emitted by the code with no %s label - they render as the raw key:\n  %s",
                 mb_strtoupper($locale),
                 implode("\n  ", $missing),
             ),
@@ -86,7 +86,7 @@ final class AuditActionLabelTest extends TestCase
             [],
             array_values($orphans),
             sprintf(
-                "Audit labels in %s describing actions nothing emits — dead weight, or a rename whose label was left behind:\n  %s",
+                "Audit labels in %s describing actions nothing emits - dead weight, or a rename whose label was left behind:\n  %s",
                 mb_strtoupper($locale),
                 implode("\n  ", $orphans),
             ),
@@ -95,7 +95,7 @@ final class AuditActionLabelTest extends TestCase
 
     /**
      * Every `$this->auditLogger->log('<module>', '<action>', …)` call site,
-     * flattened to `<module>.<action>` — the shape the Vue side builds.
+     * flattened to `<module>.<action>` - the shape the Vue side builds.
      *
      * Only literal arguments are matched. A call built from a variable or a
      * constant would slip through silently, so the count is asserted against

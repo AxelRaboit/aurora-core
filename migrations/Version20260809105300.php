@@ -17,7 +17,7 @@ use Doctrine\Migrations\AbstractMigration;
  * language.
  *
  * Defaults to true, so every publication that exists keeps rendering exactly
- * what it renders today. The DEFAULT is also required rather than cosmetic —
+ * what it renders today. The DEFAULT is also required rather than cosmetic -
  * PostgreSQL refuses to add a NOT NULL column to a table that already has rows
  * without one.
  *

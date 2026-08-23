@@ -192,7 +192,7 @@ const isDevOnly = (id) => tabMeta[id]?.devOnly ?? false;
                                         class="justify-between border-b border-line last:border-0"
                                         v-on:click="selectPost(parameter.key, post)"
                                     >
-                                        <span class="font-medium text-primary truncate">{{ post.title ?? "—" }}</span>
+                                        <span class="font-medium text-primary truncate">{{ post.title ?? "-" }}</span>
                                         <span class="text-xs text-muted shrink-0">{{ post.postType }}</span>
                                     </AppListItemButton>
                                 </div>
@@ -213,7 +213,7 @@ const isDevOnly = (id) => tabMeta[id]?.devOnly ?? false;
                         <template v-else-if="parameter.type === ParameterType.Media">
                             <AppImagePickerField
                                 :label="parameter.label"
-                                :hint="parameter.description ? parameter.description + ' — ' + t('backend.settings.media_square_hint') : t('backend.settings.media_square_hint')"
+                                :hint="parameter.description ? parameter.description + ' - ' + t('backend.settings.media_square_hint') : t('backend.settings.media_square_hint')"
                                 :model-value="mediaState[parameter.key]"
                                 :size="96"
                                 v-on:update:model-value="onMediaChange(parameter, $event)"

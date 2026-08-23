@@ -1,6 +1,6 @@
 # Installer des modules Aurora à la carte (sans Packagist)
 
-> ⚠️ **Obsolète — les packages modules ne sont plus maintenus.**
+> ⚠️ **Obsolète - les packages modules ne sont plus maintenus.**
 > Les dépôts `aurora-assistant`, `aurora-personal-finance`, `aurora-billing`,
 > `aurora-crm`, `aurora-planning`, `aurora-commerce`, `aurora-photo`,
 > `aurora-project`, `aurora-notes`, `aurora-hr`, `aurora-tools`, ainsi que
@@ -20,7 +20,7 @@ on passe par des dépôts VCS.
 > Côté client, l'install se résume à 4 points (dont 2 sont auto-découverts).
 
 > 🧰 **Kit copier-coller** : un template prêt à l'emploi vit dans aurora-core à
-> `vendor/axelraboit/aurora/.claude/client_template/` —
+> `vendor/axelraboit/aurora/.claude/client_template/` -
 > `composer.json` (dépôt VCS de core déjà listé + require à la carte),
 > `config/bundles.php`, `config/routes.yaml`,
 > `config/packages/messenger.yaml`. Copie-les, puis tu ne touches plus que
@@ -62,9 +62,9 @@ Dans le `composer.json` du client :
 > `repositories` (Composer n'utilise que les `repositories` du projet racine).
 > C'est la seule liste à maintenir par module.
 
-`composer update axelraboit/*` — terminé pour la partie packages.
+`composer update axelraboit/*` - terminé pour la partie packages.
 
-## 2. Bundles — auto-découverts (zéro édition par module)
+## 2. Bundles - auto-découverts (zéro édition par module)
 
 Le `config/bundles.php` du client spread les bundles de **tous** les packages
 `aurora-*` installés. Installer/désinstaller un module = `composer require/remove`,
@@ -83,7 +83,7 @@ return [
 et lit `extra.aurora.bundles` (array, ex. `aurora-commerce`) ou
 `extra.symfony.bundle`. `aurora-core` est ignoré (son bundle est listé à part).
 
-## 3. Routes — auto-découvertes (une seule entrée)
+## 3. Routes - auto-découvertes (une seule entrée)
 
 ```yaml
 # config/routes.yaml
@@ -100,7 +100,7 @@ aurora_modules:
 contrôleurs de chaque package `vendor/axelraboit/aurora-*` installé. Une entrée,
 quel que soit le nombre de modules.
 
-## 4. Assets Vue — automatiques
+## 4. Assets Vue - automatiques
 
 Rien à faire : le build Vite d'aurora-core (`vite-plugin-aurora-modules.js` +
 `aliases.js` vendored-aware) découvre les composants Vue des packages installés
@@ -130,7 +130,7 @@ when@test:
 ```
 
 Le **routing** des messages modules est déclaré par chaque bundle module
-(prependExtension) — le client n'a que le transport à fournir.
+(prependExtension) - le client n'a que le transport à fournir.
 
 ## Désinstaller un module
 

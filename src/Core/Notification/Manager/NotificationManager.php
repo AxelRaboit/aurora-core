@@ -14,7 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
- * Lightweight notifier — persists in-app notifications and (optionally) sends email.
+ * Lightweight notifier - persists in-app notifications and (optionally) sends email.
  * Keep email synchronous for now; queueing via Messenger is a future improvement.
  */
 #[AsAlias(NotificationManagerInterface::class)]

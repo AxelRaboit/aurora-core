@@ -40,8 +40,8 @@ Précédents établis dans cette session : `Listing::$categories`, `Listing::$ta
 ## Pourquoi
 
 Si le constructeur (et donc l'initialisation des collections) vit dans
-`Abstract<Name>`, **tout client qui étend doit appeler `parent::__construct()`**
-— une seule oubli et les collections sont `null`, l'app crash au premier `add()`.
+`Abstract<Name>`, **tout client qui étend doit appeler `parent::__construct()`**,
+une seule oubli et les collections sont `null`, l'app crash au premier `add()`.
 
 En gardant constructeur + propriétés sur la concrete :
 

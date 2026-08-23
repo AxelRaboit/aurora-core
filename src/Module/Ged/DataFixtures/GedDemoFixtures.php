@@ -104,7 +104,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             $this->fs->copy($src, $dest, true);
 
             // Reused when the path is already taken. Without this a second
-            // `make demo` inserted the whole set again — forty rows for
+            // `make demo` inserted the whole set again - forty rows for
             // eighteen files, every publication still pointing at the first
             // copy, and a fresh set of orphans on disk each run.
             $document = $em->getRepository(Document::class)
@@ -187,8 +187,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         ];
         $categories = [];
         // Through the interface, not the concrete class. A client may map
-        // `DocumentCategoryInterface` onto its own entity — that is the whole
-        // extensibility convention — and Doctrine then refuses an Aurora
+        // `DocumentCategoryInterface` onto its own entity - that is the whole
+        // extensibility convention - and Doctrine then refuses an Aurora
         // `DocumentCategory` for the association, with an error that names two
         // classes and no reason. `getClassName()` gives back whichever one this
         // installation actually resolved to.
@@ -198,7 +198,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         foreach ($catDefs as $def) {
             // Reused when the slug is already taken, so `make demo` can run on
             // a database that already has demo data. It used to always insert
-            // and die on the unique slug — after the target had purged
+            // and die on the unique slug - after the target had purged
             // var/uploads, which left the pictures gone and the rows unchanged.
             $c = $categoryRepository->findOneBy(['slug' => $def['slug']]) ?? new $categoryClass();
             $c->setName($def['name'])->setSlug($def['slug'])->setDescription($def['desc']);
@@ -208,7 +208,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
         // ── Documents (cat, folder, tags) ─────────────────────────────────────
         // `file` (when non-null) is a path under test_files/ that gets
-        // copied into var/uploads/ged/Y/m/ — one copy per doc so each
+        // copied into var/uploads/ged/Y/m/ - one copy per doc so each
         // carries a unique filePath, mirroring real uploads through
         // /backend/ged/documents/upload. Docs with `file => null` stay
         // file-less so users have something to test the editor's upload
@@ -216,19 +216,19 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         $samplePdf = 'files/pdfs/pdfform_sample.pdf';
         $docDefs = [
             ['title' => 'Contrat Tech Innovation SARL 2025',           'cat' => 0, 'folder' => 3, 'tags' => [0, 2],    'status' => DocumentStatusEnum::Published, 'desc' => 'Contrat de prestation de services signé le 15 janvier 2025. Durée : 12 mois renouvelable.', 'file' => $samplePdf],
-            ['title' => 'Contrat BioMed France — Maintenance 2025',    'cat' => 0, 'folder' => 3, 'tags' => [0, 2],    'status' => DocumentStatusEnum::Published, 'desc' => 'Contrat de maintenance et support niveau 2 pour la suite Aurora.', 'file' => $samplePdf],
-            ['title' => 'Avenant Contrat Retail Connect — Jan 2025',   'cat' => 0, 'folder' => 3, 'tags' => [0, 1],    'status' => DocumentStatusEnum::Draft,     'desc' => 'Avenant tarifaire en cours de négociation pour le renouvellement 2025.', 'file' => null],
+            ['title' => 'Contrat BioMed France - Maintenance 2025',    'cat' => 0, 'folder' => 3, 'tags' => [0, 2],    'status' => DocumentStatusEnum::Published, 'desc' => 'Contrat de maintenance et support niveau 2 pour la suite Aurora.', 'file' => $samplePdf],
+            ['title' => 'Avenant Contrat Retail Connect - Jan 2025',   'cat' => 0, 'folder' => 3, 'tags' => [0, 1],    'status' => DocumentStatusEnum::Draft,     'desc' => 'Avenant tarifaire en cours de négociation pour le renouvellement 2025.', 'file' => null],
             ['title' => "Guide d'installation Aurora v2.0",            'cat' => 1, 'folder' => 0, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Documentation complète pour installer et configurer Aurora en production.', 'file' => $samplePdf],
-            ['title' => 'API Aurora — Documentation Développeur v2.1', 'cat' => 1, 'folder' => 0, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Référence complète de l\'API REST Aurora : endpoints, authentification, exemples.', 'file' => $samplePdf],
-            ['title' => 'Architecture Technique Aurora — Whitepaper',  'cat' => 1, 'folder' => 0, 'tags' => [3],        'status' => DocumentStatusEnum::Archived,  'desc' => 'Document d\'architecture technique v1.x (archivé, remplacé par la version 2.x).', 'file' => $samplePdf],
-            ['title' => 'Rapport Annuel 2024 — Aurora Tech',           'cat' => 4, 'folder' => 6, 'tags' => [0, 1],    'status' => DocumentStatusEnum::Draft,     'desc' => 'Bilan financier et opérationnel de l\'exercice 2024. En cours de validation.', 'file' => null],
-            ['title' => 'Budget Prévisionnel 2025 — Aurora Tech',      'cat' => 4, 'folder' => 6, 'tags' => [0],        'status' => DocumentStatusEnum::Published, 'desc' => 'Budget prévisionnel approuvé par le comité de direction le 10 janvier 2025.', 'file' => $samplePdf],
-            ['title' => 'Facture Commerciale BTQ-2024-156',            'cat' => 4, 'folder' => 6, 'tags' => [0, 2],    'status' => DocumentStatusEnum::Published, 'desc' => 'Facture commerciale d\'exemple — Elegance Boutique → Canadian Fashion Hub. Numérisée pour audit douanier.', 'file' => 'files/invoices/Commercial-Invoice-Sample.webp'],
-            ['title' => 'Charte Graphique Aurora — Brand Guidelines',  'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Couleurs, typographies, logos et règles d\'utilisation de la marque Aurora.', 'file' => $samplePdf],
+            ['title' => 'API Aurora - Documentation Développeur v2.1', 'cat' => 1, 'folder' => 0, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Référence complète de l\'API REST Aurora : endpoints, authentification, exemples.', 'file' => $samplePdf],
+            ['title' => 'Architecture Technique Aurora - Whitepaper',  'cat' => 1, 'folder' => 0, 'tags' => [3],        'status' => DocumentStatusEnum::Archived,  'desc' => 'Document d\'architecture technique v1.x (archivé, remplacé par la version 2.x).', 'file' => $samplePdf],
+            ['title' => 'Rapport Annuel 2024 - Aurora Tech',           'cat' => 4, 'folder' => 6, 'tags' => [0, 1],    'status' => DocumentStatusEnum::Draft,     'desc' => 'Bilan financier et opérationnel de l\'exercice 2024. En cours de validation.', 'file' => null],
+            ['title' => 'Budget Prévisionnel 2025 - Aurora Tech',      'cat' => 4, 'folder' => 6, 'tags' => [0],        'status' => DocumentStatusEnum::Published, 'desc' => 'Budget prévisionnel approuvé par le comité de direction le 10 janvier 2025.', 'file' => $samplePdf],
+            ['title' => 'Facture Commerciale BTQ-2024-156',            'cat' => 4, 'folder' => 6, 'tags' => [0, 2],    'status' => DocumentStatusEnum::Published, 'desc' => 'Facture commerciale d\'exemple - Elegance Boutique → Canadian Fashion Hub. Numérisée pour audit douanier.', 'file' => 'files/invoices/Commercial-Invoice-Sample.webp'],
+            ['title' => 'Charte Graphique Aurora - Brand Guidelines',  'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Couleurs, typographies, logos et règles d\'utilisation de la marque Aurora.', 'file' => $samplePdf],
             ['title' => 'Kit Presse Aurora Tech Day 2025',             'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Communiqué de presse, visuels HD et biographies intervenants.', 'file' => $samplePdf],
-            ['title' => 'Fiche de Poste — Développeur Full Stack',     'cat' => 3, 'folder' => 5, 'tags' => [4],        'status' => DocumentStatusEnum::Published, 'desc' => 'Description du poste, compétences requises et processus de recrutement.', 'file' => $samplePdf],
-            ['title' => 'Politique de Télétravail — Aurora Tech',      'cat' => 3, 'folder' => 5, 'tags' => [4],        'status' => DocumentStatusEnum::Published, 'desc' => 'Règles et procédures applicables au travail à distance.', 'file' => $samplePdf],
-            ['title' => 'Certification ISO 27001 — Audit 2024',        'cat' => 5, 'folder' => 2, 'tags' => [5, 0],    'status' => DocumentStatusEnum::Published, 'desc' => 'Rapport d\'audit de conformité ISO 27001 réalisé en novembre 2024.', 'file' => $samplePdf],
+            ['title' => 'Fiche de Poste - Développeur Full Stack',     'cat' => 3, 'folder' => 5, 'tags' => [4],        'status' => DocumentStatusEnum::Published, 'desc' => 'Description du poste, compétences requises et processus de recrutement.', 'file' => $samplePdf],
+            ['title' => 'Politique de Télétravail - Aurora Tech',      'cat' => 3, 'folder' => 5, 'tags' => [4],        'status' => DocumentStatusEnum::Published, 'desc' => 'Règles et procédures applicables au travail à distance.', 'file' => $samplePdf],
+            ['title' => 'Certification ISO 27001 - Audit 2024',        'cat' => 5, 'folder' => 2, 'tags' => [5, 0],    'status' => DocumentStatusEnum::Published, 'desc' => 'Rapport d\'audit de conformité ISO 27001 réalisé en novembre 2024.', 'file' => $samplePdf],
         ];
 
         $testFilesRoot = dirname(__DIR__, 4).'/test_files';
@@ -247,8 +247,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         $documentRepository = $em->getRepository(Document::class);
 
         foreach ($docDefs as $idx => $def) {
-            // Keyed on the title: some of these carry no file at all — on
-            // purpose, so there is something to test the upload flow against —
+            // Keyed on the title: some of these carry no file at all - on
+            // purpose, so there is something to test the upload flow against -
             // so the path cannot be the key. The titles are distinct across the
             // set, which is what makes them one.
             $d = $documentRepository->findOneBy(['title' => $def['title']]) ?? new Document();

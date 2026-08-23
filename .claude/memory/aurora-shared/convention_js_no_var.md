@@ -1,6 +1,6 @@
 ---
 name: convention_js_no_var
-description: JS — toujours utiliser const/let, jamais var (y compris dans les scripts inline Twig et les modules side-effect)
+description: JS - toujours utiliser const/let, jamais var (y compris dans les scripts inline Twig et les modules side-effect)
 metadata:
   type: feedback
 ---

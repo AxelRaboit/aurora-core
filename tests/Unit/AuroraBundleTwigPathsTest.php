@@ -14,8 +14,8 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
  *
  * This cannot be observed from inside aurora-core. Here the package is the
  * application, so Symfony's own bundle-override convention already makes
- * `@Twig/Exception/error404.html.twig` resolve, and every check — the files
- * exist, Twig loads the name, a 404 renders — comes out green whether or not
+ * `@Twig/Exception/error404.html.twig` resolve, and every check - the files
+ * exist, Twig loads the name, a 404 renders - comes out green whether or not
  * the bundle does anything. Meanwhile every client project fell back to
  * Symfony's bare error page. That is the whole defect, and only a run with a
  * different `kernel.project_dir` can see it.
@@ -38,7 +38,7 @@ final class AuroraBundleTwigPathsTest extends TestCase
 
     /**
      * A project's own pages must win, and Twig resolves a namespace by first
-     * matching path — with user-configured paths registered *before* the
+     * matching path - with user-configured paths registered *before* the
      * per-bundle override paths. Registering ours unconditionally would
      * therefore silently outrank the client's.
      */

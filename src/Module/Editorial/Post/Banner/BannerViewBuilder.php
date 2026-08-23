@@ -20,8 +20,8 @@ use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
  *
  * The stored shape also holds media *ids*; a template needs urls, alt text
  * and a focal position. Resolving that here rather than in Twig keeps the
- * template free of repository calls and lets every document — background,
- * logo, and one per item — be fetched in a single query.
+ * template free of repository calls and lets every document - background,
+ * logo, and one per item - be fetched in a single query.
  */
 final readonly class BannerViewBuilder
 {
@@ -48,7 +48,7 @@ final readonly class BannerViewBuilder
         }
 
         // A banner with no items and no background would render as a coloured
-        // void. Treat it as off rather than as a layout choice — an author who
+        // void. Treat it as off rather than as a layout choice - an author who
         // cleared everything meant to remove it. This is also what catches the
         // banner whose only content was a background `mediaData` just refused
         // to resolve: the page falls back to its own header rather than
@@ -217,13 +217,13 @@ final readonly class BannerViewBuilder
         // that was valid the day it was saved stops being valid the day the
         // file behind it changes. Only the render is there then.
         //
-        // Answering null is louder here than in a grid zone — this feeds the
+        // Answering null is louder here than in a grid zone - this feeds the
         // hero background. It is still the right answer, because the banner
         // already knows what to do without a picture: the fill is resolved
         // separately and stays, and a banner left with nothing at all is
         // switched off by `build`, which puts the page's own header and its
         // <h1> back. A stand-in picture or a grey fill would invent a design
-        // decision the author never made — the same reason a gradient missing
+        // decision the author never made - the same reason a gradient missing
         // a stop renders no gradient rather than a guessed one.
         if (!MimeGroupEnum::Image->matches($media->getMimeType())) {
             return null;
@@ -232,7 +232,7 @@ final readonly class BannerViewBuilder
         $url = $this->documentUrlGenerator->variantUrl($media, 'large')
             ?? $this->documentUrlGenerator->publicUrl($media);
 
-        // A document can carry no file at all — the demo library keeps three
+        // A document can carry no file at all - the demo library keeps three
         // that way on purpose, so the upload flow has something to be tested
         // against. Without this the banner emitted `<img src="">`, which is
         // worse than a missing picture: an empty src resolves to the page's own

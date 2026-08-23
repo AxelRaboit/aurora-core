@@ -14,11 +14,11 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
  * payload. For paginated CRUD lists, prefer `useDelete` / `useListPage`.
  *
  * Returns:
- *   - request               — the underlying `useRequest()` if the caller
+ *   - request               - the underlying `useRequest()` if the caller
  *                             needs the raw data (rare).
- *   - submit(url, body, opts) — POST JSON, toast on error, return parsed data
+ *   - submit(url, body, opts) - POST JSON, toast on error, return parsed data
  *                               or null. Default success toast: shared.common.saved.
- *   - saveField(url, field, value, opts) — shorthand for inline `{field,value}` edits.
+ *   - saveField(url, field, value, opts) - shorthand for inline `{field,value}` edits.
  *
  * `opts.successMessage` overrides the default toast key (set to `null` to
  * suppress). `opts.silent` skips error toasts (caller handles errors).

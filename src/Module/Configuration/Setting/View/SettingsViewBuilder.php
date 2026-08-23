@@ -102,7 +102,7 @@ final readonly class SettingsViewBuilder
      *      (`'INV'`, `'DEAL'`, `'ORD'`, …) and the Notes / Assistant
      *      text defaults (`'qwen3:8b'`, `'2048'`, …) without forcing
      *      every enum to wire a per-case translation key.
-     *   3. `null` — input renders with a blank placeholder.
+     *   3. `null` - input renders with a blank placeholder.
      *
      * `bool` / `select` / `media` / `post` fields never get a fallback:
      * they render as their own controls (checkbox, dropdown, picker)

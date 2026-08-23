@@ -8,13 +8,13 @@ namespace Aurora\Core\Bootstrap;
  * Declares the rows a module cannot function without.
  *
  * This exists because that data used to live in fixtures. Fixtures are a
- * development convenience — DoctrineFixturesBundle is registered `dev`/`test`
- * only, so `doctrine:fixtures:load` does not even exist in production — yet
+ * development convenience - DoctrineFixturesBundle is registered `dev`/`test`
+ * only, so `doctrine:fixtures:load` does not even exist in production - yet
  * they carried the locales, the built-in post types and the built-in
  * taxonomies. A production install therefore came up with no active locale
  * (every frontend route 404s, see LocaleTrait) and no post type at all, so no
- * content could be created. The data was correctly identified as bootstrap —
- * both fixture classes said so in their docblocks — but filed somewhere that
+ * content could be created. The data was correctly identified as bootstrap -
+ * both fixture classes said so in their docblocks - but filed somewhere that
  * never runs where it matters.
  *
  * Seed data is not demo data. Demo data illustrates the product and is
@@ -22,11 +22,11 @@ namespace Aurora\Core\Bootstrap;
  * command that runs everywhere. `aurora:install` collects every provider.
  *
  * Implementations are tagged `aurora.bootstrap_provider` by the `_instanceof`
- * rule in services.yaml — a module ships one and it is picked up, the same way
+ * rule in services.yaml - a module ships one and it is picked up, the same way
  * ApplicationParameterProviderInterface and MenuLocationProviderInterface work.
  *
  * **Implementations must be idempotent.** `aurora:install` is meant to be safe
- * on an existing production database — it runs on every deploy — so a provider
+ * on an existing production database - it runs on every deploy - so a provider
  * creates what is missing and never overwrites what an administrator has since
  * edited. Renaming a locale in the backend must survive the next deploy.
  */

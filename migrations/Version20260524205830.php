@@ -8,7 +8,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * GED Document: add alt + caption columns (image documents — accessibility
+ * GED Document: add alt + caption columns (image documents - accessibility
  * text and caption, mirroring the Media library fields).
  */
 final class Version20260524205830 extends AbstractMigration

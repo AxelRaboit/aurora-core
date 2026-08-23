@@ -26,7 +26,7 @@ son `<head>` SEO via **un seul appel** à la fonction Twig `seo({...})` dans
 {% endblock %}
 ```
 
-`seo()` est fournie par `SeoExtension` (aurora-core) — toujours disponible.
+`seo()` est fournie par `SeoExtension` (aurora-core) - toujours disponible.
 
 ## Pourquoi
 
@@ -40,7 +40,7 @@ Doc canonique : [`convention_seo_head.md`](../../../docs/aurora-shared/conventio
 
 ## Comment l'appliquer
 
-### Cas 1 — Theme custom
+### Cas 1 - Theme custom
 
 ```bash
 mkdir -p templates/Frontend/themes/mon-theme/editorial/home
@@ -60,13 +60,13 @@ mkdir -p templates/Frontend/themes/mon-theme/editorial/home
 {% endblock %}
 ```
 
-### Cas 2 — Passerelle d'un module client
+### Cas 2 - Passerelle d'un module client
 
-Même pattern, dans `src/Module/<Client>/templates/frontend/…/index.html.twig` (ou — pour backward compat — `templates/Module/<Client>/frontend/…/index.html.twig`). Le
+Même pattern, dans `src/Module/<Client>/templates/frontend/…/index.html.twig` (ou - pour backward compat - `templates/Module/<Client>/frontend/…/index.html.twig`). Le
 controller du client utilise `ViewBuilder::baseView()` (aurora-core) et passe
 les variables habituelles (`context`, `locale`, `alternates`…).
 
-### Cas 3 — Override total de `partials/head.html.twig`
+### Cas 3 - Override total de `partials/head.html.twig`
 
 Si le client a besoin d'injecter Google Analytics, Cookiebot, ou un JSON-LD
 global : copier le head dans `templates/Frontend/themes/<slug>/partials/head.html.twig`
@@ -85,7 +85,7 @@ ou non-indexable) : toujours `noindex: true` dans l'appel `seo()`.
 
 `/backend/dev/parameters`, groupe **SEO** :
 
-- `seo_title_template` — concat titre + siteName
-- `seo_default_description` — fallback meta description
-- `seo_default_og_image` — fallback og:image (Media reference)
-- `seo_twitter_handle` — `twitter:site`
+- `seo_title_template` - concat titre + siteName
+- `seo_default_description` - fallback meta description
+- `seo_default_og_image` - fallback og:image (Media reference)
+- `seo_twitter_handle` - `twitter:site`

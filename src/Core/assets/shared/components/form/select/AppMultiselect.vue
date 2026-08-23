@@ -12,7 +12,7 @@ const props = defineProps({
     label: { type: String, default: "" },
     placeholder: { type: String, default: "" },
     error: { type: String, default: "" },
-    /** Help text under the control — explains the field, unlike `error` which reports it. */
+    /** Help text under the control - explains the field, unlike `error` which reports it. */
     hint: { type: String, default: "" },
     required: { type: Boolean, default: false },
     multiple: { type: Boolean, default: false },
@@ -74,7 +74,7 @@ function onSelect(value) {
 <style src="vue-multiselect/dist/vue-multiselect.css"></style>
 
 <style>
-/* Global (not scoped) — dropdown is teleported to <body>, outside the component's DOM scope */
+/* Global (not scoped) - dropdown is teleported to <body>, outside the component's DOM scope */
 .multiselect__tags {
     background-color: var(--color-surface);
     border-color: var(--color-line);

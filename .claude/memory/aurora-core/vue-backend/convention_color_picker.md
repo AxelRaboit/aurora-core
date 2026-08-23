@@ -1,6 +1,6 @@
 ---
 name: convention-color-picker
-description: 3 composants couleur — AppColorSwatch (swatch nu), AppColorField (form), AppColorPicker (preset grid). Choisir selon le contexte.
+description: 3 composants couleur - AppColorSwatch (swatch nu), AppColorField (form), AppColorPicker (preset grid). Choisir selon le contexte.
 metadata:
   type: feedback
 ---

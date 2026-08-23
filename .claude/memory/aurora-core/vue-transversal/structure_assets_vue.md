@@ -1,4 +1,4 @@
-# Assets Vue / Composables — convention de structure
+# Assets Vue / Composables - convention de structure
 
 ## Règle
 
@@ -164,12 +164,12 @@ export function useAgenciesForm(agencyList, createPath, updatePath, options = {}
 ### Variantes de composable
 - **Composable form unifié** (Agency, Service, Theme[create-only],
   Company, Contact, Deal, Order admin, Form, Comment, Document,
-  DocumentCategory, Listing, Product, Gallery, Menu, Media, …) — la
+  DocumentCategory, Listing, Product, Gallery, Menu, Media, …) - la
   norme.
 - **Composable séparé** create + edit (User invite/edit, Theme
   create/edit) : 2 composables distincts. Cf
   [`decision_variant_user_style.md`](decision_variant_user_style.md).
-- **Editor full-page** (Post) : pas de composable form séparé — la logique
+- **Editor full-page** (Post) : pas de composable form séparé - la logique
   est dans le composant `PostEditor.vue` directement (trop de complexité
   pour un composable).
 
@@ -211,7 +211,7 @@ npm run build  # Production build
 ```
 
 Côté client, le build est lancé via `pnpm` depuis le dossier aurora-core
-en mode `AURORA_ENV` qui scanne aussi le projet client — depuis 0.5 sa
+en mode `AURORA_ENV` qui scanne aussi le projet client - depuis 0.5 sa
 racine (`src/Module/<X>/assets/`, `src/Overrides/`), plus `assets/client/`
 qui n'existe plus.
 

@@ -9,12 +9,12 @@ locale par accident.
 | Pull d'une PR aurora-client (nouvelle entité, migration, etc.) | **`make pull-update`** | **Données préservées** : `composer install` (lock) + `pnpm install` + `migrate` + cache + syncs config |
 | Bump volontaire d'aurora-core | `make aurora-update` | Données préservées : `composer update axelraboit/aurora` + sub-installs + syncs |
 
-⚠️ **Ne JAMAIS faire `make install-dev` sur un projet déjà setup** — il purge la
+⚠️ **Ne JAMAIS faire `make install-dev` sur un projet déjà setup** - il purge la
 DB via `doctrine:fixtures:load`. Tes données de dev sont écrasées par les fixtures.
 
 ---
 
-## `make pull-update` — pull d'une PR aurora-client
+## `make pull-update` - pull d'une PR aurora-client
 
 ```bash
 git pull
@@ -36,11 +36,11 @@ Enchaîne :
 | 9 | `make sync-claude-md` | Symlinks CLAUDE.md + mémoires Claude rafraîchis |
 | 10 | `make sync-makefile` | Le Makefile lui-même resynced depuis le template aurora-core |
 
-Toutes les étapes sont idempotentes — safe à relancer.
+Toutes les étapes sont idempotentes - safe à relancer.
 
 ---
 
-## `make aurora-update` — bump explicite d'aurora-core
+## `make aurora-update` - bump explicite d'aurora-core
 
 ```bash
 make aurora-update
@@ -97,7 +97,7 @@ Si `make sync-makefile` détecte que le Makefile a changé, il l'écrase et
 affiche :
 
 ```
-✅ Makefile updated from aurora-core — re-run 'make aurora-update' if needed
+✅ Makefile updated from aurora-core - re-run 'make aurora-update' if needed
 ```
 
 Dans ce cas, **relancer `make aurora-update`** pour que les nouvelles targets
@@ -109,13 +109,13 @@ soient disponibles dès la suite de la séquence.
 
 | Fichier | Comportement |
 |---|---|
-| `CLAUDE.md` | **Écrasé** — ne pas éditer, créer `CLAUDE.local.md` à la place |
-| `Makefile` | **Écrasé** — targets custom dans `Makefile.local` (jamais touché) |
-| `config/packages/security.yaml` | **Écrasé** — géré par Aurora |
-| `.claude/memory/aurora-core/` | Symlink vers vendor — automatiquement à jour |
-| `.claude/memory/aurora-client/` | Symlink vers vendor — automatiquement à jour |
-| `docs/aurora-core/` | Symlink vers vendor — automatiquement à jour |
-| `docs/aurora-client/` | Symlink vers vendor — automatiquement à jour |
+| `CLAUDE.md` | **Écrasé** - ne pas éditer, créer `CLAUDE.local.md` à la place |
+| `Makefile` | **Écrasé** - targets custom dans `Makefile.local` (jamais touché) |
+| `config/packages/security.yaml` | **Écrasé** - géré par Aurora |
+| `.claude/memory/aurora-core/` | Symlink vers vendor - automatiquement à jour |
+| `.claude/memory/aurora-client/` | Symlink vers vendor - automatiquement à jour |
+| `docs/aurora-core/` | Symlink vers vendor - automatiquement à jour |
+| `docs/aurora-client/` | Symlink vers vendor - automatiquement à jour |
 | `src/`, `templates/`, `assets/client/` | **Jamais touchés** |
 | `.env.local` | **Jamais touché** |
 | `Makefile.local` | **Jamais touché** |

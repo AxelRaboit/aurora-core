@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 {# The collapsed class is rendered here rather than added by a script: it is
    stored on the user, so the first paint already has it and the menu no longer
-   starts expanded and snaps shut. The width still comes from the browser — see
+   starts expanded and snaps shut. The width still comes from the browser - see
    theme_script. #}
 <html lang="{{ app.request.locale }}"{% if app.user and app.user.sidemenuCollapsed %} class="sidemenu-collapsed"{% endif %}>
 <head>

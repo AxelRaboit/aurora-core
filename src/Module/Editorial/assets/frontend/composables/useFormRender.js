@@ -57,7 +57,7 @@ export function useFormRender(props) {
 
     /**
      * On a single-page form every visible field is on screen. On a multi-step
-     * one, only the current step's — and fields with no step belong to the
+     * one, only the current step's - and fields with no step belong to the
      * first, so a form that gained steps after its fields still renders.
      */
     const fieldsForStep = computed(() => {
@@ -110,7 +110,7 @@ export function useFormRender(props) {
                     notice.value = { type: "error", text: t(data.error) };
                 }
 
-                // Errors can be on a step the visitor has moved past — send
+                // Errors can be on a step the visitor has moved past - send
                 // them back to the first one that has any, rather than
                 // refusing to submit with nothing visible to fix.
                 jumpToFirstError();

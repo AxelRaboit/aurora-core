@@ -13,7 +13,7 @@ use Throwable;
  *
  * Extracted from the install command because a second caller appeared: the
  * integration suite, which seeds its database the same way a real install
- * does. It used to name Core's provider on its own — correct when Core was
+ * does. It used to name Core's provider on its own - correct when Core was
  * the only one, and quietly wrong once Editorial and GED had theirs. A test
  * database seeded differently from a real install is a test database that can
  * hide breakage, which is exactly what happened: an image upload filed into a

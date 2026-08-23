@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * rather than a read-through.
  *
  * The reference this was rebuilt from disallowed `/admin/` and `/dev/` on an
- * application whose backend has always been at `/backend/` — so the file
+ * application whose backend has always been at `/backend/` - so the file
  * blocked nothing that exists and left every admin screen announced as
  * crawlable. Nothing would have reported that: the file was well-formed, the
  * route answered 200, and the only symptom was admin URLs turning up in

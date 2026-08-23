@@ -14,7 +14,7 @@ RECTOR_CONFIG = $(if $(wildcard rector.php),rector.php,$(AURORA)/tools/rector/re
 
 # AURORA_CLIENT_DIR is read by aurora's vite.config.js / app.js to scan this
 # project's custom Vue components, Overrides and locales. It points at the
-# client project root since 0.5 — aurora-core scans src/Module/<X>/assets/,
+# client project root since 0.5 - aurora-core scans src/Module/<X>/assets/,
 # src/Overrides/ and src/locales/ via the @client alias (mirrors aurora-core's
 # own co-located layout).
 # NODE_PATH lets Node resolve packages (vue, vue-i18n, …) from aurora's
@@ -53,7 +53,7 @@ _no-recent-aurora-update:
 		ago=$$(($$(date +%s) - $$(stat -c %Y $(AURORA_UPDATE_MARKER) 2>/dev/null || stat -f %m $(AURORA_UPDATE_MARKER)))); \
 		if [ "$$ago" -lt 300 ]; then \
 			echo "❌ Refused: 'aurora-update' was run $${ago}s ago."; \
-			echo "   Running 'pull-update' right after is redundant — composer.lock is already past the team's version."; \
+			echo "   Running 'pull-update' right after is redundant - composer.lock is already past the team's version."; \
 			echo "   The correct order is 'pull-update && aurora-update' (sync to team, then bump on top)."; \
 			echo "   If you really want to revert to the team's lock, run:"; \
 			echo "      git checkout composer.lock && make pull-update"; \
@@ -77,11 +77,11 @@ aurora-vendor-guard: ## Restore aurora-core's own vendor/ if composer wiped it
 	@# aurora-core's package.json depends on its OWN nested vendor
 	@# ("@symfony/ux-vue": "file:vendor/symfony/ux-vue/assets"), which composer
 	@# deletes whenever it re-extracts the package. `make aurora-update` puts it
-	@# back, but a bare `composer update axelraboit/aurora` doesn't — and the
+	@# back, but a bare `composer update axelraboit/aurora` doesn't - and the
 	@# breakage only surfaces later, as an opaque ENOENT from pnpm. Cheap to
 	@# check, so build/dev repair it themselves rather than failing.
 	@if [ ! -d "$(AURORA)/vendor/symfony/ux-vue/assets" ]; then \
-		echo "⚠️  aurora-core's nested vendor/ is missing (bare composer update?) — restoring"; \
+		echo "⚠️  aurora-core's nested vendor/ is missing (bare composer update?) - restoring"; \
 		$(COMPOSER) install --working-dir=$(AURORA) --no-scripts; \
 	fi
 	@# The linters live in their own nested installs and are wiped by the same
@@ -90,7 +90,7 @@ aurora-vendor-guard: ## Restore aurora-core's own vendor/ if composer wiped it
 	@# than a missing dependency.
 	@for tool in php-cs-fixer twig-cs-fixer rector phpstan; do \
 		if [ ! -d "$(AURORA)/tools/$$tool/vendor" ]; then \
-			echo "⚠️  aurora-core's $$tool is missing — restoring"; \
+			echo "⚠️  aurora-core's $$tool is missing - restoring"; \
 			$(COMPOSER) install --working-dir=$(AURORA)/tools/$$tool --no-interaction; \
 		fi; \
 	done
@@ -195,7 +195,7 @@ about: ## Show app info
 fixtures: _require-dev-env ## Drop DB, schema:create from entities, load fixtures and sync all (DEV ONLY)
 	$(CONSOLE) doctrine:database:drop --force --if-exists
 	$(CONSOLE) doctrine:database:create --if-not-exists
-	# schema:create + mark all migrations applied — workaround for the
+	# schema:create + mark all migrations applied - workaround for the
 	# multi-namespace Doctrine Migrations interleave (see install-dev for
 	# rationale, or vendor/axelraboit/aurora/docs/aurora-client/dev/database.md).
 	$(CONSOLE) doctrine:schema:create
@@ -203,7 +203,7 @@ fixtures: _require-dev-env ## Drop DB, schema:create from entities, load fixture
 	$(CONSOLE) doctrine:migrations:version --add --all --no-interaction
 	# messenger_messages isn't a Doctrine entity, so schema:create above
 	# skips it, and marking migrations as applied never runs the migration
-	# that creates it — messenger:consume would fail with "relation
+	# that creates it - messenger:consume would fail with "relation
 	# messenger_messages does not exist" otherwise.
 	$(CONSOLE) messenger:setup-transports
 	# aurora:install seeds the structure the demo fixtures build on, and
@@ -227,7 +227,7 @@ demo: _require-dev-env ## Load demo fixtures (DemoFixtures group) + run all sync
 	$(CONSOLE) aurora:privileges:sync
 	@echo "✅ Demo data loaded"
 
-fixtures-load: _require-dev-env ## Load fixtures without dropping DB — purges tables before re-inserting (DEV ONLY)
+fixtures-load: _require-dev-env ## Load fixtures without dropping DB - purges tables before re-inserting (DEV ONLY)
 	# aurora:install seeds the structure the demo fixtures build on, and
 	# --append keeps doctrine:fixtures:load from purging it back out:
 	# the default purger empties every table, including the one holding
@@ -271,8 +271,8 @@ migrate-check: ## Warn loud if the dev DB has pending migrations (called by `mak
 		echo ""; \
 	fi
 
-# Both targets pin ClientMigrations. Two namespaces are registered — aurora's
-# own (vendor/axelraboit/aurora/migrations) and the project's — and doctrine
+# Both targets pin ClientMigrations. Two namespaces are registered - aurora's
+# own (vendor/axelraboit/aurora/migrations) and the project's - and doctrine
 # picks the first when it is not told, so an unqualified diff writes the
 # client's migration inside vendor/, where it is read-only, unversioned and
 # wiped by the next composer update.
@@ -285,7 +285,7 @@ migration-diff: ## Generate a migration from entity changes
 sync-params: ## Synchronise application parameters (creates missing, deletes obsolete)
 	$(CONSOLE) aurora:application-parameter
 
-install-data: ## Create every module's seed data — locales, theme, post types, taxonomies, menus (idempotent)
+install-data: ## Create every module's seed data - locales, theme, post types, taxonomies, menus (idempotent)
 	$(CONSOLE) aurora:install
 
 sync-privileges: ## Purge obsolete privileges from users after module changes
@@ -326,7 +326,7 @@ test-e2e: ## Run end-to-end tests (Playwright)
 coverage: db-test ## Generate PHP code coverage report (requires php8.4-pcov)
 	$(PHP_BIN) -d pcov.enabled=1 $(AURORA)/bin/phpunit --coverage
 
-db-test: _require-dev-env ## Create test database with fresh schema — schema:create avoids cross-namespace migration ordering issues (DEV ONLY)
+db-test: _require-dev-env ## Create test database with fresh schema - schema:create avoids cross-namespace migration ordering issues (DEV ONLY)
 	$(CONSOLE) doctrine:database:drop --env=test --force --if-exists
 	$(CONSOLE) doctrine:database:create --env=test
 	$(CONSOLE) doctrine:schema:create --env=test
@@ -389,7 +389,7 @@ setup-env: ## Create .env.local from .env.local.example template, with APP_SECRE
 	@php -r '$$c = file_get_contents(".env.local"); $$c = preg_replace("/^APP_SECRET=.*/m", "APP_SECRET=" . bin2hex(random_bytes(16)), $$c, 1); file_put_contents(".env.local", $$c);'
 	@php -r '$$c = file_get_contents(".env.local"); $$c = preg_replace("/^AURORA_MOUNT_POINT_KEY=.*/m", "AURORA_MOUNT_POINT_KEY=" . base64_encode(random_bytes(32)), $$c, 1); file_put_contents(".env.local", $$c);'
 	@php -r '$$c = file_get_contents(".env.local"); $$c = preg_replace("/^AURORA_ENCRYPTION_KEY=.*/m", "AURORA_ENCRYPTION_KEY=" . base64_encode(random_bytes(32)), $$c, 1); file_put_contents(".env.local", $$c);'
-	@echo "✅ .env.local created — APP_SECRET + Aurora keys generated automatically."
+	@echo "✅ .env.local created - APP_SECRET + Aurora keys generated automatically."
 	@echo "   Review DATABASE_URL before running 'make install-dev'."
 
 .PHONY: help
@@ -400,7 +400,7 @@ help: ## Show this help message
 
 install: install-dev ## Install the project (alias for install-dev)
 
-install-dev: _require-dev-env ## Install for local development — full reset: drops DB, schema:create, fixtures (DEV ONLY)
+install-dev: _require-dev-env ## Install for local development - full reset: drops DB, schema:create, fixtures (DEV ONLY)
 	$(COMPOSER) install --no-scripts
 	$(COMPOSER) install --working-dir=$(AURORA) --no-scripts
 	$(COMPOSER) install --working-dir=$(AURORA)/tools/php-cs-fixer
@@ -410,11 +410,11 @@ install-dev: _require-dev-env ## Install for local development — full reset: d
 	$(PNPM) --dir=$(AURORA) install
 	$(PNPM) install
 	make setup-dirs
-	# Wipe + recreate DB unconditionally — install-dev is "from scratch" by
+	# Wipe + recreate DB unconditionally - install-dev is "from scratch" by
 	# contract (fixtures-load below would purge anyway).
 	$(CONSOLE) doctrine:database:drop --force --if-exists
 	$(CONSOLE) doctrine:database:create
-	# schema:create + mark all migrations applied — workaround for the
+	# schema:create + mark all migrations applied - workaround for the
 	# multi-namespace Doctrine Migrations interleave issue. `make migrate`
 	# would plant here on fresh DB (ClientMigrations + DoctrineMigrations
 	# don't merge strictly by timestamp). Cf.
@@ -425,7 +425,7 @@ install-dev: _require-dev-env ## Install for local development — full reset: d
 	$(CONSOLE) doctrine:migrations:version --add --all --no-interaction
 	# messenger_messages isn't a Doctrine entity, so schema:create above
 	# skips it, and marking migrations as applied never runs the migration
-	# that creates it — messenger:consume would fail with "relation
+	# that creates it - messenger:consume would fail with "relation
 	# messenger_messages does not exist" otherwise.
 	$(CONSOLE) messenger:setup-transports
 	# Mandatory data (locales, built-in post types, …) before the fixtures,
@@ -442,8 +442,8 @@ install-prod: ## Install for production
 	$(PNPM) --dir=$(AURORA) install --frozen-lockfile
 	make setup-dirs
 	make migrate-f
-	# Without this a production install has no locale — every frontend URL
-	# answers 404 — and no post type, so no content can be created at all.
+	# Without this a production install has no locale - every frontend URL
+	# answers 404 - and no post type, so no content can be created at all.
 	# It used to come from fixtures, which never run here.
 	$(CONSOLE) aurora:install
 	$(CONSOLE) aurora:application-parameter
@@ -489,11 +489,11 @@ sync-security: ## Sync security.yaml from aurora vendor (routes change with each
 	@echo "✅ security.yaml synced from aurora"
 
 pull-update: _no-recent-aurora-update ## After a regular `git pull`: install deps from lock + migrate + cache + syncs
-	# Use THIS after pulling a teammate's PR — preserves your local data
+	# Use THIS after pulling a teammate's PR - preserves your local data
 	# (unlike `make install-dev` which wipes the DB via fixtures-load).
 	# Covers composer.lock changes, package.json changes, new migrations,
 	# and config drift (jsconfig / security / CLAUDE.md / Makefile syncs).
-	# Safe to run unconditionally — every step is idempotent.
+	# Safe to run unconditionally - every step is idempotent.
 	$(COMPOSER) install
 	$(COMPOSER) install --working-dir=$(AURORA) --no-scripts
 	$(COMPOSER) install --working-dir=$(AURORA)/tools/php-cs-fixer
@@ -518,7 +518,7 @@ pull-and-bump: pull-update aurora-update ## Combo: sync to team lock, THEN bump 
 aurora-update: ## Bump aurora-core to its latest tag (composer update + all sub-installs + syncs)
 	# Use THIS only when you explicitly want a newer aurora-core than the
 	# one in composer.lock. For routine teammate-PR pulls, use `make pull-update`
-	# instead — it honours the lock and avoids surprise upstream upgrades.
+	# instead - it honours the lock and avoids surprise upstream upgrades.
 	$(COMPOSER) update axelraboit/aurora
 	$(COMPOSER) install --working-dir=$(AURORA) --no-scripts
 	$(COMPOSER) install --working-dir=$(AURORA)/tools/php-cs-fixer
@@ -540,7 +540,7 @@ aurora-update: ## Bump aurora-core to its latest tag (composer update + all sub-
 	# new translation keys shipped by the bumped aurora-core would still
 	# render as raw `backend.foo.bar` until the next manual `make build`.
 	# (Dev mode with `make dev` running picks up the new JSON via Vite
-	# HMR — but a stale `public/build/` would still serve stale strings.)
+	# HMR - but a stale `public/build/` would still serve stale strings.)
 	make translation
 	make build
 	@mkdir -p var && touch $(AURORA_UPDATE_MARKER)
@@ -551,9 +551,9 @@ sync-claude-md: ## Symlink CLAUDE.md + .claude/memory + .claude/skills (shared) 
 		ln -sfn $(AURORA)/.claude/client_template/CLAUDE.md CLAUDE.md; \
 		echo "✅ CLAUDE.md symlinked from vendor"; \
 	else \
-		echo "⚠️  $(AURORA)/.claude/client_template/CLAUDE.md not found — skipping"; \
+		echo "⚠️  $(AURORA)/.claude/client_template/CLAUDE.md not found - skipping"; \
 	fi
-	@# README.md is intentionally NOT symlinked — it's the client's own
+	@# README.md is intentionally NOT symlinked - it's the client's own
 	@# project README, free to customise. If a previous install left a
 	@# vendor symlink in place, replace it with a real file copied from
 	@# the template so the client can edit it. A real file already there
@@ -561,7 +561,7 @@ sync-claude-md: ## Symlink CLAUDE.md + .claude/memory + .claude/skills (shared) 
 	@if [ -L README.md ]; then rm -f README.md; fi
 	@if [ ! -f README.md ] && [ -f $(AURORA)/.claude/client_template/README.md ]; then \
 		cp $(AURORA)/.claude/client_template/README.md README.md; \
-		echo "✅ README.md seeded from aurora template (now editable — never overwritten by sync)"; \
+		echo "✅ README.md seeded from aurora template (now editable - never overwritten by sync)"; \
 	elif [ -f README.md ]; then \
 		echo "ℹ️  README.md kept as-is (client-owned, won't be overwritten)"; \
 	fi
@@ -583,18 +583,18 @@ sync-claude-md: ## Symlink CLAUDE.md + .claude/memory + .claude/skills (shared) 
 	done
 	@rm -rf docs/aurora-core docs/aurora-client docs/aurora-shared 2>/dev/null; \
 	if [ -d docs ] && [ -z "$$(ls -A docs 2>/dev/null)" ]; then rmdir docs; fi
-	@echo "ℹ️  Aurora docs live in $(AURORA)/docs/{aurora-core,aurora-client,aurora-shared}/ — no local copy/symlink."
+	@echo "ℹ️  Aurora docs live in $(AURORA)/docs/{aurora-core,aurora-client,aurora-shared}/ - no local copy/symlink."
 	@if [ ! -f .claude/settings.json ] && [ -f $(AURORA)/.claude/client_template/.claude/settings.json ]; then \
 		mkdir -p .claude; \
 		cp $(AURORA)/.claude/client_template/.claude/settings.json .claude/settings.json; \
 		echo "✅ .claude/settings.json created from aurora template"; \
 	elif [ -f .claude/settings.json ]; then \
-		echo "ℹ️  .claude/settings.json already exists — not overwritten"; \
+		echo "ℹ️  .claude/settings.json already exists - not overwritten"; \
 	fi
 
 sync-makefile: ## Refresh Makefile from aurora-core template (auto-generated, do not edit by hand)
 	@if [ ! -f $(AURORA)/.claude/client_template/Makefile ]; then \
-		echo "⚠️  $(AURORA)/.claude/client_template/Makefile not found — skipping"; \
+		echo "⚠️  $(AURORA)/.claude/client_template/Makefile not found - skipping"; \
 		exit 0; \
 	fi; \
 	if cmp -s $(AURORA)/.claude/client_template/Makefile Makefile; then \
@@ -613,10 +613,10 @@ sync-makefile: ## Refresh Makefile from aurora-core template (auto-generated, do
 		fi; \
 	fi; \
 	cp $(AURORA)/.claude/client_template/Makefile Makefile; \
-	echo "✅ Makefile updated from aurora-core — re-run 'make aurora-update' if needed"
+	echo "✅ Makefile updated from aurora-core - re-run 'make aurora-update' if needed"
 
 # ─────────────────────────────────────────────────────────────────────
-# Makefile.local — client-specific targets
+# Makefile.local - client-specific targets
 #
 # Anything you want to add that is SPECIFIC to this client project
 # (not a candidate for upstreaming to aurora-core) goes in Makefile.local.

@@ -2,14 +2,14 @@
 /**
  * Banner panel of the post editor.
  *
- * A builder: add a text or an image, reorder, remove. The arrangements —
- * text then image, two images, text alone — are what the list produces rather
+ * A builder: add a text or an image, reorder, remove. The arrangements -
+ * text then image, two images, text alone - are what the list produces rather
  * than options to pick from.
  *
  * Presentation only: every field arrives as a writable computed from
  * usePostBanner, so nothing here writes to the prop directly.
  *
- * Two props because the banner is stored in two halves — the design on the
+ * Two props because the banner is stored in two halves - the design on the
  * post, the words on the open translation. The panel does not arrange them
  * differently for it: a field is a field, and usePostBanner is what knows
  * which half each one belongs to.
@@ -36,7 +36,7 @@ const props = defineProps({
     layout: { type: Object, required: true },
     /** The words, for the language currently open. */
     texts: { type: Object, required: true },
-    /** Which language that is — shown on the fields that are per-language. */
+    /** Which language that is - shown on the fields that are per-language. */
     locale: { type: String, required: true },
     previewPath: { type: String, required: true },
 });
@@ -315,7 +315,7 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                     </div>
 
                     <!-- The renderer refuses an incomplete fill rather than
-                         guessing the missing half, which is right — and silent.
+                         guessing the missing half, which is right - and silent.
                          A header that draws nothing, with white text on a white
                          panel, reads as the editor being broken. This says
                          which half is missing. -->

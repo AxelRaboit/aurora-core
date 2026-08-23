@@ -20,7 +20,7 @@ use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
  * engines treat a 503 with `Retry-After` as "come back later" and keep the
  * pages indexed, where a 404 would start dropping them. The response body is
  * `error503.html.twig`, resolved through the same TwigBundle exception
- * mechanism as the 404 and 500 pages — so a client project overrides it the
+ * mechanism as the 404 and 500 pages - so a client project overrides it the
  * same way.
  *
  * Priority 12 sits after the locale subscribers (20/18/16/15), so the page
@@ -31,7 +31,7 @@ use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 final readonly class MaintenanceModeListener
 {
     /**
-     * Prefixes that stay reachable. `/backend` and `/dev` above all — locking
+     * Prefixes that stay reachable. `/backend` and `/dev` above all - locking
      * the administrator out of the screen that turns maintenance back off
      * would make this setting a one-way door. `/build` matters too: the
      * maintenance page loads its own stylesheet from there.

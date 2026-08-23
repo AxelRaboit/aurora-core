@@ -181,7 +181,7 @@ abstract class AbstractFormField implements FormFieldInterface
 
     /**
      * Instantiation hook, so a client substituting the translation class gets
-     * its own here too — resolve_target_entities only covers Doctrine
+     * its own here too - resolve_target_entities only covers Doctrine
      * associations, never a `new` in application code.
      */
     protected function createTranslation(): FormFieldTranslationInterface

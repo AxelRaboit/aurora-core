@@ -7,12 +7,12 @@ systemd, pas de pipeline CI. À vous d'adapter à votre cible (serveur dédié,
 PaaS, Kubernetes, etc.). La cible Makefile `deploy-prod` est un exemple
 minimaliste de séquence locale-vers-prod, à reproduire dans votre infra.
 
-> 📋 **Avant de commencer** — checklist exhaustive des prérequis (PHP, Node, PostgreSQL, binaires CLI, vars d'env) : [`../../aurora-core/ops/prerequisites.md`](../../aurora-core/ops/prerequisites.md).
+> 📋 **Avant de commencer** - checklist exhaustive des prérequis (PHP, Node, PostgreSQL, binaires CLI, vars d'env) : [`../../aurora-core/ops/prerequisites.md`](../../aurora-core/ops/prerequisites.md).
 >
 > **Docs sœurs dans ce dossier** :
-> - [`worker_systemd.md`](worker_systemd.md) — service systemd pour le worker Messenger
-> - [`apache_xsendfile.md`](apache_xsendfile.md) — `mod_xsendfile` pour servir `var/uploads/`
-> - [`github_actions_ci.md`](github_actions_ci.md) — setup du workflow CI GitHub Actions (PAT pour le vendor privé, init DB de test)
+> - [`worker_systemd.md`](worker_systemd.md) - service systemd pour le worker Messenger
+> - [`apache_xsendfile.md`](apache_xsendfile.md) - `mod_xsendfile` pour servir `var/uploads/`
+> - [`github_actions_ci.md`](github_actions_ci.md) - setup du workflow CI GitHub Actions (PAT pour le vendor privé, init DB de test)
 
 ---
 
@@ -67,9 +67,9 @@ Définir dans `.env.local` (ou variables d'environnement du PaaS) :
 | `MAILER_DSN` | SMTP prod (jamais `smtp://localhost:1025`) |
 | `MAILER_FROM` | Adresse expéditeur |
 | `ADMIN_EMAIL` | Adresse admin recevant les notifications système |
-| `AURORA_MOUNT_POINT_KEY` | Clé base64 32 bytes — **doit être stable** entre déploiements (sinon MountPoints chiffrés illisibles) |
+| `AURORA_MOUNT_POINT_KEY` | Clé base64 32 bytes - **doit être stable** entre déploiements (sinon MountPoints chiffrés illisibles) |
 | `DEFAULT_URI` | URI publique du site (génération des liens absolus en CLI/scheduler) |
-| `MESSENGER_TRANSPORT_DSN` | Par défaut `doctrine://default?auto_setup=0` — peut être pointé sur Redis/RabbitMQ en prod |
+| `MESSENGER_TRANSPORT_DSN` | Par défaut `doctrine://default?auto_setup=0` - peut être pointé sur Redis/RabbitMQ en prod |
 
 > ⚠️ `AURORA_MOUNT_POINT_KEY` change → les MountPoints existants sont
 > **illisibles**. À générer une seule fois, à stocker dans le vault.
@@ -83,7 +83,7 @@ Définir dans `.env.local` (ou variables d'environnement du PaaS) :
 (géré par Vite + Pentatrion ViteBundle).
 
 À déployer :
-- **`public/build/`** — assets compilés (versionné via hash, pas besoin de
+- **`public/build/`** - assets compilés (versionné via hash, pas besoin de
   cache-bust manuel).
 - **Pas** `node_modules/`, **pas** `assets/` source.
 
@@ -127,7 +127,7 @@ php bin/console messenger:consume async scheduler_main --time-limit=3600 --memor
 ```
 
 > Le worker **doit** être supervisé (auto-restart sur exit, time-limit
-> court — 1h max — pour libérer la mémoire). En dev, `make start-dev-worker`
+> court - 1h max - pour libérer la mémoire). En dev, `make start-dev-worker`
 > tourne dans une boucle while + sleep, à ne pas utiliser en prod.
 
 Sans worker tournant :
@@ -148,7 +148,7 @@ Aurora écrit dans :
 | `var/cache/` | Cache Symfony (généré au runtime) |
 | `var/log/` | Logs |
 | `var/share/` (cf. `APP_SHARE_DIR`) | Fichiers partagés temporaires |
-| `var/uploads/` | Médias uploadés (Media, Photo, GED, OCR, notes markdown…) — hors document root, servis via le catch-all `/uploads/{path}` (`UploadsServeController`) |
+| `var/uploads/` | Médias uploadés (Media, Photo, GED, OCR, notes markdown…) - hors document root, servis via le catch-all `/uploads/{path}` (`UploadsServeController`) |
 
 Le user PHP-FPM / CLI doit avoir le droit **rwx** sur `var/` (qui couvre les
 4 sous-dossiers ci-dessus). Sur serveur Apache + PHP-FPM standard :

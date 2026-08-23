@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
  * The `site_url` parameter ships seeded with `http://localhost`, and reading
  * that back as though an administrator had chosen it is how a production
  * deploy ends up telling search engines the canonical address of every page
- * is a host they cannot reach. Nothing in the application reports it — the
+ * is a host they cannot reach. Nothing in the application reports it - the
  * pages render, the tags are well-formed, and the only symptom is the site
  * failing to rank.
  *

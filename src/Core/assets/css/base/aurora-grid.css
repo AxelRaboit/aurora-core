@@ -1,5 +1,5 @@
 /*
- * The 48-column layout grid, shared by the post banner and — once it lands —
+ * The 48-column layout grid, shared by the post banner and - once it lands -
  * the content grid. Applied by `.aurora-grid` on the container; every direct
  * child is an item.
  *
@@ -24,7 +24,7 @@
      * `column-gap` on a 48-track grid is 47 gutters, not one between items.
      * At the 2rem this started with that is 1504px of gap inside a 1280px
      * container: every track collapsed to zero width, the grid became nothing
-     * but its own gaps, and a full-width item overflowed by 240px — which is
+     * but its own gaps, and a full-width item overflowed by 240px - which is
      * how a right-aligned button ended up half outside the banner. Measured in
      * the browser, not deduced.
      *
@@ -33,7 +33,7 @@
      * neighbours show twice the gutter between them.
      *
      * The cost is that the outer edges are inset by a gutter too. Inside a box
-     * that already has padding — the banner's — that is invisible. In the
+     * that already has padding - the banner's - that is invisible. In the
      * article flow it is not: the grid sat a gutter to the right of the title
      * above it. `.aurora-grid-flush` is the opt-in that pulls those edges back.
      */
@@ -44,20 +44,20 @@
  * `--start-*` is the column an item begins on and `--row-*` the row, both
  * 1-based. Together they are what lets a zone sit at the right of an otherwise
  * empty row, or drop below a neighbour it would have fitted beside. Left
- * unset — which is the case for every item the banner places, and for a grid
- * rendered by a theme that predates this — both resolve to `auto` and the item
+ * unset - which is the case for every item the banner places, and for a grid
+ * rendered by a theme that predates this - both resolve to `auto` and the item
  * flows after the previous one exactly as before.
  *
  * This is **not** authoring in coordinates. An author still works in one
  * sequence: add a zone, set its width, reorder. The row and column are worked
  * out from that sequence, by the same arithmetic on the server and in the
- * editor's canvas — see GridNormalizer::place. Deriving them rather than
+ * editor's canvas - see GridNormalizer::place. Deriving them rather than
  * leaving them to auto-placement is what makes a break honour itself: a zone
  * asked to start a new row while the columns it wants are still free beside its
  * neighbour would otherwise be placed there, silently.
  *
  * Nothing is emitted below the large breakpoint, where every zone is full width
- * and there is no arrangement to hold — which is also why a phone needs no
+ * and there is no arrangement to hold - which is also why a phone needs no
  * answer to any of this.
  */
 .aurora-grid > * {
@@ -68,7 +68,7 @@
 
 /*
  * Cancels the outer gutter so the first and last column line up with whatever
- * the grid sits under. The inner gutters are untouched — this only pulls the
+ * the grid sits under. The inner gutters are untouched - this only pulls the
  * two edges back by what the items add.
  *
  * Opt-in rather than the default, because it cannot be applied blindly: on the

@@ -9,7 +9,7 @@ export function usePermissionsFilter(data) {
         return haystack.toLowerCase().includes(needle);
     }
 
-    // Client-side filter — the registry is small and fully loaded, no need to
+    // Client-side filter - the registry is small and fully loaded, no need to
     // round-trip the server.
     const filteredModules = computed(() => {
         const query = searchInput.value.trim().toLowerCase();

@@ -1,6 +1,6 @@
 ---
 name: convention_frontend_rendering
-description: Passerelles Vue frontend — chaque passerelle override {% block seo_define %} pour appeler seo({...}). Block body = un vue_component.
+description: Passerelles Vue frontend - chaque passerelle override {% block seo_define %} pour appeler seo({...}). Block body = un vue_component.
 metadata:
   type: feedback
 ---
@@ -33,13 +33,13 @@ Deux contraintes Twig découvertes empiriquement obligent ce design :
 
 1. **`partials/head.html.twig` est inclus** (pas étendu) par le layout. Donc les `{% block og_image %}`, `{% block canonical %}`, etc. à l'intérieur de `head.html.twig` **ne sont pas overridables** depuis une passerelle. Ces blocks étaient du code mort silencieux avant le refactor de mai 2026.
 
-2. **`{% set %}` au top-level d'un template qui extends ne propage que sur 1 niveau**. Pour la chaîne `auth/login → auth/layout → layout`, un `{% set seo = ... %}` dans `auth/login` est silencieusement **perdu** — seuls les `{% set %}` de l'enfant direct du layout (donc `auth/layout`) propagent. Vérifié.
+2. **`{% set %}` au top-level d'un template qui extends ne propage que sur 1 niveau**. Pour la chaîne `auth/login → auth/layout → layout`, un `{% set seo = ... %}` dans `auth/login` est silencieusement **perdu** - seuls les `{% set %}` de l'enfant direct du layout (donc `auth/layout`) propagent. Vérifié.
 
 Les **blocks**, en revanche, traversent toute la chaîne extends. D'où le pattern : `seo()` (PHP Twig function) stocke le payload résolu dans les attributs de la request courante (side-effect), et `head.html.twig` appelle `seo_current()` pour le lire. Le block `seo_define` du layout, rendu avant l'include du head, garantit l'ordre.
 
 ## Implications pratiques
 
-- **JAMAIS** utiliser `{% block title %}`, `{% block og_image %}`, `{% block canonical %}`, `{% block robots %}`, `{% block jsonld %}` — ces blocks n'existent pas dans `head.html.twig` ; leur output serait ignoré silencieusement (bug SEO).
+- **JAMAIS** utiliser `{% block title %}`, `{% block og_image %}`, `{% block canonical %}`, `{% block robots %}`, `{% block jsonld %}` - ces blocks n'existent pas dans `head.html.twig` ; leur output serait ignoré silencieusement (bug SEO).
 - **Pages auth** : chacune doit inclure `noindex: true` dans son propre `seo(...)`. L'astuce "centraliser noindex dans auth/layout" ne marche pas (cf. contrainte 2).
 - **Theme custom** : peut override `partials/head.html.twig` mais doit consommer `seo_current()` pour préserver le contrat.
 

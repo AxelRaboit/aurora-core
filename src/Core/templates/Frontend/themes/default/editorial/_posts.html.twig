@@ -1,7 +1,7 @@
 {# Shared listing markup. Rendered server-side rather than mounted as a Vue
    app: a public listing has nothing interactive about it, and HTML that is
-   already there is what a search engine — and a reader whose JavaScript did
-   not load — actually gets. #}
+   already there is what a search engine - and a reader whose JavaScript did
+   not load - actually gets. #}
 {% if posts is empty %}
     <p class="text-secondary">{{ 'frontend.editorial.no_posts'|trans }}</p>
 {% else %}

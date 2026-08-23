@@ -14,15 +14,15 @@
 Tout composant `<Plural>App.vue` d'Aurora qui suit la convention
 d'extensibilité expose **deux choses** au client :
 
-1. Une prop `extraFields: Object` (défaut `{}`) — déclare quels champs sont
+1. Une prop `extraFields: Object` (défaut `{}`) - déclare quels champs sont
    ajoutés, leur valeur initiale et comment les lire depuis une entité existante.
-2. Trois slots scoped — `extra-headers`, `extra-cells`, `extra-form-fields` —
+2. Trois slots scoped - `extra-headers`, `extra-cells`, `extra-form-fields` -
    pour rendre l'UI correspondante (colonne dans la table, cellule par ligne,
    input dans la modale create/edit).
 
 Le composable `useXxxForm` (ou `useXxxEdit`) accepte la même `extraFields` et
 fusionne automatiquement les clés dans son `editForm`. Le payload envoyé au
-backend est `{ ...editForm }` — donc tout ce que vous déclarez via
+backend est `{ ...editForm }` - donc tout ce que vous déclarez via
 `extraFields` est sérialisé sans plomberie supplémentaire.
 
 ---
@@ -57,7 +57,7 @@ Le composable `useXxxForm` boucle sur `Object.keys(extraFields)` pour :
 - inclure chaque clé dans le payload `{ ...editForm }` au submit.
 
 Vous **ne devez jamais** muter `editForm` manuellement avec un champ qui
-n'est pas déclaré via `extraFields` — il ne survivrait pas au reset/edit.
+n'est pas déclaré via `extraFields` - il ne survivrait pas au reset/edit.
 
 ---
 
@@ -144,30 +144,30 @@ function buildBody() {
 
 Notez le pattern à reproduire dans vos propres composants Aurora si vous en
 écrivez un : **boucler sur `Object.keys(extraFields)` à 3 endroits** : init,
-load-from-entity, et reset. Le submit n'a rien à faire de spécial — c'est le
+load-from-entity, et reset. Le submit n'a rien à faire de spécial - c'est le
 spread qui transporte les valeurs.
 
 ---
 
-## 4. Walkthrough — ajouter `code: string` sur `Agency`
+## 4. Walkthrough - ajouter `code: string` sur `Agency`
 
 Pré-requis côté PHP (cf. doc `extending_agency_pilot.md` côté core) : entité,
 DTO, Manager et Serializer ont été étendus pour persister/sérialiser `code`.
 On part du principe que `entity.code` revient bien dans le JSON de la liste.
 
-### 4.1 Variante simple — pas d'override de la Vue Aurora
+### 4.1 Variante simple - pas d'override de la Vue Aurora
 
 Si vous n'avez pas besoin de modifier le rendu, **vous n'avez rien à overrider** :
 il suffit de passer `extraFields` et de remplir les slots **dans le Twig** qui
 invoque le composant Aurora.
 
-> ⚠ En pratique, les slots Vue ne se passent pas directement depuis Twig — il
+> ⚠ En pratique, les slots Vue ne se passent pas directement depuis Twig - il
 > faut un composant wrapper Vue côté client. Sautez directement à 4.2.
 
-### 4.2 Variante courante — wrapper Vue côté client
+### 4.2 Variante courante - wrapper Vue côté client
 
 1. Créez `assets/client/Module/Crm/admin/AgenciesAppExtended.vue` (ou tout autre
-   nom — le path déclenche l'identifiant `vue_component`).
+   nom - le path déclenche l'identifiant `vue_component`).
 
 ```vue
 <script setup>
@@ -260,11 +260,11 @@ const extraFields = {
 
 | Règle | Pourquoi |
 |---|---|
-| `editForm.code` doit rester **un primitif** (string/number/boolean/array de primitifs). | Le payload est `{ ...editForm }` — un `Date`, un `ref()` imbriqué ou un computed casse la sérialisation. |
-| Le slot `extra-form-fields` reçoit `editForm` et `errors` — utilisez le scope, ne réimportez pas votre propre form. | Le composable owner gère le reset/load/clearErrors. Si vous créez un `reactive()` parallèle, vous perdez ces synchronisations. |
+| `editForm.code` doit rester **un primitif** (string/number/boolean/array de primitifs). | Le payload est `{ ...editForm }` - un `Date`, un `ref()` imbriqué ou un computed casse la sérialisation. |
+| Le slot `extra-form-fields` reçoit `editForm` et `errors` - utilisez le scope, ne réimportez pas votre propre form. | Le composable owner gère le reset/load/clearErrors. Si vous créez un `reactive()` parallèle, vous perdez ces synchronisations. |
 | Les `errors` exposés sont déjà traduits côté composable (via `translateServerErrors`). Affichez-les bruts : `:error="errors.code"`. | Pas besoin de `t(errors.code)` côté client. |
-| Une seule clé `extra-form-fields` par champ supplémentaire — utilisez `<template>` group si besoin de plusieurs inputs côte-à-côte. | Le slot n'a pas de wrapper imposé : vous gérez la mise en page. |
-| `<template #extra-cells="{ agency }">` — toujours destructurer le scope. Le nom de la variable suit l'entité (`agency`, `project`, `post`, etc.). | C'est ce qu'expose le composant Aurora : voir la définition dans son template. |
+| Une seule clé `extra-form-fields` par champ supplémentaire - utilisez `<template>` group si besoin de plusieurs inputs côte-à-côte. | Le slot n'a pas de wrapper imposé : vous gérez la mise en page. |
+| `<template #extra-cells="{ agency }">` - toujours destructurer le scope. Le nom de la variable suit l'entité (`agency`, `project`, `post`, etc.). | C'est ce qu'expose le composant Aurora : voir la définition dans son template. |
 
 ---
 
@@ -277,7 +277,7 @@ Trois cas où il faut **dépasser** ce pattern :
 Pattern de référence : `Theme` et `User` dans aurora-core, qui exposent
 **deux composables séparés** `useXxxCreate` + `useXxxEdit`. Le composant
 Aurora expose alors deux jeux de slots : `extra-create-form-fields` et
-`extra-form-fields`. Côté client, c'est exactement le même contrat —
+`extra-form-fields`. Côté client, c'est exactement le même contrat -
 juste deux templates au lieu d'un. Voir la sous-section 4.bis.1bis de
 [`entity_extensibility_convention.md`](../../aurora-core/dev/entity_extensibility_convention.md)
 (côté core).
@@ -285,7 +285,7 @@ juste deux templates au lieu d'un. Voir la sous-section 4.bis.1bis de
 ### 6.2 Le champ exige un panel entier (pas un input simple)
 
 Ex : ajouter une section "Intégrations" avec 5 champs liés. Le slot
-`extra-form-fields` reste valide — vous y placez votre propre composant
+`extra-form-fields` reste valide - vous y placez votre propre composant
 panel :
 
 ```vue
@@ -305,7 +305,7 @@ déclarées via `extraFields` pour passer dans le payload.
 
 Si vous changez la **structure** du form (sections, layout, ordre), votre
 seule option propre est l'**override complet** du composant
-`<Plural>App.vue` — voir [extend_module.md](../extending/extend_module.md). Dans ce cas, plus
+`<Plural>App.vue` - voir [extend_module.md](../extending/extend_module.md). Dans ce cas, plus
 besoin d'`extraFields` : vous gérez `editForm` vous-même.
 
 > Avant de partir sur un override complet, demandez-vous si le contrat

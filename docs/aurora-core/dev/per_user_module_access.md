@@ -58,7 +58,7 @@ applique aussi le **cascade graph** existant (`getCascadeRequires()`).
 ### Conséquence pour `RouteGateSubscriber`
 
 Les `XxxRouteGateSubscriber` consomment déjà `XxxContext::isBackendEnabled()`.
-Ils deviennent automatiquement user-aware sans changement — un user dont
+Ils deviennent automatiquement user-aware sans changement - un user dont
 le module est masqué reçoit un 404 sur les routes du module concerné.
 
 ---
@@ -91,7 +91,7 @@ Une table dédiée serait nécessaire si on voulait :
 
 ---
 
-## 3. Sécurité — qui peut modifier quoi
+## 3. Sécurité - qui peut modifier quoi
 
 | Action | Rôle requis | Privilege |
 |---|---|---|
@@ -121,14 +121,14 @@ quand toutes ces conditions sont remplies :
 Le clic ouvre une modale avec une **arborescence** de checkboxes :
 - au niveau racine, un toggle par module top-level (CRM, Vault, …) ;
 - en-dessous, indentés sur la gauche, les sous-modules (Contacts, Deals,
-  Tiers, …) — gérables individuellement.
+  Tiers, …) - gérables individuellement.
 
 Sémantique :
 - décocher un parent grise visuellement tous ses enfants (cascade) et
   rend la modification d'un enfant inopérante côté serveur (la cascade
   est de toute façon appliquée par `ModuleAccessChecker`) ;
 - un enfant peut être désactivé sans toucher au parent (granularité
-  fine — ex: laisser CRM mais cacher Deals).
+  fine - ex: laisser CRM mais cacher Deals).
 
 ### Sémantique des checkboxes
 
@@ -213,7 +213,7 @@ Aurora-core ajoutera ce mécanisme nativement si plusieurs clients en ont besoin
 ## 6. Tests
 
 - [`tests/Unit/Module/ModuleAccessCheckerTest.php`](../../../tests/Unit/Module/ModuleAccessCheckerTest.php)
-  — matrice complète (global × user × cascade).
+  - matrice complète (global × user × cascade).
 - Tous les `tests/Unit/Module/*/Service/*ContextTest.php` ont été
   réécrits pour stub `ModuleAccessChecker` au lieu de `SettingRepository`.
 - 746 tests verts à l'introduction (commit de rollout).

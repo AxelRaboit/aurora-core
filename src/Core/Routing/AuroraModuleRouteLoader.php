@@ -23,7 +23,7 @@ use function mb_rtrim;
  * Each package dir is imported with the standard `attribute` loader (same as a
  * hand-written `resource: '../vendor/axelraboit/aurora-x/' type: attribute`).
  * In the monorepo the glob matches nothing (modules live in src/), so this
- * yields an empty collection — harmless to keep the entry everywhere.
+ * yields an empty collection - harmless to keep the entry everywhere.
  */
 final class AuroraModuleRouteLoader extends Loader
 {

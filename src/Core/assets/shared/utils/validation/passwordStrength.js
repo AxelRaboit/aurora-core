@@ -1,5 +1,5 @@
 /**
- * Pure function — no Vue, no i18n.
+ * Pure function - no Vue, no i18n.
  * Returns a score 0-5 based on password complexity.
  *
  *   0 = empty

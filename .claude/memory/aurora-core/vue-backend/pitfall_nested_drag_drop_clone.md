@@ -1,6 +1,6 @@
 ---
 name: pitfall_nested_drag_drop_clone
-description: Dans un node récursif VueDraggable, ne jamais shallow-cloner props.node.children — utiliser un computed bidirectionnel.
+description: Dans un node récursif VueDraggable, ne jamais shallow-cloner props.node.children - utiliser un computed bidirectionnel.
 metadata:
   type: feedback
 ---
@@ -43,8 +43,8 @@ Et brancher `VueDraggable` sur `children` (`v-model="children"`).
 
 - ✅ Corrigé : `src/Module/Ecommerce/assets/backend/listing-categories/ListingCategoryNode.vue`
   (commit `93d626cf` "fix: nested drag-and-drop on ListingCategory tree now persists").
-- ⚠️ **À surveiller — encore présent** :
-  `src/Module/Editorial/assets/backend/taxonomies/TermNode.vue` — même pattern
+- ⚠️ **À surveiller - encore présent** :
+  `src/Module/Editorial/assets/backend/taxonomies/TermNode.vue` - même pattern
   `localChildren = ref([...])`, bug latent identique. À fixer dès qu'une
   session touche au tree des terms.
 
@@ -55,4 +55,4 @@ Et brancher `VueDraggable` sur `children` (`v-model="children"`).
 2. Tester en glissant un nœud feuille au niveau 2+ et en rechargeant la page :
    l'ordre doit persister.
 3. Lié : [[composable_hierarchical_tree]] (`flattenTreeForReorder` lit
-   l'arbre racine — donc l'arbre racine doit refléter les drags).
+   l'arbre racine - donc l'arbre racine doit refléter les drags).

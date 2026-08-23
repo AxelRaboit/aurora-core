@@ -1,5 +1,5 @@
 ---
-name: FrontendDescriptor — convention de nommage et placement des descripteurs de front
+name: FrontendDescriptor - convention de nommage et placement des descripteurs de front
 description: Tout module avec un toggle *Frontend dans ModuleParameterEnum doit avoir un <Module>FrontendDescriptor.php à sa racine
 type: feedback
 ---
@@ -14,12 +14,12 @@ Tout module qui expose une partie publique (i.e. possède un toggle
 
 Le descripteur déclare :
 
-- `getSlug()` — identifiant lowercase du front
-- `getLabel()` — libellé d'affichage
-- `getHomeRoute()` — route nommée de la home
-- `getPriority()` — ordre de fallback du `Registry`
-- `getModuleSettingKey()` — clé `ModuleParameterEnum::<Module>Frontend->value`
-- `getRoutePrefixes()` — liste de préfixes de noms de routes pour le
+- `getSlug()` - identifiant lowercase du front
+- `getLabel()` - libellé d'affichage
+- `getHomeRoute()` - route nommée de la home
+- `getPriority()` - ordre de fallback du `Registry`
+- `getModuleSettingKey()` - clé `ModuleParameterEnum::<Module>Frontend->value`
+- `getRoutePrefixes()` - liste de préfixes de noms de routes pour le
   `FrontendRouteGateSubscriber`
 
 **Menu locations** : `MenuLocationProviderInterface` n'est implémenté QUE
@@ -27,7 +27,7 @@ par `EditorialFrontendDescriptor` (il possède les locations globales
 `primary` / `footer` / `account` du site public principal). Les autres
 modules N'IMPLÉMENTENT PAS cette interface.
 
-Classes `final` — ce sont des descripteurs de configuration, pas des
+Classes `final` - ce sont des descripteurs de configuration, pas des
 points d'extension structurels.
 
 ## Pourquoi
@@ -38,7 +38,7 @@ points d'extension structurels.
    `FrontendRouteGateSubscriber` ne pouvait pas 404 leurs routes quand
    leur toggle était off. Désormais le comportement est cohérent partout.
 2. **Suffixe `FrontendDescriptor`** clarifie le rôle : ce n'est pas un
-   controller, ni un template, ni un dossier "Frontend/" — c'est un
+   controller, ni un template, ni un dossier "Frontend/" - c'est un
    descripteur. Le mot "Frontend" était ambigu (cf. dossiers
    `Controller/Frontend/`, `Vue/Frontend/`, etc.).
 3. **Auto-discovery** : l'autoconfigure `_instanceof` dans
@@ -57,7 +57,7 @@ points d'extension structurels.
 3. Pour `getRoutePrefixes()` : lancer
    `php bin/console debug:router | grep frontend_<module>` et lister
    tous les préfixes distincts (attention aux préfixes qui chevauchent
-   plusieurs modules — ex. `frontend_account_orders` appartient au
+   plusieurs modules - ex. `frontend_account_orders` appartient au
    panel ecommerce).
 4. NE PAS implémenter `MenuLocationProviderInterface` (réservé à
    Editorial).
@@ -72,7 +72,7 @@ points d'extension structurels.
 - Photo : `frontend_gallery`
 - Ged : `frontend_ged_`
 
-### Piège — préfixes qui se chevauchent
+### Piège - préfixes qui se chevauchent
 
 Le préfixe `frontend_account_` ne peut PAS appartenir entièrement à
 Ecommerce parce que `frontend_account` (la page compte utilisateur)
@@ -82,5 +82,5 @@ préfixes d'un module ne capturent pas les routes d'un autre.
 
 ## Voir aussi
 
-- [`pattern_frontend_toggle.md`](pattern_frontend_toggle.md) — toggle
+- [`pattern_frontend_toggle.md`](pattern_frontend_toggle.md) - toggle
   global ↔ `Registry` ↔ `RootDispatchController` cascade.

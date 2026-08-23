@@ -83,6 +83,6 @@ grep -rn "extends ServiceEntityRepository" src/ --include='*.php'
 
 ## Source
 
-Bug découvert sur Agency lors du pilote — un client testait l'override et
+Bug découvert sur Agency lors du pilote - un client testait l'override et
 l'édition ne sauvait pas les champs custom. Solution : créer
 `ResolveTargetEntityRepository` + script de migration pour les 60 repos.

@@ -182,7 +182,7 @@ export default class MediaTextBlock {
         urlInput.addEventListener("blur", submitUrl);
 
         // Uploading from the machine, the same way the image block and every
-        // picker in the backend do — one endpoint, one category, one place
+        // picker in the backend do - one endpoint, one category, one place
         // that knows the response shape.
         //
         // Replaces a "Media ID…" field that fetched /backend/media/media/{id}/info,

@@ -1,6 +1,6 @@
 ---
-name: Piège YAML — clés dupliquées dans les fichiers de traduction
-description: Une clé YAML dupliquée au même niveau lève une exception lors du dump des traductions JS — silencieuse en PHP mais fatale au build Vue
+name: Piège YAML - clés dupliquées dans les fichiers de traduction
+description: Une clé YAML dupliquée au même niveau lève une exception lors du dump des traductions JS - silencieuse en PHP mais fatale au build Vue
 type: feedback
 ---
 
@@ -16,12 +16,12 @@ vault:
     submit: Créer le coffre-fort
     strength: Force du mot de passe   # ← PREMIER
     warning: Attention…
-    strength:                          # ← DOUBLON — erreur
+    strength:                          # ← DOUBLON - erreur
       weak: Très faible
       fair: Faible
 ```
 
-**✅ Correct** — soit scalar, soit mapping, pas les deux :
+**✅ Correct** - soit scalar, soit mapping, pas les deux :
 
 ```yaml
 vault:

@@ -22,7 +22,7 @@ Lors d'un rollout d'une convention sur N entités, **un commit par entité**
 ```
 feat: instrument <Entité> per the extensibility convention
 
-[Description courte du cas — variante user-style, cascade, etc.]
+[Description courte du cas - variante user-style, cascade, etc.]
 
 - <Name>InputInterface + <Name>InputFactory (#[AsAlias])
 - <Name>ManagerInterface in Manager/, signatures use entity + DTO interfaces

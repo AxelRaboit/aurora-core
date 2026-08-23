@@ -17,7 +17,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * An unknown backend URL is a 404 for someone signed in, and the login page for
- * everyone else — so the backend does not tell a stranger which of its routes
+ * everyone else - so the backend does not tell a stranger which of its routes
  * exist.
  *
  * `access_control` cannot express this: `RouterListener` throws
@@ -26,7 +26,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
  *
  * Which is also why asking the token storage is not enough. For the case this
  * listener exists to handle, the firewall has not run, so the storage is empty
- * — for a signed-in admin exactly as for an anonymous visitor. Read on its own,
+ * - for a signed-in admin exactly as for an anonymous visitor. Read on its own,
  * it sent *everyone* to the login page, and the distinction the class is named
  * after never happened. It appeared to work only for 404s raised later, from a
  * controller or an argument resolver, where the firewall had already run.

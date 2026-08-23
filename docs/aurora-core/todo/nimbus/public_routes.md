@@ -1,4 +1,4 @@
-# FileTransfer — Routes publiques
+# FileTransfer - Routes publiques
 
 > UX visiteur : ce qu'un recipient voit quand il clique sur son lien
 > email. Routes `/t/{token}` sous le préfixe public (hors backend admin).
@@ -6,11 +6,11 @@
 ## Contexte
 
 Nimbus expose 3 routes principales côté public :
-- `GET /t/{token}` — page de download (token de Transfer OU de Recipient)
-- `GET /t/{token}/download/{filename}` — download d'un fichier individuel
-- `GET /t/{token}/preview/{filename}` — preview inline (images, PDF)
-- `POST /t/{token}/unlock` — soumission du mot de passe
-- `GET /manage/{ownerToken}` — page de gestion par le sender (réservé au porteur du ownerToken)
+- `GET /t/{token}` - page de download (token de Transfer OU de Recipient)
+- `GET /t/{token}/download/{filename}` - download d'un fichier individuel
+- `GET /t/{token}/preview/{filename}` - preview inline (images, PDF)
+- `POST /t/{token}/unlock` - soumission du mot de passe
+- `GET /manage/{ownerToken}` - page de gestion par le sender (réservé au porteur du ownerToken)
 
 Source Nimbus :
 - `app/Controller/TransferController.php`
@@ -174,11 +174,11 @@ Template : `@FileTransfer/public/manage.html.twig` + Vue `ManageTransferApp.vue`
 
 ## Codes HTTP
 
-- `200` — page rendue (Ready)
-- `404` — token inconnu
-- `410 Gone` — transfer Expired ou Deleted
-- `423 Locked` — Ready mais mot de passe requis
-- `429 Too Many Requests` — rate-limit sur `/unlock` (anti brute-force)
+- `200` - page rendue (Ready)
+- `404` - token inconnu
+- `410 Gone` - transfer Expired ou Deleted
+- `423 Locked` - Ready mais mot de passe requis
+- `429 Too Many Requests` - rate-limit sur `/unlock` (anti brute-force)
 
 ## Rate-limiting `/unlock`
 
@@ -192,7 +192,7 @@ Setting : `fileTransfer.unlockMaxAttempts` (5), `fileTransfer.unlockWindowMinute
 
 - **Path préfixe** : Nimbus utilise `/t` (court, mémorable). On garde. Pas de namespace `/file-transfer/t/` qui casserait les liens email Nimbus à la migration.
 - **ZIP filename** : `{reference}.zip` (ex: `7F3A2-9B1.zip`). Préférable à un timestamp ou au senderName (peut contenir des caractères filesystem-hostiles).
-- **Session lifetime** : flags `ft_recipient_*` et `ft_unlocked_*` expirent avec la session PHP standard (~ 24 h). Pas de cookie permanent — chaque visite re-passe le password.
+- **Session lifetime** : flags `ft_recipient_*` et `ft_unlocked_*` expirent avec la session PHP standard (~ 24 h). Pas de cookie permanent - chaque visite re-passe le password.
 
 ## Tests obligatoires
 

@@ -20,7 +20,7 @@ abstract class AbstractNotification implements NotificationInterface
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     protected CoreUserInterface $recipient;
 
-    /** Free-form type slug — e.g. 'project.task.assigned', 'project.task.mentioned'. */
+    /** Free-form type slug - e.g. 'project.task.assigned', 'project.task.mentioned'. */
     #[ORM\Column(length: 80)]
     protected string $type;
 

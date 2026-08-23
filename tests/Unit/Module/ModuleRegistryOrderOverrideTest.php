@@ -41,7 +41,7 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
 
     public function testSectionOverridePartialAppendsRest(): void
     {
-        // Only notes is reordered to the top — crm + billing keep their natural
+        // Only notes is reordered to the top - crm + billing keep their natural
         // priority order behind it.
         $registry = $this->makeRegistry(
             sectionOrder: '["notes"]',
@@ -53,7 +53,7 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
 
     public function testSectionOverrideUnknownIdsAreIgnored(): void
     {
-        // 'archived_module' doesn't exist (e.g. module was uninstalled) — should
+        // 'archived_module' doesn't exist (e.g. module was uninstalled) - should
         // be skipped without breaking the override.
         $registry = $this->makeRegistry(
             sectionOrder: '["archived_module", "notes", "crm"]',
@@ -110,7 +110,7 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
     public function testNonStringEntriesAreFilteredOut(): void
     {
         // An admin shouldn't be able to inject non-string ids, but defend
-        // anyway — the override may have been edited externally.
+        // anyway - the override may have been edited externally.
         $registry = $this->makeRegistry(
             sectionOrder: '["notes", 42, null, "crm"]',
             itemOrder: '{}',

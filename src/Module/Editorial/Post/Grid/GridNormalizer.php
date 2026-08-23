@@ -21,7 +21,7 @@ use Aurora\Core\Content\ContentValueNormalizer;
  * - A zone's **span** is shared, for the same reason the banner's is: the
  *   design is written once.
  * - A **linked publication** is shared. The post it points at has its own
- *   translations, so the renderer picks the right one — asking an editor to
+ *   translations, so the renderer picks the right one - asking an editor to
  *   re-pick it per language is the drift this split exists to prevent.
  * - A **media id** is shared and its **alt text** is not. The picture is the
  *   same picture; describing it is writing.
@@ -30,11 +30,11 @@ use Aurora\Core\Content\ContentValueNormalizer;
  *   `/fr/page/premiers-pas`.
  *
  * Zones **flow**: they sit in order, each claiming its span, and wrap when a
- * row is full. Resizing is changing a span, moving is reordering — which is
+ * row is full. Resizing is changing a span, moving is reordering - which is
  * what the banner already does and what has no empty cells to reason about.
  *
  * Two annotations bend that flow without replacing it, both added once authors
- * asked for arrangements it could not express — a zone at the right of an
+ * asked for arrangements it could not express - a zone at the right of an
  * otherwise empty row, and a zone pushed below a neighbour it would happily sit
  * beside. `offset` names the column a zone starts on; `newRow` sends it to a
  * fresh row. Neither is a coordinate: the **row** is still the browser's to
@@ -59,7 +59,7 @@ final readonly class GridNormalizer
     /** A picture from the document library. */
     public const string ZONE_MEDIA = 'media';
 
-    /** A video address — YouTube, Vimeo, Dailymotion. */
+    /** A video address - YouTube, Vimeo, Dailymotion. */
     public const string ZONE_VIDEO = 'video';
 
     /**
@@ -68,7 +68,7 @@ final readonly class GridNormalizer
      *
      * The one way to get a tall zone with two shorter ones beside it, and the
      * reason it is a zone type rather than a second dimension on the grid.
-     * Making a zone span two rows would mean explicit placement — start column,
+     * Making a zone span two rows would mean explicit placement - start column,
      * row span, empty cells to arbitrate, and no sensible answer for a phone.
      * A stack keeps every zone flowing in one sequence: it is one more zone,
      * that happens to hold others.
@@ -83,7 +83,7 @@ final readonly class GridNormalizer
     /**
      * The snap the editor works in. Four means twelfths, which is how most
      * layouts are described; two and one are there for the cases twelfths
-     * cannot express. An author's choice, not a constant — which is why it is
+     * cannot express. An author's choice, not a constant - which is why it is
      * stored rather than assumed.
      */
     public const array SNAPS = [4, 2, 1];
@@ -95,13 +95,13 @@ final readonly class GridNormalizer
      * The shape a media zone is cropped to.
      *
      * This is the one vertical control the grid offers, and deliberately the
-     * only one. A free height means `grid-row` spans over a fixed row height —
+     * only one. A free height means `grid-row` spans over a fixed row height -
      * a real 2D grid, with empty cells to arbitrate and no sensible answer for
      * a phone. It also produces, on any screen other than the one the page was
      * drawn on, either clipped text or a band of nothing.
      *
-     * A ratio covers what "resize vertically" is actually wanted for — two
-     * images that line up, a row of even cards — and survives the phone, where
+     * A ratio covers what "resize vertically" is actually wanted for - two
+     * images that line up, a row of even cards - and survives the phone, where
      * a 16:9 picture is simply a picture.
      *
      * `natural` first: the default has to be the behaviour already published.
@@ -109,7 +109,7 @@ final readonly class GridNormalizer
     /**
      * Not a ratio at all, and in this list because it answers the same question
      * an author is asking: "how tall is this picture?" It means "as tall as the
-     * box you are in" — which is only ever imposed from outside, by the row a
+     * box you are in" - which is only ever imposed from outside, by the row a
      * zone shares or the stack it sits in. A picture alone on its row has
      * nothing to fill, so this reads as `natural` there and below the large
      * breakpoint, where every zone is alone.
@@ -137,7 +137,7 @@ final readonly class GridNormalizer
      */
     public const array SCALES = [25, 33, 50, 66, 75, 100];
 
-    /** Full width — a picture fills its zone unless told otherwise. */
+    /** Full width - a picture fills its zone unless told otherwise. */
     public const int SCALE_FULL = 100;
 
     /**
@@ -159,7 +159,7 @@ final readonly class GridNormalizer
 
     /**
      * A stack is a way to split one cell in two or three, not a second page.
-     * Low enough that the shares stay meaningful — six zones sharing a row's
+     * Low enough that the shares stay meaningful - six zones sharing a row's
      * height are six slivers.
      *
      * Public because the editor mirrors it and `GridContractMirrorTest` holds
@@ -172,7 +172,7 @@ final readonly class GridNormalizer
      * What a zone may be anywhere, including inside a stack.
      *
      * In the order the editor offers them, which is the order an author reads.
-     * Nothing here depends on it — `oneOf` does not care — but the list is
+     * Nothing here depends on it - `oneOf` does not care - but the list is
      * mirrored in `usePostGrid.js`, and two lists that claim to be the same
      * should be the same. `GridContractMirrorTest` caught them disagreeing on
      * exactly this the first time it ran.
@@ -183,7 +183,7 @@ final readonly class GridNormalizer
      * A stack is only allowed at the top level: depth stops at one.
      *
      * Nesting further would turn a page into a layout tree, where what a zone
-     * renders as can no longer be read off the list — and every consumer of
+     * renders as can no longer be read off the list - and every consumer of
      * this shape, from the canvas to the Twig, would have to recurse without
      * bound.
      */
@@ -228,8 +228,8 @@ final readonly class GridNormalizer
         $data = is_array($raw) ? $raw : [];
         $stored = is_array($data['zones'] ?? null) ? $data['zones'] : [];
 
-        // Read defensively: an empty layout is a legitimate argument — a post
-        // with no grid — and reaching for a key that is not there would turn
+        // Read defensively: an empty layout is a legitimate argument - a post
+        // with no grid - and reaching for a key that is not there would turn
         // it into a crash.
         $zones = is_array($layout['zones'] ?? null) ? $layout['zones'] : [];
 
@@ -262,13 +262,13 @@ final readonly class GridNormalizer
         return ['zones' => $content];
     }
 
-    /** An empty layout — what a post starts life with. */
+    /** An empty layout - what a post starts life with. */
     public function emptyLayout(): array
     {
         return $this->normalizeLayout([]);
     }
 
-    /** Empty content — what a translation starts life with. */
+    /** Empty content - what a translation starts life with. */
     public function emptyContent(): array
     {
         return ['zones' => []];
@@ -306,8 +306,8 @@ final readonly class GridNormalizer
             // An unknown type drops the zone rather than defaulting to text: a
             // page is better one zone short than showing an empty box where
             // something else was meant to be. Inside a stack the same applies
-            // to a nested stack: depth stops at one, and the alternative — a
-            // stack silently becoming a text zone — would be worse.
+            // to a nested stack: depth stops at one, and the alternative - a
+            // stack silently becoming a text zone - would be worse.
             $allowed = $allowStacks ? self::ZONE_TYPES : self::LEAF_ZONE_TYPES;
             $type = $this->values->oneOf($entry['type'] ?? null, $allowed, '');
             if ('' === $type) {
@@ -333,7 +333,7 @@ final readonly class GridNormalizer
                 // Empty columns to the left, and a break before. Both are
                 // arrangement, so both are shared; both are meaningless inside
                 // a stack, where the axis of flow is vertical and there is no
-                // row to start or to sit at the end of — hence `$allowStacks`,
+                // row to start or to sit at the end of - hence `$allowStacks`,
                 // which is only true at the top level.
                 'offset' => $allowStacks
                     ? self::clampOffset($entry['offset'] ?? null, $this->values->span($entry['span'] ?? null))
@@ -348,13 +348,13 @@ final readonly class GridNormalizer
                 // Shared with the size it depends on: both are design.
                 'align' => $this->values->oneOf($entry['align'] ?? null, self::ALIGNMENTS, self::ALIGNMENTS[0]),
                 'mediaId' => $this->values->id($entry['mediaId'] ?? null),
-                // An address, for a picture that is not in the library — a
+                // An address, for a picture that is not in the library - a
                 // placeholder service while a page is being drafted, or an
                 // image already hosted elsewhere. Shared like the id, and for
                 // the same reason: it is the same picture in every language.
                 'mediaUrl' => $this->imageUrl($entry['mediaUrl'] ?? null),
                 'postId' => $this->values->id($entry['postId'] ?? null),
-                // Present on every zone, empty unless it is a stack — same
+                // Present on every zone, empty unless it is a stack - same
                 // reasoning as the keys above, so nothing has to guard the read.
                 'children' => self::ZONE_STACK === $type
                     ? $this->zoneList(is_array($entry['children'] ?? null) ? $entry['children'] : [], $used, false)
@@ -377,13 +377,13 @@ final readonly class GridNormalizer
      *
      * **The row is worked out here rather than left to auto-placement**, which
      * was the first attempt and is not enough. A grid places an item with a
-     * definite column in the first row where those columns are free — so a zone
+     * definite column in the first row where those columns are free - so a zone
      * asked to start a new row, whose columns happen to be free beside its
      * neighbour, was placed there and the break did nothing. Naming the row is
      * what makes it hold.
      *
      * That does not make this authoring in coordinates. An author writes a
-     * sequence — add, widen, reorder — and these two numbers are read off it;
+     * sequence - add, widen, reorder - and these two numbers are read off it;
      * nothing here is stored, there are no empty cells to arbitrate, and below
      * the large breakpoint none of it is emitted at all.
      *
@@ -409,7 +409,7 @@ final readonly class GridNormalizer
             if ($offset > 0) {
                 // A row fills from the left, so what is free on it is always
                 // its tail. An asked-for column below the mark is therefore
-                // taken, and the zone goes to the next row — where the same
+                // taken, and the zone goes to the next row - where the same
                 // column is free by definition.
                 if ($offset < $used) {
                     ++$row;
@@ -501,7 +501,7 @@ final readonly class GridNormalizer
      * An address that may go in an `src`.
      *
      * Narrower than {@see ContentValueNormalizer::url()}, which also accepts
-     * `mailto:`, `tel:` and `#` — legitimate for a link and meaningless for a
+     * `mailto:`, `tel:` and `#` - legitimate for a link and meaningless for a
      * picture. What is left is a path on this site or an http address, and the
      * scheme whitelist is what keeps `javascript:` out of an attribute the
      * browser will act on.

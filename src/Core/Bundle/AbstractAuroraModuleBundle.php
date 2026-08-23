@@ -20,12 +20,12 @@ use function dirname;
  * centrally by {@see AuroraBundle} via globbing. The monorepo-split
  * target instead ships each module as its own Composer package whose bundle
  * registers ONLY that module's Doctrine mappings, Twig namespace, translations
- * and `resolve_target_entities` — exactly what this base class does.
+ * and `resolve_target_entities` - exactly what this base class does.
  *
  * A concrete module bundle just declares its name and its entity resolution
  * map; Symfony merges every bundle's prepended config, so a module bundle
  * coexists with the core bundle (and with other module bundles). A module that
- * is simply not registered in `bundles.php` contributes nothing — that is the
+ * is simply not registered in `bundles.php` contributes nothing - that is the
  * "install only what you want" mechanism.
  *
  * @see docs/aurora-core/dev/audit/poc_tools_bundle.md
@@ -61,7 +61,7 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
     /**
      * Load the module's own `config/services.php` when it ships one (standalone
      * Composer package). In the monorepo, modules without that file rely on the
-     * central `Aurora\: resource` glob — so this is a no-op for them.
+     * central `Aurora\: resource` glob - so this is a no-op for them.
      */
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
@@ -73,7 +73,7 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
         // Dev/test only: register this module's DataFixtures as autoconfigured
         // services so `doctrine:fixtures:load` discovers them. Guarded by
         // class_exists so a prod (--no-dev) build never compiles fixture
-        // classes — doctrine/doctrine-fixtures-bundle is a dev dependency, so
+        // classes - doctrine/doctrine-fixtures-bundle is a dev dependency, so
         // its Fixture base class is absent in prod. The module's own
         // services.php excludes DataFixtures to avoid a double registration.
         $env = (string) $builder->getParameter('kernel.environment');
@@ -129,7 +129,7 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
 
         // Opt-in shadowing of Core's null-namespace templates (the frontend
         // theme, chiefly). A module that ships templates/_theme/ gets that one
-        // directory registered under the null namespace, ahead of Core's own —
+        // directory registered under the null namespace, ahead of Core's own -
         // module bundles prepend after AuroraBundle, so their paths land first.
         // This is how a content module can replace the deliberately menu-less
         // default theme layout with one that renders its own navigation.
@@ -165,7 +165,7 @@ abstract class AbstractAuroraModuleBundle extends AbstractBundle
     }
 
     /**
-     * Absolute path of the concrete bundle's directory — i.e. the module dir
+     * Absolute path of the concrete bundle's directory - i.e. the module dir
      * (`src/Module/<Name>`), since the bundle class lives at the module root.
      */
     protected function moduleDir(): string

@@ -1,6 +1,6 @@
 ---
 name: convention_testing
-description: Convention de test Vue/JS — co-location obligatoire, structure, patterns par type de fichier, ce qu'on teste et ce qu'on skip.
+description: Convention de test Vue/JS - co-location obligatoire, structure, patterns par type de fichier, ce qu'on teste et ce qu'on skip.
 metadata:
   type: feedback
 ---
@@ -9,7 +9,7 @@ metadata:
 
 **Tests Vue/JS → co-localisés à côté du fichier source** (convention Vitest/Vue moderne).
 
-C'est intentionnellement différent des tests PHP (centralisés dans `tests/`) — deux écosystèmes, deux conventions établies.
+C'est intentionnellement différent des tests PHP (centralisés dans `tests/`) - deux écosystèmes, deux conventions établies.
 
 **Tout fichier `.test.js` vit à côté de son fichier source**. Jamais dans un dossier `tests/` centralisé.
 
@@ -93,7 +93,7 @@ await nextTick();
 vi.useRealTimers();
 ```
 
-## Ce qu'on teste (3–5 tests par fichier)
+## Ce qu'on teste (3-5 tests par fichier)
 
 - Props principales et leurs effets visuels (classes CSS, présence d'éléments)
 - États conditionnels (`v-if`, `v-show`, `disabled`)
@@ -102,8 +102,8 @@ vi.useRealTimers();
 
 ## Ce qu'on skip
 
-- Composables HTTP (`useRequest`, `usePaginatedFetch`) — trop couplés à fetch/mocks complexes
-- Composables browser (`useResizable`, `useKeyboardShortcut`) — APIs DOM difficiles à isoler
+- Composables HTTP (`useRequest`, `usePaginatedFetch`) - trop couplés à fetch/mocks complexes
+- Composables browser (`useResizable`, `useKeyboardShortcut`) - APIs DOM difficiles à isoler
 - Composants qui n'ont que des dépendances lourdes sans logique propre testable
 
 ## Stubs courants
@@ -119,4 +119,4 @@ vi.useRealTimers();
 
 **Why:** Établi lors de l'audit `src/Core/assets/shared/` (2026-05-14). L'ancien dossier `src/Core/assets/tests/` centralisé a été migré vers la co-location pour cohérence.
 
-**How to apply:** Quand tu crées ou modifies un composant/composable/util Vue, vérifie si un `.test.js` co-localisé existe. S'il n'existe pas, le créer. 3–5 tests ciblés suffisent.
+**How to apply:** Quand tu crées ou modifies un composant/composable/util Vue, vérifie si un `.test.js` co-localisé existe. S'il n'existe pas, le créer. 3-5 tests ciblés suffisent.

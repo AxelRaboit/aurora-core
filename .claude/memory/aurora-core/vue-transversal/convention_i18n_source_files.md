@@ -1,6 +1,6 @@
 ---
 name: Convention traductions i18n (YAML sources + structure)
-description: Architecture complète des traductions — où écrire, structure par feature, pipeline YAML→JSON, tests de cohérence
+description: Architecture complète des traductions - où écrire, structure par feature, pipeline YAML→JSON, tests de cohérence
 type: project
 ---
 
@@ -13,7 +13,7 @@ de build régénéré par `make translation`. Ne jamais toucher `src/Core/assets
 
 Les traductions sont **co-localisées avec la feature** qui les consomme. La
 plupart des features historiquement sous `src/Core/<Feature>/` ont migré sous
-`src/Module/<Domaine>/<Feature>/` — d'où la profondeur 2 ci-dessous.
+`src/Module/<Domaine>/<Feature>/` - d'où la profondeur 2 ci-dessous.
 
 ### Core
 
@@ -45,7 +45,7 @@ src/Module/Dev/MountPoint/translations/       → backend.*
 src/Module/Ged/translations/                  → backend.*, ged.*
 ```
 
-**Découverte automatique** via glob dans `AuroraBundle` (~l. 298-310) —
+**Découverte automatique** via glob dans `AuroraBundle` (~l. 298-310) -
 **profondeur 1 et 2**, aucune config manuelle :
 
 ```
@@ -65,13 +65,13 @@ make translation   # régénère src/Core/assets/locales/generated/{fr,en}.json
 **Aucun test ne rattrape l'oubli de `make translation`, par construction.**
 `TranslationConsistencyTest` valide la parité FR/EN **des YAML**, et
 `VueTranslationKeyTest` lit délibérément les YAML plutôt que le catalogue
-généré — c'est écrit dans son en-tête, pour qu'il tienne que le dump ait été
+généré - c'est écrit dans son en-tête, pour qu'il tienne que le dump ait été
 lancé ou non. Résultat : une clé ajoutée en YAML mais pas dumpée passe
 `make ft` en entier, passe le build Vite, et ne se voit **qu'à l'écran**, sous
 la forme de `backend.posts.grid.canvas` affiché tel quel.
 
 Le catalogue généré est gitignoré : un `git status` propre ne prouve donc rien
-non plus. Le seul contrôle fiable est de regarder la page — ou de vérifier la
+non plus. Le seul contrôle fiable est de regarder la page - ou de vérifier la
 clé directement :
 
 ```bash
@@ -99,7 +99,7 @@ sont ses traductions.
 2. Pas de valeurs vides
 3. Cohérence des `{placeholders}`
 
-> Le test découvre les paires par glob — ne pas figer leur nombre ici, il
+> Le test découvre les paires par glob - ne pas figer leur nombre ici, il
 > augmente à chaque module et le chiffre se périme aussitôt.
 
 ## How to apply

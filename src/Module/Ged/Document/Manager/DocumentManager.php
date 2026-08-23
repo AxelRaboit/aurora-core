@@ -77,7 +77,7 @@ class DocumentManager implements DocumentManagerInterface
         $this->applyInput($document, $input);
 
         if ($fileChanged) {
-            // Old variants are orphaned by the new file path — drop them on
+            // Old variants are orphaned by the new file path - drop them on
             // disk before re-encoding the new source.
             $this->variantGenerator->deleteVariants($previousVariants);
             $this->regenerateVariantsIfImage($document);
@@ -183,11 +183,11 @@ class DocumentManager implements DocumentManagerInterface
         $document->setSize($result['size']);
         $document->setWidth($result['width']);
         $document->setHeight($result['height']);
-        // Native images carry no separate thumbnail — the serializer falls
+        // Native images carry no separate thumbnail - the serializer falls
         // back to the file itself, so a stale PDF-style thumbnail must clear.
         $document->setThumbnailPath(null);
 
-        // Old variants point at the pre-crop file path — drop them and
+        // Old variants point at the pre-crop file path - drop them and
         // regenerate so srcset/object-fit consumers stay in sync.
         $this->variantGenerator->deleteVariants($previousVariants);
         $this->regenerateVariantsIfImage($document);
@@ -209,7 +209,7 @@ class DocumentManager implements DocumentManagerInterface
 
     /**
      * Snapshots the current physical file metadata onto a new version row.
-     * The file itself is not duplicated on disk — both the live document and
+     * The file itself is not duplicated on disk - both the live document and
      * the historical version row point at the same `filePath`. If the doc's
      * file is later swapped, the old version row still references the prior
      * path (which the upload endpoint keeps untouched, since it writes new
@@ -271,7 +271,7 @@ class DocumentManager implements DocumentManagerInterface
 
         // File metadata is only overwritten when the input carries a fresh
         // upload (filePath set). An update without a new upload keeps the
-        // existing file unchanged — null inputs are ignored.
+        // existing file unchanged - null inputs are ignored.
         if (null !== $input->getFilePath()) {
             $document->setFilePath($input->getFilePath());
             $document->setFileName($input->getFileName());

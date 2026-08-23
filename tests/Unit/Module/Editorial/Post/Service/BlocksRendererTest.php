@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * The block shapes this renderer reads are written by Editor.js, not chosen
  * here. When the two drifted apart the page came out blank and nothing
- * failed — the editor's own preview kept working, so it only showed once
+ * failed - the editor's own preview kept working, so it only showed once
  * published. These tests pin the shapes to what the tools actually save.
  */
 final class BlocksRendererTest extends TestCase
@@ -82,7 +82,7 @@ final class BlocksRendererTest extends TestCase
      * The shape the editor actually saves: each column is the `innerHTML` of a
      * contenteditable, a string. This renderer required an array and emitted
      * nothing otherwise, so every two-column block ever written published as
-     * two empty divs — and the test below passed the whole time, because it
+     * two empty divs - and the test below passed the whole time, because it
      * asserted the nested shape nobody produces.
      */
     public function testRendersTwoColumnsInTheShapeTheToolSaves(): void
@@ -124,7 +124,7 @@ final class BlocksRendererTest extends TestCase
 
     /**
      * Same class of mismatch: this looked for the url under an `image` key the
-     * editor has never written — it saves `url` at the top level, beside
+     * editor has never written - it saves `url` at the top level, beside
      * `caption` and `flip`. Every media-text block published its text with no
      * picture at all.
      */

@@ -52,7 +52,7 @@ final class GridPreviewController extends AbstractController
         $content = is_array($payload['content'] ?? null) ? $payload['content'] : [];
 
         // The locale the editor has open, not the request's. A backend in
-        // French previewing the German tab has to render the German zones —
+        // French previewing the German tab has to render the German zones -
         // and a linked publication's card has to be the German one.
         $locale = $this->locale($payload['locale'] ?? null);
 

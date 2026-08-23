@@ -35,7 +35,7 @@ const props = {
 
 /**
  * The editor's form is where a field that reached the entity, the DTO, the
- * manager and the serialiser can still be missing — and be missing silently,
+ * manager and the serialiser can still be missing - and be missing silently,
  * because a panel binding to `undefined` renders empty rather than throwing.
  * The banner shipped that way once already.
  */

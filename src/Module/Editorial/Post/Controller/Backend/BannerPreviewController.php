@@ -22,7 +22,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * would drift: two renderers for one thing is how `twoColumn` ended up
  * writing a shape its renderer could not read, in this very module. Going
  * through the same Twig the public page uses means a preview cannot disagree
- * with what gets published — if it looks wrong here, it is wrong there.
+ * with what gets published - if it looks wrong here, it is wrong there.
  *
  * Resolved through ThemeResolver rather than hardcoding the default theme, so
  * a project that overrides the partial previews its own version.

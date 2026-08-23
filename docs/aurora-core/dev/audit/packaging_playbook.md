@@ -10,7 +10,7 @@
 > n'est pas mis à jour au fil de l'eau. Deux choses ont bougé depuis :
 > le recentrage de juillet 2026 a retiré 11 des 13 modules du monorepo, et
 > **Editorial est revenu dans le core en août 2026** (donc plus de package
-> `axelraboit/aurora-editorial` — voir `todo/module_roadmap.md`). La table
+> `axelraboit/aurora-editorial` - voir `todo/module_roadmap.md`). La table
 > ci-dessous reste telle qu'elle était : c'est le plan qui a été exécuté, pas
 > l'inventaire d'aujourd'hui.
 
@@ -131,10 +131,10 @@ return static function (ContainerConfigurator $c): void {
 Le `AuroraToolsBundle::loadExtension()` importe ce fichier. **Côté `aurora-core`**,
 au split, retirer Tools du glob central (déjà simulé par `$extractedModules`).
 
-### 2.3 `config/routes.php` — dépend du routing de l'app cliente (nuance install réelle)
+### 2.3 `config/routes.php` - dépend du routing de l'app cliente (nuance install réelle)
 
 **Cas service-based** (`routing.controllers` dans `config/routes.yaml`) : pas de
-`routes.php` nécessaire — le loader découvre les contrôleurs via leur
+`routes.php` nécessaire - le loader découvre les contrôleurs via leur
 enregistrement comme services (faits par le `services.php` du module). Validé en
 monorepo.
 
@@ -154,9 +154,9 @@ avec, toutes résolvent.) C'est une étape de **migration côté client** à doc
 
 ## 3. Outillage split
 
-- **`splitsh/lite`** (binaire/Docker) — utilisé par Symfony. Rapide, splitte
+- **`splitsh/lite`** (binaire/Docker) - utilisé par Symfony. Rapide, splitte
   l'historique git d'un sous-dossier.
-- Alternative : `symplify/monorepo-builder` (Sylius) — plus de features
+- Alternative : `symplify/monorepo-builder` (Sylius) - plus de features
   (versioning synchronisé, `merge`), plus lourd.
 
 Config indicative (`splitsh` via script, ou `monorepo-builder.php`) :
@@ -181,7 +181,7 @@ git push aurora-tools split-tools:main
 > (rejoue l'historique) mais sans dépendance binaire. Suffisant pour le POC ;
 > `splitsh-lite` reste reco pour le rollout (vitesse + idempotence des hashes).
 
-**Runbook au quotidien** — `bin/split-modules.sh` (subtree split + `push -f` par
+**Runbook au quotidien** - `bin/split-modules.sh` (subtree split + `push -f` par
 URL, aucun remote git permanent), wrappé par le Makefile :
 
 ```bash
@@ -195,8 +195,8 @@ repo cible ; les repos GitHub doivent exister au préalable.
 
 ## 4. Ordre d'extraction (du plus simple au plus dur)
 
-1. **POC** : `aurora-tools` (leaf pur, petit) — ✅ **fait** (2026-05-30) :
-   composer.json, services.php + tags, PSR-4 root, subtree split, tests verts —
+1. **POC** : `aurora-tools` (leaf pur, petit) - ✅ **fait** (2026-05-30) :
+   composer.json, services.php + tags, PSR-4 root, subtree split, tests verts -
    tout validé **dans le monorepo**. Reste ☐ l'install réelle dans un
    `aurora-client` neuf (bloquée par l'infra repos/Packagist, pas le code).
 2. Leaves : Hr, Planning, Notes, PersonalFinance, Assistant.
@@ -213,7 +213,7 @@ Pour chaque package extrait :
 - [ ] Toggles visibles dans `/dev/dashboard/modules` (registry).
 - [ ] Tests du package verts en isolation.
 - [ ] Extension Sylius-style depuis le client OK (étendre une entité, override un manager).
-- [ ] Build Vite OK (selon stratégie assets — Gate 2, encore ouvert).
+- [ ] Build Vite OK (selon stratégie assets - Gate 2, encore ouvert).
 
 ## 6. Migrations (Phase 5)
 
@@ -231,12 +231,12 @@ Pattern Symfony.
 
 ## 8. Prérequis infra (décisions hors-code)
 
-- [ ] Installer `splitsh-lite` (binaire ou Docker) — **absent localement**.
+- [ ] Installer `splitsh-lite` (binaire ou Docker) - **absent localement**.
 - [ ] Créer les repos GitHub enfants (`aurora-tools`, …) OU script de création.
 - [ ] Accès Packagist / repo Composer privé pour publier.
 - [ ] CI : pipeline par package (ou monorepo CI qui split + push à chaque tag).
 
-## 9. Stratégie assets Vue (Gate 2 — ✅ TRANCHÉ : option B)
+## 9. Stratégie assets Vue (Gate 2 - ✅ TRANCHÉ : option B)
 
 **Décision (2026-05-30)** : option **B** (glob étendu au vendor). aurora-core
 ship `vite-plugin-aurora-modules.js` : en mode vendored (le `packageDir` est
@@ -248,7 +248,7 @@ et les modules client (le client garde la priorité d'override). `fs.allow`
 inclut le dossier parent ; `dedupe` (vue/vue-i18n/…) gère le version-skew.
 
 **Finding** : un `import.meta.glob` relatif statique (`../../../../aurora-*`)
-est inutilisable — il collisionne en dev (le parent du monorepo contient
+est inutilisable - il collisionne en dev (le parent du monorepo contient
 `aurora-client`/`aurora-core`). D'où le plugin qui **détecte le mode** et
 génère un module virtuel (no-op en monorepo).
 

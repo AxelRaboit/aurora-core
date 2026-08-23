@@ -148,7 +148,7 @@ abstract class AbstractTaxonomy implements TaxonomyInterface
 
     /**
      * Instantiation hook, so a client substituting TaxonomyTranslation gets
-     * its own class here too — resolve_target_entities only covers Doctrine
+     * its own class here too - resolve_target_entities only covers Doctrine
      * associations, never a `new` in application code.
      */
     protected function createTranslation(): TaxonomyTranslationInterface

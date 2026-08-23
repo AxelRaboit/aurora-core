@@ -1,4 +1,4 @@
-# FileTransfer — Validators
+# FileTransfer - Validators
 
 > Protections contre les uploads malveillants : extensions interdites,
 > MIME-type incohérents, zip-bomb, dépassement de quotas.

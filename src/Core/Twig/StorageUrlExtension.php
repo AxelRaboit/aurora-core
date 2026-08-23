@@ -13,12 +13,12 @@ use Twig\Attribute\AsTwigFunction;
  *
  *     {{ aurora_profile_photo_url(user) }}
  *
- * `user.profilePhotoUrl` no longer exists on entities — URL building was
+ * `user.profilePhotoUrl` no longer exists on entities - URL building was
  * moved into a dedicated service to keep the domain model free of HTTP
  * concerns. See CLAUDE.md §5bis and §3bis.
  *
  * `aurora_media_url` was retired during the Phase 2 Media → GED migration
- * — no template ever consumed it, and document URLs now flow through
+ * - no template ever consumed it, and document URLs now flow through
  * serializers (DocumentSerializer exposes `fileUrl` directly).
  */
 final readonly class StorageUrlExtension

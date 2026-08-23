@@ -3,7 +3,7 @@
 return [
     Aurora\AuroraBundle::class => ['all' => true],
     // Auto-register every installed aurora-* module package's bundle(s).
-    // Install/uninstall a module via composer — nothing to edit here.
+    // Install/uninstall a module via composer - nothing to edit here.
     ...Aurora\Core\Bundle\AuroraModuleBundles::all(\dirname(__DIR__)),
     Symfony\Bundle\FrameworkBundle\FrameworkBundle::class => ['all' => true],
     Doctrine\Bundle\DoctrineBundle\DoctrineBundle::class => ['all' => true],

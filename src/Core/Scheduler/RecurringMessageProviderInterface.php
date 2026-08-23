@@ -10,7 +10,7 @@ use Symfony\Component\Scheduler\RecurringMessage;
  * A module contributes its recurring (cron) messages to the main schedule by
  * implementing this interface. {@see MainSchedule} aggregates every tagged
  * provider, so aurora-core's schedule has NO dependency on module message
- * classes — each module owns its own recurring jobs.
+ * classes - each module owns its own recurring jobs.
  *
  * Implementations are auto-tagged `aurora.recurring_message_provider`.
  */

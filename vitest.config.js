@@ -9,7 +9,7 @@ export default defineConfig({
         alias: {
             ...aliases,
             // vite.config.js derives this one from AURORA_CLIENT_DIR, so it was
-            // missing here — and any test transitively reaching i18n.js died on
+            // missing here - and any test transitively reaching i18n.js died on
             // its `import.meta.glob("@client/src/locales/*.js")` before running
             // a single assertion. Same empty placeholder standalone dev uses.
             "@client": path.resolve(

@@ -1,6 +1,6 @@
 <script setup>
 /**
- * Inline text-button styled like a hyperlink — used for compact actions
+ * Inline text-button styled like a hyperlink - used for compact actions
  * inside paragraphs or beside form fields ("Clear", "Show more", "Cancel
  * this change"). Picks `<button>` semantics (the action lives on the
  * current page, no navigation).

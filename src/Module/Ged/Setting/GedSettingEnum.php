@@ -48,7 +48,7 @@ enum GedSettingEnum: string implements ApplicationParameterEnumInterface
     }
 
     /**
-     * No placeholder by default — override on a per-case basis when an
+     * No placeholder by default - override on a per-case basis when an
      * example value is genuinely clearer than the description alone.
      */
     public function getPlaceholder(): ?string

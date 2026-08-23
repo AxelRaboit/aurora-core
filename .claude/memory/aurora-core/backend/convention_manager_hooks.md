@@ -1,10 +1,10 @@
-# Hooks Manager — les 3 familles
+# Hooks Manager - les 3 familles
 
 ## Règle
 
 Tout `<Name>Manager` instrumenté expose 3 familles de hooks `protected` :
 
-### 1. Instanciation — `create<X>(): <X>Interface`
+### 1. Instanciation - `create<X>(): <X>Interface`
 
 **Un hook par classe** que le Manager instancie. Sans exception.
 
@@ -18,7 +18,7 @@ Le client override pour retourner sa classe étendue :
 protected function createAgency(): AgencyInterface { return new App\Module\Core\Agency\Entity\Agency(); }
 ```
 
-### 2. Hydratation — `applyInput(<Name>Interface, <Name>InputInterface): void`
+### 2. Hydratation - `applyInput(<Name>Interface, <Name>InputInterface): void`
 
 **Requis par défaut** sauf variante "Manager à hooks multiples" (cf
 `decision_variant_user_style.md`). Centralise la copie DTO → entité.
@@ -40,7 +40,7 @@ protected function applyInput(AgencyInterface $agency, AgencyInputInterface $inp
 }
 ```
 
-### 3. Audit — `auditCreated/Updated/Deleted` + `auditPayload`
+### 3. Audit - `auditCreated/Updated/Deleted` + `auditPayload`
 
 ```php
 protected function auditCreated(AgencyInterface $agency): void

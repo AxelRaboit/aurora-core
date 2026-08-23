@@ -15,7 +15,7 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
  *
  * The button lives in one Vue app and this palette in another, so the two
  * cannot see each other's refs. The event is how the trigger reaches the
- * feature without the feature having to move — see pattern_cross_mount_state_sync.
+ * feature without the feature having to move - see pattern_cross_mount_state_sync.
  */
 export const SEARCH_OPEN_EVENT = "aurora:open-search";
 
@@ -164,7 +164,7 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
         nextTick(() => searchInputRef.value?.focus());
     }
 
-    // The button that opens this sits in the page header — a different Vue app,
+    // The button that opens this sits in the page header - a different Vue app,
     // which cannot reach `openPalette` directly. Registered here rather than in
     // the menu's SFC so the composable that owns the palette also owns the way
     // in, which is where `useSidemenuCollapse` and `useSidemenuLiveColors` keep

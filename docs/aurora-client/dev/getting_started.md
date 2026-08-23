@@ -19,7 +19,7 @@ fois. Pour le workflow quotidien (cache, tests, migrations…), voir
 | pnpm | géré via corepack (cf. `make pnpm-setup VERSION=10.11.0`) | `pnpm -v` |
 | PostgreSQL | 18 (cf. `DATABASE_URL` par défaut, `serverVersion=18`) | `psql --version` |
 | Symfony CLI | recommandé (`make start` l'utilise) | `symfony -v` |
-| Docker | optionnel — utilisé par `make docker-up` pour PostgreSQL | `docker -v` |
+| Docker | optionnel - utilisé par `make docker-up` pour PostgreSQL | `docker -v` |
 
 > Le binaire `php` doit pointer sur PHP 8.4 dans le `PATH`. Le Makefile
 > n'autorise pas de variante (`PHP_BIN = php`).
@@ -83,13 +83,13 @@ Ne jamais committer `.env.local` (déjà dans `.gitignore`).
 mon-projet/
 ├── vendor/axelraboit/aurora/   # aurora-core (read-only)
 ├── src/
-│   ├── Module/                 # App\Module\* — TOUT le code client
+│   ├── Module/                 # App\Module\* - TOUT le code client
 │   │   ├── Core/               #   Extensions d'entités Aurora\Core\*
 │   │   │   └── Agency/         #     Entity/ Dto/ Manager/ Serializer/
-│   │   ├── Tracking/           #   ex. module client autonome (illustratif — non fourni)
+│   │   ├── Tracking/           #   ex. module client autonome (illustratif - non fourni)
 │   │   └── …
-│   ├── Service/                # App\Service\* — helpers transverses (rare)
-│   ├── EventListener/          # App\EventListener\* — listeners globaux (rare)
+│   ├── Service/                # App\Service\* - helpers transverses (rare)
+│   ├── EventListener/          # App\EventListener\* - listeners globaux (rare)
 │   └── Kernel.php              # Wrapper minimal du Kernel Aurora
 ├── templates/
 │   ├── Core/                   # Overrides @Core/... (résolus AVANT le vendor)
@@ -109,14 +109,14 @@ mon-projet/
 │   ├── routes.yaml
 │   └── routes/
 ├── tests/
-│   ├── Unit/                   # vide au départ — à peupler
+│   ├── Unit/                   # vide au départ - à peupler
 │   ├── Integration/
 │   └── bootstrap.php
 ├── public/                     # index.php + build/ (assets compilés)
 ├── translations/               # YAML Symfony côté client (optionnel)
-├── Makefile                    # SYMLINK / écrasé par sync-makefile — ne pas éditer
+├── Makefile                    # SYMLINK / écrasé par sync-makefile - ne pas éditer
 ├── Makefile.local              # targets custom du projet (jamais touché par sync)
-├── CLAUDE.md                   # SYMLINK depuis vendor — ne pas éditer
+├── CLAUDE.md                   # SYMLINK depuis vendor - ne pas éditer
 ├── CLAUDE.local.md             # instructions Claude locales (jamais touché)
 └── .env.local                  # secrets + DSN (jamais committé)
 ```
@@ -131,9 +131,9 @@ mon-projet/
 
 ## 5. Enregistrer un override d'entité Aurora
 
-Exemple minimal — ajouter un champ `code` à `Agency` :
+Exemple minimal - ajouter un champ `code` à `Agency` :
 
-### a) Entité — `src/Module/Platform/Agency/Entity/Agency.php`
+### a) Entité - `src/Module/Platform/Agency/Entity/Agency.php`
 
 ```php
 namespace App\Module\Platform\Agency\Entity;
@@ -161,7 +161,7 @@ class Agency extends AbstractAgency implements AgencyInterface
 }
 ```
 
-### b) Doctrine — `config/packages/doctrine.yaml`
+### b) Doctrine - `config/packages/doctrine.yaml`
 
 ```yaml
 doctrine:
@@ -222,7 +222,7 @@ Exemple : un module `Tracking` non-existant dans aurora-core.
    ```
 4. Pour un exemple complet (entité custom, NavSection, NavPermission,
    `ModuleToggle` pour le panel "Accès modules"), voir
-   [`../extending/add_module.md`](../extending/add_module.md) — il déroule un
+   [`../extending/add_module.md`](../extending/add_module.md) - il déroule un
    module d'exemple `Tracking` de bout en bout. C'est un exemple générique,
    pas un module fourni par défaut.
 
@@ -250,7 +250,7 @@ pour assigner la permission.
 Le template `aurora-client` démarre **propre** : `src/Module/` ne contient
 aucun module métier, juste de quoi accrocher les tiens. Les exemples utilisés
 dans cette doc (module `Tracking`, extension `Agency` + champ `code`) sont des
-supports pédagogiques génériques — ils **ne sont pas livrés** dans le template ;
+supports pédagogiques génériques - ils **ne sont pas livrés** dans le template ;
 suis les guides pour les reconstruire si tu veux les voir en action :
 
 - module client from scratch → [`../extending/add_module.md`](../extending/add_module.md)

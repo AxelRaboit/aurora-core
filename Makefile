@@ -166,7 +166,7 @@ stop: ## Stop dev server
 # consumer it had just been told to stop.
 #
 # Killed by the pattern rather than by the marker file's pid, because the
-# supervisor and the consumer are two processes and the pattern matches both —
+# supervisor and the consumer are two processes and the pattern matches both -
 # the supervisor carries the same command in its `bash -c` string. Killing the
 # consumer alone just makes the loop start another one.
 stop-dev-worker: ## Stop the messenger worker (frees the DB for a drop)
@@ -174,7 +174,7 @@ stop-dev-worker: ## Stop the messenger worker (frees the DB for a drop)
 	@sleep 1
 	@pkill -9 -f 'messenger:consume async scheduler_main' 2>/dev/null || true
 	@rm -f var/.messenger-dev-worker-running
-	@echo "🛑 Messenger worker stopped — restart it with: make start-dev-worker"
+	@echo "🛑 Messenger worker stopped - restart it with: make start-dev-worker"
 
 start-dev-worker: ## Start the messenger worker (async + scheduler)
 	@touch var/.messenger-dev-worker-running
@@ -193,7 +193,7 @@ about: ## Show app info
 # === Fixtures & Dev ===
 # `aurora:install` runs BEFORE the fixtures, and the fixtures run with
 # --append. The default purger empties every table, including the one holding
-# the post types the demo content is about to look up — so seeding first and
+# the post types the demo content is about to look up - so seeding first and
 # purging after left the fixtures with nothing to build on.
 fixtures: stop-dev-worker ## Drop DB, re-run migrations, seed the floor and load fixtures
 	$(CONSOLE) doctrine:database:drop --force --if-exists
@@ -205,8 +205,8 @@ fixtures: stop-dev-worker ## Drop DB, re-run migrations, seed the floor and load
 	@echo "↻  Restart the worker: make start-dev-worker"
 
 # No longer purges var/uploads/ first, and that was the whole risk in it: the
-# target deleted every stored file — including anything uploaded through the
-# application — and only then ran the load that might fail. A run that stopped
+# target deleted every stored file - including anything uploaded through the
+# application - and only then ran the load that might fail. A run that stopped
 # halfway left the pictures gone and the rows untouched, which is exactly what
 # happened while the fixtures were still dying on a unique key.
 #
@@ -271,7 +271,7 @@ sync: ## Run all sync commands (params, seed data, privileges)
 sync-params: ## Synchronise application parameters (creates missing, deletes obsolete)
 	$(CONSOLE) aurora:application-parameter
 
-install-data: ## Create every module's seed data — locales, theme, post types, taxonomies, menus (idempotent)
+install-data: ## Create every module's seed data - locales, theme, post types, taxonomies, menus (idempotent)
 	$(CONSOLE) aurora:install
 
 sync-privileges: ## Purge obsolete privileges from users after module changes
@@ -350,7 +350,7 @@ fix-rector: ## Apply Rector suggestions
 fix: ## Run all fixers + stan
 	# First, mirroring CI: `composer validate` is its opening step, so a stale
 	# lock fails the pipeline before any other check runs. Nothing local used
-	# to catch it — a renamed package invalidates the lock's content hash and
+	# to catch it - a renamed package invalidates the lock's content hash and
 	# every push went red until someone read the CI log.
 	$(COMPOSER) validate
 	make translation
@@ -390,7 +390,7 @@ setup-env: ## Create .env.local from .env.local.example template, with APP_SECRE
 	fi
 	cp .env.local.example .env.local
 	@php -r '$$c = file_get_contents(".env.local"); $$c = preg_replace("/^APP_SECRET=.*/m", "APP_SECRET=" . bin2hex(random_bytes(16)), $$c, 1); file_put_contents(".env.local", $$c);'
-	@echo "✅ .env.local created — APP_SECRET generated automatically."
+	@echo "✅ .env.local created - APP_SECRET generated automatically."
 	@echo "   Review DATABASE_URL before running 'make install-dev'."
 
 .PHONY: help

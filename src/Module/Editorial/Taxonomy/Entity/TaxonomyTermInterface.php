@@ -41,7 +41,7 @@ interface TaxonomyTermInterface
     public function getPosts(): Collection;
 
     /**
-     * Inverse side — Post owns the association. Keeps the loaded graph
+     * Inverse side - Post owns the association. Keeps the loaded graph
      * consistent so a response serialized right after a write is accurate.
      */
     public function addPost(PostInterface $post): static;

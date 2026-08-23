@@ -9,11 +9,11 @@ type: project
 Chaque "front" (site public servi par Aurora) implémente
 `Aurora\Core\Frontend\Contract\FrontendInterface` et déclare :
 
-- `getSlug()` — identifiant du front (`'editorial'`, `'tracking'`, …)
-- `getHomeRoute()` — route nommée de sa page d'accueil
-- `getModuleSettingKey()` — clé `ModuleParameterEnum` qui contrôle son
+- `getSlug()` - identifiant du front (`'editorial'`, `'tracking'`, …)
+- `getHomeRoute()` - route nommée de sa page d'accueil
+- `getModuleSettingKey()` - clé `ModuleParameterEnum` qui contrôle son
   on/off **dédié au front** (pas la même que l'admin module)
-- `getRoutePrefixes()` — liste de préfixes de noms de routes qui lui
+- `getRoutePrefixes()` - liste de préfixes de noms de routes qui lui
   appartiennent (utilisée par le route gate)
 
 **Le toggle d'un front est SÉPARÉ du toggle de son admin module.**
@@ -116,12 +116,12 @@ avec `v-if="hasEnabledFronts"`.
   `Aurora\Module\Ged\GedFrontendDescriptor`,
   `App\Module\Tracking\Frontend\TrackingFrontend` (aurora-client)
 - Convention de nommage : suffixe **`FrontendDescriptor`** au niveau racine
-  du module — voir [`pattern_frontend_descriptor.md`](pattern_frontend_descriptor.md).
+  du module - voir [`pattern_frontend_descriptor.md`](pattern_frontend_descriptor.md).
 
 ## Voir aussi
 
-- [`pitfall_route_gate_priority.md`](pitfall_route_gate_priority.md) —
+- [`pitfall_route_gate_priority.md`](pitfall_route_gate_priority.md) -
   `FrontendRouteGateSubscriber` priorité 0 (après firewall)
-- [`pattern_user_scoped_module_access.md`](pattern_user_scoped_module_access.md) —
+- [`pattern_user_scoped_module_access.md`](pattern_user_scoped_module_access.md) -
   ModuleAccessChecker (global + per-user) consommé indirectement par
   le contexte des admin modules

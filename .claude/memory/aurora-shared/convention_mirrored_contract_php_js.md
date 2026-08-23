@@ -8,7 +8,7 @@ metadata:
 ## Règle
 
 Dès qu'une valeur fait autorité côté serveur **et** doit être connue de
-l'éditeur Vue sans aller la demander, la duplication est acceptée — mais
+l'éditeur Vue sans aller la demander, la duplication est acceptée - mais
 **elle doit être tenue par un test**, pas par un commentaire.
 
 - Côté PHP : la constante vit sur le service qui valide (`GridNormalizer::RATIOS`,
@@ -34,7 +34,7 @@ le découvre avant qu'un auteur ne s'en plaigne.
 Ce n'est pas hypothétique : la première exécution de `GridContractMirrorTest` a
 trouvé `LEAF_ZONE_TYPES` dans deux ordres différents entre PHP et JS.
 
-Le test est **statique** — il lit le fichier, il ne l'exécute pas — pour la même
+Le test est **statique** - il lit le fichier, il ne l'exécute pas - pour la même
 raison que `AuroraGridGutterTest` : la suite Playwright ne tourne ni dans
 `make ft` ni en CI, donc un contrôle end-to-end n'empêcherait pas le push.
 
@@ -51,7 +51,7 @@ public const array SCALES = [25, 33, 50, 66, 75, 100];
 ```
 
 ```js
-/** Mirrors GridNormalizer::SCALES — … */
+/** Mirrors GridNormalizer::SCALES - … */
 export const ZONE_SCALES = [25, 33, 50, 66, 75, 100];
 ```
 
@@ -69,7 +69,7 @@ yield 'scales' => [GridNormalizer::SCALES, 'ZONE_SCALES'];
 | Plafond numérique (`MAX_…`, `COLUMNS`) | ✅ oui |
 | **Comportement** (une fonction de clamp, un calcul de placement) | ❌ non |
 
-Une fonction dupliquée ne se compare pas statiquement — il faudrait la parser.
+Une fonction dupliquée ne se compare pas statiquement - il faudrait la parser.
 Elle se tient autrement : **les deux côtés ont leurs propres tests, sur les
 mêmes cas nommés pareil**. Voir `GridNormalizer::place()` /
 `placeZones()`, dont les cas se répondent un à un dans `GridNormalizerTest` et

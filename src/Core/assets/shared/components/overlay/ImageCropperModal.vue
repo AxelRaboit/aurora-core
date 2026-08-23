@@ -91,7 +91,7 @@ async function save() {
 <template>
     <AppModal :show="!!item" max-width="5xl" :closeable="false" v-on:close="close">
         <h3 class="text-sm font-semibold text-primary mb-3">
-            {{ t("shared.image_cropper.title") }}<span v-if="name"> — {{ name }}</span>
+            {{ t("shared.image_cropper.title") }}<span v-if="name"> - {{ name }}</span>
         </h3>
         <div style="height: 65vh; width: 100%; overflow: hidden;">
             <img

@@ -274,7 +274,7 @@ class UserManager implements UserManagerInterface
         // Filter the colour map to known sectionIds + non-empty values. The
         // controller already enforces `array<string, string>` (cf. signature
         // contract) so we only check emptiness + unknown ids here. Colour
-        // names themselves aren't validated — the front falls back to the
+        // names themselves aren't validated - the front falls back to the
         // default palette when a name isn't in its registry.
         $cleanColors = [];
         foreach ($navSectionColors as $sectionId => $colorName) {
@@ -457,7 +457,7 @@ class UserManager implements UserManagerInterface
 
     /**
      * Instantiates the concrete User entity. Override in a subclass to return
-     * `App\Entity\User` (or any class implementing `CoreUserInterface`) —
+     * `App\Entity\User` (or any class implementing `CoreUserInterface`) -
      * `resolve_target_entities` only affects Doctrine relations, not direct
      * `new`. Used by `create()`, `register()` and `invite()`.
      */

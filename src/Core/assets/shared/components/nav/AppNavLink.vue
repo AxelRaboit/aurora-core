@@ -7,13 +7,13 @@ const props = defineProps({
     active: { type: Boolean, default: false },
     /** Color used for the active highlight bg + text. */
     activeColor: { type: String, default: "accent" },
-    /** Color used for the hover state — defaults to "primary" (neutral). Use "emerald", "amber", "rose", "accent" for branded actions. */
+    /** Color used for the hover state - defaults to "primary" (neutral). Use "emerald", "amber", "rose", "accent" for branded actions. */
     hoverColor: { type: String, default: "primary" },
     target: { type: String, default: null },
     sidemenuActive: { type: Boolean, default: false },
     /** Tooltip title shown on hover (typically the item label, useful when collapsed). */
     tooltipTitle: { type: String, default: "" },
-    /** Optional secondary line for the tooltip — short helper sentence. */
+    /** Optional secondary line for the tooltip - short helper sentence. */
     tooltipDescription: { type: String, default: "" },
     /** Tooltip placement around the trigger. Default `right` matches the left-anchored sidemenu. */
     tooltipPlacement: {
@@ -23,7 +23,7 @@ const props = defineProps({
     },
     /**
      * Optional override for the link's active / hover Tailwind class
-     * string — supersedes the internal `activeColor` + `hoverColor`
+     * string - supersedes the internal `activeColor` + `hoverColor`
      * maps. The sidemenu uses this to inject per-section colours from
      * `useSidemenuSectionTheme` without having to extend the local map.
      * Pass a single string already containing both active *and* hover

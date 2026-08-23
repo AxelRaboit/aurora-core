@@ -12,7 +12,7 @@ use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 
 /**
- * Whether a page prints its own title and summary — and the wiring that carries
+ * Whether a page prints its own title and summary - and the wiring that carries
  * that decision from the form to the column and back.
  *
  * Written as an integration test rather than a unit one for the reason the

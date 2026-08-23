@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * environments (dev, test, prod) without any build-time ceremony.
  *
  * A conflict means two modules/apps would share the same PostgreSQL sequence
- * and interleave their reference numbers — a silent data corruption bug.
+ * and interleave their reference numbers - a silent data corruption bug.
  */
 #[AsEventListener(event: KernelEvents::REQUEST, priority: 256)]
 final class SequencePrefixConflictListener
@@ -37,7 +37,7 @@ final class SequencePrefixConflictListener
         foreach ($this->providers as $provider) {
             foreach ($provider->values() as $value) {
                 if (isset($seen[$value])) {
-                    throw new LogicException(sprintf('[Aurora] Sequence prefix conflict: "%s" is declared by both "%s" and "%s". Each prefix must be globally unique — rename one of them.', $value, $seen[$value], $provider->name()));
+                    throw new LogicException(sprintf('[Aurora] Sequence prefix conflict: "%s" is declared by both "%s" and "%s". Each prefix must be globally unique - rename one of them.', $value, $seen[$value], $provider->name()));
                 }
 
                 $seen[$value] = $provider->name();

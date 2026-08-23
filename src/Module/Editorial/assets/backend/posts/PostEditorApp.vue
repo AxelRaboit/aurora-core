@@ -48,7 +48,7 @@ const {
  * title and summary sit at the top of it, and those name the record in the
  * admin list and on any card that embeds it. Arriving anywhere else would mean
  * arriving on a screen that never says which publication is being edited. The
- * rest follows the published page — header, then body — and ends with the
+ * rest follows the published page - header, then body - and ends with the
  * metadata only a machine reads.
  *
  * Position and default used to be set apart, on the grounds that position says
@@ -87,7 +87,7 @@ const STATUS_COLORS = {
 
 /**
  * What a `post` zone may link to. The editor already receives the related
- * publications it can reference, which is the same list — asking the server
+ * publications it can reference, which is the same list - asking the server
  * for a second one would be a query for a list it already sent.
  */
 /**
@@ -173,7 +173,7 @@ function termLabel(term) {
 
                 <!-- v-show, not v-if: the block editor holds its own state,
                      and remounting it per tab would throw away the undo stack
-                     and flicker — the same reason one instance serves every
+                     and flicker - the same reason one instance serves every
                      locale. -->
                 <div v-show="isTabActive('header')" class="space-y-4">
                     <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
@@ -193,8 +193,8 @@ function termLabel(term) {
                 <div v-show="isTabActive('content')" class="space-y-4">
                     <!-- The grid is the body now, not one of two ways to write
                          one. The plain block column that used to sit under this
-                         was migrated into a single full-width text zone — which
-                         is what it always was — and the two paths it cost to
+                         was migrated into a single full-width text zone - which
+                         is what it always was - and the two paths it cost to
                          keep are down to one. `supportsBlocks` still names the
                          post types that have a body at all; only what it opens
                          has changed. -->
@@ -248,7 +248,7 @@ function termLabel(term) {
                     <!-- The record's own name and summary. They are not part of
                          Content, and never were: they identify the publication
                          in the admin list and on any card that embeds it, and
-                         they head the page itself only as a fallback — an
+                         they head the page itself only as a fallback - an
                          in-page header carrying a title of its own takes over.
                          They sit at the top of Settings, above the slug they
                          are the source of. -->

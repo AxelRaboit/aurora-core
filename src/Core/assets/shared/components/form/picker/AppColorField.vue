@@ -7,7 +7,7 @@ defineProps({
     label: { type: String, default: "" },
     required: { type: Boolean, default: false },
     error: { type: String, default: "" },
-    /** Help text under the control — explains the field, unlike `error` which reports it. */
+    /** Help text under the control - explains the field, unlike `error` which reports it. */
     hint: { type: String, default: "" },
     showHex: { type: Boolean, default: true },
     size: { type: String, default: "md" },

@@ -12,7 +12,7 @@ use Aurora\Module\Ged\Document\Contract\DocumentUsageProviderInterface;
  *
  * Module providers are pulled in via the `aurora.document_usage_provider` tag;
  * adding a new module that references Document just means implementing the
- * interface — no changes here.
+ * interface - no changes here.
  */
 final readonly class DocumentUsageService
 {

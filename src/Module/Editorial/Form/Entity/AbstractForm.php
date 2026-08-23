@@ -32,7 +32,7 @@ abstract class AbstractForm implements FormInterface
     protected bool $crmSync = false;
 
     /**
-     * Step titles, in order. Null means a single-page form — which is not the
+     * Step titles, in order. Null means a single-page form - which is not the
      * same as an empty list, and the difference is what the builder shows.
      *
      * @var list<array{title: string}>|null

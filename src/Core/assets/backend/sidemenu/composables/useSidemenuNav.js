@@ -122,7 +122,7 @@ export function useSidemenuNav(
     }
     /**
      * The account block at the foot of the menu folds like a nav section, and
-     * shares their store: one localStorage key, one rule — expanded unless
+     * shares their store: one localStorage key, one rule - expanded unless
      * someone said otherwise. A second mechanism for the same gesture would be
      * a second thing to keep in agreement.
      *

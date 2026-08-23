@@ -40,7 +40,7 @@ export function emptyBannerTexts() {
 
 /**
  * The content grid's arrangement. Like the banner's, it sits on the post so
- * every language shows the same layout — see GridNormalizer for why each field
+ * every language shows the same layout - see GridNormalizer for why each field
  * is on the side it is.
  */
 export function emptyGridLayout() {
@@ -165,12 +165,12 @@ export function usePostEditor(props) {
     const customFieldDefinitions = computed(() => postType.value?.fields ?? []);
 
     // One editor instance per locale, not one per tab: remounting loses the
-    // undo stack and flickers. The parent drives them instead — flush what the
+    // undo stack and flickers. The parent drives them instead - flush what the
     // outgoing locale holds, then let each re-read what the incoming one does.
     //
     // A set rather than one callback. With the content grid a page can hold
     // several editors, and a single slot would have kept only the last to
-    // mount — every other zone's text lost on save, silently.
+    // mount - every other zone's text lost on save, silently.
     const editors = new Set();
     provide("registerEditor", (handlers) => {
         editors.add(handlers);

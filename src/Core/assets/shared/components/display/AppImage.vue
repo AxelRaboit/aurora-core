@@ -19,7 +19,7 @@ function onLoad() { status.value = ImageLoadStatus.Loaded; }
 function onError() { status.value = ImageLoadStatus.Error; }
 function onLoadStart() { status.value = ImageLoadStatus.Loading; }
 
-// Reset status whenever `src` changes — otherwise a previous error /
+// Reset status whenever `src` changes - otherwise a previous error /
 // loaded state persists and the new image either stays hidden (img
 // element pruned by `v-if` on Error) or shows the wrong opacity.
 // Real-world trigger: media picker swap in the Settings page where

@@ -49,7 +49,7 @@ final class ContextTest extends TestCase
         $en = $this->makeLocale('en', true);
         $fr = $this->makeLocale('fr');
 
-        // The cache invariant — the repo is hit only on the first call,
+        // The cache invariant - the repo is hit only on the first call,
         // subsequent calls hit the in-memory list.
         $this->localeRepository->expects(self::once())
             ->method('findBy')
@@ -104,7 +104,7 @@ final class ContextTest extends TestCase
 
     public function testDefaultLocaleFallsBackToTheSettingWhenNoLocaleIsFlagged(): void
     {
-        // None of the active locales has isDefault=true — the setting is
+        // None of the active locales has isDefault=true - the setting is
         // the next source of truth before the enum default kicks in.
         $this->localeRepository->method('findBy')->willReturn([
             $this->makeLocale('en'),
@@ -128,7 +128,7 @@ final class ContextTest extends TestCase
         $context->defaultLocale();
         $context->defaultLocale();
         $context->defaultLocale();
-        // No assertion beyond the repository call count — implicit pass
+        // No assertion beyond the repository call count - implicit pass
         // via the `expects(self::once())` constraint above.
         self::assertSame('en', $context->defaultLocale());
     }
@@ -169,7 +169,7 @@ final class ContextTest extends TestCase
     public function testSiteDescriptionPassesThroughTheNullDefault(): void
     {
         // siteDescription expects to receive whatever the repo returns,
-        // including null — keep the contract loose for unset values.
+        // including null - keep the contract loose for unset values.
         $this->settingRepository->expects(self::atLeastOnce())
             ->method('get')
             ->with(ApplicationParameterEnum::SiteDescription->value, null)

@@ -1,4 +1,4 @@
-# Tests PHP — Guide
+# Tests PHP - Guide
 
 ## Convention de placement
 
@@ -9,7 +9,7 @@ src/Module/Billing/Service/InvoiceExtractor.php
 tests/Unit/Module/Billing/Service/InvoiceExtractorTest.php
 ```
 
-C'est intentionnellement différent des tests Vue/JS (co-localisés à côté de leur source — voir [testing_vue.md](testing_vue.md)). Deux écosystèmes, deux conventions établies. Ne pas mélanger : pas de `.test.php` dans `src/`.
+C'est intentionnellement différent des tests Vue/JS (co-localisés à côté de leur source - voir [testing_vue.md](testing_vue.md)). Deux écosystèmes, deux conventions établies. Ne pas mélanger : pas de `.test.php` dans `src/`.
 
 ---
 
@@ -41,7 +41,7 @@ tests/
 
 ---
 
-## Unit vs Integration — quand choisir ?
+## Unit vs Integration - quand choisir ?
 
 | Situation | Type |
 |---|---|
@@ -92,7 +92,7 @@ final class MyServiceTest extends TestCase
 ```
 
 **Bonnes pratiques :**
-- Classe `final` — les tests unitaires ne sont pas étendus
+- Classe `final` - les tests unitaires ne sont pas étendus
 - `#[AllowMockObjectsWithoutExpectations]` si les mocks n'ont pas de `expects()` explicites
 - `createMock()` pour les dépendances (interfaces de préférence)
 - Un `setUp()` clair qui instancie le SUT (System Under Test)
@@ -196,10 +196,10 @@ Ajouter un concern quand la même boilerplate apparaît dans 2+ classes de test.
 
 ## Conventions de nommage
 
-- **Classe** : `{SujetTest}` — ex: `PostsControllerTest`, `GalleryManagerTest`
-- **Méthode** : `test{ActionExpectedBehavior}` — ex: `testCreatePostReturnsNewPost`
-- **Namespace** : miroir de `src/` — `Aurora\Tests\Unit\Module\Billing\...`
-- **Fichier** : `tests/{Unit|Integration}/{miroir de src/}` — ex: `tests/Unit/Module/Billing/Service/InvoiceExtractorTest.php`
+- **Classe** : `{SujetTest}` - ex: `PostsControllerTest`, `GalleryManagerTest`
+- **Méthode** : `test{ActionExpectedBehavior}` - ex: `testCreatePostReturnsNewPost`
+- **Namespace** : miroir de `src/` - `Aurora\Tests\Unit\Module\Billing\...`
+- **Fichier** : `tests/{Unit|Integration}/{miroir de src/}` - ex: `tests/Unit/Module/Billing/Service/InvoiceExtractorTest.php`
 - Classe `final` pour les Unit, `final` pour les Integration également
 
 ---
@@ -225,7 +225,7 @@ php bin/phpunit --filter testCreate
 
 ## Couverture de code (coverage)
 
-### Prérequis — driver PCOV
+### Prérequis - driver PCOV
 
 PHPUnit a besoin d'un driver pour instrumenter le code. PCOV est recommandé
 (plus rapide que Xdebug, dédié au coverage uniquement) :
@@ -260,7 +260,7 @@ Un résumé texte est aussi affiché dans le terminal à la fin de l'exécution.
 php -d pcov.enabled=1 bin/phpunit tests/Unit/Module/Billing --coverage
 ```
 
-> `var/coverage/` est dans `.gitignore` — ne pas committer les rapports générés.
+> `var/coverage/` est dans `.gitignore` - ne pas committer les rapports générés.
 
 ---
 
@@ -272,7 +272,7 @@ Les fixtures sont définies dans `src/Core/DataFixtures/AppFixtures.php`. Elles 
 
 ---
 
-## Ce qu'on teste (3–5 assertions par test)
+## Ce qu'on teste (3-5 assertions par test)
 
 - **Unit** : cas nominaux + cas limites (null, valeur invalide, état intermédiaire)
 - **Integration Controller** : code HTTP + structure JSON de la réponse + état BDD si nécessaire

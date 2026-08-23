@@ -11,8 +11,8 @@ use Aurora\Module\Editorial\Form\Entity\FormSubmissionInterface;
 /**
  * Turns a submission back into question-and-answer pairs.
  *
- * Submissions are stored by field id, so every consumer — the email, the
- * export, the webhook, the admin screen — has to look the label up again.
+ * Submissions are stored by field id, so every consumer - the email, the
+ * export, the webhook, the admin screen - has to look the label up again.
  * Doing it once here is what keeps them agreeing about what a submission
  * said.
  */

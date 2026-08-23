@@ -12,7 +12,7 @@ enum MenuItemVisibilityEnum: string
 
     /**
      * Never rendered, whoever is looking. Lets an entry be parked without
-     * deleting it — deletion takes the children with it, so "hide this
+     * deleting it - deletion takes the children with it, so "hide this
      * branch for now" had no safe expression otherwise.
      */
     case Hidden = 'hidden';

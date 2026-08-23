@@ -1,18 +1,18 @@
 <script setup>
 /**
- * Generic floating menu — a positioned dropdown listing selectable
+ * Generic floating menu - a positioned dropdown listing selectable
  * items, styled to match Aurora surface tokens. Lives on top of a
  * relatively-positioned parent (the trigger area provides the
  * positioning context; this component renders inline, not teleported,
  * because the consumer wants the menu glued to a precise pixel position
- * inside its own layout — typically a textarea caret).
+ * inside its own layout - typically a textarea caret).
  *
  * Consumers so far:
  *   - markdown editor: slash command palette ("/" at line start)
  *   - markdown editor: wiki-link autocomplete ("[[" inside a line)
  *
  * The default slot is scoped (`{ item, index, active }`) so each
- * consumer renders its own row — slash wants a monospace glyph + label,
+ * consumer renders its own row - slash wants a monospace glyph + label,
  * wiki wants a Lucide icon + truncated title. The menu owns positioning,
  * keyboard-active highlight, mouseenter routing, and the mousedown.prevent
  * trick that lets a click pick an item before the trigger element blurs.
@@ -83,7 +83,7 @@ const emit = defineEmits(["select", "highlight"]);
                     <slot :item="item" :index="index" :active="index === activeIndex" />
                 </button>
             </template>
-            <!-- Empty state — rendered when `items` is empty. The slot
+            <!-- Empty state - rendered when `items` is empty. The slot
                  lets each consumer phrase the no-results message in its
                  own domain language. Falls back to a generic line if
                  the slot isn't provided. -->

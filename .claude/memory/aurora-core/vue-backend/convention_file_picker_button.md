@@ -32,8 +32,8 @@ L'event `change` reçoit l'Event natif (compatible avec les handlers existants t
 qui reçoit directement la `FileList`.
 
 Via `ref`, le composant expose :
-- `open()` — déclenche le picker programmatiquement
-- `reset()` — vide la valeur (permet de re-sélectionner le même fichier)
+- `open()` - déclenche le picker programmatiquement
+- `reset()` - vide la valeur (permet de re-sélectionner le même fichier)
 
 ## Why
 
@@ -50,7 +50,7 @@ system.
   Les deux composables ont été mis à jour avec un fallback pour compatibilité
   ascendante (au cas où on passerait encore un raw DOM ref).
 - Le pattern `<label class="drop-zone"><input type="file" class="sr-only"></label>`
-  (zone cliquable visuelle) reste légitime — ce n'est pas le même pattern.
+  (zone cliquable visuelle) reste légitime - ce n'est pas le même pattern.
   Voir `PostFeaturedImagePanel.vue` pour l'exemple.
 
 ## Source

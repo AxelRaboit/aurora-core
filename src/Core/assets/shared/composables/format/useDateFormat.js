@@ -32,10 +32,10 @@ export function useDateFormat() {
 
     /**
      * Strict numeric date (locale-aware): DD/MM/YYYY in FR, MM/DD/YYYY in EN, …
-     * Returns the placeholder when the input is empty / null — handy in
+     * Returns the placeholder when the input is empty / null - handy in
      * table cells where we don't want to special-case on every call site.
      */
-    function formatDateNumeric(isoString, placeholder = "—") {
+    function formatDateNumeric(isoString, placeholder = "-") {
         if (!isoString) return placeholder;
         return new Intl.DateTimeFormat(locale.value, {
             day: "2-digit",
@@ -45,7 +45,7 @@ export function useDateFormat() {
     }
 
     /** Numeric date + HH:MM (locale-aware), with placeholder fallback. */
-    function formatDateTimeNumeric(isoString, placeholder = "—") {
+    function formatDateTimeNumeric(isoString, placeholder = "-") {
         if (!isoString) return placeholder;
         return new Intl.DateTimeFormat(locale.value, {
             day: "2-digit",
@@ -57,11 +57,11 @@ export function useDateFormat() {
     }
 
     /**
-     * Month + year, capitalised first letter — "Mai 2026" / "May 2026".
+     * Month + year, capitalised first letter - "Mai 2026" / "May 2026".
      * Accepts either a full ISO string or a "YYYY-MM" prefix (handy for
      * month-pickers / budget switchers that store the month as a key).
      */
-    function formatMonthYear(input, placeholder = "—") {
+    function formatMonthYear(input, placeholder = "-") {
         if (!input) return placeholder;
         const iso = /^\d{4}-\d{2}$/.test(input) ? `${input}-01` : input;
         const raw = new Intl.DateTimeFormat(locale.value, {

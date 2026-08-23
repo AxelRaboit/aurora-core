@@ -17,16 +17,16 @@ import { useServerErrors } from "@/shared/composables/form/useServerErrors.js";
  *   Keys are field names, values are validator functions that return an error
  *   string or null. Omit to skip client-side validation.
  * @param {() => string} options.url
- *   Lazy URL — called at submit time so dynamic paths work naturally.
+ *   Lazy URL - called at submit time so dynamic paths work naturally.
  * @param {() => *} [options.body]
- *   Lazy request body — called at submit time.
+ *   Lazy request body - called at submit time.
  * @param {(data: *) => void|Promise<void>} [options.onSuccess]
  *   Called with the full server response object when data.success is true.
  *   Ideal for: toast.success(), closing a modal, refreshing a list.
  *
  * @returns {{ errors, loading, submit, validate, clearErrors }}
  *
- * Usage — replaces ~12 lines of boilerplate with 4:
+ * Usage - replaces ~12 lines of boilerplate with 4:
  *
  *   const { errors, loading, submit } = useFormAction({
  *     rules: () => ({

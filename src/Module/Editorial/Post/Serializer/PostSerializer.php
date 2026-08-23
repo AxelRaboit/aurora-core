@@ -88,7 +88,7 @@ class PostSerializer implements PostSerializerInterface
             'thumbnailFocalPosition' => $this->documentUrlGenerator->focalPositionCss($post->getThumbnail()),
             // Resolved on the way out, so a post saved before the banner
             // existed reaches the editor as a complete shape instead of an
-            // empty array it would have to guard against — and so a picker can
+            // empty array it would have to guard against - and so a picker can
             // preview the image it already holds rather than just its id.
             // Texts are left out: they belong to whichever locale is open.
             'bannerLayout' => $this->bannerViewBuilder->buildForEditor($post->getBannerLayout(), []),
@@ -126,7 +126,7 @@ class PostSerializer implements PostSerializerInterface
             'thumbnailUrl' => $thumbnail['url'],
             'thumbnailFitClass' => $thumbnail['objectFitClass'],
             'thumbnailFocalPosition' => $thumbnail['focalPosition'],
-            // A card used to carry only what a blog post needs — title, teaser,
+            // A card used to carry only what a blog post needs - title, teaser,
             // image. A post type whose meaning lives in its custom fields (a
             // room's price, a product's weight) could not be listed usefully at
             // all: the archive had nothing to show but a headline.
@@ -143,7 +143,7 @@ class PostSerializer implements PostSerializerInterface
             'slug' => $translation->getSlug(),
             // Only the words. The design is serialised once on the post, so
             // switching locale in the editor swaps the copy and leaves the
-            // layout standing — which is the whole point of the split.
+            // layout standing - which is the whole point of the split.
             'banner' => $translation->getBanner(),
             'grid' => $translation->getGrid(),
             'description' => $translation->getDescription(),
@@ -161,7 +161,7 @@ class PostSerializer implements PostSerializerInterface
     }
 
     /**
-     * Term names for a card, grouped by taxonomy — enough to draw a row of
+     * Term names for a card, grouped by taxonomy - enough to draw a row of
      * badges without a query per post.
      *
      * @return array<string, list<string>>

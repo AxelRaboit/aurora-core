@@ -10,7 +10,7 @@ use DateTimeImmutable;
  * A built sitemap and what went into it.
  *
  * The counts travel with the XML rather than being recomputed, so the backend
- * screen and the public `/sitemap.xml` share one pass over the database — and
+ * screen and the public `/sitemap.xml` share one pass over the database - and
  * so the figures an editor reads describe the file a crawler would actually
  * receive, not a second walk that might disagree with it.
  *

@@ -3,7 +3,7 @@ import { LogIn, Pencil, Shield, Trash2, UserRound } from "lucide-vue-next";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 
 /**
- * What a developer row offers — and what it never offers on your own account.
+ * What a developer row offers - and what it never offers on your own account.
  *
  * Impersonating yourself, revoking your own developer role and deleting your
  * own account are each a way to lock the last developer out of the backend.

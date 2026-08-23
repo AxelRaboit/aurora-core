@@ -1,6 +1,6 @@
 ---
 name: composable_url_pagination
-description: Pagination full-page-reload (route par page ?page=N) passe par useUrlPagination — pas pour la pagination AJAX.
+description: Pagination full-page-reload (route par page ?page=N) passe par useUrlPagination - pas pour la pagination AJAX.
 metadata:
   type: feedback
 ---

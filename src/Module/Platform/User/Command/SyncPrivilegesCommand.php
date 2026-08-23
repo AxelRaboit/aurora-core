@@ -69,7 +69,7 @@ final class SyncPrivilegesCommand extends Command
                 ++$usersAffected;
 
                 $io->text(sprintf(
-                    '  <comment>%s</comment> — removed: %s',
+                    '  <comment>%s</comment> - removed: %s',
                     $user->getEmail(),
                     implode(', ', $removed),
                 ));
@@ -84,7 +84,7 @@ final class SyncPrivilegesCommand extends Command
                 $usersAffected,
             ));
         } else {
-            $io->success('All user privileges are up to date — nothing to purge.');
+            $io->success('All user privileges are up to date - nothing to purge.');
         }
 
         return Command::SUCCESS;

@@ -1,6 +1,6 @@
 ---
 name: pattern-single-locale-mode
-description: Toggle réversible "single_locale_mode" — masque le multi-langue à l'UI/écriture sans toucher au schéma ni aux données
+description: Toggle réversible "single_locale_mode" - masque le multi-langue à l'UI/écriture sans toucher au schéma ni aux données
 metadata:
   type: project
 ---
@@ -13,7 +13,7 @@ en mono-langue (la `default_locale`) sans casser l'archi multi-langue
 sous-jacente.
 
 Piliers :
-- `LocaleContextInterface` (`src/Core/Locale/Service/`) — source de
+- `LocaleContextInterface` (`src/Core/Locale/Service/`) - source de
   vérité runtime ; mémoization in-request des reads `SettingRepository`.
 - `LocaleSubscriber` force la default locale et ignore la session quand
   le mode est ON.

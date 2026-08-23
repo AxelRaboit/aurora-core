@@ -29,7 +29,7 @@
 # --------------------------------
 #   bash vendor/axelraboit/aurora/bin/sync-client-readme
 #
-# Idempotent — safe to call from `make aurora-update` / `make pull-update`.
+# Idempotent - safe to call from `make aurora-update` / `make pull-update`.
 
 set -euo pipefail
 
@@ -39,7 +39,7 @@ CLIENT_README="${PWD}/README.md"
 
 START_MARKER='<!-- aurora-canonical:start'
 END_MARKER='<!-- aurora-canonical:end'
-# Anchored patterns — markers MUST be at column 0 (their own line, no prose
+# Anchored patterns - markers MUST be at column 0 (their own line, no prose
 # indent). Prevents false positives when the markers are mentioned inside
 # the canonical block's prose (e.g. in the "Customisation projet" section
 # that references them as text).
@@ -60,12 +60,12 @@ fi
 
 # ── Case 2: README.md exists → check for markers (anchored at line start) ──
 if ! grep -qE "${START_MARKER_ANCHORED}" "${CLIENT_README}"; then
-    echo "⚠️  README.md has no '${START_MARKER} …' marker — left as-is."
+    echo "⚠️  README.md has no '${START_MARKER} …' marker - left as-is."
     echo "    To opt into auto-syncing the aurora-canonical block, wrap the"
     echo "    canonical content (quickstart link, daily commands, CI block,"
     echo "    doc index, customisation note) between these markers:"
     echo ""
-    echo "      <!-- aurora-canonical:start — managed by \`make sync-readme\`. Don't edit between markers. -->"
+    echo "      <!-- aurora-canonical:start - managed by \`make sync-readme\`. Don't edit between markers. -->"
     echo "      ... canonical content ..."
     echo "      <!-- aurora-canonical:end -->"
     echo ""
@@ -74,7 +74,7 @@ if ! grep -qE "${START_MARKER_ANCHORED}" "${CLIENT_README}"; then
 fi
 
 if ! grep -qE "${END_MARKER_ANCHORED}" "${CLIENT_README}"; then
-    echo "❌ README.md has a start marker but no end marker — refusing to sync." >&2
+    echo "❌ README.md has a start marker but no end marker - refusing to sync." >&2
     echo "   Add '${END_MARKER} -->' on its own line and re-run." >&2
     exit 1
 fi
@@ -84,7 +84,7 @@ tmp="$(mktemp)"
 
 # Extract template's between-markers content (the marker lines themselves
 # are also included on each side so we get a clean replacement). Markers
-# are matched by anchored regex — must be at column 0 on their own line.
+# are matched by anchored regex - must be at column 0 on their own line.
 template_block="$(mktemp)"
 awk -v start="${START_MARKER_ANCHORED}" -v end="${END_MARKER_ANCHORED}" '
     $0 ~ start { capture = 1 }
@@ -99,7 +99,7 @@ if [[ ! -s "${template_block}" ]]; then
 fi
 
 # Replace between-markers content in the client README. Anchored markers
-# only — avoids false positives on prose that references them.
+# only - avoids false positives on prose that references them.
 awk -v start="${START_MARKER_ANCHORED}" -v end="${END_MARKER_ANCHORED}" -v block_file="${template_block}" '
     $0 ~ start {
         # Print the new block (which already includes the start + end marker lines)
@@ -115,9 +115,9 @@ awk -v start="${START_MARKER_ANCHORED}" -v end="${END_MARKER_ANCHORED}" -v block
     !skip { print }
 ' "${CLIENT_README}" > "${tmp}"
 
-# Diff check — only write back if there's actually a change
+# Diff check - only write back if there's actually a change
 if cmp -s "${tmp}" "${CLIENT_README}"; then
-    echo "✅ README.md aurora-canonical block already in sync — no changes."
+    echo "✅ README.md aurora-canonical block already in sync - no changes."
     rm -f "${tmp}" "${template_block}"
     exit 0
 fi

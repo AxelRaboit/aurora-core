@@ -1,6 +1,6 @@
 ---
 name: convention_no_raw_fetch
-description: Interdiction du fetch() brut dans les composables et vues admin — toujours useRequest. Pour le frontend public, utiliser useFrontendRequest.
+description: Interdiction du fetch() brut dans les composables et vues admin - toujours useRequest. Pour le frontend public, utiliser useFrontendRequest.
 metadata:
   type: feedback
 ---
@@ -30,13 +30,13 @@ import { useFrontendRequest } from "@/shared/composables/http/useFrontendRequest
 const { loading, request } = useFrontendRequest();
 const data = await request(url, payload);
 ```
-- Pas de toasts automatiques — erreurs gérées inline par le caller
+- Pas de toasts automatiques - erreurs gérées inline par le caller
 - Utilisé dans Photo frontend, FormRenderApp, PostCommentsApp, etc.
 
 ### Patterns hauts niveau (préférer quand applicable)
-- `useFormAction({ rules, url, body, onSuccess })` — pour les actions de formulaire create/edit
-- `useFormModal({ empty, fromEntity, createUrl, editUrl, ... })` — pour les modales create+edit
-- `useServerErrors` — pour la gestion des erreurs serveur (translate + toast _global + setErrors)
+- `useFormAction({ rules, url, body, onSuccess })` - pour les actions de formulaire create/edit
+- `useFormModal({ empty, fromEntity, createUrl, editUrl, ... })` - pour les modales create+edit
+- `useServerErrors` - pour la gestion des erreurs serveur (translate + toast _global + setErrors)
 
 ## Pourquoi
 

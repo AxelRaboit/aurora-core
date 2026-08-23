@@ -8,7 +8,7 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Phase 2 of the Media → GED merge — migrate Erp Product.image_id to
+ * Phase 2 of the Media → GED merge - migrate Erp Product.image_id to
  * reference core_ged_documents instead of core_media. Plan:
  * docs/aurora-core/todo/media-ged-merge.md.
  *
@@ -23,7 +23,7 @@ use Doctrine\Migrations\AbstractMigration;
  *      it's globally unique by construction).
  *   4. Add the new FK to core_ged_documents.
  *
- * Side effect: the original core_media rows are NOT deleted — they stay
+ * Side effect: the original core_media rows are NOT deleted - they stay
  * available so the Media library keeps working during Phase 2 (other
  * consumers may still reference them). Phase 5 drops core_media entirely
  * once every consumer has migrated.
@@ -87,7 +87,7 @@ final class Version20260530070621 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        // No data rollback — Phase 2 migrations are forward-only. The
+        // No data rollback - Phase 2 migrations are forward-only. The
         // original Media rows still exist; restoring the FK would orphan
         // the copied Document rows but wouldn't lose Media data.
         $this->addSql('ALTER TABLE core_erp_products DROP CONSTRAINT FK_4DE001913DA5256D');

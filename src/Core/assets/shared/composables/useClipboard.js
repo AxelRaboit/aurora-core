@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
  * toast. Centralises the copy-to-clipboard pattern that list pages (Media,
  * GED, …) and tools (password generator) would otherwise each reimplement.
  *
- * `copy(text, successKey?)` — `successKey` is an i18n key for the toast
+ * `copy(text, successKey?)` - `successKey` is an i18n key for the toast
  * (defaults to a generic "copied" message).
  */
 export function useClipboard() {

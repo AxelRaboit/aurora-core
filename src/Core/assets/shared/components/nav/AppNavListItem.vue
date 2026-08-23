@@ -1,13 +1,13 @@
 <script setup>
 /**
- * Full-width row used in vertical navigation lists — taxonomy
+ * Full-width row used in vertical navigation lists - taxonomy
  * picker on the left, media folder sidebar, notes tree, etc.
  *
  * Visual language (matches the media folder sidebar):
  *   - Rounded-lg, gap-2 px-3 py-2, no permanent border.
  *   - Hovered state: surface-2 background.
  *   - Active state: accent-600/15 fill + accent-400 text + accent border.
- *   - Drag-over state (optional): ring-2 ring-accent-500 — wire by
+ *   - Drag-over state (optional): ring-2 ring-accent-500 - wire by
  *     passing `dragOver` true while a drop is being targeted.
  *
  * Slots:

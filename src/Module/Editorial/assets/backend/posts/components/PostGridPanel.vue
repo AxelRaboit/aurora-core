@@ -3,12 +3,12 @@
  * Content-grid panel of the post editor.
  *
  * A builder, like the banner's: add a zone, set how wide it is, reorder,
- * remove. Zones flow and wrap, so moving one is reordering it — there is no
+ * remove. Zones flow and wrap, so moving one is reordering it - there is no
  * empty cell to drag into.
  *
  * Two props because the grid is stored in two halves: the arrangement on the
  * post, what fills each zone on the open translation. The panel does not
- * arrange them differently for it — usePostGrid knows which half a field
+ * arrange them differently for it - usePostGrid knows which half a field
  * belongs to.
  *
  * Presentation only: every field arrives as a writable computed, so nothing
@@ -39,7 +39,7 @@ const props = defineProps({
     layout: { type: Object, required: true },
     /** What fills each zone, for the language currently open. */
     content: { type: Object, required: true },
-    /** Which language that is — shown on the fields that are per-language. */
+    /** Which language that is - shown on the fields that are per-language. */
     locale: { type: String, required: true },
     /** Publications this grid may link to, for the `post` zone type. */
     postOptions: { type: Array, default: () => [] },
@@ -105,7 +105,7 @@ const ZONE_ICONS = { text: FileText, media: Image, post: Newspaper, video: Film,
 // Which zone the canvas and the card below it are both pointing at, and what
 // becomes of it when a zone is added, removed, reordered or relocated. Every
 // answer is arithmetic on indices, which is why it is a composable and not six
-// functions here — see useGridSelection.
+// functions here - see useGridSelection.
 const {
     selectedIndex,
     addZone: addAndSelect,
@@ -128,7 +128,7 @@ function resizeZone(index, columns) {
 // Picking a zone used to scroll its fields into view, which made sense while
 // every zone's card was on the page and the one you wanted was usually below
 // the fold. Only one card shows now and it sits directly under the canvas, so
-// there is nothing to go and find — and the scroll had become actively wrong:
+// there is nothing to go and find - and the scroll had become actively wrong:
 // resizing selects the zone under the handle, and dropping selects the zone
 // that moved, so both gestures ended by pulling the canvas off the screen just
 // as the author was looking at what they had done.
@@ -149,7 +149,7 @@ function resizeZone(index, columns) {
         <template v-if="enabled">
             <!-- The arrangement leads, because it is what the author works in:
                  pick a zone here and its fields appear underneath. Everything
-                 that used to sit above it — the server preview — has moved
+                 that used to sit above it - the server preview - has moved
                  below, so reaching the controls costs no scrolling. -->
             <PostGridCanvas
                 v-model:selected-index="selectedIndex"
@@ -172,7 +172,7 @@ function resizeZone(index, columns) {
             <!-- Behind a button rather than inline: the panel is a column a few
                  hundred pixels wide, and a page laid out on 48 columns has
                  nothing useful to show at that size. Full width in a modal is
-                 the first place the preview is actually to scale — and it gives
+                 the first place the preview is actually to scale - and it gives
                  the editor back the room the preview was taking. -->
             <div v-if="zones.length">
                 <AppButton variant="secondary" size="sm" type="button" v-on:click="showPreview = true">
@@ -187,7 +187,7 @@ function resizeZone(index, columns) {
 
             <!-- One zone's fields at a time, but every card stays mounted:
                  `v-show`, never `v-if`. Each text zone holds a live Editor.js,
-                 and unmounting one loses its undo stack — the same reason the
+                 and unmounting one loses its undo stack - the same reason the
                  locale tabs above this panel are `v-show` too.
 
                  focusin rather than a click target: typing in any field of a
@@ -235,7 +235,7 @@ function resizeZone(index, columns) {
                      keeps its id, so every other language keeps whatever it
                      holds for it, and the width and place in the order survive.
                      GridNormalizer writes every key whatever the type for
-                     exactly this — a picture picked before a detour through
+                     exactly this - a picture picked before a detour through
                      text is still picked on the way back. -->
                 <div class="space-y-1.5">
                     <AppChoiceRow
@@ -260,7 +260,7 @@ function resizeZone(index, columns) {
                      path to the same widths the canvas handle sets, and a button
                      that says "1/2" needs no picture of its own result. The
                      slider stays behind the disclosure for the widths no
-                     fraction names — the summary keeps the exact count in view,
+                     fraction names - the summary keeps the exact count in view,
                      so a custom width is legible without opening anything. -->
                 <div class="space-y-1.5">
                     <AppChoiceRow
@@ -270,7 +270,7 @@ function resizeZone(index, columns) {
                     />
                     <details>
                         <summary class="cursor-pointer text-xs text-muted marker:text-muted">
-                            {{ t("backend.posts.grid.precise") }} — <span class="tabular-nums">{{ widthLabel(index) }}</span>
+                            {{ t("backend.posts.grid.precise") }} - <span class="tabular-nums">{{ widthLabel(index) }}</span>
                         </summary>
                         <div class="pt-2">
                             <AppRange
@@ -285,7 +285,7 @@ function resizeZone(index, columns) {
 
                 <!-- Where a zone sits on its row, as opposed to how much of
                      it it takes. Both only exist above the large breakpoint,
-                     which is also the only place the canvas above draws rows —
+                     which is also the only place the canvas above draws rows -
                      below it every zone is full width and there is nothing to
                      push against.
 
@@ -312,7 +312,7 @@ function resizeZone(index, columns) {
 
                 <!-- A stack holds zones instead of content, so it shows them
                      here: same fields, one level down. The share row is the
-                     width row over again — inside a stack the axis of flow is
+                     width row over again - inside a stack the axis of flow is
                      vertical, so a fraction reads as a fraction of the height
                      and the same six buttons say it. -->
                 <template v-if="zone.type === 'stack'">

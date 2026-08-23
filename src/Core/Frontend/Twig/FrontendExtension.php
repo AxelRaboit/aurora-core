@@ -40,7 +40,7 @@ final readonly class FrontendExtension
 
     /**
      * Home path of whichever front is currently active (see
-     * {@see Router::getDefault()}) — lets shared frontend chrome (the
+     * {@see Router::getDefault()}) - lets shared frontend chrome (the
      * default theme's layout, site header links, locale switcher) link
      * "home" without hardcoding a specific module's route name. Falls
      * back to "#" if no front is registered at all.

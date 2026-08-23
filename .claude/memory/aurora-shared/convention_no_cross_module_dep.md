@@ -1,6 +1,6 @@
 ---
 name: convention-no-cross-module-dep
-description: Un module **du consommateur** (`App\Module\X`) ne dépend jamais d'un module frère — le câblage passe par un point d'extension. Ne s'applique PAS aux six modules d'aurora-core, qui forment un seul noyau au couplage assumé jusque dans les entités.
+description: Un module **du consommateur** (`App\Module\X`) ne dépend jamais d'un module frère - le câblage passe par un point d'extension. Ne s'applique PAS aux six modules d'aurora-core, qui forment un seul noyau au couplage assumé jusque dans les entités.
 metadata:
   type: feedback
 ---
@@ -11,20 +11,20 @@ metadata:
 frère.** Depuis `App\Module\X/` (ou ses assets), les seules dépendances permises
 sont :
 
-- `Aurora\Core` / `@core` — le socle du bundle
-- `Aurora\Module\…` — les modules d'aurora-core, qui sont tous obligatoires
-- `@shared` — les composants partagés
+- `Aurora\Core` / `@core` - le socle du bundle
+- `Aurora\Module\…` - les modules d'aurora-core, qui sont tous obligatoires
+- `@shared` - les composants partagés
 - ses propres sous-dossiers
 
 `App\Module\Tracking → App\Module\Bnb` est interdit, **même** si c'est juste un
 import JS d'une classe utilitaire, **même** s'il ne sert qu'à un `{@see}` dans
-un docblock — un `use` inutilisé fait tomber le grep de vérification plus bas et
+un docblock - un `use` inutilisé fait tomber le grep de vérification plus bas et
 finit par être recopié comme un précédent.
 
 ## Ce à quoi elle ne s'applique pas
 
-**Les six modules d'aurora-core** — `Configuration`, `Dev`, `Editorial`, `Ged`,
-`General`, `Platform` — ne sont pas des modules à la carte. Ils forment un seul
+**Les six modules d'aurora-core** - `Configuration`, `Dev`, `Editorial`, `Ged`,
+`General`, `Platform` - ne sont pas des modules à la carte. Ils forment un seul
 noyau, et leur graphe de dépendances est dense et cyclique :
 
 ```
@@ -36,7 +36,7 @@ General        ->  Configuration Platform
 Platform       ->  Configuration Dev
 ```
 
-Ce n'est pas de la dette. Le couplage descend jusqu'aux entités —
+Ce n'est pas de la dette. Le couplage descend jusqu'aux entités -
 `AbstractPost::$thumbnail` est un `ManyToOne` vers `DocumentInterface`, et
 `AuroraBundle` câble en dur les entités de Ged dans `resolve_target_entities`.
 Editorial sans Ged ne démarre pas : le mapping Doctrine ne résout plus.
@@ -49,7 +49,7 @@ qu'elle visait.
 
 ## Pourquoi
 
-**Why:** la règle est née d'une fuite réelle — un
+**Why:** la règle est née d'une fuite réelle - un
 `import ProductGridBlock from "@ecommerce/…"` dans `EditorBlock.vue` (Editorial),
 rendue visible par l'extraction de l'éditeur vers `@shared`. Le danger qu'elle
 vise : du code mort chargé, un tree-shaking impuissant, et **désactiver un
@@ -63,7 +63,7 @@ lecture seule sur GitHub** depuis le 2026-08-08 (`bdae6959`), avec
 « activer Editorial sans Ecommerce » ne se pose plus dans ce dépôt.
 
 Elle se pose toujours **chez le consommateur**, dont les modules sont écrits,
-activés et retirés un par un — et le jour où des packages à la carte
+activés et retirés un par un - et le jour où des packages à la carte
 reviendraient, la règle s'appliquerait à eux telle quelle.
 
 ## Comment l'appliquer
@@ -85,7 +85,7 @@ reviendraient, la règle s'appliquerait à eux telle quelle.
 Depuis un projet consommateur :
 
 ```bash
-# Dépendances PHP entre modules du projet — devrait ne rien sortir
+# Dépendances PHP entre modules du projet - devrait ne rien sortir
 for m in $(ls src/Module/); do
   hits=$(grep -rhoE 'App\\Module\\[A-Za-z]+' "src/Module/$m" 2>/dev/null \
     | sort -u | sed 's/App\\Module\\//' | grep -v "^$m$" | tr '\n' ' ')
@@ -100,7 +100,7 @@ grep -rE "^import .* from ['\"]@[a-z-]+/" src/Module/ \
 ```
 
 Un module d'aurora-core qui apparaît dans le premier résultat n'est **pas** une
-faute — voir « Ce à quoi elle ne s'applique pas ».
+faute - voir « Ce à quoi elle ne s'applique pas ».
 
 Voir [[convention-thin-controller]] (même esprit côté backend),
 [[convention_mirrored_contract_php_js]] (l'autre contrat qu'un test tient à

@@ -94,7 +94,7 @@ class PostRepository extends ResolveTargetEntityRepository
 
     /**
      * A public listing for one post type. Only published, never trashed, and
-     * only rows that have something to show in this locale — a post with no
+     * only rows that have something to show in this locale - a post with no
      * translation here would render as a card with no title.
      *
      * @return array{items: list<PostInterface>, total: int, page: int, totalPages: int}
@@ -253,7 +253,7 @@ class PostRepository extends ResolveTargetEntityRepository
      * How many live posts sit in each status, for the dashboard.
      *
      * One grouped query rather than one COUNT per status, and rows are only
-     * returned for statuses that have posts — the caller fills the gaps, so
+     * returned for statuses that have posts - the caller fills the gaps, so
      * adding a status to the enum cannot leave a hole here.
      *
      * @return array<string, int> status value → count, trashed posts excluded
@@ -381,7 +381,7 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Titles and slugs the index cannot help with — a slug is one token, and
+     * Titles and slugs the index cannot help with - a slug is one token, and
      * pasting a whole URL is how an editor looks for the page behind it, so
      * the last path segment is what gets matched.
      *

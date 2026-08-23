@@ -16,7 +16,7 @@ final class DocumentUsageProvidersTest extends IntegrationTestCase
 
         // No document carries this id; the value of the test is that all
         // tagged providers' query builders execute against the real schema
-        // without error — guarding the Document FK relation/field names from
+        // without error - guarding the Document FK relation/field names from
         // drift (same class of bug that broke the Media /usage endpoint).
         $result = $service->findUsages(999999999);
 

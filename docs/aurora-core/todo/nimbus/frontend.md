@@ -1,4 +1,4 @@
-# FileTransfer — Frontend Vue
+# FileTransfer - Frontend Vue
 
 > Vue Apps + composables + composants partagés. Découpage backend (user
 > auth) vs frontend (public visiteur).
@@ -10,8 +10,8 @@ ce pattern (qui est aussi celui d'Aurora) : un controller render un
 template Twig minimal, qui monte une `<XApp>` Vue avec ses props.
 
 Source Nimbus :
-- `assets/transfer/*.vue` — flow upload + manage + show
-- `assets/components/*` — composants partagés (AppButton, AppModal, AppInput, etc. — déjà dans Aurora donc à ne PAS porter)
+- `assets/transfer/*.vue` - flow upload + manage + show
+- `assets/components/*` - composants partagés (AppButton, AppModal, AppInput, etc. - déjà dans Aurora donc à ne PAS porter)
 
 ## Liste des Vue Apps
 
@@ -34,7 +34,7 @@ Source Nimbus :
 | **PublicTransferPasswordApp** | `assets/frontend/public/PublicTransferPasswordApp.vue` | `/t/{token}` (état Locked) |
 | **PublicTransferUnavailableApp** | `assets/frontend/public/PublicTransferUnavailableApp.vue` | `/t/{token}` (état Expired/Deleted) |
 
-## Composable phare — `useTusUpload`
+## Composable phare - `useTusUpload`
 
 Wrapper autour de `tus-js-client` (npm) pour gérer N uploads parallèles
 avec progress, pause/resume, error retry :
@@ -99,13 +99,13 @@ export function useTusUpload({ endpoint = '/tus', chunkSize = 5 * 1024 * 1024 } 
 }
 ```
 
-## NewTransferApp — le morceau le plus complexe
+## NewTransferApp - le morceau le plus complexe
 
 ### Structure UX
 
 ```
 ┌─────────────────────────────────────────────────┐
-│ [Drop zone — drag&drop OR click to browse]      │
+│ [Drop zone - drag&drop OR click to browse]      │
 │                                                  │
 │ Files:                                          │
 │  📄 invoice.pdf      2.4 MB    [✓ 100%] [✗]    │
@@ -193,7 +193,7 @@ async function submit() {
 
 ### Drop zone
 
-Composant réutilisable `AppFileDropZone.vue` (à voir s'il existe déjà dans Aurora — `DocumentsApp.vue` (GED) ou `MediaTextBlock` en a peut-être un) qui :
+Composant réutilisable `AppFileDropZone.vue` (à voir s'il existe déjà dans Aurora - `DocumentsApp.vue` (GED) ou `MediaTextBlock` en a peut-être un) qui :
 - accepte fichiers ET dossiers (folder drop = walk les fichiers)
 - multiple
 - preview thumb pour images
@@ -359,8 +359,8 @@ déjà** :
 | `AppModal.vue` | `@shared/components/overlay/AppModal.vue` | Réutiliser |
 | `AppHeader.vue` / `AppPageHeader.vue` | équivalents dans `@shared/components/` | Réutiliser |
 | `AppLogo.vue` | `@shared/components/display/AppLogo.vue` | Réutiliser |
-| `PasswordStrength.vue` | (pas sûr — vérifier) | Si absent, porter dans `@shared` |
-| `AppQrCode.vue` | (pas sûr — vérifier) | Si absent, porter dans `@shared` |
+| `PasswordStrength.vue` | (pas sûr - vérifier) | Si absent, porter dans `@shared` |
+| `AppQrCode.vue` | (pas sûr - vérifier) | Si absent, porter dans `@shared` |
 | `AppPagination.vue` | `@shared/components/nav/AppPagination.vue` | Réutiliser |
 | `AppTable` / row helpers | `@shared/components/table/*` | Réutiliser |
 

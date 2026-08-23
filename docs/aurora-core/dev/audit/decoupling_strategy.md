@@ -39,27 +39,27 @@ d'architecture, type `deptrac` / PHPStan rule).
 Les ~15 arêtes cross-business se répartissent en **5 catégories**, chacune
 avec un mécanisme de découplage. Toutes les arêtes sont listées ci-dessous.
 
-### Catégorie A — Value enum partagé → remonter en core
+### Catégorie A - Value enum partagé → remonter en core
 
 Une `enum` de valeur (pas de logique module) importée ailleurs.
 
 | Arête | Symbole | Source actuelle | Action |
 |---|---|---|---|
-| Billing→Erp (3) | `CurrencyEnum` | déplacé : `src/Core/Money/Enum/CurrencyEnum.php` (`Aurora\Core\Money\Enum`) | ✅ **FAIT** (2026-05-30) — Billing+Ecommerce/Erp sont des packages distincts qui en ont besoin |
+| Billing→Erp (3) | `CurrencyEnum` | déplacé : `src/Core/Money/Enum/CurrencyEnum.php` (`Aurora\Core\Money\Enum`) | ✅ **FAIT** (2026-05-30) - Billing+Ecommerce/Erp sont des packages distincts qui en ont besoin |
 | Ecommerce→Erp (7) | `CurrencyEnum` | idem | ✅ **FAIT** (même déplacement) |
 | ~~Erp→Ecommerce (1)~~ | `EcommerceSettingEnum` | `ProductSerializer` (Erp) lit un setting Ecommerce | ⏭️ **Sans objet** : Erp+Ecommerce **fusionnent** (cat. E → `aurora-commerce`), donc cette arête devient **intra-package**. Le « cycle » est moot après merge. Pas de churn. |
 
 → Élimine **11 refs** et le **cycle**. Risque faible (déplacement + maj des
 `use`). À faire **en premier**.
 
-### Catégorie B — Event cross-module → contrat d'event en core ✅ FAIT (2026-05-30)
+### Catégorie B - Event cross-module → contrat d'event en core ✅ FAIT (2026-05-30)
 
 Un module écoutait un event émis par un autre via l'import direct de cet event.
 
 **Réalisé** : un **seul** event core unifie les deux cas (un producteur
 capture des coordonnées → un CRM optionnel les matérialise en contact) :
 `src/Core/Contact/Event/ContactSignalEvent.php` (email, fullName, phone,
-sourceKey, tagSlugs — que des scalaires).
+sourceKey, tagSlugs - que des scalaires).
 
 | Arête | Avant | Après |
 |---|---|---|
@@ -75,7 +75,7 @@ par le producteur (`isCrmSync`).
 grep d'invariant vide). Producteurs Ecommerce/Editorial dispatchent
 toujours ; sans CRM installé l'event est un no-op inoffensif.
 
-### Catégorie C — Embed / agrégation de features → registry de providers en core ✅ FAIT (2026-05-30)
+### Catégorie C - Embed / agrégation de features → registry de providers en core ✅ FAIT (2026-05-30)
 
 Un module **consommait** des features d'autres modules par import direct.
 Core définit un **registry** (tag `_instanceof`) ; chaque module **enregistre**
@@ -91,7 +91,7 @@ sa contribution ; le consommateur injecte `iterable<…>` via `#[AutowireIterato
 Le risque d'inversion core→module (General dans core important des modules)
 est éliminé. 9/14 modules métier sont désormais des leaves purs.
 
-### Catégorie D — Lien entité vers Crm → soft reference ✅ FAIT (2026-05-30)
+### Catégorie D - Lien entité vers Crm → soft reference ✅ FAIT (2026-05-30)
 
 Réalisé via un resolver core **`Aurora\Core\Reference\EntityReferenceResolver`**
 (+ `EntityReferenceProviderInterface`, tag `aurora.entity_reference_provider`) :
@@ -110,7 +110,7 @@ installé ? ; `options(type)` → liste pour picker. Crm fournit
 de l'intégrité FK DB pour ces liens optionnels (cf. migrations). down() des
 migrations re-crée les FK → valide seulement si Crm installé (Phase 5).
 
-### ~~Catégorie D — Lien entité vers Crm → soft reference (le point qui coûte)~~ (description originale)
+### ~~Catégorie D - Lien entité vers Crm → soft reference (le point qui coûte)~~ (description originale)
 
 Une entité d'un module a une **relation Doctrine via interface** vers une
 entité Crm, + injecte le **repository** Crm pour hydrater. Problème dur :
@@ -141,7 +141,7 @@ optionnel ne doit pas casser le schéma quand il est absent ».
 > ces modules **require** Crm (on perd le « léger » pour eux seuls, pas
 > pour les leaves).
 
-### Catégorie E — Mono-domaine réel → fusion
+### Catégorie E - Mono-domaine réel → fusion
 
 Couplage **dur** sur une **entité concrète** (pas juste une interface),
 signe que c'est un seul domaine.
@@ -162,7 +162,7 @@ intra-package Ecommerce↔Erp). **13 modules métier** shippent chacun via leur
 `Aurora<X>Bundle` (`AbstractAuroraModuleBundle`) ; `AuroraBundle` est devenu un
 bundle **purement core** (16 RTE : Platform/Configuration/Dev/Ged). Un client
 compose son install à la carte module par module. Le packaging Composer
-(composer.json + services.php + split) est **réalisé** — voir
+(composer.json + services.php + split) est **réalisé** - voir
 `packaging_playbook.md` et `bin/split-modules.sh`.
 
 ## Extension points à créer dans `aurora-core` (avant le pass)
@@ -170,19 +170,19 @@ compose son install à la carte module par module. Le packaging Composer
 Le découplage suppose d'ajouter ces points d'extension au core. Tous
 suivent la convention Aurora (interface + `#[AsAlias]`/tagged services) :
 
-1. **`Core\Money\Enum\CurrencyEnum`** (déplacé depuis Erp) — cat. A. ✅
+1. **`Core\Money\Enum\CurrencyEnum`** (déplacé depuis Erp) - cat. A. ✅
 2. **`Core\Contact\Event\ContactSignalEvent`** : event générique
    (email/name/phone/sourceKey/tagSlugs) émis par Ecommerce/Editorial,
-   écouté par Crm — cat. B. ✅
-3. **`Core\Content\BlockRendererInterface`** + `BlockHtmlSanitizer` — cat. C3. ✅
-4. **`Core\Dashboard\DashboardStatsProviderInterface`** — cat. C1. ✅
+   écouté par Crm - cat. B. ✅
+3. **`Core\Content\BlockRendererInterface`** + `BlockHtmlSanitizer` - cat. C3. ✅
+4. **`Core\Dashboard\DashboardStatsProviderInterface`** - cat. C1. ✅
 5. **`Core\Search\{SearchProviderInterface, BackendSearchProviderInterface,
-   SearchSnippetBuilder, RelevanceSorter}`** — cat. C2. ✅
-6. **`Core\Reference\EntityReference` + `ReferenceResolverInterface`** —
+   SearchSnippetBuilder, RelevanceSorter}`** - cat. C2. ✅
+6. **`Core\Reference\EntityReference` + `ReferenceResolverInterface`** -
    cat. D. ⏳ à faire
 
 Chacun doit passer les **garde-fous** §3bis du CLAUDE.md (pas d'interface
-sans implémenteur multiple plausible) — ici tous en ont (≥2 modules
+sans implémenteur multiple plausible) - ici tous en ont (≥2 modules
 contributeurs), donc OK.
 
 ## Ordre d'exécution (le pass de découplage)

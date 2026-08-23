@@ -1,6 +1,6 @@
 ---
 name: convention_assets_subfolder_layout
-description: Convention de compartimentage des assets Vue — quand et comment créer des sous-dossiers feature dans src/Module/<M>/assets/backend/
+description: Convention de compartimentage des assets Vue - quand et comment créer des sous-dossiers feature dans src/Module/<M>/assets/backend/
 metadata:
   type: feedback
 ---
@@ -34,7 +34,7 @@ La référence `vue_component('module/backend/<feature>/<Name>App', ...)` dans l
 
 Quand un `*App.vue` orchestrateur (ex : `PlanningsApp`) importe des composables d'une autre feature du même module, utiliser des chemins relatifs remontants : `../events/composables/useEventForm.js`.
 
-### Exceptions — ne pas créer de sous-dossier
+### Exceptions - ne pas créer de sous-dossier
 
 - Module avec **une seule feature** et ≤ 6 fichiers : la feature = tout le dossier module. Exemple : `PasswordGenerator/backend/` (2 fichiers), `Vault/backend/` (SPA mono-page avec components/ + composables/).
 - `shared/`, `components/`, `utils/`, `constants/` restent à la racine du module (cross-cutting).

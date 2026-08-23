@@ -7,7 +7,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [Unreleased]
 
-### ⚠️ Cassant — root `templates/` éliminé (sauf `bundles/`), tout sous `src/`
+### ⚠️ Cassant - root `templates/` éliminé (sauf `bundles/`), tout sous `src/`
 
 Le dossier `templates/` à la racine du bundle est éliminé. Tous les templates
 sont désormais co-localisés sous `src/`, en miroir du refactor `assets/` :
@@ -20,7 +20,7 @@ sont désormais co-localisés sous `src/`, en miroir du refactor `assets/` :
 | `templates/Frontend/themes/default/` | `src/Core/templates/Frontend/themes/default/` |
 
 **Seule exception** : `templates/bundles/TwigBundle/` reste à la racine du
-projet — c'est une convention Symfony hardcodée dans `FilesystemLoader` pour
+projet - c'est une convention Symfony hardcodée dans `FilesystemLoader` pour
 les overrides de templates de bundles tiers (error pages, …). Non négociable.
 
 **Namespaces Twig inchangés côté API** : `@Editorial`, `@Crm`, `@Platform`,
@@ -49,7 +49,7 @@ default theme livré par Aurora en mode core dev).
 
 Aucune migration Doctrine ; clear cache + rebuild suffit.
 
-### ⚠️ Cassant — root `assets/` supprimé, JS/Vue co-localisé sous `src/`
+### ⚠️ Cassant - root `assets/` supprimé, JS/Vue co-localisé sous `src/`
 
 Le dossier `assets/` à la racine du repo a été éliminé. Tout le JS/Vue/CSS
 est désormais co-localisé sous `src/`, en miroir de la structure PHP :
@@ -88,7 +88,7 @@ est overridée via `config/packages/stimulus.yaml`.
 Voir [`MIGRATION_0.4.md`](docs/aurora-client/MIGRATION_0.4.md) pour la note
 détaillée côté client (rien ne change pour `aurora-client/assets/client/`).
 
-### ⚠️ Cassant — namespaces Core déplacés sous leur module parent
+### ⚠️ Cassant - namespaces Core déplacés sous leur module parent
 
 Alignement de `src/Core/` sur la convention Vault-style déjà en place
 côté `src/Module/` : les sous-modules Core vivent désormais dans un
@@ -121,7 +121,7 @@ de correspondance + le `sed` bulk.
 | `Aurora\Core\Dev\*` | `Aurora\Module\Dev\*` |
 | `Aurora\Core\{Platform,Configuration,Media,General,Dev}Module` | `Aurora\Module\<X>\<X>Module` |
 
-**2e vague — templates + assets** : `templates/Core/backend/<X>/` et
+**2e vague - templates + assets** : `templates/Core/backend/<X>/` et
 `assets/Core/backend/<X>/` ont aussi été déplacés vers les modules promus
 (`templates/Module/<NewModule>/backend/<X>/` et idem assets). 5 nouveaux
 aliases Vite : `@platform`, `@configuration`, `@media`, `@general`, `@dev`.
@@ -139,10 +139,10 @@ Plus aucun `<X>Module.php` à la racine de `src/Core/`.
 `Repository`, `Scheduler`, `Sequence`, `Storage`, `Support`,
 `Timestampable`, `Twig`, `Validation`.
 
-**Aucune migration Doctrine** — les tables (`core_user`, `core_agency`,
+**Aucune migration Doctrine** - les tables (`core_user`, `core_agency`,
 `core_audit_log`, `core_media`, `core_setting`, etc.) gardent leur nom.
 
-### ⚠️ Cassant — CLI wizards `aurora:make:module` + `aurora:make:entity` supprimés
+### ⚠️ Cassant - CLI wizards `aurora:make:module` + `aurora:make:entity` supprimés
 
 Les deux commandes Symfony ajoutées plus tôt dans Unreleased ont été
 **retirées**. Tout scaffolding passe désormais par les skills Claude
@@ -157,7 +157,7 @@ mécaniques :
 - Polish des labels FR/EN (au lieu de `{{MODULE_LABEL}}`)
 - Fleshing-out des fields sur `Abstract<Name>` (`make:entity`)
 
-Le wizard CLI imprimait des hints textuels pour ces étapes — facilement
+Le wizard CLI imprimait des hints textuels pour ces étapes - facilement
 ignorés. Le skill Claude les exécute systématiquement, donc on supprime
 l'entrée CLI pour fermer la porte aux dérives.
 
@@ -165,14 +165,14 @@ l'entrée CLI pour fermer la porte aux dérives.
 déplacés depuis `src/Core/Module/Command/templates/` vers
 `.claude/skills/add-module/templates/` et `.claude/skills/add-entity/templates/`.
 Le skill lit les `.tpl` via `Read`, substitue les `{{KEY}}` tokens, et
-écrit le résultat via `Write` — aucune duplication.
+écrit le résultat via `Write` - aucune duplication.
 
 **Migration** : si vous avez un script CI qui appelait
 `bin/console aurora:make:*`, remplacez par une invocation Claude (par
 ex. dans un agent CI), ou déclenchez le skill via le harness Claude
 Code en mode batch.
 
-### ⚠️ Cassant — `ApplicationParameterEnumInterface::getPlaceholder(): ?string`
+### ⚠️ Cassant - `ApplicationParameterEnumInterface::getPlaceholder(): ?string`
 
 Nouvelle méthode obligatoire sur l'interface. Tous les enums clients
 implémentant `ApplicationParameterEnumInterface` (settings module) doivent
@@ -203,12 +203,12 @@ Lancer après `make aurora-update` :
 # 1. Déplacer les dossiers d'extension (Agency, User, …) sous Core/Platform/
 git mv src/Module/Core/Agency src/Module/Core/Platform/Agency
 
-# 2. Renommer les namespaces (sed bulk — voir MIGRATION_0.4.md pour la commande complète)
+# 2. Renommer les namespaces (sed bulk - voir MIGRATION_0.4.md pour la commande complète)
 grep -rl 'Aurora\\Core\\Agency\\' src tests config | xargs sed -i 's|Aurora\\Core\\Agency\\|Aurora\\Core\\Platform\\Agency\\|g'
 
 # 3. Ajouter getPlaceholder() sur les enums clients implémentant
 #    ApplicationParameterEnumInterface (au minimum un `return null;`)
-grep -rl "implements ApplicationParameterEnumInterface" src | xargs -I{} echo "Patch {} — add getPlaceholder(): ?string { return null; }"
+grep -rl "implements ApplicationParameterEnumInterface" src | xargs -I{} echo "Patch {} - add getPlaceholder(): ?string { return null; }"
 
 # 4. (Optionnel) Câbler `placeholderKey: $case->getPlaceholder()` sur les
 #    ConfigurationTabProvider clients pour forwarder les placeholders au
@@ -226,11 +226,11 @@ toggles modules rendent en switch (pas d'input).
 ### Ajouté
 
 #### Settings
-- `ConfigurationTab::$moduleToggle` (`ModuleParameterEnum|string|null`) —
+- `ConfigurationTab::$moduleToggle` (`ModuleParameterEnum|string|null`) -
   cache l'onglet de `/backend/settings` quand le module est désactivé
   dans `/dev/dashboard/modules`. 5 tab providers core déjà câblés (Crm,
   Ecommerce, Notes, PersonalFinance, Assistant).
-- `SettingFieldDescriptor::$placeholderKey` (`?string`) — clé i18n
+- `SettingFieldDescriptor::$placeholderKey` (`?string`) - clé i18n
   optionnelle pour le placeholder de l'input. `SettingsViewBuilder`
   traduit + transmet dans le payload Vue ; `SettingsApp.vue` consomme
   via `parameter.placeholder`. Si null + type `text`/`int`/`textarea`,
@@ -243,7 +243,7 @@ toggles modules rendent en switch (pas d'input).
   `AuroraBundle::$resolve_target_entities` + flesh-out des fields.
 
 #### Skills Claude
-- `/audit-module-toggles` — audit read-only de tous les modules contre
+- `/audit-module-toggles` - audit read-only de tous les modules contre
   la convention toggle (20 critères : enum case, getToggles(), Context
   isBackendEnabled, NavSection gating, getCatalogNavSections unfiltered,
   sous-toggles, translations, ConfigurationTab.moduleToggle). Allowlist
@@ -253,10 +253,10 @@ toggles modules rendent en switch (pas d'input).
   scaffoldent les fichiers directement (Read + substitution + Write),
   puis font les edits délicats (patch `ModuleParameterEnum`,
   `aliases.js`, fleshing-out AbstractX). Plus de CLI wizard
-  intermédiaire — un seul point d'entrée, zéro risque de dérive.
+  intermédiaire - un seul point d'entrée, zéro risque de dérive.
 
 #### Templates wizard
-- `src/Core/Module/Command/templates/entity/*.tpl` (13 fichiers) — le
+- `src/Core/Module/Command/templates/entity/*.tpl` (13 fichiers) - le
   pattern 5 couches Sylius vit là, plus en markdown dans le skill.
 - `SettingEnum.php.tpl` et `ConfigurationTabProvider.php.tpl` du wizard
   `make:module` câblent désormais `getPlaceholder() => null` et
@@ -273,17 +273,17 @@ toggles modules rendent en switch (pas d'input).
   absence légitime) + check 26 (audit des toggles de sous-modules).
 - `make aurora-update` (Makefile distribué via `sync-makefile`) :
   enchaîne désormais `make translation && make build` à la fin pour
-  régénérer le bundle Vite avec les i18n du nouveau core — plus de
+  régénérer le bundle Vite avec les i18n du nouveau core - plus de
   clés `backend.foo.bar` brutes affichées après bump.
 - Commentaires aurora-core nettoyés de tous les exemples
   welding-internes (`WLD`, `modules_welding_backend`, `WeldingFoo`,
-  etc.) — welding vit en client depuis 05e374ec, les exemples
+  etc.) - welding vit en client depuis 05e374ec, les exemples
   utilisent maintenant des valeurs neutres (`INV`,
   `modules_<module_id>_backend`, `MyEntity`).
 
 ---
 
-## [0.3.0] — 2026-05-17
+## [0.3.0] - 2026-05-17
 
 ### Ajouté
 - **Module Assistant IA** (Phase 1A + 1B) : chat synchrone avec un LLM local Ollama
@@ -292,7 +292,7 @@ toggles modules rendent en switch (pas d'input).
   mount-points configurables par utilisateur, flow de confirmation pour les
   actions destructives (write).
 - **Onglet "Assistant" dans /backend/settings** : modèle chat, modèle vision,
-  timeout HTTP, num_ctx, prompt système — tunables sans redéploiement (lecture DB
+  timeout HTTP, num_ctx, prompt système - tunables sans redéploiement (lecture DB
   avec fallback env).
 - **`make sync-env`** + `bin/sync-client-env` : détecte les blocs
   `###> aurora/* ###` manquants dans `.env` et les insère au-dessus du divider
@@ -311,19 +311,19 @@ toggles modules rendent en switch (pas d'input).
   système, PHP, Ollama, vars d'env.
 
 ### Changé
-- `Makefile` client : `README.md` n'est plus symlinké depuis le vendor — copié une
+- `Makefile` client : `README.md` n'est plus symlinké depuis le vendor - copié une
   seule fois à l'init, ensuite propriété du client.
-- Docs : plus de symlinks `docs/aurora-*/` côté client — lecture directe dans
+- Docs : plus de symlinks `docs/aurora-*/` côté client - lecture directe dans
   `vendor/axelraboit/aurora/docs/`.
 - Notes settings (Markdown + Block) : labels disambiguïsés
-  ("Notes Markdown — Taille max…" vs "Notes Block — …").
+  ("Notes Markdown - Taille max…" vs "Notes Block - …").
 
-### Dans aurora-client — à faire après `make aurora-update`
+### Dans aurora-client - à faire après `make aurora-update`
 
 | Action | Commande / fichier |
 |--------|-------------------|
 | Ajouter les vars d'env `ASSISTANT_*` et `OCR_*` si absentes | `make sync-env` les ajoute automatiquement |
-| Vérifier que `README.md` est bien un vrai fichier (plus un symlink) | `ls -la README.md` — si symlink, `make sync-claude-md` le remplace par une copie |
+| Vérifier que `README.md` est bien un vrai fichier (plus un symlink) | `ls -la README.md` - si symlink, `make sync-claude-md` le remplace par une copie |
 | Parcourir la section "CLIENT CUSTOM" de `.env` | `make sync-env` a ajouté le divider |
 
 ### Breaking changes
@@ -331,7 +331,7 @@ toggles modules rendent en switch (pas d'input).
 
 ---
 
-## [0.2.0] — 2026-05 (antérieur à ce changelog)
+## [0.2.0] - 2026-05 (antérieur à ce changelog)
 
 Établissement de la base : Posts avec éditeur bloc Editor.js, Notes Markdown
 (wiki-links, graphe), Notes Block (EditorJS), Billing OCR (docTR + Ollama vision),
@@ -341,7 +341,7 @@ symlink, jsconfig, security.yaml).
 
 ---
 
-## [0.1.0] — avant 2026-05
+## [0.1.0] - avant 2026-05
 
 Socle initial : Symfony 7 / PHP 8.4 / Vue 3 / Vite, modules Editorial CMS (Posts,
 Taxonomies, Comments, Forms), CRM, ERP (Products), Ecommerce (Listings, Cart,

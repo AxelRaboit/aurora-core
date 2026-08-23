@@ -19,7 +19,7 @@ use Throwable;
  *
  * The payload carried the visitor's IP address. A form's webhook points at
  * whatever third party an administrator configured, so every submission
- * shipped a visitor's address off the installation — they filled in a contact
+ * shipped a visitor's address off the installation - they filled in a contact
  * form, they did not agree to that. The address stays here, where it is only
  * ever used to recognise abuse.
  *
@@ -64,7 +64,7 @@ readonly class FormWebhookService
             ]);
         } catch (Throwable $throwable) {
             // A webhook that cannot be reached must not lose the submission
-            // that triggered it — the visitor has done nothing wrong, and the
+            // that triggered it - the visitor has done nothing wrong, and the
             // data is already stored.
             $this->logger->warning('Form webhook delivery failed.', [
                 'url' => $url,

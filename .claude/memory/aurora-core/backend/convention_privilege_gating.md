@@ -4,8 +4,8 @@
 
 **Tout privilège doit gate à 2 endroits**, jamais un seul :
 
-1. **Côté serveur (PHP)** — l'autorité, c'est le seul gardien réel
-2. **Côté client (Vue)** — UX, masquer les actions interdites
+1. **Côté serveur (PHP)** - l'autorité, c'est le seul gardien réel
+2. **Côté client (Vue)** - UX, masquer les actions interdites
 
 Les deux ensemble. Jamais l'un sans l'autre.
 
@@ -34,7 +34,7 @@ class PlanningsController extends AbstractController
 
 Si une action n'a pas de `#[IsGranted]` explicite, elle hérite du
 niveau classe. Si la classe non plus, **n'importe qui authentifié peut
-appeler la route** — bug de sécurité.
+appeler la route** - bug de sécurité.
 
 ### Audit serveur
 
@@ -65,7 +65,7 @@ new NavItem(
 )
 ```
 
-`ModuleRegistry::resolveItem()` filtre déjà via la perm — il suffit
+`ModuleRegistry::resolveItem()` filtre déjà via la perm - il suffit
 de la déclarer. Pareil sur `getCatalogNavSections()` (la catalogue
 dev panel doit refléter le même gating). Si l'`IsGranted` classe-level
 du controller est `mod.entity.view`, c'est cette même clé qu'on met
@@ -90,17 +90,17 @@ const canManageEvents = computed(() => can("planning.events.manage"));
 </script>
 
 <template>
-    <!-- Bouton de création — gated -->
+    <!-- Bouton de création - gated -->
     <AppButton v-if="canManagePlannings" variant="primary" v-on:click="openCreate()">
         {{ t("backend.plannings.new") }}
     </AppButton>
 
-    <!-- Actions ligne — gated -->
+    <!-- Actions ligne - gated -->
     <AppIconButton v-if="canManagePlannings" color="rose" v-on:click="confirmDelete">
         <Trash2 />
     </AppIconButton>
 
-    <!-- Modale Save / Delete — gated dans le footer -->
+    <!-- Modale Save / Delete - gated dans le footer -->
     <AppModalFooter>
         <AppButton v-if="!readOnly && canManageEvents" type="submit">
             {{ t("shared.common.save") }}
@@ -219,5 +219,5 @@ servait déjà de référence.
 ## Voir aussi
 
 - [`convention_privilege_translations.md`](convention_privilege_translations.md)
-  — où placer les libellés des privilèges (YAML par module, format
+  - où placer les libellés des privilèges (YAML par module, format
   nested).

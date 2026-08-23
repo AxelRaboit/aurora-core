@@ -65,7 +65,7 @@ final readonly class ImageVariantGenerator
         $generated = [];
         $largestSize = max(self::VARIANT_SIZES);
         foreach (self::VARIANT_SIZES as $variantName => $maxSide) {
-            // Skip downscale when source is already smaller — EXCEPT for the
+            // Skip downscale when source is already smaller - EXCEPT for the
             // largest size: we always want a re-encoded "large" variant so the
             // public download path (web) never falls back to the raw source,
             // which would leak EXIF (geo/camera) on PNG/WebP originals.
@@ -106,7 +106,7 @@ final readonly class ImageVariantGenerator
     public function deleteVariants(array $variants): void
     {
         // Filesystem::remove() accepts an array and silently skips missing
-        // entries — no need for the per-file is_file() guard.
+        // entries - no need for the per-file is_file() guard.
         $this->filesystem->remove(array_map(
             fn (string $relativePath): string => Path::join($this->uploadDir, $relativePath),
             $variants,

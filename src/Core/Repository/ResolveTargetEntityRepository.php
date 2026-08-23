@@ -21,7 +21,7 @@ use Doctrine\Persistence\ObjectManager;
  * This base resolves the actual entity class through the manager's class
  * metadata factory (which honours `resolve_target_entities`), so a single
  * repository class transparently targets either Aurora's default concrete
- * class or the client's substitute — whichever is currently mapped.
+ * class or the client's substitute - whichever is currently mapped.
  *
  * @template T of object
  *
@@ -30,9 +30,9 @@ use Doctrine\Persistence\ObjectManager;
 abstract class ResolveTargetEntityRepository extends ServiceEntityRepository
 {
     /**
-     * @param class-string $defaultClass   aurora's default concrete entity class — used as a fallback
+     * @param class-string $defaultClass   aurora's default concrete entity class - used as a fallback
      *                                     when no manager is registered for it
-     * @param class-string $interfaceClass the entity contract — Doctrine resolves it to whichever
+     * @param class-string $interfaceClass the entity contract - Doctrine resolves it to whichever
      *                                     concrete class is currently mapped
      */
     public function __construct(ManagerRegistry $registry, string $defaultClass, string $interfaceClass)

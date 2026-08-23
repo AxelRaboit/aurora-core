@@ -6,7 +6,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
  *
  * One call, and deliberately so. GED's own `/upload` stops at the bytes and
  * leaves the Document row to its create form, which asks for a category, a
- * folder and tags — right for that screen, wrong for an author picking a
+ * folder and tags - right for that screen, wrong for an author picking a
  * picture in the middle of writing a banner. Chaining the two calls from here
  * used to work but left the filing to the caller, so nothing was filed: the
  * result was a published-looking image that was in fact an uncategorised

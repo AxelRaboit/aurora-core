@@ -1,9 +1,9 @@
 /**
- * Disclosure dropdowns — `<details data-dropdown>`.
+ * Disclosure dropdowns - `<details data-dropdown>`.
  *
  * The markup already works on its own: a <details> opens and closes from its
  * own <summary>, with no script. What native <details> does not do is the part
- * everyone expects from a dropdown — close when you click somewhere else, close
+ * everyone expects from a dropdown - close when you click somewhere else, close
  * on Escape, and step aside when another one opens. This module adds only that,
  * so the page degrades to a still-usable switcher when the script never runs.
  *
@@ -22,7 +22,7 @@ function closeAll(except) {
 
 // A click on a closed <summary> reaches here BEFORE the browser runs the toggle
 // default action, so the dropdown being opened is not yet `[open]` and matches
-// nothing — which is exactly right: every other one closes, then this one opens.
+// nothing - which is exactly right: every other one closes, then this one opens.
 function onClick(event) {
     closeAll(event.target.closest?.(OPEN_SELECTOR) ?? null);
 }
@@ -34,7 +34,7 @@ function onKeydown(event) {
     if (!open) return;
 
     closeAll();
-    // Escape closed the panel from inside it — put the caller back on the
+    // Escape closed the panel from inside it - put the caller back on the
     // trigger rather than dropping focus to the top of the document.
     open.querySelector("summary")?.focus();
 }

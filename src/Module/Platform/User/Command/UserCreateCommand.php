@@ -26,7 +26,7 @@ use Symfony\Component\Validator\Validation;
  * `aurora:install` seeds everything a fresh Aurora needs except this, on
  * purpose: a known email and password shipped by an automated command would be
  * a hole in every deployment that forgot to change it. Credentials are the one
- * thing a human has to decide, so they are asked for — the password prompt is
+ * thing a human has to decide, so they are asked for - the password prompt is
  * hidden and never lands in a file, an environment variable or a CI log.
  *
  * Arguments are accepted for the cases where that is genuinely wanted (a test
@@ -50,8 +50,8 @@ class UserCreateCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('email', null, InputOption::VALUE_REQUIRED, 'Email — demandé si absent')
-            ->addOption('password', null, InputOption::VALUE_REQUIRED, 'Mot de passe — demandé (masqué) si absent')
+            ->addOption('email', null, InputOption::VALUE_REQUIRED, 'Email - demandé si absent')
+            ->addOption('password', null, InputOption::VALUE_REQUIRED, 'Mot de passe - demandé (masqué) si absent')
             ->addOption('name', null, InputOption::VALUE_REQUIRED, 'Nom affiché')
             ->addOption('admin', null, InputOption::VALUE_NONE, 'Donne le rôle administrateur')
             ->addOption('frontend', null, InputOption::VALUE_NONE, 'Crée un compte frontend au lieu du backend');

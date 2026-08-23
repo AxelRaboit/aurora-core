@@ -21,7 +21,7 @@ Coût/bénéfice non justifié :
 ### Côté aurora-core (developer)
 
 - `<Name>Repository` étend `Aurora\Core\Repository\ResolveTargetEntityRepository`
-  (jamais `ServiceEntityRepository` directement — cf
+  (jamais `ServiceEntityRepository` directement - cf
   `pitfall_service_entity_repository.md`).
 - Controllers et Managers type-hint la classe concrete : `private readonly
   AgencyRepository $agencyRepository`.
@@ -65,10 +65,10 @@ type-hint `AgencyRepository`.
 Un client ne peut pas **remplacer** un finder Aurora (overrider
 `findActive` pour ajouter une condition de tenant). Il peut juste en
 ajouter via héritage. Si ce besoin émerge un jour, on pourra ajouter une
-interface a posteriori — mais pas par anticipation.
+interface a posteriori - mais pas par anticipation.
 
 ## Source
 
-Décision de l'audit post-Editorial. Section "Couche bonus —
+Décision de l'audit post-Editorial. Section "Couche bonus -
 ResolveTargetEntityRepository / Étendre une finder method côté client" du
 doc convention.

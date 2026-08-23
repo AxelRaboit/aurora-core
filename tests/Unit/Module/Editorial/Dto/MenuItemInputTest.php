@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  * the message has to land on the input the editor is looking at.
  *
  * These started as `Assert\IsTrue` on getters. That form names the violation
- * after the method — `hasTargetWhenRequired` → `targetWhenRequired` — so
+ * after the method - `hasTargetWhenRequired` → `targetWhenRequired` - so
  * PayloadValidator returned a key no form field carries, the Vue side found
  * nothing to attach it to, and the editor saw a form that refused to save
  * with no error anywhere on it.

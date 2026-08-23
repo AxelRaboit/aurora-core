@@ -4,7 +4,7 @@
 
 Aurora Core est un **bundle Symfony distribué** (`axelraboit/aurora`) qui fournit
 une plateforme d'application métier complète : modules Editorial, CRM, ERP,
-Ecommerce, Billing, Photo, GED, Planning, Project — le tout sur une infrastructure
+Ecommerce, Billing, Photo, GED, Planning, Project - le tout sur une infrastructure
 partagée (authentification, media, audit, séquences, thème, i18n).
 
 L'objectif n'est pas de fournir une application finie. C'est de fournir une
@@ -35,13 +35,13 @@ client peut brancher sans toucher à une seule ligne de vendor.
 Aurora est structuré en deux niveaux :
 
 ```
-src/Core/      — Infrastructure partagée, indépendante de tout module métier
-src/Module/    — Modules métier autonomes (Editorial, CRM, ERP, …)
+src/Core/      - Infrastructure partagée, indépendante de tout module métier
+src/Module/    - Modules métier autonomes (Editorial, CRM, ERP, …)
 ```
 
 **Core** contient tout ce qui pourrait exister dans un bundle Symfony générique :
 utilisateurs, authentification, media, séquences, thème, menus, audit,
-internationalisation. Un module ne doit jamais dépendre d'un autre module — il
+internationalisation. Un module ne doit jamais dépendre d'un autre module - il
 ne dépend que de Core.
 
 **Les modules** sont des domaines métier autonomes. Chacun implémente
@@ -55,24 +55,24 @@ l'inverse).
 ## Le pattern d'extensibilité en 5 couches
 
 Chaque entité Aurora avec une page backend CRUD suit un pattern en 5 couches.
-Ce n'est pas une convention arbitraire — chaque couche répond à un besoin
+Ce n'est pas une convention arbitraire - chaque couche répond à un besoin
 d'extension précis.
 
-### Couche 1 — Entité (`Interface + Abstract + Concrete`)
+### Couche 1 - Entité (`Interface + Abstract + Concrete`)
 
 Un client qui veut ajouter une colonne `code` à `Agency` ne peut pas modifier
 la table Aurora. Il doit substituer l'entité par la sienne. Pour que ça
 fonctionne avec Doctrine (relations, repositories), Aurora expose :
 
-- `AgencyInterface` — le contrat public (getters/setters) utilisé partout dans Aurora
-- `AbstractAgency` — MappedSuperclass avec toutes les colonnes sauf l'id
-- `Agency` — entité concrète avec son id + sa séquence
+- `AgencyInterface` - le contrat public (getters/setters) utilisé partout dans Aurora
+- `AbstractAgency` - MappedSuperclass avec toutes les colonnes sauf l'id
+- `Agency` - entité concrète avec son id + sa séquence
 
 Le client étend `AbstractAgency`, déclare sa propre table, et déclare la
 substitution via `resolve_target_entities`. Aurora n'a aucun `new Agency()`
-direct — il passe par `$this->createAgency()`.
+direct - il passe par `$this->createAgency()`.
 
-### Couche 2 — DTO + Factory
+### Couche 2 - DTO + Factory
 
 Le controller Aurora reçoit un `AgencyInputInterface` qu'il reconstruit via
 `AgencyInputFactoryInterface`. Le client décore la factory avec `#[AsAlias]`
@@ -82,25 +82,25 @@ Aurora et ajoute ses champs.
 Sans cette couche, le client ne peut pas ajouter un champ au formulaire sans
 forker le controller.
 
-### Couche 3 — Manager
+### Couche 3 - Manager
 
 Le Manager orchestre le cycle de vie de l'entité (persist, flush, audit). Il
 expose des hooks `protected` :
 
-- `createAgency()` — le client retourne sa propre classe
-- `applyInput()` — le client appelle `parent::applyInput()` puis hydrate ses champs
-- `auditPayload()` — le client splat-merge les champs supplémentaires dans le log
+- `createAgency()` - le client retourne sa propre classe
+- `applyInput()` - le client appelle `parent::applyInput()` puis hydrate ses champs
+- `auditPayload()` - le client splat-merge les champs supplémentaires dans le log
 
 Sans ces hooks, le client doit copier toute la logique de persist + audit pour
 ajouter un seul setter.
 
-### Couche 4 — Serializer
+### Couche 4 - Serializer
 
 Le Serializer produit le payload JSON consommé par les composants Vue. Le client
 étend le Serializer Aurora et override `serialize()` pour ajouter ses champs au
 tableau retourné par `parent::serialize()`.
 
-### Couche 5 — Vue (slots + extraFields)
+### Couche 5 - Vue (slots + extraFields)
 
 Le composant Vue Aurora expose des **slots scoped** (`extra-headers`,
 `extra-cells`, `extra-form-fields`) et une prop `extraFields`. Le client passe
@@ -119,7 +119,7 @@ Chaque module est une unité autonome qui :
 
 Le `ModuleRegistry` collecte tous les modules taggés et les intègre dans la
 sidemenu admin, le système de permissions et le routing. Ajouter un module ne
-nécessite aucune modification du code Aurora — juste le tag.
+nécessite aucune modification du code Aurora - juste le tag.
 
 ### Les permissions
 
@@ -141,8 +141,8 @@ Aurora utilise PostgreSQL `SEQUENCE` pour tous les PKs et les références méti
 pour éviter les collisions avec des entités client homonymes. Les préfixes de
 références sont configurables dans l'admin et définis dans `SequencePrefixEnum`.
 
-Si un client réutilise un préfixe Aurora, une `LogicException` est levée au boot
-— le conflit est détecté immédiatement.
+Si un client réutilise un préfixe Aurora, une `LogicException` est levée au boot,
+le conflit est détecté immédiatement.
 
 ---
 

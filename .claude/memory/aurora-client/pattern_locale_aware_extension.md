@@ -107,7 +107,7 @@ Tous les consumers d'aurora-core (Managers, ViewBuilders, Serializers,
 aurora-core (`French = 'fr'`, `English = 'en'`). Tu ne peux **pas**
 ajouter une nouvelle locale (es, de…) depuis aurora-client.
 
-**Et c'est volontaire — c'est la bonne approche.** Toujours ajouter une
+**Et c'est volontaire - c'est la bonne approche.** Toujours ajouter une
 locale **dans aurora-core** plutôt que de la bricoler côté client.
 Pourquoi :
 

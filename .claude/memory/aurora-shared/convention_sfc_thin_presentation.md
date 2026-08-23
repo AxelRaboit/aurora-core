@@ -60,7 +60,7 @@ extrais-la dans un composable :
 ### 2. Au refacto / à l'audit
 
 ```bash
-# Repère les SFC trop gros — candidats à extraction
+# Repère les SFC trop gros - candidats à extraction
 find assets -name "*.vue" -exec wc -l {} \; | sort -rn | head -20
 
 # Repère les <script setup> trop volumineux dans un .vue donné
@@ -131,5 +131,5 @@ L'utilisateur a rappelé cette règle explicitement le **2026-05-16** :
 *"souvent quelques choses que tu oublies, faut bien noter quelque part
 cette convention car c'est très important"*. Cette mémoire existe
 spécifiquement pour qu'elle soit dans le contexte à **chaque nouvelle
-session**. Le SFC fin n'est pas optionnel — c'est la convention de
+session**. Le SFC fin n'est pas optionnel - c'est la convention de
 référence pour tout `.vue` Aurora.

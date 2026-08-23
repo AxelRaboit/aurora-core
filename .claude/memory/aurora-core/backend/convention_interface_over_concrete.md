@@ -3,7 +3,7 @@
 ## Règle
 
 **Dans toutes les signatures (paramètres, retours, propriétés, génériques),
-type-hint l'Interface d'une entité instrumentée — jamais la Concrete.**
+type-hint l'Interface d'une entité instrumentée - jamais la Concrete.**
 
 S'applique partout où une entité instrumentée (cf
 [`convention_extensibility.md`](convention_extensibility.md)) circule :
@@ -11,7 +11,7 @@ S'applique partout où une entité instrumentée (cf
 - **Repository** : params `findByXxx(EntityInterface $x)` + retours
   `@return list<EntityInterface>`. Le repo extends
   `ResolveTargetEntityRepository<EntityInterface>`, donc `findOneBy`,
-  `findBy`, `find` retournent l'Interface — propage la signature.
+  `findBy`, `find` retournent l'Interface - propage la signature.
 - **Manager** : params `Manager::doStuff(EntityInterface $x)`, retours
   `: EntityInterface`. Same dans `<Name>ManagerInterface`.
 - **Serializer** : `serialize(EntityInterface $x): array`.
@@ -22,7 +22,7 @@ S'applique partout où une entité instrumentée (cf
 - **Collections génériques** : `Collection<int, EntityInterface>` partout
   (Doctrine `OneToMany` / `ManyToMany`).
 - **`array_map` / `array_filter` callbacks** sur résultats de repo :
-  `static fn (EntityInterface $x): array => ...` — pas la Concrete.
+  `static fn (EntityInterface $x): array => ...` - pas la Concrete.
 - **`@implements UserProviderInterface<CoreUserInterface>`**, pareil pour
   toute interface générique acceptant une entité instrumentée.
 
@@ -35,7 +35,7 @@ Là on garde la concrete.
 Un client (aurora-client ou autre) qui étend une entité via la convention
 extensibility (`AppPost extends Post`) doit pouvoir circuler dans tout le
 code Aurora-core sans variance error. Si Aurora-core a `setAuthor(User $u)`,
-le client ne peut pas y passer son `AppUser extends User` sans recast — et
+le client ne peut pas y passer son `AppUser extends User` sans recast - et
 un Manager héritant ne peut pas overrider la signature pour `AppUser`
 (violation LSP).
 
@@ -76,7 +76,7 @@ Si PHPStan râle parce qu'un `setXxx(?Concrete)` reçoit `?Interface` :
 - **Élargir le getter** par cohérence si ça pointe une relation.
 - Si l'entité Concrete dépend de méthodes spécifiques à la Concrete
   (jamais le cas pour les relations), c'est un signal qu'il manque une
-  méthode dans l'Interface — l'ajouter là.
+  méthode dans l'Interface - l'ajouter là.
 
 ### Échappatoire
 

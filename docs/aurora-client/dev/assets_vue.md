@@ -1,4 +1,4 @@
-# Assets Vue — Composants côté client
+# Assets Vue - Composants côté client
 
 ## Structure
 
@@ -28,7 +28,7 @@ Les composants sont enregistrés automatiquement par Aurora selon leur chemin :
 | Fichier | Identifiant vue_component |
 |---|---|
 | `src/Module/Tracking/assets/admin/ProjectsApp.vue` | `tracking/admin/ProjectsApp` |
-| `src/Module/Platform/Agency/assets/backend/agencies/AgenciesApp.vue` | `platform/backend/agencies/AgenciesApp` *(co-localisé avec l'extension PHP — shadow direct via clientModules)* |
+| `src/Module/Platform/Agency/assets/backend/agencies/AgenciesApp.vue` | `platform/backend/agencies/AgenciesApp` *(co-localisé avec l'extension PHP - shadow direct via clientModules)* |
 
 Dans Twig :
 
@@ -145,15 +145,15 @@ const editForm = reactive({
 });
 
 // Submit
-await request(url, { ...editForm });  // spread — envoie tout
+await request(url, { ...editForm });  // spread - envoie tout
 ```
 
 ```js
-// ❌ Éviter — champs parasites
+// ❌ Éviter - champs parasites
 const editForm = reactive({
   title: '',
-  isLoading: false,    // état UI — ne pas mettre ici
-  displayLabel: computed(() => editForm.title.toUpperCase()),  // computed — ne pas mettre ici
+  isLoading: false,    // état UI - ne pas mettre ici
+  displayLabel: computed(() => editForm.title.toUpperCase()),  // computed - ne pas mettre ici
 });
 ```
 
@@ -211,7 +211,7 @@ src/Module/Platform/Agency/assets/backend/agencies/AgenciesApp.vue
 ```
 
 Le chemin `vue_component('platform/backend/agencies/AgenciesApp')` reste
-identique — le glob `@client/src/Module/**/assets/**/*.vue` flatten les
+identique - le glob `@client/src/Module/**/assets/**/*.vue` flatten les
 feature folders, donc la clé exposée est la même que celle d'Aurora.
 Comme `clientModules` est spread APRÈS `auroraModules`, ton fichier wins
 automatiquement. Détail (règle des deux mirrors PHP/URL) :
@@ -222,7 +222,7 @@ automatiquement. Détail (règle des deux mirrors PHP/URL) :
 ## Lancer le dev serveur
 
 ```bash
-make dev     # Vite en mode watch — rechargement à chaud
+make dev     # Vite en mode watch - rechargement à chaud
 make build   # Build de production
 ```
 
@@ -265,6 +265,6 @@ ln -s ../vendor/axelraboit/aurora/public/build public/build
 
 ### Pourquoi le symlink survit-il à `.gitignore` ?
 
-Le `.gitignore` aurora-client a `/public/build/` (avec trailing slash)
-— qui ne matche que les **directories**. Git voit le symlink comme un
+Le `.gitignore` aurora-client a `/public/build/` (avec trailing slash),
+qui ne matche que les **directories**. Git voit le symlink comme un
 fichier (mode 120000), donc il échappe à la règle et reste trackable.

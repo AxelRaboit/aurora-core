@@ -2,7 +2,7 @@
 /**
  * Search and notifications, at the top right of every backend page.
  *
- * They used to sit in the side menu, above the nav filter — which put two
+ * They used to sit in the side menu, above the nav filter - which put two
  * controls that have nothing to do with navigation inside the thing that
  * navigates, and hid them both whenever the menu was folded to icons.
  *
@@ -10,7 +10,7 @@
  * **The search button could not.** Its palette is a large piece of markup
  * living in `AppSidemenu`, and dragging that across would be moving a feature
  * to move a button. So the button announces itself and the menu opens the
- * palette — `SEARCH_OPEN_EVENT`, the same mechanism the fold control uses,
+ * palette - `SEARCH_OPEN_EVENT`, the same mechanism the fold control uses,
  * because these are two Vue apps that cannot see each other's refs.
  */
 import { useI18n } from "vue-i18n";

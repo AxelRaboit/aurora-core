@@ -4,8 +4,8 @@ import { Download, Eye, Pencil, QrCode, Trash2 } from "lucide-vue-next";
 /**
  * What one document offers, which depends on whether it has a file at all.
  *
- * The library keeps records with no file behind them — a draft waiting for its
- * upload — and downloading or printing a QR code for one of those would offer
+ * The library keeps records with no file behind them - a draft waiting for its
+ * upload - and downloading or printing a QR code for one of those would offer
  * an address that resolves to nothing. Three conditions that were three `v-if`
  * repeated in two places, since the row is written once for the cards and once
  * for the table.

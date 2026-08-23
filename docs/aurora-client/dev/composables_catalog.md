@@ -10,7 +10,7 @@
 
 ---
 
-## 1. Composables — Form (`@shared/composables/form/`)
+## 1. Composables - Form (`@shared/composables/form/`)
 
 ### `useForm()`
 
@@ -32,7 +32,7 @@ const ok = validate({ name: () => required(t('required'))(form.name) });
 if (!ok) return;
 ```
 
-Préférer **`useFormAction`** ou **`useFormModal`** dans 90 % des cas — `useForm`
+Préférer **`useFormAction`** ou **`useFormModal`** dans 90 % des cas - `useForm`
 ne fait pas le HTTP.
 
 ### `useServerErrors()`
@@ -66,7 +66,7 @@ const { errors, loading, submit, validate, clearErrors } = useFormAction({
 });
 ```
 
-Pitfall : `url` et `body` sont des **getters lazy** — ils sont appelés à
+Pitfall : `url` et `body` sont des **getters lazy** - ils sont appelés à
 chaque `submit()`. Pratique pour les URLs avec ID dynamique.
 
 ### `useFormModal({ empty, fromEntity?, createUrl, editUrl, buildBody?, rules?, onSuccess? })`
@@ -145,7 +145,7 @@ await submit(url, { field: 'status', value: 'paid' }, { silent: true });
 ```
 
 Différence avec `useFormAction` : pas de validation client, pas d'erreurs
-réactives — c'est pour les mutations "one button click → toast".
+réactives - c'est pour les mutations "one button click → toast".
 
 ### `useSlugLock({ getTitle, setSlug })`
 
@@ -158,13 +158,13 @@ const { locked, toggle } = useSlugLock({
 });
 ```
 
-Pitfall : `getTitle`/`setSlug` sont des fonctions, pas des `ref()` — c'est
+Pitfall : `getTitle`/`setSlug` sont des fonctions, pas des `ref()` - c'est
 volontaire pour cibler un champ nested dans `editForm`.
 
 ### `useAuthForm(initialErrors?)`
 
 Variante front-public pour les flows d'auth (login/register/reset). Les
-erreurs serveur arrivent en props Twig — `useAuthForm` les pré-traduit. Le
+erreurs serveur arrivent en props Twig - `useAuthForm` les pré-traduit. Le
 submit retombe sur le `<form>` natif (full reload).
 
 ```js
@@ -174,9 +174,9 @@ const { errors, submitOnValid } = useAuthForm(props.errors);
 
 ---
 
-## 2. Composables — HTTP (`@shared/composables/http/`)
+## 2. Composables - HTTP (`@shared/composables/http/`)
 
-### Backend — `useRequest()`
+### Backend - `useRequest()`
 
 **Le client HTTP standard du backoffice.** Toast d'erreur automatique sur
 échec réseau / 5xx, garde anti-double-clic via `loading`.
@@ -188,22 +188,22 @@ const data = await request(url, body, methodOrOpts);
 
 | Arg | Type | Défaut |
 |---|---|---|
-| `url` | `String` | — |
+| `url` | `String` | - |
 | `body` | `*` | `null` (sérialisé JSON ; ou `rawBody` pour FormData) |
 | `methodOrOpts` | `String` ou `{ method, signal, noGuard, rawBody }` | `"POST"` |
 
 Options avancées :
 
-- `method` — `GET` / `PUT` / `DELETE` / … (voir `HttpMethod`).
-- `signal` — `AbortSignal` ; abort silencieux (retourne `null` sans toast).
-- `noGuard` — désactive `loading` (utile pour séquences en boucle).
-- `rawBody` — `FormData`/`Blob` à passer tel quel (skip `JSON.stringify`).
+- `method` - `GET` / `PUT` / `DELETE` / … (voir `HttpMethod`).
+- `signal` - `AbortSignal` ; abort silencieux (retourne `null` sans toast).
+- `noGuard` - désactive `loading` (utile pour séquences en boucle).
+- `rawBody` - `FormData`/`Blob` à passer tel quel (skip `JSON.stringify`).
 
 Retourne le payload JSON parsé, ou `null` en cas d'erreur (toast déjà émis).
-Les status 400/409/422 sont **considérés comme métier** — vous récupérez le
+Les status 400/409/422 sont **considérés comme métier** - vous récupérez le
 JSON avec `data.success: false` et `data.errors`.
 
-### Backend — `usePaginatedFetch(getPath, getExtraParams?, onData?, initialData?)`
+### Backend - `usePaginatedFetch(getPath, getExtraParams?, onData?, initialData?)`
 
 Pagination XHR (sans reload). Émet `?page=N&...extraParams`.
 
@@ -212,10 +212,10 @@ const { items, loading, page, totalPages, total, load, goToPage, reset } =
     usePaginatedFetch(listPath, () => ({ search: search.value }), null, initialPayload);
 ```
 
-Pitfall : retourne `null` pour les paramètres `undefined/null/""` — ils ne
+Pitfall : retourne `null` pour les paramètres `undefined/null/""` - ils ne
 sont **pas** sérialisés dans l'URL. Pratique pour de la recherche optionnelle.
 
-### Backend — `useLoadMore(path, initial?, getExtraParams?)`
+### Backend - `useLoadMore(path, initial?, getExtraParams?)`
 
 Pagination "Load more" : append au lieu de remplacer.
 
@@ -226,7 +226,7 @@ const { items, page, totalPages, hasMore, loading, loadMore } =
 
 Template : `<AppLoadMore :has-more="hasMore" :loading="loading" v-on:load="loadMore" />`.
 
-### Backend — `useImageUpload({ onSuccess, onError, endpoint? })`
+### Backend - `useImageUpload({ onSuccess, onError, endpoint? })`
 
 Upload image multipart (par défaut `/backend/media/media/upload`).
 
@@ -237,12 +237,12 @@ const { uploading, inputRef, uploadFromEvent } = useImageUpload({
 // <input type="file" ref="inputRef" hidden v-on:change="uploadFromEvent" />
 ```
 
-### Frontend — `useRequest()` (`@shared/composables/http/frontend/`)
+### Frontend - `useRequest()` (`@shared/composables/http/frontend/`)
 
 **Différent du backend :**
 
-- Pas de toast automatique — vous gérez l'erreur inline (banner, field).
-- Pas de garde `loading` — concurrent requests autorisés.
+- Pas de toast automatique - vous gérez l'erreur inline (banner, field).
+- Pas de garde `loading` - concurrent requests autorisés.
 - Sur exception réseau : renvoie `{ success: false, errors: { _global: '…' } }`
   (pas `null`).
 
@@ -256,7 +256,7 @@ if (!data?.success) bannerMessage.value = data.errors._global;
 > brut** dans le code applicatif → `useRequest` (admin) ou
 > `useRequest` (frontend) selon le contexte.
 
-### Frontend — `usePaginatedSearch({ initialItems, initialPage, initialTotalPages, initialTotal, searchPath, itemsKey })`
+### Frontend - `usePaginatedSearch({ initialItems, initialPage, initialTotalPages, initialTotal, searchPath, itemsKey })`
 
 Recherche + pagination pour pages publiques (frontend). Debounce 300 ms,
 `itemsKey` pointe sur la clé du payload (`'posts'`, `'listings'`, …).
@@ -274,7 +274,7 @@ const { items, query, page, totalPages, loading, onSearch, goToPage } = usePagin
 
 ---
 
-## 3. Composables — List (`@shared/composables/list/`)
+## 3. Composables - List (`@shared/composables/list/`)
 
 ### `useListPage(listPath, opts?)`
 
@@ -285,7 +285,7 @@ pagination XHR + recherche debounced + sync URL.
 const { items, loading, page, totalPages, total, search, onSearch, goToPage, reload, load } =
     useListPage(props.listPath, {
         initialSearch: props.search,
-        initialData:   props.initialData,       // payload SSR — skip le premier XHR
+        initialData:   props.initialData,       // payload SSR - skip le premier XHR
         extraParams:   () => ({ status: filter.value }),
         searchParam:   'search',                // nom du query param
         onData:        (data) => { extraTotals.value = data.totals; },
@@ -318,7 +318,7 @@ toggle(media.id);
 selectAll(items.value.map(i => i.id));
 ```
 
-`selectedIds` est un `Set` réactif — `selectedIds.value.has(id)` côté template.
+`selectedIds` est un `Set` réactif - `selectedIds.value.has(id)` côté template.
 
 ### `useUrlSearchSync(paramName?)`
 
@@ -329,7 +329,7 @@ const syncUrl = useUrlSearchSync('q');
 syncUrl(search.value);   // ?q=foo  ou retire ?q si vide
 ```
 
-Utilisé en interne par `useListPage` — vous l'invoquez rarement directement.
+Utilisé en interne par `useListPage` - vous l'invoquez rarement directement.
 
 ### `useUrlSyncedState({ initial, serialize, deserialize, onSync? })`
 
@@ -346,12 +346,12 @@ const { state, set } = useUrlSyncedState({
 set('archived');     // pushState + onSync
 ```
 
-Pitfall : **un seul `useUrlSyncedState` par page** — la clé `value` dans
+Pitfall : **un seul `useUrlSyncedState` par page** - la clé `value` dans
 `history.state` n'est pas namespacée.
 
 ---
 
-## 4. Composables — Tree, Nav, Overlay, divers
+## 4. Composables - Tree, Nav, Overlay, divers
 
 ### `useHierarchicalTree.js` (functions, pas un hook)
 
@@ -391,7 +391,7 @@ serveur rend déjà l'archive).
 ### `useBackButtonClose({ isOpen, onClose })` (`@shared/composables/overlay/`)
 
 Brancher la touche Back du navigateur sur la fermeture d'un overlay/modal.
-**Utilisé en interne par `AppModal`** — vous l'invoquez rarement
+**Utilisé en interne par `AppModal`** - vous l'invoquez rarement
 directement, sauf si vous écrivez un overlay custom (drawer latéral, panel
 plein écran).
 
@@ -468,7 +468,7 @@ const { size, dragging, startResize, reset } = useResizable({
 
 ---
 
-## 5. Utilitaires — Format (`@shared/utils/format/`)
+## 5. Utilitaires - Format (`@shared/utils/format/`)
 
 ### `slugify(text)` / `slugifyIfEmpty(currentSlug, source)`
 
@@ -489,7 +489,7 @@ formatBpAsPercent(2000);                   // '20,00%'    (basis points)
 
 Pitfall : `formatCurrency` prend des **unités** (19.9), `formatCents` prend
 des **cents entiers** (1990). Les factures et invoice lines stockent en cents
-(`amount_cents`) — utilisez `formatCents`.
+(`amount_cents`) - utilisez `formatCents`.
 
 ### `parseMoney(raw)`
 
@@ -522,9 +522,9 @@ Tokens ≥ 2 char, escape regex appliquée.
 
 ---
 
-## 6. Utilitaires — Validation (`@shared/utils/validation/`)
+## 6. Utilitaires - Validation (`@shared/utils/validation/`)
 
-### `validators.js` — `required(msg)`, `email(msg)`, `url(msg)`, `compose(...validators)`
+### `validators.js` - `required(msg)`, `email(msg)`, `url(msg)`, `compose(...validators)`
 
 Factory pattern : chaque validator est une fonction `(value) => null | string`.
 
@@ -552,12 +552,12 @@ const translated = translateServerErrors(t, data.errors);
 // 'photo.galleries.errors.slug_taken' → 'Ce slug est déjà utilisé.'
 ```
 
-Utilisé en interne par `useServerErrors`/`useFormAction` — invocation directe
+Utilisé en interne par `useServerErrors`/`useFormAction` - invocation directe
 seulement si vous gérez le HTTP vous-même.
 
 ---
 
-## 7. Composables — Format & UI helpers
+## 7. Composables - Format & UI helpers
 
 ### `useDateFormat()` (`@shared/composables/format/`)
 
@@ -603,7 +603,7 @@ Lifecycle helper pour des side-effects au mount/unmount d'un layout
 
 ---
 
-## 8. Composables — Auto-save (`@shared/composables/`)
+## 8. Composables - Auto-save (`@shared/composables/`)
 
 ### `useAutoSave({ value, save, debounce? })`
 
@@ -650,7 +650,7 @@ const { items, search, filters, reset } = useClientFilteredList(props.allItems, 
 
 ---
 
-## 7. Utilitaires — HTTP (`@shared/utils/http/`)
+## 7. Utilitaires - HTTP (`@shared/utils/http/`)
 
 ### `buildPath(template, params)`
 
@@ -698,7 +698,7 @@ submitForm('/admin/duplicate', csrfToken, { sourceId: 42 });
 
 ---
 
-## 8. Utilitaires — i18n (`@shared/utils/i18n/`)
+## 8. Utilitaires - i18n (`@shared/utils/i18n/`)
 
 ### `pickTranslation(entity, locale, fallbackLocale?)` / `translatedField(entity, field, locale, fallback?)`
 
@@ -717,9 +717,9 @@ Voir aussi la mémoire `utility_pick_translation` pour les cas tordus
 
 ---
 
-## 9. Utilitaires — divers
+## 9. Utilitaires - divers
 
-### `lang.js` — `Locale`, `DEFAULT_LOCALES`, `LOCALE_LABELS`
+### `lang.js` - `Locale`, `DEFAULT_LOCALES`, `LOCALE_LABELS`
 
 Enum frozen des locales supportées (`fr`, `en`, `es`, `de`).
 
@@ -728,7 +728,7 @@ import { Locale, LOCALE_LABELS } from '@/shared/utils/lang.js';
 LOCALE_LABELS[Locale.Fr];   // 'Français'
 ```
 
-### `documentPicker.js` — `openDocumentPicker({ imagesOnly?, mimeFilter?, multiple?, listPath? })`
+### `documentPicker.js` - `openDocumentPicker({ imagesOnly?, mimeFilter?, multiple?, listPath? })`
 
 Wrapper impératif autour du `DocumentPickerModal`. Retourne une Promise
 résolue avec le document sélectionné (ou `null` si annulé). `multiple: true`
@@ -743,12 +743,12 @@ if (doc) {
 }
 ```
 
-> Utilisé par `AppImagePickerField` — invocation directe utile dans des
+> Utilisé par `AppImagePickerField` - invocation directe utile dans des
 > contextes custom (blocks editor, attachments inline).
 > Remplace l'ancien `openMediaPicker` retiré en Phase 4 du merge
 > Media → GED (2026-05-30).
 
-### `platform.js` — `isMac`, `modKeyLabel`
+### `platform.js` - `isMac`, `modKeyLabel`
 
 ```js
 import { isMac, modKeyLabel } from '@/shared/utils/platform.js';
@@ -761,9 +761,9 @@ import { isMac, modKeyLabel } from '@/shared/utils/platform.js';
 
 Volontairement omis (utilitaires de niche ou plombérie interne) :
 
-- `@shared/utils/data/` — `deepMerge`, `mergeBlocks`, `parseJson`, `revisionDiff`, `blocksRenderer` : pertinents seulement pour l'éditeur de blocks Post / GED.
-- `@shared/utils/seo/` — `jsonLd`, `seoCounter` : utilisés par les SEO panels frontend.
-- `@shared/utils/tree/` — `folderTree` : helper module Media spécifique.
+- `@shared/utils/data/` - `deepMerge`, `mergeBlocks`, `parseJson`, `revisionDiff`, `blocksRenderer` : pertinents seulement pour l'éditeur de blocks Post / GED.
+- `@shared/utils/seo/` - `jsonLd`, `seoCounter` : utilisés par les SEO panels frontend.
+- `@shared/utils/tree/` - `folderTree` : helper module Media spécifique.
 - `@shared/utils/enums/imageLoadStatus.js`, `@shared/utils/format/currencies.js`, `statusStyles.js` : enums/maps internes consommés par un seul composant Aurora.
 - `@shared/utils/validation/passwordRules.js`, `passwordStrength.js`, `validation.js` (`EMAIL_REGEX`) : utilisés par `AppPasswordStrength`, rarement directement.
 

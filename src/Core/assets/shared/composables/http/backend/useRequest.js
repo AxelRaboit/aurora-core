@@ -14,10 +14,10 @@ import { HttpStatus } from "@/shared/utils/http/HttpStatus.js";
  *   { method, signal, noGuard, rawBody }
  *
  * Options:
- *   method    — HTTP method string (default: POST)
- *   signal    — AbortSignal for cancellation; aborted requests are silently ignored
- *   noGuard   — skip the loading guard so sequential calls in a loop work
- *   rawBody   — pass a non-JSON body (FormData, Blob…); Content-Type is omitted
+ *   method    - HTTP method string (default: POST)
+ *   signal    - AbortSignal for cancellation; aborted requests are silently ignored
+ *   noGuard   - skip the loading guard so sequential calls in a loop work
+ *   rawBody   - pass a non-JSON body (FormData, Blob…); Content-Type is omitted
  */
 export function useRequest() {
     const { t } = useI18n();

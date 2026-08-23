@@ -14,7 +14,7 @@ quelle classe décorée), tu DOIS dans le **même commit** :
 2. Mettre à jour **chaque decorator** qui wrappe cette interface
 3. S'assurer que chaque decorator **forward** le nouvel arg à `$this->inner`
 
-Si tu oublies (2) ou (3), PHP n'émettra **aucune erreur** — il drop
+Si tu oublies (2) ou (3), PHP n'émettra **aucune erreur** - il drop
 silencieusement les args en trop côté appelant. Les tests unitaires qui
 ciblent le Manager direct (sans decorator) passent. Mais en runtime
 (controller → service via DI), le decorator est en première ligne et la
@@ -49,10 +49,10 @@ Pour chaque ajout d'arg à une méthode d'un Manager :
    tous doivent avoir la nouvelle signature.
 2. **Grep `class .*Decorator\b` dans le module** → chaque decorator
    doit aussi être mis à jour ET forward le nouvel arg.
-3. **Tester via le controller** (pas juste le test unit du Manager) — un
+3. **Tester via le controller** (pas juste le test unit du Manager) - un
    test d'intégration ou un test manuel via l'UI attrape ce cas.
 
-Cas concret : commit qui a introduit le bug — ajout de `$navSectionColors`
+Cas concret : commit qui a introduit le bug - ajout de `$navSectionColors`
 à `UserManager::updateSidemenuPreferences()` (commit `9137db67`) sans
 mettre à jour `UserManagerInterface` ni `AuditUserManagerDecorator`. Les 5
 tests d'intégration du Manager passaient. Le bug s'est manifesté en UI :

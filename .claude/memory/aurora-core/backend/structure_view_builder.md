@@ -1,4 +1,4 @@
-# ViewBuilder — payload Twig pour les pages admin
+# ViewBuilder - payload Twig pour les pages admin
 
 ## Règle
 
@@ -53,12 +53,12 @@ final readonly class AgenciesViewBuilder
 ## Conventions
 
 - **Nom** : `<Plural>ViewBuilder` (au pluriel, cohérent avec le Controller).
-- **Class** : `final readonly` (pas un point d'extension Sylius — interne au
+- **Class** : `final readonly` (pas un point d'extension Sylius - interne au
   module). Si l'utilisateur veut customiser un payload, il décore le
   ViewBuilder via `#[AsDecorator]` ou override le template Twig directement.
 - **Méthodes** : nommées par "page" : `indexView()`, `detailView()`,
   `editView()`, `buildListPayload()` (pour les endpoints JSON).
-- **Retour** : `array<string, mixed>` toujours — le Twig consomme
+- **Retour** : `array<string, mixed>` toujours - le Twig consomme
   directement, pas de DTO de view.
 
 ## Patterns courants
@@ -102,7 +102,7 @@ public function indexView(PaginationRequest $pagination): array
 }
 ```
 
-Note l'astuce **`__id__`** — placeholder remplacé côté JS par `buildPath()`
+Note l'astuce **`__id__`** - placeholder remplacé côté JS par `buildPath()`
 quand un user clique sur edit/delete sur un item. Pas besoin de générer
 une URL par item dans le ViewBuilder.
 
@@ -147,11 +147,11 @@ admin Taxonomies a besoin des PostTypes pour le binding many-to-many).
 Pour les contrôleurs frontend (public), le ViewBuilder va dans
 `View/Frontend/` et doit :
 
-1. **Injecter `ViewBuilder` (core)** et appeler `$this->baseViewBuilder->baseView($locale)` — fournit `locale`, `context`, `themeContext`, `pageDescription`, `alternates` requis par le layout.
+1. **Injecter `ViewBuilder` (core)** et appeler `$this->baseViewBuilder->baseView($locale)` - fournit `locale`, `context`, `themeContext`, `pageDescription`, `alternates` requis par le layout.
 2. **Merger** avec les données de la page via `array_merge()` ou `+`.
 3. **Séparer** payload Twig initial (`indexView`) de la logique de données réutilisable par un endpoint JSON (`pageData`).
 
-**Ne pas injecter `Context` ni `ThemeContext`** dans le ViewBuilder frontend — `baseView()` les gère déjà en interne. Les injecter en plus produit des warnings PHPStan ("property only written").
+**Ne pas injecter `Context` ni `ThemeContext`** dans le ViewBuilder frontend - `baseView()` les gère déjà en interne. Les injecter en plus produit des warnings PHPStan ("property only written").
 
 ```php
 final readonly class DocumentsViewBuilder
@@ -159,7 +159,7 @@ final readonly class DocumentsViewBuilder
     public function __construct(
         private DocumentRepository $documentRepository,
         private DocumentSerializerInterface $documentSerializer,
-        private ViewBuilder $baseViewBuilder,  // Core\Frontend\View\ViewBuilder — suffit
+        private ViewBuilder $baseViewBuilder,  // Core\Frontend\View\ViewBuilder - suffit
     ) {}
 
     public function indexView(string $locale, int $page, string $searchPath): array
@@ -183,7 +183,7 @@ final readonly class DocumentsViewBuilder
 }
 ```
 
-Le contrôleur frontend n'injecte plus ni repo ni serializer — juste le ViewBuilder frontend.
+Le contrôleur frontend n'injecte plus ni repo ni serializer - juste le ViewBuilder frontend.
 
 ## Anti-patterns
 
@@ -194,4 +194,4 @@ Le contrôleur frontend n'injecte plus ni repo ni serializer — juste le ViewBu
 - ❌ ViewBuilder qui appelle l'EntityManager directement. Utiliser un
   Repository.
 - ❌ Contrôleur frontend qui injecte repo + serializer directement sans
-  ViewBuilder — viole la séparation HTTP flow / data preparation.
+  ViewBuilder - viole la séparation HTTP flow / data preparation.

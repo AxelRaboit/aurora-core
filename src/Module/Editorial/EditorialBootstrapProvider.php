@@ -30,7 +30,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * taxonomies they classify with, and a menu per declared location.
  *
  * Without a post type nothing can be written at all, so this is not demo
- * data — it is the difference between an installed site and an unusable one.
+ * data - it is the difference between an installed site and an unusable one.
  * Runs at priority 50, below core's 100, so the locales it translates into
  * already exist.
  */
@@ -100,7 +100,7 @@ final readonly class EditorialBootstrapProvider implements BootstrapProviderInte
     }
 
     /**
-     * Categories nest, tags do not — the distinction the whole taxonomy
+     * Categories nest, tags do not - the distinction the whole taxonomy
      * screen is built around, seeded as one example of each. Both attach to
      * `article` only: pages are not usually classified.
      *
@@ -145,7 +145,7 @@ final readonly class EditorialBootstrapProvider implements BootstrapProviderInte
      * Both halves are matched, never overwritten: an existing menu keeps the
      * name an admin gave it, and a default entry is recognised by its
      * reference, so re-running this does not re-add an entry someone deleted
-     * on purpose — nor duplicate one they moved.
+     * on purpose - nor duplicate one they moved.
      *
      * @return iterable<string>
      */

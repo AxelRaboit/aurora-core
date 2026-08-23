@@ -8,7 +8,7 @@ import { required } from "@/shared/utils/validation/validators.js";
 
 // `extraFields` is the client extension point: `{ color: { default: "",
 // fromEntity: (cat) => cat.color ?? "" } }`. Merging the keys in here is what
-// makes them travel — `body: () => form.value` submits the whole object, so a
+// makes them travel - `body: () => form.value` submits the whole object, so a
 // client field reaches the server without this file naming it.
 function emptyForm(extraFields) {
     return {

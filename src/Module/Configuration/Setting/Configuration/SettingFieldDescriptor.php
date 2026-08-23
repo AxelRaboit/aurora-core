@@ -29,13 +29,13 @@ class SettingFieldDescriptor
         public readonly string $defaultValue,
         public readonly ?array $options = null,
         /**
-         * Optional translation key for the input placeholder — a concrete
+         * Optional translation key for the input placeholder - a concrete
          * example hint shown inside the input (e.g. "INV-2026-000042" for
          * a reference prefix, "admin@example.com" for an email recipient).
          *
          * Leave null when the field has no useful sample value. The label
          * sits above the input and the description renders below, so an
-         * empty placeholder is fine — only set this when an example is
+         * empty placeholder is fine - only set this when an example is
          * genuinely clearer than the description alone.
          */
         public readonly ?string $placeholderKey = null,

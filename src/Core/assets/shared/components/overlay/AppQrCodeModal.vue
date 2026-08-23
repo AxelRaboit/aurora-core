@@ -11,7 +11,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
  * Generic QR-code modal: renders a download-ready PNG for an item's public URL.
  *
  * `item` must expose at least one of:
- *   - `permalink`  optional override — if present, used verbatim (e.g. signed)
+ *   - `permalink`  optional override - if present, used verbatim (e.g. signed)
  *   - `url`        relative path the QR encodes (origin gets prepended)
  *   - `fileUrl`    same as `url`, for items that name it that way (GED Document)
  *
@@ -59,7 +59,7 @@ watch(
 
 <template>
     <AppModal :show="!!item" max-width="sm" :closeable="false" v-on:close="emit('close')">
-        <h3 class="text-sm font-medium text-primary mb-4">{{ t("shared.common.qr_code") }} — {{ item ? label(item) : '' }}</h3>
+        <h3 class="text-sm font-medium text-primary mb-4">{{ t("shared.common.qr_code") }} - {{ item ? label(item) : '' }}</h3>
         <div class="flex flex-col items-center gap-4">
             <img v-if="qrDataUrl" :src="qrDataUrl" alt="QR Code" class="w-48 h-48 rounded-xl border border-line/60">
             <p class="text-xs text-muted text-center break-all">{{ item ? permalink(item) : '' }}</p>

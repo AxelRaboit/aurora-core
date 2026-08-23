@@ -2,7 +2,7 @@
 /**
  * A full-width action: what it does, and why you would.
  *
- * For the places where actions are listed rather than crowded into a row —
+ * For the places where actions are listed rather than crowded into a row -
  * an action sheet, a menu of things that can be done to one record. An icon
  * button says what it does only to whoever already knows; this says it in
  * words, and has room to say what it is for.
@@ -10,20 +10,20 @@
  * **The title is bold only when there is a description.** Bold is contrast,
  * not importance: it separates the name of the action from the sentence under
  * it. With nothing underneath there is nothing to separate, and a lone bold
- * line is just shouting. This is deliberate and is what the component is for —
+ * line is just shouting. This is deliberate and is what the component is for -
  * a caller that passes no description gets a plain row and needs no second
  * component.
  *
  * Colours mirror `AppIconButton`, so an action keeps the meaning it had when it
  * was a glyph: rose destroys, amber is careful, accent is ordinary.
  *
- * Renders an `<a>` when given `href`, a `<button>` otherwise — some actions are
+ * Renders an `<a>` when given `href`, a `<button>` otherwise - some actions are
  * navigations (impersonating a user) and should be openable in a new tab.
  */
 const props = defineProps({
     /** The action, named as an imperative. Never empty. */
     title: { type: String, required: true },
-    /** What it is for, in a sentence. Optional — see the note on bold above. */
+    /** What it is for, in a sentence. Optional - see the note on bold above. */
     description: { type: String, default: "" },
     /** Mirrors AppIconButton: default | sky | accent | rose | emerald | amber. */
     color: { type: String, default: "default" },

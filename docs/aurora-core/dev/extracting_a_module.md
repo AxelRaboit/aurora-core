@@ -3,7 +3,7 @@
 Playbook générique pour sortir un module de aurora-core et le déposer
 dans son propre projet client (template aurora-client + le module
 extrait). Utile quand un module qui semblait générique s'avère
-spécifique à un seul secteur métier — au point de polluer aurora-core
+spécifique à un seul secteur métier - au point de polluer aurora-core
 pour les autres clients.
 
 ## Quand extraire vs garder en core
@@ -40,7 +40,7 @@ Garder en core si :
 
 ## Playbook en 5 phases
 
-### Phase 0 — Safety net
+### Phase 0 - Safety net
 
 ```bash
 # Sur aurora-core
@@ -49,7 +49,7 @@ git tag pre-<module>-extract                          # rollback facile
 git checkout -b feat/extract-<module>-to-client       # branche dédiée
 ```
 
-### Phase 1 — Dupliquer aurora-client vers le nouveau projet client
+### Phase 1 - Dupliquer aurora-client vers le nouveau projet client
 
 ```bash
 cp -r aurora-client/ <new-client>/
@@ -87,7 +87,7 @@ Adapter `composer.json` :
 > client pendant l'extraction. Repasser sur le VCS GitHub canonique
 > (cf. Phase 5) quand l'extraction est stable.
 
-### Phase 2 — Déplacer le module
+### Phase 2 - Déplacer le module
 
 ```bash
 # Code source
@@ -121,7 +121,7 @@ core_<x>_*       → app_<x>_*
 seq_core_<x>_*   → seq_app_<x>_*
 ```
 
-**Supprimer les migrations historiques copiées** — sur le nouveau
+**Supprimer les migrations historiques copiées** - sur le nouveau
 client, elles seront re-générées proprement via `doctrine:migrations:diff`
 en Phase 4 (un seul namespace, un seul fichier final).
 
@@ -133,7 +133,7 @@ imports relatifs. Le futur `@<x>/...` côté client sera resolved par
 **Composer JS deps** : ajouter au `package.json` du client les deps
 JS spécifiques au module (ex: `pdf-lib`, `pdfjs-dist` pour Welding).
 
-### Phase 3 — Nettoyer aurora-core
+### Phase 3 - Nettoyer aurora-core
 
 Tout ce qui référence le module doit partir. Liste exhaustive
 (grep `<X>` et `<x>` dans aurora-core) :
@@ -145,7 +145,7 @@ Tout ce qui référence le module doit partir. Liste exhaustive
 | `src/Core/Scheduler/MessageHandler/<X>Handler.php` | Supprimer si dédié, ou retirer les bits du module |
 | `src/Core/Sequence/SequencePrefixEnum.php` | Case `<X>...` |
 | `aliases.js` | Alias `@<x>` |
-| `package.json` | JS deps welding-specific (`pdf-lib` si Welding-only) — **ATTENTION** vérifier qu'elles ne sont pas utilisées par d'autres modules core (ex: `pdfjs-dist` reste pour Media's PdfThumbnail) |
+| `package.json` | JS deps welding-specific (`pdf-lib` si Welding-only) - **ATTENTION** vérifier qu'elles ne sont pas utilisées par d'autres modules core (ex: `pdfjs-dist` reste pour Media's PdfThumbnail) |
 | `src/Core/DataFixtures/DemoFixtures.php` | Méthodes `create<X>()` + call sites |
 | `src/Core/assets/backend/sidemenu/composables/useSidemenuSectionTheme.js` | Theme key du module |
 | `docs/aurora-core/todo/<x>/` | Déplacé vers le client |
@@ -165,9 +165,9 @@ rm -rf src/Module/<X>/  tests/Unit/Module/<X>/  tools/<x>/ \
 documentant *pourquoi* et *comment* l'extraction a eu lieu (référence
 au commit série + lien vers le nouveau client repo).
 
-### Phase 4 — Câbler le module dans le nouveau client
+### Phase 4 - Câbler le module dans le nouveau client
 
-Le pattern d'extension Aurora reste en place — le module devient juste
+Le pattern d'extension Aurora reste en place - le module devient juste
 un module client comme un autre.
 
 **`config/packages/doctrine.yaml`** : ajouter `resolve_target_entities` pour
@@ -220,14 +220,14 @@ composer install
 pnpm install
 (cd vendor/axelraboit/aurora && pnpm install)
 make db-create
-# Setup DB fresh — workaround multi-namespace migrations
+# Setup DB fresh - workaround multi-namespace migrations
 php bin/console doctrine:schema:create
 php bin/console doctrine:migrations:sync-metadata-storage --no-interaction
 php bin/console doctrine:migrations:version --add --all --no-interaction
 make build
 ```
 
-### Phase 5 — Verification + finaliser
+### Phase 5 - Verification + finaliser
 
 Côté **aurora-core** :
 
@@ -291,4 +291,4 @@ release officielle.
   le nouveau client ne se sert pas (exemple reconstruit depuis la doc, reliquat
   d'un ancien template), le retirer en suivant la checklist de
   [`../../aurora-client/getting-started/setup.md`](../../aurora-client/getting-started/setup.md)
-  §"Checklist — retirer un module client".
+  §"Checklist - retirer un module client".

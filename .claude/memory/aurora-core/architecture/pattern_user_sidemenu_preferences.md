@@ -42,7 +42,7 @@ distincts :
   highlight d'état actif côté Vue)
 
 `ModuleRegistry::getNavPreferences()` retourne la même structure mais
-**sans** filtrer les hidden — chaque entrée porte un flag `hidden: bool`.
+**sans** filtrer les hidden - chaque entrée porte un flag `hidden: bool`.
 Sert exclusivement à la page de préférences (pour pouvoir un-hide).
 
 ## How to apply

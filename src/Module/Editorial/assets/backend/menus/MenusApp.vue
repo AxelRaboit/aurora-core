@@ -63,7 +63,7 @@ const itemActions = useEditDeleteActions({
 
 /**
  * An entry with children but nothing to link to is a heading, not a
- * mistake — the renderer keeps it. One with neither is a mistake, and the
+ * mistake - the renderer keeps it. One with neither is a mistake, and the
  * site drops it silently, so the tree says so here.
  */
 function isUnresolved(item) {

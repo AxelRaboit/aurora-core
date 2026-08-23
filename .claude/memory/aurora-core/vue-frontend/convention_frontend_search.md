@@ -11,14 +11,14 @@ metadata:
 
 | Situation | Approche |
 |-----------|----------|
-| Volume prévisible et limité (< quelques centaines de docs) | **Client-side** — tout charger en mémoire, filtrer avec `computed` |
-| Volume potentiellement grand ou illimité | **Server-side** — endpoint JSON + pagination |
+| Volume prévisible et limité (< quelques centaines de docs) | **Client-side** - tout charger en mémoire, filtrer avec `computed` |
+| Volume potentiellement grand ou illimité | **Server-side** - endpoint JSON + pagination |
 
 **Ne jamais** faire `findPaginated(1, 200, ...)` ou `findPaginated(1, PHP_INT_MAX, ...)` pour contourner la pagination. Si on charge tout, créer une méthode `findAllXxx()` dédiée dans le repo. Si on veut de la vraie pagination, aller en server-side.
 
 ---
 
-### AppSearchInput — deux usages selon l'approche
+### AppSearchInput - deux usages selon l'approche
 
 #### Client-side : `v-model` direct
 ```vue
@@ -37,7 +37,7 @@ function onSearch(q) {
     debouncedFetch(q, 1);  // ou directement fetchPage(q, 1) si AppSearchInput débounce déjà
 }
 ```
-Ne **pas** utiliser `v-model` ici — cela ferait une requête API à chaque frappe sans debounce.
+Ne **pas** utiliser `v-model` ici - cela ferait une requête API à chaque frappe sans debounce.
 
 ---
 
@@ -71,7 +71,7 @@ export function useDocumentSearch(props) {
 
 - `useFrontendRequest` + `HttpMethod.Get` pour les requêtes GET avec params URL
 - `goToPage` sans debounce (action utilisateur explicite)
-- Props initiales passées par le `*ViewBuilder` via `vue_component(...)` côté Twig (la première page est sérialisée dans le payload du composant Vue, pas rendue en HTML — cf [[convention_frontend_rendering]]).
+- Props initiales passées par le `*ViewBuilder` via `vue_component(...)` côté Twig (la première page est sérialisée dans le payload du composant Vue, pas rendue en HTML - cf [[convention_frontend_rendering]]).
 
 ---
 

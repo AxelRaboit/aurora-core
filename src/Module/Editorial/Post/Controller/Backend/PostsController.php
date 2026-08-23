@@ -62,7 +62,7 @@ class PostsController extends AbstractController
             $filters['postTypeIds'],
             $filters['trashed'],
             // Anyone but a dev or an admin sees only what they wrote. The
-            // voter cannot help here — a list has no single post to vote on.
+            // voter cannot help here - a list has no single post to vote on.
             authorId: $this->postAccessService->scopedAuthorId(),
             termIds: $filters['termIds'],
             statuses: $filters['statuses'],

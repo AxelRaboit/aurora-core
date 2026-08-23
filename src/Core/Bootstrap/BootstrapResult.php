@@ -9,7 +9,7 @@ namespace Aurora\Core\Bootstrap;
  * could not run.
  *
  * A value object rather than two callbacks so the caller decides how to
- * report — the command prints, the test suite ignores the labels and only
+ * report - the command prints, the test suite ignores the labels and only
  * cares that nothing failed.
  */
 final readonly class BootstrapResult

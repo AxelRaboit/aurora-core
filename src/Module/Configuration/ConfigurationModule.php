@@ -12,9 +12,9 @@ use Aurora\Core\Module\Nav\NavSection;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 
 /**
- * Configuration section — global app parameters (Settings) and visual
+ * Configuration section - global app parameters (Settings) and visual
  * customization (Themes). Split from PlatformModule in Jalon 4 so admin
- * configuration is its own module — peer of Platform at the toggle,
+ * configuration is its own module - peer of Platform at the toggle,
  * permission, and nav-section levels.
  */
 final readonly class ConfigurationModule implements ModuleInterface, ModuleToggleProviderInterface

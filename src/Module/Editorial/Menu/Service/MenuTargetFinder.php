@@ -96,7 +96,7 @@ final readonly class MenuTargetFinder
     }
 
     /**
-     * Only types that actually have an archive page — offering the others
+     * Only types that actually have an archive page - offering the others
      * would let an editor build a link that resolves to nothing.
      *
      * @return list<array{id: int, label: string, hint: ?string}>

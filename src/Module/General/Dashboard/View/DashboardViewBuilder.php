@@ -18,7 +18,7 @@ use Aurora\Module\General\Dashboard\Service\StatsService;
  *
  * The toggle is named as a plain settings key so this shell never imports a
  * business module's parameter enum, and passed as a string to
- * {@see ModuleAccessChecker}, which accepts one — so the cascade and the
+ * {@see ModuleAccessChecker}, which accepts one - so the cascade and the
  * per-user masking still apply, and the dashboard cannot disagree with the
  * side menu about what is switched on.
  */

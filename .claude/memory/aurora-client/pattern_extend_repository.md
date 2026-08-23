@@ -54,7 +54,7 @@ public function __construct(
 ) {}
 
 // Côté code Aurora qui consomme le repo :
-// type-hint AgencyRepository (la classe concrète Aurora) — fonctionne
+// type-hint AgencyRepository (la classe concrète Aurora) - fonctionne
 // car AppAgencyRepository étend AgencyRepository.
 ```
 
@@ -65,7 +65,7 @@ Cf [decision_repository_no_interface.md](../decision_repository_no_interface.md)
   aurora-core.
 - Maintenir une interface en parallèle = surface inutile.
 - Si un jour on veut remplacer un finder Aurora (override
-  `findActive()`), on créera l'interface a posteriori — pas par
+  `findActive()`), on créera l'interface a posteriori - pas par
   anticipation.
 
 ## Pièges
@@ -74,12 +74,12 @@ Cf [decision_repository_no_interface.md](../decision_repository_no_interface.md)
 
 Sans `#[ORM\Entity(repositoryClass: AppAgencyRepository::class)]`,
 `$em->getRepository(AppAgency::class)` retournera l'`AgencyRepository`
-Aurora — les finders custom ne seront pas accessibles via cette voie.
+Aurora - les finders custom ne seront pas accessibles via cette voie.
 
 ### 2. Override d'un finder Aurora avec signature différente
 
 ```php
-// ❌ Risqué — signature différente d'Aurora
+// ❌ Risqué - signature différente d'Aurora
 class AppAgencyRepository extends AgencyRepository
 {
     public function findActive(int $tenantId): array  // ajoute un param

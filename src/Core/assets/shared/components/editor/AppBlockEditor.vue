@@ -34,7 +34,7 @@ import Undo from "editorjs-undo";
  * docs/wiki modules…) can reuse the exact same shell.
  *
  * Module-specific tools are injected by the consumer via the
- * `extraTools` prop — the wrapper merges them into its built-in toolkit
+ * `extraTools` prop - the wrapper merges them into its built-in toolkit
  * at editor init, so nothing here needs to know they exist.
  *
  * Two integration patterns are supported:
@@ -42,7 +42,7 @@ import Undo from "editorjs-undo";
  *     instance per selected entity.
  *   - `provide('registerEditor')`: the parent collects every instance and
  *     can flush them all before a save, or ask them all to re-read their own
- *     value — what a multi-locale editor needs to switch locale without
+ *     value - what a multi-locale editor needs to switch locale without
  *     losing the buffer, and what a page of several editors needs at all.
  *
  * That registration is a registry rather than a slot. It used to be one
@@ -85,15 +85,15 @@ function emitIfChanged(blocks) {
  * Editor.js must never see a Vue proxy.
  *
  * `modelValue` reaches us deeply reactive, so every block is a `Proxy`. A tool
- * that copies its data with `structuredClone()` — `@editorjs/list` does —
+ * that copies its data with `structuredClone()` - `@editorjs/list` does -
  * throws `DataCloneError`, because proxies are not structured-cloneable.
  * Editor.js catches that, drops the block, and substitutes its Stub: the
  * infamous « The block can not be displayed correctly ». Nothing throws where
  * you can see it, the public site renders the block perfectly, and the report
  * arrives as somebody saying a list is broken.
  *
- * A JSON round-trip because block data is JSON by definition — it is what gets
- * persisted — so nothing survives the trip that Editor.js could have used. It
+ * A JSON round-trip because block data is JSON by definition - it is what gets
+ * persisted - so nothing survives the trip that Editor.js could have used. It
  * also hands over a copy rather than our state, which is what we want anyway:
  * the editor owns its buffer and gives it back through `save()`.
  */
@@ -195,7 +195,7 @@ onMounted(async () => {
                 inlineToolbar: true,
             },
 
-            // Listes (unordered, ordered, checklist — fournis par @editorjs/list v2)
+            // Listes (unordered, ordered, checklist - fournis par @editorjs/list v2)
             list: {
                 class: List,
                 inlineToolbar: true,
@@ -308,7 +308,7 @@ onMounted(async () => {
             },
             twoColumn: { class: TwoColumnBlock },
 
-            // Module-specific tools — Editor.js shape
+            // Module-specific tools - Editor.js shape
             // `{ toolName: { class, config?, inlineToolbar? } | Class }`.
             // Spread last so a consumer can override built-in configs too.
             ...props.extraTools,
@@ -340,14 +340,14 @@ onMounted(async () => {
 
     // Editor.js was constructed with whatever `modelValue` held at mount, and
     // never looks at it again. A parent that hydrates its form in its own
-    // onMounted — which runs *after* this one — therefore handed us an empty
+    // onMounted - which runs *after* this one - therefore handed us an empty
     // array, and the editor stayed blank until something forced a remount.
     // Switching locale and back did exactly that, which is how it looked like
     // a translation bug rather than a boot-order one.
     //
     // Booting is also async (`await isReady` above), so the value can have
     // moved on by now even when the parent is not the cause. Catch up once,
-    // here — not through a watcher, which would fire on every keystroke and
+    // here - not through a watcher, which would fire on every keystroke and
     // re-render the document under the caret.
     if (JSON.stringify(props.modelValue) !== lastEmittedJson) {
         await renderBlocks(props.modelValue);

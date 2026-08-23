@@ -12,10 +12,10 @@ use Aurora\Core\Module\Nav\NavSection;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 
 /**
- * Editorial — the content module: post types, taxonomies, posts, menus.
+ * Editorial - the content module: post types, taxonomies, posts, menus.
  *
  * Being rebuilt one sub-domain at a time: a screen appears here in the
- * same commit that brings the Vue app behind it, never before — a menu
+ * same commit that brings the Vue app behind it, never before - a menu
  * item leading to a blank page is worse than no menu item.
  */
 final readonly class EditorialModule implements ModuleInterface, ModuleToggleProviderInterface

@@ -1,4 +1,4 @@
-{# Content grid — rendered in place of the plain block column when the post
+{# Content grid - rendered in place of the plain block column when the post
    configures one. `grid` comes from GridViewBuilder and is null when disabled
    or empty, so the caller guards on it rather than this file second-guessing.
 
@@ -7,19 +7,19 @@
    its width as custom properties rather than classes: a span is a runtime
    number, and Tailwind only emits classes it can read in the source.
 
-   `startStyle` carries where the zone lands — its row and its first column,
+   `startStyle` carries where the zone lands - its row and its first column,
    worked out by GridNormalizer::place from the sequence the author wrote, and
    emitted for the large screen only. `|default('')` rather than a bare read:
    a theme rendering a grid built before this existed passes zones without the
    key, and they should go on flowing rather than raise.
 
    Gutters come from the grid's own item padding. A `gap-x` here would be 47
-   gutters across the 48 tracks — see AuroraGridGutterTest.
+   gutters across the 48 tracks - see AuroraGridGutterTest.
 
    Every zone that is not text carries `not-prose`. The grid renders inside
    `<article class="prose">`, and Typography styles what it finds there: a card
    image was getting `margin: 2em 0` from `.prose :where(img)`, an iframe the
-   same. Not on the container, on each zone — the exclusion is written
+   same. Not on the container, on each zone - the exclusion is written
    `[class~=not-prose] *`, so a `not-prose` wrapper would also switch off the
    `prose` that the text zones deliberately switch back on.
 
@@ -36,7 +36,7 @@
                    is already as tall as its tallest neighbour and only has to
                    divide what it was given.
 
-                   `h-full` is what passes that height on — without it the column
+                   `h-full` is what passes that height on - without it the column
                    would be as tall as its content and the shares would divide
                    nothing. The gap matches the row gap above, so a stack reads
                    as part of the same lattice rather than as a tighter island. #}
@@ -47,7 +47,7 @@
                        text from being clipped when its share is smaller than
                        what it has to say. A zone that asks to fill has already
                        consented to being cropped, and without lifting the floor
-                       it does the opposite of what it says — the picture
+                       it does the opposite of what it says - the picture
                        imposes its natural height and its neighbours give way. #}
                     {% for child in zone.children %}
                         <div

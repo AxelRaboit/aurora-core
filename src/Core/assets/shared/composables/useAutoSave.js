@@ -28,9 +28,9 @@ import { ref, unref, onBeforeUnmount } from "vue";
  *  - `idle`    : nothing to do, nothing in flight
  *  - `pending` : debounce timer running, save will fire soon
  *  - `saving`  : the save callback is awaiting
- *  - `saved`   : last save succeeded — auto-resets to `idle` after
+ *  - `saved`   : last save succeeded - auto-resets to `idle` after
  *                `savedIndicatorMs` if still clean
- *  - `error`   : last save failed — caller can show a retry affordance
+ *  - `error`   : last save failed - caller can show a retry affordance
  *
  * @param {object}   options
  * @param {() => boolean | import('vue').Ref<boolean>} options.isDirty
@@ -108,7 +108,7 @@ export function useAutoSave({
             // Only auto-reschedule after a successful save (typing during
             // a successful flush stays unsaved otherwise). On failure we
             // leave the `error` status visible and let the next user
-            // action drive a fresh schedule — avoids retry-storms.
+            // action drive a fresh schedule - avoids retry-storms.
             if (ok && dirtyNow()) schedule();
         }
     }

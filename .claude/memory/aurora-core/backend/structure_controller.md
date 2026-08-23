@@ -1,4 +1,4 @@
-# Controllers — où va quoi
+# Controllers - où va quoi
 
 ## Règle
 
@@ -137,7 +137,7 @@ class AgenciesController extends AbstractController
 - **Manager** : `<Name>ManagerInterface` (jamais la concrete).
 - **Serializer** : `<Name>SerializerInterface`.
 - **Input Factory** : `<Name>InputFactoryInterface`.
-- **Repository** : `<Name>Repository` (concrete — pas d'interface
+- **Repository** : `<Name>Repository` (concrete - pas d'interface
   aurora-core, cf [`decision_repository_no_interface.md`](decision_repository_no_interface.md)).
 - **Entity dans param converter** : `<Name>Interface` (Doctrine resolve
   fait son boulot via `resolve_target_entities`).
@@ -151,7 +151,7 @@ class AgenciesController extends AbstractController
   standardisés.
 - `LocaleTrait` (Front controllers) : `$this->assertActiveLocale($this->context, $locale)`.
 
-## Contrôleurs Frontend — conventions spécifiques
+## Contrôleurs Frontend - conventions spécifiques
 
 Tout contrôleur `Controller/Frontend/` doit respecter ces règles :
 
@@ -159,12 +159,12 @@ Tout contrôleur `Controller/Frontend/` doit respecter ces règles :
 ```php
 #[Route('/{locale}/ged', name: 'frontend_ged', requirements: ['locale' => '[a-z]{2}'])]
 ```
-- Préfixe `/{locale}/` obligatoire (2 lettres) — pas de route frontend sans locale.
+- Préfixe `/{locale}/` obligatoire (2 lettres) - pas de route frontend sans locale.
 - `$request->setLocale($locale)` dans chaque action.
 
 ### ViewBuilder obligatoire
 Le contrôleur injecte un `<Feature>ViewBuilder` frontend (dans `View/Frontend/`) qui :
-- appelle `ViewBuilder::baseView($locale)` — fournit `context`, `themeContext`, `locale`, `pageDescription`, `alternates`
+- appelle `ViewBuilder::baseView($locale)` - fournit `context`, `themeContext`, `locale`, `pageDescription`, `alternates`
 - merge avec les données de la page
 
 **Ne jamais** passer `$this->viewBuilder->baseView($locale)` partiel et construire le reste dans le controller.

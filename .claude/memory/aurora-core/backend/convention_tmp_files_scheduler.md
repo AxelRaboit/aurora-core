@@ -26,7 +26,7 @@ final readonly class MonHandler {
 ->add(RecurringMessage::cron('0 4 * * *', new MonMessage()))
 ```
 
-## Fichiers temporaires — convention
+## Fichiers temporaires - convention
 
 | Préfixe | Module | Nettoyé par |
 |---|---|---|

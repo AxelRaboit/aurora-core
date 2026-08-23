@@ -55,7 +55,7 @@ des utilisateurs non-techniques.
   `src/Module/General/templates/backend/profile/sidemenu.html.twig` (preferences page)
 - Vue composables : `useSidemenuNav.js` (4e param `itemAliases`),
   `useSidemenuPreferences.js` (param `itemAliases` + `resolveItemLabel()`)
-- Settings UI logic : `useNavAliases.js` (composable dédié — la logique
+- Settings UI logic : `useNavAliases.js` (composable dédié - la logique
   parse/save/reset ne vit **pas** dans `SettingsApp.vue`)
 
 ## Convention de placement (rappel)

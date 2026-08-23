@@ -10,7 +10,7 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 /**
  * Aggregates the backend dashboard statistics from every module-contributed
  * {@see DashboardStatsProviderInterface}. The General shell owns no domain
- * knowledge here — each module ships its own provider, so this service (and
+ * knowledge here - each module ships its own provider, so this service (and
  * the whole General module) never imports a business module's repositories.
  */
 final readonly class StatsService

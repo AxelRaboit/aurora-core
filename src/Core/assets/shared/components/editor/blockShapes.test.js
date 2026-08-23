@@ -9,14 +9,14 @@ import Delimiter from "@editorjs/delimiter";
  *
  * `BlocksRenderer` accepts every shape an Editor.js tool has ever emitted, so
  * malformed content renders perfectly on the public site and only fails when
- * somebody opens the post in the backend — where Editor.js swallows the error
+ * somebody opens the post in the backend - where Editor.js swallows the error
  * and prints "The block can not be displayed correctly". Nothing throws
  * server-side, no PHP test fails, and the report arrives as a person saying
  * "the list is broken".
  *
  * `EditorBlocks` (PHP) is the single place that writes this JSON. Its unit
  * test checks the keys it emits; this one checks the thing that actually
- * matters — that the installed tool can render them. It is the half a PHP test
+ * matters - that the installed tool can render them. It is the half a PHP test
  * cannot do, and it is what turns an `@editorjs/*` upgrade that changes a
  * format into a red build rather than a bug report.
  */
@@ -54,7 +54,7 @@ describe("blocks written server-side", () => {
     /**
      * The shape that caused the bug: items carrying only `content`. Neither
      * the tool's legacy form nor its current one, and the renderer is happy
-     * with it — which is exactly why it survived to production.
+     * with it - which is exactly why it survived to production.
      */
     it("rejects the half-migrated list shape, so this test can fail", () => {
         expect(

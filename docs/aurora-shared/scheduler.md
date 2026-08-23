@@ -1,6 +1,6 @@
-# Symfony Scheduler — tâches récurrentes Aurora
+# Symfony Scheduler - tâches récurrentes Aurora
 
-Aurora utilise **Symfony Scheduler** (`symfony/scheduler`) pour toutes les tâches automatisées récurrentes. Pas de cron système, pas de Supervisor séparé — tout est géré dans le worker PHP existant.
+Aurora utilise **Symfony Scheduler** (`symfony/scheduler`) pour toutes les tâches automatisées récurrentes. Pas de cron système, pas de Supervisor séparé - tout est géré dans le worker PHP existant.
 
 ---
 

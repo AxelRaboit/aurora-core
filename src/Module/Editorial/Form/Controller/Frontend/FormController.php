@@ -24,7 +24,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * The public form page and its submit endpoint.
  *
  * `/forms/` is a fixed segment, so these do not compete with the post and
- * term routes for `/{locale}/{a}/{b}` — but they still need to be tried
+ * term routes for `/{locale}/{a}/{b}` - but they still need to be tried
  * first, since `/{locale}/forms` would otherwise read as a post type archive.
  */
 class FormController extends AbstractController

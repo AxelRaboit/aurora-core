@@ -8,7 +8,7 @@ namespace Aurora\Module\Editorial\Post\Enum;
  * How a publication's thumbnail fills the box a card gives it.
  *
  * The three CSS `object-fit` values that mean something for a picture in a
- * fixed frame. The rest — `none`, `scale-down` — answer questions a card does
+ * fixed frame. The rest - `none`, `scale-down` - answer questions a card does
  * not ask.
  *
  * Chosen per publication rather than per image: the same photo can be the

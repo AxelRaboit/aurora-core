@@ -9,7 +9,7 @@
  *   - same separator for both             : "1.200.00"   → 120000
  *   - thousands only, no decimal          : "1.000"      → 100000
  *
- * Rule: a separator followed by 1–2 digits at the END of the string is the
+ * Rule: a separator followed by 1-2 digits at the END of the string is the
  * decimal separator; a separator followed by 3 digits is a thousands separator.
  *
  * @param {string} raw

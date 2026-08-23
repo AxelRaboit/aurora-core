@@ -6,7 +6,7 @@ import { COLUMNS } from "./usePostGrid.js";
  *
  * Both edges resize. The right one moves the width; the left one moves where the
  * zone starts and leaves the right edge where it is. Moving a zone is a
- * different gesture entirely — take hold of it in the middle — and lives in
+ * different gesture entirely - take hold of it in the middle - and lives in
  * `usePostGridDrop`.
  *
  * **Nothing is clamped here.** The canvas emits the column the pointer is over
@@ -30,7 +30,7 @@ export function usePostGridResize({ gridEl, snap, widthOf, startOf, emit }) {
     /** The zone being dragged, so a stray pointermove on another handle is ignored. */
     const dragging = ref(null);
 
-    /** Which handle that gesture is holding — `null`, or `resize` / `start`. */
+    /** Which handle that gesture is holding - `null`, or `resize` / `start`. */
     const draggingKind = ref(null);
 
     /** The column under the pointer, as a fraction of the grid's own width. */
@@ -50,7 +50,7 @@ export function usePostGridResize({ gridEl, snap, widthOf, startOf, emit }) {
      *
      * `startOf` is read fresh on every move rather than frozen at pointerdown. A
      * zone dragged wider than the room left on its row wraps to a row of its own
-     * and its start column becomes zero — recomputing keeps the handle under the
+     * and its start column becomes zero - recomputing keeps the handle under the
      * pointer through that jump. It cannot oscillate: once wrapped, the zone only
      * comes back when it fits again, and a width that fits cannot re-wrap.
      */
@@ -139,7 +139,7 @@ export function usePostGridResize({ gridEl, snap, widthOf, startOf, emit }) {
 
     /**
      * Home takes the left edge as far left as the order allows, End as far right
-     * as the zone's own minimum width leaves — both worked out downstream, so the
+     * as the zone's own minimum width leaves - both worked out downstream, so the
      * extremes here are simply out of range and get clamped.
      */
     function onStartKeydown(index, event) {

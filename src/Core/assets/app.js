@@ -14,7 +14,7 @@ import "./shared/utils/detailsDropdown.js";
 import "./css/app.css";
 
 // Module boot hooks: a module may ship `*.register.js` files (e.g. a settings
-// tab registration) that run side effects at boot — so aurora-core never imports
+// tab registration) that run side effects at boot - so aurora-core never imports
 // module components directly. Eager-loaded here, before any Vue app mounts.
 // Monorepo + client modules via glob; vendored module packages via the virtual
 // boot module (see vite-plugin-aurora-modules.js). Bare call expressions: the
@@ -47,11 +47,11 @@ const coreModules = import.meta.glob([
     "./frontend/**/*.vue",
 ]);
 
-// All first-party module Vue components (backend + frontend) — auto-discovered.
+// All first-party module Vue components (backend + frontend) - auto-discovered.
 // The `**/assets/` pattern accepts any depth of feature folders between
 // Module/<Name>/ and assets/, so e.g. both ./Module/Ged/assets/... AND
 // ./Module/Ged/Document/assets/... resolve. Feature folders are flattened
-// away in the exposed key (cf. mapping regex below) — the module name is
+// away in the exposed key (cf. mapping regex below) - the module name is
 // always the FIRST segment under Module/.
 const auroraModules = import.meta.glob("../../Module/**/assets/**/*.vue");
 
@@ -60,17 +60,17 @@ const auroraModules = import.meta.glob("../../Module/**/assets/**/*.vue");
 // aurora-core's own layout: components live under
 // <client>/src/Module/<Name>/[<FeatureFolders>/]assets/backend/Foo.vue and
 // are exposed as ./<name>/backend/Foo.vue so the client uses
-// vue_component('<name>/backend/Foo') in Twig — same convention as aurora's
+// vue_component('<name>/backend/Foo') in Twig - same convention as aurora's
 // first-party modules. Co-locating override Vue with the PHP extension
 // (e.g. src/Module/Ged/assets/backend/documents/DocumentsApp.vue)
 // shadows aurora's `ged/backend/documents/DocumentsApp` because clientModules
-// is spread AFTER auroraModules below — same key, client wins.
+// is spread AFTER auroraModules below - same key, client wins.
 const clientModules = import.meta.glob("@client/src/Module/**/assets/**/*.vue");
 
-// Client overrides — escape hatch for non-module Aurora components (e.g. things
+// Client overrides - escape hatch for non-module Aurora components (e.g. things
 // living under aurora-core's src/Core/Frontend/ that don't have a module prefix).
 // For Aurora MODULE component overrides, prefer co-locating under
-// src/Module/<Name>/[<FeatureFolders>/]assets/ — that uses clientModules and
+// src/Module/<Name>/[<FeatureFolders>/]assets/ - that uses clientModules and
 // is co-located with the corresponding PHP extension.
 const clientOverrides = import.meta.glob("@client/src/Overrides/**/*.vue");
 
@@ -97,7 +97,7 @@ const vueContext = {
             return [`./${moduleName.toLowerCase()}/${rest}`, loader];
         }),
     ),
-    // Vendored module packages (vendor/axelraboit/aurora-*) — already keyed as
+    // Vendored module packages (vendor/axelraboit/aurora-*) - already keyed as
     // ./<module>/<rest>. Spread AFTER auroraModules (in the monorepo this is
     // empty; in a client install src/Module is empty and these provide the
     // modules) and BEFORE clientModules so the client can still override them.

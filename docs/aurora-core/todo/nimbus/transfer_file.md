@@ -1,16 +1,16 @@
-# FileTransfer — TransferFile
+# FileTransfer - TransferFile
 
 > Un fichier individuel d'un Transfer. **La colonne qui pointe vers
-> l'objet R2 est ici** — voir [storage.md](storage.md) pour la formule de
+> l'objet R2 est ici** - voir [storage.md](storage.md) pour la formule de
 > reconstruction de la clé.
 
 ## Contexte
 
 `FileTransferFile` est l'enregistrement DB qui mappe un objet stocké
 (local ou R2) à un Transfer. Chaque ligne porte :
-- son nom d'origine (`originalName`) — affiché à l'utilisateur
-- son nom de stockage randomisé (`filename`) — utilisé pour construire la clé
-- son backend de stockage (`storageBackend` enum) — permet le mixte local/R2
+- son nom d'origine (`originalName`) - affiché à l'utilisateur
+- son nom de stockage randomisé (`filename`) - utilisé pour construire la clé
+- son backend de stockage (`storageBackend` enum) - permet le mixte local/R2
 
 Source Nimbus :
 - `app/Entity/TransferFile.php`
@@ -26,13 +26,13 @@ Source Nimbus :
 | `filename` | varchar(255) | suffixe randomisé `<8hex>_<basename>` ; **préservé depuis Nimbus** |
 | `mimeType` | varchar(100) nullable | détecté via finfo lors du finalize |
 | `fileSize` | bigint | octets, signé par sécurité |
-| `storageBackend` | enum `FileTransferStorageBackendEnum` | local / r2 — figé à la création de la ligne |
-| `createdAt` | timestamp | — |
+| `storageBackend` | enum `FileTransferStorageBackendEnum` | local / r2 - figé à la création de la ligne |
+| `createdAt` | timestamp | - |
 
-Pas d'`updatedAt` — un TransferFile est immutable une fois finalisé.
+Pas d'`updatedAt` - un TransferFile est immutable une fois finalisé.
 
 Index requis :
-- `(transfer_id)` — listing des files d'un transfer
+- `(transfer_id)` - listing des files d'un transfer
 - pas besoin d'unique sur `filename` global (déjà unique au sein d'un transfer via randomisation 8 bytes)
 
 Enum :
@@ -46,8 +46,8 @@ enum FileTransferStorageBackendEnum: string {
 ## Convention 5-couches
 
 - `FileTransferFileInterface` + `AbstractFileTransferFile` + `FileTransferFile`
-- DTO : `FileTransferFileInput` (utilisé en interne par `FileTransferManager::create()` quand il finalise depuis TUS — pas exposé en route)
-- Manager : `FileTransferFileManager` — moins étoffé, sert surtout au delete individuel et au calcul du storage key
+- DTO : `FileTransferFileInput` (utilisé en interne par `FileTransferManager::create()` quand il finalise depuis TUS - pas exposé en route)
+- Manager : `FileTransferFileManager` - moins étoffé, sert surtout au delete individuel et au calcul du storage key
 - Serializer : `FileTransferFileSerializer`
 
 ```php
@@ -81,7 +81,7 @@ class FileTransferFileRepository extends ResolveTargetEntityRepository
 }
 ```
 
-## Storage key — reconstruction
+## Storage key - reconstruction
 
 **Toujours dérivée**, jamais stockée explicitement :
 

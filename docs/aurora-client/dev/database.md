@@ -1,4 +1,4 @@
-# Base de données — Migrations, fixtures, séquences
+# Base de données - Migrations, fixtures, séquences
 
 ## Migrations
 
@@ -16,7 +16,7 @@ make migration          # php bin/console doctrine:migrations:diff
 # → crée migrations/VersionYYYYMMDDHHMMSS.php
 
 # 3. Vérifier la migration générée avant de l'appliquer
-# (toujours relire — Doctrine peut générer des ALTER TABLE non désirés)
+# (toujours relire - Doctrine peut générer des ALTER TABLE non désirés)
 
 # 4. Appliquer
 make migrate            # php bin/console doctrine:migrations:migrate
@@ -34,7 +34,7 @@ make migrate-prev       # rejoue la migration précédente (DOWN)
 ### Migration vide (scripts SQL manuels)
 
 ```bash
-make migration-generate # crée une migration vide — à remplir à la main
+make migration-generate # crée une migration vide - à remplir à la main
 ```
 
 Utile pour : copier des données, renommer une colonne, initialiser une séquence.
@@ -68,7 +68,7 @@ not exist`.
 version timestamp à travers les namespaces. Il traite les namespaces
 dans leur ordre de déclaration. Quand une `ClientMigrations\Version20260508123924`
 (extension d'une table Aurora) s'exécute avant
-`DoctrineMigrations\Version20260508122957` (création de la table —
+`DoctrineMigrations\Version20260508122957` (création de la table -
 version timestamp plus petite, devrait passer avant), ça plante.
 
 **Solution** : utiliser **`make install-dev`** (full reset depuis
@@ -104,11 +104,11 @@ php bin/console doctrine:schema:validate
 ```
 
 À partir de là, `make migrate` fonctionne **normalement** pour les
-migrations à venir — vous n'ajoutez qu'une seule migration par fois,
+migrations à venir - vous n'ajoutez qu'une seule migration par fois,
 pas un mélange historique entier.
 
 > ⚠️ Cette approche fonctionne **uniquement** parce que les migrations
-> sont structurelles (CREATE / ALTER / RENAME) — pas de migration de
+> sont structurelles (CREATE / ALTER / RENAME) - pas de migration de
 > données qui modifie des rows. Si votre projet ajoute une migration de
 > données (`UPDATE …` ou `INSERT …`), elle sera *sautée* par cette
 > méthode. Dans ce cas, soit exécuter manuellement la donnée concernée,
@@ -148,7 +148,7 @@ Nommées `seq_<table>_id`. Créées automatiquement par les migrations Doctrine.
 Après un import de données ou un `TRUNCATE` :
 
 ```bash
-make sync-sequences     # aurora:sequences:resync — remet toutes les séquences au MAX(id)+1
+make sync-sequences     # aurora:sequences:resync - remet toutes les séquences au MAX(id)+1
 ```
 
 ### Séquences de références métier
@@ -218,14 +218,14 @@ $value = $this->settingRepository->get(ApplicationParameterEnum::SomeSetting->ge
 ```
 
 `SettingRepository` est la classe canonique pour lire un paramètre. Méthodes utiles :
-- `getOrDefault(ApplicationParameterEnumInterface): string` — retourne la valeur stockée ou le `getDefaultValue()` de l'enum
-- `get(string $key, ?string $default = null): ?string` — lookup brut
-- `getBoolean(string $key, bool $default = false): bool` — typed accessor
+- `getOrDefault(ApplicationParameterEnumInterface): string` - retourne la valeur stockée ou le `getDefaultValue()` de l'enum
+- `get(string $key, ?string $default = null): ?string` - lookup brut
+- `getBoolean(string $key, bool $default = false): bool` - typed accessor
 
 Après modification de `ApplicationParameterEnum` (ajout d'une nouvelle valeur) :
 
 ```bash
-make sync-params    # aurora:application-parameter — crée les entrées manquantes en DB
+make sync-params    # aurora:application-parameter - crée les entrées manquantes en DB
 ```
 
 ---

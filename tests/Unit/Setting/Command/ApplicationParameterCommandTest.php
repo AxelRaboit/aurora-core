@@ -162,7 +162,7 @@ final class ApplicationParameterCommandTest extends TestCase
         $existing = $this->makeSettingStub($customKey);
         $repository->method('findAll')->willReturn([$existing]);
 
-        // EM should NOT remove the setting — the provider claims its key
+        // EM should NOT remove the setting - the provider claims its key
         $em->expects(self::never())->method('remove');
 
         $customProvider = $this->makeProviderWith($this->stubParameterEnum($customKey));

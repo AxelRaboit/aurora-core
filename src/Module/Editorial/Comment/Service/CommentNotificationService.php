@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 /**
  * The two emails a comment can cause.
  *
- * Neither is sent for spam — see CommentManager. Both are best-effort: a
+ * Neither is sent for spam - see CommentManager. Both are best-effort: a
  * mail server being down must not lose the comment that triggered it, which
  * is why nothing here reports failure upwards.
  */
@@ -40,7 +40,7 @@ readonly class CommentNotificationService
     }
 
     /**
-     * Tells the post's author that a comment went live on their piece — not
+     * Tells the post's author that a comment went live on their piece - not
      * the commenter. Sending to the address typed into a public form would
      * make the site a relay for whatever anyone puts there.
      */

@@ -7,7 +7,7 @@ namespace Aurora\Core\Http;
 /**
  * Universal JSON error codes used across endpoints. Domain-specific codes
  * (e.g. `finalized`, `identity_required`, `max_picks_reached`) stay as raw
- * strings in their respective controllers — they belong to their feature.
+ * strings in their respective controllers - they belong to their feature.
  */
 enum JsonErrorCode: string
 {

@@ -10,7 +10,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
 {
     public const MODULE = 'modules';
 
-    // Top-level modules — backend (admin UI)
+    // Top-level modules - backend (admin UI)
     case GeneralBackend = 'modules_general_backend';
     case PlatformBackend = 'modules_platform_backend';
     case ConfigurationBackend = 'modules_configuration_backend';
@@ -18,22 +18,22 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     case EditorialBackend = 'modules_editorial_backend';
     case GedBackend = 'modules_ged_backend';
 
-    // Top-level modules — frontend (public site)
+    // Top-level modules - frontend (public site)
 
-    // Sub-modules — Core
+    // Sub-modules - Core
     case GeneralDashboard = 'modules_general_dashboard';
 
-    // Sub-modules — Platform
+    // Sub-modules - Platform
     case PlatformUsers = 'modules_platform_users';
 
-    // Sub-modules — Configuration
+    // Sub-modules - Configuration
     case ConfigurationSettings = 'modules_configuration_settings';
     case ConfigurationThemes = 'modules_configuration_themes';
 
-    // Sub-modules — Media
+    // Sub-modules - Media
     case MediaLibrary = 'modules_media_library';
 
-    // Sub-modules — Editorial
+    // Sub-modules - Editorial
     case EditorialFrontend = 'modules_editorial_frontend';
     case EditorialPosts = 'modules_editorial_posts';
     case EditorialPostTypes = 'modules_editorial_post_types';
@@ -43,7 +43,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     case EditorialComments = 'modules_editorial_comments';
     case EditorialForms = 'modules_editorial_forms';
 
-    // Sub-modules — GED
+    // Sub-modules - GED
     case GedDocuments = 'modules_ged_documents';
     case GedCategories = 'modules_ged_categories';
     case GedTags = 'modules_ged_tags';
@@ -248,7 +248,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     }
 
     /**
-     * No placeholder by default — override on a per-case basis when an
+     * No placeholder by default - override on a per-case basis when an
      * example value is genuinely clearer than the description alone.
      */
     public function getPlaceholder(): ?string

@@ -1,12 +1,12 @@
-{# Language switcher — a disclosure dropdown, so the header stays the same size
+{# Language switcher - a disclosure dropdown, so the header stays the same size
    whether the site speaks two languages or twelve.
 
    `<details>` rather than a `<select>`: the entries stay real `<a href>` links,
    which is what a language switcher is. They carry `hreflang`/`lang`, open in a
    new tab on middle-click, and cost no JavaScript to unfold. A `<select>` would
-   also have had to drop the flags — `<option>` renders text, not markup.
+   also have had to drop the flags - `<option>` renders text, not markup.
 
-   A flag is a country, not a language — English is not the United Kingdom and
+   A flag is a country, not a language - English is not the United Kingdom and
    Portuguese is not Portugal. So the flag is decorative (`aria-hidden`) and the
    language's own name is always in the markup: on the trigger it shows from
    `sm` up and is read out at every width, and inside the panel it is always

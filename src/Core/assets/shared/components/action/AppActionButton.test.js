@@ -12,7 +12,7 @@ describe("AppActionButton", () => {
         expect(wrapper.attributes("type")).toBe("button");
     });
 
-    // Some actions are navigations — impersonating a user is a link, and should
+    // Some actions are navigations - impersonating a user is a link, and should
     // be openable in a new tab like any other.
     it("renders an <a> when given an href", () => {
         const wrapper = mount(AppActionButton, {

@@ -22,16 +22,16 @@ Avant mai 2026, `SequenceGenerator` créait des séquences PostgreSQL nommées `
 
 ## Comment l'appliquer
 
-- **Ajouter un nouveau préfixe métier** : aucune action nécessaire — la ligne dans `app_sequence_counters` est créée automatiquement au premier appel de `next()` ou `nextYearly()`.
+- **Ajouter un nouveau préfixe métier** : aucune action nécessaire - la ligne dans `app_sequence_counters` est créée automatiquement au premier appel de `next()` ou `nextYearly()`.
 - **Inspecter les valeurs courantes** : `SELECT * FROM app_sequence_counters ORDER BY prefix, year;`
 - **Après data imports / fixtures** : réinitialiser les PK sequences via `make sync-sequences` (cible uniquement les `seq_core_*_id`, sans rapport avec `app_sequence_counters`).
-- **Pas de `schema_filter`** dans `doctrine.yaml` — supprimé, plus nécessaire.
+- **Pas de `schema_filter`** dans `doctrine.yaml` - supprimé, plus nécessaire.
 
 ## Ce qu'il ne faut pas faire
 
-- Ne pas chercher `app_seq_*` dans la base — ces séquences n'existent plus.
-- Ne pas ajouter `schema_filter` pour exclure des séquences métier — la table est gérée nativement par Doctrine.
-- Ne pas appeler `findSafeStart` — méthode supprimée.
+- Ne pas chercher `app_seq_*` dans la base - ces séquences n'existent plus.
+- Ne pas ajouter `schema_filter` pour exclure des séquences métier - la table est gérée nativement par Doctrine.
+- Ne pas appeler `findSafeStart` - méthode supprimée.
 
 ## Source
 

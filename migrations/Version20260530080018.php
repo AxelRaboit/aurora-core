@@ -8,12 +8,12 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
 
 /**
- * Phase 2 of the Media → GED merge — migrate the branding setting values
+ * Phase 2 of the Media → GED merge - migrate the branding setting values
  * (logo_media_id, favicon_media_id, seo_default_og_image) and the active
  * theme's `header_logo_media_id` config from Media IDs to Document IDs.
  *
  * Settings keep their `*_media_id` key name so the keep-stable-key rule
- * holds — the **value** semantics flip to "Document id". Theme.config is
+ * holds - the **value** semantics flip to "Document id". Theme.config is
  * a JSONB column; we walk every row and overwrite the relevant key with
  * the resolved document id.
  */
@@ -85,7 +85,7 @@ final class Version20260530080018 extends AbstractMigration
 
     public function down(Schema $schema): void
     {
-        // Forward-only — branding migrations don't roll back. The original
+        // Forward-only - branding migrations don't roll back. The original
         // core_media rows still exist, so a manual repoint is possible if
         // needed.
     }

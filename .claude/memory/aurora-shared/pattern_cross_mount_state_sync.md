@@ -1,6 +1,6 @@
 ---
 name: pattern-cross-mount-state-sync
-description: Synchroniser l'état entre deux mounts Vue indépendants alimentés par Twig sans reload — CustomEvent sur window + composable qui wrap la prop dans un ref
+description: Synchroniser l'état entre deux mounts Vue indépendants alimentés par Twig sans reload - CustomEvent sur window + composable qui wrap la prop dans un ref
 metadata:
   type: project
 ---
@@ -14,12 +14,12 @@ Aurora monte plusieurs apps Vue indépendantes sur une même page :
   avec ses propres props
 
 Quand la page interne sauvegarde un état partagé (ex: couleurs de
-sections), le layout a déjà rendu — sa prop est figée. Sans intervention,
+sections), le layout a déjà rendu - sa prop est figée. Sans intervention,
 l'utilisateur doit recharger la page pour voir l'autre mount refléter la
 nouvelle valeur.
 
-**Anti-pattern** : recharger la page après save (`window.location.reload()`)
-— c'est ce qui était fait initialement. Ça flashe le toast à peine
+**Anti-pattern** : recharger la page après save (`window.location.reload()`),
+c'est ce qui était fait initialement. Ça flashe le toast à peine
 affiché et casse la convention Aurora "settings = toast only, pas de
 reload" (vérifié sur l'historique pré-feature : `useSidemenuPreferences`
 faisait juste un toast).
@@ -62,7 +62,7 @@ faisait juste un toast).
    ```
 
 4. **Composables qui consomment le ref** (ex: `useSidemenuSectionTheme`)
-   doivent supporter `isRef` et lire `.value` dans leurs `resolve()` —
+   doivent supporter `isRef` et lire `.value` dans leurs `resolve()` -
    pas capturer la valeur dans le closure au call time, sinon la
    réactivité ne passe pas.
 
@@ -85,7 +85,7 @@ composable qui possède la fonctionnalité**, jamais dans le SFC. Un
 l'événement de l'endroit qui sait quoi en faire.
 
 **Le nom de l'événement est un contrat entre deux fichiers qui ne s'importent
-jamais** — donc il s'épingle dans un test. Voir `useBackendSearch.test.js` :
+jamais** - donc il s'épingle dans un test. Voir `useBackendSearch.test.js` :
 il assère la chaîne, l'ouverture, et le fait que l'écouteur disparaisse au
 démontage (il y en a un par page ; sans nettoyage, un composant mort continue
 de réagir).
@@ -99,7 +99,7 @@ de réagir).
 - **Convention Aurora respectée** : les pages settings ne reloadent
   jamais après save (`useUserSettings`, `useProfileForm`, etc.)
 - **Pas de cross-app prop-drilling** : les deux mounts restent
-  indépendants — aucun import croisé, juste un contrat d'event
+  indépendants - aucun import croisé, juste un contrat d'event
 
 ## How to apply
 
@@ -107,12 +107,12 @@ de réagir).
 page-mount doit refléter une modif sans reload :
 
 1. **Si l'état est server-filtered** (hidden items, privileges, etc.) :
-   ce pattern ne marche **pas** seul — la donnée déjà filtrée par PHP
+   ce pattern ne marche **pas** seul - la donnée déjà filtrée par PHP
    ne peut pas être unfiltered côté JS. Reload reste la solution
    honnête pour ces cas-là. Le sidemenu hide d'ailleurs ne se met à
    jour qu'à la prochaine navigation (limite acceptée).
 2. **Si l'état est purement présentational** (couleurs, layout
-   préférences) : ce pattern est idéal — le serveur stocke la
+   préférences) : ce pattern est idéal - le serveur stocke la
    valeur, le client la consomme en classes Tailwind / styles.
 
 ## Pièges
@@ -126,12 +126,12 @@ page-mount doit refléter une modif sans reload :
   JSON `[]` (Array, pas Object). Le composable doit normaliser tout
   payload entrant en `Record` plain (cf. `normaliseColorMap`).
 - **Event name = contrat** : passer la constante en export, pas un
-  magic string dupliqué — un rename d'un côté pète silencieusement
+  magic string dupliqué - un rename d'un côté pète silencieusement
   l'autre.
 
 ## Voir aussi
 
-- [[pattern_user_sidemenu_preferences]] — la feature concrète où ce
+- [[pattern_user_sidemenu_preferences]] - la feature concrète où ce
   pattern a été appliqué
-- [[convention_sfc_thin_presentation]] — la logique reste dans les
+- [[convention_sfc_thin_presentation]] - la logique reste dans les
   composables (`useSidemenuLiveColors`), jamais dans le `.vue`

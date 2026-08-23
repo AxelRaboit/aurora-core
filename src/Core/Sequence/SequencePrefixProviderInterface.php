@@ -28,6 +28,6 @@ interface SequencePrefixProviderInterface
     /** @return list<string> All prefix string values declared by this provider. */
     public function values(): array;
 
-    /** Human-readable source name — used in conflict error messages. */
+    /** Human-readable source name - used in conflict error messages. */
     public function name(): string;
 }

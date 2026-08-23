@@ -2,7 +2,7 @@
 defineProps({
     modelValue: { type: Boolean, default: false },
     label: { type: String, default: '' },
-    /** Help text under the switch — explains what flipping it does. */
+    /** Help text under the switch - explains what flipping it does. */
     hint: { type: String, default: '' },
     disabled: { type: Boolean, default: false },
 });

@@ -1,4 +1,4 @@
-# Roadmap — Modules à venir
+# Roadmap - Modules à venir
 
 Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, classés par priorité.
 
@@ -10,7 +10,7 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > repo standalone (`aurora-<module>`), non maintenu depuis aurora-core.
 > Réintégration = reprendre depuis ce repo, pas depuis aurora-core.
 >
-> **Retrouver le retrait exact** — sur `aurora-core` :
+> **Retrouver le retrait exact** - sur `aurora-core` :
 > - Tag `pre-simplify-editorial-only` = état du monorepo juste **avant** le
 >   retrait (dernier commit avec les 12 modules encore présents).
 > - Sur `develop`, le retrait tient dans 5 commits consécutifs juste après
@@ -24,28 +24,28 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > - **Suite (Ollama/Stripe + Agency/Service)** : `develop` `bc1c2f46` +
 >   `bab23e68` ; `split/core` `07bd5fee`. Agency/Service (org-chart
 >   "qui travaille où" de Platform/User) n'avait plus d'utilité une fois
->   Hr/Crm/etc. retirés — supprimé en totalité.
+>   Hr/Crm/etc. retirés - supprimé en totalité.
 > - **Reliquat trouvé après coup** (variable Twig `agencies`/`services`
 >   encore passée à `UsersApp`, + quelques commentaires d'exemple citant
 >   encore `Module/Platform/Agency`) : `develop` `66f7491b` ; `split/core`
 >   `cea2bdeb`. Si un nouveau symptôme du même genre apparaît (route,
->   traduction, colonne DB orpheline), il appartient à ce même reliquat —
+>   traduction, colonne DB orpheline), il appartient à ce même reliquat -
 >   compléter cette liste plutôt qu'ouvrir une nouvelle note.
 > - Détail complet de la décision (pourquoi, ce qui a été gardé/coupé,
 >   notamment le choix de ne pas toucher aux migrations SQL) :
 >   mémoire [[project_monorepo_split_chantier]] section « Recentrage ».
 > - **URLs frontend aplaties (juillet 2026)** : conséquence directe du
->   recentrage — Editorial étant désormais le seul front public, le préfixe
+>   recentrage - Editorial étant désormais le seul front public, le préfixe
 >   `/{locale}/editorial/...` (hérité de l'époque où plusieurs modules
 >   pouvaient chacun exposer leur propre front) n'a plus de raison d'être.
 >   `/{locale}/editorial` devient `/{locale}`, `/{locale}/editorial/{x}/{y}`
->   devient `/{locale}/{x}/{y}`, etc. — les noms de route ne changent pas
+>   devient `/{locale}/{x}/{y}`, etc. - les noms de route ne changent pas
 >   (`editorial_home`, `editorial_post`, ...), donc tout ce qui génère les
 >   URLs via `path()`/`generateUrl()` suit automatiquement. `develop`
 >   `58d895d3` ; repo standalone `aurora-editorial` `2ec1620`.
 >
 > **Editorial complètement sorti du monorepo (juillet 2026)** : dernière
-> étape du recentrage — `develop` **devient** Core seul (le contenu qui
+> étape du recentrage - `develop` **devient** Core seul (le contenu qui
 > était jusque-là celui de `split/core`), au lieu de contenir Core+Editorial
 > avec `split/core` comme filtrage dérivé. Editorial ne vit plus **que**
 > dans `aurora-editorial`, même traitement que les 11 autres modules déjà
@@ -55,7 +55,7 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 >   = exact contenu de `develop` juste avant ce changement (Core + Editorial
 >   combinés, comme depuis le début du recentrage éditorial).
 > - **Reliquats trouvés** (`split/core` n'avait en réalité jamais tourné
->   comme application autonome — il n'était consommé que via Composer, où
+>   comme application autonome - il n'était consommé que via Composer, où
 >   le kernel du projet client prenait le relais) : `config/bundles.php`
 >   référençait encore `AuroraEditorialBundle` (classe absente → kernel ne
 >   bootait plus du tout) ; le layout frontend partagé (`layout.html.twig`,
@@ -65,16 +65,16 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 >   RSS d'Editorial. Tout ça corrigé : `develop` `d9ff538b` (bundles/DI) +
 >   `4320d159` (découplage du thème frontend, nouvelle fonction Twig
 >   `default_front_home_path()` qui résout vers le front réellement
->   enregistré — GED ici).
+>   enregistré - GED ici).
 > - **Suivi pour une future réintégration d'Editorial** ~~: surcharger
->   `layout.html.twig` depuis le package Editorial~~ — **résolu autrement**
+>   `layout.html.twig` depuis le package Editorial~~ - **résolu autrement**
 >   (août 2026). Le layout par défaut appelle `menu_items()` et `feed_url()`,
 >   deux fonctions Twig qui répondent vide quand rien ne publie de menu ni de
 >   flux. Le core n'a donc plus besoin d'ignorer l'existence des menus pour
 >   rester autonome, et Editorial n'a plus besoin de masquer son layout : le
 >   thème demande, au lieu de savoir.
 
-> **Demi-tour : Editorial revient dans aurora-core (août 2026)** — le
+> **Demi-tour : Editorial revient dans aurora-core (août 2026)** - le
 > multi-dépôt coûtait plus qu'il ne rapportait pour un module qui est au
 > même niveau que Ged ou Platform : bumps Composer manuels (`make
 > aurora-update` ne nommait jamais `axelraboit/aurora-editorial`), boucle
@@ -86,8 +86,8 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > livré par défaut, sans `composer.json` ni `AuroraEditorialBundle`.
 > Reconstruit et non recopié : `aurora-editorial` a servi de spécification en
 > lecture seule jusqu'à la fin, puis **a été archivé sur GitHub** (2026-08-02,
-> dernier commit `9c6943c`). Le dépôt reste lisible — c'est l'archive de la
-> décision et la seule trace du code d'origine — mais il n'accepte plus
+> dernier commit `9c6943c`). Le dépôt reste lisible - c'est l'archive de la
+> décision et la seule trace du code d'origine - mais il n'accepte plus
 > d'écriture, et plus rien ne le consomme.
 >
 > **Terminé (août 2026).** Domaines reconstruits, dans l'ordre : PostType,
@@ -98,12 +98,12 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > **Démo bnb rétablie** (`aurora-client`, groupe `demo`) : six chambres à
 > champs personnalisés, six pages, menus imbriqués, et une page qui exerce
 > tous les types de bloc. C'est le plus gros usage de l'API Editorial nulle
-> part ailleurs, donc la vraie recette de la reconstruction — elle a d'ailleurs
+> part ailleurs, donc la vraie recette de la reconstruction - elle a d'ailleurs
 > fait remonter deux défauts que la démo portait depuis toujours : le thème
 > qu'elle livre n'était jamais activé, et l'absence de dépendance déclarée sur
 > la démo Ged faisait disparaître silencieusement ses deux plus beaux blocs.
 >
-> **Étape 1 — purge des résidus** (ce qui restait après l'extraction :
+> **Étape 1 - purge des résidus** (ce qui restait après l'extraction :
 > 97 occurrences sur 47 fichiers source). Tag `pre-editorial-purge` =
 > état juste avant. Commits sur `develop`, du plus ancien au plus récent :
 > `e6b89bdc` (crash `/backend/settings`), `f06f8934` (bloc `postsList`),
@@ -120,12 +120,12 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > - `bin/make-frontend` générait un import `@editorial/frontend/LocaleSwitcher.vue`
 >   et un appel Twig `menu_items()` : tout module scaffoldé produisait un
 >   build cassé et un template qui plante au rendu.
-> - `.claude/client_template/composer.json` épinglait `dev-split/core` —
->   une branche gelée depuis le 26 juillet — et requérait
+> - `.claude/client_template/composer.json` épinglait `dev-split/core` -
+>   une branche gelée depuis le 26 juillet - et requérait
 >   `aurora-editorial`. Tout nouveau projet client démarrait sur un core
 >   périmé.
 >
-> Gardés délibérément : les migrations SQL (même raison qu'au recentrage —
+> Gardés délibérément : les migrations SQL (même raison qu'au recentrage -
 > `schema:create` ne construit que les entités restantes), les docblocks
 > des points d'extension de Core (`BlockRendererInterface`,
 > `SearchProviderInterface`, `DashboardStatsProviderInterface`,
@@ -137,10 +137,10 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 
 Réécrire plutôt que recopier a fait remonter ces défauts d'`aurora-editorial`.
 Aucun n'est « à corriger » : chacun l'est **dans le code reconstruit**, au
-commit qui réécrit la pièce concernée. La liste sert de mémoire — plusieurs
+commit qui réécrit la pièce concernée. La liste sert de mémoire - plusieurs
 relèvent du même motif et le motif se répétera sur ce qui reste à faire.
 
-**Le motif dominant — typage sur la classe concrète là où la convention
+**Le motif dominant - typage sur la classe concrète là où la convention
 d'extensibilité impose l'interface.** Six occurrences sur le seul domaine
 Post. À chaque fois l'effet est le même : `resolve_target_entities` est
 neutralisé et la substitution promise au client ne fonctionne pas.
@@ -163,7 +163,7 @@ neutralisé et la substitution promise au client ne fonctionne pas.
 | Docblock du filtre par termes annonçant ET, code faisant OU | Documentation fausse |
 | `BlocksRenderer::renderCallout()` lisant `text` et émettant `.callout-info` | Encart vide et non coloré, mais **seulement une fois publié** |
 | `robots.txt` interdisant `/admin/` et `/dev/` | Le backend d'Aurora est sous `/backend/` : le fichier ne bloquait rien qui existe et **annonçait l'administration comme indexable**. Bien formé, route en 200, aucun symptôme avant de voir des URL d'admin dans les résultats de recherche. |
-| Filtre anti-spam des commentaires notifiant **avant** de filtrer | Le décorateur appelait `submit()` — qui persiste, journalise **et envoie le mail** — puis basculait le résultat en spam. Chaque commentaire indésirable prévenait donc l'administrateur, exactement ce qu'un filtre anti-spam existe pour éviter ; et modération coupée, il écrivait à l'adresse saisie par le spammeur, faisant du site un relais pour qui remplit le formulaire. Rien ne le signalait : le commentaire atterrissait bien dans la file « indésirable », seule la boîte mail était en désaccord. |
+| Filtre anti-spam des commentaires notifiant **avant** de filtrer | Le décorateur appelait `submit()` - qui persiste, journalise **et envoie le mail** - puis basculait le résultat en spam. Chaque commentaire indésirable prévenait donc l'administrateur, exactement ce qu'un filtre anti-spam existe pour éviter ; et modération coupée, il écrivait à l'adresse saisie par le spammeur, faisant du site un relais pour qui remplit le formulaire. Rien ne le signalait : le commentaire atterrissait bien dans la file « indésirable », seule la boîte mail était en désaccord. |
 | `ReactionTypeEnum::label()` renvoyant du français en dur | Sur le site public, un lecteur anglophone survolant une réaction lisait « J'adore ». |
 | Empreinte de réaction en `sha256(ip + user-agent)` non salée | L'espace est assez petit pour être parcouru : avec la table et une IP suspectée, on confirme ce que quelqu'un a aimé. Salée avec le secret applicatif désormais. |
 | Sérialisation admin comptant les réactions **par commentaire** | Un N+1 sur la file de modération, là où la version publique recevait déjà une carte pré-calculée. |
@@ -174,8 +174,8 @@ neutralisé et la substitution promise au client ne fonctionne pas.
 | Formulaires : IP du visiteur dans la charge du webhook | Le webhook pointe vers le tiers qu'un admin a configuré : chaque soumission expédiait donc l'adresse du visiteur hors de l'installation. Il a rempli un formulaire de contact, pas consenti à cela. L'adresse reste locale ; la livraison est désormais signée (HMAC), ce qu'elle n'était pas non plus. |
 | Formulaires : export CSV sans neutralisation des formules | Un formulaire public est exactement le vecteur : n'importe qui tape `=HYPERLINK(...)` dans un champ texte, et cela s'exécute quand un collègue ouvre l'export. |
 | Sitemap : `noindex` de la langue par défaut sautant **tout** le post | Un article masqué en français disparaissait aussi en anglais, d'une page que l'éditeur n'avait pas touchée. Le compteur d'URL retenues étant placé après ce `continue`, il sous-comptait exactement les URL perdues par erreur. |
-| `Sitemap:` de robots.txt construit sur `site_url` | Réglage livré à `http://localhost` : un déploiement qui ne l'a jamais changé annonçait son sitemap sur un hôte injoignable — soit aucun sitemap. Généré depuis la requête maintenant. |
-| **`Context::siteUrl()` prenant le placeholder pour un réglage** (Core, pré-existant) | Le même défaut, une couche plus bas et bien plus grave : `canonical`, `hreflang` et `og:image` de **toutes** les pages publiques annonçaient `http://localhost` tant que personne n'avait touché `site_url`. Aucun symptôme dans l'application — les pages s'affichent, les balises sont bien formées, le site ne remonte simplement pas. Le réglage l'emporte toujours **quand il a vraiment été posé** (épingler un hôte est sa raison d'être) ; laissé au placeholder, l'origine de la requête gagne. |
+| `Sitemap:` de robots.txt construit sur `site_url` | Réglage livré à `http://localhost` : un déploiement qui ne l'a jamais changé annonçait son sitemap sur un hôte injoignable - soit aucun sitemap. Généré depuis la requête maintenant. |
+| **`Context::siteUrl()` prenant le placeholder pour un réglage** (Core, pré-existant) | Le même défaut, une couche plus bas et bien plus grave : `canonical`, `hreflang` et `og:image` de **toutes** les pages publiques annonçaient `http://localhost` tant que personne n'avait touché `site_url`. Aucun symptôme dans l'application - les pages s'affichent, les balises sont bien formées, le site ne remonte simplement pas. Le réglage l'emporte toujours **quand il a vraiment été posé** (épingler un hôte est sa raison d'être) ; laissé au placeholder, l'origine de la requête gagne. |
 
 **Six défauts nés dans le code reconstruit lui-même**, tous trouvés en
 manipulant l'écran ou en comparant le schéma, aucun signalé par les outils :
@@ -183,15 +183,15 @@ manipulant l'écran ou en comparant le schéma, aucun signalé par les outils :
 | Défaut | Ce que ça donnait |
 |---|---|
 | `Assert\IsTrue` sur un getter (`hasTargetWhenRequired`) | La violation est nommée d'après la méthode : message posé sur un champ que le formulaire n'a pas → formulaire qui refuse d'enregistrer **sans afficher d'erreur nulle part**. Corrigé par un `Assert\Callback` + `atPath()`. |
-| `cascade: ['remove']` + `onDelete: 'CASCADE'` sur les sous-entrées de menu | Le Manager remonte les enfants d'un cran, Doctrine puis Postgres suppriment la branche derrière lui — supprimer un intitulé emportait ses six liens. `AbstractTaxonomyTerm` avait la bonne forme (`SET NULL`, pas de cascade) ; c'est elle qu'il fallait suivre. |
+| `cascade: ['remove']` + `onDelete: 'CASCADE'` sur les sous-entrées de menu | Le Manager remonte les enfants d'un cran, Doctrine puis Postgres suppriment la branche derrière lui - supprimer un intitulé emportait ses six liens. `AbstractTaxonomyTerm` avait la bonne forme (`SET NULL`, pas de cascade) ; c'est elle qu'il fallait suivre. |
 | **Sept index et contraintes d'unicité jamais redéclarés** | Perdus en réécrivant les entités : `(post_id, locale)`, `(taxonomy_id, locale)`, `(term_id, locale)`, `(menu_item_id, locale)`, `(locale, slug)` sur les termes **et** sur l'historique de slugs, plus deux index de lecture. `indexBy: 'locale'` ne protège que la collection en mémoire ; rien n'empêchait deux lignes pour la même langue, et une vieille URL pouvait retomber sur un post arbitraire. |
-| Aucune garde de route côté backend | Éteindre Editorial retirait ses entrées de menu **et rien d'autre** : les écrans répondaient encore 200 à qui avait gardé l'URL. GED avait son propre subscriber ; Editorial n'en avait aucun. Corrigé par un `AbstractModuleRouteGateSubscriber` dans Core, au grain du sous-module — couper « Taxonomies » ferme ses écrans et laisse les autres ouverts. |
-| Types de champ `media` et `reference` offerts sans éditeur | Même motif que `supports: excerpt` : l'écran des types de contenu les proposait, l'éditeur de publication n'en dessinait aucun — le rédacteur se retrouvait à taper un identifiant de base dans une zone de texte (le `v-else` de repli). Retirés jusqu'à ce que leurs sélecteurs existent. |
+| Aucune garde de route côté backend | Éteindre Editorial retirait ses entrées de menu **et rien d'autre** : les écrans répondaient encore 200 à qui avait gardé l'URL. GED avait son propre subscriber ; Editorial n'en avait aucun. Corrigé par un `AbstractModuleRouteGateSubscriber` dans Core, au grain du sous-module - couper « Taxonomies » ferme ses écrans et laisse les autres ouverts. |
+| Types de champ `media` et `reference` offerts sans éditeur | Même motif que `supports: excerpt` : l'écran des types de contenu les proposait, l'éditeur de publication n'en dessinait aucun - le rédacteur se retrouvait à taper un identifiant de base dans une zone de texte (le `v-else` de repli). Retirés jusqu'à ce que leurs sélecteurs existent. |
 | `make fixtures` / `make demo` purgeaient ce que `aurora:install` venait de créer | Le purger de doctrine vide toutes les tables, y compris celle des types de contenu que les fixtures s'apprêtent à chercher. Le Makefile **client** avait déjà la bonne séquence (`aurora:install` puis `--append`) et son commentaire l'expliquait ; celui de core faisait l'inverse. |
 
-Quatre sont verrouillés par des tests — `MenuItemInputTest`,
+Quatre sont verrouillés par des tests - `MenuItemInputTest`,
 `MenuItemCascadeTest`, `EditorialRouteGateSubscriberTest`,
-`PostTypeFieldTypesTest` — chacun vérifié en réintroduisant le défaut
+`PostTypeFieldTypesTest` - chacun vérifié en réintroduisant le défaut
 correspondant. Le troisième l'est par le schéma lui-même : après correction,
 `doctrine:schema:update --dump-sql` sur la base **construite par les
 migrations** ne signale plus aucun écart sur Editorial.
@@ -200,20 +200,20 @@ migrations** ne signale plus aucun écart sur Editorial.
 pour chaque domaine restant :
 
 1. Comparer les entités à une base montée par `doctrine:migrations:migrate`
-   (la base de test l'est), pas à la base de dev — celle-ci a été façonnée
+   (la base de test l'est), pas à la base de dev - celle-ci a été façonnée
    par `schema:update` au fil de la reconstruction, donc elle est d'accord
    avec le code par construction et ne peut rien révéler.
 2. Éteindre chaque bascule de module et **redemander les URL à la main**.
    Le menu disparaît toujours ; ce n'est pas ce qu'on teste. Ce qu'on teste,
    c'est ce que répond la route quand plus rien ne la montre.
 
-**Deux choses que j'ai cru être des défauts et qui n'en étaient pas** —
+**Deux choses que j'ai cru être des défauts et qui n'en étaient pas** -
 vérifiées avant de « corriger » : le titre absent de `search_content` (le
 repository le cherche par son propre LIKE) et les dépendances `@editorjs/*`
 (importées par un composant générique de Core).
 
 **Un docblock à moi que PHPStan a démenti, à raison.** J'avais typé les
-réponses d'un formulaire en `array<string, mixed>` — clés = identifiants de
+réponses d'un formulaire en `array<string, mixed>` - clés = identifiants de
 champ. Or PHP convertit une clé de tableau numérique en entier : `"3"` devient
 `3`. Le type décrivait donc quelque chose que PHP ne peut pas contenir, et une
 lecture par clé chaîne n'aurait jamais pu aboutir. Le code marchait par hasard,
@@ -221,7 +221,7 @@ les deux côtés étant normalisés de la même façon. `array<array-key, mixed>
 un accès par entier.
 
 **Un test à moi qui encodait une coïncidence.** `ValidationMessageKeyTest`
-affirmait que toute clé de contrainte commence par `backend.` — vrai de tous
+affirmait que toute clé de contrainte commence par `backend.` - vrai de tous
 les DTO au moment où je l'ai écrit, faux dès le premier formulaire public. Le
 test a bloqué le travail correct au lieu de le protéger. Réécrit pour poser la
 vraie question : la clé se résout-elle dans le catalogue ? Ce qui attrape en
@@ -231,14 +231,14 @@ plutôt que la règle voulue est une dette, pas un filet.**
 **`\d+` vs `__id__` : trois fois le même défaut, et la correction était le
 problème.** Un gabarit d'URL (`path('…', {id: '__id__'})`) demande au
 générateur de produire une adresse à trou, que le composant Vue complètera au
-clic. La contrainte `\d+` refuse — *pendant le rendu*, donc l'écran répond 500
+clic. La contrainte `\d+` refuse - *pendant le rendu*, donc l'écran répond 500
 avant que quiconque atteigne la route qu'elle protégeait.
 
 Je l'ai « corrigé » en desserrant la contrainte elle-même, `\d+|__\w+__`. Ce
 choix coûtait plus qu'il ne rapportait : il fallait le répéter sur chaque
 route, il a été mal fait trois fois (une constante nommée `__id__` recopiée sur
 un paramètre `revisionId`), et surtout **il rendait les routes desserrées
-capables de répondre à de vraies requêtes** — demander
+capables de répondre à de vraies requêtes** - demander
 `/posts/__id__/edit` n'était plus un 404 propre mais une erreur Postgres, le
 placeholder arrivant jusqu'à Doctrine comme identifiant. Une correction qui
 ouvre une porte plus large que celle qu'elle ferme.
@@ -251,17 +251,17 @@ le temps du seul appel qui veut un trou. Une constante à recopier de moins,
 `RouteRequirement` supprimé.
 
 **Le piège de l'écriture, à retenir** : `Router` n'implémente pas
-`ConfigurableRequirementsInterface`. C'est son générateur interne — un cran
-plus bas, obtenu par `getGenerator()` — qui porte le drapeau. Tester le service
+`ConfigurableRequirementsInterface`. C'est son générateur interne - un cran
+plus bas, obtenu par `getGenerator()` - qui porte le drapeau. Tester le service
 injecté échoue donc *silencieusement* : la relâche n'a jamais lieu et on
 retombe sur le 500 d'origine. Un test à double aurait validé la version fausse,
 puisqu'un `UrlGenerator` nu, lui, est configurable. `PathTemplateExtensionTest`
 construit un vrai `Router` sur une vraie route contrainte, et vérifie en prime
-que le drapeau est restauré après coup — sans quoi le premier `path_template`
+que le drapeau est restauré après coup - sans quoi le premier `path_template`
 d'une page désactiverait la validation de routage pour tout ce qui suit.
 
 **Trois simplifications que la reconstruction a rendues possibles**, à ne pas
-confondre avec des défauts — ce sont des choix qui n'avaient plus de raison
+confondre avec des défauts - ce sont des choix qui n'avaient plus de raison
 d'être une fois Editorial dans Core :
 
 - `aurora:menus:sync` disparaît. Core avait déjà `aurora:install`, idempotent
@@ -276,39 +276,39 @@ d'être une fois Editorial dans Core :
   réglage faisait doublon avec « vider le menu », et ajoutait une deuxième
   raison pour laquelle une navigation peut ne pas apparaître.
 
-**Ce que les outils ne voient pas.** Les défauts les plus coûteux — page en
+**Ce que les outils ne voient pas.** Les défauts les plus coûteux - page en
 500, liste non restreinte à son auteur, gabarit d'URL cassé, branche de menu
-supprimée avec son parent — n'ont été trouvés qu'en manipulant l'application
+supprimée avec son parent - n'ont été trouvés qu'en manipulant l'application
 avec une vraie base. Ni PHPStan, ni les tests, ni la relecture ne les
 signalaient. Vérifier chaque domaine contre le serveur qui tourne n'est pas
 du confort.
 
 | Module | Statut |
 |---|---|
-| Editorial (CMS/Blog) | ✅ Core — reconstruit depuis `aurora-editorial`, désormais archivé |
+| Editorial (CMS/Blog) | ✅ Core - reconstruit depuis `aurora-editorial`, désormais archivé |
 | GED (documents) | ✅ Core |
-| Media (médiathèque) | ✅ Core — fusion vers GED planifiée, cf. [media-ged-merge](media-ged-merge.md) |
-| ~~CRM (contacts, entreprises, affaires)~~ | Extrait, non ré-publié — `aurora-crm` |
-| ~~ERP (produits)~~ | Extrait, non ré-publié — `aurora-commerce` |
-| ~~Ecommerce (catalogue, panier, commandes)~~ | Extrait, non ré-publié — `aurora-commerce` |
-| ~~Billing (factures, avoir, OCR, tiers)~~ | Extrait, non ré-publié — `aurora-billing` |
-| ~~Photo (galeries client)~~ | Extrait, non ré-publié — `aurora-photo` |
-| ~~Project (projets / tâches)~~ | Extrait, non ré-publié — `aurora-project` |
-| ~~Planning / Agenda~~ | Extrait, non ré-publié — `aurora-planning` |
-| ~~HR (fiches employés)~~ | Extrait, non ré-publié — `aurora-hr` |
-| ~~Notes (Markdown + Block / EditorJS)~~ | Extrait, non ré-publié — `aurora-notes` |
-| ~~Vault (Safe + PasswordGenerator)~~ | Extrait, non ré-publié — `aurora-tools` |
-| ~~Assistant (Ollama / chat IA)~~ | Extrait, non ré-publié — `aurora-assistant` |
-| ~~PersonalFinance (Spendly)~~ | Extrait, non ré-publié — `aurora-personal-finance` |
+| Media (médiathèque) | ✅ Core - fusion vers GED planifiée, cf. [media-ged-merge](media-ged-merge.md) |
+| ~~CRM (contacts, entreprises, affaires)~~ | Extrait, non ré-publié - `aurora-crm` |
+| ~~ERP (produits)~~ | Extrait, non ré-publié - `aurora-commerce` |
+| ~~Ecommerce (catalogue, panier, commandes)~~ | Extrait, non ré-publié - `aurora-commerce` |
+| ~~Billing (factures, avoir, OCR, tiers)~~ | Extrait, non ré-publié - `aurora-billing` |
+| ~~Photo (galeries client)~~ | Extrait, non ré-publié - `aurora-photo` |
+| ~~Project (projets / tâches)~~ | Extrait, non ré-publié - `aurora-project` |
+| ~~Planning / Agenda~~ | Extrait, non ré-publié - `aurora-planning` |
+| ~~HR (fiches employés)~~ | Extrait, non ré-publié - `aurora-hr` |
+| ~~Notes (Markdown + Block / EditorJS)~~ | Extrait, non ré-publié - `aurora-notes` |
+| ~~Vault (Safe + PasswordGenerator)~~ | Extrait, non ré-publié - `aurora-tools` |
+| ~~Assistant (Ollama / chat IA)~~ | Extrait, non ré-publié - `aurora-assistant` |
+| ~~PersonalFinance (Spendly)~~ | Extrait, non ré-publié - `aurora-personal-finance` |
 | ~~PdfForm (formulaires PDF)~~ | Absorbé dans Welding (sprint 6, mai 2026), puis extrait en client `aurora-welding` |
-| ~~Welding (workflows de soudure réglementée)~~ | Extrait en client `aurora-welding/` (mai 2026 — premier usage du playbook [dev/extracting_a_module.md](../dev/extracting_a_module.md)) |
+| ~~Welding (workflows de soudure réglementée)~~ | Extrait en client `aurora-welding/` (mai 2026 - premier usage du playbook [dev/extracting_a_module.md](../dev/extracting_a_module.md)) |
 
 ---
 
 ## 🔴 Haute priorité
 
 ### Contrats / Abonnements
-**Inspiré de :** Dolibarr — Module Contrats  
+**Inspiré de :** Dolibarr - Module Contrats  
 **Pourquoi :** Génère des factures récurrentes automatiquement. Indispensable pour les modèles SaaS, maintenance, abonnements.  
 **Fonctionnalités cibles :**
 - Contrats avec période, montant, renouvellement
@@ -321,7 +321,7 @@ du confort.
 ## 🟡 Valeur selon le secteur
 
 ### Support / Tickets
-**Inspiré de :** Dolibarr — Module Ticket  
+**Inspiré de :** Dolibarr - Module Ticket  
 **Pourquoi :** Helpdesk post-vente. Lié aux contacts CRM pour un suivi 360°.  
 **Fonctionnalités cibles :**
 - Tickets avec statut, priorité, catégorie
@@ -332,7 +332,7 @@ du confort.
 ---
 
 ### Ressources Humaines
-**Inspiré de :** Dolibarr — Module RH  
+**Inspiré de :** Dolibarr - Module RH  
 **Pourquoi :** Gestion interne de l'équipe. Moins prioritaire pour les projets client.  
 **Fonctionnalités cibles :**
 - Fiches employés ✅ implémentées (entité `Employee` dans `src/Module/Hr/Employee/Entity/`, lien `User`, CRUD backend complet, synchronisation agence/service via `UserAgencyServiceUpdatingEvent`)
@@ -343,7 +343,7 @@ du confort.
 ---
 
 ### Stock / Inventaire
-**Inspiré de :** Dolibarr — Module Stock  
+**Inspiré de :** Dolibarr - Module Stock  
 **Pourquoi :** L'ERP actuel gère les produits mais pas les mouvements de stock.  
 **Fonctionnalités cibles :**
 - Entrepôts / emplacements
@@ -357,7 +357,7 @@ du confort.
 ## 🟢 Long terme
 
 ### Banque / Trésorerie
-**Inspiré de :** Dolibarr — Module Banque  
+**Inspiré de :** Dolibarr - Module Banque  
 **Pourquoi :** Rapprochement bancaire, suivi de la trésorerie réelle vs facturée.  
 **Fonctionnalités cibles :**
 - Comptes bancaires
@@ -368,7 +368,7 @@ du confort.
 ---
 
 ### Expéditions / Livraisons
-**Inspiré de :** Dolibarr — Module Expéditions  
+**Inspiré de :** Dolibarr - Module Expéditions  
 **Pourquoi :** Complète le module Ecommerce avec la logistique.  
 **Fonctionnalités cibles :**
 - Bons de livraison
@@ -379,7 +379,7 @@ du confort.
 ---
 
 ### Emailing / Campagnes
-**Inspiré de :** Dolibarr — Module Emailing  
+**Inspiré de :** Dolibarr - Module Emailing  
 **Pourquoi :** Exploiter la base de contacts CRM pour des campagnes ciblées.  
 **Fonctionnalités cibles :**
 - Listes de diffusion depuis les contacts CRM

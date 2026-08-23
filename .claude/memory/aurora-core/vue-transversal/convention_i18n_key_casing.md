@@ -6,7 +6,7 @@ type: feedback
 
 ## Règle
 
-**Toutes les clés de traduction sont en `snake_case`, sans exception** — qu'elles
+**Toutes les clés de traduction sont en `snake_case`, sans exception** - qu'elles
 soient construites par le code (enums, ids système) ou nommées manuellement pour
 l'UI. Le `camelCase` dans une clé i18n est **interdit** (CLAUDE.md §4).
 
@@ -23,7 +23,7 @@ l'UI. Le `camelCase` dans une clé i18n est **interdit** (CLAUDE.md §4).
   pas `targetTypes` ; `field_type`, pas `fieldType`).
 - **Piège (cassé en silence)** : `src/Core/assets/i18n.js` = vue-i18n vanilla
   **sans `messageResolver`** ; Symfony translator idem. Lookup **exact** : une
-  réf camelCase non-matchante n'erre pas — elle affiche la clé brute dans l'UI.
+  réf camelCase non-matchante n'erre pas - elle affiche la clé brute dans l'UI.
   La dérive passe inaperçue jusqu'à ce qu'on regarde l'écran.
 
 ## Comment l'appliquer
@@ -39,5 +39,5 @@ l'UI. Le `camelCase` dans une clé i18n est **interdit** (CLAUDE.md §4).
 
 ## Référence
 
-Doc : `docs/aurora-shared/translations.md` § "Casse des clés — toujours snake_case".
+Doc : `docs/aurora-shared/translations.md` § "Casse des clés - toujours snake_case".
 Mémoire shared jumelle : `aurora-shared/convention_i18n_key_casing.md`.

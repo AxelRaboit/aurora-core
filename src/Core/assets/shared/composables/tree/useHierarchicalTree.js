@@ -2,7 +2,7 @@
  * Shared hierarchical-tree helpers for backend admin trees
  * (taxonomies, listing categories, …).
  *
- * Pure functions — no Vue reactivity, no persistence. Each consumer
+ * Pure functions - no Vue reactivity, no persistence. Each consumer
  * keeps its own debounce / persist / locale logic.
  */
 

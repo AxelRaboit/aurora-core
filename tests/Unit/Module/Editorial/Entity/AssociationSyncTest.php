@@ -12,8 +12,8 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Only the owning side of these many-to-manys was being updated. The row
- * reached the database, but the inverse collection — already loaded in the
- * same request — stayed as it was, so the response serialized right after
+ * reached the database, but the inverse collection - already loaded in the
+ * same request - stayed as it was, so the response serialized right after
  * the write said the link had not been made. On screen the change undid
  * itself until a reload.
  */

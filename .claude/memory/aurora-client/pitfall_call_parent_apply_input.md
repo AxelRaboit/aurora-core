@@ -50,7 +50,7 @@ slug calculé différemment). Dans ce cas :
 ```php
 protected function applyInput(AgencyInterface $agency, AgencyInputInterface $input): void
 {
-    // OVERRIDE TOTAL — on ne veut pas le slug auto d'Aurora car on calcule
+    // OVERRIDE TOTAL - on ne veut pas le slug auto d'Aurora car on calcule
     // notre propre slug depuis le code+name. Synchroniser avec parent à
     // chaque update d'aurora-core.
     $agency->setName($input->getName());
@@ -63,7 +63,7 @@ protected function applyInput(AgencyInterface $agency, AgencyInputInterface $inp
 
 ## Symptômes du bug
 
-Ce bug est **silencieux** : pas d'exception, pas d'erreur — juste des
+Ce bug est **silencieux** : pas d'exception, pas d'erreur - juste des
 champs vides en base. Souvent détecté seulement à l'usage par un
 utilisateur qui rapporte "je remplis le name mais après création il est
 vide".

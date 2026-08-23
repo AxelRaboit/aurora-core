@@ -10,8 +10,8 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Adds the content grid, stored in two halves like the banner.
  *
- * `core_posts.grid_layout` holds the arrangement — which zones exist, in what
- * order, how wide, of what kind — shared by every language.
+ * `core_posts.grid_layout` holds the arrangement - which zones exist, in what
+ * order, how wide, of what kind - shared by every language.
  * `core_post_translations.grid` holds what each zone contains in that locale,
  * keyed by zone id.
  *

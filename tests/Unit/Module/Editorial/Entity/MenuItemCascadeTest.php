@@ -14,7 +14,7 @@ use ReflectionProperty;
  * A menu entry's children must survive its deletion.
  *
  * MenuManager::deleteItem() promotes them to their grandparent before
- * removing the entry — an editor deleting a heading means "drop this label",
+ * removing the entry - an editor deleting a heading means "drop this label",
  * not "drop the six links under it". Two mappings quietly undid that:
  * `cascade: ['remove']` on the children collection had Doctrine delete the
  * whole branch anyway, and `onDelete: 'CASCADE'` on the parent column had
@@ -22,7 +22,7 @@ use ReflectionProperty;
  * nothing reported a problem.
  *
  * Asserted on the mapping rather than through a Manager call because that is
- * where the bug lived — the Manager code was already right.
+ * where the bug lived - the Manager code was already right.
  */
 final class MenuItemCascadeTest extends TestCase
 {

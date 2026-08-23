@@ -8,7 +8,7 @@ use Aurora\Core\Sequence\SequencePrefixEnum;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
 
 /**
- * Editorial's non-toggle settings — the human-readable reference prefixes.
+ * Editorial's non-toggle settings - the human-readable reference prefixes.
  * Toggles live in the central ModuleParameterEnum instead; these are values
  * an admin types, not switches.
  */

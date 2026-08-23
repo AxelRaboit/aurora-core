@@ -16,14 +16,14 @@ use Doctrine\Migrations\AbstractMigration;
  * things.
  *
  * Defaults to true, which the `ADD COLUMN` also writes onto every existing
- * row — so accounts that predate the switch get the descriptions too, rather
+ * row - so accounts that predate the switch get the descriptions too, rather
  * than a feature only new users ever see.
  *
  * Written by hand, as with every migration here: `doctrine:migrations:diff`
  * compares the dev database against the entities currently mapped, and every
  * module absent from this checkout reads as a table to drop. Asked for it out of
  * habit before writing this and it produced 692 statements, most of them
- * dropping sequences — which `make aurora-update` would have run unattended on
+ * dropping sequences - which `make aurora-update` would have run unattended on
  * a consumer, since it calls `migrate-f`.
  */
 final class Version20260823040000 extends AbstractMigration

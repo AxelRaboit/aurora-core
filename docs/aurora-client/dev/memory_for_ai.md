@@ -23,7 +23,7 @@ tous les clients.
 
 > **Conséquence importante** : vous ne devez **jamais éditer** les fichiers
 > sous `.claude/memory/aurora-core/` ni `.claude/memory/aurora-client/`
-> depuis votre projet client — ils sont écrasés à chaque sync. Pour
+> depuis votre projet client - ils sont écrasés à chaque sync. Pour
 > contribuer, ouvrir une PR sur aurora-core directement.
 
 ---
@@ -78,7 +78,7 @@ Le contexte / les contre-exemples qui ont motivé la règle.
 Étapes concrètes ou exemple de code minimal.
 ```
 
-Pas besoin de frontmatter YAML — Claude Code lit la mémoire au plain text.
+Pas besoin de frontmatter YAML - Claude Code lit la mémoire au plain text.
 Garder court (< 80 lignes) et factuel.
 
 ---
@@ -93,7 +93,7 @@ session.
 **Côté projet client**, cette cible **n'existe pas par défaut** dans le
 Makefile fourni par aurora-core (vérifier avec `grep sync-claude-memory
 Makefile`). À ajouter dans **`Makefile.local`** si vous voulez un
-équivalent — par exemple :
+équivalent - par exemple :
 
 ```makefile
 sync-claude-memory: ## Sync project memory to user-level Claude Code memory
@@ -103,7 +103,7 @@ sync-claude-memory: ## Sync project memory to user-level Claude Code memory
 	echo "✅ Memory synced to $$CLAUDE_DIR/memory"
 ```
 
-> Ne jamais éditer `Makefile` directement — il est écrasé par
+> Ne jamais éditer `Makefile` directement - il est écrasé par
 > `make sync-makefile` à chaque `make aurora-update` (cf.
 > [`update_aurora.md`](update_aurora.md)). Toujours mettre les targets
 > custom dans `Makefile.local`.
@@ -118,7 +118,7 @@ Identique au cycle d'aurora-core (cf. `CLAUDE.md` section "Règle d'hygiène
 mémoire") :
 
 1. **Lire** les mémoires touchant la tâche en cours (ne pas se limiter au
-   titre dans l'index — ouvrir les fichiers source).
+   titre dans l'index - ouvrir les fichiers source).
 2. **Vérifier la fraîcheur** : si une mémoire affirme qu'un fichier/classe/flag
    existe, vérifier dans le code courant avant de s'y fier.
 3. **Corriger ou supprimer** les mémoires obsolètes (refacto, décision changée).
@@ -142,7 +142,7 @@ Pour rester maintenable, la mémoire **ne doit pas** contenir :
 - Du contenu directement dérivable du code (signatures, listes de classes…).
 - Du contenu déjà dans `docs/` (préférer un lien vers la doc).
 - Des secrets ou des credentials (la mémoire est versionnée, partagée).
-- Des notes éphémères "j'ai fait X ce matin" — git suffit.
+- Des notes éphémères "j'ai fait X ce matin" - git suffit.
 - Des duplications de mémoires aurora-core / aurora-client (pointer dessus).
 
 À l'inverse, **bons candidats** mémoire :
@@ -150,7 +150,7 @@ Pour rester maintenable, la mémoire **ne doit pas** contenir :
 - Une convention de naming propre au projet ("toutes les FK projet utilisent
   `*_project_id`").
 - Un piège métier découvert sur un cas réel ("ne jamais supprimer un user
-  qui possède une `OcrJob` en cours — bypass-er via le manager").
+  qui possède une `OcrJob` en cours - bypass-er via le manager").
 - Une décision d'archi avec son contexte ("on a choisi X au lieu de Y parce
   que…").
 - Un workflow d'équipe spécifique au projet.

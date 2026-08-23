@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * gateway: every URL of the shape `/uploads/{path}` is intercepted by
  * Symfony, the path-traversal guard runs, and the bytes are streamed
  * either via PHP `readfile()` (dev) or via Apache `mod_xsendfile`
- * (prod — see `XSendfileBootSubscriber`).
+ * (prod - see `XSendfileBootSubscriber`).
  *
  * **Auth model** : public by default (assets typically embedded on
  * public pages: media, profile photos, post featured images, gallery
@@ -28,7 +28,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * signed PDFs, notes-markdown per-user), that area defines its OWN
  * route under a backend prefix (e.g.
  * `/backend/notes/markdown/images/{filename}`) which takes precedence
- * over this catch-all. Apache still never serves the file — both
+ * over this catch-all. Apache still never serves the file - both
  * paths pass through PHP.
  *
  * The `{path}` is constrained to disallow `..` segments at the
