@@ -95,6 +95,13 @@
         {{ include('Frontend/themes/default/editorial/post/_grid.html.twig', {grid: grid, locale: locale}) }}
     {% endif %}
 
+    {# Under the grid, which is where a gallery belongs by default: the words
+       first, the pictures after. Null when there is no gallery, so a post
+       without one gets nothing rather than an empty section. #}
+    {% if gallery %}
+        {{ include('Frontend/themes/default/editorial/post/_gallery.html.twig', {gallery: gallery}) }}
+    {% endif %}
+
     {% if terms is not empty %}
         <footer class="flex flex-wrap gap-1.5 not-prose border-t border-line pt-4 mt-8">
             {% for taxonomySlug, names in terms %}

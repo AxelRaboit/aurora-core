@@ -1,0 +1,74 @@
+{# The post's image gallery, under the content grid.
+
+   Rendered here rather than by the Vue overlay beside it, on purpose: the
+   pictures belong in the HTML. A gallery drawn by script is invisible to a
+   crawler, to a reader with no JavaScript, and to the print stylesheet, and this
+   is a page whose whole content can be the gallery. The overlay is an addition
+   on top of markup that already works without it.
+
+   `gallery` comes from GalleryViewBuilder and is null when the gallery is off or
+   has nothing to show, so the caller guards on it rather than this file
+   second-guessing.
+
+   Two layouts, and they are different mechanisms rather than two sets of
+   classes:
+
+   - `grid` is a real grid, every tile cropped to the chosen ratio. Reads left to
+     right, which is the order the author wrote.
+   - `masonry` is CSS columns, every picture at its own proportions. Reads **down
+     a column**, which no styling changes - the settings panel says so, because
+     it matters when the order carries something.
+
+   Column counts are written out per layout rather than composed, because
+   Tailwind only emits classes it can read in the source: `sm:columns-{{ n }}`
+   produces nothing at all. #}
+{% set columns = gallery.columns|default(3) %}
+{% set grid_columns = {
+    2: 'grid-cols-1 sm:grid-cols-2',
+    3: 'grid-cols-2 sm:grid-cols-3',
+    4: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
+    5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
+} %}
+{% set masonry_columns = {
+    2: 'columns-1 sm:columns-2',
+    3: 'columns-2 sm:columns-3',
+    4: 'columns-2 sm:columns-3 lg:columns-4',
+    5: 'columns-2 sm:columns-3 lg:columns-5',
+} %}
+
+<section class="not-prose mt-10">
+    <div class="{{ 'masonry' == gallery.layout ? masonry_columns[columns]|default(masonry_columns[3]) ~ ' gap-3' : 'grid ' ~ (grid_columns[columns]|default(grid_columns[3])) ~ ' gap-3' }}">
+        {% for index, item in gallery.items %}
+            <figure class="m-0{{ 'masonry' == gallery.layout ? ' mb-3 break-inside-avoid' : '' }}">
+                {# A button, not a link: it opens an overlay on this page rather
+                   than going anywhere. Without the overlay's script it is a
+                   button that does nothing, which is why the picture inside it
+                   is the content and not a thumbnail of it. #}
+                <button
+                    type="button"
+                    data-gallery-open="{{ index }}"
+                    class="block w-full cursor-zoom-in appearance-none border-0 bg-transparent p-0 text-left"
+                    aria-label="{{ 'frontend.gallery.open'|trans({'%position%': index + 1, '%total%': gallery.items|length}) }}"
+                >
+                    <img
+                        src="{{ item.url }}"
+                        alt="{{ item.alt }}"
+                        loading="lazy"
+                        class="w-full h-auto rounded-lg object-cover"
+                        style="object-position: {{ item.focalPosition }};{{ 'masonry' == gallery.layout ? '' : gallery.ratioStyle }}"
+                    >
+                </button>
+                {% if item.caption %}
+                    <figcaption class="mt-2 text-sm text-secondary">{{ item.caption }}</figcaption>
+                {% endif %}
+            </figure>
+        {% endfor %}
+    </div>
+
+    {# The overlay, mounted once for the whole gallery. It listens for a click on
+       any `data-gallery-open` above rather than owning the tiles, which is what
+       lets the markup stay server-rendered. #}
+    <div {{ vue_component('editorial/frontend/PostGalleryLightbox', {
+        items: gallery.items,
+    }) }}></div>
+</section>

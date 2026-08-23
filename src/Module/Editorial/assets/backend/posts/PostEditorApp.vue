@@ -16,6 +16,7 @@ import AppFocalPointField from "@/shared/components/form/file/AppFocalPointField
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import PostBannerPanel from "./components/PostBannerPanel.vue";
 import PostGridPanel from "./components/PostGridPanel.vue";
+import PostGalleryPanel from "./components/PostGalleryPanel.vue";
 import { Save, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-vue-next";
 
 const { t } = useI18n();
@@ -65,7 +66,7 @@ const {
  * English keys because they end up in the URL, where the rest of the routing
  * is English too. The labels are translated; the identifier is not.
  */
-const TABS = ["settings", "header", "content", "seo"];
+const TABS = ["settings", "header", "content", "gallery", "seo"];
 const { activeTab, select: selectTab, isActive: isTabActive } = useTabState(TABS, {
     hash: true,
 });
@@ -347,6 +348,17 @@ function termLabel(term) {
                             />
                         </div>
                     </div>
+                </div>
+
+                <!-- Below the grid on the page, and after it here: the tab order is
+                     the reading order, which is the only order an author can
+                     check against what they will see. -->
+                <div v-show="isTabActive('gallery')" class="space-y-4">
+                    <PostGalleryPanel
+                        :layout="form.galleryLayout"
+                        :words="current.gallery"
+                        :locale="locale"
+                    />
                 </div>
 
                 <div v-show="isTabActive('seo')" class="space-y-4">

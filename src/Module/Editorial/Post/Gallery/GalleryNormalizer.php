@@ -152,9 +152,11 @@ final class GalleryNormalizer
             if (!is_string($id)) {
                 continue;
             }
+
             if ('' === $id) {
                 continue;
             }
+
             if (!is_numeric($mediaId)) {
                 continue;
             }

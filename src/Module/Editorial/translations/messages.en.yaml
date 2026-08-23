@@ -309,6 +309,25 @@ backend:
     content: Content
     content_placeholder: 'Write, or press Tab for a block…'
     custom_fields: Custom fields
+    gallery:
+      title: Image gallery
+      hint: "A run of pictures under the page's content. For a post that is mostly photographs, this rather than twenty zones placed one by one."
+      layout: Layout
+      columns: Columns
+      ratio: Ratio
+      ratio_ignored: "In a masonry layout each picture keeps its own proportions."
+      layouts:
+        grid: Grid
+        masonry: Masonry
+      pictures: Pictures
+      empty: "No picture yet. Add one below."
+      add: Add a picture
+      full: "The maximum number of pictures has been reached."
+      alt: "Alt text ({locale})"
+      alt_hint: "What the picture shows, for someone who cannot see it. Left empty, the library's own alt text is used."
+      caption: "Caption ({locale})"
+      move_up: Move up
+      move_down: Move down
     grid:
       title: Content grid
       enabled: Use a content grid
@@ -402,6 +421,7 @@ backend:
       header: Header
       settings: Settings
       seo: Search engines
+      gallery: Gallery
     terms: Terms
     thumbnail: Thumbnail
     thumbnail_hint: "The picture that stands for this publication wherever it is listed: an archive card, a grid zone linking to it, the preview of a shared link."
@@ -684,6 +704,11 @@ backend:
       self_nested: An item cannot be placed inside itself or one of its own sub-items.
       reorder_cycle: 'That move would put item {id} inside its own subtree.'
 frontend:
+  gallery:
+    open: "Enlarge picture %position% of %total%"
+    close: Close
+    previous: Previous picture
+    next: Next picture
   editorial:
     forms:
       submit: Send

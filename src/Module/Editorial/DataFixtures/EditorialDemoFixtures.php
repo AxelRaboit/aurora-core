@@ -16,6 +16,7 @@ use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
+use Aurora\Module\Editorial\Post\Gallery\GalleryNormalizer;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Service\EditorBlocks;
 use Aurora\Module\Editorial\Post\Service\PostTextExtractor;
@@ -59,6 +60,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         private readonly MenuItemRepository $menuItemRepository,
         private readonly PostTextExtractor $textExtractor,
         private readonly GridNormalizer $gridNormalizer,
+        private readonly GalleryNormalizer $galleryNormalizer,
     ) {}
 
     public static function getGroups(): array
@@ -93,6 +95,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         // document by *id*, and neither has one before it is written.
         $this->layOutWelcomePage($posts);
         $this->layOutFirstStepsArticle($posts);
+        $this->addGalleries($posts);
 
         $this->fillPrimaryMenu($manager, $posts);
 
@@ -443,6 +446,110 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      *
      * @param array<string, PostInterface> $posts
      */
+    /**
+     * A gallery on two demo pages, one per layout.
+     *
+     * Both, on purpose: the two are different mechanisms rather than two sets of
+     * classes - a grid crops every tile to one ratio and reads across a row,
+     * masonry keeps each picture's proportions and reads down a column - and a
+     * demo showing one of them teaches that the other is theoretical.
+     *
+     * On pages that already have a grid, because the point of the feature is
+     * where it lands: under the content, without being asked. A gallery on an
+     * otherwise empty page would show it working and not show it fitting.
+     *
+     * The library holds four images, so both galleries use the same four. The
+     * normalizer refuses a picture twice **within** one gallery; across two posts
+     * there is nothing to refuse.
+     *
+     * @param array<string, PostInterface> $posts
+     */
+    private function addGalleries(array $posts): void
+    {
+        $media = array_map(
+            fn (int $index): Document => $this->getReference(GedDemoFixtures::mediaRef($index), Document::class),
+            [0, 1, 2, 3],
+        );
+
+        $galleries = [
+            // Portraits and a landscape at their own proportions: the case
+            // masonry exists for, and the one where a fixed ratio would crop
+            // the tall picture to nothing.
+            'first-steps' => [
+                'layout' => GalleryNormalizer::LAYOUT_MASONRY,
+                'columns' => 3,
+                'ratio' => GalleryNormalizer::RATIO_NATURAL,
+                'words' => [
+                    'fr' => [
+                        ['Une bannière', 'Chaque image garde ses proportions.'],
+                        ['Un paysage', 'Les colonnes se remplissent indépendamment.'],
+                        ['Un portrait', 'Une image haute reste haute.'],
+                        ['Un poste de travail', 'La lecture se fait colonne par colonne.'],
+                    ],
+                    'en' => [
+                        ['A banner', 'Every picture keeps its proportions.'],
+                        ['A landscape', 'The columns fill independently.'],
+                        ['A portrait', 'A tall picture stays tall.'],
+                        ['A workstation', 'This reads down a column, not across a row.'],
+                    ],
+                ],
+            ],
+            // The same four, cropped square in four columns: uniform tiles, read
+            // in the order they were written.
+            'welcome' => [
+                'layout' => GalleryNormalizer::LAYOUT_GRID,
+                'columns' => 4,
+                'ratio' => '1x1',
+                'words' => [
+                    'fr' => [
+                        ['Une bannière', ''],
+                        ['Un paysage', ''],
+                        ['Un portrait', 'Recadrée au carré comme les autres.'],
+                        ['Un poste de travail', ''],
+                    ],
+                    'en' => [
+                        ['A banner', ''],
+                        ['A landscape', ''],
+                        ['A portrait', 'Cropped square like the rest.'],
+                        ['A workstation', ''],
+                    ],
+                ],
+            ],
+        ];
+
+        foreach ($galleries as $key => $definition) {
+            $post = $posts[$key] ?? null;
+            if (!$post instanceof PostInterface) {
+                continue;
+            }
+
+            $items = [];
+            foreach ($media as $index => $document) {
+                $items[] = ['id' => sprintf('shot-%d', $index + 1), 'mediaId' => $document->getId()];
+            }
+
+            $layout = $this->galleryNormalizer->normalizeLayout([
+                'enabled' => true,
+                'layout' => $definition['layout'],
+                'columns' => $definition['columns'],
+                'ratio' => $definition['ratio'],
+                'items' => $items,
+            ]);
+            $post->setGalleryLayout($layout);
+
+            foreach (['fr', 'en'] as $locale) {
+                $words = [];
+                foreach ($definition['words'][$locale] as $index => [$alt, $caption]) {
+                    $words[sprintf('shot-%d', $index + 1)] = ['alt' => $alt, 'caption' => $caption];
+                }
+
+                $post->translate($locale)->setGallery(
+                    $this->galleryNormalizer->normalizeContent(['items' => $words], $layout),
+                );
+            }
+        }
+    }
+
     private function layOutFirstStepsArticle(array $posts): void
     {
         $article = $posts['first-steps'];

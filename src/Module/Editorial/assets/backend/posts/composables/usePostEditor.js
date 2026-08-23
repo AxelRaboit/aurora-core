@@ -52,6 +52,25 @@ export function emptyGridContent() {
     return { zones: {} };
 }
 
+/**
+ * The gallery's arrangement. On the post like the two above: the same pictures
+ * in the same order in every language - see GalleryNormalizer for the rest.
+ */
+export function emptyGalleryLayout() {
+    return {
+        enabled: false,
+        layout: "grid",
+        columns: 3,
+        ratio: "natural",
+        items: [],
+    };
+}
+
+/** Alt text and captions, keyed by the id of the item on the post. */
+export function emptyGalleryContent() {
+    return { items: {} };
+}
+
 function emptyTranslation() {
     return {
         title: "",
@@ -59,6 +78,7 @@ function emptyTranslation() {
         description: "",
         banner: emptyBannerTexts(),
         grid: emptyGridContent(),
+        gallery: emptyGalleryContent(),
         metaTitle: "",
         metaDescription: "",
         customFields: {},
@@ -84,6 +104,13 @@ function translationFrom(source) {
     // undefined and every field unbindable.
     translation.grid = {
         zones: translation.grid?.zones ?? {},
+    };
+
+    // And the gallery, for the third time and the same reason: every post that
+    // predates it sends nothing here, and an undefined `items` makes every alt
+    // and caption field unbindable.
+    translation.gallery = {
+        items: translation.gallery?.items ?? {},
     };
 
     return translation;
@@ -125,6 +152,10 @@ export function usePostEditor(props) {
         gridLayout: {
             ...emptyGridLayout(),
             ...(props.post?.gridLayout ?? {}),
+        },
+        galleryLayout: {
+            ...emptyGalleryLayout(),
+            ...(props.post?.galleryLayout ?? {}),
         },
         termIds: [...(props.post?.termIds ?? [])],
         relatedPostIds: [...(props.post?.relatedPostIds ?? [])],

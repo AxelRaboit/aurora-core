@@ -11,6 +11,7 @@ use Aurora\Module\Editorial\Comment\Manager\CommentManagerInterface;
 use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
+use Aurora\Module\Editorial\Post\Gallery\GalleryViewBuilder;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Editorial\Seo\Service\AlternatesBuilder;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
@@ -39,6 +40,7 @@ final readonly class PostPageRenderer
         private CommentManagerInterface $commentManager,
         private BannerViewBuilder $bannerViewBuilder,
         private GridViewBuilder $gridViewBuilder,
+        private GalleryViewBuilder $galleryViewBuilder,
     ) {}
 
     public function render(PostInterface $post, string $locale): Response
@@ -67,6 +69,9 @@ final readonly class PostPageRenderer
             // Null when the post has no grid, which is what makes the template
             // fall back to the plain block column it has always rendered.
             'grid' => $this->gridViewBuilder->build($post->getGridLayout(), $translation->getGrid(), $locale),
+            // Null when the gallery is off or has nothing to show, so the
+            // template leaves the section out rather than printing an empty one.
+            'gallery' => $this->galleryViewBuilder->build($post->getGalleryLayout(), $translation->getGallery()),
             'terms' => $this->postTerms($post, $locale),
             'alternates' => $this->alternatesBuilder->forPost($post),
             // The thread itself is fetched by the browser rather than

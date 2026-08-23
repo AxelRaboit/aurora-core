@@ -309,6 +309,25 @@ backend:
     content: Contenu
     content_placeholder: "Écrivez, ou appuyez sur Tab pour un bloc…"
     custom_fields: Champs personnalisés
+    gallery:
+      title: Galerie d'images
+      hint: "Une suite d'images posée sous le contenu de la page. Pour un article qui est surtout des photographies, c'est ça plutôt que vingt zones à placer une par une."
+      layout: Disposition
+      columns: Colonnes
+      ratio: Rapport
+      ratio_ignored: "En mosaïque, chaque image garde ses propres proportions."
+      layouts:
+        grid: Grille
+        masonry: Mosaïque
+      pictures: Images
+      empty: "Aucune image. Ajoutez-en une ci-dessous."
+      add: Ajouter une image
+      full: "Le maximum d'images est atteint."
+      alt: "Texte alternatif ({locale})"
+      alt_hint: "Ce que montre l'image, pour qui ne la voit pas. Vide, celui de la médiathèque est utilisé."
+      caption: "Légende ({locale})"
+      move_up: Monter
+      move_down: Descendre
     grid:
       title: Grille de contenu
       enabled: Utiliser une grille de contenu
@@ -402,6 +421,7 @@ backend:
       header: En-tête
       settings: Paramétrage
       seo: Moteurs de recherche
+      gallery: Galerie
     terms: Termes
     thumbnail: Vignette
     thumbnail_hint: "L'image qui représente cette publication partout où elle est listée : une carte d'archive, une zone de grille qui pointe vers elle, l'aperçu d'un lien partagé."
@@ -684,6 +704,11 @@ backend:
       self_nested: Une entrée ne peut pas être placée sous elle-même ni sous l'une de ses sous-entrées.
       reorder_cycle: 'Ce déplacement placerait l''entrée {id} dans sa propre descendance.'
 frontend:
+  gallery:
+    open: "Agrandir l'image %position% sur %total%"
+    close: Fermer
+    previous: Image précédente
+    next: Image suivante
   editorial:
     forms:
       submit: Envoyer
