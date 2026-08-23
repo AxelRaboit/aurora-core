@@ -462,6 +462,21 @@ Bannière info/success/warning/danger avec icône.
 | Prop | Type | Défaut |
 |---|---|---|
 | `message` | `String` | `"Aucune donnée à afficher."` |
+| `hint` | `String` | `""` (seconde ligne, ce qu'il faut faire) |
+
+| Slot | Rôle |
+|---|---|
+| `action` | Le bouton qui sort du vide. À utiliser quand l'état vide **remplace**
+la page : sur une page maître-détail vide, la barre latérale qui portait le
+bouton « Créer » n'est pas rendue, donc sans ça le vide est un cul-de-sac. |
+
+```vue
+<AppNoData v-if="!items.length" :message="t('backend.forms.empty')">
+    <template v-if="can('editorial.forms.create')" #action>
+        <AppButton variant="primary" size="md" v-on:click="openCreate">…</AppButton>
+    </template>
+</AppNoData>
+```
 
 ### `AppProgressBar`
 
@@ -734,6 +749,29 @@ Logo Aurora SVG.
 |---|---|---|
 | `size` | `Number` | `40` |
 
+### `AppShareBar` (`@shared/components/chart/`)
+
+Comment un total se répartit, en **une** barre horizontale empilée. La forme
+juste pour une part-d'un-tout : cinq jauges partant chacune de zéro demandent au
+lecteur de comparer cinq longueurs puis de les additionner, et un camembert rend
+la comparaison plus difficile qu'une longueur.
+
+| Prop | Type | Défaut |
+|---|---|---|
+| `segments` | `Array` | **requis** - `[{ key, label, value }]`, dans l'ordre de lecture |
+| `firstSlot` | `Number` | `1` - premier créneau de couleur utilisé |
+
+Les teintes viennent de `--chart-cat-1..8` (`css/base/chart.css`), dans un ordre
+**fixe** et attribuées **par position**, jamais recyclées : au-delà du huitième
+créneau, replier la queue dans « autre » plutôt que d'obtenir une couleur
+indistinguable sous déficience de vision des couleurs. Les créneaux sont
+attribués **avant** de retirer les valeurs nulles, pour qu'une catégorie garde sa
+couleur quand une voisine se vide.
+
+La légende n'est pas décorative : trois teintes du mode clair passent sous 3:1
+contre une surface blanche, ce qui n'est autorisé que si la valeur est aussi
+lisible en texte. Ne pas déplacer les comptes dans l'infobulle.
+
 ### `AppChart`
 
 Wrapper Chart.js (vue-chartjs).
@@ -743,6 +781,13 @@ Wrapper Chart.js (vue-chartjs).
 | `type` | `String` | **requis** (`doughnut` / `bar` / `line`) |
 | `data` | `Object` | **requis** |
 | `options` | `Object` | `{}` (mergé avec les défauts thème dark) |
+
+**Lequel des deux ?** `AppShareBar` pour une composition unique dont les valeurs
+doivent rester lisibles en texte : il rend du DOM, donc il hérite des tokens du
+thème, des infobulles `AppTooltip` et du mode sombre sans code. `AppChart` pour
+ce que Chart.js fait bien et que le DOM ne fait pas : séries temporelles,
+plusieurs séries, axes. Il rend dans un canvas, donc ni tokens ni `AppTooltip`,
+et sa palette par défaut n'est pas la palette validée.
 
 ---
 
