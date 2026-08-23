@@ -200,9 +200,11 @@ class PlanningEventManager implements PlanningEventManagerInterface
 
                 continue;
             }
+
             if (!$alert['at'] instanceof DateTimeImmutable) {
                 continue;
             }
+
             if (in_array($alert['at']->getTimestamp(), $keptMoments, true)) {
                 continue;
             }

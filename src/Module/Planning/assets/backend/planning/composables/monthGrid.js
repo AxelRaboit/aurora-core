@@ -238,3 +238,73 @@ export function timedEventsOn(date, events) {
         )
         .sort((a, b) => new Date(a.startAt) - new Date(b.startAt));
 }
+
+/**
+ * Everything falling on one day, in the order it happens.
+ *
+ * Both kinds together and both shapes of event: what a phone shows under the
+ * month grid is "this day", not "this day's timed events" - a run of leave and an
+ * all-day reminder belong in that list as much as a 14:00 meeting.
+ *
+ * Sorted by when each thing starts, with all-day items first: they own the whole
+ * day, so putting them at 00:00 among the timed ones would be arbitrary precision
+ * about something that has none.
+ *
+ * @param {Date} date
+ * @param {Array<object>} events
+ * @param {Array<object>} reminders
+ * @returns {Array<object>}
+ */
+export function itemsOn(date, events, reminders) {
+    const items = [
+        ...events
+            .filter((event) => {
+                const start = new Date(event.startAt);
+                const end = new Date(event.endAt);
+
+                // An event covering this day, not only one starting on it: a run
+                // of leave has to appear on every day it covers.
+                return (
+                    start < addDays(startOfDay(date), 1) &&
+                    end > startOfDay(date)
+                );
+            })
+            .map((event) => ({
+                kind: "event",
+                item: event,
+                at: new Date(event.startAt),
+                whole: spansDays(event),
+            })),
+        ...reminders
+            .filter((reminder) => sameDay(new Date(reminder.dueAt), date))
+            .map((reminder) => ({
+                kind: "reminder",
+                item: reminder,
+                at: new Date(reminder.dueAt),
+                whole: Boolean(reminder.allDay),
+            })),
+    ];
+
+    return items.sort((a, b) => {
+        if (a.whole !== b.whole) {
+            return a.whole ? -1 : 1;
+        }
+
+        return a.at - b.at;
+    });
+}
+
+/**
+ * How many things fall on each day of a week, for the dots a phone draws.
+ *
+ * A count and not the items: the cell shows at most a few dots and then a number,
+ * so it needs to know how many there are far more often than what they are.
+ *
+ * @param {Array<object>} cells the week's seven cells
+ * @param {Array<object>} events
+ * @param {Array<object>} reminders
+ * @returns {number[]}
+ */
+export function countsPerDay(cells, events, reminders) {
+    return cells.map((cell) => itemsOn(cell.date, events, reminders).length);
+}

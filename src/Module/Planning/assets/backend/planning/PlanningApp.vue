@@ -7,21 +7,25 @@
  * event is `EventModal`. What is left here is the toolbar, the sidebar, and
  * turning a click into a request.
  */
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { BellPlus, CalendarPlus, ChevronLeft, ChevronRight, Pencil, Plus } from "lucide-vue-next";
+import { BellPlus, CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Pencil, Plus } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
+import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import CalendarModal from "./components/CalendarModal.vue";
+import CalendarDayList from "./components/CalendarDayList.vue";
+import CalendarSidebar from "./components/CalendarSidebar.vue";
 import CalendarMonth from "./components/CalendarMonth.vue";
 import CalendarTimeGrid from "./components/CalendarTimeGrid.vue";
 import ReminderModal from "./components/ReminderModal.vue";
 import EventModal from "./components/EventModal.vue";
 import { usePlanningCalendar } from "./composables/usePlanningCalendar.js";
+import { defaultTimeOn, draftAt } from "./composables/timeGrid.js";
 
 const props = defineProps({
     calendars: { type: Array, default: () => [] },
@@ -53,6 +57,8 @@ const {
     year,
     month,
     view,
+    effectiveView,
+    narrow,
     anchor,
     cells,
     days,
@@ -102,6 +108,34 @@ const viewOptions = computed(() =>
     })),
 );
 
+/**
+ * Whether the calendar list is showing as a sheet.
+ *
+ * Only ever true on a narrow viewport, where the sidebar has nowhere to be: at
+ * 375px a 13rem column leaves 167 pixels for a seven-day grid. Both Google and
+ * Apple put this behind a button on a phone.
+ */
+const sheetOpen = ref(false);
+
+/**
+ * The day the phone's list is showing.
+ *
+ * Only meaningful in the compact month view. Defaults to today, and follows the
+ * month when the reader pages so the list is never about a day the grid no longer
+ * shows.
+ */
+const selectedDay = ref(new Date());
+
+watch([year, month], () => {
+    // The first of the month, unless today is in it - paging to a month you are
+    // not in and landing on "the 23rd" would be arbitrary.
+    const today = new Date();
+    selectedDay.value =
+        today.getFullYear() === year.value && today.getMonth() === month.value
+            ? today
+            : new Date(year.value, month.value, 1);
+});
+
 const openCalendar = ref(null);
 const calendarErrors = ref({});
 const savingCalendar = ref(false);
@@ -116,11 +150,14 @@ function createCalendar() {
     // calendar has no id yet.
     openCalendar.value = {};
     calendarErrors.value = {};
+    // The sheet has to go, or the modal opens behind it on a phone.
+    sheetOpen.value = false;
 }
 
 function editCalendar(calendar) {
     openCalendar.value = calendar;
     calendarErrors.value = {};
+    sheetOpen.value = false;
 }
 
 function closeCalendar() {
@@ -190,6 +227,7 @@ function create(draft = {}) {
     openEvent.value = draft;
     editing.value = true;
     errors.value = {};
+    sheetOpen.value = false;
 }
 
 function close() {
@@ -236,6 +274,7 @@ function createReminder(draft = {}) {
 
     openReminder.value = draft;
     reminderErrors.value = {};
+    sheetOpen.value = false;
 }
 
 function editReminder(reminder) {
@@ -295,6 +334,16 @@ async function toggleReminderItem(reminder) {
     await load();
 }
 
+/**
+ * Starts an event on the day the phone's list is showing.
+ *
+ * The same draft a cell click builds on a wide screen, at the constant hour a day
+ * with no time in it gets.
+ */
+function createOnDay(date) {
+    create(draftAt(defaultTimeOn(date)));
+}
+
 async function remove(event) {
     const data = await request(props.deleteEventPathTemplate.replace("__id__", String(event.id)));
     if (!data) return;
@@ -308,124 +357,35 @@ async function remove(event) {
     <div class="relative grid grid-cols-1 lg:grid-cols-[13rem_1fr] gap-4">
         <AppLoader :active="loading" />
 
-        <aside class="space-y-4">
-            <AppButton
-                v-if="canCreateEvents"
-                variant="primary"
-                size="md"
-                class="w-full"
-                v-on:click="create"
-            >
-                <CalendarPlus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.plannings.events.new") }}
-            </AppButton>
-
-            <!-- Two buttons rather than one with a menu. There are exactly two
-                 kinds and both are used constantly, so hiding either behind a
-                 chevron costs a click every time to save a line of height once. -->
-            <AppButton
-                v-if="canCreateEvents"
-                variant="secondary"
-                size="md"
-                class="w-full"
-                v-on:click="createReminder"
-            >
-                <BellPlus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.plannings.reminders.new") }}
-            </AppButton>
-
-            <div class="bg-surface border border-line rounded-xl p-4 space-y-2.5">
-                <div class="flex items-center gap-2">
-                    <p class="text-2xs font-semibold uppercase tracking-wider text-muted">
-                        {{ t("backend.plannings.calendars") }}
-                    </p>
-                    <AppIconButton
-                        v-if="canManageCalendars"
-                        class="ml-auto -my-1"
-                        :title="t('backend.plannings.new_calendar')"
-                        v-on:click="createCalendar"
-                    >
-                        <Plus class="w-4 h-4" :stroke-width="2" />
-                    </AppIconButton>
-                </div>
-
-                <!-- The empty state used to be the end of the road: no calendar
-                     meant no way to make one, and the "new event" button below
-                     is hidden without one. -->
-                <template v-if="!calendars.length">
-                    <AppNoData :message="t('backend.plannings.empty')" />
-                    <AppButton
-                        v-if="canManageCalendars"
-                        variant="primary"
-                        size="sm"
-                        class="w-full"
-                        v-on:click="createCalendar"
-                    >
-                        <CalendarPlus class="w-4 h-4" :stroke-width="2" />
-                        {{ t("backend.plannings.new_calendar") }}
-                    </AppButton>
-                </template>
-
-                <!-- A calendar folded away is a display decision, so it toggles
-                     without a round trip and without touching the URL: which of
-                     your own calendars you have hidden is not something you send
-                     anyone.
-
-                     A row, not a button, because it now holds two actions: the
-                     name toggles, the pencil edits. A button inside a button is
-                     invalid HTML and the inner one never fires. -->
-                <div
-                    v-for="calendar in calendars"
-                    :key="calendar.id"
-                    class="group flex items-center gap-2 text-sm transition-opacity"
-                    :class="hidden.has(calendar.id) ? 'opacity-40' : ''"
-                >
-                    <button
-                        type="button"
-                        class="flex min-w-0 flex-1 items-center gap-2 text-left cursor-pointer"
-                        :aria-pressed="!hidden.has(calendar.id)"
-                        v-on:click="toggleCalendar(calendar.id)"
-                    >
-                        <span
-                            class="w-3 h-3 rounded shrink-0"
-                            :style="hidden.has(calendar.id)
-                                ? { border: '1.5px solid var(--th-muted)' }
-                                : { backgroundColor: `var(--chart-cat-${calendar.colourSlot})` }"
-                        />
-                        <span class="text-secondary truncate">{{ calendar.name }}</span>
-                    </button>
-
-                    <!-- Events in the range on screen, not a lifetime total.
-                         Titled, because a bare number next to a calendar reads
-                         as "everything in it" and this one moves as you page.
-
-                         Absent rather than "0" when there is nothing: a zero in
-                         figures reads as a fact about the calendar, and this one
-                         is a fact about the month. No number says "nothing here
-                         right now", which is what it means. -->
-                    <span
-                        v-if="countsByCalendar[calendar.id]"
-                        class="text-2xs text-muted tabular-nums shrink-0 group-hover:hidden"
-                        :title="t('backend.plannings.events_in_range')"
-                    >
-                        {{ countsByCalendar[calendar.id] }}
-                    </span>
-                    <!-- Takes the count's place on hover rather than sitting
-                         beside it, so the row does not change width and the
-                         names stay lined up. -->
-                    <button
-                        v-if="canManageCalendars"
-                        type="button"
-                        class="hidden shrink-0 cursor-pointer text-muted hover:text-primary group-hover:block"
-                        :title="t('backend.plannings.edit_calendar')"
-                        v-on:click="editCalendar(calendar)"
-                    >
-                        <Pencil class="w-3.5 h-3.5" :stroke-width="2" />
-                    </button>
-                </div>
-            </div>
-        </aside>
+        <!-- The column on a wide screen. On a phone the same component is drawn
+             inside the sheet below, because a 13rem sidebar there would leave 167
+             pixels for a seven-day grid. -->
+        <CalendarSidebar
+            class="hidden lg:block"
+            :calendars="calendars"
+            :hidden="hidden"
+            :counts-by-calendar="countsByCalendar"
+            :can-create-events="canCreateEvents"
+            :can-manage-calendars="canManageCalendars"
+            v-on:create-event="create"
+            v-on:create-reminder="createReminder"
+            v-on:create-calendar="createCalendar"
+            v-on:edit-calendar="editCalendar"
+            v-on:toggle-calendar="toggleCalendar"
+        />
 
         <div class="min-w-0 space-y-3">
-            <div class="flex items-center gap-2">
+            <!-- Two rows below `md`. Everything on one line needs about 366
+                 pixels of controls at 375 of viewport, so the label truncated to
+                 nothing and the switcher wrapped under the chevrons. -->
+            <div class="flex flex-wrap items-center gap-2">
+                <AppIconButton
+                    class="lg:hidden"
+                    :title="t('backend.plannings.calendars')"
+                    v-on:click="sheetOpen = true"
+                >
+                    <CalendarDays class="w-4 h-4" :stroke-width="2" />
+                </AppIconButton>
                 <AppIconButton :title="t('shared.common.previous')" v-on:click="go(-1)">
                     <ChevronLeft class="w-4 h-4" :stroke-width="2" />
                 </AppIconButton>
@@ -435,19 +395,21 @@ async function remove(event) {
                 <!-- Capitalised by the locale's own rules, so "août 2026" reads
                      as a heading without a CSS transform that would also shout at
                      a language where it should not. -->
-                <h2 class="text-base font-semibold text-primary first-letter:uppercase">{{ rangeLabel }}</h2>
+                <h2 class="min-w-0 truncate text-sm font-semibold text-primary first-letter:uppercase sm:text-base">
+                    {{ rangeLabel }}
+                </h2>
 
-                <div class="ml-auto flex items-center gap-2">
+                <div class="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
                     <!-- A segmented row and not a select: three mutually
                          exclusive choices where the current one has to be
                          readable at a glance, which is what a calendar's reader
                          checks before trusting what they are looking at. -->
-                    <div class="flex rounded-lg border border-line overflow-hidden">
+                    <div class="flex flex-1 overflow-hidden rounded-lg border border-line sm:flex-none">
                         <button
                             v-for="option in viewOptions"
                             :key="option.value"
                             type="button"
-                            class="px-2.5 py-1 text-xs transition-colors cursor-pointer border-r border-line last:border-r-0"
+                            class="flex-1 cursor-pointer border-r border-line px-2.5 py-1 text-xs transition-colors last:border-r-0 sm:flex-none"
                             :class="view === option.value
                                 ? 'bg-accent-600 text-white font-medium'
                                 : 'text-secondary hover:bg-surface-2'"
@@ -464,19 +426,36 @@ async function remove(event) {
             </div>
 
             <CalendarMonth
-                v-if="'month' === view"
+                v-if="'month' === effectiveView"
                 :cells="cells"
                 :events="visibleEvents"
                 :reminders="visibleReminders"
+                :compact="narrow"
+                :selected="narrow ? selectedDay : null"
                 v-on:open-event="viewEvent"
                 v-on:open-reminder="editReminder"
                 v-on:toggle-reminder="toggleReminderItem"
                 v-on:add-on="create"
+                v-on:select-day="selectedDay = $event"
+            />
+
+            <!-- The list under the compact grid. The grid says which days have
+                 something; this says what. -->
+            <CalendarDayList
+                v-if="'month' === effectiveView && narrow"
+                :date="selectedDay"
+                :events="visibleEvents"
+                :reminders="visibleReminders"
+                :can-create="canCreateEvents"
+                v-on:open-event="viewEvent"
+                v-on:open-reminder="editReminder"
+                v-on:toggle-reminder="toggleReminderItem"
+                v-on:add="createOnDay"
             />
             <CalendarTimeGrid
                 v-else
                 :anchor="anchor"
-                :view="view"
+                :view="effectiveView"
                 :events="visibleEvents"
                 :reminders="visibleReminders"
                 v-on:open-event="viewEvent"
@@ -485,6 +464,31 @@ async function remove(event) {
                 v-on:add-on="create"
             />
         </div>
+
+        <!-- The sidebar as a sheet. `AppModal` rather than a hand-rolled drawer:
+             it already handles the overlay, escape, the browser's back button and
+             locking the page behind it, and getting those wrong is what makes a
+             phone sheet feel broken. -->
+        <AppModal
+            :show="sheetOpen"
+            max-width="sm"
+            mobile-fullscreen
+            :title="t('backend.plannings.calendars')"
+            v-on:close="sheetOpen = false"
+        >
+            <CalendarSidebar
+                :calendars="calendars"
+                :hidden="hidden"
+                :counts-by-calendar="countsByCalendar"
+                :can-create-events="canCreateEvents"
+                :can-manage-calendars="canManageCalendars"
+                v-on:create-event="create"
+                v-on:create-reminder="createReminder"
+                v-on:create-calendar="createCalendar"
+                v-on:edit-calendar="editCalendar"
+                v-on:toggle-calendar="toggleCalendar"
+            />
+        </AppModal>
 
         <ReminderModal
             :reminder="openReminder"

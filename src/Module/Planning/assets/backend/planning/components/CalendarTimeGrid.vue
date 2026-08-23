@@ -127,12 +127,12 @@ function addAllDayOn(day) {
         <!-- Header: the hour gutter's width is repeated in three places below,
              so the columns line up with the labels. -->
         <div class="flex border-b border-line">
-            <span class="w-14 shrink-0 border-r border-line" />
+            <span class="w-11 shrink-0 border-r border-line sm:w-14" />
             <div class="grid flex-1" :style="{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }">
                 <div
                     v-for="day in days"
                     :key="`h-${day.toISOString()}`"
-                    class="border-r border-line last:border-r-0 px-2 py-1.5 flex items-baseline gap-1.5"
+                    class="border-r border-line last:border-r-0 px-1.5 py-1.5 flex flex-col items-center gap-0.5 sm:flex-row sm:items-baseline sm:gap-1.5 sm:px-2"
                 >
                     <span class="text-2xs font-semibold uppercase tracking-wider text-muted">
                         {{ dayLabel(day) }}
@@ -151,7 +151,7 @@ function addAllDayOn(day) {
              would still be sitting in the middle of the afternoon. -->
         <div v-if="reminders.length" class="flex border-b border-line">
             <span
-                class="w-14 shrink-0 border-r border-line px-2 py-1 text-2xs uppercase tracking-wider text-muted"
+                class="w-11 shrink-0 border-r border-line px-1.5 py-1 text-2xs uppercase tracking-wider text-muted sm:w-14 sm:px-2"
             >{{ t("backend.plannings.reminders.title") }}</span>
             <div class="grid flex-1" :style="{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }">
                 <div
@@ -196,7 +196,7 @@ function addAllDayOn(day) {
              strip above every week would cost a row of height to say nothing. -->
         <div v-if="band.length" class="flex border-b border-line">
             <span
-                class="w-14 shrink-0 border-r border-line px-2 py-1 text-2xs uppercase tracking-wider text-muted"
+                class="w-11 shrink-0 border-r border-line px-1.5 py-1 text-2xs uppercase tracking-wider text-muted sm:w-14 sm:px-2"
             >{{ t("backend.plannings.events.all_day_short") }}</span>
             <div class="relative flex-1 py-1" :style="{ minHeight: `${band.length * 1.25 + 0.5}rem` }">
                 <!-- One transparent target per day under the bars, so clicking an
@@ -238,8 +238,11 @@ function addAllDayOn(day) {
         <!-- The hours. Scrolls on its own so the header and the band stay put:
              24 rows is taller than the screen, and a reader looking at 15:00
              still needs to know which day they are in. -->
-        <div class="flex max-h-[36rem] overflow-y-auto">
-            <div class="w-14 shrink-0 border-r border-line">
+        <!-- Taller than the viewport by design, so it scrolls inside itself and
+             the header stays put. Capped shorter on a phone, where a 36rem box
+             pushes everything else off the screen. -->
+        <div class="flex max-h-[24rem] overflow-y-auto sm:max-h-[36rem]">
+            <div class="w-11 shrink-0 border-r border-line sm:w-14">
                 <div
                     v-for="hour in HOURS"
                     :key="`g-${hour}`"

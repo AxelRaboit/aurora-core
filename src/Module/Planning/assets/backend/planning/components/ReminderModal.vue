@@ -87,6 +87,7 @@ function payload() {
     <AppModal
         :show="null !== reminder"
         max-width="md"
+        mobile-fullscreen
         :close-on-overlay="false"
         :title="isNew ? t('backend.plannings.reminders.new') : t('backend.plannings.reminders.edit')"
         v-on:close="emit('close')"

@@ -2,8 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
     MAX_LANES,
     WEEKS_SHOWN,
+    countsPerDay,
     gridStart,
     gridWindow,
+    itemsOn,
     layOutWeek,
     monthGrid,
     sameDay,
@@ -287,5 +289,95 @@ describe("lanesPerDay", () => {
         const { lanesPerDay } = layOutWeek(monday, overlapping);
 
         expect(Math.max(...lanesPerDay)).toBe(MAX_LANES);
+    });
+});
+
+describe("itemsOn", () => {
+    const monday = new Date(2026, 7, 24);
+
+    function timed(id, startAt, endAt) {
+        return {
+            id,
+            startAt: new Date(startAt).toISOString(),
+            endAt: new Date(endAt).toISOString(),
+            allDay: false,
+        };
+    }
+
+    function reminder(id, dueAt, extra = {}) {
+        return {
+            id,
+            dueAt: new Date(dueAt).toISOString(),
+            allDay: false,
+            ...extra,
+        };
+    }
+
+    it("puts both kinds in one list, in the order they happen", () => {
+        const list = itemsOn(
+            monday,
+            [timed(1, "2026-08-24T14:00", "2026-08-24T15:00")],
+            [reminder(2, "2026-08-24T09:00")],
+        );
+
+        expect(list.map((entry) => [entry.kind, entry.item.id])).toEqual([
+            ["reminder", 2],
+            ["event", 1],
+        ]);
+    });
+
+    it("puts whole-day things first rather than at midnight", () => {
+        // They own the day, so placing them at 00:00 among the timed ones would be
+        // arbitrary precision about something that has none.
+        const list = itemsOn(
+            monday,
+            [timed(1, "2026-08-24T09:00", "2026-08-24T10:00")],
+            [reminder(2, "2026-08-24T18:00", { allDay: true })],
+        );
+
+        expect(list[0].item.id).toBe(2);
+        expect(list[0].whole).toBe(true);
+    });
+
+    it("shows a run of days on every day it covers", () => {
+        // Not only on the day it starts. A week of leave is on the calendar all
+        // week, and a phone list that only mentioned Monday would be wrong four
+        // times out of five.
+        const leave = {
+            id: 9,
+            startAt: new Date("2026-08-24T00:00").toISOString(),
+            endAt: new Date("2026-08-27T23:59:59").toISOString(),
+            allDay: true,
+        };
+
+        expect(itemsOn(new Date(2026, 7, 26), [leave], [])).toHaveLength(1);
+        expect(itemsOn(new Date(2026, 7, 28), [leave], [])).toHaveLength(0);
+    });
+
+    it("ignores another day entirely", () => {
+        expect(
+            itemsOn(
+                monday,
+                [timed(1, "2026-08-25T09:00", "2026-08-25T10:00")],
+                [reminder(2, "2026-08-25T09:00")],
+            ),
+        ).toEqual([]);
+    });
+
+    it("counts what each day of a week holds", () => {
+        const cells = Array.from({ length: 7 }, (_, i) => ({
+            date: new Date(2026, 7, 24 + i),
+        }));
+
+        const counts = countsPerDay(
+            cells,
+            [
+                timed(1, "2026-08-24T09:00", "2026-08-24T10:00"),
+                timed(2, "2026-08-24T14:00", "2026-08-24T15:00"),
+            ],
+            [reminder(3, "2026-08-26T09:00")],
+        );
+
+        expect(counts).toEqual([2, 0, 1, 0, 0, 0, 0]);
     });
 });

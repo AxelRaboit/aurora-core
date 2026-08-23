@@ -197,6 +197,7 @@ const when = computed(() => {
     <AppModal
         :show="null !== event"
         max-width="md"
+        mobile-fullscreen
         :close-on-overlay="!editing"
         :title="editing ? (event?.id ? t('shared.common.edit') : t('backend.plannings.events.new')) : ''"
         v-on:close="emit('close')"
@@ -310,27 +311,28 @@ const when = computed(() => {
             <div class="flex flex-col gap-1.5">
                 <span class="text-sm font-medium text-primary">{{ t("backend.plannings.alerts.label") }}</span>
 
-                <div v-for="(row, index) in form.alerts" :key="index" class="flex flex-col gap-1.5">
-                    <div class="flex items-start gap-2">
-                        <AppSelect v-model="row.choice" class="flex-1" :options="alertSelectOptions" />
-                        <button
-                            type="button"
-                            class="mt-1.5 shrink-0 p-1.5 text-muted hover:text-primary rounded-lg hover:bg-surface-2 transition-colors cursor-pointer"
-                            :title="t('shared.common.delete')"
-                            v-on:click="removeAlertRow(index)"
-                        >
-                            <X class="w-4 h-4" :stroke-width="2" />
-                        </button>
+                <div v-for="(row, index) in form.alerts" :key="index" class="flex items-start gap-2">
+                    <!-- The select and its picker share one column, so they line
+                         up on both edges. Left to the row, the picker would take
+                         the width the remove button occupies and sit wider than
+                         the select above it. -->
+                    <div class="flex min-w-0 flex-1 flex-col gap-1.5">
+                        <AppSelect v-model="row.choice" :options="alertSelectOptions" />
+                        <AppDatePicker
+                            v-if="CUSTOM === row.choice"
+                            v-model="row.at"
+                            enable-time
+                            :placeholder="t('backend.plannings.alerts.at_placeholder')"
+                        />
                     </div>
-                    <!-- Only for a custom row, and indented under it, so the
-                         picker reads as belonging to the choice above it. -->
-                    <AppDatePicker
-                        v-if="CUSTOM === row.choice"
-                        v-model="row.at"
-                        enable-time
-                        class="pl-3"
-                        :placeholder="t('backend.plannings.alerts.at_placeholder')"
-                    />
+                    <button
+                        type="button"
+                        class="mt-1.5 shrink-0 p-1.5 text-muted hover:text-primary rounded-lg hover:bg-surface-2 transition-colors cursor-pointer"
+                        :title="t('shared.common.delete')"
+                        v-on:click="removeAlertRow(index)"
+                    >
+                        <X class="w-4 h-4" :stroke-width="2" />
+                    </button>
                 </div>
 
                 <button

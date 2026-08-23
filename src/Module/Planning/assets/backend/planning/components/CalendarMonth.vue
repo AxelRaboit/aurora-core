@@ -15,7 +15,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Check } from "lucide-vue-next";
-import { layOutWeek, sameDay, timedEventsOn } from "../composables/monthGrid.js";
+import { countsPerDay, layOutWeek, sameDay, timedEventsOn } from "../composables/monthGrid.js";
 import { defaultTimeOn, draftAt } from "../composables/timeGrid.js";
 
 const props = defineProps({
@@ -25,9 +25,19 @@ const props = defineProps({
     events: { type: Array, required: true },
     /** Serialised reminders falling inside it. */
     reminders: { type: Array, default: () => [] },
+    /**
+     * Dots instead of titles, and a tap selects rather than creates.
+     *
+     * A month cell on a phone is about fifty pixels wide: enough for a day number
+     * and a few dots, nothing like enough for a title. Both Google and Apple show
+     * the grid as an index and put the contents in a list underneath.
+     */
+    compact: { type: Boolean, default: false },
+    /** The day the list below is showing, so the grid can mark it. */
+    selected: { type: Date, default: null },
 });
 
-const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on"]);
+const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on", "select-day"]);
 
 const { t, d } = useI18n();
 
@@ -51,9 +61,41 @@ const weeks = computed(() =>
         const cells = props.cells.slice(row * 7, row * 7 + 7);
         const { bars, hiddenPerDay, lanesPerDay } = layOutWeek(cells[0].date, props.events);
 
-        return { row, cells, bars, hiddenPerDay, lanesPerDay };
+        return {
+            row,
+            cells,
+            bars,
+            hiddenPerDay,
+            lanesPerDay,
+            // Only computed for the compact grid, where it is what a cell draws.
+            counts: props.compact ? countsPerDay(cells, props.events, props.reminders) : [],
+        };
     }),
 );
+
+/** Up to three dots, then a count - past three they stop being countable. */
+const MAX_DOTS = 3;
+
+function isSelected(date) {
+    return null !== props.selected && sameDay(date, props.selected);
+}
+
+/**
+ * A tap means two different things on the two grids.
+ *
+ * Wide: start something here, because the cell already shows what is on it.
+ * Narrow: show me this day, because the cell cannot. Creating there has its own
+ * control in the list's header - one gesture cannot honestly do both.
+ */
+function onCellClick(date) {
+    if (props.compact) {
+        emit("select-day", date);
+
+        return;
+    }
+
+    addOn(date);
+}
 
 function isToday(date) {
     return sameDay(date, today);
@@ -98,7 +140,8 @@ function addOn(date) {
             <span
                 v-for="day in weekdays"
                 :key="day"
-                class="px-2 py-1.5 text-2xs font-semibold uppercase tracking-wider text-muted"
+                class="py-1.5 text-2xs font-semibold uppercase tracking-wider text-muted"
+                :class="compact ? 'text-center' : 'px-2'"
             >
                 {{ day }}
             </span>
@@ -113,13 +156,53 @@ function addOn(date) {
                 <div
                     v-for="cell in week.cells"
                     :key="cell.key"
-                    class="min-h-[6.5rem] border-r border-line last:border-r-0 px-1.5 pb-1.5 flex flex-col gap-1 cursor-pointer"
-                    :class="cell.inMonth ? '' : 'bg-surface-2/40'"
-                    :style="{ paddingTop: `${1.75 + week.lanesPerDay[week.cells.indexOf(cell)] * 1.25}rem` }"
-                    v-on:click="addOn(cell.date)"
+                    class="border-r border-line last:border-r-0 flex flex-col cursor-pointer"
+                    :class="[
+                        compact
+                            ? 'min-h-[3.25rem] items-center gap-1 px-0.5 pb-1 pt-1'
+                            : 'min-h-[6.5rem] gap-1 px-1.5 pb-1.5',
+                        cell.inMonth ? '' : 'bg-surface-2/40',
+                        compact && isSelected(cell.date) ? 'bg-accent/10' : '',
+                    ]"
+                    :style="compact
+                        ? {}
+                        : { paddingTop: `${1.75 + week.lanesPerDay[week.cells.indexOf(cell)] * 1.25}rem` }"
+                    v-on:click="onCellClick(cell.date)"
                 >
+                    <!-- Compact: the day number in place, then dots. The number
+                         moves inside the cell here rather than living in the
+                         overlay the wide grid uses, because there are no bars to
+                         sit under and centring reads better at this size. -->
+                    <template v-if="compact">
+                        <span
+                            class="text-xs tabular-nums leading-none"
+                            :class="[
+                                cell.inMonth ? 'text-secondary' : 'text-muted',
+                                isSelected(cell.date) ? 'font-semibold text-primary' : '',
+                            ]"
+                        >
+                            <span
+                                v-if="isToday(cell.date)"
+                                class="inline-block rounded-full bg-accent-600 px-1.5 font-semibold text-white"
+                            >{{ cell.dayOfMonth }}</span>
+                            <span v-else>{{ cell.dayOfMonth }}</span>
+                        </span>
+
+                        <span class="flex items-center gap-0.5 leading-none">
+                            <span
+                                v-for="dot in Math.min(MAX_DOTS, week.counts[week.cells.indexOf(cell)])"
+                                :key="dot"
+                                class="h-1 w-1 rounded-full bg-secondary"
+                            />
+                            <span
+                                v-if="week.counts[week.cells.indexOf(cell)] > MAX_DOTS"
+                                class="text-3xs text-muted tabular-nums"
+                            >{{ week.counts[week.cells.indexOf(cell)] }}</span>
+                        </span>
+                    </template>
+
                     <button
-                        v-for="event in timedOn(cell.date)"
+                        v-for="event in compact ? [] : timedOn(cell.date)"
                         :key="event.id"
                         type="button"
                         class="flex items-center gap-1.5 text-left text-2xs rounded px-0.5 py-px hover:bg-surface-2 transition-colors min-w-0"
@@ -137,7 +220,7 @@ function addOn(date) {
                          is the point: an event is over when its time passes and a
                          reminder is not, so it keeps showing until it is ticked. -->
                     <div
-                        v-for="reminder in remindersOn(cell.date)"
+                        v-for="reminder in compact ? [] : remindersOn(cell.date)"
                         :key="`r-${reminder.id}`"
                         class="flex items-center gap-1.5 text-2xs min-w-0"
                     >
@@ -169,7 +252,7 @@ function addOn(date) {
                     </div>
 
                     <span
-                        v-if="week.hiddenPerDay[week.cells.indexOf(cell)] > 0"
+                        v-if="!compact && week.hiddenPerDay[week.cells.indexOf(cell)] > 0"
                         class="text-2xs text-muted"
                     >
                         {{ t("backend.plannings.more", { count: week.hiddenPerDay[week.cells.indexOf(cell)] }) }}
@@ -178,8 +261,9 @@ function addOn(date) {
             </div>
 
             <!-- The day numbers, over the cells, so a bar can sit under them
-                 without pushing them down. -->
-            <div class="absolute inset-x-0 top-0 grid grid-cols-7 pointer-events-none">
+                 without pushing them down. The compact grid draws its own inside
+                 the cell instead - there is nothing to sit under there. -->
+            <div v-if="!compact" class="absolute inset-x-0 top-0 grid grid-cols-7 pointer-events-none">
                 <span
                     v-for="cell in week.cells"
                     :key="`n-${cell.key}`"
@@ -196,8 +280,9 @@ function addOn(date) {
 
             <!-- The runs. One absolutely positioned bar per lane, spanning the
                  days it covers; a cut end is square so the reader can see it goes
-                 on into the next row. -->
-            <div class="absolute inset-x-0 top-6 pointer-events-none">
+                 on into the next row. Absent when compact: a bar needs a title to
+                 be worth its height, and there is no room for one. -->
+            <div v-if="!compact" class="absolute inset-x-0 top-6 pointer-events-none">
                 <button
                     v-for="bar in week.bars"
                     :key="`${bar.event.id}-${bar.lane}`"

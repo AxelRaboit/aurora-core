@@ -1,4 +1,5 @@
 import { computed, onMounted, ref, watch } from "vue";
+import { useMediaQuery } from "@/shared/composables/useMediaQuery.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { gridWindow, monthGrid } from "./monthGrid.js";
@@ -29,6 +30,12 @@ export function usePlanningCalendar(props) {
     const hidden = ref(new Set());
 
     const VIEWS = ["day", "week", "month"];
+
+    /**
+     * Below Tailwind's `md`, which is where a seven-column hour grid stops being
+     * readable: at 375px a day column is 46 pixels wide.
+     */
+    const { matches: narrow } = useMediaQuery("(max-width: 767px)");
 
     const params = new URLSearchParams(window.location.search);
     const anchor = ref(readDateFromUrl(params) ?? new Date());
@@ -77,11 +84,29 @@ export function usePlanningCalendar(props) {
     const year = computed(() => anchor.value.getFullYear());
     const month = computed(() => anchor.value.getMonth());
 
+    /**
+     * What is actually drawn, which is not always what the reader picked.
+     *
+     * A week of hour columns does not fit a phone, and neither Google nor Apple
+     * pretends otherwise - Apple drops the week view on a portrait phone and
+     * Google replaces it with three days. This falls back to the day.
+     *
+     * The chosen view is kept as it was rather than overwritten: the URL goes on
+     * meaning what it said, so the same link opens on the week on a laptop, and
+     * turning a phone into a wider window brings the week back without the reader
+     * having to ask for it again.
+     */
+    const effectiveView = computed(() =>
+        narrow.value && "week" === view.value ? "day" : view.value,
+    );
+
     const cells = computed(() => monthGrid(year.value, month.value));
 
     /** The days the hourly views draw. Empty in the month view, which uses cells. */
     const days = computed(() =>
-        "month" === view.value ? [] : visibleDays(anchor.value, view.value),
+        "month" === effectiveView.value
+            ? []
+            : visibleDays(anchor.value, effectiveView.value),
     );
 
     /**
@@ -132,9 +157,9 @@ export function usePlanningCalendar(props) {
 
         try {
             const { from, to } =
-                "month" === view.value
+                "month" === effectiveView.value
                     ? gridWindow(year.value, month.value)
-                    : timeGridWindow(anchor.value, view.value);
+                    : timeGridWindow(anchor.value, effectiveView.value);
             const url = new URL(props.eventsPath, window.location.origin);
             url.searchParams.set("from", from.toISOString());
             url.searchParams.set("to", to.toISOString());
@@ -167,7 +192,7 @@ export function usePlanningCalendar(props) {
      * reader in each - and three would be three places to keep the URL writing.
      */
     function go(offset) {
-        if ("month" === view.value) {
+        if ("month" === effectiveView.value) {
             // The first of the month, so paging from the 31st does not skip
             // February: `new Date(2026, 0, 31)` plus one month is 3 March.
             anchor.value = new Date(year.value, month.value + offset, 1);
@@ -176,7 +201,9 @@ export function usePlanningCalendar(props) {
         }
 
         const next = new Date(anchor.value);
-        next.setDate(next.getDate() + offset * ("week" === view.value ? 7 : 1));
+        next.setDate(
+            next.getDate() + offset * ("week" === effectiveView.value ? 7 : 1),
+        );
         anchor.value = next;
     }
 
@@ -249,7 +276,10 @@ export function usePlanningCalendar(props) {
 
     // One watcher for both, so switching view on a different date is a single
     // fetch rather than one for the date and one for the view.
-    watch([anchor, view], () => {
+    // `narrow` is in here because falling back from the week to the day changes
+    // the window asked for. Without it, rotating a phone left the grid showing one
+    // day out of a week's worth of events.
+    watch([anchor, view, narrow], () => {
         writeStateToUrl();
         void load();
     });
@@ -271,6 +301,8 @@ export function usePlanningCalendar(props) {
         year,
         month,
         view,
+        effectiveView,
+        narrow,
         anchor,
         cells,
         days,

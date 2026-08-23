@@ -102,6 +102,7 @@ const visibilityOptions = computed(() =>
     <AppModal
         :show="null !== calendar"
         max-width="md"
+        mobile-fullscreen
         :title="isNew ? t('backend.plannings.new_calendar') : t('backend.plannings.edit_calendar')"
         v-on:close="emit('close')"
     >
