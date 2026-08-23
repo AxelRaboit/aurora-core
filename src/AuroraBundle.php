@@ -69,6 +69,8 @@ use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolder;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTag;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTagInterface;
+use Aurora\Module\Planning\Attendee\Entity\PlanningEventAttendee;
+use Aurora\Module\Planning\Attendee\Entity\PlanningEventAttendeeInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
 use Aurora\Module\Planning\Event\Entity\PlanningEventAlertInterface;
@@ -158,6 +160,7 @@ class AuroraBundle extends AbstractBundle
                     PlanningEventInterface::class => PlanningEvent::class,
                     PlanningEventAlertInterface::class => PlanningEventAlert::class,
                     PlanningReminderInterface::class => PlanningReminder::class,
+                    PlanningEventAttendeeInterface::class => PlanningEventAttendee::class,
                     CommentInterface::class => Comment::class,
                     CommentReactionInterface::class => CommentReaction::class,
                     FormInterface::class => Form::class,

@@ -77,6 +77,7 @@ final readonly class PlanningEventSerializer
             // Set on an occurrence somebody edited, so a screen can say it belongs
             // to a series without having to look the series up.
             'masterId' => $event->getMaster()?->getId(),
+            'attendees' => $this->attendees($event),
             'readOnly' => $event->isFromModule(),
         ];
     }
@@ -111,6 +112,36 @@ final readonly class PlanningEventSerializer
         usort($alerts, static fn (array $a, array $b): int => strcmp((string) $a['firesAt'], (string) $b['firesAt']));
 
         return $alerts;
+    }
+
+    /**
+     * Who is invited, with their answer already worded and coloured.
+     *
+     * The label and the badge come from here rather than from the screen, because
+     * three grids and two modals would each have to map four statuses - and one of
+     * them would map them differently.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function attendees(PlanningEventInterface $event): array
+    {
+        $rows = [];
+        foreach ($event->getAttendees() as $attendee) {
+            $rows[] = [
+                'id' => $attendee->getId(),
+                'userId' => $attendee->getUser()->getId(),
+                'name' => $attendee->getUser()->getName(),
+                'status' => $attendee->getStatus()->value,
+                'statusLabel' => $this->translator->trans($attendee->getStatus()->getLabelKey()),
+                'statusColor' => $attendee->getStatus()->badgeColor(),
+                'respondedAt' => $attendee->getRespondedAt()?->format(DATE_ATOM),
+            ];
+        }
+
+        // By name, so the list does not reorder itself as people answer.
+        usort($rows, static fn (array $a, array $b): int => strcmp((string) $a['name'], (string) $b['name']));
+
+        return $rows;
     }
 
     /**

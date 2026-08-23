@@ -8,6 +8,7 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
+use Aurora\Module\Planning\Attendee\Enum\PlanningAttendeeStatusEnum;
 use Aurora\Module\Planning\Event\Dto\PlanningEventInputFactoryInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Manager\PlanningEventManagerInterface;
@@ -25,7 +26,10 @@ use Aurora\Module\Planning\Reminder\Entity\PlanningReminder;
 use Aurora\Module\Planning\Reminder\Manager\PlanningReminderManagerInterface;
 use Aurora\Module\Planning\Reminder\Repository\PlanningReminderRepository;
 use Aurora\Module\Planning\Reminder\Serializer\PlanningReminderSerializer;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
+use Aurora\Module\Platform\User\Repository\UserRepository;
 use DateTimeImmutable;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -68,6 +72,7 @@ final class PlanningController extends AbstractController
         private readonly PlanningReminderInputFactoryInterface $reminderInputFactory,
         private readonly PayloadValidator $payloadValidator,
         private readonly EntityManagerInterface $entityManager,
+        private readonly UserRepository $users,
     ) {}
 
     #[Route('/calendar', name: '_calendar', methods: [HttpMethodEnum::Get->value])]
@@ -80,6 +85,12 @@ final class PlanningController extends AbstractController
             // calendar cutting its days in a zone the runtime cannot resolve puts
             // every all-day event on the wrong day.
             'timezones' => DateTimeZone::listIdentifiers(),
+            // Who can be invited: the accounts that can reach the backend at all.
+            // A front-office account has no calendar to be invited into.
+            'people' => $this->invitablePeople(),
+            // So the screen can tell which attendee is the reader, and offer them
+            // the three buttons rather than everybody's.
+            'currentUserId' => $this->getUser() instanceof CoreUserInterface ? $this->getUser()->getId() : null,
         ]);
     }
 
@@ -263,6 +274,46 @@ final class PlanningController extends AbstractController
      * field. Validated here rather than left to the entity: it throws on an end
      * before a start, and a 500 is the wrong answer to a gesture.
      */
+    /**
+     * An attendee answering for themselves.
+     *
+     * Not gated on `planning.events.edit`: answering an invitation is not editing
+     * the event, and an attendee who cannot edit somebody else's calendar still has
+     * to be able to say whether they are coming. Gated on being invited instead,
+     * which is the only authority that matters here.
+     */
+    #[Route('/events/{id}/respond', name: '_events_respond', methods: [HttpMethodEnum::Post->value])]
+    public function respondToEvent(PlanningEvent $event, Request $request): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof CoreUserInterface) {
+            return $this->jsonInvalidInput(['status' => 'backend.plannings.attendees.errors.not_invited']);
+        }
+
+        $mine = null;
+        foreach ($event->getAttendees() as $attendee) {
+            if ($attendee->getUser()->getId() === $user->getId()) {
+                $mine = $attendee;
+            }
+        }
+
+        // Refused rather than created: answering an invitation you were not sent
+        // would be a way to add yourself to somebody's meeting.
+        if (null === $mine) {
+            return $this->jsonInvalidInput(['status' => 'backend.plannings.attendees.errors.not_invited']);
+        }
+
+        $status = PlanningAttendeeStatusEnum::tryFrom((string) ($this->decodeJson($request)['status'] ?? ''));
+        if (null === $status) {
+            return $this->jsonInvalidInput(['status' => 'backend.plannings.attendees.errors.status_unknown']);
+        }
+
+        $mine->respond($status, new DateTimeImmutable());
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess(['event' => $this->eventSerializer->serialize($event)]);
+    }
+
     #[Route('/events/{id}/move', name: '_events_move', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('planning.events.edit')]
     public function moveEvent(PlanningEvent $event, Request $request): JsonResponse
@@ -451,6 +502,24 @@ final class PlanningController extends AbstractController
     private function canReach(PlanningReminder $reminder): bool
     {
         return $this->writableCalendar((int) $reminder->getPlanning()->getId()) instanceof PlanningInterface;
+    }
+
+    /**
+     * The accounts that can be invited, as the picker wants them.
+     *
+     * Backend accounts only. A front-office account has no calendar to be invited
+     * into, and offering one would be an invitation nobody can answer.
+     *
+     * @return list<array{value: int, label: string}>
+     */
+    private function invitablePeople(): array
+    {
+        $people = [];
+        foreach ($this->users->findBy(['type' => UserTypeEnum::Backend->value], ['name' => 'ASC']) as $user) {
+            $people[] = ['value' => (int) $user->getId(), 'label' => $user->getName()];
+        }
+
+        return $people;
     }
 
     private function feedUrl(Planning $planning): ?string

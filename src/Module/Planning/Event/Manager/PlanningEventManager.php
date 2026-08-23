@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Event\Manager;
 
+use Aurora\Core\Notification\Manager\NotificationManagerInterface;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Planning\Attendee\Entity\PlanningEventAttendee;
 use Aurora\Module\Planning\Event\Dto\PlanningEventInputInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
@@ -13,12 +15,16 @@ use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Recurrence\RecurrenceEditor;
 use Aurora\Module\Planning\Recurrence\RecurrenceScopeEnum;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Platform\User\Repository\UserRepository;
 use DateTimeImmutable;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsAlias(PlanningEventManagerInterface::class)]
 class PlanningEventManager implements PlanningEventManagerInterface
@@ -27,7 +33,24 @@ class PlanningEventManager implements PlanningEventManagerInterface
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
         protected readonly RecurrenceEditor $recurrence,
+        protected readonly UserRepository $users,
+        protected readonly NotificationManagerInterface $notifications,
+        protected readonly UrlGeneratorInterface $urlGenerator,
+        protected readonly TranslatorInterface $translator,
     ) {}
+
+    /**
+     * People invited by the write in progress, told after it succeeds.
+     *
+     * Held rather than notified in place, because `NotificationManagerInterface`
+     * flushes - and on a create that flush happens before the event itself is
+     * persisted, so it tried to write an attendee pointing at nothing. It is also
+     * the honest order: a notification about an event that failed to save is a
+     * lie.
+     *
+     * @var list<CoreUserInterface>
+     */
+    private array $newlyInvited = [];
 
     public function create(PlanningEventInputInterface $input, PlanningInterface $planning): PlanningEventInterface
     {
@@ -39,6 +62,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
         $this->entityManager->flush();
 
         $this->auditCreated($event);
+        $this->notifyInvitations($event);
 
         return $event;
     }
@@ -58,6 +82,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
         $this->entityManager->flush();
 
         $this->auditUpdated($event);
+        $this->notifyInvitations($event);
     }
 
     /**
@@ -124,6 +149,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
 
         $this->entityManager->flush();
         $this->auditUpdated($target);
+        $this->notifyInvitations($target);
 
         return $target;
     }
@@ -267,6 +293,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
         // the two have to arrive together and after nothing else can throw.
         $event->setSpan($startAt, $endAt);
         $this->applyAlerts($event, $input->getAlerts());
+        $this->applyAttendees($event, $input->getAttendeeIds());
         // After the span, because the end of a series is its last start plus the
         // event's length - and both just changed.
         $this->recurrence->refreshUntil($event);
@@ -381,6 +408,90 @@ class PlanningEventManager implements PlanningEventManagerInterface
 
             $this->entityManager->persist($created);
         }
+    }
+
+    /**
+     * Brings the invitation list in line with the ids the form sent.
+     *
+     * Diffed rather than cleared and rebuilt, and here the difference is the whole
+     * feature: an attendee who survives an edit keeps their answer, so renaming an
+     * event does not un-accept everybody who had already said yes.
+     *
+     * Somebody newly invited is told. An invitation nobody hears about is a row in
+     * a table.
+     *
+     * @param list<int> $ids
+     */
+    protected function applyAttendees(PlanningEventInterface $event, array $ids): void
+    {
+        $kept = [];
+
+        foreach ($event->getAttendees() as $existing) {
+            $userId = (int) $existing->getUser()->getId();
+
+            if (in_array($userId, $ids, true)) {
+                $kept[] = $userId;
+
+                continue;
+            }
+
+            $event->removeAttendee($existing);
+            $this->entityManager->remove($existing);
+        }
+
+        foreach ($ids as $id) {
+            if (in_array($id, $kept, true)) {
+                continue;
+            }
+
+            $user = $this->users->find($id);
+            // An id that names nobody is dropped rather than refused: it means a
+            // stale list or a hand-written request, and failing the save of an
+            // otherwise valid event over it would be the wrong trade.
+            if (!$user instanceof CoreUserInterface) {
+                continue;
+            }
+
+            $attendee = new PlanningEventAttendee();
+            $attendee->setUser($user);
+            $event->addAttendee($attendee);
+            $this->entityManager->persist($attendee);
+
+            $this->newlyInvited[] = $user;
+        }
+    }
+
+    /**
+     * Tells whoever was just invited, once the event is safely written.
+     *
+     * Cleared as it goes, so a second write in the same request cannot re-announce
+     * the first one's invitations.
+     */
+    protected function notifyInvitations(PlanningEventInterface $event): void
+    {
+        $invited = $this->newlyInvited;
+        $this->newlyInvited = [];
+
+        foreach ($invited as $user) {
+            $this->inviteNotification($user, $event);
+        }
+    }
+
+    private function inviteNotification(CoreUserInterface $user, PlanningEventInterface $event): void
+    {
+        $this->notifications->notify(
+            $user,
+            'planning.invitation',
+            $event->getTitle(),
+            $this->translator->trans('backend.plannings.attendees.invited_body', [
+                '%calendar%' => $event->getPlanning()->getName(),
+            ]),
+            $this->urlGenerator->generate('backend_planning_calendar', [
+                'view' => 'day',
+                'date' => $event->getStartAt()->format('Y-m-d'),
+            ]),
+            ['eventId' => $event->getId()],
+        );
     }
 
     /**

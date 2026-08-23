@@ -24,6 +24,7 @@ import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
+import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import { CUSTOM, alertLabel, alertOptions, blankRow, channelOptions, fromRow, toRow } from "../composables/alertOffsets.js";
 import { toInstant, toPickerValue, zoneDiffersFromViewer } from "../composables/eventTime.js";
 import { COLOUR_SLOTS } from "../composables/calendarColours.js";
@@ -44,11 +45,15 @@ const props = defineProps({
     /** True when the form is open rather than the read view. */
     editing: { type: Boolean, default: false },
     calendars: { type: Array, required: true },
+    /** Accounts that can be invited, as `{ value, label }`. */
+    people: { type: Array, default: () => [] },
+    /** So the read view can offer the reader their own three buttons. */
+    currentUserId: { type: [Number, null], default: null },
     errors: { type: Object, default: () => ({}) },
     saving: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["close", "edit", "save", "delete"]);
+const emit = defineEmits(["close", "edit", "save", "delete", "respond"]);
 
 const { t, d } = useI18n();
 
@@ -65,6 +70,7 @@ function blank() {
         allDay: false,
         status: "confirmed",
         colourSlot: null,
+        attendees: [],
         recurrence: blankRecurrence(),
         // A new event comes with one alert already on, which is what every
         // calendar people already use does. Nobody sets an alert they forgot the
@@ -95,6 +101,7 @@ watch(
                 allDay: props.event.allDay,
                 status: props.event.status,
                 colourSlot: props.event.ownColourSlot ?? null,
+                attendees: (props.event.attendees ?? []).map((attendee) => attendee.userId),
                 recurrence: fromRrule(props.event.rrule, new Date(props.event.startAt)),
                 alerts: (props.event.alerts ?? []).map(toRow),
             }
@@ -169,6 +176,18 @@ const statusOptions = computed(() =>
         label: t(`backend.plannings.events.status.${value}`),
     })),
 );
+
+/**
+ * The reader's own invitation, if they have one.
+ *
+ * What decides whether the read view offers the three answer buttons: everybody
+ * sees who is coming, and only the person concerned answers.
+ */
+const myInvitation = computed(() =>
+    (props.event?.attendees ?? []).find((attendee) => attendee.userId === props.currentUserId) ?? null,
+);
+
+const ANSWERS = ["accepted", "tentative", "declined"];
 
 const alertSelectOptions = computed(() => alertOptions(t));
 const alertChannelOptions = computed(() => channelOptions(t));
@@ -290,6 +309,40 @@ const when = computed(() => {
 
             <p v-if="event.description" class="text-sm text-secondary whitespace-pre-line">{{ event.description }}</p>
 
+            <div v-if="event.attendees?.length" class="flex flex-col gap-1.5">
+                <span class="text-2xs font-semibold uppercase tracking-wider text-muted">
+                    {{ t("backend.plannings.attendees.label") }}
+                </span>
+                <div class="flex flex-wrap gap-1.5">
+                    <AppBadge
+                        v-for="attendee in event.attendees"
+                        :key="attendee.id"
+                        :color="attendee.statusColor"
+                    >
+                        {{ attendee.name }} · {{ attendee.statusLabel }}
+                    </AppBadge>
+                </div>
+
+                <!-- Only for the person concerned. Everybody sees who is coming;
+                     one person answers. -->
+                <div v-if="null !== myInvitation" class="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span class="text-xs text-muted">{{ t("backend.plannings.attendees.your_answer") }}</span>
+                    <button
+                        v-for="answer in ANSWERS"
+                        :key="answer"
+                        type="button"
+                        class="cursor-pointer rounded-full border px-2.5 py-1 text-xs transition-colors"
+                        :class="myInvitation.status === answer
+                            ? 'border-accent bg-accent/10 font-medium text-primary'
+                            : 'border-line text-secondary hover:border-secondary'"
+                        :aria-pressed="myInvitation.status === answer"
+                        v-on:click="emit('respond', { event, status: answer })"
+                    >
+                        {{ t(`backend.plannings.attendees.status_${answer}`) }}
+                    </button>
+                </div>
+            </div>
+
             <p v-if="alertSummary" class="flex items-center gap-1.5 text-sm text-secondary">
                 <Bell class="w-3.5 h-3.5 shrink-0 text-muted" :stroke-width="2" />
                 {{ alertSummary }}
@@ -409,6 +462,14 @@ const when = computed(() => {
                  use. A row of chips said the same thing in fewer clicks but in a
                  control that exists nowhere else in this application, and it
                  could not express a moment at all. -->
+            <AppMultiselect
+                v-model="form.attendees"
+                multiple
+                :label="t('backend.plannings.attendees.label')"
+                :placeholder="t('backend.plannings.attendees.placeholder')"
+                :options="people"
+            />
+
             <!-- Recurrence. A select with four presets and a custom panel, which
                  is the shape Google and Apple both use: almost every real series
                  is one of the four, and the panel is for the rest. -->

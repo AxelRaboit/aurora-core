@@ -33,6 +33,9 @@ import { usePlanningShortcuts } from "./composables/usePlanningShortcuts.js";
 const props = defineProps({
     calendars: { type: Array, default: () => [] },
     timezones: { type: Array, default: () => [] },
+    people: { type: Array, default: () => [] },
+    currentUserId: { type: [Number, null], default: null },
+    respondEventPathTemplate: { type: String, required: true },
     eventsPath: { type: String, required: true },
     createCalendarPath: { type: String, required: true },
     feedCalendarPathTemplate: { type: String, required: true },
@@ -505,6 +508,24 @@ async function sendMove(id, body) {
     await load();
 }
 
+/**
+ * Answering an invitation.
+ *
+ * Reloads and reopens rather than patching the badge in place: the answer changes
+ * what every grid draws for that event, and the response carries the whole event
+ * back anyway.
+ */
+async function respond({ event, status }) {
+    const data = await request(
+        props.respondEventPathTemplate.replace("__id__", String(event.id)),
+        { status },
+    );
+    if (!data) return;
+
+    openEvent.value = data.event;
+    await load();
+}
+
 async function remove(event) {
     if (needsScope(event)) {
         askScope("delete", "delete", { id: event.id, occurrenceAt: event.occurrenceAt });
@@ -715,10 +736,13 @@ async function sendDelete(id, body) {
             :event="openEvent"
             :editing="editing"
             :calendars="calendars"
+            :people="people"
+            :current-user-id="currentUserId"
             :errors="errors"
             :saving="saving"
             v-on:close="close"
             v-on:edit="editing = true"
+            v-on:respond="respond"
             v-on:save="save"
             v-on:delete="remove"
         />

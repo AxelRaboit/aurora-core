@@ -139,6 +139,19 @@ backend:
       errors:
         title_required: "Le rappel a besoin d'un titre."
         due_required: "Le rappel a besoin d'une échéance."
+    attendees:
+      label: Participants
+      placeholder: "Inviter quelqu'un…"
+      none: "Personne d'invité."
+      invited_body: "Vous êtes invité à un événement du calendrier %calendar%."
+      your_answer: "Votre réponse"
+      status_needs_action: "Sans réponse"
+      status_accepted: Accepté
+      status_declined: Refusé
+      status_tentative: Peut-être
+      errors:
+        not_invited: "Vous n'êtes pas invité à cet événement."
+        status_unknown: "Cette réponse n'existe pas."
     alerts:
       channel: "Par"
       channel_hint: "Une alerte qui n'arrive que dans l'application ne se voit qu'en y étant déjà."

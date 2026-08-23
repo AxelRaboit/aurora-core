@@ -30,6 +30,9 @@ interface PlanningEventInputInterface
 
     public function getRrule(): ?string;
 
+    /** @return list<int> */
+    public function getAttendeeIds(): array;
+
     /** @return list<array{minutes: int|null, at: DateTimeImmutable|null, channel: PlanningAlertChannelEnum}> */
     public function getAlerts(): array;
 }

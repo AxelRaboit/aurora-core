@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Planning\Event\Entity;
 
 use Aurora\Core\Timestampable\TimestampableInterface;
+use Aurora\Module\Planning\Attendee\Entity\PlanningEventAttendeeInterface;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
@@ -55,6 +56,15 @@ interface PlanningEventInterface extends TimestampableInterface
     public function getSourceUrl(): ?string;
 
     public function setSourceUrl(?string $sourceUrl): static;
+
+    /**
+     * @return Collection<int, PlanningEventAttendeeInterface>
+     */
+    public function getAttendees(): Collection;
+
+    public function addAttendee(PlanningEventAttendeeInterface $attendee): static;
+
+    public function removeAttendee(PlanningEventAttendeeInterface $attendee): static;
 
     public function getRrule(): ?string;
 

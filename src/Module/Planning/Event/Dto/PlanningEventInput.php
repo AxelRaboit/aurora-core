@@ -38,6 +38,18 @@ class PlanningEventInput implements PlanningEventInputInterface
          */
         public readonly ?string $rrule = null,
         /**
+         * Who is invited, by account id.
+         *
+         * Ids and not addresses: an attendee here is somebody with an account, so
+         * their name and their mail come from it. Inviting an address that has no
+         * account is a different feature - it needs a token, a page they can answer
+         * on, and no session - and offering it half-built would be worse than not
+         * offering it.
+         *
+         * @var list<int>
+         */
+        public readonly array $attendeeIds = [],
+        /**
          * The alerts, each either an offset in minutes or a pinned moment.
          *
          * The whole set arrives on every save: the form shows every alert at
@@ -131,6 +143,12 @@ class PlanningEventInput implements PlanningEventInputInterface
     public function getRrule(): ?string
     {
         return $this->rrule;
+    }
+
+    /** @return list<int> */
+    public function getAttendeeIds(): array
+    {
+        return $this->attendeeIds;
     }
 
     /** @return list<array{minutes: int|null, at: DateTimeImmutable|null, channel: PlanningAlertChannelEnum}> */

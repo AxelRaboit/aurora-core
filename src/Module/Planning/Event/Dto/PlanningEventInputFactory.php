@@ -33,6 +33,7 @@ class PlanningEventInputFactory implements PlanningEventInputFactoryInterface
             // sends "", and reading that as slot zero would draw nothing.
             colourSlot: is_numeric($data['colourSlot'] ?? null) ? (int) $data['colourSlot'] : null,
             rrule: $this->rrule($data['rrule'] ?? null),
+            attendeeIds: $this->ids($data['attendees'] ?? null),
             alerts: $this->alerts($data['alerts'] ?? null),
         );
     }
@@ -91,6 +92,31 @@ class PlanningEventInputFactory implements PlanningEventInputFactoryInterface
         }
 
         return $alerts;
+    }
+
+    /**
+     * The account ids in a list, deduplicated.
+     *
+     * Deduplicated because the table is unique on `(event, user)` and inviting
+     * somebody twice is the kind of duplicate a multiselect produces by being
+     * submitted twice rather than by anyone meaning it.
+     *
+     * @return list<int>
+     */
+    private function ids(mixed $value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($value as $id) {
+            if (is_numeric($id) && (int) $id > 0) {
+                $ids[] = (int) $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 
     /**

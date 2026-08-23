@@ -96,6 +96,18 @@ final readonly class IcalWriter
             $lines[] = 'LOCATION:'.$this->escape($event->getLocation());
         }
 
+        foreach ($event->getAttendees() as $attendee) {
+            // The address is the identity here, which is what the format wants -
+            // and PARTSTAT is the answer, so a subscribed calendar shows who is
+            // coming rather than only who was asked.
+            $lines[] = sprintf(
+                'ATTENDEE;CN=%s;PARTSTAT=%s:mailto:%s',
+                $this->escape($attendee->getUser()->getName()),
+                $attendee->getStatus()->toIcal(),
+                $attendee->getUser()->getEmail(),
+            );
+        }
+
         $lines[] = 'STATUS:'.$this->status($event);
         $lines[] = 'END:VEVENT';
 

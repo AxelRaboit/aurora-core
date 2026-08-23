@@ -139,6 +139,19 @@ backend:
       errors:
         title_required: "The reminder needs a title."
         due_required: "The reminder needs a due date."
+    attendees:
+      label: Attendees
+      placeholder: "Invite somebody…"
+      none: "Nobody invited."
+      invited_body: "You have been invited to an event on the %calendar% calendar."
+      your_answer: "Your answer"
+      status_needs_action: "No answer"
+      status_accepted: Accepted
+      status_declined: Declined
+      status_tentative: Maybe
+      errors:
+        not_invited: "You are not invited to this event."
+        status_unknown: "That answer does not exist."
     alerts:
       channel: "By"
       channel_hint: "An alert that only arrives in the application is only seen by somebody already in it."

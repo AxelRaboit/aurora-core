@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Planning\Event\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
+use Aurora\Module\Planning\Attendee\Entity\PlanningEventAttendeeInterface;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use Aurora\Module\Planning\Planning\Entity\AbstractPlanning;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
@@ -149,6 +150,17 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
     protected Collection $occurrences;
 
     /**
+     * Who is invited, and whether they are coming.
+     *
+     * Cascaded, like the alerts: an invitation to an event that no longer exists is
+     * a row nothing can render and nobody can answer.
+     *
+     * @var Collection<int, PlanningEventAttendeeInterface>
+     */
+    #[ORM\OneToMany(targetEntity: PlanningEventAttendeeInterface::class, mappedBy: 'event', cascade: ['remove'], orphanRemoval: true)]
+    protected Collection $attendees;
+
+    /**
      * A colour of this event's own, or null to take the calendar's.
      *
      * Null is the common case and the useful default: a calendar's colour is how
@@ -175,6 +187,7 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
         // first `add()` is a crash nobody sees until a fixture runs.
         $this->alerts = new ArrayCollection();
         $this->occurrences = new ArrayCollection();
+        $this->attendees = new ArrayCollection();
     }
 
     /**
@@ -379,6 +392,36 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
     public function setSourceUrl(?string $sourceUrl): static
     {
         $this->sourceUrl = $sourceUrl;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PlanningEventAttendeeInterface>
+     */
+    public function getAttendees(): Collection
+    {
+        return $this->attendees;
+    }
+
+    /**
+     * Sets both sides, like `addAlert` does and for the same reason: an attendee
+     * added through the collection alone has no event, and Doctrine writes a row
+     * with no `event_id`.
+     */
+    public function addAttendee(PlanningEventAttendeeInterface $attendee): static
+    {
+        if (!$this->attendees->contains($attendee)) {
+            $this->attendees->add($attendee);
+            $attendee->setEvent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttendee(PlanningEventAttendeeInterface $attendee): static
+    {
+        $this->attendees->removeElement($attendee);
 
         return $this;
     }

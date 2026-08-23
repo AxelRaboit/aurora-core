@@ -15,6 +15,9 @@
 <div {{ vue_component('planning/backend/planning/PlanningApp', {
     calendars: calendars,
     timezones: timezones,
+    people: people,
+    currentUserId: currentUserId,
+    respondEventPathTemplate: path_template('backend_planning_events_respond', {id: '__id__'}),
     eventsPath: path('backend_planning_events'),
     createCalendarPath: path('backend_planning_calendars_create'),
     feedCalendarPathTemplate: path_template('backend_planning_calendars_feed', {id: '__id__'}),
