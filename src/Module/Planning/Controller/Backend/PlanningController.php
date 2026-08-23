@@ -200,6 +200,47 @@ final class PlanningController extends AbstractController
         return $this->jsonSuccess(['event' => $this->eventSerializer->serialize($event)]);
     }
 
+    /**
+     * Dragging or resizing an event: two instants and nothing else.
+     *
+     * Its own route because a drag knows the span and not the rest of the event,
+     * and posting a whole event the grid does not hold would be a way to lose a
+     * field. Validated here rather than left to the entity: it throws on an end
+     * before a start, and a 500 is the wrong answer to a gesture.
+     */
+    #[Route('/events/{id}/move', name: '_events_move', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('planning.events.edit')]
+    public function moveEvent(PlanningEvent $event, Request $request): JsonResponse
+    {
+        if ($event->isFromModule()) {
+            return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
+        }
+
+        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface) {
+            return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
+        }
+
+        $data = $this->decodeJson($request);
+        $startAt = $this->date($data['startAt'] ?? null);
+        $endAt = $this->date($data['endAt'] ?? null);
+
+        if (!$startAt instanceof DateTimeImmutable) {
+            return $this->jsonInvalidInput(['startAt' => 'backend.plannings.events.errors.start_required']);
+        }
+
+        if (!$endAt instanceof DateTimeImmutable) {
+            return $this->jsonInvalidInput(['endAt' => 'backend.plannings.events.errors.end_required']);
+        }
+
+        if ($endAt < $startAt) {
+            return $this->jsonInvalidInput(['endAt' => 'backend.plannings.events.errors.end_before_start']);
+        }
+
+        $this->eventManager->move($event, $startAt, $endAt);
+
+        return $this->jsonSuccess(['event' => $this->eventSerializer->serialize($event)]);
+    }
+
     #[Route('/events/{id}/delete', name: '_events_delete', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('planning.events.delete')]
     public function deleteEvent(PlanningEvent $event): JsonResponse

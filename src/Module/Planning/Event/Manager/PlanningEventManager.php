@@ -56,6 +56,29 @@ class PlanningEventManager implements PlanningEventManagerInterface
         $this->auditUpdated($event);
     }
 
+    /**
+     * Moves an event, and nothing else.
+     *
+     * Its own method rather than an `update` with a partial input, because the
+     * input DTO carries every field and a drag knows two: reusing it would have
+     * meant the client sending back a whole event it does not hold. Its
+     * serialised form is not the input's shape either - `colourSlot` comes down
+     * resolved, so echoing it back would turn an event that follows its calendar
+     * into one with a colour of its own.
+     *
+     * The alerts follow, because `setSpan` recomputes the relative ones. That is
+     * the point of the drag being a span change rather than two field writes.
+     */
+    public function move(PlanningEventInterface $event, DateTimeImmutable $startAt, DateTimeImmutable $endAt): void
+    {
+        $this->refuseIfFromModule($event);
+
+        $event->setSpan($startAt, $endAt);
+        $this->entityManager->flush();
+
+        $this->auditUpdated($event);
+    }
+
     public function delete(PlanningEventInterface $event): void
     {
         $this->refuseIfFromModule($event);

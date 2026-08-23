@@ -14,7 +14,19 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { Check } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
-import { HOURS, allDayBand, draftAt, layOutDay, nowOffset, timeAt, visibleDays } from "../composables/timeGrid.js";
+import {
+    HOURS,
+    allDayBand,
+    daysFromPixels,
+    draftAt,
+    layOutDay,
+    minutesFromPixels,
+    nowOffset,
+    resizedSpan,
+    shiftedSpan,
+    timeAt,
+    visibleDays,
+} from "../composables/timeGrid.js";
 import { sameDay } from "../composables/monthGrid.js";
 
 const props = defineProps({
@@ -28,7 +40,7 @@ const props = defineProps({
     reminders: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on"]);
+const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on", "move-event"]);
 
 const { d, t } = useI18n();
 
@@ -59,6 +71,151 @@ let ticker = null;
 
 /** The scrolling box, so the day can open somewhere worth looking at. */
 const hours = ref(null);
+
+/** The columns' own box, for turning pointer pixels into minutes and days. */
+const columnsBox = ref(null);
+
+/**
+ * The drag in progress, or null.
+ *
+ * One object rather than four refs, so a half-finished drag cannot exist: either
+ * every field is there or the gesture is not happening.
+ */
+const drag = ref(null);
+
+/**
+ * Whether a drag has moved far enough to be a drag.
+ *
+ * Without a threshold every click on an event is a zero-pixel move, and the grid
+ * would post an update on each one - and the click that opens the event would
+ * stop working, because the pointer handler would have claimed it.
+ */
+const DRAG_THRESHOLD_PX = 4;
+
+/**
+ * Set when a drag ends, so the click that follows it does nothing.
+ *
+ * A browser fires `click` after `pointerup` on the same element, so without this
+ * every drag also opened the event's modal. Cleared on the next `pointerdown`
+ * rather than on a timer: if no click follows - the pointer left the block, or
+ * the gesture was cancelled - the flag must not swallow the next real click.
+ */
+let dragEndedWithMovement = false;
+
+function onBlockPointerDown(block, mode, pointerEvent) {
+    // Left button only. A right-click is a context menu and a middle-click is a
+    // scroll; neither is a request to move a meeting.
+    if (0 !== pointerEvent.button || block.event.readOnly) {
+        return;
+    }
+
+    pointerEvent.stopPropagation();
+    dragEndedWithMovement = false;
+
+    drag.value = {
+        id: block.event.id,
+        mode,
+        startAt: block.event.startAt,
+        endAt: block.event.endAt,
+        originX: pointerEvent.clientX,
+        originY: pointerEvent.clientY,
+        minutes: 0,
+        days: 0,
+        moved: false,
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+}
+
+function onPointerMove(pointerEvent) {
+    const current = drag.value;
+    if (null === current || null === columnsBox.value) {
+        return;
+    }
+
+    const box = columnsBox.value.getBoundingClientRect();
+    const deltaX = pointerEvent.clientX - current.originX;
+    const deltaY = pointerEvent.clientY - current.originY;
+
+    if (Math.abs(deltaX) > DRAG_THRESHOLD_PX || Math.abs(deltaY) > DRAG_THRESHOLD_PX) {
+        current.moved = true;
+    }
+
+    current.minutes = minutesFromPixels(deltaY, box.height);
+    // Sideways only when moving. Resizing an event into another day is not a
+    // gesture anybody makes on purpose, and a wobbling hand would do it.
+    current.days = "move" === current.mode
+        ? daysFromPixels(deltaX, box.width / days.value.length)
+        : 0;
+}
+
+function onPointerUp() {
+    const current = drag.value;
+    drag.value = null;
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+
+    if (null === current || !current.moved) {
+        return;
+    }
+
+    // Dragged, so whatever the browser sends next is not a click on the event.
+    dragEndedWithMovement = true;
+
+    if (0 === current.minutes && 0 === current.days) {
+        // Dragged and put back. Nothing to save, and posting an unchanged span
+        // would write an audit line saying somebody moved it.
+        return;
+    }
+
+    const span = "move" === current.mode
+        ? shiftedSpan(current.startAt, current.endAt, current.minutes, current.days)
+        : resizedSpan(current.startAt, current.endAt, current.minutes);
+
+    emit("move-event", { id: current.id, ...span });
+}
+
+onBeforeUnmount(() => {
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+});
+
+/**
+ * How far to draw a block from where its data says it is.
+ *
+ * The grid shows the drag before the server has agreed to it, because a block
+ * that only moves after a round trip feels like it did not take.
+ */
+/**
+ * Opening an event, unless the pointer was dragging it.
+ *
+ * Guarded rather than prevented on the element, because `preventDefault` on
+ * `pointerdown` would also stop the browser giving the block focus - and then the
+ * keyboard could not reach it at all.
+ */
+function onBlockClick(event) {
+    if (dragEndedWithMovement) {
+        dragEndedWithMovement = false;
+
+        return;
+    }
+
+    emit("open-event", event);
+}
+
+function dragOffset(block) {
+    const current = drag.value;
+    if (null === current || current.id !== block.event.id) {
+        return { top: 0, height: 0, days: 0 };
+    }
+
+    const perMinute = 1 / 1440;
+
+    return "move" === current.mode
+        ? { top: current.minutes * perMinute, height: 0, days: current.days }
+        : { top: 0, height: current.minutes * perMinute, days: 0 };
+}
 
 /**
  * The hour the grid opens on.
@@ -291,6 +448,7 @@ function addAllDayOn(day) {
             </div>
 
             <div
+                ref="columnsBox"
                 class="grid flex-1"
                 :style="{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }"
             >
@@ -326,30 +484,47 @@ function addAllDayOn(day) {
                         <span class="absolute -left-1 -top-[5px] w-2 h-2 rounded-full bg-red-500" />
                     </div>
 
-                    <button
+                    <div
                         v-for="block in column.blocks"
                         :key="block.event.id"
-                        type="button"
-                        class="absolute z-10 overflow-hidden rounded px-1.5 py-px text-left text-2xs leading-tight transition-opacity hover:opacity-80 cursor-pointer"
+                        class="absolute z-10 overflow-hidden rounded text-2xs leading-tight transition-opacity hover:opacity-80"
+                        :class="[
+                            block.event.readOnly ? 'cursor-pointer' : 'cursor-grab',
+                            drag?.id === block.event.id ? 'z-20 opacity-80 shadow-lg' : '',
+                        ]"
                         :style="{
-                            top: `${block.top * HOURS.length * HOUR_REM}rem`,
-                            height: `${block.height * HOURS.length * HOUR_REM}rem`,
-                            left: `calc(${(block.column / block.columns) * 100}% + 1px)`,
+                            top: `${(block.top + dragOffset(block).top) * HOURS.length * HOUR_REM}rem`,
+                            height: `${(block.height + dragOffset(block).height) * HOURS.length * HOUR_REM}rem`,
+                            left: `calc(${((block.column / block.columns) + dragOffset(block).days) * 100}% + 1px)`,
                             width: `calc(${(1 / block.columns) * 100}% - 3px)`,
                             backgroundColor: `color-mix(in srgb, var(--chart-cat-${block.event.colourSlot}) 18%, transparent)`,
                             color: `var(--chart-cat-${block.event.colourSlot})`,
                             borderLeft: `2px solid var(--chart-cat-${block.event.colourSlot})`,
                         }"
-                        v-on:click.stop="emit('open-event', block.event)"
+                        v-on:pointerdown="onBlockPointerDown(block, 'move', $event)"
+                        v-on:click.stop="onBlockClick(block.event)"
                     >
-                        <span class="block truncate font-medium">{{ block.event.title }}</span>
-                        <!-- The time only when the block is tall enough to hold a
-                             second line. Below that it would push the title out
-                             of view, and the title is what identifies the event. -->
-                        <span v-if="block.height > 45 / 1440" class="block truncate tabular-nums opacity-80">
-                            {{ timeOf(block.event) }}
-                        </span>
-                    </button>
+                        <div class="px-1.5 py-px">
+                            <span class="block truncate font-medium">{{ block.event.title }}</span>
+                            <!-- The time only when the block is tall enough to
+                                 hold a second line. Below that it would push the
+                                 title out of view, and the title is what
+                                 identifies the event. -->
+                            <span v-if="block.height > 45 / 1440" class="block truncate tabular-nums opacity-80">
+                                {{ timeOf(block.event) }}
+                            </span>
+                        </div>
+
+                        <!-- The resize grip. Four pixels of it, at the bottom
+                             edge, because that is where the end of an event is -
+                             and a grip anywhere else would be a second way to
+                             move it. -->
+                        <span
+                            v-if="!block.event.readOnly"
+                            class="absolute inset-x-0 bottom-0 h-1 cursor-ns-resize"
+                            v-on:pointerdown.stop="onBlockPointerDown(block, 'resize', $event)"
+                        />
+                    </div>
                 </div>
             </div>
         </div>

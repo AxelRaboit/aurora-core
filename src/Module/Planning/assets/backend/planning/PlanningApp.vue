@@ -35,6 +35,7 @@ const props = defineProps({
     updateCalendarPathTemplate: { type: String, required: true },
     deleteCalendarPathTemplate: { type: String, required: true },
     createEventPath: { type: String, required: true },
+    moveEventPathTemplate: { type: String, required: true },
     createReminderPath: { type: String, required: true },
     updateReminderPathTemplate: { type: String, required: true },
     deleteReminderPathTemplate: { type: String, required: true },
@@ -344,6 +345,29 @@ function createOnDay(date) {
     create(draftAt(defaultTimeOn(date)));
 }
 
+/**
+ * Saves a drag or a resize.
+ *
+ * Its own route rather than the update endpoint, because the grid holds a
+ * serialised event and not an input: `colourSlot` comes down resolved, so echoing
+ * it back would turn an event that follows its calendar into one with a colour of
+ * its own.
+ *
+ * Reloads afterwards rather than trusting the local move: the span the server
+ * accepted is the one that counts, and an alert that followed the event has moved
+ * too.
+ */
+async function moveEvent(moved) {
+    const data = await request(
+        props.moveEventPathTemplate.replace("__id__", String(moved.id)),
+        { startAt: moved.startAt, endAt: moved.endAt },
+    );
+
+    if (!data) return;
+
+    await load();
+}
+
 async function remove(event) {
     const data = await request(props.deleteEventPathTemplate.replace("__id__", String(event.id)));
     if (!data) return;
@@ -462,6 +486,7 @@ async function remove(event) {
                 v-on:open-reminder="editReminder"
                 v-on:toggle-reminder="toggleReminderItem"
                 v-on:add-on="create"
+                v-on:move-event="moveEvent"
             />
         </div>
 

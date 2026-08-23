@@ -317,3 +317,83 @@ export function defaultTimeOn(day) {
 
     return at;
 }
+
+/**
+ * The vertical distance a pointer travelled, as minutes.
+ *
+ * Rounded to the nearest quarter hour rather than down, unlike `timeAt`. A click
+ * is aimed at a moment and should land at or before it; a drag is aimed at a
+ * distance, and rounding a 14-minute pull down to zero would make the gesture
+ * feel broken.
+ *
+ * @param {number} deltaPx
+ * @param {number} columnHeightPx the full 24 hours
+ * @returns {number}
+ */
+export function minutesFromPixels(deltaPx, columnHeightPx) {
+    if (!columnHeightPx) return 0;
+
+    const minutes = (deltaPx / columnHeightPx) * 1440;
+
+    return Math.round(minutes / SNAP_MINUTES) * SNAP_MINUTES;
+}
+
+/**
+ * How many days sideways a pointer travelled.
+ *
+ * @param {number} deltaPx
+ * @param {number} columnWidthPx
+ * @returns {number}
+ */
+export function daysFromPixels(deltaPx, columnWidthPx) {
+    return columnWidthPx ? Math.round(deltaPx / columnWidthPx) : 0;
+}
+
+/**
+ * An event's span moved by a distance, keeping its length.
+ *
+ * Both ends move together, which is what separates moving from resizing: a
+ * meeting dragged an hour later is still an hour long.
+ *
+ * @param {string} startAt
+ * @param {string} endAt
+ * @param {number} minutes
+ * @param {number} [days]
+ * @returns {{startAt: string, endAt: string}}
+ */
+export function shiftedSpan(startAt, endAt, minutes, days = 0) {
+    const shift = (iso) => {
+        const at = new Date(iso);
+        at.setDate(at.getDate() + days);
+        at.setMinutes(at.getMinutes() + minutes);
+
+        return at.toISOString();
+    };
+
+    return { startAt: shift(startAt), endAt: shift(endAt) };
+}
+
+/**
+ * An event's span with only its end moved.
+ *
+ * Floored at fifteen minutes: dragging the bottom edge above the top would give
+ * an end before the start, which the entity refuses - and the honest reading of
+ * that gesture is "as short as it goes", not "invalid".
+ *
+ * @param {string} startAt
+ * @param {string} endAt
+ * @param {number} minutes
+ * @returns {{startAt: string, endAt: string}}
+ */
+export function resizedSpan(startAt, endAt, minutes) {
+    const start = new Date(startAt);
+    const end = new Date(endAt);
+    end.setMinutes(end.getMinutes() + minutes);
+
+    const floor = new Date(start.getTime() + SNAP_MINUTES * 60000);
+
+    return {
+        startAt: start.toISOString(),
+        endAt: (end < floor ? floor : end).toISOString(),
+    };
+}

@@ -45,6 +45,7 @@ final class PlanningScreenWiringTest extends IntegrationTestCase
             'createEventPath' => '/backend/planning/events/create',
             'updateEventPathTemplate' => '/backend/planning/events/__id__/update',
             'deleteEventPathTemplate' => '/backend/planning/events/__id__/delete',
+            'moveEventPathTemplate' => '/backend/planning/events/__id__/move',
             'createCalendarPath' => '/backend/planning/calendars/create',
             'updateCalendarPathTemplate' => '/backend/planning/calendars/__id__/update',
             'deleteCalendarPathTemplate' => '/backend/planning/calendars/__id__/delete',

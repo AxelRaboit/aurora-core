@@ -4,10 +4,14 @@ import {
     DEFAULT_HOUR,
     HOURS,
     allDayBand,
+    daysFromPixels,
     defaultTimeOn,
     draftAt,
     layOutDay,
+    minutesFromPixels,
     nowOffset,
+    resizedSpan,
+    shiftedSpan,
     timeAt,
     timeGridWindow,
     visibleDays,
@@ -316,5 +320,77 @@ describe("click to draft", () => {
 
     it("lasts an hour by default", () => {
         expect(DEFAULT_DURATION_MINUTES).toBe(60);
+    });
+});
+
+describe("dragging", () => {
+    const start = new Date(2026, 7, 24, 14, 0).toISOString();
+    const end = new Date(2026, 7, 24, 15, 0).toISOString();
+
+    it("reads a pull as minutes, to the nearest quarter", () => {
+        // A column 1440px tall is one pixel a minute, which keeps the arithmetic
+        // in the test readable.
+        expect(minutesFromPixels(60, 1440)).toBe(60);
+        expect(minutesFromPixels(14, 1440)).toBe(15);
+        expect(minutesFromPixels(-30, 1440)).toBe(-30);
+    });
+
+    it("rounds a drag to the nearest, not down like a click", () => {
+        // A click is aimed at a moment and should land at or before it; a drag is
+        // aimed at a distance, and rounding a 14-minute pull to zero would make
+        // the gesture feel broken.
+        expect(minutesFromPixels(14, 1440)).toBe(15);
+        expect(timeAt(MONDAY, (14 * 60 + 14) / 1440).getMinutes()).toBe(0);
+    });
+
+    it("has nothing to say about a column with no height", () => {
+        // jsdom lays nothing out, and neither does a hidden grid.
+        expect(minutesFromPixels(60, 0)).toBe(0);
+        expect(daysFromPixels(60, 0)).toBe(0);
+    });
+
+    it("reads a sideways pull as whole days", () => {
+        expect(daysFromPixels(100, 100)).toBe(1);
+        expect(daysFromPixels(-240, 100)).toBe(-2);
+        expect(daysFromPixels(40, 100)).toBe(0);
+    });
+
+    it("moves both ends together", () => {
+        const moved = shiftedSpan(start, end, 60);
+
+        expect(new Date(moved.startAt).getHours()).toBe(15);
+        expect(new Date(moved.endAt).getHours()).toBe(16);
+    });
+
+    it("keeps the length when it moves", () => {
+        const moved = shiftedSpan(start, end, 30);
+        const length = new Date(moved.endAt) - new Date(moved.startAt);
+
+        expect(length).toBe(new Date(end) - new Date(start));
+    });
+
+    it("moves days as well as minutes", () => {
+        const moved = shiftedSpan(start, end, -60, 2);
+
+        expect(new Date(moved.startAt).getDate()).toBe(26);
+        expect(new Date(moved.startAt).getHours()).toBe(13);
+    });
+
+    it("resizing moves only the end", () => {
+        const resized = resizedSpan(start, end, 30);
+
+        expect(resized.startAt).toBe(start);
+        expect(new Date(resized.endAt).getHours()).toBe(15);
+        expect(new Date(resized.endAt).getMinutes()).toBe(30);
+    });
+
+    it("resizing cannot pull the end past the start", () => {
+        // The entity refuses an end before a start, and the honest reading of
+        // that gesture is "as short as it goes" rather than "invalid".
+        const resized = resizedSpan(start, end, -600);
+
+        expect(new Date(resized.endAt) - new Date(resized.startAt)).toBe(
+            15 * 60000,
+        );
     });
 });
