@@ -114,7 +114,7 @@ onMounted(() => {
                         </td>
                         <td class="px-6 py-3 text-secondary">{{ user.email }}</td>
                         <td class="px-6 py-3 hidden md:table-cell">
-                            <AppBadge :color="user.isDevRole ? 'accent' : 'gray'">
+                            <AppBadge :color="user.roleColor">
                                 {{ user.isDevRole ? t('backend.users.role_dev') : t('backend.users.role_user') }}
                             </AppBadge>
                         </td>

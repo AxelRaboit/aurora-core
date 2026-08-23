@@ -38,22 +38,47 @@ final readonly class ProfileViewBuilder
      */
     private function accountInfo(User $user): array
     {
-        $roles = $user->getRoles();
-        $primaryRole = match (true) {
-            in_array(UserRoleEnum::Dev->value, $roles, true) => 'dev',
-            in_array(UserRoleEnum::Admin->value, $roles, true) => 'admin',
-            in_array(UserRoleEnum::User->value, $roles, true) => 'user',
-            default => null,
-        };
+        // The enum case first, then everything derived from it. This used to be
+        // its own `match (true)` over the role strings, which made it a fifth
+        // place deciding which role is the primary one - and the colour a sixth,
+        // over in a Vue composable with a map of its own.
+        $primaryRole = $this->primaryRole($user->getRoles());
 
         return [
             'reference' => $user->getReference(),
-            'role' => $primaryRole,
+            // The short name, which is what the label keys are built from.
+            'role' => $primaryRole instanceof UserRoleEnum ? mb_strtolower($primaryRole->name) : null,
+            'roleColor' => $primaryRole?->badgeColor(),
             'type' => $user->getType()->value,
             'status' => $user->getStatus()->value,
             'manager' => $user->getManager()?->getName(),
             'createdAt' => $user->getCreatedAt()->format(DATE_ATOM),
         ];
+    }
+
+    /**
+     * The highest role the user holds, as a case.
+     *
+     * Reads the priority the enum declares rather than a ladder written here:
+     * the order Dev outranks Admin outranks User is one fact, and the badge on
+     * the users list already asks the enum for it.
+     *
+     * @param list<string> $roles
+     */
+    private function primaryRole(array $roles): ?UserRoleEnum
+    {
+        $highest = null;
+        foreach (UserRoleEnum::cases() as $role) {
+            if (!in_array($role->value, $roles, true)) {
+                continue;
+            }
+
+            if (null === $highest || $role->priority() > $highest->priority()) {
+                $highest = $role;
+            }
+        }
+
+        return $highest;
     }
 
     private function isLastDevOfType(User $user): bool

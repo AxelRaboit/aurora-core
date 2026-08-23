@@ -11,7 +11,7 @@ defineProps({
 
 <template>
     <AppBadge v-if="user.isCurrent" color="accent">{{ t("backend.users.you") }}</AppBadge>
-    <AppBadge :color="user.isDevRole ? 'accent' : 'gray'">
+    <AppBadge :color="user.roleColor">
         {{ user.isDevRole ? t("backend.users.role_dev") : t("backend.users.role_user") }}
     </AppBadge>
     <AppBadge color="gray" class="uppercase">{{ user.locale }}</AppBadge>

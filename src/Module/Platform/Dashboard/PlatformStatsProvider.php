@@ -34,6 +34,14 @@ final readonly class PlatformStatsProvider implements DashboardStatsProviderInte
             'platform' => [
                 'users' => array_sum($byRole),
                 'byRole' => $byRole,
+                // The colour each role wears, from UserRoleEnum::colour(). Sent
+                // rather than inferred: the chart would otherwise colour by
+                // position, and a role with nobody in it would repaint the ones
+                // below it.
+                'roleSlots' => array_combine(
+                    array_map(static fn (UserRoleEnum $role): string => $role->value, UserRoleEnum::cases()),
+                    array_map(static fn (UserRoleEnum $role): int => $role->chartSlot(), UserRoleEnum::cases()),
+                ),
             ],
         ];
     }

@@ -49,6 +49,10 @@ class UserSerializer implements UserSerializerInterface
             'email' => $user->getEmail(),
             'role' => $primaryRole?->value,
             'roleLabel' => null === $primaryRole ? null : $this->translator->trans($primaryRole->getLabelKey()),
+            // The colour travels with the label, from UserRoleEnum::colour(),
+            // so a badge never decides it and four screens cannot disagree.
+            'roleColor' => $primaryRole?->badgeColor(),
+            'devColor' => UserRoleEnum::Dev->badgeColor(),
             'rolePriority' => $effectivePriority,
             'isDev' => in_array(UserRoleEnum::Dev->value, $user->getRoles(), true),
             'type' => $user->getType()->value,

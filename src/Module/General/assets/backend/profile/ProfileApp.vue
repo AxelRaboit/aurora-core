@@ -240,7 +240,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                         <div v-if="account.info.value.role" class="grid grid-cols-3 gap-3 py-2.5 items-center">
                             <dt class="text-secondary">{{ t('backend.profile.account.role') }}</dt>
                             <dd class="col-span-2">
-                                <AppBadge :color="account.roleColor(account.info.value.role)">
+                                <AppBadge :color="account.info.value.roleColor ?? 'gray'">
                                     {{ t(`backend.users.role.${account.info.value.role}`) }}
                                 </AppBadge>
                             </dd>

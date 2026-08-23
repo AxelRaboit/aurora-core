@@ -114,8 +114,8 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                     <div class="flex flex-wrap gap-1 px-4 pb-3">
                         <AppBadge :color="statusBadgeColor(user.status)">{{ user.statusLabel }}</AppBadge>
                         <AppBadge :color="user.type === 'backend' ? 'accent' : 'gray'">{{ user.typeLabel }}</AppBadge>
-                        <AppBadge v-if="user.isDev" color="rose">Dev</AppBadge>
-                        <AppBadge v-if="user.roleLabel" color="accent">{{ user.roleLabel }}</AppBadge>
+                        <AppBadge v-if="user.isDev" :color="user.devColor">Dev</AppBadge>
+                        <AppBadge v-if="user.roleLabel" :color="user.roleColor">{{ user.roleLabel }}</AppBadge>
                         <AppBadge v-if="isCurrent(user)" color="accent">{{ t('backend.users.you') }}</AppBadge>
                     </div>
                     <!-- Footer actions -->
@@ -173,8 +173,8 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                             <td class="px-4 py-3 text-secondary hidden lg:table-cell">{{ user.email }}</td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <div class="flex items-center gap-1 flex-wrap">
-                                    <AppBadge v-if="user.isDev" color="rose">Dev</AppBadge>
-                                    <AppBadge v-if="user.roleLabel" color="accent">{{ user.roleLabel }}</AppBadge>
+                                    <AppBadge v-if="user.isDev" :color="user.devColor">Dev</AppBadge>
+                                    <AppBadge v-if="user.roleLabel" :color="user.roleColor">{{ user.roleLabel }}</AppBadge>
                                 </div>
                             </td>
                             <td class="px-4 py-3 hidden lg:table-cell">
@@ -289,8 +289,8 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                     <div>
                         <dt class="text-xs text-secondary uppercase tracking-wide">{{ t('backend.users.role_label') }}</dt>
                         <dd class="mt-1 flex items-center gap-1 flex-wrap">
-                            <AppBadge v-if="viewingUser.isDev" color="rose">Dev</AppBadge>
-                            <AppBadge v-if="viewingUser.roleLabel" color="accent">{{ viewingUser.roleLabel }}</AppBadge>
+                            <AppBadge v-if="viewingUser.isDev" :color="viewingUser.devColor">Dev</AppBadge>
+                            <AppBadge v-if="viewingUser.roleLabel" :color="viewingUser.roleColor">{{ viewingUser.roleLabel }}</AppBadge>
                             <span v-if="!viewingUser.isDev && !viewingUser.roleLabel" class="text-muted">-</span>
                         </dd>
                     </div>

@@ -41,6 +41,9 @@ const byRole = computed(() =>
             key: role,
             label: t(ROLE_LABEL_KEYS[role]),
             value: count,
+            // Named, not inferred from position: a role keeps its colour when a
+            // role above it in the list has nobody in it.
+            slot: props.stats.roleSlots?.[role],
         })),
 );
 </script>

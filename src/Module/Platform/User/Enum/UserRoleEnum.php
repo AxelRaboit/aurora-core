@@ -29,6 +29,52 @@ enum UserRoleEnum: string
     }
 
     /**
+     * The one colour this role wears, everywhere it is shown.
+     *
+     * Four places used to decide this independently and none of them agreed: the
+     * users list painted every role but Dev the same indigo, the profile page had
+     * violet/indigo/slate, the dev module had indigo-or-grey, and the dashboard
+     * chart got its colours from the order the roles happen to be declared in.
+     * A reader learning that orange means admin on one screen learnt nothing
+     * about the next one.
+     *
+     * Blue, orange, green - which is what the dashboard was already showing, so
+     * the rest of the app follows the screen that got it right rather than the
+     * other way round.
+     *
+     * The badge preset and the chart slot live in the same method on purpose.
+     * They are one decision said in two vocabularies - `AppBadge`'s presets and
+     * `--chart-cat-*` - and split across two methods they would drift the first
+     * time one was edited alone.
+     *
+     * @return array{badge: string, slot: int}
+     */
+    public function colour(): array
+    {
+        return match ($this) {
+            self::User => ['badge' => 'sky', 'slot' => 1],
+            self::Admin => ['badge' => 'amber', 'slot' => 2],
+            self::Dev => ['badge' => 'emerald', 'slot' => 3],
+        };
+    }
+
+    public function badgeColor(): string
+    {
+        return $this->colour()['badge'];
+    }
+
+    /**
+     * Which `--chart-cat-*` slot this role takes. Asked for explicitly rather
+     * than left to the order a provider happens to build its list in: colour
+     * follows the entity, and a filter that drops a role must not repaint the
+     * ones that are left.
+     */
+    public function chartSlot(): int
+    {
+        return $this->colour()['slot'];
+    }
+
+    /**
      * Returns the highest priority among the given role strings.
      *
      * @param string[] $roles

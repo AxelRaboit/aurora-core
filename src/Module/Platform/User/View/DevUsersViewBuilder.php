@@ -33,6 +33,12 @@ final readonly class DevUsersViewBuilder
                 'email' => $user->getEmail(),
                 'locale' => $user->getLocale()->value,
                 'isDevRole' => in_array(UserRoleEnum::Dev->value, $user->getRoles(), true),
+                // From UserRoleEnum::colour(), like every other role badge: this
+                // list used to paint a dev indigo and everyone else grey, which
+                // agreed with nothing else in the app.
+                'roleColor' => in_array(UserRoleEnum::Dev->value, $user->getRoles(), true)
+                    ? UserRoleEnum::Dev->badgeColor()
+                    : UserRoleEnum::User->badgeColor(),
                 'createdAt' => $user->getCreatedAt()->format(DateTimeInterface::ATOM),
                 'isCurrent' => $user->getId() === $currentUser->getId(),
             ],

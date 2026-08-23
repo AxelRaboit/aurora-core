@@ -33,6 +33,11 @@ const props = defineProps({
      * Slots are assigned by position and never cycled: past the eighth the
      * palette has no distinguishable hue left, so a caller with more series
      * folds the tail itself rather than getting a colour that lies.
+     *
+     * A segment may also name its own `slot`, which wins. That is for the case
+     * where the colour belongs to the thing rather than to its rank - a user
+     * role is blue wherever it appears, and it must not change colour because a
+     * role above it in the list has nobody in it.
      */
     firstSlot: { type: Number, default: 1 },
 });
@@ -48,7 +53,7 @@ const drawn = computed(() =>
         .map((segment, index) => ({
             ...segment,
             value: segment.value ?? 0,
-            colour: `var(--chart-cat-${props.firstSlot + index})`,
+            colour: `var(--chart-cat-${segment.slot ?? props.firstSlot + index})`,
             percent:
                 total.value > 0
                     ? Math.round(((segment.value ?? 0) / total.value) * 100)

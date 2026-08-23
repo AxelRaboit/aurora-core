@@ -1,7 +1,5 @@
 import { computed } from "vue";
 
-const ROLE_COLOR = { dev: "violet", admin: "accent", user: "slate" };
-
 const STATUS_COLOR = {
     active: "emerald",
     invited: "amber",
@@ -26,10 +24,6 @@ export function useProfileAccount(accountInfo, locale) {
         formatDate(info.value.createdAt, locale),
     );
 
-    function roleColor(role) {
-        return ROLE_COLOR[role] ?? "slate";
-    }
-
     function statusColor(status) {
         return STATUS_COLOR[status] ?? "slate";
     }
@@ -37,7 +31,6 @@ export function useProfileAccount(accountInfo, locale) {
     return {
         info,
         formattedCreatedAt,
-        roleColor,
         statusColor,
     };
 }
