@@ -264,6 +264,153 @@ final class PlanningShareTest extends IntegrationTestCase
         self::assertSame([], $body['calendar']['shares']);
     }
 
+    /**
+     * The visibility column, all the way round.
+     *
+     * Nothing covered this: the sharing table arrived later and took the tests
+     * with it, so `visibility` had a form field, a DTO, a serializer entry and an
+     * `applyInput` line, and no proof they were wired to each other. A `tryFrom`
+     * that fell through would have silently written `private` on every save, which
+     * is exactly what a reader would report as "my calendar went back to private".
+     */
+    public function testACalendarKeepsTheVisibilityItWasCreatedWith(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+
+        $body = $this->post('backend_planning_calendars_create', [
+            'name' => 'Partagé à tous',
+            'colourSlot' => 1,
+            'timezone' => 'Europe/Paris',
+            'visibility' => 'shared',
+        ]);
+
+        self::assertResponseIsSuccessful();
+        self::assertSame('shared', $body['calendar']['visibility']);
+
+        $planning = $this->entityManager->find(Planning::class, (int) $body['calendar']['id']);
+        self::assertInstanceOf(Planning::class, $planning);
+        $this->created[] = [Planning::class, (int) $planning->getId()];
+
+        self::assertSame(PlanningVisibilityEnum::Shared, $planning->getVisibility());
+    }
+
+    /**
+     * And an edit moves it in both directions.
+     *
+     * Both ways in one test on purpose: going to `private` alone would pass
+     * against code that ignores the field entirely, since `private` is also what
+     * the fallback produces.
+     */
+    public function testEditingMovesTheVisibilityBothWays(): void
+    {
+        $planning = $this->calendar();
+        $this->client->loginUser($this->owner, 'admin');
+
+        $body = $this->post(
+            'backend_planning_calendars_update',
+            $this->payload($planning, 'shared'),
+            ['id' => $planning->getId()],
+        );
+
+        self::assertResponseIsSuccessful();
+        self::assertSame('shared', $body['calendar']['visibility']);
+
+        $body = $this->post(
+            'backend_planning_calendars_update',
+            $this->payload($planning, 'private'),
+            ['id' => $planning->getId()],
+        );
+
+        self::assertResponseIsSuccessful();
+        self::assertSame('private', $body['calendar']['visibility']);
+
+        // Re-fetched, not refreshed: each HTTP request above ran in its own
+        // kernel and cleared the manager, so the local object is detached.
+        $stored = $this->entityManager->find(Planning::class, (int) $planning->getId());
+        self::assertInstanceOf(Planning::class, $stored);
+        self::assertSame(PlanningVisibilityEnum::Private, $stored->getVisibility());
+    }
+
+    /**
+     * A calendar set to `shared` is visible without anybody being named on it.
+     *
+     * This is the other arm of `findVisibleTo` - `p.visibility = :shared` - and it
+     * had no test. `testSharingMakesItVisible` above goes through the share table,
+     * so the two look alike and cover different code: dropping this arm from the
+     * query would have failed nothing.
+     */
+    public function testASharedCalendarIsVisibleToEverybodyWithoutAShare(): void
+    {
+        $planning = $this->calendar();
+        $planning->setVisibility(PlanningVisibilityEnum::Shared);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->guest, 'admin');
+
+        self::assertContains($planning->getId(), $this->visibleIds());
+        self::assertSame([], $this->sharesOf($planning->getId()), 'visible through the column, not a share');
+    }
+
+    /**
+     * The owner sees their own private calendar.
+     *
+     * Reads as trivial and is the one that would have caught a calendar
+     * disappearing from its owner's sidebar - the `p.owner = :owner` arm carries
+     * every private calendar anybody has, so a rewrite of that `OR` chain that
+     * looks harmless empties the screen.
+     */
+    public function testTheOwnerStillSeesTheirOwnPrivateCalendar(): void
+    {
+        $planning = $this->calendar();
+
+        $this->client->loginUser($this->owner, 'admin');
+
+        self::assertContains($planning->getId(), $this->visibleIds());
+    }
+
+    /**
+     * The full payload the modal sends, with one field swapped.
+     *
+     * Written out rather than patched onto an array, because a partial payload
+     * would test the factory's defaults instead of the field under test.
+     *
+     * @return array<string, mixed>
+     */
+    private function payload(Planning $planning, string $visibility): array
+    {
+        return [
+            'name' => $planning->getName(),
+            'description' => $planning->getDescription(),
+            'colourSlot' => $planning->getColourSlot(),
+            'timezone' => $planning->getTimezone(),
+            'visibility' => $visibility,
+        ];
+    }
+
+    /**
+     * The shares the screen was told about, for one calendar.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function sharesOf(?int $id): array
+    {
+        $this->client->request('GET', $this->urlGenerator->generate('backend_planning_calendar'));
+        self::assertResponseIsSuccessful();
+
+        $crawler = $this->client->getCrawler()->filter(
+            '[data-symfony--ux-vue--vue-component-value="planning/backend/planning/PlanningApp"]',
+        );
+        $props = json_decode((string) $crawler->attr('data-symfony--ux-vue--vue-props-value'), true, flags: JSON_THROW_ON_ERROR);
+
+        foreach ($props['calendars'] as $row) {
+            if ((int) $row['id'] === $id) {
+                return $row['shares'];
+            }
+        }
+
+        return [];
+    }
+
     /** @return list<int> */
     private function visibleIds(): array
     {
