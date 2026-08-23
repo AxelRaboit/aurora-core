@@ -26,6 +26,7 @@
 
 /* ── Global base (theme tokens, scrollbar, body) ───────────────────── */
 @import "./base/theme.css";
+@import "./base/chart.css";
 @import "./base/theme-transition.css";
 @import "./base/base.css";
 @import "./base/scrollbar.css";

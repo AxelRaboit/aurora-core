@@ -30,6 +30,8 @@ shared:
     plain_title: Actions
     title: "Actions : {name}"
     open: "Actions pour {name}"
+  chart:
+    share: "{count} sur {total} ({percent} %)"
   common:
     search: Rechercher
     selected: sélectionnés

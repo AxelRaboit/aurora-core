@@ -1,0 +1,46 @@
+/*
+ * The categorical palette charts draw from.
+ *
+ * Not built from `--th-accent-*`: a theme can repaint the accent
+ * (ThemeContext::primaryColorCss), and a five-hue series that shifts with it
+ * stops being five distinguishable hues. These are fixed.
+ *
+ * The order is fixed too, and slots are assigned by position, never cycled - a
+ * ninth series folds into "other" rather than getting a generated hue, because
+ * a generated hue is indistinguishable from an existing one under colour-vision
+ * deficiency.
+ *
+ * The dark steps are chosen for the dark surface, not derived by flipping the
+ * light ones. Both sets were checked against the surfaces they sit on
+ * (#ffffff and rgb(17 24 39)) for lightness band, chroma floor, adjacent-pair
+ * separation under protanopia/deuteranopia/tritanopia, normal-vision
+ * separation, and contrast:
+ *
+ *   light  worst adjacent CVD ΔE 9.1, normal-vision ΔE 19.6
+ *   dark   worst adjacent CVD ΔE 8.4, normal-vision ΔE 19.3
+ *
+ * Three light steps (aqua, yellow, magenta) sit under 3:1 against white. That
+ * is allowed only with relief: every chart using them must show the value in
+ * text, not just the mark. `AppShareBar` does, in its legend.
+ */
+:root {
+    --chart-cat-1: #2a78d6; /* blue    */
+    --chart-cat-2: #eb6834; /* orange  */
+    --chart-cat-3: #1baf7a; /* aqua    */
+    --chart-cat-4: #eda100; /* yellow  */
+    --chart-cat-5: #e87ba4; /* magenta */
+    --chart-cat-6: #008300; /* green   */
+    --chart-cat-7: #4a3aa7; /* violet  */
+    --chart-cat-8: #e34948; /* red     */
+}
+
+.dark {
+    --chart-cat-1: #3987e5;
+    --chart-cat-2: #d95926;
+    --chart-cat-3: #199e70;
+    --chart-cat-4: #c98500;
+    --chart-cat-5: #d55181;
+    --chart-cat-6: #008300;
+    --chart-cat-7: #9085e9;
+    --chart-cat-8: #e66767;
+}

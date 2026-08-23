@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { FileText, LayoutTemplate, Tags, Trash2 } from "lucide-vue-next";
+import AppShareBar from "@/shared/components/chart/AppShareBar.vue";
 
 /**
  * Editorial's dashboard panel: how much content the site holds, and how it
@@ -24,14 +25,19 @@ const totals = computed(() => [
     { key: "trashed", icon: Trash2, value: props.stats.trashed ?? 0 },
 ]);
 
-const byStatus = computed(() => Object.entries(props.stats.byStatus ?? {}));
-
-/** Share of the whole, for the bar. Zero posts means zero width, not NaN. */
-function share(count) {
-    const total = props.stats.posts ?? 0;
-
-    return total > 0 ? Math.round((count / total) * 100) : 0;
-}
+/**
+ * The statuses in workflow order, which is the order the enum declares them in
+ * and the order a reader follows: written, waiting, dated, out, retired.
+ * `AppShareBar` assigns a colour per position, so keeping this stable keeps a
+ * status the same colour from one visit to the next.
+ */
+const byStatus = computed(() =>
+    Object.entries(props.stats.byStatus ?? {}).map(([status, count]) => ({
+        key: status,
+        label: t(`backend.posts.status.${status}`),
+        value: count,
+    })),
+);
 </script>
 
 <template>
@@ -50,18 +56,10 @@ function share(count) {
             </div>
         </div>
 
-        <div v-if="byStatus.length" class="bg-surface border border-line rounded-xl p-5 space-y-3">
+        <div v-if="byStatus.length" class="bg-surface border border-line rounded-xl p-5 space-y-4">
             <h3 class="text-sm font-semibold text-primary">{{ t("backend.stats.editorial.by_status") }}</h3>
 
-            <div v-for="[status, count] in byStatus" :key="status" class="space-y-1">
-                <div class="flex items-center justify-between text-sm">
-                    <span class="text-secondary">{{ t(`backend.posts.status.${status}`) }}</span>
-                    <span class="text-primary font-medium tabular-nums">{{ count }}</span>
-                </div>
-                <div class="h-1.5 rounded-full bg-surface-2 overflow-hidden">
-                    <div class="h-full rounded-full bg-accent-500" :style="{ width: `${share(count)}%` }" />
-                </div>
-            </div>
+            <AppShareBar :segments="byStatus" />
         </div>
     </div>
 </template>

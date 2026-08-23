@@ -25,16 +25,38 @@ export function useDashboardModule(enabledModules) {
             .map((module) => ({ ...module, label: () => t(module.labelKey) })),
     );
 
-    // A module named in the URL that is disabled, gone, or never existed
-    // falls back to the first one rather than showing an empty shell.
+    /**
+     * A module named in the URL that is disabled, gone, or never existed falls
+     * back to the first one rather than showing an empty shell.
+     *
+     * Only written to the URL when there is more than one panel to choose
+     * between. With a single registered panel the parameter answers a question
+     * nobody asked: `/backend` became `/backend?module=editorial` on load, for a
+     * switcher with one tab. The deep link comes back on its own the day a
+     * second module registers, which is the day it starts meaning something.
+     */
     watchEffect(() => {
-        if (
-            visibleModules.value.length > 0 &&
-            !visibleModules.value.find((m) => m.id === activeModule.value)
-        ) {
+        const known = visibleModules.value.find(
+            (module) => module.id === activeModule.value,
+        );
+
+        if (visibleModules.value.length > 1 && !known) {
             selectModule(visibleModules.value[0].id);
         }
     });
 
-    return { activeModule, selectModule, visibleModules };
+    /**
+     * What the shell renders. Falls back to the first panel when the URL names
+     * nothing, without writing that choice into the address bar.
+     */
+    const shownModule = computed(
+        () =>
+            visibleModules.value.find(
+                (module) => module.id === activeModule.value,
+            )?.id ??
+            visibleModules.value[0]?.id ??
+            null,
+    );
+
+    return { activeModule: shownModule, selectModule, visibleModules };
 }
