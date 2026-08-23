@@ -27,6 +27,8 @@ interface PlanningEventInputInterface
 
     public function getColourSlot(): ?int;
 
+    public function getRrule(): ?string;
+
     /** @return list<array{minutes: int|null, at: DateTimeImmutable|null}> */
     public function getAlerts(): array;
 }

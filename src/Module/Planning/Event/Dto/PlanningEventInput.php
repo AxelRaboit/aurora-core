@@ -29,6 +29,14 @@ class PlanningEventInput implements PlanningEventInputInterface
         #[Assert\Range(notInRangeMessage: 'backend.plannings.errors.colour_out_of_range', min: 1, max: AbstractPlanning::MAX_COLOUR_SLOT)]
         public readonly ?int $colourSlot = null,
         /**
+         * The recurrence rule, or null for a single event.
+         *
+         * Carried as the standard's own string because that is what is stored: a
+         * form that offers four frequencies still speaks RRULE, and translating
+         * back and forth would mean two vocabularies for one idea.
+         */
+        public readonly ?string $rrule = null,
+        /**
          * The alerts, each either an offset in minutes or a pinned moment.
          *
          * The whole set arrives on every save: the form shows every alert at
@@ -117,6 +125,11 @@ class PlanningEventInput implements PlanningEventInputInterface
     public function getColourSlot(): ?int
     {
         return $this->colourSlot;
+    }
+
+    public function getRrule(): ?string
+    {
+        return $this->rrule;
     }
 
     /** @return list<array{minutes: int|null, at: DateTimeImmutable|null}> */

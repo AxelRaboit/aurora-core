@@ -31,6 +31,7 @@ class PlanningEventInputFactory implements PlanningEventInputFactoryInterface
             // Absent and empty both mean "follow the calendar". An empty select
             // sends "", and reading that as slot zero would draw nothing.
             colourSlot: is_numeric($data['colourSlot'] ?? null) ? (int) $data['colourSlot'] : null,
+            rrule: $this->rrule($data['rrule'] ?? null),
             alerts: $this->alerts($data['alerts'] ?? null),
         );
     }
@@ -84,6 +85,29 @@ class PlanningEventInputFactory implements PlanningEventInputFactoryInterface
         }
 
         return $alerts;
+    }
+
+    /**
+     * The rule as sent, or null.
+     *
+     * Only the alphabet a rule is written in gets through - letters, digits and
+     * the four separators - so a string carrying anything else never reaches the
+     * expander. Not a full parse: the library refuses what it cannot read, and
+     * duplicating its grammar here would be a second opinion to keep in step.
+     */
+    private function rrule(mixed $value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $rrule = mb_trim($value);
+
+        if ('' === $rrule || 1 !== preg_match('/^[A-Za-z0-9=;,:+\-]+$/', $rrule)) {
+            return null;
+        }
+
+        return mb_strtoupper($rrule);
     }
 
     /**

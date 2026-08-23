@@ -138,4 +138,5 @@ backend:
         start_required: "An event needs a start date."
         end_required: "An event needs an end date."
         end_before_start: "The end cannot come before the start."
+        occurrence_required: "Say which occurrence this applies to."
         read_only: "This event comes from another module: change it at its source."

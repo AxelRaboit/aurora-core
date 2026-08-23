@@ -10,6 +10,8 @@ use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
+use Aurora\Module\Planning\Recurrence\RecurrenceEditor;
+use Aurora\Module\Planning\Recurrence\RecurrenceScopeEnum;
 use DateTimeImmutable;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,6 +25,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
+        protected readonly RecurrenceEditor $recurrence,
     ) {}
 
     public function create(PlanningEventInputInterface $input, PlanningInterface $planning): PlanningEventInterface
@@ -79,6 +82,154 @@ class PlanningEventManager implements PlanningEventManagerInterface
         $this->auditUpdated($event);
     }
 
+    /**
+     * Writes an edit at the scope the reader chose.
+     *
+     * The scope decides which row is written before anything is written, which is
+     * the whole shape of this: `This` detaches an occurrence and edits that,
+     * `Following` splits the series and edits the tail, `All` edits the series
+     * itself. Nothing downstream has to know which of the three happened.
+     *
+     * `This` clears the rule on the row it made, because a detached occurrence is
+     * one event - it happens once, at the date it was moved to.
+     */
+    public function updateAtScope(
+        PlanningEventInterface $event,
+        PlanningEventInputInterface $input,
+        PlanningInterface $planning,
+        RecurrenceScopeEnum $scope,
+        ?DateTimeImmutable $occurrenceAt,
+    ): PlanningEventInterface {
+        $target = $this->resolveTarget($event, $scope, $occurrenceAt);
+
+        $this->refuseIfFromModule($target);
+        // Captured before the input is applied, because a split hands back a tail
+        // carrying the series' rule and `applyInput` writes whatever the payload
+        // says - which for an edit that never mentioned recurrence is null. Left
+        // to itself, "this and following" dissolved the series it had just made.
+        $ruleBeforeInput = $target->getRrule();
+
+        $target->setPlanning($planning);
+        $this->applyInput($target, $input);
+
+        if (RecurrenceScopeEnum::This === $scope) {
+            // A detached occurrence happens once, at the date it was moved to.
+            $target->setRrule(null);
+            $this->recurrence->refreshUntil($target);
+        } elseif (RecurrenceScopeEnum::Following === $scope && null === $input->getRrule()) {
+            $target->setRrule($ruleBeforeInput);
+            $this->recurrence->refreshUntil($target);
+        }
+
+        $this->entityManager->flush();
+        $this->auditUpdated($target);
+
+        return $target;
+    }
+
+    /**
+     * Moves an event at the scope the reader chose.
+     *
+     * Same resolution as an edit, and deliberately so: dragging one occurrence of
+     * a weekly meeting is the same decision as editing it, and answering it two
+     * ways would be two chances to answer it wrong.
+     */
+    public function moveAtScope(
+        PlanningEventInterface $event,
+        DateTimeImmutable $startAt,
+        DateTimeImmutable $endAt,
+        RecurrenceScopeEnum $scope,
+        ?DateTimeImmutable $occurrenceAt,
+    ): PlanningEventInterface {
+        $target = $this->resolveTarget($event, $scope, $occurrenceAt);
+
+        $this->refuseIfFromModule($target);
+        $target->setSpan($startAt, $endAt);
+
+        if (RecurrenceScopeEnum::This === $scope) {
+            $target->setRrule(null);
+        }
+
+        $this->recurrence->refreshUntil($target);
+        $this->entityManager->flush();
+        $this->auditUpdated($target);
+
+        return $target;
+    }
+
+    /**
+     * Deletes at the scope the reader chose.
+     *
+     * `This` removes one occurrence and leaves the series. `Following` stops the
+     * series before it rather than deleting anything, because the occurrences
+     * already past are what was agreed. `All` removes the row, and the children
+     * go with it by cascade.
+     */
+    public function deleteAtScope(
+        PlanningEventInterface $event,
+        RecurrenceScopeEnum $scope,
+        ?DateTimeImmutable $occurrenceAt,
+    ): void {
+        $this->refuseIfFromModule($event);
+
+        if (RecurrenceScopeEnum::This === $scope && $occurrenceAt instanceof DateTimeImmutable) {
+            $this->recurrence->removeOccurrence($event, $occurrenceAt);
+            $this->entityManager->flush();
+            $this->auditUpdated($event);
+
+            return;
+        }
+
+        if (RecurrenceScopeEnum::Following === $scope && $occurrenceAt instanceof DateTimeImmutable) {
+            $this->recurrence->endBefore($event, $occurrenceAt);
+
+            foreach ($event->getOccurrences() as $child) {
+                $at = $child->getOccurrenceAt();
+                if ($at instanceof DateTimeImmutable && $at >= $occurrenceAt) {
+                    $event->getOccurrences()->removeElement($child);
+                    $this->entityManager->remove($child);
+                }
+            }
+
+            $this->entityManager->flush();
+            $this->auditUpdated($event);
+
+            return;
+        }
+
+        $this->delete($event);
+    }
+
+    /**
+     * Which row an edit at this scope should be written to.
+     *
+     * Returns the event untouched for a single one or for `All`. Anything else
+     * needs the occurrence being pointed at, and a scope naming an occurrence
+     * without saying which is a request that cannot be honoured - refused rather
+     * than guessed, because guessing would write to the wrong date.
+     */
+    protected function resolveTarget(
+        PlanningEventInterface $event,
+        RecurrenceScopeEnum $scope,
+        ?DateTimeImmutable $occurrenceAt,
+    ): PlanningEventInterface {
+        if (!$event->isRecurring() || RecurrenceScopeEnum::All === $scope || RecurrenceScopeEnum::Single === $scope) {
+            return $event;
+        }
+
+        if (!$occurrenceAt instanceof DateTimeImmutable) {
+            throw new RuntimeException('A scoped edit needs the occurrence it applies to.');
+        }
+
+        // Only two scopes reach here: the other two returned above. No default
+        // arm, so adding a fifth scope one day is a compile error rather than a
+        // silent fall-through to "edit the series".
+        return match ($scope) {
+            RecurrenceScopeEnum::This => $this->recurrence->detach($event, $occurrenceAt),
+            RecurrenceScopeEnum::Following => $this->recurrence->split($event, $occurrenceAt),
+        };
+    }
+
     public function delete(PlanningEventInterface $event): void
     {
         $this->refuseIfFromModule($event);
@@ -102,6 +253,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
         $event->setAllDay($input->isAllDay());
         $event->setStatus($input->getStatus());
         $event->setColourSlot($input->getColourSlot());
+        $event->setRrule($input->getRrule());
 
         $startAt = $input->getStartAt();
         $endAt = $input->getEndAt();
@@ -114,6 +266,9 @@ class PlanningEventManager implements PlanningEventManagerInterface
         // the two have to arrive together and after nothing else can throw.
         $event->setSpan($startAt, $endAt);
         $this->applyAlerts($event, $input->getAlerts());
+        // After the span, because the end of a series is its last start plus the
+        // event's length - and both just changed.
+        $this->recurrence->refreshUntil($event);
     }
 
     /**

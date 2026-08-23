@@ -19,6 +19,7 @@ use Aurora\Module\Planning\Planning\Manager\PlanningManagerInterface;
 use Aurora\Module\Planning\Planning\Repository\PlanningRepository;
 use Aurora\Module\Planning\Planning\Serializer\PlanningSerializer;
 use Aurora\Module\Planning\Recurrence\PlanningOccurrenceFinder;
+use Aurora\Module\Planning\Recurrence\RecurrenceScopeEnum;
 use Aurora\Module\Planning\Reminder\Dto\PlanningReminderInputFactoryInterface;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminder;
 use Aurora\Module\Planning\Reminder\Manager\PlanningReminderManagerInterface;
@@ -228,7 +229,10 @@ final class PlanningController extends AbstractController
             return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
         }
 
-        $input = $this->eventInputFactory->fromArray($this->decodeJson($request));
+        // Kept, because the scope travels in the same body as the fields and the
+        // factory only reads the ones it knows.
+        $data = $this->decodeJson($request);
+        $input = $this->eventInputFactory->fromArray($data);
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
@@ -239,9 +243,16 @@ final class PlanningController extends AbstractController
             return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
         }
 
-        $this->eventManager->update($event, $input, $planning);
+        $scope = RecurrenceScopeEnum::fromRequest($data['scope'] ?? null);
+        $occurrenceAt = $this->date($data['occurrenceAt'] ?? null);
 
-        return $this->jsonSuccess(['event' => $this->eventSerializer->serialize($event)]);
+        if ($scope->needsOccurrence() && !$occurrenceAt instanceof DateTimeImmutable) {
+            return $this->jsonInvalidInput(['occurrenceAt' => 'backend.plannings.events.errors.occurrence_required']);
+        }
+
+        $written = $this->eventManager->updateAtScope($event, $input, $planning, $scope, $occurrenceAt);
+
+        return $this->jsonSuccess(['event' => $this->eventSerializer->serialize($written)]);
     }
 
     /**
@@ -280,20 +291,35 @@ final class PlanningController extends AbstractController
             return $this->jsonInvalidInput(['endAt' => 'backend.plannings.events.errors.end_before_start']);
         }
 
-        $this->eventManager->move($event, $startAt, $endAt);
+        $scope = RecurrenceScopeEnum::fromRequest($data['scope'] ?? null);
+        $occurrenceAt = $this->date($data['occurrenceAt'] ?? null);
 
-        return $this->jsonSuccess(['event' => $this->eventSerializer->serialize($event)]);
+        if ($scope->needsOccurrence() && !$occurrenceAt instanceof DateTimeImmutable) {
+            return $this->jsonInvalidInput(['occurrenceAt' => 'backend.plannings.events.errors.occurrence_required']);
+        }
+
+        $written = $this->eventManager->moveAtScope($event, $startAt, $endAt, $scope, $occurrenceAt);
+
+        return $this->jsonSuccess(['event' => $this->eventSerializer->serialize($written)]);
     }
 
     #[Route('/events/{id}/delete', name: '_events_delete', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('planning.events.delete')]
-    public function deleteEvent(PlanningEvent $event): JsonResponse
+    public function deleteEvent(PlanningEvent $event, Request $request): JsonResponse
     {
         if ($event->isFromModule()) {
             return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
         }
 
-        $this->eventManager->delete($event);
+        $data = $this->decodeJson($request);
+        $scope = RecurrenceScopeEnum::fromRequest($data['scope'] ?? null);
+        $occurrenceAt = $this->date($data['occurrenceAt'] ?? null);
+
+        if ($scope->needsOccurrence() && !$occurrenceAt instanceof DateTimeImmutable) {
+            return $this->jsonInvalidInput(['occurrenceAt' => 'backend.plannings.events.errors.occurrence_required']);
+        }
+
+        $this->eventManager->deleteAtScope($event, $scope, $occurrenceAt);
 
         return $this->jsonSuccess();
     }
@@ -436,6 +462,20 @@ final class PlanningController extends AbstractController
             : $this->generateUrl('planning_feed_show', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
     }
 
+    /**
+     * An instant, in UTC, or null.
+     *
+     * The conversion is the point, and it was missing here for as long as the only
+     * caller sent `Z`-suffixed window bounds - where converting is a no-op. The
+     * moment `occurrenceAt` arrived with a `+02:00` offset, the value went into a
+     * column with no timezone as its own wall clock and came back two hours off,
+     * so a detached occurrence never matched the date it was meant to replace and
+     * the series drew it twice.
+     *
+     * Same rule as the input factory's, and stated in both places because that is
+     * where the two entry points are: every instant in this module's tables is
+     * UTC.
+     */
     private function date(mixed $value): ?DateTimeImmutable
     {
         if (!is_string($value) || '' === mb_trim($value)) {
@@ -443,7 +483,7 @@ final class PlanningController extends AbstractController
         }
 
         try {
-            return new DateTimeImmutable($value);
+            return new DateTimeImmutable($value)->setTimezone(new DateTimeZone('UTC'));
         } catch (Exception) {
             return null;
         }
