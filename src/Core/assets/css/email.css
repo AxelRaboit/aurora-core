@@ -140,16 +140,6 @@ img { max-width: 100%; }
     font-style: italic;
 }
 
-.reference-cell {
-    padding: 8px 12px;
-    background-color: #f5f3ff;
-    border-left: 3px solid #4f46e5;
-    font-size: 13px;
-    color: #6b7280;
-    font-family: monospace;
-    margin: 16px 0;
-}
-
 .fallback {
     color: #6b7280;
     font-size: 13px;
