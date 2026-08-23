@@ -83,10 +83,30 @@ watch(
                 status: props.event.status,
                 reminders: [...(props.event.reminders ?? [])],
             }
-            : { ...blank(), ...(props.event ?? {}) };
+            : draft();
     },
     { immediate: true },
 );
+
+/**
+ * A blank form, plus whatever a click on the grid handed in.
+ *
+ * The draft carries instants, because the grid is drawn in the reader's own zone
+ * and a click there means the moment they were pointing at. They become wall
+ * clocks here, on the calendar's clock - which is a different number when the
+ * calendar lives elsewhere, and the right one.
+ */
+function draft() {
+    const base = { ...blank(), ...(props.event ?? {}) };
+    const draftZone =
+        props.calendars.find((calendar) => calendar.id === base.planningId)?.timezone ?? "";
+
+    return {
+        ...base,
+        startAt: base.startAt ? toPickerValue(base.startAt, draftZone) : "",
+        endAt: base.endAt ? toPickerValue(base.endAt, draftZone) : "",
+    };
+}
 
 /**
  * The zone the form's two times mean, taken from the calendar they land in.

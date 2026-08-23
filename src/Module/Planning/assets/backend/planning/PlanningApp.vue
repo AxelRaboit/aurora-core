@@ -102,6 +102,9 @@ const savingCalendar = ref(false);
 
 const canManageCalendars = computed(() => can("planning.calendars.manage"));
 
+/** An event needs a calendar to live in, so an empty sidebar closes this too. */
+const canCreateEvents = computed(() => can("planning.events.create") && calendars.value.length > 0);
+
 function createCalendar() {
     // `{}` and not null: the modal opens on `calendar !== null`, and a new
     // calendar has no id yet.
@@ -167,10 +170,18 @@ function viewEvent(event) {
     errors.value = {};
 }
 
-function create() {
+function create(draft = {}) {
+    // The same gate the button carries. A click on the grid is a second way in,
+    // and without this it would open a form whose save is refused - or one with
+    // no calendar to put the event in.
+    if (!canCreateEvents.value) {
+        return;
+    }
+
     // An empty object rather than null: the modal opens on `event !== null`, and
-    // a new event has no id yet.
-    openEvent.value = {};
+    // a new event has no id yet. A click on the grid hands in a draft with its
+    // two instants, so the form opens already on the day that was pointed at.
+    openEvent.value = draft;
     editing.value = true;
     errors.value = {};
 }
@@ -223,7 +234,7 @@ async function remove(event) {
 
         <aside class="space-y-4">
             <AppButton
-                v-if="can('planning.events.create') && calendars.length"
+                v-if="canCreateEvents"
                 variant="primary"
                 size="md"
                 class="w-full"
@@ -362,6 +373,7 @@ async function remove(event) {
                 :cells="cells"
                 :events="visibleEvents"
                 v-on:open-event="viewEvent"
+                v-on:add-on="create"
             />
             <CalendarTimeGrid
                 v-else
@@ -369,6 +381,7 @@ async function remove(event) {
                 :view="view"
                 :events="visibleEvents"
                 v-on:open-event="viewEvent"
+                v-on:add-on="create"
             />
         </div>
 

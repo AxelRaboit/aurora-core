@@ -39,9 +39,31 @@ function blank() {
         name: "",
         description: "",
         colourSlot: nextFreeColourSlot(props.calendars),
-        timezone: props.timezones[0] ?? "Europe/Paris",
+        timezone: defaultTimezone(),
         visibility: "private",
     };
+}
+
+/**
+ * The reader's own zone, which is the only sensible default.
+ *
+ * It used to be `timezones[0]`, and that list arrives alphabetically from
+ * `DateTimeZone::listIdentifiers()` - so every new calendar was born in
+ * Africa/Abidjan, and every all-day event on it was cut on Abidjan's midnight.
+ *
+ * Falls back to the entity's own default rather than to nothing, and checks the
+ * zone is one the picker offers: a browser reporting a name PHP does not know
+ * would otherwise preselect an option that is not in the list, which shows as an
+ * empty select.
+ */
+function defaultTimezone() {
+    const mine = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    if (mine && props.timezones.includes(mine)) {
+        return mine;
+    }
+
+    return props.timezones.includes("Europe/Paris") ? "Europe/Paris" : (props.timezones[0] ?? "Europe/Paris");
 }
 
 const isNew = computed(() => !props.calendar?.id);

@@ -15,6 +15,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { MAX_LANES, layOutWeek, sameDay, timedEventsOn } from "../composables/monthGrid.js";
+import { defaultTimeOn, draftAt } from "../composables/timeGrid.js";
 
 const props = defineProps({
     /** The 42 cells from `monthGrid`. */
@@ -23,7 +24,7 @@ const props = defineProps({
     events: { type: Array, required: true },
 });
 
-defineEmits(["open-event", "add-on"]);
+const emit = defineEmits(["open-event", "add-on"]);
 
 const { t, d } = useI18n();
 
@@ -62,6 +63,17 @@ function timedOn(date) {
 function timeOf(event) {
     return d(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" });
 }
+
+/**
+ * Clicking an empty part of a cell starts an event on that day.
+ *
+ * A month cell carries a day and no time, so the hour is a constant rather than
+ * the current clock - which would put a meeting at 23:45 for somebody working
+ * late. The reader sees both ends in the form and can change either.
+ */
+function addOn(date) {
+    emit("add-on", draftAt(defaultTimeOn(date)));
+}
 </script>
 
 <template>
@@ -85,16 +97,17 @@ function timeOf(event) {
                 <div
                     v-for="cell in week.cells"
                     :key="cell.key"
-                    class="min-h-[6.5rem] border-r border-line last:border-r-0 px-1.5 pb-1.5 flex flex-col gap-1"
+                    class="min-h-[6.5rem] border-r border-line last:border-r-0 px-1.5 pb-1.5 flex flex-col gap-1 cursor-pointer"
                     :class="cell.inMonth ? '' : 'bg-surface-2/40'"
                     :style="{ paddingTop: `${1.75 + Math.min(MAX_LANES, week.bars.length) * 1.25}rem` }"
+                    v-on:click="addOn(cell.date)"
                 >
                     <button
                         v-for="event in timedOn(cell.date)"
                         :key="event.id"
                         type="button"
                         class="flex items-center gap-1.5 text-left text-2xs rounded px-0.5 py-px hover:bg-surface-2 transition-colors min-w-0"
-                        v-on:click="$emit('open-event', event)"
+                        v-on:click.stop="emit('open-event', event)"
                     >
                         <span
                             class="w-1.5 h-1.5 rounded-full shrink-0"
@@ -151,7 +164,7 @@ function timeOf(event) {
                         color: `var(--chart-cat-${bar.event.colourSlot})`,
                         borderLeft: bar.continuesBefore ? 'none' : `2px solid var(--chart-cat-${bar.event.colourSlot})`,
                     }"
-                    v-on:click="$emit('open-event', bar.event)"
+                    v-on:click.stop="emit('open-event', bar.event)"
                 >
                     {{ bar.event.title }}
                 </button>

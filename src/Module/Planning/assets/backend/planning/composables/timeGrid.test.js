@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+    DEFAULT_DURATION_MINUTES,
+    DEFAULT_HOUR,
     HOURS,
     allDayBand,
+    defaultTimeOn,
+    draftAt,
     layOutDay,
     nowOffset,
+    timeAt,
     timeGridWindow,
     visibleDays,
     weekStart,
@@ -247,5 +252,69 @@ describe("nowOffset", () => {
         expect(
             nowOffset(new Date(2026, 7, 25), new Date(2026, 7, 24, 12, 0)),
         ).toBeNull();
+    });
+});
+
+describe("click to draft", () => {
+    it("snaps a clicked time down to the quarter hour", () => {
+        // Down, not to the nearest: clicking just under the 14:00 line and getting
+        // 14:15 reads as the click having missed.
+        expect(timeAt(MONDAY, 14 / 24).getHours()).toBe(14);
+        expect(timeAt(MONDAY, 14 / 24).getMinutes()).toBe(0);
+
+        const justAfter = timeAt(MONDAY, (14 * 60 + 7) / 1440);
+        expect(justAfter.getHours()).toBe(14);
+        expect(justAfter.getMinutes()).toBe(0);
+
+        const later = timeAt(MONDAY, (14 * 60 + 20) / 1440);
+        expect(later.getMinutes()).toBe(15);
+    });
+
+    it("stays inside the day at either edge", () => {
+        // A pointer can leave the column while the click resolves, so the
+        // fraction can be under 0 or over 1.
+        expect(timeAt(MONDAY, -0.5).getHours()).toBe(0);
+        expect(timeAt(MONDAY, 1.5).getHours()).toBe(23);
+        expect(timeAt(MONDAY, 1.5).getMinutes()).toBe(45);
+        expect(timeAt(MONDAY, 1.5).getDate()).toBe(24);
+    });
+
+    it("gives a clicked slot an hour", () => {
+        const drafted = draftAt(new Date(2026, 7, 24, 14, 0));
+
+        expect(new Date(drafted.startAt).getHours()).toBe(14);
+        expect(new Date(drafted.endAt).getHours()).toBe(15);
+        expect(drafted.allDay).toBe(false);
+    });
+
+    it("runs an all-day draft to the end of its day", () => {
+        const drafted = draftAt(new Date(2026, 7, 24, 0, 0), true);
+
+        expect(new Date(drafted.endAt).getHours()).toBe(23);
+        expect(new Date(drafted.endAt).getMinutes()).toBe(59);
+        expect(new Date(drafted.endAt).getDate()).toBe(24);
+    });
+
+    it("carries instants, not wall clocks", () => {
+        // The grid is drawn in the reader's own zone, so a click there means the
+        // moment they pointed at - and the form turns it into the calendar's
+        // clock, which is a different number when the calendar lives elsewhere.
+        const drafted = draftAt(new Date(2026, 7, 24, 14, 0));
+
+        expect(drafted.startAt).toBe(
+            new Date(2026, 7, 24, 14, 0).toISOString(),
+        );
+    });
+
+    it("puts a day with no time in it at a constant hour", () => {
+        // Not the current clock, which would put a meeting at 23:45 for anyone
+        // working late.
+        expect(defaultTimeOn(MONDAY).getHours()).toBe(DEFAULT_HOUR);
+        expect(defaultTimeOn(MONDAY).getMinutes()).toBe(0);
+        expect(defaultTimeOn(MONDAY).getDate()).toBe(24);
+    });
+
+    it("lasts an hour by default", () => {
+        expect(DEFAULT_DURATION_MINUTES).toBe(60);
     });
 });

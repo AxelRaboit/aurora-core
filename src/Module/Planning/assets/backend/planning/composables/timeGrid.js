@@ -230,3 +230,90 @@ export function nowOffset(day, now = new Date()) {
 
     return (now - startOfDay(now)) / DAY_MS;
 }
+
+/**
+ * The default length of an event somebody started by clicking.
+ *
+ * One hour, because it is the length of the thing people put on calendars, and
+ * because the reader is about to see both ends in the form and can change either.
+ */
+export const DEFAULT_DURATION_MINUTES = 60;
+
+/** Where a click on a day with no time in it lands. */
+export const DEFAULT_HOUR = 9;
+
+/**
+ * The grain a clicked time is snapped to.
+ *
+ * A click is worth about five minutes of precision and nobody means 14:07. Fifteen
+ * is the grain calendars are written in.
+ */
+const SNAP_MINUTES = 15;
+
+/**
+ * The instant a click at `fraction` down a day column means.
+ *
+ * Snapped down rather than to the nearest, so the event starts at or before where
+ * the reader pointed - clicking just under the 14:00 line and getting 14:15 reads
+ * as the click having missed.
+ *
+ * @param {Date} day
+ * @param {number} fraction how far down the column, 0 to 1
+ * @returns {Date}
+ */
+export function timeAt(day, fraction) {
+    const clamped = Math.min(Math.max(fraction, 0), 1);
+    // Capped at the last slot of the day, not at the day's length: a click on the
+    // very last pixel gives 1440 minutes, and `setHours(0, 1440)` is midnight
+    // tomorrow - so the event landed on the following day.
+    const minutes = Math.min(
+        Math.floor((clamped * 1440) / SNAP_MINUTES) * SNAP_MINUTES,
+        1440 - SNAP_MINUTES,
+    );
+
+    const at = new Date(day);
+    at.setHours(0, minutes, 0, 0);
+
+    return at;
+}
+
+/**
+ * A draft event from a click, as instants.
+ *
+ * Instants and not a wall clock, because the grid is drawn in the reader's own
+ * zone: clicking Tuesday at 14:00 means the moment they are looking at, and the
+ * form then shows it on the calendar's clock - which is a different number when
+ * the calendar lives elsewhere, and the right one.
+ *
+ * @param {Date} start
+ * @param {boolean} [allDay]
+ * @returns {{startAt: string, endAt: string, allDay: boolean}}
+ */
+export function draftAt(start, allDay = false) {
+    const end = new Date(start);
+
+    if (allDay) {
+        end.setHours(23, 59, 59, 0);
+    } else {
+        end.setMinutes(end.getMinutes() + DEFAULT_DURATION_MINUTES);
+    }
+
+    return { startAt: start.toISOString(), endAt: end.toISOString(), allDay };
+}
+
+/**
+ * The instant a click on a day cell with no time in it means.
+ *
+ * A month cell carries a day and nothing else, so the hour is invented - and it
+ * is invented the same way every time rather than from the current clock, which
+ * would put a meeting at 23:45 for anyone working late.
+ *
+ * @param {Date} day
+ * @returns {Date}
+ */
+export function defaultTimeOn(day) {
+    const at = new Date(day);
+    at.setHours(DEFAULT_HOUR, 0, 0, 0);
+
+    return at;
+}

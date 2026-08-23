@@ -13,7 +13,7 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { HOURS, allDayBand, layOutDay, nowOffset, visibleDays } from "../composables/timeGrid.js";
+import { HOURS, allDayBand, draftAt, layOutDay, nowOffset, timeAt, visibleDays } from "../composables/timeGrid.js";
 import { sameDay } from "../composables/monthGrid.js";
 
 const props = defineProps({
@@ -25,7 +25,7 @@ const props = defineProps({
     events: { type: Array, required: true },
 });
 
-const emit = defineEmits(["open-event"]);
+const emit = defineEmits(["open-event", "add-on"]);
 
 const { d, t } = useI18n();
 
@@ -89,6 +89,28 @@ function hourLabel(hour) {
 function timeOf(event) {
     return d(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" });
 }
+
+/**
+ * Clicking an empty part of a column starts an event at that time.
+ *
+ * The time comes from where the pointer was, measured against the column's own
+ * box rather than from `offsetY`: the hour lines and the now marker are children
+ * of the column, and `offsetY` against one of those is a few pixels from the top
+ * of an hour rather than from the top of the day.
+ */
+function addAt(day, mouseEvent) {
+    const box = mouseEvent.currentTarget.getBoundingClientRect();
+
+    emit("add-on", draftAt(timeAt(day, (mouseEvent.clientY - box.top) / box.height)));
+}
+
+/** Clicking the band starts something that owns the whole day. */
+function addAllDayOn(day) {
+    const start = new Date(day);
+    start.setHours(0, 0, 0, 0);
+
+    emit("add-on", draftAt(start, true));
+}
 </script>
 
 <template>
@@ -121,6 +143,21 @@ function timeOf(event) {
                 class="w-14 shrink-0 border-r border-line px-2 py-1 text-2xs uppercase tracking-wider text-muted"
             >{{ t("backend.plannings.events.all_day_short") }}</span>
             <div class="relative flex-1 py-1" :style="{ minHeight: `${band.length * 1.25 + 0.5}rem` }">
+                <!-- One transparent target per day under the bars, so clicking an
+                     empty part of the strip knows which day it landed on. -->
+                <div
+                    class="absolute inset-0 grid"
+                    :style="{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }"
+                >
+                    <button
+                        v-for="day in days"
+                        :key="`band-${day.toISOString()}`"
+                        type="button"
+                        class="cursor-pointer"
+                        :aria-label="t('backend.plannings.events.new')"
+                        v-on:click="addAllDayOn(day)"
+                    />
+                </div>
                 <button
                     v-for="(bar, index) in band"
                     :key="`${bar.event.id}-${index}`"
@@ -135,7 +172,7 @@ function timeOf(event) {
                         color: `var(--chart-cat-${bar.event.colourSlot})`,
                         borderLeft: bar.continuesBefore ? 'none' : `2px solid var(--chart-cat-${bar.event.colourSlot})`,
                     }"
-                    v-on:click="emit('open-event', bar.event)"
+                    v-on:click.stop="emit('open-event', bar.event)"
                 >
                     {{ bar.event.title }}
                 </button>
@@ -170,8 +207,9 @@ function timeOf(event) {
                 <div
                     v-for="column in columns"
                     :key="column.key"
-                    class="relative border-r border-line last:border-r-0"
+                    class="relative border-r border-line last:border-r-0 cursor-pointer"
                     :style="{ height: `${HOURS.length * HOUR_REM}rem` }"
+                    v-on:click="addAt(column.day, $event)"
                 >
                     <!-- Hour lines, drawn per column rather than once behind the
                          grid, so they stop at the column's own border instead of
@@ -179,7 +217,7 @@ function timeOf(event) {
                     <div
                         v-for="hour in HOURS"
                         :key="`l-${column.key}-${hour}`"
-                        class="absolute inset-x-0 border-b border-line/60"
+                        class="absolute inset-x-0 border-b border-line/60 pointer-events-none"
                         :style="{ top: `${hour * HOUR_REM}rem`, height: `${HOUR_REM}rem` }"
                     />
 
@@ -207,7 +245,7 @@ function timeOf(event) {
                             color: `var(--chart-cat-${block.event.colourSlot})`,
                             borderLeft: `2px solid var(--chart-cat-${block.event.colourSlot})`,
                         }"
-                        v-on:click="emit('open-event', block.event)"
+                        v-on:click.stop="emit('open-event', block.event)"
                     >
                         <span class="block truncate font-medium">{{ block.event.title }}</span>
                         <!-- The time only when the block is tall enough to hold a
