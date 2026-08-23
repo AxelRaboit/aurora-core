@@ -1,6 +1,6 @@
 ---
 name: add-module
-description: Scaffold a new Aurora module from scratch. Reads the templates under `.claude/skills/add-module/templates/`, fills placeholders, writes files, and handles the smart edits (a CORE module is generated as a self-contained Composer package - `composer.json` + `Aurora<X>Bundle` + `config/services.php` + its OWN `<X>ModuleParameterEnum` + provider - then registered in `config/bundles.php` and excluded from the central `services.yaml` glob; plus the `aliases.js` entry, context-appropriate Lucide icon, polished FR/EN translation labels). Use when the user asks to "create", "add", "scaffold", "ajouter", "créer", "générer" a new module ("nouveau module"). Stops short of entity scaffolding (defers to `/add-entity`).
+description: Scaffold a new Aurora module from scratch. Reads the templates under `.claude/skills/add-module/templates/`, fills placeholders, writes files, and handles the smart edits (a CORE module is a plain directory under `src/Module/`, picked up by the central `services.yaml` and entity globs, with its toggle in the central `ModuleParameterEnum`; plus the `aliases.js` entry, context-appropriate Lucide icon, polished FR/EN translation labels). Use when the user asks to "create", "add", "scaffold", "ajouter", "créer", "générer" a new module ("nouveau module"). Stops short of entity scaffolding (defers to `/add-entity`).
 scope: shared
 ---
 
@@ -11,16 +11,27 @@ the previous `aurora:make:module` CLI wizard was removed to prevent
 drift (devs running it bare were skipping the package wiring, the
 `aliases.js` append, the icon swap, the label polish).
 
-> **Monorepo-split convention (since 2026-05-30).** A CORE business
-> module is a **self-contained Composer package** : `axelraboit/aurora-<kebab>`
-> with its own `composer.json`, `Aurora<X>Bundle` (extends
-> `AbstractAuroraModuleBundle`), `config/services.php`, and - crucially -
-> its **own** `<X>ModuleParameterEnum` + `<X>ModuleParameterProvider`. The
-> central `ModuleParameterEnum` (`src/Module/Configuration/Setting/Enum/`) is
-> now **core-infra only** (General/Platform/Configuration/Media/Ged) and
-> **must not** receive new business-module cases. Reference modules to mirror :
-> `src/Module/Notes/` (sub-toggles) and `src/Module/Tools/` (leaf). This is
-> what makes a module à-la-carte installable (`make split-module`).
+> **A core module is a plain directory (since the Editorial rebuild, août 2026).**
+> `src/Module/<X>/`, no `composer.json`, no `Aurora<X>Bundle`, no
+> `config/services.php` of its own. The central `services.yaml` glob and
+> `AuroraBundle`'s `glob('src/Module/*')` pick it up, its entities go in
+> `AuroraBundle::$resolve_target_entities`, and its toggle is a case in the
+> central `ModuleParameterEnum`. Mirror **`src/Module/Editorial/`** (sub-toggles)
+> or **`src/Module/Ged/`** (flat items).
+>
+> This reverses the May 2026 convention, which made every business module a
+> self-contained Composer package so it could be installed à-la-carte. Editorial
+> was rebuilt into core in August because the multi-repo cost more than it gave
+> for a module at the same level as Ged: manual Composer bumps, a dev loop through
+> a GitHub zip, and a presentation already split since the default theme's
+> templates lived in core anyway.
+>
+> The old convention left no trace to follow even if you wanted to: there are
+> zero `composer.json`, zero bundles, zero module-local parameter enums and zero
+> per-module `services.php` under `src/Module/`; the central enum holds fifteen
+> business cases; and `make split-module` and `bin/split-modules.sh` are both
+> gone. The two modules this section used to name as references, `Notes/` and
+> `Tools/`, are not in core either.
 
 The shape of every generated file lives in
 `.claude/skills/add-module/templates/*.tpl`. The skill reads each
@@ -118,39 +129,10 @@ Settings (only when `--with-settings`, both core + client share these) :
 - `SettingEnum.php.tpl`
 - `ConfigurationTabProvider.php.tpl`
 
-**Package shape (CORE + togglable only - the monorepo-split files)** :
-- `composer.json.tpl`
-- `Bundle.php.tpl`
-- `services.php.tpl`
-- `ModuleParameterEnum.php.tpl`
-- `ModuleParameterProvider.php.tpl`
-
-> These five are what make the module a standalone `axelraboit/aurora-<kebab>`
-> package. Skip them ONLY for `--no-toggle` core-infra modules (Dev-style) that
-> stay wired centrally by `AuroraBundle` - those keep their cases in the
-> central `ModuleParameterEnum` and need no bundle. Client modules don't get
-> these either (the client app wires its own bundles/services).
-
-Always :
-- `Controller.php.tpl`
-- `index.html.twig.tpl`
-- `App.vue.tpl`
-- `messages.fr.yaml.tpl`
-- `messages.en.yaml.tpl`
-
-### Step 2b - `config/services.php` extra tags (per `--with-*` flag)
-
-`services.php.tpl` always tags `ModuleInterface` (`aurora.module`) and
-`ApplicationParameterProviderInterface` (`aurora.application_parameter_provider`).
-Fill the two placeholders from the flags (else both empty) :
-
-| Flag | `{{SERVICES_EXTRA_USE}}` adds | `{{SERVICES_EXTRA_INSTANCEOF}}` adds |
-|---|---|---|
-| `--with-settings` | `use Aurora\Module\Configuration\Setting\Configuration\ConfigurationTabProviderInterface;\n` | `    $services->instanceof(ConfigurationTabProviderInterface::class)->tag('aurora.configuration_tab_provider');\n` |
-| `--with-frontend` | `use Aurora\Core\Frontend\Contract\FrontendInterface;\n` | `    $services->instanceof(FrontendInterface::class)->tag('aurora.front');\n` |
-
-Mirror the real packages : `Tools/config/services.php` (2 base tags, no
-extras) vs `Notes/config/services.php` (adds the ConfigurationTab tag).
+**No package files.** A module is a directory: the central `services.yaml` glob
+registers its services, `AuroraBundle`'s `glob('src/Module/*')` maps its
+entities, and its toggle is a case in the central `ModuleParameterEnum`. Nothing
+to generate for any of that.
 
 ## Step 3 - Read, substitute, write
 
@@ -175,15 +157,7 @@ For each chosen template :
 | `App.vue.tpl` | `src/Module/<Module>/assets/backend/<Module>App.vue` |
 | `messages.fr.yaml.tpl` | `src/Module/<Module>/translations/messages.fr.yaml` |
 | `messages.en.yaml.tpl` | `src/Module/<Module>/translations/messages.en.yaml` |
-| `composer.json.tpl` *(core togglable)* | `src/Module/<Module>/composer.json` |
-| `Bundle.php.tpl` *(core togglable)* | `src/Module/<Module>/Aurora<Module>Bundle.php` |
-| `services.php.tpl` *(core togglable)* | `src/Module/<Module>/config/services.php` |
-| `ModuleParameterEnum.php.tpl` *(core togglable)* | `src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php` |
-| `ModuleParameterProvider.php.tpl` *(core togglable)* | `src/Module/<Module>/Setting/<Module>ModuleParameterProvider.php` |
 
-> The `Aurora<Module>Bundle.php` lives at the module **root** (not in a
-> sub-dir) - `AbstractAuroraModuleBundle::moduleDir()` derives the module path
-> from the bundle file's location.
 
 ## Step 4 - The smart post-edits (Claude-only work)
 
@@ -191,37 +165,27 @@ These are NOT templates - they're context-sensitive edits to existing
 files. The previous CLI wizard merely printed hints about them; that's
 exactly the gap this skill closes.
 
-### 4a. Register the package bundle + exclude from the central glob (CORE + togglable)
+### 4a. Add the toggle to the central `ModuleParameterEnum`
 
-The toggle definitions are NO LONGER a patch to the central
-`ModuleParameterEnum` - they live in the generated
-`<Module>ModuleParameterEnum` (Step 3). Two central files still need a
-one-line edit so the package is wired:
-
-**1. `config/bundles.php`** - register the bundle (alongside the other
-`Aurora<X>Bundle` lines, alphabetical) :
+One edit, in `src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php`:
 
 ```php
-Aurora\Module\<Module>\Aurora<Module>Bundle::class => ['all' => true],
+case <Module>Backend = 'modules_<module_id>_backend';
 ```
 
-**2. `config/services.yaml`** - exclude the module dir from the central
-`Aurora\: resource` glob (it now self-registers via its own
-`config/services.php`), in the `exclude:` list :
+Put it with the other top-level backend cases, and give it its arms in
+`getLabel()` and `getDescription()`. A sub-toggle that only makes sense with the
+module on gets a `getCascadeRequires()` arm pointing at
+`self::<Module>Backend->value` - mirror `EditorialPosts`.
 
-```yaml
-- '../src/Module/<Module>/'
-```
+There is nothing else to wire. No bundle to register in `config/bundles.php`, no
+exclusion to add to the `services.yaml` glob: the module is inside the glob on
+purpose, which is what registers its services, and `AuroraBundle` maps its
+entities through `glob('src/Module/*')`.
 
-> Without the exclusion you get a double-registration; without the bundle
-> line the module contributes nothing (Doctrine mappings, Twig namespace,
-> translations and `resolve_target_entities` all come from the bundle).
-
-If `--with-frontend` was used, add a `Frontend` case to the generated
-`<Module>ModuleParameterEnum` (mirror `src/Module/Photo/Setting/PhotoModuleParameterEnum.php`):
-a `case Frontend = 'modules_<module_id>_frontend';` plus its `getLabel()` /
-`getDescription()` arms and a `getCascadeRequires()` arm pointing at
-`self::Backend->value`.
+A CLIENT module puts its key on the module class instead - a `TOGGLE_KEY` const
+passed to `ModuleAccessChecker`, which accepts a string. Mirror
+`aurora-client/src/Module/Tracking/`.
 
 Run afterwards:
 

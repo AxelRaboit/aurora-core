@@ -57,35 +57,42 @@ Le skill **auto-détecte le contexte** (core vs client) en lisant
 
 ### 2.2 Fichiers générés (CORE togglable, cas 1 + 2)
 
-Depuis le **monorepo-split (2026-05-30)**, un module métier CORE est un
-**package Composer autonome** (`axelraboit/aurora-<kebab>`) :
+Un module CORE est un **simple répertoire** sous `src/Module/`. Le glob central
+de `services.yaml` enregistre ses services, `AuroraBundle` mappe ses entités via
+`glob('src/Module/*')`, et son interrupteur est une case de l'enum central.
 
 ```
 src/Module/<Module>/<Module>Module.php                       # ModuleInterface + ModuleToggleProviderInterface
-src/Module/<Module>/<Module>Context.php                      # isBackendEnabled() → <Module>ModuleParameterEnum::Backend->value
-src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php   # ← les toggles du module (PAS l'enum central)
-src/Module/<Module>/Setting/<Module>ModuleParameterProvider.php  # yield les cases à aurora:application-parameter
-src/Module/<Module>/Aurora<Module>Bundle.php                 # extends AbstractAuroraModuleBundle (RTE + mappings)
-src/Module/<Module>/composer.json                            # axelraboit/aurora-<kebab>
-src/Module/<Module>/config/services.php                      # tags instanceof + load (file-scoped)
+src/Module/<Module>/<Module>Context.php                      # isBackendEnabled() → ModuleParameterEnum::<Module>Backend
 src/Module/<Module>/Controller/Backend/<Module>Controller.php
 src/Module/<Module>/templates/backend/index.html.twig
 src/Module/<Module>/translations/messages.{fr,en}.yaml
 src/Module/<Module>/assets/backend/<Module>App.vue
 ```
 
-Plus **deux éditions centrales** (les seules lignes manuelles côté core) :
+Plus **deux éditions centrales** :
 
 ```
-config/bundles.php     # enregistrer Aurora<Module>Bundle::class => ['all' => true]
-config/services.yaml   # exclure '../src/Module/<Module>/' du glob Aurora\: resource
-aliases.js             # append "@<kebab>": moduleAlias("<Module>")
+src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php  # case <Module>Backend + getLabel/getDescription
+aliases.js                                                     # append "@<kebab>": moduleAlias("<Module>")
 ```
 
-> **Référence** : modules réels `src/Module/Notes/` (sous-toggles) et
-> `src/Module/Tools/` (leaf, contient Vault). Un module `--no-toggle`
-> core-infra (Dev-style) **ne reçoit pas** le package shape : il reste dans
-> `AuroraBundle` et garde ses éventuelles cases dans l'enum central.
+> **Référence** : `src/Module/Editorial/` (sous-toggles) ou `src/Module/Ged/`
+> (items à plat).
+
+> **Ceci annule la convention de mai 2026**, qui faisait de chaque module métier
+> un package Composer autonome (`composer.json`, `Aurora<X>Bundle`,
+> `config/services.php`, enum local) pour permettre l'installation à la carte.
+> Editorial a été reconstruit dans le core en août : le multi-dépôt coûtait plus
+> qu'il ne rapportait pour un module au même niveau que Ged — bumps Composer à la
+> main, boucle de dev par zip GitHub, et une présentation déjà éclatée puisque les
+> templates du thème par défaut vivaient dans le core.
+>
+> Il ne reste rien de l'ancienne convention à suivre : zéro `composer.json`, zéro
+> bundle, zéro enum local et zéro `services.php` par module sous `src/Module/` ;
+> l'enum central porte quinze cases métier ; `make split-module` et
+> `bin/split-modules.sh` n'existent plus ; et les deux modules de référence cités
+> ici, `Notes/` et `Tools/`, ne sont plus dans le core.
 
 Si **client**, pas de package : le module vit dans l'app cliente, qui câble
 ses propres `bundles.php`/`services.yaml`. Trois fichiers de config sont
