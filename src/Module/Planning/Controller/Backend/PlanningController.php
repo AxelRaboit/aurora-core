@@ -9,6 +9,7 @@ use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Planning\Attendee\Enum\PlanningAttendeeStatusEnum;
+use Aurora\Module\Planning\Attendee\Manager\PlanningAttendeeManagerInterface;
 use Aurora\Module\Planning\Event\Dto\PlanningEventInputFactoryInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Manager\PlanningEventManagerInterface;
@@ -26,14 +27,12 @@ use Aurora\Module\Planning\Reminder\Entity\PlanningReminder;
 use Aurora\Module\Planning\Reminder\Manager\PlanningReminderManagerInterface;
 use Aurora\Module\Planning\Reminder\Repository\PlanningReminderRepository;
 use Aurora\Module\Planning\Reminder\Serializer\PlanningReminderSerializer;
-use Aurora\Module\Planning\Share\Entity\PlanningShare;
+use Aurora\Module\Planning\Share\Manager\PlanningShareManagerInterface;
+use Aurora\Module\Planning\View\PlanningViewBuilder;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
-use Aurora\Module\Platform\User\Enum\UserTypeEnum;
-use Aurora\Module\Platform\User\Repository\UserRepository;
 use DateTimeImmutable;
 use DateTimeZone;
-use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -72,27 +71,18 @@ final class PlanningController extends AbstractController
         private readonly PlanningReminderManagerInterface $reminderManager,
         private readonly PlanningReminderInputFactoryInterface $reminderInputFactory,
         private readonly PayloadValidator $payloadValidator,
-        private readonly EntityManagerInterface $entityManager,
-        private readonly UserRepository $users,
+        private readonly PlanningShareManagerInterface $shareManager,
+        private readonly PlanningAttendeeManagerInterface $attendeeManager,
+        private readonly PlanningViewBuilder $viewBuilder,
     ) {}
 
     #[Route('/calendar', name: '_calendar', methods: [HttpMethodEnum::Get->value])]
     public function calendar(): Response
     {
-        return $this->render('@Planning/backend/index.html.twig', [
-            'calendars' => $this->planningSerializer->serializeMany($this->visibleCalendars()),
-            // The zones the runtime can actually resolve, which is what the DTO
-            // validates against. A list of our own would drift from PHP's, and a
-            // calendar cutting its days in a zone the runtime cannot resolve puts
-            // every all-day event on the wrong day.
-            'timezones' => DateTimeZone::listIdentifiers(),
-            // Who can be invited: the accounts that can reach the backend at all.
-            // A front-office account has no calendar to be invited into.
-            'people' => $this->invitablePeople(),
-            // So the screen can tell which attendee is the reader, and offer them
-            // the three buttons rather than everybody's.
-            'currentUserId' => $this->getUser() instanceof CoreUserInterface ? $this->getUser()->getId() : null,
-        ]);
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        return $this->render('@Planning/backend/index.html.twig', $this->viewBuilder->calendarView($user));
     }
 
     /**
@@ -196,48 +186,17 @@ final class PlanningController extends AbstractController
             if (!is_array($row)) {
                 continue;
             }
-
             if (!is_numeric($row['userId'] ?? null)) {
                 continue;
             }
-
             $wanted[(int) $row['userId']] = (bool) ($row['canWrite'] ?? false);
         }
 
-        // The owner is never in the list: they already have every right this table
+        // The owner is never in the list: they already hold every right this table
         // can grant, and a row saying so would be a row somebody could delete.
         unset($wanted[(int) $user->getId()]);
 
-        foreach ($planning->getShares() as $existing) {
-            $id = (int) $existing->getUser()->getId();
-
-            if (!array_key_exists($id, $wanted)) {
-                $planning->removeShare($existing);
-                $this->entityManager->remove($existing);
-
-                continue;
-            }
-
-            // Kept, so a change of level is an update rather than a delete and an
-            // insert - which the unique index would refuse in that order anyway.
-            $existing->setCanWrite($wanted[$id]);
-            unset($wanted[$id]);
-        }
-
-        foreach ($wanted as $id => $canWrite) {
-            $person = $this->users->find($id);
-            if (!$person instanceof CoreUserInterface) {
-                continue;
-            }
-
-            $share = new PlanningShare();
-            $share->setUser($person);
-            $share->setCanWrite($canWrite);
-            $planning->addShare($share);
-            $this->entityManager->persist($share);
-        }
-
-        $this->entityManager->flush();
+        $this->shareManager->setShares($planning, $wanted);
 
         return $this->jsonSuccess(['calendar' => $this->planningSerializer->serialize($planning)]);
     }
@@ -250,8 +209,7 @@ final class PlanningController extends AbstractController
             return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
         }
 
-        $planning->publishFeed();
-        $this->entityManager->flush();
+        $this->planningManager->publishFeed($planning);
 
         return $this->jsonSuccess([
             'calendar' => $this->planningSerializer->serialize($planning),
@@ -267,8 +225,7 @@ final class PlanningController extends AbstractController
             return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
         }
 
-        $planning->revokeFeed();
-        $this->entityManager->flush();
+        $this->planningManager->revokeFeed($planning);
 
         return $this->jsonSuccess(['calendar' => $this->planningSerializer->serialize($planning)]);
     }
@@ -363,26 +320,17 @@ final class PlanningController extends AbstractController
             return $this->jsonInvalidInput(['status' => 'backend.plannings.attendees.errors.not_invited']);
         }
 
-        $mine = null;
-        foreach ($event->getAttendees() as $attendee) {
-            if ($attendee->getUser()->getId() === $user->getId()) {
-                $mine = $attendee;
-            }
-        }
-
-        // Refused rather than created: answering an invitation you were not sent
-        // would be a way to add yourself to somebody's meeting.
-        if (null === $mine) {
-            return $this->jsonInvalidInput(['status' => 'backend.plannings.attendees.errors.not_invited']);
-        }
-
         $status = PlanningAttendeeStatusEnum::tryFrom((string) ($this->decodeJson($request)['status'] ?? ''));
         if (null === $status) {
             return $this->jsonInvalidInput(['status' => 'backend.plannings.attendees.errors.status_unknown']);
         }
 
-        $mine->respond($status, new DateTimeImmutable());
-        $this->entityManager->flush();
+        // False means there was no invitation to answer. Refused rather than
+        // created: answering one you were not sent would be a way to add yourself
+        // to somebody else's meeting.
+        if (!$this->attendeeManager->respond($event, $user, $status)) {
+            return $this->jsonInvalidInput(['status' => 'backend.plannings.attendees.errors.not_invited']);
+        }
 
         return $this->jsonSuccess(['event' => $this->eventSerializer->serialize($event)]);
     }
@@ -589,24 +537,6 @@ final class PlanningController extends AbstractController
     private function canReach(PlanningReminder $reminder): bool
     {
         return $this->writableCalendar((int) $reminder->getPlanning()->getId()) instanceof PlanningInterface;
-    }
-
-    /**
-     * The accounts that can be invited, as the picker wants them.
-     *
-     * Backend accounts only. A front-office account has no calendar to be invited
-     * into, and offering one would be an invitation nobody can answer.
-     *
-     * @return list<array{value: int, label: string}>
-     */
-    private function invitablePeople(): array
-    {
-        $people = [];
-        foreach ($this->users->findBy(['type' => UserTypeEnum::Backend->value], ['name' => 'ASC']) as $user) {
-            $people[] = ['value' => (int) $user->getId(), 'label' => $user->getName()];
-        }
-
-        return $people;
     }
 
     private function feedUrl(Planning $planning): ?string
