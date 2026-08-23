@@ -33,6 +33,8 @@ const props = defineProps({
      * the grid as an index and put the contents in a list underneath.
      */
     compact: { type: Boolean, default: false },
+    /** The day the list below is showing, so the grid can mark it. */
+    selected: { type: Date, default: null },
 });
 
 const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on", "select-day"]);
@@ -73,6 +75,10 @@ const weeks = computed(() =>
 
 /** Up to three dots, then a count - past three they stop being countable. */
 const MAX_DOTS = 3;
+
+function isSelected(date) {
+    return null !== props.selected && sameDay(date, props.selected);
+}
 
 /**
  * A tap means two different things on the two grids.
@@ -156,6 +162,7 @@ function addOn(date) {
                             ? 'min-h-[3.25rem] items-center gap-1 px-0.5 pb-1 pt-1'
                             : 'min-h-[6.5rem] gap-1 px-1.5 pb-1.5',
                         cell.inMonth ? '' : 'bg-surface-2/40',
+                        compact && isSelected(cell.date) ? 'bg-accent/10' : '',
                     ]"
                     :style="compact
                         ? {}
@@ -169,7 +176,10 @@ function addOn(date) {
                     <template v-if="compact">
                         <span
                             class="text-xs tabular-nums leading-none"
-                            :class="cell.inMonth ? 'text-secondary' : 'text-muted'"
+                            :class="[
+                                cell.inMonth ? 'text-secondary' : 'text-muted',
+                                isSelected(cell.date) ? 'font-semibold text-primary' : '',
+                            ]"
                         >
                             <span
                                 v-if="isToday(cell.date)"
