@@ -6,6 +6,7 @@ namespace Aurora\Module\Planning\Event\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
+use Aurora\Module\Planning\Planning\Entity\AbstractPlanning;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -86,6 +87,17 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
      */
     #[ORM\Column(length: 255, nullable: true)]
     protected ?string $sourceUrl = null;
+
+    /**
+     * A colour of this event's own, or null to take the calendar's.
+     *
+     * Null is the common case and the useful default: a calendar's colour is how
+     * you tell whose an event is at a glance, and an event that quietly picked
+     * its own would break that reading for everything around it. The override
+     * exists for the one meeting in the week that has to stand out.
+     */
+    #[ORM\Column(nullable: true)]
+    protected ?int $colourSlot = null;
 
     /**
      * @var Collection<int, PlanningEventAlertInterface>
@@ -308,6 +320,36 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
         $this->sourceUrl = $sourceUrl;
 
         return $this;
+    }
+
+    public function getColourSlot(): ?int
+    {
+        return $this->colourSlot;
+    }
+
+    /**
+     * Clamped rather than trusted, like the calendar's: a slot outside the
+     * palette draws nothing at all, and an invisible event is worse than one in
+     * the wrong colour. Null passes through, because null is a decision.
+     */
+    public function setColourSlot(?int $colourSlot): static
+    {
+        $this->colourSlot = null === $colourSlot
+            ? null
+            : max(1, min(AbstractPlanning::MAX_COLOUR_SLOT, $colourSlot));
+
+        return $this;
+    }
+
+    /**
+     * The colour to draw this event in.
+     *
+     * Resolved here rather than in each screen, because "its own, or its
+     * calendar's" is one rule and three grids would each have to remember it.
+     */
+    public function getEffectiveColourSlot(): int
+    {
+        return $this->colourSlot ?? $this->getPlanning()->getColourSlot();
     }
 
     public function isFromModule(): bool

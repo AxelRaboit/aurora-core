@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Planning\Event\Dto;
 
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
+use Aurora\Module\Planning\Planning\Entity\AbstractPlanning;
 use DateTimeImmutable;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -24,6 +25,9 @@ class PlanningEventInput implements PlanningEventInputInterface
         public readonly ?DateTimeImmutable $endAt = null,
         public readonly bool $allDay = false,
         public readonly PlanningEventStatusEnum $status = PlanningEventStatusEnum::Confirmed,
+        /** A slot of the event's own, or null to follow the calendar. */
+        #[Assert\Range(notInRangeMessage: 'backend.plannings.errors.colour_out_of_range', min: 1, max: AbstractPlanning::MAX_COLOUR_SLOT)]
+        public readonly ?int $colourSlot = null,
         /**
          * The alerts, each either an offset in minutes or a pinned moment.
          *
@@ -108,6 +112,11 @@ class PlanningEventInput implements PlanningEventInputInterface
     public function getStatus(): PlanningEventStatusEnum
     {
         return $this->status;
+    }
+
+    public function getColourSlot(): ?int
+    {
+        return $this->colourSlot;
     }
 
     /** @return list<array{minutes: int|null, at: DateTimeImmutable|null}> */

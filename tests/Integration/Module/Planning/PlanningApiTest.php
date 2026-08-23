@@ -318,6 +318,113 @@ final class PlanningApiTest extends IntegrationTestCase
         self::assertNotNull($survivor->getSentAt());
     }
 
+    /**
+     * An event follows its calendar's colour until it is given one.
+     *
+     * Null and not a copy of the calendar's slot, because they are different
+     * statements: "follow the calendar" has to keep following it when the
+     * calendar's colour changes, and a copied number would not.
+     */
+    public function testAnEventTakesItsCalendarsColourUnlessGivenItsOwn(): void
+    {
+        $planning = $this->calendar('Couleurs');
+        $planning->setColourSlot(4);
+        $this->entityManager->flush();
+
+        $created = $this->post('backend_planning_events_create', [
+            'planningId' => $planning->getId(),
+            'title' => 'Sans couleur propre',
+            'startAt' => '2026-09-01T10:00:00+02:00',
+            'endAt' => '2026-09-01T11:00:00+02:00',
+        ]);
+
+        self::assertResponseIsSuccessful(json_encode($created, JSON_THROW_ON_ERROR));
+        self::assertSame(4, $created['event']['colourSlot']);
+        self::assertNull($created['event']['ownColourSlot']);
+
+        $eventId = (int) $created['event']['id'];
+        $this->created[] = [PlanningEvent::class, $eventId];
+
+        $updated = $this->post(
+            'backend_planning_events_update',
+            [
+                'planningId' => $planning->getId(),
+                'title' => 'Sans couleur propre',
+                'startAt' => '2026-09-01T10:00:00+02:00',
+                'endAt' => '2026-09-01T11:00:00+02:00',
+                'colourSlot' => 7,
+            ],
+            ['id' => $eventId],
+        );
+
+        self::assertResponseIsSuccessful();
+        self::assertSame(7, $updated['event']['colourSlot']);
+        self::assertSame(7, $updated['event']['ownColourSlot']);
+
+        $cleared = $this->post(
+            'backend_planning_events_update',
+            [
+                'planningId' => $planning->getId(),
+                'title' => 'Sans couleur propre',
+                'startAt' => '2026-09-01T10:00:00+02:00',
+                'endAt' => '2026-09-01T11:00:00+02:00',
+                'colourSlot' => null,
+            ],
+            ['id' => $eventId],
+        );
+
+        self::assertResponseIsSuccessful();
+        self::assertSame(4, $cleared['event']['colourSlot']);
+        self::assertNull($cleared['event']['ownColourSlot']);
+    }
+
+    /**
+     * Following the calendar means following it, not matching it once.
+     *
+     * The test a nullable column buys and a copied slot would not.
+     */
+    public function testRecolouringACalendarMovesTheEventsThatFollowIt(): void
+    {
+        $planning = $this->calendar('Suivi');
+        $planning->setColourSlot(2);
+        $this->entityManager->flush();
+
+        $created = $this->post('backend_planning_events_create', [
+            'planningId' => $planning->getId(),
+            'title' => 'Suiveur',
+            'startAt' => '2026-09-01T10:00:00+02:00',
+            'endAt' => '2026-09-01T11:00:00+02:00',
+        ]);
+        self::assertResponseIsSuccessful();
+        $this->created[] = [PlanningEvent::class, (int) $created['event']['id']];
+        self::assertSame(2, $created['event']['colourSlot']);
+
+        $this->post(
+            'backend_planning_calendars_update',
+            ['name' => 'Suivi', 'colourSlot' => 6],
+            ['id' => $planning->getId()],
+        );
+        self::assertResponseIsSuccessful();
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_planning_events', [
+            'from' => '2026-08-01T00:00:00+00:00',
+            'to' => '2026-10-05T00:00:00+00:00',
+        ]));
+        self::assertResponseIsSuccessful();
+
+        $body = (array) json_decode((string) $this->client->getResponse()->getContent(), true);
+
+        $row = null;
+        foreach ($body['events'] as $candidate) {
+            if ('Suiveur' === $candidate['title']) {
+                $row = $candidate;
+            }
+        }
+
+        self::assertNotNull($row);
+        self::assertSame(6, $row['colourSlot']);
+    }
+
     public function testAnEventNeedsBothEndsAndTheRightOrder(): void
     {
         $planning = $this->calendar();

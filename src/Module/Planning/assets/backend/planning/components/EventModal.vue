@@ -26,6 +26,7 @@ import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import { CUSTOM, alertLabel, alertOptions, blankRow, fromRow, toRow } from "../composables/alertOffsets.js";
 import { toInstant, toPickerValue, zoneDiffersFromViewer } from "../composables/eventTime.js";
+import { COLOUR_SLOTS } from "../composables/calendarColours.js";
 
 const props = defineProps({
     /** The event being looked at, or null when the modal is closed. */
@@ -53,6 +54,7 @@ function blank() {
         endAt: "",
         allDay: false,
         status: "confirmed",
+        colourSlot: null,
         // A new event comes with one alert already on, which is what every
         // calendar people already use does. Nobody sets an alert they forgot the
         // form offered.
@@ -81,6 +83,7 @@ watch(
                 endAt: toPickerValue(props.event.endAt, eventZone),
                 allDay: props.event.allDay,
                 status: props.event.status,
+                colourSlot: props.event.ownColourSlot ?? null,
                 alerts: (props.event.alerts ?? []).map(toRow),
             }
             : draft();
@@ -132,6 +135,17 @@ const zone = computed(
  * see no reason why.
  */
 const showZone = computed(() => zoneDiffersFromViewer(zone.value));
+
+/**
+ * The colour of the calendar the form is pointing at.
+ *
+ * Read live off the picker, so choosing a different calendar repaints the "same
+ * as the calendar" swatch - otherwise it would show the colour of a calendar the
+ * event is no longer going into.
+ */
+const calendarColourSlot = computed(
+    () => props.calendars.find((calendar) => calendar.id === form.value.planningId)?.colourSlot ?? 1,
+);
 
 const calendarOptions = computed(() =>
     props.calendars.map((calendar) => ({ value: calendar.id, label: calendar.name })),
@@ -296,6 +310,40 @@ const when = computed(() => {
                 :placeholder="t('backend.plannings.events.location_placeholder')"
             />
             <AppSelect v-model="form.status" :label="t('shared.common.status')" :options="statusOptions" />
+
+            <!-- The calendar's colour first, then the palette. Its own swatch
+                 rather than a checkbox, because "follow the calendar" is one of
+                 the choices in the row and not a mode above it - which is how
+                 Google puts it too. -->
+            <div class="flex flex-col gap-1.5">
+                <span class="text-sm font-medium text-primary">{{ t("backend.plannings.colour") }}</span>
+                <div class="flex flex-wrap gap-2">
+                    <button
+                        type="button"
+                        class="flex h-7 items-center gap-1.5 rounded-lg border-2 px-2 text-xs transition-transform cursor-pointer hover:scale-105"
+                        :class="null === form.colourSlot ? 'border-primary scale-105' : 'border-transparent'"
+                        :aria-pressed="null === form.colourSlot"
+                        v-on:click="form.colourSlot = null"
+                    >
+                        <span
+                            class="h-3.5 w-3.5 rounded shrink-0"
+                            :style="{ backgroundColor: `var(--chart-cat-${calendarColourSlot})` }"
+                        />
+                        <span class="text-secondary">{{ t("backend.plannings.events.colour_from_calendar") }}</span>
+                    </button>
+                    <button
+                        v-for="slot in COLOUR_SLOTS"
+                        :key="slot"
+                        type="button"
+                        class="h-7 w-7 rounded-lg border-2 transition-transform cursor-pointer hover:scale-110"
+                        :class="form.colourSlot === slot ? 'border-primary scale-110' : 'border-transparent'"
+                        :style="{ backgroundColor: `var(--chart-cat-${slot})` }"
+                        :aria-label="t('backend.plannings.colour_slot', { slot })"
+                        :aria-pressed="form.colourSlot === slot"
+                        v-on:click="form.colourSlot = slot"
+                    />
+                </div>
+            </div>
             <AppTextarea
                 v-model="form.description"
                 :label="t('backend.plannings.description')"

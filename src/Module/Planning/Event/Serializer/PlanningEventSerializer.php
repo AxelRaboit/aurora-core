@@ -42,9 +42,15 @@ final readonly class PlanningEventSerializer
             'statusColor' => $event->getStatus()->badgeColor(),
             'planningId' => $planning->getId(),
             'planningName' => $planning->getName(),
-            // The colour comes down with the event so a chip needs one payload
-            // and not a lookup into the calendar list.
-            'colourSlot' => $planning->getColourSlot(),
+            // The colour to draw, already resolved: its own if it has one, the
+            // calendar's otherwise. Every grid reads this one key, so none of
+            // them has to know the rule.
+            'colourSlot' => $event->getEffectiveColourSlot(),
+            // What the form binds to. Null means "same as the calendar", which is
+            // a different statement from "the same number the calendar happens to
+            // have right now" - renaming the calendar's colour has to move the
+            // event with it.
+            'ownColourSlot' => $event->getColourSlot(),
             'sourceLabel' => $event->getSourceLabel(),
             'sourceUrl' => $event->getSourceUrl(),
             'alerts' => $this->alerts($event),

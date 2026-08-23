@@ -113,6 +113,7 @@ backend:
       starts_placeholder: "The day and time it starts"
       ends_placeholder: "The day and time it ends"
       in_zone: "Times are in the calendar's {zone} timezone."
+      colour_from_calendar: "The calendar's"
       location: Location
       location_placeholder: "A room, an address, a link"
       status:

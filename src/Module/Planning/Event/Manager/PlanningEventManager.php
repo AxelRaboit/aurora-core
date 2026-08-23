@@ -78,6 +78,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
         $event->setLocation($input->getLocation());
         $event->setAllDay($input->isAllDay());
         $event->setStatus($input->getStatus());
+        $event->setColourSlot($input->getColourSlot());
 
         $startAt = $input->getStartAt();
         $endAt = $input->getEndAt();

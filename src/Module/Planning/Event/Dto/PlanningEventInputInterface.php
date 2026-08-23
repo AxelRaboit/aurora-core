@@ -25,6 +25,8 @@ interface PlanningEventInputInterface
 
     public function getStatus(): PlanningEventStatusEnum;
 
+    public function getColourSlot(): ?int;
+
     /** @return list<array{minutes: int|null, at: DateTimeImmutable|null}> */
     public function getAlerts(): array;
 }

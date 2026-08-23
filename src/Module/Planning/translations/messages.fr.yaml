@@ -113,6 +113,7 @@ backend:
       starts_placeholder: "Le jour et l'heure de début"
       ends_placeholder: "Le jour et l'heure de fin"
       in_zone: "Les heures sont celles du fuseau {zone} du calendrier."
+      colour_from_calendar: "Celle du calendrier"
       location: Lieu
       location_placeholder: "Une salle, une adresse, un lien"
       status:

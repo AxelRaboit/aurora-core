@@ -55,6 +55,12 @@ interface PlanningEventInterface
 
     public function setSourceUrl(?string $sourceUrl): static;
 
+    public function getColourSlot(): ?int;
+
+    public function setColourSlot(?int $colourSlot): static;
+
+    public function getEffectiveColourSlot(): int;
+
     public function isFromModule(): bool;
 
     /**

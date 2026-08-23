@@ -28,6 +28,9 @@ class PlanningEventInputFactory implements PlanningEventInputFactoryInterface
             allDay: (bool) ($data['allDay'] ?? false),
             status: PlanningEventStatusEnum::tryFrom((string) ($data['status'] ?? ''))
                 ?? PlanningEventStatusEnum::Confirmed,
+            // Absent and empty both mean "follow the calendar". An empty select
+            // sends "", and reading that as slot zero would draw nothing.
+            colourSlot: is_numeric($data['colourSlot'] ?? null) ? (int) $data['colourSlot'] : null,
             alerts: $this->alerts($data['alerts'] ?? null),
         );
     }
