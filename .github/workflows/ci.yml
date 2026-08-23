@@ -46,7 +46,7 @@ jobs:
     steps:
       # -- Setup GitHub actions 🐙 ---------------------------------------------------
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # -- PHP & Composer 🧙‍️ ---------------------------------------------------------
       - name: Setup PHP, extensions & composer with shivammathur/setup-php
@@ -70,7 +70,7 @@ jobs:
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache PHP dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
@@ -99,8 +99,13 @@ jobs:
         run: php bin/console doctrine:migrations:migrate --no-interaction
 
       # -- PNPM & Vite 🟨 ------------------------------------------------------------
+      # Deliberately no `cache:` input. setup-node v5 began caching
+      # automatically by detecting the package manager, which would have run
+      # `pnpm store path` here - one step before pnpm is installed. v6 narrowed
+      # that to npm, and this repo has no package-lock.json, so nothing fires.
+      # The pnpm store is cached explicitly two steps down instead.
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -112,7 +117,7 @@ jobs:
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}
@@ -137,7 +142,7 @@ jobs:
         run: mkdir -p var/cache/rector var/cache/phpstan
 
       - name: Rector Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: var/cache/rector
           key: ${{ runner.os }}-rector-${{ hashFiles('**/composer.lock') }}
@@ -151,7 +156,7 @@ jobs:
 
       # -- Static analysis ✨ -------------------------------------------------
       - name: PHPStan Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: var/cache/phpstan
           key: phpstan-${{ runner.os }}-${{ hashFiles('tools/phpstan/phpstan.neon') }}
