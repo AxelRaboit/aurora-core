@@ -38,6 +38,7 @@ backend:
     upcoming: "À venir"
     nothing_upcoming: "Rien de prévu pour le moment."
     open_calendar: "Ouvrir le calendrier"
+    shortcuts: "Raccourcis : D jour, W semaine, M mois, T aujourd'hui, N/P naviguer, C événement, R rappel"
     today: "Aujourd'hui"
     views:
       day: Jour

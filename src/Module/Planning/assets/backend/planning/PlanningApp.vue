@@ -26,6 +26,7 @@ import ReminderModal from "./components/ReminderModal.vue";
 import EventModal from "./components/EventModal.vue";
 import { usePlanningCalendar } from "./composables/usePlanningCalendar.js";
 import { defaultTimeOn, draftAt } from "./composables/timeGrid.js";
+import { usePlanningShortcuts } from "./composables/usePlanningShortcuts.js";
 
 const props = defineProps({
     calendars: { type: Array, default: () => [] },
@@ -313,6 +314,30 @@ async function saveReminder(form) {
     }
 }
 
+/**
+ * Whether something is open in front of the grid.
+ *
+ * The shortcuts stay quiet then: Escape is what closes a modal, and a stray `d`
+ * while somebody reads an event would move the grid out from under them.
+ */
+function isBusy() {
+    return (
+        null !== openEvent.value
+        || null !== openReminder.value
+        || null !== openCalendar.value
+        || sheetOpen.value
+    );
+}
+
+usePlanningShortcuts({
+    isBusy,
+    setView,
+    go,
+    goToToday,
+    createEvent: () => create(),
+    createReminder: () => createReminder(),
+});
+
 async function removeReminderItem(reminder) {
     const data = await request(props.deleteReminderPathTemplate.replace("__id__", String(reminder.id)));
     if (!data) return;
@@ -443,7 +468,15 @@ async function remove(event) {
                             {{ option.label }}
                         </button>
                     </div>
-                    <AppButton variant="ghost" size="sm" v-on:click="goToToday">
+                    <!-- The shortcut is on the title rather than shown as a
+                         chip: a calendar's toolbar is already busy, and a reader
+                         who wants shortcuts hovers to find them. -->
+                    <AppButton
+                        variant="ghost"
+                        size="sm"
+                        :title="t('backend.plannings.shortcuts')"
+                        v-on:click="goToToday"
+                    >
                         {{ t("backend.plannings.today") }}
                     </AppButton>
                 </div>
