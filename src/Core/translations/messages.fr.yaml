@@ -155,6 +155,7 @@ backend:
     users_description: 'Gérer les comptes, rôles et privilèges'
     resize_hint: Glisser pour redimensionner — double-clic pour réinitialiser
     filter_nav: Filtrer le menu…
+    breadcrumb: Fil d'Ariane
     filter_nav_empty: Aucun élément trouvé
     view_site: Voir le site
     logout: Déconnexion

@@ -1,57 +1,100 @@
-<header class="bg-surface border-b border-line h-16 flex items-center lg:sticky lg:top-0 lg:z-20 shrink-0">
-    {# The one control that folds the side menu, at the top left of the page —
-       not inside the menu it hides. A button that lives in the thing it hides
-       needs a second copy somewhere to bring it back, which is what Aurora had.
+{#
+   The page's chrome, in two bands.
 
-       `hidden lg:flex`: below the large breakpoint the menu is a drawer with
-       its own button in the mobile bar, and folding a drawer means nothing. #}
-    <div class="hidden lg:flex items-center gap-1 pl-3">
-        <div {{ vue_component('core/backend/sidemenu/AppSidemenuToggle', {
-            collapsedPath: path('backend_general_profile_sidemenu_collapsed'),
-        }) }}></div>
-        {# Back, forward and reload — browser chrome brought into the page,
-           beside the control that folds the menu. Desktop only, like the
-           toggle: a phone has its own back gesture and no room to spare. #}
-        <div class="border-l border-line pl-1">
-            <div {{ vue_component('core/backend/sidemenu/AppTopbarNav') }}></div>
+   Upper band: the controls, and the name of the page you are on. Lower band:
+   the trail that leads to it. One band used to carry both, which squeezed the
+   trail between two groups of buttons and truncated it as soon as the path grew
+   — an article inside a taxonomy lost its middle.
+
+   **The name is taken from the last crumb, not passed in.** Every page's own
+   name is already the last item of its trail; asking each of the nineteen
+   templates to repeat it as a `title` would be the same string written twice,
+   drifting the first time one of the two is reworded. A page that wants a fuller
+   name than its crumb has room for can still pass `title`, and it wins —
+   "Modifier la publication" over a crumb that only says "Modifier".
+
+   **The trail keeps every level, the page it is on included.** The first version
+   of this dropped that last level, on the grounds that the band above already
+   says it. That was wrong in a way only the rendered page shows: fourteen of the
+   nineteen pages have exactly two crumbs, so the trail became a single word —
+   the section name, which the side menu is already displaying. A one-item
+   breadcrumb is not a breadcrumb, it is a label. The name showing in both bands
+   is the cheaper of the two problems, and it is what every app carrying a title
+   and a trail does.
+
+   The final crumb is marked as current but stays quiet: emphasis is the upper
+   band's job now.
+
+   `strict_variables` is on, so the guard below is load-bearing: reaching for
+   `.label` on an empty list throws rather than yielding nothing.
+#}
+{% set trail = crumbs|default([]) %}
+{% set pageTitle = title|default(trail ? (trail|last).label : '') %}
+
+<header class="lg:sticky lg:top-0 lg:z-20 shrink-0">
+    {# Desktop only, all of it: below the large breakpoint the menu is a drawer
+       with its own bar carrying the logo, the search and the bell, so this band
+       would hold a title beside two hidden groups — 64px of border. #}
+    <div class="hidden lg:flex items-center h-16 bg-surface border-b border-line">
+        {# The one control that folds the side menu, at the top left of the page —
+           not inside the menu it hides. A button that lives in the thing it hides
+           needs a second copy somewhere to bring it back, which is what Aurora had. #}
+        <div class="flex items-center gap-1 pl-3 shrink-0">
+            <div {{ vue_component('core/backend/sidemenu/AppSidemenuToggle', {
+                collapsedPath: path('backend_general_profile_sidemenu_collapsed'),
+            }) }}></div>
+            {# Back, forward and reload — browser chrome brought into the page,
+               beside the control that folds the menu. #}
+            <div class="border-l border-line pl-1">
+                <div {{ vue_component('core/backend/sidemenu/AppTopbarNav') }}></div>
+            </div>
+        </div>
+
+        <div class="px-4 sm:px-6 lg:px-8 w-full min-w-0">
+            {# `h2`, not `h1`: two pages already give their own `h1` to the thing
+               they are about — a document's title card, a section heading beside
+               its New button — and a second `h1` here would leave the outline
+               with two tops. #}
+            <h2 class="text-lg font-semibold leading-tight text-primary truncate">{{ pageTitle }}</h2>
+        </div>
+
+        {# Search and notifications, at the far right. They used to sit in the side
+           menu above the nav filter, which put two controls that have nothing to do
+           with navigation inside the thing that navigates. #}
+        <div class="flex items-center gap-1 pr-3 sm:pr-6 lg:pr-8 shrink-0">
+            <div {{ vue_component('core/backend/sidemenu/AppTopbarActions', {
+                notificationsListPath: path('backend_notifications_list'),
+                notificationsMarkReadPath: path_template('backend_notifications_mark_read', {id: '__id__'}),
+                notificationsMarkAllReadPath: path('backend_notifications_mark_all_read'),
+                notificationsDeletePath: path_template('backend_notifications_delete', {id: '__id__'}),
+                notificationsDeleteAllPath: path('backend_notifications_delete_all'),
+            }) }}></div>
         </div>
     </div>
-    <div class="px-4 sm:px-6 lg:px-8 w-full min-w-0">
-        {% if crumbs is defined and crumbs %}
-            <nav class="flex items-center gap-2 text-sm min-w-0">
-                {% for crumb in crumbs %}
-                    {% set isVisible = loop.index >= (crumbs|length - 1) %}
+
+    {# The trail, at every size. On a phone this is the whole header, and 24px
+       shorter than the single band it replaces — which is also why the levels
+       above the last two step aside below `sm`: there is no second band to fall
+       back on, and a deep path would push the page it names off the screen. #}
+    {% if trail %}
+        <div class="flex items-center h-10 bg-surface border-b border-line">
+            <nav class="px-4 sm:px-6 lg:px-8 w-full min-w-0 flex items-center gap-2 text-sm" aria-label="{{ 'backend.nav.breadcrumb'|trans }}">
+                {% for crumb in trail %}
+                    {% set isNarrowVisible = loop.index >= (trail|length - 1) %}
                     {% if not loop.first %}
-                        <span class="text-muted select-none shrink-0 {% if not isVisible %}hidden sm:inline{% endif %}">/</span>
+                        <span class="text-muted select-none shrink-0 {% if not isNarrowVisible %}hidden sm:inline{% endif %}">/</span>
                     {% endif %}
-                    <span class="{% if not isVisible %}hidden sm:inline{% endif %} min-w-0">
+                    <span class="min-w-0 {% if not isNarrowVisible %}hidden sm:inline{% endif %}">
                         {% if crumb.href is defined and crumb.href %}
                             <a href="{{ crumb.href }}" class="text-secondary hover:text-primary transition-colors truncate block">{{ crumb.label }}</a>
+                        {% elseif loop.last %}
+                            <span class="text-secondary font-medium truncate block" aria-current="page">{{ crumb.label }}</span>
                         {% else %}
-                            <span class="text-primary font-medium truncate block">{{ crumb.label }}</span>
+                            <span class="text-secondary truncate block">{{ crumb.label }}</span>
                         {% endif %}
                     </span>
                 {% endfor %}
             </nav>
-        {% else %}
-            <h2 class="text-xl font-semibold leading-tight text-primary">{{ title }}</h2>
-        {% endif %}
-    </div>
-
-    {# Search and notifications, at the far right. They used to sit in the side
-       menu above the nav filter, which put two controls that have nothing to do
-       with navigation inside the thing that navigates — and hid them both
-       whenever the menu was folded to icons. #}
-    {# `hidden lg:flex`, like the controls on the left: below the large
-       breakpoint the mobile bar carries its own search button, and two of them
-       on one screen is one too many. #}
-    <div class="hidden lg:flex items-center gap-1 pr-3 sm:pr-6 lg:pr-8 shrink-0">
-        <div {{ vue_component('core/backend/sidemenu/AppTopbarActions', {
-            notificationsListPath: path('backend_notifications_list'),
-            notificationsMarkReadPath: path_template('backend_notifications_mark_read', {id: '__id__'}),
-            notificationsMarkAllReadPath: path('backend_notifications_mark_all_read'),
-            notificationsDeletePath: path_template('backend_notifications_delete', {id: '__id__'}),
-            notificationsDeleteAllPath: path('backend_notifications_delete_all'),
-        }) }}></div>
-    </div>
+        </div>
+    {% endif %}
 </header>

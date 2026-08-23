@@ -155,6 +155,7 @@ backend:
     users_description: 'Manage user accounts, roles and privileges'
     resize_hint: Drag to resize — double-click to reset
     filter_nav: Filter menu…
+    breadcrumb: Breadcrumb
     filter_nav_empty: No items found
     view_site: View site
     logout: Log out
