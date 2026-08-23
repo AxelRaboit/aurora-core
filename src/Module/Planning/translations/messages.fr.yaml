@@ -32,6 +32,10 @@ backend:
   plannings:
     title: Calendrier
     today: "Aujourd'hui"
+    views:
+      day: Jour
+      week: Semaine
+      month: Mois
     more: "+{count} autre(s)"
     calendars: Mes calendriers
     new_calendar: Nouveau calendrier
@@ -74,6 +78,7 @@ backend:
       title: Événements
       new: Nouvel événement
       all_day: Toute la journée
+      all_day_short: Journée
       starts: Début
       ends: Fin
       starts_placeholder: "Le jour et l'heure de début"

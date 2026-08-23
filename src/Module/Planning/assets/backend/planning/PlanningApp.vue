@@ -18,6 +18,7 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import CalendarModal from "./components/CalendarModal.vue";
 import CalendarMonth from "./components/CalendarMonth.vue";
+import CalendarTimeGrid from "./components/CalendarTimeGrid.vue";
 import EventModal from "./components/EventModal.vue";
 import { usePlanningCalendar } from "./composables/usePlanningCalendar.js";
 
@@ -44,17 +45,54 @@ const {
     loading,
     year,
     month,
+    view,
+    anchor,
     cells,
+    days,
     load,
-    goToMonth,
+    go,
     goToToday,
+    setView,
     toggleCalendar,
     upsertCalendar,
     removeCalendar,
 } = usePlanningCalendar(props);
 
-const monthLabel = computed(() =>
-    d(new Date(year.value, month.value, 1), { month: "long", year: "numeric" }),
+/**
+ * What range is on screen, in words.
+ *
+ * Three shapes, because the reader needs a different amount of it in each view:
+ * the month says the month, the day says the whole date, and the week says the
+ * span - shortened to "24 - 30 août" when both ends share a month, since
+ * repeating it is noise.
+ */
+const rangeLabel = computed(() => {
+    if ("month" === view.value) {
+        return d(new Date(year.value, month.value, 1), { month: "long", year: "numeric" });
+    }
+
+    if ("day" === view.value) {
+        return d(anchor.value, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    }
+
+    const first = days.value[0];
+    const last = days.value[days.value.length - 1];
+
+    if (!first || !last) {
+        return "";
+    }
+
+    const sameMonth = first.getMonth() === last.getMonth();
+
+    return `${d(first, sameMonth ? { day: "numeric" } : { day: "numeric", month: "short" })} - `
+        + `${d(last, { day: "numeric", month: "long", year: "numeric" })}`;
+});
+
+const viewOptions = computed(() =>
+    ["day", "week", "month"].map((value) => ({
+        value,
+        label: t(`backend.plannings.views.${value}`),
+    })),
 );
 
 const openCalendar = ref(null);
@@ -122,7 +160,7 @@ const editing = ref(false);
 const errors = ref({});
 const saving = ref(false);
 
-function view(event) {
+function viewEvent(event) {
     openEvent.value = event;
     editing.value = false;
     errors.value = {};
@@ -275,22 +313,56 @@ async function remove(event) {
 
         <div class="min-w-0 space-y-3">
             <div class="flex items-center gap-2">
-                <AppIconButton :title="t('shared.common.previous')" v-on:click="goToMonth(-1)">
+                <AppIconButton :title="t('shared.common.previous')" v-on:click="go(-1)">
                     <ChevronLeft class="w-4 h-4" :stroke-width="2" />
                 </AppIconButton>
-                <AppIconButton :title="t('shared.common.next')" v-on:click="goToMonth(1)">
+                <AppIconButton :title="t('shared.common.next')" v-on:click="go(1)">
                     <ChevronRight class="w-4 h-4" :stroke-width="2" />
                 </AppIconButton>
                 <!-- Capitalised by the locale's own rules, so "août 2026" reads
                      as a heading without a CSS transform that would also shout at
                      a language where it should not. -->
-                <h2 class="text-base font-semibold text-primary first-letter:uppercase">{{ monthLabel }}</h2>
-                <AppButton variant="ghost" size="sm" class="ml-auto" v-on:click="goToToday">
-                    {{ t("backend.plannings.today") }}
-                </AppButton>
+                <h2 class="text-base font-semibold text-primary first-letter:uppercase">{{ rangeLabel }}</h2>
+
+                <div class="ml-auto flex items-center gap-2">
+                    <!-- A segmented row and not a select: three mutually
+                         exclusive choices where the current one has to be
+                         readable at a glance, which is what a calendar's reader
+                         checks before trusting what they are looking at. -->
+                    <div class="flex rounded-lg border border-line overflow-hidden">
+                        <button
+                            v-for="option in viewOptions"
+                            :key="option.value"
+                            type="button"
+                            class="px-2.5 py-1 text-xs transition-colors cursor-pointer border-r border-line last:border-r-0"
+                            :class="view === option.value
+                                ? 'bg-accent-600 text-white font-medium'
+                                : 'text-secondary hover:bg-surface-2'"
+                            :aria-pressed="view === option.value"
+                            v-on:click="setView(option.value)"
+                        >
+                            {{ option.label }}
+                        </button>
+                    </div>
+                    <AppButton variant="ghost" size="sm" v-on:click="goToToday">
+                        {{ t("backend.plannings.today") }}
+                    </AppButton>
+                </div>
             </div>
 
-            <CalendarMonth :cells="cells" :events="visibleEvents" v-on:open-event="view" />
+            <CalendarMonth
+                v-if="'month' === view"
+                :cells="cells"
+                :events="visibleEvents"
+                v-on:open-event="viewEvent"
+            />
+            <CalendarTimeGrid
+                v-else
+                :anchor="anchor"
+                :view="view"
+                :events="visibleEvents"
+                v-on:open-event="viewEvent"
+            />
         </div>
 
         <CalendarModal

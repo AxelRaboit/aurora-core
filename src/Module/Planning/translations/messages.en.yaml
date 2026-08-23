@@ -32,6 +32,10 @@ backend:
   plannings:
     title: Calendar
     today: Today
+    views:
+      day: Day
+      week: Week
+      month: Month
     more: "+{count} more"
     calendars: My calendars
     new_calendar: New calendar
@@ -74,6 +78,7 @@ backend:
       title: Events
       new: New event
       all_day: All day
+      all_day_short: All day
       starts: Starts
       ends: Ends
       starts_placeholder: "The day and time it starts"

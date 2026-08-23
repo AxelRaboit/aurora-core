@@ -2,12 +2,18 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { gridWindow, monthGrid } from "./monthGrid.js";
+import { timeGridWindow, visibleDays } from "./timeGrid.js";
 
 /**
- * Which month is on screen, which calendars are showing, and the events between.
+ * Where the reader is, which calendars are showing, and the events between.
  *
- * The month lives in the URL. A calendar is a place you send somebody - "look at
- * September" - and a view whose position is only in memory cannot be linked to or
+ * Position is one date and one view, not a year and a month. Switching from the
+ * month to the week has to land on the week containing where you already were,
+ * and two pieces of state would have to be kept agreeing every time either
+ * changed - which is the bug where paging in one view moves the other.
+ *
+ * Both live in the URL. A calendar is a place you send somebody - "look at
+ * Tuesday" - and a view whose position is only in memory cannot be linked to or
  * reloaded. Hidden calendars stay in memory on purpose: which of your own
  * calendars you have folded away is not something you send anyone.
  */
@@ -21,37 +27,61 @@ export function usePlanningCalendar(props) {
     /** Ids the reader has folded away. Absent means showing. */
     const hidden = ref(new Set());
 
-    const today = new Date();
-    const initial = readMonthFromUrl() ?? {
-        year: today.getFullYear(),
-        month: today.getMonth(),
-    };
-    const year = ref(initial.year);
-    const month = ref(initial.month);
+    const VIEWS = ["day", "week", "month"];
 
-    function readMonthFromUrl() {
-        const raw = new URLSearchParams(window.location.search).get("month");
-        if (!/^\d{4}-\d{2}$/.test(raw ?? "")) {
+    const params = new URLSearchParams(window.location.search);
+    const anchor = ref(readDateFromUrl(params) ?? new Date());
+    const view = ref(
+        VIEWS.includes(params.get("view")) ? params.get("view") : "month",
+    );
+
+    /**
+     * The date in the URL, or null for anything that is not one.
+     *
+     * Built field by field rather than handed to `new Date(string)`, which reads
+     * a bare `YYYY-MM-DD` as UTC midnight - so west of Greenwich the calendar
+     * would open on the day before the one in the link.
+     */
+    function readDateFromUrl(search) {
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(
+            search.get("date") ?? "",
+        );
+        if (null === match) {
             return null;
         }
 
-        const [y, m] = raw.split("-").map(Number);
+        const [, y, m, day] = match.map(Number);
+        const date = new Date(y, m - 1, day);
 
-        // A month outside 1-12 is a URL somebody typed. Falling back to today
-        // beats rendering a grid for month 47.
-        return m >= 1 && m <= 12 ? { year: y, month: m - 1 } : null;
+        // A URL somebody typed can say 2026-13-40. `new Date` rolls that into a
+        // real date silently, so it is compared back rather than trusted.
+        return date.getMonth() === m - 1 && date.getDate() === day
+            ? date
+            : null;
     }
 
-    function writeMonthToUrl() {
+    function writeStateToUrl() {
         const url = new URL(window.location.href);
+        const pad = (n) => String(n).padStart(2, "0");
+        const date = anchor.value;
+
+        url.searchParams.set("view", view.value);
         url.searchParams.set(
-            "month",
-            `${year.value}-${String(month.value + 1).padStart(2, "0")}`,
+            "date",
+            `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`,
         );
         window.history.replaceState({}, "", url);
     }
 
+    const year = computed(() => anchor.value.getFullYear());
+    const month = computed(() => anchor.value.getMonth());
+
     const cells = computed(() => monthGrid(year.value, month.value));
+
+    /** The days the hourly views draw. Empty in the month view, which uses cells. */
+    const days = computed(() =>
+        "month" === view.value ? [] : visibleDays(anchor.value, view.value),
+    );
 
     /**
      * Only the events of calendars that are showing.
@@ -68,7 +98,10 @@ export function usePlanningCalendar(props) {
         loading.value = true;
 
         try {
-            const { from, to } = gridWindow(year.value, month.value);
+            const { from, to } =
+                "month" === view.value
+                    ? gridWindow(year.value, month.value)
+                    : timeGridWindow(anchor.value, view.value);
             const url = new URL(props.eventsPath, window.location.origin);
             url.searchParams.set("from", from.toISOString());
             url.searchParams.set("to", to.toISOString());
@@ -89,16 +122,41 @@ export function usePlanningCalendar(props) {
         }
     }
 
-    function goToMonth(offset) {
-        const next = new Date(year.value, month.value + offset, 1);
-        year.value = next.getFullYear();
-        month.value = next.getMonth();
+    /**
+     * Page by whatever the current view shows: a month, a week, or a day.
+     *
+     * One function for all three, because "previous" means the same thing to the
+     * reader in each - and three would be three places to keep the URL writing.
+     */
+    function go(offset) {
+        if ("month" === view.value) {
+            // The first of the month, so paging from the 31st does not skip
+            // February: `new Date(2026, 0, 31)` plus one month is 3 March.
+            anchor.value = new Date(year.value, month.value + offset, 1);
+
+            return;
+        }
+
+        const next = new Date(anchor.value);
+        next.setDate(next.getDate() + offset * ("week" === view.value ? 7 : 1));
+        anchor.value = next;
     }
 
     function goToToday() {
-        const now = new Date();
-        year.value = now.getFullYear();
-        month.value = now.getMonth();
+        anchor.value = new Date();
+    }
+
+    /**
+     * Switching view keeps the date, which is the whole point of storing one.
+     *
+     * Coming out of the month view the anchor is the first of the month, so a
+     * reader who was looking at August lands on the week of 1 August rather than
+     * on today - the range they were already reading.
+     */
+    function setView(next) {
+        if (VIEWS.includes(next)) {
+            view.value = next;
+        }
     }
 
     /**
@@ -151,15 +209,15 @@ export function usePlanningCalendar(props) {
         hidden.value = next;
     }
 
-    // One watcher for both, so paging from December to January is a single fetch
-    // rather than one for the year and one for the month.
-    watch([year, month], () => {
-        writeMonthToUrl();
+    // One watcher for both, so switching view on a different date is a single
+    // fetch rather than one for the date and one for the view.
+    watch([anchor, view], () => {
+        writeStateToUrl();
         void load();
     });
 
     onMounted(() => {
-        writeMonthToUrl();
+        writeStateToUrl();
         void load();
     });
 
@@ -171,10 +229,14 @@ export function usePlanningCalendar(props) {
         loading,
         year,
         month,
+        view,
+        anchor,
         cells,
+        days,
         load,
-        goToMonth,
+        go,
         goToToday,
+        setView,
         toggleCalendar,
         upsertCalendar,
         removeCalendar,

@@ -101,7 +101,10 @@ final readonly class PlanningReminderNotifier
             ]),
             $this->urlGenerator->generate(
                 'backend_planning_calendar',
-                ['month' => $event->getStartAt()->format('Y-m')],
+                // The day, not the month: a reminder is about one event, and the
+                // day view is where it is the thing you are looking at rather
+                // than one chip among forty.
+                ['view' => 'day', 'date' => $event->getStartAt()->format('Y-m-d')],
                 UrlGeneratorInterface::ABSOLUTE_URL,
             ),
             ['eventId' => $event->getId(), 'minutesBefore' => $reminder->getMinutesBefore()],
