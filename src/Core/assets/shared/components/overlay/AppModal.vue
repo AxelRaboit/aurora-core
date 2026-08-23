@@ -132,7 +132,13 @@ const panelClass = computed(() => [
     props.mobileFullscreen
         ? `max-w-full ${mdMaxWidthClass.value}`
         : maxWidthClass.value,
-    props.mobileFullscreen ? "rounded-none md:rounded-xl" : "",
+    // The corner radius and the border live here and nowhere else. They used to
+    // be on the static class as well, and `rounded-none` lost: two utilities on
+    // one property are settled by their order in the compiled stylesheet, not by
+    // their order in the attribute, and `.rounded-xl` is emitted after
+    // `.rounded-none`. So a fullscreen panel kept its rounded corners and its
+    // hairline border against the edge of the screen, with nothing behind either.
+    props.mobileFullscreen ? "rounded-none border-0 md:rounded-xl md:border" : "rounded-xl border",
     props.noPadding ? "overflow-hidden" : "",
     props.scrollable
         ? props.mobileFullscreen
@@ -179,7 +185,7 @@ const contentClass = computed(() => [
                     v-show="show"
                     role="dialog"
                     aria-modal="true"
-                    class="relative z-10 w-full bg-surface border border-line rounded-xl shadow-xl flex flex-col overflow-hidden"
+                    class="relative z-10 w-full bg-surface border-line shadow-xl flex flex-col overflow-hidden"
                     :class="panelClass"
                 >
                     <!-- Header -->

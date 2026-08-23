@@ -146,3 +146,53 @@ describe("AppModal while it leaves", () => {
         wrapper.unmount();
     });
 });
+
+describe("AppModal fullscreen on a phone", () => {
+    /**
+     * The panel's classes as tokens.
+     *
+     * Split rather than searched as substrings, because `md:rounded-xl` contains
+     * `rounded-xl` and a substring test on it passes while the bug is present -
+     * which is how the first version of this test failed for the wrong reason.
+     */
+    function panelClasses(wrapper) {
+        return (
+            wrapper.find('[role="dialog"]').attributes("class") ?? ""
+        ).split(/\s+/);
+    }
+
+    /**
+     * No rounding and no border when the panel fills the screen.
+     *
+     * There is nothing behind either: the radius clips the corners against the
+     * viewport edge and the border draws a hairline along it.
+     *
+     * Asserted as "does not carry the bare rounded-xl", because that is the defect
+     * that existed. Both were applied at once, and two utilities on one property
+     * are settled by their order in the compiled stylesheet - `.rounded-xl` is
+     * emitted after `.rounded-none`, so the corners stayed round however the
+     * attribute was written.
+     */
+    it("carries no rounding or border of its own", () => {
+        const classes = panelClasses(
+            mountModal({ show: true, mobileFullscreen: true }),
+        );
+
+        expect(classes).toContain("rounded-none");
+        expect(classes).not.toContain("rounded-xl");
+        expect(classes).toContain("md:rounded-xl");
+
+        expect(classes).toContain("border-0");
+        expect(classes).not.toContain("border");
+        expect(classes).toContain("md:border");
+    });
+
+    it("keeps its rounding and border when it is a normal modal", () => {
+        const classes = panelClasses(mountModal({ show: true }));
+
+        expect(classes).toContain("rounded-xl");
+        expect(classes).not.toContain("rounded-none");
+        expect(classes).toContain("border");
+        expect(classes).not.toContain("border-0");
+    });
+});
