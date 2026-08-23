@@ -8,6 +8,8 @@ use Aurora\Core\Notification\Manager\NotificationManagerInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEventAlertInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Event\Repository\PlanningEventAlertRepository;
+use Aurora\Module\Planning\Reminder\Entity\PlanningReminderInterface;
+use Aurora\Module\Planning\Reminder\Repository\PlanningReminderRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -28,6 +30,7 @@ final readonly class PlanningNotifier
 {
     public function __construct(
         private PlanningEventAlertRepository $alerts,
+        private PlanningReminderRepository $reminders,
         private NotificationManagerInterface $notifications,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
@@ -44,6 +47,66 @@ final readonly class PlanningNotifier
     public function sendDue(?DateTimeImmutable $now = null): int
     {
         $now ??= new DateTimeImmutable();
+
+        // Two queries, one flush. They are separate tables and separate
+        // questions, but a single flush means a crash cannot leave one kind
+        // stamped and the other not.
+        $sent = $this->sendDueAlerts($now) + $this->sendDueReminders($now);
+
+        $this->entityManager->flush();
+
+        return $sent;
+    }
+
+    /**
+     * The reminders that are due, announced at their due time.
+     *
+     * At the time itself and not before it, which is what separates the two
+     * kinds: an event needs warning because you have to be somewhere, and a
+     * reminder is the thing itself arriving.
+     *
+     * Completed ones are excluded by the query, not skipped here - ticking
+     * something off has to stop it arriving, and a filter in PHP would still
+     * stamp it.
+     */
+    private function sendDueReminders(DateTimeImmutable $now): int
+    {
+        $sent = 0;
+
+        foreach ($this->reminders->findDue($now) as $reminder) {
+            $recipient = $reminder->getPlanning()->getOwner();
+
+            if ($recipient instanceof CoreUserInterface) {
+                $this->notifyReminder($recipient, $reminder);
+                ++$sent;
+            }
+
+            $reminder->markNotified($now);
+        }
+
+        return $sent;
+    }
+
+    private function notifyReminder(CoreUserInterface $recipient, PlanningReminderInterface $reminder): void
+    {
+        $this->notifications->notify(
+            $recipient,
+            'planning.reminder',
+            $reminder->getTitle(),
+            $this->translator->trans('backend.plannings.reminders.notification', [
+                '%calendar%' => $reminder->getPlanning()->getName(),
+            ]),
+            $this->urlGenerator->generate(
+                'backend_planning_calendar',
+                ['view' => 'day', 'date' => $reminder->getDueAt()->format('Y-m-d')],
+                UrlGeneratorInterface::ABSOLUTE_URL,
+            ),
+            ['reminderId' => $reminder->getId()],
+        );
+    }
+
+    private function sendDueAlerts(DateTimeImmutable $now): int
+    {
         $sent = 0;
 
         foreach ($this->alerts->findDue($now) as $alert) {
@@ -58,8 +121,6 @@ final readonly class PlanningNotifier
 
             $alert->markSent($now);
         }
-
-        $this->entityManager->flush();
 
         return $sent;
     }

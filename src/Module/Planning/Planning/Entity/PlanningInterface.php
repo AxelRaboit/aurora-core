@@ -6,6 +6,7 @@ namespace Aurora\Module\Planning\Planning\Entity;
 
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Planning\Enum\PlanningVisibilityEnum;
+use Aurora\Module\Planning\Reminder\Entity\PlanningReminderInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Doctrine\Common\Collections\Collection;
 
@@ -41,6 +42,11 @@ interface PlanningInterface
     public function setSourceType(?string $sourceType): static;
 
     public function isFromModule(): bool;
+
+    /**
+     * @return Collection<int, PlanningReminderInterface>
+     */
+    public function getReminders(): Collection;
 
     public function getVisibility(): PlanningVisibilityEnum;
 

@@ -10,6 +10,10 @@ backend:
           created: Event created
           updated: Event updated
           deleted: Event deleted
+        reminder:
+          created: Reminder created
+          updated: Reminder updated
+          deleted: Reminder deleted
   permissions:
     names:
       planning:
@@ -17,9 +21,9 @@ backend:
           view: View the calendar
           manage: Manage calendars
         events:
-          create: Create events
-          edit: Edit events
-          delete: Delete events
+          create: Create events and reminders
+          edit: Edit events and reminders
+          delete: Delete events and reminders
   modules:
     planning: Calendar
     planning_backend: Calendar
@@ -59,6 +63,23 @@ backend:
       colour_out_of_range: "That colour is not in the palette."
       timezone_unknown: That time zone is unknown.
       window_invalid: "The requested range is not valid."
+    reminders:
+      title: Reminders
+      title_placeholder: "Call the client, reread the draft…"
+      new: New reminder
+      edit: Edit reminder
+      due: Due
+      due_placeholder: "The day and time it is due"
+      notes: Notes
+      notes_placeholder: "What you need to know to do it"
+      completed: Done
+      overdue: Overdue
+      all_day: "All day"
+      none: "No reminder in the range on screen."
+      notification: "%calendar% · it is time"
+      errors:
+        title_required: "The reminder needs a title."
+        due_required: "The reminder needs a due date."
     alerts:
       label: "Alerts"
       none: "No alert on this event."

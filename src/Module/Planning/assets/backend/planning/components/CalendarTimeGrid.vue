@@ -12,6 +12,7 @@
  * only here - the arithmetic never had to be told what a pixel is.
  */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { Check } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { HOURS, allDayBand, draftAt, layOutDay, nowOffset, timeAt, visibleDays } from "../composables/timeGrid.js";
 import { sameDay } from "../composables/monthGrid.js";
@@ -23,9 +24,11 @@ const props = defineProps({
     view: { type: String, required: true },
     /** Serialised events overlapping the window. */
     events: { type: Array, required: true },
+    /** Serialised reminders falling inside it. */
+    reminders: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(["open-event", "add-on"]);
+const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on"]);
 
 const { d, t } = useI18n();
 
@@ -86,6 +89,12 @@ function hourLabel(hour) {
     return d(new Date(2026, 0, 1, hour), { hour: "2-digit", minute: "2-digit" });
 }
 
+function remindersOn(day) {
+    return props.reminders
+        .filter((reminder) => sameDay(new Date(reminder.dueAt), day))
+        .sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
+}
+
 function timeOf(event) {
     return d(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" });
 }
@@ -132,6 +141,53 @@ function addAllDayOn(day) {
                         class="text-sm tabular-nums"
                         :class="isToday(day) ? 'rounded-full bg-accent-600 px-1.5 font-semibold text-white' : 'text-secondary'"
                     >{{ day.getDate() }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reminders, in their own strip rather than placed at their hour.
+             A reminder is owed by a time, not happening at one, so putting it in
+             the column would say it occupies fifteen minutes - and a ticked one
+             would still be sitting in the middle of the afternoon. -->
+        <div v-if="reminders.length" class="flex border-b border-line">
+            <span
+                class="w-14 shrink-0 border-r border-line px-2 py-1 text-2xs uppercase tracking-wider text-muted"
+            >{{ t("backend.plannings.reminders.title") }}</span>
+            <div class="grid flex-1" :style="{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }">
+                <div
+                    v-for="day in days"
+                    :key="`rem-${day.toISOString()}`"
+                    class="border-r border-line last:border-r-0 px-1.5 py-1 flex flex-col gap-1 min-w-0"
+                >
+                    <div
+                        v-for="reminder in remindersOn(day)"
+                        :key="reminder.id"
+                        class="flex items-center gap-1.5 text-2xs min-w-0"
+                    >
+                        <button
+                            type="button"
+                            class="shrink-0 w-3 h-3 rounded-sm border cursor-pointer transition-colors flex items-center justify-center"
+                            :class="reminder.completed ? 'border-transparent' : 'border-secondary hover:border-accent'"
+                            :style="reminder.completed
+                                ? { backgroundColor: `var(--chart-cat-${reminder.colourSlot})` }
+                                : {}"
+                            :aria-pressed="reminder.completed"
+                            :title="t('backend.plannings.reminders.completed')"
+                            v-on:click="emit('toggle-reminder', reminder)"
+                        >
+                            <Check v-if="reminder.completed" class="w-2.5 h-2.5 text-white" :stroke-width="3" />
+                        </button>
+                        <button
+                            type="button"
+                            class="min-w-0 truncate text-left cursor-pointer"
+                            :class="reminder.completed
+                                ? 'line-through text-muted'
+                                : (reminder.overdue ? 'text-red-500' : 'text-secondary')"
+                            v-on:click="emit('open-reminder', reminder)"
+                        >
+                            {{ reminder.title }}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

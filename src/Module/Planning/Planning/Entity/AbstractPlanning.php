@@ -7,6 +7,7 @@ namespace Aurora\Module\Planning\Planning\Entity;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Planning\Enum\PlanningVisibilityEnum;
+use Aurora\Module\Planning\Reminder\Entity\PlanningReminderInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -90,12 +91,23 @@ abstract class AbstractPlanning implements PlanningInterface
     #[ORM\OneToMany(targetEntity: PlanningEventInterface::class, mappedBy: 'planning', cascade: ['remove'], orphanRemoval: true)]
     protected Collection $events;
 
+    /**
+     * The calendar's reminders, which cascade with it for the same reason its
+     * events do: deleting a calendar deletes what was on it, and a reminder
+     * pointing at a calendar that is gone is a row nothing can reach.
+     *
+     * @var Collection<int, PlanningReminderInterface>
+     */
+    #[ORM\OneToMany(targetEntity: PlanningReminderInterface::class, mappedBy: 'planning', cascade: ['remove'], orphanRemoval: true)]
+    protected Collection $reminders;
+
     public function __construct()
     {
         // Initialised here rather than at the property, per
         // `convention_collection_on_concrete`: an uninitialised collection is
         // null and the first `add()` is a crash.
         $this->events = new ArrayCollection();
+        $this->reminders = new ArrayCollection();
     }
 
     public function getName(): string
@@ -204,5 +216,13 @@ abstract class AbstractPlanning implements PlanningInterface
     public function getEvents(): Collection
     {
         return $this->events;
+    }
+
+    /**
+     * @return Collection<int, PlanningReminderInterface>
+     */
+    public function getReminders(): Collection
+    {
+        return $this->reminders;
     }
 }

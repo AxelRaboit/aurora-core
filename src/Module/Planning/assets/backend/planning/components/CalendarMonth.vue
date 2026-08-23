@@ -14,6 +14,7 @@
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { Check } from "lucide-vue-next";
 import { layOutWeek, sameDay, timedEventsOn } from "../composables/monthGrid.js";
 import { defaultTimeOn, draftAt } from "../composables/timeGrid.js";
 
@@ -22,9 +23,11 @@ const props = defineProps({
     cells: { type: Array, required: true },
     /** Serialised events overlapping the grid's window. */
     events: { type: Array, required: true },
+    /** Serialised reminders falling inside it. */
+    reminders: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(["open-event", "add-on"]);
+const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on"]);
 
 const { t, d } = useI18n();
 
@@ -58,6 +61,19 @@ function isToday(date) {
 
 function timedOn(date) {
     return timedEventsOn(date, props.events);
+}
+
+/**
+ * The reminders due on one day, in order.
+ *
+ * Drawn under the timed events rather than mixed in by time: a reminder is not
+ * something happening at an hour, it is something owed by one - so grouping them
+ * reads as a small list of things to do on that day, which is what they are.
+ */
+function remindersOn(date) {
+    return props.reminders
+        .filter((reminder) => sameDay(new Date(reminder.dueAt), date))
+        .sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
 }
 
 function timeOf(event) {
@@ -116,6 +132,41 @@ function addOn(date) {
                         <span class="text-muted tabular-nums shrink-0">{{ timeOf(event) }}</span>
                         <span class="text-secondary truncate">{{ event.title }}</span>
                     </button>
+
+                    <!-- Reminders. A checkbox and not a dot, because the state
+                         is the point: an event is over when its time passes and a
+                         reminder is not, so it keeps showing until it is ticked. -->
+                    <div
+                        v-for="reminder in remindersOn(cell.date)"
+                        :key="`r-${reminder.id}`"
+                        class="flex items-center gap-1.5 text-2xs min-w-0"
+                    >
+                        <button
+                            type="button"
+                            class="shrink-0 w-3 h-3 rounded-sm border cursor-pointer transition-colors flex items-center justify-center"
+                            :class="reminder.completed
+                                ? 'border-transparent'
+                                : 'border-secondary hover:border-accent'"
+                            :style="reminder.completed
+                                ? { backgroundColor: `var(--chart-cat-${reminder.colourSlot})` }
+                                : {}"
+                            :aria-pressed="reminder.completed"
+                            :title="t('backend.plannings.reminders.completed')"
+                            v-on:click.stop="emit('toggle-reminder', reminder)"
+                        >
+                            <Check v-if="reminder.completed" class="w-2.5 h-2.5 text-white" :stroke-width="3" />
+                        </button>
+                        <button
+                            type="button"
+                            class="min-w-0 truncate text-left cursor-pointer"
+                            :class="reminder.completed
+                                ? 'line-through text-muted'
+                                : (reminder.overdue ? 'text-red-500' : 'text-secondary')"
+                            v-on:click.stop="emit('open-reminder', reminder)"
+                        >
+                            {{ reminder.title }}
+                        </button>
+                    </div>
 
                     <span
                         v-if="week.hiddenPerDay[week.cells.indexOf(cell)] > 0"

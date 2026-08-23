@@ -26,6 +26,10 @@ final readonly class PlanningEventSerializer
         $planning = $event->getPlanning();
 
         return [
+            // Stated, not inferred. The grids hold events and reminders in one
+            // list, and a discriminator in the payload beats every screen
+            // guessing the type from which fields happen to be present.
+            'kind' => 'event',
             'id' => $event->getId(),
             'title' => $event->getTitle(),
             'description' => $event->getDescription(),

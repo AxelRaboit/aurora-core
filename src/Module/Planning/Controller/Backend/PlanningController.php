@@ -19,6 +19,11 @@ use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Planning\Manager\PlanningManagerInterface;
 use Aurora\Module\Planning\Planning\Repository\PlanningRepository;
 use Aurora\Module\Planning\Planning\Serializer\PlanningSerializer;
+use Aurora\Module\Planning\Reminder\Dto\PlanningReminderInputFactoryInterface;
+use Aurora\Module\Planning\Reminder\Entity\PlanningReminder;
+use Aurora\Module\Planning\Reminder\Manager\PlanningReminderManagerInterface;
+use Aurora\Module\Planning\Reminder\Repository\PlanningReminderRepository;
+use Aurora\Module\Planning\Reminder\Serializer\PlanningReminderSerializer;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -54,6 +59,10 @@ final class PlanningController extends AbstractController
         private readonly PlanningEventManagerInterface $eventManager,
         private readonly PlanningInputFactoryInterface $planningInputFactory,
         private readonly PlanningEventInputFactoryInterface $eventInputFactory,
+        private readonly PlanningReminderRepository $reminderRepository,
+        private readonly PlanningReminderSerializer $reminderSerializer,
+        private readonly PlanningReminderManagerInterface $reminderManager,
+        private readonly PlanningReminderInputFactoryInterface $reminderInputFactory,
         private readonly PayloadValidator $payloadValidator,
     ) {}
 
@@ -93,8 +102,12 @@ final class PlanningController extends AbstractController
             $this->visibleCalendars(),
         );
 
+        // Both kinds in one response, because the screen asks for one window and
+        // draws both in the same grid. Two endpoints would be two round trips
+        // whose results have to arrive together to be drawn at all.
         return $this->json([
             'events' => $this->eventSerializer->serializeMany($this->eventRepository->findInWindow($ids, $from, $to)),
+            'reminders' => $this->reminderSerializer->serializeMany($this->reminderRepository->findInWindow($ids, $from, $to)),
         ]);
     }
 
@@ -227,6 +240,106 @@ final class PlanningController extends AbstractController
         }
 
         return null;
+    }
+
+    /**
+     * The reminder routes mirror the event ones, and reuse their privileges.
+     *
+     * Deliberately not `planning.reminders.*`: the authority is the same one -
+     * whether you may put things on a calendar you can see - and three more
+     * near-identical permissions would be three more rows nobody configures
+     * differently. The labels say "events and reminders" so the screen does not
+     * promise something narrower than it grants.
+     */
+    #[Route('/reminders/create', name: '_reminders_create', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('planning.events.create')]
+    public function createReminder(Request $request): JsonResponse
+    {
+        $data = $this->decodeJson($request);
+        $input = $this->reminderInputFactory->fromArray($data);
+
+        $errors = $this->payloadValidator->errors($input);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $planning = $this->writableCalendar($input->getPlanningId());
+        if (!$planning instanceof PlanningInterface) {
+            return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
+        }
+
+        return $this->jsonSuccess([
+            'reminder' => $this->reminderSerializer->serialize($this->reminderManager->create($input, $planning)),
+        ]);
+    }
+
+    #[Route('/reminders/{id}/update', name: '_reminders_update', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('planning.events.edit')]
+    public function updateReminder(PlanningReminder $reminder, Request $request): JsonResponse
+    {
+        if (!$this->canReach($reminder)) {
+            return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
+        }
+
+        $input = $this->reminderInputFactory->fromArray($this->decodeJson($request));
+
+        $errors = $this->payloadValidator->errors($input);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $planning = $this->writableCalendar($input->getPlanningId());
+        if (!$planning instanceof PlanningInterface) {
+            return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
+        }
+
+        $this->reminderManager->update($reminder, $input, $planning);
+
+        return $this->jsonSuccess(['reminder' => $this->reminderSerializer->serialize($reminder)]);
+    }
+
+    #[Route('/reminders/{id}/delete', name: '_reminders_delete', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('planning.events.delete')]
+    public function deleteReminder(PlanningReminder $reminder): JsonResponse
+    {
+        if (!$this->canReach($reminder)) {
+            return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
+        }
+
+        $this->reminderManager->delete($reminder);
+
+        return $this->jsonSuccess();
+    }
+
+    /**
+     * Ticking one off, which is an edit and not a deletion.
+     *
+     * Its own route rather than a field on update, because the grid's checkbox
+     * has nothing else to send - making it post a whole reminder would mean the
+     * grid holding every field of every row just to be able to tick one.
+     */
+    #[Route('/reminders/{id}/toggle', name: '_reminders_toggle', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('planning.events.edit')]
+    public function toggleReminder(PlanningReminder $reminder): JsonResponse
+    {
+        if (!$this->canReach($reminder)) {
+            return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
+        }
+
+        $this->reminderManager->toggle($reminder);
+
+        return $this->jsonSuccess(['reminder' => $this->reminderSerializer->serialize($reminder)]);
+    }
+
+    /**
+     * Whether the reader may act on this reminder at all.
+     *
+     * An id in a URL is a claim, the same way an id in a payload is: a reminder on
+     * a calendar nobody can see must not be reachable by guessing its number.
+     */
+    private function canReach(PlanningReminder $reminder): bool
+    {
+        return $this->writableCalendar((int) $reminder->getPlanning()->getId()) instanceof PlanningInterface;
     }
 
     private function date(mixed $value): ?DateTimeImmutable

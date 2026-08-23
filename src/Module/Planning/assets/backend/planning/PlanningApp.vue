@@ -9,7 +9,7 @@
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { CalendarPlus, ChevronLeft, ChevronRight, Pencil, Plus } from "lucide-vue-next";
+import { BellPlus, CalendarPlus, ChevronLeft, ChevronRight, Pencil, Plus } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -19,6 +19,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import CalendarModal from "./components/CalendarModal.vue";
 import CalendarMonth from "./components/CalendarMonth.vue";
 import CalendarTimeGrid from "./components/CalendarTimeGrid.vue";
+import ReminderModal from "./components/ReminderModal.vue";
 import EventModal from "./components/EventModal.vue";
 import { usePlanningCalendar } from "./composables/usePlanningCalendar.js";
 
@@ -30,6 +31,10 @@ const props = defineProps({
     updateCalendarPathTemplate: { type: String, required: true },
     deleteCalendarPathTemplate: { type: String, required: true },
     createEventPath: { type: String, required: true },
+    createReminderPath: { type: String, required: true },
+    updateReminderPathTemplate: { type: String, required: true },
+    deleteReminderPathTemplate: { type: String, required: true },
+    toggleReminderPathTemplate: { type: String, required: true },
     updateEventPathTemplate: { type: String, required: true },
     deleteEventPathTemplate: { type: String, required: true },
 });
@@ -41,6 +46,7 @@ const { request } = useRequest();
 const {
     calendars,
     visibleEvents,
+    visibleReminders,
     countsByCalendar,
     hidden,
     loading,
@@ -219,6 +225,76 @@ async function save(form) {
     }
 }
 
+const openReminder = ref(null);
+const reminderErrors = ref({});
+const savingReminder = ref(false);
+
+function createReminder(draft = {}) {
+    if (!canCreateEvents.value) {
+        return;
+    }
+
+    openReminder.value = draft;
+    reminderErrors.value = {};
+}
+
+function editReminder(reminder) {
+    openReminder.value = reminder;
+    reminderErrors.value = {};
+}
+
+function closeReminder() {
+    openReminder.value = null;
+}
+
+async function saveReminder(form) {
+    savingReminder.value = true;
+    reminderErrors.value = {};
+
+    try {
+        const id = openReminder.value?.id;
+        const path = id
+            ? props.updateReminderPathTemplate.replace("__id__", String(id))
+            : props.createReminderPath;
+
+        const data = await request(path, form);
+
+        if (!data) return;
+        if (data.errors) {
+            reminderErrors.value = data.errors;
+
+            return;
+        }
+
+        closeReminder();
+        await load();
+    } finally {
+        savingReminder.value = false;
+    }
+}
+
+async function removeReminderItem(reminder) {
+    const data = await request(props.deleteReminderPathTemplate.replace("__id__", String(reminder.id)));
+    if (!data) return;
+
+    closeReminder();
+    await load();
+}
+
+/**
+ * Ticking one off from the grid.
+ *
+ * Reloads rather than patching the row in place, because `overdue` is computed on
+ * the server - a client flipping `completed` itself would leave a reminder struck
+ * through and still red.
+ */
+async function toggleReminderItem(reminder) {
+    const data = await request(props.toggleReminderPathTemplate.replace("__id__", String(reminder.id)));
+    if (!data) return;
+
+    await load();
+}
+
 async function remove(event) {
     const data = await request(props.deleteEventPathTemplate.replace("__id__", String(event.id)));
     if (!data) return;
@@ -241,6 +317,19 @@ async function remove(event) {
                 v-on:click="create"
             >
                 <CalendarPlus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.plannings.events.new") }}
+            </AppButton>
+
+            <!-- Two buttons rather than one with a menu. There are exactly two
+                 kinds and both are used constantly, so hiding either behind a
+                 chevron costs a click every time to save a line of height once. -->
+            <AppButton
+                v-if="canCreateEvents"
+                variant="secondary"
+                size="md"
+                class="w-full"
+                v-on:click="createReminder"
+            >
+                <BellPlus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.plannings.reminders.new") }}
             </AppButton>
 
             <div class="bg-surface border border-line rounded-xl p-4 space-y-2.5">
@@ -378,7 +467,10 @@ async function remove(event) {
                 v-if="'month' === view"
                 :cells="cells"
                 :events="visibleEvents"
+                :reminders="visibleReminders"
                 v-on:open-event="viewEvent"
+                v-on:open-reminder="editReminder"
+                v-on:toggle-reminder="toggleReminderItem"
                 v-on:add-on="create"
             />
             <CalendarTimeGrid
@@ -386,10 +478,23 @@ async function remove(event) {
                 :anchor="anchor"
                 :view="view"
                 :events="visibleEvents"
+                :reminders="visibleReminders"
                 v-on:open-event="viewEvent"
+                v-on:open-reminder="editReminder"
+                v-on:toggle-reminder="toggleReminderItem"
                 v-on:add-on="create"
             />
         </div>
+
+        <ReminderModal
+            :reminder="openReminder"
+            :calendars="calendars"
+            :errors="reminderErrors"
+            :saving="savingReminder"
+            v-on:close="closeReminder"
+            v-on:save="saveReminder"
+            v-on:delete="removeReminderItem"
+        />
 
         <CalendarModal
             :calendar="openCalendar"

@@ -22,6 +22,7 @@ export function usePlanningCalendar(props) {
 
     const calendars = ref([...(props.calendars ?? [])]);
     const events = ref([]);
+    const reminders = ref([]);
     const loading = ref(false);
 
     /** Ids the reader has folded away. Absent means showing. */
@@ -94,6 +95,12 @@ export function usePlanningCalendar(props) {
         events.value.filter((event) => !hidden.value.has(event.planningId)),
     );
 
+    const visibleReminders = computed(() =>
+        reminders.value.filter(
+            (reminder) => !hidden.value.has(reminder.planningId),
+        ),
+    );
+
     /**
      * How many events each calendar has in the range on screen.
      *
@@ -113,8 +120,8 @@ export function usePlanningCalendar(props) {
     const countsByCalendar = computed(() => {
         const counts = {};
 
-        for (const event of events.value) {
-            counts[event.planningId] = (counts[event.planningId] ?? 0) + 1;
+        for (const item of [...events.value, ...reminders.value]) {
+            counts[item.planningId] = (counts[item.planningId] ?? 0) + 1;
         }
 
         return counts;
@@ -140,8 +147,13 @@ export function usePlanningCalendar(props) {
             // Left as it was on failure rather than emptied: `useRequest` has
             // already said something went wrong, and blanking the month would
             // make a network blip look like a month with nothing in it.
+            // Assigned separately and each guarded, because a response missing
+            // one key should leave that half as it was rather than emptying it.
             if (data?.events) {
                 events.value = data.events;
+            }
+            if (data?.reminders) {
+                reminders.value = data.reminders;
             }
         } finally {
             loading.value = false;
@@ -251,6 +263,8 @@ export function usePlanningCalendar(props) {
         calendars,
         events,
         visibleEvents,
+        reminders,
+        visibleReminders,
         countsByCalendar,
         hidden,
         loading,

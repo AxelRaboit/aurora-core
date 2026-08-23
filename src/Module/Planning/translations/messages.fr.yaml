@@ -10,6 +10,10 @@ backend:
           created: Événement créé
           updated: Événement modifié
           deleted: Événement supprimé
+        reminder:
+          created: Rappel créé
+          updated: Rappel modifié
+          deleted: Rappel supprimé
   permissions:
     names:
       planning:
@@ -17,9 +21,9 @@ backend:
           view: Voir le calendrier
           manage: Gérer les calendriers
         events:
-          create: Créer des événements
-          edit: Modifier des événements
-          delete: Supprimer des événements
+          create: Créer des événements et des rappels
+          edit: Modifier des événements et des rappels
+          delete: Supprimer des événements et des rappels
   modules:
     planning: Calendrier
     planning_backend: Calendrier
@@ -28,7 +32,7 @@ backend:
     sections:
       planning: Calendrier
     planning: Calendrier
-    planning_description: "Voir les événements des calendriers, en mois, semaine ou jour."
+    planning_description: "Voir les événements et les rappels des calendriers, en mois, semaine ou jour."
   plannings:
     title: Calendrier
     today: "Aujourd'hui"
@@ -59,6 +63,23 @@ backend:
       colour_out_of_range: "Cette couleur n'existe pas dans la palette."
       timezone_unknown: Ce fuseau horaire est inconnu.
       window_invalid: "La période demandée est invalide."
+    reminders:
+      title: Rappels
+      title_placeholder: "Appeler le client, relire le brouillon…"
+      new: Nouveau rappel
+      edit: Modifier le rappel
+      due: Échéance
+      due_placeholder: "Le jour et l'heure de l'échéance"
+      notes: Notes
+      notes_placeholder: "Ce qu'il faut savoir pour le faire"
+      completed: Terminé
+      overdue: En retard
+      all_day: "Toute la journée"
+      none: "Aucun rappel dans la période affichée."
+      notification: "%calendar% · c'est le moment"
+      errors:
+        title_required: "Le rappel a besoin d'un titre."
+        due_required: "Le rappel a besoin d'une échéance."
     alerts:
       label: "Alertes"
       none: "Aucune alerte pour cet événement."
