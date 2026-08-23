@@ -123,9 +123,9 @@ final class GalleryNormalizerTest extends TestCase
             ],
         ], $layout);
 
-        self::assertSame(['kept'], array_keys($content));
-        self::assertSame('Un mur', $content['kept']['alt']);
-        self::assertSame('Rue de la Paix', $content['kept']['caption']);
+        self::assertSame(['kept'], array_keys($content['items']));
+        self::assertSame('Un mur', $content['items']['kept']['alt']);
+        self::assertSame('Rue de la Paix', $content['items']['kept']['caption']);
     }
 
     /**
@@ -136,7 +136,7 @@ final class GalleryNormalizerTest extends TestCase
     {
         $layout = $this->normalizer->normalizeLayout(['items' => [['id' => 'a', 'mediaId' => 1]]]);
 
-        self::assertSame(['alt' => '', 'caption' => ''], $this->normalizer->normalizeContent(null, $layout)['a']);
+        self::assertSame(['alt' => '', 'caption' => ''], $this->normalizer->normalizeContent(null, $layout)['items']['a']);
     }
 
     /**
@@ -145,6 +145,53 @@ final class GalleryNormalizerTest extends TestCase
      */
     public function testAnEmptyLayoutIsNotAnError(): void
     {
-        self::assertSame([], $this->normalizer->normalizeContent(['items' => ['x' => []]], []));
+        self::assertSame(['items' => []], $this->normalizer->normalizeContent(['items' => ['x' => []]], []));
+    }
+
+    /**
+     * What it writes, it has to be able to read.
+     *
+     * It could not: it read `items` and returned the bare map, so the column
+     * stored a shape this method did not recognise. The next pass found no `items`
+     * key, emptied every caption, and the save after that wrote the blanks - an
+     * author's alt text disappeared on reload and was gone for good. Found while
+     * building the gallery-only screen, whose test asserted a caption survived and
+     * got an empty string.
+     *
+     * {@see GridNormalizer::normalizeContent()} was symmetric all along, which is
+     * what made the difference visible.
+     */
+    public function testWhatItWritesItCanReadBack(): void
+    {
+        $layout = $this->normalizer->normalizeLayout(['items' => [['id' => 'g1', 'mediaId' => 1]]]);
+
+        $once = $this->normalizer->normalizeContent(
+            ['items' => ['g1' => ['alt' => 'Un mur', 'caption' => 'Rue de la Paix']]],
+            $layout,
+        );
+
+        $twice = $this->normalizer->normalizeContent($once, $layout);
+
+        self::assertSame($once, $twice, 'a second pass must not empty what the first stored');
+        self::assertSame('Un mur', $twice['items']['g1']['alt']);
+    }
+
+    /**
+     * The bare map still reads, which is what recovers the rows written while it
+     * was asymmetric.
+     *
+     * Not ambiguous: item ids are strings and `items` is not one of them, so a
+     * payload with no `items` key is the map itself.
+     */
+    public function testTheShapeWrittenWhileItWasBrokenStillReads(): void
+    {
+        $layout = $this->normalizer->normalizeLayout(['items' => [['id' => 'g1', 'mediaId' => 1]]]);
+
+        $content = $this->normalizer->normalizeContent(
+            ['g1' => ['alt' => 'Écrit avant le correctif', 'caption' => '']],
+            $layout,
+        );
+
+        self::assertSame('Écrit avant le correctif', $content['items']['g1']['alt']);
     }
 }

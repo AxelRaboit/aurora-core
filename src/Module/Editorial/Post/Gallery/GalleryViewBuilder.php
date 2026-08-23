@@ -10,6 +10,8 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 
+use function is_array;
+
 /**
  * A stored gallery, resolved into what a template can draw.
  *
@@ -75,6 +77,12 @@ final readonly class GalleryViewBuilder
         $content = $this->normalizer->normalizeContent($rawContent, $layout);
         $documents = $this->documents($layout);
 
+        // Keyed by item id, under `items` since the normaliser became symmetric.
+        // Read from the normalised copy and not the raw one, which is what makes
+        // the shape a single question answered in a single place - including for
+        // rows written as a bare map while it was asymmetric.
+        $byId = is_array($content['items'] ?? null) ? $content['items'] : [];
+
         $items = [];
         foreach ($layout['items'] as $item) {
             $media = $documents[$item['mediaId']] ?? null;
@@ -82,7 +90,7 @@ final readonly class GalleryViewBuilder
                 continue;
             }
 
-            $words = $content[$item['id']] ?? ['alt' => '', 'caption' => ''];
+            $words = $byId[$item['id']] ?? ['alt' => '', 'caption' => ''];
             $picture = $this->picture($media, (string) $words['alt']);
 
             // A media the library no longer serves as an image drops out here

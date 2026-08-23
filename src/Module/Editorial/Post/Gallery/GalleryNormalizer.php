@@ -89,10 +89,22 @@ final class GalleryNormalizer
     }
 
     /**
-     * The words, for one language, keyed by item id.
+     * The words, for one language, keyed by item id under `items`.
      *
      * Takes the layout because that is what says which items exist: an image the
      * author removed must not keep its caption in five languages.
+     *
+     * **Symmetric, since it was not.** It read `items` and returned the bare map,
+     * so what it wrote could not be read back: the editor sent
+     * `{items: {g1: {alt: 'x'}}}`, the column stored `{g1: {alt: 'x'}}`, and the
+     * next pass through here found no `items` key and emptied every caption. The
+     * author saw their alt text vanish on reload, and the save after that wrote the
+     * blanks. {@see GridNormalizer::normalizeContent()} had it right all along -
+     * `['zones' => …]` in and out.
+     *
+     * The input still accepts the bare map, which is what recovers the rows written
+     * while it was broken. Absent `items` on a payload that *is* the map is not
+     * ambiguous: item ids are strings and `items` is not one of them.
      *
      * @param array<string, mixed> $layout an already-normalised layout
      *
@@ -101,7 +113,7 @@ final class GalleryNormalizer
     public function normalizeContent(mixed $raw, array $layout): array
     {
         $data = is_array($raw) ? $raw : [];
-        $stored = is_array($data['items'] ?? null) ? $data['items'] : [];
+        $stored = is_array($data['items'] ?? null) ? $data['items'] : $data;
 
         // Read defensively: no gallery at all is a legitimate argument, and
         // reaching for a missing key would turn it into a crash.
@@ -122,7 +134,7 @@ final class GalleryNormalizer
             ];
         }
 
-        return $content;
+        return ['items' => $content];
     }
 
     /**
