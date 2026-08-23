@@ -27,7 +27,7 @@ import {
     timeAt,
     visibleDays,
 } from "../composables/timeGrid.js";
-import { sameDay } from "../composables/monthGrid.js";
+import { dayKey, sameDay } from "../composables/monthGrid.js";
 
 const props = defineProps({
     /** Any date inside the range being shown. */
@@ -54,7 +54,7 @@ const band = computed(() => allDayBand(days.value, props.events));
 const columns = computed(() =>
     days.value.map((day) => ({
         day,
-        key: day.toISOString().slice(0, 10),
+        key: dayKey(day),
         blocks: layOutDay(day, props.events),
     })),
 );

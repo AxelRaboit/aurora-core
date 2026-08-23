@@ -12,11 +12,11 @@
  * separates a calendar from a list grouped by date. A meeting inside one day is a
  * dot and a time, because a cell with four filled chips is a wall of colour.
  */
-import { computed } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { Check } from "lucide-vue-next";
 import { countsPerDay, layOutWeek, sameDay, timedEventsOn } from "../composables/monthGrid.js";
-import { defaultTimeOn, draftAt } from "../composables/timeGrid.js";
+import { defaultTimeOn, draftAt, shiftedSpan } from "../composables/timeGrid.js";
 
 const props = defineProps({
     /** The 42 cells from `monthGrid`. */
@@ -37,7 +37,7 @@ const props = defineProps({
     selected: { type: Date, default: null },
 });
 
-const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on", "select-day"]);
+const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on", "select-day", "move-event"]);
 
 const { t, d } = useI18n();
 
@@ -129,6 +129,138 @@ function timeOf(event) {
  * the current clock - which would put a meeting at 23:45 for somebody working
  * late. The reader sees both ends in the form and can change either.
  */
+/**
+ * The drag in progress, or null.
+ *
+ * The month only moves things by whole days: an event dragged from Tuesday to
+ * Friday keeps its time, because the cell it lands in says nothing about hours.
+ */
+const drag = ref(null);
+
+const DRAG_THRESHOLD_PX = 4;
+
+/** Set when a drag ends, so the click the browser fires next does nothing. */
+let dragEndedWithMovement = false;
+
+/**
+ * The day a cell stands for, read back off the DOM.
+ *
+ * Computed from the pointer rather than from arithmetic on a row height, because
+ * the rows here are not all the same height - a week carrying two bars reserves
+ * two lanes and the one below it none.
+ */
+function dayUnder(x, y) {
+    const cell = document.elementFromPoint(x, y)?.closest("[data-day]");
+
+    return cell?.dataset.day ?? null;
+}
+
+/**
+ * Where the pointer grabbed, as a date.
+ *
+ * A chip lives inside its cell, so it can be asked. A bar is positioned over the
+ * whole week and has no cell to climb to, so its column comes from the pointer's
+ * position across a row that is - horizontally - seven equal parts.
+ */
+function grabbedDay(pointerEvent, week) {
+    const fromChip = pointerEvent.target.closest?.("[data-day]")?.dataset.day;
+    if (fromChip) {
+        return fromChip;
+    }
+
+    const row = pointerEvent.currentTarget.closest("[data-week]");
+    if (!row) {
+        return null;
+    }
+
+    const box = row.getBoundingClientRect();
+    const column = Math.min(6, Math.max(0, Math.floor((pointerEvent.clientX - box.left) / (box.width / 7))));
+
+    return week.cells[column]?.key ?? null;
+}
+
+function onEventPointerDown(event, week, pointerEvent) {
+    if (0 !== pointerEvent.button || event.readOnly) {
+        return;
+    }
+
+    const from = grabbedDay(pointerEvent, week);
+    if (null === from) {
+        return;
+    }
+
+    dragEndedWithMovement = false;
+    drag.value = {
+        event,
+        from,
+        originX: pointerEvent.clientX,
+        originY: pointerEvent.clientY,
+        moved: false,
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+}
+
+function onPointerMove(pointerEvent) {
+    const current = drag.value;
+    if (null === current) {
+        return;
+    }
+
+    if (
+        Math.abs(pointerEvent.clientX - current.originX) > DRAG_THRESHOLD_PX
+        || Math.abs(pointerEvent.clientY - current.originY) > DRAG_THRESHOLD_PX
+    ) {
+        current.moved = true;
+    }
+}
+
+function onPointerUp(pointerEvent) {
+    const current = drag.value;
+    drag.value = null;
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+
+    if (null === current || !current.moved) {
+        return;
+    }
+
+    dragEndedWithMovement = true;
+
+    const to = dayUnder(pointerEvent.clientX, pointerEvent.clientY);
+    if (null === to || to === current.from) {
+        // Dropped outside the grid, or back where it started. Nothing to save,
+        // and posting an unchanged span would log that somebody moved it.
+        return;
+    }
+
+    // Whole days, computed from the two dates rather than from pixels: the cells
+    // already told us which days these are.
+    const days = Math.round((new Date(to) - new Date(current.from)) / 86400000);
+
+    emit("move-event", {
+        id: current.event.id,
+        ...shiftedSpan(current.event.startAt, current.event.endAt, 0, days),
+    });
+}
+
+onBeforeUnmount(() => {
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+});
+
+/** Opening an event, unless the pointer was dragging it. */
+function onEventClick(event) {
+    if (dragEndedWithMovement) {
+        dragEndedWithMovement = false;
+
+        return;
+    }
+
+    emit("open-event", event);
+}
+
 function addOn(date) {
     emit("add-on", draftAt(defaultTimeOn(date)));
 }
@@ -147,7 +279,12 @@ function addOn(date) {
             </span>
         </div>
 
-        <div v-for="week in weeks" :key="week.row" class="relative border-b border-line last:border-b-0">
+        <div
+            v-for="week in weeks"
+            :key="week.row"
+            data-week
+            class="relative border-b border-line last:border-b-0"
+        >
             <!-- The day cells. Their padding-top leaves room for the bars, which
                  are positioned over the row rather than inside a cell: a bar
                  belongs to the week, and nesting it in the first day's cell would
@@ -156,6 +293,7 @@ function addOn(date) {
                 <div
                     v-for="cell in week.cells"
                     :key="cell.key"
+                    :data-day="cell.key"
                     class="border-r border-line last:border-r-0 flex flex-col cursor-pointer"
                     :class="[
                         compact
@@ -206,7 +344,9 @@ function addOn(date) {
                         :key="event.id"
                         type="button"
                         class="flex items-center gap-1.5 text-left text-2xs rounded px-0.5 py-px hover:bg-surface-2 transition-colors min-w-0"
-                        v-on:click.stop="emit('open-event', event)"
+                        :class="event.readOnly ? '' : 'cursor-grab'"
+                        v-on:pointerdown="onEventPointerDown(event, week, $event)"
+                        v-on:click.stop="onEventClick(event)"
                     >
                         <span
                             class="w-1.5 h-1.5 rounded-full shrink-0"
@@ -291,6 +431,7 @@ function addOn(date) {
                     :class="[
                         bar.continuesBefore ? '' : 'rounded-l',
                         bar.continuesAfter ? '' : 'rounded-r',
+                        bar.event.readOnly ? '' : 'cursor-grab',
                     ]"
                     :style="{
                         left: `calc(${(bar.from / 7) * 100}% + 0.25rem)`,
@@ -300,7 +441,8 @@ function addOn(date) {
                         color: `var(--chart-cat-${bar.event.colourSlot})`,
                         borderLeft: bar.continuesBefore ? 'none' : `2px solid var(--chart-cat-${bar.event.colourSlot})`,
                     }"
-                    v-on:click.stop="emit('open-event', bar.event)"
+                    v-on:pointerdown="onEventPointerDown(bar.event, week, $event)"
+                    v-on:click.stop="onEventClick(bar.event)"
                 >
                     {{ bar.event.title }}
                 </button>

@@ -93,3 +93,103 @@ describe("CalendarMonth", () => {
         expect(wrapper.emitted("add-on")).toBeFalsy();
     });
 });
+
+describe("dragging in the month grid", () => {
+    /**
+     * The cell a pointer is over, faked.
+     *
+     * jsdom has no layout, so `elementFromPoint` always answers null. The
+     * component asks the DOM which day it is over rather than dividing a row
+     * height, precisely because the rows are not all the same height - so the
+     * test has to stand in for the browser here.
+     */
+    function overCell(wrapper, day) {
+        const cell = wrapper.find(`[data-day="${day}"]`).element;
+        document.elementFromPoint = () => cell;
+    }
+
+    function pointer(target, type, init = {}) {
+        target.dispatchEvent(
+            new PointerEvent(type, { bubbles: true, ...init }),
+        );
+    }
+
+    function chip(wrapper) {
+        return wrapper.findAll(".cursor-grab")[0];
+    }
+
+    it("moves an event to the day it is dropped on, keeping its time", async () => {
+        const wrapper = mountMonth({
+            events: [event(1, "2026-08-24T09:00", "2026-08-24T10:00")],
+        });
+
+        overCell(wrapper, "2026-08-27");
+
+        pointer(chip(wrapper).element, "pointerdown", {
+            button: 0,
+            clientX: 10,
+            clientY: 10,
+        });
+        pointer(window, "pointermove", { clientX: 200, clientY: 10 });
+        pointer(window, "pointerup", { clientX: 200, clientY: 10 });
+        await wrapper.vm.$nextTick();
+
+        const moved = wrapper.emitted("move-event");
+        expect(moved).toBeTruthy();
+
+        const start = new Date(moved[0][0].startAt);
+        expect(start.getDate()).toBe(27);
+        // The cell said nothing about hours, so the time is untouched.
+        expect(start.getHours()).toBe(9);
+    });
+
+    it("says nothing when it is dropped back where it started", async () => {
+        const wrapper = mountMonth({
+            events: [event(1, "2026-08-24T09:00", "2026-08-24T10:00")],
+        });
+
+        overCell(wrapper, "2026-08-24");
+
+        pointer(chip(wrapper).element, "pointerdown", {
+            button: 0,
+            clientX: 10,
+            clientY: 10,
+        });
+        pointer(window, "pointermove", { clientX: 40, clientY: 10 });
+        pointer(window, "pointerup", { clientX: 40, clientY: 10 });
+        await wrapper.vm.$nextTick();
+
+        expect(wrapper.emitted("move-event")).toBeFalsy();
+    });
+
+    it("does not offer to move an event a module owns", () => {
+        const wrapper = mountMonth({
+            events: [
+                event(1, "2026-08-24T09:00", "2026-08-24T10:00", {
+                    readOnly: true,
+                }),
+            ],
+        });
+
+        expect(wrapper.findAll(".cursor-grab")).toHaveLength(0);
+    });
+
+    it("does not open the event after a drag", async () => {
+        const wrapper = mountMonth({
+            events: [event(1, "2026-08-24T09:00", "2026-08-24T10:00")],
+        });
+
+        overCell(wrapper, "2026-08-27");
+
+        pointer(chip(wrapper).element, "pointerdown", {
+            button: 0,
+            clientX: 10,
+            clientY: 10,
+        });
+        pointer(window, "pointermove", { clientX: 200, clientY: 10 });
+        pointer(window, "pointerup", { clientX: 200, clientY: 10 });
+        await chip(wrapper).trigger("click");
+
+        expect(wrapper.emitted("open-event")).toBeFalsy();
+    });
+});

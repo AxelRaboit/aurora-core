@@ -461,6 +461,7 @@ async function remove(event) {
                 v-on:toggle-reminder="toggleReminderItem"
                 v-on:add-on="create"
                 v-on:select-day="selectedDay = $event"
+                v-on:move-event="moveEvent"
             />
 
             <!-- The list under the compact grid. The grid says which days have

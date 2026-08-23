@@ -35,6 +35,23 @@ function addDays(date, days) {
     return copy;
 }
 
+/**
+ * A date as `YYYY-MM-DD`, on the local calendar.
+ *
+ * Not `toISOString().slice(0, 10)`, which is UTC: east of Greenwich a local
+ * midnight is the previous day there, so every key named the day before. It went
+ * unnoticed while these were only Vue keys - uniqueness was all they needed - and
+ * became a bug the moment a cell had to say which day it stands for.
+ *
+ * @param {Date} date
+ * @returns {string}
+ */
+export function dayKey(date) {
+    const pad = (n) => String(n).padStart(2, "0");
+
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 export function sameDay(a, b) {
     return (
         a.getFullYear() === b.getFullYear() &&
@@ -86,7 +103,7 @@ export function monthGrid(year, month) {
 
         return {
             date,
-            key: date.toISOString().slice(0, 10),
+            key: dayKey(date),
             dayOfMonth: date.getDate(),
             inMonth: date.getMonth() === month,
         };

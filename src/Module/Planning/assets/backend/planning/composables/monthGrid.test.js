@@ -3,6 +3,7 @@ import {
     MAX_LANES,
     WEEKS_SHOWN,
     countsPerDay,
+    dayKey,
     gridStart,
     gridWindow,
     itemsOn,
@@ -379,5 +380,29 @@ describe("itemsOn", () => {
         );
 
         expect(counts).toEqual([2, 0, 1, 0, 0, 0, 0]);
+    });
+});
+
+describe("dayKey", () => {
+    it("names the local day, not the UTC one", () => {
+        // `toISOString().slice(0, 10)` is UTC: east of Greenwich a local midnight
+        // is the previous day there, so every key named the day before. Harmless
+        // while these were only Vue keys, a bug the moment a cell had to say
+        // which day it stands for.
+        expect(dayKey(new Date(2026, 7, 24))).toBe("2026-08-24");
+        expect(dayKey(new Date(2026, 7, 24, 23, 59))).toBe("2026-08-24");
+        expect(dayKey(new Date(2026, 0, 1))).toBe("2026-01-01");
+    });
+
+    it("pads a single-digit month and day", () => {
+        expect(dayKey(new Date(2026, 8, 5))).toBe("2026-09-05");
+    });
+
+    it("agrees with the grid's own cells", () => {
+        const cells = monthGrid(2026, 7);
+
+        for (const cell of cells) {
+            expect(cell.key).toBe(dayKey(cell.date));
+        }
     });
 });
