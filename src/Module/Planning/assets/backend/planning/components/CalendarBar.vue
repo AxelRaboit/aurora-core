@@ -10,18 +10,19 @@
  *
  * One row and not a stack, deliberately: a calendar wants height as much as width,
  * so a header that grew to three rows would give with one hand and take with the
- * other. Everything here either shrinks or scrolls.
+ * other. Nothing here scrolls or truncates either - the first version laid the
+ * calendars out as pills across the bar, and with seven of them the row scrolled
+ * sideways and clipped names mid-word. They live behind `CalendarPicker` now.
  *
  * The phone keeps the column shape in a sheet - see `CalendarSidebar` - because at
  * 375px a pill row would scroll further than the grid it is filtering.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { BellPlus, CalendarPlus, Plus } from "lucide-vue-next";
+import { BellPlus, CalendarPlus } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
-import CalendarToggle from "./CalendarToggle.vue";
+import CalendarPicker from "./CalendarPicker.vue";
 
 const props = defineProps({
     calendars: { type: Array, required: true },
@@ -77,34 +78,12 @@ const zoneOptions = computed(() =>
             {{ t("backend.plannings.reminders.new") }}
         </AppButton>
 
-        <!-- The one thing allowed to scroll. A reader with fifteen calendars is
-             filtering, not reading, so a horizontal scroll here is better than
-             wrapping the whole bar onto a second line and shortening the grid for
-             everybody else. -->
-        <div
-            v-if="calendars.length"
-            class="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto"
-        >
-            <CalendarToggle
-                v-for="calendar in calendars"
-                :key="calendar.id"
-                pill
-                class="shrink-0"
-                :calendar="calendar"
-                :hidden="hidden.has(calendar.id)"
-                :count="countsByCalendar[calendar.id] ?? 0"
-                :can-manage="canManageCalendars"
-                v-on:toggle="emit('toggle-calendar', $event)"
-                v-on:edit="emit('edit-calendar', $event)"
-            />
-        </div>
-
         <!-- The empty state used to be the end of the road: no calendar meant no
              way to make one, and the create buttons above are hidden without one.
-             Spelled out here rather than shown as a bare `+`, because somebody
-             with no calendars has nothing on screen to explain the icon. -->
+             Spelled out rather than left to the picker, because somebody with no
+             calendars should not have to open a filter to find the way out. -->
         <AppButton
-            v-else-if="canManageCalendars"
+            v-if="!calendars.length && canManageCalendars"
             variant="primary"
             size="sm"
             class="shrink-0"
@@ -113,16 +92,18 @@ const zoneOptions = computed(() =>
             <CalendarPlus class="h-4 w-4" :stroke-width="2" />
             {{ t("backend.plannings.new_calendar") }}
         </AppButton>
-        <span v-else class="flex-1" />
 
-        <AppIconButton
-            v-if="canManageCalendars && calendars.length"
-            class="shrink-0"
-            :title="t('backend.plannings.new_calendar')"
-            v-on:click="emit('create-calendar')"
-        >
-            <Plus class="h-4 w-4" :stroke-width="2" />
-        </AppIconButton>
+        <span class="flex-1" />
+
+        <CalendarPicker
+            :calendars="calendars"
+            :hidden="hidden"
+            :counts-by-calendar="countsByCalendar"
+            :can-manage-calendars="canManageCalendars"
+            v-on:create-calendar="emit('create-calendar')"
+            v-on:edit-calendar="emit('edit-calendar', $event)"
+            v-on:toggle-calendar="emit('toggle-calendar', $event)"
+        />
 
         <!-- One zone for the screen, not one per calendar: a grid shows several at
              once and a "Tuesday" column cannot be Tuesday in two zones. Unlabelled

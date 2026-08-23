@@ -83,10 +83,4 @@ describe("CalendarToggle", () => {
             mountToggle({ count: 4, canManage: false }).html(),
         ).not.toContain("group-hover:hidden");
     });
-
-    /** The bar's shape carries its own border; the sheet's row spans the width. */
-    it("takes a border as a pill and none as a row", () => {
-        expect(mountToggle({ pill: true }).classes()).toContain("border");
-        expect(mountToggle().classes()).not.toContain("border");
-    });
 });

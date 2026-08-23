@@ -2,12 +2,11 @@
 /**
  * One calendar, as something you can fold away, count and edit.
  *
- * Extracted because the same calendar is drawn in two shapes: a row in the sheet
- * on a phone, and a pill in the bar above the grid on a wide screen. What is
- * shared is not the chrome - a row and a pill look nothing alike - but everything
- * that has behaviour: the swatch that becomes an outline when hidden, the count
- * that gives way to the pencil on hover, and `aria-pressed`. Those are what change
- * when the feature changes, so those are what live in one place.
+ * Extracted because the same row is drawn in two places: the sheet on a phone and
+ * the picker's panel on a wide screen. Same shape in both, so there is no variant
+ * to configure - what it holds is the behaviour, which is where the churn is: the
+ * swatch that becomes an outline when hidden, the count that gives way to the
+ * pencil on hover, and `aria-pressed`.
  */
 import { useI18n } from "vue-i18n";
 import { Pencil } from "lucide-vue-next";
@@ -18,14 +17,6 @@ const props = defineProps({
     /** Items in the range on screen. Falsy means draw no number. */
     count: { type: Number, default: 0 },
     canManage: { type: Boolean, default: false },
-    /**
-     * A pill in the bar rather than a row in the sheet.
-     *
-     * The bar sits on one line beside everything else, so a pill carries its own
-     * border and shrinks to its content; a sheet row spans the width and lines its
-     * names up in a column.
-     */
-    pill: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["toggle", "edit"]);
@@ -49,25 +40,19 @@ function swatch() {
 <template>
     <div
         class="group flex items-center gap-2 text-sm transition-opacity"
-        :class="[
-            hidden ? 'opacity-40' : '',
-            pill ? 'rounded-lg border border-line bg-surface py-1 pe-2 ps-2.5' : '',
-        ]"
+        :class="hidden ? 'opacity-40' : ''"
     >
         <!-- A row holding two actions, not a button: the name toggles and the
              pencil edits, and a button inside a button is invalid HTML whose inner
              one never fires. -->
         <button
             type="button"
-            class="flex min-w-0 items-center gap-2 text-left cursor-pointer"
-            :class="pill ? '' : 'flex-1'"
+            class="flex min-w-0 flex-1 items-center gap-2 text-left cursor-pointer"
             :aria-pressed="!hidden"
             v-on:click="emit('toggle', calendar.id)"
         >
             <span class="h-3 w-3 shrink-0 rounded" :style="swatch()" />
-            <span class="truncate text-secondary" :class="pill ? 'max-w-32' : ''">
-                {{ calendar.name }}
-            </span>
+            <span class="truncate text-secondary">{{ calendar.name }}</span>
         </button>
 
         <!-- Events in the range on screen, not a lifetime total. Titled, because a
