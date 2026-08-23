@@ -123,7 +123,7 @@ backend:
     locales: Langues
     saved: Enregistré
     no_photos: Aucune photo
-    photo_count: "{count, plural, one {# photo} other {# photos}}"
+    photo_count: '1 photo | {count} photos'
   nav:
     sections:
       editorial: Éditorial

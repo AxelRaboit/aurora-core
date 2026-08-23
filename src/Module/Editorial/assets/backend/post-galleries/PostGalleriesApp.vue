@@ -76,7 +76,11 @@ function editPath(post) {
                     :class="post.galleryItemCount ? 'text-secondary' : 'text-muted'"
                 >
                     {{ post.galleryItemCount
-                        ? t("backend.post_galleries.photo_count", { count: post.galleryItemCount })
+                        ? t(
+                            "backend.post_galleries.photo_count",
+                            { count: post.galleryItemCount },
+                            post.galleryItemCount,
+                        )
                         : t("backend.post_galleries.no_photos") }}
                 </span>
 
