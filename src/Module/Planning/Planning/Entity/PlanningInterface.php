@@ -36,6 +36,12 @@ interface PlanningInterface
 
     public function setTimezone(string $timezone): static;
 
+    public function getSourceType(): ?string;
+
+    public function setSourceType(?string $sourceType): static;
+
+    public function isFromModule(): bool;
+
     public function getVisibility(): PlanningVisibilityEnum;
 
     public function setVisibility(PlanningVisibilityEnum $visibility): static;

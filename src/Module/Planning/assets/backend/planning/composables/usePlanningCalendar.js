@@ -94,6 +94,32 @@ export function usePlanningCalendar(props) {
         events.value.filter((event) => !hidden.value.has(event.planningId)),
     );
 
+    /**
+     * How many events each calendar has in the range on screen.
+     *
+     * Counted from what is loaded rather than sent by the server, and the
+     * difference is that this one is right. A total serialised with the calendar
+     * list is a snapshot: writing an event refetches the events and not the
+     * calendars, so a calendar you had just filled went on reporting nothing.
+     *
+     * It also changes what the number means, to the more useful of the two: not
+     * "everything this calendar has ever held", which nobody can act on, but "how
+     * much of it is in what you are looking at" - which is what you weigh before
+     * folding it away.
+     *
+     * Counts `events` and not `visibleEvents`: a folded calendar still has to say
+     * what is in it, or there is no way to tell whether unfolding it is worth it.
+     */
+    const countsByCalendar = computed(() => {
+        const counts = {};
+
+        for (const event of events.value) {
+            counts[event.planningId] = (counts[event.planningId] ?? 0) + 1;
+        }
+
+        return counts;
+    });
+
     async function load() {
         loading.value = true;
 
@@ -225,6 +251,7 @@ export function usePlanningCalendar(props) {
         calendars,
         events,
         visibleEvents,
+        countsByCalendar,
         hidden,
         loading,
         year,

@@ -14,6 +14,12 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * `var(--chart-cat-N)`, which is what lets the same calendar be legible in both
  * themes. Sending a resolved colour from here would freeze it to whichever theme
  * the request happened to be in.
+ *
+ * No event count. It used to send one, and it was wrong twice over: a lifetime
+ * total computed here is a COUNT query per calendar on every page load, and it
+ * is a snapshot - creating an event does not reload the calendar list, so a
+ * calendar you had just filled kept saying nothing was in it. The screen counts
+ * the events it already holds instead.
  */
 final readonly class PlanningSerializer
 {
@@ -31,7 +37,6 @@ final readonly class PlanningSerializer
             'visibility' => $planning->getVisibility()->value,
             'visibilityLabel' => $this->translator->trans($planning->getVisibility()->getLabelKey()),
             'ownerName' => $planning->getOwner()?->getName(),
-            'eventCount' => $planning->getEvents()->count(),
         ];
     }
 

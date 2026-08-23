@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Post\Manager;
 
+use Aurora\Core\Scheduling\Event\EntityScheduledEvent;
+use Aurora\Core\Scheduling\Event\EntityUnscheduledEvent;
 use Aurora\Core\Sequence\SequenceGenerator;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
@@ -38,7 +40,9 @@ use Exception;
 use InvalidArgumentException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use const DATE_ATOM;
@@ -46,6 +50,14 @@ use const DATE_ATOM;
 #[AsAlias(PostManagerInterface::class)]
 class PostManager implements PostManagerInterface
 {
+    /**
+     * How this module names itself to the rest of the application.
+     *
+     * A constant because it is half of an identity stored in another module's
+     * table: change the string and every synced calendar entry orphans itself.
+     */
+    private const string SCHEDULE_SOURCE = 'editorial.post';
+
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly PostRepository $postRepository,
@@ -64,6 +76,8 @@ class PostManager implements PostManagerInterface
         protected readonly BannerNormalizer $bannerNormalizer,
         protected readonly GridNormalizer $gridNormalizer,
         protected readonly GalleryNormalizer $galleryNormalizer,
+        protected readonly EventDispatcherInterface $eventDispatcher,
+        protected readonly UrlGeneratorInterface $urlGenerator,
     ) {}
 
     public function create(PostInputInterface $input): PostInterface
@@ -84,6 +98,7 @@ class PostManager implements PostManagerInterface
         $this->entityManager->flush();
 
         $this->auditCreated($post);
+        $this->syncSchedule($post);
 
         return $post;
     }
@@ -101,6 +116,7 @@ class PostManager implements PostManagerInterface
         $this->snapshotRevision($post);
 
         $this->auditUpdated($post);
+        $this->syncSchedule($post);
     }
 
     public function delete(PostInterface $post): void
@@ -113,6 +129,7 @@ class PostManager implements PostManagerInterface
         $this->entityManager->flush();
 
         $this->auditDeleted($post);
+        $this->syncSchedule($post);
     }
 
     public function restore(PostInterface $post): void
@@ -121,12 +138,15 @@ class PostManager implements PostManagerInterface
         $this->entityManager->flush();
 
         $this->auditLogger->log('editorial', 'post.restored', 'Post', $post->getId(), $this->auditPayload($post));
+        $this->syncSchedule($post);
     }
 
     public function forceDelete(PostInterface $post): void
     {
-        // Logged before the remove: afterwards the id is gone.
+        // Both before the remove: afterwards the id is gone, and the calendar
+        // needs it to find the entry it has to drop.
         $this->auditLogger->log('editorial', 'post.force_deleted', 'Post', $post->getId(), $this->auditPayload($post));
+        $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(self::SCHEDULE_SOURCE, (int) $post->getId()));
 
         $this->entityManager->remove($post);
         $this->entityManager->flush();
@@ -146,6 +166,11 @@ class PostManager implements PostManagerInterface
             ...$this->auditPayload($post),
             'revisionId' => $revision->getId(),
         ]);
+
+        // A snapshot carries `scheduledAt`, so stepping back can move the date or
+        // remove it. Easy to forget, and forgetting it leaves a calendar entry on
+        // a day the post no longer claims.
+        $this->syncSchedule($post);
     }
 
     public function emptyTrash(): int
@@ -157,12 +182,59 @@ class PostManager implements PostManagerInterface
 
         foreach ($posts as $post) {
             $this->auditLogger->log('editorial', 'post.force_deleted', 'Post', $post->getId(), $this->auditPayload($post));
+            $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(self::SCHEDULE_SOURCE, (int) $post->getId()));
             $this->entityManager->remove($post);
         }
 
         $this->entityManager->flush();
 
         return count($posts);
+    }
+
+    /**
+     * Tells whoever is listening whether this post has a date.
+     *
+     * The calendar module listens, and nothing here knows that: the signal goes
+     * into core, so Editorial and Planning never depend on one another and with
+     * no calendar installed this is a no-op. Same shape as the contact signal.
+     *
+     * Announced whenever the post has a `scheduledAt` and is not in the trash -
+     * published included. A publication that went out on the 14th is still a date
+     * somebody set, and having the entry vanish at the moment it happened would
+     * empty the past for no reason a reader could work out.
+     *
+     * Called explicitly from each write rather than from a Doctrine listener.
+     * The listener would catch every path for free, including fixtures, but the
+     * calendar's write is a flush of its own - and a flush inside a flush is the
+     * oldest trap in this ORM. Explicit calls are the honest trade: more places
+     * to remember, and a test that names each one.
+     */
+    protected function syncSchedule(PostInterface $post): void
+    {
+        $id = $post->getId();
+        if (null === $id) {
+            return;
+        }
+
+        $scheduledAt = $post->getScheduledAt();
+
+        if (!$scheduledAt instanceof DateTimeImmutable || $post->isTrashed()) {
+            $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(self::SCHEDULE_SOURCE, $id));
+
+            return;
+        }
+
+        $this->eventDispatcher->dispatch(new EntityScheduledEvent(
+            sourceType: self::SCHEDULE_SOURCE,
+            sourceId: $id,
+            // Untitled drafts exist, and a calendar entry with an empty label
+            // would be an unclickable sliver. Named for what it is instead.
+            label: $this->anyTitle($post) ?? $this->translator->trans('backend.posts.untitled'),
+            startAt: $scheduledAt,
+            calendarName: $this->translator->trans('backend.posts.calendar_name'),
+            sourceLabel: $this->translator->trans('backend.nav.sections.editorial'),
+            url: $this->urlGenerator->generate('backend_editorial_posts_edit', ['id' => $id]),
+        ));
     }
 
     public function demoteIfNotPublishable(PostInputInterface $input, ?PostInterface $post = null): PostInputInterface
@@ -314,15 +386,27 @@ class PostManager implements PostManagerInterface
     /** @return array<string, mixed> */
     protected function auditPayload(PostInterface $post): array
     {
-        $title = null;
+        return ['title' => $this->anyTitle($post), 'status' => $post->getStatus()->value];
+    }
+
+    /**
+     * The post's title in whichever language has one.
+     *
+     * A post is translated, so there is no single title; the first one that
+     * exists is what a log line or a calendar entry can honestly show. Shared by
+     * both rather than written twice, because a post with a title in one language
+     * and not another should not read differently in the two places.
+     */
+    protected function anyTitle(PostInterface $post): ?string
+    {
         foreach ($post->getTranslations() as $translation) {
             $title = $translation->getTitle();
             if (null !== $title) {
-                break;
+                return $title;
             }
         }
 
-        return ['title' => $title, 'status' => $post->getStatus()->value];
+        return null;
     }
 
     // ── Internals ─────────────────────────────────────────────────────────────

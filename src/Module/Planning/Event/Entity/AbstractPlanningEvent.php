@@ -77,6 +77,17 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
     protected ?string $sourceLabel = null;
 
     /**
+     * Where to send a reader who wants the thing itself.
+     *
+     * Separate from the label because they answer different questions - what this
+     * came from, and where it lives. An event a module owns cannot be edited
+     * here, so going to the source is the only useful gesture left, and without
+     * this column the screen could only name it.
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    protected ?string $sourceUrl = null;
+
+    /**
      * @var Collection<int, PlanningEventReminderInterface>
      */
     #[ORM\OneToMany(targetEntity: PlanningEventReminderInterface::class, mappedBy: 'event', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -280,6 +291,18 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
      * event from a module has no Edit and no Delete, because it reflects a date
      * that lives somewhere else and the only useful gesture is to go there.
      */
+    public function getSourceUrl(): ?string
+    {
+        return $this->sourceUrl;
+    }
+
+    public function setSourceUrl(?string $sourceUrl): static
+    {
+        $this->sourceUrl = $sourceUrl;
+
+        return $this;
+    }
+
     public function isFromModule(): bool
     {
         return null !== $this->sourceType && null !== $this->sourceId;

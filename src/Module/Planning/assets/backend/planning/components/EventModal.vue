@@ -14,7 +14,7 @@
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Bell, MapPin, Pencil, Trash2 } from "lucide-vue-next";
+import { Bell, ExternalLink, Globe, MapPin, Pencil, Trash2 } from "lucide-vue-next";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -25,7 +25,7 @@ import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import { DEFAULT_REMINDER_OFFSET, REMINDER_OFFSETS, reminderLabel, toggleReminder } from "../composables/reminderOffsets.js";
-import { toInstant, toPickerValue } from "../composables/eventTime.js";
+import { toInstant, toPickerValue, zoneDiffersFromViewer } from "../composables/eventTime.js";
 
 const props = defineProps({
     /** The event being looked at, or null when the modal is closed. */
@@ -67,14 +67,18 @@ watch(
     () => {
         if (!props.editing) return;
 
+        const eventZone = props.event?.id
+            ? (props.calendars.find((calendar) => calendar.id === props.event.planningId)?.timezone ?? "")
+            : "";
+
         form.value = props.event?.id
             ? {
                 planningId: props.event.planningId,
                 title: props.event.title,
                 description: props.event.description ?? "",
                 location: props.event.location ?? "",
-                startAt: toPickerValue(props.event.startAt),
-                endAt: toPickerValue(props.event.endAt),
+                startAt: toPickerValue(props.event.startAt, eventZone),
+                endAt: toPickerValue(props.event.endAt, eventZone),
                 allDay: props.event.allDay,
                 status: props.event.status,
                 reminders: [...(props.event.reminders ?? [])],
@@ -83,6 +87,31 @@ watch(
     },
     { immediate: true },
 );
+
+/**
+ * The zone the form's two times mean, taken from the calendar they land in.
+ *
+ * The calendar carries a timezone, so "10:00" on it means 10:00 there - not
+ * 10:00 wherever the person filling the form happens to be sitting. Before this
+ * the picker was read in the browser's zone, which is the same answer only for
+ * as long as everybody shares one.
+ *
+ * Read off the form's own calendar picker rather than the event's stored one, so
+ * moving an event to a calendar in another zone reinterprets its times the moment
+ * the reader chooses - which is the only point at which they can see it happen.
+ */
+const zone = computed(
+    () => props.calendars.find((calendar) => calendar.id === form.value.planningId)?.timezone ?? "",
+);
+
+/**
+ * Whether the form has to name the zone.
+ *
+ * Saying "Europe/Paris" under a field a reader in Paris is filling in is noise.
+ * Leaving it out when they are somewhere else lets them type the wrong time and
+ * see no reason why.
+ */
+const showZone = computed(() => zoneDiffersFromViewer(zone.value));
 
 const calendarOptions = computed(() =>
     props.calendars.map((calendar) => ({ value: calendar.id, label: calendar.name })),
@@ -113,8 +142,8 @@ const reminderSummary = computed(() =>
 function payload() {
     return {
         ...form.value,
-        startAt: toInstant(form.value.startAt),
-        endAt: toInstant(form.value.endAt),
+        startAt: toInstant(form.value.startAt, zone.value),
+        endAt: toInstant(form.value.endAt, zone.value),
     };
 }
 
@@ -122,11 +151,21 @@ const when = computed(() => {
     if (!props.event) return "";
 
     const start = new Date(props.event.startAt);
+    // The calendar's zone, so the read view agrees with the form that wrote it.
+    // A reader who typed 10:00 and is shown 04:00 has no way to tell whether the
+    // save was wrong or the display is.
+    const eventZone =
+        props.calendars.find((calendar) => calendar.id === props.event.planningId)?.timezone ?? "";
+    const inZone = eventZone ? { timeZone: eventZone } : {};
+
     if (props.event.allDay) {
-        return `${d(start, "long")} · ${t("backend.plannings.events.all_day")}`;
+        return `${d(start, { dateStyle: "long", ...inZone })} · ${t("backend.plannings.events.all_day")}`;
     }
 
-    return `${d(start, "long")} · ${d(start, { hour: "2-digit", minute: "2-digit" })}`;
+    const clock = d(start, { hour: "2-digit", minute: "2-digit", ...inZone });
+    const suffix = zoneDiffersFromViewer(eventZone) ? ` (${eventZone})` : "";
+
+    return `${d(start, { dateStyle: "long", ...inZone })} · ${clock}${suffix}`;
 });
 </script>
 
@@ -167,9 +206,22 @@ const when = computed(() => {
             <!-- An event a module pushed says where it came from and offers
                  nothing else: it reflects a date that lives elsewhere, and the
                  only useful gesture is to go to the source. -->
-            <p v-if="event.readOnly" class="text-xs text-muted">
-                {{ t("backend.plannings.events.from_module") }}{{ event.sourceLabel ? ` · ${event.sourceLabel}` : "" }}
-            </p>
+            <template v-if="event.readOnly">
+                <p class="text-xs text-muted">
+                    {{ t("backend.plannings.events.from_module") }}{{ event.sourceLabel ? ` · ${event.sourceLabel}` : "" }}
+                </p>
+                <!-- The only useful gesture on an event a module owns. Editing it
+                     here would be undone by the source's next announcement, which
+                     is why the manager refuses it. -->
+                <a
+                    v-if="event.sourceUrl"
+                    :href="event.sourceUrl"
+                    class="inline-flex items-center gap-1.5 text-sm text-accent-600 hover:underline"
+                >
+                    <ExternalLink class="w-3.5 h-3.5 shrink-0" :stroke-width="2" />
+                    {{ t("backend.plannings.events.open_source") }}
+                </a>
+            </template>
         </div>
 
         <!-- Form -->
@@ -208,6 +260,11 @@ const when = computed(() => {
                     :error="errors.endAt"
                 />
             </div>
+
+            <p v-if="showZone" class="flex items-center gap-1.5 -mt-1.5 text-xs text-muted">
+                <Globe class="w-3.5 h-3.5 shrink-0" :stroke-width="2" />
+                {{ t("backend.plannings.events.in_zone", { zone }) }}
+            </p>
             <AppInput
                 v-model="form.location"
                 :label="t('backend.plannings.events.location')"

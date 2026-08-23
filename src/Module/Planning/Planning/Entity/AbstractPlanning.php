@@ -63,6 +63,20 @@ abstract class AbstractPlanning implements PlanningInterface
     protected PlanningVisibilityEnum $visibility = PlanningVisibilityEnum::Private;
 
     /**
+     * Set when a module owns this calendar rather than a person.
+     *
+     * One per source ('editorial.post'), unique, so a module announcing its
+     * dates always lands them in the same place - and a reader can fold that
+     * place away without folding away their own calendars.
+     *
+     * Null for every calendar somebody made. That is the common case, and it is
+     * why this is a nullable column rather than a third visibility: who owns a
+     * calendar and who may see it are two questions.
+     */
+    #[ORM\Column(length: 64, nullable: true)]
+    protected ?string $sourceType = null;
+
+    /**
      * Nullable, and stays nullable: deleting the account that made a calendar
      * must not take a team's shared calendar with it.
      */
@@ -134,6 +148,30 @@ abstract class AbstractPlanning implements PlanningInterface
         $this->timezone = $timezone;
 
         return $this;
+    }
+
+    public function getSourceType(): ?string
+    {
+        return $this->sourceType;
+    }
+
+    public function setSourceType(?string $sourceType): static
+    {
+        $this->sourceType = $sourceType;
+
+        return $this;
+    }
+
+    /**
+     * A calendar a module fills is not one a person edits.
+     *
+     * Asked by the screen so it can leave out the pencil, and by the manager so
+     * a request that arrives without one is still refused - the same split the
+     * events already use.
+     */
+    public function isFromModule(): bool
+    {
+        return null !== $this->sourceType;
     }
 
     public function getVisibility(): PlanningVisibilityEnum

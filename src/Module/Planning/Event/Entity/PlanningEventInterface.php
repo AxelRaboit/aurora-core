@@ -51,6 +51,10 @@ interface PlanningEventInterface
 
     public function setSource(?string $sourceType, ?int $sourceId, ?string $sourceLabel): static;
 
+    public function getSourceUrl(): ?string;
+
+    public function setSourceUrl(?string $sourceUrl): static;
+
     public function isFromModule(): bool;
 
     /**

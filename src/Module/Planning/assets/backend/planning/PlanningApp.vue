@@ -41,6 +41,7 @@ const { request } = useRequest();
 const {
     calendars,
     visibleEvents,
+    countsByCalendar,
     hidden,
     loading,
     year,
@@ -292,8 +293,14 @@ async function remove(event) {
                         <span class="text-secondary truncate">{{ calendar.name }}</span>
                     </button>
 
-                    <span class="text-2xs text-muted tabular-nums shrink-0 group-hover:hidden">
-                        {{ calendar.eventCount }}
+                    <!-- Events in the range on screen, not a lifetime total.
+                         Titled, because a bare number next to a calendar reads
+                         as "everything in it" and this one moves as you page. -->
+                    <span
+                        class="text-2xs text-muted tabular-nums shrink-0 group-hover:hidden"
+                        :title="t('backend.plannings.events_in_range')"
+                    >
+                        {{ countsByCalendar[calendar.id] ?? 0 }}
                     </span>
                     <!-- Takes the count's place on hover rather than sitting
                          beside it, so the row does not change width and the

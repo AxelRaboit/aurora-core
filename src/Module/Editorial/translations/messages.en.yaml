@@ -494,6 +494,7 @@ backend:
     meta_title_placeholder: "About 60 characters"
     meta_description_placeholder: "About 155 characters"
     scheduled_at_placeholder: "DD/MM/YYYY HH:MM"
+    calendar_name: Publications
     alt_placeholder: "What the picture shows"
     caption_placeholder: "A line under the picture"
   taxonomies:

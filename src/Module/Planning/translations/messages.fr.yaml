@@ -44,6 +44,7 @@ backend:
     colour_slot: "Couleur {slot}"
     visibility_hint: "Un calendrier partagé est visible par tous ceux qui ont accès au calendrier."
     timezone_hint: "Le fuseau qui découpe les journées entières de ce calendrier."
+    events_in_range: "Événements dans la période affichée"
     empty: "Aucun calendrier pour l'instant."
     name: Nom
     description: Description
@@ -83,6 +84,7 @@ backend:
       ends: Fin
       starts_placeholder: "Le jour et l'heure de début"
       ends_placeholder: "Le jour et l'heure de fin"
+      in_zone: "Les heures sont celles du fuseau {zone} du calendrier."
       location: Lieu
       location_placeholder: "Une salle, une adresse, un lien"
       status:
@@ -90,6 +92,7 @@ backend:
         confirmed: Confirmé
         cancelled: Annulé
       from_module: "Depuis un module"
+      open_source: Ouvrir la source
       errors:
         title_required: "L'événement a besoin d'un titre."
         calendar_required: Choisissez un calendrier.

@@ -44,6 +44,7 @@ backend:
     colour_slot: "Colour {slot}"
     visibility_hint: "A shared calendar is visible to everyone who can reach the calendar."
     timezone_hint: "The zone this calendar cuts its whole days in."
+    events_in_range: "Events in the range on screen"
     empty: "No calendar yet."
     name: Name
     description: Description
@@ -83,6 +84,7 @@ backend:
       ends: Ends
       starts_placeholder: "The day and time it starts"
       ends_placeholder: "The day and time it ends"
+      in_zone: "Times are in the calendar's {zone} timezone."
       location: Location
       location_placeholder: "A room, an address, a link"
       status:
@@ -90,6 +92,7 @@ backend:
         confirmed: Confirmed
         cancelled: Cancelled
       from_module: "From a module"
+      open_source: Open the source
       errors:
         title_required: "An event needs a title."
         calendar_required: Pick a calendar.
