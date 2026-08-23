@@ -191,6 +191,13 @@ const myInvitation = computed(() =>
     (props.event?.attendees ?? []).find((attendee) => attendee.userId === props.currentUserId) ?? null,
 );
 
+/**
+ * Mirrors PlanningAttendeeStatusEnum minus `needs_action`, held by
+ * PlanningContractMirrorTest.
+ *
+ * Ordered yes, maybe, no - how the question is asked out loud - rather than in the
+ * enum's order, which is why the test compares them as a set.
+ */
 const ANSWERS = ["accepted", "tentative", "declined"];
 
 const alertSelectOptions = computed(() => alertOptions(t));

@@ -44,6 +44,13 @@ watch(
     },
 );
 
+/**
+ * Mirrors the series scopes of RecurrenceScopeEnum, narrowest first, and
+ * PlanningContractMirrorTest asserts the two agree.
+ *
+ * `single` is not here: it means "not a series", which is the case where this
+ * modal never opens.
+ */
 const OPTIONS = ["this", "following", "all"];
 </script>
 
