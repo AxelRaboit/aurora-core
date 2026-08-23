@@ -14,7 +14,7 @@
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { MAX_LANES, layOutWeek, sameDay, timedEventsOn } from "../composables/monthGrid.js";
+import { layOutWeek, sameDay, timedEventsOn } from "../composables/monthGrid.js";
 import { defaultTimeOn, draftAt } from "../composables/timeGrid.js";
 
 const props = defineProps({
@@ -46,9 +46,9 @@ const weekdays = computed(() =>
 const weeks = computed(() =>
     Array.from({ length: props.cells.length / 7 }, (_, row) => {
         const cells = props.cells.slice(row * 7, row * 7 + 7);
-        const { bars, hiddenPerDay } = layOutWeek(cells[0].date, props.events);
+        const { bars, hiddenPerDay, lanesPerDay } = layOutWeek(cells[0].date, props.events);
 
-        return { row, cells, bars, hiddenPerDay };
+        return { row, cells, bars, hiddenPerDay, lanesPerDay };
     }),
 );
 
@@ -99,7 +99,7 @@ function addOn(date) {
                     :key="cell.key"
                     class="min-h-[6.5rem] border-r border-line last:border-r-0 px-1.5 pb-1.5 flex flex-col gap-1 cursor-pointer"
                     :class="cell.inMonth ? '' : 'bg-surface-2/40'"
-                    :style="{ paddingTop: `${1.75 + Math.min(MAX_LANES, week.bars.length) * 1.25}rem` }"
+                    :style="{ paddingTop: `${1.75 + week.lanesPerDay[week.cells.indexOf(cell)] * 1.25}rem` }"
                     v-on:click="addOn(cell.date)"
                 >
                     <button

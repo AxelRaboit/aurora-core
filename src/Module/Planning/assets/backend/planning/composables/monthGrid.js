@@ -174,8 +174,10 @@ export function layOutWeek(weekStart, events) {
         placed.push({ ...bar, lane });
     }
 
+    const drawn = placed.filter((bar) => bar.lane < MAX_LANES);
+
     return {
-        bars: placed.filter((bar) => bar.lane < MAX_LANES),
+        bars: drawn,
         /**
          * How many bars per day did not fit, so a cell can say "+2" against the
          * right day rather than the week saying it once in the wrong place.
@@ -183,7 +185,32 @@ export function layOutWeek(weekStart, events) {
         hiddenPerDay: countHidden(
             placed.filter((bar) => bar.lane >= MAX_LANES),
         ),
+        lanesPerDay: countLanes(drawn),
     };
+}
+
+/**
+ * How many lanes each day has to leave room for.
+ *
+ * Per day and not per week, which is the whole point. A cell that reserves space
+ * for every bar in its week gets pushed down by a run of leave three days away:
+ * the same event drawn on the 14th sat lower than it did in a week with nothing
+ * crossing it, for no reason a reader could see.
+ *
+ * The count is the highest lane in use plus one, not the number of bars covering
+ * the day. A bar in lane 1 is drawn one lane down whether or not lane 0 is
+ * occupied here, so a day under it has two lanes' worth of height above it.
+ */
+function countLanes(bars) {
+    const lanes = new Array(7).fill(0);
+
+    for (const bar of bars) {
+        for (let day = bar.from; day < bar.from + bar.span && day < 7; ++day) {
+            lanes[day] = Math.max(lanes[day], bar.lane + 1);
+        }
+    }
+
+    return lanes;
 }
 
 function countHidden(bars) {

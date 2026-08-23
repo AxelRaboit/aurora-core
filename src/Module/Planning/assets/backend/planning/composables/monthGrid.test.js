@@ -232,3 +232,60 @@ describe("sameDay", () => {
         ).toBe(false);
     });
 });
+
+describe("lanesPerDay", () => {
+    const monday = new Date(2026, 7, 24);
+
+    function bar(id, startAt, endAt) {
+        return {
+            id,
+            startAt: new Date(startAt).toISOString(),
+            endAt: new Date(endAt).toISOString(),
+            allDay: true,
+        };
+    }
+
+    it("reserves nothing on a day no bar crosses", () => {
+        // The reported defect: a run of leave from Monday to Thursday pushed
+        // Friday's timed events down too, so the same event sat lower than it did
+        // in a week with nothing crossing it.
+        const { lanesPerDay } = layOutWeek(monday, [
+            bar(1, "2026-08-24T00:00", "2026-08-27T23:59:59"),
+        ]);
+
+        expect(lanesPerDay).toEqual([1, 1, 1, 1, 0, 0, 0]);
+    });
+
+    it("reserves nothing at all in a week with no bars", () => {
+        const { lanesPerDay } = layOutWeek(monday, []);
+
+        expect(lanesPerDay).toEqual([0, 0, 0, 0, 0, 0, 0]);
+    });
+
+    it("counts the lane above, not the bars on the day", () => {
+        // Two runs that do not overlap in time but land in different lanes: the
+        // second is drawn one lane down regardless, so the days under it have two
+        // lanes of height above them even though only one bar covers each.
+        const { lanesPerDay } = layOutWeek(monday, [
+            bar(1, "2026-08-24T00:00", "2026-08-25T23:59:59"),
+            bar(2, "2026-08-25T00:00", "2026-08-26T23:59:59"),
+        ]);
+
+        expect(lanesPerDay[0]).toBe(1);
+        expect(lanesPerDay[1]).toBe(2);
+        expect(lanesPerDay[2]).toBe(2);
+        expect(lanesPerDay[3]).toBe(0);
+    });
+
+    it("ignores the bars it does not draw", () => {
+        // Past MAX_LANES a bar becomes a "+n" instead, so reserving height for it
+        // would leave a gap where nothing is drawn.
+        const overlapping = Array.from({ length: 5 }, (_, i) =>
+            bar(i + 1, "2026-08-24T00:00", "2026-08-26T23:59:59"),
+        );
+
+        const { lanesPerDay } = layOutWeek(monday, overlapping);
+
+        expect(Math.max(...lanesPerDay)).toBe(MAX_LANES);
+    });
+});
