@@ -22,6 +22,8 @@ import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
+import AppDropZone from "@/shared/components/form/file/AppDropZone.vue";
+import { uploadImageFile } from "@/shared/utils/http/uploadImageFile.js";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import {
     GALLERY_COLUMNS,
@@ -55,6 +57,10 @@ const {
     moveItem,
     reorder,
     wordsFor,
+    importFiles,
+    importing,
+    imported,
+    importTotal,
 } = usePostGallery(props.layout, props.words);
 
 const layoutOptions = GALLERY_LAYOUTS.map((value) => ({
@@ -91,6 +97,30 @@ const editing = ref(null);
 
 function editWords(id) {
     editing.value = id;
+}
+
+const importMessage = ref("");
+
+/**
+ * Several files in one gesture, which is the whole point of a gallery.
+ *
+ * The picker beside this one still has its place: it reaches into the library for
+ * a picture already filed, which is a different question from "here are thirty
+ * photographs off my card".
+ *
+ * Whatever did not go in is reported. Files past the cap and duplicates both
+ * land here, because the author does not need the difference - they need the
+ * number, or they count twelve on their disk and eight on the page and have no
+ * idea why.
+ */
+async function onFiles(files) {
+    importMessage.value = "";
+
+    const { added, skipped } = await importFiles(files, uploadImageFile);
+
+    if (skipped > 0) {
+        importMessage.value = t("backend.posts.gallery.import_skipped", { added, skipped });
+    }
 }
 </script>
 
@@ -233,13 +263,32 @@ function editWords(id) {
             <div v-if="isFull" class="text-xs text-amber-400">
                 {{ t("backend.posts.gallery.full") }}
             </div>
-            <AppImagePickerField
-                v-else
-                :model-value="{ id: null, url: null }"
-                :choose-label="t('backend.posts.gallery.add')"
-                :size="72"
-                v-on:update:model-value="onPick"
-            />
+            <template v-else>
+                <!-- Several at once, which is how a gallery is actually filled.
+                     `AppDropZone` already takes `multiple`, so this is the house
+                     control rather than a file input written here. -->
+                <AppDropZone
+                    accept="image/*"
+                    multiple
+                    :uploading="importing"
+                    :label="t('backend.posts.gallery.import')"
+                    :drop-label="t('backend.posts.gallery.import_drop')"
+                    :uploading-label="t('backend.posts.gallery.import_progress', { done: imported, total: importTotal })"
+                    :hint="t('backend.posts.gallery.import_hint')"
+                    v-on:change="onFiles"
+                />
+
+                <p v-if="importMessage" class="text-xs text-amber-400">{{ importMessage }}</p>
+
+                <!-- And one from the library, for a picture already filed. A
+                     different question from importing, so a separate control. -->
+                <AppImagePickerField
+                    :model-value="{ id: null, url: null }"
+                    :choose-label="t('backend.posts.gallery.add')"
+                    :size="72"
+                    v-on:update:model-value="onPick"
+                />
+            </template>
         </div>
 
         <!-- `close-on-overlay` false, as the modal convention asks for a form:

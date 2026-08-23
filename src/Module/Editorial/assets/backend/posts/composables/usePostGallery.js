@@ -11,7 +11,7 @@
  * cannot show, the back stops anything at all reaching the column. Take either
  * away and the other is doing a different job alone.
  */
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 function writable(get, set) {
     return computed({ get, set });
@@ -183,6 +183,69 @@ export function usePostGallery(layout, words) {
         layout.items = next;
     }
 
+    const importing = ref(false);
+    const imported = ref(0);
+    const importTotal = ref(0);
+
+    /**
+     * Uploads several files and appends each as it lands.
+     *
+     * **One at a time, not all at once.** Thirty parallel uploads is thirty
+     * multipart requests at the same endpoint, and the first thing that gives is
+     * the request that was already slow. Sequential also means the count below
+     * the zone is true rather than an estimate, and a picture appears as soon as
+     * it is filed instead of everything appearing at the end.
+     *
+     * The upload itself is injected rather than imported here: it is the only I/O
+     * in this composable, and a test that had to stand up an endpoint to check
+     * the counting would not be checking the counting.
+     *
+     * Returns how many went in and how many were refused, so the caller can say
+     * so - files dropped past the cap have to be reported, or the author counts
+     * twelve pictures on their disk and eight on the page and has no idea why.
+     *
+     * @param {File[]}   files
+     * @param {Function} upload async File -> `{id, url}` or null
+     */
+    async function importFiles(files, upload) {
+        const list = Array.from(files ?? []);
+        if (0 === list.length || importing.value) {
+            return { added: 0, skipped: 0 };
+        }
+
+        importing.value = true;
+        imported.value = 0;
+        importTotal.value = list.length;
+
+        let added = 0;
+        let skipped = 0;
+
+        try {
+            for (const file of list) {
+                if (isFull.value) {
+                    skipped += 1;
+                    continue;
+                }
+
+                const media = await upload(file);
+                imported.value += 1;
+
+                // A refused file and a duplicate are both "did not go in". The
+                // author does not need the difference: what they need is the
+                // number, and the picture that is missing from the grid.
+                if (addItem(media)) {
+                    added += 1;
+                } else {
+                    skipped += 1;
+                }
+            }
+        } finally {
+            importing.value = false;
+        }
+
+        return { added, skipped };
+    }
+
     /**
      * The words for one item in the open locale, created on read.
      *
@@ -209,5 +272,9 @@ export function usePostGallery(layout, words) {
         moveItem,
         reorder,
         wordsFor,
+        importFiles,
+        importing,
+        imported,
+        importTotal,
     };
 }

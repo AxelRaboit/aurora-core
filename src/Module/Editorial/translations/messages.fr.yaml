@@ -322,6 +322,11 @@ backend:
       pictures: Images
       empty: "Aucune image. Ajoutez-en une ci-dessous."
       add: Ajouter une image
+      import: Importer des images
+      import_drop: Déposez vos images ici
+      import_progress: "Import de {done} sur {total}…"
+      import_hint: "Plusieurs images à la fois. Elles sont envoyées une par une et apparaissent au fur et à mesure."
+      import_skipped: "{added} ajoutée(s), {skipped} écartée(s) : déjà présentes, refusées, ou au-delà du maximum."
       full: "Le maximum d'images est atteint."
       alt: "Texte alternatif ({locale})"
       alt_hint: "Ce que montre l'image, pour qui ne la voit pas. Vide, celui de la médiathèque est utilisé."

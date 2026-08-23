@@ -123,6 +123,65 @@ describe("usePostGallery", () => {
         expect(layout.items.map((i) => i.id)).toEqual(["a", "b"]);
     });
 
+    /**
+     * One at a time, not all at once: thirty parallel multipart requests at one
+     * endpoint is how the slow one gets slower. The upload is injected, so what
+     * is under test is the counting rather than an endpoint.
+     */
+    it("imports several files in order and appends each", async () => {
+        const { layout, api } = setup();
+        const seen = [];
+        const upload = async (file) => {
+            seen.push(file.name);
+
+            return { id: seen.length, url: `/${file.name}` };
+        };
+
+        const result = await api.importFiles(
+            [{ name: "a.jpg" }, { name: "b.jpg" }],
+            upload,
+        );
+
+        expect(seen).toEqual(["a.jpg", "b.jpg"]);
+        expect(result).toEqual({ added: 2, skipped: 0 });
+        expect(layout.items).toHaveLength(2);
+        expect(api.importing.value).toBe(false);
+    });
+
+    /**
+     * What did not go in has to be counted, or the author has twelve pictures on
+     * their disk, eight on the page, and nothing telling them why.
+     */
+    it("counts what it left out, whatever the reason", async () => {
+        const { api } = setup([{ id: "a", mediaId: 1 }]);
+        const upload = async (file) => (file.ok ? { id: file.id } : null);
+
+        const result = await api.importFiles(
+            [{ ok: true, id: 1 }, { ok: false }, { ok: true, id: 2 }],
+            upload,
+        );
+
+        // The duplicate, the refused file, and one that went in.
+        expect(result).toEqual({ added: 1, skipped: 2 });
+    });
+
+    it("does not start a second import over the first", async () => {
+        const { api } = setup();
+        let calls = 0;
+        const upload = async () => {
+            calls += 1;
+
+            return { id: calls };
+        };
+
+        const first = api.importFiles([{ name: "a" }], upload);
+        const second = await api.importFiles([{ name: "b" }], upload);
+        await first;
+
+        expect(second).toEqual({ added: 0, skipped: 0 });
+        expect(calls).toBe(1);
+    });
+
     // The settings are writable computeds so the panel never mutates a prop.
     it("writes a setting back, and refuses a value outside the list", () => {
         const { layout, api } = setup();

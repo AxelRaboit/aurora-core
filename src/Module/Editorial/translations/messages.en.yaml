@@ -322,6 +322,11 @@ backend:
       pictures: Pictures
       empty: "No picture yet. Add one below."
       add: Add a picture
+      import: Import pictures
+      import_drop: Drop your pictures here
+      import_progress: "Uploading {done} of {total}…"
+      import_hint: "Several at a time. They are sent one by one and appear as they land."
+      import_skipped: "{added} added, {skipped} left out: already there, refused, or past the maximum."
       full: "The maximum number of pictures has been reached."
       alt: "Alt text ({locale})"
       alt_hint: "What the picture shows, for someone who cannot see it. Left empty, the library's own alt text is used."
