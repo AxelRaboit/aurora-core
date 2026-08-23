@@ -38,7 +38,6 @@ const {
     showEdit, editForm, editErrors, editLoading, openEdit, submitEdit,
 } = useMenus(props);
 
-
 const {
     rows, labelOf, showItem, editingItem, form, itemErrors, itemLoading,
     parentOptions, targetTypeMeta, targetTypeOptions, visibilityOptions,
@@ -75,10 +74,14 @@ function isUnresolved(item) {
 </script>
 
 <template>
-    <div class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-4">
-        <aside class="space-y-2">
-            <AppNoData v-if="!items.length" :message="t('backend.menus.empty')" :hint="t('backend.menus.empty_hint')" />
+    <AppNoData
+        v-if="!items.length"
+        :message="t('backend.menus.empty')"
+        :hint="t('backend.menus.empty_hint')"
+    />
 
+    <div v-else class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-4">
+        <aside class="space-y-2">
             <button
                 v-for="menu in items"
                 :key="menu.id"

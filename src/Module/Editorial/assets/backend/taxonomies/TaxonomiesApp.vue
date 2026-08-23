@@ -42,7 +42,6 @@ const {
     togglePostType,
 } = useTaxonomiesForm(props);
 
-
 const {
     rows, showTerm, editingTerm, form, termErrors, termLoading, parentOptions,
     openTermCreate, openTermEdit, submitTerm,
@@ -76,7 +75,15 @@ function nameOf(term) {
 </script>
 
 <template>
-    <div class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-4">
+    <AppNoData v-if="!items.length" :message="t('backend.taxonomies.empty')">
+        <template v-if="can('editorial.taxonomies.create')" #action>
+            <AppButton variant="primary" size="md" v-on:click="openCreate">
+                <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.taxonomies.create") }}
+            </AppButton>
+        </template>
+    </AppNoData>
+
+    <div v-else class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-4">
         <aside class="space-y-2">
             <AppButton
                 v-if="can('editorial.taxonomies.create')"
@@ -87,8 +94,6 @@ function nameOf(term) {
             >
                 <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.taxonomies.create") }}
             </AppButton>
-
-            <AppNoData v-if="!items.length" :message="t('backend.taxonomies.empty')" />
 
             <button
                 v-for="taxonomy in items"

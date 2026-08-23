@@ -44,4 +44,26 @@ describe("AppNoData", () => {
         expect(div.classes()).toContain("items-center");
         expect(div.classes()).toContain("justify-center");
     });
+
+    // A page whose entire content is "nothing here yet" is where the button
+    // creating the first thing belongs. Four master-detail pages used to keep it
+    // in a sidebar that the empty state replaced, so the emptiness was a dead
+    // end — nothing on screen but a message.
+    it("renders an action when one is given", () => {
+        const wrapper = mount(AppNoData, {
+            props: { message: "No forms yet." },
+            slots: { action: '<button type="button">Create a form</button>' },
+        });
+
+        expect(wrapper.find("button").text()).toBe("Create a form");
+    });
+
+    it("adds no wrapper for an action it was not given", () => {
+        const wrapper = mount(AppNoData);
+
+        expect(wrapper.find("button").exists()).toBe(false);
+        // Two children: the icon and the text group. An empty third would put
+        // margin under the message for nothing.
+        expect(wrapper.find("div").element.children).toHaveLength(2);
+    });
 });

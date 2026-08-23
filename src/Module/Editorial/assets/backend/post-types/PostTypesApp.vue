@@ -52,7 +52,15 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
 </script>
 
 <template>
-    <div class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-4">
+    <AppNoData v-if="!items.length" :message="t('backend.post_types.empty')">
+        <template v-if="can('editorial.post_types.create')" #action>
+            <AppButton variant="primary" size="md" v-on:click="openCreate">
+                <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.post_types.create") }}
+            </AppButton>
+        </template>
+    </AppNoData>
+
+    <div v-else class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-4">
         <!-- Types -->
         <aside class="space-y-2">
             <AppButton
@@ -64,8 +72,6 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
             >
                 <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.post_types.create") }}
             </AppButton>
-
-            <AppNoData v-if="!items.length" :message="t('backend.post_types.empty')" />
 
             <button
                 v-for="postType in items"
@@ -264,7 +270,6 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
                     :hint="t('backend.post_types.fields.choices_hint')"
                     :rows="4"
                 />
-
 
                 <AppCheckbox v-model="fieldForm.required" :label="t('backend.post_types.fields.required')" />
                 <AppCheckbox v-model="fieldForm.translatable" :label="t('backend.post_types.fields.translatable')" />

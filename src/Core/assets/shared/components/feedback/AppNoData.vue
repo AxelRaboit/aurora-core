@@ -17,5 +17,12 @@ defineProps({
             <p class="text-sm">{{ message }}</p>
             <p v-if="hint" class="text-xs text-muted">{{ hint }}</p>
         </div>
+        <!-- The way out of the emptiness, when there is one. A page whose whole
+             content is "nothing here yet" is the right place for the button that
+             creates the first thing, rather than making the reader hunt for it
+             in a sidebar that holds nothing else. -->
+        <div v-if="$slots.action" class="mt-1">
+            <slot name="action" />
+        </div>
     </div>
 </template>

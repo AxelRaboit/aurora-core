@@ -48,7 +48,6 @@ const {
     pendingDelete, deleteLoading, doDelete,
 } = useFormsList(props);
 
-
 const {
     fields, showField, editingField, fieldForm, fieldErrors, fieldLoading,
     typeMeta, typeOptions, logicOptions, conditionSources,
@@ -94,7 +93,15 @@ function formatDate(value) {
 </script>
 
 <template>
-    <div class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-4">
+    <AppNoData v-if="!items.length" :message="t('backend.forms.empty')">
+        <template v-if="can('editorial.forms.create')" #action>
+            <AppButton variant="primary" size="md" v-on:click="openCreate">
+                <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.forms.create") }}
+            </AppButton>
+        </template>
+    </AppNoData>
+
+    <div v-else class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-4">
         <aside class="space-y-2">
             <AppButton
                 v-if="can('editorial.forms.create')"
@@ -105,8 +112,6 @@ function formatDate(value) {
             >
                 <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.forms.create") }}
             </AppButton>
-
-            <AppNoData v-if="!items.length" :message="t('backend.forms.empty')" />
 
             <button
                 v-for="form in items"
