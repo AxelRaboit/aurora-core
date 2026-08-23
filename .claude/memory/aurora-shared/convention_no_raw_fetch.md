@@ -47,4 +47,17 @@ Un `fetch()` brut ignore le loading guard, duplique la gestion d'erreur, et ne p
 - À chaque nouveau composable/vue : chercher `await fetch(` et remplacer
 - Si `useRequest` n'est pas encore importé dans le fichier → l'ajouter
 - Exceptions légitimes : `useFrontendRequest.js` lui-même (c'est le wrapper), `useFormRequest.js` (idem), et les EditorJS blocks (contexte sans composables Vue)
+- **Exception : sauvegarde de préférence sans attente.** Un réglage d'interface
+  qu'on bascule (pliage de la sidemenu, affichage des descriptions) écrit son
+  `void fetch(...)` sans `await`, et c'est délibéré : les trois services que
+  `useRequest` rend sont exactement ceux qu'on ne veut pas ici. Le garde de
+  chargement empêcherait deux clics rapprochés, alors qu'un interrupteur doit
+  suivre le doigt. Le toast d'erreur annoncerait « impossible d'enregistrer votre
+  préférence de menu », ce que personne n'a besoin de lire. Et il n'y a rien à
+  faire de la réponse : l'état est déjà à l'écran, et le pire cas d'un échec est
+  le menu qui revient dans sa forme précédente à la page suivante, soit exactement
+  ce qui se passait avant que la préférence soit persistée.
+  Concerne `useSidemenuCollapse.js` et `useSidemenuDescriptions.js`. Un nouveau
+  cas doit remplir les trois conditions : rien à attendre, rien à afficher en cas
+  d'échec, et un échec sans conséquence.
 - Vérification rapide (core) : `grep -rn "await fetch\b" src/ --include="*.js" --include="*.vue"` ; (client) : `grep -rn "await fetch\b" assets/ --include="*.js" --include="*.vue"`

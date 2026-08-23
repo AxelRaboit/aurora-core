@@ -86,10 +86,18 @@ Distribué via composer : les clients lisent ces mémoires depuis
 
 - [convention_no_raw_fetch.md](convention_no_raw_fetch.md) - interdiction de
   `fetch()` brut ; toujours `useRequest` (admin) ou `useFrontendRequest` (public)
+  (une exception : la sauvegarde de préférence sans attente)
 - [convention_xhr_header.md](convention_xhr_header.md) - `useRequest` envoie
   `X-Requested-With: XMLHttpRequest` ; les controllers Symfony détectent les XHR
   via ce header pour retourner JSON
 
+- [pitfall_display_contents.md](pitfall_display_contents.md) - `AppTooltip` a
+  `display: contents` pour racine : les marges y sont ignorées (`space-y-*` ne
+  rend rien) et `first:`/`last:` matchent chaque ligne. Mettre en page avec
+  `gap`, positionner depuis l'index.
+- [convention_chart_palette.md](convention_chart_palette.md) - palette
+  catégorielle fixe `--chart-cat-1..8`, ordre non recyclé, part-d'un-tout =
+  barre empilée et jamais camembert, valeur lisible en texte sous 3:1.
 ## JS
 
 - [convention_no_em_dash.md](convention_no_em_dash.md) - jamais de cadratin
