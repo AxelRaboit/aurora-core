@@ -16,7 +16,6 @@ import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
-import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import CalendarModal from "./components/CalendarModal.vue";
 import CalendarDayList from "./components/CalendarDayList.vue";
 import CalendarAgenda from "./components/CalendarAgenda.vue";
@@ -27,9 +26,11 @@ import RecurrenceScopeModal from "./components/RecurrenceScopeModal.vue";
 import ReminderModal from "./components/ReminderModal.vue";
 import EventModal from "./components/EventModal.vue";
 import { usePlanningCalendar } from "./composables/usePlanningCalendar.js";
+import { usePlanningCalendarForm } from "./composables/usePlanningCalendarForm.js";
+import { usePlanningEvents } from "./composables/usePlanningEvents.js";
+import { usePlanningReminders } from "./composables/usePlanningReminders.js";
 import { defaultTimeOn, draftAt } from "./composables/timeGrid.js";
 import { usePlanningShortcuts } from "./composables/usePlanningShortcuts.js";
-import { fromDisplay } from "./composables/displayZone.js";
 
 const props = defineProps({
     calendars: { type: Array, default: () => [] },
@@ -56,7 +57,6 @@ const props = defineProps({
 
 const { t, d } = useI18n();
 const { can } = usePrivileges();
-const { request } = useRequest();
 
 const {
     calendars,
@@ -150,309 +150,82 @@ watch([year, month], () => {
             : new Date(year.value, month.value, 1);
 });
 
-const openCalendar = ref(null);
-const calendarErrors = ref({});
-
-/**
- * The feed address, held only between the request that created it and the modal
- * closing.
- *
- * Not kept in the calendar list: that payload is on every page, and a live
- * credential does not belong there for the sake of showing it a second time.
- */
-const feedUrl = ref("");
-const savingCalendar = ref(false);
-
 const canManageCalendars = computed(() => can("planning.calendars.manage"));
 
 /** An event needs a calendar to live in, so an empty sidebar closes this too. */
 const canCreateEvents = computed(() => can("planning.events.create") && calendars.value.length > 0);
 
-function createCalendar() {
-    // `{}` and not null: the modal opens on `calendar !== null`, and a new
-    // calendar has no id yet.
-    openCalendar.value = {};
-    calendarErrors.value = {};
-    // The sheet has to go, or the modal opens behind it on a phone.
+/** The sheet has to go before any modal opens, or it opens behind it on a phone. */
+function closeSheet() {
     sheetOpen.value = false;
 }
 
-function editCalendar(calendar) {
-    openCalendar.value = calendar;
-    calendarErrors.value = {};
-    feedUrl.value = "";
-    sheetOpen.value = false;
-}
+const {
+    openCalendar,
+    feedUrl,
+    saving: savingCalendar,
+    errors: calendarErrors,
+    createCalendar,
+    editCalendar,
+    closeCalendar,
+    publishFeed,
+    revokeFeed,
+    setShares,
+    saveCalendar,
+    removeCalendarAndItsEvents,
+} = usePlanningCalendarForm(props, {
+    load,
+    upsertCalendar,
+    removeCalendar,
+    onOpen: closeSheet,
+});
 
-function closeCalendar() {
-    openCalendar.value = null;
-    feedUrl.value = "";
-}
+const {
+    openEvent,
+    editing,
+    saving,
+    errors,
+    pendingScope,
+    viewEvent,
+    create,
+    close,
+    save,
+    remove,
+    moveEvent,
+    respond,
+    cancelScope,
+    confirmScope,
+} = usePlanningEvents(props, {
+    load,
+    zone,
+    canCreate: canCreateEvents,
+    onOpen: closeSheet,
+});
 
-async function publishFeed(calendar) {
-    const data = await request(
-        props.feedCalendarPathTemplate.replace("__id__", String(calendar.id)),
-    );
-    if (!data) return;
-
-    upsertCalendar(data.calendar);
-    openCalendar.value = data.calendar;
-    feedUrl.value = data.feedUrl ?? "";
-}
-
-async function setShares({ calendar, shares }) {
-    const data = await request(
-        props.sharesCalendarPathTemplate.replace("__id__", String(calendar.id)),
-        { shares: shares.map((share) => ({ userId: share.userId, canWrite: share.canWrite })) },
-    );
-    if (!data) return;
-
-    upsertCalendar(data.calendar);
-    openCalendar.value = data.calendar;
-}
-
-async function revokeFeed(calendar) {
-    const data = await request(
-        props.revokeFeedCalendarPathTemplate.replace("__id__", String(calendar.id)),
-    );
-    if (!data) return;
-
-    upsertCalendar(data.calendar);
-    openCalendar.value = data.calendar;
-    feedUrl.value = "";
-}
-
-async function saveCalendar(form) {
-    savingCalendar.value = true;
-    calendarErrors.value = {};
-
-    try {
-        const id = openCalendar.value?.id;
-        const path = id
-            ? props.updateCalendarPathTemplate.replace("__id__", String(id))
-            : props.createCalendarPath;
-
-        const data = await request(path, form);
-
-        if (!data) return;
-        if (data.errors) {
-            calendarErrors.value = data.errors;
-
-            return;
-        }
-
-        upsertCalendar(data.calendar);
-        closeCalendar();
-        // Reloaded because a calendar's colour is drawn on every one of its
-        // events, and renaming it changes what the popover says.
-        await load();
-    } finally {
-        savingCalendar.value = false;
-    }
-}
-
-async function removeCalendarAndItsEvents(calendar) {
-    const data = await request(props.deleteCalendarPathTemplate.replace("__id__", String(calendar.id)));
-    if (!data) return;
-
-    removeCalendar(calendar.id);
-    closeCalendar();
-    await load();
-}
+const {
+    openReminder,
+    saving: savingReminder,
+    errors: reminderErrors,
+    createReminder,
+    editReminder,
+    closeReminder,
+    saveReminder,
+    removeReminder: removeReminderItem,
+    toggleReminder: toggleReminderItem,
+} = usePlanningReminders(props, {
+    load,
+    canCreate: canCreateEvents,
+    onOpen: closeSheet,
+});
 
 /**
- * A write to a series, held while the reader is asked what it applies to.
+ * Starts an event on the day the phone's list is showing.
  *
- * One ref rather than three, so a pending question cannot be half-formed: either
- * something is waiting on an answer or nothing is.
+ * The same draft a cell click builds on a wide screen, at the constant hour a day
+ * with no time in it gets.
  */
-const pendingScope = ref(null);
-
-/**
- * Whether an appearance belongs to a series and therefore needs the question.
- *
- * `occurrenceAt` is what makes it a generated appearance rather than a row. A
- * detached occurrence has a master but no rule of its own, so it is a single event
- * and asking about it would offer three answers to a question with one.
- */
-function needsScope(event) {
-    return Boolean(event?.recurring && event?.occurrenceAt);
-}
-
-function askScope(kind, intent, payload) {
-    pendingScope.value = { kind, intent, payload };
-}
-
-function cancelScope() {
-    pendingScope.value = null;
-}
-
-/**
- * Runs the held write, now that the scope is known.
- *
- * The scope and the occurrence travel in the same body as the fields, which is why
- * all three writes take them the same way: the server resolves which row to touch,
- * and nothing here has to know whether a row was detached or a series split.
- */
-async function confirmScope(scope) {
-    const pending = pendingScope.value;
-    pendingScope.value = null;
-
-    if (null === pending) {
-        return;
-    }
-
-    const scoped = { ...pending.payload, scope };
-
-    if ("save" === pending.kind) {
-        await sendSave(scoped);
-    } else if ("delete" === pending.kind) {
-        await sendDelete(pending.payload.id, scoped);
-    } else {
-        await sendMove(pending.payload.id, scoped);
-    }
-}
-
-const openEvent = ref(null);
-const editing = ref(false);
-const errors = ref({});
-const saving = ref(false);
-
-function viewEvent(event) {
-    openEvent.value = event;
-    editing.value = false;
-    errors.value = {};
-}
-
-/**
- * Turns a draft the grid built into real instants.
- *
- * The grid's columns are display days, so a click on one names a wall clock in the
- * display zone rather than a moment. Converted at this boundary and the drag one
- * below, which are the only two places a shifted value would otherwise be sent.
- */
-function realSpan(draft) {
-    if (!draft.startAt) {
-        return draft;
-    }
-
-    return {
-        ...draft,
-        startAt: fromDisplay(new Date(draft.startAt), zone.value),
-        endAt: draft.endAt ? fromDisplay(new Date(draft.endAt), zone.value) : draft.endAt,
-    };
-}
-
-function create(draft = {}) {
-    // The same gate the button carries. A click on the grid is a second way in,
-    // and without this it would open a form whose save is refused - or one with
-    // no calendar to put the event in.
-    if (!canCreateEvents.value) {
-        return;
-    }
-
-    // An empty object rather than null: the modal opens on `event !== null`, and
-    // a new event has no id yet. A click on the grid hands in a draft with its
-    // two instants, so the form opens already on the day that was pointed at.
-    openEvent.value = realSpan(draft);
-    editing.value = true;
-    errors.value = {};
-    sheetOpen.value = false;
-}
-
-function close() {
-    openEvent.value = null;
-    editing.value = false;
-}
-
-async function save(form) {
-    if (needsScope(openEvent.value)) {
-        askScope("save", "edit", {
-            ...form,
-            occurrenceAt: openEvent.value.realOccurrenceAt ?? openEvent.value.occurrenceAt,
-        });
-
-        return;
-    }
-
-    await sendSave(form);
-}
-
-async function sendSave(form) {
-    saving.value = true;
-    errors.value = {};
-
-    try {
-        const id = openEvent.value?.id;
-        const path = id
-            ? props.updateEventPathTemplate.replace("__id__", String(id))
-            : props.createEventPath;
-
-        const data = await request(path, form);
-
-        // `useRequest` has already said something went wrong; what it cannot say
-        // is which field, so the form keeps the modal open and shows them.
-        if (!data) return;
-        if (data.errors) {
-            errors.value = data.errors;
-
-            return;
-        }
-
-        close();
-        await load();
-    } finally {
-        saving.value = false;
-    }
-}
-
-const openReminder = ref(null);
-const reminderErrors = ref({});
-const savingReminder = ref(false);
-
-function createReminder(draft = {}) {
-    if (!canCreateEvents.value) {
-        return;
-    }
-
-    openReminder.value = draft;
-    reminderErrors.value = {};
-    sheetOpen.value = false;
-}
-
-function editReminder(reminder) {
-    openReminder.value = reminder;
-    reminderErrors.value = {};
-}
-
-function closeReminder() {
-    openReminder.value = null;
-}
-
-async function saveReminder(form) {
-    savingReminder.value = true;
-    reminderErrors.value = {};
-
-    try {
-        const id = openReminder.value?.id;
-        const path = id
-            ? props.updateReminderPathTemplate.replace("__id__", String(id))
-            : props.createReminderPath;
-
-        const data = await request(path, form);
-
-        if (!data) return;
-        if (data.errors) {
-            reminderErrors.value = data.errors;
-
-            return;
-        }
-
-        closeReminder();
-        await load();
-    } finally {
-        savingReminder.value = false;
-    }
+function createOnDay(date) {
+    create(draftAt(defaultTimeOn(date)));
 }
 
 /**
@@ -479,114 +252,6 @@ usePlanningShortcuts({
     createReminder: () => createReminder(),
 });
 
-async function removeReminderItem(reminder) {
-    const data = await request(props.deleteReminderPathTemplate.replace("__id__", String(reminder.id)));
-    if (!data) return;
-
-    closeReminder();
-    await load();
-}
-
-/**
- * Ticking one off from the grid.
- *
- * Reloads rather than patching the row in place, because `overdue` is computed on
- * the server - a client flipping `completed` itself would leave a reminder struck
- * through and still red.
- */
-async function toggleReminderItem(reminder) {
-    const data = await request(props.toggleReminderPathTemplate.replace("__id__", String(reminder.id)));
-    if (!data) return;
-
-    await load();
-}
-
-/**
- * Starts an event on the day the phone's list is showing.
- *
- * The same draft a cell click builds on a wide screen, at the constant hour a day
- * with no time in it gets.
- */
-function createOnDay(date) {
-    create(draftAt(defaultTimeOn(date)));
-}
-
-/**
- * Saves a drag or a resize.
- *
- * Its own route rather than the update endpoint, because the grid holds a
- * serialised event and not an input: `colourSlot` comes down resolved, so echoing
- * it back would turn an event that follows its calendar into one with a colour of
- * its own.
- *
- * Reloads afterwards rather than trusting the local move: the span the server
- * accepted is the one that counts, and an alert that followed the event has moved
- * too.
- */
-async function moveEvent(moved) {
-    // The grid worked in display wall clocks, so the span comes back in them; and
-    // `occurrenceAt` has to be the real instant, because the server matches it
-    // against a date a rule produced.
-    const span = realSpan({ startAt: moved.startAt, endAt: moved.endAt });
-
-    if (needsScope(moved.event)) {
-        askScope("move", "edit", {
-            id: moved.id,
-            ...span,
-            occurrenceAt: moved.event.realOccurrenceAt ?? moved.event.occurrenceAt,
-        });
-
-        return;
-    }
-
-    await sendMove(moved.id, span);
-}
-
-async function sendMove(id, body) {
-    const data = await request(props.moveEventPathTemplate.replace("__id__", String(id)), body);
-    if (!data) return;
-
-    await load();
-}
-
-/**
- * Answering an invitation.
- *
- * Reloads and reopens rather than patching the badge in place: the answer changes
- * what every grid draws for that event, and the response carries the whole event
- * back anyway.
- */
-async function respond({ event, status }) {
-    const data = await request(
-        props.respondEventPathTemplate.replace("__id__", String(event.id)),
-        { status },
-    );
-    if (!data) return;
-
-    openEvent.value = data.event;
-    await load();
-}
-
-async function remove(event) {
-    if (needsScope(event)) {
-        askScope("delete", "delete", {
-            id: event.id,
-            occurrenceAt: event.realOccurrenceAt ?? event.occurrenceAt,
-        });
-
-        return;
-    }
-
-    await sendDelete(event.id, {});
-}
-
-async function sendDelete(id, body) {
-    const data = await request(props.deleteEventPathTemplate.replace("__id__", String(id)), body);
-    if (!data) return;
-
-    close();
-    await load();
-}
 </script>
 
 <template>
