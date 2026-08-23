@@ -143,6 +143,32 @@ export function usePostGallery(layout, words) {
         delete words.items?.[id];
     }
 
+    /**
+     * The whole order at once, which is what a drag emits.
+     *
+     * Filtered against the ids already in rather than assigned as it arrives: the
+     * value comes from a library, and an item this gallery does not know about
+     * would reach the column with no media behind it. Cheap, and it means the
+     * drag and the arrows cannot disagree about what an item is.
+     */
+    function reorder(next) {
+        if (!Array.isArray(next)) {
+            return;
+        }
+
+        const known = new Map(items.value.map((item) => [item.id, item]));
+        const ordered = next
+            .map((item) => known.get(item?.id))
+            .filter((item) => undefined !== item);
+
+        // Anything lost on the way means the incoming order was not this
+        // gallery's, so keep what is on screen rather than silently dropping a
+        // picture.
+        if (ordered.length === items.value.length) {
+            layout.items = ordered;
+        }
+    }
+
     /** One step, either way, clamped at the ends rather than wrapping. */
     function moveItem(id, direction) {
         const from = items.value.findIndex((item) => item.id === id);
@@ -181,6 +207,7 @@ export function usePostGallery(layout, words) {
         addItem,
         removeItem,
         moveItem,
+        reorder,
         wordsFor,
     };
 }

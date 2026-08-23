@@ -90,6 +90,39 @@ describe("usePostGallery", () => {
         expect(api.wordsFor("fresh")).toEqual({ alt: "", caption: "" });
     });
 
+    /**
+     * A drag emits the whole order at once. Filtered against the ids already in
+     * rather than assigned as it arrives: the value comes from a library, and an
+     * item this gallery does not know about would reach the column with no media
+     * behind it.
+     */
+    it("takes a whole new order from a drag", () => {
+        const { layout, api } = setup([
+            { id: "a", mediaId: 1 },
+            { id: "b", mediaId: 2 },
+            { id: "c", mediaId: 3 },
+        ]);
+
+        api.reorder([{ id: "c" }, { id: "a" }, { id: "b" }]);
+
+        expect(layout.items.map((i) => i.id)).toEqual(["c", "a", "b"]);
+        // The stored objects, not the ones the drag handed over.
+        expect(layout.items[0].mediaId).toBe(3);
+    });
+
+    it("keeps what is on screen when the incoming order is not this gallery's", () => {
+        const { layout, api } = setup([
+            { id: "a", mediaId: 1 },
+            { id: "b", mediaId: 2 },
+        ]);
+
+        api.reorder([{ id: "a" }, { id: "elsewhere" }]);
+        api.reorder("nonsense");
+        api.reorder([{ id: "a" }]);
+
+        expect(layout.items.map((i) => i.id)).toEqual(["a", "b"]);
+    });
+
     // The settings are writable computeds so the panel never mutates a prop.
     it("writes a setting back, and refuses a value outside the list", () => {
         const { layout, api } = setup();

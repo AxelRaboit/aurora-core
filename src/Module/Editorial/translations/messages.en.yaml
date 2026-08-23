@@ -326,6 +326,7 @@ backend:
       alt: "Alt text ({locale})"
       alt_hint: "What the picture shows, for someone who cannot see it. Left empty, the library's own alt text is used."
       caption: "Caption ({locale})"
+      words: "Picture text"
       move_up: Move up
       move_down: Move down
     grid:
