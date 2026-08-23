@@ -81,6 +81,9 @@ backend:
         title_required: "The reminder needs a title."
         due_required: "The reminder needs a due date."
     alerts:
+      custom: "Custom…"
+      add: Add an alert
+      at_placeholder: "The day and time of the alert"
       label: "Alerts"
       none: "No alert on this event."
       notification: "%calendar% · starts at %when%"

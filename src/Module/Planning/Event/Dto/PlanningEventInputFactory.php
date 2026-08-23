@@ -28,41 +28,59 @@ class PlanningEventInputFactory implements PlanningEventInputFactoryInterface
             allDay: (bool) ($data['allDay'] ?? false),
             status: PlanningEventStatusEnum::tryFrom((string) ($data['status'] ?? ''))
                 ?? PlanningEventStatusEnum::Confirmed,
-            alertOffsets: $this->alertOffsets($data['alerts'] ?? null),
+            alerts: $this->alerts($data['alerts'] ?? null),
         );
     }
 
     /**
-     * The offsets the form sent, kept only if the entity would accept them.
+     * The alerts the form sent, each kept only if it means something.
      *
-     * Dropped rather than reported, unlike a bad date. An offset outside the
-     * list is not something the form can produce - there is no free-text field
-     * for it - so it means a hand-written request, and the honest answer to
-     * "remind me 7 minutes before" from a picker that only offers nine values is
-     * to ignore it rather than to fail the save of a legitimate event.
+     * Two shapes in one list: `{minutes: 30}` for an offset the menu offers, and
+     * `{at: "..."}` for a moment somebody picked. Anything else is dropped rather
+     * than reported - an offset outside the menu is not something the select can
+     * produce, so it means a hand-written request, and failing the save of an
+     * otherwise valid event over it would be the wrong trade.
      *
-     * Deduplicated because the table is unique on (event, offset), and sorted so
-     * the payload reads in the order the form draws it.
+     * Deduplicated on the offset, because two "30 minutes before" is a double
+     * notification and the kind of duplicate a form produces by being submitted
+     * twice rather than by anyone meaning it. Pinned moments are left alone here
+     * and constrained by the table instead, which is where their identity lives.
      *
-     * @return list<int>
+     * @return list<array{minutes: int|null, at: DateTimeImmutable|null}>
      */
-    private function alertOffsets(mixed $value): array
+    private function alerts(mixed $value): array
     {
         if (!is_array($value)) {
             return [];
         }
 
-        $offsets = [];
-        foreach ($value as $offset) {
-            if (is_numeric($offset) && in_array((int) $offset, PlanningEventAlert::OFFSETS, true)) {
-                $offsets[] = (int) $offset;
+        $alerts = [];
+        $offsetsSeen = [];
+
+        foreach ($value as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $minutes = $row['minutes'] ?? null;
+            if (is_numeric($minutes) && in_array((int) $minutes, PlanningEventAlert::OFFSETS, true)) {
+                if (in_array((int) $minutes, $offsetsSeen, true)) {
+                    continue;
+                }
+
+                $offsetsSeen[] = (int) $minutes;
+                $alerts[] = ['minutes' => (int) $minutes, 'at' => null];
+
+                continue;
+            }
+
+            $at = $this->date($row['at'] ?? null);
+            if ($at instanceof DateTimeImmutable) {
+                $alerts[] = ['minutes' => null, 'at' => $at];
             }
         }
 
-        $offsets = array_values(array_unique($offsets));
-        sort($offsets);
-
-        return $offsets;
+        return $alerts;
     }
 
     /**

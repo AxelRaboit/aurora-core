@@ -140,15 +140,95 @@ final class PlanningApiTest extends IntegrationTestCase
             'title' => 'Point hebdo',
             'startAt' => '2026-09-01T10:00',
             'endAt' => '2026-09-01T11:00',
-            // Sent out of order and with a duplicate, the way a form that lets
-            // you toggle chips actually produces them.
-            'alerts' => [60, 10, 60],
+            // Out of order and with a duplicate, the way a form with an "add
+            // another" button actually produces them.
+            'alerts' => [['minutes' => 60], ['minutes' => 10], ['minutes' => 60]],
         ]);
 
         self::assertResponseIsSuccessful();
-        self::assertSame([10, 60], $created['event']['alerts']);
+        // Sorted by when they fire, and the duplicate dropped - so the larger
+        // offset comes first, because 60 minutes before is earlier than 10. That
+        // is the only order that makes sense once pinned alerts are in the same
+        // list, and it is the order a reader thinks about them in.
+        self::assertSame([60, 10], array_column($created['event']['alerts'], 'minutes'));
 
         $this->created[] = [PlanningEvent::class, (int) $created['event']['id']];
+    }
+
+    /**
+     * A custom alert is a moment, and stays where it was put.
+     *
+     * The reader chose Tuesday at 09:00, not a distance from the meeting - so
+     * moving the meeting must not move it. Asserted through the API rather than on
+     * the entity alone, because the wire shape is where the two kinds could get
+     * confused for one another.
+     */
+    public function testAPinnedAlertSurvivesTheEventMoving(): void
+    {
+        $planning = $this->calendar('Alertes fixes');
+
+        $created = $this->post('backend_planning_events_create', [
+            'planningId' => $planning->getId(),
+            'title' => 'Recette',
+            'startAt' => '2026-09-01T14:00:00+02:00',
+            'endAt' => '2026-09-01T15:00:00+02:00',
+            'alerts' => [
+                ['minutes' => 30],
+                ['at' => '2026-08-31T09:00:00+02:00'],
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful(json_encode($created, JSON_THROW_ON_ERROR));
+
+        $eventId = (int) $created['event']['id'];
+        $this->created[] = [PlanningEvent::class, $eventId];
+
+        $moved = $this->post(
+            'backend_planning_events_update',
+            [
+                'planningId' => $planning->getId(),
+                'title' => 'Recette',
+                'startAt' => '2026-09-03T14:00:00+02:00',
+                'endAt' => '2026-09-03T15:00:00+02:00',
+                'alerts' => [
+                    ['minutes' => 30],
+                    ['at' => '2026-08-31T09:00:00+02:00'],
+                ],
+            ],
+            ['id' => $eventId],
+        );
+
+        self::assertResponseIsSuccessful(json_encode($moved, JSON_THROW_ON_ERROR));
+
+        $alerts = $moved['event']['alerts'];
+        self::assertCount(2, $alerts);
+
+        $pinned = null;
+        $relative = null;
+        foreach ($alerts as $alert) {
+            if (null === $alert['minutes']) {
+                $pinned = $alert;
+            } else {
+                $relative = $alert;
+            }
+        }
+
+        self::assertNotNull($pinned);
+        self::assertNotNull($relative);
+
+        $zone = new DateTimeZone('Europe/Paris');
+
+        // The relative one followed the event to the 3rd.
+        self::assertSame(
+            '2026-09-03 13:30',
+            (new DateTimeImmutable((string) $relative['firesAt']))->setTimezone($zone)->format('Y-m-d H:i'),
+        );
+
+        // The pinned one did not move.
+        self::assertSame(
+            '2026-08-31 09:00',
+            (new DateTimeImmutable((string) $pinned['at']))->setTimezone($zone)->format('Y-m-d H:i'),
+        );
     }
 
     /**
@@ -167,11 +247,11 @@ final class PlanningApiTest extends IntegrationTestCase
             'title' => 'Sept minutes',
             'startAt' => '2026-09-01T10:00',
             'endAt' => '2026-09-01T11:00',
-            'alerts' => [7, 15],
+            'alerts' => [['minutes' => 7], ['minutes' => 15]],
         ]);
 
         self::assertResponseIsSuccessful();
-        self::assertSame([15], $created['event']['alerts']);
+        self::assertSame([15], array_column($created['event']['alerts'], 'minutes'));
 
         $this->created[] = [PlanningEvent::class, (int) $created['event']['id']];
     }
@@ -192,7 +272,7 @@ final class PlanningApiTest extends IntegrationTestCase
             'title' => 'Avant',
             'startAt' => '2026-09-01T10:00',
             'endAt' => '2026-09-01T11:00',
-            'alerts' => [15, 60],
+            'alerts' => [['minutes' => 15], ['minutes' => 60]],
         ]);
         self::assertResponseIsSuccessful();
 
@@ -219,13 +299,13 @@ final class PlanningApiTest extends IntegrationTestCase
                 'title' => 'Après',
                 'startAt' => '2026-09-01T10:00',
                 'endAt' => '2026-09-01T11:00',
-                'alerts' => [15],
+                'alerts' => [['minutes' => 15]],
             ],
             ['id' => $eventId],
         );
 
         self::assertResponseIsSuccessful();
-        self::assertSame([15], $updated['event']['alerts']);
+        self::assertSame([15], array_column($updated['event']['alerts'], 'minutes'));
 
         $this->entityManager->clear();
         $event = $this->entityManager->find(PlanningEvent::class, $eventId);
@@ -347,7 +427,7 @@ final class PlanningApiTest extends IntegrationTestCase
             'title' => 'Dix heures moins le quart',
             'startAt' => '2026-09-01T10:00:00+02:00',
             'endAt' => '2026-09-01T11:00:00+02:00',
-            'alerts' => [30],
+            'alerts' => [['minutes' => 30]],
         ]);
 
         self::assertResponseIsSuccessful(json_encode($body, JSON_THROW_ON_ERROR));

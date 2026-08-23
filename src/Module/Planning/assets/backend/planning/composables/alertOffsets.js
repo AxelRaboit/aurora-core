@@ -1,17 +1,25 @@
 /**
- * The alert offsets, and how to say them.
+ * The alert menu, and the rows a form holds.
  *
- * The list is duplicated from AbstractPlanningEventAlert::OFFSETS, and that
- * is deliberate rather than fetched: it is a fixed vocabulary that changes when
+ * `ALERT_OFFSETS` mirrors AbstractPlanningEventAlert::OFFSETS, and that is
+ * deliberate rather than fetched: it is a fixed vocabulary that changes when
  * someone edits both files in the same commit, and a round trip to learn nine
  * integers would make the form wait on the network to draw its own controls.
  * A test asserts the two lists agree.
  *
- * No Vue in here, so the labelling is testable without mounting a modal.
+ * No Vue in here, so the rows are testable without mounting a modal.
  */
 export const ALERT_OFFSETS = [0, 5, 10, 15, 30, 60, 120, 1440, 10080];
 
 export const DEFAULT_ALERT_OFFSET = 30;
+
+/**
+ * The select's last option: a moment of the reader's own choosing.
+ *
+ * A string, so it cannot collide with an offset however the list grows, and so a
+ * row whose value is this one reads as "custom" rather than as a magic number.
+ */
+export const CUSTOM = "custom";
 
 /**
  * Names an offset.
@@ -30,19 +38,57 @@ export function alertLabel(minutes, t) {
 }
 
 /**
- * Adds or removes an offset, and returns a new sorted list.
+ * The options the select offers, presets then custom.
  *
- * Returns rather than mutates so the caller assigns it and Vue sees the change;
- * sorted so the chips do not reorder themselves as they are toggled.
- *
- * @param {number[]} offsets
- * @param {number} offset
- * @returns {number[]}
+ * @param {(key: string) => string} t
+ * @returns {Array<{value: number|string, label: string}>}
  */
-export function toggleAlert(offsets, offset) {
-    const next = offsets.includes(offset)
-        ? offsets.filter((value) => value !== offset)
-        : [...offsets, offset];
+export function alertOptions(t) {
+    return [
+        ...ALERT_OFFSETS.map((minutes) => ({
+            value: minutes,
+            label: alertLabel(minutes, t),
+        })),
+        { value: CUSTOM, label: t("backend.plannings.alerts.custom") },
+    ];
+}
 
-    return next.sort((a, b) => a - b);
+/**
+ * A serialised alert as a form row.
+ *
+ * The wire carries two shapes and the form holds one: a `choice` the select binds
+ * to, plus an `at` the picker binds to when that choice is custom. Without the
+ * single shape every control in the row would have to know which kind it is
+ * looking at.
+ *
+ * @param {{minutes: number|null, at: string|null}} alert
+ * @returns {{choice: number|string, at: string|null}}
+ */
+export function toRow(alert) {
+    return null === alert.minutes
+        ? { choice: CUSTOM, at: alert.at }
+        : { choice: alert.minutes, at: null };
+}
+
+/**
+ * A form row back on the wire.
+ *
+ * A custom row with no moment yet sends nothing rather than a half-filled alert:
+ * the reader opened the picker and has not chosen, and inventing a time for them
+ * would be worse than the row quietly not existing until they do.
+ *
+ * @param {{choice: number|string, at: string|null}} row
+ * @returns {{minutes: number|null, at: string}|null}
+ */
+export function fromRow(row) {
+    if (CUSTOM !== row.choice) {
+        return { minutes: row.choice, at: null };
+    }
+
+    return row.at ? { minutes: null, at: row.at } : null;
+}
+
+/** A fresh row, on the offset most calendars default to. */
+export function blankRow() {
+    return { choice: DEFAULT_ALERT_OFFSET, at: null };
 }

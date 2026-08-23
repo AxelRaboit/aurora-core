@@ -25,6 +25,6 @@ interface PlanningEventInputInterface
 
     public function getStatus(): PlanningEventStatusEnum;
 
-    /** @return list<int> */
-    public function getAlertOffsets(): array;
+    /** @return list<array{minutes: int|null, at: DateTimeImmutable|null}> */
+    public function getAlerts(): array;
 }

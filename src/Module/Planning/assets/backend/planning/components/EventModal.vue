@@ -14,7 +14,7 @@
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Bell, ExternalLink, Globe, MapPin, Pencil, Trash2 } from "lucide-vue-next";
+import { Bell, ExternalLink, Globe, MapPin, Pencil, Plus, Trash2, X } from "lucide-vue-next";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -24,7 +24,7 @@ import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
-import { DEFAULT_ALERT_OFFSET, ALERT_OFFSETS, alertLabel, toggleAlert } from "../composables/alertOffsets.js";
+import { CUSTOM, alertLabel, alertOptions, blankRow, fromRow, toRow } from "../composables/alertOffsets.js";
 import { toInstant, toPickerValue, zoneDiffersFromViewer } from "../composables/eventTime.js";
 
 const props = defineProps({
@@ -53,10 +53,10 @@ function blank() {
         endAt: "",
         allDay: false,
         status: "confirmed",
-        // A new event comes with one alert already on, which is what
-        // every calendar people already use does. Nobody sets a alert
-        // they forgot the form offered.
-        alerts: [DEFAULT_ALERT_OFFSET],
+        // A new event comes with one alert already on, which is what every
+        // calendar people already use does. Nobody sets an alert they forgot the
+        // form offered.
+        alerts: [blankRow()],
     };
 }
 
@@ -81,7 +81,7 @@ watch(
                 endAt: toPickerValue(props.event.endAt, eventZone),
                 allDay: props.event.allDay,
                 status: props.event.status,
-                alerts: [...(props.event.alerts ?? [])],
+                alerts: (props.event.alerts ?? []).map(toRow),
             }
             : draft();
     },
@@ -144,27 +144,31 @@ const statusOptions = computed(() =>
     })),
 );
 
-const alertChips = computed(() =>
-    ALERT_OFFSETS.map((minutes) => ({ minutes, label: alertLabel(minutes, t) })),
-);
-
-/** The read view's summary, in the same words the chips use. */
-const alertSummary = computed(() =>
-    (props.event?.alerts ?? []).map((minutes) => alertLabel(minutes, t)).join(" · "),
-);
+const alertSelectOptions = computed(() => alertOptions(t));
 
 /**
- * The form, with its two wall clocks turned into instants.
+ * The read view's summary.
  *
- * Converted on the way out and not inside the picker, so the field the reader
- * edits and the value the server stores stay two clearly different things.
+ * A pinned alert is named by its moment and a relative one by its offset,
+ * because that is what each of them is - and showing "30 minutes before" for a
+ * moment somebody chose would be arithmetic the reader has to undo.
  */
-function payload() {
-    return {
-        ...form.value,
-        startAt: toInstant(form.value.startAt, zone.value),
-        endAt: toInstant(form.value.endAt, zone.value),
-    };
+const alertSummary = computed(() =>
+    (props.event?.alerts ?? [])
+        .map((alert) =>
+            null === alert.minutes
+                ? d(new Date(alert.at), { dateStyle: "medium", timeStyle: "short" })
+                : alertLabel(alert.minutes, t),
+        )
+        .join(" · "),
+);
+
+function addAlert() {
+    form.value.alerts = [...form.value.alerts, blankRow()];
+}
+
+function removeAlertRow(index) {
+    form.value.alerts = form.value.alerts.filter((_, at) => at !== index);
 }
 
 const when = computed(() => {
@@ -298,27 +302,46 @@ const when = computed(() => {
                 :rows="3"
             />
 
-            <!-- Chips and not a select-plus-add-plus-remove: the offsets are a
-                 closed list of nine, so one tap is the whole gesture, and the
-                 form shows at a glance which are on. A picker would hide the
-                 answer behind opening it. -->
+            <!-- One row per alert, each a select with the offsets the menu
+                 offers plus "custom" - which is the shape Google and Apple both
+                 use. A row of chips said the same thing in fewer clicks but in a
+                 control that exists nowhere else in this application, and it
+                 could not express a moment at all. -->
             <div class="flex flex-col gap-1.5">
                 <span class="text-sm font-medium text-primary">{{ t("backend.plannings.alerts.label") }}</span>
-                <div class="flex flex-wrap gap-1.5">
-                    <button
-                        v-for="chip in alertChips"
-                        :key="chip.minutes"
-                        type="button"
-                        class="px-2.5 py-1 text-xs rounded-full border transition-colors cursor-pointer"
-                        :class="form.alerts.includes(chip.minutes)
-                            ? 'border-accent bg-accent/10 text-primary font-medium'
-                            : 'border-line bg-surface-1 text-secondary hover:border-secondary'"
-                        :aria-pressed="form.alerts.includes(chip.minutes)"
-                        v-on:click="form.alerts = toggleAlert(form.alerts, chip.minutes)"
-                    >
-                        {{ chip.label }}
-                    </button>
+
+                <div v-for="(row, index) in form.alerts" :key="index" class="flex flex-col gap-1.5">
+                    <div class="flex items-start gap-2">
+                        <AppSelect v-model="row.choice" class="flex-1" :options="alertSelectOptions" />
+                        <button
+                            type="button"
+                            class="mt-1.5 shrink-0 p-1.5 text-muted hover:text-primary rounded-lg hover:bg-surface-2 transition-colors cursor-pointer"
+                            :title="t('shared.common.delete')"
+                            v-on:click="removeAlertRow(index)"
+                        >
+                            <X class="w-4 h-4" :stroke-width="2" />
+                        </button>
+                    </div>
+                    <!-- Only for a custom row, and indented under it, so the
+                         picker reads as belonging to the choice above it. -->
+                    <AppDatePicker
+                        v-if="CUSTOM === row.choice"
+                        v-model="row.at"
+                        enable-time
+                        class="pl-3"
+                        :placeholder="t('backend.plannings.alerts.at_placeholder')"
+                    />
                 </div>
+
+                <button
+                    type="button"
+                    class="flex items-center gap-1.5 self-start text-xs text-accent-600 hover:underline cursor-pointer"
+                    v-on:click="addAlert"
+                >
+                    <Plus class="w-3.5 h-3.5" :stroke-width="2" />
+                    {{ t("backend.plannings.alerts.add") }}
+                </button>
+
                 <span v-if="!form.alerts.length" class="text-xs text-muted">
                     {{ t("backend.plannings.alerts.none") }}
                 </span>

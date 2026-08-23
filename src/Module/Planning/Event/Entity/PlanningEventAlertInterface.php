@@ -14,9 +14,13 @@ interface PlanningEventAlertInterface
 
     public function setEvent(PlanningEventInterface $event): static;
 
-    public function getMinutesBefore(): int;
+    public function getMinutesBefore(): ?int;
 
     public function setMinutesBefore(int $minutesBefore): static;
+
+    public function setAbsoluteAt(DateTimeImmutable $at): static;
+
+    public function isRelative(): bool;
 
     public function getRemindAt(): DateTimeImmutable;
 

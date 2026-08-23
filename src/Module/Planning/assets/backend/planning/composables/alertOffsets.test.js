@@ -1,40 +1,26 @@
 import { describe, expect, it } from "vitest";
 import {
-    DEFAULT_ALERT_OFFSET,
     ALERT_OFFSETS,
+    CUSTOM,
+    DEFAULT_ALERT_OFFSET,
     alertLabel,
-    toggleAlert,
+    alertOptions,
+    blankRow,
+    fromRow,
+    toRow,
 } from "./alertOffsets.js";
 
+const t = (key) => key;
+
 describe("alertOffsets", () => {
-    it("adds an offset and keeps the list sorted", () => {
-        // Sorted on the way out so the chips do not reorder as they are toggled,
-        // which would move the one under the reader's cursor.
-        expect(toggleAlert([60], 10)).toEqual([10, 60]);
-        expect(toggleAlert([10, 60], 30)).toEqual([10, 30, 60]);
-    });
+    it("offers the presets and a custom option, in that order", () => {
+        const options = alertOptions(t);
 
-    it("removes an offset already on", () => {
-        expect(toggleAlert([10, 30, 60], 30)).toEqual([10, 60]);
-    });
-
-    it("returns a new list rather than mutating the one it was given", () => {
-        // Vue only sees the change because the caller assigns the result; a
-        // mutation in place would toggle the chip and redraw nothing.
-        const before = [30];
-        const after = toggleAlert(before, 60);
-
-        expect(before).toEqual([30]);
-        expect(after).not.toBe(before);
-    });
-
-    it("empties down to nothing", () => {
-        expect(toggleAlert([30], 30)).toEqual([]);
+        expect(options).toHaveLength(ALERT_OFFSETS.length + 1);
+        expect(options.at(-1).value).toBe(CUSTOM);
     });
 
     it("names an offset through one key per value", () => {
-        const t = (key) => key;
-
         expect(alertLabel(0, t)).toBe("backend.plannings.alerts.offsets.0");
         expect(alertLabel(10080, t)).toBe(
             "backend.plannings.alerts.offsets.10080",
@@ -43,5 +29,77 @@ describe("alertOffsets", () => {
 
     it("offers a default the list contains", () => {
         expect(ALERT_OFFSETS).toContain(DEFAULT_ALERT_OFFSET);
+        expect(blankRow().choice).toBe(DEFAULT_ALERT_OFFSET);
+    });
+
+    it("marks custom with a string, not a number", () => {
+        // So it cannot collide with an offset however the menu grows, and so a
+        // row reads as custom rather than as a magic value.
+        expect(typeof CUSTOM).toBe("string");
+        expect(ALERT_OFFSETS).not.toContain(CUSTOM);
+    });
+});
+
+describe("alert rows", () => {
+    it("reads a relative alert as its offset", () => {
+        expect(toRow({ minutes: 30, at: null })).toEqual({
+            choice: 30,
+            at: null,
+        });
+    });
+
+    it("reads a pinned alert as custom, keeping its moment", () => {
+        expect(
+            toRow({ minutes: null, at: "2026-09-01T07:00:00+00:00" }),
+        ).toEqual({
+            choice: CUSTOM,
+            at: "2026-09-01T07:00:00+00:00",
+        });
+    });
+
+    it("sends a relative row as an offset", () => {
+        expect(fromRow({ choice: 60, at: null })).toEqual({
+            minutes: 60,
+            at: null,
+        });
+    });
+
+    it("sends a custom row as a moment", () => {
+        expect(
+            fromRow({ choice: CUSTOM, at: "2026-09-01T07:00:00+00:00" }),
+        ).toEqual({
+            minutes: null,
+            at: "2026-09-01T07:00:00+00:00",
+        });
+    });
+
+    it("sends nothing for a custom row with no moment chosen yet", () => {
+        // The reader opened the picker and has not picked. Inventing a time would
+        // be worse than the row not existing until they do.
+        expect(fromRow({ choice: CUSTOM, at: null })).toBeNull();
+        expect(fromRow({ choice: CUSTOM, at: "" })).toBeNull();
+    });
+
+    it("survives a round trip either way", () => {
+        expect(fromRow(toRow({ minutes: 15, at: null }))).toEqual({
+            minutes: 15,
+            at: null,
+        });
+
+        const pinned = { minutes: null, at: "2026-09-01T07:00:00+00:00" };
+        expect(fromRow(toRow(pinned))).toEqual(pinned);
+    });
+
+    it("keeps zero as an offset rather than losing it to a falsy test", () => {
+        // "At the start" is offset 0, and any `row.choice ? ... : ...` in this
+        // path would read it as absent.
+        expect(toRow({ minutes: 0, at: null })).toEqual({
+            choice: 0,
+            at: null,
+        });
+        expect(fromRow({ choice: 0, at: null })).toEqual({
+            minutes: 0,
+            at: null,
+        });
     });
 });

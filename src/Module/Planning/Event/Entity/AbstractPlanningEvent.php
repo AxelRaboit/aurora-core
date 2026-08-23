@@ -203,10 +203,17 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
         // index it, which means moving the event has to move them too - and here
         // is the only place that knows the event moved.
         foreach ($this->alerts as $alert) {
+            // Only the ones that follow the event. An alert pinned to a moment
+            // was asked for at that moment, and moving it because the meeting
+            // moved would take it away from the reader who chose it.
+            if (!$alert->isRelative()) {
+                continue;
+            }
+
             // Re-setting the offset is what recomputes the stored due time. Not
             // a no-op, and not a trick: the offset is the input, `remindAt` is
             // derived, and the alert owns that derivation.
-            $alert->setMinutesBefore($alert->getMinutesBefore());
+            $alert->setMinutesBefore((int) $alert->getMinutesBefore());
         }
 
         return $this;

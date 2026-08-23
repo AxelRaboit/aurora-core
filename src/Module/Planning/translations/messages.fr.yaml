@@ -81,6 +81,9 @@ backend:
         title_required: "Le rappel a besoin d'un titre."
         due_required: "Le rappel a besoin d'une échéance."
     alerts:
+      custom: "Personnalisé…"
+      add: Ajouter une alerte
+      at_placeholder: "Le jour et l'heure de l'alerte"
       label: "Alertes"
       none: "Aucune alerte pour cet événement."
       notification: "%calendar% · commence à %when%"

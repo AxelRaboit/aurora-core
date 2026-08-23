@@ -12,12 +12,12 @@ use InvalidArgumentException;
 abstract class AbstractPlanningEventAlert implements PlanningEventAlertInterface
 {
     /**
-     * The offsets a alert may take, in minutes.
+     * The offsets the menu offers, in minutes.
      *
-     * A list and not a free number: every calendar offers a menu, because "37
-     * minutes before" is a value nobody wants and a field everybody has to fill
-     * in. Zero means "when it starts", which is the one people actually use for
-     * a thing they are already at.
+     * A menu and not a free number, because "37 minutes before" is a value
+     * nobody wants and a field everybody has to fill in. Zero means "when it
+     * starts", which is the one people actually use for a thing they are already
+     * at. Anything outside the menu goes through {@see setAbsoluteAt} instead.
      */
     public const array OFFSETS = [0, 5, 10, 15, 30, 60, 120, 1440, 10080];
 
@@ -27,8 +27,17 @@ abstract class AbstractPlanningEventAlert implements PlanningEventAlertInterface
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     protected PlanningEventInterface $event;
 
-    #[ORM\Column(options: ['default' => self::DEFAULT_OFFSET])]
-    protected int $minutesBefore = self::DEFAULT_OFFSET;
+    /**
+     * How long before the event, or null for an alert pinned to a moment.
+     *
+     * The nullability is the whole difference between the two kinds, and it is a
+     * difference the reader can see: a relative alert follows its event, so
+     * moving a meeting moves its "30 minutes before" with it, while an alert
+     * somebody set for Tuesday at 09:00 stays on Tuesday at 09:00 - they asked
+     * for that moment, not for a distance.
+     */
+    #[ORM\Column(nullable: true, options: ['default' => self::DEFAULT_OFFSET])]
+    protected ?int $minutesBefore = self::DEFAULT_OFFSET;
 
     /**
      * When this alert is due, stored rather than computed.
@@ -49,7 +58,7 @@ abstract class AbstractPlanningEventAlert implements PlanningEventAlertInterface
      * Null until it fires, then never null again.
      *
      * A flag would have answered "has it fired", and this answers "when", which
-     * is the question asked the day somebody says they got a alert twice.
+     * is the question asked the day somebody says they got an alert twice.
      */
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     protected ?DateTimeImmutable $sentAt = null;
@@ -67,16 +76,27 @@ abstract class AbstractPlanningEventAlert implements PlanningEventAlertInterface
         return $this;
     }
 
-    public function getMinutesBefore(): int
+    public function getMinutesBefore(): ?int
     {
         return $this->minutesBefore;
+    }
+
+    /**
+     * Whether this alert follows its event.
+     *
+     * Asked by `setSpan`, which recomputes the ones that do and leaves the others
+     * where they were.
+     */
+    public function isRelative(): bool
+    {
+        return null !== $this->minutesBefore;
     }
 
     /**
      * Refuses an offset outside the menu.
      *
      * Not clamped, unlike a colour slot: a colour landing on the wrong step is
-     * cosmetic, and a alert landing at the wrong time is the whole feature
+     * cosmetic, and an alert landing at the wrong time is the whole feature
      * being wrong quietly.
      */
     public function setMinutesBefore(int $minutesBefore): static
@@ -87,6 +107,23 @@ abstract class AbstractPlanningEventAlert implements PlanningEventAlertInterface
 
         $this->minutesBefore = $minutesBefore;
         $this->recompute();
+
+        return $this;
+    }
+
+    /**
+     * Pins the alert to a moment of its own.
+     *
+     * The offset goes to null, which is what stops `setSpan` moving it later.
+     * Written straight to `remindAt` rather than converted into an offset from
+     * the event's start: an offset would be recomputed the next time the event
+     * moved, and the reader would find the alert they set for Tuesday morning had
+     * quietly gone somewhere else.
+     */
+    public function setAbsoluteAt(DateTimeImmutable $at): static
+    {
+        $this->minutesBefore = null;
+        $this->remindAt = $at;
 
         return $this;
     }
@@ -111,7 +148,7 @@ abstract class AbstractPlanningEventAlert implements PlanningEventAlertInterface
     /**
      * Whether it still has to fire.
      *
-     * What the worker filters on together with the due time, so a alert that
+     * What the worker filters on together with the due time, so an alert that
      * has already gone out cannot be picked up by a second worker or by a retry.
      */
     public function isPending(): bool
@@ -127,7 +164,9 @@ abstract class AbstractPlanningEventAlert implements PlanningEventAlertInterface
      */
     protected function recompute(): void
     {
-        if (!isset($this->event)) {
+        // Nothing to recompute for an alert pinned to a moment - and reading the
+        // null offset as zero would silently move it to the event's start.
+        if (!isset($this->event) || null === $this->minutesBefore) {
             return;
         }
 

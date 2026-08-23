@@ -47,24 +47,40 @@ final readonly class PlanningEventSerializer
             'colourSlot' => $planning->getColourSlot(),
             'sourceLabel' => $event->getSourceLabel(),
             'sourceUrl' => $event->getSourceUrl(),
-            // Offsets only. The form draws its own labels from them, and
-            // remindAt is derived from the start the client already has.
-            'alerts' => $this->alertOffsets($event),
+            'alerts' => $this->alerts($event),
             'readOnly' => $event->isFromModule(),
         ];
     }
 
-    /** @return list<int> */
-    private function alertOffsets(PlanningEventInterface $event): array
+    /**
+     * The alerts, each saying which kind it is.
+     *
+     * A relative one sends its offset and nothing else - the form draws its own
+     * label from that, and `remindAt` is derived from a start the client already
+     * has. A pinned one sends the moment, because there is nothing to derive it
+     * from.
+     *
+     * Sorted by when they fire, which is the order a reader thinks about them in
+     * and the only order that makes sense across the two kinds.
+     *
+     * @return list<array{minutes: int|null, at: string|null}>
+     */
+    private function alerts(PlanningEventInterface $event): array
     {
-        $offsets = [];
+        $alerts = [];
         foreach ($event->getAlerts() as $alert) {
-            $offsets[] = $alert->getMinutesBefore();
+            $alerts[] = [
+                'minutes' => $alert->getMinutesBefore(),
+                'at' => $alert->isRelative() ? null : $alert->getRemindAt()->format(DATE_ATOM),
+                // Sent for both kinds, so a screen can show when a relative alert
+                // actually lands without recomputing the subtraction itself.
+                'firesAt' => $alert->getRemindAt()->format(DATE_ATOM),
+            ];
         }
 
-        sort($offsets);
+        usort($alerts, static fn (array $a, array $b): int => strcmp((string) $a['firesAt'], (string) $b['firesAt']));
 
-        return $offsets;
+        return $alerts;
     }
 
     /**

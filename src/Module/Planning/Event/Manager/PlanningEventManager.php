@@ -89,7 +89,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
         // Last, and in one call: the entity refuses an end before a start, so
         // the two have to arrive together and after nothing else can throw.
         $event->setSpan($startAt, $endAt);
-        $this->applyAlerts($event, $input->getAlertOffsets());
+        $this->applyAlerts($event, $input->getAlerts());
     }
 
     /**
@@ -135,39 +135,85 @@ class PlanningEventManager implements PlanningEventManagerInterface
     }
 
     /**
-     * Brings the event's alerts in line with the offsets the form sent.
+     * Brings the event's alerts in line with what the form sent.
      *
      * Kept as a diff rather than "remove them all and add them back", and the
-     * difference is visible to the user: a alert that survives an edit keeps
+     * difference is visible to the reader: an alert that survives an edit keeps
      * its `sentAt`, so renaming an event at 14:05 does not resend the 14:00
      * alert. Clearing the collection would make every save a resend.
      *
-     * Runs after setSpan for the same reason it exists at all - a surviving
-     * alert has just been recomputed against the new start.
+     * Matched on what identifies each kind - an offset for a relative alert, the
+     * moment itself for a pinned one - because those are the two things a reader
+     * chose and therefore the two things that mean "this is the same alert".
      *
-     * @param list<int> $offsets
+     * Runs after setSpan for the same reason it exists at all: a surviving
+     * relative alert has just been recomputed against the new start.
+     *
+     * @param list<array{minutes: int|null, at: DateTimeImmutable|null}> $alerts
      */
-    protected function applyAlerts(PlanningEventInterface $event, array $offsets): void
+    protected function applyAlerts(PlanningEventInterface $event, array $alerts): void
     {
-        foreach ($event->getAlerts() as $alert) {
-            if (!in_array($alert->getMinutesBefore(), $offsets, true)) {
-                $event->removeAlert($alert);
-                $this->entityManager->remove($alert);
+        $wantedOffsets = [];
+        $wantedMoments = [];
+        foreach ($alerts as $alert) {
+            if (null !== $alert['minutes']) {
+                $wantedOffsets[] = $alert['minutes'];
+
+                continue;
+            }
+
+            if ($alert['at'] instanceof DateTimeImmutable) {
+                $wantedMoments[] = $alert['at']->getTimestamp();
             }
         }
 
-        $existing = [];
-        foreach ($event->getAlerts() as $alert) {
-            $existing[] = $alert->getMinutesBefore();
+        $keptOffsets = [];
+        $keptMoments = [];
+
+        foreach ($event->getAlerts() as $existing) {
+            if ($existing->isRelative()) {
+                if (in_array($existing->getMinutesBefore(), $wantedOffsets, true)) {
+                    $keptOffsets[] = $existing->getMinutesBefore();
+
+                    continue;
+                }
+            } elseif (in_array($existing->getRemindAt()->getTimestamp(), $wantedMoments, true)) {
+                $keptMoments[] = $existing->getRemindAt()->getTimestamp();
+
+                continue;
+            }
+
+            $event->removeAlert($existing);
+            $this->entityManager->remove($existing);
         }
 
-        foreach ($offsets as $offset) {
-            if (!in_array($offset, $existing, true)) {
-                $alert = new PlanningEventAlert();
-                $alert->setMinutesBefore($offset);
-                $event->addAlert($alert);
-                $this->entityManager->persist($alert);
+        foreach ($alerts as $alert) {
+            if (null !== $alert['minutes']) {
+                if (in_array($alert['minutes'], $keptOffsets, true)) {
+                    continue;
+                }
+
+                $created = new PlanningEventAlert();
+                $event->addAlert($created);
+                $created->setMinutesBefore($alert['minutes']);
+                $this->entityManager->persist($created);
+
+                continue;
             }
+            if (!$alert['at'] instanceof DateTimeImmutable) {
+                continue;
+            }
+            if (in_array($alert['at']->getTimestamp(), $keptMoments, true)) {
+                continue;
+            }
+
+            $created = new PlanningEventAlert();
+            // Added to the event first, because `setAbsoluteAt` writes `remindAt`
+            // directly and `addAlert` would otherwise recompute it from the
+            // default offset the moment the two sides are joined.
+            $event->addAlert($created);
+            $created->setAbsoluteAt($alert['at']);
+            $this->entityManager->persist($created);
         }
     }
 
