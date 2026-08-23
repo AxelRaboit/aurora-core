@@ -372,8 +372,19 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
 
             <form class="space-y-4" v-on:submit.prevent="submitEdit">
                 <div class="grid grid-cols-2 gap-4">
-                    <AppInput v-model="editForm.name" :label="t('backend.users.name')" :error="editModal.errors.name ?? ''" />
-                    <AppInput v-model="editForm.email" :label="t('backend.users.email')" type="email" :error="editModal.errors.email ?? ''" />
+                    <AppInput
+                        v-model="editForm.name"
+                        :label="t('backend.users.name')"
+                        :placeholder="t('shared.placeholders.name')"
+                        :error="editModal.errors.name ?? ''"
+                    />
+                    <AppInput
+                        v-model="editForm.email"
+                        :label="t('backend.users.email')"
+                        :placeholder="t('shared.placeholders.email')"
+                        type="email"
+                        :error="editModal.errors.email ?? ''"
+                    />
                     <AppMultiselect
                         v-model="editForm.role"
                         :options="roles"

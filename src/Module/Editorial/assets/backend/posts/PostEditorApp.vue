@@ -230,6 +230,7 @@ function termLabel(term) {
                                 v-else-if="field.type === 'textarea'"
                                 :model-value="current.customFields[field.name] ?? ''"
                                 :label="field.label"
+                                :placeholder="field.options?.placeholder ?? t('shared.placeholders.value')"
                                 :rows="3"
                                 v-on:update:model-value="setCustomField(field.name, $event)"
                             />
@@ -237,6 +238,7 @@ function termLabel(term) {
                                 v-else
                                 :model-value="current.customFields[field.name] ?? ''"
                                 :label="field.label"
+                                :placeholder="field.options?.placeholder ?? t('shared.placeholders.value')"
                                 :type="field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'"
                                 :required="field.required"
                                 v-on:update:model-value="setCustomField(field.name, $event)"
@@ -257,11 +259,13 @@ function termLabel(term) {
                         <AppInput
                             v-model="current.title"
                             :label="t('backend.posts.field_title')"
+                            :placeholder="t('shared.placeholders.title')"
                             :error="errors.title"
                         />
                         <AppTextarea
                             v-model="current.description"
                             :label="t('backend.posts.field_description')"
+                            :placeholder="t('shared.placeholders.description')"
                             :rows="2"
                         />
                         <p class="text-xs text-muted">{{ t("backend.posts.identity_hint") }}</p>
@@ -280,6 +284,7 @@ function termLabel(term) {
                         <AppInput
                             v-model="current.slug"
                             :label="t('backend.posts.field_slug')"
+                            :placeholder="t('shared.placeholders.slug')"
                             :hint="t('backend.posts.slug_hint')"
                         />
                         <AppSelect
@@ -299,6 +304,7 @@ function termLabel(term) {
                             v-model="form.scheduledAt"
                             type="datetime-local"
                             :label="t('backend.posts.field_scheduled_at')"
+                            :placeholder="t('backend.posts.scheduled_at_placeholder')"
                             :error="errors.scheduledAt"
                         />
                         <AppCheckbox v-model="form.commentsEnabled" :label="t('backend.posts.comments_enabled')" />
@@ -364,15 +370,28 @@ function termLabel(term) {
                 <div v-show="isTabActive('seo')" class="space-y-4">
                     <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.seo") }}</h3>
-                        <AppInput v-model="current.metaTitle" :label="t('backend.posts.meta_title')" />
+                        <AppInput
+                            v-model="current.metaTitle"
+                            :label="t('backend.posts.meta_title')"
+                            :placeholder="t('backend.posts.meta_title_placeholder')"
+                        />
                         <AppTextarea
                             v-model="current.metaDescription"
                             :label="t('backend.posts.meta_description')"
+                            :placeholder="t('backend.posts.meta_description_placeholder')"
                             :hint="t('backend.posts.meta_description_hint')"
                             :rows="2"
                         />
-                        <AppInput v-model="current.focusKeyword" :label="t('backend.posts.focus_keyword')" />
-                        <AppInput v-model="current.canonicalUrl" :label="t('backend.posts.canonical_url')" />
+                        <AppInput
+                            v-model="current.focusKeyword"
+                            :label="t('backend.posts.focus_keyword')"
+                            :placeholder="t('backend.posts.focus_keyword_placeholder')"
+                        />
+                        <AppInput
+                            v-model="current.canonicalUrl"
+                            :label="t('backend.posts.canonical_url')"
+                            :placeholder="t('shared.placeholders.url')"
+                        />
                         <AppCheckbox v-model="current.noindex" :label="t('backend.posts.noindex')" :hint="t('backend.posts.noindex_hint')" />
                     </div>
                 </div>

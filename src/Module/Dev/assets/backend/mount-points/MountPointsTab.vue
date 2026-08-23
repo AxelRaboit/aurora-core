@@ -159,6 +159,7 @@ onMounted(() => {
                     <AppInput
                         v-model="mp.createForm.value.password"
                         :label="t('backend.mount_points.password')"
+                        :placeholder="t('shared.placeholders.password')"
                         toggleable
                         autocomplete="new-password"
                     />

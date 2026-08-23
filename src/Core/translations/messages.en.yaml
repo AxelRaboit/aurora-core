@@ -1,4 +1,15 @@
 shared:
+  placeholders:
+    name: A short name
+    title: A short title
+    slug: page-title
+    description: A sentence to place it.
+    email: first.last@example.com
+    password: At least 8 characters
+    url: https://example.com/page
+    search: Search…
+    one_per_line: One value per line
+    value: Enter a value
   drop_zone:
     cta: Drag a file here, or click to browse
     drop: Drop to upload

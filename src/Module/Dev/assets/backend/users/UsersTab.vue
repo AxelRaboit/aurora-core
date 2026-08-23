@@ -167,6 +167,7 @@ onMounted(() => {
                 <AppInput
                     v-model="users.newUser.value.name"
                     :label="t('backend.users.name')"
+                    :placeholder="t('shared.placeholders.name')"
                     :error="users.createErrors.value.name"
                     autocomplete="name"
                     required
@@ -175,6 +176,7 @@ onMounted(() => {
                     v-model="users.newUser.value.email"
                     type="email"
                     :label="t('backend.users.email')"
+                    :placeholder="t('shared.placeholders.email')"
                     :error="users.createErrors.value.email"
                     autocomplete="email"
                     required
@@ -182,6 +184,7 @@ onMounted(() => {
                 <AppInput
                     v-model="users.newUser.value.password"
                     :label="t('backend.users.password')"
+                    :placeholder="t('shared.placeholders.password')"
                     :error="users.createErrors.value.password"
                     autocomplete="new-password"
                     toggleable
@@ -209,6 +212,7 @@ onMounted(() => {
                 <AppInput
                     v-model="users.editUserForm.value.name"
                     :label="t('backend.users.name')"
+                    :placeholder="t('shared.placeholders.name')"
                     :error="users.editErrors.value.name"
                     autocomplete="name"
                     required
@@ -217,6 +221,7 @@ onMounted(() => {
                     v-model="users.editUserForm.value.email"
                     type="email"
                     :label="t('backend.users.email')"
+                    :placeholder="t('shared.placeholders.email')"
                     :error="users.editErrors.value.email"
                     autocomplete="email"
                     required
@@ -224,6 +229,7 @@ onMounted(() => {
                 <AppInput
                     v-model="users.editUserForm.value.password"
                     :label="t('backend.users.password_optional')"
+                    :placeholder="t('shared.placeholders.password')"
                     :error="users.editErrors.value.password"
                     autocomplete="new-password"
                     toggleable

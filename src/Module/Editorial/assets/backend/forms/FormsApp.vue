@@ -261,20 +261,42 @@ function formatDate(value) {
         >
             <form class="space-y-4" v-on:submit.prevent="submit">
                 <AppCheckbox v-model="editorForm.active" :label="t('backend.forms.active')" :hint="t('backend.forms.active_hint')" />
-                <AppInput v-model="editorForm.notifyEmail" :label="t('backend.forms.notify_email')" :hint="t('backend.forms.notify_email_hint')" :error="errors.notifyEmail" />
-                <AppInput v-model="editorForm.webhookUrl" :label="t('backend.forms.webhook_url')" :hint="t('backend.forms.webhook_url_hint')" :error="errors.webhookUrl" />
+                <AppInput
+                    v-model="editorForm.notifyEmail"
+                    :label="t('backend.forms.notify_email')"
+                    :placeholder="t('shared.placeholders.email')"
+                    :hint="t('backend.forms.notify_email_hint')"
+                    :error="errors.notifyEmail"
+                />
+                <AppInput
+                    v-model="editorForm.webhookUrl"
+                    :label="t('backend.forms.webhook_url')"
+                    :placeholder="t('shared.placeholders.url')"
+                    :hint="t('backend.forms.webhook_url_hint')"
+                    :error="errors.webhookUrl"
+                />
                 <AppCheckbox v-model="editorForm.crmSync" :label="t('backend.forms.crm_sync')" />
 
                 <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
                     <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
-                    <AppInput v-model="editorForm.translations[locale].title" :label="t('backend.forms.title_label')" />
+                    <AppInput
+                        v-model="editorForm.translations[locale].title"
+                        :label="t('backend.forms.title_label')"
+                        :placeholder="t('shared.placeholders.title')"
+                    />
                     <AppInput
                         v-model="editorForm.translations[locale].slug"
                         :label="t('backend.forms.slug')"
+                        :placeholder="t('shared.placeholders.slug')"
                         :hint="t('backend.forms.slug_hint')"
                         :error="errors[`translations[${locale}].slug`]"
                     />
-                    <AppTextarea v-model="editorForm.translations[locale].description" :label="t('backend.forms.description')" :rows="2" />
+                    <AppTextarea
+                        v-model="editorForm.translations[locale].description"
+                        :label="t('backend.forms.description')"
+                        :placeholder="t('shared.placeholders.description')"
+                        :rows="2"
+                    />
                 </div>
 
                 <div class="space-y-2 border-t border-line/40 pt-3">
@@ -311,16 +333,26 @@ function formatDate(value) {
             <form class="space-y-4" v-on:submit.prevent="submitField">
                 <AppSelect v-model="fieldForm.type" :label="t('backend.forms.fields.type')" :options="typeOptions" :error="fieldErrors.type" />
                 <AppCheckbox v-model="fieldForm.required" :label="t('backend.forms.fields.required')" />
-                <AppInput v-model.number="fieldForm.step" type="number" :label="t('backend.forms.fields.step')" />
+                <AppInput
+                    v-model.number="fieldForm.step"
+                    type="number"
+                    :label="t('backend.forms.fields.step')"
+                    :placeholder="t('backend.forms.fields.step_placeholder')"
+                />
 
                 <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
                     <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
-                    <AppInput v-model="fieldForm.translations[locale].label" :label="t('backend.forms.fields.label')" />
+                    <AppInput
+                        v-model="fieldForm.translations[locale].label"
+                        :label="t('backend.forms.fields.label')"
+                        :placeholder="t('backend.forms.fields.label_placeholder')"
+                    />
                     <AppInput v-model="fieldForm.translations[locale].placeholder" :label="t('backend.forms.fields.placeholder')" />
                     <AppTextarea
                         v-if="typeMeta?.hasOptions"
                         v-model="fieldForm.translations[locale].options"
                         :label="t('backend.forms.fields.options')"
+                        :placeholder="t('shared.placeholders.one_per_line')"
                         :hint="t('backend.forms.fields.options_hint')"
                         :rows="4"
                         :error="fieldErrors[`translations[${locale}].options`]"

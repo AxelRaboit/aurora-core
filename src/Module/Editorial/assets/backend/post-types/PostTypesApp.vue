@@ -190,9 +190,25 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
             v-on:close="showCreate = false"
         >
             <form class="space-y-4" v-on:submit.prevent="submitCreate">
-                <AppInput v-model="createForm.label" :label="t('backend.post_types.label')" :error="createErrors.label" required />
-                <AppInput v-model="createForm.slug" :label="t('backend.post_types.slug')" :error="createErrors.slug" required />
-                <AppInput v-model="createForm.icon" :label="t('backend.post_types.icon')" />
+                <AppInput
+                    v-model="createForm.label"
+                    :label="t('backend.post_types.label')"
+                    :placeholder="t('backend.post_types.label_placeholder')"
+                    :error="createErrors.label"
+                    required
+                />
+                <AppInput
+                    v-model="createForm.slug"
+                    :label="t('backend.post_types.slug')"
+                    :placeholder="t('shared.placeholders.slug')"
+                    :error="createErrors.slug"
+                    required
+                />
+                <AppInput
+                    v-model="createForm.icon"
+                    :label="t('backend.post_types.icon')"
+                    :placeholder="t('backend.post_types.icon_placeholder')"
+                />
                 <AppCheckbox v-model="createForm.hasArchive" :label="t('backend.post_types.has_archive')" :hint="t('backend.post_types.has_archive_hint')" />
                 <div class="space-y-2">
                     <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("backend.post_types.supports") }}</label>
@@ -221,15 +237,26 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
             v-on:close="showEdit = false"
         >
             <form class="space-y-4" v-on:submit.prevent="submitEdit">
-                <AppInput v-model="editForm.label" :label="t('backend.post_types.label')" :error="editErrors.label" required />
+                <AppInput
+                    v-model="editForm.label"
+                    :label="t('backend.post_types.label')"
+                    :placeholder="t('backend.post_types.label_placeholder')"
+                    :error="editErrors.label"
+                    required
+                />
                 <AppInput
                     v-model="editForm.slug"
                     :label="t('backend.post_types.slug')"
+                    :placeholder="t('shared.placeholders.slug')"
                     :error="editErrors.slug"
                     :disabled="editing?.isBuiltIn"
                     :hint="editing?.isBuiltIn ? t('backend.post_types.slug_locked') : null"
                 />
-                <AppInput v-model="editForm.icon" :label="t('backend.post_types.icon')" />
+                <AppInput
+                    v-model="editForm.icon"
+                    :label="t('backend.post_types.icon')"
+                    :placeholder="t('backend.post_types.icon_placeholder')"
+                />
                 <AppCheckbox v-model="editForm.hasArchive" :label="t('backend.post_types.has_archive')" :hint="t('backend.post_types.has_archive_hint')" />
                 <div class="space-y-2">
                     <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("backend.post_types.supports") }}</label>
@@ -259,14 +286,27 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
             v-on:close="showField = false"
         >
             <form class="space-y-4" v-on:submit.prevent="submitField">
-                <AppInput v-model="fieldForm.label" :label="t('backend.post_types.fields.label')" :error="fieldErrors.label" required />
-                <AppInput v-model="fieldForm.name" :label="t('backend.post_types.fields.name')" :error="fieldErrors.name" required />
+                <AppInput
+                    v-model="fieldForm.label"
+                    :label="t('backend.post_types.fields.label')"
+                    :placeholder="t('backend.post_types.fields.label_placeholder')"
+                    :error="fieldErrors.label"
+                    required
+                />
+                <AppInput
+                    v-model="fieldForm.name"
+                    :label="t('backend.post_types.fields.name')"
+                    :placeholder="t('backend.post_types.fields.name_placeholder')"
+                    :error="fieldErrors.name"
+                    required
+                />
                 <AppSelect v-model="fieldForm.type" :label="t('backend.post_types.fields.type')" :options="fieldTypeOptions" />
 
                 <AppTextarea
                     v-if="fieldForm.type === 'select'"
                     v-model="fieldForm.choices"
                     :label="t('backend.post_types.fields.choices')"
+                    :placeholder="t('shared.placeholders.one_per_line')"
                     :hint="t('backend.post_types.fields.choices_hint')"
                     :rows="4"
                 />

@@ -176,6 +176,8 @@ backend:
         checkbox: Checkbox
         url: URL
         email: Email
+      label_placeholder: "Author"
+      name_placeholder: "author"
     errors:
       slug_required: A slug is required.
       slug_format: 'The slug can only contain lowercase letters, numbers and underscores.'
@@ -188,6 +190,8 @@ backend:
       field_name_taken: 'The field "{name}" already exists on this type.'
       field_label_required: A label is required.
       field_type_invalid: Unknown field type.
+    label_placeholder: "Article"
+    icon_placeholder: "file-text"
   posts:
     banner:
       title: Custom header
@@ -486,6 +490,12 @@ backend:
       scheduled_at_required: A scheduled post needs a date.
       scheduled_at_invalid: That date cannot be read.
       scheduled_at_in_past: A scheduled date must be in the future.
+    focus_keyword_placeholder: "a word or a phrase"
+    meta_title_placeholder: "About 60 characters"
+    meta_description_placeholder: "About 155 characters"
+    scheduled_at_placeholder: "DD/MM/YYYY HH:MM"
+    alt_placeholder: "What the picture shows"
+    caption_placeholder: "A line under the picture"
   taxonomies:
     title: Taxonomies
     empty: No taxonomy yet.
@@ -534,6 +544,7 @@ backend:
       term_self_nested: A term cannot be placed inside itself or one of its own children.
       parent_wrong_taxonomy: 'Term {parentId} does not belong to the "{taxonomy}" taxonomy.'
       reorder_cycle: 'That move would put term {id} inside its own subtree.'
+    label_placeholder: "Categories"
   comments:
     title: Comments
     empty: No comment yet.
@@ -602,6 +613,8 @@ backend:
       add_condition: Add a condition
       move_up: Move up
       move_down: Move down
+      step_placeholder: "1"
+      label_placeholder: "Your name"
     steps:
       title: Steps
       hint: 'With no step, the form fits on one page.'
@@ -709,6 +722,8 @@ backend:
       parent_wrong_menu: 'The parent item does not belong to this menu.'
       self_nested: An item cannot be placed inside itself or one of its own sub-items.
       reorder_cycle: 'That move would put item {id} inside its own subtree.'
+    css_class_placeholder: "menu-item--featured"
+    label_placeholder: "Home"
 frontend:
   gallery:
     open: "Enlarge picture %position% of %total%"

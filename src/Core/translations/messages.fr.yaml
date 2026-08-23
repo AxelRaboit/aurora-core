@@ -1,4 +1,15 @@
 shared:
+  placeholders:
+    name: Un nom court
+    title: Un titre court
+    slug: titre-de-la-page
+    description: Une phrase pour situer.
+    email: prenom.nom@exemple.fr
+    password: 8 caractères minimum
+    url: https://exemple.fr/page
+    search: Rechercher…
+    one_per_line: Une valeur par ligne
+    value: Saisir une valeur
   drop_zone:
     cta: Glissez un fichier ici, ou cliquez pour parcourir
     drop: Déposez pour téléverser

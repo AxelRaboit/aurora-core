@@ -179,8 +179,20 @@ function isUnresolved(item) {
             v-on:close="showEdit = false"
         >
             <form class="space-y-4" v-on:submit.prevent="submitEdit">
-                <AppInput v-model="editForm.name" :label="t('backend.menus.name')" :error="editErrors.name" required />
-                <AppTextarea v-model="editForm.description" :label="t('backend.menus.description')" :error="editErrors.description" :rows="2" />
+                <AppInput
+                    v-model="editForm.name"
+                    :label="t('backend.menus.name')"
+                    :placeholder="t('shared.placeholders.name')"
+                    :error="editErrors.name"
+                    required
+                />
+                <AppTextarea
+                    v-model="editForm.description"
+                    :label="t('backend.menus.description')"
+                    :placeholder="t('shared.placeholders.description')"
+                    :error="editErrors.description"
+                    :rows="2"
+                />
             </form>
             <template #footer>
                 <AppModalFooter>
@@ -206,7 +218,12 @@ function isUnresolved(item) {
                 />
 
                 <template v-if="targetTypeMeta?.requiresTarget">
-                    <AppInput v-model="targetSearch" :label="t('shared.common.search')" :loading="targetLoading" />
+                    <AppInput
+                        v-model="targetSearch"
+                        :label="t('shared.common.search')"
+                        :placeholder="t('shared.placeholders.search')"
+                        :loading="targetLoading"
+                    />
                     <AppSelect
                         v-model="form.targetId"
                         :label="t('backend.menus.target')"
@@ -240,13 +257,19 @@ function isUnresolved(item) {
                 />
 
                 <AppCheckbox v-model="form.openInNewTab" :label="t('backend.menus.open_in_new_tab')" />
-                <AppInput v-model="form.cssClass" :label="t('backend.menus.css_class')" :error="itemErrors.cssClass" />
+                <AppInput
+                    v-model="form.cssClass"
+                    :label="t('backend.menus.css_class')"
+                    :placeholder="t('backend.menus.css_class_placeholder')"
+                    :error="itemErrors.cssClass"
+                />
 
                 <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
                     <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
                     <AppInput
                         v-model="form.translations[locale].label"
                         :label="t('backend.menus.label')"
+                        :placeholder="t('backend.menus.label_placeholder')"
                         :hint="t('backend.menus.label_hint')"
                     />
                 </div>

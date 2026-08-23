@@ -129,18 +129,21 @@ const { deletingTheme, confirmDelete } = useThemesDelete(themeList, props.delete
                 <AppInput
                     v-model="createForm.name"
                     :label="t('shared.common.name')"
+                    :placeholder="t('shared.placeholders.name')"
                     :error="createModal.errors.name ?? ''"
                     :required="true"
                 />
                 <AppInput
                     v-model="createForm.slug"
                     :label="t('backend.themes.slug_label')"
+                    :placeholder="t('shared.placeholders.slug')"
                     :error="createModal.errors.slug ?? ''"
                     :required="true"
                 />
                 <AppTextarea
                     v-model="createForm.description"
                     :label="t('shared.common.description')"
+                    :placeholder="t('shared.placeholders.description')"
                     :rows="2"
                 />
                 <slot name="extra-create-form-fields" :form="createForm" :errors="createModal.errors" />
@@ -165,12 +168,14 @@ const { deletingTheme, confirmDelete } = useThemesDelete(themeList, props.delete
                 <AppInput
                     v-model="editForm.name"
                     :label="t('shared.common.name')"
+                    :placeholder="t('shared.placeholders.name')"
                     :error="editModal.errors.name ?? ''"
                     :required="true"
                 />
                 <AppTextarea
                     v-model="editForm.description"
                     :label="t('shared.common.description')"
+                    :placeholder="t('shared.placeholders.description')"
                     :rows="2"
                 />
                 <slot name="extra-form-fields" :form="editForm" :errors="editModal.errors" :theme="editModal.editing" />

@@ -305,11 +305,13 @@ async function onFiles(files) {
                 <AppInput
                     v-model="wordsFor(editing).alt"
                     :label="t('backend.posts.gallery.alt', { locale })"
+                    :placeholder="t('backend.posts.alt_placeholder')"
                     :hint="t('backend.posts.gallery.alt_hint')"
                 />
                 <AppInput
                     v-model="wordsFor(editing).caption"
                     :label="t('backend.posts.gallery.caption', { locale })"
+                    :placeholder="t('backend.posts.caption_placeholder')"
                 />
             </div>
 

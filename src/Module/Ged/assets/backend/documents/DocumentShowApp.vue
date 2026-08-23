@@ -204,10 +204,15 @@ function isPdf(mimeType) {
                 <AppInput
                     v-model="editForm.title"
                     :label="t('backend.ged.documents.title')"
+                    :placeholder="t('shared.placeholders.title')"
                     :error="editErrors.title"
                     required
                 />
-                <AppInput v-model="editForm.description" :label="t('backend.ged.documents.description')" />
+                <AppInput
+                    v-model="editForm.description"
+                    :label="t('backend.ged.documents.description')"
+                    :placeholder="t('shared.placeholders.description')"
+                />
                 <AppMultiselect
                     v-model="editForm.status"
                     :label="t('backend.ged.documents.status')"

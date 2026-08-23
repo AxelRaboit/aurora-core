@@ -123,10 +123,12 @@ const publicationOptions = computed(() =>
                 <AppInput
                     v-model="bound.alt.value"
                     :label="t('backend.posts.grid.zone_alt')"
+                    :placeholder="t('backend.posts.alt_placeholder')"
                 />
                 <AppInput
                     v-model="bound.caption.value"
                     :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
                 />
             </div>
         </template>
@@ -161,6 +163,7 @@ const publicationOptions = computed(() =>
                 <AppInput
                     v-model="bound.caption.value"
                     :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
                 />
             </div>
         </template>

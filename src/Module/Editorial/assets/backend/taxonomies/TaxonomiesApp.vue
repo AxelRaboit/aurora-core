@@ -202,13 +202,28 @@ function nameOf(term) {
             v-on:close="showCreate = false"
         >
             <form class="space-y-4" v-on:submit.prevent="submitCreate">
-                <AppInput v-model="createForm.slug" :label="t('backend.taxonomies.slug')" :error="createErrors.slug" required />
+                <AppInput
+                    v-model="createForm.slug"
+                    :label="t('backend.taxonomies.slug')"
+                    :placeholder="t('shared.placeholders.slug')"
+                    :error="createErrors.slug"
+                    required
+                />
                 <AppCheckbox v-model="createForm.hierarchical" :label="t('backend.taxonomies.hierarchical')" :hint="t('backend.taxonomies.hierarchical_hint')" />
 
                 <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
                     <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
-                    <AppInput v-model="createForm.translations[locale].label" :label="t('backend.taxonomies.label')" />
-                    <AppTextarea v-model="createForm.translations[locale].description" :label="t('backend.taxonomies.description')" :rows="2" />
+                    <AppInput
+                        v-model="createForm.translations[locale].label"
+                        :label="t('backend.taxonomies.label')"
+                        :placeholder="t('backend.taxonomies.label_placeholder')"
+                    />
+                    <AppTextarea
+                        v-model="createForm.translations[locale].description"
+                        :label="t('backend.taxonomies.description')"
+                        :placeholder="t('shared.placeholders.description')"
+                        :rows="2"
+                    />
                 </div>
 
                 <div class="space-y-2 border-t border-line/40 pt-3">
@@ -241,6 +256,7 @@ function nameOf(term) {
                 <AppInput
                     v-model="editForm.slug"
                     :label="t('backend.taxonomies.slug')"
+                    :placeholder="t('shared.placeholders.slug')"
                     :error="editErrors.slug"
                     :disabled="editing?.isBuiltIn"
                     :hint="editing?.isBuiltIn ? t('backend.taxonomies.slug_locked') : null"
@@ -254,8 +270,17 @@ function nameOf(term) {
 
                 <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
                     <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
-                    <AppInput v-model="editForm.translations[locale].label" :label="t('backend.taxonomies.label')" />
-                    <AppTextarea v-model="editForm.translations[locale].description" :label="t('backend.taxonomies.description')" :rows="2" />
+                    <AppInput
+                        v-model="editForm.translations[locale].label"
+                        :label="t('backend.taxonomies.label')"
+                        :placeholder="t('backend.taxonomies.label_placeholder')"
+                    />
+                    <AppTextarea
+                        v-model="editForm.translations[locale].description"
+                        :label="t('backend.taxonomies.description')"
+                        :placeholder="t('shared.placeholders.description')"
+                        :rows="2"
+                    />
                 </div>
 
                 <div class="space-y-2 border-t border-line/40 pt-3">
@@ -296,9 +321,23 @@ function nameOf(term) {
 
                 <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
                     <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
-                    <AppInput v-model="form.translations[locale].name" :label="t('backend.taxonomies.terms.name')" />
-                    <AppInput v-model="form.translations[locale].slug" :label="t('backend.taxonomies.terms.slug')" :hint="t('backend.taxonomies.terms.slug_hint')" />
-                    <AppTextarea v-model="form.translations[locale].description" :label="t('backend.taxonomies.terms.description')" :rows="2" />
+                    <AppInput
+                        v-model="form.translations[locale].name"
+                        :label="t('backend.taxonomies.terms.name')"
+                        :placeholder="t('shared.placeholders.name')"
+                    />
+                    <AppInput
+                        v-model="form.translations[locale].slug"
+                        :label="t('backend.taxonomies.terms.slug')"
+                        :placeholder="t('shared.placeholders.slug')"
+                        :hint="t('backend.taxonomies.terms.slug_hint')"
+                    />
+                    <AppTextarea
+                        v-model="form.translations[locale].description"
+                        :label="t('backend.taxonomies.terms.description')"
+                        :placeholder="t('shared.placeholders.description')"
+                        :rows="2"
+                    />
                 </div>
             </form>
             <template #footer>

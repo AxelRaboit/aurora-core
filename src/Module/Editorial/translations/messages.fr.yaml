@@ -176,6 +176,8 @@ backend:
         checkbox: Case à cocher
         url: URL
         email: E-mail
+      label_placeholder: "Auteur"
+      name_placeholder: "auteur"
     errors:
       slug_required: Un slug est requis.
       slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets bas.'
@@ -188,6 +190,8 @@ backend:
       field_name_taken: 'Le champ « {name} » existe déjà sur ce type.'
       field_label_required: Un libellé est requis.
       field_type_invalid: Type de champ inconnu.
+    label_placeholder: "Article"
+    icon_placeholder: "file-text"
   posts:
     banner:
       title: En-tête personnalisé
@@ -486,6 +490,12 @@ backend:
       scheduled_at_required: Une publication programmée a besoin d'une date.
       scheduled_at_invalid: Cette date est illisible.
       scheduled_at_in_past: La date de programmation doit être dans le futur.
+    focus_keyword_placeholder: "un mot ou une expression"
+    meta_title_placeholder: "60 caractères environ"
+    meta_description_placeholder: "155 caractères environ"
+    scheduled_at_placeholder: "JJ/MM/AAAA HH:MM"
+    alt_placeholder: "Ce que montre l'image"
+    caption_placeholder: "Une ligne sous l'image"
   taxonomies:
     title: Taxonomies
     empty: Aucune taxonomie.
@@ -534,6 +544,7 @@ backend:
       term_self_nested: Un terme ne peut pas être placé sous lui-même ni sous l'un de ses enfants.
       parent_wrong_taxonomy: "Le terme {parentId} n'appartient pas à la taxonomie « {taxonomy} »."
       reorder_cycle: 'Ce déplacement placerait le terme {id} dans sa propre descendance.'
+    label_placeholder: "Catégories"
   comments:
     title: Commentaires
     empty: Aucun commentaire.
@@ -602,6 +613,8 @@ backend:
       add_condition: Ajouter une condition
       move_up: Monter
       move_down: Descendre
+      step_placeholder: "1"
+      label_placeholder: "Votre nom"
     steps:
       title: Étapes
       hint: "Sans étape, le formulaire tient sur une page."
@@ -709,6 +722,8 @@ backend:
       parent_wrong_menu: "L'entrée parente n'appartient pas à ce menu."
       self_nested: Une entrée ne peut pas être placée sous elle-même ni sous l'une de ses sous-entrées.
       reorder_cycle: 'Ce déplacement placerait l''entrée {id} dans sa propre descendance.'
+    css_class_placeholder: "menu-item--mis-en-avant"
+    label_placeholder: "Accueil"
 frontend:
   gallery:
     open: "Agrandir l'image %position% sur %total%"
