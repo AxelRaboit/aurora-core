@@ -36,6 +36,7 @@ const emit = defineEmits([
     "create-reminder",
     "create-calendar",
     "edit-calendar",
+    "share-calendar",
     "toggle-calendar",
 ]);
 
@@ -116,6 +117,7 @@ const zoneOptions = computed(() =>
                 :can-manage="canManageCalendars"
                 v-on:toggle="emit('toggle-calendar', $event)"
                 v-on:edit="emit('edit-calendar', $event)"
+                v-on:share="emit('share-calendar', $event)"
             />
         </div>
 

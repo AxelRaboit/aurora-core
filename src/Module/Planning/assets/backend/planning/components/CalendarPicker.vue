@@ -32,7 +32,7 @@ const props = defineProps({
     canManageCalendars: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["create-calendar", "edit-calendar", "toggle-calendar"]);
+const emit = defineEmits(["create-calendar", "edit-calendar", "share-calendar", "toggle-calendar"]);
 
 const { t } = useI18n();
 
@@ -96,6 +96,12 @@ onBeforeUnmount(() => {
 function edit(calendar) {
     close();
     emit("edit-calendar", calendar);
+}
+
+/** Same for sharing, which opens its own. */
+function share(calendar) {
+    close();
+    emit("share-calendar", calendar);
 }
 
 function create() {
@@ -169,6 +175,7 @@ function create() {
                     :can-manage="canManageCalendars"
                     v-on:toggle="emit('toggle-calendar', $event)"
                     v-on:edit="edit"
+                    v-on:share="share"
                 />
             </div>
 

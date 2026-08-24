@@ -17,6 +17,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import CalendarModal from "./components/CalendarModal.vue";
+import CalendarShareModal from "./components/CalendarShareModal.vue";
 import CalendarDayList from "./components/CalendarDayList.vue";
 import CalendarAgenda from "./components/CalendarAgenda.vue";
 import CalendarBar from "./components/CalendarBar.vue";
@@ -164,6 +165,9 @@ function closeSheet() {
 
 const {
     openCalendar,
+    openShare,
+    openShareFor,
+    closeShare,
     linksFor,
     savingLink,
     linkErrors,
@@ -243,6 +247,7 @@ function isBusy() {
         null !== openEvent.value
         || null !== openReminder.value
         || null !== openCalendar.value
+        || null !== openShare.value
         || sheetOpen.value
     );
 }
@@ -281,6 +286,7 @@ usePlanningShortcuts({
                 v-on:create-reminder="createReminder"
                 v-on:create-calendar="createCalendar"
                 v-on:edit-calendar="editCalendar"
+                v-on:share-calendar="openShareFor"
                 v-on:toggle-calendar="toggleCalendar"
             />
 
@@ -417,9 +423,20 @@ usePlanningShortcuts({
                 v-on:create-reminder="createReminder"
                 v-on:create-calendar="createCalendar"
                 v-on:edit-calendar="editCalendar"
+                v-on:share-calendar="openShareFor"
                 v-on:toggle-calendar="toggleCalendar"
             />
         </AppModal>
+
+        <CalendarShareModal
+            :calendar="openShare"
+            :links="linksFor(openShare)"
+            :errors="linkErrors"
+            :saving="savingLink"
+            v-on:close="closeShare"
+            v-on:create="createLink"
+            v-on:revoke="revokeLink"
+        />
 
         <RecurrenceScopeModal
             :show="null !== pendingScope"
@@ -444,14 +461,9 @@ usePlanningShortcuts({
             :timezones="timezones"
             :errors="calendarErrors"
             :saving="savingCalendar"
-            :links="linksFor(openCalendar)"
-            :link-errors="linkErrors"
-            :saving-link="savingLink"
             :people="people"
             :current-user-id="currentUserId"
             v-on:set-shares="setShares"
-            v-on:create-link="createLink"
-            v-on:revoke-link="revokeLink"
             v-on:close="closeCalendar"
             v-on:save="saveCalendar"
             v-on:delete="removeCalendarAndItsEvents"

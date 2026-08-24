@@ -48,14 +48,54 @@ describe("CalendarToggle", () => {
         ).toBe("false");
     });
 
-    it("asks to be toggled by id, and to be edited by object", async () => {
+    /**
+     * Found by title rather than by position, which is what broke when the share
+     * button arrived: the pencil went from second to third and a test asserting on
+     * an index said `edit` was never emitted.
+     */
+    it("asks to be toggled by id, and to be edited or shared by object", async () => {
         const wrapper = mountToggle({ canManage: true });
 
         await wrapper.find("button").trigger("click");
         expect(wrapper.emitted("toggle")).toEqual([[7]]);
 
-        await wrapper.findAll("button")[1].trigger("click");
+        await wrapper
+            .find('button[title="backend.plannings.edit_calendar"]')
+            .trigger("click");
         expect(wrapper.emitted("edit")).toEqual([[CALENDAR]]);
+
+        await wrapper
+            .find('button[title="backend.plannings.links.label"]')
+            .trigger("click");
+        expect(wrapper.emitted("share")).toEqual([[CALENDAR]]);
+    });
+
+    /**
+     * Sharing is its own action, not a corner of the edit form.
+     *
+     * It was one, and that is why nobody found it: the only route to handing
+     * somebody an address was to go looking for something else.
+     */
+    it("offers sharing separately from editing", () => {
+        const wrapper = mountToggle({ canManage: true });
+
+        expect(
+            wrapper
+                .find('button[title="backend.plannings.links.label"]')
+                .exists(),
+        ).toBe(true);
+        expect(
+            wrapper
+                .find('button[title="backend.plannings.edit_calendar"]')
+                .exists(),
+        ).toBe(true);
+    });
+
+    /** Neither is offered to somebody who may not manage calendars. */
+    it("offers neither without the right to manage", () => {
+        const wrapper = mountToggle({ canManage: false });
+
+        expect(wrapper.findAll("button")).toHaveLength(1);
     });
 
     /**

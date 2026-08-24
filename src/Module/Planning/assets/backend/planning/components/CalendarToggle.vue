@@ -9,7 +9,7 @@
  * pencil on hover, and `aria-pressed`.
  */
 import { useI18n } from "vue-i18n";
-import { Pencil } from "lucide-vue-next";
+import { Pencil, Share2 } from "lucide-vue-next";
 
 const props = defineProps({
     calendar: { type: Object, required: true },
@@ -19,7 +19,7 @@ const props = defineProps({
     canManage: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["toggle", "edit"]);
+const emit = defineEmits(["toggle", "edit", "share"]);
 
 const { t } = useI18n();
 
@@ -70,16 +70,29 @@ function swatch() {
         >
             {{ count }}
         </span>
-        <!-- Takes the count's place on hover rather than sitting beside it, so the
-             row does not change width and the names stay lined up. -->
-        <button
-            v-if="canManage"
-            type="button"
-            class="hidden shrink-0 cursor-pointer text-muted hover:text-primary group-hover:block"
-            :title="t('backend.plannings.edit_calendar')"
-            v-on:click="emit('edit', calendar)"
-        >
-            <Pencil class="h-3.5 w-3.5" :stroke-width="2" />
-        </button>
+        <!-- Both take the count's place on hover rather than sitting beside it, so
+             the row does not change width and the names stay lined up.
+
+             Two buttons because they are two jobs. Sharing a calendar is not a
+             setting on it - it is handing an address to somebody outside - and it
+             was buried in the edit form, where nobody found it. -->
+        <div v-if="canManage" class="hidden shrink-0 items-center gap-1.5 group-hover:flex">
+            <button
+                type="button"
+                class="cursor-pointer text-muted hover:text-primary"
+                :title="t('backend.plannings.links.label')"
+                v-on:click="emit('share', calendar)"
+            >
+                <Share2 class="h-3.5 w-3.5" :stroke-width="2" />
+            </button>
+            <button
+                type="button"
+                class="cursor-pointer text-muted hover:text-primary"
+                :title="t('backend.plannings.edit_calendar')"
+                v-on:click="emit('edit', calendar)"
+            >
+                <Pencil class="h-3.5 w-3.5" :stroke-width="2" />
+            </button>
+        </div>
     </div>
 </template>

@@ -30,6 +30,15 @@ export function usePlanningCalendarForm(
     const savingLink = ref(false);
     const linkErrors = ref({});
 
+    /**
+     * The calendar whose links are open, which is not the one being edited.
+     *
+     * Two separate refs because they are two windows: sharing a calendar and
+     * changing its name are different jobs, and putting the second at the bottom
+     * of the first is how the links shipped and stayed unfound.
+     */
+    const openShare = ref(null);
+
     function createCalendar() {
         // `{}` and not null: the modal opens on `calendar !== null`, and a new
         // calendar has no id yet.
@@ -43,6 +52,17 @@ export function usePlanningCalendarForm(
         errors.value = {};
         linkErrors.value = {};
         onOpen();
+    }
+
+    function openShareFor(calendar) {
+        openShare.value = calendar;
+        linkErrors.value = {};
+        onOpen();
+    }
+
+    function closeShare() {
+        openShare.value = null;
+        linkErrors.value = {};
     }
 
     function closeCalendar() {
@@ -73,7 +93,7 @@ export function usePlanningCalendarForm(
     }
 
     async function createLink(form) {
-        const calendar = openCalendar.value;
+        const calendar = openShare.value;
 
         if (!calendar?.id) {
             return;
@@ -171,6 +191,9 @@ export function usePlanningCalendarForm(
 
     return {
         openCalendar,
+        openShare,
+        openShareFor,
+        closeShare,
         shareLinks,
         linksFor,
         savingLink,

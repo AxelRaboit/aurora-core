@@ -77,6 +77,7 @@ backend:
       errors:
         owner_only: "Seul le propriétaire du calendrier peut changer son partage."
     links:
+      title: "Partager {name}"
       label: "Partage par lien"
       hint: "Une adresse secrète pour consulter ce calendrier sans compte. Toute personne qui l'a peut le lire, jusqu'à l'échéance ou la révocation."
       empty: "Aucun lien"
