@@ -49,27 +49,6 @@ class PlanningManager implements PlanningManagerInterface
      * the container, and events with no calendar have nowhere to be drawn. The
      * screen says how many events will go before it asks.
      */
-    /**
-     * Publishes a feed for this calendar, or replaces the address if one exists.
-     *
-     * One method for both, because they are the same request: asking again is how
-     * somebody revokes an address they shared too widely.
-     *
-     * Here rather than in the controller, per `convention_thin_controller` - a
-     * mutation followed by a flush is the manager's job whatever its shape.
-     */
-    public function publishFeed(PlanningInterface $planning): void
-    {
-        $planning->publishFeed();
-        $this->entityManager->flush();
-    }
-
-    public function revokeFeed(PlanningInterface $planning): void
-    {
-        $planning->revokeFeed();
-        $this->entityManager->flush();
-    }
-
     public function delete(PlanningInterface $planning): void
     {
         $this->auditDeleted($planning);

@@ -5,7 +5,13 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Planning;
 
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
+use Aurora\Module\Planning\Link\Entity\PlanningShareLink;
+use Aurora\Module\Planning\Link\Entity\PlanningShareLinkInterface;
+use Aurora\Module\Planning\Link\Entity\PlanningShareLinkModeEnum;
+use Aurora\Module\Planning\Link\Manager\PlanningShareLinkManagerInterface;
+use Aurora\Module\Planning\Link\Repository\PlanningShareLinkRepository;
 use Aurora\Module\Planning\Planning\Entity\Planning;
+use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminder;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -32,6 +38,10 @@ final class PlanningFeedTest extends IntegrationTestCase
 
     private User $admin;
 
+    private PlanningShareLinkManagerInterface $links;
+
+    private PlanningShareLinkRepository $linkRepository;
+
     /** @var list<array{class-string, int}> */
     private array $created = [];
 
@@ -46,6 +56,9 @@ final class PlanningFeedTest extends IntegrationTestCase
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
+
+        $this->links = static::getContainer()->get(PlanningShareLinkManagerInterface::class);
+        $this->linkRepository = static::getContainer()->get(PlanningShareLinkRepository::class);
     }
 
     protected function tearDown(): void
@@ -67,12 +80,18 @@ final class PlanningFeedTest extends IntegrationTestCase
      *
      * The property that makes an unauthenticated route acceptable at all.
      */
+    /**
+     * No calendar is reachable until somebody opens an address onto it.
+     *
+     * The property that makes an unauthenticated route acceptable at all, and it
+     * now reads off the link table rather than a column: a calendar with no link is
+     * a calendar with no way in.
+     */
     public function testACalendarPublishesNothingByDefault(): void
     {
         $planning = $this->calendar();
 
-        self::assertFalse($planning->hasFeed());
-        self::assertNull($planning->getFeedToken());
+        self::assertSame([], $this->linkRepository->findForCalendar($planning));
     }
 
     public function testAnUnknownTokenIsNotFound(): void
@@ -86,11 +105,11 @@ final class PlanningFeedTest extends IntegrationTestCase
 
     public function testTheFeedIsReadableWithoutSigningIn(): void
     {
-        $planning = $this->published();
+        $link = $this->published();
 
         // No `loginUser`. A phone fetches this on a timer with no session, which
         // is the whole reason the route exists outside the firewall's rules.
-        $this->client->request('GET', $this->feedUrl($planning));
+        $this->client->request('GET', $this->feedUrl($link));
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString(
@@ -105,7 +124,8 @@ final class PlanningFeedTest extends IntegrationTestCase
 
     public function testItCarriesTheEventsAndTheReminders(): void
     {
-        $planning = $this->published();
+        $planning = $this->calendar();
+        $link = $this->link([$planning]);
 
         $event = new PlanningEvent();
         $event->setPlanning($planning);
@@ -128,7 +148,7 @@ final class PlanningFeedTest extends IntegrationTestCase
         // its constructor made - `setPlanning` sets the owning side only - so it
         // would read as empty here and be full in production, where the feed is a
         // separate request. Clearing makes the test do what a fetch does.
-        $token = (string) $planning->getFeedToken();
+        $token = $link->getToken();
         $this->entityManager->clear();
 
         $this->client->request('GET', $this->urlGenerator->generate('planning_feed_show', ['token' => $token]));
@@ -150,8 +170,8 @@ final class PlanningFeedTest extends IntegrationTestCase
      */
     public function testRevokingMakesTheAddressStopWorking(): void
     {
-        $planning = $this->published();
-        $url = $this->feedUrl($planning);
+        $link = $this->published();
+        $url = $this->feedUrl($link);
 
         $this->client->request('GET', $url);
         self::assertResponseIsSuccessful();
@@ -159,12 +179,91 @@ final class PlanningFeedTest extends IntegrationTestCase
         $this->client->loginUser($this->admin, 'admin');
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_planning_calendars_feed_revoke', ['id' => $planning->getId()]),
+            $this->urlGenerator->generate('backend_planning_links_revoke', ['id' => $link->getId()]),
         );
         self::assertResponseIsSuccessful();
 
         $this->client->request('GET', $url);
         self::assertResponseStatusCodeSame(404);
+    }
+
+    /**
+     * An expiry closes it on its own, with nobody doing anything.
+     *
+     * The whole point of the table replacing the column: an address handed to an
+     * outsider stops working by itself rather than staying open until somebody
+     * remembers it.
+     */
+    public function testAnExpiredLinkStopsWorking(): void
+    {
+        $link = $this->link([$this->calendar()], PlanningShareLinkModeEnum::Ics, new DateTimeImmutable('-1 hour'));
+
+        $this->client->request('GET', $this->feedUrl($link));
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /**
+     * A web token does not answer here, and that is a boundary rather than tidiness.
+     *
+     * Without it the address sent to one guest for a page would also be a permanent
+     * subscription they could add to a phone - a wider grant than the person sharing
+     * it chose.
+     */
+    public function testAWebTokenIsNotAFeed(): void
+    {
+        $link = $this->link([$this->calendar()], PlanningShareLinkModeEnum::Web);
+
+        $this->client->request('GET', $this->feedUrl($link));
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /**
+     * One address, several calendars, one subscription.
+     *
+     * The thing a column on the calendar could not express, and the reason somebody
+     * outside is not handed two links for one schedule.
+     */
+    public function testOneLinkCanServeSeveralCalendars(): void
+    {
+        $first = $this->calendar('Pro');
+        $second = $this->calendar('Perso');
+        $link = $this->link([$first, $second]);
+
+        $this->event($first, 'Réunion pro');
+        $this->event($second, 'Rendez-vous perso');
+
+        $token = $link->getToken();
+        $this->entityManager->clear();
+
+        $this->client->request('GET', $this->urlGenerator->generate('planning_feed_show', ['token' => $token]));
+        self::assertResponseIsSuccessful();
+
+        $body = (string) $this->client->getResponse()->getContent();
+
+        self::assertStringContainsString('SUMMARY:Réunion pro', $body);
+        self::assertStringContainsString('SUMMARY:Rendez-vous perso', $body);
+        // One calendar, named after the link rather than after whichever calendar
+        // happened to be added first.
+        self::assertSame(1, mb_substr_count($body, 'BEGIN:VCALENDAR'));
+        self::assertStringContainsString('X-WR-CALNAME:Test', $body);
+    }
+
+    /** So a list of links can say which ones have never been opened. */
+    public function testFetchingRecordsThatTheLinkWasUsed(): void
+    {
+        $link = $this->published();
+        self::assertNull($link->getLastUsedAt());
+
+        $this->client->request('GET', $this->feedUrl($link));
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $stored = $this->linkRepository->findByToken($link->getToken());
+
+        self::assertInstanceOf(PlanningShareLinkInterface::class, $stored);
+        self::assertNotNull($stored->getLastUsedAt());
     }
 
     /**
@@ -174,29 +273,33 @@ final class PlanningFeedTest extends IntegrationTestCase
      * losing the feed, and handing back the same token would answer a different
      * question.
      */
-    public function testPublishingAgainReplacesTheAddress(): void
+    /**
+     * Two links onto the same calendar are two addresses, not one replaced.
+     *
+     * The column could hold one, so publishing again meant losing the old address -
+     * which was also the only way to rotate it. A row per address separates those:
+     * you open another and close the first when you mean to.
+     */
+    public function testASecondLinkDoesNotReplaceTheFirst(): void
     {
-        $planning = $this->published();
-        $first = $planning->getFeedToken();
+        $planning = $this->calendar();
+        $first = $this->link([$planning]);
+        $second = $this->link([$planning]);
 
-        $this->client->loginUser($this->admin, 'admin');
-        $this->client->request(
-            'POST',
-            $this->urlGenerator->generate('backend_planning_calendars_feed', ['id' => $planning->getId()]),
-        );
+        self::assertNotSame($first->getToken(), $second->getToken());
+
+        $this->client->request('GET', $this->feedUrl($first));
         self::assertResponseIsSuccessful();
 
-        $this->entityManager->refresh($planning);
-
-        self::assertNotSame($first, $planning->getFeedToken());
-        self::assertTrue($planning->hasFeed());
+        $this->client->request('GET', $this->feedUrl($second));
+        self::assertResponseIsSuccessful();
     }
 
     public function testTheTokenIsLongEnoughToBeUnguessable(): void
     {
-        // 32 random bytes as base64url, so 43 characters. Written down because a
-        // shorter token would still work and would still be wrong.
-        self::assertSame(43, mb_strlen((string) $this->published()->getFeedToken()));
+        // 32 random bytes as hex, so 64 characters. Written down because a shorter
+        // token would still work and would still be wrong.
+        self::assertSame(64, mb_strlen($this->published()->getToken()));
     }
 
     /**
@@ -207,9 +310,9 @@ final class PlanningFeedTest extends IntegrationTestCase
      */
     public function testTheResponseIsNotCacheableByAnythingInBetween(): void
     {
-        $planning = $this->published();
+        $link = $this->published();
 
-        $this->client->request('GET', $this->feedUrl($planning));
+        $this->client->request('GET', $this->feedUrl($link));
 
         self::assertStringContainsString(
             'no-store',
@@ -217,9 +320,36 @@ final class PlanningFeedTest extends IntegrationTestCase
         );
     }
 
-    private function feedUrl(Planning $planning): string
+    private function feedUrl(PlanningShareLinkInterface $link): string
     {
-        return $this->urlGenerator->generate('planning_feed_show', ['token' => $planning->getFeedToken()]);
+        return $this->urlGenerator->generate('planning_feed_show', ['token' => $link->getToken()]);
+    }
+
+    /**
+     * A live `.ics` link over one calendar.
+     *
+     * @param list<PlanningInterface> $calendars
+     */
+    private function link(
+        array $calendars,
+        PlanningShareLinkModeEnum $mode = PlanningShareLinkModeEnum::Ics,
+        ?DateTimeImmutable $expiresAt = null,
+    ): PlanningShareLinkInterface {
+        $link = $this->links->create($calendars, 'Test', $mode, $expiresAt);
+        $this->created[] = [PlanningShareLink::class, (int) $link->getId()];
+
+        return $link;
+    }
+
+    private function event(Planning $planning, string $title): void
+    {
+        $event = new PlanningEvent();
+        $event->setPlanning($planning);
+        $event->setTitle($title);
+        $event->setSpan(new DateTimeImmutable('2026-09-01 10:00'), new DateTimeImmutable('2026-09-01 11:00'));
+        $this->entityManager->persist($event);
+        $this->entityManager->flush();
+        $this->created[] = [PlanningEvent::class, (int) $event->getId()];
     }
 
     private function calendar(string $name = 'Flux'): Planning
@@ -234,12 +364,9 @@ final class PlanningFeedTest extends IntegrationTestCase
         return $planning;
     }
 
-    private function published(): Planning
+    /** A calendar with a live feed link, which is what most of these need. */
+    private function published(): PlanningShareLinkInterface
     {
-        $planning = $this->calendar();
-        $planning->publishFeed();
-        $this->entityManager->flush();
-
-        return $planning;
+        return $this->link([$this->calendar()]);
     }
 }

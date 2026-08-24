@@ -45,14 +45,6 @@ interface PlanningInterface extends TimestampableInterface
 
     public function isFromModule(): bool;
 
-    public function getFeedToken(): ?string;
-
-    public function hasFeed(): bool;
-
-    public function publishFeed(): static;
-
-    public function revokeFeed(): static;
-
     /**
      * @return Collection<int, PlanningReminderInterface>
      */

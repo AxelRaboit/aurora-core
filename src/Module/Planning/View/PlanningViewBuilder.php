@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\View;
 
+use Aurora\Module\Planning\Link\Repository\PlanningShareLinkRepository;
+use Aurora\Module\Planning\Link\Serializer\PlanningShareLinkSerializer;
 use Aurora\Module\Planning\Planning\Repository\PlanningRepository;
 use Aurora\Module\Planning\Planning\Serializer\PlanningSerializer;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -25,6 +27,8 @@ final readonly class PlanningViewBuilder
         private PlanningRepository $plannings,
         private PlanningSerializer $planningSerializer,
         private UserRepository $users,
+        private PlanningShareLinkRepository $shareLinks,
+        private PlanningShareLinkSerializer $shareLinkSerializer,
     ) {}
 
     /** @return array<string, mixed> */
@@ -38,6 +42,11 @@ final readonly class PlanningViewBuilder
             // all-day event on the wrong day.
             'timezones' => DateTimeZone::listIdentifiers(),
             'people' => $this->invitablePeople(),
+            // Every address the reader has opened onto their own calendars.
+            // Page-level rather than per calendar, because one link can point at
+            // several and a per-calendar payload would carry the same row twice
+            // with no way to tell it was one link.
+            'shareLinks' => $this->shareLinkSerializer->serializeMany($this->shareLinks->findForOwner($reader)),
             // So the screen can tell which attendee is the reader, and which
             // calendar is theirs to share.
             'currentUserId' => $reader->getId(),

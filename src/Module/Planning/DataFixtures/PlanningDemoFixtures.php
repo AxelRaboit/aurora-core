@@ -13,6 +13,8 @@ use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
+use Aurora\Module\Planning\Link\Entity\PlanningShareLinkModeEnum;
+use Aurora\Module\Planning\Link\Manager\PlanningShareLinkManagerInterface;
 use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Planning\Enum\PlanningVisibilityEnum;
@@ -92,7 +94,10 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
      */
     private bool $fresh = true;
 
-    public function __construct(private readonly UserRepository $userRepository) {}
+    public function __construct(
+        private readonly UserRepository $userRepository,
+        private readonly PlanningShareLinkManagerInterface $shareLinks,
+    ) {}
 
     public static function getGroups(): array
     {
@@ -151,15 +156,7 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
         $talks = $this->calendar($manager, $owner, 'Conférences', 4, 'Sur le fuseau de New York.');
         $talks->setTimezone('America/New_York');
 
-        // A published feed, so the modal has a live address to show and revoke.
         $courses = $this->calendar($manager, $owner, 'Formations', 6, 'Abonnable depuis un téléphone.');
-
-        // Only once. `publishFeed()` issues a new token, so calling it on every
-        // load would silently break a phone that had already subscribed - the old
-        // address stops resolving and the calendar just goes quiet.
-        if (!$courses->hasFeed()) {
-            $courses->publishFeed();
-        }
 
         // Nothing else to do on a database that already has this demo on it. The
         // calendars above were found rather than made, and their settings are
@@ -171,6 +168,7 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
             return;
         }
 
+        $this->shareLinks($work, $personal, $courses);
         $this->recurring($manager, $work, $team);
         $this->overlapping($manager, $work);
         $this->spanning($manager, $personal, $talks);
@@ -745,6 +743,54 @@ class PlanningDemoFixtures extends Fixture implements DependentFixtureInterface,
                 $monday->modify(sprintf('+%d days', $week * 7 + 2))->setTime(15, 30),
             );
         }
+    }
+
+    /**
+     * One address of each kind, so the screen shows what they look like side by
+     * side.
+     *
+     * Seeded with the content rather than with the calendars, which puts them under
+     * the same `$fresh` guard: a link is created, never found, so reloading the demo
+     * would otherwise hand out a new address every time and leave the old ones
+     * live.
+     */
+    private function shareLinks(
+        PlanningInterface $work,
+        PlanningInterface $personal,
+        PlanningInterface $courses,
+    ): void {
+        // A feed, which is what the old `feed_token` column held: no expiry,
+        // because a phone polling it for years must not have it close underneath.
+        $this->shareLinks->create([$courses], 'Abonnement téléphone', PlanningShareLinkModeEnum::Ics);
+
+        // And a guest link over two calendars at once, which is the thing the
+        // column could not express - somebody outside usually wants the work and
+        // the availability together rather than two addresses for one schedule.
+        $this->shareLinks->create(
+            [$work, $personal],
+            'Marie, studio photo',
+            PlanningShareLinkModeEnum::Web,
+            $this->startOfWeek()->modify('+30 days')->setTime(23, 59),
+        );
+
+        // One already closed, because the list has to show that state too - and
+        // because "what did we revoke, and when" is the question the row exists to
+        // answer.
+        $revoked = $this->shareLinks->create(
+            [$work],
+            'Prestataire (terminé)',
+            PlanningShareLinkModeEnum::Web,
+        );
+        $this->shareLinks->revoke($revoked, $this->startOfWeek()->modify('-3 days'));
+
+        // And one that has already expired, which reads differently from revoked
+        // even though the guest gets the same answer.
+        $this->shareLinks->create(
+            [$personal],
+            'Relecture (expiré)',
+            PlanningShareLinkModeEnum::Web,
+            $this->startOfWeek()->modify('-5 days')->setTime(12, 0),
+        );
     }
 
     private function reminder(

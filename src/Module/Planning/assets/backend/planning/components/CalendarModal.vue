@@ -9,13 +9,14 @@
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Rss, Trash2, X } from "lucide-vue-next";
+import { Trash2, X } from "lucide-vue-next";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
+import CalendarShareLinks from "./CalendarShareLinks.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import { COLOUR_SLOTS, nextFreeColourSlot } from "../composables/calendarColours.js";
@@ -32,10 +33,13 @@ const props = defineProps({
     errors: { type: Object, default: () => ({}) },
     saving: { type: Boolean, default: false },
     /** The address, returned only by the request that created it. */
-    feedUrl: { type: String, default: "" },
+    /** Links pointing at this calendar, filtered by the parent. */
+    links: { type: Array, default: () => [] },
+    linkErrors: { type: Object, default: () => ({}) },
+    savingLink: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["close", "save", "delete", "publish-feed", "revoke-feed", "set-shares"]);
+const emit = defineEmits(["close", "save", "delete", "create-link", "revoke-link", "set-shares"]);
 
 const { t } = useI18n();
 
@@ -240,43 +244,18 @@ const visibilityOptions = computed(() =>
                 </AppButton>
             </div>
 
-            <!-- The feed. Only for a calendar that exists: publishing needs an
-                 id, and offering it on a form that has not saved yet would be a
-                 button that cannot work. -->
-            <div v-if="!isNew" class="flex flex-col gap-1.5 border-t border-line pt-3">
-                <span class="text-sm font-medium text-primary">{{ t("backend.plannings.feed.label") }}</span>
-                <p class="text-xs text-muted">{{ t("backend.plannings.feed.hint") }}</p>
-
-                <!-- Shown once, by the request that made it. Storing it in the
-                     calendar list would put a live credential in every page's
-                     payload for the sake of showing it again. -->
-                <div v-if="feedUrl" class="flex flex-col gap-1.5">
-                    <input
-                        :value="feedUrl"
-                        readonly
-                        class="w-full rounded-lg border border-line bg-surface-2 px-2.5 py-1.5 font-mono text-xs text-secondary"
-                        v-on:focus="$event.target.select()"
-                    >
-                    <p class="text-xs text-amber-500">{{ t("backend.plannings.feed.shown_once") }}</p>
-                </div>
-
-                <div class="flex flex-wrap gap-2">
-                    <AppButton variant="secondary" size="sm" v-on:click="emit('publish-feed', calendar)">
-                        <Rss class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ calendar.hasFeed
-                            ? t("backend.plannings.feed.replace")
-                            : t("backend.plannings.feed.publish") }}
-                    </AppButton>
-                    <AppButton
-                        v-if="calendar.hasFeed"
-                        variant="ghost"
-                        size="sm"
-                        v-on:click="emit('revoke-feed', calendar)"
-                    >
-                        {{ t("backend.plannings.feed.revoke") }}
-                    </AppButton>
-                </div>
-            </div>
+            <!-- The share links. Only for a calendar that exists: a link needs an
+                 id, and offering one on a form that has not saved yet would be a
+                 control that cannot work. -->
+            <CalendarShareLinks
+                v-if="!isNew"
+                ref="shareLinks"
+                :links="links"
+                :errors="linkErrors"
+                :saving="savingLink"
+                v-on:create="emit('create-link', $event)"
+                v-on:revoke="emit('revoke-link', $event)"
+            />
 
             <AppTextarea
                 v-model="form.description"

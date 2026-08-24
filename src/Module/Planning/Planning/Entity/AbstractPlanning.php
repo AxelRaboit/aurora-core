@@ -79,20 +79,6 @@ abstract class AbstractPlanning implements PlanningInterface
     protected ?string $sourceType = null;
 
     /**
-     * The secret in a published feed's URL, or null when no feed is published.
-     *
-     * A feed is fetched by a phone's calendar app with no session, so the URL is
-     * the credential - the same model as Google's "secret address in iCal
-     * format". That makes three things non-negotiable: it is opt-in, so no
-     * calendar leaks by default; it is long enough that guessing is hopeless; and
-     * it can be revoked, because the only way to un-share a URL is to break it.
-     *
-     * 32 random bytes, base64url, so 43 characters and no escaping in a path.
-     */
-    #[ORM\Column(length: 64, nullable: true)]
-    protected ?string $feedToken = null;
-
-    /**
      * Nullable, and stays nullable: deleting the account that made a calendar
      * must not take a team's shared calendar with it.
      */
@@ -208,37 +194,6 @@ abstract class AbstractPlanning implements PlanningInterface
     public function isFromModule(): bool
     {
         return null !== $this->sourceType;
-    }
-
-    public function getFeedToken(): ?string
-    {
-        return $this->feedToken;
-    }
-
-    public function hasFeed(): bool
-    {
-        return null !== $this->feedToken;
-    }
-
-    /**
-     * Publishes a feed, or replaces the one that was published.
-     *
-     * Always a fresh secret rather than reusing an existing one: asking to
-     * publish again is how somebody revokes an address they have shared too
-     * widely, and handing back the same one would answer the wrong question.
-     */
-    public function publishFeed(): static
-    {
-        $this->feedToken = mb_rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
-
-        return $this;
-    }
-
-    public function revokeFeed(): static
-    {
-        $this->feedToken = null;
-
-        return $this;
     }
 
     public function getVisibility(): PlanningVisibilityEnum

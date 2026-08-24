@@ -7,7 +7,7 @@ import { useSaveFlow } from "./useSaveFlow.js";
  *
  * Distinct from `usePlanningCalendar`, which is where the reader is and what is on
  * screen. This is the calendar as a record being edited: its name, its colour, who
- * it is shared with, and whether it has a published feed.
+ * it is shared with, and which addresses reach it without an account.
  */
 export function usePlanningCalendarForm(
     props,
@@ -19,13 +19,16 @@ export function usePlanningCalendarForm(
     const openCalendar = ref(null);
 
     /**
-     * The feed address, held only between the request that created it and the
-     * modal closing.
+     * Every address the reader has opened, across all their calendars.
      *
-     * Not kept in the calendar list: that payload is on every page, and a live
-     * credential does not belong there for the sake of showing it a second time.
+     * Held here rather than on each calendar because one link can point at
+     * several: a per-calendar copy would carry the same row twice with no way to
+     * tell it was one link, and revoking it would have to find both.
      */
-    const feedUrl = ref("");
+    const shareLinks = ref([...(props.shareLinks ?? [])]);
+
+    const savingLink = ref(false);
+    const linkErrors = ref({});
 
     function createCalendar() {
         // `{}` and not null: the modal opens on `calendar !== null`, and a new
@@ -38,13 +41,13 @@ export function usePlanningCalendarForm(
     function editCalendar(calendar) {
         openCalendar.value = calendar;
         errors.value = {};
-        feedUrl.value = "";
+        linkErrors.value = {};
         onOpen();
     }
 
     function closeCalendar() {
         openCalendar.value = null;
-        feedUrl.value = "";
+        linkErrors.value = {};
     }
 
     /** Keeps the modal on the row the server just wrote, not the one it was given. */
@@ -53,30 +56,70 @@ export function usePlanningCalendarForm(
         openCalendar.value = calendar;
     }
 
-    async function publishFeed(calendar) {
-        const data = await request(
-            props.feedCalendarPathTemplate.replace(
-                "__id__",
-                String(calendar.id),
-            ),
-        );
-        if (!data) return;
+    /**
+     * The links pointing at one calendar.
+     *
+     * Filtered here rather than in the modal so the modal takes a list and draws
+     * it - and so "which links touch this calendar" is answered once.
+     */
+    function linksFor(calendar) {
+        const id = calendar?.id ?? null;
 
-        adopt(data.calendar);
-        feedUrl.value = data.feedUrl ?? "";
+        return null === id
+            ? []
+            : shareLinks.value.filter((link) =>
+                  link.calendars.some((entry) => entry.id === id),
+              );
     }
 
-    async function revokeFeed(calendar) {
+    async function createLink(form) {
+        const calendar = openCalendar.value;
+
+        if (!calendar?.id) {
+            return;
+        }
+
+        savingLink.value = true;
+        linkErrors.value = {};
+
+        try {
+            const data = await request(props.createLinkPath, {
+                calendarIds: [calendar.id],
+                label: form.label,
+                mode: form.mode,
+                // Empty means no expiry, which the server reads as null. A feed
+                // wants exactly that; a guest link almost never should.
+                expiresAt: form.expiresAt || null,
+            });
+
+            if (!data) return;
+            if (data.errors) {
+                linkErrors.value = data.errors;
+
+                return;
+            }
+
+            shareLinks.value = [data.link, ...shareLinks.value];
+        } finally {
+            savingLink.value = false;
+        }
+    }
+
+    /**
+     * Closes a link, and keeps it in the list.
+     *
+     * Replaced rather than removed: the row is how somebody sees what they closed
+     * and when, and dropping it would make the list look like nothing had happened.
+     */
+    async function revokeLink(link) {
         const data = await request(
-            props.revokeFeedCalendarPathTemplate.replace(
-                "__id__",
-                String(calendar.id),
-            ),
+            props.revokeLinkPathTemplate.replace("__id__", String(link.id)),
         );
         if (!data) return;
 
-        adopt(data.calendar);
-        feedUrl.value = "";
+        shareLinks.value = shareLinks.value.map((existing) =>
+            existing.id === data.link.id ? data.link : existing,
+        );
     }
 
     async function setShares({ calendar, shares }) {
@@ -128,14 +171,17 @@ export function usePlanningCalendarForm(
 
     return {
         openCalendar,
-        feedUrl,
+        shareLinks,
+        linksFor,
+        savingLink,
+        linkErrors,
+        createLink,
+        revokeLink,
         saving,
         errors,
         createCalendar,
         editCalendar,
         closeCalendar,
-        publishFeed,
-        revokeFeed,
         setShares,
         saveCalendar,
         removeCalendarAndItsEvents,

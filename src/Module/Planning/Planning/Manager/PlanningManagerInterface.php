@@ -14,9 +14,5 @@ interface PlanningManagerInterface
 
     public function update(PlanningInterface $planning, PlanningInputInterface $input): void;
 
-    public function publishFeed(PlanningInterface $planning): void;
-
-    public function revokeFeed(PlanningInterface $planning): void;
-
     public function delete(PlanningInterface $planning): void;
 }

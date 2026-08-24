@@ -6,6 +6,9 @@ backend:
           created: Calendar created
           updated: Calendar updated
           deleted: Calendar deleted
+        share_link:
+          created: Share link created
+          revoked: Share link revoked
         event:
           created: Event created
           updated: Event updated
@@ -73,13 +76,33 @@ backend:
       save: "Save sharing"
       errors:
         owner_only: "Only the calendar's owner can change its sharing."
-    feed:
-      label: "Subscription (.ics)"
-      hint: "A secret address for reading this calendar from a phone, without signing in. Anyone who has the address can read it."
-      publish: "Publish an address"
-      replace: "Replace the address"
+    links:
+      label: "Share by link"
+      hint: "A secret address for reading this calendar without an account. Anyone who has it can read it, until it expires or is revoked."
+      empty: "No links"
+      mode: "Type"
+      mode_web: "Web page"
+      mode_ics: "Subscription (.ics)"
+      create: "Create the link"
       revoke: "Revoke"
-      shown_once: "Copy it now - it will not be shown again."
+      new_label: "Who is it for?"
+      new_label_placeholder: "Marie, photo studio"
+      new_label_hint: "So you know which link to revoke later."
+      expires: "Expires on"
+      expires_placeholder: "Never"
+      expires_hint: "Empty: never expires. Keep that for subscriptions."
+      no_expiry: "Never expires"
+      expires_on: "Expires {date}"
+      expired_on: "Expired {date}"
+      revoked_on: "Revoked {date}"
+      last_used: "Opened {date}"
+      never_used: "Never opened"
+      also_covers: "Also covers 1 other calendar | Also covers {count} other calendars"
+      errors:
+        calendars_required: "Choose at least one calendar."
+        label_required: "Give this link a name."
+        label_too_long: "That name is too long."
+        not_owned: "You can only share your own calendars."
     scope:
       title_edit: "Edit the recurring event"
       title_delete: "Delete the recurring event"

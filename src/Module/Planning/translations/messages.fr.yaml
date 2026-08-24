@@ -6,6 +6,9 @@ backend:
           created: Calendrier créé
           updated: Calendrier modifié
           deleted: Calendrier supprimé
+        share_link:
+          created: Lien de partage créé
+          revoked: Lien de partage révoqué
         event:
           created: Événement créé
           updated: Événement modifié
@@ -73,13 +76,33 @@ backend:
       save: "Enregistrer le partage"
       errors:
         owner_only: "Seul le propriétaire du calendrier peut changer son partage."
-    feed:
-      label: "Abonnement (.ics)"
-      hint: "Une adresse secrète pour consulter ce calendrier depuis un téléphone, sans se connecter. Toute personne qui a l'adresse peut le lire."
-      publish: "Publier une adresse"
-      replace: "Remplacer l'adresse"
+    links:
+      label: "Partage par lien"
+      hint: "Une adresse secrète pour consulter ce calendrier sans compte. Toute personne qui l'a peut le lire, jusqu'à l'échéance ou la révocation."
+      empty: "Aucun lien"
+      mode: "Type"
+      mode_web: "Page web"
+      mode_ics: "Abonnement (.ics)"
+      create: "Créer le lien"
       revoke: "Révoquer"
-      shown_once: "Copiez-la maintenant : elle ne sera plus affichée."
+      new_label: "Pour qui ?"
+      new_label_placeholder: "Marie, studio photo"
+      new_label_hint: "Sert à retrouver quel lien révoquer plus tard."
+      expires: "Expire le"
+      expires_placeholder: "Jamais"
+      expires_hint: "Vide : n'expire pas. À réserver aux abonnements."
+      no_expiry: "N'expire pas"
+      expires_on: "Expire le {date}"
+      expired_on: "Expiré le {date}"
+      revoked_on: "Révoqué le {date}"
+      last_used: "Ouvert le {date}"
+      never_used: "Jamais ouvert"
+      also_covers: "Couvre aussi 1 autre calendrier | Couvre aussi {count} autres calendriers"
+      errors:
+        calendars_required: "Choisissez au moins un calendrier."
+        label_required: "Donnez un nom à ce lien."
+        label_too_long: "Ce nom est trop long."
+        not_owned: "Vous ne pouvez partager que vos propres calendriers."
     scope:
       title_edit: "Modifier l'événement récurrent"
       title_delete: "Supprimer l'événement récurrent"

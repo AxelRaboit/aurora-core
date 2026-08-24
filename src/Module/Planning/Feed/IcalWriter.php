@@ -38,25 +38,46 @@ final readonly class IcalWriter
 
     public function write(PlanningInterface $planning): string
     {
+        return $this->writeMany([$planning], $planning->getName(), $planning->getTimezone());
+    }
+
+    /**
+     * Several calendars in one feed.
+     *
+     * A share link can point at more than one, and a guest who was given the
+     * shoots and the deadlines together wants one subscription rather than two -
+     * which is most of the reason the link is a row and not a column.
+     *
+     * The name and the zone are passed in rather than taken from the first
+     * calendar. There is one of each in a VCALENDAR and several calendars behind
+     * it, so guessing from the first would name the feed after whichever happened
+     * to be added first.
+     *
+     * @param list<PlanningInterface> $plannings
+     */
+    public function writeMany(array $plannings, string $name, string $timezone): string
+    {
         $lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
             'PRODID:'.self::PRODID,
             // Not part of the standard, and every calendar application reads it.
             // Without it a subscribed feed shows up named after its URL.
-            'X-WR-CALNAME:'.$this->escape($planning->getName()),
-            'X-WR-TIMEZONE:'.$this->escape($planning->getTimezone()),
+            'X-WR-CALNAME:'.$this->escape($name),
+            'X-WR-TIMEZONE:'.$this->escape($timezone),
             // A quarter of an hour is what Google publishes and what phones
             // respect; asking for less is ignored and asking for more is rude.
             'X-PUBLISHED-TTL:PT15M',
         ];
 
-        foreach ($planning->getEvents() as $event) {
-            $lines = [...$lines, ...$this->event($event)];
-        }
+        foreach ($plannings as $planning) {
+            foreach ($planning->getEvents() as $event) {
+                $lines = [...$lines, ...$this->event($event)];
+            }
 
-        foreach ($planning->getReminders() as $reminder) {
-            $lines = [...$lines, ...$this->reminder($reminder)];
+            foreach ($planning->getReminders() as $reminder) {
+                $lines = [...$lines, ...$this->reminder($reminder)];
+            }
         }
 
         $lines[] = 'END:VCALENDAR';

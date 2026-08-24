@@ -37,12 +37,13 @@ const props = defineProps({
     calendars: { type: Array, default: () => [] },
     timezones: { type: Array, default: () => [] },
     people: { type: Array, default: () => [] },
+    shareLinks: { type: Array, default: () => [] },
     currentUserId: { type: [Number, null], default: null },
     respondEventPathTemplate: { type: String, required: true },
     eventsPath: { type: String, required: true },
     createCalendarPath: { type: String, required: true },
-    feedCalendarPathTemplate: { type: String, required: true },
-    revokeFeedCalendarPathTemplate: { type: String, required: true },
+    createLinkPath: { type: String, required: true },
+    revokeLinkPathTemplate: { type: String, required: true },
     sharesCalendarPathTemplate: { type: String, required: true },
     updateCalendarPathTemplate: { type: String, required: true },
     deleteCalendarPathTemplate: { type: String, required: true },
@@ -163,14 +164,16 @@ function closeSheet() {
 
 const {
     openCalendar,
-    feedUrl,
+    linksFor,
+    savingLink,
+    linkErrors,
+    createLink,
+    revokeLink,
     saving: savingCalendar,
     errors: calendarErrors,
     createCalendar,
     editCalendar,
     closeCalendar,
-    publishFeed,
-    revokeFeed,
     setShares,
     saveCalendar,
     removeCalendarAndItsEvents,
@@ -441,12 +444,14 @@ usePlanningShortcuts({
             :timezones="timezones"
             :errors="calendarErrors"
             :saving="savingCalendar"
-            :feed-url="feedUrl"
+            :links="linksFor(openCalendar)"
+            :link-errors="linkErrors"
+            :saving-link="savingLink"
             :people="people"
             :current-user-id="currentUserId"
             v-on:set-shares="setShares"
-            v-on:publish-feed="publishFeed"
-            v-on:revoke-feed="revokeFeed"
+            v-on:create-link="createLink"
+            v-on:revoke-link="revokeLink"
             v-on:close="closeCalendar"
             v-on:save="saveCalendar"
             v-on:delete="removeCalendarAndItsEvents"

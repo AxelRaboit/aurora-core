@@ -75,6 +75,8 @@ use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
 use Aurora\Module\Planning\Event\Entity\PlanningEventAlertInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
+use Aurora\Module\Planning\Link\Entity\PlanningShareLink;
+use Aurora\Module\Planning\Link\Entity\PlanningShareLinkInterface;
 use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminder;
@@ -164,6 +166,7 @@ class AuroraBundle extends AbstractBundle
                     PlanningReminderInterface::class => PlanningReminder::class,
                     PlanningEventAttendeeInterface::class => PlanningEventAttendee::class,
                     PlanningShareInterface::class => PlanningShare::class,
+                    PlanningShareLinkInterface::class => PlanningShareLink::class,
                     CommentInterface::class => Comment::class,
                     CommentReactionInterface::class => CommentReaction::class,
                     FormInterface::class => Form::class,

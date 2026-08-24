@@ -37,11 +37,6 @@ final readonly class PlanningSerializer
             'visibility' => $planning->getVisibility()->value,
             'visibilityLabel' => $this->translator->trans($planning->getVisibility()->getLabelKey()),
             'ownerName' => $planning->getOwner()?->getName(),
-            // Whether a feed is published, not the token. The screen needs to know
-            // there is one so it can offer to revoke it; the address itself comes
-            // back only from the request that created it, which is the one moment
-            // somebody asked to see it.
-            'hasFeed' => $planning->hasFeed(),
             'shares' => $this->shares($planning),
             // The id, not a boolean: this serializer has no idea who is asking, and
             // an `isOwner` computed here would have said "has an owner" - which is

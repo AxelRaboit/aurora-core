@@ -14,6 +14,11 @@ use Aurora\Module\Planning\Event\Dto\PlanningEventInputFactoryInterface;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Manager\PlanningEventManagerInterface;
 use Aurora\Module\Planning\Event\Serializer\PlanningEventSerializer;
+use Aurora\Module\Planning\Link\Dto\PlanningShareLinkInputFactoryInterface;
+use Aurora\Module\Planning\Link\Entity\PlanningShareLinkInterface;
+use Aurora\Module\Planning\Link\Manager\PlanningShareLinkManagerInterface;
+use Aurora\Module\Planning\Link\Repository\PlanningShareLinkRepository;
+use Aurora\Module\Planning\Link\Serializer\PlanningShareLinkSerializer;
 use Aurora\Module\Planning\Planning\Dto\PlanningInputFactoryInterface;
 use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
@@ -38,7 +43,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
@@ -73,6 +77,10 @@ final class PlanningController extends AbstractController
         private readonly PlanningShareManagerInterface $shareManager,
         private readonly PlanningAttendeeManagerInterface $attendeeManager,
         private readonly PlanningViewBuilder $viewBuilder,
+        private readonly PlanningShareLinkManagerInterface $shareLinkManager,
+        private readonly PlanningShareLinkInputFactoryInterface $shareLinkInputFactory,
+        private readonly PlanningShareLinkSerializer $shareLinkSerializer,
+        private readonly PlanningShareLinkRepository $shareLinkRepository,
     ) {}
 
     #[Route('/calendar', name: '_calendar', methods: [HttpMethodEnum::Get->value])]
@@ -202,33 +210,64 @@ final class PlanningController extends AbstractController
         return $this->jsonSuccess(['calendar' => $this->planningSerializer->serialize($planning)]);
     }
 
-    #[Route('/calendars/{id}/feed', name: '_calendars_feed', methods: [HttpMethodEnum::Post->value])]
+    /**
+     * Opens an address onto one or more of the reader's own calendars.
+     *
+     * **Owned, not writable.** Every other write on this screen asks
+     * `writableCalendar`, and that would be the wrong question here: somebody a
+     * calendar was shared with - even for writing - has no business publishing it
+     * to the internet. Handing out access is the owner's decision.
+     */
+    #[Route('/links/create', name: '_links_create', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('planning.calendars.manage')]
-    public function publishFeed(Planning $planning): JsonResponse
+    public function createShareLink(Request $request): JsonResponse
     {
-        if (!$this->writableCalendar((int) $planning->getId()) instanceof PlanningInterface) {
-            return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $input = $this->shareLinkInputFactory->fromArray($this->decodeJson($request));
+
+        $errors = $this->payloadValidator->errors($input);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
         }
 
-        $this->planningManager->publishFeed($planning);
+        $calendars = $this->ownedCalendars($user, $input->getCalendarIds());
 
-        return $this->jsonSuccess([
-            'calendar' => $this->planningSerializer->serialize($planning),
-            'feedUrl' => $this->feedUrl($planning),
-        ]);
+        // Every id or none. A partial link would quietly share less than the person
+        // asked for, and they would find out from their guest.
+        if (count($calendars) !== count($input->getCalendarIds())) {
+            return $this->jsonInvalidInput([
+                'calendarIds' => 'backend.plannings.links.errors.not_owned',
+            ]);
+        }
+
+        $link = $this->shareLinkManager->create(
+            $calendars,
+            $input->getLabel(),
+            $input->getMode(),
+            $input->getExpiresAt(),
+        );
+
+        return $this->jsonSuccess(['link' => $this->shareLinkSerializer->serialize($link)]);
     }
 
-    #[Route('/calendars/{id}/feed/revoke', name: '_calendars_feed_revoke', methods: [HttpMethodEnum::Post->value])]
+    #[Route('/links/{id}/revoke', name: '_links_revoke', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('planning.calendars.manage')]
-    public function revokeFeed(Planning $planning): JsonResponse
+    public function revokeShareLink(int $id): JsonResponse
     {
-        if (!$this->writableCalendar((int) $planning->getId()) instanceof PlanningInterface) {
-            return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $link = $this->ownedLink($user, $id);
+
+        if (!$link instanceof PlanningShareLinkInterface) {
+            return $this->jsonNotFound();
         }
 
-        $this->planningManager->revokeFeed($planning);
+        $this->shareLinkManager->revoke($link);
 
-        return $this->jsonSuccess(['calendar' => $this->planningSerializer->serialize($planning)]);
+        return $this->jsonSuccess(['link' => $this->shareLinkSerializer->serialize($link)]);
     }
 
     #[Route('/calendars/{id}/delete', name: '_calendars_delete', methods: [HttpMethodEnum::Post->value])]
@@ -424,6 +463,53 @@ final class PlanningController extends AbstractController
      * calendar nobody can see is answered the same way as one naming nothing -
      * saying "you cannot write to that one" would confirm it exists.
      */
+    /**
+     * The reader's own calendars among those ids, and only their own.
+     *
+     * Ownership rather than visibility, because a share link hands out access:
+     * publishing somebody else's calendar - even one shared with you for writing -
+     * is not a decision you get to make about their schedule.
+     *
+     * @param list<int> $ids
+     *
+     * @return list<PlanningInterface>
+     */
+    private function ownedCalendars(CoreUserInterface $user, array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        $wanted = array_flip($ids);
+        $owned = [];
+
+        foreach ($this->planningRepository->findVisibleTo($user) as $planning) {
+            if (isset($wanted[$planning->getId()]) && $planning->getOwner()?->getId() === $user->getId()) {
+                $owned[] = $planning;
+            }
+        }
+
+        return $owned;
+    }
+
+    /**
+     * A link the reader may close, or null.
+     *
+     * Null for a link that does not exist and for one over somebody else's
+     * calendars alike - the caller turns both into a 404, so an id that is not
+     * yours does not tell you it is somebody's.
+     */
+    private function ownedLink(CoreUserInterface $user, int $id): ?PlanningShareLinkInterface
+    {
+        foreach ($this->shareLinkRepository->findForOwner($user) as $link) {
+            if ($link->getId() === $id) {
+                return $link;
+            }
+        }
+
+        return null;
+    }
+
     private function writableCalendar(int $id): ?PlanningInterface
     {
         $user = $this->getUser();
@@ -538,15 +624,6 @@ final class PlanningController extends AbstractController
     private function canReach(PlanningReminder $reminder): bool
     {
         return $this->writableCalendar((int) $reminder->getPlanning()->getId()) instanceof PlanningInterface;
-    }
-
-    private function feedUrl(Planning $planning): ?string
-    {
-        $token = $planning->getFeedToken();
-
-        return null === $token
-            ? null
-            : $this->generateUrl('planning_feed_show', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
     }
 
     /**
