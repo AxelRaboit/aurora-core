@@ -102,14 +102,19 @@ function isPdf(mimeType) {
 
         <!-- Main card -->
         <div class="bg-surface border border-line rounded-xl divide-y divide-line/40">
-            <!-- Title + status -->
+            <!-- Reference + status.
+                 No title: it is already in the topbar, which takes the last
+                 breadcrumb, and the trail spells it out just under. A third copy
+                 here was the same string three times on one screen.
+
+                 The reference leads instead, and steps up a size to do it. It is
+                 the other thing that identifies a document, it is the one people
+                 quote to each other, and unlike the title it appears nowhere else
+                 on the page. -->
             <div class="px-6 py-5">
                 <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <h1 class="text-xl font-semibold text-primary">{{ doc.title }}</h1>
-                        <p v-if="doc.reference" class="text-xs text-muted font-mono mt-1">{{ doc.reference }}</p>
-                    </div>
-                    <AppBadge :color="DOCUMENT_STATUS_BADGE[doc.status]" class="shrink-0 mt-1">{{ doc.statusLabel }}</AppBadge>
+                    <p v-if="doc.reference" class="font-mono text-sm text-secondary">{{ doc.reference }}</p>
+                    <AppBadge :color="DOCUMENT_STATUS_BADGE[doc.status]" class="shrink-0">{{ doc.statusLabel }}</AppBadge>
                 </div>
                 <p v-if="doc.description" class="mt-3 text-sm text-secondary leading-relaxed">{{ doc.description }}</p>
             </div>
