@@ -17,7 +17,7 @@
  * writes two columns - so this file being wrong could only ever be a worse
  * screen, never a wider permission.
  */
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { ArrowLeft, Save } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -53,15 +53,6 @@ const form = ref({
 });
 
 const locale = ref(props.locales[0] ?? "en");
-
-/**
- * The open locale's words.
- *
- * The arrangement is one per publication and the words are one set per language,
- * so switching the tab swaps the second and leaves the first standing - the same
- * split the full editor makes, and the reason the panel takes them separately.
- */
-const words = computed(() => form.value.gallery[locale.value]);
 
 const saving = ref(false);
 const saved = ref(false);
@@ -132,6 +123,11 @@ async function save() {
             </AppTab>
         </nav>
 
-        <PostGalleryPanel :layout="form.galleryLayout" :words="words" :locale="locale" />
+        <PostGalleryPanel
+            :layout="form.galleryLayout"
+            :words-by-locale="form.gallery"
+            :locales="locales"
+            :locale="locale"
+        />
     </div>
 </template>

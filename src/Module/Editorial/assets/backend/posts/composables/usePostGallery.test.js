@@ -10,21 +10,31 @@ function setup(items = []) {
         ratio: "natural",
         items,
     });
-    const words = reactive({ items: {} });
+    // Two languages, because the words are now edited per language from inside
+    // one modal, and the interesting cases are the ones that cross them.
+    const wordsByLocale = reactive({ fr: { items: {} }, en: { items: {} } });
 
-    return { layout, words, api: usePostGallery(layout, words) };
+    return {
+        layout,
+        wordsByLocale,
+        fr: wordsByLocale.fr,
+        api: usePostGallery(layout, wordsByLocale),
+    };
 }
 
 describe("usePostGallery", () => {
-    it("appends a picked picture and gives it somewhere to write", () => {
-        const { layout, words, api } = setup();
+    it("appends a picked picture and gives it somewhere to write in every language", () => {
+        const { layout, wordsByLocale, api } = setup();
 
         expect(api.addItem({ id: 7, url: "/a.jpg" })).toBe(true);
         expect(layout.items).toHaveLength(1);
-        expect(words.items[layout.items[0].id]).toEqual({
-            alt: "",
-            caption: "",
-        });
+
+        const id = layout.items[0].id;
+
+        // Both, so switching the modal's tab finds a field rather than making one
+        // on the way past.
+        expect(wordsByLocale.fr.items[id]).toEqual({ alt: "", caption: "" });
+        expect(wordsByLocale.en.items[id]).toEqual({ alt: "", caption: "" });
     });
 
     /**
@@ -51,16 +61,24 @@ describe("usePostGallery", () => {
         expect(api.addItem({ id: 999 })).toBe(false);
     });
 
-    it("drops an item and the words that went with it", () => {
-        const { layout, words, api } = setup();
+    /**
+     * In every language, not just the one on screen.
+     *
+     * It used to drop only the open locale's half and leave the rest to the server,
+     * so the payload described captions for a picture that no longer existed.
+     */
+    it("drops an item and the words that went with it, in every language", () => {
+        const { layout, wordsByLocale, api } = setup();
         api.addItem({ id: 7 });
         const id = layout.items[0].id;
-        words.items[id].caption = "Rue de la Paix";
+        wordsByLocale.fr.items[id].caption = "Rue de la Paix";
+        wordsByLocale.en.items[id].caption = "Peace Street";
 
         api.removeItem(id);
 
         expect(layout.items).toEqual([]);
-        expect(words.items[id]).toBeUndefined();
+        expect(wordsByLocale.fr.items[id]).toBeUndefined();
+        expect(wordsByLocale.en.items[id]).toBeUndefined();
     });
 
     it("moves one step and stops at the ends rather than wrapping", () => {
@@ -87,7 +105,31 @@ describe("usePostGallery", () => {
     it("creates the words for an item that has none", () => {
         const { api } = setup([{ id: "fresh", mediaId: 1 }]);
 
-        expect(api.wordsFor("fresh")).toEqual({ alt: "", caption: "" });
+        expect(api.wordsFor("fresh", "fr")).toEqual({ alt: "", caption: "" });
+    });
+
+    /** Each language keeps its own, which is the point of the switch. */
+    it("keeps the languages apart", () => {
+        const { api } = setup([{ id: "a", mediaId: 1 }]);
+
+        api.wordsFor("a", "fr").alt = "Un mur";
+        api.wordsFor("a", "en").alt = "A wall";
+
+        expect(api.wordsFor("a", "fr").alt).toBe("Un mur");
+        expect(api.wordsFor("a", "en").alt).toBe("A wall");
+    });
+
+    /**
+     * A locale the post has no translation for still has to draw its fields.
+     *
+     * Answering a detached blank rather than throwing: the modal offers a tab per
+     * language the screen was given, and one of them having no half yet is an
+     * ordinary state, not a bug to crash on.
+     */
+    it("answers a blank for a language it holds nothing for", () => {
+        const { api } = setup([{ id: "a", mediaId: 1 }]);
+
+        expect(api.wordsFor("a", "de")).toEqual({ alt: "", caption: "" });
     });
 
     /**

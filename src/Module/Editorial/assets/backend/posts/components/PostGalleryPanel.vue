@@ -15,6 +15,7 @@ import { useI18n } from "vue-i18n";
 import { VueDraggable } from "vue-draggable-plus";
 import { ArrowLeft, ArrowRight, Pencil, Trash2 } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
@@ -35,8 +36,17 @@ import {
 const props = defineProps({
     /** `form.galleryLayout` - the arrangement, one per post. */
     layout: { type: Object, required: true },
-    /** The open locale's half: alt text and captions, keyed by item id. */
-    words: { type: Object, required: true },
+    /**
+     * Alt text and captions for **every** language, keyed by locale.
+     *
+     * Every language because the words modal switches between them: captioning a
+     * picture in French and English is one job done at one picture, and making it
+     * two page-level tab switches meant finding the picture again in between.
+     */
+    wordsByLocale: { type: Object, required: true },
+    /** The languages the post has, in the order the tabs should show them. */
+    locales: { type: Array, default: () => [] },
+    /** The page's open language, which the tiles caption and the modal opens on. */
     locale: { type: String, required: true },
 });
 
@@ -61,7 +71,7 @@ const {
     importing,
     imported,
     importTotal,
-} = usePostGallery(props.layout, props.words);
+} = usePostGallery(props.layout, props.wordsByLocale);
 
 const layoutOptions = GALLERY_LAYOUTS.map((value) => ({
     value,
@@ -95,7 +105,25 @@ function onPick(media) {
  */
 const editing = ref(null);
 
+/**
+ * The language the words modal is on, which starts as the page's and then goes
+ * its own way.
+ *
+ * Reset every time the modal opens rather than remembered: the author's next
+ * picture is almost always captioned in the language they were reading in, and a
+ * modal that reopens on a tab they left three pictures ago is a surprise.
+ */
+const wordsLocale = ref(props.locale);
+
+/** Whether a language has anything written for this item, for the tab's dot. */
+function hasWords(id, code) {
+    const words = props.wordsByLocale[code]?.items?.[id];
+
+    return Boolean(words?.alt || words?.caption);
+}
+
 function editWords(id) {
+    wordsLocale.value = props.locale;
     editing.value = id;
 }
 
@@ -229,7 +257,7 @@ async function onFiles(files) {
                     <img
                         v-if="item.url"
                         :src="item.url"
-                        :alt="wordsFor(item.id).alt"
+                        :alt="wordsFor(item.id, locale).alt"
                         class="h-full w-full object-cover"
                     >
 
@@ -243,10 +271,10 @@ async function onFiles(files) {
                          opening anything: it is the one field whose absence is
                          easy to miss on a long gallery. -->
                     <span
-                        v-if="wordsFor(item.id).caption"
+                        v-if="wordsFor(item.id, locale).caption"
                         class="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/80 to-transparent px-2 pb-1.5 pt-4 text-xs text-white"
                     >
-                        {{ wordsFor(item.id).caption }}
+                        {{ wordsFor(item.id, locale).caption }}
                     </span>
 
                     <!--
@@ -307,15 +335,42 @@ async function onFiles(files) {
             v-on:close="editing = null"
         >
             <div v-if="editing" class="space-y-3">
+                <!-- Its own language switch, independent of the page's. Only when
+                     there is more than one to switch between: a single-locale site
+                     would get a row of one tab, a control that cannot do
+                     anything. -->
+                <nav
+                    v-if="locales.length > 1"
+                    class="flex items-center gap-1"
+                    :aria-label="t('backend.posts.gallery.words_locale')"
+                >
+                    <AppTab
+                        v-for="code in locales"
+                        :key="code"
+                        size="sm"
+                        :active="wordsLocale === code"
+                        v-on:click="wordsLocale = code"
+                    >
+                        {{ code }}
+                        <!-- A dot for a language that has something written in it,
+                             so the author can see at a glance which ones they have
+                             still to do without opening each tab. -->
+                        <span
+                            v-if="hasWords(editing, code)"
+                            class="ms-1 inline-block h-1.5 w-1.5 rounded-full bg-current opacity-60"
+                        />
+                    </AppTab>
+                </nav>
+
                 <AppInput
-                    v-model="wordsFor(editing).alt"
-                    :label="t('backend.posts.gallery.alt', { locale })"
+                    v-model="wordsFor(editing, wordsLocale).alt"
+                    :label="t('backend.posts.gallery.alt', { locale: wordsLocale })"
                     :placeholder="t('backend.posts.alt_placeholder')"
                     :hint="t('backend.posts.gallery.alt_hint')"
                 />
                 <AppInput
-                    v-model="wordsFor(editing).caption"
-                    :label="t('backend.posts.gallery.caption', { locale })"
+                    v-model="wordsFor(editing, wordsLocale).caption"
+                    :label="t('backend.posts.gallery.caption', { locale: wordsLocale })"
                     :placeholder="t('backend.posts.caption_placeholder')"
                 />
             </div>

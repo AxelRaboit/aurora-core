@@ -102,6 +102,21 @@ const THUMBNAIL_FIT_CLASSES = {
     fill: "object-fill",
 };
 
+/**
+ * The gallery's words for every language, as the panel wants them.
+ *
+ * Assembled rather than stored that way, because the editor's `form` is organised
+ * by translation - a locale holds its title, its SEO and its gallery words
+ * together, which is right for everything except the gallery. The objects
+ * themselves are passed through, not copied, so what the panel writes lands in the
+ * translation it belongs to.
+ */
+const galleryWordsByLocale = computed(() =>
+    Object.fromEntries(
+        props.locales.map((code) => [code, form.value.translations[code]?.gallery ?? {}]),
+    ),
+);
+
 const thumbnailFitOptions = computed(() =>
     THUMBNAIL_FITS.map((fit) => ({
         value: fit,
@@ -362,7 +377,8 @@ function termLabel(term) {
                 <div v-show="isTabActive('gallery')" class="space-y-4">
                     <PostGalleryPanel
                         :layout="form.galleryLayout"
-                        :words="current.gallery"
+                        :words-by-locale="galleryWordsByLocale"
+                        :locales="locales"
                         :locale="locale"
                     />
                 </div>

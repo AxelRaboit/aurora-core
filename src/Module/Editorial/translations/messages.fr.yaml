@@ -350,6 +350,7 @@ backend:
       alt_hint: "Ce que montre l'image, pour qui ne la voit pas. Vide, celui de la médiathèque est utilisé."
       caption: "Légende ({locale})"
       words: "Texte de l'image"
+      words_locale: "Langue du texte"
       move_up: Monter
       move_down: Descendre
     grid:

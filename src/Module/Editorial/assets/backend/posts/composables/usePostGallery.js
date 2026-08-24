@@ -55,10 +55,24 @@ function newItemId() {
  * is mutating something it does not own, and the rule is right to say so. The
  * mutation belongs here, where the object's owner passed it in.
  *
- * @param {object} layout reactive `form.galleryLayout`
- * @param {object} words  reactive `current.gallery`, the open locale's half
+ * **Every locale, not the open one.** It used to take one language's half, and
+ * said so on purpose - "reaching across locales here would mean the panel knowing
+ * about languages it does not have open". That was right while the words were
+ * edited by a page-level tab: you switched language, then found your picture
+ * again. It stops being right once one picture's alt text is written in both
+ * languages at once, which is the ordinary way anybody actually captions a
+ * gallery, and which needs both halves in hand.
+ *
+ * It also settles a smaller inconsistency. Removing a picture used to drop its
+ * words in the open locale only, leaving the others to be tidied by the server on
+ * save - so the payload carried words for an item that no longer existed. Now it
+ * drops them everywhere, which is what the normaliser does anyway.
+ *
+ * @param {object} layout        reactive `form.galleryLayout`
+ * @param {object} wordsByLocale reactive, keyed by locale: alt text and captions
+ *                               for every language, each under `items`
  */
-export function usePostGallery(layout, words) {
+export function usePostGallery(layout, wordsByLocale) {
     const items = computed(() => layout.items ?? []);
 
     const enabled = writable(
@@ -98,7 +112,18 @@ export function usePostGallery(layout, words) {
         () => new Set(items.value.map((item) => item.mediaId)),
     );
 
-    function ensureWords(id) {
+    /** The languages there are words for, which is every language the post has. */
+    function locales() {
+        return Object.keys(wordsByLocale);
+    }
+
+    function ensureWords(id, locale) {
+        const words = wordsByLocale[locale];
+
+        if (!words) {
+            return;
+        }
+
         if (!words.items) {
             words.items = {};
         }
@@ -125,22 +150,27 @@ export function usePostGallery(layout, words) {
             ...items.value,
             { id, mediaId: media.id, url: media.url ?? null },
         ];
-        ensureWords(id);
+        // A slot in every language, so switching the modal's tab finds a field to
+        // write into rather than creating one on the way past.
+        locales().forEach((locale) => ensureWords(id, locale));
 
         return true;
     }
 
     /**
-     * Drops a picture, and its words with it - in **this** locale only.
+     * Drops a picture, and its words with it, in every language.
      *
-     * The other languages keep theirs until the save, where the normalizer
-     * settles the layout first and then rebuilds every locale's content from it.
-     * Reaching across locales here would mean the panel knowing about languages
-     * it does not have open.
+     * Every language and not just the open one: the words belong to the picture,
+     * and the picture is gone. The server settles this too - `normalizeContent`
+     * rebuilds each locale from the layout - but leaving it to the save meant the
+     * payload described captions for an item nothing could show.
      */
     function removeItem(id) {
         layout.items = items.value.filter((item) => item.id !== id);
-        delete words.items?.[id];
+
+        locales().forEach((locale) => {
+            delete wordsByLocale[locale]?.items?.[id];
+        });
     }
 
     /**
@@ -247,16 +277,20 @@ export function usePostGallery(layout, words) {
     }
 
     /**
-     * The words for one item in the open locale, created on read.
+     * The words for one item in one language, created on read.
      *
-     * A gallery loaded from the server carries content for the items it had;
-     * items added since have none, and binding a field to a key that is not
-     * there would drop what is typed into it.
+     * A gallery loaded from the server carries content for the items it had; items
+     * added since have none, and binding a field to a key that is not there would
+     * drop what is typed into it.
+     *
+     * Answers a detached blank for a language that has no half at all rather than
+     * throwing - a post with no translation in a locale is a real state, and the
+     * modal must still draw its fields.
      */
-    function wordsFor(id) {
-        ensureWords(id);
+    function wordsFor(id, locale) {
+        ensureWords(id, locale);
 
-        return words.items[id];
+        return wordsByLocale[locale]?.items?.[id] ?? { alt: "", caption: "" };
     }
 
     return {
