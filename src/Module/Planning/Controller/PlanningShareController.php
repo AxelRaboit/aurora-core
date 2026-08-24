@@ -43,6 +43,18 @@ use function array_map;
  * Read-only, and in two independent ways: the payload marks every event
  * `readOnly` so no grid offers to drag one, and there is no write route here to
  * reach. The first is courtesy, the second is the guarantee.
+ *
+ * **Before adding a write route here, rate-limit it.** These routes have no limit
+ * today and that is deliberate: the worst a leaked read token allows is somebody
+ * reading a schedule, which revocation settles. A leaked *write* token is somebody
+ * filling the calendar with ten thousand events, and there is nobody to block -
+ * the token is the identity, and revoking it happens after the damage. The project
+ * has `config/packages/rate_limiter.yaml`; the limit belongs in the same commit as
+ * the route, not a later one.
+ *
+ * The same applies to `can_write` on the link: the column does not exist, and adding
+ * it before there is a write path would be a switch that does nothing. See
+ * `project_planning_share_link_write_access`.
  */
 #[Route('/planning/share', name: 'planning_share')]
 final class PlanningShareController extends AbstractController

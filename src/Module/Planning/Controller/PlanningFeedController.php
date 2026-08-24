@@ -35,6 +35,10 @@ use Symfony\Component\Routing\Attribute\Route;
  *
  * Answers 404 and never 403: a wrong token must not reveal that a right one
  * exists.
+ *
+ * No rate limit, deliberately: a leaked token lets somebody read a schedule, and
+ * revocation settles that. It stops being enough the moment anything here writes -
+ * see `project_planning_share_link_write_access`.
  */
 #[Route('/planning/feed', name: 'planning_feed')]
 final class PlanningFeedController extends AbstractController
