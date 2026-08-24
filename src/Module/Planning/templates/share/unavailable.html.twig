@@ -1,0 +1,15 @@
+{% extends '@Planning/share/layout.html.twig' %}
+
+{% block title %}{{ 'frontend.plannings.share.unavailable_title'|trans }} - {{ siteName }}{% endblock %}
+
+{% block heading %}{{ 'frontend.plannings.share.unavailable_title'|trans }}{% endblock %}
+
+{% block body %}
+    {# One page for expired, revoked and never-existed alike.
+       Telling them apart would confirm which random strings had once been real,
+       and the reader's question is only ever "can I still use this" - to which all
+       three answers are the same. #}
+    <div class="rounded-xl border border-line bg-surface p-6">
+        <p class="text-sm text-secondary">{{ 'frontend.plannings.share.unavailable_body'|trans }}</p>
+    </div>
+{% endblock %}

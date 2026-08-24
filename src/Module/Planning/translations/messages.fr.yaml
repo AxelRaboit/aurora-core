@@ -233,3 +233,12 @@ backend:
         end_before_start: "La fin ne peut pas précéder le début."
         occurrence_required: "Précisez de quelle occurrence il s'agit."
         read_only: "Cet événement vient d'un autre module : il se modifie à sa source."
+frontend:
+  plannings:
+    share:
+      unavailable_title: "Lien indisponible"
+      unavailable_body: "Ce lien n'est plus valable. Il a peut-être expiré ou été révoqué. Demandez-en un nouveau à la personne qui vous l'a envoyé."
+      read_only: "Consultation seule"
+      until: "jusqu'au %date%"
+      times_in: "Heures en {zone}"
+      nothing: "Aucun calendrier"

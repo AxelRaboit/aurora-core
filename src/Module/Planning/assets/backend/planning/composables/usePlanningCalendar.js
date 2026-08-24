@@ -19,7 +19,7 @@ import { toDisplayRow, useDisplayZone } from "./displayZone.js";
  * reloaded. Hidden calendars stay in memory on purpose: which of your own
  * calendars you have folded away is not something you send anyone.
  */
-export function usePlanningCalendar(props) {
+export function usePlanningCalendar(props, { fixedZone = null } = {}) {
     const { request } = useRequest();
 
     const calendars = ref([...(props.calendars ?? [])]);
@@ -46,7 +46,15 @@ export function usePlanningCalendar(props) {
      * One for the screen and not one per calendar: a grid shows several calendars
      * at once and a "Tuesday" column cannot be Tuesday in two zones.
      */
-    const { zone, setZone } = useDisplayZone();
+    // A guest's page passes `fixedZone`: they have no stored preference, no
+    // control to change one, and reading somebody else's schedule in their own
+    // browser's zone would show 04:00 for a 10:00 shoot with nothing on screen
+    // saying why. The owner's zone, labelled, is the answer there. `setZone` is
+    // still returned and does nothing, so the caller needs no branch.
+    const { zone, setZone } =
+        null === fixedZone
+            ? useDisplayZone()
+            : { zone: ref(fixedZone), setZone: () => {} };
 
     const params = new URLSearchParams(window.location.search);
     const anchor = ref(readDateFromUrl(params) ?? new Date());

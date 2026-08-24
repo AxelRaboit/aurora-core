@@ -233,3 +233,12 @@ backend:
         end_before_start: "The end cannot come before the start."
         occurrence_required: "Say which occurrence this applies to."
         read_only: "This event comes from another module: change it at its source."
+frontend:
+  plannings:
+    share:
+      unavailable_title: "Link unavailable"
+      unavailable_body: "This link no longer works. It may have expired or been revoked. Ask whoever sent it to you for a new one."
+      read_only: "Read only"
+      until: "until %date%"
+      times_in: "Times in {zone}"
+      nothing: "No calendars"
