@@ -1,6 +1,6 @@
 {% extends '@Core/backend/layout.html.twig' %}
 
-{% block title %}{{ 'backend.nav.post_galleries'|trans }} - {{ parent() }}{% endblock %}
+{% block title %}{{ title }} - {{ 'backend.nav.post_galleries'|trans }} - {{ parent() }}{% endblock %}
 
 {% block page_header_slot %}
     {{ include('@Shared/components/page_header.html.twig', {
@@ -15,7 +15,6 @@
 {% block body %}
 <div {{ vue_component('editorial/backend/post-galleries/PostGalleryEditorApp', {
     post: post,
-    title: title,
     locales: locales,
     updatePath: path('backend_editorial_post_galleries_update', {id: post.id}),
     listPath: path('backend_editorial_post_galleries'),

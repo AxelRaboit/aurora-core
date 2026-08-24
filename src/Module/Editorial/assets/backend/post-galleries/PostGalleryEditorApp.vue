@@ -2,6 +2,10 @@
 /**
  * One publication's gallery, and nothing else about it.
  *
+ * No heading of its own: the publication's name is already in the topbar and in
+ * the breadcrumb, and a third copy beside the back button said nothing the two
+ * above it had not.
+ *
  * Composes `PostGalleryPanel` - the very panel the full editor draws in its
  * gallery tab - so there is one gallery editor in the application and not two
  * that drift. What is missing here is the point: no title, no status, no
@@ -24,7 +28,6 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 const props = defineProps({
     /** `{ id, galleryLayout, gallery }` - the arrangement and the words per locale. */
     post: { type: Object, required: true },
-    title: { type: String, default: "" },
     locales: { type: Array, default: () => [] },
     updatePath: { type: String, required: true },
     listPath: { type: String, required: true },
@@ -95,9 +98,7 @@ async function save() {
                 {{ t("backend.post_galleries.back") }}
             </AppButton>
 
-            <h2 class="min-w-0 flex-1 truncate text-sm font-semibold text-primary sm:text-base">
-                {{ title || t("backend.post_galleries.untitled") }}
-            </h2>
+            <span class="flex-1" />
 
             <!-- Says so once it has, and stops saying it the moment anything is
                  saved again. A permanent tick would still be there tomorrow. -->

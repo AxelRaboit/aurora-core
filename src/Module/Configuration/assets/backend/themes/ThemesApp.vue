@@ -44,8 +44,11 @@ const { deletingTheme, confirmDelete } = useThemesDelete(themeList, props.delete
 
 <template>
     <div class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-bold text-primary">{{ t("backend.themes.title") }}</h1>
+        <!-- No heading: `backend.themes.title` and `backend.nav.themes` are the
+             same word, and the second is already in the topbar. What is left is
+             the one control this row exists for, so it sits on its own at the
+             end. -->
+        <div class="flex items-center justify-end">
             <AppButton v-if="can('configuration.themes.manage')" variant="primary" size="md" v-on:click="openCreate">
                 <Plus class="w-4 h-4" :stroke-width="2" />
                 {{ t("backend.themes.new") }}

@@ -167,6 +167,41 @@ async function onFiles(files) {
                 </h3>
             </div>
 
+            <!-- Above the tiles, not below them. Filling a gallery is the first
+                 thing anyone does here and reordering is the second, so a full
+                 gallery pushed the way in off the bottom of the screen - the
+                 controls were furthest away exactly when there was most to
+                 scroll past. -->
+            <div v-if="isFull" class="text-xs text-amber-400">
+                {{ t("backend.posts.gallery.full") }}
+            </div>
+            <template v-else>
+                <!-- Several at once, which is how a gallery is actually filled.
+                     `AppDropZone` already takes `multiple`, so this is the house
+                     control rather than a file input written here. -->
+                <AppDropZone
+                    accept="image/*"
+                    multiple
+                    :uploading="importing"
+                    :label="t('backend.posts.gallery.import')"
+                    :drop-label="t('backend.posts.gallery.import_drop')"
+                    :uploading-label="t('backend.posts.gallery.import_progress', { done: imported, total: importTotal })"
+                    :hint="t('backend.posts.gallery.import_hint')"
+                    v-on:change="onFiles"
+                />
+
+                <p v-if="importMessage" class="text-xs text-amber-400">{{ importMessage }}</p>
+
+                <!-- And one from the library, for a picture already filed. A
+                     different question from importing, so a separate control. -->
+                <AppImagePickerField
+                    :model-value="{ id: null, url: null }"
+                    :choose-label="t('backend.posts.gallery.add')"
+                    :size="72"
+                    v-on:update:model-value="onPick"
+                />
+            </template>
+
             <AppNoData v-if="!items.length" :message="t('backend.posts.gallery.empty')" />
 
             <!--
@@ -259,36 +294,6 @@ async function onFiles(files) {
                     </div>
                 </div>
             </VueDraggable>
-
-            <div v-if="isFull" class="text-xs text-amber-400">
-                {{ t("backend.posts.gallery.full") }}
-            </div>
-            <template v-else>
-                <!-- Several at once, which is how a gallery is actually filled.
-                     `AppDropZone` already takes `multiple`, so this is the house
-                     control rather than a file input written here. -->
-                <AppDropZone
-                    accept="image/*"
-                    multiple
-                    :uploading="importing"
-                    :label="t('backend.posts.gallery.import')"
-                    :drop-label="t('backend.posts.gallery.import_drop')"
-                    :uploading-label="t('backend.posts.gallery.import_progress', { done: imported, total: importTotal })"
-                    :hint="t('backend.posts.gallery.import_hint')"
-                    v-on:change="onFiles"
-                />
-
-                <p v-if="importMessage" class="text-xs text-amber-400">{{ importMessage }}</p>
-
-                <!-- And one from the library, for a picture already filed. A
-                     different question from importing, so a separate control. -->
-                <AppImagePickerField
-                    :model-value="{ id: null, url: null }"
-                    :choose-label="t('backend.posts.gallery.add')"
-                    :size="72"
-                    v-on:update:model-value="onPick"
-                />
-            </template>
         </div>
 
         <!-- `close-on-overlay` false, as the modal convention asks for a form:
