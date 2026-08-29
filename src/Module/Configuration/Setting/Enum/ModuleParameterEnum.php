@@ -18,6 +18,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     case EditorialBackend = 'modules_editorial_backend';
     case GedBackend = 'modules_ged_backend';
     case PlanningBackend = 'modules_planning_backend';
+    case NotesBackend = 'modules_notes_backend';
 
     // Top-level modules - frontend (public site)
 
@@ -50,6 +51,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     case GedTags = 'modules_ged_tags';
     case GedFolders = 'modules_ged_folders';
     case GedFrontend = 'modules_ged_frontend';
+    case NotesMarkdown = 'modules_notes_markdown';
 
     public function getKey(): string
     {
@@ -85,6 +87,8 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GedTags => 'backend.nav.ged_tags',
             self::GedFolders => 'backend.nav.ged_folders',
             self::GedFrontend => 'backend.modules.ged_frontend',
+            self::NotesBackend => 'backend.modules.notes_backend',
+            self::NotesMarkdown => 'backend.nav.notes_markdown',
         };
     }
 
@@ -117,6 +121,8 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GedTags => 'backend.nav.ged_tags_description',
             self::GedFolders => 'backend.nav.ged_folders_description',
             self::GedFrontend => 'backend.modules.ged_frontend_description',
+            self::NotesBackend => 'backend.modules.notes_backend_description',
+            self::NotesMarkdown => 'backend.nav.notes_markdown_description',
         };
     }
 
@@ -147,6 +153,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::MediaLibrary => self::MediaBackend,
             self::EditorialFrontend, self::EditorialPosts, self::EditorialPostTypes, self::EditorialTaxonomies, self::EditorialMenus, self::EditorialSeo, self::EditorialComments, self::EditorialForms => self::EditorialBackend,
             self::GedDocuments, self::GedCategories, self::GedTags, self::GedFolders, self::GedFrontend => self::GedBackend,
+            self::NotesMarkdown => self::NotesBackend,
             default => null,
         };
     }
@@ -192,6 +199,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GedTags => self::GedBackend->value,
             self::GedFolders => self::GedBackend->value,
             self::GedFrontend => self::GedBackend->value,
+            self::NotesMarkdown => self::NotesBackend->value,
             default => null,
         };
     }
@@ -247,6 +255,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::EditorialBackend => 'editorial',
             self::GedBackend => 'ged',
             self::PlanningBackend => 'planning',
+            self::NotesBackend => 'notes',
             default => null,
         };
     }

@@ -1,0 +1,144 @@
+backend:
+  parameters:
+    notes_markdown_image_max_edge:
+      label: Notes Markdown - Taille max des images (px)
+      description: "Notes Markdown : côté le plus long, en pixels. Les images dépassant cette limite sont redimensionnées côté navigateur avant l'envoi. Recommandé : 2048."
+    notes_markdown_image_quality_pct:
+      label: Notes Markdown - Qualité d'encodage WebP (%)
+      description: "Notes Markdown : qualité WebP appliquée au redimensionnement, entre 0 et 100. Recommandé : 85 (bon compromis taille/qualité)."
+  permissions:
+    names:
+      notes:
+        markdown:
+          use: Utiliser les notes Markdown
+  modules:
+    notes_backend: Notes
+    notes_backend_description: Active la prise de notes en Markdown, avec liens entre notes et graphe.
+  nav:
+    sections:
+      notes: Notes
+    notes_markdown: Notes Markdown
+    notes_markdown_description: Prise de notes Markdown façon Obsidian (wiki-links, graphe)
+  audit:
+    actions:
+      notes_markdown:
+        note:
+          created: Note créée
+          updated: Note mise à jour
+          deleted: Note supprimée
+        tag:
+          renamed: Tag renommé
+          merged: Tags fusionnés
+          removed: Tag supprimé
+notes:
+  markdown:
+    image:
+      upload_failed: Impossible d'envoyer l'image.
+    title: Notes Markdown
+    save: Enregistrer
+    delete: Supprimer
+    cancel: Annuler
+    saved: Note enregistrée
+    delete_warning: Cette action est irréversible. Les sous-notes seront détachées de leur parent.
+    untitled: Sans titre
+    title_placeholder: Titre de la note…
+    search_placeholder: Rechercher dans l'arbo…
+    search_no_results: Aucun résultat
+    search_no_results_description: 'Aucune note ne correspond à « {query} ».'
+    resize_handle: Glisser pour redimensionner
+    drag_handle: Glisser pour réordonner
+    content_placeholder: "# Écrivez du markdown ici\n\nReliez vos notes avec [[Titre]]"
+    create_root: Nouvelle note
+    create_child: Ajouter une sous-note
+    confirm_delete: 'Supprimer définitivement « {title} » ?'
+
+    confirm_discard_changes: Vous avez des modifications non enregistrées. Les abandonner ?
+    wiki_link_not_found: 'Aucune note ne correspond à « {title} ».'
+    wiki_search_placeholder: Tapez pour filtrer les notes…
+    wiki_no_results: 'Aucune note ne correspond à « {query} ».'
+    view:
+      edit: Édition seule
+      split: Édition + aperçu
+      preview: Aperçu seul
+    slash:
+      h1: Titre 1
+      h2: Titre 2
+      h3: Titre 3
+      bullet: Liste à puces
+      numbered: Liste numérotée
+      checkbox: Case à cocher
+      quote: Citation
+      divider: Séparateur
+      code: Bloc de code
+      callout: Encadré
+      link: Lien wiki
+      bold: Gras
+      italic: Italique
+      strikethrough: Barré
+      table: Tableau
+      no_results: Aucune commande
+    tags:
+      add_placeholder: Ajouter un tag…
+      filter_label: Filtrer par tag
+      clear: Tout effacer
+      no_results: Aucune note pour ces tags
+      no_results_description: Aucune note de l'arbo ne porte les tags sélectionnés.
+      errors:
+        empty: Le tag est requis.
+        sources_empty: Sélectionnez au moins un tag à fusionner.
+      manage:
+        title: Gérer les tags
+        close: Fermer
+        search_placeholder: Filtrer les tags…
+        search_empty: Aucun tag trouvé
+        search_empty_description: 'Aucun tag ne correspond à « {query} ».'
+        empty_title: Aucun tag
+        empty_description: Aucune note ne porte de tag pour le moment.
+        rename: Renommer
+        rename_confirm: Renommer
+        new_name_placeholder: Nouveau nom du tag…
+        rename_success: 'Aucune note mise à jour. | 1 note mise à jour. | {count} notes mises à jour.'
+        delete: Supprimer
+        delete_yes: Confirmer
+        delete_confirm: 'Retirer « {tag} » de 1 note ? | Retirer « {tag} » de {count} notes ?'
+        delete_success: 'Tag retiré de 0 note. | Tag retiré de 1 note. | Tag retiré de {count} notes.'
+        merge_prompt: 'Fusionner 1 tag en un seul : | Fusionner {count} tags en un seul :'
+        merge_target_placeholder: Tag cible (existant ou nouveau)…
+        merge_confirm: Fusionner
+        merge_success: 'Aucune note fusionnée. | 1 note fusionnée. | {count} notes fusionnées.'
+        note_count: '1 note | {count} notes'
+        errors:
+          rename_failed: Impossible de renommer le tag.
+          delete_failed: Impossible de supprimer le tag.
+          merge_failed: Impossible de fusionner les tags.
+    graph:
+      title: Graphe des liens
+      open: Ouvrir le graphe
+      loading: Construction du graphe…
+      empty:
+        title: Aucun nœud à afficher
+        description: Créez quelques notes reliées par [[wiki-links]] pour voir le graphe.
+    links:
+      title: Liens
+      open: Afficher les liens entrants
+      close: Fermer le panneau
+      backlinks: Backlinks
+      mentions: Mentions
+      loading: Chargement…
+      empty_backlinks: Aucun backlink
+      empty_backlinks_description: Aucune note ne référence celle-ci avec [[…]].
+      empty_mentions: Aucune mention
+      empty_mentions_description: Aucune note ne mentionne ce titre sans wiki-link.
+    empty:
+      title: Aucune note
+      description: Cliquez sur + pour créer votre première note.
+    no_selection:
+      title: Sélectionnez une note
+      description: Choisissez une note dans l'arborescence ou créez-en une nouvelle.
+    errors:
+      load_failed: Impossible de charger la note.
+      create_failed: Impossible de créer la note.
+      save_failed: Impossible d'enregistrer la note.
+      delete_failed: Impossible de supprimer la note.
+      reorder_failed: Impossible de réordonner les notes.
+      reorder_cycle: Impossible de déplacer une note sous l'une de ses sous-notes.
