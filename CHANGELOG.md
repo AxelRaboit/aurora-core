@@ -11,6 +11,21 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.6.2] - 2026-08-29
+
+### Changé
+
+#### Releases
+- Le commentaire de `tag-guard.yml` disait que l'attente d'une minute évitait
+  une fausse alerte sur les releases automatiques. C'est faux : GitHub ne
+  déclenche aucun workflow sur un événement produit par le `GITHUB_TOKEN` par
+  défaut, donc le garde-fou ne voit jamais ces tags. Il ne surveille que les
+  tags poussés à la main, ce qui est précisément son rôle.
+
+### Dans aurora-client
+
+Rien à faire.
+
 ## [0.6.1] - 2026-08-29
 
 ### Changé
