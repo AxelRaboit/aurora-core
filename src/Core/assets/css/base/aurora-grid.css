@@ -64,6 +64,23 @@
     grid-row: var(--row-base, auto);
     grid-column: var(--start-base, auto) / span var(--span-base, 48);
     padding-inline: var(--aurora-gutter, 1rem);
+
+    /* Without this the grid overflows its container and the page scrolls
+     * sideways into nothing.
+     *
+     * A grid item's `min-width` defaults to `auto`, which means it refuses to
+     * shrink below its own content's minimum. On 48 tracks a zone spanning four
+     * of them is a twelfth of the width - about 75px in the editor - and one long
+     * word, one wide image or one unbroken URL inside it forces that track wider.
+     * Every other track gives up its share, the grid grows past the container, and
+     * the reader gets a horizontal scrollbar leading to empty space, because the
+     * thing that caused it is inside a box that looks normal.
+     *
+     * `0` lets the track win and leaves the overflow to the item, which is where
+     * it can be dealt with: content that genuinely needs more room asks for its
+     * own `overflow-x: auto` rather than dragging the page with it.
+     */
+    min-width: 0;
 }
 
 /*
