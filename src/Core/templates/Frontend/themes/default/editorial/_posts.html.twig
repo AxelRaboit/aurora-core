@@ -7,7 +7,14 @@
 {% else %}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for post in posts %}
-            <article class="bg-surface border border-line rounded-xl overflow-hidden flex flex-col">
+            {# `relative` so the title link's `::after` can stretch over the whole
+               card: the click target is the card, while the link itself still
+               wraps nothing but the title. Wrapping the entire <article> in an
+               <a> would have been shorter and worse - a screen reader announces
+               a link by its content, so the name would have become the image,
+               the title, the summary and every term run together, and the day a
+               term becomes a link of its own the markup turns invalid. #}
+            <article class="group relative bg-surface border border-line rounded-xl overflow-hidden flex flex-col transition-colors hover:border-line-strong">
                 {% if post.thumbnailUrl %}
                     {# The fit arrives as a class, not a value: Tailwind only
                        emits classes it can read in the source, and
@@ -22,7 +29,15 @@
                 {% endif %}
                 <div class="p-5 flex-1 flex flex-col gap-2">
                     <h2 class="text-lg font-semibold text-primary">
-                        <a href="{{ path('editorial_post', {locale: locale, postTypeSlug: post.postTypeSlug, slug: post.slug}) }}">
+                        {# `after:absolute after:inset-0` is the overlay. The default
+                           focus ring is deliberately left on the title text: it is
+                           what the keyboard actually lands on, and an overlay-sized
+                           ring would trace a box around content the link does not
+                           name. #}
+                        <a
+                            href="{{ path('editorial_post', {locale: locale, postTypeSlug: post.postTypeSlug, slug: post.slug}) }}"
+                            class="transition-colors group-hover:text-accent after:absolute after:inset-0"
+                        >
                             {{ post.title }}
                         </a>
                     </h2>
