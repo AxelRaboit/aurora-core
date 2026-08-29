@@ -56,16 +56,9 @@ const placeholderText = computed(
 <template>
     <div class="space-y-1">
         <AppFieldLabel v-if="label" :label="label" />
-        <!-- No resting border, for a quieter field. Two things it used to carry
-             had to move rather than go: focus is now a ring drawn on
-             `focus-within`, since the caret sits in a child input and the
-             wrapper is what the reader sees; and the error state, which was a
-             red border, is a red ring - an error that only showed as a border
-             would have disappeared with it. The padding is untouched, so
-             nothing shifts. -->
         <div
-            class="flex flex-wrap gap-1.5 items-center min-h-10.5 px-2.5 py-1.5 rounded-md bg-surface transition-shadow focus-within:ring-1 focus-within:ring-accent-500"
-            :class="error ? 'ring-1 ring-rose-400' : ''"
+            class="flex flex-wrap gap-1.5 items-center min-h-10.5 px-2.5 py-1.5 rounded-md border bg-surface"
+            :class="error ? 'border-rose-400' : 'border-line'"
         >
             <span
                 v-for="tag in tags"
