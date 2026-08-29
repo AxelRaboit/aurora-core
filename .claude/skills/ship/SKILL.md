@@ -175,7 +175,7 @@ After a push to `develop`, the change is invisible to consumer projects until
 it is propagated. Per `process_propagate_aurora_updates.md`, do not run this
 silently - tell the user it is pending and let them decide when:
 
-1. `git push origin develop` - done in step 5. Consumers pull `dev-develop`
+1. `git push origin develop` - done in step 5. Consumers pull tagged releases
    from GitHub, so an unpushed commit bumps nothing.
 2. `make aurora-update` in each consumer, **`aurora-client` first** - it is the
    reference project and acts as the canary.

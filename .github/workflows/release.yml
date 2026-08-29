@@ -1,0 +1,88 @@
+name: Release
+
+# A push to master is a release. Which release is decided by CHANGELOG.md, not
+# by this file: the topmost closed section is the version being published, and
+# its body becomes the release notes.
+#
+# That indirection is deliberate. Deriving the number from commit messages would
+# be shorter, but the release notes are what a client project reads before
+# running `make aurora-update`, and the part they actually need - the
+# "Dans aurora-client" section listing what does not sync by itself - only
+# exists in the changelog. A generated list of commit subjects would drop
+# exactly the paragraph the release exists to deliver.
+#
+# Closing `## [Unreleased]` into `## [X.Y.Z] - YYYY-MM-DD` is therefore the one
+# manual step, done in the pull request that merges develop into master, where
+# it can be reviewed. Merging without closing it publishes nothing and says so.
+
+on:
+  push:
+    branches: [master]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Tag and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # The full history: the tag check below has to see every existing tag.
+          fetch-depth: 0
+
+      - name: Read the version from the changelog
+        id: changelog
+        run: |
+          set -euo pipefail
+
+          # The first `## [X.Y.Z]` heading, skipping `## [Unreleased]`.
+          version=$(grep -m1 -oE '^## \[[0-9]+\.[0-9]+\.[0-9]+\]' CHANGELOG.md | tr -d '#[] ' || true)
+
+          if [ -z "$version" ]; then
+            echo "::notice::No closed version section in CHANGELOG.md - nothing to release."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git rev-parse "v${version}" >/dev/null 2>&1; then
+            echo "::notice::v${version} is already tagged - nothing to release."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # The section body, for the release notes: everything between this
+          # heading and the next `## ` one.
+          awk -v v="$version" '
+            $0 ~ "^## \\["v"\\]" { grab = 1; next }
+            grab && /^## / { exit }
+            grab { print }
+          ' CHANGELOG.md > release-notes.md
+
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create the tag and the release
+        if: steps.changelog.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.changelog.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Annotated, so `git describe` and Composer both see a real tag object.
+          git tag -a "v${VERSION}" -m "Release ${VERSION}"
+          git push origin "v${VERSION}"
+
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --notes-file release-notes.md \
+            --target master

@@ -7,6 +7,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [Unreleased]
 
+_Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
+section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
+`develop` sur `master`, et c'est cette fermeture qui déclenche la release._
+
+## [0.6.0] - 2026-08-29
+
+> Première version publiée par le workflow `master`. Le changelog s'arrêtait
+> à 0.3.0 ; les 0.4 et 0.5 n'ont jamais été taguées mais existent dans les
+> migrations et la documentation (`MIGRATION_0.4.md`, « depuis 0.5 » dans le
+> Makefile), d'où la reprise à 0.6.0 plutôt qu'à 0.4.0.
+
 ### ⚠️ Cassant - root `templates/` éliminé (sauf `bundles/`), tout sous `src/`
 
 Le dossier `templates/` à la racine du bundle est éliminé. Tous les templates
@@ -225,6 +236,29 @@ toggles modules rendent en switch (pas d'input).
 
 ### Ajouté
 
+#### Module Notes (Markdown, façon Obsidian)
+- Nouveau module `Notes` et son sous-module `Markdown` : éditeur markdown,
+  aperçu temps réel, liens `[[wiki]]` avec autocomplétion, backlinks et
+  mentions non liées, graphe des connexions, callouts, commandes slash,
+  arborescence, étiquettes, images collées et redimensionnables, sommaire,
+  recherche. Rapatrié du paquet `aurora-notes`, archivé en août.
+- Titre et contenu chiffrés au repos (`EncryptedTextType`). Conséquence à
+  connaître : aucune recherche ni tri SQL possible sur ces colonnes, donc la
+  recherche et le filtre par étiquette tournent en PHP, sur les notes d'une
+  seule personne.
+- Deux interrupteurs : `modules_notes_backend`, `modules_notes_markdown`.
+
+#### Partage de note par lien (lecture seule)
+- Un lien ouvre une note sans compte, avec échéance facultative et
+  révocation. Sans destinataire c'est le « copier le lien » ; avec une
+  adresse il part par mail et se révoque individuellement.
+- Deux interrupteurs décident de ce qui accompagne la note : les sous-notes
+  (arborescence) et les notes liées par `[[…]]`, suivies transitivement.
+  L'écran liste les titres qui partiraient avant le clic, plutôt que de les
+  compter.
+- Un `[[lien]]` vers une note hors du partage devient du texte simple : un
+  lien n'élargit jamais un partage tout seul.
+
 #### Settings
 - `ConfigurationTab::$moduleToggle` (`ModuleParameterEnum|string|null`) -
   cache l'onglet de `/backend/settings` quand le module est désactivé
@@ -264,6 +298,22 @@ toggles modules rendent en switch (pas d'input).
   context-aware (core enum case / client `BACKEND_KEY` / `null`).
 
 ### Changé
+
+#### Publications
+- Les cartes des listes publiques sont cliquables sur toute leur surface, et
+  plus seulement sur le titre.
+
+#### HTTP côté Vue
+- Le `useRequest` **frontend** envoie enfin `X-Requested-With`. Il ne le
+  faisait pas, alors que la convention l'affirmait : tous les appels des pages
+  publiques partaient sans l'en-tête que Symfony lit pour répondre du JSON
+  plutôt que du HTML. Cinq composables qui appelaient `fetch` à la main sont
+  passés sur le wrapper partagé.
+
+#### Menu latéral
+- Les sections `planning` et `notes` ont leur propre couleur. Elles
+  retombaient sur la palette d'accentuation et paraissaient oubliées à côté
+  des six sections colorées.
 - `extend-aurora-entity` skill : namespaces mis à jour
   (`Aurora\Module\Platform\Agency`, plus l'ancien `Aurora\Core\Agency`)
   + asset paths post-0.5 (`src/Module/<X>/assets/backend/`) + alias

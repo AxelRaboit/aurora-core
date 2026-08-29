@@ -5,11 +5,18 @@ metadata:
   type: project
 ---
 
-Quand une modif aurora-core est mergée sur `develop`, elle n'a **aucun effet
-client tant qu'on n'a pas propagé**. Procédure (flux actuel, `dev-develop`) :
+Depuis le 29/08/2026, les clients consomment des **versions publiées**
+(`"axelraboit/aurora": "^0.6"`), plus la branche `develop`. Un commit poussé
+sur `develop` n'a donc **aucun effet client** tant qu'il n'est pas passé sur
+`master` et publié :
 
-1. `git push origin develop` (les clients consomment `dev-develop` depuis
-   GitHub → `composer update` tire le distant, pas le local).
+0. `develop` → `master` par pull request, en **closant `## [Unreleased]`** du
+   `CHANGELOG.md` en `## [X.Y.Z] - AAAA-MM-JJ`. Le merge déclenche
+   `.github/workflows/release.yml`, qui lit ce numéro, tague et publie la
+   release avec la section du changelog en corps. Merger sans clore la section
+   ne publie rien.
+1. `git push origin develop` reste nécessaire, mais ne suffit plus : c'est la
+   release qui rend le travail visible aux clients.
 2. Dans chaque projet consommateur : `make aurora-update` (composer update +
    installs + cache:clear + `migrate-f` + syncs + translation + build).
 3. Vérifier avec **`make ft`** - il tourne bien sur aurora-client (phpstan,

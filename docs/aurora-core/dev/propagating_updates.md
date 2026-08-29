@@ -13,29 +13,51 @@
 
 ## Comment les clients consomment aurora-core (aujourd'hui)
 
-Chaque projet consommateur pointe sur la **branche `develop`** d'aurora-core
+Chaque projet consommateur pointe sur une **version publiée** d'aurora-core,
 via le dépôt VCS GitHub (composer) :
 
 ```json
 // composer.json du projet consommateur
-"require": { "axelraboit/aurora": "dev-develop" },
+"require": { "axelraboit/aurora": "^0.6" },
 "repositories": [
   { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-core.git" }
 ]
 ```
 
-**Conséquence importante** : `composer update axelraboit/aurora` tire le
-**dernier commit de `develop` sur GitHub**, pas l'état local. Il faut donc
-**pousser `develop` d'abord** (cf. procédure).
+**Conséquence importante** : `composer update axelraboit/aurora` ne voit que
+les **tags publiés**. Un commit poussé sur `develop` ne change rien chez les
+clients tant qu'il n'est pas passé sur `master` et publié en release. C'est le
+but : un client reste sur une version pendant qu'il prend le temps de migrer,
+au lieu de recevoir chaque commit au moment où il tombe.
 
-> **Versionnement par releases (plus tard, pas maintenant)** : à terme, on
-> figera chaque consommateur sur une **version release taggée** (semver, ex.
-> `"axelraboit/aurora": "^0.6"`) plutôt que sur `dev-develop`. Les clients
-> bumperont alors délibérément vers une version stable, en lisant le
-> `CHANGELOG.md` (section « Dans aurora-client ») entre leur version et la
-> cible. Le flux release (CHANGELOG → `make tag VERSION=X.Y.Z` → SemVer) est
-> déjà esquissé dans la mémoire `process_release`. **Pour le moment, tout suit
-> `dev-develop`** (rolling) et la procédure ci-dessous s'applique telle quelle.
+## Le chemin d'un commit jusqu'à un client
+
+```
+develop  ──PR──▶  master  ──push──▶  workflow Release  ──▶  tag vX.Y.Z + release
+                                                                    │
+                                                       make aurora-update
+                                                                    ▼
+                                                            projet client
+```
+
+1. Le travail se fait sur `develop`, comme avant. Rien n'y est visible des
+   clients.
+2. Une pull request `develop` → `master` **clôt `## [Unreleased]`** du
+   `CHANGELOG.md` en `## [X.Y.Z] - AAAA-MM-JJ`. C'est le seul geste manuel, et
+   il se relit dans la PR.
+3. Le merge déclenche `.github/workflows/release.yml` : il lit ce numéro,
+   crée le tag `vX.Y.Z` et publie la release avec la section du changelog en
+   corps. Merger sans avoir clos la section ne publie rien et le dit dans les
+   logs.
+4. Le client lance `make aurora-update`, qui prend la dernière version
+   compatible avec sa contrainte.
+
+> **Pourquoi la release et pas `dev-develop`** : la section « Dans
+> aurora-client » du changelog liste ce qui ne se synchronise pas tout seul.
+> Elle n'a de sens que si le client peut se situer entre deux points fixes.
+> Avec un flux roulant, il n'y a pas de « entre sa version et la cible » : il
+> y a juste le dernier commit, et la liste des choses à faire à la main se
+> perd.
 
 ---
 

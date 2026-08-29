@@ -19,22 +19,30 @@ Chaque feature/fix notable → noter une ligne sous `## [Unreleased]` dans
 
 ### 2. Au moment du release
 
+Depuis le 29/08/2026 la release est **automatique** : elle est publiée par
+`.github/workflows/release.yml` au push sur `master`. Il n'y a plus de
+`make tag` à lancer.
+
 ```bash
-# 1. Fermer [Unreleased] dans CHANGELOG.md
-#    → remplacer "## [Unreleased]" par "## [X.Y.Z] - YYYY-MM-DD"
-#    → ajouter un nouveau "## [Unreleased]" vide au-dessus
+# 1. Sur develop : clore [Unreleased] dans CHANGELOG.md
+#    → remplacer "## [Unreleased]" par "## [X.Y.Z] - AAAA-MM-JJ"
+#    → laisser un "## [Unreleased]" vide au-dessus
+git add CHANGELOG.md && git commit -m "chore(release): 0.6.1"
 
-# 2. Commit du CHANGELOG
-git add CHANGELOG.md
-git commit -m "chore(release): bump X.Y.Z"
-
-# 3. Tag + push (le Makefile crée le tag ET le pousse)
-make tag VERSION=X.Y.Z
-
-# 4. Mettre à jour aurora-client (template)
-#    → appliquer ce que la section "Dans aurora-client" dit
-#    → commit dans aurora-client avec "chore: sync to aurora-core X.Y.Z"
+# 2. Ouvrir la PR develop → master, la faire relire, merger
+gh pr create --base master --head develop --title "release 0.6.1"
 ```
+
+Le merge fait le reste : le workflow lit le numéro dans la première section
+close du changelog, crée le tag `vX.Y.Z` et publie la release avec cette
+section en corps.
+
+**Le numéro vit dans le changelog, pas dans le workflow.** C'est ce qui fait
+que la relecture de la PR est aussi la relecture du numéro de version et des
+notes de release. Un merge sans section close ne publie rien et l'écrit dans
+les logs du workflow, plutôt que de publier une version au hasard.
+
+**`master` est protégée** : pas de push direct, la PR est le seul chemin.
 
 ### 3. Côté projets clients (après déploiement du tag)
 

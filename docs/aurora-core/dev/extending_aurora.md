@@ -15,7 +15,7 @@ Start from the `aurora-client` template repository (or clone it). Then pull
 in the latest Aurora version:
 
 ```bash
-composer require axelraboit/aurora:dev-develop
+composer require axelraboit/aurora:^0.6
 make aurora-update
 ```
 
