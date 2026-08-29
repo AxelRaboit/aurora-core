@@ -26,12 +26,60 @@ backend:
           created: Note créée
           updated: Note mise à jour
           deleted: Note supprimée
+        share_link:
+          created: Lien de partage créé
+          revoked: Lien de partage révoqué
         tag:
           renamed: Tag renommé
           merged: Tags fusionnés
           removed: Tag supprimé
 notes:
   markdown:
+    share:
+      button: Partager
+      title: Partager cette note
+      page_heading: Note partagée
+      read_only: Lecture seule
+      tree_label: Notes de ce partage
+      include_descendants: Inclure les notes classées dessous
+      include_descendants_count: '{count} note classée dessous|{count} notes classées dessous'
+      include_descendants_none: Aucune note classée sous celle-ci
+      recipient_label: Envoyer à
+      recipient_placeholder: prenom@exemple.fr
+      recipient_help: Laissez vide pour obtenir simplement un lien à copier.
+      label_field: Nom du partage
+      label_placeholder: Pour Marie, relecture
+      expires_label: Expire le
+      expires_placeholder: jj/mm/aaaa
+      expires_never: Sans échéance
+      create: Créer le lien
+      created: Lien créé
+      sent: Invitation envoyée à {email}
+      copy: Copier
+      copied: Lien copié
+      revoke: Révoquer
+      revoked: Lien révoqué
+      revoked_on: Révoqué le {date}
+      never_opened: Jamais ouvert
+      last_opened: Ouvert le {date}
+      existing: Partages en cours
+      none_yet: Cette note n'est partagée avec personne.
+      unavailable_title: Note indisponible
+      unavailable_body: Ce lien n'est plus valide, ou n'a jamais existé. Demandez-en un nouveau à la personne qui vous l'a envoyé.
+      errors:
+        unknown_note: Note introuvable.
+        bad_date: Date invalide.
+        create_failed: Impossible de créer le lien.
+        revoke_failed: Impossible de révoquer le lien.
+        list_failed: Impossible de charger les partages.
+      mail:
+        subject: '%title% a été partagée avec vous'
+        title: Une note a été partagée avec vous
+        intro: '%name% vous a partagé la note « %title% ».'
+        includes_descendants: Les notes classées sous celle-ci sont incluses.
+        open: Ouvrir la note
+        expires: 'Ce lien expire le %date%.'
+        read_only: Vous pouvez lire cette note, pas la modifier.
     image:
       upload_failed: Impossible d'envoyer l'image.
     title: Notes Markdown

@@ -1,0 +1,43 @@
+{# A page for somebody with no account.
+
+   Its own layout rather than the backend's: there is no side menu to put a
+   guest in, and no sign-in card to wrap them in either. The head is the same on
+   purpose - the theme, the accent colour and the asset tags are what make this
+   read as the application rather than a stray page. #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {# Nothing here is meant to be found. A share link is a secret handed to
+           one person, and a search engine that indexed it would hand it to
+           everybody, permanently and beyond any revocation. #}
+        <meta name="robots" content="noindex, nofollow, noarchive">
+        <meta name="generator" content="Aurora by axelraboit">
+        <title>{% block title %}{{ siteName }}{% endblock %}</title>
+        {% if siteFaviconUrl %}
+            <link rel="icon" href="{{ siteFaviconUrl }}">
+        {% else %}
+            <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        {% endif %}
+        {{ include('@Shared/components/theme_script.html.twig', {colorScheme: true}) }}
+        {{ vite_entry_link_tags('app') }}
+        {{ include('@Shared/components/primary_color_style.html.twig') }}
+        {{ vite_entry_script_tags('app') }}
+        {{ vite_entry_script_tags('theme') }}
+    </head>
+    <body class="min-h-screen bg-body transition-colors duration-200">
+        <div class="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 p-4 sm:p-6">
+            <header class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h1 class="text-lg font-semibold text-primary">{% block heading %}{% endblock %}</h1>
+                <p class="text-xs text-muted">{% block subheading %}{% endblock %}</p>
+            </header>
+
+            {% block body %}{% endblock %}
+
+            {# Says where this came from, because a page with no navigation and no
+               account gives a reader nothing else to place it by. #}
+            <footer class="mt-auto pt-2 text-2xs text-muted">{{ siteName }}</footer>
+        </div>
+    </body>
+</html>

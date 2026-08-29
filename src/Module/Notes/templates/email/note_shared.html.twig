@@ -1,0 +1,19 @@
+{% extends '@Shared/email/layout/base.html.twig' %}
+
+{% block content %}
+<h1>{{ 'notes.markdown.share.mail.title'|trans }}</h1>
+
+<p>{{ 'notes.markdown.share.mail.intro'|trans({'%name%': sharerName, '%title%': noteTitle}) }}</p>
+
+{% if includesDescendants %}
+    <p>{{ 'notes.markdown.share.mail.includes_descendants'|trans }}</p>
+{% endif %}
+
+<p><a href="{{ url }}">{{ 'notes.markdown.share.mail.open'|trans }}</a></p>
+
+{% if expiresAt %}
+    <p><em>{{ 'notes.markdown.share.mail.expires'|trans({'%date%': expiresAt|date('d/m/Y')}) }}</em></p>
+{% endif %}
+
+<p><em>{{ 'notes.markdown.share.mail.read_only'|trans }}</em></p>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends '@Notes/share/layout.html.twig' %}
+
+{% block title %}{{ note.title|default('')|trim ?: 'notes.markdown.untitled'|trans }} - {{ siteName }}{% endblock %}
+
+{% block heading %}{{ 'notes.markdown.share.page_heading'|trans }}{% endblock %}
+{% block subheading %}{{ 'notes.markdown.share.read_only'|trans }}{% endblock %}
+
+{% block body %}
+<div {{ vue_component('notes/share/NoteShareApp', {
+    imagePrefix: imagePrefix,
+    shareImagePath: shareImagePath,
+    shareNotePath: shareNotePath,
+    noteId: note.id,
+    noteTitle: note.title,
+    content: note.content,
+    tree: tree,
+    titleIndex: titleIndex,
+}) }}></div>
+{% endblock %}

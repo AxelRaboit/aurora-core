@@ -26,12 +26,60 @@ backend:
           created: Note created
           updated: Note updated
           deleted: Note deleted
+        share_link:
+          created: Share link created
+          revoked: Share link revoked
         tag:
           renamed: Tag renamed
           merged: Tags merged
           removed: Tag removed
 notes:
   markdown:
+    share:
+      button: Share
+      title: Share this note
+      page_heading: Shared note
+      read_only: Read only
+      tree_label: Notes in this share
+      include_descendants: Include the notes filed under it
+      include_descendants_count: '{count} note filed under it|{count} notes filed under it'
+      include_descendants_none: Nothing is filed under this note
+      recipient_label: Send to
+      recipient_placeholder: name@example.com
+      recipient_help: Leave empty to just get a link to copy.
+      label_field: Share name
+      label_placeholder: For Marie, review
+      expires_label: Expires on
+      expires_placeholder: dd/mm/yyyy
+      expires_never: No expiry
+      create: Create the link
+      created: Link created
+      sent: Invitation sent to {email}
+      copy: Copy
+      copied: Link copied
+      revoke: Revoke
+      revoked: Link revoked
+      revoked_on: Revoked on {date}
+      never_opened: Never opened
+      last_opened: Opened on {date}
+      existing: Active shares
+      none_yet: This note is not shared with anybody.
+      unavailable_title: Note unavailable
+      unavailable_body: This link is no longer valid, or never existed. Ask whoever sent it to you for a new one.
+      errors:
+        unknown_note: Note not found.
+        bad_date: Invalid date.
+        create_failed: The link could not be created.
+        revoke_failed: The link could not be revoked.
+        list_failed: The shares could not be loaded.
+      mail:
+        subject: '%title% has been shared with you'
+        title: A note has been shared with you
+        intro: '%name% shared the note "%title%" with you.'
+        includes_descendants: The notes filed under it are included.
+        open: Open the note
+        expires: 'This link expires on %date%.'
+        read_only: You can read this note, not edit it.
     image:
       upload_failed: The image could not be uploaded.
     title: Markdown notes

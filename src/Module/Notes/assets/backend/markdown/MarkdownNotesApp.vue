@@ -1,10 +1,12 @@
 <script setup>
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMarkdownNotesPage } from '@notes/backend/markdown/composables/useMarkdownNotesPage.js';
 import NoteTreeItem from '@notes/backend/markdown/components/NoteTreeItem.vue';
 import NotePreview from '@notes/backend/markdown/components/NotePreview.vue';
 import NoteSidePanel from '@notes/backend/markdown/components/NoteSidePanel.vue';
 import NoteTagManagerModal from '@notes/backend/markdown/components/NoteTagManagerModal.vue';
+import NoteShareModal from '@notes/backend/markdown/components/NoteShareModal.vue';
 import NoteEditor from '@notes/backend/markdown/components/NoteEditor.vue';
 import NoteGraph from '@notes/backend/markdown/components/NoteGraph.vue';
 import AppButton from '@shared/components/action/AppButton.vue';
@@ -16,7 +18,7 @@ import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import AppModal from '@shared/components/overlay/AppModal.vue';
 import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
-import { Plus, Trash2, FileText, PanelRightOpen, PanelRightClose, X, Settings2, Network, Menu } from 'lucide-vue-next';
+import { Plus, Trash2, FileText, PanelRightOpen, PanelRightClose, X, Settings2, Network, Menu, Share2} from 'lucide-vue-next';
 
 const props = defineProps({
     notes: { type: Array, default: () => [] },
@@ -102,6 +104,11 @@ const {
     splitDragging,
     navigateFromGraph,
 } = useMarkdownNotesPage(props, t);
+
+// Local to this component rather than folded into `useMarkdownNotesPage`:
+// sharing is opened from the toolbar and closed by the modal, and nothing in
+// the page composable reads it.
+const shareModalOpen = ref(false);
 </script>
 
 <template>
@@ -278,6 +285,19 @@ const {
                             class="flex-1 min-w-0 text-lg font-medium"
                         />
 
+                        <!-- Disabled until a note is selected: there is nothing to
+                             share from an empty editor, and a modal that opens on
+                             null would ask the server for share links of no note. -->
+                        <AppIconButton
+                            :title="t('notes.markdown.share.button')"
+                            size="md"
+                            variant="ghost"
+                            :disabled="!selectedId"
+                            v-on:click="shareModalOpen = true"
+                        >
+                            <Share2 class="w-4 h-4" :stroke-width="2" />
+                        </AppIconButton>
+
                         <AppIconButton
                             :title="sidePanelOpen ? t('notes.markdown.links.close') : t('notes.markdown.links.open')"
                             size="md"
@@ -409,6 +429,13 @@ const {
             :fetch-graph="api.graph"
             v-on:close="graphOpen = false"
             v-on:navigate="navigateFromGraph"
+        />
+
+        <NoteShareModal
+            :show="shareModalOpen"
+            :note-id="selectedId"
+            :paths="props"
+            v-on:close="shareModalOpen = false"
         />
 
         <NoteTagManagerModal
