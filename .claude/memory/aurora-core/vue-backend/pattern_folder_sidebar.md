@@ -26,7 +26,7 @@ façon Media »).
 **Côté backend** (PHP) :
 - Sur le `Manager` de l'entité : ajouter `move(Entity, ?Folder)` + `bulkMove(ids, ?Folder)`
   + `auditMoved()` (les hooks `protected` doivent être surchargeables, cf
-  [[convention-extensibility-5-layers]]).
+  [[convention_extensibility]]).
 - Sur le `Controller` : routes `POST /{id}/move` et `POST /bulk-move`. Type-hint
   l'interface du manager (`<Entity>ManagerInterface`).
 - Sur le `Repository` : `countGroupedByFolders(): array<int,int>` (map folderId → count).

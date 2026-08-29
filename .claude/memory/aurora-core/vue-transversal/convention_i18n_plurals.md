@@ -70,5 +70,5 @@ une clé en format ICU qui devrait être en pipe.
 
 ## Mémoires liées
 
-- [[convention-i18n-source-files]] - où vivent les YAML PF
-- [[convention-i18n-key-casing]] - naming des clés
+- [[convention_i18n_source_files]] - où vivent les YAML PF
+- [[convention_i18n_key_casing]] - naming des clés

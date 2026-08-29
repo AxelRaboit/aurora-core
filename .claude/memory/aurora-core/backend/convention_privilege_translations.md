@@ -105,7 +105,7 @@ configuration). Les traductions vivent dans le YAML du module owner :
 - `configuration.<entity>.<verb>` → `src/Core/Module/translations/messages.{fr,en}.yaml`
 - `<module>.<entity>.<verb>` (modules métier) → `src/Module/<Module>/translations/messages.{fr,en}.yaml`
 
-Voir [[convention-privilege-naming]] pour la règle de nommage uniforme.
+Voir [[convention_privilege_naming]] pour la règle de nommage uniforme.
 
 ## Source
 

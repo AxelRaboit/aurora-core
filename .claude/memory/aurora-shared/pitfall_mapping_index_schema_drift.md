@@ -44,7 +44,7 @@ Ce piège s'est produit **deux fois dans la même session** sur le module Planni
 a fallu aller le chercher sur aurora-client pour le voir. La deuxième fois après
 avoir déjà appris la leçon la première : c'est ce qui justifie une mémoire.
 
-À ne pas confondre avec [[pattern-migration-drift-detection]], qui détecte des
+À ne pas confondre avec [[pattern_migration_drift_detection]], qui détecte des
 migrations **non exécutées** sur la base de dev. Ici les migrations sont passées ;
 c'est le mapping qui est incomplet.
 

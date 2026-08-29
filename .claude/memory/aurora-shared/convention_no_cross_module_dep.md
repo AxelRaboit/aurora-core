@@ -111,6 +111,6 @@ grep -rE "^import .* from ['\"]@[a-z-]+/" src/Module/ \
 Un module d'aurora-core qui apparaît dans le premier résultat n'est **pas** une
 faute - voir « Ce à quoi elle ne s'applique pas ».
 
-Voir [[convention-thin-controller]] (même esprit côté backend),
+Voir [[convention_thin_controller]] (même esprit côté backend),
 [[convention_mirrored_contract_php_js]] (l'autre contrat qu'un test tient à
-notre place) et [[pref-think-long-term]].
+notre place) et [[pref_think_long_term]].

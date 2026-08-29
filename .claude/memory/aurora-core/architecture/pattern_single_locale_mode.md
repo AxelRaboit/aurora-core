@@ -36,7 +36,7 @@ schéma.
 ## Comment l'appliquer
 
 - Toute nouvelle entité avec `XxxTranslation` doit suivre les conventions
-  de [[convention-locale-context]].
+  de [[convention_locale_context]].
 - Si tu ajoutes un Manager qui supprime des translations dans `applyInput()`,
   **passer par `TranslationLocaleSyncer::stale()`** au lieu d'un loop
   manuel. Sinon, basculer en single FR détruit les EN.

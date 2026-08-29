@@ -88,6 +88,6 @@ locales (`#[AsAlias]` sur les interfaces permet la décoration).
 DI possible sur une propriété d'entité ou un DTO `readonly`),
 `CountryEnum::label/options` (méthodes statiques d'enum).
 
-Lié : [[convention-extensibility]], [[convention-manager-hooks]].
+Lié : [[convention_extensibility]], [[convention_manager_hooks]].
 
 Doc dev : `docs/aurora-core/dev/single_locale_mode.md`.

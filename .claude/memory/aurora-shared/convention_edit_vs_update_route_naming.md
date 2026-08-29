@@ -41,7 +41,7 @@ grep -rEn "name:\s*'_edit'.*methods.*Post\b" src/ --include="*.php"
 grep -rEn "name:\s*'_update'.*methods.*Get\b" src/ --include="*.php"
 ```
 
-Voir aussi [[convention-thin-controller]] (controllers ultra-fins, qui
+Voir aussi [[convention_thin_controller]] (controllers ultra-fins, qui
 rend la séparation `_edit`/`_update` triviale : une méthode rend le
-Twig, l'autre délègue au Manager) et [[convention-sfc-thin-presentation]]
+Twig, l'autre délègue au Manager) et [[convention_sfc_thin_presentation]]
 (SFC fines, qui rend la séparation page Twig / composant Vue naturelle).

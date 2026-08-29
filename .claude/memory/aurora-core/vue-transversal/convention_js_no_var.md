@@ -45,5 +45,5 @@ Anti-pattern à éviter dans les Twig :
 </script>
 ```
 
-Voir aussi [[convention-no-inline-js-twig]] (à créer si pattern devient
+Voir aussi [[convention_no_inline_js_twig]] (à créer si pattern devient
 récurrent : pas de logique JS dans les Twig, extraire vers modules ES).

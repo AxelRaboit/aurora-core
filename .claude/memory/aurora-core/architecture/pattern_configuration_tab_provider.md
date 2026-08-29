@@ -78,7 +78,7 @@ migration nécessaire, ils n'utilisent que `SequencePrefixEnum` directement
 sans setting personnalisable.
 
 Phase C (livrée) : registre Vue côté assets. Voir
-[[pattern-settings-tab-vue-registry]] pour le détail de l'API
+[[pattern_settings_tab_vue_registry]] pour le détail de l'API
 `registerSettingsTabComponent()` et la convention de props pour les
 composants custom-rendered.
 
@@ -122,7 +122,7 @@ mettre `alwaysVisible: true` côté PHP, gérer le rendu dans `SettingsApp.vue`
 via un `v-show="activeTab === 'my_module'"`. Phase C généralisera ce point
 via un registre Vue, mais pour l'instant c'est un patch ciblé.
 
-Voir [[architecture-module-parameter-enum]] pour la distinction
+Voir [[architecture_module_parameter_enum]] pour la distinction
 `ApplicationParameterEnum` / `ModuleParameterEnum` (toggles on/off, à part).
 
 Doc canonique : commits `3404e167` (Phase A intro) - pas de fichier doc

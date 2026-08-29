@@ -37,5 +37,5 @@ casse à la moindre refacto du wording, et ne se voit pas dans le typage.
 - Anti-pattern : capter `RuntimeException` générique + sniffer le message.
 - Anti-pattern : mettre la clé i18n dans le `$message` du parent constructor.
 
-Lié : [[convention-thin-controller]] (le controller mappe domaine ↔ HTTP,
+Lié : [[convention_thin_controller]] (le controller mappe domaine ↔ HTTP,
 il ne décide pas du wording - la clé de trad est exposée par le domaine).

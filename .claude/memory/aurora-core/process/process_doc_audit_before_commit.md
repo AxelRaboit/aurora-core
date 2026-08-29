@@ -107,5 +107,5 @@ ont révélé un drift massif sur `add_module.md` et `extend_entity.md` -
 docs jamais maintenues au rythme de l'évolution du code.
 
 Application **systématique** désormais. Lié à
-[[process-make-ft-before-commit]] : même esprit (audit + fix avant
+[[process_make_ft_before_commit]] : même esprit (audit + fix avant
 commit, jamais après).

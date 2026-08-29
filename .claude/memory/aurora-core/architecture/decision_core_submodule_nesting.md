@@ -165,6 +165,6 @@ fichiers).
    de Service (`Entity`, `Dto`, `Manager`, …) - pas le préfixe
    `Aurora\\Core\\Service\\` qui capturerait aussi les contextes.
 
-Voir aussi [[pattern-core-submodules-split]] (le pattern "1 module = 1
+Voir aussi [[pattern_core_submodules_split]] (le pattern "1 module = 1
 section" qui motive ce refacto) et la migration guide client
 `docs/aurora-client/MIGRATION_0.4.md`.

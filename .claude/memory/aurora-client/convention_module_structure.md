@@ -23,7 +23,7 @@ Le chemin du module **miroir** le namespace Aurora de l'entité étendue :
 > **Note 0.4.0** : les entités Core ont été nichées sous leur module
 > parent (Platform, Configuration, Media, General, Dev) - cf.
 > [`docs/aurora-client/MIGRATION_0.4.md`](../../docs/aurora-client/MIGRATION_0.4.md)
-> et [[decision-core-submodule-nesting]] côté aurora-core.
+> et [[decision_core_submodule_nesting]] côté aurora-core.
 
 Pour un module entièrement nouveau (sans entité Aurora à étendre) :
 `src/Module/<NomModule>/` avec la même arborescence qu'aurora-core

@@ -75,7 +75,7 @@ client.
 
 ## Règles d'usage
 
-- Ne pas dupliquer les conventions d'aurora-core (lire [convention_extensibility.md](../convention_extensibility.md)
+- Ne pas dupliquer les conventions d'aurora-core (lire [convention_extensibility.md](../aurora-core/backend/convention_extensibility.md)
   d'abord).
 - Si un nouveau pattern client émerge (cas non couvert par les fichiers
   ci-dessus), créer un fichier ici + ajouter à l'index. Le pattern sera

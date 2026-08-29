@@ -222,6 +222,6 @@ assertions de URL shape restent simples et stables.
 
 ## Voir aussi
 
-- [[pattern-core-submodules-split]] - chaque module owne son domaine
-- [[decision-4-hard-rules]] - pas d'import `Core → Module`
+- [[pattern_core_submodules_split]] - chaque module owne son domaine
+- [[decision_4_hard_rules]] - pas d'import `Core → Module`
 - Migration de référence : `aurora-core 2026-05-24` (commit `f66ffaf1`)

@@ -66,7 +66,7 @@ correspondait plus à un module class réel.
   déclaré dans `MediaModule.php` (`src/Module/Media/MediaModule.php`).
 - Le `PermissionRegistry::byModule()` indexe naturellement sous le bon
   groupe sans `$group:` override (cf
-  [[convention-navpermission-group]] devenu quasi obsolète).
+  [[convention_navpermission_group]] devenu quasi obsolète).
 - Le `MODULE_PRIORITY` dans `UsersViewBuilder` mappe 1:1 avec les
   préfixes.
 - Pour un dev aurora-client qui ajoute un module, le pattern est le
@@ -79,13 +79,13 @@ correspondait plus à un module class réel.
 
 1. Déterminer le module owner (celui qui contrôle la feature).
 2. Préfixer avec son `getId()`.
-3. Suivre la granularité CRUD (cf [[convention-privilege-granularity]] -
+3. Suivre la granularité CRUD (cf [[convention_privilege_granularity]] -
    préférer `view/create/edit/delete` à `manage` fourre-tout).
 4. Déclarer dans `<Module>Module.php::getPermissions()`.
 5. Ajouter les traductions FR + EN dans
    `<module-translations>/messages.{fr,en}.yaml` sous
    `backend.permissions.names.<module>.<entity>.<action>` (cf
-   [[convention-privilege-translations]]).
+   [[convention_privilege_translations]]).
 
 ### Audit de cohérence
 
@@ -118,6 +118,6 @@ editorial.post.list      ❌ Préférer `view` (action standardisée)
 ```
 
 Voir aussi :
-- [[convention-privilege-granularity]] - granularité CRUD obligatoire
-- [[convention-privilege-translations]] - clés YAML alignées sur le nom
-- [[pattern-core-submodules-split]] - pourquoi Core est éclaté en 5
+- [[convention_privilege_granularity]] - granularité CRUD obligatoire
+- [[convention_privilege_translations]] - clés YAML alignées sur le nom
+- [[pattern_core_submodules_split]] - pourquoi Core est éclaté en 5

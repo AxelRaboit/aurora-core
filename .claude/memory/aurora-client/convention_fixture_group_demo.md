@@ -42,4 +42,4 @@ plusieurs groupes : `return ['demo', 'test']`. Les fixtures aurora-core
 servent de référence - toutes les `DemoFixtures` du bundle implémentent déjà
 cette interface.
 
-Voir aussi [[convention-module-structure]] pour le placement général.
+Voir aussi [[convention_module_structure]] pour le placement général.

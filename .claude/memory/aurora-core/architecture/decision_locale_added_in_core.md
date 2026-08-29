@@ -52,5 +52,5 @@ Tout le reste suit automatiquement : nouvelle option dans le select
 `Default Locale` de `/backend/configuration/settings`, ajout dans `/{locale}/...`,
 émission dans le sitemap, etc.
 
-Lié : [[pattern-single-locale-mode]], [[convention-locale-context]].
+Lié : [[pattern_single_locale_mode]], [[convention_locale_context]].
 Côté client : `vendor/axelraboit/aurora/.claude/memory/aurora-client/pattern_locale_aware_extension.md`.

@@ -25,7 +25,7 @@ comme d'habitude. La logique locale est transparente.
 
 **Piège** : si tu surcharges `applyInput()` côté client, **appelle
 toujours `parent::applyInput($entity, $input)` en premier** (cf.
-[[pitfall-call-parent-apply-input]]). Sinon tu court-circuites le syncer
+[[pitfall_call_parent_apply_input]]). Sinon tu court-circuites le syncer
 de translations et tu casses la réversibilité du single mode.
 
 ### 2. Tu crées une nouvelle entité multilingue côté client

@@ -63,6 +63,6 @@ grep -rln "^final readonly class .*Notification\b" src/
 grep -rln "^final readonly class .*Webhook\b" src/
 ```
 
-Voir aussi [[convention-thin-controller]] (les controllers délèguent au
+Voir aussi [[convention_thin_controller]] (les controllers délèguent au
 Manager qui délègue au Service - chaque niveau a sa propre raison
 d'être final ou pas).

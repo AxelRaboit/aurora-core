@@ -27,7 +27,7 @@ Cas conceptuel résiduel : un module PHP responsable de plusieurs
 sections d'UI distinctes, où une permission appartient
 *conceptuellement* à une autre section. Ce cas ne se produit plus
 aujourd'hui - la convention est `1 module class = 1 section`
-(cf [[pattern-core-submodules-split]]).
+(cf [[pattern_core_submodules_split]]).
 
 Garder le mécanisme évite de fermer la porte à un futur cas tordu
 (ex : un module métier qui exposerait une permission cross-cutting
@@ -52,5 +52,5 @@ voulue dans une autre section).
 - Ordre d'affichage : `src/Core/User/View/UsersViewBuilder.php`
   (`MODULE_PRIORITY` const)
 
-Voir [[convention-privilege-naming]] pour la règle de nommage uniforme
+Voir [[convention_privilege_naming]] pour la règle de nommage uniforme
 qui a rendu ce `$group` override quasi obsolète.

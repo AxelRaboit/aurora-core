@@ -49,7 +49,7 @@ Le pattern plugin (`register…()`) a été choisi sur 3 alternatives :
 - ✅ Plugin pattern `registerSettingsTabComponent()` : API explicite, typée,
   découverte facile via IDE, contrôle d'inversion clair (le client pousse).
 
-Voir aussi [[pattern-configuration-tab-provider]] pour le côté PHP de
+Voir aussi [[pattern_configuration_tab_provider]] pour le côté PHP de
 l'extension.
 
 ## Comment l'appliquer

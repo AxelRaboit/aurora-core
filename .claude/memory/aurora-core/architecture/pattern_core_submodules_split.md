@@ -63,7 +63,7 @@ son propre module peut copier-coller n'importe quel `<X>Module.php`
 - **Module class** (`<Name>Module.php`) : à la racine du folder du module,
   `src/Module/<Name>/<Name>Module.php`, namespace `Aurora\Module\<Name>\<Name>Module`.
 - **Sous-modules** du module : nichés sous `src/Module/<Name>/<SubModule>/`
-  (depuis 0.4.0, cf. [[decision-core-submodule-nesting]]). Exemple :
+  (depuis 0.4.0, cf. [[decision_core_submodule_nesting]]). Exemple :
   `src/Module/Platform/User/`, `src/Module/Configuration/Setting/`,
   `src/Module/General/Dashboard/`.
 - Ajouter la case `<Name>Backend` dans `ModuleParameterEnum` + son context
@@ -91,6 +91,6 @@ existants (`ModulesViewBuilderTest`, `UsersViewBuilderTest`,
 `PermissionRegistryTest`) traitent les 4 modules core comme n'importe
 quel autre module - pas de cas spécial.
 
-Voir aussi [[pattern-configuration-tab-provider]] (Phase A/B/C settings
+Voir aussi [[pattern_configuration_tab_provider]] (Phase A/B/C settings
 extensibility - préalable à ce Jalon 4) et
-[[architecture-module-parameter-enum]] pour la cascade graph.
+[[architecture_module_parameter_enum]] pour la cascade graph.

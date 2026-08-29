@@ -13,7 +13,7 @@ couplait le core à toutes les entités modules et cassait les clients à-la-car
 qui n'installent qu'un sous-ensemble. Chaque classe :
 
 - `extends Fixture implements DependentFixtureInterface, FixtureGroupInterface`
-- `getGroups(): ['demo']` (cf. [[convention-fixture-group-demo]])
+- `getGroups(): ['demo']` (cf. [[convention_fixture_group_demo]])
 - `getDependencies()` pointe vers les fixtures dont elle consomme les données
 
 ## Chargement dev-only (jamais en prod)
@@ -81,4 +81,4 @@ la main pour l'instant (gap connu). Modèles de référence : `HrDemoFixtures`
 (users only), `EcommerceDemoFixtures` (multi-refs), `GedDemoFixtures` (producteur
 média + favicon).
 
-Voir aussi [[project_monorepo_split_chantier]], [[convention-fixture-group-demo]].
+Voir aussi [[project_monorepo_split_chantier]], [[convention_fixture_group_demo]].
