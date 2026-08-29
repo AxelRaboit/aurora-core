@@ -57,6 +57,18 @@ abstract class AbstractMarkdownNoteShareLink implements MarkdownNoteShareLinkInt
     #[ORM\Column(options: ['default' => false])]
     protected bool $includeDescendants = false;
 
+    /**
+     * Whether the notes this one links to come along.
+     *
+     * A different question from the tree, and the riskier of the two: links are
+     * followed transitively, so a note citing two notes that each cite two more
+     * reaches most of a vault in three hops. Off by default, and the screen
+     * lists the titles it would publish before the click rather than after -
+     * a count alone cannot be checked against what somebody meant to share.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $includeLinked = false;
+
     /** Null for a plain copy-the-link share; set when this link was mailed to somebody. */
     #[ORM\Column(length: 180, nullable: true)]
     protected ?string $recipientEmail = null;
@@ -122,6 +134,18 @@ abstract class AbstractMarkdownNoteShareLink implements MarkdownNoteShareLinkInt
     public function setIncludeDescendants(bool $includeDescendants): static
     {
         $this->includeDescendants = $includeDescendants;
+
+        return $this;
+    }
+
+    public function includesLinked(): bool
+    {
+        return $this->includeLinked;
+    }
+
+    public function setIncludeLinked(bool $includeLinked): static
+    {
+        $this->includeLinked = $includeLinked;
 
         return $this;
     }

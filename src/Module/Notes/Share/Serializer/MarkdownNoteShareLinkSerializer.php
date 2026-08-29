@@ -29,6 +29,7 @@ final readonly class MarkdownNoteShareLinkSerializer
             'label' => $link->getLabel(),
             'recipientEmail' => $link->getRecipientEmail(),
             'includeDescendants' => $link->includesDescendants(),
+            'includeLinked' => $link->includesLinked(),
             'expiresAt' => $link->getExpiresAt()?->format('c'),
             'revokedAt' => $link->getRevokedAt()?->format('c'),
             'sentAt' => $link->getSentAt()?->format('c'),

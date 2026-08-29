@@ -42,8 +42,11 @@ notes:
       read_only: Read only
       tree_label: Notes in this share
       include_descendants: Include the sub-notes
-      include_descendants_count: '{count} sub-note will be shared|{count} sub-notes will be shared'
-      include_descendants_none: No sub-notes
+      include_descendants_hint: The notes filed under this one, in the tree.
+      include_linked: Include the linked notes
+      include_linked_hint: Notes named by a [[…]] link, and the ones they name in turn.
+      also_shared: '{count} other note will be shared:|{count} other notes will be shared:'
+      nothing_else: Nothing else goes with this note.
       recipient_label: Send to
       recipient_placeholder: name@example.com
       recipient_help: Leave empty to just get a link to copy.
@@ -52,7 +55,6 @@ notes:
       expires_label: Expires on
       expires_placeholder: dd/mm/yyyy
       expires_hint: Leave empty for a link that lasts until it is revoked.
-      expires_never: No expiry
       create: Create the link
       created: Link created
       sent: Invitation sent to {email}
@@ -74,7 +76,7 @@ notes:
         subject: '%title% has been shared with you'
         title: A note has been shared with you
         intro: '%name% shared the note "%title%" with you.'
-        includes_descendants: The sub-notes are included.
+        includes_descendants: Other notes connected to this one are included.
         open: Open the note
         expires: 'This link expires on %date%.'
         read_only: You can read this note, not edit it.

@@ -187,7 +187,7 @@ final class NoteShareTest extends IntegrationTestCase
 
         $link = $this->link($a, includeDescendants: true);
         self::assertCount(3, $scope->notesFor($link));
-        self::assertSame(2, $scope->descendantCount($a));
+        self::assertCount(2, $scope->preview($a, descendants: true, linked: false));
 
         // A cycle cannot be built through the UI; a hand-edited row could make
         // one, and an endless loop in a public route is a denial of service
@@ -230,6 +230,106 @@ final class NoteShareTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
         $this->entityManager->refresh($link);
         self::assertNull($link->getRevokedAt());
+    }
+
+    /**
+     * A `[[link]]` does not widen a share on its own.
+     *
+     * This is the property the whole design rests on: somebody sharing one note
+     * must not be publishing whatever that note happens to mention.
+     */
+    public function testALinkedNoteIsOutOfScopeUnlessLinksAreFollowed(): void
+    {
+        $target = $this->note('Test 1', 'Le contenu lié.');
+        $source = $this->note('Racine', 'Voir [[Test 1]] pour la suite.');
+
+        $link = $this->link($source);
+
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'notes_share_note',
+            ['token' => $link->getToken(), 'id' => $target->getId()],
+        ));
+        self::assertResponseStatusCodeSame(404);
+
+        $link->setIncludeLinked(true);
+        $this->entityManager->flush();
+
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'notes_share_note',
+            ['token' => $link->getToken(), 'id' => $target->getId()],
+        ));
+        self::assertResponseIsSuccessful();
+    }
+
+    /** Links are followed through, not just one hop. */
+    public function testLinksAreFollowedTransitively(): void
+    {
+        $scope = static::getContainer()->get(SharedNoteScope::class);
+
+        $third = $this->note('Trois');
+        $second = $this->note('Deux', 'Puis [[Trois]].');
+        $first = $this->note('Un', 'Voir [[Deux]].');
+
+        self::assertCount(3, $scope->walk($first, descendants: false, linked: true));
+    }
+
+    /**
+     * Two notes citing each other is ordinary writing, not corruption.
+     *
+     * An endless walk here would be a denial of service anybody could trigger
+     * by writing notes the normal way.
+     */
+    public function testMutualLinksTerminate(): void
+    {
+        $scope = static::getContainer()->get(SharedNoteScope::class);
+
+        $a = $this->note('Aller', 'Vers [[Retour]].');
+        $b = $this->note('Retour', 'Vers [[Aller]].');
+
+        self::assertCount(2, $scope->walk($a, descendants: false, linked: true));
+        self::assertCount(2, $scope->walk($b, descendants: false, linked: true));
+    }
+
+    /** A link naming a note that does not exist adds nothing and breaks nothing. */
+    public function testALinkToANoteThatDoesNotExistIsIgnored(): void
+    {
+        $scope = static::getContainer()->get(SharedNoteScope::class);
+
+        $note = $this->note('Seule', 'Voir [[Cette note na jamais existe]].');
+
+        self::assertCount(1, $scope->walk($note, descendants: false, linked: true));
+    }
+
+    /**
+     * The preview lists what the switches would add, and never the note itself.
+     *
+     * It is the screen's only defence: a count cannot be checked against what
+     * somebody meant to share, a title can.
+     */
+    public function testThePreviewListsWhatWouldBeAddedWithoutTheRoot(): void
+    {
+        $scope = static::getContainer()->get(SharedNoteScope::class);
+
+        $this->note('Cible', 'Contenu.');
+        $root = $this->note('Source', 'Voir [[Cible]].');
+
+        $preview = $scope->preview($root, descendants: false, linked: true);
+
+        self::assertCount(1, $preview);
+        self::assertSame('Cible', $preview[0]['title']);
+    }
+
+    /** An anchor points inside a note, not at another one. */
+    public function testAHeadingAnchorResolvesToTheNoteItself(): void
+    {
+        $scope = static::getContainer()->get(SharedNoteScope::class);
+
+        $this->note('Cible', 'Contenu.');
+        $root = $this->note('Source', 'Voir [[Cible#un-titre]].');
+
+        $preview = $scope->preview($root, descendants: false, linked: true);
+
+        self::assertSame(['Cible'], array_column($preview, 'title'));
     }
 
     private function note(string $title, string $content = '', ?MarkdownNote $parent = null): MarkdownNote

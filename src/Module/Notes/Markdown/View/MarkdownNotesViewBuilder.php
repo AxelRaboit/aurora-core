@@ -40,6 +40,7 @@ final readonly class MarkdownNotesViewBuilder
             'tagsMergePath' => $this->urlGenerator->generate('backend_notes_markdown_tags_merge'),
             'tagsDeletePath' => $this->urlGenerator->generate('backend_notes_markdown_tags_delete'),
             'sharesListPath' => $this->urlGenerator->generate('backend_notes_markdown_shares_list', ['noteId' => '__id__']),
+            'sharesPreviewPath' => $this->urlGenerator->generate('backend_notes_markdown_shares_preview', ['noteId' => '__id__']),
             'sharesCreatePath' => $this->urlGenerator->generate('backend_notes_markdown_shares_create'),
             'sharesRevokePath' => $this->urlGenerator->generate('backend_notes_markdown_shares_revoke', ['id' => '__id__']),
             'imageUploadPath' => $this->urlGenerator->generate('backend_notes_markdown_images_upload'),

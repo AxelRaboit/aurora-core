@@ -67,9 +67,32 @@ final class MarkdownNoteSharesController extends AbstractController
 
         return $this->jsonSuccess([
             'links' => array_map($this->serializer->serialize(...), $this->links->findForNote($note)),
-            // Shown next to the checkbox, so the size of what is about to be
-            // published is visible before the click rather than after it.
-            'descendantCount' => $this->scope->descendantCount($note),
+        ]);
+    }
+
+    /**
+     * What a share with these switches would carry, before one exists.
+     *
+     * Its own route rather than a field on the list: the answer changes with
+     * every tick of a box, and the screen has to be able to ask again without
+     * creating anything. It returns titles, not a count - "4 notes" cannot be
+     * checked against what somebody meant to share, "Comptes 2026" can.
+     */
+    #[Route('/{noteId}/preview', name: '_preview', requirements: ['noteId' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
+    public function preview(int $noteId, Request $request): JsonResponse
+    {
+        $note = $this->ownedNote($noteId);
+
+        if (!$note instanceof MarkdownNoteInterface) {
+            return $this->jsonNotFound();
+        }
+
+        return $this->jsonSuccess([
+            'notes' => $this->scope->preview(
+                $note,
+                $request->query->getBoolean('descendants'),
+                $request->query->getBoolean('linked'),
+            ),
         ]);
     }
 
@@ -81,6 +104,7 @@ final class MarkdownNoteSharesController extends AbstractController
         $input = new NoteShareInput();
         $input->noteId = isset($payload['noteId']) ? (int) $payload['noteId'] : null;
         $input->includeDescendants = (bool) ($payload['includeDescendants'] ?? false);
+        $input->includeLinked = (bool) ($payload['includeLinked'] ?? false);
         $input->label = mb_trim((string) ($payload['label'] ?? ''));
 
         $recipient = mb_trim((string) ($payload['recipientEmail'] ?? ''));
@@ -113,6 +137,7 @@ final class MarkdownNoteSharesController extends AbstractController
         $link = $this->shareLinks->create(
             $note,
             $input->includeDescendants,
+            $input->includeLinked,
             $input->recipientEmail,
             $input->label,
             $expiresAt,

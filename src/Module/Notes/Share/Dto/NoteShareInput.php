@@ -13,6 +13,9 @@ final class NoteShareInput
 
     public bool $includeDescendants = false;
 
+    /** Followed transitively; see `SharedNoteScope` for why that is the risky one. */
+    public bool $includeLinked = false;
+
     /**
      * Null for a plain copy-the-link share.
      *

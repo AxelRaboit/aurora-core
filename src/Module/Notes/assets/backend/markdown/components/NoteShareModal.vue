@@ -27,7 +27,11 @@ const { copy: copyToClipboard } = useClipboard();
 const api = useNoteShareApi(props.paths);
 
 const links = ref([]);
-const descendantCount = ref(0);
+const includeLinked = ref(false);
+// What the two switches would publish, titles and all. Refreshed whenever they
+// move: a count could be computed once, but a list has to match the boxes as
+// they stand or it is worse than nothing.
+const previewNotes = ref([]);
 const submitting = ref(false);
 // Field errors from a 422. `useRequest` returns the body for those rather than
 // null, so they have to be read - treating a 422 as success was silently
@@ -55,12 +59,25 @@ watch(
         const payload = await api.list(props.noteId);
         if (!payload) return;
         links.value = payload.links ?? [];
-        descendantCount.value = payload.descendantCount ?? 0;
+        await refreshPreview();
     },
 );
 
+async function refreshPreview() {
+    if (!props.noteId) return;
+    const payload = await api.preview(props.noteId, {
+        descendants: includeDescendants.value,
+        linked: includeLinked.value,
+    });
+    if (payload) previewNotes.value = payload.notes ?? [];
+}
+
+watch([includeDescendants, includeLinked], refreshPreview);
+
 function resetForm() {
     errors.value = {};
+    includeLinked.value = false;
+    previewNotes.value = [];
     recipientEmail.value = "";
     label.value = "";
     includeDescendants.value = false;
@@ -73,6 +90,7 @@ async function create() {
         const payload = await api.create({
             noteId: props.noteId,
             includeDescendants: includeDescendants.value,
+            includeLinked: includeLinked.value,
             recipientEmail: recipientEmail.value.trim(),
             label: label.value.trim(),
             expiresAt: expiresAt.value,
@@ -159,22 +177,49 @@ function openedLabel(link) {
                     :error="errors.expiresAt"
                 />
 
-                <!-- `AppCheckbox` brings its own <label>; wrapping it in another
-                     one nested two labels over the same input, so every click
-                     toggled it twice and the box could not be unticked. The
-                     count is the point of the hint: publishing one note and
-                     publishing a branch are different acts, and the number says
-                     which one this click is. -->
+                <!-- `AppCheckbox` brings its own <label>; wrapping it in
+                     another one nested two labels over the same input, so every
+                     click toggled it twice and the box could not be unticked. -->
                 <AppCheckbox
                     v-model="includeDescendants"
                     :label="t('notes.markdown.share.include_descendants')"
-                    :hint="
-                        descendantCount === 0
-                            ? t('notes.markdown.share.include_descendants_none')
-                            : t('notes.markdown.share.include_descendants_count', descendantCount)
-                    "
-                    :disabled="submitting || descendantCount === 0"
+                    :hint="t('notes.markdown.share.include_descendants_hint')"
+                    :disabled="submitting"
                 />
+
+                <AppCheckbox
+                    v-model="includeLinked"
+                    :label="t('notes.markdown.share.include_linked')"
+                    :hint="t('notes.markdown.share.include_linked_hint')"
+                    :disabled="submitting"
+                />
+
+                <!-- The list, not a count. "4 notes" cannot be checked against
+                     what somebody meant to share; seeing a title they did not
+                     expect is what stops the click. -->
+                <div
+                    v-if="previewNotes.length > 0"
+                    class="rounded-md border border-line bg-surface-2 p-2"
+                >
+                    <p class="mb-1 text-xs font-medium text-secondary">
+                        {{ t("notes.markdown.share.also_shared", previewNotes.length) }}
+                    </p>
+                    <ul class="max-h-32 space-y-0.5 overflow-auto">
+                        <li
+                            v-for="n in previewNotes"
+                            :key="n.id"
+                            class="truncate text-xs text-muted"
+                        >
+                            {{ n.title?.trim() || t("notes.markdown.untitled") }}
+                        </li>
+                    </ul>
+                </div>
+                <p
+                    v-else-if="includeDescendants || includeLinked"
+                    class="text-xs text-muted"
+                >
+                    {{ t("notes.markdown.share.nothing_else") }}
+                </p>
             </div>
 
             <div v-if="links.length > 0" class="space-y-2">

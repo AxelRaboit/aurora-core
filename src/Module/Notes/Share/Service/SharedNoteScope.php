@@ -15,21 +15,26 @@ use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
  * identifier from the request ever widens the set: a guest asking for note 12
  * gets it only if 12 is already in the scope the link defines.
  *
- * Two kinds of recursion meet in a notes application and they are not the same
- * question:
+ * Two kinds of recursion meet in a notes application, and they are two
+ * different acts with two different risks:
  *
- * 1. **The tree.** Notes filed under the shared note. Included only when the
- *    link says so, because publishing one note and publishing a branch of
- *    thirty are different acts.
- * 2. **`[[wiki links]]`.** A note's body can name any other note. Those are
- *    resolved *within the scope only* - a link to an included note navigates,
- *    a link to anything else renders as plain text. A link must never widen
- *    the share on its own, or the person sharing one note would be publishing
- *    whatever that note happens to mention.
+ * 1. **The tree.** Notes filed under the shared note. Bounded by how somebody
+ *    filed their notes, and usually small.
+ * 2. **`[[wiki links]]`.** Notes a body points at, followed transitively. Not
+ *    bounded by anything: a note citing two notes that each cite two more
+ *    reaches most of a vault in three hops. This is why the share screen lists
+ *    the titles it would publish instead of counting them - a number cannot be
+ *    checked against what somebody meant to share.
+ *
+ * Each is its own switch, off by default. Neither is implied by the other, and
+ * a note reachable through neither is never in scope, whatever id is asked for.
  */
 final readonly class SharedNoteScope
 {
-    public function __construct(private MarkdownNoteRepository $notes) {}
+    public function __construct(
+        private MarkdownNoteRepository $notes,
+        private WikiLinkParser $wikiLinks,
+    ) {}
 
     /**
      * The notes a link exposes, root first.
@@ -38,22 +43,47 @@ final readonly class SharedNoteScope
      */
     public function notesFor(MarkdownNoteShareLinkInterface $link): array
     {
-        $root = $link->getNote();
+        return $this->walk(
+            $link->getNote(),
+            $link->includesDescendants(),
+            $link->includesLinked(),
+        );
+    }
 
-        if (!$link->includesDescendants()) {
+    /**
+     * What a share with these two switches would carry, root first.
+     *
+     * Used both to resolve a live link and to answer the share screen before
+     * anything is created: the list of titles somebody is about to publish has
+     * to come from the same walk that will serve them, or the preview is a
+     * second implementation free to disagree with reality.
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function walk(MarkdownNoteInterface $root, bool $descendants, bool $linked): array
+    {
+        if (!$descendants && !$linked) {
             return [$root];
         }
 
-        // The whole of the owner's tree is loaded once and walked in memory
-        // rather than queried per level: a recursive query per depth is a round
-        // trip per level of nesting, and one person's notes fit in memory by a
-        // wide margin. The same list is what the descendant count on the share
-        // screen is drawn from, so both answers come from one read.
+        // The owner's notes are loaded once and walked in memory rather than
+        // queried per hop: a query per level is a round trip per level, and one
+        // person's notes fit in memory by a wide margin. The bodies are needed
+        // anyway, to read the links out of them.
         $all = $this->notes->findAllWithContentForUser($root->getUser());
 
         $byParent = [];
+        $byTitle = [];
         foreach ($all as $note) {
             $byParent[$note->getParent()?->getId() ?? 0][] = $note;
+
+            $title = mb_trim((string) $note->getTitle());
+            if ('' !== $title) {
+                // First one wins: titles are not unique, and a link naming a
+                // duplicated title has to resolve to one note rather than to
+                // whichever the iteration order reached last.
+                $byTitle[mb_strtolower($title)] ??= $note;
+            }
         }
 
         $scope = [$root];
@@ -62,18 +92,35 @@ final readonly class SharedNoteScope
 
         while ([] !== $queue) {
             $current = array_shift($queue);
-            foreach ($byParent[(int) $current->getId()] ?? [] as $child) {
-                $id = (int) $child->getId();
-                // A cycle cannot be built through the UI, but a hand-edited row
-                // could make one, and an infinite loop in a public route is a
-                // denial of service handed to whoever holds the link.
+            $next = [];
+
+            if ($descendants) {
+                foreach ($byParent[(int) $current->getId()] ?? [] as $child) {
+                    $next[] = $child;
+                }
+            }
+
+            if ($linked) {
+                foreach ($this->wikiLinks->titlesIn($current->getContent()) as $title) {
+                    if (isset($byTitle[$title])) {
+                        $next[] = $byTitle[$title];
+                    }
+                }
+            }
+
+            foreach ($next as $note) {
+                $id = (int) $note->getId();
+                // The `seen` set is what makes this terminate. Two notes linking
+                // to each other is an ordinary thing to write, not a corruption,
+                // so an endless walk here would be a denial of service anybody
+                // could trigger by writing notes the normal way.
                 if (isset($seen[$id])) {
                     continue;
                 }
 
                 $seen[$id] = true;
-                $scope[] = $child;
-                $queue[] = $child;
+                $scope[] = $note;
+                $queue[] = $note;
             }
         }
 
@@ -81,39 +128,25 @@ final readonly class SharedNoteScope
     }
 
     /**
-     * How many notes would come along if descendants were included.
+     * The notes a share would carry beyond the one being shared, as `{id, title}`.
      *
-     * Shown next to the checkbox so the person sees the size of what they are
-     * about to publish before they publish it, rather than after.
+     * Titles rather than a count, because a number cannot be checked against
+     * intent. Seeing "Comptes 2026" in the list is what stops a share going out
+     * with it; "4 notes" is not.
+     *
+     * @return list<array{id: int, title: string|null}>
      */
-    public function descendantCount(MarkdownNoteInterface $note): int
+    public function preview(MarkdownNoteInterface $note, bool $descendants, bool $linked): array
     {
-        $all = $this->notes->findAllWithContentForUser($note->getUser());
+        $scope = $this->walk($note, $descendants, $linked);
 
-        $byParent = [];
-        foreach ($all as $candidate) {
-            $byParent[$candidate->getParent()?->getId() ?? 0][] = $candidate;
-        }
+        // The root is what is being shared, not something a switch added.
+        array_shift($scope);
 
-        $count = 0;
-        $queue = [$note];
-        $seen = [(int) $note->getId() => true];
-
-        while ([] !== $queue) {
-            $current = array_shift($queue);
-            foreach ($byParent[(int) $current->getId()] ?? [] as $child) {
-                $id = (int) $child->getId();
-                if (isset($seen[$id])) {
-                    continue;
-                }
-
-                $seen[$id] = true;
-                ++$count;
-                $queue[] = $child;
-            }
-        }
-
-        return $count;
+        return array_map(static fn (MarkdownNoteInterface $n): array => [
+            'id' => (int) $n->getId(),
+            'title' => $n->getTitle(),
+        ], $scope);
     }
 
     /**
@@ -137,9 +170,9 @@ final readonly class SharedNoteScope
      * Titles inside the scope, mapped to their ids, for resolving `[[links]]`.
      *
      * Lower-cased keys because a wiki link is written the way the writer
-     * remembers the title, not the way it was capitalised. Titles are not unique
-     * - two notes can share one - and the first in scope order wins, which is
-     * the root-first order the reader sees.
+     * remembers the title, not the way it was capitalised. Titles are not
+     * unique, and the first in scope order wins - the root-first order the
+     * reader sees.
      *
      * @return array<string, int>
      */
@@ -152,8 +185,7 @@ final readonly class SharedNoteScope
                 continue;
             }
 
-            $key = mb_strtolower($title);
-            $index[$key] ??= (int) $note->getId();
+            $index[mb_strtolower($title)] ??= (int) $note->getId();
         }
 
         return $index;

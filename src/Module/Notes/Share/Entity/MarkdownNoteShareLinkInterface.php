@@ -21,6 +21,10 @@ interface MarkdownNoteShareLinkInterface
 
     public function setIncludeDescendants(bool $includeDescendants): static;
 
+    public function includesLinked(): bool;
+
+    public function setIncludeLinked(bool $includeLinked): static;
+
     public function getRecipientEmail(): ?string;
 
     public function setRecipientEmail(?string $recipientEmail): static;

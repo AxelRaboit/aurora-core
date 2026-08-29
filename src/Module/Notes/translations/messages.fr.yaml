@@ -42,8 +42,11 @@ notes:
       read_only: Lecture seule
       tree_label: Notes de ce partage
       include_descendants: Inclure les sous-notes
-      include_descendants_count: '{count} sous-note sera partagée|{count} sous-notes seront partagées'
-      include_descendants_none: Aucune sous-note
+      include_descendants_hint: Les notes rangées sous celle-ci, dans l'arborescence.
+      include_linked: Inclure les notes liées
+      include_linked_hint: Les notes citées par un lien [[…]], et celles qu'elles citent à leur tour.
+      also_shared: '{count} autre note sera partagée :|{count} autres notes seront partagées :'
+      nothing_else: Rien d'autre à partager avec cette note.
       recipient_label: Envoyer à
       recipient_placeholder: prenom@exemple.fr
       recipient_help: Laissez vide pour obtenir simplement un lien à copier.
@@ -52,7 +55,6 @@ notes:
       expires_label: Expire le
       expires_placeholder: jj/mm/aaaa
       expires_hint: Laissez vide pour un lien valable jusqu'à révocation.
-      expires_never: Sans échéance
       create: Créer le lien
       created: Lien créé
       sent: Invitation envoyée à {email}
@@ -74,7 +76,7 @@ notes:
         subject: '%title% a été partagée avec vous'
         title: Une note a été partagée avec vous
         intro: '%name% vous a partagé la note « %title% ».'
-        includes_descendants: Les sous-notes sont incluses.
+        includes_descendants: D'autres notes liées à celle-ci sont incluses.
         open: Ouvrir la note
         expires: 'Ce lien expire le %date%.'
         read_only: Vous pouvez lire cette note, pas la modifier.
