@@ -19,7 +19,7 @@ import AppImagePickerField from "@/shared/components/form/file/AppImagePickerFie
 import PostBannerPanel from "./components/PostBannerPanel.vue";
 import PostGridPanel from "./components/PostGridPanel.vue";
 import PostGalleryPanel from "./components/PostGalleryPanel.vue";
-import { Save, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-vue-next";
+import { Save, ArrowLeft, AlertTriangle, Check, Eye, RefreshCw } from "lucide-vue-next";
 
 const { t, d } = useI18n();
 
@@ -201,9 +201,15 @@ const previewing = ref(false);
  * is on screen now.
  *
  * The tab is opened *before* the request rather than after it, because a
- * `window.open` that follows an await is a pop-up the browser did not see the
- * click for, and it gets blocked. It is pointed at the address once there is one,
- * and closed if the request failed.
+ * `window.open` that follows an await is a pop-up the browser did not see the click
+ * for, and gets blocked. It is pointed at the address once there is one, and closed
+ * if the request failed.
+ *
+ * **No `noopener` in the features.** Passing it makes `window.open` return `null`
+ * by specification, which is exactly the handle needed to point the tab anywhere -
+ * so the tab opened and sat on `about:blank` for ever. `opener` is cleared on the
+ * new window instead, which gets the same protection without throwing away the
+ * reference.
  */
 async function openPreview() {
     if (previewing.value) {
@@ -211,7 +217,12 @@ async function openPreview() {
     }
 
     previewing.value = true;
-    const tab = window.open("", "_blank", "noopener");
+    const tab = window.open("", "_blank");
+
+    if (null !== tab) {
+        // Same protection `noopener` would have given, minus losing the handle.
+        tab.opener = null;
+    }
 
     try {
         await save(false);
