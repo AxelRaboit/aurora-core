@@ -324,6 +324,8 @@ backend:
     trash_emptied: '{count} posts deleted for good.'
     irreversible: This cannot be undone.
     back_to_list: Back to the list
+    preview:
+      open: "Preview"
     content: Content
     content_placeholder: 'Write, or press Tab for a block…'
     custom_fields: Custom fields

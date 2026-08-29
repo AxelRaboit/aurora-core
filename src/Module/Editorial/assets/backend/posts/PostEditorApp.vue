@@ -1,6 +1,7 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { usePostEditor } from "./composables/usePostEditor.js";
 import { useTabState } from "@/shared/composables/useTabState.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -34,13 +35,16 @@ const props = defineProps({
     bannerPreviewPath: { type: String, required: true },
     gridPreviewPath: { type: String, required: true },
     searchPath: { type: String, required: true },
+    previewPathTemplate: { type: String, default: "" },
 });
 
 const {
-    form, locale, current, errors, saving, conflict,
+    form, locale, current, errors, saving, conflict, postId,
     availableTaxonomies, supportsBlocks, supportsThumbnail, customFieldDefinitions,
     switchLocale, save, saveAnyway, reloadFromServer, toggleTerm, setCustomField,
 } = usePostEditor(props);
+
+const { request } = useRequest();
 
 /**
  * Sections, in one order, and the first one is the one that opens.
@@ -117,6 +121,53 @@ const galleryWordsByLocale = computed(() =>
     ),
 );
 
+const previewing = ref(false);
+
+/**
+ * Opens the page as it will look, in another tab.
+ *
+ * Saved first, deliberately. A preview of the last save is a preview of something
+ * the author is not looking at, and the whole reason to press this is to see what
+ * is on screen now.
+ *
+ * The tab is opened *before* the request rather than after it, because a
+ * `window.open` that follows an await is a pop-up the browser did not see the
+ * click for, and it gets blocked. It is pointed at the address once there is one,
+ * and closed if the request failed.
+ */
+async function openPreview() {
+    if (previewing.value) {
+        return;
+    }
+
+    previewing.value = true;
+    const tab = window.open("", "_blank", "noopener");
+
+    try {
+        await save(false);
+
+        const data = await request(props.previewPathTemplate.replace("__id__", String(postId.value)));
+
+        if (!data?.url) {
+            tab?.close();
+
+            return;
+        }
+
+        if (null === tab) {
+            // Blocked anyway, or opened from somewhere that refuses. The address is
+            // still good, so send them to it rather than losing the click.
+            window.location.href = data.url;
+
+            return;
+        }
+
+        tab.location.href = data.url;
+    } finally {
+        previewing.value = false;
+    }
+}
+
 const thumbnailFitOptions = computed(() =>
     THUMBNAIL_FITS.map((fit) => ({
         value: fit,
@@ -153,6 +204,18 @@ function termLabel(term) {
                 <AppBadge :color="STATUS_COLORS[form.status] ?? 'gray'">
                     {{ t(`backend.posts.status.${form.status}`) }}
                 </AppBadge>
+                <!-- Only once the post exists: a preview needs an id, and offering
+                     it on a form that has not saved yet would be a button that
+                     cannot work. -->
+                <AppButton
+                    v-if="postId"
+                    variant="secondary"
+                    size="md"
+                    :loading="previewing"
+                    v-on:click="openPreview"
+                >
+                    <Eye class="w-4 h-4" :stroke-width="2" /> {{ t("backend.posts.preview.open") }}
+                </AppButton>
                 <AppButton variant="primary" size="md" :loading="saving" v-on:click="save(false)">
                     <Save class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.save") }}
                 </AppButton>

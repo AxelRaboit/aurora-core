@@ -324,6 +324,8 @@ backend:
     trash_emptied: '{count} publications supprimées définitivement.'
     irreversible: Cette action est irréversible.
     back_to_list: Retour à la liste
+    preview:
+      open: "Prévisualiser"
     content: Contenu
     content_placeholder: "Écrivez, ou appuyez sur Tab pour un bloc…"
     custom_fields: Champs personnalisés

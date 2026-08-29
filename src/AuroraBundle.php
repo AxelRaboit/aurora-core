@@ -47,6 +47,8 @@ use Aurora\Module\Editorial\Post\Entity\PostSlugHistory;
 use Aurora\Module\Editorial\Post\Entity\PostSlugHistoryInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslation;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
+use Aurora\Module\Editorial\Post\Preview\Entity\PostPreviewToken;
+use Aurora\Module\Editorial\Post\Preview\Entity\PostPreviewTokenInterface;
 use Aurora\Module\Editorial\PostType\Entity\PostType;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeField;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeFieldInterface;
@@ -178,6 +180,7 @@ class AuroraBundle extends AbstractBundle
                     MenuItemInterface::class => MenuItem::class,
                     MenuItemTranslationInterface::class => MenuItemTranslation::class,
                     PostInterface::class => Post::class,
+                    PostPreviewTokenInterface::class => PostPreviewToken::class,
                     PostTranslationInterface::class => PostTranslation::class,
                     PostRevisionInterface::class => PostRevision::class,
                     PostSlugHistoryInterface::class => PostSlugHistory::class,

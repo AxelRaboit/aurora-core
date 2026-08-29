@@ -16,11 +16,14 @@ use Aurora\Module\Editorial\Post\Dto\PostInputFactoryInterface;
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Manager\PostManagerInterface;
+use Aurora\Module\Editorial\Post\Preview\Manager\PostPreviewTokenManagerInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Security\PostVoter;
 use Aurora\Module\Editorial\Post\Serializer\PostSerializerInterface;
 use Aurora\Module\Editorial\Post\Service\PostAccessService;
 use Aurora\Module\Editorial\Post\View\PostsViewBuilder;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use DateTimeInterface;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\OptimisticLockException;
@@ -30,6 +33,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/backend/editorial/posts', name: 'backend_editorial_posts')]
@@ -49,6 +53,7 @@ class PostsController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly LocaleContextInterface $localeContext,
         private readonly PostAccessService $postAccessService,
+        private readonly PostPreviewTokenManagerInterface $previewTokens,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -185,6 +190,51 @@ class PostsController extends AbstractController
         }
 
         return $this->jsonSuccess(['post' => $this->postSerializer->serializeFull($post)]);
+    }
+
+    /**
+     * The address that shows this post before it is published.
+     *
+     * One route, and it hands back the live preview rather than minting a second:
+     * a button that produces a new secret on every press leaves a trail of working
+     * addresses behind, and the person pressing it has no idea they are
+     * accumulating.
+     *
+     * Gated on `PostVoter::EDIT`, not on publishing. Somebody who may work on a
+     * draft may show it - that is what a review is - and requiring the right to
+     * publish would leave exactly the person who needs the link unable to make one.
+     */
+    #[Route('/{id}/preview', name: '_preview', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('editorial.posts.edit')]
+    public function preview(Post $post): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(PostVoter::EDIT, $post);
+
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $token = $this->previewTokens->resolveOrCreate($post, $user);
+
+        return $this->jsonSuccess([
+            'url' => $this->generateUrl(
+                'editorial_post_preview_show',
+                ['token' => $token->getToken()],
+                UrlGeneratorInterface::ABSOLUTE_URL,
+            ),
+            'expiresAt' => $token->getExpiresAt()->format(DateTimeInterface::ATOM),
+        ]);
+    }
+
+    /** Ends the current preview, for a draft that should stop being visible. */
+    #[Route('/{id}/preview/revoke', name: '_preview_revoke', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('editorial.posts.edit')]
+    public function revokePreview(Post $post): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(PostVoter::EDIT, $post);
+
+        $this->previewTokens->revoke($post);
+
+        return $this->jsonSuccess();
     }
 
     #[Route('/{id}/delete', name: '_delete', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
