@@ -291,8 +291,13 @@ translation: ## Dump Symfony YAML translations to src/Core/Frontend/locales/gene
 	$(CONSOLE) app:translations:dump-js
 	$(CONSOLE) cache:clear
 
-schema-validate: ## Validate the Doctrine schema
-	$(CONSOLE) doctrine:schema:validate -vvv
+# `--skip-sync` on purpose: this checks the *mapping*, not whether a particular
+# database matches it. A dev database carries tables from archived modules and
+# would fail the comparison for ever, which would make the whole gate red and
+# teach everyone to skip it. Whether migrations are pending is `migrate-check`;
+# whether a real database matches is answered on a fresh one in CI.
+schema-validate: ## Validate the Doctrine mapping
+	$(CONSOLE) doctrine:schema:validate --skip-sync -vvv
 
 # === Tests ===
 test: test-frontend test-backend ## Run all tests (frontend + backend)
@@ -363,11 +368,18 @@ fix: ## Run all fixers + stan
 fd: ## Fix code and build dev assets
 	make fix && make dev
 
-ft: ## Fix, test, build assets, then migrate-check
-	make fix && make test && make build && make migrate-check
+# `schema-validate` is in here because it was not, and that cost a red pipeline in
+# a consumer project. It checks something no other step does: that the *mapping*
+# is coherent, which is a different question from `migrate-check` (are migrations
+# pending) and from `schema:update --dump-sql` (does the database match). A
+# `ManyToMany` whose join column was declared on a MappedSuperclass produced valid
+# tables, a clean `--dump-sql`, and an invalid mapping - so everything here passed
+# and aurora-client's CI went red on the bump.
+ft: ## Fix, test, build assets, validate the mapping, then migrate-check
+	make fix && make test && make build && make schema-validate && make migrate-check
 
-ftl: ## Light: fix + test + migrate-check (no asset build)
-	make fix && make test && make migrate-check
+ftl: ## Light: fix + test + validate the mapping + migrate-check (no asset build)
+	make fix && make test && make schema-validate && make migrate-check
 
 # === Claude Memory ===
 sync-claude-memory: ## Sync .claude/memory/ + docs/aurora-{core,client}/ into the global Claude memory for this project

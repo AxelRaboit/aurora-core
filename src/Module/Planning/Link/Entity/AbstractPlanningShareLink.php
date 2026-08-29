@@ -62,13 +62,7 @@ abstract class AbstractPlanningShareLink implements PlanningShareLinkInterface
      *
      * @var Collection<int, PlanningInterface>
      */
-    #[ORM\ManyToMany(targetEntity: PlanningInterface::class)]
-    // The join columns are named rather than left to Doctrine, which would derive
-    // them from the class names and give `abstract_planning_share_link_id` and
-    // `planning_interface_id` - the mapping's vocabulary leaking into the schema.
-    #[ORM\JoinTable(name: 'core_planning_share_link_calendars')]
-    #[ORM\JoinColumn(name: 'share_link_id', onDelete: 'CASCADE')]
-    #[ORM\InverseJoinColumn(name: 'planning_id', onDelete: 'CASCADE')]
+    /** Declared on the concrete class: see there. */
     protected Collection $calendars;
 
     /**
