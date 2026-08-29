@@ -85,8 +85,12 @@ export function useNoteDragDrop({ api, refreshList }) {
         draggingId.value = null;
         if (!draggedId || draggedId === targetNote.id) return;
 
-        const { ok, payload } = await api.move(draggedId, targetNote.id);
-        if (!ok) {
+        const { ok, reported, payload } = await api.move(
+            draggedId,
+            targetNote.id,
+        );
+        if (!ok && !reported) {
+            // A refused cycle is worth naming; a 5xx has already been reported.
             const msg =
                 payload?.error === "cycle"
                     ? t("notes.markdown.errors.reorder_cycle")
@@ -103,8 +107,8 @@ export function useNoteDragDrop({ api, refreshList }) {
         draggingId.value = null;
         if (!draggedId) return;
 
-        const { ok } = await api.move(draggedId, null);
-        if (!ok) {
+        const { ok, reported } = await api.move(draggedId, null);
+        if (!ok && !reported) {
             toast.error(t("notes.markdown.errors.reorder_failed"));
         }
         await refreshList();

@@ -98,9 +98,11 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         await flushPendingSave();
 
         selectedId.value = id;
-        const { ok, payload } = await api.show(id);
+        const { ok, reported, payload } = await api.show(id);
         if (!ok) {
-            toast.error(t("notes.markdown.errors.load_failed"));
+            // `useRequest` already reports transport and 5xx failures; a second
+            // toast here stacked two messages over each other.
+            if (!reported) toast.error(t("notes.markdown.errors.load_failed"));
             return;
         }
 
@@ -116,13 +118,14 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     }
 
     async function createNote(parentId = null) {
-        const { ok, payload } = await api.create({
+        const { ok, reported, payload } = await api.create({
             parentId,
             title: "",
             content: "",
         });
         if (!ok) {
-            toast.error(t("notes.markdown.errors.create_failed"));
+            if (!reported)
+                toast.error(t("notes.markdown.errors.create_failed"));
             return;
         }
         await refreshList();
@@ -213,9 +216,10 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
                 cancelAutoSave();
             }
 
-            const { ok } = await api.remove(targetId);
+            const { ok, reported } = await api.remove(targetId);
             if (!ok) {
-                toast.error(t("notes.markdown.errors.delete_failed"));
+                if (!reported)
+                    toast.error(t("notes.markdown.errors.delete_failed"));
                 return;
             }
             if (selectedId.value === targetId) {

@@ -106,7 +106,10 @@ export function useNoteTagManager({ api, show, onChanged }) {
         submitting.value = true;
         try {
             const data = await api.rename(source, newTag);
-            if (!data || data.success === false) {
+            // `useRequest` returns null and has already reported transport
+            // and 5xx failures; a second toast stacked two messages.
+            if (!data) return;
+            if (data.success === false) {
                 toast.error(
                     t("notes.markdown.tags.manage.errors.rename_failed"),
                 );
@@ -143,7 +146,10 @@ export function useNoteTagManager({ api, show, onChanged }) {
         submitting.value = true;
         try {
             const data = await api.remove(tag);
-            if (!data || data.success === false) {
+            // `useRequest` returns null and has already reported transport
+            // and 5xx failures; a second toast stacked two messages.
+            if (!data) return;
+            if (data.success === false) {
                 toast.error(
                     t("notes.markdown.tags.manage.errors.delete_failed"),
                 );
@@ -175,7 +181,10 @@ export function useNoteTagManager({ api, show, onChanged }) {
         submitting.value = true;
         try {
             const data = await api.merge(sources, target);
-            if (!data || data.success === false) {
+            // `useRequest` returns null and has already reported transport
+            // and 5xx failures; a second toast stacked two messages.
+            if (!data) return;
+            if (data.success === false) {
                 toast.error(
                     t("notes.markdown.tags.manage.errors.merge_failed"),
                 );
