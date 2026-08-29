@@ -8,7 +8,14 @@ const items = [
     { id: "c", label: "Charlie" },
 ];
 
-function renderMenu(overrides = {}) {
+/**
+ * The menu teleports to <body>, so the mount wrapper holds nothing on its own.
+ * These assertions are about the markup rather than the portal, so the teleport
+ * is stubbed away and the content renders in place. The portal itself has its
+ * own test at the bottom - it is the part that fixes a real bug and it would be
+ * silently undone if only the stubbed view were covered.
+ */
+function renderMenu(overrides = {}, slots = {}) {
     return mount(AppFloatingMenu, {
         props: {
             items,
@@ -18,7 +25,9 @@ function renderMenu(overrides = {}) {
         },
         slots: {
             default: `<template #default="{ item }">{{ item.label }}</template>`,
+            ...slots,
         },
+        global: { stubs: { teleport: true } },
     });
 }
 
@@ -44,7 +53,12 @@ describe("AppFloatingMenu", () => {
 
     it("positions the menu via inline top/left from the position prop", () => {
         const wrapper = renderMenu({ position: { top: 42, left: 99 } });
-        const style = wrapper.find('[class*="absolute"]').attributes("style");
+        // Selected by the data attribute rather than a positioning class: the
+        // menu went from `absolute` to `fixed` when it started teleporting, and
+        // a selector spelled after the layout breaks on that kind of change.
+        const menu = wrapper.find("[data-floating-menu]");
+        const style = menu.attributes("style");
+        expect(menu.classes()).toContain("fixed");
         expect(style).toContain("top: 42px");
         expect(style).toContain("left: 99px");
     });
@@ -63,7 +77,7 @@ describe("AppFloatingMenu", () => {
 
     it("honors a custom min-width class", () => {
         const wrapper = renderMenu({ minWidthClass: "min-w-96" });
-        expect(wrapper.find('[class*="absolute"]').classes()).toContain(
+        expect(wrapper.find("[data-floating-menu]").classes()).toContain(
             "min-w-96",
         );
     });
@@ -79,6 +93,7 @@ describe("AppFloatingMenu", () => {
                 header: `<div class="my-header">Search: foo</div>`,
                 default: `<template #default="{ item }">{{ item.label }}</template>`,
             },
+            global: { stubs: { teleport: true } },
         });
         const header = wrapper.find(".my-header");
         expect(header.exists()).toBe(true);
@@ -102,6 +117,7 @@ describe("AppFloatingMenu", () => {
                 empty: "No matches found",
                 default: `<template #default="{ item }">{{ item.label }}</template>`,
             },
+            global: { stubs: { teleport: true } },
         });
         expect(wrapper.findAll("button")).toHaveLength(0);
         expect(wrapper.text()).toContain("No matches found");
@@ -117,7 +133,45 @@ describe("AppFloatingMenu", () => {
             slots: {
                 default: `<template #default="{ item }">{{ item.label }}</template>`,
             },
+            global: { stubs: { teleport: true } },
         });
         expect(wrapper.text()).toBe("No results");
+    });
+
+    /**
+     * The portal is the fix, so it gets its own test.
+     *
+     * Rendered inline the menu lived inside the markdown editor's
+     * `overflow-auto` pane, which cropped it whenever it opened near an edge.
+     * Mounted for real - no teleport stub - the node has to end up under
+     * <body>, out of reach of any ancestor's overflow.
+     */
+    it("teleports the menu to the body, out of any clipping ancestor", () => {
+        const wrapper = mount(AppFloatingMenu, {
+            props: { items, position: { top: 5, left: 5 }, activeIndex: 0 },
+            slots: {
+                default: `<template #default="{ item }">{{ item.label }}</template>`,
+            },
+            attachTo: document.body,
+        });
+
+        const menu = document.body.querySelector("[data-floating-menu]");
+        expect(menu).not.toBeNull();
+        expect(wrapper.element.contains(menu)).toBe(false);
+
+        wrapper.unmount();
+        expect(document.body.querySelector("[data-floating-menu]")).toBeNull();
+    });
+
+    it("caps its height when given a maxHeight, and keeps the default otherwise", () => {
+        const capped = renderMenu({ maxHeight: 120 });
+        const cappedMenu = capped.find("[data-floating-menu]");
+        expect(cappedMenu.attributes("style")).toContain("max-height: 120px");
+        expect(cappedMenu.classes()).not.toContain("max-h-64");
+
+        const uncapped = renderMenu();
+        expect(uncapped.find("[data-floating-menu]").classes()).toContain(
+            "max-h-64",
+        );
     });
 });

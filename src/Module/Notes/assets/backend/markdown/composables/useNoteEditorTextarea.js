@@ -1,4 +1,4 @@
-import { ref, nextTick, watch } from "vue";
+import { ref, nextTick } from "vue";
 import { useSlashCommands } from "@notes/backend/markdown/composables/useSlashCommands.js";
 import { useWikiLinkAutocomplete } from "@notes/backend/markdown/composables/useWikiLinkAutocomplete.js";
 import { handleMarkdownShortcut } from "@notes/backend/markdown/composables/useMarkdownShortcuts.js";
@@ -34,19 +34,23 @@ export function useNoteEditorTextarea({
     untitledLabel,
 }) {
     const textareaRef = ref(null);
-    // The SFC binds `ref="searchInputRef"` on the wiki-popover header
-    // search field. When the popover opens we move focus into it so the
-    // user can keep typing without clicking the bar manually.
+    /**
+     * The wiki popover's header search field.
+     *
+     * The caret stays in the textarea when the popover opens. It used to jump
+     * here instead, which read as helpful and was not: typing `[[test` put `[[`
+     * in the note and `test` in this box, and once the box was emptied again
+     * Backspace had nothing left to delete, so the `[[` looked stuck. Nothing
+     * announced the jump, so the only way to find out was to lose a word.
+     *
+     * The field is still focusable on purpose - clicking it works, and
+     * `onSearchKeydown` / `onSearchBlur` drive it from there. It is a display of
+     * the query the textarea is already parsing, not the place you type it.
+     */
     const searchInputRef = ref(null);
 
     const slash = useSlashCommands({ t });
     const wiki = useWikiLinkAutocomplete(flatNotes);
-
-    watch(wiki.showSuggestions, async (open) => {
-        if (!open) return;
-        await nextTick();
-        searchInputRef.value?.focus();
-    });
 
     /**
      * Route input through both menus. The slash handler closes itself

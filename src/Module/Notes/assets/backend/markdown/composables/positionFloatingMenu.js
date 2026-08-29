@@ -2,31 +2,35 @@
  * Position a floating menu (slash palette, wiki-link autocomplete)
  * next to a character inside a `<textarea>`.
  *
- * Uses the classic mirror-div trick: build an off-screen <div> with
- * the same font/padding/width as the textarea, fill it with the text
- * up to `startIndex`, and read the on-screen rect of a marker placed
- * at that position. The returned coordinates are expressed relative
- * to the textarea's positioned ancestor (consumers wrap the textarea
- * in a `.relative` div and feed these into `position: absolute`).
+ * Uses the classic mirror-div trick: build an off-screen <div> with the same
+ * font/padding/width as the textarea, fill it with the text up to
+ * `startIndex`, and read the on-screen rect of a marker placed at that
+ * position.
  *
- * The result is clamped to the viewport so the menu never overflows
- * the visible area on narrow screens:
- *   - Horizontally, if the menu would clip the right edge, we slide
- *     it left until it fits (with an 8px margin).
- *   - Vertically, if the menu would clip the bottom edge, we render
- *     it above the caret instead of below (with the same 8px margin).
+ * The returned coordinates are **viewport** coordinates, for `position: fixed`.
+ * They used to be relative to the textarea's wrapper, for `position: absolute`,
+ * which put the menu inside the editor's `overflow-auto` pane and let that pane
+ * cut it in half whenever it opened near an edge. A caret-anchored menu has to
+ * be able to leave its container; nothing else can be clipped by it.
+ *
+ * Placement picks the side with more room rather than defaulting to below:
+ *   - below the caret when the menu fits there,
+ *   - above when it does not and there is more room above,
+ *   - and in either case `maxHeight` comes back shrunk to the space actually
+ *     available, so a menu that fits nowhere scrolls instead of being cropped.
+ * Horizontally it slides left to stay on screen.
  *
  * @param {HTMLTextAreaElement} textarea
  * @param {number} startIndex - caret offset to anchor the menu to
  * @param {object} [opts]
  * @param {number} [opts.menuWidth=224]  - matches `min-w-56` (14rem)
  * @param {number} [opts.menuHeight=256] - matches `max-h-64` (16rem)
- * @param {number} [opts.gap=24]         - vertical offset below caret
+ * @param {number} [opts.gap=8]          - space between caret line and menu
  * @param {number} [opts.margin=8]       - viewport edge breathing room
- * @returns {{ top: number, left: number }}
+ * @returns {{ top: number, left: number, maxHeight: number }}
  */
 export function positionFloatingMenu(textarea, startIndex, opts = {}) {
-    const { menuWidth = 224, menuHeight = 256, gap = 24, margin = 8 } = opts;
+    const { menuWidth = 224, menuHeight = 256, gap = 8, margin = 8 } = opts;
 
     const text = textarea.value.substring(0, startIndex);
     const mirror = document.createElement("div");
@@ -54,34 +58,41 @@ export function positionFloatingMenu(textarea, startIndex, opts = {}) {
     const textareaRect = textarea.getBoundingClientRect();
     const markerRect = marker.getBoundingClientRect();
     const mirrorRect = mirror.getBoundingClientRect();
+    const lineHeight = parseFloat(style.lineHeight) || 20;
 
-    // Position relative to the textarea's wrapper (consumers always
-    // use a `.relative` div whose top/left match the textarea's).
-    let top = markerRect.top - mirrorRect.top - textarea.scrollTop + gap;
-    let left = markerRect.left - mirrorRect.left;
+    // Offset of the caret inside the textarea, then into the viewport.
+    const caretOffsetTop = markerRect.top - mirrorRect.top - textarea.scrollTop;
+    const caretOffsetLeft = markerRect.left - mirrorRect.left;
 
     document.body.removeChild(mirror);
 
-    // ── Horizontal clamp ──────────────────────────────────────────
-    // Convert local x → viewport x, clamp, then convert back.
-    const viewportLeft = textareaRect.left + left;
-    const maxViewportLeft = window.innerWidth - menuWidth - margin;
-    if (viewportLeft > maxViewportLeft) {
-        left -= viewportLeft - maxViewportLeft;
-    }
-    if (left < 0) left = 0;
+    const caretTop = textareaRect.top + caretOffsetTop;
+    const caretBottom = caretTop + lineHeight;
 
-    // ── Vertical clamp ────────────────────────────────────────────
-    // If the menu placed gap pixels below the caret would clip the
-    // bottom of the viewport, flip it above the caret line instead.
-    const caretViewportTop = markerRect.top - textarea.scrollTop;
-    const menuViewportBottom = caretViewportTop + gap + menuHeight;
-    if (menuViewportBottom > window.innerHeight - margin) {
-        // Place the menu so its bottom sits ~gap pixels above the
-        // caret. `lineHeight` is parsed to know how tall a row is.
-        const lineHeight = parseFloat(style.lineHeight) || 20;
-        top = top - gap - menuHeight - lineHeight + gap;
+    // ── Horizontal ────────────────────────────────────────────────────────
+    let left = textareaRect.left + caretOffsetLeft;
+    const maxLeft = window.innerWidth - menuWidth - margin;
+    if (left > maxLeft) left = maxLeft;
+    if (left < margin) left = margin;
+
+    // ── Vertical ──────────────────────────────────────────────────────────
+    const roomBelow = window.innerHeight - caretBottom - gap - margin;
+    const roomAbove = caretTop - gap - margin;
+
+    let top;
+    let maxHeight;
+
+    if (menuHeight <= roomBelow || roomBelow >= roomAbove) {
+        // Below: the default, and the fallback when neither side fits but
+        // below is the roomier of the two.
+        top = caretBottom + gap;
+        maxHeight = Math.max(0, Math.min(menuHeight, roomBelow));
+    } else {
+        maxHeight = Math.max(0, Math.min(menuHeight, roomAbove));
+        top = caretTop - gap - maxHeight;
     }
 
-    return { top, left };
+    if (top < margin) top = margin;
+
+    return { top, left, maxHeight };
 }
