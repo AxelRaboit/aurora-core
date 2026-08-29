@@ -47,6 +47,7 @@ exécutable.
   `docs/aurora-core/dev/propagating_updates.md` (tenue à jour : ajouter une
   ligne au tableau à chaque nouveau projet). Ne pas dupliquer ici.
 
-Releases taggées (CHANGELOG + `make tag` + SemVer) = **plus tard**, pas
-maintenant ; flux esquissé dans [[process_release]]. Voir aussi
+Les releases taguées (CHANGELOG + workflow `Release` sur `master` + SemVer)
+sont **le flux courant depuis le 29/08/2026** : détaillé dans
+[[process_release]]. Voir aussi
 [[process_atomic_commits]] (commits par entité) et [[process_doc_audit_before_commit]].

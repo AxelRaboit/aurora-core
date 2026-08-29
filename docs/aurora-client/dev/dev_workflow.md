@@ -126,5 +126,6 @@ make aurora-update      # mettre à jour aurora-core (voir update_aurora.md)
 
 ```bash
 make sf CMD="cache:clear --env=prod"   # passer n'importe quelle commande Symfony
-make tag VERSION=1.2.3                  # créer un tag git + push
+# (`make tag` n'existe plus : une release se publie en mergeant develop
+#  sur master, le workflow Release s'occupe du tag et des notes.)
 ```

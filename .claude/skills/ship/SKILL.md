@@ -216,7 +216,8 @@ shared branch is the user's call, not yours.
 - **Never force-push** a shared branch (`develop`, `master`) without an
   explicit, in-session instruction naming the branch.
 - **Never merge the PR.** Opening it is where this skill stops.
-- **Never tag or release.** `make tag` and the CHANGELOG flow are a separate
+- **Never tag or release.** Releases are published by the `Release` workflow
+  when `develop` is merged into `master`; the CHANGELOG flow is a separate
   process (`process_release.md`), and per that note releases are deliberately
   not the current flow.
 - **Don't re-review the code.** If something looks wrong while writing the

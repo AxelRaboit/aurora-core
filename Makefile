@@ -96,11 +96,20 @@ outdated: ## Show outdated packages
 	$(COMPOSER) outdated --working-dir=$(AURORA)
 
 # === Release ===
-tag: ## Create and push a new version tag (usage: make tag VERSION=1.2.3)
-	@test -n "$(VERSION)" || (echo "❌ Usage: make tag VERSION=1.2.3" && exit 1)
-	@git tag -a "$(VERSION)" -m "Release $(VERSION)"
-	@git push origin "$(VERSION)"
-	@echo "✅ Tag $(VERSION) pushed"
+tag: ## Superseded - releases are published from master by .github/workflows/release.yml
+	@echo "❌ 'make tag' ne sert plus, et pouvait nuire."
+	@echo ""
+	@echo "   Il créait un tag SANS release et sans préfixe 'v', donc Composer"
+	@echo "   l'aurait vu comme une version publiée alors qu'elle n'est jamais"
+	@echo "   passée par master ni par la CI."
+	@echo ""
+	@echo "   Pour publier une version :"
+	@echo "     1. clore '## [Unreleased]' en '## [X.Y.Z] - AAAA-MM-JJ' dans CHANGELOG.md"
+	@echo "     2. commit + push sur develop"
+	@echo "     3. gh pr create --base master --head develop"
+	@echo ""
+	@echo "   Le merge déclenche la release (tag vX.Y.Z + notes du changelog)."
+	@exit 1
 
 # === Symfony Cache ===
 cc: ## Clear cache (dev)

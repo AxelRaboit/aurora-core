@@ -127,11 +127,15 @@ outdated: ## Show outdated packages
 	$(COMPOSER) outdated --working-dir=$(AURORA)
 
 # === Release ===
-tag: ## Create and push a new version tag (usage: make tag VERSION=1.2.3)
-	@test -n "$(VERSION)" || (echo "❌ Usage: make tag VERSION=1.2.3" && exit 1)
-	@git tag -a "$(VERSION)" -m "Release $(VERSION)"
-	@git push origin "$(VERSION)"
-	@echo "✅ Tag $(VERSION) pushed"
+tag: ## Superseded - releases are published from master by .github/workflows/release.yml
+	@echo "❌ 'make tag' ne sert plus, et pouvait nuire."
+	@echo ""
+	@echo "   Il créait un tag sans release et sans préfixe 'v', à côté du flux."
+	@echo ""
+	@echo "   Pour publier une version : merger develop sur master."
+	@echo "   Le workflow calcule le numéro depuis les commits conventionnels"
+	@echo "   (feat -> mineure, rupture -> majeure, sinon patch), tague et publie."
+	@exit 1
 
 # === Symfony Cache ===
 cc: ## Clear cache (dev)

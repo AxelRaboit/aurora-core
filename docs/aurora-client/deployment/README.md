@@ -48,8 +48,14 @@ Identique à `install-prod`, **plus** :
 Pour créer une version :
 
 ```bash
-make tag VERSION=1.2.3      # git tag + git push origin 1.2.3
-make deploy-prod            # sur le serveur, après pull du tag
+# 1. Publier : merger develop sur master via une pull request.
+#    Le workflow Release calcule le numéro depuis les commits conventionnels
+#    (feat -> mineure, rupture -> majeure, sinon patch), crée le tag vX.Y.Z
+#    et publie la release.
+gh pr create --base master --head develop --title "release"
+
+# 2. Sur le serveur, après avoir tiré le tag :
+make deploy-prod
 ```
 
 ---
