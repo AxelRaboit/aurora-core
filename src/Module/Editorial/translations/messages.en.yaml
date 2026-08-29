@@ -331,6 +331,7 @@ backend:
     review:
       waiting: "Waiting for review"
       note_label: "Review feedback"
+      note_placeholder: "The figure in the second paragraph has no source."
       approve: "Approve and publish"
       reject: "Send back to the author"
       reject_title: "Send back to the author"

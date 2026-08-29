@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { usePostEditor } from "./composables/usePostEditor.js";
 import { useTabState } from "@/shared/composables/useTabState.js";
@@ -20,7 +21,7 @@ import PostGridPanel from "./components/PostGridPanel.vue";
 import PostGalleryPanel from "./components/PostGalleryPanel.vue";
 import { Save, ArrowLeft, AlertTriangle, RefreshCw } from "lucide-vue-next";
 
-const { t } = useI18n();
+const { t, d } = useI18n();
 
 const props = defineProps({
     post: { type: Object, default: null },
@@ -36,6 +37,8 @@ const props = defineProps({
     gridPreviewPath: { type: String, required: true },
     searchPath: { type: String, required: true },
     previewPathTemplate: { type: String, default: "" },
+    reviewApprovePathTemplate: { type: String, default: "" },
+    reviewRejectPathTemplate: { type: String, default: "" },
 });
 
 const {
@@ -45,6 +48,7 @@ const {
 } = usePostEditor(props);
 
 const { request } = useRequest();
+const { can } = usePrivileges();
 
 /**
  * Sections, in one order, and the first one is the one that opens.
@@ -120,6 +124,72 @@ const galleryWordsByLocale = computed(() =>
         props.locales.map((code) => [code, form.value.translations[code]?.gallery ?? {}]),
     ),
 );
+
+/**
+ * Whether this reader is the one who decides.
+ *
+ * The server refuses either way - `PostVoter::PUBLISH` guards both routes - so this
+ * only decides whether to draw the buttons. Showing them to somebody who would get
+ * a 403 is worse than hiding them: it reads as broken rather than as not theirs.
+ */
+const canReview = computed(() => can("editorial.posts.publish"));
+
+const awaitingReview = computed(() => "pending_review" === form.value.status);
+
+/**
+ * The last decision, when there is one to show.
+ *
+ * Drawn for the author on a draft that came back, which is the moment it matters:
+ * the note says what to change, and without it the post simply reappeared with no
+ * explanation.
+ */
+const reviewNote = computed(() => props.post?.reviewNote ?? null);
+
+const rejecting = ref(false);
+const rejectNote = ref("");
+const reviewErrors = ref({});
+const decidingReview = ref(false);
+
+async function approveReview() {
+    decidingReview.value = true;
+
+    try {
+        const data = await request(props.reviewApprovePathTemplate.replace("__id__", String(postId.value)));
+
+        if (!data) return;
+
+        // Reloaded rather than patched: approving publishes and dates the post, and
+        // guessing at those here would show a state the server did not agree to.
+        await reloadFromServer();
+    } finally {
+        decidingReview.value = false;
+    }
+}
+
+async function rejectReview() {
+    decidingReview.value = true;
+    reviewErrors.value = {};
+
+    try {
+        const data = await request(
+            props.reviewRejectPathTemplate.replace("__id__", String(postId.value)),
+            { note: rejectNote.value },
+        );
+
+        if (!data) return;
+        if (data.errors) {
+            reviewErrors.value = data.errors;
+
+            return;
+        }
+
+        rejecting.value = false;
+        rejectNote.value = "";
+        await reloadFromServer();
+    } finally {
+        decidingReview.value = false;
+    }
+}
 
 const previewing = ref(false);
 
@@ -204,6 +274,28 @@ function termLabel(term) {
                 <AppBadge :color="STATUS_COLORS[form.status] ?? 'gray'">
                     {{ t(`backend.posts.status.${form.status}`) }}
                 </AppBadge>
+                <!-- The decision, for whoever holds it, on a post that is waiting.
+                     Beside the status badge because that is what they are acting
+                     on. -->
+                <template v-if="awaitingReview && canReview && postId">
+                    <AppButton
+                        variant="ghost"
+                        size="md"
+                        :loading="decidingReview"
+                        v-on:click="rejecting = true"
+                    >
+                        {{ t("backend.posts.review.reject") }}
+                    </AppButton>
+                    <AppButton
+                        variant="primary"
+                        size="md"
+                        :loading="decidingReview"
+                        v-on:click="approveReview"
+                    >
+                        <Check class="w-4 h-4" :stroke-width="2" /> {{ t("backend.posts.review.approve") }}
+                    </AppButton>
+                </template>
+
                 <!-- Only once the post exists: a preview needs an id, and offering
                      it on a form that has not saved yet would be a button that
                      cannot work. -->
@@ -220,6 +312,26 @@ function termLabel(term) {
                     <Save class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.save") }}
                 </AppButton>
             </div>
+        </div>
+
+        <!-- The reason it came back, above everything else on the page.
+             An author reopening a rejected draft needs to read this before they
+             read their own text, and it was the whole thing missing: the post
+             simply reappeared as a draft with no explanation attached. -->
+        <div
+            v-if="reviewNote"
+            class="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4"
+        >
+            <p class="text-xs font-semibold uppercase tracking-wide text-amber-500">
+                {{ t("backend.posts.review.note_label") }}
+            </p>
+            <p class="mt-1.5 whitespace-pre-line text-sm text-primary">{{ reviewNote }}</p>
+            <p v-if="post?.reviewedByName" class="mt-1.5 text-2xs text-muted">
+                {{ post.reviewedByName }}
+                <template v-if="post.reviewedAt">
+                    &middot; {{ d(new Date(post.reviewedAt), { dateStyle: "medium", timeStyle: "short" }) }}
+                </template>
+            </p>
         </div>
 
         <div v-if="locales.length > 1" class="inline-flex p-1 bg-surface-2 border border-line rounded-lg gap-1">
@@ -476,6 +588,43 @@ function termLabel(term) {
                 </div>
             </section>
         </div>
+
+        <!-- `close-on-overlay` false, as the modal convention asks of a form: a
+             stray click in the backdrop should not throw away a reason half
+             written. -->
+        <AppModal
+            :show="rejecting"
+            max-width="md"
+            :close-on-overlay="false"
+            :title="t('backend.posts.review.reject_title')"
+            v-on:close="rejecting = false"
+        >
+            <AppTextarea
+                v-model="rejectNote"
+                :label="t('backend.posts.review.note_label')"
+                :placeholder="t('backend.posts.review.note_placeholder')"
+                :hint="t('backend.posts.review.reject_hint')"
+                :error="reviewErrors.note"
+                :rows="4"
+            />
+
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="rejecting = false">
+                        {{ t("shared.common.cancel") }}
+                    </AppButton>
+                    <AppButton
+                        variant="primary"
+                        size="md"
+                        :loading="decidingReview"
+                        :disabled="!rejectNote.trim()"
+                        v-on:click="rejectReview"
+                    >
+                        {{ t("backend.posts.review.reject") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
 
         <AppModal
             :show="conflict"

@@ -331,6 +331,7 @@ backend:
     review:
       waiting: "En attente de relecture"
       note_label: "Retour de relecture"
+      note_placeholder: "Il manque la source du chiffre au deuxième paragraphe."
       approve: "Approuver et publier"
       reject: "Renvoyer à l'auteur"
       reject_title: "Renvoyer à l'auteur"
