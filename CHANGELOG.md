@@ -11,6 +11,59 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.7.0] - 2026-08-29
+
+Mineure et non patch : la couleur d'accentuation par défaut change, ce qui se
+voit sur toute l'application d'un client qui n'a pas défini la sienne.
+
+### Changé
+
+#### Identité visuelle
+- **La couleur d'accentuation par défaut passe de l'indigo au vert** (emerald,
+  graine `#10b981`). Mesuré avant de choisir : le générateur de palette fige la
+  luminosité de chaque palier, donc la teinte bouge sans emporter le contraste
+  (blanc sur `accent-600` : 5,52:1 contre 6,76:1 auparavant, tous deux au-delà
+  des 4,5:1 requis). L'indigo en dur des gabarits d'e-mail suit.
+- **Le crédit du pied de page devient le copyright de l'application** :
+  `© {année} {nom du site}`, lu depuis le réglage `site_name`. Il affichait
+  « Propulsé par Aurora · © axelraboit » avec un lien vers le GitHub de
+  l'auteur, ce qui crédite le mauvais produit sur le déploiement d'un client.
+
+#### Notes
+- Le mode scindé n'affichait que l'éditeur sur une fenêtre étroite : le volet
+  prenait une largeur figée en pixels qui ne tenait plus une fois le menu et
+  l'arborescence servis. Il est désormais plafonné à une part de la place
+  disponible, et s'empile verticalement sous `md`.
+- L'éditeur markdown n'a plus de cadre : il remplit son volet, dont les bords
+  disent déjà où il commence.
+- L'arborescence portait un `z-index` à toutes les tailles alors qu'elle n'en a
+  besoin qu'en tiroir mobile ; elle passait par-dessus le fil d'Ariane au
+  défilement.
+
+### Ajouté
+
+#### Garde-fous
+- `SidemenuSectionThemeTest` : une section de menu sans couleur fait échouer la
+  CI. `planning` et `notes` retombaient sur la palette d'accentuation et
+  paraissaient oubliées.
+- `StickyHeaderStackingTest` : un panneau qui garde son `z-index` au-delà du
+  seuil où il cesse de flotter fait échouer la CI.
+- `ClientReadmeLinksTest` : chaque chemin cité par le README client doit
+  exister.
+
+### Dans aurora-client
+
+**Bumper la contrainte** dans `composer.json`, `^0.6` ne prend pas les 0.7 :
+
+```bash
+composer require axelraboit/aurora:^0.7
+make aurora-update && make ft
+```
+
+Si le projet a défini sa propre couleur primaire dans un thème, rien ne change
+visuellement. Sinon, l'application passe au vert. Pour rester en indigo,
+renseigner `#6366f1` comme couleur primaire dans les réglages du thème.
+
 ## [0.6.2] - 2026-08-29
 
 ### Changé
