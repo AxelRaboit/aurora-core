@@ -26,7 +26,7 @@ const { tab, items, loading } = useNoteSidePanel({
 
 <template>
     <aside
-        class="flex flex-col bg-surface fixed inset-0 z-40 md:relative md:inset-auto md:w-72 md:shrink-0 md:border-l md:border-line md:bg-surface-2/30"
+        class="flex flex-col bg-surface fixed inset-0 z-40 md:z-auto md:relative md:inset-auto md:w-72 md:shrink-0 md:border-l md:border-line md:bg-surface-2/30"
     >
         <header class="p-3 border-b border-line flex items-center justify-between gap-2">
             <h3 class="text-sm font-semibold text-primary">{{ t('notes.markdown.links.title') }}</h3>

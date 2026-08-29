@@ -49,7 +49,7 @@ shared:
     pagination: 'Page {page} of {totalPages}'
     'yes': 'Yes'
     'no': 'No'
-    built_with: Built with Aurora · © axelraboit
+    built_with: '© {year} {siteName}'
     save: Save
     cancel: Cancel
     delete: Delete

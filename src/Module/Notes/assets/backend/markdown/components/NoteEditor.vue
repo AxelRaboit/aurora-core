@@ -77,11 +77,15 @@ if (props.uploadImage) {
 
 <template>
     <div class="relative h-full w-full">
+        <!-- No frame: the editor is the pane, and its bounds are the pane's.
+             The padding stays, so the text keeps its margin. Focus shows as the
+             caret, which is what a text field has instead of a ring - dropping
+             the ring here loses nothing a keyboard user relies on. -->
         <textarea
             ref="textareaRef"
             :value="modelValue"
             :placeholder="placeholder"
-            class="block h-full w-full rounded-md border border-line bg-surface px-3 py-2 text-primary placeholder-muted focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition resize-none font-mono text-sm"
+            class="block h-full w-full bg-transparent px-3 py-2 text-primary placeholder-muted outline-none resize-none font-mono text-sm"
             rows="20"
             v-on:input="onInput"
             v-on:keydown="onKeydown"

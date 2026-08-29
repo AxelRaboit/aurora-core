@@ -53,13 +53,26 @@ describe("AppTagsInput", () => {
         expect(wrapper.attributes("hint")).toBeUndefined();
     });
 
-    it("applies error border class when error prop is set", () => {
+    it("marks the error with a ring, since there is no resting border to redden", () => {
+        // The field lost its border for a quieter look. The error state was that
+        // border, so it had to move rather than go: an error that only showed as
+        // a border would have disappeared with it.
         const wrapper = mount(AppTagsInput, {
             props: { modelValue: [], error: "Tags required" },
             global: { plugins: [i18n] },
         });
-        expect(wrapper.find("div.flex.flex-wrap").classes()).toContain(
-            "border-rose-400",
+        const field = wrapper.find("div.flex.flex-wrap");
+        expect(field.classes()).toContain("ring-rose-400");
+        expect(field.classes()).not.toContain("border");
+    });
+
+    it("shows no ring when there is no error", () => {
+        const wrapper = mount(AppTagsInput, {
+            props: { modelValue: [] },
+            global: { plugins: [i18n] },
+        });
+        expect(wrapper.find("div.flex.flex-wrap").classes()).not.toContain(
+            "ring-rose-400",
         );
     });
 

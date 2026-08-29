@@ -31,7 +31,7 @@ final readonly class FaviconController
         $hex = mb_ltrim($this->themeContext->primaryColor(), '#');
         // Default accent hue if an invalid hex slipped through
         if (6 !== mb_strlen($hex) || !ctype_xdigit($hex)) {
-            $hex = '6366f1';
+            $hex = '10b981';
         }
 
         $svg = sprintf(

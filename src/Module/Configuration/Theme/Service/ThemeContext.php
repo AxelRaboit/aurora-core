@@ -11,8 +11,15 @@ use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 
 final class ThemeContext
 {
-    /** Default primary colour seed when the active theme has none configured. */
-    public const string DEFAULT_PRIMARY_COLOR = '#6366f1';
+    /**
+     * Default primary colour seed when the active theme has none configured.
+     *
+     * Emerald. The palette generator pins each stop's lightness, so the hue can
+     * move without dragging contrast with it: white on `accent-600` measures
+     * 5.52:1 here against 6.76:1 for the indigo it replaces - both above the
+     * 4.5:1 a button label needs.
+     */
+    public const string DEFAULT_PRIMARY_COLOR = '#10b981';
 
     private ?ThemeInterface $cachedTheme = null;
 

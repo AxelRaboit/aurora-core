@@ -257,10 +257,14 @@ function openSearchFromMobile() {
             />
         </div>
 
+        <!-- The application's own copyright, from the name set in the
+             settings. It used to be a link to the author's GitHub, which read
+             as the product's credit line on somebody else's deployment: what a
+             reader wants there is whose application this is. -->
         <div class="flex justify-center py-2 border-t border-line/30">
-            <a href="https://github.com/AxelRaboit" target="_blank" rel="noopener" class="text-xs text-muted/40 hover:text-muted/70 transition-colors tracking-wide select-none">
-                {{ t('shared.common.built_with') }}
-            </a>
+            <span class="text-xs text-muted/40 tracking-wide select-none">
+                {{ t('shared.common.built_with', { year: new Date().getFullYear(), siteName }) }}
+            </span>
         </div>
 
         <div

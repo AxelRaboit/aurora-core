@@ -78,7 +78,7 @@
                     </div>
                     <div class="flex flex-col items-center gap-3">
                         {{ form_card|raw }}
-                        <p class="text-xs text-muted/40"><a href="https://github.com/AxelRaboit" target="_blank" rel="noopener" class="hover:text-muted/60 transition-colors">{{ 'shared.common.built_with'|trans }}</a></p>
+                        <p class="text-xs text-muted/40">{{ 'shared.common.built_with'|trans({'{year}': 'now'|date('Y'), '{siteName}': siteName}) }}</p>
                     </div>
                 </div>
             </div>
@@ -95,7 +95,7 @@
                     appVersion: appVersion ?? null,
                 }) }}
                 {{ form_card|raw }}
-                <p class="mt-3 text-xs text-muted/40"><a href="https://github.com/AxelRaboit" target="_blank" rel="noopener" class="hover:text-muted/60 transition-colors">{{ 'shared.common.built_with'|trans }}</a></p>
+                <p class="mt-3 text-xs text-muted/40">{{ 'shared.common.built_with'|trans({'{year}': 'now'|date('Y'), '{siteName}': siteName}) }}</p>
             </div>
         {% endif %}
 

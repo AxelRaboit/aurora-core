@@ -58,7 +58,7 @@
 }
 .sidemenu-resize-handle:hover,
 .sidemenu-resize-handle.is-dragging {
-    background: var(--color-accent-500, #6366f1);
+    background: var(--color-accent-500, #10b981);
     opacity: 0.5;
 }
 @media (max-width: 1023px) {
