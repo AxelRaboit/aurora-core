@@ -193,193 +193,198 @@ function nameOf(term) {
                 </div>
             </div>
         </section>
-
-        <AppModal
-            :show="showCreate"
-            :title="t('backend.taxonomies.create')"
-            :icon="Tags"
-            :closeable="false"
-            v-on:close="showCreate = false"
-        >
-            <form class="space-y-4" v-on:submit.prevent="submitCreate">
-                <AppInput
-                    v-model="createForm.slug"
-                    :label="t('backend.taxonomies.slug')"
-                    :placeholder="t('shared.placeholders.slug')"
-                    :error="createErrors.slug"
-                    required
-                />
-                <AppCheckbox v-model="createForm.hierarchical" :label="t('backend.taxonomies.hierarchical')" :hint="t('backend.taxonomies.hierarchical_hint')" />
-
-                <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
-                    <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
-                    <AppInput
-                        v-model="createForm.translations[locale].label"
-                        :label="t('backend.taxonomies.label')"
-                        :placeholder="t('backend.taxonomies.label_placeholder')"
-                    />
-                    <AppTextarea
-                        v-model="createForm.translations[locale].description"
-                        :label="t('backend.taxonomies.description')"
-                        :placeholder="t('shared.placeholders.description')"
-                        :rows="2"
-                    />
-                </div>
-
-                <div class="space-y-2 border-t border-line/40 pt-3">
-                    <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("backend.taxonomies.post_types") }}</label>
-                    <AppCheckbox
-                        v-for="postType in postTypes"
-                        :key="postType.id"
-                        :model-value="createForm.postTypeIds.includes(postType.id)"
-                        :label="postType.label"
-                        v-on:update:model-value="togglePostType(createForm, postType.id)"
-                    />
-                </div>
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="showCreate = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="primary" size="md" :loading="createLoading" v-on:click="submitCreate"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="showEdit"
-            :title="t('backend.taxonomies.edit')"
-            :icon="Pencil"
-            :closeable="false"
-            v-on:close="showEdit = false"
-        >
-            <form class="space-y-4" v-on:submit.prevent="submitEdit">
-                <AppInput
-                    v-model="editForm.slug"
-                    :label="t('backend.taxonomies.slug')"
-                    :placeholder="t('shared.placeholders.slug')"
-                    :error="editErrors.slug"
-                    :disabled="editing?.isBuiltIn"
-                    :hint="editing?.isBuiltIn ? t('backend.taxonomies.slug_locked') : null"
-                />
-                <AppCheckbox
-                    v-model="editForm.hierarchical"
-                    :label="t('backend.taxonomies.hierarchical')"
-                    :hint="t('backend.taxonomies.hierarchical_hint')"
-                    :disabled="editing?.isBuiltIn"
-                />
-
-                <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
-                    <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
-                    <AppInput
-                        v-model="editForm.translations[locale].label"
-                        :label="t('backend.taxonomies.label')"
-                        :placeholder="t('backend.taxonomies.label_placeholder')"
-                    />
-                    <AppTextarea
-                        v-model="editForm.translations[locale].description"
-                        :label="t('backend.taxonomies.description')"
-                        :placeholder="t('shared.placeholders.description')"
-                        :rows="2"
-                    />
-                </div>
-
-                <div class="space-y-2 border-t border-line/40 pt-3">
-                    <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("backend.taxonomies.post_types") }}</label>
-                    <AppCheckbox
-                        v-for="postType in postTypes"
-                        :key="postType.id"
-                        :model-value="editForm.postTypeIds.includes(postType.id)"
-                        :label="postType.label"
-                        v-on:update:model-value="togglePostType(editForm, postType.id)"
-                    />
-                </div>
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="showEdit = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="primary" size="md" :loading="editLoading" v-on:click="submitEdit"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="showTerm"
-            :title="editingTerm ? t('backend.taxonomies.terms.edit') : t('backend.taxonomies.terms.create')"
-            :icon="editingTerm ? Pencil : Plus"
-            :closeable="false"
-            v-on:close="showTerm = false"
-        >
-            <form class="space-y-4" v-on:submit.prevent="submitTerm">
-                <AppSelect
-                    v-if="selected?.hierarchical"
-                    v-model="form.parentId"
-                    :label="t('backend.taxonomies.terms.parent')"
-                    :placeholder="t('backend.taxonomies.terms.no_parent')"
-                    :options="parentOptions"
-                    :error="termErrors.parentId"
-                />
-
-                <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
-                    <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
-                    <AppInput
-                        v-model="form.translations[locale].name"
-                        :label="t('backend.taxonomies.terms.name')"
-                        :placeholder="t('shared.placeholders.name')"
-                    />
-                    <AppInput
-                        v-model="form.translations[locale].slug"
-                        :label="t('backend.taxonomies.terms.slug')"
-                        :placeholder="t('shared.placeholders.slug')"
-                        :hint="t('backend.taxonomies.terms.slug_hint')"
-                    />
-                    <AppTextarea
-                        v-model="form.translations[locale].description"
-                        :label="t('backend.taxonomies.terms.description')"
-                        :placeholder="t('shared.placeholders.description')"
-                        :rows="2"
-                    />
-                </div>
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="showTerm = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="primary" size="md" :loading="termLoading" v-on:click="submitTerm"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="!!pendingDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingDelete = null"
-        >
-            <p class="text-sm text-primary">{{ t("backend.taxonomies.delete_confirm", { slug: pendingDelete?.slug ?? "" }) }}</p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="!!pendingTermDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingTermDelete = null"
-        >
-            <p class="text-sm text-primary">{{ t("backend.taxonomies.terms.delete_confirm", { name: pendingTermDelete ? nameOf(pendingTermDelete) : "" }) }}</p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingTermDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="danger" size="md" :loading="termDeleteLoading" v-on:click="deleteTerm"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
     </div>
+
+    <!-- Outside the `v-else` on purpose. These modals used to live inside it,
+         so with nothing created yet the branch was not rendered and neither
+         were they: the empty state's button set the flag and nothing existed
+         to react. The first item could never be created, and only the first -
+         once one existed the branch rendered and the button worked. -->
+    <AppModal
+        :show="showCreate"
+        :title="t('backend.taxonomies.create')"
+        :icon="Tags"
+        :closeable="false"
+        v-on:close="showCreate = false"
+    >
+        <form class="space-y-4" v-on:submit.prevent="submitCreate">
+            <AppInput
+                v-model="createForm.slug"
+                :label="t('backend.taxonomies.slug')"
+                :placeholder="t('shared.placeholders.slug')"
+                :error="createErrors.slug"
+                required
+            />
+            <AppCheckbox v-model="createForm.hierarchical" :label="t('backend.taxonomies.hierarchical')" :hint="t('backend.taxonomies.hierarchical_hint')" />
+
+            <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
+                <AppInput
+                    v-model="createForm.translations[locale].label"
+                    :label="t('backend.taxonomies.label')"
+                    :placeholder="t('backend.taxonomies.label_placeholder')"
+                />
+                <AppTextarea
+                    v-model="createForm.translations[locale].description"
+                    :label="t('backend.taxonomies.description')"
+                    :placeholder="t('shared.placeholders.description')"
+                    :rows="2"
+                />
+            </div>
+
+            <div class="space-y-2 border-t border-line/40 pt-3">
+                <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("backend.taxonomies.post_types") }}</label>
+                <AppCheckbox
+                    v-for="postType in postTypes"
+                    :key="postType.id"
+                    :model-value="createForm.postTypeIds.includes(postType.id)"
+                    :label="postType.label"
+                    v-on:update:model-value="togglePostType(createForm, postType.id)"
+                />
+            </div>
+        </form>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="showCreate = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="primary" size="md" :loading="createLoading" v-on:click="submitCreate"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="showEdit"
+        :title="t('backend.taxonomies.edit')"
+        :icon="Pencil"
+        :closeable="false"
+        v-on:close="showEdit = false"
+    >
+        <form class="space-y-4" v-on:submit.prevent="submitEdit">
+            <AppInput
+                v-model="editForm.slug"
+                :label="t('backend.taxonomies.slug')"
+                :placeholder="t('shared.placeholders.slug')"
+                :error="editErrors.slug"
+                :disabled="editing?.isBuiltIn"
+                :hint="editing?.isBuiltIn ? t('backend.taxonomies.slug_locked') : null"
+            />
+            <AppCheckbox
+                v-model="editForm.hierarchical"
+                :label="t('backend.taxonomies.hierarchical')"
+                :hint="t('backend.taxonomies.hierarchical_hint')"
+                :disabled="editing?.isBuiltIn"
+            />
+
+            <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
+                <AppInput
+                    v-model="editForm.translations[locale].label"
+                    :label="t('backend.taxonomies.label')"
+                    :placeholder="t('backend.taxonomies.label_placeholder')"
+                />
+                <AppTextarea
+                    v-model="editForm.translations[locale].description"
+                    :label="t('backend.taxonomies.description')"
+                    :placeholder="t('shared.placeholders.description')"
+                    :rows="2"
+                />
+            </div>
+
+            <div class="space-y-2 border-t border-line/40 pt-3">
+                <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("backend.taxonomies.post_types") }}</label>
+                <AppCheckbox
+                    v-for="postType in postTypes"
+                    :key="postType.id"
+                    :model-value="editForm.postTypeIds.includes(postType.id)"
+                    :label="postType.label"
+                    v-on:update:model-value="togglePostType(editForm, postType.id)"
+                />
+            </div>
+        </form>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="showEdit = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="primary" size="md" :loading="editLoading" v-on:click="submitEdit"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="showTerm"
+        :title="editingTerm ? t('backend.taxonomies.terms.edit') : t('backend.taxonomies.terms.create')"
+        :icon="editingTerm ? Pencil : Plus"
+        :closeable="false"
+        v-on:close="showTerm = false"
+    >
+        <form class="space-y-4" v-on:submit.prevent="submitTerm">
+            <AppSelect
+                v-if="selected?.hierarchical"
+                v-model="form.parentId"
+                :label="t('backend.taxonomies.terms.parent')"
+                :placeholder="t('backend.taxonomies.terms.no_parent')"
+                :options="parentOptions"
+                :error="termErrors.parentId"
+            />
+
+            <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
+                <AppInput
+                    v-model="form.translations[locale].name"
+                    :label="t('backend.taxonomies.terms.name')"
+                    :placeholder="t('shared.placeholders.name')"
+                />
+                <AppInput
+                    v-model="form.translations[locale].slug"
+                    :label="t('backend.taxonomies.terms.slug')"
+                    :placeholder="t('shared.placeholders.slug')"
+                    :hint="t('backend.taxonomies.terms.slug_hint')"
+                />
+                <AppTextarea
+                    v-model="form.translations[locale].description"
+                    :label="t('backend.taxonomies.terms.description')"
+                    :placeholder="t('shared.placeholders.description')"
+                    :rows="2"
+                />
+            </div>
+        </form>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="showTerm = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="primary" size="md" :loading="termLoading" v-on:click="submitTerm"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="!!pendingDelete"
+        max-width="sm"
+        :closeable="false"
+        :title="t('shared.common.delete')"
+        :icon="Trash2"
+        v-on:close="pendingDelete = null"
+    >
+        <p class="text-sm text-primary">{{ t("backend.taxonomies.delete_confirm", { slug: pendingDelete?.slug ?? "" }) }}</p>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="!!pendingTermDelete"
+        max-width="sm"
+        :closeable="false"
+        :title="t('shared.common.delete')"
+        :icon="Trash2"
+        v-on:close="pendingTermDelete = null"
+    >
+        <p class="text-sm text-primary">{{ t("backend.taxonomies.terms.delete_confirm", { name: pendingTermDelete ? nameOf(pendingTermDelete) : "" }) }}</p>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="pendingTermDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="danger" size="md" :loading="termDeleteLoading" v-on:click="deleteTerm"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
 </template>
