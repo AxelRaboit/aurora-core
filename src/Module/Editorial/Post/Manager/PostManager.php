@@ -308,6 +308,11 @@ class PostManager implements PostManagerInterface
             PostStatusEnum::Scheduled === $status ? $this->hydrateDate($input->getScheduledAt()) : null,
         );
 
+        // Kept whatever the status is. An end date belongs to the post rather than
+        // to a moment in its life, and clearing it on every save would silently
+        // undo the thing somebody set on purpose.
+        $post->setUnpublishAt($this->hydrateDate($input->getUnpublishAt()));
+
         // Stamped once, on the first publish: re-saving a live post must not
         // move it back to the top of a date-ordered listing.
         if (PostStatusEnum::Published === $status && !$post->getPublishedAt() instanceof DateTimeImmutable) {

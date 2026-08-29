@@ -48,6 +48,7 @@ backend:
           gallery_updated: Galerie modifiée
           revision_restored: Révision restaurée
           published_on_schedule: Publication mise en ligne à l'heure prévue
+          unpublished_on_schedule: Publication dépubliée à la date prévue
           purged: Publication purgée automatiquement de la corbeille
           review_requested: Publication envoyée en relecture
           review_approved: Publication approuvée
@@ -502,6 +503,9 @@ backend:
     field_post_type: Type de contenu
     field_status: Statut
     field_scheduled_at: Publier le
+    field_unpublish_at: "Dépublier le"
+    unpublish_at_placeholder: "Jamais"
+    unpublish_at_hint: "La publication passera en archivée à cette date. Vide : elle reste en ligne."
     meta_title: Titre méta
     meta_description: Description méta
     meta_description_hint: "L'extrait affiché par les moteurs, coupé vers 160 caractères."
@@ -541,6 +545,8 @@ backend:
       scheduled_at_required: Une publication programmée a besoin d'une date.
       scheduled_at_invalid: Cette date est illisible.
       scheduled_at_in_past: La date de programmation doit être dans le futur.
+      unpublish_at_invalid: "Cette date est illisible."
+      unpublish_at_in_past: "Cette date est déjà passée."
     focus_keyword_placeholder: "un mot ou une expression"
     meta_title_placeholder: "60 caractères environ"
     meta_description_placeholder: "155 caractères environ"

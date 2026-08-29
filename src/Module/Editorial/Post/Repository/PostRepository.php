@@ -230,6 +230,33 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * Published posts whose end date has passed.
+     *
+     * The mirror of `findDueForPublication`, and it asks for `published`
+     * specifically: a draft carrying an old end date is not something to act on,
+     * and archiving it would move a post the author is still working on.
+     *
+     * Trashed rows are out for the same reason they are out of every other listing.
+     *
+     * @return list<PostInterface>
+     */
+    public function findDueForUnpublishing(DateTimeImmutable $now): array
+    {
+        /** @var list<PostInterface> $result */
+        $result = $this->createQueryBuilder('p')
+            ->where('p.status = :status')
+            ->andWhere('p.unpublishAt IS NOT NULL')
+            ->andWhere('p.unpublishAt <= :now')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('status', PostStatusEnum::Published)
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getResult();
+
+        return $result;
+    }
+
+    /**
      * Every published post with its translations and type, for the sitemap
      * and the feed.
      *

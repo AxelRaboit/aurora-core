@@ -107,6 +107,10 @@ interface PostInterface
     /** Both or neither: half a focal point is not a position. */
     public function setThumbnailFocal(?float $x, ?float $y): static;
 
+    public function getUnpublishAt(): ?DateTimeImmutable;
+
+    public function setUnpublishAt(?DateTimeImmutable $unpublishAt): static;
+
     public function getReviewNote(): ?string;
 
     public function setReviewNote(?string $reviewNote): static;

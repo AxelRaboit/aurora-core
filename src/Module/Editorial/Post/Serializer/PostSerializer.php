@@ -59,6 +59,7 @@ class PostSerializer implements PostSerializerInterface
             'relatedPostIds' => $this->ids($post->getRelatedPosts()),
             'publishedAt' => $post->getPublishedAt()?->format(DateTimeInterface::ATOM),
             'scheduledAt' => $post->getScheduledAt()?->format(DateTimeInterface::ATOM),
+            'unpublishAt' => $post->getUnpublishAt()?->format(DateTimeInterface::ATOM),
             'deletedAt' => $post->getDeletedAt()?->format(DateTimeInterface::ATOM),
             'trashed' => $post->isTrashed(),
             'commentsEnabled' => $post->isCommentsEnabled(),

@@ -45,6 +45,20 @@ abstract class AbstractPost implements PostInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $scheduledAt = null;
 
+    /**
+     * When this stops being public, if it ever should.
+     *
+     * The mirror of `scheduledAt`, and the half that was missing: an offer that
+     * expires, a notice that stops applying, a page that should come down on a date
+     * somebody already knows. Without it the only way off the site was for a person
+     * to remember.
+     *
+     * Cleared once it has fired, like `scheduledAt` is cleared on publication: a
+     * date that has already happened is one that confuses whoever reads it next.
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $unpublishAt = null;
+
     /** Soft delete: a trashed post leaves the listings but is recoverable. */
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $deletedAt = null;
@@ -396,6 +410,18 @@ abstract class AbstractPost implements PostInterface
 
         $this->thumbnailFocalX = $complete ? max(0.0, min(1.0, $x)) : null;
         $this->thumbnailFocalY = $complete ? max(0.0, min(1.0, $y)) : null;
+
+        return $this;
+    }
+
+    public function getUnpublishAt(): ?DateTimeImmutable
+    {
+        return $this->unpublishAt;
+    }
+
+    public function setUnpublishAt(?DateTimeImmutable $unpublishAt): static
+    {
+        $this->unpublishAt = $unpublishAt;
 
         return $this;
     }

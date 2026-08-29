@@ -48,6 +48,7 @@ backend:
           gallery_updated: Gallery updated
           revision_restored: Revision restored
           published_on_schedule: Post published on schedule
+          unpublished_on_schedule: Post taken down on schedule
           purged: Trashed post purged automatically
           review_requested: Post sent for review
           review_approved: Post approved
@@ -502,6 +503,9 @@ backend:
     field_post_type: Content type
     field_status: Status
     field_scheduled_at: Publish at
+    field_unpublish_at: "Take down on"
+    unpublish_at_placeholder: "Never"
+    unpublish_at_hint: "The publication becomes archived on that date. Empty: it stays online."
     meta_title: Meta title
     meta_description: Meta description
     meta_description_hint: 'The search snippet, cut around 160 characters.'
@@ -541,6 +545,8 @@ backend:
       scheduled_at_required: A scheduled post needs a date.
       scheduled_at_invalid: That date cannot be read.
       scheduled_at_in_past: A scheduled date must be in the future.
+      unpublish_at_invalid: "That date cannot be read."
+      unpublish_at_in_past: "That date has already passed."
     focus_keyword_placeholder: "a word or a phrase"
     meta_title_placeholder: "About 60 characters"
     meta_description_placeholder: "About 155 characters"

@@ -508,6 +508,20 @@ function termLabel(term) {
                             :placeholder="t('backend.posts.scheduled_at_placeholder')"
                             :error="errors.scheduledAt"
                         />
+                        <!-- Shown whatever the status, unlike the one above. An end
+                             date belongs to the post rather than to a moment in its
+                             life: "comes down on the 30th" is set on something that
+                             is live now, and hiding the field until some status is
+                             chosen would mean setting it afterwards and hoping to
+                             remember. -->
+                        <AppInput
+                            v-model="form.unpublishAt"
+                            type="datetime-local"
+                            :label="t('backend.posts.field_unpublish_at')"
+                            :placeholder="t('backend.posts.unpublish_at_placeholder')"
+                            :hint="t('backend.posts.unpublish_at_hint')"
+                            :error="errors.unpublishAt"
+                        />
                         <AppCheckbox v-model="form.commentsEnabled" :label="t('backend.posts.comments_enabled')" />
                     </div>
 

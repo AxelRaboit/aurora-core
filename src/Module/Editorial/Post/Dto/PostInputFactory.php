@@ -26,6 +26,7 @@ class PostInputFactory implements PostInputFactoryInterface
             translations: $this->translations($data['translations'] ?? null),
             relatedPostIds: Arr::positiveInts($data['relatedPostIds'] ?? null),
             scheduledAt: Str::trimOrNull((string) ($data['scheduledAt'] ?? '')),
+            unpublishAt: Str::trimOrNull((string) ($data['unpublishAt'] ?? '')),
             version: $version > 0 ? $version : null,
             force: (bool) ($data['force'] ?? false),
             commentsEnabled: (bool) ($data['commentsEnabled'] ?? true),

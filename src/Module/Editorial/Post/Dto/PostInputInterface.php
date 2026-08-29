@@ -32,6 +32,8 @@ interface PostInputInterface
     public function getScheduledAt(): ?string;
 
     /** Version the editor loaded, for optimistic locking. Null skips the check. */
+    public function getUnpublishAt(): ?string;
+
     public function getVersion(): ?int;
 
     /** Save anyway, discarding the other editor's version. */

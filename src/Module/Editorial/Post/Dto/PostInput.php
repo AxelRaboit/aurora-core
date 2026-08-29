@@ -29,6 +29,8 @@ class PostInput implements PostInputInterface
         public readonly array $translations,
         public readonly array $relatedPostIds = [],
         public readonly ?string $scheduledAt = null,
+        /** When it should come down. Free of the status, unlike `scheduledAt`. */
+        public readonly ?string $unpublishAt = null,
         public readonly ?int $version = null,
         public readonly bool $force = false,
         public readonly bool $commentsEnabled = true,
@@ -51,6 +53,7 @@ class PostInput implements PostInputInterface
             translations: $this->translations,
             relatedPostIds: $this->relatedPostIds,
             scheduledAt: $this->scheduledAt,
+            unpublishAt: $this->unpublishAt,
             version: $this->version,
             force: $this->force,
             commentsEnabled: $this->commentsEnabled,
@@ -112,6 +115,11 @@ class PostInput implements PostInputInterface
     public function getScheduledAt(): ?string
     {
         return $this->scheduledAt;
+    }
+
+    public function getUnpublishAt(): ?string
+    {
+        return $this->unpublishAt;
     }
 
     public function getVersion(): ?int
@@ -183,6 +191,38 @@ class PostInput implements PostInputInterface
         if ($date <= new DateTimeImmutable()) {
             $context->buildViolation('backend.posts.errors.scheduled_at_in_past')
                 ->atPath('scheduledAt')
+                ->addViolation();
+        }
+    }
+
+    /**
+     * An end date has to be a date, and has to be in the future.
+     *
+     * Not tied to a status, unlike `scheduledAt`: setting "comes down on the 30th"
+     * on a post that is live today is the ordinary way to use it, and requiring a
+     * particular status first would mean setting the date after publishing and
+     * hoping to remember.
+     */
+    #[Assert\Callback]
+    public function validateUnpublishAt(ExecutionContextInterface $context): void
+    {
+        if (null === $this->unpublishAt) {
+            return;
+        }
+
+        try {
+            $date = new DateTimeImmutable($this->unpublishAt);
+        } catch (Exception) {
+            $context->buildViolation('backend.posts.errors.unpublish_at_invalid')
+                ->atPath('unpublishAt')
+                ->addViolation();
+
+            return;
+        }
+
+        if ($date <= new DateTimeImmutable()) {
+            $context->buildViolation('backend.posts.errors.unpublish_at_in_past')
+                ->atPath('unpublishAt')
                 ->addViolation();
         }
     }

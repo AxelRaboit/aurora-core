@@ -130,6 +130,7 @@ export function usePostEditor(props) {
         postTypeId: props.post?.postType?.id ?? props.postTypes[0]?.id ?? null,
         status: props.post?.status ?? "draft",
         scheduledAt: props.post?.scheduledAt ?? "",
+        unpublishAt: props.post?.unpublishAt ?? "",
         // The picker works in {id, url}; the wire format is just the id.
         thumbnail: {
             id: props.post?.thumbnailId ?? null,
@@ -230,6 +231,7 @@ export function usePostEditor(props) {
             ...rest,
             thumbnailId: thumbnail?.id ?? null,
             scheduledAt: form.value.scheduledAt || null,
+            unpublishAt: form.value.unpublishAt || null,
             version: version.value,
             force,
         };
