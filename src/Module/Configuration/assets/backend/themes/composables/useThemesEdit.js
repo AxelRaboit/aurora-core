@@ -5,8 +5,8 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
 const DEFAULTS = {
-    "--th-accent": "#6366f1",
-    "--th-accent-hover": "#4f46e5",
+    "--th-accent": "#10b981",
+    "--th-accent-hover": "#059669",
     "--th-bg": "#f9fafb",
     "--th-surface": "#ffffff",
     "--th-surface-2": "#f3f4f6",
@@ -21,7 +21,11 @@ const DEFAULTS = {
     "--th-footer-text": "#9ca3af",
 };
 
-const DEFAULT_PRIMARY_COLOR = "#6366f1";
+// Mirrors ThemeContext::DEFAULT_PRIMARY_COLOR. Held by
+// ThemeDefaultColourMirrorTest: the form showed the old indigo for a while
+// after the PHP moved to green, because a second copy of a default drifts the
+// moment nothing compares them.
+const DEFAULT_PRIMARY_COLOR = "#10b981";
 
 /**
  * @typedef {Object} ExtraField
