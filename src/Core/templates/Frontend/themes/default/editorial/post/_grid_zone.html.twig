@@ -60,14 +60,18 @@
     {% elseif zone.type == 'post' and zone.post %}
         {# The card links with the same route the archive listing uses,
            built from the linked post's own type and slug. #}
-        <a
-            href="{{ path('editorial_post', {locale: locale, postTypeSlug: zone.post.postTypeSlug, slug: zone.post.slug}) }}"
-            {# Same treatment as the listing cards on the archive and home pages
-               (`_posts.html.twig`): a surface, a border that deepens on hover,
-               and a title that goes to the accent. Two card shapes that behave
-               differently for no reason read as two different things. #}
-            class="group not-prose flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface no-underline transition-colors hover:border-line-strong"
-        >
+        {# Built like the listing cards in `_posts.html.twig`, down to the
+           markup: same surface, same border deepening on hover, same title
+           going to the accent, and the same reason for the shape.
+
+           This used to be one `<a>` wrapped around the whole card, which is
+           shorter and reads worse: a link is announced by its content, so its
+           name was the thumbnail, the title and the summary run together in one
+           breath. The link now wraps nothing but the title and stretches an
+           `::after` over the card, so the click target is still the whole card
+           while the name is just "Composer avec les blocs". `relative` on the
+           article is what that overlay is measured against. #}
+        <article class="group not-prose relative flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface transition-colors hover:border-line-strong">
             {% if zone.post.thumbnailUrl %}
                 <img
                     src="{{ zone.post.thumbnailUrl }}"
@@ -81,12 +85,17 @@
                 {# h2: the page's h1 is its own title or its banner's,
                    and a linked publication is a section of this page,
                    not a competing document. #}
-                <h2 class="m-0 text-lg font-semibold text-primary transition-colors group-hover:text-accent">{{ zone.post.title }}</h2>
+                <h2 class="m-0 text-lg font-semibold text-primary">
+                    <a
+                        href="{{ path('editorial_post', {locale: locale, postTypeSlug: zone.post.postTypeSlug, slug: zone.post.slug}) }}"
+                        class="no-underline transition-colors group-hover:text-accent after:absolute after:inset-0"
+                    >{{ zone.post.title }}</a>
+                </h2>
                 {% if zone.post.description %}
                     <p class="m-0 text-sm text-secondary">{{ zone.post.description }}</p>
                 {% endif %}
             </div>
-        </a>
+        </article>
 
     {% elseif zone.type == 'video' %}
         {% if zone.video %}
