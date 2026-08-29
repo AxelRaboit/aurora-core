@@ -49,7 +49,7 @@ shared:
     pagination: 'Page {page} sur {totalPages}'
     'yes': Oui
     'no': Non
-    built_with: Propulsé par Aurora · © axelraboit
+    built_with: '© {year} {siteName}'
     save: Enregistrer
     cancel: Annuler
     delete: Supprimer

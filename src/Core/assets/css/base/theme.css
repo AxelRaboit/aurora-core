@@ -156,16 +156,16 @@
    (non-layered :root) always takes precedence in cascade. */
 @layer theme {
     :root {
-        --th-accent-50:  oklch(0.962 0.018 272.314);
-        --th-accent-100: oklch(0.930 0.034 272.788);
-        --th-accent-200: oklch(0.870 0.065 274.039);
-        --th-accent-300: oklch(0.785 0.115 274.713);
-        --th-accent-400: oklch(0.673 0.182 276.935);
-        --th-accent-500: oklch(0.585 0.233 277.117);
-        --th-accent-600: oklch(0.511 0.262 276.966);
-        --th-accent-700: oklch(0.457 0.240 277.023);
-        --th-accent-800: oklch(0.398 0.195 277.366);
-        --th-accent-900: oklch(0.359 0.144 278.697);
-        --th-accent-950: oklch(0.257 0.090 281.288);
+        --th-accent-50: oklch(0.970 0.149 162.480);
+        --th-accent-100: oklch(0.930 0.149 162.480);
+        --th-accent-200: oklch(0.870 0.149 162.480);
+        --th-accent-300: oklch(0.780 0.149 162.480);
+        --th-accent-400: oklch(0.680 0.149 162.480);
+        --th-accent-500: oklch(0.585 0.149 162.480);
+        --th-accent-600: oklch(0.490 0.149 162.480);
+        --th-accent-700: oklch(0.400 0.149 162.480);
+        --th-accent-800: oklch(0.320 0.149 162.480);
+        --th-accent-900: oklch(0.250 0.149 162.480);
+        --th-accent-950: oklch(0.160 0.149 162.480);
     }
 }

@@ -125,7 +125,7 @@ const shareModalOpen = ref(false);
              editor behind it; desktop falls back to the tinted
              `bg-surface-2/30` that pairs with the static column. -->
         <aside
-            class="w-72 shrink-0 border-r border-line flex flex-col bg-surface md:bg-surface-2/30 z-40 transition-transform duration-200 md:relative md:translate-x-0 md:shadow-none absolute inset-y-0 left-0 shadow-xl"
+            class="w-72 shrink-0 border-r border-line flex flex-col bg-surface md:bg-surface-2/30 z-40 md:z-auto transition-transform duration-200 md:relative md:translate-x-0 md:shadow-none absolute inset-y-0 left-0 shadow-xl"
             :class="!isMobile || sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
         >
             <div class="p-3 border-b border-line flex items-center justify-between gap-2">
@@ -360,13 +360,29 @@ const shareModalOpen = ref(false);
                     <slot name="extra-form-fields" :form="form" />
                 </header>
 
-                <div class="flex-1 flex overflow-hidden">
+                <!-- Two separate fixes, because the first one alone was aimed
+                     at the wrong measurement.
+                     
+                     `max-w-[70%]` is the one that matters: the editor pane takes
+                     a remembered pixel width with `shrink-0`, and 540px does not
+                     fit next to a preview once the side menu and the note tree
+                     have taken ~520px of a 1000px window. The preview was pushed
+                     off-screen while the viewport was still far from any "mobile"
+                     breakpoint - the constraint is how much room this pane has,
+                     not how wide the window is. The cap is a share of the
+                     available space, so it holds at every size.
+                     
+                     Stacking below `md` stays for phones, where two ~180px
+                     columns would be unusable even when they fit. `min-w-0` on
+                     both panes lets them actually shrink: a flex item defaults
+                     to `min-width: auto` and refuses to go below its content. -->
+                <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
                     <div
                         v-if="viewMode !== 'preview'"
                         ref="editorPaneRef"
-                        class="p-4 overflow-auto"
-                        :class="viewMode === 'split' ? 'shrink-0' : 'flex-1'"
-                        :style="viewMode === 'split' ? { width: `${editorWidth}px` } : {}"
+                        class="p-4 overflow-auto min-w-0"
+                        :class="viewMode === 'split' && !isMobile ? 'shrink-0 max-w-[70%]' : 'flex-1'"
+                        :style="viewMode === 'split' && !isMobile ? { width: `${editorWidth}px` } : {}"
                     >
                         <NoteEditor
                             v-model="form.content"
@@ -378,9 +394,10 @@ const shareModalOpen = ref(false);
                         />
                     </div>
 
-                    <!-- Resize handle (split mode only). Drag to redistribute width. -->
+                    <!-- Resize handle: split mode on a wide screen only. Stacked
+                         panes have nothing to redistribute horizontally. -->
                     <div
-                        v-if="viewMode === 'split'"
+                        v-if="viewMode === 'split' && !isMobile"
                         class="w-1 shrink-0 cursor-col-resize bg-line hover:bg-accent-500/40 transition-colors"
                         :class="splitDragging ? 'bg-accent-500/60' : ''"
                         :title="t('notes.markdown.resize_handle')"
@@ -389,7 +406,7 @@ const shareModalOpen = ref(false);
 
                     <div
                         v-if="viewMode !== 'edit'"
-                        class="flex-1 p-4 overflow-auto"
+                        class="flex-1 min-w-0 p-4 overflow-auto"
                     >
                         <NotePreview
                             :content="form.content"
