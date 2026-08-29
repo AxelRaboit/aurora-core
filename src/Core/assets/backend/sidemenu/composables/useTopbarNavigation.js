@@ -76,6 +76,11 @@ export function useTopbarNavigation() {
                 await Promise.all(keys.map((key) => caches.delete(key)));
             }
 
+            // The one `fetch` in the codebase that is deliberately raw, and it
+            // is not an API call: it re-fetches the current *page* to push a
+            // fresh copy into the HTTP cache. `convention_no_raw_fetch` is
+            // about JSON endpoints - sending `X-Requested-With` here would ask
+            // Symfony for JSON in place of the very HTML being refreshed.
             await fetch(window.location.href, {
                 cache: "reload",
                 credentials: "include",

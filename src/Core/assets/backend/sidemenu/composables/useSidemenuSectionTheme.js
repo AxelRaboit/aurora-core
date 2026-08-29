@@ -19,12 +19,28 @@ import { isRef } from "vue";
  * Section IDs are the same `NavSection` ids the PHP modules emit. Any
  * id not in the map falls back to the accent palette (Aurora default).
  */
+/**
+ * Hues are picked against the neighbours a section actually has in the menu,
+ * not against the whole palette: sections are ordered by priority, so what
+ * matters is the band above and below.
+ *
+ * `planning` (25) sits between configuration (fuchsia) and editorial (rose),
+ * so it takes a blue-green rather than a third pink. `notes` (40) sits right
+ * under ged (lime), so it takes violet - the furthest thing from a yellow-green
+ * - and its only cousin, platform's indigo, is at the other end of the list.
+ *
+ * Both were missing and fell through to `accent`, which is why those two
+ * sections looked like they had no colour while every other one did.
+ * `SidemenuSectionThemeTest` now fails when a section ships without an entry.
+ */
 const SECTION_THEMES = {
     general: makeTheme("sky"),
     platform: makeTheme("indigo"),
     configuration: makeTheme("fuchsia"),
+    planning: makeTheme("teal"),
     editorial: makeTheme("rose"),
     ged: makeTheme("lime"),
+    notes: makeTheme("violet"),
     dev: makeTheme("orange"),
 };
 

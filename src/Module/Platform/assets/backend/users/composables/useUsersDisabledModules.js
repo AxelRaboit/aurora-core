@@ -1,11 +1,12 @@
 import { ref, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 
 export function useUsersDisabledModules(props, fetchUsers) {
     const { t } = useI18n();
+    const { request } = useRequest();
 
     const modulesModal = reactive({
         open: false,
@@ -38,14 +39,14 @@ export function useUsersDisabledModules(props, fetchUsers) {
             const url = buildPath(props.disabledModulesPath, {
                 id: modulesModal.user.id,
             });
-            const response = await fetch(url, {
-                method: HttpMethod.Post,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    disabledModules: pendingDisabledModules.value,
-                }),
-            });
-            const data = await response.json();
+            const data = await request(
+                url,
+                { disabledModules: pendingDisabledModules.value },
+                { noGuard: true },
+            );
+            // Null is transport or 5xx, and `request` has already toasted it.
+            if (data === null) return;
+
             if (data?.success) {
                 toast.success(t("backend.users.modules.saved"));
                 modulesModal.open = false;

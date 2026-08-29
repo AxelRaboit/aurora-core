@@ -3,6 +3,7 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
 /**
  * Generic delete composable with confirmation flow.
@@ -19,6 +20,7 @@ export function useDelete(deletePath, onSuccess, successMessageKey) {
     const { t } = useI18n();
     const pendingDelete = ref(null);
     const loading = ref(false);
+    const { request } = useRequest();
 
     const resolve = (value) => (typeof value === "function" ? value() : value);
 
@@ -33,17 +35,20 @@ export function useDelete(deletePath, onSuccess, successMessageKey) {
             const url = buildPath(resolve(deletePath), {
                 id: pendingDelete.value.id,
             });
-            const response = await fetch(url, { method: HttpMethod.Post });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const data = await response.json();
+            // `noGuard` because this composable keeps its own `loading` and has
+            // already returned above when one delete is in flight; the shared
+            // guard would be a second one over the same state.
+            const data = await request(url, null, { noGuard: true });
+
+            // Null is transport or 5xx, and `request` has already toasted it.
+            if (data === null) return;
+
             if (data.success) {
                 const id = pendingDelete.value.id;
                 pendingDelete.value = null;
                 toast.success(t(resolve(successMessageKey)));
                 onSuccess(id);
             }
-        } catch {
-            toast.error(t("shared.common.error"));
         } finally {
             loading.value = false;
         }

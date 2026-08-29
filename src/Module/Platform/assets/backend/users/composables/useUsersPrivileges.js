@@ -1,11 +1,12 @@
 import { ref, reactive } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 
 export function useUsersPrivileges(props, fetchUsers) {
     const { t } = useI18n();
+    const { request } = useRequest();
 
     const privilegesModal = reactive({
         open: false,
@@ -33,12 +34,16 @@ export function useUsersPrivileges(props, fetchUsers) {
             const url = buildPath(props.privilegesPath, {
                 id: privilegesModal.user.id,
             });
-            const response = await fetch(url, {
-                method: HttpMethod.Post,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ privileges: pendingPrivileges.value }),
-            });
-            const data = await response.json();
+            // `noGuard`: the modal keeps its own `saving` flag and returns
+            // above while one save is in flight.
+            const data = await request(
+                url,
+                { privileges: pendingPrivileges.value },
+                { noGuard: true },
+            );
+            // Null is transport or 5xx, and `request` has already toasted it.
+            if (data === null) return;
+
             if (data?.success) {
                 toast.success(t("backend.users.privileges.saved"));
                 privilegesModal.open = false;

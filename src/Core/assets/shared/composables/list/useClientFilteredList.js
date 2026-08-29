@@ -34,8 +34,16 @@ export function useClientFilteredList(initialItems, listPath, matcher) {
 
     async function reload() {
         if (!listPath) return;
+        // Raw `fetch` on purpose, with the header written out. `useRequest`
+        // would be the rule, but it calls `useI18n()` and so may only run
+        // inside a component's setup; this is a plain list helper with no other
+        // reason to be bound to one. `convention_no_raw_fetch` exists for the
+        // header, and the header is here.
         const response = await fetch(listPath, {
-            headers: { Accept: "application/json" },
+            headers: {
+                Accept: "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            },
         });
         const json = await response.json();
         items.value = json.items ?? [];

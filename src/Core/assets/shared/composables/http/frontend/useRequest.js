@@ -30,7 +30,15 @@ export function useRequest() {
         try {
             const options = {
                 method,
-                headers: { Accept: "application/json" },
+                headers: {
+                    Accept: "application/json",
+                    // Symfony reads this through `isXmlHttpRequest()` to answer
+                    // JSON rather than an HTML page. The admin wrapper has always
+                    // sent it and `convention_no_raw_fetch` says this one does
+                    // too; it did not, so every public-page call - comments,
+                    // forms, the front login - was going out without it.
+                    "X-Requested-With": "XMLHttpRequest",
+                },
             };
             if (body !== null) {
                 options.headers["Content-Type"] = "application/json";

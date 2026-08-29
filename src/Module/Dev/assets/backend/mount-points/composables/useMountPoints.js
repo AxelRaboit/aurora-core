@@ -15,6 +15,7 @@ export function useMountPoints(
     initialData,
 ) {
     const { t } = useI18n();
+    const { request } = useRequest();
 
     const mountPoints = ref(initialData?.mountPoints ?? []);
     const types = ref(initialData?.types ?? []);
@@ -279,11 +280,26 @@ export function useMountPoints(
         testAbortController = new AbortController();
         const url = mountPointTestPath.replace("__id__", mountPoint.id);
         try {
-            const response = await fetch(url, {
-                method: HttpMethod.Post,
+            // `signal` so cancelling still aborts; `noGuard` because the modal
+            // tracks its own `testing` state. An aborted request comes back as
+            // null and is indistinguishable here from a failure, which is why
+            // the abort is checked before the result is written.
+            const data = await request(url, null, {
                 signal: testAbortController.signal,
+                noGuard: true,
             });
-            const data = await response.json();
+
+            if (testAbortController === null) return;
+
+            if (data === null) {
+                // Transport or 5xx: `request` has toasted, and the panel still
+                // needs to say the test did not run.
+                testModal.value.result = {
+                    success: false,
+                    message: t("shared.common.error"),
+                };
+                return;
+            }
 
             if (data.success && data.mountPoint) {
                 const index = mountPoints.value.findIndex(
@@ -296,13 +312,6 @@ export function useMountPoints(
                 success: data.testSuccess ?? false,
                 message: data.testMessage ?? null,
             };
-        } catch (error) {
-            if (error?.name !== "AbortError") {
-                testModal.value.result = {
-                    success: false,
-                    message: t("shared.common.error"),
-                };
-            }
         } finally {
             testAbortController = null;
             testModal.value.testing = false;
