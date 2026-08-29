@@ -11,6 +11,39 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.7.3] - 2026-08-29
+
+### Corrigé
+
+#### Notes
+- **Le partage d'une note échouait.** Les quatre chemins étaient produits par
+  le générateur de vue, jamais passés par le gabarit, jamais déclarés par le
+  composant : le front appelait une URL indéfinie. L'aperçu des notes liées
+  restait vide pour la même raison.
+
+#### GED
+- **Créer, renommer, supprimer et déplacer un dossier depuis la barre latérale
+  des documents ne faisait rien**, ainsi que le déplacement groupé. Même cause,
+  trouvée par le garde-fou ajouté pour la précédente. Les props ont un défaut
+  vide, donc Vue n'avertissait de rien.
+
+#### Thèmes
+- L'éditeur de thème proposait encore l'ancienne couleur indigo alors que
+  l'application est verte : deux copies JS du défaut, dont une seule avait
+  bougé.
+
+### Ajouté
+
+#### Garde-fous
+- `ViewBuilderPropsReachTheTemplateTest` : une clé produite par un générateur
+  de vue et jamais transmise fait échouer la CI.
+- `ThemeDefaultColourMirrorTest` : la couleur par défaut doit être identique
+  en PHP et dans les deux écrans de thème.
+
+### Dans aurora-client
+
+Rien à faire.
+
 ## [0.7.2] - 2026-08-29
 
 ### Changé

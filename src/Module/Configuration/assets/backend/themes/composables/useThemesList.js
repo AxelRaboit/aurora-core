@@ -7,7 +7,8 @@ export function useThemesList(initialThemes) {
         return (
             theme.config?.["primary_color"] ??
             theme.config?.["--th-accent"] ??
-            "#6366f1"
+            // Mirrors ThemeContext::DEFAULT_PRIMARY_COLOR.
+            "#10b981"
         );
     }
 

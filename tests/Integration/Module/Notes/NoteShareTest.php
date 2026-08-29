@@ -332,6 +332,54 @@ final class NoteShareTest extends IntegrationTestCase
         self::assertSame(['Cible'], array_column($preview, 'title'));
     }
 
+    /**
+     * The happy path through the route, which nothing covered.
+     *
+     * Every other test here proves a refusal. The one thing the screen actually
+     * does - fill the form and press the button - was only ever exercised by
+     * building the entity directly, which skips the controller, the DTO, the
+     * manager and the serializer.
+     */
+    public function testTheRouteCreatesALinkFromWhatTheFormSends(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+
+        // One request before persisting anything encrypted. `EncryptedTextType`
+        // gets its service from a `kernel.request` subscriber, and Doctrine
+        // types are static for the whole process - so a test that writes an
+        // encrypted column before any request has been made throws, and only
+        // the first such test in a run does. Ordering luck is not a thing to
+        // rely on.
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown'));
+
+        $note = $this->note('À partager', 'Voir [[Autre]].');
+
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('backend_notes_markdown_shares_create'),
+            server: ['CONTENT_TYPE' => 'application/json'],
+            // Exactly what the modal posts, empty strings included.
+            content: json_encode([
+                'noteId' => $note->getId(),
+                'includeDescendants' => false,
+                'includeLinked' => true,
+                'recipientEmail' => '',
+                'label' => 'test',
+                'expiresAt' => '',
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertArrayHasKey('link', $body);
+        self::assertStringContainsString('/notes/share/', (string) $body['link']['url']);
+        self::assertTrue($body['link']['includeLinked']);
+        self::assertNull($body['link']['recipientEmail']);
+
+        $this->created[] = [MarkdownNoteShareLink::class, (int) $body['link']['id']];
+    }
+
     private function note(string $title, string $content = '', ?MarkdownNote $parent = null): MarkdownNote
     {
         $note = new MarkdownNote();
