@@ -360,18 +360,28 @@ const shareModalOpen = ref(false);
                     <slot name="extra-form-fields" :form="form" />
                 </header>
 
-                <!-- Split stacks on a narrow screen instead of sitting side by
-                     side. The editor pane used to take a remembered pixel width
-                     with `shrink-0`, which on a phone is wider than the window:
-                     the preview was pushed off-screen entirely and the mode
-                     looked broken. Two 180px columns would not have been usable
-                     anyway - typing above and reading the render below is. -->
+                <!-- Two separate fixes, because the first one alone was aimed
+                     at the wrong measurement.
+                     
+                     `max-w-[70%]` is the one that matters: the editor pane takes
+                     a remembered pixel width with `shrink-0`, and 540px does not
+                     fit next to a preview once the side menu and the note tree
+                     have taken ~520px of a 1000px window. The preview was pushed
+                     off-screen while the viewport was still far from any "mobile"
+                     breakpoint - the constraint is how much room this pane has,
+                     not how wide the window is. The cap is a share of the
+                     available space, so it holds at every size.
+                     
+                     Stacking below `md` stays for phones, where two ~180px
+                     columns would be unusable even when they fit. `min-w-0` on
+                     both panes lets them actually shrink: a flex item defaults
+                     to `min-width: auto` and refuses to go below its content. -->
                 <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
                     <div
                         v-if="viewMode !== 'preview'"
                         ref="editorPaneRef"
-                        class="p-4 overflow-auto"
-                        :class="viewMode === 'split' && !isMobile ? 'shrink-0' : 'flex-1'"
+                        class="p-4 overflow-auto min-w-0"
+                        :class="viewMode === 'split' && !isMobile ? 'shrink-0 max-w-[70%]' : 'flex-1'"
                         :style="viewMode === 'split' && !isMobile ? { width: `${editorWidth}px` } : {}"
                     >
                         <NoteEditor
@@ -396,7 +406,7 @@ const shareModalOpen = ref(false);
 
                     <div
                         v-if="viewMode !== 'edit'"
-                        class="flex-1 p-4 overflow-auto"
+                        class="flex-1 min-w-0 p-4 overflow-auto"
                     >
                         <NotePreview
                             :content="form.content"
