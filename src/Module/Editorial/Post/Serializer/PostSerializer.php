@@ -106,6 +106,11 @@ class PostSerializer implements PostSerializerInterface
             // the picker previews the pictures it already holds, and its words
             // left out because they belong to whichever locale is open.
             'galleryLayout' => $this->galleryViewBuilder->buildForEditor($post->getGalleryLayout(), []),
+            // What the last review decided, so the editor can show the author what
+            // to change rather than leaving them to guess why it came back.
+            'reviewNote' => $post->getReviewNote(),
+            'reviewedAt' => $post->getReviewedAt()?->format(DateTimeInterface::ATOM),
+            'reviewedByName' => $post->getReviewedBy()?->getName(),
             'translations' => $translations,
             'relatedPosts' => array_map(
                 $this->serializeReference(...),

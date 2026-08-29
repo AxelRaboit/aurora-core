@@ -18,6 +18,7 @@ use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Manager\PostManagerInterface;
 use Aurora\Module\Editorial\Post\Preview\Manager\PostPreviewTokenManagerInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
+use Aurora\Module\Editorial\Post\Review\PostReviewManagerInterface;
 use Aurora\Module\Editorial\Post\Security\PostVoter;
 use Aurora\Module\Editorial\Post\Serializer\PostSerializerInterface;
 use Aurora\Module\Editorial\Post\Service\PostAccessService;
@@ -54,6 +55,7 @@ class PostsController extends AbstractController
         private readonly LocaleContextInterface $localeContext,
         private readonly PostAccessService $postAccessService,
         private readonly PostPreviewTokenManagerInterface $previewTokens,
+        private readonly PostReviewManagerInterface $reviewManager,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -188,6 +190,62 @@ class PostsController extends AbstractController
         } catch (InvalidArgumentException $invalidArgumentException) {
             return $this->jsonInvalidInput(['postTypeId' => $invalidArgumentException->getMessage()]);
         }
+
+        // Somebody tried to publish and may not, so the post is now waiting. Told
+        // here rather than inside the manager: the notification is about the
+        // *request*, and a save that happened to demote is a different event from a
+        // save that was already a draft.
+        if ($this->postManager->wasDemotedToReview()) {
+            /** @var CoreUserInterface $author */
+            $author = $this->getUser();
+            $this->reviewManager->submit($post, $author);
+        }
+
+        return $this->jsonSuccess(['post' => $this->postSerializer->serializeFull($post)]);
+    }
+
+    /**
+     * Approves a publication waiting for review, and publishes it.
+     *
+     * `PostVoter::PUBLISH` rather than a status check: the voter is what decides who
+     * may publish anything, and a second rule here would be a second answer to the
+     * same question.
+     */
+    #[Route('/{id}/review/approve', name: '_review_approve', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
+    public function approveReview(Post $post): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(PostVoter::PUBLISH, $post);
+
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $this->reviewManager->approve($post, $user);
+
+        return $this->jsonSuccess(['post' => $this->postSerializer->serializeFull($post)]);
+    }
+
+    /**
+     * Sends it back with the reason.
+     *
+     * The reason is required. A rejection with no note leaves the author guessing at
+     * what to change, which is the whole thing a review is supposed to save them.
+     */
+    #[Route('/{id}/review/reject', name: '_review_reject', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
+    public function rejectReview(Post $post, Request $request): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(PostVoter::PUBLISH, $post);
+
+        $note = $this->decodeJson($request)['note'] ?? '';
+        $note = is_string($note) ? mb_trim($note) : '';
+
+        if ('' === $note) {
+            return $this->jsonInvalidInput(['note' => 'backend.posts.review.errors.note_required']);
+        }
+
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $this->reviewManager->reject($post, $user, $note);
 
         return $this->jsonSuccess(['post' => $this->postSerializer->serializeFull($post)]);
     }

@@ -34,6 +34,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleTogglePro
             new NavPermission('editorial.posts.create'),
             new NavPermission('editorial.posts.edit'),
             new NavPermission('editorial.posts.delete'),
+            new NavPermission('editorial.posts.publish'),
             new NavPermission('editorial.posts.manage'),
             new NavPermission('editorial.posts.gallery'),
             new NavPermission('editorial.post_types.view'),

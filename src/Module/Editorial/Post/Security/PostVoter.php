@@ -70,6 +70,14 @@ final class PostVoter extends Voter
             return $user->hasPrivilege('editorial.posts.gallery');
         }
 
+        // Publishing is its own grant, so "reviewer" is a job somebody can be given
+        // rather than a side effect of being an administrator. Before this, the
+        // only people who could approve anything were Dev and Admin - which made
+        // `pending_review` a status nobody was appointed to clear.
+        if (self::PUBLISH === $attribute) {
+            return $user->hasPrivilege('editorial.posts.publish');
+        }
+
         // An author manages their own posts, but publishing stays a decision
         // someone else makes.
         if ($user->hasPrivilege('editorial.posts.manage')) {

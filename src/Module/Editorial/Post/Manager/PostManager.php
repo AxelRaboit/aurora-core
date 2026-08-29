@@ -237,6 +237,20 @@ class PostManager implements PostManagerInterface
         ));
     }
 
+    /**
+     * Whether the last `demoteIfNotPublishable` actually demoted something.
+     *
+     * A flag rather than a return value because the method's job is to answer with
+     * an input, and every caller already uses it that way. The controller reads
+     * this straight after, which is the only moment it means anything.
+     */
+    protected bool $pendingReview = false;
+
+    public function wasDemotedToReview(): bool
+    {
+        return $this->pendingReview;
+    }
+
     public function demoteIfNotPublishable(PostInputInterface $input, ?PostInterface $post = null): PostInputInterface
     {
         if (PostStatusEnum::Published->value !== $input->getStatus()) {
@@ -247,7 +261,16 @@ class PostManager implements PostManagerInterface
             ? $this->security->isGranted(PostVoter::PUBLISH, $post)
             : ($this->security->isGranted(UserRoleEnum::Admin->value) || $this->security->isGranted(UserRoleEnum::Dev->value));
 
-        return $allowed ? $input : $input->withStatus(PostStatusEnum::PendingReview->value);
+        if ($allowed) {
+            return $input;
+        }
+
+        // Demoted, and from here the caller has to say so. Until this existed the
+        // post simply became `pending_review` with nobody told - which is why the
+        // status looked like a feature that did not work.
+        $this->pendingReview = true;
+
+        return $input->withStatus(PostStatusEnum::PendingReview->value);
     }
 
     // ── Hooks: instanciation ──────────────────────────────────────────────────

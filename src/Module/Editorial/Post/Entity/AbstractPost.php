@@ -112,6 +112,25 @@ abstract class AbstractPost implements PostInterface
     #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
     protected array $galleryLayout = [];
 
+    /**
+     * Why the last review decision went the way it did.
+     *
+     * Kept on the post rather than in a revision: it is about the *current* state
+     * of the draft, and an author reopening it needs to see what to change before
+     * anything else. Cleared when the post is submitted again, because a note about
+     * a version that no longer exists is worse than none.
+     */
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    protected ?string $reviewNote = null;
+
+    #[ORM\Column(nullable: true)]
+    protected ?DateTimeImmutable $reviewedAt = null;
+
+    /** Who decided. Null after the account is deleted; the note stays. */
+    #[ORM\ManyToOne(targetEntity: CoreUserInterface::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?CoreUserInterface $reviewedBy = null;
+
     #[ORM\ManyToOne(targetEntity: PostTypeInterface::class, inversedBy: 'posts')]
     #[ORM\JoinColumn(nullable: false)]
     protected PostTypeInterface $postType;
@@ -377,6 +396,42 @@ abstract class AbstractPost implements PostInterface
 
         $this->thumbnailFocalX = $complete ? max(0.0, min(1.0, $x)) : null;
         $this->thumbnailFocalY = $complete ? max(0.0, min(1.0, $y)) : null;
+
+        return $this;
+    }
+
+    public function getReviewNote(): ?string
+    {
+        return $this->reviewNote;
+    }
+
+    public function setReviewNote(?string $reviewNote): static
+    {
+        $this->reviewNote = $reviewNote;
+
+        return $this;
+    }
+
+    public function getReviewedAt(): ?DateTimeImmutable
+    {
+        return $this->reviewedAt;
+    }
+
+    public function setReviewedAt(?DateTimeImmutable $reviewedAt): static
+    {
+        $this->reviewedAt = $reviewedAt;
+
+        return $this;
+    }
+
+    public function getReviewedBy(): ?CoreUserInterface
+    {
+        return $this->reviewedBy;
+    }
+
+    public function setReviewedBy(?CoreUserInterface $reviewedBy): static
+    {
+        $this->reviewedBy = $reviewedBy;
 
         return $this;
     }

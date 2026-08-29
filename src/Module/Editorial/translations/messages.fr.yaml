@@ -14,6 +14,7 @@ backend:
           delete: Supprimer les publications
           manage: Gérer ses propres publications
           gallery: Gérer uniquement les galeries des publications
+          publish: Publier et relire les publications
         taxonomies:
           view: Voir les taxonomies
           create: Créer des taxonomies
@@ -48,6 +49,9 @@ backend:
           revision_restored: Révision restaurée
           published_on_schedule: Publication mise en ligne à l'heure prévue
           purged: Publication purgée automatiquement de la corbeille
+          review_requested: Publication envoyée en relecture
+          review_approved: Publication approuvée
+          review_rejected: Publication renvoyée à l'auteur
         taxonomy:
           created: Taxonomie créée
           updated: Taxonomie modifiée
@@ -324,6 +328,18 @@ backend:
     trash_emptied: '{count} publications supprimées définitivement.'
     irreversible: Cette action est irréversible.
     back_to_list: Retour à la liste
+    review:
+      waiting: "En attente de relecture"
+      note_label: "Retour de relecture"
+      approve: "Approuver et publier"
+      reject: "Renvoyer à l'auteur"
+      reject_title: "Renvoyer à l'auteur"
+      reject_hint: "Dites ce qu'il faut changer. L'auteur ne verra que ça."
+      notification_submitted: "Envoyé en relecture par %author%."
+      notification_approved: "Approuvé et publié par %reviewer%."
+      notification_rejected: "Renvoyé par %reviewer%."
+      errors:
+        note_required: "Indiquez ce qu'il faut changer."
     preview:
       open: "Prévisualiser"
     content: Contenu

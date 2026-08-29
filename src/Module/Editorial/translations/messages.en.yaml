@@ -14,6 +14,7 @@ backend:
           delete: Delete posts
           manage: Manage own posts
           gallery: Manage post galleries only
+          publish: Publish and review posts
         taxonomies:
           view: View taxonomies
           create: Create taxonomies
@@ -48,6 +49,9 @@ backend:
           revision_restored: Revision restored
           published_on_schedule: Post published on schedule
           purged: Trashed post purged automatically
+          review_requested: Post sent for review
+          review_approved: Post approved
+          review_rejected: Post sent back to the author
         taxonomy:
           created: Taxonomy created
           updated: Taxonomy updated
@@ -324,6 +328,18 @@ backend:
     trash_emptied: '{count} posts deleted for good.'
     irreversible: This cannot be undone.
     back_to_list: Back to the list
+    review:
+      waiting: "Waiting for review"
+      note_label: "Review feedback"
+      approve: "Approve and publish"
+      reject: "Send back to the author"
+      reject_title: "Send back to the author"
+      reject_hint: "Say what to change. It is all the author will see."
+      notification_submitted: "Sent for review by %author%."
+      notification_approved: "Approved and published by %reviewer%."
+      notification_rejected: "Sent back by %reviewer%."
+      errors:
+        note_required: "Say what needs changing."
     preview:
       open: "Preview"
     content: Content

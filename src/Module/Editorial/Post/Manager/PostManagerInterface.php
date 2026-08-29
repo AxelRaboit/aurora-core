@@ -31,5 +31,8 @@ interface PostManagerInterface
      * so a save never fails outright on permissions alone. Pass the post when
      * editing: the publish decision depends on who owns it.
      */
+    /** Whether the last `demoteIfNotPublishable` call actually demoted. */
+    public function wasDemotedToReview(): bool;
+
     public function demoteIfNotPublishable(PostInputInterface $input, ?PostInterface $post = null): PostInputInterface;
 }
