@@ -67,11 +67,18 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
      */
     public function reorder(array $orderedIds): void
     {
+        // One query for the whole list rather than one per row: reordering by
+        // drag-and-drop sends every sibling each time, so the loop cost grew with
+        // the folder count on a screen people use by dragging repeatedly.
+        $folders = [];
+        foreach ($this->folderRepository->findBy(['id' => $orderedIds]) as $folder) {
+            $folders[(int) $folder->getId()] = $folder;
+        }
+
         foreach ($orderedIds as $position => $folderId) {
-            $folder = $this->folderRepository->find($folderId);
-            if ($folder instanceof DocumentFolderInterface) {
-                $folder->setPosition($position);
-            }
+            // An id that matched nothing is skipped, as before: a stale list from a
+            // client that reordered against deleted rows should not fail the rest.
+            ($folders[(int) $folderId] ?? null)?->setPosition($position);
         }
 
         $this->entityManager->flush();

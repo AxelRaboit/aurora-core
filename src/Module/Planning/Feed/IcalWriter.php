@@ -36,11 +36,6 @@ final readonly class IcalWriter
     /** RFC 5545 folds at 75 octets, and counts the CRLF outside that. */
     private const int FOLD_AT = 75;
 
-    public function write(PlanningInterface $planning): string
-    {
-        return $this->writeMany([$planning], $planning->getName(), $planning->getTimezone());
-    }
-
     /**
      * Several calendars in one feed.
      *

@@ -9,6 +9,7 @@ use Aurora\Module\Dev\MountPoint\Dto\MountPointInputInterface;
 use Aurora\Module\Dev\MountPoint\Entity\MountPoint;
 use Aurora\Module\Dev\MountPoint\Entity\MountPointInterface;
 use Aurora\Module\Dev\MountPoint\Service\MountPointEncryptionService;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
@@ -40,6 +41,21 @@ class MountPointManager implements MountPointManagerInterface
         $this->entityManager->flush();
 
         $this->auditUpdated($mountPoint);
+    }
+
+    /**
+     * Records what a connection test found.
+     *
+     * Here rather than in the controller, per `convention_thin_controller`: two
+     * setters and a flush is a mutation, whoever wrote it. It was the last place in
+     * the application still doing that from a route.
+     */
+    public function recordTestResult(MountPointInterface $mountPoint, bool $successful, ?DateTimeImmutable $at = null): void
+    {
+        $mountPoint->setLastTestedAt($at ?? new DateTimeImmutable());
+        $mountPoint->setLastTestSuccessful($successful);
+
+        $this->entityManager->flush();
     }
 
     public function delete(MountPointInterface $mountPoint): void

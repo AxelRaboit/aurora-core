@@ -7,7 +7,6 @@ namespace Aurora\Tests\Unit\Module\Ged\DocumentFolder\Manager;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Ged\DocumentFolder\Dto\DocumentFolderInputInterface;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolder;
-use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use Aurora\Module\Ged\DocumentFolder\Manager\DocumentFolderManager;
 use Aurora\Module\Ged\DocumentFolder\Repository\DocumentFolderRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -152,20 +151,31 @@ final class DocumentFolderManagerTest extends TestCase
         $this->manager->move(new DocumentFolder(), null);
     }
 
-    public function testReorderAssignsPositionsInOrder(): void
+    /**
+     * A folder with a known identifier, since reordering now looks folders up by id.
+     */
+    private function folderWithId(int $id): DocumentFolder
     {
-        $folder1 = new DocumentFolder();
-        $folder2 = new DocumentFolder();
-        $folder3 = new DocumentFolder();
+        return new class($id) extends DocumentFolder {
+            public function __construct(private readonly int $identifier) {}
 
-        $this->folderRepository->method('find')->willReturnCallback(
-            static fn (int $id): ?DocumentFolderInterface => match ($id) {
-                10 => $folder1,
-                20 => $folder2,
-                30 => $folder3,
-                default => null,
+            public function getId(): ?int
+            {
+                return $this->identifier;
             }
-        );
+        };
+    }
+
+    public function testReorderAssignsPositionsInTheOrderGiven(): void
+    {
+        $folder1 = $this->folderWithId(10);
+        $folder2 = $this->folderWithId(20);
+        $folder3 = $this->folderWithId(30);
+
+        // Returned out of order on purpose: the database has no reason to hand rows
+        // back in the order the ids were listed, and the position must follow the
+        // list the client sent, not the row order.
+        $this->folderRepository->method('findBy')->willReturn([$folder3, $folder1, $folder2]);
 
         $this->manager->reorder([10, 20, 30]);
 
@@ -174,16 +184,27 @@ final class DocumentFolderManagerTest extends TestCase
         self::assertSame(2, $folder3->getPosition());
     }
 
+    /**
+     * The whole list is fetched in a single query.
+     *
+     * Dragging a folder sends every sibling, so a per-id lookup meant one query per
+     * row on each drop, on a screen people use by dragging repeatedly.
+     */
+    public function testReorderFetchesEveryFolderInOneQuery(): void
+    {
+        $this->folderRepository->expects(self::once())
+            ->method('findBy')
+            ->with(['id' => [10, 20, 30]])
+            ->willReturn([]);
+
+        $this->manager->reorder([10, 20, 30]);
+    }
+
     public function testReorderSkipsUnresolvableIds(): void
     {
-        $folder = new DocumentFolder();
+        $folder = $this->folderWithId(1);
 
-        $this->folderRepository->method('find')->willReturnCallback(
-            static fn (int $id): ?DocumentFolderInterface => match ($id) {
-                1 => $folder,
-                default => null,
-            }
-        );
+        $this->folderRepository->method('findBy')->willReturn([$folder]);
 
         $this->manager->reorder([1, 99]);
 
@@ -192,7 +213,7 @@ final class DocumentFolderManagerTest extends TestCase
 
     public function testReorderCallsFlush(): void
     {
-        $this->folderRepository->method('find')->willReturn(null);
+        $this->folderRepository->method('findBy')->willReturn([]);
         $this->entityManager->expects(self::once())->method('flush');
 
         $this->manager->reorder([]);

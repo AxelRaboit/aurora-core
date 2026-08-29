@@ -15,8 +15,6 @@ use Aurora\Module\Dev\MountPoint\Serializer\MountPointSerializerInterface;
 use Aurora\Module\Dev\MountPoint\Service\MountPointTesterService;
 use Aurora\Module\Dev\MountPoint\View\MountPointsViewBuilder;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
-use DateTimeImmutable;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,7 +36,6 @@ class MountPointsController extends AbstractController
         private readonly MountPointInputFactoryInterface $mountPointInputFactory,
         private readonly MountPointTesterService $testerService,
         private readonly PayloadValidator $payloadValidator,
-        private readonly EntityManagerInterface $entityManager,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -86,10 +83,7 @@ class MountPointsController extends AbstractController
     {
         $result = $this->testerService->test($mountPoint);
 
-        $mountPoint->setLastTestedAt(new DateTimeImmutable());
-        $mountPoint->setLastTestSuccessful($result->success);
-
-        $this->entityManager->flush();
+        $this->mountPointManager->recordTestResult($mountPoint, $result->success);
 
         return $this->jsonSuccess([
             'testSuccess' => $result->success,
