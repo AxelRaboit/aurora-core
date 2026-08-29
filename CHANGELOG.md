@@ -11,6 +11,21 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.7.2] - 2026-08-29
+
+### Changé
+
+#### Accessibilité du frontend
+- Une carte de publication placée dans la grille d'une page était un `<a>`
+  enveloppant tout son contenu : un lecteur d'écran annonçait la vignette, le
+  titre et le résumé comme un seul nom de lien. Le lien n'entoure plus que le
+  titre et étire une surcouche sur la carte - toute la surface reste cliquable,
+  le nom se limite au titre. Même montage que les cartes de liste.
+
+### Dans aurora-client
+
+Rien à faire.
+
 ## [0.7.1] - 2026-08-29
 
 ### Changé
