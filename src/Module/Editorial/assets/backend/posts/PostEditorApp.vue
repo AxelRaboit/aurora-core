@@ -191,6 +191,18 @@ async function rejectReview() {
     }
 }
 
+/**
+ * Whether a language has anything in it yet.
+ *
+ * The title is the test: without one the page has no name and no slug derived from
+ * it, so a translation with an empty title is not a page a reader could reach.
+ */
+function hasTitleIn(code) {
+    const title = form.value.translations?.[code]?.title;
+
+    return "string" === typeof title && "" !== title.trim();
+}
+
 const previewing = ref(false);
 
 /**
@@ -356,6 +368,15 @@ function termLabel(term) {
                 v-on:click="switchLocale(code)"
             >
                 {{ code }}
+                <!-- A dot on a language with nothing written in it. Read live from
+                     the form rather than from what the server last sent, so it
+                     clears as soon as a title is typed instead of at the next save.
+                     Never on the tab you are looking at: you can see it is empty. -->
+                <span
+                    v-if="locale !== code && !hasTitleIn(code)"
+                    class="ms-1 inline-block h-1.5 w-1.5 rounded-full bg-current opacity-50"
+                    :title="t('backend.posts.translations.untranslated')"
+                />
             </AppTab>
         </div>
 

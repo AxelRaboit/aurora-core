@@ -66,7 +66,40 @@ class PostSerializer implements PostSerializerInterface
             'titleVisible' => $post->isTitleVisible(),
             'createdAt' => $post->getCreatedAt()->format(DateTimeInterface::ATOM),
             'updatedAt' => $post->getUpdatedAt()->format(DateTimeInterface::ATOM),
+            // Which languages this actually exists in. A post published with one of
+            // three translations written looks finished in every listing, and the
+            // only way to notice was to open it and click through the locale tabs.
+            'translatedLocales' => $this->translatedLocales($post),
         ];
+    }
+
+    /**
+     * The locales the post can actually be read in.
+     *
+     * A title is the test, and it is not arbitrary: without one the page has no
+     * name, no slug derived from it, and nothing for a listing to show - so a
+     * translation row with an empty title is a translation that does not exist as
+     * far as a reader is concerned.
+     *
+     * Deliberately binary. "How complete is the SEO" is a different question from
+     * "is there a page here at all", and answering both with one badge would make
+     * the useful half unreadable.
+     *
+     * @return list<string>
+     */
+    private function translatedLocales(PostInterface $post): array
+    {
+        $locales = [];
+
+        foreach ($post->getTranslations() as $locale => $translation) {
+            $title = $translation->getTitle();
+
+            if (null !== $title && '' !== $title) {
+                $locales[] = (string) $locale;
+            }
+        }
+
+        return $locales;
     }
 
     public function serializeFull(PostInterface $post): array

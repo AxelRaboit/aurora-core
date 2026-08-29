@@ -339,6 +339,12 @@ const allTerms = computed(() =>
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.posts.title_column") }}</th>
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("backend.posts.type_column") }}</th>
+                        <th
+                            v-if="locales.length > 1"
+                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell"
+                        >
+                            {{ t("backend.posts.translations.column") }}
+                        </th>
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.posts.status_column") }}</th>
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.posts.updated_column") }}</th>
                         <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t("shared.common.actions") }}</th>
@@ -365,6 +371,25 @@ const allTerms = computed(() =>
                             <p class="text-xs text-muted font-mono mt-0.5 truncate">{{ post.reference }}</p>
                         </td>
                         <td class="px-6 py-3 text-secondary hidden md:table-cell">{{ post.postType.label }}</td>
+                        <!-- Every language, with the missing ones dimmed rather than
+                             absent. A row listing only what exists cannot be scanned
+                             down a column for holes, which is the one thing this is
+                             for. -->
+                        <td v-if="locales.length > 1" class="px-6 py-3 hidden lg:table-cell">
+                            <span class="flex items-center gap-1">
+                                <span
+                                    v-for="code in locales"
+                                    :key="code"
+                                    class="rounded px-1.5 py-0.5 text-2xs font-medium uppercase"
+                                    :class="(post.translatedLocales ?? []).includes(code)
+                                        ? 'bg-emerald-500/15 text-emerald-500'
+                                        : 'bg-surface-2 text-muted/60'"
+                                    :title="(post.translatedLocales ?? []).includes(code)
+                                        ? t('backend.posts.translations.translated', { locale: code })
+                                        : t('backend.posts.translations.missing', { locale: code })"
+                                >{{ code }}</span>
+                            </span>
+                        </td>
                         <td class="px-6 py-3">
                             <AppBadge :color="statusColors[post.status] ?? 'gray'">
                                 {{ t(`backend.posts.status.${post.status}`) }}
@@ -378,7 +403,7 @@ const allTerms = computed(() =>
                     <tr v-if="!items.length && !loading">
                         <!-- "No post" and "the trash is empty" are different
                              facts, and the second is the reassuring one. -->
-                        <td :colspan="6">
+                        <td :colspan="locales.length > 1 ? 7 : 6">
                             <AppNoData :message="t(showingTrash ? 'backend.posts.trash_empty' : 'backend.posts.empty')" />
                         </td>
                     </tr>

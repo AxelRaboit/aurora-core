@@ -6,6 +6,7 @@ namespace Aurora\Module\Editorial\Post\Scheduler;
 
 use Aurora\Core\Scheduler\RecurringMessageProviderInterface;
 use Aurora\Module\Editorial\Post\Message\PublishScheduledPostsMessage;
+use Aurora\Module\Editorial\Post\Message\PurgeExpiredPreviewTokensMessage;
 use Aurora\Module\Editorial\Post\Message\PurgeTrashedPostsMessage;
 use Aurora\Module\Editorial\Post\Message\UnpublishScheduledPostsMessage;
 use Symfony\Component\Scheduler\RecurringMessage;
@@ -25,5 +26,6 @@ final class EditorialRecurringMessageProvider implements RecurringMessageProvide
         // should mean 09:00.
         yield RecurringMessage::cron('* * * * *', new UnpublishScheduledPostsMessage());
         yield RecurringMessage::cron('0 3 * * *', new PurgeTrashedPostsMessage());
+        yield RecurringMessage::cron('0 3 * * *', new PurgeExpiredPreviewTokensMessage());
     }
 }

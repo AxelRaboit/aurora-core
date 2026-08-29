@@ -359,6 +359,11 @@ backend:
     duplicate:
       action: "Duplicate"
       suffix: "(copy)"
+    translations:
+      column: "Languages"
+      translated: "Translated into {locale}"
+      missing: "Not translated into {locale} yet"
+      untranslated: "Nothing written in this language"
     preview:
       open: "Preview"
     content: Content
