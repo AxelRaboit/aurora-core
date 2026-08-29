@@ -411,6 +411,95 @@ final class PlanningShareTest extends IntegrationTestCase
         return [];
     }
 
+    /**
+     * Opening a share link needs to own the calendar, not merely to write to it.
+     *
+     * Every other write on that screen asks whether you may edit; this one asks
+     * whose calendar it is. Somebody a calendar was shared with, **even for
+     * writing**, has no business publishing it to the internet - and that
+     * distinction only exists in the route, so it is only provable here.
+     */
+    public function testAGuestWithWriteAccessCannotOpenAShareLink(): void
+    {
+        $planning = $this->calendar();
+        $this->share($planning, canWrite: true);
+
+        $this->client->loginUser($this->guest, 'admin');
+
+        $body = $this->post('backend_planning_links_create', [
+            'calendarIds' => [$planning->getId()],
+            'label' => 'Tentative',
+            'mode' => 'web',
+        ]);
+
+        // Refused as "not yours" rather than as a bad request: the ownership check
+        // turns an id you do not own into an invalid selection.
+        self::assertResponseStatusCodeSame(422);
+        self::assertArrayHasKey('calendarIds', $body['errors'] ?? []);
+    }
+
+    /** The owner can, and gets an address back. */
+    public function testTheOwnerOpensALinkAndGetsItsAddress(): void
+    {
+        $planning = $this->calendar();
+
+        $this->client->loginUser($this->owner, 'admin');
+
+        $body = $this->post('backend_planning_links_create', [
+            'calendarIds' => [$planning->getId()],
+            'label' => 'Marie, studio',
+            'mode' => 'web',
+        ]);
+
+        self::assertResponseIsSuccessful();
+        self::assertSame('Marie, studio', $body['link']['label']);
+        self::assertStringContainsString('/planning/share/', (string) $body['link']['url']);
+    }
+
+    /**
+     * A selection containing one calendar you do not own fails whole.
+     *
+     * A partial link would quietly share less than was asked for, and the person
+     * who made it would find out from their guest.
+     */
+    public function testASelectionWithSomebodyElsesCalendarIsRefusedWhole(): void
+    {
+        $mine = $this->calendar();
+
+        $theirs = new Planning();
+        $theirs->setName('Pas à moi');
+        $theirs->setOwner($this->guest);
+        $this->entityManager->persist($theirs);
+        $this->entityManager->flush();
+        $this->created[] = [Planning::class, (int) $theirs->getId()];
+
+        $this->client->loginUser($this->owner, 'admin');
+
+        $this->post('backend_planning_links_create', [
+            'calendarIds' => [$mine->getId(), $theirs->getId()],
+            'label' => 'Les deux',
+            'mode' => 'web',
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+    }
+
+    /** A link with no name is refused: an unnamed token cannot be revoked with confidence. */
+    public function testALinkNeedsAName(): void
+    {
+        $planning = $this->calendar();
+
+        $this->client->loginUser($this->owner, 'admin');
+
+        $this->post('backend_planning_links_create', [
+            'calendarIds' => [$planning->getId()],
+            'label' => '   ',
+            'mode' => 'web',
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+    }
+
     /** @return list<int> */
     private function visibleIds(): array
     {

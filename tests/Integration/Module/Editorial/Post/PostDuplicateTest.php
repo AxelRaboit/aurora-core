@@ -11,9 +11,14 @@ use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Manager\PostManagerInterface;
 use Aurora\Module\Editorial\PostType\Entity\PostType;
+use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
+use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use function bin2hex;
 use function random_bytes;
@@ -32,16 +37,28 @@ final class PostDuplicateTest extends IntegrationTestCase
 
     private PostDuplicator $duplicator;
 
+    private KernelBrowser $client;
+
+    private UrlGeneratorInterface $urlGenerator;
+
+    private User $admin;
+
     /** @var list<array{class-string, int}> */
     private array $created = [];
 
     protected function setUp(): void
     {
         parent::setUp();
-        static::createClient();
+        $this->client = static::createClient();
 
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
         $this->duplicator = static::getContainer()->get(PostDuplicator::class);
+        $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
+
+        $admin = static::getContainer()->get(UserRepository::class)
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        self::assertInstanceOf(User::class, $admin);
+        $this->admin = $admin;
     }
 
     protected function tearDown(): void
@@ -155,6 +172,65 @@ final class PostDuplicateTest extends IntegrationTestCase
         self::assertTrue($copy->getGalleryLayout()['enabled']);
         self::assertSame('masonry', $copy->getGalleryLayout()['layout']);
         self::assertSame(4, $copy->getGalleryLayout()['columns']);
+    }
+
+    /**
+     * The route copies and hands back where the copy went.
+     *
+     * The tests above cover the duplicator; this covers the door. `editorial.posts
+     * .create` guards it rather than the right to edit the original - duplicating
+     * makes a new post, and starting from one you may only read is reasonable.
+     */
+    public function testTheRouteDuplicatesAndPointsAtTheCopy(): void
+    {
+        $source = $this->published();
+
+        $this->client->loginUser($this->admin, 'admin');
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('backend_editorial_posts_duplicate', ['id' => $source->getId()]),
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true);
+
+        self::assertNotSame($source->getId(), $body['post']['id']);
+        self::assertStringContainsString((string) $body['post']['id'], $body['editPath']);
+        $this->created[] = [Post::class, (int) $body['post']['id']];
+    }
+
+    /** Somebody who may not create anything cannot create one this way either. */
+    public function testTheRouteRefusesSomebodyWhoMayNotCreate(): void
+    {
+        $source = $this->published();
+        $reader = $this->account(['editorial.posts.view']);
+
+        $this->client->loginUser($reader, 'admin');
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('backend_editorial_posts_duplicate', ['id' => $source->getId()]),
+        );
+
+        self::assertResponseStatusCodeSame(403);
+    }
+
+    /** @param list<string> $privileges */
+    private function account(array $privileges): User
+    {
+        $user = new User();
+        $user->setEmail('dup-'.bin2hex(random_bytes(4)).'@aurora.test');
+        $user->setName('Lecteur');
+        $user->setType(UserTypeEnum::Backend);
+        $user->setPassword('x');
+        $user->setRoles(['ROLE_USER']);
+        $user->setPrivileges($privileges);
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        $this->created[] = [User::class, (int) $user->getId()];
+
+        return $user;
     }
 
     private function published(): PostInterface
