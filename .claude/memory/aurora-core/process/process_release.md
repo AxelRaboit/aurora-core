@@ -44,6 +44,22 @@ les logs du workflow, plutôt que de publier une version au hasard.
 
 **`master` est protégée** : pas de push direct, la PR est le seul chemin.
 
+### Règle : jamais de tag seul
+
+**Un tag va toujours avec une release.** Pas de `git tag && git push` à la
+main, pas de tag posé « pour marquer un état ».
+
+**Why:** Composer propose au client *tous* les tags qu'il voit. Un tag seul
+devient donc une version installable, sans notes, sans entrée au changelog, et
+sans la moindre garantie qu'elle soit passée par la CI. Le client qui la prend
+n'a rien à lire pour savoir ce qu'il vient d'installer.
+
+**How to apply:** `make tag` refuse déjà et affiche le flux, ce qui couvre le
+réflexe. Pour le geste délibéré, `.github/workflows/tag-guard.yml` se déclenche
+sur tout tag `v*` poussé, attend une minute et échoue si aucune release ne
+l'accompagne, en donnant les deux issues : publier la release, ou supprimer le
+tag. Le même garde-fou existe sur aurora-client.
+
 ### 3. Côté projets clients (après déploiement du tag)
 
 Le client ouvre `CHANGELOG.md` dans sa version actuelle d'aurora-core (vendor) :

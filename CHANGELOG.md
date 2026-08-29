@@ -11,6 +11,31 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.6.1] - 2026-08-29
+
+### Changé
+
+#### Releases
+- `make tag` refuse désormais et affiche le flux. Il créait un tag sans
+  release et sans préfixe `v` : Composer l'aurait proposé aux clients comme
+  une version publiée, jamais passée par `master` ni par la CI.
+- Nouveau garde-fou `.github/workflows/tag-guard.yml` : tout tag `v*` poussé
+  sans release accompagnante fait échouer la CI, avec les deux issues
+  (publier la release, ou supprimer le tag).
+
+#### Documentation
+- La doc de propagation, le skill `ship` et deux docs client décrivaient
+  encore les releases taguées comme « plus tard, pas maintenant ». Elles
+  décrivent le flux courant.
+- La mémoire `project_notes_share_link_read_only`, citée par trois
+  commentaires du code de partage, n'existait pas. Elle existe.
+
+### Dans aurora-client
+
+Rien à faire. `make tag` disparaît du Makefile client au prochain
+`make aurora-update` ; s'il figurait dans un script de déploiement, le
+remplacer par un merge `develop` -> `master`.
+
 ## [0.6.0] - 2026-08-29
 
 > Première version publiée par le workflow `master`. Le changelog s'arrêtait
