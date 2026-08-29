@@ -342,6 +342,19 @@ backend:
       notification_rejected: "Sent back by %reviewer%."
       errors:
         note_required: "Say what needs changing."
+    bulk:
+      selected: "1 selected | {count} selected"
+      select_all: "Select everything on this page"
+      clear: "Clear selection"
+      result: "{done} changed, {skipped} skipped."
+      action_publish: "Publish"
+      action_draft: "Back to draft"
+      action_trash: "Move to trash"
+      action_restore: "Restore"
+      action_force_delete: "Delete for good"
+      errors:
+        unknown_action: "Unknown action."
+        nothing_selected: "No publication selected."
     duplicate:
       action: "Duplicate"
       suffix: "(copy)"

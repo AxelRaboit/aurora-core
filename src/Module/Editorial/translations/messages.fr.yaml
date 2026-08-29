@@ -342,6 +342,19 @@ backend:
       notification_rejected: "Renvoyé par %reviewer%."
       errors:
         note_required: "Indiquez ce qu'il faut changer."
+    bulk:
+      selected: "1 sélectionnée | {count} sélectionnées"
+      select_all: "Tout sélectionner sur cette page"
+      clear: "Désélectionner"
+      result: "{done} modifiée(s), {skipped} ignorée(s)."
+      action_publish: "Publier"
+      action_draft: "Repasser en brouillon"
+      action_trash: "Mettre à la corbeille"
+      action_restore: "Restaurer"
+      action_force_delete: "Supprimer définitivement"
+      errors:
+        unknown_action: "Action inconnue."
+        nothing_selected: "Aucune publication sélectionnée."
     duplicate:
       action: "Dupliquer"
       suffix: "(copie)"

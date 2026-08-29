@@ -12,6 +12,8 @@ use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Core\Support\Arr;
 use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Core\Validation\Service\PayloadValidator;
+use Aurora\Module\Editorial\Post\Bulk\PostBulkActionEnum;
+use Aurora\Module\Editorial\Post\Bulk\PostBulkActioner;
 use Aurora\Module\Editorial\Post\Dto\PostInputFactoryInterface;
 use Aurora\Module\Editorial\Post\Duplicate\PostDuplicator;
 use Aurora\Module\Editorial\Post\Entity\Post;
@@ -58,6 +60,7 @@ class PostsController extends AbstractController
         private readonly PostPreviewTokenManagerInterface $previewTokens,
         private readonly PostReviewManagerInterface $reviewManager,
         private readonly PostDuplicator $duplicator,
+        private readonly PostBulkActioner $bulkActioner,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -204,6 +207,45 @@ class PostsController extends AbstractController
         }
 
         return $this->jsonSuccess(['post' => $this->postSerializer->serializeFull($post)]);
+    }
+
+    /**
+     * One action, applied to a selection.
+     *
+     * No `IsGranted` at the route: what a bulk action needs depends on which action
+     * it is, and the enum carries that. Checking one privilege here would either
+     * refuse somebody who may trash but not publish, or let them through to a
+     * per-post check that says no five times.
+     *
+     * Answers with both counts. A selection spans posts with different authors, so
+     * "8 done, 2 skipped" is the only honest reply to a mixed list - and saying just
+     * "done" would have the reader believe all ten changed.
+     */
+    #[Route('/bulk', name: '_bulk', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('editorial.posts.view')]
+    public function bulk(Request $request): JsonResponse
+    {
+        $data = $this->decodeJson($request);
+
+        $action = PostBulkActionEnum::tryFrom(is_string($data['action'] ?? null) ? $data['action'] : '');
+
+        if (!$action instanceof PostBulkActionEnum) {
+            return $this->jsonInvalidInput(['action' => 'backend.posts.bulk.errors.unknown_action']);
+        }
+
+        $ids = [];
+
+        foreach (is_array($data['ids'] ?? null) ? $data['ids'] : [] as $id) {
+            if (is_numeric($id)) {
+                $ids[] = (int) $id;
+            }
+        }
+
+        if ([] === $ids) {
+            return $this->jsonInvalidInput(['ids' => 'backend.posts.bulk.errors.nothing_selected']);
+        }
+
+        return $this->jsonSuccess($this->bulkActioner->apply($action, $ids)->toArray());
     }
 
     /**
