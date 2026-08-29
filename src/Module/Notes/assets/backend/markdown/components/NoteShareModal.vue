@@ -8,8 +8,8 @@ import AppModalFooter from "@shared/components/overlay/AppModalFooter.vue";
 import AppButton from "@shared/components/action/AppButton.vue";
 import AppIconButton from "@shared/components/action/AppIconButton.vue";
 import AppInput from "@shared/components/form/input/AppInput.vue";
+import AppDatePicker from "@shared/components/form/picker/AppDatePicker.vue";
 import AppCheckbox from "@shared/components/form/toggle/AppCheckbox.vue";
-import AppFieldLabel from "@shared/components/form/AppFieldLabel.vue";
 import { toast } from "vue-sonner";
 import { useClipboard } from "@shared/composables/useClipboard.js";
 import { useNoteShareApi } from "@notes/backend/markdown/composables/useNoteShareApi.js";
@@ -29,6 +29,10 @@ const api = useNoteShareApi(props.paths);
 const links = ref([]);
 const descendantCount = ref(0);
 const submitting = ref(false);
+// Field errors from a 422. `useRequest` returns the body for those rather than
+// null, so they have to be read - treating a 422 as success was silently
+// dropping "this address is not an address" on the floor.
+const errors = ref({});
 
 const recipientEmail = ref("");
 const label = ref("");
@@ -46,17 +50,17 @@ watch(
     async (open) => {
         if (!open || !props.noteId) return;
         resetForm();
+        // `useRequest` has already toasted on transport failure; a second one
+        // here stacked two messages over each other.
         const payload = await api.list(props.noteId);
-        if (!payload) {
-            toast.error(t("notes.markdown.share.errors.list_failed"));
-            return;
-        }
+        if (!payload) return;
         links.value = payload.links ?? [];
         descendantCount.value = payload.descendantCount ?? 0;
     },
 );
 
 function resetForm() {
+    errors.value = {};
     recipientEmail.value = "";
     label.value = "";
     includeDescendants.value = false;
@@ -73,10 +77,17 @@ async function create() {
             label: label.value.trim(),
             expiresAt: expiresAt.value,
         });
-        if (!payload) {
-            toast.error(t("notes.markdown.share.errors.create_failed"));
+        if (!payload) return;
+
+        // A 422 comes back as a body, not as null: the fields say what is wrong,
+        // and reading them is the difference between "the address is malformed"
+        // and a link that silently never appears.
+        if (payload.errors) {
+            errors.value = payload.errors;
             return;
         }
+
+        errors.value = {};
         links.value = [payload.link, ...links.value];
         const email = payload.link.recipientEmail;
         toast.success(
@@ -92,10 +103,7 @@ async function create() {
 
 async function revoke(id) {
     const payload = await api.revoke(id);
-    if (!payload) {
-        toast.error(t("notes.markdown.share.errors.revoke_failed"));
-        return;
-    }
+    if (!payload) return;
     const index = links.value.findIndex((l) => l.id === id);
     if (index !== -1) links.value[index] = payload.link;
     toast.success(t("notes.markdown.share.revoked"));
@@ -125,57 +133,48 @@ function openedLabel(link) {
     >
         <div class="space-y-4">
             <div class="space-y-3">
-                <div>
-                    <AppFieldLabel :label="t('notes.markdown.share.recipient_label')" />
-                    <AppInput
-                        v-model="recipientEmail"
-                        type="email"
-                        :placeholder="t('notes.markdown.share.recipient_placeholder')"
-                        :disabled="submitting"
-                    />
-                    <p class="mt-1 text-xs text-muted">
-                        {{ t("notes.markdown.share.recipient_help") }}
-                    </p>
-                </div>
+                <AppInput
+                    v-model="recipientEmail"
+                    type="email"
+                    :label="t('notes.markdown.share.recipient_label')"
+                    :placeholder="t('notes.markdown.share.recipient_placeholder')"
+                    :hint="t('notes.markdown.share.recipient_help')"
+                    :error="errors.recipientEmail"
+                    :disabled="submitting"
+                />
 
-                <div>
-                    <AppFieldLabel :label="t('notes.markdown.share.label_field')" />
-                    <AppInput
-                        v-model="label"
-                        :placeholder="t('notes.markdown.share.label_placeholder')"
-                        :disabled="submitting"
-                    />
-                </div>
+                <AppInput
+                    v-model="label"
+                    :label="t('notes.markdown.share.label_field')"
+                    :placeholder="t('notes.markdown.share.label_placeholder')"
+                    :error="errors.label"
+                    :disabled="submitting"
+                />
 
-                <div>
-                    <AppFieldLabel :label="t('notes.markdown.share.expires_label')" />
-                    <AppInput
-                        v-model="expiresAt"
-                        type="date"
-                        :placeholder="t('notes.markdown.share.expires_placeholder')"
-                        :disabled="submitting"
-                    />
-                </div>
+                <AppDatePicker
+                    v-model="expiresAt"
+                    :label="t('notes.markdown.share.expires_label')"
+                    :placeholder="t('notes.markdown.share.expires_placeholder')"
+                    :hint="t('notes.markdown.share.expires_hint')"
+                    :error="errors.expiresAt"
+                />
 
-                <!-- The count is the point of this line: publishing one note and
-                     publishing a branch of thirty are different acts, and the
-                     number says which one this click is. -->
-                <label class="flex items-start gap-2">
-                    <AppCheckbox
-                        v-model="includeDescendants"
-                        :disabled="submitting || descendantCount === 0"
-                    />
-                    <span class="text-sm">
-                        <span class="text-primary">{{ t("notes.markdown.share.include_descendants") }}</span>
-                        <span class="block text-xs text-muted">
-                            {{
-                                descendantCount === 0
-                                    ? t("notes.markdown.share.include_descendants_none")
-                                    : t("notes.markdown.share.include_descendants_count", descendantCount)
-                            }}
-                        </span>
-                    </span>
-                </label>
+                <!-- `AppCheckbox` brings its own <label>; wrapping it in another
+                     one nested two labels over the same input, so every click
+                     toggled it twice and the box could not be unticked. The
+                     count is the point of the hint: publishing one note and
+                     publishing a branch are different acts, and the number says
+                     which one this click is. -->
+                <AppCheckbox
+                    v-model="includeDescendants"
+                    :label="t('notes.markdown.share.include_descendants')"
+                    :hint="
+                        descendantCount === 0
+                            ? t('notes.markdown.share.include_descendants_none')
+                            : t('notes.markdown.share.include_descendants_count', descendantCount)
+                    "
+                    :disabled="submitting || descendantCount === 0"
+                />
             </div>
 
             <div v-if="links.length > 0" class="space-y-2">

@@ -41,9 +41,9 @@ notes:
       page_heading: Shared note
       read_only: Read only
       tree_label: Notes in this share
-      include_descendants: Include the notes filed under it
-      include_descendants_count: '{count} note filed under it|{count} notes filed under it'
-      include_descendants_none: Nothing is filed under this note
+      include_descendants: Include the sub-notes
+      include_descendants_count: '{count} sub-note will be shared|{count} sub-notes will be shared'
+      include_descendants_none: No sub-notes
       recipient_label: Send to
       recipient_placeholder: name@example.com
       recipient_help: Leave empty to just get a link to copy.
@@ -51,6 +51,7 @@ notes:
       label_placeholder: For Marie, review
       expires_label: Expires on
       expires_placeholder: dd/mm/yyyy
+      expires_hint: Leave empty for a link that lasts until it is revoked.
       expires_never: No expiry
       create: Create the link
       created: Link created
@@ -69,14 +70,11 @@ notes:
       errors:
         unknown_note: Note not found.
         bad_date: Invalid date.
-        create_failed: The link could not be created.
-        revoke_failed: The link could not be revoked.
-        list_failed: The shares could not be loaded.
       mail:
         subject: '%title% has been shared with you'
         title: A note has been shared with you
         intro: '%name% shared the note "%title%" with you.'
-        includes_descendants: The notes filed under it are included.
+        includes_descendants: The sub-notes are included.
         open: Open the note
         expires: 'This link expires on %date%.'
         read_only: You can read this note, not edit it.
