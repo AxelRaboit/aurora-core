@@ -11,6 +11,24 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.7.1] - 2026-08-29
+
+### Changé
+
+#### Frontend
+- Une carte de publication placée dans la grille d'une page survolait
+  différemment de la carte identique des listes : bordure grise au lieu de
+  foncer, titre vers la couleur du texte au lieu de l'accent, et aucun fond.
+  Les deux se comportent désormais pareil.
+
+#### Notes
+- Le cadre de l'éditeur markdown est rétabli, ainsi que celui du champ
+  d'étiquettes.
+
+### Dans aurora-client
+
+Rien à faire.
+
 ## [0.7.0] - 2026-08-29
 
 Mineure et non patch : la couleur d'accentuation par défaut change, ce qui se
