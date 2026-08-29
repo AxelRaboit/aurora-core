@@ -1,0 +1,49 @@
+name: Tag guard
+
+# A tag without a release is a version nobody documented.
+#
+# Composer offers a client every tag it can see, so a stray one becomes an
+# installable version with no notes, no changelog entry, and no guarantee it
+# ever passed CI. `make tag` already refuses, which covers the reflex; this
+# covers the deliberate `git tag && git push`.
+#
+# It waits before looking, because the legitimate path pushes the tag first and
+# creates the release a second later - checking immediately would fail every
+# real release. Sixty seconds is far more than that path needs and far less
+# than a human takes to notice.
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: A tag must carry a release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for the release to appear
+        run: sleep 60
+
+      - name: Check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::notice::${TAG} carries a release."
+            exit 0
+          fi
+
+          echo "::error::${TAG} was pushed without a release."
+          echo ""
+          echo "Composer offers this tag to every client as an installable"
+          echo "version, with no notes and no proof it passed CI."
+          echo ""
+          echo "Either publish it:  gh release create ${TAG} --notes-file ..."
+          echo "or remove it:       git push --delete origin ${TAG}"
+          exit 1
