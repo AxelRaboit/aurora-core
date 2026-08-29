@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { usePostsList } from "./composables/usePostsList.js";
 import { usePostRowActions } from "./composables/usePostRowActions.js";
@@ -20,6 +21,7 @@ import { Plus, Trash2, X, FileText, Filter, Flame } from "lucide-vue-next";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
+const { request } = useRequest();
 const { formatDateTime } = useDateFormat();
 
 const props = defineProps({
@@ -37,6 +39,7 @@ const props = defineProps({
     newPath: { type: String, required: true },
     editPathTemplate: { type: String, required: true },
     deletePathTemplate: { type: String, required: true },
+    duplicatePathTemplate: { type: String, default: "" },
     restorePathTemplate: { type: String, required: true },
     forceDeletePathTemplate: { type: String, required: true },
     emptyTrashPath: { type: String, required: true },
@@ -63,7 +66,25 @@ const actionsFor = usePostRowActions({
     forceDelete: (post) => {
         pendingForceDelete.value = post;
     },
+    duplicate: duplicatePost,
 });
+
+/**
+ * Copies a post and goes straight to the copy.
+ *
+ * Navigating rather than staying on the list: the reason anybody duplicates is to
+ * change something, and leaving them on a list with a near-identical new row is
+ * asking them to find it again.
+ */
+async function duplicatePost(post) {
+    const data = await request(props.duplicatePathTemplate.replace("__id__", String(post.id)));
+
+    if (!data?.editPath) {
+        return;
+    }
+
+    window.location.href = data.editPath;
+}
 
 const statusColors = {
     draft: "gray",

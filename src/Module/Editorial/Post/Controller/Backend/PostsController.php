@@ -13,6 +13,7 @@ use Aurora\Core\Support\Arr;
 use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Editorial\Post\Dto\PostInputFactoryInterface;
+use Aurora\Module\Editorial\Post\Duplicate\PostDuplicator;
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Manager\PostManagerInterface;
@@ -56,6 +57,7 @@ class PostsController extends AbstractController
         private readonly PostAccessService $postAccessService,
         private readonly PostPreviewTokenManagerInterface $previewTokens,
         private readonly PostReviewManagerInterface $reviewManager,
+        private readonly PostDuplicator $duplicator,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -202,6 +204,27 @@ class PostsController extends AbstractController
         }
 
         return $this->jsonSuccess(['post' => $this->postSerializer->serializeFull($post)]);
+    }
+
+    /**
+     * Copies a publication into a new draft, and hands back where it went.
+     *
+     * `editorial.posts.create` rather than the right to edit the original:
+     * duplicating makes a *new* post, and somebody allowed to read one they may not
+     * edit should still be able to start from it. The copy is theirs.
+     */
+    #[Route('/{id}/duplicate', name: '_duplicate', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('editorial.posts.create')]
+    public function duplicate(Post $post): JsonResponse
+    {
+        $this->denyAccessUnlessGranted(PostVoter::VIEW, $post);
+
+        $copy = $this->duplicator->duplicate($post);
+
+        return $this->jsonSuccess([
+            'post' => $this->postSerializer->serialize($copy),
+            'editPath' => $this->generateUrl('backend_editorial_posts_edit', ['id' => $copy->getId()]),
+        ]);
     }
 
     /**

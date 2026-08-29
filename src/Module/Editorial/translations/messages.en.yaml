@@ -316,6 +316,7 @@ backend:
     restore: Restore
     row_actions:
       edit_description: "Open the editor : content, header, layout."
+      duplicate_description: "Creates an identical draft to work from."
       restore_description: Takes the publication out of the trash, as it was.
       force_delete_description: Deletes for good. There is no undo.
       delete_description: Moves it to the trash, recoverable until the trash is emptied.
@@ -341,6 +342,9 @@ backend:
       notification_rejected: "Sent back by %reviewer%."
       errors:
         note_required: "Say what needs changing."
+    duplicate:
+      action: "Duplicate"
+      suffix: "(copy)"
     preview:
       open: "Preview"
     content: Content

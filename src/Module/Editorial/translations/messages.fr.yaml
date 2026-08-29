@@ -316,6 +316,7 @@ backend:
     restore: Restaurer
     row_actions:
       edit_description: "Ouvrir l'éditeur : contenu, en-tête, disposition."
+      duplicate_description: "Crée un brouillon identique, à retoucher."
       restore_description: Sort la publication de la corbeille, telle qu'elle était.
       force_delete_description: Supprime définitivement. Sans retour possible.
       delete_description: Met à la corbeille, récupérable tant qu'elle n'est pas vidée.
@@ -341,6 +342,9 @@ backend:
       notification_rejected: "Renvoyé par %reviewer%."
       errors:
         note_required: "Indiquez ce qu'il faut changer."
+    duplicate:
+      action: "Dupliquer"
+      suffix: "(copie)"
     preview:
       open: "Prévisualiser"
     content: Contenu

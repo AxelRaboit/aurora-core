@@ -1,5 +1,5 @@
 import { useI18n } from "vue-i18n";
-import { Flame, Pencil, Trash2, Undo2 } from "lucide-vue-next";
+import { Copy, Flame, Pencil, Trash2, Undo2 } from "lucide-vue-next";
 
 /**
  * What one publication row offers, given who is looking and where it sits.
@@ -19,6 +19,7 @@ export function usePostRowActions({
     restore,
     confirmDelete,
     forceDelete,
+    duplicate,
 }) {
     const { t } = useI18n();
 
@@ -33,6 +34,23 @@ export function usePostRowActions({
                 title: t("shared.common.edit"),
                 description: t("backend.posts.row_actions.edit_description"),
                 href: editPath(post),
+            });
+        }
+
+        // Needs the right to *create*, not to edit this one: duplicating makes a
+        // new post, and starting from something you may only read is a reasonable
+        // thing to want. Never on a trashed row - copying something on its way out
+        // is nobody's intention.
+        if (can("editorial.posts.create") && !post.trashed) {
+            actions.push({
+                key: "duplicate",
+                color: "accent",
+                icon: Copy,
+                title: t("backend.posts.duplicate.action"),
+                description: t(
+                    "backend.posts.row_actions.duplicate_description",
+                ),
+                onSelect: () => duplicate(post),
             });
         }
 
