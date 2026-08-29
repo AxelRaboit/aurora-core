@@ -11,6 +11,38 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.7.4] - 2026-08-29
+
+### Corrigé
+
+#### On ne pouvait créer le premier élément de rien
+
+Sur quatre écrans, le bouton de l'état vide ne faisait rien : les modales
+vivaient dans la branche `v-else` que cet état vide remplace, donc elles
+n'existaient pas tant que la liste était vide. Le bouton levait son drapeau,
+rien ne l'écoutait.
+
+Seulement le premier élément était concerné : dès qu'un existe, la branche se
+rend et tout fonctionne. C'est pourquoi ça a survécu - le défaut est invisible
+sur toute base contenant déjà des données.
+
+| Écran | Ce qui était impossible |
+|---|---|
+| Formulaires | créer le premier formulaire |
+| Types de publication | créer le premier type |
+| Taxonomies | créer la première taxonomie |
+| Dossiers GED | créer le premier dossier |
+
+### Ajouté
+
+- `EmptyStateCanReachItsModalTest` : un état vide dont le bouton ouvre une
+  modale absente de l'arbre fait échouer la CI.
+- `FormsApp.test.js` : le composant monte sa modale même sans aucun formulaire.
+
+### Dans aurora-client
+
+Rien à faire.
+
 ## [0.7.3] - 2026-08-29
 
 ### Corrigé

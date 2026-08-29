@@ -138,83 +138,88 @@ const { draggingId, dropTarget, onDragStart, onDragOver, onDragLeave, onDragEnd,
                 </div>
             </div>
         </div>
-
-        <AppModal
-            :show="showCreate"
-            :title="t('backend.ged.folders.create')"
-            :icon="Folder"
-            :closeable="false"
-            v-on:close="showCreate = false"
-        >
-            <form class="space-y-4" v-on:submit.prevent="submitCreate">
-                <AppInput
-                    v-model="newFolder.name"
-                    :label="t('backend.ged.folders.name')"
-                    :placeholder="t('backend.ged.folders.name_placeholder')"
-                    :error="createErrors.name"
-                    required
-                />
-                <AppMultiselect
-                    v-model="newFolder.parentId"
-                    :label="t('backend.ged.folders.parent')"
-                    :options="parentOptions"
-                    :allow-empty="true"
-                />
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" type="button" v-on:click="showCreate = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="primary" size="md" :loading="createLoading" v-on:click="submitCreate"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="showEdit"
-            :title="t('backend.ged.folders.edit', { name: editingFolder?.name ?? '' })"
-            :icon="Pencil"
-            :closeable="false"
-            v-on:close="showEdit = false"
-        >
-            <form class="space-y-4" v-on:submit.prevent="submitEdit">
-                <AppInput
-                    v-model="editForm.name"
-                    :label="t('backend.ged.folders.name')"
-                    :placeholder="t('backend.ged.folders.name_placeholder')"
-                    :error="editErrors.name"
-                    required
-                />
-                <AppMultiselect
-                    v-model="editForm.parentId"
-                    :label="t('backend.ged.folders.parent')"
-                    :options="parentOptions.filter((opt) => opt.value !== editingFolder?.id)"
-                    :allow-empty="true"
-                />
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" type="button" v-on:click="showEdit = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="primary" size="md" :loading="editLoading" v-on:click="submitEdit"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="!!pendingDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingDelete = null"
-        >
-            <p class="text-sm text-primary">{{ t("backend.ged.folders.delete_confirm", { name: pendingDelete?.name ?? "" }) }}</p>
-            <p class="text-sm text-secondary">{{ t("backend.ged.folders.delete_warning") }}</p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
     </div>
+
+    <!-- Outside the `v-else` on purpose. These modals used to live inside it,
+         so with nothing created yet the branch was not rendered and neither
+         were they: the empty state's button set the flag and nothing existed
+         to react. The first item could never be created, and only the first -
+         once one existed the branch rendered and the button worked. -->
+    <AppModal
+        :show="showCreate"
+        :title="t('backend.ged.folders.create')"
+        :icon="Folder"
+        :closeable="false"
+        v-on:close="showCreate = false"
+    >
+        <form class="space-y-4" v-on:submit.prevent="submitCreate">
+            <AppInput
+                v-model="newFolder.name"
+                :label="t('backend.ged.folders.name')"
+                :placeholder="t('backend.ged.folders.name_placeholder')"
+                :error="createErrors.name"
+                required
+            />
+            <AppMultiselect
+                v-model="newFolder.parentId"
+                :label="t('backend.ged.folders.parent')"
+                :options="parentOptions"
+                :allow-empty="true"
+            />
+        </form>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" type="button" v-on:click="showCreate = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="primary" size="md" :loading="createLoading" v-on:click="submitCreate"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="showEdit"
+        :title="t('backend.ged.folders.edit', { name: editingFolder?.name ?? '' })"
+        :icon="Pencil"
+        :closeable="false"
+        v-on:close="showEdit = false"
+    >
+        <form class="space-y-4" v-on:submit.prevent="submitEdit">
+            <AppInput
+                v-model="editForm.name"
+                :label="t('backend.ged.folders.name')"
+                :placeholder="t('backend.ged.folders.name_placeholder')"
+                :error="editErrors.name"
+                required
+            />
+            <AppMultiselect
+                v-model="editForm.parentId"
+                :label="t('backend.ged.folders.parent')"
+                :options="parentOptions.filter((opt) => opt.value !== editingFolder?.id)"
+                :allow-empty="true"
+            />
+        </form>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" type="button" v-on:click="showEdit = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="primary" size="md" :loading="editLoading" v-on:click="submitEdit"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="!!pendingDelete"
+        max-width="sm"
+        :closeable="false"
+        :title="t('shared.common.delete')"
+        :icon="Trash2"
+        v-on:close="pendingDelete = null"
+    >
+        <p class="text-sm text-primary">{{ t("backend.ged.folders.delete_confirm", { name: pendingDelete?.name ?? "" }) }}</p>
+        <p class="text-sm text-secondary">{{ t("backend.ged.folders.delete_warning") }}</p>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
 </template>

@@ -251,178 +251,183 @@ function formatDate(value) {
                 </div>
             </div>
         </section>
-
-        <AppModal
-            :show="showEditor"
-            :title="editing ? t('backend.forms.edit') : t('backend.forms.create')"
-            :icon="ClipboardList"
-            :closeable="false"
-            v-on:close="showEditor = false"
-        >
-            <form class="space-y-4" v-on:submit.prevent="submit">
-                <AppCheckbox v-model="editorForm.active" :label="t('backend.forms.active')" :hint="t('backend.forms.active_hint')" />
-                <AppInput
-                    v-model="editorForm.notifyEmail"
-                    :label="t('backend.forms.notify_email')"
-                    :placeholder="t('shared.placeholders.email')"
-                    :hint="t('backend.forms.notify_email_hint')"
-                    :error="errors.notifyEmail"
-                />
-                <AppInput
-                    v-model="editorForm.webhookUrl"
-                    :label="t('backend.forms.webhook_url')"
-                    :placeholder="t('shared.placeholders.url')"
-                    :hint="t('backend.forms.webhook_url_hint')"
-                    :error="errors.webhookUrl"
-                />
-                <AppCheckbox v-model="editorForm.crmSync" :label="t('backend.forms.crm_sync')" />
-
-                <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
-                    <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
-                    <AppInput
-                        v-model="editorForm.translations[locale].title"
-                        :label="t('backend.forms.title_label')"
-                        :placeholder="t('shared.placeholders.title')"
-                    />
-                    <AppInput
-                        v-model="editorForm.translations[locale].slug"
-                        :label="t('backend.forms.slug')"
-                        :placeholder="t('shared.placeholders.slug')"
-                        :hint="t('backend.forms.slug_hint')"
-                        :error="errors[`translations[${locale}].slug`]"
-                    />
-                    <AppTextarea
-                        v-model="editorForm.translations[locale].description"
-                        :label="t('backend.forms.description')"
-                        :placeholder="t('shared.placeholders.description')"
-                        :rows="2"
-                    />
-                </div>
-
-                <div class="space-y-2 border-t border-line/40 pt-3">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("backend.forms.steps.title") }}</label>
-                        <AppButton variant="ghost" size="sm" v-on:click="addStep">
-                            <Plus class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.forms.steps.add") }}
-                        </AppButton>
-                    </div>
-                    <p class="text-xs text-muted">{{ t("backend.forms.steps.hint") }}</p>
-                    <div v-for="(step, index) in editorForm.steps ?? []" :key="index" class="flex items-center gap-2">
-                        <AppInput v-model="step.title" class="flex-1" :placeholder="t('backend.forms.steps.name')" />
-                        <AppIconButton color="rose" :title="t('backend.forms.steps.remove')" v-on:click="removeStep(index)">
-                            <Trash2 class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-                    </div>
-                </div>
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="showEditor = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="primary" size="md" :loading="loading" v-on:click="submit"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="showField"
-            :title="editingField ? t('backend.forms.fields.edit') : t('backend.forms.fields.create')"
-            :icon="editingField ? Pencil : Plus"
-            :closeable="false"
-            v-on:close="showField = false"
-        >
-            <form class="space-y-4" v-on:submit.prevent="submitField">
-                <AppSelect v-model="fieldForm.type" :label="t('backend.forms.fields.type')" :options="typeOptions" :error="fieldErrors.type" />
-                <AppCheckbox v-model="fieldForm.required" :label="t('backend.forms.fields.required')" />
-                <AppInput
-                    v-model.number="fieldForm.step"
-                    type="number"
-                    :label="t('backend.forms.fields.step')"
-                    :placeholder="t('backend.forms.fields.step_placeholder')"
-                />
-
-                <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
-                    <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
-                    <AppInput
-                        v-model="fieldForm.translations[locale].label"
-                        :label="t('backend.forms.fields.label')"
-                        :placeholder="t('backend.forms.fields.label_placeholder')"
-                    />
-                    <AppInput v-model="fieldForm.translations[locale].placeholder" :label="t('backend.forms.fields.placeholder')" />
-                    <AppTextarea
-                        v-if="typeMeta?.hasOptions"
-                        v-model="fieldForm.translations[locale].options"
-                        :label="t('backend.forms.fields.options')"
-                        :placeholder="t('shared.placeholders.one_per_line')"
-                        :hint="t('backend.forms.fields.options_hint')"
-                        :rows="4"
-                        :error="fieldErrors[`translations[${locale}].options`]"
-                    />
-                </div>
-
-                <div class="space-y-2 border-t border-line/40 pt-3">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("backend.forms.fields.conditions") }}</label>
-                        <AppButton variant="ghost" size="sm" :disabled="!conditionSources.length" v-on:click="addCondition">
-                            <Plus class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.forms.fields.add_condition") }}
-                        </AppButton>
-                    </div>
-                    <p class="text-xs text-muted">{{ t("backend.forms.fields.conditions_hint") }}</p>
-
-                    <AppSelect
-                        v-if="fieldForm.conditions.length > 1"
-                        v-model="fieldForm.conditionsLogic"
-                        :options="logicOptions"
-                    />
-
-                    <div v-for="(condition, index) in fieldForm.conditions" :key="index" class="flex items-center gap-2">
-                        <AppSelect v-model="condition.fieldId" class="flex-1" :options="conditionSources" :placeholder="t('backend.forms.fields.condition_field')" />
-                        <AppInput v-model="condition.value" class="flex-1" :placeholder="t('backend.forms.fields.condition_value')" />
-                        <AppIconButton color="rose" :title="t('shared.common.delete')" v-on:click="removeCondition(index)">
-                            <Trash2 class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-                    </div>
-                </div>
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="showField = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="primary" size="md" :loading="fieldLoading" v-on:click="submitField"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="!!pendingDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingDelete = null"
-        >
-            <p class="text-sm text-primary">{{ t("backend.forms.delete_confirm", { title: pendingDelete ? titleOf(pendingDelete) : "" }) }}</p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="!!pendingFieldDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingFieldDelete = null"
-        >
-            <p class="text-sm text-primary">{{ t("backend.forms.fields.delete_confirm", { label: pendingFieldDelete ? labelOf(pendingFieldDelete) : "" }) }}</p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingFieldDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="danger" size="md" :loading="fieldDeleteLoading" v-on:click="deleteField"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
     </div>
+
+    <!-- Outside the `v-else` on purpose. These modals used to live inside it,
+         so with no form yet the branch was not rendered and neither were they:
+         the empty state's create button set `showEditor` and nothing existed
+         to react. The first form could never be created, and only the first -
+         once one existed the branch rendered and the button worked. -->
+    <AppModal
+        :show="showEditor"
+        :title="editing ? t('backend.forms.edit') : t('backend.forms.create')"
+        :icon="ClipboardList"
+        :closeable="false"
+        v-on:close="showEditor = false"
+    >
+        <form class="space-y-4" v-on:submit.prevent="submit">
+            <AppCheckbox v-model="editorForm.active" :label="t('backend.forms.active')" :hint="t('backend.forms.active_hint')" />
+            <AppInput
+                v-model="editorForm.notifyEmail"
+                :label="t('backend.forms.notify_email')"
+                :placeholder="t('shared.placeholders.email')"
+                :hint="t('backend.forms.notify_email_hint')"
+                :error="errors.notifyEmail"
+            />
+            <AppInput
+                v-model="editorForm.webhookUrl"
+                :label="t('backend.forms.webhook_url')"
+                :placeholder="t('shared.placeholders.url')"
+                :hint="t('backend.forms.webhook_url_hint')"
+                :error="errors.webhookUrl"
+            />
+            <AppCheckbox v-model="editorForm.crmSync" :label="t('backend.forms.crm_sync')" />
+
+            <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
+                <AppInput
+                    v-model="editorForm.translations[locale].title"
+                    :label="t('backend.forms.title_label')"
+                    :placeholder="t('shared.placeholders.title')"
+                />
+                <AppInput
+                    v-model="editorForm.translations[locale].slug"
+                    :label="t('backend.forms.slug')"
+                    :placeholder="t('shared.placeholders.slug')"
+                    :hint="t('backend.forms.slug_hint')"
+                    :error="errors[`translations[${locale}].slug`]"
+                />
+                <AppTextarea
+                    v-model="editorForm.translations[locale].description"
+                    :label="t('backend.forms.description')"
+                    :placeholder="t('shared.placeholders.description')"
+                    :rows="2"
+                />
+            </div>
+
+            <div class="space-y-2 border-t border-line/40 pt-3">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("backend.forms.steps.title") }}</label>
+                    <AppButton variant="ghost" size="sm" v-on:click="addStep">
+                        <Plus class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.forms.steps.add") }}
+                    </AppButton>
+                </div>
+                <p class="text-xs text-muted">{{ t("backend.forms.steps.hint") }}</p>
+                <div v-for="(step, index) in editorForm.steps ?? []" :key="index" class="flex items-center gap-2">
+                    <AppInput v-model="step.title" class="flex-1" :placeholder="t('backend.forms.steps.name')" />
+                    <AppIconButton color="rose" :title="t('backend.forms.steps.remove')" v-on:click="removeStep(index)">
+                        <Trash2 class="w-4 h-4" :stroke-width="2" />
+                    </AppIconButton>
+                </div>
+            </div>
+        </form>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="showEditor = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="primary" size="md" :loading="loading" v-on:click="submit"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="showField"
+        :title="editingField ? t('backend.forms.fields.edit') : t('backend.forms.fields.create')"
+        :icon="editingField ? Pencil : Plus"
+        :closeable="false"
+        v-on:close="showField = false"
+    >
+        <form class="space-y-4" v-on:submit.prevent="submitField">
+            <AppSelect v-model="fieldForm.type" :label="t('backend.forms.fields.type')" :options="typeOptions" :error="fieldErrors.type" />
+            <AppCheckbox v-model="fieldForm.required" :label="t('backend.forms.fields.required')" />
+            <AppInput
+                v-model.number="fieldForm.step"
+                type="number"
+                :label="t('backend.forms.fields.step')"
+                :placeholder="t('backend.forms.fields.step_placeholder')"
+            />
+
+            <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
+                <AppInput
+                    v-model="fieldForm.translations[locale].label"
+                    :label="t('backend.forms.fields.label')"
+                    :placeholder="t('backend.forms.fields.label_placeholder')"
+                />
+                <AppInput v-model="fieldForm.translations[locale].placeholder" :label="t('backend.forms.fields.placeholder')" />
+                <AppTextarea
+                    v-if="typeMeta?.hasOptions"
+                    v-model="fieldForm.translations[locale].options"
+                    :label="t('backend.forms.fields.options')"
+                    :placeholder="t('shared.placeholders.one_per_line')"
+                    :hint="t('backend.forms.fields.options_hint')"
+                    :rows="4"
+                    :error="fieldErrors[`translations[${locale}].options`]"
+                />
+            </div>
+
+            <div class="space-y-2 border-t border-line/40 pt-3">
+                <div class="flex items-center justify-between">
+                    <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("backend.forms.fields.conditions") }}</label>
+                    <AppButton variant="ghost" size="sm" :disabled="!conditionSources.length" v-on:click="addCondition">
+                        <Plus class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.forms.fields.add_condition") }}
+                    </AppButton>
+                </div>
+                <p class="text-xs text-muted">{{ t("backend.forms.fields.conditions_hint") }}</p>
+
+                <AppSelect
+                    v-if="fieldForm.conditions.length > 1"
+                    v-model="fieldForm.conditionsLogic"
+                    :options="logicOptions"
+                />
+
+                <div v-for="(condition, index) in fieldForm.conditions" :key="index" class="flex items-center gap-2">
+                    <AppSelect v-model="condition.fieldId" class="flex-1" :options="conditionSources" :placeholder="t('backend.forms.fields.condition_field')" />
+                    <AppInput v-model="condition.value" class="flex-1" :placeholder="t('backend.forms.fields.condition_value')" />
+                    <AppIconButton color="rose" :title="t('shared.common.delete')" v-on:click="removeCondition(index)">
+                        <Trash2 class="w-4 h-4" :stroke-width="2" />
+                    </AppIconButton>
+                </div>
+            </div>
+        </form>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="showField = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="primary" size="md" :loading="fieldLoading" v-on:click="submitField"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="!!pendingDelete"
+        max-width="sm"
+        :closeable="false"
+        :title="t('shared.common.delete')"
+        :icon="Trash2"
+        v-on:close="pendingDelete = null"
+    >
+        <p class="text-sm text-primary">{{ t("backend.forms.delete_confirm", { title: pendingDelete ? titleOf(pendingDelete) : "" }) }}</p>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="!!pendingFieldDelete"
+        max-width="sm"
+        :closeable="false"
+        :title="t('shared.common.delete')"
+        :icon="Trash2"
+        v-on:close="pendingFieldDelete = null"
+    >
+        <p class="text-sm text-primary">{{ t("backend.forms.fields.delete_confirm", { label: pendingFieldDelete ? labelOf(pendingFieldDelete) : "" }) }}</p>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="pendingFieldDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="danger" size="md" :loading="fieldDeleteLoading" v-on:click="deleteField"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
 </template>
