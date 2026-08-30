@@ -11,7 +11,7 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
-## [0.9.2] - 2026-08-30
+## [0.9.14] - 2026-08-30
 
 ### Corrigé
 
@@ -475,7 +475,7 @@ ne sert plus.
 > Aucun module n'est extrait aujourd'hui, mais le premier qui ship des fixtures
 > reproduira le bug.
 
-## [0.9.2] - 2026-08-30
+## [0.9.14] - 2026-08-30
 
 ### Ajouté
 
