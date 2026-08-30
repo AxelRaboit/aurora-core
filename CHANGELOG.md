@@ -11,6 +11,45 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.13] - 2026-08-30
+
+### Supprimé
+
+#### Dix-huit modules de `shared/`, résidus du split abandonné
+- Tous étaient sans consommateur. Leurs anciens appelants sont partis avec les
+  modules extraits du monorepo (Billing, Crm, Tools, Erp, Ecommerce,
+  PersonalFinance, Assistant) ou avec des panneaux Editorial retirés au même
+  moment. **Les quatorze dépôts `aurora-*` correspondants sont archivés** :
+  seuls aurora-core et aurora-client sont vivants, et aucun des deux n'importe
+  ces fichiers.
+- Composables : `useDetailDelete`, `useFormModal`, `useInlineEdit`,
+  `useSlugLock`, `useLoadMore`, `useUrlPagination`, `useInfiniteScroll`,
+  `usePasswordGenerator`.
+- Utilitaires : `parseJson`, `blocksRenderer`, `mergeBlocks`, `revisionDiff`,
+  `currencies`, `formatPrice`, `parseMoney`, `pickTranslation`, `seoCounter`,
+  `passwordStrength`.
+- Soit 28 fichiers avec leurs tests, environ 1700 lignes. Les entrées
+  correspondantes sortent de `composables_catalog.md`, et les deux mémoires qui
+  leur étaient dédiées (`composable_url_pagination`, `utility_pick_translation`)
+  disparaissent avec leur index.
+
+#### Ce que cette suppression a coûté en allers-retours
+- La 0.9.11 avait retiré `useSlugLock` seul, la 0.9.12 l'avait restauré parce
+  qu'`aurora-editorial` l'importe. Les deux décisions reposaient sur une
+  question jamais posée : ces dépôts sont-ils vivants ? Ils ne le sont pas.
+  La mémoire du projet le disait déjà pour Editorial, revenu dans le core en
+  août ; l'API GitHub le confirme pour les treize autres.
+- **La vérification qui compte n'est pas « qui importe ce fichier », c'est
+  « ce consommateur existe-t-il encore ».** Un `grep` dans les dépôts frères
+  répond oui à la première et masque la seconde.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`. Un projet client qui importerait
+l'un de ces fichiers depuis `@/shared/` doit en revanche le copier chez lui
+avant de mettre à jour ; l'historique git d'aurora-core en conserve la version
+exacte.
+
 ## [0.9.12] - 2026-08-30
 
 ### Corrigé

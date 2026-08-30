@@ -271,7 +271,7 @@ const { /* ... */ } = useMyFeature();
 ```
 
 > **Précédent** : `PasswordGeneratorApp.vue` importe son composable depuis
-> `@shared/composables/usePasswordGenerator.js` parce qu'il est réutilisable.
+> `@shared/composables/format/useDateFormat.js` parce qu'il est réutilisable.
 > Quand c'est le cas, **pas besoin de créer un dossier `composables/` vide**
 > dans le module.
 

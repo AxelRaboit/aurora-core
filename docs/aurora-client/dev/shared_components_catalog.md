@@ -627,7 +627,7 @@ Pagination admin/AJAX (XHR, pas de reload).
 | `page` | `Number` | **requis** |
 | `totalPages` | `Number` | **requis** |
 
-**Emits** : `change(newPage)`. Pour pagination full-reload (frontend public), voir `useUrlPagination`.
+**Emits** : `change(newPage)`.
 
 ```vue
 <AppPagination :page="page" :total-pages="totalPages" v-on:change="goToPage" />
