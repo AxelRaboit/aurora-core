@@ -11,6 +11,52 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.9] - 2026-08-30
+
+### Corrigé
+
+#### Les notifications à l'administrateur partaient vers un domaine inexistant
+- `backend_email` était semé avec `admin@aurora.app`, et `MailService::adminEmail()`
+  retournait cette valeur telle quelle. Or `sendToAdmin()` est appelé par
+  `FormNotificationService` et `CommentNotificationService` : sur toute
+  installation où personne n'a pensé à changer ce réglage, **chaque soumission
+  de formulaire et chaque commentaire en attente partait vers un domaine qui
+  n'existe pas**, sans erreur visible nulle part.
+- `adminEmail()` retombe désormais sur `ADMIN_EMAIL`, la variable que
+  l'installateur du serveur a de toute façon renseignée, quand le réglage est
+  vide ou porte encore la valeur semée. À défaut des deux, elle retourne `null`
+  et `sendToAdmin()` s'abstient, ce qui est honnête : ne pas envoyer vaut mieux
+  qu'envoyer vers une adresse qui rebondit.
+
+#### `site_url` hors requête ne connaissait que le placeholder
+- `Context::siteUrl()` savait déjà ignorer le `http://localhost` semé et prendre
+  l'origine de la requête, ce qui rend les balises canoniques correctes sur un
+  site en ligne. Mais hors requête, une commande console ou un worker Messenger,
+  il retournait le placeholder faute de mieux.
+- Il consulte maintenant le contexte de routage, que le framework remplit depuis
+  `DEFAULT_URI`. Un sitemap ou une balise canonique rendus par le worker nomment
+  donc l'hôte que le déploiement a déjà déclaré. Le placeholder ne subsiste que
+  si rien n'est configuré nulle part.
+
+#### Les deux paramètres sont semés vides
+- `site_url` et `backend_email` arrivaient avec `http://localhost` et
+  `admin@aurora.app`. Une valeur plausible affichée dans l'écran de réglages se
+  lit comme un choix déjà fait : personne ne la corrige. Vide, le champ dit ce
+  qu'il est, et les deux méthodes ci-dessus savent quoi en faire.
+- Les installations existantes ne sont pas touchées en base : les anciennes
+  valeurs sont reconnues comme des placeholders par le code, donc corrigées de
+  fait sans migration.
+
+### Dans aurora-client
+
+`make aurora-update` suffit. Aucune action en base n'est nécessaire : une
+installation qui porte encore `admin@aurora.app` ou `http://localhost` se met à
+utiliser `ADMIN_EMAIL` et `DEFAULT_URI` dès la mise à jour.
+
+Vérifiez tout de même que `ADMIN_EMAIL` pointe sur une adresse réelle dans le
+`.env.local` du serveur : c'est elle qui reçoit désormais les notifications si
+le réglage n'a jamais été renseigné.
+
 ## [0.9.8] - 2026-08-30
 
 ### Corrigé

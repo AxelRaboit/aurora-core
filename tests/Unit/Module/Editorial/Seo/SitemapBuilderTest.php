@@ -20,6 +20,7 @@ use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RequestContext;
 
 /**
  * `noindex` is a per-translation checkbox, and the sitemap has to read it
@@ -171,11 +172,17 @@ final class SitemapBuilderTest extends TestCase
         $localeContext->method('isSingleLocaleMode')->willReturn(false);
         $localeContext->method('getDefaultLocale')->willReturn($activeLocales[0] ?? 'fr');
 
+        $routingContext = new RequestContext();
+        $routingContext->setHost('');
+        $urlGenerator = $this->createStub(UrlGeneratorInterface::class);
+        $urlGenerator->method('getContext')->willReturn($routingContext);
+
         return new Context(
             $localeRepository,
             $this->createStub(SettingRepository::class),
             $localeContext,
             new RequestStack(),
+            $urlGenerator,
         );
     }
 }

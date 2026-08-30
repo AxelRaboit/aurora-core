@@ -26,6 +26,13 @@ use Twig\Environment;
  */
 final readonly class MailService
 {
+    /**
+     * What `backend_email` used to ship with, before it was seeded empty. Kept
+     * so the installations that already carry it stop mailing a domain that
+     * does not resolve - see adminEmail().
+     */
+    private const string LEGACY_PLACEHOLDER_ADMIN_EMAIL = 'admin@aurora.app';
+
     public function __construct(
         private MailerInterface $mailer,
         private Environment $twig,
@@ -33,6 +40,7 @@ final readonly class MailService
         private TranslatorInterface $translator,
         private LocaleSwitcher $localeSwitcher,
         private string $mailerFrom,
+        private string $adminEmail = '',
     ) {}
 
     /**
@@ -113,11 +121,28 @@ final readonly class MailService
         return $this->settingRepository->getOrDefault(ApplicationParameterEnum::SiteName);
     }
 
+    /**
+     * Who receives the notifications the application sends to nobody in
+     * particular: a form submission, a comment awaiting moderation.
+     *
+     * The setting wins when an administrator has actually set it. Unset, or
+     * still carrying the `admin@aurora.app` it used to be seeded with, the
+     * ADMIN_EMAIL of the deployment is the better answer: whoever installed
+     * the server filled it, and it is an address that exists.
+     *
+     * Returning null when neither is set is deliberate - sendToAdmin() skips,
+     * which is honest. Sending to a plausible-looking address that bounces is
+     * the failure this method exists to avoid.
+     */
     public function adminEmail(): ?string
     {
         $email = $this->settingRepository->get(ApplicationParameterEnum::AdminEmail->value);
 
-        return null === $email || '' === $email ? null : $email;
+        if (null !== $email && '' !== $email && self::LEGACY_PLACEHOLDER_ADMIN_EMAIL !== $email) {
+            return $email;
+        }
+
+        return '' !== $this->adminEmail ? $this->adminEmail : null;
     }
 
     private function emailLocale(): ?string

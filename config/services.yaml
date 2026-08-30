@@ -144,6 +144,7 @@ services:
     Aurora\Core\Mail\Service\MailService:
         arguments:
             $mailerFrom: '%app.mailer_from%'
+            $adminEmail: '%app.admin_email%'
 
 # Fixtures live in fixtures/, outside src/, precisely so that nothing scanning
 # src/ can reach them: the Doctrine attribute driver and the attribute route

@@ -17,6 +17,8 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RequestContext;
 
 #[AllowMockObjectsWithoutExpectations]
 final class SeoExtensionTest extends TestCase
@@ -199,7 +201,13 @@ final class SeoExtensionTest extends TestCase
         $localeContext = $this->createMock(LocaleContextInterface::class);
         $localeContext->method('isSingleLocaleMode')->willReturn(false);
 
-        $context = new Context($localeRepo, $settings, $localeContext, new RequestStack());
+        // Contexte de routage vide : ces tests s'appuient sur la requete.
+        $routingContext = new RequestContext();
+        $routingContext->setHost('');
+        $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
+        $urlGenerator->method('getContext')->willReturn($routingContext);
+
+        $context = new Context($localeRepo, $settings, $localeContext, new RequestStack(), $urlGenerator);
 
         $mediaRepo = $this->createMock(DocumentRepository::class);
 
