@@ -1,9 +1,10 @@
-import { computed, nextTick, provide, ref } from "vue";
+import { computed, nextTick, provide, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useServerErrors } from "@/shared/composables/form/useServerErrors.js";
+import { slugifyIfEmpty } from "@/shared/utils/format/slugify.js";
 
 // Mirrors BannerNormalizer's layout shape. A new post starts with no items:
 // the banner is a list an author builds, not a pair of boxes to fill.
@@ -170,6 +171,26 @@ export function usePostEditor(props) {
 
     const locale = ref(props.locales[0] ?? "en");
     const current = computed(() => form.value.translations[locale.value]);
+
+    // Le slug se remplit depuis le titre tant qu'il est vide, et seulement dans
+    // ce cas. Ecrire par-dessus un slug existant changerait l'URL d'un contenu
+    // deja publie sur une simple correction de titre - c'est le referencement
+    // qu'on casserait, en silence.
+    //
+    // Le watcher observe aussi la langue courante pour distinguer une frappe
+    // d'un changement d'onglet : passer sur une traduction qui a deja un titre
+    // ne doit pas lui inventer un slug que personne n'a demande.
+    watch(
+        () => [locale.value, current.value?.title ?? ""],
+        ([nextLocale, title], previous) => {
+            if (previous === undefined || previous[0] !== nextLocale) return;
+
+            const translation = current.value;
+            if (!translation) return;
+
+            translation.slug = slugifyIfEmpty(translation.slug, title);
+        },
+    );
 
     const postType = computed(
         () =>
