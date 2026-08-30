@@ -837,6 +837,7 @@ frontend:
         closed: Les commentaires sont fermés sur cette publication.
         too_many: "Trop de commentaires envoyés récemment. Réessayez dans un moment."
     no_posts: Rien de publié pour le moment.
+    latest_posts: Publications
     pagination: Pages
 editorial:
   mail:

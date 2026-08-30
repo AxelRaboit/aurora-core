@@ -11,6 +11,25 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.15] - 2026-08-30
+
+### Corrigé
+
+#### La page d'accueil répétait le nom du site en titre
+- Le listing s'ouvrait sur `<h1>{{ context.siteName }}</h1>`, deux lignes sous
+  l'en-tête qui affiche déjà ce nom comme marque du site. Sur un site sans
+  publication, la page entière se lisait « le nom, le nom, une phrase ».
+- Répéter la marque gâchait aussi le seul `<h1>` de la page : un titre qui
+  nomme le site plutôt que la page ne décrit rien, ni pour un lecteur ni pour
+  un moteur. Le titre nomme désormais le listing (« Publications » / « Posts »)
+  et reste un `<h1>` : le supprimer aurait laissé la page sans aucun.
+
+### Dans aurora-client
+
+Rien à faire. Un site qui préfère une vraie page d'accueil composée dans le
+back-office peut toujours en désigner une avec le réglage `homepage_post_id`,
+auquel cas ce listing ne s'affiche plus.
+
 ## [0.9.14] - 2026-08-30
 
 ### Corrigé
@@ -475,7 +494,7 @@ ne sert plus.
 > Aucun module n'est extrait aujourd'hui, mais le premier qui ship des fixtures
 > reproduira le bug.
 
-## [0.9.14] - 2026-08-30
+## [0.9.2] - 2026-08-30
 
 ### Ajouté
 

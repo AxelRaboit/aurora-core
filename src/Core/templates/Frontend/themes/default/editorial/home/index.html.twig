@@ -3,6 +3,10 @@
 {% block seo_define %}{% do seo({}) %}{% endblock %}
 
 {% block body %}
-    <h1 class="text-2xl font-semibold text-primary mb-6">{{ context.siteName }}</h1>
+    {# The site name is already the header's brand, two lines above. Repeating
+       it here said nothing to a reader and gave the page an <h1> that does not
+       describe its content. The heading names the listing instead - and stays
+       an <h1>, because removing it outright would leave the page with none. #}
+    <h1 class="text-2xl font-semibold text-primary mb-6">{{ 'frontend.editorial.latest_posts'|trans }}</h1>
     {{ include('Frontend/themes/default/editorial/_posts.html.twig') }}
 {% endblock %}
