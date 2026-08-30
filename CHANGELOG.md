@@ -11,6 +11,36 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.12] - 2026-08-30
+
+### Corrigé
+
+#### `useSlugLock` est restauré : la 0.9.11 l'a supprimé à tort
+- La 0.9.11 affirmait que rien ne l'utilisait. C'est faux, et la vérification
+  était incomplète : elle portait sur aurora-core et sur un projet client, pas
+  sur les **paquets de modules extraits**. `aurora-editorial` l'importe depuis
+  `@/shared/composables/form/useSlugLock.js` et l'utilise avec son cadenas
+  (`slugLocked`, `toggleSlugLock`) dans son éditeur de post. La 0.9.11 casse
+  donc ce paquet ; **ne restez pas dessus si vous installez `aurora-editorial`**.
+- Le composable, son test et son entrée au catalogue sont remis en place à
+  l'identique. L'entrée précise désormais qui le consomme, en quoi il diffère
+  de `slugifyIfEmpty`, et qu'il ne doit être câblé qu'avec son `toggle` affiché.
+
+#### La leçon, pour les prochains ménages
+- `shared/` du core est consommé par les paquets frères, pas seulement par
+  aurora-core et les projets clients. Un `grep` dans ce dépôt ne prouve donc
+  rien : dix-sept autres modules de `shared/` ressortent « inutilisés » au même
+  test, et se révèlent tous être des dépendances vivantes de `aurora-billing`,
+  `aurora-crm`, `aurora-tools`, `aurora-erp` et consorts, ou des modules
+  Editorial retirés du monorepo au moment du split.
+- Aucun d'eux n'est supprimé. Avant de retirer quoi que ce soit de `shared/`,
+  la vérification doit couvrir les dépôts `aurora-*` du compte.
+
+### Dans aurora-client
+
+Rien à faire. Un projet client qui serait passé par la 0.9.11 sans installer
+`aurora-editorial` n'a rien vu ; la mise à jour rétablit simplement le fichier.
+
 ## [0.9.11] - 2026-08-30
 
 ### Supprimé

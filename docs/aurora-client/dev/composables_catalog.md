@@ -147,6 +147,28 @@ await submit(url, { field: 'status', value: 'paid' }, { silent: true });
 Différence avec `useFormAction` : pas de validation client, pas d'erreurs
 réactives - c'est pour les mutations "one button click → toast".
 
+### `useSlugLock({ getTitle, setSlug })`
+
+Slug auto-suit le titre tant que verrouillé ; débloquable manuellement.
+Utilisé par `aurora-editorial`, qui expose le cadenas dans son éditeur de post.
+
+À ne pas confondre avec [`slugifyIfEmpty`](#slugifytext--slugifyifemptycurrentslug-source),
+qui ne remplit le slug que s'il est vide et ne le suit jamais ensuite. Les deux
+existent parce qu'ils répondent à deux besoins différents : un cadenas visible
+que l'utilisateur ouvre, ou un simple amorçage à la saisie. **Ne câblez
+`useSlugLock` que si vous affichez son `toggle`** : verrouillé sans affordance,
+il réécrit l'URL d'un contenu publié dès qu'on corrige son titre.
+
+```js
+const { locked, toggle } = useSlugLock({
+    getTitle: () => form.translations[locale].name,
+    setSlug:  (slug) => { form.translations[locale].slug = slug; },
+});
+```
+
+Pitfall : `getTitle`/`setSlug` sont des fonctions, pas des `ref()` - c'est
+volontaire pour cibler un champ nested dans `editForm`.
+
 ### `useAuthForm(initialErrors?)`
 
 Variante front-public pour les flows d'auth (login/register/reset). Les
