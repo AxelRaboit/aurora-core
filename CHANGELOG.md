@@ -11,6 +11,25 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.20] - 2026-08-30
+
+### Corrigé
+
+#### Un lien sans libellé affichait quand même son icône
+- L'éditeur produit facilement `<a href="..."></a>` : il suffit d'effacer le
+  texte d'un lien sans effacer le lien. L'ancre devient invisible en lecture,
+  mais elle recevait son icône, et on se retrouvait avec un logo orphelin collé
+  au lien suivant. Constaté sur une page réelle après une retouche dans le
+  backend, où une icône Facebook s'était installée à côté de celle du courriel.
+- Corriger le contenu ne suffisait pas, la prochaine édition recréant l'ancre.
+  C'est donc au rendu de refuser de décorer ce qui n'a rien à décorer :
+  `.prose a:empty::before { content: none; }`.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`. Une ancre vide déjà présente dans
+un contenu cesse d'afficher son icône, sans que le contenu soit retouché.
+
 ## [0.9.19] - 2026-08-30
 
 ### Corrigé
