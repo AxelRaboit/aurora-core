@@ -10,6 +10,16 @@ backend:
     primary_color: Primary color
     primary_color_label: Accent colour
     primary_color_hint: 'Used for buttons, links, badges and the logo. The full palette is generated automatically.'
+    surfaces: Public site colours
+    surfaces_hint: "One colour per surface. Text, labels and borders are derived from it, light or dark depending on what stays readable."
+    surface_background: Page background
+    surface_header: Navigation bar
+    surface_footer: Footer
+    surface_unset: Unset, keeps the default look
+    surface_light_text: light text
+    surface_dark_text: dark text
+    surface_ratio: "contrast %ratio%:1"
+    surface_below_aaa: readable, but below AAA comfort
     sections:
       general: General
       header: Header

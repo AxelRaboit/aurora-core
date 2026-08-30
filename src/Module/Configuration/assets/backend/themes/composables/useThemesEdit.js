@@ -127,6 +127,15 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     const contentWidth = ref("narrow");
     const primaryColor = ref(DEFAULT_PRIMARY_COLOR);
 
+    // Couleurs de surface du frontend public. Vides par defaut, et c'est le
+    // point : une surface sans couleur n'emet aucune regle CSS, donc garde
+    // l'apparence historique. Cote serveur, SurfaceContrast deduit de chacune
+    // le jeu de texte et de bordures qui la rend lisible.
+    const SURFACE_KEYS = ["background_color", "header_color", "footer_color"];
+    const surfaceColors = reactive(
+        Object.fromEntries(SURFACE_KEYS.map((k) => [k, ""])),
+    );
+
     const configFromColors = computed(() => {
         const result = {};
         for (const key of Object.keys(DEFAULTS)) {
@@ -151,6 +160,9 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
             primaryColor.value.toLowerCase() !== DEFAULT_PRIMARY_COLOR
         ) {
             result["primary_color"] = primaryColor.value;
+        }
+        for (const key of SURFACE_KEYS) {
+            if (surfaceColors[key]) result[key] = surfaceColors[key];
         }
         return result;
     });
@@ -182,6 +194,9 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
               : "default";
         primaryColor.value =
             theme.config?.["primary_color"] ?? DEFAULT_PRIMARY_COLOR;
+        for (const key of SURFACE_KEYS) {
+            surfaceColors[key] = theme.config?.[key] ?? "";
+        }
         editModal.open = true;
     }
 
@@ -228,6 +243,8 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         headerCustomText,
         headerMode,
         primaryColor,
+        surfaceColors,
+        SURFACE_KEYS,
         openEdit,
         resetPrimaryColor,
         submitEdit,
