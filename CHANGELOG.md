@@ -11,6 +11,22 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.24] - 2026-08-30
+
+### Corrigé
+
+#### Le bloc HTML brut était inutilisable
+- Sa feuille livrée ne fixe **aucune largeur**. Sans `width`, un `<textarea>`
+  retombe sur son attribut `cols`, soit une vingtaine de caractères : pour du
+  HTML écrit à la main, la zone de saisie était trop étroite pour y travailler.
+- Elle code aussi ses couleurs en dur, en sombre. Sur un backend en thème clair,
+  la zone restait noire au milieu d'une page blanche. Les deux cas se règlent
+  d'un coup en passant par les jetons du projet, qui suivent le thème.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
 ## [0.9.23] - 2026-08-30
 
 ### Modifié
