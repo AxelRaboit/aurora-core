@@ -11,6 +11,22 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.7] - 2026-08-30
+
+### Corrigé
+
+#### Dernier reste de français dans le `Makefile`
+- La cible `tag`, dépréciée, affichait son explication en français. C'était le
+  dernier endroit du fichier à s'écarter de l'anglais, la 0.9.6 ayant traité
+  les trois cibles ajoutées en 0.9.5. Les messages `echo` du template sont
+  désormais homogènes de bout en bout.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`, qui récupère le `Makefile` par
+`sync-makefile`. Aucun comportement ne change : `make tag` refuse toujours de
+s'exécuter et renvoie vers la publication depuis `master`.
+
 ## [0.9.6] - 2026-08-30
 
 ### Corrigé

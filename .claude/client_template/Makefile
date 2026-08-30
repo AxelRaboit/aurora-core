@@ -148,13 +148,13 @@ outdated: ## Show outdated packages
 
 # === Release ===
 tag: ## Superseded - releases are published from master by .github/workflows/release.yml
-	@echo "❌ 'make tag' ne sert plus, et pouvait nuire."
+	@echo "❌ 'make tag' is gone, and it could do harm."
 	@echo ""
-	@echo "   Il créait un tag sans release et sans préfixe 'v', à côté du flux."
+	@echo "   It created a tag with no release and no 'v' prefix, beside the flow."
 	@echo ""
-	@echo "   Pour publier une version : merger develop sur master."
-	@echo "   Le workflow calcule le numéro depuis les commits conventionnels"
-	@echo "   (feat -> mineure, rupture -> majeure, sinon patch), tague et publie."
+	@echo "   To publish a version: merge develop into master."
+	@echo "   The workflow works the number out from the conventional commits"
+	@echo "   (feat -> minor, breaking -> major, patch otherwise), tags and publishes."
 	@exit 1
 
 # === Symfony Cache ===
