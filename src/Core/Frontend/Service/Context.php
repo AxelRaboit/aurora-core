@@ -13,6 +13,7 @@ use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Doctrine\Common\Collections\Order;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Aggregates site-wide configuration used by public-facing controllers.
@@ -20,10 +21,11 @@ use Symfony\Component\HttpFoundation\RequestStack;
 final class Context
 {
     /**
-     * What the `site_url` parameter ships with. Not a host anyone deploys
-     * on - see siteUrl().
+     * What `site_url` used to ship with, before it was seeded empty. Kept so
+     * the installations that already carry it are not stuck announcing a host
+     * nobody can reach - see siteUrl().
      */
-    private const string PLACEHOLDER_SITE_URL = 'http://localhost';
+    private const string LEGACY_PLACEHOLDER_SITE_URL = 'http://localhost';
 
     /** @var list<LocaleInterface>|null */
     private ?array $cachedLocales = null;
@@ -35,6 +37,7 @@ final class Context
         private readonly SettingRepository $settingRepository,
         private readonly LocaleContextInterface $localeContext,
         private readonly RequestStack $requestStack,
+        private readonly UrlGeneratorInterface $urlGenerator,
     ) {}
 
     /** @return list<LocaleInterface> */
@@ -111,18 +114,24 @@ final class Context
      * `example.com` and `www.example.com` needs its canonical URLs to agree
      * on one of them.
      *
-     * But the parameter ships seeded with `http://localhost`, which nobody
-     * chose. Taking that at face value is how a production deploy ends up
-     * telling search engines that the canonical address of every page is a
-     * host they cannot reach - a failure with no symptom anywhere in the
-     * application. Left at the placeholder, the request's own origin is the
-     * better answer, and the only one available on a live site.
+     * But the parameter can be unset, or still carry the `http://localhost` it
+     * used to be seeded with, which nobody chose. Taking that at face value is
+     * how a production deploy ends up telling search engines that the canonical
+     * address of every page is a host they cannot reach - a failure with no
+     * symptom anywhere in the application.
+     *
+     * Unset, there are two better answers and they are tried in order: the
+     * request's own origin, which is exact on a live site, then the routing
+     * context, which the framework fills from DEFAULT_URI and which is the only
+     * thing a console command has. A worker rendering a canonical tag or a
+     * sitemap entry therefore uses the host the deployment already declared,
+     * instead of a placeholder.
      */
     public function siteUrl(): string
     {
         $configured = mb_rtrim($this->setting(ApplicationParameterEnum::SiteUrl->value, '') ?? '', '/');
 
-        if ('' !== $configured && self::PLACEHOLDER_SITE_URL !== $configured) {
+        if ('' !== $configured && self::LEGACY_PLACEHOLDER_SITE_URL !== $configured) {
             return $configured;
         }
 
@@ -131,10 +140,21 @@ final class Context
             return $request->getSchemeAndHttpHost();
         }
 
-        // No request to learn from - a console command building URLs. The
-        // placeholder is wrong but it is all there is, and returning an empty
-        // string would produce URLs that are wrong in a harder-to-spot way.
-        return '' !== $configured ? $configured : self::PLACEHOLDER_SITE_URL;
+        // No request to learn from - a console command or a Messenger worker.
+        $context = $this->urlGenerator->getContext();
+        $host = $context->getHost();
+
+        if ('' !== $host) {
+            $scheme = $context->getScheme();
+            $port = 'https' === $scheme ? $context->getHttpsPort() : $context->getHttpPort();
+            $suffix = in_array($port, [80, 443], true) ? '' : ':'.$port;
+
+            return $scheme.'://'.$host.$suffix;
+        }
+
+        // Nothing configured anywhere. Returning an empty string would produce
+        // URLs that are wrong in a harder-to-spot way than an obvious host.
+        return '' !== $configured ? $configured : self::LEGACY_PLACEHOLDER_SITE_URL;
     }
 
     public function homepagePostId(): ?int

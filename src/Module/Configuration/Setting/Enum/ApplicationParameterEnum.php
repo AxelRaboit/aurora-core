@@ -171,8 +171,14 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
         return match ($this) {
             self::SiteName => 'Aurora',
             self::SiteDescription => 'Propulsé par Aurora',
-            self::SiteUrl => 'http://localhost',
-            self::AdminEmail => 'admin@aurora.app',
+            // Semes vides, et non avec une valeur plausible. Un `http://localhost`
+            // ou un `admin@aurora.app` affiche dans l'ecran de reglages se lit
+            // comme un choix deja fait : personne ne le corrige, et le site part
+            // en production en annoncant une adresse injoignable. Vide, le champ
+            // dit ce qu'il est. Cf. Context::siteUrl() et MailService::adminEmail(),
+            // qui savent tous deux quoi faire d'une valeur absente.
+            self::SiteUrl => '',
+            self::AdminEmail => '',
             self::DefaultLocale => 'fr',
             self::SingleLocaleMode => '0',
             self::PostsPerPage => '10',

@@ -228,6 +228,53 @@ final class MailServiceTest extends TestCase
         self::assertSame('admin@aurora.test', $this->service->adminEmail());
     }
 
+    /** Le meme service, mais avec un ADMIN_EMAIL renseigne au deploiement. */
+    private function serviceWithDeploymentAdminEmail(string $adminEmail): MailService
+    {
+        return new MailService(
+            $this->mailer,
+            $this->twig,
+            $this->settings,
+            $this->translator,
+            $this->localeSwitcher,
+            'noreply@aurora.local',
+            $adminEmail,
+        );
+    }
+
+    public function testAdminEmailFallsBackToTheDeploymentAddressWhenTheSettingIsUnset(): void
+    {
+        // Personne n'a rempli l'ecran de reglages, mais l'installateur du
+        // serveur a renseigne ADMIN_EMAIL. C'est une adresse qui existe.
+        $this->settings->method('get')->willReturn(null);
+
+        $service = $this->serviceWithDeploymentAdminEmail('ops@aurora.test');
+
+        self::assertSame('ops@aurora.test', $service->adminEmail());
+    }
+
+    public function testAdminEmailIgnoresTheLegacyPlaceholder(): void
+    {
+        // Une installation anterieure porte encore `admin@aurora.app` en base.
+        // Le domaine n'existe pas : les notifications rebondissaient en silence.
+        $this->settings->method('get')->willReturn('admin@aurora.app');
+
+        $service = $this->serviceWithDeploymentAdminEmail('ops@aurora.test');
+
+        self::assertSame('ops@aurora.test', $service->adminEmail());
+    }
+
+    public function testAdminEmailPrefersTheSettingOverTheDeploymentAddress(): void
+    {
+        // Un choix explicite d'administrateur gagne : c'est tout l'interet
+        // d'avoir un reglage editable sans redeploiement.
+        $this->settings->method('get')->willReturn('editor@aurora.test');
+
+        $service = $this->serviceWithDeploymentAdminEmail('ops@aurora.test');
+
+        self::assertSame('editor@aurora.test', $service->adminEmail());
+    }
+
     public function testSendToAdminDelegatesWhenAdminEmailIsSet(): void
     {
         // adminEmail set + siteName resolves + everything happens as a

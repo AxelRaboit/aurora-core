@@ -13,6 +13,8 @@ use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RequestContext;
 
 #[AllowMockObjectsWithoutExpectations]
 final class ContextTest extends TestCase
@@ -39,9 +41,30 @@ final class ContextTest extends TestCase
         return $locale;
     }
 
-    private function makeContext(): Context
+    /** Un generateur dont le contexte de routage ne dit rien : DEFAULT_URI non renseigne. */
+    private function makeUrlGenerator(string $host = '', string $scheme = 'http', int $httpPort = 80, int $httpsPort = 443): UrlGeneratorInterface
     {
-        return new Context($this->localeRepository, $this->settingRepository, $this->localeContext, new RequestStack());
+        $context = new RequestContext();
+        $context->setHost($host);
+        $context->setScheme($scheme);
+        $context->setHttpPort($httpPort);
+        $context->setHttpsPort($httpsPort);
+
+        $generator = $this->createMock(UrlGeneratorInterface::class);
+        $generator->method('getContext')->willReturn($context);
+
+        return $generator;
+    }
+
+    private function makeContext(?UrlGeneratorInterface $urlGenerator = null): Context
+    {
+        return new Context(
+            $this->localeRepository,
+            $this->settingRepository,
+            $this->localeContext,
+            new RequestStack(),
+            $urlGenerator ?? $this->makeUrlGenerator(),
+        );
     }
 
     public function testActiveLocalesQueriesTheRepositoryOncePerInstance(): void
@@ -75,7 +98,13 @@ final class ContextTest extends TestCase
             $this->makeLocale('es'),
         ]);
 
-        $context = new Context($this->localeRepository, $this->settingRepository, $localeContext, new RequestStack());
+        $context = new Context(
+            $this->localeRepository,
+            $this->settingRepository,
+            $localeContext,
+            new RequestStack(),
+            $this->makeUrlGenerator(),
+        );
 
         $codes = array_map(static fn (LocaleInterface $l) => $l->getCode(), $context->activeLocales());
         self::assertSame(['fr'], $codes);
