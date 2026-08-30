@@ -169,3 +169,20 @@
         --th-accent-950: oklch(0.160 0.149 162.480);
     }
 }
+
+/* Surfaces colorables du frontend public (topbar, pied de page).
+ *
+ * ThemeContext n'emet une regle pour ces selecteurs que lorsqu'une couleur est
+ * configuree ; sans regle, --th-surface-bg reste indefini et le repli
+ * `transparent` laisse la surface heritee du body, c'est-a-dire l'apparence
+ * historique. Rien ne change tant que personne ne choisit de couleur.
+ *
+ * L'interet de poser la couleur sur une variable plutot qu'en dur : la regle
+ * injectee redefinit au meme endroit tout le jeu de jetons de la surface
+ * (--th-primary, --th-secondary, --color-border, --th-bg...). Les proprietes
+ * personnalisees etant heritees, les enfants suivent sans exception - y compris
+ * les panneaux de menu deroulant, qui sont peints en `bg-bg` et se retrouvent
+ * donc sur le fond de leur topbar et non sur celui de la page. */
+.aurora-surface {
+    background-color: var(--th-surface-bg, transparent);
+}

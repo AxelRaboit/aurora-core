@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Palette, Check, Pencil, Trash2, Plus, Save, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -10,6 +11,7 @@ import AppColorSwatch from "@/shared/components/form/picker/AppColorSwatch.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
+import { bestContrastRatio, meetsAaa, needsLightText } from "@/shared/utils/format/surfaceContrast.js";
 import { useThemesList } from "@configuration/backend/themes/composables/useThemesList.js";
 import { useThemesActivate } from "@configuration/backend/themes/composables/useThemesActivate.js";
 import { useThemesCreate } from "@configuration/backend/themes/composables/useThemesCreate.js";
@@ -38,8 +40,36 @@ const props = defineProps({
 const { themeList, accentColor } = useThemesList(props.themes);
 const { activateTheme } = useThemesActivate(themeList, props.activatePath);
 const { createModal, createForm, openCreate, submitCreate } = useThemesCreate(themeList, props.createPath, { extraFields: props.extraFields });
-const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, footerText, headerLogoMediaId, headerCustomText, headerMode, primaryColor, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
+const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, footerText, headerLogoMediaId, headerCustomText, headerMode, primaryColor, surfaceColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
 const { deletingTheme, confirmDelete } = useThemesDelete(themeList, props.deletePath);
+
+/**
+ * Les trois surfaces colorables du site public.
+ *
+ * Le calcul de contraste affiché ici est un miroir client du service PHP qui
+ * décide réellement du rendu. Il n'existe que pour le retour immédiat pendant
+ * qu'on déplace le curseur de couleur.
+ */
+const SURFACES = computed(() => [
+    { key: "background_color", label: t("backend.themes.surface_background") },
+    { key: "header_color", label: t("backend.themes.surface_header") },
+    { key: "footer_color", label: t("backend.themes.surface_footer") },
+]);
+
+function contrastNote(hex) {
+    if (!hex) return t("backend.themes.surface_unset");
+
+    const text = needsLightText(hex)
+        ? t("backend.themes.surface_light_text")
+        : t("backend.themes.surface_dark_text");
+    const ratio = t("backend.themes.surface_ratio", {
+        ratio: bestContrastRatio(hex).toFixed(1),
+    });
+
+    return meetsAaa(hex)
+        ? `${text} · ${ratio}`
+        : `${text} · ${ratio} · ${t("backend.themes.surface_below_aaa")}`;
+}
 </script>
 
 <template>
@@ -197,6 +227,34 @@ const { deletingTheme, confirmDelete } = useThemesDelete(themeList, props.delete
                         </div>
                         <span class="text-xs font-mono text-muted">{{ primaryColor }}</span>
                         <AppTextLinkButton color="muted" size="xs" :title="t('backend.themes.reset_color')" v-on:click="resetPrimaryColor">↺</AppTextLinkButton>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5 pt-6 border-t border-line/60">
+                    <span class="block text-xs text-secondary uppercase tracking-wide font-semibold">{{ t('backend.themes.surfaces') }}</span>
+                    <p class="text-xs text-muted">{{ t('backend.themes.surfaces_hint') }}</p>
+                    <div class="grid grid-cols-1 gap-2 pt-1">
+                        <div v-for="surface in SURFACES" :key="surface.key" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                            <AppColorSwatch
+                                :model-value="surfaceColors[surface.key] || '#ffffff'"
+                                size="sm"
+                                v-on:update:model-value="surfaceColors[surface.key] = $event"
+                            />
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <span class="text-xs font-medium text-primary">{{ surface.label }}</span>
+                                <span class="text-xs text-muted truncate">{{ contrastNote(surfaceColors[surface.key]) }}</span>
+                            </div>
+                            <span v-if="surfaceColors[surface.key]" class="text-xs font-mono text-muted">{{ surfaceColors[surface.key] }}</span>
+                            <AppTextLinkButton
+                                v-if="surfaceColors[surface.key]"
+                                color="muted"
+                                size="xs"
+                                :title="t('backend.themes.reset_color')"
+                                v-on:click="surfaceColors[surface.key] = ''"
+                            >
+                                ↺
+                            </AppTextLinkButton>
+                        </div>
                     </div>
                 </div>
 

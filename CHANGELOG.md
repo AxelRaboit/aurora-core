@@ -53,6 +53,50 @@ auquel cas ce listing ne s'affiche plus.
 
 Rien à faire.
 
+## [0.9.14] - 2026-08-30
+
+### Ajouté
+
+#### Le site public se colore depuis l'écran de thème
+- Trois couleurs, une par surface : le fond des pages, la barre de navigation et
+  le pied de page. Chacune se choisit dans la palette de presets existante ou en
+  hexadécimal, et se réinitialise pour revenir au défaut.
+- La couleur du texte n'est pas un second réglage : elle est **déduite**. Le
+  nouveau service `SurfaceContrast` compare le rapport de contraste WCAG du fond
+  contre le noir et contre le blanc, et retient le meilleur.
+- Ce qu'il retient n'est pas une couleur mais **tout un jeu de jetons** : texte
+  fort, libellés, mentions discrètes, surfaces et bordures. Ne basculer que la
+  couleur principale aurait laissé les gris moyens et les traits de séparation
+  invisibles sur un fond sombre. Les deux jeux sont ceux que `theme.css` définit
+  déjà pour `:root` et `.dark`, éprouvés par le backend.
+- Les menus déroulants suivent leur barre. C'est acquis sans toucher à leur
+  balisage : les règles émises redéfinissent les jetons **sur l'élément de
+  surface**, et les propriétés personnalisées CSS étant héritées, tout ce que la
+  barre contient suit, y compris les panneaux peints en `bg-bg`.
+- Une surface sans couleur n'émet aucune règle. L'apparence historique reste donc
+  le comportement par défaut, sans valeur à maintenir nulle part.
+
+#### Ce que le calcul de contraste a appris au passage
+- L'écran signale le seuil **AAA** (7:1) et non AA (4,5:1), et ce n'est pas un
+  excès de zèle : AA ne peut pas échouer ici. En retenant toujours le meilleur du
+  noir et du blanc, le rapport ne descend jamais sous **4,608:1**, minimum atteint
+  sur le gris `#757575`. Un avertissement AA aurait été une interface qui ne
+  s'allume jamais. Le plancher est vérifié par un test qui rebalaie les 256 gris,
+  des deux côtés, PHP et JavaScript.
+
+### Précédence
+
+L'écran de thème expose maintenant deux mécanismes qui touchent aux mêmes
+variables : ces trois couleurs, qui déduisent tout un jeu, et la pose d'une
+variable `--th-*` à la main, qui existait déjà. **La seconde gagne** : c'est
+l'échappatoire, et une échappatoire qui perd ne sert à rien. Concrètement, le CSS
+des surfaces est rendu avant les overrides bruts.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`. Un thème existant garde son
+apparence tant que personne n'ouvre l'écran pour choisir une couleur.
+
 ## [0.9.13] - 2026-08-30
 
 ### Supprimé

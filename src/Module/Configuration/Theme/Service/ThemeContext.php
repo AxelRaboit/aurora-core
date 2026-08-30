@@ -32,6 +32,7 @@ final class ThemeContext
         private readonly ThemeRepository $themeRepository,
         private readonly DocumentRepository $documentRepository,
         private readonly PrimaryColorPalette $primaryColorPalette,
+        private readonly SurfaceContrast $surfaceContrast,
         private readonly DocumentUrlGenerator $documentUrlGenerator,
     ) {}
 
@@ -152,5 +153,55 @@ final class ThemeContext
         }
 
         return implode(' ', $parts);
+    }
+
+    /**
+     * Clés de `Theme::config` portant les couleurs des trois surfaces publiques,
+     * associées au sélecteur qu'elles habillent.
+     */
+    private const array SURFACES = [
+        'background_color' => 'html[data-theme]',
+        'header_color' => 'html[data-theme] .aurora-surface-header',
+        'footer_color' => 'html[data-theme] .aurora-surface-footer',
+    ];
+
+    /**
+     * Le CSS qui colore le frontend public à partir des couleurs choisies dans
+     * l'écran de thème.
+     *
+     * Une surface non configurée n'émet aucune règle : l'apparence historique
+     * (fond clair, texte sombre, topbar et pied transparents) est donc le
+     * comportement par défaut, sans valeur à maintenir quelque part.
+     *
+     * Chaque règle pose le fond **et** le jeu de jetons contrasté qui va avec,
+     * au même endroit. Les propriétés personnalisées étant héritées, tout ce que
+     * la surface contient suit : libellés, mentions discrètes, bordures, et les
+     * panneaux de menu déroulant, peints en `bg-bg`, qui se retrouvent ainsi sur
+     * le fond de leur topbar plutôt que sur celui de la page.
+     */
+    public function frontendSurfacesCss(): string
+    {
+        $config = $this->activeTheme()?->getConfig() ?? [];
+        $rules = [];
+
+        foreach (self::SURFACES as $key => $selector) {
+            $color = $config[$key] ?? null;
+            if (!is_string($color)) {
+                continue;
+            }
+
+            if ('' === mb_trim($color)) {
+                continue;
+            }
+
+            $declarations = ['--th-surface-bg: '.$color.';', '--th-bg: '.$color.';'];
+            foreach ($this->surfaceContrast->tokensFor($color) as $token => $value) {
+                $declarations[] = $token.': '.$value.';';
+            }
+
+            $rules[] = $selector.'{'.implode('', $declarations).'}';
+        }
+
+        return implode('', $rules);
     }
 }

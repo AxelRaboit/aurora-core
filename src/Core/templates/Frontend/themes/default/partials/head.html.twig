@@ -96,6 +96,16 @@
 {{ vite_entry_script_tags('flash') }}
 <script>window.__flash__ = {{ app.flashes|json_encode|raw }};</script>
 
+{# Couleurs des surfaces publiques, déduites des couleurs choisies par surface.
+   Rendues AVANT les overrides bruts ci-dessous, et c'est délibéré : l'écran de
+   thème expose les deux mécanismes, la couche curatée qui déduit tout un jeu de
+   jetons d'une seule couleur, et la pose d'une variable `--th-*` à la main. La
+   seconde est l'échappatoire, donc elle gagne. #}
+{% set surfacesCss = themeContext.frontendSurfacesCss() %}
+{% if surfacesCss %}
+    <style>{{ surfacesCss|raw }}</style>
+{% endif %}
+
 {% set cssOverrides = themeContext.cssVariableOverrides() %}
 {% if cssOverrides %}
     <style>html[data-theme] { {{ cssOverrides|raw }} }</style>
