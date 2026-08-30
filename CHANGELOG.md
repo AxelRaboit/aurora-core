@@ -11,6 +11,41 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.0] - 2026-08-30
+
+### Ajouté
+
+#### La colonne Aperçu ouvre la modale de prévisualisation
+- En mode grille, cliquer une carte ouvrait déjà la modale du document. En
+  mode liste, la colonne Aperçu montrait la même vignette et ne faisait rien.
+- La cellule est maintenant un vrai bouton : accessible au clavier, anneau de
+  focus, `aria-label` qui nomme le document. Elle respecte le mode sélection
+  comme les cartes.
+
+#### `aurora:ged:prune-orphans`
+- Liste, et avec `--force` supprime, les fichiers de `var/uploads/ged/` qu'aucune
+  ligne ne référence. Le correctif 0.8.1 arrête les nouveaux orphelins ; celui-ci
+  s'occupe de ceux déjà présents.
+- Refuse de toucher aux fichiers récents : l'endpoint d'upload écrit les octets
+  avant la soumission du formulaire, donc un fichier sans ligne est peut-être
+  simplement un formulaire ouvert. `--days` vaut 7 par défaut.
+- À blanc par défaut ; rien n'est supprimé sans `--force`.
+
+### Modifié
+
+- Les fixtures de démonstration n'embarquent plus de photographies
+  personnelles : `me.jpg` et `previous_job.jpg` sont remplacées par deux
+  dégradés générés aux mêmes dimensions.
+
+### Dans aurora-client
+
+Pour récupérer l'espace disque des anciennes suppressions :
+
+```bash
+php bin/console aurora:ged:prune-orphans          # liste, ne supprime rien
+php bin/console aurora:ged:prune-orphans --force  # supprime
+```
+
 ## [0.8.2] - 2026-08-30
 
 ### Ajouté

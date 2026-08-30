@@ -87,8 +87,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         $defs = [
             ['src' => 'images/ai-generated-8359510_1280-1816135935.jpg', 'name' => 'hero-banner.jpg',      'original' => 'hero-banner.jpg',    'mime' => 'image/jpeg', 'w' => 1280, 'h' => 853],
             ['src' => 'images/canadian-flag-canada-maple-country-wallpaper-1506073439.jpg', 'name' => 'landscape.jpg', 'original' => 'landscape.jpg', 'mime' => 'image/jpeg', 'w' => 1280, 'h' => 720],
-            ['src' => 'images/me.jpg',           'name' => 'portrait-team.jpg',  'original' => 'portrait-team.jpg',  'mime' => 'image/jpeg', 'w' => 800,  'h' => 1000],
-            ['src' => 'images/previous_job.jpg', 'name' => 'office-setup.jpg',   'original' => 'office-setup.jpg',   'mime' => 'image/jpeg', 'w' => 1200, 'h' => 800],
+            ['src' => 'images/portrait-placeholder.jpg',  'name' => 'portrait-team.jpg', 'original' => 'portrait-team.jpg', 'mime' => 'image/jpeg', 'w' => 800,  'h' => 1000],
+            ['src' => 'images/workspace-placeholder.jpg', 'name' => 'office-setup.jpg',  'original' => 'office-setup.jpg',  'mime' => 'image/jpeg', 'w' => 1200, 'h' => 800],
             ['src' => 'videos/sample-30s-720p.mp4',  'name' => 'demo-video.mp4',   'original' => 'demo-video.mp4',   'mime' => 'video/mp4',  'w' => 1280, 'h' => 720],
             ['src' => 'files/invoices/Commercial-Invoice-Sample.webp', 'name' => 'invoice-sample.webp', 'original' => 'invoice-sample.webp', 'mime' => 'image/webp', 'w' => 0, 'h' => 0],
         ];
