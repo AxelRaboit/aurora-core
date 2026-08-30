@@ -7,10 +7,11 @@ type: project
 ## Règle
 
 Chaque module porte ses propres données de démo dans
-`src/Module/<X>/DataFixtures/<X>DemoFixtures.php` (ex. `HrDemoFixtures`,
-`EditorialDemoFixtures`). Plus de `DemoFixtures` monolithique central - il
-couplait le core à toutes les entités modules et cassait les clients à-la-carte
-qui n'installent qu'un sous-ensemble. Chaque classe :
+`fixtures/<X>/<X>DemoFixtures.php`, namespace `Aurora\Fixtures\<X>` (ex.
+`fixtures/Editorial/EditorialDemoFixtures.php`). Plus de `DemoFixtures`
+monolithique central - il couplait le core à toutes les entités modules et
+cassait les clients à-la-carte qui n'installent qu'un sous-ensemble. Chaque
+classe :
 
 - `extends Fixture implements DependentFixtureInterface, FixtureGroupInterface`
 - `getGroups(): ['demo']` (cf. [[convention_fixture_group_demo]])
@@ -19,20 +20,33 @@ qui n'installent qu'un sous-ensemble. Chaque classe :
 ## Chargement dev-only (jamais en prod)
 
 `doctrine/doctrine-fixtures-bundle` est **require-dev** → la classe `Fixture`
-est absente en prod. Le câblage garantit qu'aucune fixture n'est compilée dans
-un build `--no-dev` :
+est absente en prod. Deux verrous, et il faut les deux :
 
-- **Modules extraits** (bundle standalone) :
-  `AbstractAuroraModuleBundle::loadExtension` enregistre `DataFixtures/` comme
-  services **seulement** si `kernel.environment ∈ {dev,test}` ET
-  `class_exists(Fixture::class)`. Le `config/services.php` du module **exclut**
-  `DataFixtures` de son glob (`{config,templates,translations,assets,DataFixtures}`)
-  pour éviter une double-registration.
-- **Core + modules core-kept** (Ged, etc. - chargés par le glob central
-  `Aurora\:`, pas un bundle) : `config/services.yaml` **exclut**
-  `src/Core/DataFixtures/` et `src/Module/Ged/DataFixtures/` du glob, et les
-  recharge via `when@dev:` / `when@test:`. `AuroraBundle` importe ce
-  `services.yaml` → le gating protège aussi le prod des clients.
+- **L'emplacement, `fixtures/` et non `src/`.** C'est le verrou qui compte.
+  Plusieurs mécanismes parcourent `src/` répertoire par répertoire et
+  **autoloadent chaque classe rencontrée** avant de décider quoi en faire : le
+  driver attribut de Doctrine (`getAllClassNames()`), le loader de routes
+  attributaires (`AttributeDirectoryLoader`, via le `resource:
+  '../vendor/axelraboit/aurora/src/' type: attribute` du `routes.yaml` client),
+  et le glob de services. Charger une classe qui étend un `Fixture` absent est
+  une erreur fatale, pas un skip. Une liste d'exclusions doit être maintenue à
+  chaque nouveau scanner ; un répertoire hors `src/` n'est visité par aucun.
+- **L'enregistrement en services**, dev/test uniquement : `config/services.yaml`
+  déclare `Aurora\Fixtures\: '../fixtures/'` sous `when@dev:` et `when@test:`.
+  `AuroraBundle` importe ce `services.yaml` → le gating protège aussi le prod
+  des clients.
+
+Pour les **modules extraits** (bundle standalone),
+`AbstractAuroraModuleBundle::loadExtension` enregistre `DataFixtures/` comme
+services seulement si `kernel.environment ∈ {dev,test}` ET
+`class_exists(Fixture::class)`, et le `config/services.php` du module exclut
+`DataFixtures` de son glob.
+
+> ⚠️ Le premier verrou manque encore côté modules extraits : leur
+> `DataFixtures/` vit dans le répertoire du paquet, et `AuroraModuleRouteLoader`
+> importe ce répertoire entier en `type: attribute`. Le premier module réellement
+> extrait qui ship des fixtures reproduira le bug. À traiter en les sortant vers
+> un `fixtures/` du paquet, comme ici.
 
 ## Données partagées via références (découplage cross-module)
 

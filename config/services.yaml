@@ -26,19 +26,6 @@ services:
     # this creates a service per class whose id is the fully-qualified class name
     Aurora\:
         resource: '../src/'
-        # Extracted module packages ship their own config/services.php (loaded by
-        # their bundle) - exclude them here to avoid double registration.
-        # (Monorepo-split: each behaves as a separate Composer package.)
-        exclude:
-            # Fixtures extend doctrine/doctrine-fixtures-bundle's Fixture (a dev
-            # dependency, absent in prod). Loaded dev/test-only via when@dev
-            # below so a client's --no-dev build never compiles them. Ged is a
-            # core module (loaded by this glob, not a standalone bundle), so its
-            # DataFixtures need the same gating; a module shipped as its own
-            # package handles it in its services.php + AbstractAuroraModuleBundle.
-            - '../src/Core/DataFixtures/'
-            - '../src/Module/Ged/DataFixtures/'
-            - '../src/Module/Editorial/DataFixtures/'
 
     # Auto-tag every MediaUsageProvider so the aggregator service collects them.
     # Auto-tag every registered front so the Registry collects them.
@@ -158,30 +145,27 @@ services:
         arguments:
             $mailerFrom: '%app.mailer_from%'
 
-# Core fixtures are dev/test-only (see exclude above). AuroraBundle imports this
-# file into every client, so this gating protects client prod builds too.
+# Fixtures live in fixtures/, outside src/, precisely so that nothing scanning
+# src/ can reach them: the Doctrine attribute driver and the attribute route
+# loader both walk those directories file by file and autoload every class they
+# find, and these extend doctrine/doctrine-fixtures-bundle's Fixture, which is a
+# dev dependency. Registering them as services stays dev/test-only on top of
+# that. AuroraBundle imports this file into every client, so the gating protects
+# client prod builds too.
 when@dev:
     services:
         _defaults:
             autowire: true
             autoconfigure: true
-        Aurora\Core\DataFixtures\:
-            resource: '../src/Core/DataFixtures/'
-        Aurora\Module\Ged\DataFixtures\:
-            resource: '../src/Module/Ged/DataFixtures/'
-        Aurora\Module\Editorial\DataFixtures\:
-            resource: '../src/Module/Editorial/DataFixtures/'
+        Aurora\Fixtures\:
+            resource: '../fixtures/'
 
 when@test:
     services:
         _defaults:
             autowire: true
             autoconfigure: true
-        Aurora\Core\DataFixtures\:
-            resource: '../src/Core/DataFixtures/'
-        Aurora\Module\Ged\DataFixtures\:
-            resource: '../src/Module/Ged/DataFixtures/'
-        Aurora\Module\Editorial\DataFixtures\:
-            resource: '../src/Module/Editorial/DataFixtures/'
+        Aurora\Fixtures\:
+            resource: '../fixtures/'
 
 

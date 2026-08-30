@@ -18,7 +18,7 @@ final class DemoFixtureFilesExistTest extends TestCase
     public function testEveryDemoSourceFileIsPresent(): void
     {
         $root = dirname(__DIR__, 4);
-        $fixture = $root.'/src/Module/Ged/DataFixtures/GedDemoFixtures.php';
+        $fixture = $root.'/fixtures/Ged/GedDemoFixtures.php';
         $source = file_get_contents($fixture);
         self::assertIsString($source);
 

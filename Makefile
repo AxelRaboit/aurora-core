@@ -335,7 +335,10 @@ db-test: ## Create and migrate the test database
 
 # === Code Quality ===
 stan: ## Run PHPStan
-	$(PHPSTAN) analyse -c $(AURORA)/tools/phpstan/phpstan.neon --memory-limit 1G
+	# Chemins passes en CLI (ils remplacent ceux du neon) : la config est
+	# partagee avec les projets clients, qui n'ont pas de fixtures/ et sur
+	# lesquels PHPStan echouerait sur un chemin absent.
+	$(PHPSTAN) analyse -c $(AURORA)/tools/phpstan/phpstan.neon --memory-limit 1G config src fixtures
 
 lint-php: ## Check PHP code style (dry-run)
 	$(PHP_CS_FIXER) fix --dry-run --config=$(AURORA)/.php-cs-fixer.dist.php

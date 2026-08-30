@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Module\Editorial\DataFixtures;
+namespace Aurora\Fixtures\Editorial;
 
-use Aurora\Core\DataFixtures\CoreDemoFixtures;
 use Aurora\Core\Sequence\SequencePrefixEnum;
+use Aurora\Fixtures\Core\CoreDemoFixtures;
+use Aurora\Fixtures\Ged\GedDemoFixtures;
 use Aurora\Module\Editorial\Menu\Entity\MenuInterface;
 use Aurora\Module\Editorial\Menu\Entity\MenuItem;
 use Aurora\Module\Editorial\Menu\Enum\MenuItemTargetTypeEnum;
@@ -26,7 +27,6 @@ use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTerm;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
-use Aurora\Module\Ged\DataFixtures\GedDemoFixtures;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;

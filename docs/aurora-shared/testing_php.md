@@ -266,7 +266,7 @@ php -d pcov.enabled=1 bin/phpunit tests/Unit/Module/Billing --coverage
 
 ## Fixtures
 
-Les fixtures sont définies dans `src/Core/DataFixtures/AppFixtures.php`. Elles créent les données minimales nécessaires aux tests d'intégration (users, post types, etc.).
+Les fixtures sont définies dans `fixtures/Core/AppFixtures.php`. Elles créent les données minimales nécessaires aux tests d'intégration (users, post types, etc.).
 
 `IntegrationTestCase::setUpBeforeClass()` les charge **une seule fois par classe** avec `ORMPurger` → isolation des données entre classes mais pas entre méthodes. Si un test modifie des données, prévoir un `tearDown()` pour nettoyer.
 
