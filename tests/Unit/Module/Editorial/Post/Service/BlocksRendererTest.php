@@ -6,6 +6,7 @@ namespace Aurora\Tests\Unit\Module\Editorial\Post\Service;
 
 use Aurora\Core\Content\BlockHtmlSanitizer;
 use Aurora\Core\Content\BlockRendererInterface;
+use Aurora\Core\Content\RawHtmlSanitizer;
 use Aurora\Module\Editorial\Post\Service\BlocksRenderer;
 use PHPUnit\Framework\TestCase;
 
@@ -206,12 +207,24 @@ final class BlocksRendererTest extends TestCase
         ]));
     }
 
+    public function testARawBlockRendersItsHtmlThroughTheWiderFilter(): void
+    {
+        // Le point du bloc : ce que le filtre du texte courant supprimerait
+        // passe ici, sans que les scripts passent pour autant.
+        $out = $this->render([
+            ['type' => 'raw', 'data' => ['html' => '<table class="t"><tr><td>1</td></tr></table><script>alert(1)</script>']],
+        ]);
+
+        self::assertStringContainsString('<table class="t">', $out);
+        self::assertStringNotContainsString('script', $out);
+    }
+
     /**
      * @param array<int, mixed>            $blocks
      * @param list<BlockRendererInterface> $extensions
      */
     private function render(array $blocks, array $extensions = []): string
     {
-        return (new BlocksRenderer(new BlockHtmlSanitizer(), $extensions))->render($blocks, 'fr');
+        return (new BlocksRenderer(new BlockHtmlSanitizer(), new RawHtmlSanitizer(), $extensions))->render($blocks, 'fr');
     }
 }

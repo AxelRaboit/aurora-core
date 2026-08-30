@@ -6,6 +6,7 @@ namespace Aurora\Module\Editorial\Post\Service;
 
 use Aurora\Core\Content\BlockHtmlSanitizer;
 use Aurora\Core\Content\BlockRendererInterface;
+use Aurora\Core\Content\RawHtmlSanitizer;
 use Aurora\Core\Support\Num;
 use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
@@ -26,6 +27,7 @@ final readonly class BlocksRenderer
      */
     public function __construct(
         private BlockHtmlSanitizer $sanitizer,
+        private RawHtmlSanitizer $rawSanitizer,
         #[AutowireIterator('aurora.content_block_renderer')]
         private iterable $blockRenderers,
     ) {}
@@ -61,6 +63,7 @@ final readonly class BlocksRenderer
             'list' => $this->renderList($data),
             'quote' => $this->renderQuote($data),
             'code' => $this->renderCode($data),
+            'raw' => $this->renderRaw($data),
             'delimiter' => '<hr class="my-8 border-line">',
             'image' => $this->renderImage($data),
             'embed' => $this->renderEmbed($data),
@@ -160,6 +163,23 @@ final readonly class BlocksRenderer
     }
 
     /** @param array<string, mixed> $data */
+    /**
+     * Le bloc « code source » : du HTML ecrit a la main, rendu tel quel.
+     *
+     * Il passe par RawHtmlSanitizer et non par le filtre du texte courant, qui
+     * le viderait de tout ce qui justifie son existence - tableaux, figures,
+     * lecteurs integres. Ce second filtre est nettement plus large, mais ferme
+     * aux memes choses : scripts, gestionnaires d'evenements, URL `javascript:`,
+     * formulaires, et les cadres vers un hote non liste.
+     *
+     * A ne pas confondre avec le bloc `code`, juste au-dessus, qui echappe tout
+     * pour montrer du code plutot que l'executer.
+     */
+    private function renderRaw(array $data): string
+    {
+        return $this->rawSanitizer->safe($data['html'] ?? '');
+    }
+
     private function renderCode(array $data): string
     {
         // Escaped whole rather than sanitized: code is meant to be read, not
