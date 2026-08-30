@@ -187,6 +187,7 @@ backend:
       quote: Quote
       code: Code
       delimiter: Delimiter
+      raw: Raw HTML
       table: Table
       image: Image
       embed: Embed

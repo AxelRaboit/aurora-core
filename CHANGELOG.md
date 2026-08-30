@@ -11,6 +11,28 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.23] - 2026-08-30
+
+### Modifié
+
+#### Le séparateur ressemble enfin à ce qu'il produit
+- L'outil existait déjà, sous le nom « Séparateur », et son rendu public est un
+  `<hr>`. Mais `@editorjs/delimiter` dessine **trois astérisques** dans
+  l'éditeur, et l'écart suffit à ce qu'on cherche l'outil sans le reconnaître :
+  `* * *` ne se lit pas comme une ligne de séparation.
+- L'éditeur affiche désormais la ligne que le lecteur verra.
+
+### Corrigé
+
+#### Le bloc HTML brut s'appelait « Raw HTML » en français
+- Ajouté en 0.9.21, il avait échappé au dictionnaire des noms d'outils : il
+  apparaissait en anglais au milieu d'une liste traduite. Il s'appelle
+  maintenant « HTML brut ».
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
 ## [0.9.22] - 2026-08-30
 
 ### Ajouté
