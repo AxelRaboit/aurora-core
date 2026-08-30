@@ -35,7 +35,6 @@ const data = await request(url, payload);
 
 ### Patterns hauts niveau (préférer quand applicable)
 - `useFormAction({ rules, url, body, onSuccess })` - pour les actions de formulaire create/edit
-- `useFormModal({ empty, fromEntity, createUrl, editUrl, ... })` - pour les modales create+edit
 - `useServerErrors` - pour la gestion des erreurs serveur (translate + toast _global + setErrors)
 
 ## Pourquoi

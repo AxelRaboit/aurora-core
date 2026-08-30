@@ -122,7 +122,7 @@ In `src/Module/<Module>/assets/backend/<plural>/`
     full form. Two acceptable shapes:
     - Literal spread: grep for `\.\.\.(editForm|form)` in a `request(...)`
       call.
-    - Via `useFormModal({ empty, fromEntity, ... })`: the abstraction handles
+    - Via `useFormAction`: the abstraction handles
       the spread internally. In that case, verify that `empty()` and
       `fromEntity()` both merge `Object.fromEntries(Object.entries(extraFields)...)`
       so client extras land in the form. This is the canonical Agency

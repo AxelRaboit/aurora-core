@@ -32,8 +32,7 @@ const ok = validate({ name: () => required(t('required'))(form.name) });
 if (!ok) return;
 ```
 
-Préférer **`useFormAction`** ou **`useFormModal`** dans 90 % des cas - `useForm`
-ne fait pas le HTTP.
+Préférer **`useFormAction`** dans 90 % des cas - `useForm` ne fait pas le HTTP.
 
 ### `useServerErrors()`
 
@@ -69,27 +68,6 @@ const { errors, loading, submit, validate, clearErrors } = useFormAction({
 Pitfall : `url` et `body` sont des **getters lazy** - ils sont appelés à
 chaque `submit()`. Pratique pour les URLs avec ID dynamique.
 
-### `useFormModal({ empty, fromEntity?, createUrl, editUrl, buildBody?, rules?, onSuccess? })`
-
-Pattern unifié **create + edit** dans une seule modale. Gère l'état
-`modal.open` + `modal.entity` + reset du form selon le mode.
-
-```js
-const { modal, form, errors, loading, openCreate, openEdit, submit, close } = useFormModal({
-    empty:      () => ({ name: '' }),
-    fromEntity: (item) => ({ name: item.name }),
-    createUrl:  () => createPath,
-    editUrl:    (item) => buildPath(updatePath, { id: item.id }),
-    rules:      () => ({ name: () => required(t('required'))(form.name) }),
-    onSuccess:  ({ isCreate }) => {
-        toast.success(t(isCreate ? 'created' : 'updated'));
-        reload();
-    },
-});
-```
-
-Template : `<AppModal :show="modal.open" v-on:close="close">…</AppModal>`.
-
 ### `useDelete(deletePath, onSuccess, successMessageKey)`
 
 Flow confirmer → supprimer pour les CRUD admin. `deletePath` et
@@ -123,51 +101,6 @@ Template type :
     </template>
 </AppModal>
 ```
-
-### `useDetailDelete(deletePath, redirectPath)`
-
-Variante pour les **pages détail** : POST sur `deletePath`, sur succès redirige
-vers `redirectPath` (full reload).
-
-```js
-const { showDelete, loading, submit } = useDetailDelete(deletePath, listPath);
-```
-
-### `useInlineEdit()`
-
-Inline-edit `{field, value}` + autres mutations one-shot (validate, approve, …).
-
-```js
-const { submit, saveField, request } = useInlineEdit();
-
-await saveField(url, 'status', 'paid');                          // toast "Saved" auto
-await submit(url, { field: 'status', value: 'paid' }, { silent: true });
-```
-
-Différence avec `useFormAction` : pas de validation client, pas d'erreurs
-réactives - c'est pour les mutations "one button click → toast".
-
-### `useSlugLock({ getTitle, setSlug })`
-
-Slug auto-suit le titre tant que verrouillé ; débloquable manuellement.
-Utilisé par `aurora-editorial`, qui expose le cadenas dans son éditeur de post.
-
-À ne pas confondre avec [`slugifyIfEmpty`](#slugifytext--slugifyifemptycurrentslug-source),
-qui ne remplit le slug que s'il est vide et ne le suit jamais ensuite. Les deux
-existent parce qu'ils répondent à deux besoins différents : un cadenas visible
-que l'utilisateur ouvre, ou un simple amorçage à la saisie. **Ne câblez
-`useSlugLock` que si vous affichez son `toggle`** : verrouillé sans affordance,
-il réécrit l'URL d'un contenu publié dès qu'on corrige son titre.
-
-```js
-const { locked, toggle } = useSlugLock({
-    getTitle: () => form.translations[locale].name,
-    setSlug:  (slug) => { form.translations[locale].slug = slug; },
-});
-```
-
-Pitfall : `getTitle`/`setSlug` sont des fonctions, pas des `ref()` - c'est
-volontaire pour cibler un champ nested dans `editForm`.
 
 ### `useAuthForm(initialErrors?)`
 
@@ -222,17 +155,6 @@ const { items, loading, page, totalPages, total, load, goToPage, reset } =
 
 Pitfall : retourne `null` pour les paramètres `undefined/null/""` - ils ne
 sont **pas** sérialisés dans l'URL. Pratique pour de la recherche optionnelle.
-
-### Backend - `useLoadMore(path, initial?, getExtraParams?)`
-
-Pagination "Load more" : append au lieu de remplacer.
-
-```js
-const { items, page, totalPages, hasMore, loading, loadMore } =
-    useLoadMore('/api/posts', { items: ssrItems, page: 1, totalPages: 5 });
-```
-
-Template : `<AppLoadMore :has-more="hasMore" :loading="loading" v-on:load="loadMore" />`.
 
 ### Backend - `useImageUpload({ onSuccess, onError, endpoint? })`
 
@@ -384,18 +306,6 @@ const found = findNodeInTree(tree, id);                     // → node | null
 Chaque item d'entrée doit avoir `id`, `parentId`, `position`. La fonction
 ajoute un `children: []` aux items à partir de leur fusion.
 
-### `useUrlPagination(param?)` (`@shared/composables/nav/`)
-
-Pagination **full-reload** (frontend public, SEO-friendly).
-
-```js
-const { goToPage } = useUrlPagination('page');
-goToPage(3);   // window.location.href = '...?page=3'
-```
-
-À utiliser quand le composant Vue ne wrappe qu'une partie de la page (le
-serveur rend déjà l'archive).
-
 ### `useBackButtonClose({ isOpen, onClose })` (`@shared/composables/overlay/`)
 
 Brancher la touche Back du navigateur sur la fermeture d'un overlay/modal.
@@ -484,29 +394,6 @@ const { size, dragging, startResize, reset } = useResizable({
 import { slugify, slugifyIfEmpty } from '@/shared/utils/format/slugify.js';
 slugify('Café déjeuner');                          // → 'cafe-dejeuner'
 slugifyIfEmpty(form.slug, form.name);              // ne touche pas si slug déjà rempli
-```
-
-### `formatCurrency(amount, currency?, opts?)` / `formatProductPrice(product)` / `formatCents(cents, currency?, placeholder?)` / `formatBpAsPercent(bp, placeholder?)`
-
-```js
-import { formatCurrency, formatCents, formatBpAsPercent } from '@/shared/utils/format/formatPrice.js';
-formatCurrency(19.9, 'EUR');               // '19,90 €' (selon locale)
-formatCents(1990, 'EUR');                  // '19,90 €'  (cents en entrée)
-formatBpAsPercent(2000);                   // '20,00%'    (basis points)
-```
-
-Pitfall : `formatCurrency` prend des **unités** (19.9), `formatCents` prend
-des **cents entiers** (1990). Les factures et invoice lines stockent en cents
-(`amount_cents`) - utilisez `formatCents`.
-
-### `parseMoney(raw)`
-
-Parser tolérant pour saisies utilisateur / OCR : retourne des cents entiers.
-
-```js
-parseMoney('19,90 €');     // 1990
-parseMoney('1.200,00');    // 120000
-parseMoney('xyz');         // null
 ```
 
 ### `initials({ name?, firstName?, lastName?, email? })`
@@ -635,15 +522,6 @@ const { label, icon } = useAutoSaveStatusDisplay(status);
 // <AppBadge :icon="icon">{{ label }}</AppBadge>
 ```
 
-### `usePasswordGenerator()` (`@shared/composables/`)
-
-Génération de mot de passe avec contrôles (longueur, classes de caractères).
-Utilisé par le sous-module `PasswordGenerator` de Vault.
-
-```js
-const { length, options, password, generate, copy } = usePasswordGenerator();
-```
-
 ### `useClientFilteredList(source, opts?)` (`@shared/composables/list/`)
 
 Filtre/tri **côté client** d'une liste déjà chargée (search + custom filters
@@ -708,23 +586,6 @@ submitForm('/admin/duplicate', csrfToken, { sourceId: 42 });
 
 ## 8. Utilitaires - i18n (`@shared/utils/i18n/`)
 
-### `pickTranslation(entity, locale, fallbackLocale?)` / `translatedField(entity, field, locale, fallback?)`
-
-Pour les entités exposant `translations: { [code]: { … } }`. Fallback chain :
-locale demandée → fallbackLocale (`en`) → première dispo → `null`.
-
-```js
-import { pickTranslation, translatedField } from '@/shared/utils/i18n/pickTranslation.js';
-
-const translation = pickTranslation(post, 'fr');           // → { name, slug, … } | null
-const name = translatedField(post, 'name', 'fr', '#42');   // → string (jamais null)
-```
-
-Voir aussi la mémoire `utility_pick_translation` pour les cas tordus
-(translations partielles, équivalent côté Twig via `LocaleExtension`).
-
----
-
 ## 9. Utilitaires - divers
 
 ### `lang.js` - `Locale`, `DEFAULT_LOCALES`, `LOCALE_LABELS`
@@ -769,11 +630,11 @@ import { isMac, modKeyLabel } from '@/shared/utils/platform.js';
 
 Volontairement omis (utilitaires de niche ou plombérie interne) :
 
-- `@shared/utils/data/` - `deepMerge`, `mergeBlocks`, `parseJson`, `revisionDiff`, `blocksRenderer` : pertinents seulement pour l'éditeur de blocks Post / GED.
-- `@shared/utils/seo/` - `jsonLd`, `seoCounter` : utilisés par les SEO panels frontend.
+- `@shared/utils/data/` - `deepMerge` : fusion profonde d'objets.
+- `@shared/utils/seo/` - `jsonLd` : construction du JSON-LD des pages publiques.
 - `@shared/utils/tree/` - `folderTree` : helper module Media spécifique.
-- `@shared/utils/enums/imageLoadStatus.js`, `@shared/utils/format/currencies.js`, `statusStyles.js` : enums/maps internes consommés par un seul composant Aurora.
-- `@shared/utils/validation/passwordRules.js`, `passwordStrength.js`, `validation.js` (`EMAIL_REGEX`) : utilisés par `AppPasswordStrength`, rarement directement.
+- `@shared/utils/enums/imageLoadStatus.js`, `statusStyles.js` : enums/maps internes consommés par un seul composant Aurora.
+- `@shared/utils/validation/passwordRules.js`, `validation.js` (`EMAIL_REGEX`) : utilisés par `AppPasswordStrength`, rarement directement.
 
 Pour découvrir ce qui existe à un instant T :
 

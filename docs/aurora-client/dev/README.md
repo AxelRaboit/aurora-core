@@ -28,7 +28,7 @@ Selon ce que vous faites, lisez dans cet ordre :
 
 ### J'ai besoin de l'API d'un composant Vue ou d'un composable
 - [Catalogue des composants Vue partagés](shared_components_catalog.md) - `AppMultiselect`, `AppTab`, `AppBadge`, `AppModal`, etc.
-- [Catalogue des composables et utils](composables_catalog.md) - `useFormAction`, `useDelete`, `useListPage`, `useHierarchicalTree`, `pickTranslation`, `slugify`, etc.
+- [Catalogue des composables et utils](composables_catalog.md) - `useFormAction`, `useDelete`, `useListPage`, `useHierarchicalTree`, `slugify`, etc.
 
 ### Je travaille sur la persistance
 - [Base de données](database.md) - migrations, séquences, fixtures, ApplicationParameters.
