@@ -11,6 +11,49 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.4] - 2026-08-30
+
+### Corrigé
+
+#### `make deploy-prod` cassait la build et mentait sur le résultat
+- La cible inlinait `pnpm --dir=vendor/axelraboit/aurora run build` au lieu
+  d'appeler `make build`, et perdait au passage `$(AURORA_ENV)`, donc
+  `AURORA_CLIENT_DIR`. C'est la variable que le hook `prebuild` d'aurora-core
+  (`bin/dump-translations`) lit pour savoir quelle console lancer : sans elle il
+  lance **celle d'aurora-core**, qui boote son propre kernel depuis son vendor
+  imbriqué installé en `--no-dev`. La build mourait sur
+  `Class "Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle" not found`,
+  et les traductions JS des modules du client n'étaient de toute façon jamais
+  dumpées.
+- Les étapes étaient chaînées par `;`, donc l'échec n'arrêtait rien : le
+  déploiement continuait et affichait `✅ Deployed vX.Y.Z`. Un `set -e` ouvre
+  maintenant la séquence.
+- `deploy-prod` passe par `make build-prod` et `make cc-prod` plutôt que de
+  réécrire ces étapes à la main. C'était la cause racine : une copie qui dérive
+  de l'original.
+
+#### `install-prod` installait les linters sur le serveur de prod
+- `make build` dépend d'`aurora-vendor-guard`, qui restaure les outils de lint
+  d'aurora-core (php-cs-fixer, phpstan, rector, twig-cs-fixer) quand il ne les
+  trouve pas. Sur un serveur neuf il ne les trouve jamais : le premier
+  `install-prod` les installait tous.
+- Nouvelle cible `build-prod`, même build sans le guard. `install-prod` et
+  `deploy-prod` l'utilisent. Le seul vendor dont la build a besoin, celui
+  imbriqué d'aurora-core, est restauré par leur étape dédiée.
+- Constaté sur app.axelraboit.fr : `vendor/axelraboit/aurora/tools/*/vendor`
+  était peuplé sur le serveur.
+
+### Dans aurora-client
+
+`make aurora-update` récupère le `Makefile` corrigé via `sync-makefile`.
+
+Sur un serveur déjà déployé, les linters d'aurora-core sont peut-être déjà
+installés. Ils ne gênent pas, mais ils n'ont rien à y faire :
+
+```bash
+rm -rf vendor/axelraboit/aurora/tools/*/vendor
+```
+
 ## [0.9.3] - 2026-08-30
 
 ### Corrigé
