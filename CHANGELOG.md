@@ -11,6 +11,20 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.8.2] - 2026-08-30
+
+### Ajouté
+
+- Un test d'intégration qui supprime un vrai document, avec ses vrais fichiers
+  et une vraie ligne de version, contre le schéma réel. Les tests de 0.8.1
+  couvraient la logique et les deux requêtes de garde, mais aucun n'exerçait
+  le `ON DELETE CASCADE` - c'est-à-dire précisément ce qui rendait les
+  fichiers de version irrécupérables.
+
+### Dans aurora-client
+
+Rien à faire.
+
 ## [0.8.1] - 2026-08-30
 
 ### Corrigé
