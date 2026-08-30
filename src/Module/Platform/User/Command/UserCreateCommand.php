@@ -47,13 +47,39 @@ class UserCreateCommand extends Command
         parent::__construct();
     }
 
+    /**
+     * The role the flags ask for.
+     *
+     * `--dev` wins over `--admin` rather than the two conflicting: `ROLE_DEV`
+     * already contains `ROLE_ADMIN` through the hierarchy, so asking for both
+     * is asking for the wider one.
+     *
+     * This option exists because the first account of an installation needs it.
+     * `/dev` is gated on `ROLE_DEV`, so an owner created with `--admin` - which
+     * is what the install command tells you to run - cannot open the dashboard
+     * that toggles modules or lists mount points on their own site.
+     */
+    private function role(InputInterface $input): UserRoleEnum
+    {
+        if (true === $input->getOption('dev')) {
+            return UserRoleEnum::Dev;
+        }
+
+        if (true === $input->getOption('admin')) {
+            return UserRoleEnum::Admin;
+        }
+
+        return UserRoleEnum::User;
+    }
+
     protected function configure(): void
     {
         $this
             ->addOption('email', null, InputOption::VALUE_REQUIRED, 'Email - demandé si absent')
             ->addOption('password', null, InputOption::VALUE_REQUIRED, 'Mot de passe - demandé (masqué) si absent')
             ->addOption('name', null, InputOption::VALUE_REQUIRED, 'Nom affiché')
-            ->addOption('admin', null, InputOption::VALUE_NONE, 'Donne le rôle administrateur')
+            ->addOption('admin', null, InputOption::VALUE_NONE, 'Donne le rôle administrateur (ROLE_ADMIN)')
+            ->addOption('dev', null, InputOption::VALUE_NONE, "Donne le rôle développeur (ROLE_DEV) - à utiliser pour le premier compte d'une installation")
             ->addOption('frontend', null, InputOption::VALUE_NONE, 'Crée un compte frontend au lieu du backend');
     }
 
@@ -93,7 +119,7 @@ class UserCreateCommand extends Command
         $user->setEmail($email)
             ->setName($name)
             ->setType($type)
-            ->setRoles($input->getOption('admin') ? [UserRoleEnum::Admin->value] : [UserRoleEnum::User->value])
+            ->setRoles([$this->role($input)->value])
             ->setPassword($this->passwordHasher->hashPassword($user, $password));
 
         $this->entityManager->persist($user);
@@ -103,7 +129,11 @@ class UserCreateCommand extends Command
             'Compte %s créé : %s%s',
             $type->value,
             $email,
-            $input->getOption('admin') ? ' (administrateur)' : '',
+            match ($this->role($input)) {
+                UserRoleEnum::Dev => ' (développeur)',
+                UserRoleEnum::Admin => ' (administrateur)',
+                default => '',
+            },
         ));
 
         return Command::SUCCESS;
