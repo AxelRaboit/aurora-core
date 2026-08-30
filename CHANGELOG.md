@@ -7,6 +7,12 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [Unreleased]
 
+_Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
+section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
+`develop` sur `master`, et c'est cette fermeture qui déclenche la release._
+
+## [0.9.2] - 2026-08-30
+
 ### Ajouté
 
 #### Mémoire : Resend est le transport mail de la prod
