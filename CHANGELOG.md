@@ -11,6 +11,35 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.17] - 2026-08-30
+
+### Corrigé
+
+#### Le contenu éditorial ignorait la couleur de fond choisie
+- La 0.9.16 fait bien basculer le texte de la page, des menus et du pied, mais
+  pas celui des articles. Sur un fond noir, le corps des contenus restait en
+  gris foncé : illisible, et en contradiction avec le reste de la page qui, lui,
+  avait basculé.
+- La cause est le plugin Tailwind Typography. La classe `.prose`, par laquelle
+  passe tout le contenu éditorial, peint son texte avec ses propres variables
+  (`--tw-prose-body`, `--tw-prose-headings`, et une quinzaine d'autres), des gris
+  figés qui ne connaissent pas les jetons du projet. Aucun mapping ne les
+  reliait.
+- Les variables du plugin sont désormais branchées sur les jetons : le corps et
+  les titres sur `--th-primary`, les compteurs et légendes sur `--th-muted`, les
+  filets et bordures de tableau sur `--color-border`.
+- Le mapping est **global et non limité au frontend**, parce que le défaut valait
+  aussi pour le backend : l'aperçu de note en mode sombre affichait du texte
+  sombre sur fond sombre pour la même raison.
+- Effet de bord assumé sur le thème clair : le corps des articles passe du gris
+  du plugin au `--th-primary` du projet, soit un texte légèrement plus foncé. Un
+  paragraphe rendu dans `.prose` a maintenant exactement la couleur d'un
+  paragraphe rendu à côté, ce qui n'était pas le cas.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
 ## [0.9.16] - 2026-08-30
 
 ### Ajouté

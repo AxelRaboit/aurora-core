@@ -186,3 +186,36 @@
 .aurora-surface {
     background-color: var(--th-surface-bg, transparent);
 }
+
+/* Le plugin Tailwind Typography peint `.prose` avec ses propres variables, des
+ * gris figes qui ignorent totalement les jetons du projet. Tout le contenu
+ * editorial passant par cette classe, un fond sombre laissait le texte des
+ * articles en gris fonce sur noir - illisible, et sans rapport avec le reste de
+ * la page qui basculait correctement.
+ *
+ * Les variables du plugin sont donc rebranchees sur les jetons. Le mapping est
+ * global et non limite au frontend, parce que le defaut vaut aussi pour le
+ * backend : l'apercu de note en mode sombre souffrait du meme probleme.
+ *
+ * Le corps de texte prend `--th-primary` et non un gris intermediaire, pour
+ * qu'un paragraphe rendu dans `.prose` ait exactement la couleur d'un
+ * paragraphe rendu a cote : le layout pose deja `text-primary` sur le body. */
+.prose {
+    --tw-prose-body: var(--th-primary);
+    --tw-prose-headings: var(--th-primary);
+    --tw-prose-lead: var(--th-secondary);
+    --tw-prose-links: var(--th-primary);
+    --tw-prose-bold: var(--th-primary);
+    --tw-prose-counters: var(--th-muted);
+    --tw-prose-bullets: var(--th-subtle);
+    --tw-prose-hr: var(--color-border);
+    --tw-prose-quotes: var(--th-primary);
+    --tw-prose-quote-borders: var(--color-border);
+    --tw-prose-captions: var(--th-muted);
+    --tw-prose-kbd: var(--th-primary);
+    --tw-prose-code: var(--th-primary);
+    --tw-prose-pre-code: var(--th-primary);
+    --tw-prose-pre-bg: var(--th-surface-2);
+    --tw-prose-th-borders: var(--color-border);
+    --tw-prose-td-borders: var(--color-border);
+}
