@@ -24,10 +24,37 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 - Nouveau fichier `.claude/memory/aurora-client/convention_mailer_resend_prod.md`,
   indexé dans `.claude/memory/aurora-client/MEMORY.md`.
 
+### Corrigé
+
+#### Un `composer install --no-dev` ne bootait pas
+- `PdfThumbnailGenerator` type-hinte `Symfony\Component\Process\ExecutableFinder`
+  en service autowiré, mais `symfony/process` n'était déclaré nulle part. Le
+  paquet n'arrivait que par ricochet, via le `require-dev` d'un projet client
+  (`symfony/maker-bundle`). En prod il disparaissait, et la compilation du
+  container mourait sur `Class "Symfony\Component\Process\ExecutableFinder"
+  not found`. `symfony/process` passe en `require`.
+- Les fixtures vivent sous `src/Core/DataFixtures/` et `src/Module/*/DataFixtures/`,
+  donc à l'intérieur des répertoires que le driver Doctrine parcourt. Or
+  `getAllClassNames()` autoload chaque fichier avant de demander si c'est une
+  entité, et ces classes étendent le `Fixture` de doctrine-fixtures-bundle,
+  absent en prod. `doctrine:schema:create` et tout warmup touchant aux métadonnées
+  ORM tombaient sur `Class "Doctrine\Bundle\FixturesBundle\Fixture" not found`.
+- `config/services.yaml` posait déjà ce garde-fou côté container (exclusion du
+  glob `Aurora\`, ré-enregistrement sous `when@dev`) ; il manquait la moitié
+  mapping. `ExcludeDataFixturesFromMappingPass` appelle désormais
+  `addExcludePaths()` sur le driver attribut. Les fixtures ne portent aucun
+  attribut ORM, donc l'exclusion ne coûte rien en dev non plus.
+- Les deux bugs ne se voyaient qu'au premier déploiement d'un client sur un
+  serveur neuf. Constatés sur app.axelraboit.fr le 30/08/2026.
+
 ### Dans aurora-client
 
 Rien à faire : la mémoire arrive par le symlink que `make aurora-update` refait
-déjà.
+déjà, et les deux correctifs sont internes au bundle.
+
+Si un projet a contourné l'un des deux en ajoutant `symfony/process` ou
+`doctrine/doctrine-fixtures-bundle` au `require` de son `composer.json`, les
+deux lignes peuvent être retirées après `make aurora-update`.
 
 ## [0.9.1] - 2026-08-30
 
