@@ -11,6 +11,31 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.19] - 2026-08-30
+
+### Corrigé
+
+#### Les icônes de la 0.9.18 n'apparaissaient pas
+- Les cinq règles qui déclarent `--aurora-link-icon` étaient supprimées à la
+  construction : le SVG était enveloppé dans des guillemets simples après que
+  ses propres guillemets doubles eurent été convertis en simples. Le parseur CSS
+  s'arrêtait donc au premier guillemet interne, et la déclaration entière
+  partait à la poubelle. Seules les règles qui *consomment* la variable
+  survivaient, d'où des pastilles de la bonne taille et de la bonne couleur,
+  mais vides.
+- Le SVG est désormais entièrement encodé en pourcent : plus aucun guillemet ni
+  chevron ne subsiste dans l'URI, donc plus rien qui puisse terminer la chaîne
+  prématurément.
+- Le contrôle de la 0.9.18 était trop faible pour voir le défaut : chercher
+  `aurora-link-icon` dans le bundle matchait les cinq utilisations. Il compte
+  maintenant les **déclarations** et les utilisations séparément, et décode une
+  URI pour vérifier que le SVG est bien formé.
+
+### Dans aurora-client
+
+`make aurora-update`. Une installation restée en 0.9.18 affiche des liens sans
+icône, sans autre conséquence.
+
 ## [0.9.18] - 2026-08-30
 
 ### Ajouté
