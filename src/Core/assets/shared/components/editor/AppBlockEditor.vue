@@ -156,6 +156,7 @@ onMounted(async () => {
                     "Quote":          t("backend.editor.tool_names.quote"),
                     "Code":           t("backend.editor.tool_names.code"),
                     "Delimiter":      t("backend.editor.tool_names.delimiter"),
+                    "Raw HTML":       t("backend.editor.tool_names.raw"),
                     "Table":          t("backend.editor.tool_names.table"),
                     "Image":          t("backend.editor.tool_names.image"),
                     "Embed":          t("backend.editor.tool_names.embed"),

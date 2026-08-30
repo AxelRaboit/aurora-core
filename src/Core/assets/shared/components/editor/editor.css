@@ -176,3 +176,24 @@
 .codex-editor .ce-popover-item-separator__line {
     background-color: var(--color-border);
 }
+
+/* Le separateur ressemble a ce qu'il produit.
+ *
+ * @editorjs/delimiter dessine trois asterisques dans l'editeur, alors que le
+ * rendu public est un <hr>. L'ecart suffit a ce qu'on cherche l'outil sans le
+ * reconnaitre : trois etoiles ne se lisent pas comme une ligne de separation.
+ * On affiche donc dans l'editeur ce que le lecteur verra. */
+.codex-editor .ce-delimiter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    height: 2.5rem;
+}
+
+.codex-editor .ce-delimiter::before {
+    content: "";
+    display: block;
+    width: 100%;
+    border-top: 1px solid var(--color-border);
+}

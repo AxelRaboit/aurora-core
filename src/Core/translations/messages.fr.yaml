@@ -187,6 +187,7 @@ backend:
       quote: Citation
       code: Code
       delimiter: Séparateur
+      raw: HTML brut
       table: Tableau
       image: Image
       embed: Intégration
