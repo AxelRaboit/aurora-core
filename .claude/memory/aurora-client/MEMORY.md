@@ -52,6 +52,9 @@ client.
 - [convention_fixture_group_demo.md](convention_fixture_group_demo.md) -
   fixtures client doivent implémenter `FixtureGroupInterface` avec
   `getGroups(): ['demo']` sinon `make demo` les ignore silencieusement
+- [convention_mailer_resend_prod.md](convention_mailer_resend_prod.md) -
+  en prod `MAILER_DSN` passe par Resend (pont déjà en `require`) ; le défaut
+  `smtp://localhost:1025` du `.env` n'envoie rien et ne prévient pas
 
 ## Index - pièges côté client
 

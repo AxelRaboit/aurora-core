@@ -7,9 +7,27 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [Unreleased]
 
-_Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
-section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
-`develop` sur `master`, et c'est cette fermeture qui déclenche la release._
+### Ajouté
+
+#### Mémoire : Resend est le transport mail de la prod
+- `MAILER_DSN` en production passe par `resend+api://API_KEY@default`. Le pont
+  `symfony/resend-mailer` est déjà dans le `require` d'aurora-core, donc il
+  survit à `composer install --no-dev` : un serveur neuf n'a besoin que de la
+  clé.
+- Le piège documenté est le défaut `smtp://localhost:1025` de `.env` : sur un
+  serveur dont le `.env.local` ne redéfinit pas la variable, l'application
+  démarre sans erreur et n'envoie rien, sans alerte. La réinitialisation de mot
+  de passe est cassée en silence.
+- La mémoire note aussi qu'après un changement de DSN il faut redémarrer le
+  worker Messenger en plus de recharger PHP-FPM : le worker a lu `.env.local` à
+  son boot, et l'essentiel des mails passe par le transport `async`.
+- Nouveau fichier `.claude/memory/aurora-client/convention_mailer_resend_prod.md`,
+  indexé dans `.claude/memory/aurora-client/MEMORY.md`.
+
+### Dans aurora-client
+
+Rien à faire : la mémoire arrive par le symlink que `make aurora-update` refait
+déjà.
 
 ## [0.9.1] - 2026-08-30
 
