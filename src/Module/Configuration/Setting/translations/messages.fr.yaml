@@ -68,7 +68,7 @@ backend:
     site_name:
       label: Nom du site
       description: Nom affiché sur le site public et dans les emails
-      placeholder: "Aurora : Application de gestion"
+      placeholder: Mon entreprise
     site_description:
       label: Description du site
       description: Courte description utilisée comme meta description par défaut

@@ -157,7 +157,7 @@ backend:
     create: Nouveau type de contenu
     edit: Modifier le type de contenu
     delete_confirm: 'Supprimer le type de contenu « {label} » ?'
-    built_in: Fourni par Aurora
+    built_in: Natif
     slug: Slug
     slug_locked: "Un type natif conserve son slug : les routes et les contenus existants pointent dessus."
     label: Libellé
@@ -280,7 +280,7 @@ backend:
       logo: Logo
       slot_type: Contenu
       slot_title: Titre
-      slot_title_placeholder: Bienvenue chez Aurora
+      slot_title_placeholder: Bienvenue
       slot_description: Description
       slot_description_placeholder: Une phrase qui résume la page.
       slot_title_color: Couleur du titre
@@ -568,7 +568,7 @@ backend:
     updated: Taxonomie mise à jour.
     deleted: Taxonomie supprimée.
     delete_confirm: 'Supprimer la taxonomie « {slug} » ? Ses termes partent avec elle.'
-    built_in: Fournie par Aurora
+    built_in: Native
     slug: Slug
     slug_locked: "Une taxonomie native conserve son slug et sa forme."
     hierarchical: Termes imbriqués

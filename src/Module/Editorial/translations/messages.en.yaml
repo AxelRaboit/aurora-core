@@ -157,7 +157,7 @@ backend:
     create: New content type
     edit: Edit content type
     delete_confirm: 'Delete the "{label}" content type?'
-    built_in: Provided by Aurora
+    built_in: Built-in
     slug: Slug
     slug_locked: 'A built-in type keeps its slug: routes and existing content point at it.'
     label: Label
@@ -280,7 +280,7 @@ backend:
       logo: Logo
       slot_type: Content
       slot_title: Title
-      slot_title_placeholder: Welcome to Aurora
+      slot_title_placeholder: Welcome
       slot_description: Description
       slot_description_placeholder: One sentence summing the page up.
       slot_title_color: Title colour
@@ -568,7 +568,7 @@ backend:
     updated: Taxonomy updated.
     deleted: Taxonomy deleted.
     delete_confirm: 'Delete the "{slug}" taxonomy? Its terms go with it.'
-    built_in: Provided by Aurora
+    built_in: Built-in
     slug: Slug
     slug_locked: 'A built-in taxonomy keeps its slug and its shape.'
     hierarchical: Nested terms
