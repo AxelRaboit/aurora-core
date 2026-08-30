@@ -91,6 +91,46 @@ class DocumentRepository extends ResolveTargetEntityRepository
      *
      * @return list<Document>
      */
+    /**
+     * Of the given relative paths, the ones still pointed at by a surviving
+     * document row - through either `filePath` or `thumbnailPath`.
+     *
+     * Deleting a document has to erase its bytes, but a path can legitimately
+     * be shared: a version row snapshots the live document's own `filePath`,
+     * and nothing stops two rows from being pointed at the same file. Call
+     * this *after* the rows are gone; whatever comes back is still owed to
+     * someone and must survive.
+     *
+     * @param list<string> $paths
+     *
+     * @return list<string>
+     */
+    public function filterPathsInUse(array $paths): array
+    {
+        if ([] === $paths) {
+            return [];
+        }
+
+        /** @var list<array{filePath: string|null, thumbnailPath: string|null}> $rows */
+        $rows = $this->createQueryBuilder('d')
+            ->select('d.filePath', 'd.thumbnailPath')
+            ->where('d.filePath IN (:paths) OR d.thumbnailPath IN (:paths)')
+            ->setParameter('paths', $paths)
+            ->getQuery()
+            ->getResult();
+
+        $inUse = [];
+        foreach ($rows as $row) {
+            foreach ([$row['filePath'], $row['thumbnailPath']] as $path) {
+                if (null !== $path && in_array($path, $paths, true)) {
+                    $inUse[$path] = true;
+                }
+            }
+        }
+
+        return array_keys($inUse);
+    }
+
     public function searchByName(string $query, int $limit = 10): array
     {
         $pattern = '%'.mb_strtolower($query).'%';

@@ -11,6 +11,32 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.8.1] - 2026-08-30
+
+### Corrigé
+
+#### Supprimer un document GED laissait ses fichiers sur le disque
+- `DocumentManager::delete()` et `bulkDelete()` effacent maintenant le fichier
+  du document, sa vignette générée, et le fichier de chacune de ses versions.
+  Seules les variantes d'image étaient effacées ; tout le reste restait sur le
+  disque indéfiniment. Les lignes de version disparaissant par un
+  `ON DELETE CASCADE`, plus aucune ligne ne nommait ces fichiers : ils étaient
+  irrécupérables autrement qu'à la main.
+- Un garde-fou précède chaque effacement : un chemin encore référencé par une
+  ligne survivante - document ou version - n'est pas touché. Ce n'est pas
+  théorique, `recordVersion()` fait délibérément pointer une ligne de version
+  sur le `filePath` du document vivant.
+- L'effacement passe après le `flush` : un `flush` en échec ne coûte plus ses
+  octets à personne.
+- Neuf tests, dont trois d'intégration qui exécutent les deux requêtes de
+  garde contre le schéma réel.
+
+### Dans aurora-client
+
+Rien à faire. Les fichiers déjà orphelins d'anciennes suppressions restent sur
+le disque : ils ne sont plus référencés nulle part et se retirent à la main
+dans `var/uploads/ged/`.
+
 ## [0.8.0] - 2026-08-30
 
 ### Ajouté
