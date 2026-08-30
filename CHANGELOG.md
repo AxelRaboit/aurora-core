@@ -11,6 +11,61 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.5] - 2026-08-30
+
+### Ajouté
+
+#### Le worker est arrêté pendant le déploiement, et relancé après
+- `deploy-prod` arrête le worker Messenger avant de toucher au code, et le
+  relance une fois le cache prod reconstruit. Sans ça le worker consomme des
+  messages pendant que `vendor/` et `var/cache/` sont à moitié remplacés, et il
+  garde son ancien code en mémoire après coup : un changement de `.env.local` ou
+  de code ne l'atteignait qu'à son `--time-limit`, une heure plus tard.
+- Un `trap` relance le worker même si le déploiement échoue en cours de route.
+  Un déploiement interrompu qui laisse le worker éteint est pire que pas de
+  déploiement du tout : la file se remplit en silence.
+- Nouvelles cibles `worker-stop` et `worker-start`, pilotées par la variable
+  `WORKER_SERVICE` (défaut `aurora-worker`). Elles ne font rien s'il n'y a pas
+  de systemd, si l'unité n'existe pas, ou si la variable est vidée, ce qui
+  garde le template agnostique de l'infra. Le nom se surcharge dans
+  `Makefile.local`.
+
+#### `make deploy-check`
+- Nouvelle cible, lancée à la fin d'`install-prod` et de `deploy-prod`, qui dit
+  ce qui va et ce qui ne va pas plutôt que d'afficher un `✅ Deployed` de
+  principe :
+
+```
+🔎 Vérifications post-déploiement
+  ✅ version déployée : v0.1.13
+  ✅ l'application boote en prod
+  ✅ aucune migration en attente
+  ✅ worker aurora-worker actif (démarré Sun 2026-08-30 14:52:01 UTC)
+  ✅ aucun message en échec
+  ✅ https://app.axelraboit.fr répond 200
+✅ Tout est vert.
+```
+
+- Chaque ligne dégrade proprement : `➖` quand la vérification ne s'applique pas
+  (pas de systemd, pas de `DEFAULT_URI`, pas de `curl`) plutôt qu'un faux
+  négatif. La cible sort en 1 si au moins une vérification échoue.
+- Elle est utilisable seule, à tout moment, pour savoir dans quel état est un
+  serveur.
+
+### Dans aurora-client
+
+`make aurora-update` récupère le `Makefile` corrigé via `sync-makefile`.
+
+`worker-stop` et `worker-start` appellent `sudo systemctl`. Sur un serveur où
+le `sudo` de l'utilisateur de déploiement demande un mot de passe, le
+déploiement le réclamera deux fois. Pour un déploiement non interactif, poser
+une règle sudoers limitée à ce seul service :
+
+```
+# /etc/sudoers.d/aurora-worker
+<user> ALL=(root) NOPASSWD: /usr/bin/systemctl start aurora-worker, /usr/bin/systemctl stop aurora-worker, /usr/bin/systemctl restart aurora-worker
+```
+
 ## [0.9.4] - 2026-08-30
 
 ### Corrigé
