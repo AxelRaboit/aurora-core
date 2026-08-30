@@ -197,3 +197,17 @@ html[data-theme] .prose a[href^="mailto:"]::before {
     mask: var(--aurora-link-icon) center / contain no-repeat;
     -webkit-mask: var(--aurora-link-icon) center / contain no-repeat;
 }
+
+/* Un lien sans libelle n'affiche pas d'icone.
+ *
+ * L'editeur produit facilement `<a href="..."></a>` : il suffit d'effacer le
+ * texte d'un lien sans effacer le lien. L'ancre devient invisible en lecture,
+ * mais elle recevait quand meme son icone, et on se retrouvait avec un logo
+ * orphelin colle au lien suivant. Constate sur une page reelle apres une
+ * retouche dans le backend.
+ *
+ * Corriger le contenu ne suffit pas : la prochaine edition recreera l'ancre.
+ * C'est donc au rendu de refuser de decorer ce qui n'a rien a decorer. */
+html[data-theme] .prose a:empty::before {
+    content: none;
+}
