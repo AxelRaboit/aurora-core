@@ -16,6 +16,7 @@ import Embed from "@editorjs/embed";
 import Image from "@editorjs/image";
 import Marker from "@editorjs/marker";
 import InlineCode from "@editorjs/inline-code";
+import Raw from "@editorjs/raw";
 import { TextColorTool } from "@shared/components/editor/tools/TextColorTool.js";
 import { FontSizeTool } from "@shared/components/editor/tools/FontSizeTool.js";
 import { UnderlineTool } from "@shared/components/editor/tools/UnderlineTool.js";
@@ -233,6 +234,16 @@ onMounted(async () => {
                         instagram: true,
                         codepen: true,
                     },
+                },
+            },
+            // HTML ecrit a la main, pour ce que les autres blocs ne savent pas
+            // faire. Rendu par RawHtmlSanitizer cote serveur : large, mais ferme
+            // aux scripts, aux gestionnaires d'evenements et aux cadres vers un
+            // hote non liste.
+            raw: {
+                class: Raw,
+                config: {
+                    placeholder: t("backend.editor.raw.placeholder"),
                 },
             },
             table: {

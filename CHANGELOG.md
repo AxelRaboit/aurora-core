@@ -26,10 +26,35 @@ section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 - Part avec elles le garde-fou `a:empty::before`, qui n'existait que pour
   rattraper un effet de bord des icônes.
 
+### Ajouté
+
+#### Un bloc « HTML brut » dans l'éditeur
+- `@editorjs/raw` est installé. Il ouvre ce que l'éditeur ne sait pas faire :
+  une mise en page à la main, un tableau complexe, un lecteur intégré.
+- Il ne passe **pas** par `BlockHtmlSanitizer`, qui le viderait de tout ce qui
+  justifie son existence. Un second filtre lui est dédié, `RawHtmlSanitizer`,
+  nettement plus large : structure, tableaux, figures, images, classes et styles.
+- Plus large, mais fermé aux mêmes choses. Ne passent jamais : `<script>`,
+  `<style>`, `<form>` et ses champs, `<object>`, `<embed>`, `<link>`, `<meta>`,
+  `<base>`, tout attribut `on*`, les URL `javascript:`, et les `data:` sauf
+  images. Les `<iframe>` ne sont acceptées que vers une liste d'hôtes nommés :
+  un cadre est une page entière qu'on ne contrôle pas, posée dans la sienne.
+- Un lien portant `target` reçoit automatiquement son `rel="noopener
+  noreferrer"`, posé plutôt que refusé.
+- 26 tests couvrent le filtre, dont **quatorze tentatives d'injection** écrites
+  comme telles : script imbriqué, `onerror` sur une image cassée, `javascript:`
+  en casse mélangée, `data:text/html`, `meta refresh`, `<base>` détournant les
+  URL relatives.
+
 ### Dans aurora-client
 
 Rien à faire au-delà de `make aurora-update`. Les liens redeviennent des liens,
-sans pastille. Aucun contenu n'est modifié.
+sans pastille, et un bloc « HTML brut » apparaît dans l'éditeur. Aucun contenu
+existant n'est modifié.
+
+> Le bloc est ouvert à tout compte pouvant éditer un contenu. Sur un projet à
+> plusieurs rédacteurs, c'est un choix à faire consciemment : le filtre ferme la
+> porte au script, pas au mauvais goût ni à une mise en page cassée.
 
 ## [0.9.20] - 2026-08-30
 
