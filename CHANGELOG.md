@@ -11,6 +11,30 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.1] - 2026-08-30
+
+### Corrigé
+
+#### La suite de tests écrivait dans le vrai dossier d'uploads
+- `app.upload_dir` avait la même valeur dans tous les environnements : les
+  tests d'intégration déposaient leurs uploads dans `var/uploads`, celui que
+  l'installation du développeur sert, et rien ne les retirait. 1184
+  `pixel-*.png` et leurs variantes s'y étaient accumulés depuis août.
+- On ne l'a vu que parce que `aurora:ged:prune-orphans`, sorti en 0.9.0, les a
+  signalés : la commande écrite pour trouver les orphelins rapportait les
+  déchets de la suite de tests.
+- L'environnement de test écrit désormais dans `var/test-uploads`, vidé avant
+  chaque classe. La surcharge est dans `config/services_test.yaml` et non
+  `config/packages/test/` : MicroKernelTrait importe `config/services.yaml`
+  **après** `config/packages/{env}/`, donc une surcharge placée là est lue puis
+  aussitôt écrasée par la valeur par défaut. Le vidage vérifie le chemin avant
+  d'effacer.
+
+### Dans aurora-client
+
+Rien à faire, sauf si le projet a ses propres tests d'intégration qui uploadent :
+dans ce cas, copier `config/services_test.yaml`.
+
 ## [0.9.0] - 2026-08-30
 
 ### Ajouté
