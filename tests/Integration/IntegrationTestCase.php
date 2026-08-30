@@ -10,6 +10,7 @@ use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Filesystem\Filesystem;
 
 abstract class IntegrationTestCase extends WebTestCase
 {
@@ -21,6 +22,19 @@ abstract class IntegrationTestCase extends WebTestCase
         $container = static::getContainer();
 
         $entityManager = $container->get(EntityManagerInterface::class);
+
+        // The suite uploads real files. They go to `var/test-uploads` (see
+        // config/services_test.yaml) rather than the directory a developer's
+        // own install serves from, and the directory starts empty so one run
+        // never inherits the previous one's leftovers.
+        //
+        // The name is checked before the removal, and that is not belt and
+        // braces: the first attempt at this put the override in
+        // `config/packages/test/`, where `config/services.yaml` overwrites it,
+        // so the very first run of this line erased the real `var/uploads`.
+        $uploadDir = (string) $container->getParameter('app.upload_dir');
+        self::assertStringEndsWith('/var/test-uploads', $uploadDir, 'Refusing to purge: the test environment is not using its own upload directory.');
+        (new Filesystem())->remove($uploadDir);
 
         // Purge first, then seed the mandatory rows, then the dev accounts.
         // The bootstrap providers run here rather than being duplicated into a

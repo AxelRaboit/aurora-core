@@ -1,0 +1,12 @@
+# The test suite uploads real files. Pointed at `var/uploads` - the value
+# `config/services.yaml` sets for every environment - it wrote them into the
+# directory a developer's own install serves from, and nothing removed them:
+# 1184 `pixel-*.png` and their variants had piled up there before anybody
+# looked, and they surfaced as orphans in the very command written to find
+# orphans.
+#
+# This file rather than `config/packages/test/`: MicroKernelTrait imports
+# `config/services.yaml` *after* `config/packages/{env}/`, so an override
+# placed there is read and then immediately overwritten by the default.
+parameters:
+    app.upload_dir: '%kernel.project_dir%/var/test-uploads'
