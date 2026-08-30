@@ -10,6 +10,7 @@ minimaliste de séquence locale-vers-prod, à reproduire dans votre infra.
 > 📋 **Avant de commencer** - checklist exhaustive des prérequis (PHP, Node, PostgreSQL, binaires CLI, vars d'env) : [`../../aurora-core/ops/prerequisites.md`](../../aurora-core/ops/prerequisites.md).
 >
 > **Docs sœurs dans ce dossier** :
+> - [`server_provisioning.md`](server_provisioning.md) - d'une machine nue à l'application servie en HTTPS (PostgreSQL, permissions, vhost, certbot)
 > - [`worker_systemd.md`](worker_systemd.md) - service systemd pour le worker Messenger
 > - [`apache_xsendfile.md`](apache_xsendfile.md) - `mod_xsendfile` pour servir `var/uploads/`
 > - [`github_actions_ci.md`](github_actions_ci.md) - setup du workflow CI GitHub Actions (PAT pour le vendor privé, init DB de test)
@@ -188,13 +189,35 @@ Aurora écrit dans :
 | `var/share/` (cf. `APP_SHARE_DIR`) | Fichiers partagés temporaires |
 | `var/uploads/` | Médias uploadés (Media, Photo, GED, OCR, notes markdown…) - hors document root, servis via le catch-all `/uploads/{path}` (`UploadsServeController`) |
 
-Le user PHP-FPM / CLI doit avoir le droit **rwx** sur `var/` (qui couvre les
-4 sous-dossiers ci-dessus). Sur serveur Apache + PHP-FPM standard :
+**Deux comptes écrivent dans `var/`**, et c'est ce qui rend le réglage
+contre-intuitif :
+
+- `www-data`, l'utilisateur de PHP-FPM, au runtime ;
+- le compte humain qui lance `make deploy-prod`, donc `cache:clear`, les
+  migrations et le build.
+
+Un `chown -R www-data:www-data var/` suivi d'un simple `g+rX` prive le second du
+droit d'écriture : le déploiement échoue dès `make cc-prod`. Il ne convient que
+si le déploiement s'exécute **en tant que** `www-data`, ce que le Makefile ne
+fait pas.
+
+Le montage qui tient, propriétaire au déployeur et groupe à `www-data` :
 
 ```bash
-chown -R www-data:www-data var/
-chmod -R u+rwX,g+rX,o+rX var/
+sudo chown -R <deployer>:www-data .
+sudo find var -type d -exec chmod 2775 {} +   # 2 = setgid
+sudo find var -type f -exec chmod 664  {} +
+sudo usermod -aG www-data <deployer>
 ```
+
+Le bit setgid est ce qui fait durer le montage : les fichiers créés ensuite par
+l'un ou l'autre héritent du groupe. Complétez avec `umask 0002` côté déployeur.
+
+`.env.local` doit rester **lisible par `www-data`** (`640`, groupe `www-data`).
+En `600`, PHP-FPM ne le lit plus et Symfony retombe silencieusement sur les
+valeurs de `.env`.
+
+Détail complet dans [`server_provisioning.md`](server_provisioning.md) §3.
 
 > Convention storage : tous les fichiers utilisateur vivent sous `var/uploads/`,
 > hors document root, servis par PHP avec auth granulaire. Voir la mémoire
@@ -212,12 +235,25 @@ APP_ENV=prod APP_DEBUG=0 bin/console cache:clear --env=prod
 APP_ENV=prod APP_DEBUG=0 bin/console about --env=prod   # vérification du boot
 ```
 
-OPcache doit être :
-- **activé** en prod (`opcache.enable=1`)
-- **reset** après chaque déploiement (`opcache_reset()` via un endpoint
-  d'admin, ou redémarrer PHP-FPM : `systemctl reload php8.4-fpm`)
+OPcache doit être **activé** en prod (`opcache.enable=1`). Le besoin de le
+**reset** après un déploiement, lui, dépend d'un seul réglage :
 
-Sinon : code stale en mémoire après deploy → bugs silencieux.
+```bash
+php -i | grep opcache.validate_timestamps
+```
+
+- `validate_timestamps=On` (le défaut des paquets Debian et Ubuntu, avec
+  `revalidate_freq=2`) : PHP relit les fichiers modifiés tout seul en quelques
+  secondes. **Aucun reset n'est nécessaire**, et en ajouter un au déploiement
+  impose une exigence de root pour rien.
+- `validate_timestamps=0` (durcissement fréquent en prod, plus rapide) : PHP ne
+  regarde plus jamais le disque. Le reset devient **obligatoire**, sinon le code
+  reste en mémoire après le déploiement et produit des bugs sans rapport
+  apparent avec la mise en ligne. Passez alors par `systemctl reload php8.4-fpm`
+  ou un endpoint d'admin appelant `opcache_reset()`.
+
+Vérifiez le réglage de votre serveur avant de trancher : c'est l'un ou l'autre,
+pas une bonne pratique universelle.
 
 ---
 
@@ -257,18 +293,57 @@ Le flux est documenté dans [`update_aurora.md`](update_aurora.md). En prod,
 la séquence à automatiser :
 
 ```bash
-git pull --tags
+git fetch --tags
 git checkout <new-tag>
-composer install --no-dev --optimize-autoloader
-pnpm --dir=vendor/axelraboit/aurora install --frozen-lockfile
-make migrate-f
-make sf CMD="aurora:application-parameter"
-make sf CMD="aurora:privileges:sync"
-make build
-make cc-prod
-systemctl reload php8.4-fpm
-systemctl restart aurora-worker          # votre service supervisor du messenger:consume
+make deploy-prod
 ```
+
+`deploy-prod` enchaîne lui-même l'installation des dépendances, les migrations,
+les syncs, le build, le cache prod, l'arrêt et le redémarrage du worker, puis
+`deploy-check`. La séquence s'arrête à la première erreur au lieu de continuer,
+et le worker est relancé même si elle échoue en route.
+
+Un `systemctl reload php8.4-fpm` n'est à ajouter que si votre OPcache tourne
+avec `validate_timestamps=0` (cf. §7).
 
 **Toujours** lire le `CHANGELOG.md` d'aurora-core avant un déploiement
 majeur (les breaking changes sont préfixés `BREAKING:`).
+
+---
+
+## 11. Sauvegardes
+
+Un serveur Aurora porte trois choses qui ne se reconstruisent pas depuis git.
+Tant qu'elles ne sont pas sauvegardées ailleurs, l'installation n'est pas
+terminée.
+
+| Quoi | Pourquoi c'est irremplaçable |
+|---|---|
+| `.env.local` | `AURORA_MOUNT_POINT_KEY` et `AURORA_ENCRYPTION_KEY` (cf. §2). Les perdre rend illisibles les MountPoints et les champs chiffrés **déjà en base**. Aucune restauration de base ne les récupère. |
+| La base | Contenu, utilisateurs, paramètres applicatifs |
+| `var/uploads/` | Tous les fichiers déposés par les utilisateurs. Le code ne les régénère pas. |
+
+Le reste (code, schéma, assets) se reconstruit depuis un tag et
+`make install-prod`.
+
+Une sauvegarde minimale, quotidienne :
+
+```bash
+pg_dump -Fc <db_name> > db-$(date +%F).dump
+tar czf config-$(date +%F).tar.gz .env.local /etc/apache2/sites-available/<projet>*.conf \
+    /etc/systemd/system/<projet>-worker.service /etc/letsencrypt
+tar czf uploads-$(date +%F).tar.gz -C var uploads
+```
+
+Deux points qui distinguent une sauvegarde d'un fichier qui grossit :
+
+- **Vérifiez le dump à la production**, pas au moment de la panne :
+  `pg_restore --list db-*.dump` doit s'exécuter sans erreur. Un dump illisible
+  s'accumule des mois sans que rien ne le signale.
+- **Testez une restauration réelle** au moins une fois, dans une base jetable.
+  Une sauvegarde jamais restaurée est une hypothèse, pas une garantie.
+
+Une copie sur la machine elle-même couvre la suppression accidentelle, la
+migration ratée et la corruption applicative, qui sont les incidents les plus
+fréquents. Elle ne couvre ni la panne disque ni la perte du serveur : pour
+ceux-là il faut une copie hors-machine.

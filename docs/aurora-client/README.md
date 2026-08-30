@@ -35,6 +35,7 @@ Tout ce qu'il faut faire pour mettre en prod un projet aurora-client, regroupé 
 | Fichier | Contenu |
 |---|---|
 | [deployment/README.md](deployment/README.md) | Guide principal - séquence `install-prod` / `deploy-prod`, exigences serveur, variables d'env |
+| [deployment/server_provisioning.md](deployment/server_provisioning.md) | Provisionner un serveur : PostgreSQL, permissions, vhost Apache, HTTPS |
 | [deployment/worker_systemd.md](deployment/worker_systemd.md) | Service systemd `aurora-worker` (Symfony Messenger consumer) |
 | [deployment/apache_xsendfile.md](deployment/apache_xsendfile.md) | `mod_xsendfile` pour servir `var/uploads/` sans saturer PHP-FPM |
 

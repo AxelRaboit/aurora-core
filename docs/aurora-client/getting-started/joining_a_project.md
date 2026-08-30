@@ -50,7 +50,7 @@ cp .env.local.example .env.local
 
 ```dotenv
 APP_SECRET=<32-char-random>
-DATABASE_URL=postgresql://<user>:<password>@127.0.0.1:5432/<db_name>?serverVersion=16&charset=utf8
+DATABASE_URL=postgresql://<user>:<password>@127.0.0.1:5432/<db_name>?serverVersion=18&charset=utf8
 AURORA_MOUNT_POINT_KEY=<base64-32-bytes>
 AURORA_ENCRYPTION_KEY=<base64-32-bytes>
 ```

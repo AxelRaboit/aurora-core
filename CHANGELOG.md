@@ -11,6 +11,76 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.8] - 2026-08-30
+
+### Corrigé
+
+#### Les permissions documentées cassaient le premier déploiement
+- Le §6 du guide de déploiement prescrivait `chown -R www-data:www-data var/`
+  puis `chmod g+rX`. Or `deploy-prod` tourne sous un compte humain et écrit dans
+  `var/cache` via `cache:clear` : en suivant la doc à la lettre, le déploiement
+  échoue dès `make cc-prod`. Cette recette n'est correcte que si le déploiement
+  s'exécute **en tant que** `www-data`, ce que le Makefile ne fait pas.
+- Le §6 décrit maintenant le montage qui tient : propriétaire au déployeur,
+  groupe `www-data`, setgid sur les répertoires de `var/`, `umask 0002`. Il
+  ajoute que `.env.local` doit rester lisible par `www-data` : en `600`, PHP-FPM
+  ne le lit plus et Symfony retombe silencieusement sur les valeurs de `.env`.
+
+#### L'OPcache était présenté comme un absolu
+- « reset après chaque déploiement » ne vaut que si
+  `opcache.validate_timestamps=0`. Avec le réglage par défaut des paquets Debian
+  et Ubuntu (`On`, `revalidate_freq=2`), PHP reprend les fichiers modifiés tout
+  seul et le reset ne sert à rien. Énoncé sans condition, il pousse à ajouter au
+  déploiement un `systemctl reload php8.4-fpm`, donc une exigence de root
+  souvent inutile. Le §7 distingue désormais les deux cas et donne la commande
+  pour savoir dans lequel on est.
+
+#### Versions de PostgreSQL périmées
+- `joining_a_project.md` proposait `serverVersion=16` et le README du template
+  annonçait « Postgres 16 », alors que tout le reste du projet est sur 18.
+
+#### §10 décrivait une séquence que `deploy-prod` fait désormais lui-même
+- Remplacée par `git checkout <tag> && make deploy-prod`, avec le renvoi vers
+  §7 pour le seul cas où un reload de PHP-FPM reste nécessaire.
+
+### Ajouté
+
+#### `server_provisioning.md` : d'une machine nue à l'application servie
+- La doc de déploiement partait d'un serveur déjà provisionné, sans dire comment
+  y arriver. Le nouveau document couvre les paquets, la création du rôle et de
+  la base PostgreSQL (le rôle applicatif n'a besoin ni de `SUPERUSER` ni de
+  `CREATEDB`), le modèle de permissions, le vhost Apache complet, et HTTPS.
+- **HTTPS n'était mentionné nulle part** dans les 68 fichiers de doc, alors que
+  le guide fait poser `DEFAULT_URI=https://…`. Le document explique certbot et
+  surtout ce qu'il fait au vhost : il en recopie une version 443, modifie
+  l'original pour la redirection, et le fichier d'origine cesse donc de décrire
+  l'état réel du serveur.
+- Le vhost documenté pose `Options +FollowSymLinks`, ce qui n'est pas
+  décoratif : `public/build` est un lien symbolique vers
+  `vendor/axelraboit/aurora/public/build`. Le bloc `<Directory /var/www/>`
+  livré par Ubuntu l'active par défaut, mais tout durcissement qui pose
+  `-FollowSymLinks` renvoie 403 sur la totalité des assets Vite sans que rien
+  n'explique pourquoi.
+
+#### §11 Sauvegardes
+- La doc avertissait en gras que `AURORA_MOUNT_POINT_KEY` ne doit jamais changer
+  sous peine de rendre les MountPoints illisibles, sans jamais dire de
+  sauvegarder le fichier qui la contient. Le §11 liste les trois choses qui ne
+  se reconstruisent pas depuis git (`.env.local`, la base, `var/uploads/`), et
+  insiste sur les deux points qui distinguent une sauvegarde d'un fichier qui
+  grossit : vérifier le dump à la production avec `pg_restore --list`, et avoir
+  testé une restauration réelle au moins une fois.
+
+### Dans aurora-client
+
+`make aurora-update` récupère le README du template (mention PostgreSQL). La
+doc, elle, est livrée avec le paquet : elle est à jour dans
+`vendor/axelraboit/aurora/docs/` dès la mise à jour.
+
+Si un serveur existant a été monté en suivant l'ancien §6, vérifiez que le
+compte qui déploie peut écrire dans `var/` : `deploy-prod` échouerait sinon dès
+le cache prod.
+
 ## [0.9.7] - 2026-08-30
 
 ### Corrigé
@@ -45,7 +115,7 @@ s'exécuter et renvoie vers la publication depuis `master`.
   ✅ no pending migration
   ✅ worker aurora-worker is active (started Sun 2026-08-30 13:10:22 UTC)
   ✅ no failed message
-  ✅ https://app.axelraboit.fr answers 200
+  ✅ https://app.example.com answers 200
 ✅ All green.
 ```
 
@@ -85,7 +155,7 @@ s'exécuter et renvoie vers la publication depuis `master`.
   ✅ aucune migration en attente
   ✅ worker aurora-worker actif (démarré Sun 2026-08-30 14:52:01 UTC)
   ✅ aucun message en échec
-  ✅ https://app.axelraboit.fr répond 200
+  ✅ https://app.example.com répond 200
 ✅ Tout est vert.
 ```
 
@@ -138,7 +208,7 @@ une règle sudoers limitée à ce seul service :
 - Nouvelle cible `build-prod`, même build sans le guard. `install-prod` et
   `deploy-prod` l'utilisent. Le seul vendor dont la build a besoin, celui
   imbriqué d'aurora-core, est restauré par leur étape dédiée.
-- Constaté sur app.axelraboit.fr : `vendor/axelraboit/aurora/tools/*/vendor`
+- Constaté sur un serveur de production : `vendor/axelraboit/aurora/tools/*/vendor`
   était peuplé sur le serveur.
 
 ### Dans aurora-client
@@ -158,7 +228,7 @@ rm -rf vendor/axelraboit/aurora/tools/*/vendor
 
 #### Les fixtures sortent de `src/`, ce que 0.9.2 n'avait fait qu'à moitié
 - 0.9.2 excluait les `DataFixtures/` du driver attribut de Doctrine. Le
-  déploiement d'app.axelraboit.fr a montré que ça ne suffisait pas : un second
+  premier déploiement en production a montré que ça ne suffisait pas : un second
   scanner autoload les mêmes fichiers, le loader de routes attributaires, via le
   `resource: '../vendor/axelraboit/aurora/src/' type: attribute` du
   `routes.yaml` client. `cache:clear --env=prod` mourait donc toujours sur
@@ -236,7 +306,7 @@ ne sert plus.
   `addExcludePaths()` sur le driver attribut. Les fixtures ne portent aucun
   attribut ORM, donc l'exclusion ne coûte rien en dev non plus.
 - Les deux bugs ne se voyaient qu'au premier déploiement d'un client sur un
-  serveur neuf. Constatés sur app.axelraboit.fr le 30/08/2026.
+  serveur neuf. Constatés au premier déploiement en production le 30/08/2026.
 
 #### `make install-prod` ne passait pas sur un serveur neuf
 - La cible enchaînait `composer install --no-dev` puis
