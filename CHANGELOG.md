@@ -11,6 +11,26 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.21] - 2026-08-30
+
+### Supprimé
+
+#### Les icônes automatiques sur les liens sociaux
+- Introduites en 0.9.18, corrigées en 0.9.19 et 0.9.20, elles sont retirées.
+  Le principe même était en cause : décorer un lien à partir de son domaine
+  impose un rendu que l'auteur n'a pas demandé et ne peut pas refuser depuis
+  l'éditeur.
+- Le nettoyeur de contenu n'autorisant ni `<svg>` ni `<img>`, il n'existait pas
+  de version « opt-in » de cette fonctionnalité : elle était forcément
+  automatique, donc forcément subie. Mieux vaut ne rien imposer.
+- Part avec elles le garde-fou `a:empty::before`, qui n'existait que pour
+  rattraper un effet de bord des icônes.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`. Les liens redeviennent des liens,
+sans pastille. Aucun contenu n'est modifié.
+
 ## [0.9.20] - 2026-08-30
 
 ### Corrigé
