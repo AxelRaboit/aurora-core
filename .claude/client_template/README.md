@@ -29,7 +29,7 @@ installer à la main avant. C'est aussi lui qui crée `vendor/`.
 **Le guide complet** (prérequis, Postgres en local ou via Docker, dépannage) :
 [joining_a_project.md](https://github.com/AxelRaboit/aurora-core/blob/develop/docs/aurora-client/getting-started/joining_a_project.md)
 
-> 📋 **Checklist des prérequis** (PHP 8.4, Node 24, pnpm 10, Postgres 16,
+> 📋 **Checklist des prérequis** (PHP 8.4, Node 24, pnpm 10, Postgres 18,
 > Symfony CLI, vars d'env, prod) :
 > [prerequisites.md](https://github.com/AxelRaboit/aurora-core/blob/develop/docs/aurora-core/ops/prerequisites.md) - à lire
 > avant la première install.

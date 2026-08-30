@@ -68,7 +68,7 @@ prennent bien le nouveau DSN, mais tout ce qui passe par le transport `async`
 (c'est-à-dire l'essentiel des mails) continue de viser l'ancien. Symptôme :
 `messenger_messages` se vide normalement, et aucun mail n'arrive.
 
-Constaté au déploiement d'app.axelraboit.fr le 30/08/2026.
+Constaté au premier déploiement d'un projet client en production, le 30/08/2026.
 
 La liste complète des variables à fournir en prod (dont
 `AURORA_MOUNT_POINT_KEY`, qui obéit à la même règle du défaut qu'il ne faut
