@@ -147,20 +147,6 @@ await submit(url, { field: 'status', value: 'paid' }, { silent: true });
 Différence avec `useFormAction` : pas de validation client, pas d'erreurs
 réactives - c'est pour les mutations "one button click → toast".
 
-### `useSlugLock({ getTitle, setSlug })`
-
-Slug auto-suit le titre tant que verrouillé ; débloquable manuellement.
-
-```js
-const { locked, toggle } = useSlugLock({
-    getTitle: () => form.translations[locale].name,
-    setSlug:  (slug) => { form.translations[locale].slug = slug; },
-});
-```
-
-Pitfall : `getTitle`/`setSlug` sont des fonctions, pas des `ref()` - c'est
-volontaire pour cibler un champ nested dans `editForm`.
-
 ### `useAuthForm(initialErrors?)`
 
 Variante front-public pour les flows d'auth (login/register/reset). Les
