@@ -475,7 +475,7 @@ ne sert plus.
 > Aucun module n'est extrait aujourd'hui, mais le premier qui ship des fixtures
 > reproduira le bug.
 
-## [0.9.14] - 2026-08-30
+## [0.9.2] - 2026-08-30
 
 ### Ajouté
 
