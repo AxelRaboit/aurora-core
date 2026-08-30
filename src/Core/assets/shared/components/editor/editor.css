@@ -197,3 +197,26 @@
     width: 100%;
     border-top: 1px solid var(--color-border);
 }
+
+/* Le bloc HTML brut, rendu utilisable et accorde au theme.
+ *
+ * Sa feuille livree ne fixe aucune largeur : sans `width`, un <textarea>
+ * retombe sur son attribut `cols`, soit une vingtaine de caracteres. Pour du
+ * HTML ecrit a la main, c'est inutilisable.
+ *
+ * Elle code aussi ses couleurs en dur, en sombre : sur un backend en theme
+ * clair, la zone de saisie restait noire au milieu d'une page blanche. Les
+ * jetons du projet reglent les deux cas d'un coup. */
+.codex-editor .ce-rawtool__textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.75rem;
+    background-color: var(--th-surface-2);
+    color: var(--th-primary);
+    border: 1px solid var(--color-border);
+}
+
+.codex-editor .ce-rawtool__textarea:focus {
+    outline: 2px solid var(--th-accent);
+    outline-offset: -1px;
+}
