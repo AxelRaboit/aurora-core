@@ -91,7 +91,10 @@ final class InstallCommand extends Command
 
         $symfonyStyle->warning([
             "Aucun utilisateur n'existe : le backend est inaccessible.",
-            'Crée un administrateur avec : php bin/console aurora:user:create --admin',
+            // `--dev` and not `--admin`: /dev is gated on ROLE_DEV, so an owner
+            // created as an administrator cannot reach the dashboard that toggles
+            // modules on their own installation.
+            'Crée le premier compte avec : php bin/console aurora:user:create --dev',
         ]);
     }
 }

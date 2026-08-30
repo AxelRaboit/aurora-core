@@ -11,6 +11,29 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.8.0] - 2026-08-30
+
+### Ajouté
+
+#### Premier compte d'une installation
+- `aurora:user:create --dev` donne `ROLE_DEV`, à côté de `--admin` qui reste.
+  `/dev` étant gardé par `ROLE_DEV`, un propriétaire créé avec `--admin` - ce
+  que `aurora:install` recommandait - ne pouvait pas ouvrir le tableau de bord
+  qui active les modules sur son propre site. Les deux options passées
+  ensemble donnent `ROLE_DEV`, la plus large.
+- `aurora:install` recommande désormais `--dev`.
+- Quatre tests sur cette commande, qui n'en avait aucun.
+
+### Dans aurora-client
+
+Rien à faire. Sur une installation existante, un compte déjà créé en
+administrateur se corrige avec :
+
+```bash
+php bin/console aurora:user:role <email> ROLE_DEV
+php bin/console aurora:user:role <email> ROLE_ADMIN --remove
+```
+
 ## [0.7.4] - 2026-08-29
 
 ### Corrigé
