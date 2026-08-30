@@ -6,10 +6,10 @@ PHP_BIN       = php
 CONSOLE       = $(PHP_BIN) bin/console
 COMPOSER      = composer
 PNPM          = pnpm
-# Unite systemd du worker Messenger, arretee pendant un deploiement et
-# redemarree apres. Surchargez le nom dans Makefile.local, ou videz la
-# variable si le worker n'est pas supervise par systemd ici : les cibles
-# worker-* deviennent alors des no-op.
+# systemd unit of the Messenger worker, stopped for the duration of a deploy
+# and started again after. Override the name in Makefile.local, or empty the
+# variable when the worker is not supervised by systemd here - the worker-*
+# targets then become no-ops.
 WORKER_SERVICE ?= aurora-worker
 PHP_CS_FIXER  = $(PHP_BIN) $(AURORA)/tools/php-cs-fixer/vendor/bin/php-cs-fixer
 TWIG_CS_FIXER = $(PHP_BIN) $(AURORA)/tools/twig-cs-fixer/vendor/bin/twig-cs-fixer
@@ -503,48 +503,48 @@ db-install-prod: ## Initial prod schema - schema:create + mark every migration a
 	$(CONSOLE) messenger:setup-transports
 
 worker-stop: ## Stop the Messenger worker (no-op without a systemd unit)
-	@if [ -z "$(WORKER_SERVICE)" ]; then echo "➖ WORKER_SERVICE vide - pas de worker à arrêter"; exit 0; fi; \
-	if ! command -v systemctl >/dev/null 2>&1; then echo "➖ pas de systemd ici - worker non géré"; exit 0; fi; \
-	if ! systemctl cat $(WORKER_SERVICE) >/dev/null 2>&1; then echo "➖ unité $(WORKER_SERVICE) inconnue - rien à arrêter"; exit 0; fi; \
-	echo "⏸  arrêt de $(WORKER_SERVICE)"; \
+	@if [ -z "$(WORKER_SERVICE)" ]; then echo "➖ WORKER_SERVICE is empty - no worker to stop"; exit 0; fi; \
+	if ! command -v systemctl >/dev/null 2>&1; then echo "➖ no systemd here - the worker is not managed"; exit 0; fi; \
+	if ! systemctl cat $(WORKER_SERVICE) >/dev/null 2>&1; then echo "➖ unit $(WORKER_SERVICE) is unknown - nothing to stop"; exit 0; fi; \
+	echo "⏸  stopping $(WORKER_SERVICE)"; \
 	sudo systemctl stop $(WORKER_SERVICE)
 
 worker-start: ## Start the Messenger worker (no-op without a systemd unit)
 	@if [ -z "$(WORKER_SERVICE)" ]; then exit 0; fi; \
 	if ! command -v systemctl >/dev/null 2>&1; then exit 0; fi; \
 	if ! systemctl cat $(WORKER_SERVICE) >/dev/null 2>&1; then exit 0; fi; \
-	echo "▶️  démarrage de $(WORKER_SERVICE)"; \
+	echo "▶️  starting $(WORKER_SERVICE)"; \
 	sudo systemctl start $(WORKER_SERVICE)
 
-# deploy-check lit DEFAULT_URI dans .env.local puis .env, et garde la premiere
-# occurrence : c'est celle que Symfony retient, .env.local ayant la priorite.
+# deploy-check reads DEFAULT_URI from .env.local then .env and keeps the first
+# hit, which is the one Symfony resolves - .env.local wins.
 deploy-check: ## Post-deploy health check - boot, migrations, worker, queue, HTTP
 	@failed=0; \
 	pass() { printf "  ✅ %s\n" "$$1"; }; \
 	fail() { printf "  ❌ %s\n" "$$1"; failed=1; }; \
 	skip() { printf "  ➖ %s\n" "$$1"; }; \
-	echo "🔎 Vérifications post-déploiement"; \
-	if [ -f VERSION ]; then pass "version déployée : $$(cat VERSION)"; else skip "pas de fichier VERSION"; fi; \
+	echo "🔎 Post-deploy checks"; \
+	if [ -f VERSION ]; then pass "deployed version: $$(cat VERSION)"; else skip "no VERSION file"; fi; \
 	if APP_ENV=prod APP_DEBUG=0 $(CONSOLE) about --env=prod >/dev/null 2>&1; then \
-		pass "l'application boote en prod"; else fail "l'application ne boote PAS en prod"; fi; \
+		pass "the application boots in prod"; else fail "the application does NOT boot in prod"; fi; \
 	if $(CONSOLE) doctrine:migrations:up-to-date >/dev/null 2>&1; then \
-		pass "aucune migration en attente"; else fail "des migrations restent à jouer"; fi; \
+		pass "no pending migration"; else fail "migrations are still pending"; fi; \
 	if [ -z "$(WORKER_SERVICE)" ] || ! command -v systemctl >/dev/null 2>&1 || ! systemctl cat $(WORKER_SERVICE) >/dev/null 2>&1; then \
-		skip "pas de worker systemd à vérifier"; \
+		skip "no systemd worker to check"; \
 	elif [ "$$(systemctl is-active $(WORKER_SERVICE))" = "active" ]; then \
-		pass "worker $(WORKER_SERVICE) actif (démarré $$(systemctl show $(WORKER_SERVICE) -p ExecMainStartTimestamp --value))"; \
-	else fail "worker $(WORKER_SERVICE) NON actif - les mails et les tâches planifiées ne partent pas"; fi; \
+		pass "worker $(WORKER_SERVICE) is active (started $$(systemctl show $(WORKER_SERVICE) -p ExecMainStartTimestamp --value))"; \
+	else fail "worker $(WORKER_SERVICE) is NOT active - mail and scheduled tasks are not going out"; fi; \
 	stats=$$($(CONSOLE) messenger:stats --format=json 2>/dev/null); \
 	if [ -n "$$stats" ]; then \
 		nb=$$(printf '%s' "$$stats" | $(PHP_BIN) -r 'echo json_decode(stream_get_contents(STDIN), true)["transports"]["failed"]["count"] ?? 0;'); \
-		if [ "$$nb" = "0" ]; then pass "aucun message en échec"; else fail "$$nb message(s) dans le transport failed"; fi; \
-	else skip "stats messenger indisponibles"; fi; \
+		if [ "$$nb" = "0" ]; then pass "no failed message"; else fail "$$nb message(s) in the failed transport"; fi; \
+	else skip "messenger stats unavailable"; fi; \
 	url=$$(grep -h "^DEFAULT_URI=" .env.local .env 2>/dev/null | head -1 | cut -d= -f2- | tr -d "\"'"); \
 	if [ -n "$$url" ] && command -v curl >/dev/null 2>&1; then \
 		code=$$(curl -sS -o /dev/null -w '%{http_code}' -L "$$url" 2>/dev/null); \
-		if [ "$$code" = "200" ]; then pass "$$url répond 200"; else fail "$$url répond $$code"; fi; \
-	else skip "DEFAULT_URI absent ou curl indisponible - pas de test HTTP"; fi; \
-	if [ "$$failed" -eq 0 ]; then echo "✅ Tout est vert."; else echo "❌ Au moins une vérification a échoué (voir ci-dessus)."; exit 1; fi
+		if [ "$$code" = "200" ]; then pass "$$url answers 200"; else fail "$$url answers $$code"; fi; \
+	else skip "no DEFAULT_URI or no curl - skipping the HTTP check"; fi; \
+	if [ "$$failed" -eq 0 ]; then echo "✅ All green."; else echo "❌ At least one check failed (see above)."; exit 1; fi
 
 deploy-prod: ## Deploy to production (requires a git tag on HEAD)
 	@APP_VERSION=$$(git describe --exact-match --tags HEAD 2>/dev/null); \
@@ -555,7 +555,7 @@ deploy-prod: ## Deploy to production (requires a git tag on HEAD)
 	echo "🚀 Deploying version $$APP_VERSION..."; \
 	echo "$$APP_VERSION" > VERSION; \
 	set -e; \
-	trap 'code=$$?; if [ $$code -ne 0 ]; then echo "❌ Déploiement interrompu - on relance le worker pour ne pas laisser la file en plan"; make worker-start || true; fi' EXIT; \
+	trap 'code=$$?; if [ $$code -ne 0 ]; then echo "❌ Deploy interrupted - starting the worker again so the queue does not pile up"; make worker-start || true; fi' EXIT; \
 	make worker-stop; \
 	$(COMPOSER) install --no-dev --optimize-autoloader; \
 	$(COMPOSER) install --working-dir=$(AURORA) --no-dev --no-scripts --no-interaction; \

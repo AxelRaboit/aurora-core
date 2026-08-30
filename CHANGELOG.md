@@ -11,6 +11,33 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.6] - 2026-08-30
+
+### Corrigé
+
+#### Les cibles ajoutées en 0.9.5 parlaient français
+- `worker-stop`, `worker-start` et `deploy-check` sortaient leurs messages en
+  français, alors que le `Makefile` est en anglais de bout en bout : aide des
+  cibles, commentaires de recette et messages `echo` (`✅ Runtime directories
+  created`, `❌ Refused: target is destructive`, `⚠️ aurora-core's nested
+  vendor/ is missing`). Tout est repassé en anglais, commentaires compris.
+
+```
+🔎 Post-deploy checks
+  ✅ deployed version: v0.1.14
+  ✅ the application boots in prod
+  ✅ no pending migration
+  ✅ worker aurora-worker is active (started Sun 2026-08-30 13:10:22 UTC)
+  ✅ no failed message
+  ✅ https://app.axelraboit.fr answers 200
+✅ All green.
+```
+
+> À noter, hors périmètre de cette version : la cible `tag` est le seul autre
+> endroit du `Makefile` dont les messages sont en français. Elle est
+> dépréciée et ne fait qu'afficher une explication, donc rien ne presse, mais
+> c'est la dernière exception.
+
 ## [0.9.5] - 2026-08-30
 
 ### Ajouté
