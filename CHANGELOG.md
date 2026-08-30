@@ -11,6 +11,34 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.22] - 2026-08-30
+
+### Ajouté
+
+#### Le bloc HTML brut accepte les icônes SVG
+- `RawHtmlSanitizer` laisse désormais passer un sous-ensemble strict de SVG :
+  `svg`, `g`, `path`, `circle`, `ellipse`, `rect`, `line`, `polyline`,
+  `polygon`, avec leurs attributs géométriques.
+- L'intérêt sur une image `data:` déjà acceptée : un SVG en ligne peut porter
+  `fill="currentColor"`, donc **prendre la couleur du texte** et suivre le thème.
+  Dans une image `data:`, la couleur est figée dans le fichier et ne suit rien.
+- Restent exclus, et c'est la raison d'une liste plutôt que d'une autorisation
+  de `<svg>` : `use`, qui référence un document extérieur ; `foreignObject`, qui
+  réintroduirait du HTML arbitraire au milieu du SVG ; `image`, `style`, et
+  toutes les balises d'animation. Les scripts et les attributs `on*` étaient
+  déjà bloqués.
+
+#### La casse des attributs SVG est restituée
+- Le parseur HTML de PHP met tous les noms d'attributs en minuscules. Correct en
+  HTML, faux en SVG : un `viewbox` est ignoré par les navigateurs et l'icône
+  perd son cadrage, **sans qu'aucune erreur ne le signale**. `viewBox` et
+  `preserveAspectRatio` retrouvent leur casse à la sérialisation.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`. Une icône se colle désormais dans
+un bloc HTML brut, à l'endroit choisi, et suit la couleur du texte.
+
 ## [0.9.21] - 2026-08-30
 
 ### Supprimé
