@@ -35,7 +35,7 @@ make setup-dirs                                    # var/cache, var/log
 make db-install-prod                               # schema:create + marquage des migrations
 aurora:install                                     # données de socle (locales, thème, types, menus)
 aurora:application-parameter                       # synchronise ApplicationParameters
-make build                                         # build prod des assets Vite
+make build-prod                                    # build prod des assets Vite
 make cc-prod                                       # cache:clear --env=prod + verification du boot
 ```
 
@@ -46,6 +46,13 @@ Son `package.json` déclare `"@symfony/ux-vue": "file:vendor/symfony/ux-vue/asse
 un chemin que le premier `composer install` vient d'effacer en ré-extrayant le
 paquet. Sans cette ligne, le `pnpm install` suivant meurt sur un `ENOENT` qui ne
 désigne rien de compréhensible.
+
+`build-prod` remplace `build` parce que `build` dépend d'`aurora-vendor-guard`,
+qui réinstalle les linters d'aurora-core (php-cs-fixer, phpstan, rector,
+twig-cs-fixer) quand il ne les trouve pas. Sur un serveur de prod, ça revient à
+installer de l'outillage de dev que personne n'a demandé. `build-prod` fait le
+même build sans le guard : le vendor imbriqué dont la build a réellement besoin
+est restauré par l'étape dédiée plus haut.
 
 **`db-install-prod` remplace `migrate-f`** parce que sur une base vierge la
 chaîne de migrations plante : Doctrine Migrations 3.x traite les namespaces dans

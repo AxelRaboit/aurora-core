@@ -98,6 +98,21 @@ aurora-vendor-guard: ## Restore aurora-core's own vendor/ if composer wiped it
 build: aurora-vendor-guard ## Build assets for production
 	$(AURORA_ENV) $(PNPM) --dir=$(AURORA) run build
 
+build-prod: ## Build assets on a production server (no dev-only vendor guard)
+	# Same build as `build`, minus `aurora-vendor-guard`. That guard restores
+	# aurora-core's linters (php-cs-fixer, phpstan, rector, twig-cs-fixer) when
+	# they are missing, which on a prod server means installing dev tooling
+	# nobody asked for. install-prod / deploy-prod restore the one thing the
+	# build actually needs - aurora-core's nested vendor/ - themselves.
+	#
+	# $(AURORA_ENV) is NOT optional. It carries AURORA_CLIENT_DIR, which
+	# aurora-core's `prebuild` hook (bin/dump-translations) reads to decide
+	# whose console to run. Without it the hook runs aurora-core's OWN console,
+	# booting its kernel from its nested vendor - installed --no-dev here, so
+	# the dev bundles its config/bundles.php expects are gone and the build dies
+	# on `Class "Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle" not found`.
+	$(AURORA_ENV) $(PNPM) --dir=$(AURORA) run build
+
 dev: aurora-vendor-guard ## Start Vite dev server
 	$(AURORA_ENV) $(PNPM) --dir=$(AURORA) run dev
 
@@ -458,7 +473,7 @@ install-prod: ## Install for production - first install on a fresh server (empty
 	# It used to come from fixtures, which never run here.
 	$(CONSOLE) aurora:install
 	$(CONSOLE) aurora:application-parameter
-	make build
+	make build-prod
 	make cc-prod
 
 db-install-prod: ## Initial prod schema - schema:create + mark every migration applied
@@ -489,14 +504,15 @@ deploy-prod: ## Deploy to production (requires a git tag on HEAD)
 	fi; \
 	echo "🚀 Deploying version $$APP_VERSION..."; \
 	echo "$$APP_VERSION" > VERSION; \
+	set -e; \
 	$(COMPOSER) install --no-dev --optimize-autoloader; \
 	$(COMPOSER) install --working-dir=$(AURORA) --no-dev --no-scripts --no-interaction; \
 	$(PNPM) --dir=$(AURORA) install --frozen-lockfile; \
 	$(CONSOLE) doctrine:migrations:migrate --no-interaction; \
 	$(CONSOLE) aurora:application-parameter; \
 	$(CONSOLE) aurora:install; \
-	$(PNPM) --dir=$(AURORA) run build; \
-	APP_ENV=prod APP_DEBUG=0 $(CONSOLE) cache:clear --env=prod; \
+	make build-prod; \
+	make cc-prod; \
 	echo "✅ Deployed $$APP_VERSION"
 
 sync-jsconfig: ## Regenerate jsconfig.json from aurora module aliases
