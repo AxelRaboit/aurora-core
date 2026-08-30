@@ -11,6 +11,38 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.11] - 2026-08-30
+
+### Supprimé
+
+#### `useSlugLock`, jamais utilisé et redondant depuis la 0.9.10
+- Le composable n'était appelé nulle part, ni dans aurora-core ni dans un
+  projet client, alors qu'il était documenté au catalogue. Une API annoncée
+  que personne n'a jamais branchée est une promesse que rien ne vérifie.
+- Il est surtout redondant depuis que la 0.9.10 a câblé `slugifyIfEmpty()`
+  pour le même besoin. Deux mécanismes pour dériver un slug d'un titre, c'est
+  la garantie qu'un jour le mauvais soit choisi : celui-ci est verrouillé par
+  défaut, donc le slug y suit le titre en permanence, y compris sur un contenu
+  publié dont l'URL est déjà partagée.
+- Son entrée est retirée de `composables_catalog.md`. `slugify()` et
+  `slugifyIfEmpty()`, qui y figuraient déjà, restent la façon de faire.
+
+> Le motif « cadenas ouvrable » n'est pas mauvais en soi, il demande juste
+> l'affordance qui va avec, un bouton pour déverrouiller. Si le besoin revient,
+> l'historique git contient la quinzaine de lignes.
+
+### Dans aurora-client
+
+Rien à faire, sauf pour un projet qui importerait `useSlugLock` depuis
+`@/shared/composables/form/`. Aucun ne le fait à notre connaissance. Le
+remplacement tient en un appel :
+
+```js
+translation.slug = slugifyIfEmpty(translation.slug, translation.title);
+```
+
+Il ne remplit que si le slug est vide, donc ne réécrit jamais une URL existante.
+
 ## [0.9.10] - 2026-08-30
 
 ### Modifié
