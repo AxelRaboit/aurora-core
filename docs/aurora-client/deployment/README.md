@@ -23,7 +23,14 @@ Le Makefile expose deux targets :
 ```bash
 make install-prod       # première installation prod sur un serveur fraîchement provisionné
 make deploy-prod        # déploiement d'une version taguée (HEAD doit être taggé)
+make deploy-check       # état du serveur : boot, migrations, worker, file, HTTP
 ```
+
+`deploy-prod` arrête le worker Messenger avant de toucher au code et le relance
+après, y compris si le déploiement échoue en route. Les deux cibles se terminent
+par `deploy-check`. Le nom de l'unité systemd vient de `WORKER_SERVICE`
+(défaut `aurora-worker`), à surcharger dans `Makefile.local` ; la vider
+désactive proprement la gestion du worker.
 
 ### `make install-prod`
 
