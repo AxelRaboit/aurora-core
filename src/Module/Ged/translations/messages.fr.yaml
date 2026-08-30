@@ -105,6 +105,7 @@ backend:
       crop: Recadrer
       type: Type
       preview: Aperçu
+      preview_of: "Aperçu : {name}"
       choose_file: Choisir un fichier
       choose_file_library: Médiathèque
       choose_file_local: Depuis l'ordinateur

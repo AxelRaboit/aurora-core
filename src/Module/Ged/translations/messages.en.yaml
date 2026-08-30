@@ -105,6 +105,7 @@ backend:
       crop: Crop
       type: Type
       preview: Preview
+      preview_of: "Preview: {name}"
       choose_file: Choose a file
       choose_file_library: Media library
       choose_file_local: From your computer

@@ -634,18 +634,31 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                                         <span v-else>-</span>
                                     </td>
                                     <td class="px-6 py-3 hidden xl:table-cell">
-                                        <AppThumbnail
-                                            v-if="doc.thumbnailUrl"
-                                            :src="doc.thumbnailUrl"
-                                            :alt="doc.fileName"
-                                            size="landscape"
-                                        />
-                                        <div v-else-if="doc.fileMime === 'application/pdf'" class="flex items-center gap-1.5 text-xs text-muted">
-                                            <FileText class="w-5 h-5 shrink-0 text-rose-400" :stroke-width="1.5" /> PDF
-                                        </div>
-                                        <div v-else-if="doc.fileUrl" class="flex items-center gap-1.5 text-xs text-muted">
-                                            <FileText class="w-5 h-5 shrink-0" :stroke-width="1.5" /> {{ doc.fileMime ?? '-' }}
-                                        </div>
+                                        <!-- A card in grid mode already opens the detail modal on click; the
+                                             thumbnail here looked identical and did nothing. Same target, so
+                                             the same affordance: a real button, reachable by keyboard. -->
+                                        <button
+                                            v-if="doc.fileUrl || doc.thumbnailUrl"
+                                            type="button"
+                                            class="group/preview flex items-center gap-1.5 rounded transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface cursor-pointer"
+                                            :aria-label="t('backend.ged.documents.preview_of', { name: doc.title ?? doc.fileName ?? '' })"
+                                            v-on:click.stop="isSelecting ? toggleSelect(doc.id) : viewDoc(doc)"
+                                        >
+                                            <AppThumbnail
+                                                v-if="doc.thumbnailUrl"
+                                                :src="doc.thumbnailUrl"
+                                                :alt="doc.fileName"
+                                                size="landscape"
+                                            />
+                                            <template v-else-if="doc.fileMime === 'application/pdf'">
+                                                <FileText class="w-5 h-5 shrink-0 text-rose-400" :stroke-width="1.5" />
+                                                <span class="text-xs text-muted">PDF</span>
+                                            </template>
+                                            <template v-else>
+                                                <FileText class="w-5 h-5 shrink-0" :stroke-width="1.5" />
+                                                <span class="text-xs text-muted">{{ doc.fileMime ?? '-' }}</span>
+                                            </template>
+                                        </button>
                                         <span v-else class="text-muted text-xs">-</span>
                                     </td>
                                     <td class="px-6 py-3">
