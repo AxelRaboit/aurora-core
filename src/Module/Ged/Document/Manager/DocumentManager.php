@@ -96,10 +96,14 @@ class DocumentManager implements DocumentManagerInterface
     {
         $this->auditDeleted($document);
 
-        $this->variantGenerator->deleteVariants($document->getVariants());
+        $owned = $this->collectOwnedFiles([$document]);
+        $variants = $document->getVariants();
 
         $this->entityManager->remove($document);
         $this->entityManager->flush();
+
+        $this->variantGenerator->deleteVariants($variants);
+        $this->deleteUnreferencedFiles($owned);
     }
 
     public function move(DocumentInterface $document, ?DocumentFolderInterface $folder): void
@@ -140,13 +144,18 @@ class DocumentManager implements DocumentManagerInterface
         }
 
         $documents = $this->documentRepository->findBy(['id' => $ids]);
+        $owned = $this->collectOwnedFiles($documents);
+        $variants = [];
         foreach ($documents as $document) {
             $this->auditDeleted($document);
-            $this->variantGenerator->deleteVariants($document->getVariants());
+            $variants = array_merge($variants, $document->getVariants());
             $this->entityManager->remove($document);
         }
 
         $this->entityManager->flush();
+
+        $this->variantGenerator->deleteVariants($variants);
+        $this->deleteUnreferencedFiles($owned);
 
         return count($documents);
     }
@@ -195,6 +204,68 @@ class DocumentManager implements DocumentManagerInterface
         $this->entityManager->flush();
         $this->recordVersion($document);
         $this->auditCropped($document);
+    }
+
+    /**
+     * Every relative path the given documents own on disk: their live file,
+     * their generated thumbnail, and the file of each version row.
+     *
+     * Must be called *before* the rows are removed. Version rows disappear
+     * through an `ON DELETE CASCADE` at the database level, so once the
+     * document is gone there is nothing left to read their paths from - the
+     * bytes would stay on disk with no row to ever name them again.
+     *
+     * @param list<DocumentInterface> $documents
+     *
+     * @return list<string>
+     */
+    protected function collectOwnedFiles(array $documents): array
+    {
+        $paths = [];
+        foreach ($documents as $document) {
+            foreach ([$document->getFilePath(), $document->getThumbnailPath()] as $path) {
+                if (null !== $path && '' !== $path) {
+                    $paths[$path] = true;
+                }
+            }
+
+            foreach ($this->versionRepository->findByDocument($document) as $version) {
+                $versionPath = $version->getFilePath();
+                if ('' !== $versionPath) {
+                    $paths[$versionPath] = true;
+                }
+            }
+        }
+
+        return array_keys($paths);
+    }
+
+    /**
+     * Erases the given files, minus any path a surviving row still points at.
+     *
+     * The check is not paranoia: `recordVersion()` deliberately makes a
+     * version row share the live document's `filePath`, so a naive delete
+     * would take a file another row still owns. Call this *after* the flush -
+     * the rows being deleted must already be gone for the query to answer
+     * about survivors only, and a failed flush must not cost anyone their
+     * bytes.
+     *
+     * @param list<string> $paths
+     */
+    protected function deleteUnreferencedFiles(array $paths): void
+    {
+        if ([] === $paths) {
+            return;
+        }
+
+        $stillInUse = array_merge(
+            $this->documentRepository->filterPathsInUse($paths),
+            $this->versionRepository->filterPathsInUse($paths),
+        );
+
+        foreach (array_diff($paths, $stillInUse) as $path) {
+            $this->uploader->deleteFile($path);
+        }
     }
 
     protected function createDocument(): DocumentInterface

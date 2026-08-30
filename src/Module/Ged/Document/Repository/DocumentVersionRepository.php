@@ -51,6 +51,32 @@ class DocumentVersionRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * Of the given relative paths, the ones a surviving version row still
+     * points at. Counterpart of {@see DocumentRepository::filterPathsInUse()}
+     * - the two together decide whether a file may be erased.
+     *
+     * @param list<string> $paths
+     *
+     * @return list<string>
+     */
+    public function filterPathsInUse(array $paths): array
+    {
+        if ([] === $paths) {
+            return [];
+        }
+
+        /** @var list<array{filePath: string}> $rows */
+        $rows = $this->createQueryBuilder('v')
+            ->select('DISTINCT v.filePath')
+            ->where('v.filePath IN (:paths)')
+            ->setParameter('paths', $paths)
+            ->getQuery()
+            ->getResult();
+
+        return array_map(static fn (array $row): string => $row['filePath'], $rows);
+    }
+
     public function getNextVersionNumber(DocumentInterface $document): int
     {
         $max = $this->createQueryBuilder('v')

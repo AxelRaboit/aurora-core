@@ -45,6 +45,7 @@ final class DocumentManagerTest extends TestCase
     private DocumentTagRepository $tagRepository;
     private DocumentFolderRepository $folderRepository;
     private DocumentVersionRepository $versionRepository;
+    private DocumentRepository $documentRepository;
     private DocumentManager $manager;
     private string $workDir;
 
@@ -56,6 +57,7 @@ final class DocumentManagerTest extends TestCase
         $this->folderRepository = $this->createMock(DocumentFolderRepository::class);
         $this->versionRepository = $this->createMock(DocumentVersionRepository::class);
         $this->versionRepository->method('getNextVersionNumber')->willReturn(1);
+        $this->documentRepository = $this->createMock(DocumentRepository::class);
 
         $settingRepository = $this->createStub(SettingRepository::class);
         $settingRepository->method('getOrDefault')->willReturn(SequencePrefixEnum::GedDocument->value);
@@ -72,7 +74,7 @@ final class DocumentManagerTest extends TestCase
             $this->tagRepository,
             $this->folderRepository,
             $this->versionRepository,
-            $this->createStub(DocumentRepository::class),
+            $this->documentRepository,
             new GedDocumentUploader(
                 new Filesystem(),
                 new AsciiSlugger(),
@@ -383,6 +385,115 @@ final class DocumentManagerTest extends TestCase
         $this->manager->delete($document);
     }
 
+    public function testDeleteErasesTheDocumentFileFromDisk(): void
+    {
+        $absolute = $this->writeSourceImage('ged/2026/05/lonely.png', 10, 10);
+        $document = $this->makeImageDocument('ged/2026/05/lonely.png');
+
+        $this->manager->delete($document);
+
+        self::assertFileDoesNotExist($absolute);
+    }
+
+    public function testDeleteErasesTheGeneratedThumbnailToo(): void
+    {
+        $this->writeSourceImage('ged/2026/05/contract.png', 10, 10);
+        $thumbnail = $this->writeSourceImage('ged/thumbnails/2026/05/contract.png', 4, 4);
+        $document = $this->makeImageDocument('ged/2026/05/contract.png');
+        $document->setThumbnailPath('ged/thumbnails/2026/05/contract.png');
+
+        $this->manager->delete($document);
+
+        self::assertFileDoesNotExist($thumbnail);
+    }
+
+    public function testDeleteErasesTheFilesOfEveryVersionRow(): void
+    {
+        // Version rows go away through an ON DELETE CASCADE, so their paths
+        // have to be read before the flush or the bytes are unreachable.
+        $old = $this->writeSourceImage('ged/2026/04/draft-v1.png', 10, 10);
+        $current = $this->writeSourceImage('ged/2026/05/draft-v2.png', 10, 10);
+        $document = $this->makeImageDocument('ged/2026/05/draft-v2.png');
+
+        $this->versionRepository->method('findByDocument')->willReturn([
+            $this->makeVersion('ged/2026/05/draft-v2.png'),
+            $this->makeVersion('ged/2026/04/draft-v1.png'),
+        ]);
+
+        $this->manager->delete($document);
+
+        self::assertFileDoesNotExist($old);
+        self::assertFileDoesNotExist($current);
+    }
+
+    public function testDeleteSparesAFileAnotherDocumentStillPointsAt(): void
+    {
+        $shared = $this->writeSourceImage('ged/2026/05/shared.png', 10, 10);
+        $document = $this->makeImageDocument('ged/2026/05/shared.png');
+
+        // A surviving row still names this path - erasing it would break
+        // whatever that row serves.
+        $this->documentRepository->method('filterPathsInUse')
+            ->willReturn(['ged/2026/05/shared.png']);
+
+        $this->manager->delete($document);
+
+        self::assertFileExists($shared);
+    }
+
+    public function testDeleteSparesAFileAVersionRowStillPointsAt(): void
+    {
+        $shared = $this->writeSourceImage('ged/2026/05/kept.png', 10, 10);
+        $document = $this->makeImageDocument('ged/2026/05/kept.png');
+
+        $this->versionRepository->method('filterPathsInUse')
+            ->willReturn(['ged/2026/05/kept.png']);
+
+        $this->manager->delete($document);
+
+        self::assertFileExists($shared);
+    }
+
+    public function testDeleteReadsTheOwnedPathsBeforeTheRowIsRemoved(): void
+    {
+        // The guard query must see the deletion already committed, otherwise
+        // the row being deleted answers for itself and nothing is ever erased.
+        $absolute = $this->writeSourceImage('ged/2026/05/ordered.png', 10, 10);
+        $document = $this->makeImageDocument('ged/2026/05/ordered.png');
+
+        $calls = [];
+        $this->entityManager->method('flush')->willReturnCallback(
+            static function () use (&$calls): void { $calls[] = 'flush'; }
+        );
+        $this->documentRepository->method('filterPathsInUse')->willReturnCallback(
+            static function (array $paths) use (&$calls): array {
+                $calls[] = 'guard';
+
+                return [];
+            }
+        );
+
+        $this->manager->delete($document);
+
+        self::assertSame(['flush', 'guard'], $calls);
+        self::assertFileDoesNotExist($absolute);
+    }
+
+    public function testBulkDeleteErasesTheFilesOfEveryDocument(): void
+    {
+        $first = $this->writeSourceImage('ged/2026/05/one.png', 10, 10);
+        $second = $this->writeSourceImage('ged/2026/05/two.png', 10, 10);
+
+        $this->documentRepository->method('findBy')->willReturn([
+            $this->makeImageDocument('ged/2026/05/one.png'),
+            $this->makeImageDocument('ged/2026/05/two.png'),
+        ]);
+
+        self::assertSame(2, $this->manager->bulkDelete([1, 2]));
+        self::assertFileDoesNotExist($first);
+        self::assertFileDoesNotExist($second);
+    }
+
     // --- cropImage() ---
 
     public function testCropImageWritesNewFileAndKeepsOriginal(): void
@@ -467,6 +578,14 @@ final class DocumentManagerTest extends TestCase
             ->setSize(100);
 
         return $document;
+    }
+
+    private function makeVersion(string $filePath): DocumentVersionInterface
+    {
+        $version = $this->createStub(DocumentVersionInterface::class);
+        $version->method('getFilePath')->willReturn($filePath);
+
+        return $version;
     }
 
     private function writeSourceImage(string $relativePath, int $width, int $height): string
