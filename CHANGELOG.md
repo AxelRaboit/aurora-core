@@ -11,6 +11,36 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.18] - 2026-08-30
+
+### Ajouté
+
+#### Les liens sociaux du contenu portent leur icône
+- Un lien vers GitHub, LinkedIn, Instagram, Facebook ou une adresse `mailto:`
+  reçoit désormais sa petite icône, dans le contenu éditorial du site public.
+- Les tracés viennent de **Lucide**, dont le projet dépend déjà : mêmes icônes
+  que celles du backend, aucune n'a été redessinée. Un script lit les sources du
+  paquet installé et en reconstruit le SVG.
+- L'icône est posée en **masque** et non en image de fond, donc peinte avec
+  `currentColor`. Elle suit le jeu de jetons de la surface sans seconde
+  déclaration : claire sur fond sombre, sombre sur fond clair.
+
+#### Pourquoi en CSS et pas dans le contenu
+- Le nettoyeur de blocs n'autorise ni `<svg>` ni `<img>`, délibérément. Un
+  rédacteur ne peut donc pas écrire l'icône, et c'est très bien ainsi. Elle est
+  déduite du domaine du lien.
+- **C'est opinionné** : tout lien vers ces domaines, dans n'importe quel
+  contenu, reçoit son icône. Pour un site personnel c'est le comportement voulu.
+  Un projet qui n'en veut pas surcharge `--aurora-link-icon: none` sur
+  `.prose a`.
+- La portée est limitée au frontend par `html[data-theme]`, attribut que seul le
+  layout public porte. Le backend garde ses icônes Vue, rien n'y change.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`. Les liens déjà écrits dans des
+contenus existants gagnent leur icône sans être retouchés.
+
 ## [0.9.17] - 2026-08-30
 
 ### Corrigé
