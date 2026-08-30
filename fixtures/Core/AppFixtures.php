@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Core\DataFixtures;
+namespace Aurora\Fixtures\Core;
 
 use Aurora\Core\Bootstrap\CoreBootstrapProvider;
 use Aurora\Module\Platform\User\Entity\User;

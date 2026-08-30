@@ -11,6 +11,50 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.3] - 2026-08-30
+
+### Corrigé
+
+#### Les fixtures sortent de `src/`, ce que 0.9.2 n'avait fait qu'à moitié
+- 0.9.2 excluait les `DataFixtures/` du driver attribut de Doctrine. Le
+  déploiement d'app.axelraboit.fr a montré que ça ne suffisait pas : un second
+  scanner autoload les mêmes fichiers, le loader de routes attributaires, via le
+  `resource: '../vendor/axelraboit/aurora/src/' type: attribute` du
+  `routes.yaml` client. `cache:clear --env=prod` mourait donc toujours sur
+  `Class "Doctrine\Bundle\FixturesBundle\Fixture" not found`.
+- Excluer scanner par scanner est une liste à maintenir à chaque nouveau
+  mécanisme qui parcourt `src/`. Les fixtures déménagent donc dans `fixtures/`,
+  hors de `src/`, avec le namespace `Aurora\Fixtures\<Module>` et son propre
+  PSR-4. Aucun scanner ne visite ce répertoire : le problème disparaît par
+  construction plutôt que par énumération.
+- `ExcludeDataFixturesFromMappingPass`, introduit en 0.9.2, est retiré : il
+  n'a plus rien à exclure.
+- `PlanningDemoFixtures` n'était enregistrée par aucun bloc `when@dev:` ; elle
+  ne tenait que par le glob `Aurora\:` sur `src/`. Le nouveau glob
+  `Aurora\Fixtures\: '../fixtures/'` la déclare explicitement, avec les
+  quatre autres.
+- PHPStan et Rector analysaient `src/` : les deux sont recâblés sur `fixtures/`
+  pour ne pas perdre la couverture au passage. Leur config étant partagée avec
+  les projets clients, qui n'ont pas ce répertoire, le chemin est ajouté en CLI
+  côté core pour PHPStan et filtré par `is_dir()` pour Rector.
+
+### Dans aurora-client
+
+Rien à faire si les fixtures du projet sont dans `src/DataFixtures/`, comme le
+veut la convention : aucun scanner ne visite ce répertoire.
+
+En revanche, **une fixture posée sous `src/Module/<X>/DataFixtures/` casse la
+prod**. `config/routes.yaml` importe `../src/Module/` en `type: attribute` et
+`doctrine.yaml` mappe le même répertoire ; les deux autoloadent chaque classe
+qu'ils croisent. La déplacer vers `src/DataFixtures/`, ou la supprimer si elle
+ne sert plus.
+
+> ⚠️ Le même trou reste ouvert pour les modules extraits en paquets séparés :
+> leur `DataFixtures/` vit dans le répertoire du paquet, et
+> `AuroraModuleRouteLoader` importe ce répertoire entier en `type: attribute`.
+> Aucun module n'est extrait aujourd'hui, mais le premier qui ship des fixtures
+> reproduira le bug.
+
 ## [0.9.2] - 2026-08-30
 
 ### Ajouté

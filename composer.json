@@ -73,7 +73,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Aurora\\": "src/"
+            "Aurora\\": "src/",
+            "Aurora\\Fixtures\\": "fixtures/"
         }
     },
     "autoload-dev": {

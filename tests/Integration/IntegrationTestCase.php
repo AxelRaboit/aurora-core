@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration;
 
 use Aurora\Core\Bootstrap\BootstrapRunner;
-use Aurora\Core\DataFixtures\AppFixtures;
+use Aurora\Fixtures\Core\AppFixtures;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManagerInterface;

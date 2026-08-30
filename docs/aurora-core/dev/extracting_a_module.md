@@ -146,7 +146,7 @@ Tout ce qui référence le module doit partir. Liste exhaustive
 | `src/Core/Sequence/SequencePrefixEnum.php` | Case `<X>...` |
 | `aliases.js` | Alias `@<x>` |
 | `package.json` | JS deps welding-specific (`pdf-lib` si Welding-only) - **ATTENTION** vérifier qu'elles ne sont pas utilisées par d'autres modules core (ex: `pdfjs-dist` reste pour Media's PdfThumbnail) |
-| `src/Core/DataFixtures/DemoFixtures.php` | Méthodes `create<X>()` + call sites |
+| `fixtures/Core/CoreDemoFixtures.php` | Méthodes `create<X>()` + call sites |
 | `src/Core/assets/backend/sidemenu/composables/useSidemenuSectionTheme.js` | Theme key du module |
 | `docs/aurora-core/todo/<x>/` | Déplacé vers le client |
 | `docs/aurora-core/todo/README.md` + `module_roadmap.md` | Marquer le module comme "extrait vers `<new-client>`" |

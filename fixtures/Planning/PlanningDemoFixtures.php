@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Module\Planning\DataFixtures;
+namespace Aurora\Fixtures\Planning;
 
-use Aurora\Core\DataFixtures\AppFixtures;
-use Aurora\Core\DataFixtures\CoreDemoFixtures;
+use Aurora\Fixtures\Core\AppFixtures;
+use Aurora\Fixtures\Core\CoreDemoFixtures;
 use Aurora\Module\Planning\Attendee\Entity\PlanningEventAttendee;
 use Aurora\Module\Planning\Attendee\Enum\PlanningAttendeeStatusEnum;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;

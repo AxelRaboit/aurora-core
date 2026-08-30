@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Module\Ged\DataFixtures;
+namespace Aurora\Fixtures\Ged;
 
-use Aurora\Core\DataFixtures\AppFixtures;
 use Aurora\Core\Storage\Enum\MimeTypeEnum;
 use Aurora\Core\Storage\Service\PdfThumbnailGenerator;
+use Aurora\Fixtures\Core\AppFixtures;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Service\SettingsService;
 use Aurora\Module\Ged\Document\Entity\Document;

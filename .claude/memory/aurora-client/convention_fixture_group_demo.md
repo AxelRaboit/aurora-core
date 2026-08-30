@@ -42,4 +42,23 @@ plusieurs groupes : `return ['demo', 'test']`. Les fixtures aurora-core
 servent de référence - toutes les `DemoFixtures` du bundle implémentent déjà
 cette interface.
 
+## Où les poser : `src/DataFixtures/`, jamais sous `src/Module/`
+
+`src/DataFixtures/` est le seul emplacement sûr. `config/routes.yaml` importe
+`../src/Module/` en `type: attribute`, et `config/packages/doctrine.yaml` mappe
+le même répertoire : les deux le parcourent fichier par fichier et
+**autoloadent chaque classe** avant de décider quoi en faire. Une fixture y
+étend `Doctrine\Bundle\FixturesBundle\Fixture`, absent d'un build `--no-dev`,
+donc la classe ne se charge pas et l'erreur est fatale. Symptôme en prod :
+`cache:clear --env=prod` et `doctrine:schema:create` meurent sur
+`Class "Doctrine\Bundle\FixturesBundle\Fixture" not found`, en pointant un
+fichier de fixtures que personne ne pensait exécuter.
+
+Aucun scanner ne visite `src/DataFixtures/` : ni le routing, ni le mapping
+Doctrine. C'est pour la même raison qu'aurora-core a sorti les siennes vers
+`fixtures/` en 0.9.3.
+
+Constaté sur aurora-client le 30/08/2026 : une fixture posée dans
+`src/Module/Bnb/DataFixtures/` a bloqué le premier déploiement de prod.
+
 Voir aussi [[convention_module_structure]] pour le placement général.
