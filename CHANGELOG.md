@@ -11,6 +11,29 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.2] - 2026-08-30
+
+### Corrigé
+
+#### Des libellés traduits nommaient le framework
+- Une installation cliente est le site de quelqu'un : son nom dans les
+  réglages, son domaine, sa marque. Cinq chaînes disaient « Aurora » quand
+  même, et deux disaient quelque chose de faux : le badge gris « Fourni par
+  Aurora » à côté d'un type de contenu veut dire que le type est natif, pas
+  qu'Aurora fournit le contenu.
+- Les deux badges `built_in` deviennent « Natif » / « Native » / « Built-in ».
+- Le placeholder du titre de bandeau devient « Bienvenue » / « Welcome ».
+- Le placeholder du nom du site devient « Mon entreprise » / « My company ».
+  Il se trouvait dans le champ même qu'un propriétaire modifie pour nommer son
+  site, et proposait le nom du framework comme exemple. Le fichier anglais
+  portait en plus la chaîne française telle quelle.
+- Un test lit désormais chaque fichier de traduction sous `src/` et échoue sur
+  toute valeur traduite qui nomme le framework.
+
+### Dans aurora-client
+
+Rien à faire.
+
 ## [0.9.13] - 2026-08-30
 
 ### Supprimé
