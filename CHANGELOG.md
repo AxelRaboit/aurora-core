@@ -53,14 +53,43 @@ section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 - Les deux bugs ne se voyaient qu'au premier déploiement d'un client sur un
   serveur neuf. Constatés sur app.axelraboit.fr le 30/08/2026.
 
+#### `make install-prod` ne passait pas sur un serveur neuf
+- La cible enchaînait `composer install --no-dev` puis
+  `pnpm --dir=vendor/axelraboit/aurora install`. Le premier ré-extrait
+  aurora-core et efface au passage son `vendor/` imbriqué, celui que son
+  `package.json` vise avec `"@symfony/ux-vue": "file:vendor/symfony/ux-vue/assets"`.
+  Le pnpm mourait donc sur un `ENOENT` désignant un chemin que personne n'a
+  écrit à la main. `make build` réparait déjà le cas via `aurora-vendor-guard`,
+  mais il tourne après. Le template restaure maintenant le vendor imbriqué
+  entre les deux, sans les linters qui n'ont rien à faire sur un serveur de
+  prod. `deploy-prod` avait le même trou, il est corrigé aussi.
+- La cible appelait ensuite `make migrate-f`, alors que sur une base vierge la
+  chaîne de migrations plante : Doctrine Migrations 3.x traite les namespaces
+  dans leur ordre de déclaration et non par version, donc une
+  `ClientMigrations` qui étend une table core passe avant l'`AuroraMigrations`
+  qui la crée. Nouvelle cible `db-install-prod` : `schema:create`, marquage de
+  toutes les migrations comme appliquées, puis `messenger:setup-transports`
+  (`messenger_messages` vient d'une migration qu'on vient de marquer sans la
+  jouer, et le DSN porte `auto_setup=0`, donc rien d'autre ne créerait la
+  table). `deploy-prod` garde `migrations:migrate` : sur un serveur déjà
+  installé la chaîne est incrémentale et le problème d'ordre ne se pose pas.
+- `docs/aurora-client/deployment/README.md` §1 est aligné sur la nouvelle
+  séquence.
+
 ### Dans aurora-client
 
-Rien à faire : la mémoire arrive par le symlink que `make aurora-update` refait
-déjà, et les deux correctifs sont internes au bundle.
+`make aurora-update` suffit : il lance `sync-makefile`, qui recopie le template
+corrigé sur le `Makefile` du projet. La mémoire arrive par le même chemin, via
+son symlink. Les deux correctifs de dépendances sont internes au bundle.
 
-Si un projet a contourné l'un des deux en ajoutant `symfony/process` ou
-`doctrine/doctrine-fixtures-bundle` au `require` de son `composer.json`, les
-deux lignes peuvent être retirées après `make aurora-update`.
+Une réserve sur `sync-makefile` : il refuse d'écraser un `Makefile` qui porte
+des modifications non commitées. Si c'est le cas, commiter ou déplacer les
+cibles custom dans `Makefile.local` avant de lancer la mise à jour.
+
+Si un projet a contourné l'un des deux bugs de packaging en ajoutant
+`symfony/process` ou `doctrine/doctrine-fixtures-bundle` au `require` de son
+`composer.json`, les deux lignes peuvent être retirées après
+`make aurora-update`.
 
 ## [0.9.1] - 2026-08-30
 

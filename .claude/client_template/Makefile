@@ -441,11 +441,18 @@ install-dev: _require-dev-env ## Install for local development - full reset: dro
 	make dev
 	@echo "✅ Admin user: admin@aurora.app / password"
 
-install-prod: ## Install for production
+install-prod: ## Install for production - first install on a fresh server (empty DB)
 	$(COMPOSER) install --no-dev --optimize-autoloader
+	# aurora-core's package.json points at its OWN nested vendor
+	# ("@symfony/ux-vue": "file:vendor/symfony/ux-vue/assets"), which the
+	# composer install above just wiped by re-extracting the package. Without
+	# this restore, the pnpm install below dies on an opaque ENOENT on a path
+	# nobody wrote by hand. Same guard as `aurora-vendor-guard`, minus the
+	# linters - they are dev tooling and have no business on a prod server.
+	$(COMPOSER) install --working-dir=$(AURORA) --no-dev --no-scripts --no-interaction
 	$(PNPM) --dir=$(AURORA) install --frozen-lockfile
 	make setup-dirs
-	make migrate-f
+	make db-install-prod
 	# Without this a production install has no locale - every frontend URL
 	# answers 404 - and no post type, so no content can be created at all.
 	# It used to come from fixtures, which never run here.
@@ -453,6 +460,26 @@ install-prod: ## Install for production
 	$(CONSOLE) aurora:application-parameter
 	make build
 	make cc-prod
+
+db-install-prod: ## Initial prod schema - schema:create + mark every migration applied
+	# NOT `make migrate-f`. On a virgin database the migration chain plants:
+	# Doctrine Migrations 3.x walks namespaces in declaration order rather than
+	# strictly by version, so a ClientMigrations entry extending a core table
+	# runs before the AuroraMigrations entry that creates it. Symptom:
+	# `relation "core_<table>" does not exist`. Same reason `install-dev` uses
+	# schema:create. Cf. vendor/axelraboit/aurora/docs/aurora-client/dev/database.md
+	# ("DB fresh : make migrate ne marche pas").
+	#
+	# `deploy-prod` keeps `migrations:migrate` - on an already-installed server
+	# the chain is incremental and the ordering issue does not arise.
+	$(CONSOLE) doctrine:schema:create
+	$(CONSOLE) doctrine:migrations:sync-metadata-storage --no-interaction
+	$(CONSOLE) doctrine:migrations:version --add --all --no-interaction
+	# messenger_messages is created by a migration, and the line above marked
+	# that migration applied without running it. The transport DSN carries
+	# auto_setup=0, so nothing else would ever create the table: the worker
+	# would start and fail on every message.
+	$(CONSOLE) messenger:setup-transports
 
 deploy-prod: ## Deploy to production (requires a git tag on HEAD)
 	@APP_VERSION=$$(git describe --exact-match --tags HEAD 2>/dev/null); \
@@ -463,6 +490,7 @@ deploy-prod: ## Deploy to production (requires a git tag on HEAD)
 	echo "🚀 Deploying version $$APP_VERSION..."; \
 	echo "$$APP_VERSION" > VERSION; \
 	$(COMPOSER) install --no-dev --optimize-autoloader; \
+	$(COMPOSER) install --working-dir=$(AURORA) --no-dev --no-scripts --no-interaction; \
 	$(PNPM) --dir=$(AURORA) install --frozen-lockfile; \
 	$(CONSOLE) doctrine:migrations:migrate --no-interaction; \
 	$(CONSOLE) aurora:application-parameter; \
