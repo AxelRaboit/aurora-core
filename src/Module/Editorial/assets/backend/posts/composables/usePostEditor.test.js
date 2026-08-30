@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { nextTick } from "vue";
 import { usePostEditor } from "./usePostEditor.js";
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
@@ -39,6 +40,59 @@ const props = {
  * because a panel binding to `undefined` renders empty rather than throwing.
  * The banner shipped that way once already.
  */
+describe("usePostEditor slug seeding", () => {
+    // Le slug est une URL publique. Le deriver du titre fait gagner du temps a
+    // la creation ; l'ecraser ensuite casserait un lien deja partage.
+
+    it("derives the slug from the title while the slug is empty", async () => {
+        const { form, current } = usePostEditor(props);
+
+        current.value.title = "À propos";
+        await nextTick();
+
+        expect(form.value.translations.fr.slug).toBe("a-propos");
+    });
+
+    it("never overwrites a slug the user has already typed", async () => {
+        const { form, current } = usePostEditor(props);
+
+        current.value.slug = "mon-url-a-moi";
+        current.value.title = "Un titre tout autre";
+        await nextTick();
+
+        expect(form.value.translations.fr.slug).toBe("mon-url-a-moi");
+    });
+
+    it("seeds each locale from its own title", async () => {
+        const { form, current, locale } = usePostEditor(props);
+
+        current.value.title = "À propos";
+        await nextTick();
+
+        locale.value = "en";
+        await nextTick();
+
+        current.value.title = "About";
+        await nextTick();
+
+        expect(form.value.translations.fr.slug).toBe("a-propos");
+        expect(form.value.translations.en.slug).toBe("about");
+    });
+
+    it("does not invent a slug just because the language tab changed", async () => {
+        const { form, current, locale } = usePostEditor(props);
+
+        // La traduction anglaise a deja un titre, saisi ailleurs, et pas de slug.
+        form.value.translations.en.title = "About";
+
+        locale.value = "en";
+        await nextTick();
+
+        expect(form.value.translations.en.slug).toBe("");
+        expect(current.value.title).toBe("About");
+    });
+});
+
 describe("usePostEditor", () => {
     it("gives every locale a complete translation shape", () => {
         const { form } = usePostEditor(props);

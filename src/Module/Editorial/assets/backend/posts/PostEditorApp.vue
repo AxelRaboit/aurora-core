@@ -10,6 +10,8 @@ import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
+import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
+import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
@@ -521,10 +523,10 @@ function termLabel(term) {
                             :options="statusSelectOptions"
                             :error="errors.status"
                         />
-                        <AppInput
+                        <AppDatePicker
                             v-if="form.status === 'scheduled'"
                             v-model="form.scheduledAt"
-                            type="datetime-local"
+                            enable-time
                             :label="t('backend.posts.field_scheduled_at')"
                             :placeholder="t('backend.posts.scheduled_at_placeholder')"
                             :error="errors.scheduledAt"
@@ -535,15 +537,15 @@ function termLabel(term) {
                              is live now, and hiding the field until some status is
                              chosen would mean setting it afterwards and hoping to
                              remember. -->
-                        <AppInput
+                        <AppDatePicker
                             v-model="form.unpublishAt"
-                            type="datetime-local"
+                            enable-time
                             :label="t('backend.posts.field_unpublish_at')"
                             :placeholder="t('backend.posts.unpublish_at_placeholder')"
                             :hint="t('backend.posts.unpublish_at_hint')"
                             :error="errors.unpublishAt"
                         />
-                        <AppCheckbox v-model="form.commentsEnabled" :label="t('backend.posts.comments_enabled')" />
+                        <AppToggle v-model="form.commentsEnabled" :label="t('backend.posts.comments_enabled')" />
                     </div>
 
                     <div v-if="supportsThumbnail" class="bg-surface border border-line rounded-xl p-5 space-y-4">

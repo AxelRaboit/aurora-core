@@ -11,6 +11,45 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.10] - 2026-08-30
+
+### Modifié
+
+#### L'éditeur de post utilise enfin les composants maison
+- Les deux champs de date, « publier le » et « dépublier le », étaient des
+  `<AppInput type="datetime-local">`, donc le sélecteur natif du navigateur :
+  apparence différente à chaque navigateur, et sans rapport avec le reste du
+  backend. Ils passent à `AppDatePicker` avec `enable-time`, qui émet
+  exactement le même format `YYYY-MM-DDTHH:MM` : aucune donnée existante n'est
+  affectée.
+- « Commentaires ouverts » était une case à cocher là où le projet rend
+  partout ailleurs ce genre de bascule avec `AppToggle`. C'est désormais un
+  interrupteur.
+
+### Ajouté
+
+#### Le slug se remplit depuis le titre
+- À la saisie du titre, le slug de la même langue se remplit **s'il est vide**,
+  et seulement dans ce cas. Écrire par-dessus un slug existant changerait l'URL
+  d'un contenu déjà publié sur une simple correction de titre, et casserait le
+  référencement sans rien dire.
+- `slugifyIfEmpty()` existait déjà dans `shared/utils/format/slugify.js`, avec
+  cette sémantique exacte et ses tests, mais n'était utilisé nulle part. Il est
+  simplement câblé.
+- Le comportement est par langue : le titre français remplit le slug français.
+  Changer d'onglet de langue ne déclenche rien, une traduction qui a déjà un
+  titre sans slug n'en reçoit pas un que personne n'a demandé.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`. Aucun format de données ne
+change, et le remplissage du slug ne touche jamais une valeur existante.
+
+> À noter pour plus tard : `shared/composables/form/useSlugLock.js` est du code
+> mort lui aussi, mais sa sémantique diffère. Il est verrouillé par défaut,
+> donc le slug suit le titre en permanence, y compris sur un contenu publié.
+> Le câbler tel quel réécrirait des URLs en production.
+
 ## [0.9.9] - 2026-08-30
 
 ### Corrigé
