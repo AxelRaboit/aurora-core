@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora;
 
+use Aurora\Core\DependencyInjection\Compiler\ExcludeDataFixturesFromMappingPass;
 use Aurora\Core\Encryption\Doctrine\EncryptedStringType;
 use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
 use Aurora\Core\Locale\Entity\Locale;
@@ -121,6 +122,14 @@ class AuroraBundle extends AbstractBundle
     public function getPath(): string
     {
         return __DIR__;
+    }
+
+    #[Override]
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+
+        $container->addCompilerPass(new ExcludeDataFixturesFromMappingPass());
     }
 
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void

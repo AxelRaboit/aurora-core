@@ -29,14 +29,32 @@ make deploy-prod        # déploiement d'une version taguée (HEAD doit être ta
 
 ```
 composer install --no-dev --optimize-autoloader
+composer install --working-dir=vendor/axelraboit/aurora --no-dev --no-scripts
 pnpm --dir=vendor/axelraboit/aurora install --frozen-lockfile
 make setup-dirs                                    # var/cache, var/log
-make migrate-f                                     # doctrine:migrations:migrate --no-interaction
-aurora:application-parameter                       # synchronise ApplicationParameters
+make db-install-prod                               # schema:create + marquage des migrations
 aurora:install                                     # données de socle (locales, thème, types, menus)
+aurora:application-parameter                       # synchronise ApplicationParameters
 make build                                         # build prod des assets Vite
 make cc-prod                                       # cache:clear --env=prod + verification du boot
 ```
+
+Deux étapes méritent une explication.
+
+Le **second `composer install`** restaure le `vendor/` imbriqué d'aurora-core.
+Son `package.json` déclare `"@symfony/ux-vue": "file:vendor/symfony/ux-vue/assets"`,
+un chemin que le premier `composer install` vient d'effacer en ré-extrayant le
+paquet. Sans cette ligne, le `pnpm install` suivant meurt sur un `ENOENT` qui ne
+désigne rien de compréhensible.
+
+**`db-install-prod` remplace `migrate-f`** parce que sur une base vierge la
+chaîne de migrations plante : Doctrine Migrations 3.x traite les namespaces dans
+leur ordre de déclaration et non strictement par version, donc une
+`ClientMigrations` qui étend une table core passe avant l'`AuroraMigrations` qui
+la crée. La cible fait `schema:create`, marque toutes les migrations comme
+appliquées, puis `messenger:setup-transports` (la table `messenger_messages`
+vient d'une migration qu'on vient justement de marquer sans la jouer, et le DSN
+porte `auto_setup=0`). Détail dans [`../dev/database.md`](../dev/database.md).
 
 ### `make deploy-prod`
 

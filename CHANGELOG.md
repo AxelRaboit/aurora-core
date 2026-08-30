@@ -11,6 +11,86 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.2] - 2026-08-30
+
+### Ajouté
+
+#### Mémoire : Resend est le transport mail de la prod
+- `MAILER_DSN` en production passe par `resend+api://API_KEY@default`. Le pont
+  `symfony/resend-mailer` est déjà dans le `require` d'aurora-core, donc il
+  survit à `composer install --no-dev` : un serveur neuf n'a besoin que de la
+  clé.
+- Le piège documenté est le défaut `smtp://localhost:1025` de `.env` : sur un
+  serveur dont le `.env.local` ne redéfinit pas la variable, l'application
+  démarre sans erreur et n'envoie rien, sans alerte. La réinitialisation de mot
+  de passe est cassée en silence.
+- La mémoire note aussi qu'après un changement de DSN il faut redémarrer le
+  worker Messenger en plus de recharger PHP-FPM : le worker a lu `.env.local` à
+  son boot, et l'essentiel des mails passe par le transport `async`.
+- Nouveau fichier `.claude/memory/aurora-client/convention_mailer_resend_prod.md`,
+  indexé dans `.claude/memory/aurora-client/MEMORY.md`.
+
+### Corrigé
+
+#### Un `composer install --no-dev` ne bootait pas
+- `PdfThumbnailGenerator` type-hinte `Symfony\Component\Process\ExecutableFinder`
+  en service autowiré, mais `symfony/process` n'était déclaré nulle part. Le
+  paquet n'arrivait que par ricochet, via le `require-dev` d'un projet client
+  (`symfony/maker-bundle`). En prod il disparaissait, et la compilation du
+  container mourait sur `Class "Symfony\Component\Process\ExecutableFinder"
+  not found`. `symfony/process` passe en `require`.
+- Les fixtures vivent sous `src/Core/DataFixtures/` et `src/Module/*/DataFixtures/`,
+  donc à l'intérieur des répertoires que le driver Doctrine parcourt. Or
+  `getAllClassNames()` autoload chaque fichier avant de demander si c'est une
+  entité, et ces classes étendent le `Fixture` de doctrine-fixtures-bundle,
+  absent en prod. `doctrine:schema:create` et tout warmup touchant aux métadonnées
+  ORM tombaient sur `Class "Doctrine\Bundle\FixturesBundle\Fixture" not found`.
+- `config/services.yaml` posait déjà ce garde-fou côté container (exclusion du
+  glob `Aurora\`, ré-enregistrement sous `when@dev`) ; il manquait la moitié
+  mapping. `ExcludeDataFixturesFromMappingPass` appelle désormais
+  `addExcludePaths()` sur le driver attribut. Les fixtures ne portent aucun
+  attribut ORM, donc l'exclusion ne coûte rien en dev non plus.
+- Les deux bugs ne se voyaient qu'au premier déploiement d'un client sur un
+  serveur neuf. Constatés sur app.axelraboit.fr le 30/08/2026.
+
+#### `make install-prod` ne passait pas sur un serveur neuf
+- La cible enchaînait `composer install --no-dev` puis
+  `pnpm --dir=vendor/axelraboit/aurora install`. Le premier ré-extrait
+  aurora-core et efface au passage son `vendor/` imbriqué, celui que son
+  `package.json` vise avec `"@symfony/ux-vue": "file:vendor/symfony/ux-vue/assets"`.
+  Le pnpm mourait donc sur un `ENOENT` désignant un chemin que personne n'a
+  écrit à la main. `make build` réparait déjà le cas via `aurora-vendor-guard`,
+  mais il tourne après. Le template restaure maintenant le vendor imbriqué
+  entre les deux, sans les linters qui n'ont rien à faire sur un serveur de
+  prod. `deploy-prod` avait le même trou, il est corrigé aussi.
+- La cible appelait ensuite `make migrate-f`, alors que sur une base vierge la
+  chaîne de migrations plante : Doctrine Migrations 3.x traite les namespaces
+  dans leur ordre de déclaration et non par version, donc une
+  `ClientMigrations` qui étend une table core passe avant l'`AuroraMigrations`
+  qui la crée. Nouvelle cible `db-install-prod` : `schema:create`, marquage de
+  toutes les migrations comme appliquées, puis `messenger:setup-transports`
+  (`messenger_messages` vient d'une migration qu'on vient de marquer sans la
+  jouer, et le DSN porte `auto_setup=0`, donc rien d'autre ne créerait la
+  table). `deploy-prod` garde `migrations:migrate` : sur un serveur déjà
+  installé la chaîne est incrémentale et le problème d'ordre ne se pose pas.
+- `docs/aurora-client/deployment/README.md` §1 est aligné sur la nouvelle
+  séquence.
+
+### Dans aurora-client
+
+`make aurora-update` suffit : il lance `sync-makefile`, qui recopie le template
+corrigé sur le `Makefile` du projet. La mémoire arrive par le même chemin, via
+son symlink. Les deux correctifs de dépendances sont internes au bundle.
+
+Une réserve sur `sync-makefile` : il refuse d'écraser un `Makefile` qui porte
+des modifications non commitées. Si c'est le cas, commiter ou déplacer les
+cibles custom dans `Makefile.local` avant de lancer la mise à jour.
+
+Si un projet a contourné l'un des deux bugs de packaging en ajoutant
+`symfony/process` ou `doctrine/doctrine-fixtures-bundle` au `require` de son
+`composer.json`, les deux lignes peuvent être retirées après
+`make aurora-update`.
+
 ## [0.9.1] - 2026-08-30
 
 ### Corrigé
