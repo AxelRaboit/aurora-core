@@ -51,6 +51,11 @@ final class RawHtmlSanitizerTest extends TestCase
         yield 'iframe hôte inconnu' => ['<iframe src="https://evil.example/x"></iframe>', 'evil.example', 'un cadre est une page entière'];
         yield 'meta refresh' => ['<meta http-equiv="refresh" content="0;url=https://evil.example">', 'refresh', 'redirection silencieuse'];
         yield 'base' => ['<base href="https://evil.example/">', '<base', 'détournerait toutes les URL relatives'];
+        yield 'svg + script' => ['<svg viewBox="0 0 24 24"><script>alert(1)</script></svg>', 'alert', 'un SVG peut porter un script'];
+        yield 'svg + use externe' => ['<svg><use href="https://evil.example/x.svg#i"/></svg>', 'evil.example', 'use reference un document exterieur'];
+        yield 'svg + foreignObject' => ['<svg><foreignObject><script>alert(1)</script></foreignObject></svg>', 'alert', 'foreignObject rouvre le HTML dans le SVG'];
+        yield 'svg + onload' => ['<svg viewBox="0 0 24 24" onload="alert(1)"></svg>', 'onload', 'meme sur une balise autorisee'];
+        yield 'svg + animate' => ['<svg><animate attributeName="x"/></svg>', 'animate', 'les animations peuvent declencher des comportements'];
     }
 
     public function testTextSurvivesEvenWhenItsTagDoesNot(): void
@@ -100,6 +105,32 @@ final class RawHtmlSanitizerTest extends TestCase
         $out = $this->sanitizer->safe('<a href="https://example.test" target="_blank">x</a>');
 
         self::assertStringContainsString('rel="noopener noreferrer"', $out);
+    }
+
+    public function testATracedIconSurvivesWhole(): void
+    {
+        // Le cas qui justifie l'ouverture au SVG : une icone ecrite a la main
+        // dans un bloc source, qui doit garder sa geometrie et sa couleur.
+        $out = $this->sanitizer->safe(
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+            .'<path d="M16 8a6 6 0 0 1 6 6v7h-4"/><rect width="4" height="12" x="2" y="9"/>'
+            .'<circle cx="4" cy="4" r="2"/></svg>',
+        );
+
+        self::assertStringContainsString('<path d="M16 8a6 6 0 0 1 6 6v7h-4"', $out);
+        self::assertStringContainsString('stroke="currentColor"', $out, 'sans quoi l\'icone ne suit pas le theme');
+        self::assertStringContainsString('<circle cx="4"', $out);
+    }
+
+    public function testTheViewBoxKeepsItsCapital(): void
+    {
+        // Le parseur HTML de PHP minuscule les noms d'attributs, ce qui est
+        // correct en HTML et faux en SVG : un `viewbox` est ignore par les
+        // navigateurs et l'icone perd son cadrage, sans erreur nulle part.
+        $out = $this->sanitizer->safe('<svg viewBox="0 0 24 24"><path d="M1 1"/></svg>');
+
+        self::assertStringContainsString('viewBox="0 0 24 24"', $out);
+        self::assertStringNotContainsString('viewbox=', $out);
     }
 
     #[DataProvider('empties')]

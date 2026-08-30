@@ -59,6 +59,34 @@ final class RawHtmlSanitizer
         'img' => ['src', 'alt', 'width', 'height', 'loading', 'decoding'],
         'picture' => [], 'source' => ['src', 'srcset', 'type', 'media'],
         'iframe' => ['src', 'width', 'height', 'allow', 'allowfullscreen', 'loading', 'referrerpolicy'],
+
+        // Sous-ensemble SVG suffisant pour une icone tracee, et rien de plus.
+        // Sont volontairement absents : `use`, qui reference un document
+        // exterieur ; `foreignObject`, qui reintroduirait du HTML arbitraire au
+        // milieu du SVG ; `image`, `style`, et toutes les balises d'animation.
+        'svg' => ['viewBox', 'width', 'height', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'xmlns', 'aria-hidden', 'focusable', 'preserveAspectRatio'],
+        'g' => ['fill', 'stroke', 'stroke-width', 'transform', 'opacity'],
+        'path' => ['d', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'fill-rule', 'clip-rule', 'transform', 'opacity'],
+        'circle' => ['cx', 'cy', 'r', 'fill', 'stroke', 'stroke-width', 'transform', 'opacity'],
+        'ellipse' => ['cx', 'cy', 'rx', 'ry', 'fill', 'stroke', 'stroke-width', 'transform', 'opacity'],
+        'rect' => ['x', 'y', 'width', 'height', 'rx', 'ry', 'fill', 'stroke', 'stroke-width', 'transform', 'opacity'],
+        'line' => ['x1', 'y1', 'x2', 'y2', 'stroke', 'stroke-width', 'stroke-linecap', 'transform', 'opacity'],
+        'polyline' => ['points', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'transform', 'opacity'],
+        'polygon' => ['points', 'fill', 'stroke', 'stroke-width', 'transform', 'opacity'],
+    ];
+
+    /**
+     * Attributs SVG dont la casse compte, remise apres coup.
+     *
+     * Le parseur HTML de PHP met tous les noms d'attributs en minuscules, ce qui
+     * est correct en HTML et faux en SVG : un `viewbox` est ignore par les
+     * navigateurs, et l'icone perd son cadrage sans qu'aucune erreur ne le
+     * signale. La correction se fait a la serialisation, `setAttribute`
+     * reminusculant de toute facon.
+     */
+    private const array SVG_CASED_ATTRIBUTES = [
+        'viewbox' => 'viewBox',
+        'preserveaspectratio' => 'preserveAspectRatio',
     ];
 
     /**
@@ -112,6 +140,10 @@ final class RawHtmlSanitizer
             $out .= $document->saveHTML($child);
         }
 
+        foreach (self::SVG_CASED_ATTRIBUTES as $lowered => $cased) {
+            $out = str_replace(' '.$lowered.'=', ' '.$cased.'=', $out);
+        }
+
         return $out;
     }
 
@@ -151,7 +183,13 @@ final class RawHtmlSanitizer
 
         // Le contenu d'un script ou d'une feuille de style n'est pas de la prose :
         // le déballer afficherait du code au lecteur.
-        if (in_array($tag, ['script', 'style', 'link', 'meta', 'base', 'object', 'embed', 'form', 'input', 'button', 'select', 'textarea'], true)) {
+        if (in_array($tag, [
+            'script', 'style', 'link', 'meta', 'base', 'object', 'embed',
+            'form', 'input', 'button', 'select', 'textarea',
+            // Cote SVG : `use` pointe ailleurs, `foreignObject` rouvre le HTML,
+            // les animations peuvent declencher des comportements.
+            'use', 'foreignobject', 'image', 'animate', 'animatetransform', 'animatemotion', 'set', 'script',
+        ], true)) {
             $parent->removeChild($element);
 
             return;
@@ -174,7 +212,7 @@ final class RawHtmlSanitizer
         foreach ($attributes as $attribute) {
             $name = mb_strtolower($attribute->nodeName);
 
-            if (!in_array($name, $allowed, true)) {
+            if (!in_array($name, array_map(mb_strtolower(...), $allowed), true)) {
                 $element->removeAttribute($attribute->nodeName);
                 continue;
             }
