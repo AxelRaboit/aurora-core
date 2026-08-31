@@ -11,6 +11,45 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.27] - 2026-08-31
+
+### Modifié
+
+#### Le menu latéral s'ouvre plus large
+- La largeur par défaut passe de 240 à **280 px**. Elle ne concerne que les
+  sessions qui n'ont jamais tiré la poignée : une largeur redimensionnée vit dans
+  le navigateur et n'est pas touchée.
+- Deux valeurs devaient bouger ensemble : le `--sidemenu-width` de
+  `sidemenu.css`, appliqué au premier rendu, et le `defaultValue` du
+  `useResizable` dans `AppSidemenu.vue`, appliqué dès que Vue monte
+  (`watch(..., { immediate: true })`). N'en changer qu'une faisait **sauter la
+  largeur une fois sous les yeux**. Un commentaire croisé le dit maintenant aux
+  deux endroits.
+
+#### Les entrées du menu n'ouvrent plus de bulle au survol
+- Elle répétait le libellé que la ligne affiche déjà, et son seul autre rôle -
+  porter la description - est repris par l'interrupteur « afficher les
+  descriptions », qui met le texte dans la ligne où il se lit sans le chercher.
+- C'était d'ailleurs visible dans le code : la description de la bulle était
+  éteinte dès que l'interrupteur était allumé. Deux façons de montrer la même
+  chose, dont une qu'il fallait faire taire - la forme d'une fonctionnalité
+  remplacée.
+- Le `title` du chevron d'ouverture reste : ce n'est pas une bulle d'aide mais le
+  **nom accessible** d'un bouton sans texte. Sans lui, un lecteur d'écran annonce
+  « bouton » et rien d'autre.
+- À savoir : les libellés sont tronqués (`truncate`), et la bulle était le seul
+  moyen de lire un libellé trop long. Les 280 px compensent en partie.
+
+### Corrigé
+
+#### « Pilotez votre contenu avec X » disait « avec »
+- Le titre de la page de connexion annonce désormais « Pilotez votre contenu
+  **sur** {siteName} ». L'anglais suit : « Run your content **on** {siteName} ».
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
 ## [0.9.26] - 2026-08-31
 
 ### Ajouté

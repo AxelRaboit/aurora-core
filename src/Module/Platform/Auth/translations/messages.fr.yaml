@@ -27,7 +27,7 @@ backend:
       feature_3: 'Types de contenus et taxonomies personnalisés'
       feature_4: Formulaires et commentaires
       heading: Pilotez votre contenu
-      heading_accent: 'avec {siteName}.'
+      heading_accent: 'sur {siteName}.'
     invitation:
       accept_title: Accepter l'invitation
       confirm_password: Confirmer le mot de passe

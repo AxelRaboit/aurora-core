@@ -27,7 +27,7 @@ backend:
       feature_3: 'Custom post types & taxonomies'
       feature_4: Forms & comments
       heading: Run your content
-      heading_accent: 'with {siteName}.'
+      heading_accent: 'on {siteName}.'
     invitation:
       accept_title: Accept invitation
       confirm_password: Confirm password

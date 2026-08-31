@@ -1,10 +1,12 @@
 <script setup>
 /**
- * `gap`, never `space-y`: every row here is wrapped in `AppTooltip`, whose root is
- * `display: contents`, and margins on those are ignored. The section gap matches
- * the row gap so the last row of a section is spaced like every other - the
- * coloured header band is what separates sections, it does not need a gutter as
- * well.
+ * `gap`, never `space-y`: the rows drawn by `AppNavLink` are wrapped in
+ * `AppTooltip`, whose root is `display: contents`, and margins on those are
+ * ignored. The wrapper is still there even though this menu passes it nothing -
+ * `AppNavLink` renders it for every caller - so the constraint stands. The
+ * section gap matches the row gap so the last row of a section is spaced like
+ * every other: the coloured header band is what separates sections, it does not
+ * need a gutter as well.
  *
  * The note is here rather than above the root so it is not rendered into the page
  * as a comment node. It does not change attribute fallthrough: the root is a
@@ -15,15 +17,21 @@
  * The menu's sections and their items - one component for both menus.
  *
  * This loop was written twice: once in the desktop `<aside>` and once in the
- * mobile drawer. Structurally the same, but the drawer's copy was a degraded
- * one - no item descriptions in its tooltips, no `data-sidemenu-active`, and
- * two `<template #tooltip>` blocks handed to `AppNavLink`, which declares no
- * such slot. Those two child links have had no tooltip at all, silently, for as
- * long as the copy has existed. That is what a second copy costs.
+ * mobile drawer. Structurally the same, but the drawer's copy was a degraded one
+ * - no item descriptions, no `data-sidemenu-active`, and two `<template
+ * #tooltip>` blocks handed to `AppNavLink`, which declares no such slot. That is
+ * what a second copy costs.
  *
  * They could not be merged before `.sidemenu-collapsed` was scoped to
  * `#sidemenu`: while its rules reached the whole document, hiding the desktop
  * menu hid the drawer with it.
+ *
+ * **No hover tooltip on the rows.** It repeated the label the row already shows,
+ * and its only other job - carrying the description - was taken over by the
+ * "show descriptions" switch, which puts the text in the row itself where it can
+ * be read without hunting for it. Two ways to see the same thing meant the
+ * tooltip had to be silenced whenever the switch was on, which is the shape of a
+ * feature that has been replaced.
  *
  * The helpers arrive as two bags rather than ten function props - `nav` from
  * `useSidemenuNav`, `theme` from `useSidemenuSectionTheme`. Ten props would
@@ -32,7 +40,6 @@
 import { ChevronDown } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppNavLink from "@/shared/components/nav/AppNavLink.vue";
-import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
 
 defineProps({
     /** The sections to draw, already filtered by the caller. */
@@ -82,31 +89,32 @@ defineProps({
                      Two targets in one row, because the parent is itself a
                      page - collapsing them into one would cost the page. -->
                 <template v-if="!navFilter && item.children?.length">
-                    <AppTooltip :title="item.label" :description="showDescriptions ? '' : item.description" placement="right">
-                        <div
-                            class="flex items-center rounded-lg text-sm font-medium transition-colors group relative"
-                            :class="nav.itemClasses(item, section.id)"
+                    <div
+                        class="flex items-center rounded-lg text-sm font-medium transition-colors group relative"
+                        :class="nav.itemClasses(item, section.id)"
+                    >
+                        <a
+                            :href="item.path"
+                            :data-sidemenu-active="nav.itemIsActive(item) ? 'true' : null"
+                            class="flex items-center flex-1 min-w-0 gap-3 py-[0.625rem] pl-3"
                         >
-                            <a
-                                :href="item.path"
-                                :data-sidemenu-active="nav.itemIsActive(item) ? 'true' : null"
-                                class="flex items-center flex-1 min-w-0 gap-3 py-[0.625rem] pl-3"
-                            >
-                                <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, section.id)" :stroke-width="2" />
-                                <span class="min-w-0 flex-1">
-                                    <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
-                                    <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ item.description }}</span>
-                                </span>
-                            </a>
-                            <AppIconButton
-                                :title="item.label"
-                                class="mr-1 opacity-50 hover:opacity-100 hover:!bg-transparent"
-                                v-on:click.stop="nav.toggleGroup(item.route)"
-                            >
-                                <ChevronDown class="w-3.5 h-3.5 transition-transform" :class="{ '-rotate-90': !nav.isGroupExpanded(item.route) }" :stroke-width="2.5" />
-                            </AppIconButton>
-                        </div>
-                    </AppTooltip>
+                            <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, section.id)" :stroke-width="2" />
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
+                                <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ item.description }}</span>
+                            </span>
+                        </a>
+                        <!-- `title` reste : c'est le nom accessible d'un bouton
+                             sans texte, pas une bulle d'aide. Sans lui, un
+                             lecteur d'écran annonce « bouton » et rien d'autre. -->
+                        <AppIconButton
+                            :title="item.label"
+                            class="mr-1 opacity-50 hover:opacity-100 hover:!bg-transparent"
+                            v-on:click.stop="nav.toggleGroup(item.route)"
+                        >
+                            <ChevronDown class="w-3.5 h-3.5 transition-transform" :class="{ '-rotate-90': !nav.isGroupExpanded(item.route) }" :stroke-width="2.5" />
+                        </AppIconButton>
+                    </div>
 
                     <div v-show="nav.isGroupExpanded(item.route)" class="flex flex-col gap-0.5">
                         <AppNavLink
@@ -116,8 +124,6 @@ defineProps({
                             :active="nav.isActive(child.route)"
                             :sidemenu-active="nav.isActive(child.route)"
                             :link-classes-override="nav.itemClasses(child, section.id)"
-                            :tooltip-title="child.label"
-                            :tooltip-description="showDescriptions ? '' : child.description"
                         >
                             <component :is="child.icon" class="w-4 h-4 shrink-0" :class="nav.iconClasses(child, section.id)" :stroke-width="2" />
                             <span class="min-w-0 flex-1">
@@ -136,8 +142,6 @@ defineProps({
                     :active="nav.itemIsActive(item)"
                     :sidemenu-active="nav.itemIsActive(item)"
                     :link-classes-override="nav.itemClasses(item, section.id)"
-                    :tooltip-title="item.label"
-                    :tooltip-description="showDescriptions ? '' : item.description"
                 >
                     <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, section.id)" :stroke-width="2" />
                     <span class="min-w-0 flex-1">
