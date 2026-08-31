@@ -1,23 +1,9 @@
 import { describe, expect, it } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { FileText, Tag } from "lucide-vue-next";
+import { REPO_ROOT, phpSources } from "@/tests/helpers/phpSources.js";
 import { ICON_MAP, resolveNavIcon } from "./navMeta.js";
-
-const ROOT = path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "../../../../..",
-);
-
-function phpSources(dir) {
-    return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-        const full = path.join(dir, entry.name);
-        if (entry.isDirectory()) return phpSources(full);
-
-        return entry.name.endsWith(".php") ? [full] : [];
-    });
-}
 
 /** The balanced `(...)` body of every `new NavItem(` call in one source. */
 function navItemBodies(src) {
@@ -99,9 +85,9 @@ function declaredIconNames() {
     const found = new Map();
     const literal = /'([a-z0-9][a-z0-9-]*)'/g;
 
-    for (const file of phpSources(path.join(ROOT, "src"))) {
+    for (const file of phpSources()) {
         const src = fs.readFileSync(file, "utf8");
-        const where = path.relative(ROOT, file);
+        const where = path.relative(REPO_ROOT, file);
         const record = (name) => {
             if (!found.has(name)) found.set(name, where);
         };

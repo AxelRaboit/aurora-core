@@ -111,6 +111,25 @@ final readonly class DocumentsViewBuilder
     }
 
     /**
+     * The folder tree on its own, for a caller that has no document listing to
+     * carry it - the side menu's module panel, which mounts on every GED page
+     * and is handed no props by the menu.
+     *
+     * Same shape and same counts as the `folders` key of the two payloads
+     * above, so the panel and the documents page never disagree about how many
+     * documents a folder holds.
+     *
+     * @return array<string, mixed>
+     */
+    public function folderTreePayload(): array
+    {
+        return [
+            'success' => true,
+            'folders' => $this->serializeFoldersWithCounts(),
+        ];
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     private function serializeFoldersWithCounts(): array
