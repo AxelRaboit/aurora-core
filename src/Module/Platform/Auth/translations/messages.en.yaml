@@ -153,6 +153,15 @@ frontend:
     submit: Reset password
     invalid_link: This link is invalid or has expired. Please submit a new request.
     success: Your password has been reset. You can now sign in.
+  invitation:
+    title: Welcome
+    heading: Welcome
+    heading_named: 'Welcome {name}'
+    subtitle: Choose the password you will sign in with.
+    password: Password
+    confirm_password: Confirm the password
+    submit: Activate my account
+    invalid_link: "This invitation is invalid or has expired. Ask whoever signed you up for a new one."
   errors:
     name_required: Name is required.
     email_required: Email address is required.

@@ -18,6 +18,10 @@ export function useUsersInvite(invitePath, roles, fetchUsers, options = {}) {
         // jeton et n'envoie aucun mail ; l'invitation part quand le compte est
         // activé depuis la liste.
         disabled: false,
+        // L'administration ou le site public. Un compte frontend reçoit
+        // ROLE_USER quel que soit le rôle envoyé : c'est le serveur qui le
+        // force, la frontière d'écriture étant le seul endroit qui compte.
+        type: "backend",
         ...Object.fromEntries(
             Object.entries(extraFields).map(([key, def]) => [key, def.default]),
         ),
@@ -30,6 +34,7 @@ export function useUsersInvite(invitePath, roles, fetchUsers, options = {}) {
         inviteForm.role = roles[0]?.value ?? "";
         inviteForm.message = "";
         inviteForm.disabled = false;
+        inviteForm.type = "backend";
         for (const [key, def] of Object.entries(extraFields)) {
             inviteForm[key] = def.default;
         }

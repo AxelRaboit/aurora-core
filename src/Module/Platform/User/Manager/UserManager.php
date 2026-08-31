@@ -387,9 +387,10 @@ class UserManager implements UserManagerInterface
     }
 
     /**
-     * @param bool $disabled créer le compte sans contacter personne - voir plus bas
+     * @param bool         $disabled créer le compte sans contacter personne - voir plus bas
+     * @param UserTypeEnum $type     backend (l'administration) ou frontend (le site public)
      */
-    public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false): User
+    public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false, UserTypeEnum $type = UserTypeEnum::Backend): User
     {
         if (!in_array($role, UserRoleEnum::allAssignableValues(), true)) {
             throw new InvalidArgumentException('backend.users.errors.role_invalid');
@@ -398,8 +399,17 @@ class UserManager implements UserManagerInterface
         $user = $this->createUser();
         $user->setName($name);
         $user->setEmail($email);
-        $user->setType(UserTypeEnum::Backend);
-        $user->setRoles([$role]);
+        $user->setType($type);
+        /*
+         * Le frontend n'a qu'un rôle, et ce n'est pas un choix de l'opérateur.
+         *
+         * L'inscription publique pose `ROLE_USER` en dur ; une invitation doit
+         * aboutir au même compte, sinon deux chemins produiraient deux
+         * populations différentes. Forcé ici plutôt que validé dans le DTO parce
+         * que c'est la frontière d'écriture : une charge utile trafiquée
+         * demandant ROLE_ADMIN sur un compte frontend n'obtient rien.
+         */
+        $user->setRoles(UserTypeEnum::Frontend === $type ? [UserRoleEnum::User->value] : [$role]);
         $user->setStatus($disabled ? UserStatusEnum::Disabled : UserStatusEnum::Invited);
         $user->setLocale(LocaleEnum::French);
         // Un mot de passe que personne ne connaît : il faut bien remplir la

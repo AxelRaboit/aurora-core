@@ -32,6 +32,7 @@ const { formatDate, formatDateShort } = useDateFormat();
 
 const props = defineProps({
     roles: { type: Array, default: () => [] },
+    userTypes: { type: Array, default: () => [] },
     isDev: { type: Boolean, default: false },
     currentUserPriority: { type: Number, default: 0 },
     privilegesByModule: { type: Array, default: () => [] },
@@ -271,13 +272,30 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                     :error="inviteModal.errors.email ?? ''"
                     required
                 />
+                <!-- Le type d'abord : il décide si la question du rôle a un
+                     sens. Masqué quand il n'y a rien à choisir. -->
                 <AppMultiselect
+                    v-if="userTypes.length > 1"
+                    v-model="inviteForm.type"
+                    :options="userTypes"
+                    :label="t('backend.users.type_label')"
+                    :error="inviteModal.errors.type ?? ''"
+                    required
+                />
+                <!-- Le site public n'a qu'un rôle, et ce n'est pas un choix de
+                     l'opérateur : l'inscription publique pose ROLE_USER en dur,
+                     et une invitation doit aboutir au même compte. Afficher un
+                     sélecteur ici laisserait croire à une décision qui n'existe
+                     pas - le serveur force la valeur de toute façon. -->
+                <AppMultiselect
+                    v-if="inviteForm.type !== 'frontend'"
                     v-model="inviteForm.role"
                     :options="roles"
                     :label="t('backend.users.role_label')"
                     :error="inviteModal.errors.role ?? ''"
                     required
                 />
+                <p v-else class="text-xs text-muted">{{ t('backend.users.invite_frontend_role_hint') }}</p>
                 <!-- Le message n'a plus de destinataire quand rien ne part. -->
                 <div v-if="!inviteForm.disabled">
                     <label class="block text-xs text-secondary uppercase tracking-wide mb-1.5">{{ t('backend.users.invite_message') }}</label>

@@ -103,6 +103,28 @@ final readonly class AuthViewBuilder
     }
 
     /**
+     * La même forme que la réinitialisation - un jeton, un mot de passe à poser -
+     * et une page distincte quand même : « réinitialiser » est faux pour
+     * quelqu'un qui n'a jamais eu de mot de passe, et la personne arrive ici
+     * parce qu'on l'a invitée, pas parce qu'elle a oublié quelque chose.
+     *
+     * @param array<string, string> $errors
+     *
+     * @return array<string, mixed>
+     */
+    public function invitationView(string $locale, string $selector, string $token, bool $invalid, array $errors = [], ?string $userName = null): array
+    {
+        return [
+            ...$this->base($locale),
+            'invalid' => $invalid,
+            'errors' => $errors,
+            'selector' => $selector,
+            'token' => $token,
+            'userName' => $userName,
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function accountView(string $locale, ?UserInterface $user): array

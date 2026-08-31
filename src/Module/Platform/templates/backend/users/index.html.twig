@@ -14,6 +14,7 @@
 {% block body %}
 <div {{ vue_component('platform/backend/users/UsersApp', {
     roles: roles,
+    userTypes: userTypes,
     isDev: isDev,
     currentUserPriority: currentUserPriority,
     privilegesByModule: privilegesByModule,

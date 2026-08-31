@@ -1,0 +1,13 @@
+{% extends 'Frontend/themes/default/auth/layout.html.twig' %}
+
+{% block seo_define %}{% do seo({title: 'frontend.invitation.title'|trans, noindex: true}) %}{% endblock %}
+
+{% block body %}
+<div {{ vue_component('core/frontend/auth/InvitationAcceptApp', {
+    submitPath: path('frontend_invitation_accept', {locale: locale, selector: selector, token: token}),
+    loginPath: path('frontend_login', {locale: locale}),
+    invalid: invalid,
+    initialErrors: errors,
+    userName: userName,
+}) }}></div>
+{% endblock %}

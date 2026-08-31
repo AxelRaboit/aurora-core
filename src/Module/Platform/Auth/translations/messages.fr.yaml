@@ -153,6 +153,15 @@ frontend:
     submit: Réinitialiser le mot de passe
     invalid_link: Ce lien est invalide ou a expiré. Veuillez faire une nouvelle demande.
     success: Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.
+  invitation:
+    title: Bienvenue
+    heading: Bienvenue
+    heading_named: 'Bienvenue {name}'
+    subtitle: Choisissez le mot de passe qui vous servira à vous connecter.
+    password: Mot de passe
+    confirm_password: Confirmer le mot de passe
+    submit: Activer mon compte
+    invalid_link: "Cette invitation est invalide ou a expiré. Demandez-en une nouvelle à la personne qui vous a inscrit."
   errors:
     name_required: Le nom est requis.
     email_required: L'adresse e-mail est requise.

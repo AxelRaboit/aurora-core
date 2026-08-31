@@ -20,6 +20,7 @@ backend:
     invite_disabled: Create the account disabled
     invite_disabled_hint: "For somebody arriving later: the account exists, nobody is told, and signing in is refused. The invitation goes out when you re-enable the account from the list."
     create_disabled_account: Create the account
+    invite_frontend_role_hint: "A public-site account has one role: user. There is nothing to pick."
     edit_title: 'Edit {name}'
     delete_confirm: 'Delete {name}?'
     detail:
@@ -55,6 +56,7 @@ backend:
       name_required: Name is required.
       name_too_long: Name must not exceed 100 characters.
       role_invalid: Invalid role.
+      type_invalid: Invalid account type.
       role_required: Role is required.
       password_too_short: Password must be at least 8 characters.
       manager_self: A user cannot be their own manager.

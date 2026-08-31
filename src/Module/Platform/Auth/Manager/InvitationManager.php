@@ -7,6 +7,7 @@ namespace Aurora\Module\Platform\Auth\Manager;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
@@ -31,12 +32,34 @@ class InvitationManager implements InvitationManagerInterface
             return;
         }
 
-        $invitationUrl = $this->urlGenerator->generate('backend_platform_invitation_accept', [
-            'selector' => $selector,
-            'token' => $plainToken,
-        ], UrlGeneratorInterface::ABSOLUTE_URL);
+        /**
+         * L'adresse d'acceptation dépend de la population invitée.
+         *
+         * Les deux firewalls sont distincts et chacun n'accepte que son type
+         * (cf. les deux UserProvider) : envoyer un invité frontend sur la page
+         * d'acceptation du backend l'y connecterait le temps d'une requête, et
+         * la session serait invalidée au rafraîchissement suivant, sans que rien
+         * ne lui explique pourquoi. Les deux routes refusent d'ailleurs
+         * explicitement le mauvais type.
+         *
+         * Le lien de connexion suit la même logique : renvoyer quelqu'un vers un
+         * formulaire de connexion où son compte n'existe pas est pire que ne pas
+         * mettre de lien.
+         */
+        $isFrontend = UserTypeEnum::Frontend === $user->getType();
 
-        $loginUrl = $this->urlGenerator->generate('backend_platform_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $invitationUrl = $this->urlGenerator->generate(
+            $isFrontend ? 'frontend_invitation_accept' : 'backend_platform_invitation_accept',
+            $isFrontend
+                ? ['locale' => $user->getLocale()->value, 'selector' => $selector, 'token' => $plainToken]
+                : ['selector' => $selector, 'token' => $plainToken],
+            UrlGeneratorInterface::ABSOLUTE_URL,
+        );
+
+        $loginUrl = $isFrontend
+            ? $this->urlGenerator->generate('frontend_login', ['locale' => $user->getLocale()->value], UrlGeneratorInterface::ABSOLUTE_URL)
+            : $this->urlGenerator->generate('backend_platform_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
+
         $siteName = $this->settingRepository->getOrDefault(ApplicationParameterEnum::SiteName);
 
         $body = $this->twig->render('@Shared/email/invitation.html.twig', [

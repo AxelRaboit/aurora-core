@@ -10,6 +10,7 @@ use Aurora\Core\Module\Toggle\ModuleToggleRegistry;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 final readonly class UsersViewBuilder
@@ -107,8 +108,20 @@ final readonly class UsersViewBuilder
 
         usort($modulesForAccess, fn (array $a, array $b): int => $this->priorityFor((string) $a['moduleId']) <=> $this->priorityFor((string) $b['moduleId']));
 
+        /**
+         * Les deux populations invitables.
+         *
+         * Construit ici plutôt que codé dans le composant pour que les libellés
+         * passent par le traducteur, comme les rôles juste au-dessus.
+         */
+        $types = array_map(
+            static fn (UserTypeEnum $type): array => ['value' => $type->value, 'label' => $translator->trans($type->getLabelKey())],
+            UserTypeEnum::cases(),
+        );
+
         return [
             'roles' => $roles,
+            'userTypes' => $types,
             'isDev' => $isDev,
             'currentUserPriority' => $currentUserPriority,
             'privilegesByModule' => $privilegesByModule,

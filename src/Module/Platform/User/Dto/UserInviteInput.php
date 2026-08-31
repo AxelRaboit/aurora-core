@@ -6,6 +6,7 @@ namespace Aurora\Module\Platform\User\Dto;
 
 use Aurora\Module\Platform\Auth\Validator\UniqueEmail;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class UserInviteInput implements UserInviteInputInterface
@@ -33,6 +34,15 @@ class UserInviteInput implements UserInviteInputInterface
          * du compte qui envoie l'invitation.
          */
         public readonly bool $disabled = false,
+        /**
+         * L'administration ou le site public.
+         *
+         * `role` reste validé dans les deux cas - il est toujours envoyé - mais
+         * il est ignoré pour un compte frontend : le manager y force ROLE_USER,
+         * parce que le frontend n'a qu'un rôle et que ce n'est pas un choix.
+         */
+        #[Assert\Choice(callback: [UserTypeEnum::class, 'values'], message: 'backend.users.errors.type_invalid')]
+        public readonly string $type = 'backend',
     ) {}
 
     public function getName(): string
@@ -58,5 +68,10 @@ class UserInviteInput implements UserInviteInputInterface
     public function isDisabled(): bool
     {
         return $this->disabled;
+    }
+
+    public function getType(): UserTypeEnum
+    {
+        return UserTypeEnum::from($this->type);
     }
 }
