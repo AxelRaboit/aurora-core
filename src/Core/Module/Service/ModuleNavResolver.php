@@ -28,14 +28,25 @@ use Symfony\Bundle\SecurityBundle\Security;
  * `dev_dashboard` from being claimed by a module whose prefix is merely `dev_`,
  * and it is the only tie-break that does not depend on module registration
  * order - which is DI-dependent, so unstable.
+ *
+ * **Why two passes.** `getModuleNavView()` is not always cheap: Configuration's
+ * has to read the contributed settings tabs, which resolve timezones, locales
+ * and the front registry. Asking every module on every backend page would put
+ * that on the dashboard, on a note, on a document. So the first pass matches on
+ * `getNavSections()` alone - the modules already build those for the menu - and
+ * only the winner is asked for its view. The second pass exists for routes no
+ * section declares, and runs only when the first found nobody.
  */
-final readonly class ModuleNavResolver
+final class ModuleNavResolver
 {
+    /** @var array<string, ModuleNavView|null> */
+    private array $viewCache = [];
+
     /** @param iterable<ModuleInterface> $modules */
     public function __construct(
-        private iterable $modules,
-        private NavItemResolver $navItemResolver,
-        private Security $userSecurity,
+        private readonly iterable $modules,
+        private readonly NavItemResolver $navItemResolver,
+        private readonly Security $userSecurity,
     ) {}
 
     /**
@@ -55,6 +66,80 @@ final readonly class ModuleNavResolver
             return null;
         }
 
+        $resolved = $this->resolveFromSections($route);
+        if (null !== $resolved) {
+            return $resolved;
+        }
+
+        return $this->resolveFromViews($route);
+    }
+
+    /**
+     * First pass: match on what the modules already publish to the main menu.
+     * Cheap, and it covers every module whose second level lives under the
+     * routes its menu entry points at - which is the ordinary case.
+     *
+     * @return array{moduleId: string, groups: list<array<string, mixed>>, panelComponent: ?string}|null
+     */
+    private function resolveFromSections(string $route): ?array
+    {
+        /** @var list<array{module: ModuleInterface&ModuleNavViewProviderInterface, length: int}> $candidates */
+        $candidates = [];
+
+        foreach ($this->modules as $module) {
+            if (!$module instanceof ModuleNavViewProviderInterface) {
+                continue;
+            }
+
+            // A module absent from the main menu - switched off, or invisible to
+            // this user - must not take the column over. `getNavSections()`
+            // already returns nothing in that case, so it is the cheapest and
+            // most honest gate available: the module view follows the menu.
+            $sections = $module->getNavSections();
+            if ([] === $sections) {
+                continue;
+            }
+
+            $prefixes = [];
+            foreach ($sections as $section) {
+                $this->collectItemPrefixes($section->items, $prefixes);
+            }
+
+            $length = $this->longestMatch($route, $prefixes);
+            if ($length >= 0) {
+                $candidates[] = ['module' => $module, 'length' => $length];
+            }
+        }
+
+        // Longest first, so the module that claims the most specific prefix is
+        // asked for its view before any module that merely claims a stem of it.
+        usort($candidates, static fn (array $a, array $b): int => $b['length'] <=> $a['length']);
+
+        foreach ($candidates as $candidate) {
+            $view = $this->viewOf($candidate['module']);
+            if (!$view instanceof ModuleNavView) {
+                continue;
+            }
+
+            $resolved = $this->resolveView($view);
+            if (null !== $resolved) {
+                return $resolved;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Second pass: a route no section declares can still belong to a module -
+     * that is exactly what a second level is for. Only reached when the first
+     * pass found nobody, so the cost of asking every module lands on routes
+     * that would otherwise get no column at all.
+     *
+     * @return array{moduleId: string, groups: list<array<string, mixed>>, panelComponent: ?string}|null
+     */
+    private function resolveFromViews(string $route): ?array
+    {
         $best = null;
         $bestLength = -1;
 
@@ -63,20 +148,21 @@ final readonly class ModuleNavResolver
                 continue;
             }
 
-            $view = $module->getModuleNavView();
-            if (!$view instanceof ModuleNavView) {
-                continue;
-            }
-
-            // A module absent from the main menu - switched off, or invisible to
-            // this user - must not take the column over. `getNavSections()`
-            // already returns nothing in that case, so it is the cheapest and
-            // most honest gate available: the module view follows the menu.
             if ([] === $module->getNavSections()) {
                 continue;
             }
 
-            $length = $this->longestMatchingPrefix($route, $module, $view);
+            $view = $this->viewOf($module);
+            if (!$view instanceof ModuleNavView) {
+                continue;
+            }
+
+            $prefixes = [];
+            foreach ($view->groups as $group) {
+                $this->collectItemPrefixes($group->items, $prefixes);
+            }
+
+            $length = $this->longestMatch($route, $prefixes);
             if ($length > $bestLength) {
                 $best = $view;
                 $bestLength = $length;
@@ -91,19 +177,25 @@ final readonly class ModuleNavResolver
     }
 
     /**
-     * Length of the longest route prefix this module claims that `$route`
-     * starts with, or -1 when it claims none.
-     *
-     * Prefixes come from both the module's main-menu items and its view's own
-     * items: a module can own destinations that never appear in the project
-     * view - which is the whole point of the second level - and those routes
-     * still belong to it.
+     * Memoised per request: both passes can reach the same module, and a view
+     * is a pure declaration - asking twice would only pay twice.
      */
-    private function longestMatchingPrefix(string $route, ModuleInterface $module, ModuleNavView $view): int
+    private function viewOf(ModuleNavViewProviderInterface&ModuleInterface $module): ?ModuleNavView
+    {
+        return $this->viewCache[$module->getId()] ??= $module->getModuleNavView();
+    }
+
+    /**
+     * Length of the longest prefix in the list that `$route` starts with, or -1
+     * when none of them does.
+     *
+     * @param list<string> $prefixes
+     */
+    private function longestMatch(string $route, array $prefixes): int
     {
         $longest = -1;
 
-        foreach ($this->collectPrefixes($module, $view) as $prefix) {
+        foreach ($prefixes as $prefix) {
             if ('' === $prefix) {
                 continue;
             }
@@ -122,28 +214,10 @@ final readonly class ModuleNavResolver
     }
 
     /**
-     * Every route prefix the module claims. `activeRoutePrefix` wins over the
-     * route name when set, for the same reason the menu highlights on it: it is
-     * the module's own statement of "these routes are mine".
+     * `activeRoutePrefix` wins over the route name when set, for the same reason
+     * the menu highlights on it: it is the module's own statement of "these
+     * routes are mine".
      *
-     * @return list<string>
-     */
-    private function collectPrefixes(ModuleInterface $module, ModuleNavView $view): array
-    {
-        $prefixes = [];
-
-        foreach ($module->getNavSections() as $section) {
-            $this->collectItemPrefixes($section->items, $prefixes);
-        }
-
-        foreach ($view->groups as $group) {
-            $this->collectItemPrefixes($group->items, $prefixes);
-        }
-
-        return array_values(array_unique($prefixes));
-    }
-
-    /**
      * @param NavItem[]    $items
      * @param list<string> $prefixes accumulator, by reference
      */
@@ -164,9 +238,9 @@ final readonly class ModuleNavResolver
     private function resolveView(ModuleNavView $view): ?array
     {
         $user = $this->userSecurity->getUser();
-        // The same per-user hide list as the main menu, matched on route names -
+        // The same per-user hide list as the main menu, matched on stable keys -
         // so a user who hid a destination keeps it hidden wherever it is drawn.
-        // Nothing to add for it to cover the module view: it was always by route.
+        // Nothing to add for it to cover the module view.
         $hiddenItems = $user instanceof CoreUserInterface ? $user->getHiddenNavItems() : [];
 
         $groups = [];

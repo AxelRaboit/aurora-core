@@ -28,6 +28,14 @@ export const SEARCH_OPEN_EVENT = "aurora:open-search";
 const RECENT_KEY = "aurora-search-recent";
 const RECENT_MAX = 6;
 
+/**
+ * Recent visits, stored by an entry's **stable key** rather than its route name.
+ *
+ * For an ordinary entry the two are the same string, so what is already in a
+ * reader's browser keeps resolving. They part company for entries that share one
+ * route name - the eleven settings tabs - where a route name identifies the set,
+ * not the member, and "recently visited" would always resolve back to the first.
+ */
 function loadRecentRoutes() {
     try {
         const raw = localStorage.getItem(RECENT_KEY);
@@ -46,10 +54,12 @@ function recordRecentRoute(route) {
     localStorage.setItem(RECENT_KEY, JSON.stringify(routes));
 }
 
-// ── Item identity (nav/recent use route; API items use id) ────────────────────
+// ── Item identity (nav/recent use the stable key; API items use id) ──────────
 
 function itemKey(kind, item) {
-    return kind === "nav" || kind === "recent" ? item.route : item.id;
+    return kind === "nav" || kind === "recent"
+        ? (item.key ?? item.route)
+        : item.id;
 }
 
 // ── Composable ────────────────────────────────────────────────────────────────
@@ -82,9 +92,11 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
     // ── Local results ─────────────────────────────────────────────────────────
 
     const recentPages = computed(() => {
-        const routes = loadRecentRoutes();
-        return routes
-            .map((route) => navItems.value?.find((i) => i.route === route))
+        const keys = loadRecentRoutes();
+        return keys
+            .map((key) =>
+                navItems.value?.find((i) => (i.key ?? i.route) === key),
+            )
             .filter(Boolean);
     });
 
@@ -264,11 +276,16 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
 
     onMounted(() => {
         window.addEventListener("keydown", onGlobalKeydown);
-        // Record the current page as a recent visit
-        const matchingItem = navItems.value?.find((i) =>
-            currentRoute?.startsWith(i.route),
-        );
-        if (matchingItem) recordRecentRoute(matchingItem.route);
+        // Record the current page as a recent visit. Exact path first: entries
+        // that share a route name can only be told apart that way, and a prefix
+        // test would record whichever of them happens to come first.
+        const path =
+            "undefined" !== typeof window ? window.location.pathname : null;
+        const matchingItem =
+            navItems.value?.find((i) => i.matchPath && i.path === path) ??
+            navItems.value?.find((i) => currentRoute?.startsWith(i.route));
+        if (matchingItem)
+            recordRecentRoute(matchingItem.key ?? matchingItem.route);
     });
 
     onBeforeUnmount(() =>

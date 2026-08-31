@@ -139,6 +139,44 @@ final class ModuleNavResolverTest extends TestCase
         self::assertSame('backend.nav.ged_groups.library', $view['groups'][0]['labelKey']);
     }
 
+    // The resolver is asked on every backend page render, and a view is not
+    // always cheap to declare - Configuration's has to read the contributed
+    // settings tabs. A module whose routes are nowhere near the current one
+    // must not pay that cost, nor make the page pay it.
+    public function testAModuleIsNotAskedForItsViewWhenTheRouteIsNotItsOwn(): void
+    {
+        $counted = new CountingStubModule();
+        $resolver = $this->makeResolver([new GedStubModule(), $counted]);
+
+        $resolver->resolveForRoute('backend_ged_documents');
+
+        self::assertSame(0, $counted->calls);
+    }
+
+    public function testTheMatchingModuleIsAskedExactlyOnce(): void
+    {
+        $counted = new CountingStubModule();
+        $resolver = $this->makeResolver([$counted]);
+
+        $resolver->resolveForRoute('backend_counted_index');
+
+        self::assertSame(1, $counted->calls);
+    }
+
+    // Both passes can reach the same module when the first one finds nothing to
+    // resolve; the memo is what keeps that from costing twice.
+    public function testAViewIsBuiltOnceEvenWhenBothPassesRun(): void
+    {
+        // Its links are all denied, so the first pass resolves nothing and the
+        // second pass runs - reaching the same module again.
+        $counted = new CountingStubModule();
+        $resolver = $this->makeResolver([$counted], granted: false);
+
+        $resolver->resolveForRoute('backend_counted_index');
+
+        self::assertSame(1, $counted->calls);
+    }
+
     /** @param list<ModuleInterface> $modules */
     private function makeResolver(
         array $modules,
@@ -351,6 +389,43 @@ final class LinksOnlyStubModule implements ModuleInterface, ModuleNavViewProvide
         return new ModuleNavView('links', [
             new ModuleNavGroup('main', [
                 new NavItem('backend_links_index', 'nav.links', 'file-text', requiredPrivilege: 'links.view'),
+            ]),
+        ]);
+    }
+}
+
+/** Counts how many times its view was asked for. */
+final class CountingStubModule implements ModuleInterface, ModuleNavViewProviderInterface
+{
+    public int $calls = 0;
+
+    public function getId(): string
+    {
+        return 'counted';
+    }
+
+    public function getPermissions(): array
+    {
+        return [];
+    }
+
+    public function getNavSections(): array
+    {
+        return [new NavSection('counted', [new NavItem('backend_counted_index', 'nav.counted', 'file-text')])];
+    }
+
+    public function getCatalogNavSections(): array
+    {
+        return $this->getNavSections();
+    }
+
+    public function getModuleNavView(): ?ModuleNavView
+    {
+        ++$this->calls;
+
+        return new ModuleNavView('counted', [
+            new ModuleNavGroup('main', [
+                new NavItem('backend_counted_index', 'nav.counted', 'file-text', requiredPrivilege: 'counted.view'),
             ]),
         ]);
     }

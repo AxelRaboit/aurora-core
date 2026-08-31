@@ -9,6 +9,7 @@ use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Module\Configuration\Setting\Configuration\SettingDefinitionRegistry;
 use Aurora\Module\Configuration\Setting\Configuration\SettingFieldDescriptor;
+use Aurora\Module\Configuration\Setting\Configuration\SettingsTabAccess;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Enum\SettingErrorCodeEnum;
 use Aurora\Module\Configuration\Setting\Exception\CascadeViolationException;
@@ -35,14 +36,58 @@ final class SettingsController extends AbstractController
         private readonly SettingsService $settingsManager,
         private readonly SettingsViewBuilder $viewBuilder,
         private readonly SettingDefinitionRegistry $definitionRegistry,
+        private readonly SettingsTabAccess $tabAccess,
     ) {}
 
+    /**
+     * A bare `/settings` lands on the first tab this user may see.
+     *
+     * A redirect rather than a render, so there is exactly one URL per tab.
+     * Rendering here too would give the first tab two addresses, and the side
+     * menu could not tell which of them it was on.
+     */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
     {
-        return $this->render('@Configuration/backend/settings/index.html.twig', $this->viewBuilder->indexView(
-            isDev: $this->isGranted(UserRoleEnum::Dev->value),
-        ));
+        $first = $this->tabAccess->firstVisibleId();
+
+        if (null === $first) {
+            // Out of reach in aurora-core: `navigation` and `appearance` are
+            // `alwaysVisible` and gated by nothing but the controller's own
+            // privilege. It can only happen where a client has replaced the core
+            // provider, and inventing an empty-state page for that would be
+            // inventing content nobody will read.
+            throw $this->createNotFoundException('No settings tab is available.');
+        }
+
+        return $this->redirectToRoute('backend_configuration_settings_tab', ['tab' => $first]);
+    }
+
+    /**
+     * One tab, one URL.
+     *
+     * A single parameterised route rather than one route per tab, because the
+     * tabs are contributed at request time - a client module adds its own
+     * through `ConfigurationTabProviderInterface`, and no static route
+     * declaration can know about it. What matters is that the address exists:
+     * it can be sent to somebody, it carries a breadcrumb, it makes a history
+     * entry, and the search palette can offer it.
+     *
+     * A tab this user may not see is a 404, decided here. It used to be left out
+     * of the payload and discarded in the browser, which was correct but put the
+     * gate in the client.
+     */
+    #[Route('/{tab}', name: '_tab', requirements: ['tab' => '[a-z0-9_]+'], methods: [HttpMethodEnum::Get->value])]
+    public function tab(string $tab): Response
+    {
+        if (!$this->tabAccess->isVisibleId($tab)) {
+            throw $this->createNotFoundException(sprintf('Unknown settings tab "%s".', $tab));
+        }
+
+        return $this->render(
+            '@Configuration/backend/settings/index.html.twig',
+            $this->viewBuilder->tabView($tab),
+        );
     }
 
     #[Route('/update', name: '_update', methods: [HttpMethodEnum::Post->value])]

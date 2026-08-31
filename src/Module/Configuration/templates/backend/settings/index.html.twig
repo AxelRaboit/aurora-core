@@ -1,12 +1,17 @@
 {% extends '@Core/backend/layout.html.twig' %}
 
-{% block title %}{{ 'backend.nav.settings'|trans }} - {{ parent() }}{% endblock %}
+{% set tabLabel = ('backend.settings.tabs.' ~ activeTab)|trans %}
+
+{% block title %}{{ tabLabel }} - {{ 'backend.nav.settings'|trans }} - {{ parent() }}{% endblock %}
 
 {% block page_header_slot %}
+    {# The tab is the page now, so it is the last crumb - and "Réglages" above it
+       leads back to the first tab rather than to a page that draws all of them. #}
     {{ include('@Shared/components/page_header.html.twig', {
         crumbs: [
             {label: 'backend.nav.sections.configuration'|trans},
-            {label: 'backend.nav.settings'|trans},
+            {label: 'backend.nav.settings'|trans, href: path('backend_configuration_settings')},
+            {label: tabLabel},
         ],
     }) }}
 {% endblock %}
@@ -15,8 +20,10 @@
 <div {{ vue_component('configuration/backend/settings/SettingsApp', {
     groups: groups,
     tabs: tabs,
+    activeTab: activeTab,
     updatePath: path('backend_configuration_settings_update'),
     postSearchPath: postSearchPath,
     navSections: sidemenu_nav_sections(),
+    tabPathTemplate: path_template('backend_configuration_settings_tab', {tab: '__tab__'}),
 }) }}></div>
 {% endblock %}

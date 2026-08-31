@@ -1,9 +1,7 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppTab from "@/shared/components/nav/AppTab.vue";
-import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
@@ -13,46 +11,75 @@ import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
 import AppListItemButton from "@/shared/components/action/AppListItemButton.vue";
 import AppTextLinkButton from "@/shared/components/action/AppTextLinkButton.vue";
-import { Search, FileText, Lock, Save, Code2 } from "lucide-vue-next";
+import { Search, FileText, Lock, Save } from "lucide-vue-next";
 import { ParameterType } from "@core/utils/enums/settings/parameterType.js";
 import { useSettingsForm } from "@configuration/backend/settings/composables/useSettingsForm.js";
 import { useSettingsPostPicker } from "@configuration/backend/settings/composables/useSettingsPostPicker.js";
 import { useSettingsSequenceFilter } from "@configuration/backend/settings/composables/useSettingsSequenceFilter.js";
-import { useSettingsTabs } from "@configuration/backend/settings/composables/useSettingsTabs.js";
 import { getSettingsTabComponent } from "@configuration/backend/settings/tabRegistry.js";
 
 const props = defineProps({
+    /** One entry now - the tab being looked at. The shape is unchanged. */
     groups: { type: Object, default: () => ({}) },
+    /** Every visible tab, for the legacy fragment redirect below. */
     tabs: { type: Array, default: () => [] },
+    /** The tab this URL is. Decided by the controller, not by the browser. */
+    activeTab: { type: String, default: "" },
     updatePath: { type: String, default: "" },
     postSearchPath: { type: String, default: "" },
     navSections: { type: Array, default: () => [] },
+    /** `/backend/configuration/settings/__tab__`, for the redirect. */
+    tabPathTemplate: { type: String, default: "" },
 });
 
 const { t } = useI18n();
 
-const { availableGroups, activeTab, selectTab, tabLabel, tabDescription } = useSettingsTabs(props.groups, props.tabs);
+/**
+ * The page draws one tab, the one its URL names.
+ *
+ * It used to draw all eleven and switch between them with a fragment, which is
+ * why the tab could not be linked to, breadcrumbed, or found by the palette.
+ * The column of tab buttons is gone too: the side menu's module view lists them
+ * now, where they sit beside Themes rather than inside the page.
+ */
+const activeTab = computed(() => props.activeTab);
 
-// Resolve `componentName` → Vue component for each visible tab. Tabs whose
-// componentName is null/unknown fall back to the generic field renderer.
-const customComponentByGroup = computed(() => {
-    const map = {};
-    for (const tab of props.tabs) {
-        if (!availableGroups.includes(tab.id)) continue;
-        const component = getSettingsTabComponent(tab.componentName);
-        if (component) {
-            map[tab.id] = component;
-        }
-    }
-    return map;
-});
+const activeTabMeta = computed(
+    () => props.tabs.find((tab) => tab.id === props.activeTab) ?? null,
+);
+
+// A registered component owns the tab's body, or the generic field renderer
+// does. Never both, and no longer a map of eleven.
+const customComponent = computed(() =>
+    getSettingsTabComponent(activeTabMeta.value?.componentName),
+);
 
 const genericGroups = computed(() =>
-    availableGroups.filter((groupName) => !(groupName in customComponentByGroup.value)),
+    customComponent.value ? [] : [props.activeTab],
 );
 
 const { fieldValues, mediaState, isLocked, lockReason, onBoolChange, onMediaChange, savingGroups, saveGroup } =
     useSettingsForm(props.groups, genericGroups.value, props.updatePath);
+
+/**
+ * Sends an old `#seo`-style address to the tab's real URL, once, on arrival.
+ *
+ * The fragment was the tab's only identity for as long as the page owned the
+ * switching, so bookmarks and pasted links carry it. `location.replace` rather
+ * than an assignment: the fragment URL should not become a history entry the
+ * Back button returns to, which would bounce the reader straight forward again.
+ *
+ * Worth deleting two versions from now. It is a bridge, and a bridge that stays
+ * becomes a second way to address the same page.
+ */
+onMounted(() => {
+    const fragment = window.location.hash.replace(/^#/, "");
+    if (!fragment || fragment === props.activeTab) return;
+    if (!props.tabs.some((tab) => tab.id === fragment)) return;
+    if (!props.tabPathTemplate) return;
+
+    window.location.replace(props.tabPathTemplate.replace("__tab__", fragment));
+});
 
 const { postPickerLabels, postPickerSearch, postPickerResults, postPickerOpen, resolvePostLabel, searchPosts, selectPost, clearPost, onPostPickerBlur, onPostPickerFocus } =
     useSettingsPostPicker(props.groups, genericGroups.value, fieldValues, props.postSearchPath);
@@ -60,62 +87,17 @@ const { postPickerLabels, postPickerSearch, postPickerResults, postPickerOpen, r
 const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, goToSequencePage } =
     useSettingsSequenceFilter(props.groups);
 
-const tabMeta = Object.fromEntries(props.tabs.map((t) => [t.id, t]));
-const isDevOnly = (id) => tabMeta[id]?.devOnly ?? false;
 </script>
 
 <template>
-    <div class="flex flex-col md:flex-row gap-6">
-        <nav class="hidden md:flex flex-col w-44 shrink-0 gap-0.5">
-            <AppTooltip
-                v-for="groupName in availableGroups"
-                :key="groupName"
-                :title="tabLabel(groupName)"
-                :description="tabDescription(groupName)"
-                placement="right"
-            >
-                <AppTab
-                    :active="activeTab === groupName"
-                    :color="isDevOnly(groupName) ? 'rose' : 'accent'"
-                    v-on:click="selectTab(groupName)"
-                >
-                    <span class="flex items-center gap-1.5">
-                        {{ tabLabel(groupName) }}
-                        <Code2 v-if="isDevOnly(groupName)" class="w-3 h-3 shrink-0" :stroke-width="2" />
-                    </span>
-                </AppTab>
-            </AppTooltip>
-        </nav>
-
-        <div class="flex md:hidden gap-1 flex-wrap mb-4 w-full">
-            <AppTooltip
-                v-for="groupName in availableGroups"
-                :key="groupName"
-                :title="tabLabel(groupName)"
-                :description="tabDescription(groupName)"
-                placement="bottom"
-            >
-                <AppTab
-                    :active="activeTab === groupName"
-                    :color="isDevOnly(groupName) ? 'rose' : 'accent'"
-                    size="sm"
-                    v-on:click="selectTab(groupName)"
-                >
-                    <span class="flex items-center gap-1.5">
-                        {{ tabLabel(groupName) }}
-                        <Code2 v-if="isDevOnly(groupName)" class="w-3 h-3 shrink-0" :stroke-width="2" />
-                    </span>
-                </AppTab>
-            </AppTooltip>
-        </div>
-
+    <!-- No tab column, and no mobile tab row: the side menu's module view lists
+         the tabs now. The page is the tab. -->
+    <div class="flex flex-col">
         <div class="flex-1 min-w-0">
-            <!-- Tabs whose body is owned by a registered Vue component -->
+            <!-- This tab's body, when a registered component owns it -->
             <component
-                :is="component"
-                v-for="(component, groupName) in customComponentByGroup"
-                v-show="activeTab === groupName"
-                :key="groupName"
+                :is="customComponent"
+                v-if="customComponent"
                 :groups="groups"
                 :update-path="updatePath"
                 :nav-sections="navSections"
@@ -123,11 +105,7 @@ const isDevOnly = (id) => tabMeta[id]?.devOnly ?? false;
             />
 
             <!-- Generic field renderer for parameter-driven tabs -->
-            <div
-                v-for="groupName in genericGroups"
-                v-show="activeTab === groupName"
-                :key="groupName"
-            >
+            <div v-for="groupName in genericGroups" :key="groupName">
                 <div class="bg-surface border border-line rounded-xl p-6 space-y-6">
                     <AppSearchInput
                         v-if="groupName === 'sequences'"
