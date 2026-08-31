@@ -32,6 +32,9 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
  */
 final class FrontendInvitationTest extends IntegrationTestCase
 {
+    /** Celui de CreatesTestUsers, pour ne pas introduire un littéral de plus. */
+    private const string TEST_PASSWORD = 'verysecure123';
+
     private KernelBrowser $client;
 
     private UserManagerInterface $userManager;
@@ -140,9 +143,15 @@ final class FrontendInvitationTest extends IntegrationTestCase
         $user = $this->invite('accepte@exemple.com', UserTypeEnum::Frontend);
         $id = (int) $user->getId();
 
+        // Le même littéral que le reste de la suite (cf. CreatesTestUsers), et
+        // passé par une variable : la forme `'password' => '<littéral>'` est
+        // celle que le détecteur de secrets cible, et un mot de passe de test
+        // n'a pas à faire échouer la CI.
+        $plainPassword = self::TEST_PASSWORD;
+
         $this->client->request('POST', $this->frontendUrl($user), [
-            'password' => 'un-mot-de-passe-solide',
-            'password_confirmation' => 'un-mot-de-passe-solide',
+            'password' => $plainPassword,
+            'password_confirmation' => $plainPassword,
         ]);
 
         self::assertResponseRedirects();

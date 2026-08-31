@@ -27,6 +27,9 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 final class UserManagerPreProvisionedInviteTest extends IntegrationTestCase
 {
+    /** Celui de CreatesTestUsers, pour ne pas introduire un littéral de plus. */
+    private const string TEST_PASSWORD = 'verysecure123';
+
     private UserManagerInterface $userManager;
 
     private EntityManagerInterface $entityManager;
@@ -112,7 +115,7 @@ final class UserManagerPreProvisionedInviteTest extends IntegrationTestCase
     public function testReopeningAnAccountThatHasServedDoesNotReInvite(): void
     {
         $user = $this->invite('deja-servi@exemple.com');
-        $this->userManager->consumeInvitation($user, 'un-mot-de-passe-solide');
+        $this->userManager->consumeInvitation($user, self::TEST_PASSWORD);
 
         self::assertSame(UserStatusEnum::Active, $user->getStatus());
         $invitedAt = $user->getInvitedAt();
