@@ -32,6 +32,7 @@ import {
     CheckSquare,
     ChevronDown,
     ChevronLeft,
+    ChevronRight,
     Clock,
     FileText,
     Filter,
@@ -126,7 +127,7 @@ const nav = useSidemenuNav(props.navSections, props.activeRoute, props.navSectio
 
 const {
     dashboardPath, activeSections, navItems, navFilter, displayedSections,
-    inModuleView, moduleLabel, moduleId, backToProject,
+    inModuleView, hasModuleView, moduleLabel, moduleId, backToProject, enterModuleView,
     isAccountExpanded, toggleAccount,
     isActive, isActiveExact,
 } = nav;
@@ -246,6 +247,24 @@ function openSearchFromMobile() {
                 <span class="truncate">{{ t("backend.nav.back_to_modules") }}</span>
             </button>
         </div>
+
+        <!-- The door swings both ways.
+
+             `backToProject` above had no counterpart: leaving the module view
+             was one press of Escape, and nothing short of reloading the page
+             brought it back. `enterModuleView` existed and was tested from the
+             day the view shipped - it simply had no control wired to it, which
+             is invisible until something the reader needs lives only in that
+             view. A folder they cannot create is how it surfaced. -->
+        <button
+            v-if="hasModuleView && !inModuleView"
+            type="button"
+            class="mx-3 my-2 flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+            v-on:click="enterModuleView"
+        >
+            <ChevronRight class="w-3.5 h-3.5 shrink-0" :stroke-width="2.5" />
+            <span class="truncate">{{ t("backend.nav.back_to_module", { module: moduleLabel }) }}</span>
+        </button>
 
         <div class="sh-search-section px-3 py-2 border-b border-line shrink-0 space-y-1.5">
             <div class="relative flex items-center">
