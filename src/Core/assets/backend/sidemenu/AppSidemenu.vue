@@ -97,7 +97,9 @@ const { showDescriptions, toggleDescriptions } = useSidemenuDescriptions(
 
 const { dragging: sidemenuDragging, startResize: startSidemenuResize, reset: resetSidemenuWidth } = useResizable({
     key: "aurora-sidemenu-width",
-    defaultValue: 240,
+    // À garder égal au `--sidemenu-width` de sidemenu.css, cf. le commentaire
+    // qui y est : une divergence se voit comme un saut au chargement.
+    defaultValue: 280,
     min: 200,
     max: 480,
     onChange: (px) => { document.documentElement.style.setProperty("--sidemenu-width", `${px}px`); },

@@ -5,7 +5,13 @@
  * to navigate at all. That is what kept the drawer a hand-written copy of every
  * row, and what let the copies drift apart.
  */
-:root { --sidemenu-width: 240px; }
+/*
+ * Le défaut, et il doit rester d'accord avec `defaultValue` dans
+ * AppSidemenu.vue : celui-ci est appliqué au premier rendu, celui-là dès que Vue
+ * monte (`watch(..., { immediate: true })`). Deux valeurs différentes font
+ * sauter la largeur sous les yeux, une fois, chez qui n'a jamais redimensionné.
+ */
+:root { --sidemenu-width: 280px; }
 
 #sidemenu {
     width: var(--sidemenu-width);
