@@ -33,12 +33,26 @@ export function withDepthLabel(list) {
 }
 
 /**
+ * Position first, name only to break a tie.
+ *
+ * `buildFolderTree` sorts alphabetically unless told otherwise, and that quietly
+ * threw away the order the reader had just dragged into place: the server stored
+ * it, the next render sorted it back by name, and the whole gesture looked like
+ * it had done nothing. The deleted folders page had this comparator; the panel
+ * inherited its job and has to inherit this too.
+ */
+const byPosition = (a, b) =>
+    (a.position ?? 0) - (b.position ?? 0) || a.name.localeCompare(b.name);
+
+/**
  * GED sidebar tree mirroring Media's: tree + flat list (collapse-aware),
  * favourites and per-folder document count. Favourites + collapsed state are
  * persisted to localStorage so they survive reloads.
  */
 export function useDocumentSidebarTree(folders, currentFolderId) {
-    const folderTree = computed(() => buildFolderTree(folders.value));
+    const folderTree = computed(() =>
+        buildFolderTree(folders.value, byPosition),
+    );
 
     const collapsedFolderIds = ref(loadIdSet(COLLAPSED_KEY));
     const favouriteFolderIds = ref(loadIdSet(FAVOURITE_KEY));

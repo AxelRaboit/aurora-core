@@ -53,10 +53,67 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
      * Moves a folder to a new parent (or root if null).
      * Automatically appends it at the end of the new parent's children.
      */
-    public function move(DocumentFolderInterface $folder, ?DocumentFolderInterface $newParent): void
+    /**
+     * Refiles a folder, refusing the one move that destroys the tree.
+     *
+     * Filing a folder inside its own descendant makes a cycle: the two point at
+     * each other, neither can be reached from a root, and every client that
+     * builds a tree from the flat list simply stops showing them. The rows are
+     * still in the table, so nothing looks broken from here - they are just
+     * gone from every screen, along with everything under them, and no
+     * interface can reach them to undo it.
+     *
+     * Guarded here rather than in the controller because it is an invariant of
+     * the data, not of one request: any caller that can move a folder can
+     * destroy the tree with it.
+     *
+     * @return bool false when the move was refused, the tree left untouched
+     */
+    public function move(DocumentFolderInterface $folder, ?DocumentFolderInterface $newParent): bool
     {
+        if ($newParent instanceof DocumentFolderInterface && $this->isSelfOrDescendant($newParent, $folder)) {
+            return false;
+        }
+
         $folder->setParent($newParent);
         $this->entityManager->flush();
+
+        return true;
+    }
+
+    /**
+     * Whether `$candidate` is `$folder` itself or sits somewhere beneath it.
+     *
+     * Walks up from the candidate. Compares by object first and by id second,
+     * because a folder that has never been flushed has no id yet and two of
+     * them would otherwise both read as `null` and match.
+     */
+    private function isSelfOrDescendant(DocumentFolderInterface $candidate, DocumentFolderInterface $folder): bool
+    {
+        $seen = [];
+
+        for ($node = $candidate; $node instanceof DocumentFolderInterface; $node = $node->getParent()) {
+            if ($node === $folder) {
+                return true;
+            }
+
+            $id = $node->getId();
+            if (null !== $id && $id === $folder->getId()) {
+                return true;
+            }
+
+            // A cycle already sitting in the data would spin here forever. Treat
+            // it as unsafe: this walk never reaches a root, so nothing about the
+            // move can be shown to be sound.
+            $key = spl_object_id($node);
+            if (isset($seen[$key])) {
+                return true;
+            }
+
+            $seen[$key] = true;
+        }
+
+        return false;
     }
 
     /**

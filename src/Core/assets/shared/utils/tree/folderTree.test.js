@@ -57,3 +57,50 @@ describe("flattenFolders", () => {
         expect(flat.map((n) => n.name)).toEqual(["alpha", "gamma"]);
     });
 });
+
+describe("folders that point at each other", () => {
+    /**
+     * Two folders filed inside one another are attached to each other and to
+     * nothing else, so neither reaches `roots` - and every screen built on this
+     * function stops drawing them, along with everything beneath. The rows are
+     * still in the database. A tree that hides them is a tree nobody can use to
+     * put them back.
+     */
+    it("shows a cycle instead of swallowing it", () => {
+        const roots = buildFolderTree([
+            { id: 1, name: "A", parentId: 2 },
+            { id: 2, name: "B", parentId: 1 },
+        ]);
+
+        // The loop is broken by lifting one of the two to the root; the other
+        // stays its child. Which one is arbitrary and does not matter - what
+        // matters is that both are on screen and can be dragged apart.
+        expect(roots).toHaveLength(1);
+        expect(
+            flattenFolders(roots)
+                .map((n) => n.id)
+                .sort(),
+        ).toEqual([1, 2]);
+    });
+
+    it("keeps what hangs below a cycle visible too", () => {
+        const roots = buildFolderTree([
+            { id: 1, name: "A", parentId: 2 },
+            { id: 2, name: "B", parentId: 1 },
+            { id: 3, name: "C", parentId: 1 },
+        ]);
+
+        const ids = flattenFolders(roots).map((n) => n.id);
+        expect(ids).toContain(3);
+    });
+
+    it("leaves a healthy tree exactly as it was", () => {
+        const roots = buildFolderTree([
+            { id: 1, name: "A", parentId: null },
+            { id: 2, name: "B", parentId: 1 },
+        ]);
+
+        expect(roots).toHaveLength(1);
+        expect(roots[0].children.map((c) => c.id)).toEqual([2]);
+    });
+});

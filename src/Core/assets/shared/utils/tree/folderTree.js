@@ -30,6 +30,37 @@ export function buildFolderTree(
         }
     }
 
+    // A node can be attached to a parent and still be unreachable: two folders
+    // filed inside each other point at one another, so neither lands in
+    // `roots` and both disappear - along with everything beneath them - from
+    // every screen built on this function. The rows are still in the database,
+    // which is what makes it so quiet.
+    //
+    // The server refuses to create that state, but data written before it did
+    // still exists, and a tree that hides rows is a tree nobody can use to
+    // repair them. So anything the walk cannot reach is promoted to a root,
+    // where it can be seen and moved.
+    const reachable = new Set();
+    const walk = (nodes) => {
+        for (const node of nodes) {
+            if (reachable.has(node.id)) continue;
+            reachable.add(node.id);
+            walk(node.children);
+        }
+    };
+    walk(roots);
+
+    for (const node of byId.values()) {
+        if (reachable.has(node.id)) continue;
+
+        const parent = byId.get(node.parentId);
+        if (parent) {
+            parent.children = parent.children.filter((c) => c.id !== node.id);
+        }
+        roots.push(node);
+        walk([node]);
+    }
+
     const sort = (nodes) => {
         nodes.sort(sortFn);
         nodes.forEach((n) => sort(n.children));

@@ -18,7 +18,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/backend/ged/folders', name: 'backend_ged_folders')]
@@ -34,22 +33,21 @@ final class DocumentFoldersController extends AbstractController
         private readonly PayloadValidator $payloadValidator,
         private readonly DocumentFolderRepository $folderRepository,
         private readonly DocumentFolderInputFactoryInterface $inputFactory,
-        private readonly UrlGeneratorInterface $urlGenerator,
     ) {}
 
+    /**
+     * The page this used to render is gone: its tree, its writes and its
+     * three-band drag are in the side menu now, where they follow the reader
+     * across the whole module instead of living on one screen.
+     *
+     * The route stays, as a redirect, because the address was in menus and
+     * bookmarks for a year. A bridge, not a home - drop it in two versions,
+     * the same deal as the settings page's `#seo` fragment.
+     */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
     {
-        $folders = array_map($this->serializer->serialize(...), $this->folderRepository->findAllOrdered());
-
-        return $this->render('@Ged/backend/folders/index.html.twig', [
-            'folders' => $folders,
-            'createPath' => $this->urlGenerator->generate('backend_ged_folders_create'),
-            'updatePath' => $this->urlGenerator->generate('backend_ged_folders_update', ['id' => '__id__']),
-            'deletePath' => $this->urlGenerator->generate('backend_ged_folders_delete', ['id' => '__id__']),
-            'movePath' => $this->urlGenerator->generate('backend_ged_folders_move', ['id' => '__id__']),
-            'reorderPath' => $this->urlGenerator->generate('backend_ged_folders_reorder'),
-        ]);
+        return $this->redirectToRoute('backend_ged_documents');
     }
 
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
@@ -95,7 +93,9 @@ final class DocumentFoldersController extends AbstractController
         $parentId = $data['parentId'] ?? null;
         $newParent = null !== $parentId ? $this->folderRepository->find((int) $parentId) : null;
 
-        $this->manager->move($folder, $newParent);
+        if (!$this->manager->move($folder, $newParent)) {
+            return $this->jsonInvalidInput(['parentId' => 'backend.ged.folders.errors.cycle']);
+        }
 
         return $this->jsonSuccess(['folders' => $this->allFolders()]);
     }

@@ -15,7 +15,15 @@ interface DocumentFolderManagerInterface
 
     public function delete(DocumentFolderInterface $folder): void;
 
-    public function move(DocumentFolderInterface $folder, ?DocumentFolderInterface $newParent): void;
+    /**
+     * Refiles a folder under a new parent, or at the root with null.
+     *
+     * @return bool false when the move would file the folder inside its own
+     *              descendant - a cycle, which takes both branches off every
+     *              screen that builds a tree from the flat list. Nothing is
+     *              written in that case.
+     */
+    public function move(DocumentFolderInterface $folder, ?DocumentFolderInterface $newParent): bool;
 
     /** @param list<int> $orderedIds */
     public function reorder(array $orderedIds): void;

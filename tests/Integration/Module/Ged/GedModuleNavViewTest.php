@@ -57,7 +57,6 @@ final class GedModuleNavViewTest extends IntegrationTestCase
             'backend_ged_documents',
             'backend_ged_categories',
             'backend_ged_tags',
-            'backend_ged_folders',
         ], $routes);
     }
 
@@ -116,6 +115,22 @@ final class GedModuleNavViewTest extends IntegrationTestCase
         );
 
         return $props['moduleNavView'] ?? null;
+    }
+
+    /**
+     * The folders page is gone, but its address was in menus and bookmarks for
+     * a year. It redirects rather than 404s - a bridge, to drop in two
+     * versions.
+     */
+    public function testTheOldFoldersPageRedirectsToTheDocuments(): void
+    {
+        $this->client->request('GET', '/backend/ged/folders');
+
+        self::assertSame(302, $this->client->getResponse()->getStatusCode());
+        self::assertStringEndsWith(
+            '/backend/ged/documents',
+            (string) $this->client->getResponse()->headers->get('Location'),
+        );
     }
 
     public function testTheFolderEndpointServesTheTreeThePanelDraws(): void
