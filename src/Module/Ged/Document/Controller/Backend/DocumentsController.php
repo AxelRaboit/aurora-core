@@ -77,6 +77,27 @@ final class DocumentsController extends AbstractController
         return $this->json($this->viewBuilder->buildListPayload($pagination, $categoryId, $tagId, $folderId, $status, $mimeGroup, $rootOnly));
     }
 
+    /**
+     * The folder tree, for the side menu's GED panel.
+     *
+     * Declared above `/{id}` because that one would happily match `folders` -
+     * the same reason `/list` sits where it does.
+     *
+     * Its own endpoint rather than a slice of `/list`: the panel wants the tree
+     * and nothing else, on pages that have no document listing at all (tags,
+     * categories, folders), and asking for a paginated document page to throw
+     * it away would be a query per navigation for nothing.
+     *
+     * Behind `ged.documents.view` like the rest of this controller, which is
+     * the right gate: every row in the tree is a link into the document
+     * listing, so somebody who cannot see documents has nothing to click.
+     */
+    #[Route('/folders', name: '_folders', methods: [HttpMethodEnum::Get->value])]
+    public function folders(): JsonResponse
+    {
+        return $this->json($this->viewBuilder->folderTreePayload());
+    }
+
     #[Route('/{id}', name: '_show', methods: [HttpMethodEnum::Get->value])]
     public function show(Document $document): Response
     {

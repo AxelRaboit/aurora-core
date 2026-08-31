@@ -139,6 +139,8 @@ backend:
       parent_folder: Dossier parent
       expand: Déplier
       collapse: Replier
+      folder_tree: Dossiers
+      folder_tree_empty: Aucun dossier pour l'instant.
       move: Déplacer
       errors:
         title_required: Le titre est obligatoire

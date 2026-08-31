@@ -5,6 +5,61 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.30] - 2026-08-31
+
+### Ajouté
+
+#### La GED a son propre menu, et l'arborescence de dossiers y est
+Deuxième module à déclarer une vue de module, et le premier à se servir du
+panneau : sous les quatre destinations de la GED, le menu latéral affiche
+maintenant l'arborescence des dossiers.
+
+- **Elle suit le lecteur.** L'arbre existait déjà, mais seulement dans la barre
+  latérale de la page Documents. Depuis les Étiquettes ou les Catégories, il n'y
+  avait aucun chemin vers un dossier ; il en faut un seul maintenant.
+- Chaque ligne est une **adresse** (`/backend/ged/documents?folderId=42`), pas un
+  gestionnaire de clic. C'est ce qui la rend utilisable depuis une page qui n'a
+  aucune liste de documents à filtrer - un gestionnaire n'aurait fonctionné que
+  sur la page qui affiche déjà cet arbre.
+- L'état de pliage est **celui de la page Documents**, même clé de stockage. Les
+  dossiers repliés dans le menu le sont dans la page, et inversement : deux
+  états auraient fini par montrer deux arbres différents.
+- Le panneau **va chercher ses propres données**. Le menu le monte sans aucune
+  prop - il n'a pas à savoir ce qu'est un dossier - donc l'arbre ne peut pas
+  arriver avec la charge utile de la page. Un GET par page GED, sur
+  `/backend/ged/documents/folders`, qui renvoie exactement la forme et les
+  compteurs que la page Documents utilise déjà.
+- Ce que le panneau ne fait **pas** : créer, renommer, déplacer ou supprimer un
+  dossier. Une colonne de 280 px est le mauvais endroit pour confirmer une
+  suppression, et la ligne « Dossiers » est juste au-dessus.
+- Le panneau n'apparaît que si Documents **et** Dossiers sont actifs : un arbre
+  dont aucune ligne ne mène nulle part est une décoration.
+
+### Corrigé
+
+#### Un nom de panneau qui ne correspond à rien ne passe plus inaperçu
+`ModuleNavView::$panelComponent` et `registerModulePanel()` s'accordent sur une
+chaîne écrite deux fois, dans deux langages, et rien ne les comparait. Une faute
+de frappe donnait un panneau absent, silencieusement : le menu dessine ses liens
+de toute façon, ce qui est le bon comportement et rend la panne invisible. Un
+test échoue maintenant, dans les deux sens, en nommant les deux fichiers.
+
+### Modifié
+
+#### Les entrées de menu de la GED ne sont plus écrites deux fois
+`GedModule` déclarait ses quatre `NavItem` à l'identique dans `getNavSections()`
+et `getCatalogNavSections()`. La vue de module en aurait fait une troisième
+copie - le genre de triplication où les copies cessent de s'accorder un
+interrupteur à la fois. Le catalogue garde sa liste, et c'est délibéré : il
+montre ce que le module *propose*, sous-fonctionnalités désactivées comprises,
+donc il ne doit pas consulter les interrupteurs.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`. Un module client qui veut le même
+traitement implémente `ModuleNavViewProviderInterface` et, s'il a un panneau,
+enregistre son composant depuis un fichier `*.register.js`.
+
 ## [0.9.29] - 2026-08-31
 
 ### Ajouté

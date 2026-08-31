@@ -139,6 +139,8 @@ backend:
       parent_folder: Parent folder
       expand: Expand
       collapse: Collapse
+      folder_tree: Folders
+      folder_tree_empty: No folder yet.
       move: Move
       errors:
         title_required: Title is required
