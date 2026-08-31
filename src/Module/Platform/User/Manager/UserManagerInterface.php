@@ -7,6 +7,7 @@ namespace Aurora\Module\Platform\User\Manager;
 use Aurora\Core\Locale\Enum\LocaleEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 
 interface UserManagerInterface
 {
@@ -26,6 +27,12 @@ interface UserManagerInterface
 
     public function toggleDevRole(User $user): bool;
 
+    /**
+     * Bascule l'accès. Ouvrir un compte jamais contacté (`invitedAt` nul) envoie
+     * son invitation et le passe `Invited` plutôt que `Active`.
+     *
+     * @return bool true si le compte est désormais ouvert
+     */
     public function toggleDisabled(User $user): bool;
 
     public function changePassword(User $user, string $newPassword): void;
@@ -88,7 +95,15 @@ interface UserManagerInterface
 
     public function isEmailTaken(string $email, ?User $excludeUser = null): bool;
 
-    public function invite(string $name, string $email, string $role, ?string $customMessage): User;
+    /**
+     * @param bool         $disabled crée le compte pré-provisionné : aucun jeton, aucun
+     *                               mail, connexion refusée. `invitedAt` reste nul, et
+     *                               c'est l'activation du compte qui envoie l'invitation
+     * @param UserTypeEnum $type     backend (l'administration) ou frontend (le site
+     *                               public). Un compte frontend reçoit ROLE_USER quel
+     *                               que soit `$role` : le frontend n'a qu'un rôle
+     */
+    public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false, UserTypeEnum $type = UserTypeEnum::Backend): User;
 
     public function resendInvitation(User $user, ?string $customMessage): void;
 

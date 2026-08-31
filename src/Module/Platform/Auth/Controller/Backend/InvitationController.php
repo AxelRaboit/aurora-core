@@ -9,6 +9,7 @@ use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Platform\Auth\View\InvitationViewBuilder;
 use Aurora\Module\Platform\User\Dto\UserSetPasswordInput;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Manager\UserManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -32,7 +33,22 @@ final class InvitationController extends AbstractController
     public function accept(Request $request, string $selector, string $token): Response
     {
         $user = $this->userManager->findValidInvitation($selector, $token);
-        if (!$user instanceof User) {
+
+        /*
+         * Un jeton de compte frontend n'est pas accepté ici.
+         *
+         * `findValidInvitation` ne filtre pas le type, et c'est normal : la
+         * mécanique du jeton est commune aux deux populations. Le filtrage
+         * appartient donc à la route. Sans ce garde, un invité frontend suivant
+         * cette adresse serait connecté sur le firewall d'administration, où son
+         * compte n'existe pas - `admin_user_provider` ne résout que les comptes
+         * backend, donc la session sauterait au rafraîchissement suivant, après
+         * un passage sur le tableau de bord.
+         *
+         * Le refus emprunte le même message qu'un jeton expiré : cette page n'a
+         * pas à révéler qu'un compte existe ailleurs.
+         */
+        if (!$user instanceof User || UserTypeEnum::Backend !== $user->getType()) {
             $this->addFlash('error', $this->translator->trans('backend.auth.invitation.expired'));
 
             return $this->redirectToRoute('backend_platform_login');

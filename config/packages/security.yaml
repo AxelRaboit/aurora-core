@@ -75,6 +75,12 @@ security:
         - { path: '^/[a-z]{2}/impersonate/', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/forgot-password', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/reset-password', roles: PUBLIC_ACCESS }
+        # Poser son mot de passe en arrivant sur invitation : la personne n'est
+        # pas encore connectée, par définition. Le fourre-tout `^/` plus bas la
+        # couvrirait, mais toutes les routes d'authentification sont listées
+        # explicitement ici - en omettre une la casserait le jour où ce
+        # fourre-tout est resserré.
+        - { path: '^/[a-z]{2}/invitation', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/register', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/resend-verification', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/verify-email', roles: PUBLIC_ACCESS }

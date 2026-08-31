@@ -170,14 +170,42 @@ class UserManager implements UserManagerInterface
         return !$hasDev;
     }
 
+    /**
+     * Bascule l'accès d'un compte, et envoie son invitation si c'est la première
+     * fois qu'on l'ouvre.
+     *
+     * `invitedAt` nul veut dire que personne n'a jamais été contacté - le compte
+     * a été créé pré-provisionné. L'activer ne peut donc pas le passer `Active` :
+     * son mot de passe est un aléa que personne ne connaît, et le compte
+     * paraîtrait utilisable sans l'être. Il passe `Invited`, et l'invitation part
+     * à ce moment-là.
+     *
+     * @return bool true si le compte est désormais ouvert
+     */
     public function toggleDisabled(User $user): bool
     {
         $isDisabled = UserStatusEnum::Disabled === $user->getStatus();
-        $user->setStatus($isDisabled ? UserStatusEnum::Active : UserStatusEnum::Disabled);
 
+        if (!$isDisabled) {
+            $user->setStatus(UserStatusEnum::Disabled);
+            $this->entityManager->flush();
+
+            return false;
+        }
+
+        // Le renvoi manuel fait déjà exactement ce qu'il faut : passer `Invited`,
+        // émettre un jeton neuf - le jeton en clair n'étant jamais stocké, il n'y
+        // a pas d'autre moyen que d'en refaire un - et envoyer le mail.
+        if (!$user->getInvitedAt() instanceof DateTimeImmutable) {
+            $this->resendInvitation($user, null);
+
+            return true;
+        }
+
+        $user->setStatus(UserStatusEnum::Active);
         $this->entityManager->flush();
 
-        return !$isDisabled;
+        return true;
     }
 
     public function changePassword(User $user, string $newPassword): void
@@ -358,7 +386,11 @@ class UserManager implements UserManagerInterface
         return !$excludeUser instanceof User || $existing->getId() !== $excludeUser->getId();
     }
 
-    public function invite(string $name, string $email, string $role, ?string $customMessage): User
+    /**
+     * @param bool         $disabled créer le compte sans contacter personne - voir plus bas
+     * @param UserTypeEnum $type     backend (l'administration) ou frontend (le site public)
+     */
+    public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false, UserTypeEnum $type = UserTypeEnum::Backend): User
     {
         if (!in_array($role, UserRoleEnum::allAssignableValues(), true)) {
             throw new InvalidArgumentException('backend.users.errors.role_invalid');
@@ -367,21 +399,45 @@ class UserManager implements UserManagerInterface
         $user = $this->createUser();
         $user->setName($name);
         $user->setEmail($email);
-        $user->setType(UserTypeEnum::Backend);
-        $user->setRoles([$role]);
-        $user->setStatus(UserStatusEnum::Invited);
+        $user->setType($type);
+        /*
+         * Le frontend n'a qu'un rôle, et ce n'est pas un choix de l'opérateur.
+         *
+         * L'inscription publique pose `ROLE_USER` en dur ; une invitation doit
+         * aboutir au même compte, sinon deux chemins produiraient deux
+         * populations différentes. Forcé ici plutôt que validé dans le DTO parce
+         * que c'est la frontière d'écriture : une charge utile trafiquée
+         * demandant ROLE_ADMIN sur un compte frontend n'obtient rien.
+         */
+        $user->setRoles(UserTypeEnum::Frontend === $type ? [UserRoleEnum::User->value] : [$role]);
+        $user->setStatus($disabled ? UserStatusEnum::Disabled : UserStatusEnum::Invited);
         $user->setLocale(LocaleEnum::French);
+        // Un mot de passe que personne ne connaît : il faut bien remplir la
+        // colonne, et l'accès se fera par l'invitation.
         $user->setPassword($this->passwordHasher->hashPassword($user, bin2hex(random_bytes(24))));
 
         $prefix = $this->settingRepository->get(ApplicationParameterEnum::CoreUserPrefix->value, SequencePrefixEnum::User->value) ?? SequencePrefixEnum::User->value;
         $user->setReference($this->sequenceGenerator->next($prefix));
 
-        $plainToken = $this->prepareInvitationToken($user);
+        /**
+         * Un compte pré-provisionné n'émet aucun jeton et n'envoie aucun mail.
+         *
+         * C'est ce qui laisse `invitedAt` nul, et c'est ce nul qui distingue
+         * « jamais contacté » de « désactivé après avoir été actif » - les deux
+         * portent le même statut `Disabled`, et sans cette différence la liste
+         * les afficherait à l'identique. Émettre un jeton que personne ne
+         * recevra le ferait expirer en 48 heures pour rien.
+         *
+         * L'invitation part quand le compte est activé, cf. toggleDisabled().
+         */
+        $plainToken = $disabled ? null : $this->prepareInvitationToken($user);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        $this->invitationManager->sendInvitation($user, $plainToken, $customMessage);
+        if (null !== $plainToken) {
+            $this->invitationManager->sendInvitation($user, $plainToken, $customMessage);
+        }
 
         return $user;
     }

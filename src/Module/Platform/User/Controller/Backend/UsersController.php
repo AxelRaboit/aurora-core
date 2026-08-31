@@ -106,7 +106,7 @@ class UsersController extends AbstractController
         }
 
         try {
-            $user = $this->userManager->invite($input->getName(), $input->getEmail(), $input->getRole(), $input->getMessage());
+            $user = $this->userManager->invite($input->getName(), $input->getEmail(), $input->getRole(), $input->getMessage(), $input->isDisabled(), $input->getType());
         } catch (InvalidArgumentException $invalidArgumentException) {
             return $this->jsonInvalidInput(['role' => $invalidArgumentException->getMessage()]);
         }

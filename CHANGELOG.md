@@ -11,6 +11,74 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.26] - 2026-08-31
+
+### Ajouté
+
+#### Un compte peut être créé pour quelqu'un qui arrive plus tard
+- La modale d'invitation porte une case **« Créer le compte désactivé »**. Le
+  compte existe, personne n'est prévenu, et la connexion lui est refusée.
+  L'invitation part quand on ouvre le compte depuis la liste.
+- Jusqu'ici la seule façon de préparer un accès était d'inviter tout de suite,
+  donc d'envoyer un mail à quelqu'un qui n'en avait pas encore l'usage - et de
+  laisser un jeton expirer en 48 heures avant que la personne n'arrive.
+- Aucune colonne ajoutée : `invitedAt`, qui existait déjà, sert de repère. Nul,
+  il veut dire « personne n'a jamais été contacté », ce qui distingue un compte
+  pré-provisionné d'un compte désactivé après avoir servi - les deux portent le
+  même statut `Disabled`.
+- Conséquence dans la liste : sur un compte jamais contacté, l'action ne dit
+  plus « Réactiver » mais **« Activer et inviter »**, avec sa propre
+  confirmation. Elle n'ouvre pas un accès, elle en envoie le premier.
+- Ouvrir un tel compte le passe `Invited`, pas `Active` : son mot de passe est
+  un aléa que personne ne connaît, et `Active` l'aurait fait paraître utilisable
+  sans que quiconque puisse s'en servir.
+
+#### On peut inviter quelqu'un sur le site public
+- La modale d'invitation porte un choix de **type** : l'administration, ou le
+  site public. Jusqu'ici seule l'administration était invitable, et un compte du
+  site public ne pouvait naître que d'une inscription spontanée - donc impossible
+  d'ouvrir un accès à un client qu'on connaît.
+- Le sélecteur de rôle disparaît quand le type est « site public » : celui-ci
+  n'a qu'un rôle, `ROLE_USER`, que l'inscription publique pose déjà en dur.
+  Afficher un choix qui n'existe pas serait mentir, et le serveur force la valeur
+  de toute façon - une charge utile trafiquée demandant `ROLE_ADMIN` sur un
+  compte public n'obtient rien.
+- L'invitation mène à une page d'acceptation **du site public**, avec son propre
+  texte : « réinitialiser » est faux pour quelqu'un qui n'a jamais eu de mot de
+  passe. La personne est ensuite connectée sur le site, pas dans l'administration.
+
+### Corrigé
+
+#### Les deux pages d'acceptation refusent le jeton de l'autre population
+- La mécanique du jeton est commune aux deux types, et c'est voulu : une seule
+  expiration, un seul hachage à maintenir. Mais `findValidInvitation` ne filtre
+  donc pas le type, et **aucune des deux routes ne le faisait**.
+- Conséquence avant correction, restée hors d'atteinte tant que seuls des comptes
+  d'administration étaient invitables : un invité du site public suivant l'adresse
+  du backend s'y serait connecté le temps d'une requête. `admin_user_provider` ne
+  résolvant que les comptes d'administration, sa session aurait sauté au
+  rafraîchissement suivant - après un passage sur le tableau de bord, et sans
+  qu'aucun message ne le lui explique.
+- Chaque route refuse désormais la population qui n'est pas la sienne, avec le
+  même message qu'un jeton expiré : la page n'a pas à révéler qu'un compte existe
+  ailleurs.
+
+### Dans aurora-client
+
+`make aurora-update` suffit pour en profiter.
+
+Une ligne peut être ajoutée à `config/packages/security.yaml`, à côté des autres
+routes d'authentification publiques :
+
+```yaml
+- { path: '^/[a-z]{2}/invitation', roles: PUBLIC_ACCESS }
+```
+
+Elle n'est **pas nécessaire** : le `- { path: ^/, roles: PUBLIC_ACCESS }` en fin
+de liste couvre déjà la route. Elle l'est le jour où ce fourre-tout est resserré,
+et elle évite de se demander pourquoi cette route d'authentification est la seule
+absente de la liste.
+
 ## [0.9.25] - 2026-08-31
 
 ### Ajouté

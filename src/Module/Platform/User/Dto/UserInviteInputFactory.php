@@ -17,6 +17,8 @@ class UserInviteInputFactory implements UserInviteInputFactoryInterface
             email: Str::trimFromArray($data, 'email'),
             role: Str::trimFromArray($data, 'role'),
             message: Str::trimOrNullFromArray($data, 'message'),
+            disabled: (bool) ($data['disabled'] ?? false),
+            type: Str::trimOrNullFromArray($data, 'type') ?? 'backend',
         );
     }
 }

@@ -9,6 +9,7 @@ use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Manager\UserManagerInterface;
 use Aurora\Module\Platform\User\Service\UserNotificationService;
 use Symfony\Component\DependencyInjection\Attribute\AsDecorator;
@@ -130,10 +131,20 @@ final readonly class AuditUserManagerDecorator implements UserManagerInterface
         return $this->inner->isEmailTaken($email, $excludeUser);
     }
 
-    public function invite(string $name, string $email, string $role, ?string $customMessage): User
+    public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false, UserTypeEnum $type = UserTypeEnum::Backend): User
     {
-        $user = $this->inner->invite($name, $email, $role, $customMessage);
-        $this->auditLogger->log('core', 'user.invited', 'User', $user->getId(), ['email' => $email, 'role' => $role]);
+        $user = $this->inner->invite($name, $email, $role, $customMessage, $disabled, $type);
+        // `disabled` est journalisé parce que les deux actes sont différents : un
+        // compte a été créé, mais personne n'a reçu de mail. Le type l'est parce
+        // qu'inviter dans l'administration et inviter sur le site public ne
+        // donnent pas les mêmes accès, et que le rôle journalisé ci-dessous ne
+        // le dit pas - un compte frontend reçoit ROLE_USER quoi qu'on demande.
+        $this->auditLogger->log('core', 'user.invited', 'User', $user->getId(), [
+            'email' => $email,
+            'role' => $user->getRoles()[0] ?? $role,
+            'disabled' => $disabled,
+            'type' => $type->value,
+        ]);
 
         return $user;
     }
