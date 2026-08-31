@@ -25,11 +25,13 @@ import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
 import AppNotificationsBell from "@core/backend/notifications/AppNotificationsBell.vue";
 import AppSidemenuAccount from "./AppSidemenuAccount.vue";
 import AppSidemenuNav from "./AppSidemenuNav.vue";
+import { getModulePanel } from "@/shared/nav/modulePanelRegistry.js";
 import {
     AlarmClock,
     CalendarDays,
     CheckSquare,
     ChevronDown,
+    ChevronLeft,
     Clock,
     FileText,
     Filter,
@@ -84,6 +86,15 @@ const props = defineProps({
     navItemAliases: { type: Object, default: () => ({}) },
     /** Per-section colour overrides - `{sectionId: colorName}`. */
     navSectionColors: { type: Object, default: () => ({}) },
+    /**
+     * The open module's own menu, resolved server-side by `ModuleNavResolver`,
+     * or null when the column stays in its project view.
+     *
+     * Null on every page until a module implements
+     * `ModuleNavViewProviderInterface` - which is what makes this addition
+     * invisible on screen for now.
+     */
+    moduleNavView: { type: Object, default: null },
 });
 
 const { t, d } = useI18n();
@@ -111,13 +122,24 @@ watch(sidemenuDragging, (dragging) => {
 
 useLayoutMount();
 
-const nav = useSidemenuNav(props.navSections, props.activeRoute, props.navSectionAliases, props.navItemAliases, liveSectionColors);
+const nav = useSidemenuNav(props.navSections, props.activeRoute, props.navSectionAliases, props.navItemAliases, liveSectionColors, props.moduleNavView);
 
 const {
-    dashboardPath, groupedSections, navItems, navFilter, displayedSections,
+    dashboardPath, activeSections, navItems, navFilter, displayedSections,
+    inModuleView, moduleLabel, moduleId, backToProject,
     isAccountExpanded, toggleAccount,
     isActive, isActiveExact,
 } = nav;
+
+/**
+ * The component a module named for its own panel, when it registered one.
+ *
+ * Resolved once: the payload belongs to the page, so it cannot change without a
+ * navigation. Null for a links-only view, and also null for a name nothing
+ * claimed - in which case the links still draw, because a missing panel must
+ * not cost the reader the navigation that did resolve.
+ */
+const modulePanel = getModulePanel(nav.panelComponent);
 
 const sectionTheme = useSidemenuSectionTheme(liveSectionColors);
 
@@ -157,7 +179,15 @@ function openSearchFromMobile() {
 </script>
 
 <template>
-    <aside id="sidemenu" class="hidden lg:flex flex-col fixed inset-y-0 left-0 bg-surface border-r border-line z-30 overflow-hidden">
+    <!-- `keydown.esc` on the aside, not on `window`: leaving the module view is
+         a gesture aimed at the column, and a global handler would fire it while
+         someone was typing in the page. Keydown from a focused row bubbles here,
+         which is exactly the scope wanted - "Escape, while I am in the menu". -->
+    <aside
+        id="sidemenu"
+        class="hidden lg:flex flex-col fixed inset-y-0 left-0 bg-surface border-r border-line z-30 overflow-hidden"
+        v-on:keydown.esc="backToProject"
+    >
         <div class="sh-wrap flex items-center h-16 border-b border-line shrink-0 transition-all duration-200">
             <a :href="dashboardPath" class="flex items-center gap-2.5 min-w-0 flex-1">
                 <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 shrink-0 object-cover rounded-xl">
@@ -192,6 +222,29 @@ function openSearchFromMobile() {
                 <Globe class="w-5 h-5 shrink-0 text-muted group-hover:text-emerald-400 transition-colors" :stroke-width="2" />
                 <span class="si-label truncate">{{ t("backend.nav.view_site") }}</span>
             </AppNavLink>
+        </div>
+
+        <!-- Shown only inside a module. Two rows, because they answer two
+             different questions and merging them would make the module's name a
+             button that leaves it: the first says where the column is, the
+             second is the way out. The name borrows the module's section colour
+             from the same registry the project view uses - the reader already
+             reads lime as "GED", so it is reused rather than re-invented. -->
+        <div v-if="inModuleView" class="px-3 py-2 border-b border-line shrink-0 flex flex-col gap-1">
+            <div
+                class="si-section-header flex items-center gap-2 text-xs font-semibold uppercase tracking-wider"
+                :class="[sectionTheme.headerClasses(moduleId), sectionTheme.labelClasses(moduleId)]"
+            >
+                <span class="truncate">{{ moduleLabel }}</span>
+            </div>
+            <button
+                type="button"
+                class="w-full flex items-center gap-1.5 px-2 py-1 rounded-md text-xs text-muted hover:text-primary hover:bg-surface-2 transition-colors"
+                v-on:click="backToProject"
+            >
+                <ChevronLeft class="w-3.5 h-3.5 shrink-0" :stroke-width="2.5" />
+                <span class="truncate">{{ t("backend.nav.back_to_modules") }}</span>
+            </button>
         </div>
 
         <div class="sh-search-section px-3 py-2 border-b border-line shrink-0 space-y-1.5">
@@ -237,6 +290,17 @@ function openSearchFromMobile() {
                 :theme="sectionTheme"
                 :nav-filter="navFilter"
                 :show-descriptions="showDescriptions"
+            />
+
+            <!-- What a list of links cannot express: a folder tree, a note list.
+                 Inside the same scroll area as the rows above so the column
+                 scrolls as one thing, and hidden while filtering - the filter
+                 searches rows, and leaving a tree open beside three results
+                 would suggest it had been searched too. -->
+            <component
+                :is="modulePanel"
+                v-if="modulePanel && inModuleView && !navFilter"
+                class="mt-1"
             />
         </nav>
 
@@ -369,8 +433,13 @@ function openSearchFromMobile() {
                      `data-sidemenu-active`, and two dead `#tooltip` slots
                      `AppNavLink` never declared - so those child links had no
                      tooltip at all. No filter here: the drawer has none. -->
+                <!-- `activeSections`, not `groupedSections`: the drawer shows
+                     whichever view the column is on, so a phone is not sent back
+                     to the project menu on a page the desktop shows a module menu
+                     for. Not `displayedSections` - that one is filtered, and the
+                     drawer has no filter to explain the missing rows. -->
                 <AppSidemenuNav
-                    :sections="groupedSections"
+                    :sections="activeSections"
                     :nav="nav"
                     :theme="sectionTheme"
                     :show-descriptions="showDescriptions"

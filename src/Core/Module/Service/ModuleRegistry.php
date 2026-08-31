@@ -6,21 +6,19 @@ namespace Aurora\Core\Module\Service;
 
 use Aurora\Core\Module\Contract\ModuleInterface;
 use Aurora\Core\Module\Nav\NavItem;
+use Aurora\Core\Module\Nav\NavItemResolver;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use JsonException;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class ModuleRegistry
 {
     /** @param iterable<ModuleInterface> $modules */
     public function __construct(
         private iterable $modules,
-        private AuthorizationCheckerInterface $security,
-        private UrlGeneratorInterface $urlGenerator,
+        private NavItemResolver $navItemResolver,
         private Security $userSecurity,
         private SettingRepository $settingRepository,
     ) {}
@@ -162,38 +160,16 @@ final readonly class ModuleRegistry
     }
 
     /**
+     * Shared with the module view - see {@see NavItemResolver}, which owns the
+     * privilege check, the path generation and the hidden-item filter.
+     *
      * @param list<string> $hiddenItems user-hidden NavItem route names
      *
      * @return array<string, mixed>|null null when the item is filtered by role or hidden by the user
      */
     private function resolveItem(NavItem $item, array $hiddenItems = []): ?array
     {
-        if (null !== $item->requiredPrivilege && !$this->security->isGranted($item->requiredPrivilege)) {
-            return null;
-        }
-
-        if (in_array($item->route, $hiddenItems, true)) {
-            return null;
-        }
-
-        $children = [];
-        foreach ($item->children as $child) {
-            $resolved = $this->resolveItem($child, $hiddenItems);
-            if (null !== $resolved) {
-                $children[] = $resolved;
-            }
-        }
-
-        return [
-            'key' => $item->route,
-            'route' => $item->activeRoutePrefix ?? $item->route,
-            'path' => $this->urlGenerator->generate($item->route),
-            'labelKey' => $item->labelKey,
-            'descriptionKey' => $item->descriptionKey,
-            'icon' => $item->icon,
-            'activeColor' => $item->activeColor,
-            'children' => $children,
-        ];
+        return $this->navItemResolver->resolve($item, $hiddenItems);
     }
 
     /**
