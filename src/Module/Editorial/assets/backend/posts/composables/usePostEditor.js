@@ -159,6 +159,9 @@ export function usePostEditor(props) {
             ...emptyGalleryLayout(),
             ...(props.post?.galleryLayout ?? {}),
         },
+        headerColor: props.post?.headerColor ?? null,
+        footerColor: props.post?.footerColor ?? null,
+        backgroundColor: props.post?.backgroundColor ?? null,
         termIds: [...(props.post?.termIds ?? [])],
         relatedPostIds: [...(props.post?.relatedPostIds ?? [])],
         translations: Object.fromEntries(

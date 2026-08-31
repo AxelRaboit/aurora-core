@@ -559,6 +559,21 @@ backend:
     calendar_name: Publications
     alt_placeholder: "What the picture shows"
     caption_placeholder: "A line under the picture"
+    appearance:
+      colors_title: "Colors"
+      colors_help: "Override the active theme's colors for this publication only. Leave empty to use theme colors."
+      header_color: "Header / Topbar"
+      footer_color: "Footer"
+      background_color: "Background"
+      color_unset: "inherit from theme"
+      clear_color: "Clear color"
+    tabs:
+      settings: Settings
+      appearance: Appearance
+      header: Header
+      content: Content
+      gallery: Gallery
+      seo: SEO
   taxonomies:
     title: Taxonomies
     empty: No taxonomy yet.

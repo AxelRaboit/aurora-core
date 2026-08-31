@@ -38,6 +38,9 @@ class PostInputFactory implements PostInputFactoryInterface
             thumbnailFit: Str::trimOrNull((string) ($data['thumbnailFit'] ?? '')) ?? ThumbnailFitEnum::Cover->value,
             thumbnailFocalX: $this->fractionOrNull($data['thumbnailFocalX'] ?? null),
             thumbnailFocalY: $this->fractionOrNull($data['thumbnailFocalY'] ?? null),
+            headerColor: $this->colorOrNull($data['headerColor'] ?? null),
+            footerColor: $this->colorOrNull($data['footerColor'] ?? null),
+            backgroundColor: $this->colorOrNull($data['backgroundColor'] ?? null),
         );
     }
 
@@ -79,5 +82,19 @@ class PostInputFactory implements PostInputFactoryInterface
         $value = (int) $raw;
 
         return $value > 0 ? $value : null;
+    }
+
+    /**
+     * A hex color must be exactly 7 characters: #RRGGBB.
+     */
+    private function colorOrNull(mixed $raw): ?string
+    {
+        $value = Str::trimOrNull((string) ($raw ?? ''));
+
+        if (null === $value) {
+            return null;
+        }
+
+        return preg_match('/^#[0-9a-fA-F]{6}$/', $value) ? $value : null;
     }
 }

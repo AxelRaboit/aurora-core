@@ -559,6 +559,21 @@ backend:
     calendar_name: Publications
     alt_placeholder: "Ce que montre l'image"
     caption_placeholder: "Une ligne sous l'image"
+    appearance:
+      colors_title: "Couleurs"
+      colors_help: "Personnalisez les couleurs du thème pour cette publication uniquement. Laissez vide pour utiliser les couleurs du thème."
+      header_color: "En-tête / Topbar"
+      footer_color: "Pied de page"
+      background_color: "Arrière-plan"
+      color_unset: "hériter du thème"
+      clear_color: "Effacer la couleur"
+    tabs:
+      settings: Paramètres
+      appearance: Apparence
+      header: En-tête
+      content: Contenu
+      gallery: Galerie
+      seo: SEO
   taxonomies:
     title: Taxonomies
     empty: Aucune taxonomie.
