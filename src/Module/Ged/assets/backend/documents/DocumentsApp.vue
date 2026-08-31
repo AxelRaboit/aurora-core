@@ -1,11 +1,11 @@
 <script setup>
+import { onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useListPage } from "@/shared/composables/list/useListPage.js";
 import { useQrCode } from "@/shared/composables/overlay/useQrCode.js";
 import { useClipboard } from "@/shared/composables/useClipboard.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
-import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
 import { useDocumentRowActions } from "./composables/useDocumentRowActions.js";
 import { useDocumentsForm, DOCUMENT_STATUS_BADGE } from "./composables/useDocumentsForm.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -29,8 +29,8 @@ import { useDocumentDetail } from "./composables/useDocumentDetail.js";
 import { useDocumentsDisplay, DOCUMENT_SORT_FIELDS } from "./composables/useDocumentsDisplay.js";
 import { useDocumentNavigation } from "./composables/useDocumentNavigation.js";
 import { useDocumentSidebarTree } from "./composables/useDocumentSidebarTree.js";
-import { useDocumentSidebarFolders } from "./composables/useDocumentSidebarFolders.js";
-import { useDocumentDragDrop } from "./composables/useDocumentDragDrop.js";
+import { useDocumentDragSource } from "./composables/useDocumentDragSource.js";
+import { onPanelRequest } from "@/shared/nav/modulePanelBridge.js";
 import { useDocumentBulkActions } from "./composables/useDocumentBulkActions.js";
 import { useDocumentCrop } from "./composables/useDocumentCrop.js";
 import { useMultiSelection } from "@/shared/composables/list/useMultiSelection.js";
@@ -140,20 +140,42 @@ const {
 
 const { viewMode, setViewMode, sortBy, sortDir, setSort, displayedItems } = useDocumentsDisplay(items);
 
-const {
-    folderTree, flatFolders, allFlatFolders, currentFolder, breadcrumbs,
-    collapsedFolderIds, toggleCollapse,
-    favouriteFolderIds, toggleFavourite, favouriteFolders,
-} = useDocumentSidebarTree(folders, currentFolderId);
+const { currentFolder, breadcrumbs, folderEditOptions } = useDocumentSidebarTree(folders, currentFolderId);
 
-const {
-    folderModal, folderForm,
-    openCreateFolder, openEditFolder, submitFolder,
-    deletingFolder, confirmDeleteFolder,
-    folderEditOptions, folderParentSelectOptions,
-} = useDocumentSidebarFolders(
-    props, folders, currentFolderId, flatFolders, allFlatFolders, navigateTo, reset,
-);
+const { onDocumentDragStart } = useDocumentDragSource();
+
+/**
+ * The folder tree left this page for the side menu, and talks back through
+ * `modulePanelBridge`.
+ *
+ * Two messages, which is the whole contract. A row was clicked: filter in
+ * place, exactly as the aside's own handler used to, and the bridge cancels
+ * the link so the browser stays put. Folders changed: adopt the new list and
+ * reload the listing, because a rename shows in the breadcrumb and a move
+ * changes what belongs in the folder on screen.
+ *
+ * Dropped on unmount: `window` outlives this component, and a listing mounted
+ * later would otherwise be answered by a corpse.
+ */
+const stopListening = [];
+
+onMounted(() => {
+    stopListening.push(
+        onPanelRequest("ged:folder", ({ folderId = null, scope = "all" }) => {
+            if (folderId) return navigateTo(folderId);
+
+            return "root" === scope ? navigateToRoot() : navigateToAll();
+        }),
+        onPanelRequest("ged:folders-changed", (detail) => {
+            if (Array.isArray(detail?.folders)) folders.value = detail.folders;
+            reset();
+        }),
+    );
+});
+
+onUnmounted(() => {
+    while (stopListening.length) stopListening.pop()();
+});
 
 // Two sets on this screen: what a document offers, and what a folder in the
 // tree does. Both were written twice - once for the cards, once for the table -
@@ -165,23 +187,6 @@ const documentActions = useDocumentRowActions({
     openEdit,
     confirmDelete,
 });
-
-const folderActions = useEditDeleteActions({
-    can,
-    editPermission: "ged.folders.manage",
-    deletePermission: "ged.folders.manage",
-    openEdit: openEditFolder,
-    confirmDelete: (folder) => {
-        deletingFolder.value = folder;
-    },
-    editDescription: "backend.ged.folders.row_actions.edit_description",
-    deleteDescription: "backend.ged.folders.row_actions.delete_description",
-});
-
-const {
-    dragOverFolderId, rootDragOver,
-    onDocumentDragStart, onFolderDragStart, onFolderDragOver, onRootDragOver, onDragLeave, onFolderDrop,
-} = useDocumentDragDrop(props, items, folders, currentFolderId, reset);
 
 const { doBulkDelete, bulkMoveTargetId, openBulkMove, bulkMove } = useDocumentBulkActions(
     props, items, selectedIds, isSelecting, clearSelection, currentFolderId, reset,
@@ -233,112 +238,6 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
 
         <div class="flex flex-col lg:flex-row gap-4">
             <!-- Sidebar -->
-            <aside class="lg:w-72 shrink-0 space-y-2">
-                <div v-if="favouriteFolders.length" class="space-y-0.5">
-                    <h3 class="text-xs font-semibold text-secondary uppercase tracking-wide flex items-center gap-1.5 px-1">
-                        <Star class="w-3 h-3 text-amber-400" :stroke-width="2" fill="currentColor" />
-                        {{ t("backend.ged.documents.favourites") }}
-                    </h3>
-                    <AppNavListItem
-                        v-for="fav in favouriteFolders"
-                        :key="fav.id"
-                        :active="currentFolderId === fav.id"
-                        v-on:click="navigateTo(fav.id)"
-                    >
-                        <template #icon>
-                            <Folder class="w-3.5 h-3.5" :stroke-width="2" />
-                        </template>
-                        {{ fav.name }}
-                    </AppNavListItem>
-                    <div class="border-t border-line/40 my-1" />
-                </div>
-
-                <div class="flex items-center gap-1.5">
-                    <h2 class="text-sm font-semibold text-secondary uppercase tracking-wide flex-1">{{ t("backend.ged.documents.folders_section") }}</h2>
-                    <AppIconButton
-                        v-if="can('ged.folders.manage')"
-                        :title="t('backend.ged.documents.new_folder')"
-                        v-on:click="openCreateFolder"
-                    >
-                        <Plus class="w-3.5 h-3.5" :stroke-width="2" />
-                    </AppIconButton>
-                </div>
-
-                <div class="space-y-0.5">
-                    <AppNavListItem
-                        :active="allDocumentsView"
-                        v-on:click="navigateToAll()"
-                    >
-                        <template #icon>
-                            <Layers class="w-4 h-4" :stroke-width="2" />
-                        </template>
-                        {{ t("backend.ged.documents.all_documents") }}
-                    </AppNavListItem>
-                    <AppNavListItem
-                        :active="rootOnly && !currentFolderId"
-                        :drag-over="rootDragOver"
-                        v-on:click="navigateToRoot"
-                        v-on:dragover="onRootDragOver"
-                        v-on:dragleave="onDragLeave"
-                        v-on:drop="onFolderDrop($event, null)"
-                    >
-                        <template #icon>
-                            <Home class="w-4 h-4" :stroke-width="2" />
-                        </template>
-                        {{ t("backend.ged.documents.root_folder") }}
-                    </AppNavListItem>
-                    <div
-                        v-for="folder in flatFolders"
-                        :key="folder.id"
-                        class="group flex items-center gap-1"
-                        :style="{ paddingLeft: `${folder.depth * 1}rem` }"
-                        draggable="true"
-                        v-on:dragstart="onFolderDragStart($event, folder)"
-                    >
-                        <AppIconButton
-                            v-if="folder.childCount > 0"
-                            size="sm"
-                            variant="ghost"
-                            class="-ml-1 shrink-0"
-                            :title="collapsedFolderIds.has(folder.id) ? t('backend.ged.documents.expand') : t('backend.ged.documents.collapse')"
-                            v-on:click.stop="toggleCollapse(folder.id)"
-                        >
-                            <ChevronRight v-if="collapsedFolderIds.has(folder.id)" class="w-3 h-3" :stroke-width="2" />
-                            <ChevronDown v-else class="w-3 h-3" :stroke-width="2" />
-                        </AppIconButton>
-                        <span v-else class="w-4 shrink-0" />
-                        <AppNavListItem
-                            class="flex-1 min-w-0"
-                            :active="currentFolderId === folder.id"
-                            :drag-over="dragOverFolderId === folder.id"
-                            v-on:click="navigateTo(folder.id)"
-                            v-on:dragover="onFolderDragOver($event, folder.id)"
-                            v-on:dragleave="onDragLeave"
-                            v-on:drop="onFolderDrop($event, folder.id)"
-                        >
-                            <template #icon>
-                                <Folder class="w-4 h-4" :stroke-width="2" />
-                            </template>
-                            {{ folder.name }}
-                            <template v-if="folder.documentCount > 0" #trailing>
-                                <span class="text-xs text-muted font-mono">{{ folder.documentCount }}</span>
-                            </template>
-                        </AppNavListItem>
-                        <div class="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 flex gap-0.5 transition-opacity">
-                            <AppIconButton
-                                size="sm"
-                                variant="ghost"
-                                :class="favouriteFolderIds.has(folder.id) ? 'text-amber-400' : 'text-muted hover:text-amber-400'"
-                                :title="favouriteFolderIds.has(folder.id) ? t('backend.ged.documents.unfavourite') : t('backend.ged.documents.favourite')"
-                                v-on:click.stop="toggleFavourite(folder.id)"
-                            >
-                                <Star class="w-3.5 h-3.5" :stroke-width="2" :fill="favouriteFolderIds.has(folder.id) ? 'currentColor' : 'none'" />
-                            </AppIconButton>
-                            <AppRowActions :actions="folderActions(folder)" :label="folder.name ?? ''" />
-                        </div>
-                    </div>
-                </div>
-            </aside>
 
             <main class="flex-1 min-w-0 space-y-4">
                 <!-- Filters -->
@@ -870,64 +769,14 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
         </AppModal>
 
         <!-- Folder modal (sidebar create/edit) -->
-        <AppModal
-            :show="folderModal.open"
-            max-width="md"
-            :title="folderModal.editing ? t('backend.ged.documents.edit_folder') : t('backend.ged.documents.new_folder')"
-            :icon="folderModal.editing ? Pencil : Folder"
-            :closeable="false"
-            v-on:close="folderModal.open = false"
-        >
-            <form class="space-y-4" v-on:submit.prevent="submitFolder">
-                <AppInput
-                    v-model="folderForm.name"
-                    :label="t('backend.ged.documents.folder_name')"
-                    :placeholder="t('backend.ged.documents.folder_name_placeholder')"
-                    :error="folderModal.errors.name ?? ''"
-                    required
-                />
-                <AppMultiselect
-                    v-model="folderForm.parentId"
-                    :options="folderParentSelectOptions"
-                    :label="t('backend.ged.documents.parent_folder')"
-                    :placeholder="t('backend.ged.documents.root_folder')"
-                    :allow-empty="true"
-                    track-by="id"
-                    option-label="displayLabel"
-                />
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="folderModal.open = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="primary" size="md" :loading="folderModal.saving" v-on:click="submitFolder"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
 
-        <!-- Delete folder modal -->
-        <AppModal
-            :show="!!deletingFolder"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="deletingFolder = null"
-        >
-            <p class="text-sm text-primary">{{ t("backend.ged.documents.delete_folder_confirm", { name: deletingFolder?.name }) }}</p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="deletingFolder = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="danger" size="md" v-on:click="confirmDeleteFolder"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
 
         <!-- Bulk move modal -->
         <AppModal :show="openBulkMove" max-width="sm" v-on:close="openBulkMove = false">
             <h3 class="text-sm font-semibold text-primary mb-3">{{ t("backend.ged.documents.bulk_move", { count: selectedIds.size }) }}</h3>
             <AppMultiselect
                 v-model="bulkMoveTargetId"
-                :options="[{ id: null, displayLabel: t('backend.ged.documents.root_folder') }, ...allFlatFolders.map(f => ({ id: f.id, displayLabel: '  '.repeat(f.depth) + f.name }))]"
+                :options="[{ id: null, displayLabel: t('backend.ged.documents.root_folder') }, ...folderEditOptions]"
                 :label="t('backend.ged.documents.folder')"
                 :placeholder="t('backend.ged.documents.root_folder')"
                 :allow-empty="true"
