@@ -173,6 +173,7 @@ backend:
     filter_nav_empty: No items found
     view_site: View site
     back_to_modules: All modules
+    back_to_module: "Back to {module}"
     logout: Log out
     light_mode: Light mode
     dark_mode: Dark mode

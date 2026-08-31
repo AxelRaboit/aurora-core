@@ -5,6 +5,28 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.32] - 2026-08-31
+
+### Corrigé
+
+#### On peut revenir au menu du module qu'on vient de quitter
+La vue de module ne s'ouvrait que dans un sens. Échap, ou la ligne « Tous les
+modules », ramenait à la vue projet — et **rien ne ramenait dans l'autre sens**.
+Il fallait recharger la page.
+
+C'est en ligne depuis la 0.9.28 et ça touche déjà les réglages : un lecteur qui
+presse Échap sur `/backend/configuration/settings/seo` perd les onze onglets du
+menu, sur une page qui n'en propose plus aucun autre chemin.
+
+La fonction existait pourtant, `enterModuleView`, et deux tests la couvraient
+depuis le premier jour. Aucun contrôle ne l'appelait. C'est le genre de trou
+qu'un test de composable ne voit pas par construction : la composable n'a jamais
+été la partie cassée, c'est le câblage — il faut monter le composant pour
+remarquer qu'une fonction n'a pas d'appelant.
+
+Une ligne « Revenir à {module} » apparaît donc en vue projet quand la page
+appartient à un module, symétrique de celle qui en sort.
+
 ## [0.9.31] - 2026-08-31
 
 ### Modifié
