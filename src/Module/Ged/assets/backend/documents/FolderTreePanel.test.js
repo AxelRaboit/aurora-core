@@ -25,9 +25,12 @@ function answerWith(payload, ok = true) {
     });
 }
 
+const mounted = [];
+
 async function render(url = "/backend/ged/tags") {
     window.history.replaceState({}, "", url);
     const wrapper = mount(FolderTreePanel, { global: { plugins: [i18n] } });
+    mounted.push(wrapper);
     await flushPromises();
 
     return wrapper;
@@ -43,7 +46,10 @@ beforeEach(() => {
     answerWith({ success: true, folders: FOLDERS });
 });
 
+// `AppModal` teleports to `body`, so an unmounted panel would leave its modal
+// behind for the next test to trip over.
 afterEach(() => {
+    while (mounted.length) mounted.pop().unmount();
     while (stops.length) stops.pop()();
     vi.restoreAllMocks();
 });
@@ -203,5 +209,50 @@ describe("the GED folder panel", () => {
 
         expect(wrapper.find("a").exists()).toBe(false);
         expect(wrapper.text()).toBe("");
+    });
+});
+
+describe("the panel on an installation with no folder yet", () => {
+    beforeEach(() => answerWith({ success: true, folders: [] }));
+
+    /**
+     * The state every new installation starts in, and the one the panel got
+     * wrong: the modals lived in the shell's default slot, which is exactly the
+     * slot an empty list does not render. The "+" set a flag nothing was
+     * listening to.
+     */
+    it("opens the create modal from the + button", async () => {
+        const wrapper = await render();
+
+        const plus = wrapper
+            .findAll("button")
+            .find(
+                (b) =>
+                    b.attributes("title") ===
+                    "backend.ged.documents.new_folder",
+            );
+        expect(plus).toBeTruthy();
+
+        await plus.trigger("click");
+
+        // The modal teleports to `body`, so it is never inside the wrapper.
+        expect(document.body.textContent).toContain(
+            "backend.ged.documents.folder_name",
+        );
+    });
+
+    /**
+     * The two scopes are not folders, so having none must not take them away.
+     * The aside showed them on an empty install and so must this.
+     */
+    it("still offers the two scopes", async () => {
+        const hrefs = (await render())
+            .findAll("a")
+            .map((a) => a.attributes("href"));
+
+        expect(hrefs).toEqual([
+            "/backend/ged/documents",
+            "/backend/ged/documents?rootOnly=1",
+        ]);
     });
 });

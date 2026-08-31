@@ -5,6 +5,45 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.34] - 2026-08-31
+
+### Corrigé
+
+#### Le « + » du panneau des dossiers n'ouvrait rien sur une GED vierge
+Les deux modales du panneau vivaient dans le slot par défaut de
+`AppModulePanel` — précisément celui qu'une liste vide ne rend pas. Le bouton
+qui sert à créer le **premier** dossier était donc le seul à ne pas fonctionner,
+exactement dans l'état où on en a besoin.
+
+`AppModulePanel` gagne un slot `#overlay`, rendu hors des branches chargement /
+vide / contenu. C'est là que vont les modales de n'importe quel panneau : son
+bouton d'action reste cliquable quand la liste est vide, donc ce qu'il ouvre
+doit exister à ce moment-là.
+
+Au passage, « Tous les documents » et « Racine » disparaissaient eux aussi
+faute de dossiers. Ce ne sont pas des dossiers ; ne pas en avoir ne doit pas
+les emporter.
+
+#### Une modale fermée laissait une feuille invisible sur toute la page
+Le wrapper d'`AppModal` est un `fixed inset-0 z-50` qui couvre l'écran entier et
+**survit à la fermeture** le temps de la transition de sortie. Ses enfants sont
+masqués, donc il ne se voit pas — mais il prend tous les clics et tout le
+scroll, et indéfiniment si quoi que ce soit empêche le minuteur d'aboutir. Il
+passe désormais en `pointer-events-none` dès le début de la fermeture : même
+resté en place, il ne peut plus rien intercepter.
+
+#### Le verrou de scroll est compté, au lieu du dernier qui parle
+Chaque modale écrivait `document.body.style.overflow` en direct. C'est une règle
+« dernier arrivé gagne », et elle casse dans les deux sens dès qu'il y a deux
+surfaces à l'écran : une modale qui se ferme rend le scroll alors qu'une autre
+couvre encore la page, et une modale **démontée pendant qu'elle est ouverte** ne
+relâche jamais rien — la page reste figée sans rien à l'écran à blâmer.
+
+C'était théorique jusqu'à ce que le menu se mette à monter ses propres modales
+en 0.9.33 : deux applications Vue, un seul `body`. `bodyScrollLock` compte les
+détenteurs, ne rend la page qu'au dernier, restitue la valeur d'avant, et chaque
+détenteur relâche à la fermeture comme au démontage.
+
 ## [0.9.33] - 2026-08-31
 
 ### Ajouté

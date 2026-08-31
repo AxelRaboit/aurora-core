@@ -159,8 +159,6 @@ const rowClasses = (active) => itemClasses("ged", { isActive: active });
         :title="t('backend.ged.documents.folder_tree')"
         :loading="loading"
         :failed="failed"
-        :empty="isEmpty"
-        :empty-label="t('backend.ged.documents.folder_tree_empty')"
     >
         <template #action>
             <AppIconButton
@@ -271,6 +269,10 @@ const rowClasses = (active) => itemClasses("ged", { isActive: active });
                 }}</span>
             </AppNavLink>
         </div>
+
+        <p v-if="isEmpty" class="px-3 py-1 text-xs text-muted">
+            {{ t("backend.ged.documents.folder_tree_empty") }}
+        </p>
 
         <div
             v-for="folder in flatFolders"
@@ -401,96 +403,98 @@ const rowClasses = (active) => itemClasses("ged", { isActive: active });
             </div>
         </div>
 
-        <AppModal
-            :show="folderModal.open"
-            max-width="md"
-            :title="
-                folderModal.editing
-                    ? t('backend.ged.documents.edit_folder')
-                    : t('backend.ged.documents.new_folder')
-            "
-            :icon="folderModal.editing ? Pencil : Folder"
-            :closeable="false"
-            v-on:close="folderModal.open = false"
-        >
-            <form class="space-y-4" v-on:submit.prevent="submitFolder">
-                <AppInput
-                    v-model="folderForm.name"
-                    :label="t('backend.ged.documents.folder_name')"
-                    :placeholder="
-                        t('backend.ged.documents.folder_name_placeholder')
-                    "
-                    :error="folderModal.errors.name ?? ''"
-                    required
-                />
-                <AppMultiselect
-                    v-model="folderForm.parentId"
-                    :options="folderParentSelectOptions"
-                    :label="t('backend.ged.documents.parent_folder')"
-                    :placeholder="t('backend.ged.documents.root_folder')"
-                    :allow-empty="true"
-                    track-by="id"
-                    option-label="displayLabel"
-                />
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton
-                        variant="ghost"
-                        size="md"
-                        v-on:click="folderModal.open = false"
-                    >
-                        <X class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        :loading="folderModal.saving"
-                        v-on:click="submitFolder"
-                    >
-                        <Save class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.save") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+        <template #overlay>
+            <AppModal
+                :show="folderModal.open"
+                max-width="md"
+                :title="
+                    folderModal.editing
+                        ? t('backend.ged.documents.edit_folder')
+                        : t('backend.ged.documents.new_folder')
+                "
+                :icon="folderModal.editing ? Pencil : Folder"
+                :closeable="false"
+                v-on:close="folderModal.open = false"
+            >
+                <form class="space-y-4" v-on:submit.prevent="submitFolder">
+                    <AppInput
+                        v-model="folderForm.name"
+                        :label="t('backend.ged.documents.folder_name')"
+                        :placeholder="
+                            t('backend.ged.documents.folder_name_placeholder')
+                        "
+                        :error="folderModal.errors.name ?? ''"
+                        required
+                    />
+                    <AppMultiselect
+                        v-model="folderForm.parentId"
+                        :options="folderParentSelectOptions"
+                        :label="t('backend.ged.documents.parent_folder')"
+                        :placeholder="t('backend.ged.documents.root_folder')"
+                        :allow-empty="true"
+                        track-by="id"
+                        option-label="displayLabel"
+                    />
+                </form>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton
+                            variant="ghost"
+                            size="md"
+                            v-on:click="folderModal.open = false"
+                        >
+                            <X class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.cancel") }}
+                        </AppButton>
+                        <AppButton
+                            variant="primary"
+                            size="md"
+                            :loading="folderModal.saving"
+                            v-on:click="submitFolder"
+                        >
+                            <Save class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.save") }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
 
-        <AppModal
-            :show="!!deletingFolder"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="deletingFolder = null"
-        >
-            <p class="text-sm text-primary">
-                {{
-                    t("backend.ged.documents.delete_folder_confirm", {
-                        name: deletingFolder?.name,
-                    })
-                }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton
-                        variant="ghost"
-                        size="md"
-                        v-on:click="deletingFolder = null"
-                    >
-                        <X class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="danger"
-                        size="md"
-                        v-on:click="confirmDeleteFolder"
-                    >
-                        <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.delete") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+            <AppModal
+                :show="!!deletingFolder"
+                max-width="sm"
+                :closeable="false"
+                :title="t('shared.common.delete')"
+                :icon="Trash2"
+                v-on:close="deletingFolder = null"
+            >
+                <p class="text-sm text-primary">
+                    {{
+                        t("backend.ged.documents.delete_folder_confirm", {
+                            name: deletingFolder?.name,
+                        })
+                    }}
+                </p>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton
+                            variant="ghost"
+                            size="md"
+                            v-on:click="deletingFolder = null"
+                        >
+                            <X class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.cancel") }}
+                        </AppButton>
+                        <AppButton
+                            variant="danger"
+                            size="md"
+                            v-on:click="confirmDeleteFolder"
+                        >
+                            <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.delete") }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
+        </template>
     </AppModulePanel>
 </template>
