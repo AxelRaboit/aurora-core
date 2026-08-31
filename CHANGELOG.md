@@ -11,6 +11,32 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.25] - 2026-08-31
+
+### Ajouté
+
+#### Une publication peut repeindre la topbar, le pied et le fond pour elle seule
+- L'écran de thème choisit déjà ces trois couleurs, mais pour tout le site à la
+  fois. Une page qui doit sortir du lot - un dossier, une campagne, une annonce -
+  n'avait pas d'autre issue que de créer un thème entier et de le basculer, donc
+  de repeindre aussi toutes les autres pages.
+- Un onglet **Apparence** porte les trois champs sur la publication. Vide veut
+  dire « hérite » : une page qui ne choisit que sa topbar garde le fond et le
+  pied du thème. La substitution se fait surface par surface, jamais en bloc,
+  sinon choisir une couleur en effacerait deux.
+- Chaque surface repeinte emporte son jeu de jetons contrasté, par le même
+  calcul que l'écran de thème (`SurfaceContrast`). C'est ce qui sépare
+  « repeindre » de « rendre illisible » : un fond sombre posé seul laisserait
+  les libellés, les mentions discrètes et les bordures en sombre sur sombre,
+  sans qu'aucune erreur ne le signale.
+- La prévisualisation passe par le même rendu que la page publique, donc elle
+  montre les couleurs choisies avant publication.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`. La migration ajoutant les trois
+colonnes à `core_posts` part avec, et `make deploy-prod` la joue.
+
 ## [0.9.24] - 2026-08-30
 
 ### Corrigé

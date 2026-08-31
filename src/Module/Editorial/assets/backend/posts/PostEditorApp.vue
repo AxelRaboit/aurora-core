@@ -18,6 +18,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppFocalPointField from "@/shared/components/form/file/AppFocalPointField.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
+import BannerColorField from "./components/BannerColorField.vue";
 import PostBannerPanel from "./components/PostBannerPanel.vue";
 import PostGridPanel from "./components/PostGridPanel.vue";
 import PostGalleryPanel from "./components/PostGalleryPanel.vue";
@@ -76,7 +77,7 @@ const { can } = usePrivileges();
  * English keys because they end up in the URL, where the rest of the routing
  * is English too. The labels are translated; the identifier is not.
  */
-const TABS = ["settings", "header", "content", "gallery", "seo"];
+const TABS = ["settings", "appearance", "header", "content", "gallery", "seo"];
 const { activeTab, select: selectTab, isActive: isTabActive } = useTabState(TABS, {
     hash: true,
 });
@@ -263,6 +264,20 @@ async function openPreview() {
     }
 }
 
+/**
+ * Les trois surfaces colorables, dans l'ordre où l'écran de thème les présente
+ * - fond, topbar, pied - parce que c'est le même choix vu deux fois et qu'un
+ * ordre différent entre les deux écrans se lit comme deux réglages différents.
+ *
+ * `key` est le champ du formulaire, pas la clé de configuration du thème : ici
+ * les couleurs sont trois colonnes sur la publication, pas un tableau JSON.
+ */
+const SURFACES = computed(() => [
+    { key: "backgroundColor", label: t("backend.posts.appearance.surface_background") },
+    { key: "headerColor", label: t("backend.posts.appearance.surface_header") },
+    { key: "footerColor", label: t("backend.posts.appearance.surface_footer") },
+]);
+
 const thumbnailFitOptions = computed(() =>
     THUMBNAIL_FITS.map((fit) => ({
         value: fit,
@@ -394,6 +409,27 @@ function termLabel(term) {
                     >
                         {{ t(`backend.posts.tabs.${tab}`) }}
                     </AppTab>
+                </div>
+
+                <div v-show="isTabActive('appearance')" class="space-y-4">
+                    <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.appearance.surfaces_title") }}</h3>
+                        <p class="text-xs text-muted">{{ t("backend.posts.appearance.surfaces_hint") }}</p>
+
+                        <!-- BannerColorField rather than a bare AppColorField:
+                             an `<input type="color">` cannot hold nothing, and
+                             "no colour" is the value that means "keep the
+                             theme's". It is the same distinction the banner
+                             needed, so it is the same field. -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <BannerColorField
+                                v-for="surface in SURFACES"
+                                :key="surface.key"
+                                v-model="form[surface.key]"
+                                :label="surface.label"
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 <!-- v-show, not v-if: the block editor holds its own state,

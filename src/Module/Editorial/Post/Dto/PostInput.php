@@ -41,6 +41,9 @@ class PostInput implements PostInputInterface
         public readonly string $thumbnailFit = 'cover',
         public readonly ?float $thumbnailFocalX = null,
         public readonly ?float $thumbnailFocalY = null,
+        public readonly ?string $headerColor = null,
+        public readonly ?string $footerColor = null,
+        public readonly ?string $backgroundColor = null,
     ) {}
 
     public function withStatus(string $status): PostInputInterface
@@ -64,6 +67,9 @@ class PostInput implements PostInputInterface
             thumbnailFit: $this->thumbnailFit,
             thumbnailFocalX: $this->thumbnailFocalX,
             thumbnailFocalY: $this->thumbnailFocalY,
+            headerColor: $this->headerColor,
+            footerColor: $this->footerColor,
+            backgroundColor: $this->backgroundColor,
         );
     }
 
@@ -156,6 +162,21 @@ class PostInput implements PostInputInterface
     public function getGalleryLayout(): array
     {
         return $this->galleryLayout;
+    }
+
+    public function getHeaderColor(): ?string
+    {
+        return $this->headerColor;
+    }
+
+    public function getFooterColor(): ?string
+    {
+        return $this->footerColor;
+    }
+
+    public function getBackgroundColor(): ?string
+    {
+        return $this->backgroundColor;
     }
 
     /**

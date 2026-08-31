@@ -84,6 +84,24 @@ interface PostInterface
     /** @param array<string, mixed> $galleryLayout */
     public function setGalleryLayout(array $galleryLayout): static;
 
+    /**
+     * This publication's own colour for the topbar, `#rrggbb`, or null to keep
+     * whatever the active theme paints there.
+     */
+    public function getHeaderColor(): ?string;
+
+    public function setHeaderColor(?string $headerColor): static;
+
+    /** This publication's own footer colour, or null to keep the theme's. */
+    public function getFooterColor(): ?string;
+
+    public function setFooterColor(?string $footerColor): static;
+
+    /** This publication's own page background, or null to keep the theme's. */
+    public function getBackgroundColor(): ?string;
+
+    public function setBackgroundColor(?string $backgroundColor): static;
+
     public function getPostType(): PostTypeInterface;
 
     public function setPostType(PostTypeInterface $postType): static;

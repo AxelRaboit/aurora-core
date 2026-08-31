@@ -487,6 +487,7 @@ backend:
       content: Content
       header: Header
       settings: Settings
+      appearance: Appearance
       seo: Search engines
       gallery: Gallery
     terms: Terms
@@ -559,6 +560,12 @@ backend:
     calendar_name: Publications
     alt_placeholder: "What the picture shows"
     caption_placeholder: "A line under the picture"
+    appearance:
+      surfaces_title: Colours
+      surfaces_hint: "Set for this publication only, over whatever the active theme paints. A surface left empty keeps the theme's own colour. The text on each one is chosen for contrast, as it is in the theme screen."
+      surface_background: Page background
+      surface_header: Topbar
+      surface_footer: Footer
   taxonomies:
     title: Taxonomies
     empty: No taxonomy yet.

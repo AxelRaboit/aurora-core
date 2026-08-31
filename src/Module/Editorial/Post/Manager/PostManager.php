@@ -328,6 +328,11 @@ class PostManager implements PostManagerInterface
         $post->setCommentsEnabled($input->isCommentsEnabled());
         $post->setTitleVisible($input->isTitleVisible());
 
+        // Color overrides for this post. Null means inherit from theme.
+        $post->setHeaderColor($input->getHeaderColor());
+        $post->setFooterColor($input->getFooterColor());
+        $post->setBackgroundColor($input->getBackgroundColor());
+
         // Normalised here rather than in the DTO: this is the write boundary,
         // and it is the only place guaranteed to run whatever built the input.
         // Before the translations, because their texts are keyed by the ids

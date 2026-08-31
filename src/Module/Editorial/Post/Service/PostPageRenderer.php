@@ -81,6 +81,16 @@ final readonly class PostPageRenderer
             // Whether the page prints its own title and summary. Shared, not
             // per translation: it is a decision about the design.
             'titleVisible' => $post->isTitleVisible(),
+            // Ce que cette publication repeint pour elle seule. Les clés sont
+            // celles du thème - ThemeContext::SURFACES - parce que c'est lui
+            // qui les résout, surface par surface, contre sa propre
+            // configuration. Une valeur nulle n'est pas un choix : elle laisse
+            // passer la couleur du thème.
+            'surfaceOverrides' => [
+                'background_color' => $post->getBackgroundColor(),
+                'header_color' => $post->getHeaderColor(),
+                'footer_color' => $post->getFooterColor(),
+            ],
         ]);
 
         $response = new Response($body);

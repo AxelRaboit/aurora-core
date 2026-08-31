@@ -140,6 +140,10 @@ class PostSerializer implements PostSerializerInterface
             // the picker previews the pictures it already holds, and its words
             // left out because they belong to whichever locale is open.
             'galleryLayout' => $this->galleryViewBuilder->buildForEditor($post->getGalleryLayout(), []),
+            // Color overrides for this post. Null means inherit from theme.
+            'headerColor' => $post->getHeaderColor(),
+            'footerColor' => $post->getFooterColor(),
+            'backgroundColor' => $post->getBackgroundColor(),
             // What the last review decided, so the editor can show the author what
             // to change rather than leaving them to guess why it came back.
             'reviewNote' => $post->getReviewNote(),

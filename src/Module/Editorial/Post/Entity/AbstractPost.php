@@ -127,6 +127,24 @@ abstract class AbstractPost implements PostInterface
     protected array $galleryLayout = [];
 
     /**
+     * Header/topbar color override for this post. Null means inherit from theme.
+     */
+    #[ORM\Column(length: 7, nullable: true)]
+    protected ?string $headerColor = null;
+
+    /**
+     * Footer color override for this post. Null means inherit from theme.
+     */
+    #[ORM\Column(length: 7, nullable: true)]
+    protected ?string $footerColor = null;
+
+    /**
+     * Background color override for this post. Null means inherit from theme.
+     */
+    #[ORM\Column(length: 7, nullable: true)]
+    protected ?string $backgroundColor = null;
+
+    /**
      * Why the last review decision went the way it did.
      *
      * Kept on the post rather than in a revision: it is about the *current* state
@@ -545,6 +563,42 @@ abstract class AbstractPost implements PostInterface
     public function removeRelatedPost(PostInterface $post): static
     {
         $this->relatedPosts->removeElement($post);
+
+        return $this;
+    }
+
+    public function getHeaderColor(): ?string
+    {
+        return $this->headerColor;
+    }
+
+    public function setHeaderColor(?string $headerColor): static
+    {
+        $this->headerColor = $headerColor;
+
+        return $this;
+    }
+
+    public function getFooterColor(): ?string
+    {
+        return $this->footerColor;
+    }
+
+    public function setFooterColor(?string $footerColor): static
+    {
+        $this->footerColor = $footerColor;
+
+        return $this;
+    }
+
+    public function getBackgroundColor(): ?string
+    {
+        return $this->backgroundColor;
+    }
+
+    public function setBackgroundColor(?string $backgroundColor): static
+    {
+        $this->backgroundColor = $backgroundColor;
 
         return $this;
     }
