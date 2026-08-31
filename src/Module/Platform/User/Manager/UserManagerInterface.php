@@ -26,6 +26,12 @@ interface UserManagerInterface
 
     public function toggleDevRole(User $user): bool;
 
+    /**
+     * Bascule l'accès. Ouvrir un compte jamais contacté (`invitedAt` nul) envoie
+     * son invitation et le passe `Invited` plutôt que `Active`.
+     *
+     * @return bool true si le compte est désormais ouvert
+     */
     public function toggleDisabled(User $user): bool;
 
     public function changePassword(User $user, string $newPassword): void;
@@ -88,7 +94,12 @@ interface UserManagerInterface
 
     public function isEmailTaken(string $email, ?User $excludeUser = null): bool;
 
-    public function invite(string $name, string $email, string $role, ?string $customMessage): User;
+    /**
+     * @param bool $disabled crée le compte pré-provisionné : aucun jeton, aucun
+     *                       mail, connexion refusée. `invitedAt` reste nul, et
+     *                       c'est l'activation du compte qui envoie l'invitation
+     */
+    public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false): User;
 
     public function resendInvitation(User $user, ?string $customMessage): void;
 

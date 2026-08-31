@@ -109,14 +109,35 @@ describe("what one operator may do to one user", () => {
     });
 
     it("says enable for a disabled account and disable for a live one", () => {
+        // `invitedAt` renseigné : ce compte a été contacté, puis désactivé. Le
+        // rouvrir lui rend son accès, sans rien envoyer.
         const disabled = useTitles({
             canAct: true,
-            user: user({ status: "disabled" }),
+            user: user({
+                status: "disabled",
+                invitedAt: "2026-01-01T10:00:00Z",
+            }),
         });
         const live = useTitles({ canAct: true });
 
         expect(disabled).toContain("backend.users.enable");
         expect(live).toContain("backend.users.disable");
+    });
+
+    /**
+     * Un compte pré-provisionné : créé désactivé, jamais contacté, donc
+     * `invitedAt` nul. L'ouvrir envoie son invitation - ce n'est pas la même
+     * action, et annoncer « réactiver » ferait croire qu'on rend un accès à
+     * quelqu'un qui ne l'a jamais eu, en taisant qu'un mail part.
+     */
+    it("says enable and invite for an account nobody was ever told about", () => {
+        const titles = useTitles({
+            canAct: true,
+            user: user({ status: "disabled", invitedAt: null }),
+        });
+
+        expect(titles).toContain("backend.users.enable_and_invite");
+        expect(titles).not.toContain("backend.users.enable");
     });
 
     // Destroying is read last on purpose, and nothing is offered after it.

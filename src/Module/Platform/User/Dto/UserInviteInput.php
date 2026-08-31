@@ -23,6 +23,16 @@ class UserInviteInput implements UserInviteInputInterface
         #[Assert\Choice(callback: [UserRoleEnum::class, 'allAssignableValues'], message: 'backend.users.errors.role_invalid')]
         public readonly string $role,
         public readonly ?string $message = null,
+        /**
+         * Créer le compte sans contacter personne.
+         *
+         * Pour quelqu'un qui arrive plus tard : le compte existe et la connexion
+         * lui est refusée, mais aucun jeton n'est émis et aucun mail ne part -
+         * `invitedAt` reste donc nul, ce qui est ce qui distingue « jamais
+         * contacté » de « désactivé après avoir été actif ». C'est l'activation
+         * du compte qui envoie l'invitation.
+         */
+        public readonly bool $disabled = false,
     ) {}
 
     public function getName(): string
@@ -43,5 +53,10 @@ class UserInviteInput implements UserInviteInputInterface
     public function getMessage(): ?string
     {
         return $this->message;
+    }
+
+    public function isDisabled(): bool
+    {
+        return $this->disabled;
     }
 }

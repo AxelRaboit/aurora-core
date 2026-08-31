@@ -14,6 +14,10 @@ export function useUsersInvite(invitePath, roles, fetchUsers, options = {}) {
         email: "",
         role: roles[0]?.value ?? "",
         message: "",
+        // Créer le compte sans contacter personne. Le serveur n'émet alors aucun
+        // jeton et n'envoie aucun mail ; l'invitation part quand le compte est
+        // activé depuis la liste.
+        disabled: false,
         ...Object.fromEntries(
             Object.entries(extraFields).map(([key, def]) => [key, def.default]),
         ),
@@ -25,6 +29,7 @@ export function useUsersInvite(invitePath, roles, fetchUsers, options = {}) {
         inviteForm.email = "";
         inviteForm.role = roles[0]?.value ?? "";
         inviteForm.message = "";
+        inviteForm.disabled = false;
         for (const [key, def] of Object.entries(extraFields)) {
             inviteForm[key] = def.default;
         }
@@ -49,7 +54,13 @@ export function useUsersInvite(invitePath, roles, fetchUsers, options = {}) {
                 inviteModal.errors = data.errors ?? {};
                 return;
             }
-            toast.success(t("backend.users.invitation_sent"));
+            // Rien n'a été envoyé quand le compte est créé désactivé : annoncer
+            // une invitation partie ferait attendre un mail qui n'existe pas.
+            toast.success(
+                inviteForm.disabled
+                    ? t("backend.users.account_created_disabled")
+                    : t("backend.users.invitation_sent"),
+            );
             inviteModal.open = false;
             fetchUsers();
         } finally {

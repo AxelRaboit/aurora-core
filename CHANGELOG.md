@@ -7,9 +7,33 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [Unreleased]
 
-_Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
-section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
-`develop` sur `master`, et c'est cette fermeture qui déclenche la release._
+_Les entrées s'ajoutent ici au fil des commits ; la section est close en
+`## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge `develop` sur `master`,
+et c'est cette fermeture qui déclenche la release._
+
+### Ajouté
+
+#### Un compte peut être créé pour quelqu'un qui arrive plus tard
+- La modale d'invitation porte une case **« Créer le compte désactivé »**. Le
+  compte existe, personne n'est prévenu, et la connexion lui est refusée.
+  L'invitation part quand on ouvre le compte depuis la liste.
+- Jusqu'ici la seule façon de préparer un accès était d'inviter tout de suite,
+  donc d'envoyer un mail à quelqu'un qui n'en avait pas encore l'usage - et de
+  laisser un jeton expirer en 48 heures avant que la personne n'arrive.
+- Aucune colonne ajoutée : `invitedAt`, qui existait déjà, sert de repère. Nul,
+  il veut dire « personne n'a jamais été contacté », ce qui distingue un compte
+  pré-provisionné d'un compte désactivé après avoir servi - les deux portent le
+  même statut `Disabled`.
+- Conséquence dans la liste : sur un compte jamais contacté, l'action ne dit
+  plus « Réactiver » mais **« Activer et inviter »**, avec sa propre
+  confirmation. Elle n'ouvre pas un accès, elle en envoie le premier.
+- Ouvrir un tel compte le passe `Invited`, pas `Active` : son mot de passe est
+  un aléa que personne ne connaît, et `Active` l'aurait fait paraître utilisable
+  sans que quiconque puisse s'en servir.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
 
 ## [0.9.25] - 2026-08-31
 

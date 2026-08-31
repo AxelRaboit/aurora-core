@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { UserPlus, Save, Upload, Trash2, X, Send, Pencil, LayoutGrid } from "lucide-vue-next";
 import { toast } from "vue-sonner";
@@ -69,6 +70,37 @@ const { viewingUser, openView, resendInvitation, togglingUser, askToggleDisabled
 function openViewWithPrivileges(user) {
     openView(user);
 }
+
+/**
+ * Les trois libellés de la bascule d'accès, pour les trois situations qu'elle
+ * couvre - et pas deux.
+ *
+ * Ouvrir un compte que personne n'a jamais contacté (`invitedAt` nul) n'est pas
+ * une réactivation : c'est le premier envoi de son invitation. Annoncer
+ * « réactiver » ferait croire qu'on rend un accès à quelqu'un qui ne l'a jamais
+ * eu, et masquerait qu'un mail part.
+ */
+const toggleKeys = computed(() => {
+    if (togglingUser.value?.status !== UserStatus.Disabled) {
+        return {
+            confirm: "backend.users.disable_confirm",
+            action: "backend.users.disable",
+            variant: "danger",
+        };
+    }
+
+    return togglingUser.value?.invitedAt
+        ? {
+            confirm: "backend.users.enable_confirm",
+            action: "backend.users.enable",
+            variant: "primary",
+        }
+        : {
+            confirm: "backend.users.enable_and_invite_confirm",
+            action: "backend.users.enable_and_invite",
+            variant: "primary",
+        };
+});
 
 const { privilegesModal, pendingPrivileges, togglePrivilege, openPrivileges, savePrivileges } = useUsersPrivileges(props, fetchUsers);
 const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveModules } = useUsersDisabledModules(props, fetchUsers);
@@ -246,7 +278,8 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                     :error="inviteModal.errors.role ?? ''"
                     required
                 />
-                <div>
+                <!-- Le message n'a plus de destinataire quand rien ne part. -->
+                <div v-if="!inviteForm.disabled">
                     <label class="block text-xs text-secondary uppercase tracking-wide mb-1.5">{{ t('backend.users.invite_message') }}</label>
                     <textarea
                         v-model="inviteForm.message"
@@ -255,12 +288,29 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                         :placeholder="t('backend.users.invite_message_placeholder')"
                     />
                 </div>
+
+                <!-- Pré-provisionner : quelqu'un qui arrive plus tard. Le compte
+                     existe, personne n'est contacté, et la connexion est refusée
+                     jusqu'à ce qu'on l'ouvre depuis la liste - c'est cette
+                     ouverture qui enverra l'invitation. -->
+                <AppCheckbox
+                    v-model="inviteForm.disabled"
+                    :label="t('backend.users.invite_disabled')"
+                    :hint="t('backend.users.invite_disabled_hint')"
+                />
+
                 <slot name="extra-invite-form-fields" :form="inviteForm" :errors="inviteModal.errors" />
             </form>
             <template #footer>
                 <AppModalFooter>
                     <AppButton variant="ghost" size="md" v-on:click="inviteModal.open = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t('shared.common.cancel') }}</AppButton>
-                    <AppButton type="submit" variant="primary" size="md" :loading="inviteModal.saving"><Send class="w-3.5 h-3.5" :stroke-width="2" /> {{ t('backend.users.send_invite') }}</AppButton>
+                    <!-- Le libellé suit ce que le bouton fait vraiment : un
+                         « Envoyer l'invitation » qui n'envoie rien est un
+                         mensonge. -->
+                    <AppButton type="submit" variant="primary" size="md" :loading="inviteModal.saving">
+                        <component :is="inviteForm.disabled ? UserPlus : Send" class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ inviteForm.disabled ? t('backend.users.create_disabled_account') : t('backend.users.send_invite') }}
+                    </AppButton>
                 </AppModalFooter>
             </template>
         </AppModal>
@@ -504,13 +554,13 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
 
         <AppModal :show="!!togglingUser" max-width="sm" :closeable="false" v-on:close="togglingUser = null">
             <p class="text-sm text-primary">
-                {{ t(togglingUser?.status === UserStatus.Disabled ? 'backend.users.enable_confirm' : 'backend.users.disable_confirm', {name: togglingUser?.name ?? ''}) }}
+                {{ t(toggleKeys.confirm, {name: togglingUser?.name ?? ''}) }}
             </p>
             <template #footer>
                 <AppModalFooter>
                     <AppButton variant="ghost" size="md" v-on:click="togglingUser = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t('shared.common.cancel') }}</AppButton>
-                    <AppButton :variant="togglingUser?.status === UserStatus.Disabled ? 'primary' : 'danger'" size="md" v-on:click="confirmToggleDisabled">
-                        {{ t(togglingUser?.status === UserStatus.Disabled ? 'backend.users.enable' : 'backend.users.disable') }}
+                    <AppButton :variant="toggleKeys.variant" size="md" v-on:click="confirmToggleDisabled">
+                        {{ t(toggleKeys.action) }}
                     </AppButton>
                 </AppModalFooter>
             </template>

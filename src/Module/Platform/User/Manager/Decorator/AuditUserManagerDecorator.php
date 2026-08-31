@@ -130,10 +130,12 @@ final readonly class AuditUserManagerDecorator implements UserManagerInterface
         return $this->inner->isEmailTaken($email, $excludeUser);
     }
 
-    public function invite(string $name, string $email, string $role, ?string $customMessage): User
+    public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false): User
     {
-        $user = $this->inner->invite($name, $email, $role, $customMessage);
-        $this->auditLogger->log('core', 'user.invited', 'User', $user->getId(), ['email' => $email, 'role' => $role]);
+        $user = $this->inner->invite($name, $email, $role, $customMessage, $disabled);
+        // `disabled` est journalisé parce que les deux actes sont différents : un
+        // compte a été créé, mais personne n'a reçu de mail.
+        $this->auditLogger->log('core', 'user.invited', 'User', $user->getId(), ['email' => $email, 'role' => $role, 'disabled' => $disabled]);
 
         return $user;
     }

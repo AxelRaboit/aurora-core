@@ -129,17 +129,28 @@ export function useUserActions(props) {
 
         if (props.canAct) {
             const disabled = "disabled" === user.status;
+            // Un compte désactivé que personne n'a jamais contacté : l'ouvrir
+            // n'est pas une réactivation, c'est le premier envoi de son
+            // invitation. Le libellé le dit, sinon on croit rendre l'accès à
+            // quelqu'un qui ne l'a jamais eu.
+            const neverInvited = disabled && !user.invitedAt;
 
             actions.push({
                 key: "toggle-disabled",
                 color: "amber",
                 icon: Power,
-                title: disabled
-                    ? t("backend.users.enable")
-                    : t("backend.users.disable"),
-                description: disabled
-                    ? t("backend.users.row_actions.enable_description")
-                    : t("backend.users.row_actions.disable_description"),
+                title: neverInvited
+                    ? t("backend.users.enable_and_invite")
+                    : disabled
+                      ? t("backend.users.enable")
+                      : t("backend.users.disable"),
+                description: neverInvited
+                    ? t(
+                          "backend.users.row_actions.enable_and_invite_description",
+                      )
+                    : disabled
+                      ? t("backend.users.row_actions.enable_description")
+                      : t("backend.users.row_actions.disable_description"),
                 emitName: "toggle-disabled",
             });
 

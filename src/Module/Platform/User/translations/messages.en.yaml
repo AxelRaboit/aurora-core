@@ -17,6 +17,9 @@ backend:
     send_invite: Send invite
     invite_message: Message
     invite_message_placeholder: Add a message...
+    invite_disabled: Create the account disabled
+    invite_disabled_hint: "For somebody arriving later: the account exists, nobody is told, and signing in is refused. The invitation goes out when you re-enable the account from the list."
+    create_disabled_account: Create the account
     edit_title: 'Edit {name}'
     delete_confirm: 'Delete {name}?'
     detail:
@@ -66,9 +69,11 @@ backend:
       deleted: User deleted.
     add: Add user
     invitation_sent: Invitation sent.
+    account_created_disabled: Account created, disabled. The invitation goes out when you re-enable it.
     invitation_resent: Invitation resent.
     resend_invitation: Resend invitation
     enable: Enable
+    enable_and_invite: Enable and invite
     disable: Disable
     edit: Edit
     name_placeholder: John Doe
@@ -86,6 +91,7 @@ backend:
     impersonate_front: 'View frontend as {name}'
     disable_confirm: "Disable {name}'s account? They will no longer be able to sign in."
     enable_confirm: "Re-enable {name}'s account?"
+    enable_and_invite_confirm: "Enable {name}'s account? An invitation will be sent so they can choose a password."
     view: View profile
     row_actions:
       title: "Actions : {name}"
@@ -102,6 +108,7 @@ backend:
       modules_description: Turn modules on or off for this account alone.
       disable_description: The account is kept but can no longer sign in.
       enable_description: Gives the account back its access, as it was.
+      enable_and_invite_description: "Nobody has ever been contacted about this account: opening it sends the invitation."
       delete_description: Removes the account for good. There is no undo.
     manager:
       label: Manager

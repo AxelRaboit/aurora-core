@@ -17,6 +17,9 @@ backend:
     send_invite: Envoyer l'invitation
     invite_message: Message
     invite_message_placeholder: Ajouter un message...
+    invite_disabled: Créer le compte désactivé
+    invite_disabled_hint: "Pour quelqu'un qui arrive plus tard : le compte existe mais personne n'est prévenu et la connexion lui est refusée. L'invitation partira quand vous réactiverez le compte depuis la liste."
+    create_disabled_account: Créer le compte
     edit_title: 'Modifier {name}'
     delete_confirm: 'Supprimer {name} ?'
     detail:
@@ -66,9 +69,11 @@ backend:
       deleted: Utilisateur supprimé.
     add: Ajouter un utilisateur
     invitation_sent: Invitation envoyée.
+    account_created_disabled: Compte créé, désactivé. L'invitation partira à sa réactivation.
     invitation_resent: Invitation renvoyée.
     resend_invitation: Renvoyer l'invitation
     enable: Réactiver
+    enable_and_invite: Activer et inviter
     disable: Désactiver
     edit: Modifier
     name_placeholder: Jean Dupont
@@ -86,6 +91,7 @@ backend:
     impersonate_front: 'Voir le front en tant que {name}'
     disable_confirm: "Désactiver le compte de {name} ? L'utilisateur ne pourra plus se connecter."
     enable_confirm: 'Réactiver le compte de {name} ?'
+    enable_and_invite_confirm: "Activer le compte de {name} ? Une invitation lui sera envoyée pour qu'il choisisse son mot de passe."
     view: Voir le profil
     row_actions:
       title: "Actions : {name}"
@@ -102,6 +108,7 @@ backend:
       modules_description: Activer ou masquer des modules pour ce compte seulement.
       disable_description: Le compte est conservé mais ne peut plus se connecter.
       enable_description: Rend l'accès au compte, tel qu'il était.
+      enable_and_invite_description: "Ce compte n'a jamais été contacté : l'ouvrir envoie son invitation."
       delete_description: Supprime le compte définitivement. Sans retour possible.
     manager:
       label: Responsable

@@ -13,4 +13,10 @@ interface UserInviteInputInterface
     public function getRole(): string;
 
     public function getMessage(): ?string;
+
+    /**
+     * Créer le compte sans contacter personne, connexion refusée jusqu'à son
+     * activation - c'est elle qui envoie l'invitation.
+     */
+    public function isDisabled(): bool;
 }
