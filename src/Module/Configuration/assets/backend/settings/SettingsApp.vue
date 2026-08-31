@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -28,8 +28,6 @@ const props = defineProps({
     updatePath: { type: String, default: "" },
     postSearchPath: { type: String, default: "" },
     navSections: { type: Array, default: () => [] },
-    /** `/backend/configuration/settings/__tab__`, for the redirect. */
-    tabPathTemplate: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -60,26 +58,6 @@ const genericGroups = computed(() =>
 
 const { fieldValues, mediaState, isLocked, lockReason, onBoolChange, onMediaChange, savingGroups, saveGroup } =
     useSettingsForm(props.groups, genericGroups.value, props.updatePath);
-
-/**
- * Sends an old `#seo`-style address to the tab's real URL, once, on arrival.
- *
- * The fragment was the tab's only identity for as long as the page owned the
- * switching, so bookmarks and pasted links carry it. `location.replace` rather
- * than an assignment: the fragment URL should not become a history entry the
- * Back button returns to, which would bounce the reader straight forward again.
- *
- * Worth deleting two versions from now. It is a bridge, and a bridge that stays
- * becomes a second way to address the same page.
- */
-onMounted(() => {
-    const fragment = window.location.hash.replace(/^#/, "");
-    if (!fragment || fragment === props.activeTab) return;
-    if (!props.tabs.some((tab) => tab.id === fragment)) return;
-    if (!props.tabPathTemplate) return;
-
-    window.location.replace(props.tabPathTemplate.replace("__tab__", fragment));
-});
 
 const { postPickerLabels, postPickerSearch, postPickerResults, postPickerOpen, resolvePostLabel, searchPosts, selectPost, clearPost, onPostPickerBlur, onPostPickerFocus } =
     useSettingsPostPicker(props.groups, genericGroups.value, fieldValues, props.postSearchPath);
