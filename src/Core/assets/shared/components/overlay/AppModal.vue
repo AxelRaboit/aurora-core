@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { X } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useBackButtonClose } from "@/shared/composables/overlay/useBackButtonClose.js";
+import { lockBodyScroll } from "@/shared/composables/overlay/bodyScrollLock.js";
 import AppRetainedSlot from "@/shared/components/overlay/AppRetainedSlot.vue";
 
 const props = defineProps({
@@ -55,12 +56,24 @@ watch(() => [props.show, props.title, props.icon], () => {
     }
 }, { immediate: true });
 
+/** Our hold on the page's scroll, or null when this modal is not up. */
+let releaseScroll = null;
+
+function holdScroll() {
+    releaseScroll ??= lockBodyScroll();
+}
+
+function dropScroll() {
+    releaseScroll?.();
+    releaseScroll = null;
+}
+
 watch(() => props.show, (show) => {
     if (show) {
-        document.body.style.overflow = "hidden";
+        holdScroll();
         showSlot.value = true;
     } else {
-        document.body.style.overflow = "";
+        dropScroll();
         setTimeout(() => { showSlot.value = false; }, 200);
     }
 });
@@ -87,11 +100,16 @@ function closeOnEscape(event) {
 
 onMounted(() => {
     document.addEventListener("keydown", closeOnEscape);
-    if (props.show) document.body.style.overflow = "hidden";
+    if (props.show) holdScroll();
 });
 onUnmounted(() => {
     document.removeEventListener("keydown", closeOnEscape);
-    document.body.style.overflow = "";
+    // Releases our hold and only ours. Unmounting while open is not
+    // hypothetical: a modal sitting in a branch that stops rendering goes away
+    // mid-flight, and the old unconditional reset either freed a lock another
+    // overlay still needed or, when this instance never got to run, left the
+    // page frozen for good.
+    dropScroll();
 });
 
 // Two parallel maps so Tailwind's class scanner sees every literal
@@ -161,7 +179,10 @@ const contentClass = computed(() => [
 
 <template>
     <Teleport to="body">
-        <div v-if="showSlot" :class="wrapperClass">
+        <div
+            v-if="showSlot"
+            :class="[wrapperClass, show ? '' : 'pointer-events-none']"
+        >
             <Transition
                 enter-active-class="ease-out duration-200"
                 enter-from-class="opacity-0"

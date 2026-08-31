@@ -48,5 +48,12 @@ const { t } = useI18n();
         <div v-else class="flex flex-col gap-0.5">
             <slot />
         </div>
+
+        <!-- Outside the three branches above, and that is the point: a panel's
+             modals must exist while the list is empty, because the header's
+             action button is exactly what the reader presses to fill it. Put
+             them in the default slot and the "+" of a fresh installation sets a
+             flag nothing is listening to. -->
+        <slot name="overlay" />
     </section>
 </template>

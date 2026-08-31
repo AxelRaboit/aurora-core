@@ -1,8 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 import { defineComponent, h, ref } from "vue";
 import { mount } from "@vue/test-utils";
 import { createI18n } from "vue-i18n";
 import AppModal from "./AppModal.vue";
+import { resetBodyScrollLock } from "@/shared/composables/overlay/bodyScrollLock.js";
 
 vi.mock("@/shared/composables/overlay/useBackButtonClose.js", () => ({
     useBackButtonClose: () => ({ requestClose: vi.fn() }),
@@ -194,5 +195,61 @@ describe("AppModal fullscreen on a phone", () => {
         expect(classes).not.toContain("rounded-none");
         expect(classes).toContain("border");
         expect(classes).not.toContain("border-0");
+    });
+});
+
+describe("what a closing modal leaves behind", () => {
+    afterEach(resetBodyScrollLock);
+
+    /**
+     * The wrapper spans the viewport and outlives the close by the length of
+     * the leave transition - longer, if anything goes wrong. With its contents
+     * hidden it is an invisible sheet over the whole page: nothing to see, and
+     * every click and every scroll lands on it.
+     */
+    it("stops taking clicks the moment it starts closing", async () => {
+        const wrapper = mountModal({ show: true });
+        expect(wrapper.find(".pointer-events-none").exists()).toBe(false);
+
+        await wrapper.setProps({ show: false });
+
+        expect(wrapper.find(".fixed.inset-0.z-50").classes()).toContain(
+            "pointer-events-none",
+        );
+    });
+
+    it("gives the page its scroll back on close", async () => {
+        const wrapper = mountModal({ show: true });
+        expect(document.body.style.overflow).toBe("hidden");
+
+        await wrapper.setProps({ show: false });
+
+        expect(document.body.style.overflow).toBe("");
+    });
+
+    /**
+     * A modal in a branch that stops rendering goes away mid-flight. Nothing
+     * will ever set `show` to false for it, so unmount is the only chance to
+     * release - and missing it froze the page with no overlay to blame.
+     */
+    it("gives the page its scroll back when it is unmounted while open", () => {
+        const wrapper = mountModal({ show: true });
+        expect(document.body.style.overflow).toBe("hidden");
+
+        wrapper.unmount();
+
+        expect(document.body.style.overflow).toBe("");
+    });
+
+    /** And it must not free a hold another overlay still needs. */
+    it("leaves a second modal's lock alone", async () => {
+        const first = mountModal({ show: true });
+        const second = mountModal({ show: true });
+
+        await first.setProps({ show: false });
+        expect(document.body.style.overflow).toBe("hidden");
+
+        await second.setProps({ show: false });
+        expect(document.body.style.overflow).toBe("");
     });
 });
