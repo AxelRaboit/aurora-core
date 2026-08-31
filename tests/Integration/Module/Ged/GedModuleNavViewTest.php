@@ -39,11 +39,9 @@ final class GedModuleNavViewTest extends IntegrationTestCase
     }
 
     /**
-     * The payload, not the pixels: the documents page is handed the view and
-     * the panel name like every other GED page, and the panel then declines to
-     * draw itself there because that page owns a better tree of its own. The
-     * declining is a client-side decision, covered by `FolderTreePanel.test.js`
-     * - the server has no reason to know about it.
+     * The documents page is handed the view and the panel name like every other
+     * GED page - and it needs them now: its own folder aside is gone, and the
+     * menu's panel is the only place left that draws a folder tree.
      */
     public function testTheDocumentsPageCarriesTheGedViewAndItsPanel(): void
     {

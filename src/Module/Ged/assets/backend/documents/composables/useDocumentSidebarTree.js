@@ -24,6 +24,14 @@ function persistIdSet(key, set) {
     }
 }
 
+/** A flat option list whose indent shows the nesting. */
+export function withDepthLabel(list) {
+    return list.map((folder) => ({
+        ...folder,
+        displayLabel: "\u00a0\u00a0".repeat(folder.depth ?? 0) + folder.name,
+    }));
+}
+
 /**
  * GED sidebar tree mirroring Media's: tree + flat list (collapse-aware),
  * favourites and per-folder document count. Favourites + collapsed state are
@@ -75,6 +83,17 @@ export function useDocumentSidebarTree(folders, currentFolderId) {
         folders.value.filter((f) => favouriteFolderIds.value.has(f.id)),
     );
 
+    /**
+     * The same folders as a flat `<select>` list, nesting shown by indent.
+     *
+     * Derived from the tree and nothing else, which is why it lives here rather
+     * than beside the folder CRUD it used to sit next to: the document form's
+     * folder picker needs it on a page that no longer creates folders at all.
+     */
+    const folderEditOptions = computed(() =>
+        withDepthLabel(allFlatFolders.value),
+    );
+
     const currentFolder = computed(
         () => folders.value.find((f) => f.id === currentFolderId.value) ?? null,
     );
@@ -91,6 +110,7 @@ export function useDocumentSidebarTree(folders, currentFolderId) {
     });
 
     return {
+        folderEditOptions,
         folderTree,
         flatFolders,
         allFlatFolders,

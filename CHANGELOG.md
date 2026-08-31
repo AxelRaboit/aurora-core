@@ -5,6 +5,56 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.33] - 2026-08-31
+
+### Ajouté
+
+#### Un canal entre un panneau du menu et la page de son module
+`modulePanelBridge` dans le socle, et c'est la pièce qui rend le déport possible
+tout court. Deux applications Vue distinctes - le menu monté par le layout, la
+page qui monte la sienne - ne partagent ni store, ni props, ni parent. Elles
+partagent le document : un `CustomEvent` **annulable** sur `window`.
+
+Annulable, et c'est tout le dessin : une ligne de panneau reste un vrai
+`<a href>`, donc clic milieu et « ouvrir dans un nouvel onglet » fonctionnent et
+l'adresse est honnête. Au clic simple le panneau **demande** d'abord. Si la page
+écoute, elle prend le travail et le lien ne part pas ; si personne n'écoute -
+le lecteur est sur une autre page du module - le lien navigue comme écrit. Un
+seul panneau, correct dans les deux cas.
+
+Avec lui, `AppModulePanel` (l'habillage commun : titre, action, états) et
+`useModulePanelData` (un panneau ne reçoit aucune prop, il va donc toujours
+chercher ses données). Les trois serviront aux cinq autres barres latérales de
+page qui doivent suivre le même chemin.
+
+### Modifié
+
+#### La barre latérale des dossiers de la GED est passée dans le menu
+Elle n'existait que sur la page Documents. La même question - dans quel dossier
+je travaille - se pose sur les Étiquettes, les Catégories et la fiche d'un
+document, où **aucun chemin vers un dossier n'existait**. Elle est donc partie
+dans le menu, entièrement : création, renommage, suppression, favoris, et le
+glisser-déposer d'un document ou d'un dossier vers un autre dossier.
+
+- L'`aside` de la page est supprimée, pas dupliquée. `DocumentsApp` perd 190
+  lignes et deux composables.
+- Le glisser-déposer traverse les deux applications sans rien coûter : les types
+  MIME `application/x-aurora-document*` sont posés sur `dataTransfer`, qui
+  appartient au navigateur et non à l'une des deux applications. La page reste
+  la source du glissement, le menu devient la cible.
+- Cliquer un dossier depuis la page Documents filtre toujours **sans
+  rechargement**, comme avant : c'est la page qui répond, par le canal.
+- La 0.9.31 est annulée : le panneau redessine sur la page Documents, puisque
+  c'est désormais le seul arbre.
+- Rien n'est perdu au passage : la liste de raccourcis « Favoris » que l'`aside`
+  gardait au-dessus de son arbre est là aussi, au même endroit. Quelqu'un qui a
+  mis neuf dossiers sur quatre-vingt-dix en favori l'a fait pour arrêter de
+  faire défiler, et l'arbre en dessous est précisément ce défilement.
+- `folderEditOptions` descend dans `useDocumentSidebarTree`. C'est une
+  dérivation de l'arbre, pas du CRUD, et le sélecteur de dossier du formulaire
+  en a besoin sur une page qui ne crée plus aucun dossier. La modale de
+  déplacement groupé en recopiait une troisième version à la main.
+
 ## [0.9.32] - 2026-08-31
 
 ### Corrigé
