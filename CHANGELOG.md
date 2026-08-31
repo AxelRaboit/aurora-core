@@ -65,19 +65,13 @@ section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 
 ### Dans aurora-client
 
-`make aurora-update` suffit pour en profiter.
+`make aurora-update` suffit, et rien n'est à éditer à la main.
 
-Une ligne peut être ajoutée à `config/packages/security.yaml`, à côté des autres
-routes d'authentification publiques :
-
-```yaml
-- { path: '^/[a-z]{2}/invitation', roles: PUBLIC_ACCESS }
-```
-
-Elle n'est **pas nécessaire** : le `- { path: ^/, roles: PUBLIC_ACCESS }` en fin
-de liste couvre déjà la route. Elle l'est le jour où ce fourre-tout est resserré,
-et elle évite de se demander pourquoi cette route d'authentification est la seule
-absente de la liste.
+`config/packages/security.yaml` gagne la règle d'`access_control` de la nouvelle
+route d'acceptation publique, mais elle arrive toute seule : `aurora-update`
+appelle `sync-security`, qui recopie le fichier depuis le vendor. **Ne pas
+l'ajouter à la main** - une édition manuelle de ce fichier est écrasée à la mise
+à jour suivante.
 
 ## [0.9.25] - 2026-08-31
 
