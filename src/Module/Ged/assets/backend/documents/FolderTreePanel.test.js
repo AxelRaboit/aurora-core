@@ -101,14 +101,25 @@ describe("the GED folder tree panel", () => {
         expect(names.some((n) => n.includes("2026"))).toBe(false);
     });
 
-    it("marks the folder the page was opened on", async () => {
+    /**
+     * The one page that already has this tree, with creation, drag-and-drop and
+     * the "Tous les documents" / "Racine" filters on top. Two of them thirty
+     * centimetres apart would be worse than one.
+     */
+    it("steps aside on the page that owns the tree", async () => {
+        const wrapper = await render("http://localhost/backend/ged/documents");
+
+        expect(wrapper.text()).toBe("");
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    /** Exactly that page, not everything under it: a document has no tree. */
+    it("still draws on a document's own page", async () => {
         const wrapper = await render(
-            "http://localhost/backend/ged/documents?folderId=3",
+            "http://localhost/backend/ged/documents/42",
         );
 
-        const active = wrapper.findAll("a")[2];
-        expect(active.text()).toContain("Factures");
-        expect(active.attributes("class")).toContain("bg-lime");
+        expect(wrapper.findAll("a")).toHaveLength(3);
     });
 
     /**

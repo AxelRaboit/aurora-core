@@ -5,6 +5,28 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Modifié
+
+#### Une seule arborescence de dossiers sur la page Documents
+Le panneau livré en 0.9.30 ne se dessine plus sur `/backend/ged/documents`. Cette
+page a déjà son arbre, et un meilleur : il crée, renomme et supprime un dossier,
+il accepte un document déposé dessus, et il porte « Tous les documents » et
+« Racine », qui sont des filtres. Deux arbres à trente centimètres l'un de
+l'autre répondant à la même question, c'est un de trop.
+
+Le panneau reste sur toutes les autres pages de la GED - Étiquettes, Catégories,
+Dossiers, la fiche d'un document - où il est la seule façon d'atteindre un
+dossier. C'est de là que vient sa valeur, pas de la page qui l'avait déjà.
+
+La page est reconnue par son chemin **exact** : `/backend/ged/documents/42` est
+un document, et cette page-là n'a pas d'arbre.
+
+Le surlignage du dossier courant part avec. Le lecteur ne regarde un dossier que
+sur la page Documents, la seule que le panneau ne dessine pas : c'était un état
+qui ne pouvait plus jamais être vrai.
+
 ## [0.9.30] - 2026-08-31
 
 ### Ajouté

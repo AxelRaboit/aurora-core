@@ -38,6 +38,13 @@ final class GedModuleNavViewTest extends IntegrationTestCase
         $this->client->loginUser($user, 'admin');
     }
 
+    /**
+     * The payload, not the pixels: the documents page is handed the view and
+     * the panel name like every other GED page, and the panel then declines to
+     * draw itself there because that page owns a better tree of its own. The
+     * declining is a client-side decision, covered by `FolderTreePanel.test.js`
+     * - the server has no reason to know about it.
+     */
     public function testTheDocumentsPageCarriesTheGedViewAndItsPanel(): void
     {
         $view = $this->moduleNavViewOn('/backend/ged/documents');
