@@ -35,7 +35,7 @@ final readonly class NavItemResolver
             return null;
         }
 
-        if (in_array($item->route, $hiddenItems, true)) {
+        if (in_array($item->stableKey(), $hiddenItems, true)) {
             return null;
         }
 
@@ -48,13 +48,17 @@ final readonly class NavItemResolver
         }
 
         return [
-            'key' => $item->route,
+            'key' => $item->stableKey(),
             'route' => $item->activeRoutePrefix ?? $item->route,
-            'path' => $this->urlGenerator->generate($item->route),
+            'path' => $this->urlGenerator->generate($item->route, $item->routeParams),
             'labelKey' => $item->labelKey,
             'descriptionKey' => $item->descriptionKey,
             'icon' => $item->icon,
             'activeColor' => $item->activeColor,
+            // Several entries on one route name cannot be told apart by that
+            // name: the eleven settings tabs would all light up at once. When
+            // an item carries params, its path is what identifies it.
+            'matchPath' => [] !== $item->routeParams,
             'children' => $children,
         ];
     }

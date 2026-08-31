@@ -80,6 +80,12 @@ final class SettingDefinitionRegistry
                     // coordinate the moduleToggle when one of them might
                     // be the lone gatekeeper.
                     moduleToggle: $existing->moduleToggle ?? $tab->moduleToggle,
+                    // Same rule as the module gate, and for the same reason: a
+                    // privilege belongs to the tab, not to whichever provider
+                    // happened to mention it. Dropping it on merge would have
+                    // turned a gated tab into an open one as soon as a second
+                    // provider contributed a field to it.
+                    requiredPrivilege: $existing->requiredPrivilege ?? $tab->requiredPrivilege,
                 );
             }
         }

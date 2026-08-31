@@ -63,5 +63,14 @@ class ConfigurationTab
          * merged-field semantics already handle that.
          */
         public readonly ModuleParameterEnum|string|null $moduleToggle = null,
+        /**
+         * When set, the tab is only rendered - and only reachable - for users
+         * granted this privilege. Aurora's own tabs leave it null: they all sit
+         * behind `configuration.settings.manage`, enforced once on the
+         * controller, and splitting that further would invent permissions
+         * nobody asked for. It exists for client modules that contribute a tab
+         * their own role owns.
+         */
+        public readonly ?string $requiredPrivilege = null,
     ) {}
 }

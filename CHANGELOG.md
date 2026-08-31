@@ -5,11 +5,80 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [0.9.29] - 2026-08-31
 
-_Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
-section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
-`develop` sur `master`, et c'est cette fermeture qui déclenche la release._
+### Ajouté
+
+#### Chaque onglet des réglages est devenu une page
+C'est le premier module à utiliser la vue de module livrée en 0.9.28, et le
+premier changement qu'on **voit** : la colonne d'onglets à l'intérieur de la page
+de réglages disparaît, ses onze onglets remontent dans le menu latéral, à côté
+de Thèmes.
+
+- Un onglet a une adresse : `/backend/configuration/settings/seo`. Il était un
+  fragment d'URL (`#seo`), donc il ne pouvait pas être envoyé à quelqu'un, ne
+  portait pas de fil d'Ariane, ne créait pas d'entrée d'historique et restait
+  introuvable depuis la palette. Les trois arrivent d'un coup.
+- Une seule route paramétrée, pas onze routes nommées : les onglets sont
+  **contribués à l'exécution** - un module client ajoute le sien via
+  `ConfigurationTabProviderInterface` - et aucune déclaration statique ne peut
+  connaître son existence.
+- `/backend/configuration/settings` redirige vers le premier onglet visible.
+  Rendre les deux aurait donné deux adresses au même onglet, et le menu n'aurait
+  pas su sur laquelle il se trouve. Le premier onglet n'est pas codé en dur : un
+  client peut contribuer un onglet de priorité plus basse.
+- Un onglet qu'on n'a pas le droit de voir est un **404 décidé côté serveur**.
+  Avant, il était simplement absent de la charge utile et le navigateur écartait
+  le fragment qui le nommait - correct, mais la barrière était dans le client.
+- `ConfigurationTab` accepte un `requiredPrivilege`. Les onglets d'Aurora le
+  laissent à `null` : ils sont tous derrière `configuration.settings.manage`,
+  appliqué une fois sur le contrôleur, et le découper plus fin inventerait des
+  permissions que personne n'a demandées. Il existe pour les modules clients.
+- La page ne résout plus que l'onglet regardé. Elle construisait les onze, dont
+  les champs `media` - une requête document et une génération d'URL par champ,
+  pour des onglets que personne n'avait ouverts.
+- Une vieille adresse en `#seo` est redirigée une fois, au chargement, vers
+  l'URL de l'onglet. C'est un pont, à supprimer d'ici deux versions : un pont
+  qui reste devient une deuxième façon d'adresser la même page.
+
+### Modifié
+
+#### Le socle de la vue de module accepte des entrées paramétrées
+Ce que le premier vrai client a révélé. `NavItem` gagne `routeParams` et une
+`key` stable distincte du nom de route, parce que **onze entrées partagent
+`backend_configuration_settings_tab`** : sans clé propre, masquer un onglet
+depuis les préférences en masquait onze, et les onze se seraient allumés en même
+temps. Une entrée porteuse de paramètres se reconnaît donc à son chemin, pas à
+son nom de route - côté menu comme côté palette, où « récemment visité » aurait
+sinon toujours ramené au premier onglet.
+
+`ModuleNavResolver` procède maintenant en deux passes. Déclarer une vue n'est pas
+toujours gratuit - celle de Configuration doit lire les onglets contribués - et
+la version précédente interrogeait **chaque module à chaque page**. La première
+passe ne compare que les préfixes des `NavSection`, que les modules construisent
+déjà pour le menu, et seul le gagnant est interrogé. La seconde passe existe pour
+les routes qu'aucune section ne déclare, et ne tourne que si la première n'a
+trouvé personne.
+
+La règle de visibilité des onglets sort de `SettingsViewBuilder` dans
+`SettingsTabAccess` : trois appelants en ont besoin - la page, le contrôleur qui
+valide le `{tab}` de l'URL, et la vue de module qui les liste - et une règle sur
+qui voit quoi est la dernière chose à garder en trois copies.
+
+#### Une seule table d'icônes de navigation
+`useSidemenuNav.js` importe désormais `resolveNavIcon` de `navMeta.js` au lieu de
+tenir sa propre copie de la table. Les deux étaient censées se refléter, et
+`navMeta.js` le disait dans son en-tête ; la copie du menu avait pris du retard.
+Au passage `tag` entre dans la table : la GED le déclarait pour ses étiquettes,
+aucune table ne le connaissait, et la ligne affichait donc une icône de document.
+Un test vérifie maintenant que **tout nom d'icône déclaré côté PHP se résout**.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`. Un module client qui contribue un
+onglet de réglages n'a rien à changer : son onglet devient une page et une entrée
+de menu tout seul. S'il veut le réserver à un rôle, `ConfigurationTab` accepte
+maintenant `requiredPrivilege`.
 
 ## [0.9.28] - 2026-08-31
 

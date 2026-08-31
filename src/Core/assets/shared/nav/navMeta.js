@@ -1,10 +1,21 @@
 /**
  * Shared nav metadata: kebab-icon-name → Lucide component, and module-id →
- * theme color. Mirrors the sidemenu's icon map + section palette so other
- * surfaces (e.g. the modules dashboard) render icons and colours the same way.
+ * theme color. The single map, so every surface that draws a nav row - the
+ * side menu, the modules dashboard - resolves an icon name identically.
+ *
+ * It was two maps, this one and a copy inside `useSidemenuNav`, kept in
+ * agreement by hand. They stopped agreeing: `tag` existed here and not there,
+ * so the GED tags row drew a document in the menu and a tag on the dashboard.
+ * A name missing from a map is silent - `resolveNavIcon` falls back to
+ * FileText, which is a plausible-looking icon rather than a visible failure -
+ * so the divergence is only ever noticed by someone looking at the right row.
+ *
+ * Every name a module declares must have an entry here; `navMeta.test.js`
+ * reads the icon names out of the PHP modules and fails if one is missing.
  */
 import {
     LayoutDashboard,
+    LayoutTemplate,
     FileText,
     Layers,
     Image,
@@ -40,6 +51,7 @@ import {
     Lock,
     Flame,
     StickyNote,
+    NotebookPen,
     Wallet,
     PieChart,
     Target,
@@ -49,12 +61,15 @@ import {
     Globe2,
     BarChart3,
     Upload,
+    Mail,
+    SlidersHorizontal,
     ScrollText,
     ClipboardCheck,
 } from "lucide-vue-next";
 
 export const ICON_MAP = {
     "layout-dashboard": LayoutDashboard,
+    "layout-template": LayoutTemplate,
     "file-text": FileText,
     layers: Layers,
     image: Image,
@@ -92,6 +107,7 @@ export const ICON_MAP = {
     "scroll-text": ScrollText,
     "clipboard-check": ClipboardCheck,
     "sticky-note": StickyNote,
+    "notebook-pen": NotebookPen,
     wallet: Wallet,
     "pie-chart": PieChart,
     target: Target,
@@ -101,6 +117,8 @@ export const ICON_MAP = {
     "globe-2": Globe2,
     "bar-chart-3": BarChart3,
     upload: Upload,
+    mail: Mail,
+    "sliders-horizontal": SlidersHorizontal,
 };
 
 /** Resolve a kebab icon name to its Lucide component (FileText fallback). */

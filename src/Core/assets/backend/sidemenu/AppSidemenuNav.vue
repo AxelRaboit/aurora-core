@@ -143,8 +143,8 @@ defineProps({
                             v-for="child in item.children"
                             :key="child.route"
                             :href="child.path"
-                            :active="nav.isActive(child.route)"
-                            :sidemenu-active="nav.isActive(child.route)"
+                            :active="nav.itemIsCurrent(child)"
+                            :sidemenu-active="nav.itemIsCurrent(child)"
                             :link-classes-override="nav.itemClasses(child, themeId(section))"
                         >
                             <component :is="child.icon" class="w-4 h-4 shrink-0" :class="nav.iconClasses(child, themeId(section))" :stroke-width="2" />

@@ -2,101 +2,7 @@ import { ref, computed, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePersistedExpanded } from "@/shared/composables/usePersistedExpanded.js";
 import { useSidemenuSectionTheme } from "./useSidemenuSectionTheme.js";
-import {
-    LayoutDashboard,
-    FileText,
-    Layers,
-    Image,
-    Images,
-    Menu,
-    Tags as TagsIcon,
-    Users as UsersIcon,
-    Building2,
-    TrendingUp,
-    Shield,
-    Settings,
-    Palette,
-    MessageSquare,
-    ClipboardList,
-    Package,
-    ShoppingBag,
-    Map as MapIcon,
-    Receipt,
-    ScanLine,
-    Briefcase,
-    ShieldCheck,
-    Camera,
-    ShoppingCart,
-    Gauge,
-    FolderKanban,
-    FolderOpen,
-    Folder,
-    CalendarDays,
-    KanbanSquare,
-    KeyRound,
-    Lock,
-    Flame,
-    StickyNote,
-    Wallet,
-    PieChart,
-    Target,
-    Repeat,
-    Sparkles,
-    Scale,
-    Globe2,
-    BarChart3,
-    Upload,
-    ScrollText,
-    ClipboardCheck,
-} from "lucide-vue-next";
-
-const ICON_MAP = {
-    "layout-dashboard": LayoutDashboard,
-    "file-text": FileText,
-    layers: Layers,
-    image: Image,
-    images: Images,
-    menu: Menu,
-    tags: TagsIcon,
-    users: UsersIcon,
-    "building-2": Building2,
-    "trending-up": TrendingUp,
-    shield: Shield,
-    settings: Settings,
-    palette: Palette,
-    "message-square": MessageSquare,
-    "clipboard-list": ClipboardList,
-    package: Package,
-    "shopping-bag": ShoppingBag,
-    map: MapIcon,
-    receipt: Receipt,
-    "scan-line": ScanLine,
-    briefcase: Briefcase,
-    "shield-check": ShieldCheck,
-    camera: Camera,
-    "shopping-cart": ShoppingCart,
-    gauge: Gauge,
-    "folder-kanban": FolderKanban,
-    "folder-open": FolderOpen,
-    folder: Folder,
-    "calendar-days": CalendarDays,
-    "kanban-square": KanbanSquare,
-    "key-round": KeyRound,
-    vault: Lock,
-    flame: Flame,
-    "scroll-text": ScrollText,
-    "clipboard-check": ClipboardCheck,
-    "sticky-note": StickyNote,
-    wallet: Wallet,
-    "pie-chart": PieChart,
-    target: Target,
-    repeat: Repeat,
-    sparkles: Sparkles,
-    scale: Scale,
-    "globe-2": Globe2,
-    "bar-chart-3": BarChart3,
-    upload: Upload,
-};
+import { resolveNavIcon } from "@/shared/nav/navMeta.js";
 
 /**
  * Six positional parameters is one too many, and `moduleNavView` is the one
@@ -163,11 +69,22 @@ export function useSidemenuNav(
 
     function buildItem(item) {
         return {
+            // The stable identifier, which is the route name unless several
+            // entries share one - the settings tabs are eleven entries on
+            // `..._settings_tab`. Aliases and hide preferences key on this.
+            key: item.key ?? item.route,
             route: item.route,
             path: item.path,
-            label: itemAliases[item.route]?.trim() || t(item.labelKey),
+            /**
+             * True when this entry is identified by its path rather than its
+             * route name, because siblings share the name. Without it the
+             * eleven settings tabs would all read as active at once.
+             */
+            matchPath: item.matchPath ?? false,
+            label:
+                itemAliases[item.key ?? item.route]?.trim() || t(item.labelKey),
             description: item.descriptionKey ? t(item.descriptionKey) : "",
-            icon: ICON_MAP[item.icon] ?? FileText,
+            icon: resolveNavIcon(item.icon),
             activeColor: item.activeColor ?? "accent",
             children: (item.children ?? []).map(buildItem),
         };
@@ -301,10 +218,33 @@ export function useSidemenuNav(
         return activeRoute === route;
     }
 
+    /**
+     * Whether this exact entry is the page being looked at.
+     *
+     * Route-name prefix for an ordinary entry, as it has always been. Exact path
+     * for an entry that carries route params, because its route name is shared:
+     * the eleven settings tabs are one name, and a prefix test says yes to all
+     * of them.
+     *
+     * The path is read from the browser rather than passed in. It is the
+     * browser's own state, and the alternative was a seventh positional
+     * parameter carrying something `window.location` already knows.
+     */
+    function itemIsCurrent(item) {
+        if (item.matchPath) {
+            return (
+                "undefined" !== typeof window &&
+                window.location.pathname === item.path
+            );
+        }
+
+        return isActive(item.route);
+    }
+
     function itemIsActive(item) {
         return (
-            isActive(item.route) ||
-            (item.children?.some((child) => isActive(child.route)) ?? false)
+            itemIsCurrent(item) ||
+            (item.children?.some((child) => itemIsCurrent(child)) ?? false)
         );
     }
 
@@ -316,14 +256,14 @@ export function useSidemenuNav(
      */
     function itemClasses(item, sectionId = null) {
         return themeItemClasses(sectionId, {
-            isActive: isActive(item.route),
-            inTree: itemIsActive(item) && !isActive(item.route),
+            isActive: itemIsCurrent(item),
+            inTree: itemIsActive(item) && !itemIsCurrent(item),
         });
     }
 
     function iconClasses(item, sectionId = null) {
         return themeIconClasses(sectionId, {
-            isActive: isActive(item.route) || itemIsActive(item),
+            isActive: itemIsActive(item),
         });
     }
 
@@ -333,7 +273,7 @@ export function useSidemenuNav(
                 if (
                     item.children?.length &&
                     getGroupRaw(item.route) === undefined &&
-                    item.children.some((c) => isActive(c.route))
+                    item.children.some((c) => itemIsCurrent(c))
                 ) {
                     toggleGroup(item.route);
                 }
@@ -374,6 +314,7 @@ export function useSidemenuNav(
         toggleAccount,
         isActive,
         isActiveExact,
+        itemIsCurrent,
         itemIsActive,
         itemClasses,
         iconClasses,

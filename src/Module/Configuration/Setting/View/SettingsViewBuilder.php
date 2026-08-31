@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Configuration\Setting\View;
 
-use Aurora\Core\Module\Service\ModuleAccessChecker;
-use Aurora\Module\Configuration\Setting\Configuration\SettingDefinitionRegistry;
 use Aurora\Module\Configuration\Setting\Configuration\SettingFieldDescriptor;
+use Aurora\Module\Configuration\Setting\Configuration\SettingsTabAccess;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
@@ -29,29 +28,44 @@ final readonly class SettingsViewBuilder
         private SettingRepository $settingRepository,
         private DocumentRepository $documentRepository,
         private TranslatorInterface $translator,
-        private SettingDefinitionRegistry $definitionRegistry,
+        private SettingsTabAccess $tabAccess,
         private DocumentUrlGenerator $documentUrlGenerator,
-        private ModuleAccessChecker $moduleAccessChecker,
     ) {}
 
     /**
+     * The payload for one settings tab.
+     *
+     * It used to build every tab at once, because the page drew them all and
+     * switched between them in the browser. Now that a tab is a URL, only the
+     * one being looked at is worth resolving - and resolving a `media` field
+     * costs a document lookup and a URL generation, per field, for tabs nobody
+     * asked for.
+     *
+     * `groups` keeps its shape - a map keyed by tab id, now holding one entry -
+     * so the generic field renderer and every component in `tabRegistry.js` read
+     * the payload they already read.
+     *
+     * Which tabs are visible is `SettingsTabAccess`'s answer now, shared with
+     * the controller that validates the `{tab}` in the URL and with the module
+     * view that lists them in the side menu.
+     *
      * @return array<string, mixed>
      */
-    public function indexView(bool $isDev = false): array
+    public function tabView(string $activeTab): array
     {
         $groups = [];
         $tabs = [];
 
-        foreach ($this->definitionRegistry->getTabs() as $tab) {
-            if ($tab->devOnly && !$isDev) {
-                continue;
-            }
+        foreach ($this->tabAccess->visibleTabs() as $tab) {
+            $tabs[] = [
+                'id' => $tab->id,
+                'priority' => $tab->priority,
+                'alwaysVisible' => $tab->alwaysVisible,
+                'componentName' => $tab->componentName,
+                'devOnly' => $tab->devOnly,
+            ];
 
-            // Hide tabs whose owning module is currently disabled. The
-            // settings remain writable through the controller (so an admin
-            // re-enabling the module won't have lost their configuration),
-            // but the UI stays consistent with what's actually reachable.
-            if (null !== $tab->moduleToggle && !$this->moduleAccessChecker->isEnabled($tab->moduleToggle)) {
+            if ($tab->id !== $activeTab) {
                 continue;
             }
 
@@ -73,18 +87,12 @@ final readonly class SettingsViewBuilder
             }
 
             $groups[$tab->id] = $fields;
-            $tabs[] = [
-                'id' => $tab->id,
-                'priority' => $tab->priority,
-                'alwaysVisible' => $tab->alwaysVisible,
-                'componentName' => $tab->componentName,
-                'devOnly' => $tab->devOnly,
-            ];
         }
 
         return [
             'groups' => $groups,
             'tabs' => $tabs,
+            'activeTab' => $activeTab,
             // No content module ships a post-search endpoint right now. The Vue
             // picker treats an empty path as "search unavailable" and simply
             // renders nothing, so a `post` field degrades instead of breaking
