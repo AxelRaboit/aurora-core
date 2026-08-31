@@ -41,11 +41,21 @@
 
 <div class="min-h-screen bg-bg">
 
+    {# `moduleNavView` is null on every page today: no module declares a view
+       yet, so the menu never leaves its project view. It is resolved
+       server-side rather than in the browser so the first paint is already the
+       right view - deciding client-side would show the project menu and swap it
+       a frame later, in front of the reader.
+
+       Note for whoever edits the hash below: a Twig comment opened inside a
+       Twig hash literal is a syntax error, not a comment - Twig reads the brace
+       as part of the expression. Annotate the keys from out here. #}
     <div {{ vue_component('core/backend/sidemenu/AppSidemenu', {
         navSections: sidemenu_nav_sections(),
         navSectionAliases: nav_section_aliases(),
         navItemAliases: nav_item_aliases(),
         navSectionColors: app.user.navSectionColors|default({}),
+        moduleNavView: module_nav_view(app.request.attributes.get('_route')),
         userName: app.user.name,
         userEmail: app.user.email,
         userPhotoUrl: aurora_profile_photo_url(app.user) ?? '',

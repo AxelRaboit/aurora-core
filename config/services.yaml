@@ -125,6 +125,10 @@ services:
         arguments:
             $modules: !tagged_iterator aurora.module
 
+    Aurora\Core\Module\Service\ModuleNavResolver:
+        arguments:
+            $modules: !tagged_iterator aurora.module
+
     Aurora\Core\Module\Service\PermissionRegistry:
         arguments:
             $modules: !tagged_iterator aurora.module

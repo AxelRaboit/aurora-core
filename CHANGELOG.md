@@ -11,6 +11,78 @@ _Rien pour l'instant. Les entrées s'ajoutent ici au fil des commits ; la
 section est close en `## [X.Y.Z] - AAAA-MM-JJ` dans la pull request qui merge
 `develop` sur `master`, et c'est cette fermeture qui déclenche la release._
 
+## [0.9.28] - 2026-08-31
+
+### Ajouté
+
+#### Le menu latéral sait porter une deuxième vue, celle du module ouvert
+Socle uniquement : **rien ne change à l'écran**. Aucun module ne déclare encore
+de vue, donc le menu ne quitte jamais sa vue projet. Ce commit met en place la
+mécanique, les suivants y branchent les modules.
+
+- Une colonne, deux vues, jamais les deux en même temps. Les 280 px ne changent
+  pas de largeur, ils changent de contenu : la vue **projet** (les sections de
+  `ModuleRegistry`) ou la vue **module** (les destinations du module ouvert).
+  C'est le seul arrangement qui ne coûte pas de largeur à la page - deux
+  colonnes juxtaposées en prendraient 520, soit 36 % d'un écran de 1440.
+- Un module déclare sa vue en implémentant `ModuleNavViewProviderInterface`,
+  interface **companion optionnelle** de `ModuleInterface` - même mécanique que
+  `ModuleToggleProviderInterface`, et pour la même raison : les projets clients
+  implémentent `ModuleInterface` eux-mêmes, une méthode requise de plus les
+  casserait tous au prochain `composer update`.
+- `ModuleNavResolver` répond « quel module pour cette route ». Rien ne le
+  faisait côté serveur jusqu'ici : la section active était déduite dans le
+  navigateur par `activeRoute.startsWith(...)`, ce qui suffit pour teinter une
+  ligne déjà affichée mais pas pour décider **quoi rendre** - une décision côté
+  client peindrait la vue projet puis la remplacerait une frame plus tard, sous
+  les yeux du lecteur.
+- Le match est la même règle de préfixe que le menu a toujours utilisée, avec un
+  ajout : **le plus long préfixe gagne**. C'est ce qui empêche `dev_dashboard`
+  d'être réclamé par un module dont le préfixe est seulement `dev_`, et c'est le
+  seul arbitrage qui ne dépende pas de l'ordre d'enregistrement DI - donc
+  instable.
+- Un module absent du menu principal ne prend pas la colonne. `getNavSections()`
+  ne renvoie rien quand un module est désactivé, ce qui en fait la barrière la
+  plus honnête disponible : la vue module suit le menu.
+- La vue s'ouvre sur ce que le serveur a résolu, donc un lien direct vers une
+  page d'un module affiche le menu de ce module. Le retour (`Échap` dans la
+  colonne, ou la ligne « Tous les modules ») est un **état de page**, pas une
+  préférence : la question « où suis-je » a une bonne réponse à chaque rendu, et
+  une réponse mémorisée la contredirait à la navigation suivante.
+- Le filtre du menu cherche dans la vue affichée et nulle part ailleurs. Un
+  champ qui remonterait des lignes que la colonne ne montre pas demanderait une
+  phrase d'explication ; c'est la palette `⌘K` qui cherche partout, et elle le
+  dit.
+- La palette gagne au passage les destinations du module ouvert. Une destination
+  déclarée au seul niveau module n'était trouvable nulle part - c'était le
+  premier coût de l'éparpillement actuel.
+- Ce qu'une liste de liens ne sait pas dire - un arbre de dossiers, une liste de
+  neuf cents notes - passe par `ModuleNavView::$panelComponent` et
+  `modulePanelRegistry.js`, même arrangement que `panelRegistry.js` du tableau
+  de bord. Sans lui, `AppSidemenu` devrait importer depuis `@ged/...`, la
+  dépendance inter-modules que le système de modules existe pour éviter.
+
+### Modifié
+
+#### La résolution d'un `NavItem` a désormais un seul endroit
+`NavItemResolver` sort de `ModuleRegistry` : privilège, génération du chemin,
+enfants, filtre des entrées masquées par l'utilisateur. La vue module a besoin
+du traitement exact des mêmes lignes, et deux copies auraient divergé au premier
+changement - qui aurait été un changement de sécurité, puisque c'est là que
+`requiredPrivilege` est appliqué. `ModuleRegistry` perd deux dépendances et
+délègue.
+
+`AppSidemenuNav.vue` dessine les deux vues : un `themeId` optionnel sépare la
+palette empruntée de la clé de repli, et un groupe sans en-tête n'est pas
+repliable - son en-tête *est* le bouton, donc un groupe sans en-tête replié
+serait définitivement inaccessible.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`. Un module client peut dès
+maintenant implémenter `ModuleNavViewProviderInterface` pour déclarer sa vue ;
+ne rien implémenter garde le comportement actuel.
+
 ## [0.9.27] - 2026-08-31
 
 ### Modifié

@@ -172,6 +172,7 @@ backend:
     show_descriptions: Afficher les descriptions
     filter_nav_empty: Aucun élément trouvé
     view_site: Voir le site
+    back_to_modules: Tous les modules
     logout: Déconnexion
     light_mode: Mode clair
     dark_mode: Mode sombre

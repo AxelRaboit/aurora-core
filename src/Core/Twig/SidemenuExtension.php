@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Core\Twig;
 
+use Aurora\Core\Module\Service\ModuleNavResolver;
 use Aurora\Core\Module\Service\ModuleRegistry;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
@@ -13,6 +14,7 @@ final readonly class SidemenuExtension
 {
     public function __construct(
         private ModuleRegistry $moduleRegistry,
+        private ModuleNavResolver $moduleNavResolver,
         private SettingRepository $settingRepository,
     ) {}
 
@@ -20,6 +22,23 @@ final readonly class SidemenuExtension
     public function getSidemenuNavSections(): array
     {
         return $this->moduleRegistry->getNavSections();
+    }
+
+    /**
+     * The module view for the given route, or null when the menu stays in its
+     * project view.
+     *
+     * Takes the route as an argument rather than reading it from a
+     * `RequestStack`: the layout already has it in hand for `activeRoute`, and
+     * passing it keeps this extension free of request state - which is also
+     * what makes it testable without a kernel.
+     *
+     * @return array<string, mixed>|null
+     */
+    #[AsTwigFunction(name: 'module_nav_view')]
+    public function getModuleNavView(?string $route): ?array
+    {
+        return $this->moduleNavResolver->resolveForRoute($route);
     }
 
     #[AsTwigFunction(name: 'nav_section_aliases')]

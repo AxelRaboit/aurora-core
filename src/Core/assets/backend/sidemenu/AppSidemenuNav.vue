@@ -41,6 +41,28 @@ import { ChevronDown } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppNavLink from "@/shared/components/nav/AppNavLink.vue";
 
+/**
+ * Which palette a section borrows.
+ *
+ * A project section is its own colour, so the two are the same string. A module
+ * view's groups all borrow the module's, so they carry a `themeId` that differs
+ * from the `id` their fold state is keyed on - four groups inside the GED are
+ * four fold states and one lime.
+ */
+function themeId(section) {
+    return section.themeId ?? section.id;
+}
+
+/**
+ * Whether this section can be folded away.
+ *
+ * False for a module group with no header: the header *is* the control, so a
+ * headerless group that started folded could never be opened again.
+ */
+function isFoldable(section) {
+    return false !== section.foldable;
+}
+
 defineProps({
     /** The sections to draw, already filtered by the caller. */
     sections: { type: Array, required: true },
@@ -69,10 +91,10 @@ defineProps({
 <template>
     <div v-for="section in sections" :key="section.id" class="flex flex-col gap-0.5">
         <button
-            v-if="!navFilter"
+            v-if="!navFilter && isFoldable(section)"
             type="button"
             class="si-section-header w-full flex items-center justify-between text-xs font-semibold uppercase tracking-wider transition-colors"
-            :class="[theme.headerClasses(section.id), theme.labelClasses(section.id)]"
+            :class="[theme.headerClasses(themeId(section)), theme.labelClasses(themeId(section))]"
             v-on:click="nav.toggleSection(section)"
         >
             <span class="truncate">{{ section.label }}</span>
@@ -84,21 +106,21 @@ defineProps({
         </button>
 
         <template v-for="item in section.items" :key="item.route">
-            <template v-if="navFilter || nav.isSectionExpanded(section)">
+            <template v-if="navFilter || !isFoldable(section) || nav.isSectionExpanded(section)">
                 <!-- A group parent: the label navigates, the chevron unfolds.
                      Two targets in one row, because the parent is itself a
                      page - collapsing them into one would cost the page. -->
                 <template v-if="!navFilter && item.children?.length">
                     <div
                         class="flex items-center rounded-lg text-sm font-medium transition-colors group relative"
-                        :class="nav.itemClasses(item, section.id)"
+                        :class="nav.itemClasses(item, themeId(section))"
                     >
                         <a
                             :href="item.path"
                             :data-sidemenu-active="nav.itemIsActive(item) ? 'true' : null"
                             class="flex items-center flex-1 min-w-0 gap-3 py-[0.625rem] pl-3"
                         >
-                            <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, section.id)" :stroke-width="2" />
+                            <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, themeId(section))" :stroke-width="2" />
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
                                 <span v-if="showDescriptions && item.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ item.description }}</span>
@@ -123,9 +145,9 @@ defineProps({
                             :href="child.path"
                             :active="nav.isActive(child.route)"
                             :sidemenu-active="nav.isActive(child.route)"
-                            :link-classes-override="nav.itemClasses(child, section.id)"
+                            :link-classes-override="nav.itemClasses(child, themeId(section))"
                         >
-                            <component :is="child.icon" class="w-4 h-4 shrink-0" :class="nav.iconClasses(child, section.id)" :stroke-width="2" />
+                            <component :is="child.icon" class="w-4 h-4 shrink-0" :class="nav.iconClasses(child, themeId(section))" :stroke-width="2" />
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate" :class="showDescriptions && child.description ? 'font-semibold' : ''">{{ child.label }}</span>
                                 <span v-if="showDescriptions && child.description" class="mt-0.5 block text-xs text-muted whitespace-normal">{{ child.description }}</span>
@@ -141,9 +163,9 @@ defineProps({
                     :href="item.path"
                     :active="nav.itemIsActive(item)"
                     :sidemenu-active="nav.itemIsActive(item)"
-                    :link-classes-override="nav.itemClasses(item, section.id)"
+                    :link-classes-override="nav.itemClasses(item, themeId(section))"
                 >
-                    <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, section.id)" :stroke-width="2" />
+                    <component :is="item.icon" class="w-5 h-5 shrink-0" :class="nav.iconClasses(item, themeId(section))" :stroke-width="2" />
                     <span class="min-w-0 flex-1">
                         <span class="block truncate" :class="showDescriptions && item.description ? 'font-semibold' : ''">{{ item.label }}</span>
                         <!-- Not truncated: a description cut at one line is

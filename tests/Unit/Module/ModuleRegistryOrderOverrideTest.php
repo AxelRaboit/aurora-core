@@ -6,6 +6,7 @@ namespace Aurora\Tests\Unit\Module;
 
 use Aurora\Core\Module\Contract\ModuleInterface;
 use Aurora\Core\Module\Nav\NavItem;
+use Aurora\Core\Module\Nav\NavItemResolver;
 use Aurora\Core\Module\Nav\NavSection;
 use Aurora\Core\Module\Service\ModuleRegistry;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
@@ -147,8 +148,7 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
 
         return new ModuleRegistry(
             modules: $this->makeModules(),
-            security: $authChecker,
-            urlGenerator: $urlGenerator,
+            navItemResolver: new NavItemResolver($authChecker, $urlGenerator),
             userSecurity: $security,
             settingRepository: $settingRepository,
         );
