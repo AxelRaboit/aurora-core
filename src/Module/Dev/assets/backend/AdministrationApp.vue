@@ -1,8 +1,5 @@
 <script setup>
-import { useI18n } from "vue-i18n";
-import { useUrlSyncedState } from "@/shared/composables/list/useUrlSyncedState.js";
-import AppTab from "@/shared/components/nav/AppTab.vue";
-import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
+import { computed } from "vue";
 import DashboardOverview from "@general/backend/dashboard/DashboardOverview.vue";
 import UsersTab from "@dev/backend/users/UsersTab.vue";
 import AccessRequestsTab from "@dev/backend/access-requests/AccessRequestsTab.vue";
@@ -10,17 +7,7 @@ import AuditTab from "@dev/backend/audit/AuditTab.vue";
 import PermissionsTab from "@dev/backend/permissions/PermissionsTab.vue";
 import ModulesTab from "@dev/backend/modules/ModulesTab.vue";
 import MountPointsTab from "@dev/backend/mount-points/MountPointsTab.vue";
-import {
-    LayoutDashboard,
-    Users,
-    KeyRound,
-    ScrollText,
-    ShieldCheck,
-    Puzzle,
-    Network,
-} from "lucide-vue-next";
 
-const { t } = useI18n();
 
 const props = defineProps({
     tab: { type: String, default: "overview" },
@@ -58,21 +45,33 @@ const props = defineProps({
 });
 
 // Each tab is self-describing: label, icon, URL path and initial SSR data colocated.
-const tabs = [
-    { key: "overview",        label: () => t("backend.tabs.overview"),        description: () => t("backend.tabs.overview_description"),        icon: LayoutDashboard, path: () => props.overviewPath,        initialData: () => props.stats },
-    { key: "users",           label: () => t("backend.tabs.users"),           description: () => t("backend.tabs.users_description"),           icon: Users,           path: () => props.usersPath,           initialData: () => props.users },
-    { key: "access_requests", label: () => t("backend.tabs.access_requests"), description: () => t("backend.tabs.access_requests_description"), icon: KeyRound,        path: () => props.accessRequestsPath,  initialData: () => props.accessRequests },
-    { key: "audit",           label: () => t("backend.tabs.audit"),           description: () => t("backend.tabs.audit_description"),           icon: ScrollText,      path: () => props.auditPath,           initialData: () => props.audit },
-    { key: "permissions",     label: () => t("backend.tabs.permissions"),     description: () => t("backend.tabs.permissions_description"),     icon: ShieldCheck,     path: () => props.permissionsPath,     initialData: () => props.permissions },
-    { key: "modules",         label: () => t("backend.tabs.modules"),         description: () => t("backend.tabs.modules_description"),         icon: Puzzle,          path: () => props.modulesPath,         initialData: () => props.modules },
-    { key: "mount_points",    label: () => t("backend.tabs.mount_points"),    description: () => t("backend.tabs.mount_points_description"),    icon: Network,         path: () => props.mountPointsPath,     initialData: () => props.mountPoints },
-];
+/**
+ * What the server already sent for the tab being shown.
+ *
+ * This array used to carry each tab's label, icon and address as well. Those
+ * moved to `DevModule::getModuleNavView()`, which is where the menu reads them
+ * from - and keeping a second copy here would be a second copy to forget, the
+ * way the two nav icon maps drifted until one of them was a version behind.
+ */
+const INITIAL_DATA = {
+    overview: () => props.stats,
+    users: () => props.users,
+    access_requests: () => props.accessRequests,
+    audit: () => props.audit,
+    permissions: () => props.permissions,
+    modules: () => props.modules,
+    mount_points: () => props.mountPoints,
+};
 
-const { state: tab, set: setTab } = useUrlSyncedState({
-    initial: props.tab,
-    serialize: (next) => tabs.find((t) => t.key === next)?.path?.() ?? null,
-    deserialize: (event) => event.state?.value ?? props.tab,
-});
+/**
+ * Which tab this page is, decided by the server.
+ *
+ * It used to be state this component drove: the tab row set it, and the
+ * composable wrote the matching address behind it. The menu owns the switching
+ * now and each tab is a real navigation, so there is nothing left to sync -
+ * the route the reader asked for is the answer, and it arrives in a prop.
+ */
+const tab = computed(() => props.tab);
 
 // Each tab subcomponent owns its data via its own composable. The parent only
 // passes initial SSR data for the active tab; non-active tabs receive null and
@@ -80,49 +79,16 @@ const { state: tab, set: setTab } = useUrlSyncedState({
 // state across tab switches so we don't refetch every time.
 function initialDataFor(key) {
     if (key !== props.tab) return null;
-    return tabs.find((t) => t.key === key)?.initialData?.() ?? null;
+    return INITIAL_DATA[key]?.() ?? null;
 }
 </script>
 
 <template>
     <div class="flex flex-col md:flex-row gap-6">
-        <nav class="hidden md:flex flex-col w-44 shrink-0 gap-0.5">
-            <AppTooltip
-                v-for="tabItem in tabs"
-                :key="tabItem.key"
-                :title="tabItem.label()"
-                :description="tabItem.description()"
-                placement="right"
-            >
-                <AppTab
-                    :active="tab === tabItem.key"
-                    v-on:click="setTab(tabItem.key)"
-                >
-                    <component :is="tabItem.icon" class="w-4 h-4 shrink-0" :stroke-width="2" />
-                    {{ tabItem.label() }}
-                </AppTab>
-            </AppTooltip>
-        </nav>
-
-        <div class="flex md:hidden gap-1 flex-wrap w-full">
-            <AppTooltip
-                v-for="tabItem in tabs"
-                :key="tabItem.key"
-                :title="tabItem.label()"
-                :description="tabItem.description()"
-                placement="bottom"
-            >
-                <AppTab
-                    :active="tab === tabItem.key"
-                    size="sm"
-                    v-on:click="setTab(tabItem.key)"
-                >
-                    <component :is="tabItem.icon" class="w-4 h-4" :stroke-width="2" />
-                    {{ tabItem.label() }}
-                </AppTab>
-            </AppTooltip>
-        </div>
-
+        <!-- No tab column and no mobile tab row: the side menu's module view
+             lists the seven, and each one is already a route of its own. Two
+             surfaces answering "which tab am I on" is one too many - the same
+             call the settings page made in 0.9.29. -->
         <div class="flex-1 min-w-0 space-y-6">
             <KeepAlive>
                 <DashboardOverview

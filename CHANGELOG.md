@@ -5,6 +5,38 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+
+#### Les sept onglets d'administration sont dans le menu
+Deuxième module à passer ses onglets en entrées de menu, après les réglages en
+0.9.29 — et le cas facile : chaque onglet **avait déjà sa propre route**, tenue
+dans l'adresse par `useUrlSyncedState`. Rien à inventer, pas de nom de route
+partagé, pas de clé stable : sept `NavItem` ordinaires vers sept routes qui
+existaient.
+
+- La rangée d'onglets disparaît de la page, colonne `w-44` et variante mobile
+  comprises. Deux surfaces qui répondent à « sur quel onglet suis-je » en font
+  une de trop, c'est le même arbitrage qu'en 0.9.29.
+- Les libellés, icônes et chemins des onglets quittent le tableau JavaScript de
+  `AdministrationApp` : ils vivent dans `DevModule` maintenant, et une seconde
+  copie serait une seconde copie à oublier — exactement ce qui est arrivé aux
+  deux tables d'icônes de navigation.
+- `AdministrationApp` perd 34 lignes, son `useUrlSyncedState` et neuf imports.
+  Quel onglet s'affiche est désormais la réponse du serveur, qui arrive en prop.
+- Les icônes `puzzle` et `network` entrent dans la table de navigation. C'est le
+  test de garde écrit en 0.9.29 qui les a réclamées, en nommant le fichier
+  fautif — il a fait exactement son travail.
+
+### Supprimé
+
+#### Le pont des anciennes adresses `#seo` des réglages
+Livré en 0.9.29 avec une échéance de deux versions ; on est en 0.9.36. Un pont
+qui reste devient une deuxième façon d'adresser la même page, ce qui était
+l'argument pour le dater. La prop `tabPathTemplate` et sa génération côté Twig
+partent avec.
+
 ## [0.9.35] - 2026-08-31
 
 ### Supprimé
