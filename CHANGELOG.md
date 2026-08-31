@@ -5,6 +5,70 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.35] - 2026-08-31
+
+### Supprimé
+
+#### La page « Dossiers » n'existe plus, le menu la remplace
+`/backend/ged/folders` était un écran entier pour gérer une arborescence que le
+menu affiche déjà en permanence. Tout ce qu'elle savait faire est dans le
+panneau : créer, renommer, supprimer, reparenter — et maintenant **ordonner**,
+qui était la seule chose qui lui restait en propre.
+
+- Le glisser-déposer reprend ses **trois bandes** : déposer sur les 40 % du haut
+  insère avant, sur les 40 % du bas insère après, et le cinquième du milieu
+  reparente. Le docblock de la page annonçait 30/40/30 ; le code faisait
+  40/20/40, et c'est le code qui a été repris.
+- Les lignes du panneau passent à `min-h-8`. Sur la page, elles étaient en
+  `py-3` et pleine largeur ; dans 280 px, la bande « dedans » est la petite des
+  trois et il faut de la hauteur pour la viser.
+- L'entrée « Dossiers » disparaît du menu. Les dossiers n'ont plus de
+  destination à eux, ils ont un panneau — visible sur **toutes** les pages du
+  module au lieu d'une seule.
+- L'ancienne adresse **redirige** vers les documents plutôt que de renvoyer un
+  404 : elle a vécu un an dans des menus et des favoris. C'est un pont, à
+  retirer d'ici deux versions, comme celui du fragment `#seo`.
+- Tous les autres points d'entrée `/backend/ged/folders/*` restent : ce sont eux
+  que le panneau appelle.
+- L'arbre du panneau se trie enfin **par position**. `buildFolderTree` trie par
+  nom sauf si on lui dit autre chose, et le panneau ne lui disait rien : le
+  serveur enregistrait bien le nouvel ordre, le rendu suivant le remettait par
+  ordre alphabétique, et le glisser semblait n'avoir servi à rien. La page
+  supprimée avait ce comparateur ; le panneau hérite de son travail, il devait
+  hériter de ça aussi.
+- Une poignée de glissement apparaît sur les lignes. Une ligne qui est aussi un
+  lien se lit comme cliquable, pas comme déplaçable — rien ne disait qu'on
+  pouvait la prendre.
+### Corrigé
+
+#### Déposer un dossier au bord d'un autre le déplaçait n'importe où
+Et un dossier rangé dans un autre ne pouvait plus jamais en ressortir. Même
+cause : l'endpoint `reorder` attribue des positions et **ne touche jamais au
+parent**. Un dossier déposé à côté d'une ligne d'une autre branche était donc
+renuméroté dans l'ordre de cette branche tout en restant là où il était — il
+semblait sauter à un endroit que personne n'avait demandé, et déposer un dossier
+imbriqué à côté d'un dossier racine ne le faisait jamais remonter. Le parent est
+changé d'abord maintenant, et l'ordre seulement ensuite.
+
+#### Ranger un dossier dans son propre enfant faisait disparaître les deux
+`move()` n'avait aucun garde-fou. Les deux dossiers finissaient par se pointer
+l'un l'autre, plus aucun n'était joignable depuis une racine, et **tout écran qui
+construit un arbre cessait de les afficher** — eux et tout ce qu'ils
+contenaient. Les lignes restaient en base, inaccessibles à la moindre interface.
+C'est antérieur au chantier : la page supprimée avait le même glisser.
+
+Le serveur refuse maintenant le déplacement et le dit, le panneau ne le propose
+même plus (aucun repère de dépôt sur une ligne de sa propre descendance), et
+`buildFolderTree` promeut à la racine ce qu'il n'atteint pas — sans quoi une
+donnée déjà abîmée resterait invisible pour toujours, donc irréparable.
+
+### Modifié (suite)
+
+- Au passage, une incohérence part avec la page : elle glissait ses dossiers
+  sous le type MIME `application/x-aurora-folder`, le panneau sous
+  `application/x-aurora-document-folder`. Deux chaînes pour la même chose, il
+  n'en reste qu'une.
+
 ## [0.9.34] - 2026-08-31
 
 ### Corrigé

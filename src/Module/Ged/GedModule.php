@@ -70,7 +70,6 @@ final readonly class GedModule implements ModuleInterface, ModuleNavViewProvider
                 $this->documentsNavItem(),
                 $this->categoriesNavItem(),
                 $this->tagsNavItem(),
-                $this->foldersNavItem(),
             ], priority: 35),
         ];
     }
@@ -78,11 +77,15 @@ final readonly class GedModule implements ModuleInterface, ModuleNavViewProvider
     /**
      * The menu the reader gets while they are inside the GED.
      *
-     * The same four destinations as the project view, in one headerless group:
-     * four rows do not read as two families, and the column already carries the
-     * module's name in its header. What the view adds is underneath them - the
-     * folder tree, which is the whole point of declaring a view here rather
-     * than leaving the GED on the project menu.
+     * The same destinations as the project view, in one headerless group: a
+     * handful of rows do not read as two families, and the column already
+     * carries the module's name in its header. What the view adds is
+     * underneath them - the folder tree, which is the whole point of declaring
+     * a view here rather than leaving the GED on the project menu.
+     *
+     * Folders have no row of their own any more. They had a page, and the page
+     * is gone: its tree, its writes and its ordering are the panel below, which
+     * is on screen on every page of the module instead of one.
      *
      * The panel is named only when both documents and folders are on. A tree of
      * folders with no way to open one is a decoration, and a reader who cannot
@@ -151,10 +154,6 @@ final readonly class GedModule implements ModuleInterface, ModuleNavViewProvider
             $items[] = $this->tagsNavItem();
         }
 
-        if ($this->gedContext->isFoldersEnabled()) {
-            $items[] = $this->foldersNavItem();
-        }
-
         return $items;
     }
 
@@ -171,10 +170,5 @@ final readonly class GedModule implements ModuleInterface, ModuleNavViewProvider
     private function tagsNavItem(): NavItem
     {
         return new NavItem('backend_ged_tags', 'backend.nav.ged_tags', 'tag', requiredPrivilege: 'ged.tags.manage', descriptionKey: 'backend.nav.ged_tags_description');
-    }
-
-    private function foldersNavItem(): NavItem
-    {
-        return new NavItem('backend_ged_folders', 'backend.nav.ged_folders', 'folder', requiredPrivilege: 'ged.folders.manage', descriptionKey: 'backend.nav.ged_folders_description');
     }
 }

@@ -51,6 +51,22 @@ final class GedModuleTest extends TestCase
         self::assertSame([], $this->makeModule(backendEnabled: false)->getNavSections());
     }
 
+    /**
+     * Folders lost their menu row when their page was deleted: the tree, its
+     * writes and its ordering live in the module view's panel now, which is on
+     * screen throughout the module rather than on one page. The toggle still
+     * decides whether that panel is drawn.
+     */
+    public function testFoldersHaveNoRowOfTheirOwn(): void
+    {
+        $routes = array_map(
+            static fn ($item): string => $item->route,
+            $this->makeModule()->getCatalogNavSections()[0]->items,
+        );
+
+        self::assertNotContains('backend_ged_folders', $routes);
+    }
+
     public function testGetNavSectionsReturnsEmptyWhenAllSubFeaturesDisabled(): void
     {
         $sections = $this->makeModule(
@@ -118,7 +134,7 @@ final class GedModuleTest extends TestCase
         self::assertCount(1, $view->groups);
         self::assertContainsOnlyInstancesOf(ModuleNavGroup::class, $view->groups);
         self::assertNull($view->groups[0]->labelKey);
-        self::assertCount(4, $view->groups[0]->items);
+        self::assertCount(3, $view->groups[0]->items);
     }
 
     /**
@@ -129,7 +145,7 @@ final class GedModuleTest extends TestCase
      */
     public function testGetModuleNavViewShowsTheSameDestinationsAsTheProjectMenu(): void
     {
-        $module = $this->makeModule(categoriesEnabled: false, tagsEnabled: false);
+        $module = $this->makeModule(categoriesEnabled: false);
 
         $sectionRoutes = array_map(
             static fn ($item): string => $item->route,
@@ -140,7 +156,7 @@ final class GedModuleTest extends TestCase
             $module->getModuleNavView()->groups[0]->items,
         );
 
-        self::assertSame(['backend_ged_documents', 'backend_ged_folders'], $sectionRoutes);
+        self::assertSame(['backend_ged_documents', 'backend_ged_tags'], $sectionRoutes);
         self::assertSame($sectionRoutes, $viewRoutes);
     }
 

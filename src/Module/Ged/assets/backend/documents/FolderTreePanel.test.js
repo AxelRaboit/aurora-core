@@ -256,3 +256,226 @@ describe("the panel on an installation with no folder yet", () => {
         ]);
     });
 });
+
+describe("dragging a folder onto another", () => {
+    const FOLDER_MIME = "application/x-aurora-document-folder";
+
+    /** A row 100 px tall, so a clientY reads straight as a percentage. */
+    function rowAt(wrapper, index) {
+        const row = wrapper.findAll("[data-folder-depth]")[index];
+        row.element.getBoundingClientRect = () => ({ top: 0, height: 100 });
+
+        return row;
+    }
+
+    const dragging = (id) => ({
+        types: [FOLDER_MIME],
+        getData: (type) => (type === FOLDER_MIME ? String(id) : ""),
+        effectAllowed: "",
+        dropEffect: "",
+    });
+
+    const posted = () =>
+        global.fetch.mock.calls
+            .map(([url, init]) => ({ url: String(url), body: init?.body }))
+            .filter((call) => call.body);
+
+    /**
+     * The middle fifth of the row. This is the gesture the panel already had -
+     * the one the dedicated folders page called "into".
+     */
+    it("reparents when dropped on the middle", async () => {
+        const wrapper = await render();
+
+        // Row 0 is "Contrats"; dropping "Factures" on its middle nests it.
+        await rowAt(wrapper, 0).trigger("drop", {
+            clientY: 50,
+            dataTransfer: dragging(3),
+        });
+
+        const call = posted().at(-1);
+        expect(call.url).toBe("/backend/ged/folders/3/move");
+        expect(JSON.parse(call.body)).toEqual({ parentId: 1 });
+    });
+
+    /**
+     * The top and bottom bands, which the panel did not have. Without them the
+     * folders page cannot be deleted: ordering would have nowhere to live.
+     */
+    it("reorders when dropped on the top edge", async () => {
+        const wrapper = await render();
+
+        // Row 2 is "Factures", a root folder; dropping "Contrats" above it
+        // reorders the two roots rather than nesting one in the other.
+        await rowAt(wrapper, 2).trigger("drop", {
+            clientY: 10,
+            dataTransfer: dragging(1),
+        });
+
+        const call = posted().at(-1);
+        expect(call.url).toBe("/backend/ged/folders/reorder");
+        expect(JSON.parse(call.body)).toEqual({ ids: [1, 3] });
+    });
+
+    it("reorders the other way on the bottom edge", async () => {
+        const wrapper = await render();
+
+        await rowAt(wrapper, 2).trigger("drop", {
+            clientY: 90,
+            dataTransfer: dragging(1),
+        });
+
+        expect(JSON.parse(posted().at(-1).body)).toEqual({ ids: [3, 1] });
+    });
+
+    /** A document has no rank among folders: only the middle applies to it. */
+    it("files a document into the folder wherever it lands on the row", async () => {
+        const wrapper = await render();
+        const DOC_MIME = "application/x-aurora-document";
+
+        await rowAt(wrapper, 2).trigger("drop", {
+            clientY: 5,
+            dataTransfer: {
+                types: [DOC_MIME],
+                getData: (t) => (t === DOC_MIME ? "42" : ""),
+            },
+        });
+
+        const call = posted().at(-1);
+        expect(call.url).toBe("/backend/ged/documents/bulk-move");
+        expect(JSON.parse(call.body)).toEqual({ ids: [42], folderId: 3 });
+    });
+});
+
+describe("the order the reader dragged into place", () => {
+    /**
+     * The tree builder sorts alphabetically unless told otherwise, so the
+     * order came back sorted by name on the very next render: the server had
+     * stored it, the screen ignored it, and the drag looked like it had done
+     * nothing at all.
+     */
+    it("follows position, not the alphabet", async () => {
+        answerWith({
+            success: true,
+            folders: [
+                {
+                    id: 1,
+                    name: "Zèbres",
+                    parentId: null,
+                    position: 0,
+                    documentCount: 0,
+                },
+                {
+                    id: 2,
+                    name: "Abeilles",
+                    parentId: null,
+                    position: 1,
+                    documentCount: 0,
+                },
+            ],
+        });
+
+        const names = (await render())
+            .findAll("[data-folder-depth] a")
+            .map((a) => a.text());
+
+        expect(names).toEqual(["Zèbres", "Abeilles"]);
+    });
+
+    it("falls back to the name when two share a position", async () => {
+        answerWith({
+            success: true,
+            folders: [
+                {
+                    id: 1,
+                    name: "Zèbres",
+                    parentId: null,
+                    position: 0,
+                    documentCount: 0,
+                },
+                {
+                    id: 2,
+                    name: "Abeilles",
+                    parentId: null,
+                    position: 0,
+                    documentCount: 0,
+                },
+            ],
+        });
+
+        const names = (await render())
+            .findAll("[data-folder-depth] a")
+            .map((a) => a.text());
+
+        expect(names).toEqual(["Abeilles", "Zèbres"]);
+    });
+});
+
+describe("dragging a folder out of the branch it sits in", () => {
+    const FOLDER_MIME = "application/x-aurora-document-folder";
+
+    function rowAt(wrapper, index) {
+        const row = wrapper.findAll("[data-folder-depth]")[index];
+        row.element.getBoundingClientRect = () => ({ top: 0, height: 100 });
+
+        return row;
+    }
+
+    const dragging = (id) => ({
+        types: [FOLDER_MIME],
+        getData: (type) => (type === FOLDER_MIME ? String(id) : ""),
+        effectAllowed: "",
+        dropEffect: "",
+    });
+
+    const posted = () =>
+        global.fetch.mock.calls
+            .map(([url, init]) => ({ url: String(url), body: init?.body }))
+            .filter((call) => call.body);
+
+    /**
+     * The bug that made a nested folder impossible to get back out. `reorder`
+     * assigns positions and never touches a parent, so dropping "2026" beside
+     * a root folder renumbered it into the roots' order while leaving it inside
+     * "Contrats" - it looked like it had jumped somewhere nobody asked for, and
+     * the only way out was gone.
+     */
+    it("changes the parent before writing the new order", async () => {
+        const wrapper = await render();
+
+        // "2026" sits under "Contrats"; drop it above the root "Factures".
+        await rowAt(wrapper, 2).trigger("drop", {
+            clientY: 10,
+            dataTransfer: dragging(2),
+        });
+        // Two requests in sequence: the second only starts once the first has
+        // resolved, so one tick is not enough.
+        await flushPromises();
+        await flushPromises();
+
+        const calls = posted().slice(-2);
+        expect(calls[0].url).toBe("/backend/ged/folders/2/move");
+        expect(JSON.parse(calls[0].body)).toEqual({ parentId: null });
+        expect(calls[1].url).toBe("/backend/ged/folders/reorder");
+    });
+
+    /**
+     * Filing a folder inside its own child points the two at each other, and
+     * every screen that builds a tree stops drawing them. The server refuses
+     * it; the panel does not even offer it.
+     */
+    it("refuses to drop a folder into its own child", async () => {
+        const wrapper = await render();
+        const before = posted().length;
+
+        await rowAt(wrapper, 0).trigger("dragstart", {
+            dataTransfer: { setData: () => {}, effectAllowed: "" },
+        });
+        await rowAt(wrapper, 1).trigger("drop", {
+            clientY: 50,
+            dataTransfer: dragging(1),
+        });
+
+        expect(posted()).toHaveLength(before);
+    });
+});

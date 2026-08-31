@@ -25,6 +25,7 @@ import {
     ChevronDown,
     ChevronRight,
     Folder,
+    GripVertical,
     Home,
     Layers,
     Pencil,
@@ -99,9 +100,12 @@ const {
     openEditFolder,
     submitFolder,
     confirmDeleteFolder,
-    dragOverFolderId,
+    dropTarget,
+    draggingFolderId,
+    onFolderDragStart,
     onFolderDragOver,
     onDragLeave,
+    onDragEnd,
     onFolderDrop,
 } = useFolderPanelActions({
     folders,
@@ -151,6 +155,10 @@ function onRowClick(event, target) {
 }
 
 const isCurrent = (folderId) => currentFolderId.value === folderId;
+
+/** Which of the three bands the drag is over, for this row. */
+const zoneOn = (folderId) =>
+    dropTarget.value?.id === folderId ? dropTarget.value.zone : null;
 const rowClasses = (active) => itemClasses("ged", { isActive: active });
 </script>
 
@@ -242,9 +250,10 @@ const rowClasses = (active) => itemClasses("ged", { isActive: active });
         </div>
         <div
             :class="
-                dragOverFolderId === 0 ? 'rounded-md ring-1 ring-lime-500' : ''
+                zoneOn(0) ? 'rounded-md ring-1 ring-lime-500' : ''
             "
-            v-on:dragover="onFolderDragOver($event, 0)"
+            v-on:dragover="onFolderDragOver($event, { id: 0, parentId: null })"
+            v-on:dragend="onDragEnd"
             v-on:dragleave="onDragLeave"
             v-on:drop="onFolderDrop($event, null)"
             v-on:click="onRowClick($event, { folderId: null, scope: 'root' })"
@@ -277,25 +286,43 @@ const rowClasses = (active) => itemClasses("ged", { isActive: active });
         <div
             v-for="folder in flatFolders"
             :key="folder.id"
-            class="group flex items-center"
+            class="group relative flex min-h-8 items-center"
             :data-folder-depth="folder.depth"
-            :class="
-                dragOverFolderId === folder.id
+            :class="[
+                'into' === zoneOn(folder.id)
                     ? 'rounded-md ring-1 ring-lime-500'
-                    : ''
-            "
+                    : '',
+                draggingFolderId === folder.id ? 'opacity-40' : '',
+            ]"
             :style="{ paddingLeft: `${folder.depth * 0.75}rem` }"
             :draggable="canManage"
-            v-on:dragstart="
-                $event.dataTransfer.setData(
-                    'application/x-aurora-document-folder',
-                    String(folder.id),
-                )
-            "
-            v-on:dragover="onFolderDragOver($event, folder.id)"
+            v-on:dragstart="onFolderDragStart($event, folder)"
+            v-on:dragover="onFolderDragOver($event, folder)"
             v-on:dragleave="onDragLeave"
-            v-on:drop="onFolderDrop($event, folder.id)"
+            v-on:dragend="onDragEnd"
+            v-on:drop="onFolderDrop($event, folder)"
         >
+            <!-- The two ordering bands are the top and bottom 40 % of the row;
+                 the middle fifth reparents. `min-h-8` is what makes that
+                 middle band big enough to hit here - on the folders page these
+                 rows were `py-3` and the column is 280 px wide. -->
+            <div
+                v-if="'before' === zoneOn(folder.id)"
+                class="pointer-events-none absolute inset-x-0 top-0 h-0.5 rounded-full bg-lime-500"
+            />
+            <div
+                v-if="'after' === zoneOn(folder.id)"
+                class="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-lime-500"
+            />
+            <!-- Says the row can be dragged, which nothing else does: a row
+                 that is also a link reads as clickable, not as movable. Dim
+                 until the row is hovered, like the folders page had it. -->
+            <GripVertical
+                v-if="canManage"
+                class="h-3 w-3 shrink-0 text-muted/40 transition-colors group-hover:text-muted"
+                :stroke-width="2"
+            />
+
             <!-- Unfolding is not going somewhere, so it is a button beside the
                  link and not part of it: looking inside a folder must not cost
                  the reader the page they are on. -->

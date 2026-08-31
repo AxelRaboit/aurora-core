@@ -144,6 +144,45 @@ final class DocumentFolderManagerTest extends TestCase
         self::assertNull($folder->getParent());
     }
 
+    /**
+     * The move that takes folders off every screen: filing one inside its own
+     * child points the two at each other, so neither can be reached from a
+     * root and every tree-building client stops drawing them - along with
+     * everything beneath. The rows stay in the table, unreachable by any
+     * interface, which is why this has to be refused rather than repaired.
+     */
+    public function testMoveRefusesToFileAFolderInsideItsOwnDescendant(): void
+    {
+        $parent = new DocumentFolder();
+        $child = new DocumentFolder();
+        $child->setParent($parent);
+        $grandChild = new DocumentFolder();
+        $grandChild->setParent($child);
+
+        $this->entityManager->expects(self::never())->method('flush');
+
+        self::assertFalse($this->manager->move($parent, $grandChild));
+        self::assertNull($parent->getParent());
+    }
+
+    public function testMoveRefusesToFileAFolderInsideItself(): void
+    {
+        $folder = new DocumentFolder();
+
+        self::assertFalse($this->manager->move($folder, $folder));
+    }
+
+    public function testMoveAllowsASiblingBranch(): void
+    {
+        $parent = new DocumentFolder();
+        $child = new DocumentFolder();
+        $child->setParent($parent);
+        $elsewhere = new DocumentFolder();
+
+        self::assertTrue($this->manager->move($child, $elsewhere));
+        self::assertSame($elsewhere, $child->getParent());
+    }
+
     public function testMoveCallsFlush(): void
     {
         $this->entityManager->expects(self::once())->method('flush');

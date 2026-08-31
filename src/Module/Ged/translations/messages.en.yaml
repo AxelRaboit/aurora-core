@@ -206,6 +206,7 @@ backend:
       search_placeholder: Search a folder…
       no_parent: None (root)
       errors:
+        cycle: "A folder cannot be filed inside one of its own subfolders."
         name_required: Name is required
 ged:
   frontend:

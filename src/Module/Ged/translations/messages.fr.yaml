@@ -206,6 +206,7 @@ backend:
       search_placeholder: Rechercher un dossier…
       no_parent: Aucun (racine)
       errors:
+        cycle: "Impossible de ranger un dossier dans un de ses propres sous-dossiers."
         name_required: Le nom est obligatoire
 ged:
   frontend:
