@@ -178,19 +178,30 @@ final class ThemeContext
      * la surface contient suit : libellés, mentions discrètes, bordures, et les
      * panneaux de menu déroulant, peints en `bg-bg`, qui se retrouvent ainsi sur
      * le fond de leur topbar plutôt que sur celui de la page.
+     *
+     * `$overrides` porte les couleurs de la page en cours de rendu, quand elle
+     * en a - une publication peut habiller ses trois surfaces pour elle seule.
+     * La substitution se fait surface par surface, et pas en bloc : une
+     * publication qui ne choisit que sa topbar garde le fond et le pied du
+     * thème, ce qui est le seul sens qui rende `null` utilisable comme
+     * « hérite ». Les couleurs arrivent déjà validées par la frontière
+     * d'écriture, ici on ne fait que refuser le vide.
+     *
+     * @param array<string, string|null> $overrides couleurs par clé de surface, cf. self::SURFACES
      */
-    public function frontendSurfacesCss(): string
+    public function frontendSurfacesCss(array $overrides = []): string
     {
         $config = $this->activeTheme()?->getConfig() ?? [];
         $rules = [];
 
         foreach (self::SURFACES as $key => $selector) {
-            $color = $config[$key] ?? null;
-            if (!is_string($color)) {
-                continue;
-            }
+            // Le vide vaut l'absence des deux côtés, et pas seulement `null` :
+            // sans ça une chaîne vide passerait le `??` et éteindrait la
+            // couleur du thème au lieu de la laisser passer.
+            $color = $this->surfaceColor($overrides[$key] ?? null)
+                ?? $this->surfaceColor($config[$key] ?? null);
 
-            if ('' === mb_trim($color)) {
+            if (null === $color) {
                 continue;
             }
 
@@ -203,5 +214,17 @@ final class ThemeContext
         }
 
         return implode('', $rules);
+    }
+
+    /** Une couleur de surface utilisable, ou null - le vide n'en est pas une. */
+    private function surfaceColor(mixed $raw): ?string
+    {
+        if (!is_string($raw)) {
+            return null;
+        }
+
+        $color = mb_trim($raw);
+
+        return '' !== $color ? $color : null;
     }
 }

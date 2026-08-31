@@ -62,6 +62,19 @@ interface PostInputInterface
     /** @return array<string, mixed> */
     public function getGalleryLayout(): array;
 
+    /**
+     * The publication's own colour for the topbar, or null to keep whatever the
+     * active theme paints there. Already `#rrggbb` or null by the time it gets
+     * here - the factory is what refuses anything else.
+     */
+    public function getHeaderColor(): ?string;
+
+    /** Likewise for the footer. */
+    public function getFooterColor(): ?string;
+
+    /** Likewise for the page background. */
+    public function getBackgroundColor(): ?string;
+
     /** Returns a copy with a different status, leaving everything else alone. */
     public function withStatus(string $status): self;
 }

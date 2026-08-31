@@ -487,6 +487,7 @@ backend:
       content: Content
       header: Header
       settings: Settings
+      appearance: Appearance
       seo: Search engines
       gallery: Gallery
     terms: Terms
@@ -560,20 +561,11 @@ backend:
     alt_placeholder: "What the picture shows"
     caption_placeholder: "A line under the picture"
     appearance:
-      colors_title: "Colors"
-      colors_help: "Override the active theme's colors for this publication only. Leave empty to use theme colors."
-      header_color: "Header / Topbar"
-      footer_color: "Footer"
-      background_color: "Background"
-      color_unset: "inherit from theme"
-      clear_color: "Clear color"
-    tabs:
-      settings: Settings
-      appearance: Appearance
-      header: Header
-      content: Content
-      gallery: Gallery
-      seo: SEO
+      surfaces_title: Colours
+      surfaces_hint: "Set for this publication only, over whatever the active theme paints. A surface left empty keeps the theme's own colour. The text on each one is chosen for contrast, as it is in the theme screen."
+      surface_background: Page background
+      surface_header: Topbar
+      surface_footer: Footer
   taxonomies:
     title: Taxonomies
     empty: No taxonomy yet.

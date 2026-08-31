@@ -18,12 +18,11 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppFocalPointField from "@/shared/components/form/file/AppFocalPointField.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
-import AppColorSwatch from "@/shared/components/form/picker/AppColorSwatch.vue";
-import AppTextLinkButton from "@/shared/components/action/AppTextLinkButton.vue";
+import BannerColorField from "./components/BannerColorField.vue";
 import PostBannerPanel from "./components/PostBannerPanel.vue";
 import PostGridPanel from "./components/PostGridPanel.vue";
 import PostGalleryPanel from "./components/PostGalleryPanel.vue";
-import { Save, ArrowLeft, AlertTriangle, Check, Eye, RefreshCw, X } from "lucide-vue-next";
+import { Save, ArrowLeft, AlertTriangle, Check, Eye, RefreshCw } from "lucide-vue-next";
 
 const { t, d } = useI18n();
 
@@ -265,6 +264,20 @@ async function openPreview() {
     }
 }
 
+/**
+ * Les trois surfaces colorables, dans l'ordre où l'écran de thème les présente
+ * - fond, topbar, pied - parce que c'est le même choix vu deux fois et qu'un
+ * ordre différent entre les deux écrans se lit comme deux réglages différents.
+ *
+ * `key` est le champ du formulaire, pas la clé de configuration du thème : ici
+ * les couleurs sont trois colonnes sur la publication, pas un tableau JSON.
+ */
+const SURFACES = computed(() => [
+    { key: "backgroundColor", label: t("backend.posts.appearance.surface_background") },
+    { key: "headerColor", label: t("backend.posts.appearance.surface_header") },
+    { key: "footerColor", label: t("backend.posts.appearance.surface_footer") },
+]);
+
 const thumbnailFitOptions = computed(() =>
     THUMBNAIL_FITS.map((fit) => ({
         value: fit,
@@ -400,75 +413,21 @@ function termLabel(term) {
 
                 <div v-show="isTabActive('appearance')" class="space-y-4">
                     <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
-                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.appearance.colors_title") }}</h3>
-                        <p class="text-xs text-muted">{{ t("backend.posts.appearance.colors_help") }}</p>
+                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.appearance.surfaces_title") }}</h3>
+                        <p class="text-xs text-muted">{{ t("backend.posts.appearance.surfaces_hint") }}</p>
 
-                        <div class="space-y-3">
-                            <div class="flex items-end gap-3 bg-surface-2 rounded-lg px-3 py-2">
-                                <AppColorSwatch
-                                    :model-value="form.headerColor || ''"
-                                    size="sm"
-                                    v-on:update:model-value="form.headerColor = $event || null"
-                                />
-                                <div class="flex flex-col min-w-0 flex-1">
-                                    <span class="text-xs font-medium text-primary">{{ t("backend.posts.appearance.header_color") }}</span>
-                                    <span class="text-xs text-muted">{{ t("backend.posts.appearance.color_unset") }}</span>
-                                </div>
-                                <span v-if="form.headerColor" class="text-xs font-mono text-muted">{{ form.headerColor }}</span>
-                                <AppTextLinkButton
-                                    v-if="form.headerColor"
-                                    color="muted"
-                                    size="xs"
-                                    :title="t('backend.posts.appearance.clear_color')"
-                                    v-on:click="form.headerColor = null"
-                                >
-                                    ↺
-                                </AppTextLinkButton>
-                            </div>
-
-                            <div class="flex items-end gap-3 bg-surface-2 rounded-lg px-3 py-2">
-                                <AppColorSwatch
-                                    :model-value="form.footerColor || ''"
-                                    size="sm"
-                                    v-on:update:model-value="form.footerColor = $event || null"
-                                />
-                                <div class="flex flex-col min-w-0 flex-1">
-                                    <span class="text-xs font-medium text-primary">{{ t("backend.posts.appearance.footer_color") }}</span>
-                                    <span class="text-xs text-muted">{{ t("backend.posts.appearance.color_unset") }}</span>
-                                </div>
-                                <span v-if="form.footerColor" class="text-xs font-mono text-muted">{{ form.footerColor }}</span>
-                                <AppTextLinkButton
-                                    v-if="form.footerColor"
-                                    color="muted"
-                                    size="xs"
-                                    :title="t('backend.posts.appearance.clear_color')"
-                                    v-on:click="form.footerColor = null"
-                                >
-                                    ↺
-                                </AppTextLinkButton>
-                            </div>
-
-                            <div class="flex items-end gap-3 bg-surface-2 rounded-lg px-3 py-2">
-                                <AppColorSwatch
-                                    :model-value="form.backgroundColor || ''"
-                                    size="sm"
-                                    v-on:update:model-value="form.backgroundColor = $event || null"
-                                />
-                                <div class="flex flex-col min-w-0 flex-1">
-                                    <span class="text-xs font-medium text-primary">{{ t("backend.posts.appearance.background_color") }}</span>
-                                    <span class="text-xs text-muted">{{ t("backend.posts.appearance.color_unset") }}</span>
-                                </div>
-                                <span v-if="form.backgroundColor" class="text-xs font-mono text-muted">{{ form.backgroundColor }}</span>
-                                <AppTextLinkButton
-                                    v-if="form.backgroundColor"
-                                    color="muted"
-                                    size="xs"
-                                    :title="t('backend.posts.appearance.clear_color')"
-                                    v-on:click="form.backgroundColor = null"
-                                >
-                                    ↺
-                                </AppTextLinkButton>
-                            </div>
+                        <!-- BannerColorField rather than a bare AppColorField:
+                             an `<input type="color">` cannot hold nothing, and
+                             "no colour" is the value that means "keep the
+                             theme's". It is the same distinction the banner
+                             needed, so it is the same field. -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <BannerColorField
+                                v-for="surface in SURFACES"
+                                :key="surface.key"
+                                v-model="form[surface.key]"
+                                :label="surface.label"
+                            />
                         </div>
                     </div>
                 </div>

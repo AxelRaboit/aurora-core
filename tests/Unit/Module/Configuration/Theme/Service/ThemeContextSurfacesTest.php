@@ -130,4 +130,74 @@ final class ThemeContextSurfacesTest extends TestCase
 
         self::assertSame('', $css);
     }
+
+    // ── Surcharges de la page en cours de rendu ───────────────────────────────
+
+    public function testAnOverridePaintsASurfaceTheThemeLeftUnset(): void
+    {
+        $css = $this->contextWithConfig([])->frontendSurfacesCss(['header_color' => '#0f172a']);
+
+        self::assertStringContainsString('html[data-theme] .aurora-surface-header{', $css);
+        self::assertStringContainsString('--th-surface-bg: #0f172a;', $css);
+    }
+
+    public function testAnOverrideWinsOverTheThemeOnThatSurface(): void
+    {
+        $css = $this->contextWithConfig(['header_color' => '#ffffff'])
+            ->frontendSurfacesCss(['header_color' => '#0f172a']);
+
+        self::assertStringContainsString('--th-surface-bg: #0f172a;', $css);
+        self::assertStringNotContainsString('#ffffff', $css);
+    }
+
+    public function testANullOverrideLeavesTheThemeStanding(): void
+    {
+        // Le contrat du champ : vide veut dire « hérite », pas « éteins ».
+        $css = $this->contextWithConfig(['header_color' => '#0f172a'])
+            ->frontendSurfacesCss(['header_color' => null]);
+
+        self::assertStringContainsString('--th-surface-bg: #0f172a;', $css);
+    }
+
+    public function testABlankOverrideLeavesTheThemeStandingToo(): void
+    {
+        // Le vide n'est pas un choix, même arrivé sous forme de chaîne : sans
+        // ça une publication effacerait la couleur du thème sans le demander.
+        $css = $this->contextWithConfig(['header_color' => '#0f172a'])
+            ->frontendSurfacesCss(['header_color' => '   ']);
+
+        self::assertStringContainsString('--th-surface-bg: #0f172a;', $css);
+    }
+
+    public function testOverridingOneSurfaceLeavesTheOthersToTheTheme(): void
+    {
+        // Une publication qui ne choisit que sa topbar garde le fond du thème,
+        // ce qui est ce qui rend la surcharge par surface utilisable.
+        $css = $this->contextWithConfig([
+            'background_color' => '#ffffff',
+            'footer_color' => '#1f2937',
+        ])->frontendSurfacesCss(['header_color' => '#0f172a']);
+
+        self::assertStringContainsString('html[data-theme]{', $css);
+        self::assertStringContainsString('.aurora-surface-header{', $css);
+        self::assertStringContainsString('.aurora-surface-footer{', $css);
+        self::assertSame(3, mb_substr_count($css, '--th-primary'));
+    }
+
+    public function testAnOverriddenSurfaceCarriesItsContrastTokens(): void
+    {
+        // Le contraste est ce qui distingue « repeindre » de « rendre
+        // illisible » : la surcharge doit passer par le même calcul.
+        $css = $this->contextWithConfig([])->frontendSurfacesCss(['background_color' => '#0f172a']);
+
+        self::assertStringContainsString('--th-primary: rgb(243 244 246);', $css);
+    }
+
+    public function testNoOverrideBehavesExactlyAsBefore(): void
+    {
+        $withEmpty = $this->contextWithConfig(['background_color' => '#fef9c3'])->frontendSurfacesCss([]);
+        $withNone = $this->contextWithConfig(['background_color' => '#fef9c3'])->frontendSurfacesCss();
+
+        self::assertSame($withNone, $withEmpty);
+    }
 }

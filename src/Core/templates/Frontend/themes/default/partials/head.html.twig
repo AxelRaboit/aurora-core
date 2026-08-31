@@ -101,7 +101,11 @@
    thème expose les deux mécanismes, la couche curatée qui déduit tout un jeu de
    jetons d'une seule couleur, et la pose d'une variable `--th-*` à la main. La
    seconde est l'échappatoire, donc elle gagne. #}
-{% set surfacesCss = themeContext.frontendSurfacesCss() %}
+{# `surfaceOverrides` n'existe que sur les pages rendues à partir d'une
+   publication, qui peut habiller ses trois surfaces pour elle seule. Partout
+   ailleurs le thème répond seul, d'où le défaut vide plutôt qu'un `is defined`
+   à chaque appel. #}
+{% set surfacesCss = themeContext.frontendSurfacesCss(surfaceOverrides|default({})) %}
 {% if surfacesCss %}
     <style>{{ surfacesCss|raw }}</style>
 {% endif %}
