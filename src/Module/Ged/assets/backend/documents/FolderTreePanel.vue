@@ -42,20 +42,32 @@ const loading = ref(true);
 const failed = ref(false);
 
 /**
- * Which folder the reader is looking at, read from the address once.
+ * The documents page draws this tree itself, and draws it better: it creates,
+ * renames and deletes folders, it takes a document dropped onto one, and it
+ * carries "Tous les documents" and "Racine", which are filters the panel has no
+ * business owning. Two trees thirty centimetres apart answering the same
+ * question is worse than one.
  *
- * The documents page keeps this in the query string and rewrites it with
- * `history.replaceState` as the reader moves - without a reload, so the panel
- * cannot follow it. Highlighting the folder the page was *opened* on is the
- * honest half: it is right on arrival, and it never contradicts the page,
- * because the page owns its own sidebar highlight.
+ * So the panel steps aside there - and only there. Every other GED page keeps
+ * it, which is the whole reason it exists: before this, the tags page had no
+ * way to reach a folder at all.
+ *
+ * Matched exactly rather than by prefix: `/backend/ged/documents/42` is a
+ * document, and that page has no tree of its own.
  */
-const currentFolderId = ref(
-    Number(new URL(window.location.href).searchParams.get("folderId")) || null,
-);
+const ownedByThePage =
+    window.location.pathname.replace(/\/+$/, "") === DOCUMENTS_PATH;
 
+/**
+ * No current-folder highlight, and none is missing.
+ *
+ * The reader is only ever looking at *a* folder on the documents page, which is
+ * the one page this panel does not draw on. A highlight here would be a state
+ * that can never be true - the kind of code that looks like a feature and is
+ * really a leftover.
+ */
 const { flatFolders, collapsedFolderIds, toggleCollapse } =
-    useDocumentSidebarTree(folders, currentFolderId);
+    useDocumentSidebarTree(folders, ref(null));
 
 const isEmpty = computed(() => !loading.value && 0 === folders.value.length);
 
@@ -72,6 +84,12 @@ function folderHref(id) {
  * which are the navigation - are unaffected.
  */
 onMounted(async () => {
+    if (ownedByThePage) {
+        loading.value = false;
+
+        return;
+    }
+
     try {
         const response = await fetch(FOLDERS_ENDPOINT, {
             headers: { Accept: "application/json" },
@@ -88,7 +106,10 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div v-if="!failed" class="mt-2 border-t border-line pt-2">
+    <div
+        v-if="!failed && !ownedByThePage"
+        class="mt-2 border-t border-line pt-2"
+    >
         <p
             class="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted"
         >
@@ -143,20 +164,13 @@ onMounted(async () => {
                 <div class="min-w-0 flex-1">
                     <AppNavLink
                         :href="folderHref(folder.id)"
-                        :active="currentFolderId === folder.id"
                         :link-classes-override="
-                            itemClasses('ged', {
-                                isActive: currentFolderId === folder.id,
-                            })
+                            itemClasses('ged', { isActive: false })
                         "
                     >
                         <Folder
                             class="h-4 w-4 shrink-0"
-                            :class="
-                                iconClasses('ged', {
-                                    isActive: currentFolderId === folder.id,
-                                })
-                            "
+                            :class="iconClasses('ged', { isActive: false })"
                             :stroke-width="2"
                         />
                         <span class="min-w-0 flex-1 truncate">{{
