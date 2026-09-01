@@ -20,6 +20,11 @@ interface PostTypeInterface
 
     public function setLabel(string $label): static;
 
+    /** What this type of content is for, in the author's own words, or null. */
+    public function getDescription(): ?string;
+
+    public function setDescription(?string $description): static;
+
     public function getIcon(): ?string;
 
     public function setIcon(?string $icon): static;

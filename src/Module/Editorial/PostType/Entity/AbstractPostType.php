@@ -31,6 +31,17 @@ abstract class AbstractPostType implements PostTypeInterface
     #[ORM\Column(length: 50, nullable: true)]
     protected ?string $icon = null;
 
+    /**
+     * What this type of content is for, in the author's own words.
+     *
+     * Nullable because every post type that exists predates the column, and a
+     * required sentence would have to be invented for each of them on the way
+     * in. Where it is empty the side menu says what the type holds instead - a
+     * count is a fact, and a fact beats a blank line under a name.
+     */
+    #[ORM\Column(type: 'text', nullable: true)]
+    protected ?string $description = null;
+
     #[ORM\Column]
     protected bool $hasArchive = false;
 
@@ -90,6 +101,18 @@ abstract class AbstractPostType implements PostTypeInterface
     public function setLabel(string $label): static
     {
         $this->label = $label;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
 
         return $this;
     }

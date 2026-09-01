@@ -13,6 +13,21 @@ namespace Aurora\Core\Module\Nav;
  * module's own destinations, plus optionally a panel component for the cases a
  * list of links cannot express (a folder tree, a note list).
  *
+ * **The two views repeat each other, and that is the arrangement, not an
+ * oversight.** They are exclusive: the column shows one or the other, so a
+ * module view that listed only what the project menu cannot show would strand
+ * the reader - inside the GED, with no row for Tags, the only way to Tags is
+ * back out to the project view and in again. The module view has to be
+ * self-sufficient, which makes the repetition structural.
+ *
+ * Which leaves the question of whether the *project* menu should shrink to one
+ * row per module, now that all eight have a view. It should not. The rows it
+ * repeats are the one-click path to a destination from anywhere else in the
+ * application, and collapsing them would put every cross-module jump behind
+ * two clicks to save a duplication that costs nothing: both lists are built by
+ * the same `NavItem` builders inside each module, so they cannot drift the way
+ * two hand-maintained copies do - `GedModuleTest` asserts they agree.
+ *
  * Declared through {@see ModuleNavViewProviderInterface}, which a module opts
  * into. A module that declares nothing keeps a menu that never switches away
  * from the project view - which is every module today, and why adding this

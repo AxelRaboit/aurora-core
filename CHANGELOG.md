@@ -5,6 +5,73 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Modifié
+
+#### Les entrées d'enregistrement disent quelque chose, plus un slug
+La seconde ligne montrait `category`, `tag`, `primary` — le slug, c'est-à-dire un
+jeton technique juste sous « Modérer les commentaires des lecteurs et écarter les
+indésirables ». Une seconde ligne doit valoir la place qu'elle prend.
+
+Chaque entrée porte désormais la **description de l'enregistrement**, la même
+phrase que la page affiche : « Affichée dans l'en-tête, sur toutes les pages du
+site public » pour un menu. Quand il n'y en a pas, elle dit ce que
+l'enregistrement contient — « douze termes », « aucune publication » — ce qui est
+un fait et non une phrase, mais reste une information.
+
+Un type de contenu **n'a aucun champ description** : c'est le seul des quatre
+dans ce cas, et il tombe donc toujours sur le compte. Lui en donner un est une
+migration, pas un changement de menu.
+
+#### Un type de contenu peut enfin dire à quoi il sert
+Il était le seul des quatre familles d'Editorial sans champ description, donc le
+seul dont l'entrée de menu ne pouvait afficher qu'un compte là où les autres
+montrent une phrase. La colonne est nullable : tous les types existants sont
+antérieurs, et exiger une phrase aurait obligé à en inventer une pour chacun au
+passage de la migration. Un champ apparaît dans les formulaires de création et
+de modification.
+
+### Modifié (suite)
+
+#### Trois tests de la grille de publication cherchaient leur cible trop tôt
+`drag` envoie l'événement directement sur un élément, et ces trois-là prenaient
+la poignée **avant** le `dragstart` — donc une poignée vers ce que la grille
+affichait avant de savoir qu'un glissement commençait. Le surlignage re-rend ces
+nœuds ; le dépôt atterrissait alors sur un élément détaché et n'émettait rien.
+C'est ce qui faisait échouer le fichier de temps en temps et passer au coup
+suivant.
+
+La cible est cherchée après le début du glissement maintenant, et un rendu est
+attendu entre chaque étape. Je n'ai jamais réussi à reproduire l'échec — huit
+exécutions propres avant, six après — donc ceci supprime une vraie classe de
+course sans qu'on puisse affirmer que c'était celle-là.
+
+### Documenté
+
+#### Pourquoi les deux vues du menu se répètent
+La question revenait à chaque module. Les deux vues sont **exclusives** : la
+colonne montre l'une ou l'autre. Une vue de module qui n'afficherait que ce que
+le menu projet ne montre pas laisserait le lecteur bloqué — dans la GED, sans
+ligne « Étiquettes », le seul chemin vers les étiquettes serait de ressortir. La
+répétition est donc structurelle.
+
+Reste à savoir si le menu **projet** devrait se réduire à une ligne par module,
+maintenant que les huit ont une vue. Non : ces lignes sont le chemin en un clic
+vers une destination depuis n'importe où ailleurs, et les replier mettrait tout
+saut inter-module derrière deux clics pour supprimer une duplication qui ne
+coûte rien — les deux listes sont construites par les mêmes fabriques de
+`NavItem` dans chaque module, donc elles ne peuvent pas diverger comme deux
+copies tenues à la main. C'est écrit dans `ModuleNavView` pour qu'on cesse d'en
+débattre.
+
+### Supprimé
+
+#### Le pont `/backend/ged/folders`
+Livré en 0.9.35 avec une échéance de deux versions, retiré à la version dite.
+L'adresse renvoie maintenant un 404 ; les cinq points d'écriture sous le même
+préfixe restent, c'est eux que le panneau appelle.
+
 ## [0.9.37] - 2026-09-01
 
 ### Ajouté

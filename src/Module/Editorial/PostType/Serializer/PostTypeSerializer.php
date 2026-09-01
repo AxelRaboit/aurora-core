@@ -17,6 +17,7 @@ class PostTypeSerializer implements PostTypeSerializerInterface
             'id' => $postType->getId(),
             'label' => $postType->getLabel(),
             'slug' => $postType->getSlug(),
+            'description' => $postType->getDescription(),
             'icon' => $postType->getIcon(),
             'hasArchive' => $postType->hasArchive(),
             'isBuiltIn' => $postType->isBuiltIn(),

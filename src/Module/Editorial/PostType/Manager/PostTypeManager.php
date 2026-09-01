@@ -149,6 +149,7 @@ class PostTypeManager implements PostTypeManagerInterface
         }
 
         $postType->setLabel($input->getLabel());
+        $postType->setDescription($input->getDescription());
         $postType->setIcon($input->getIcon());
         $postType->setHasArchive($input->hasArchive());
         $postType->setSupports($input->getSupports());

@@ -16,7 +16,6 @@ use Aurora\Module\Ged\DocumentFolder\Serializer\DocumentFolderSerializerInterfac
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -34,21 +33,6 @@ final class DocumentFoldersController extends AbstractController
         private readonly DocumentFolderRepository $folderRepository,
         private readonly DocumentFolderInputFactoryInterface $inputFactory,
     ) {}
-
-    /**
-     * The page this used to render is gone: its tree, its writes and its
-     * three-band drag are in the side menu now, where they follow the reader
-     * across the whole module instead of living on one screen.
-     *
-     * The route stays, as a redirect, because the address was in menus and
-     * bookmarks for a year. A bridge, not a home - drop it in two versions,
-     * the same deal as the settings page's `#seo` fragment.
-     */
-    #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
-    public function index(): Response
-    {
-        return $this->redirectToRoute('backend_ged_documents');
-    }
 
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
     public function create(Request $request): JsonResponse

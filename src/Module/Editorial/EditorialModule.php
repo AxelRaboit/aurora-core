@@ -16,6 +16,7 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 use Aurora\Module\Editorial\Form\Entity\FormInterface;
 use Aurora\Module\Editorial\Form\Repository\FormRepository;
 use Aurora\Module\Editorial\Menu\Repository\MenuRepository;
+use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
@@ -194,7 +195,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     routeParams: ['id' => $taxonomy->getId()],
                     key: sprintf('editorial.taxonomy.%d', $taxonomy->getId()),
                     label: $this->taxonomyLabel($taxonomy),
-                    description: $taxonomy->getSlug(),
+                    description: $this->taxonomyDescription($taxonomy),
                 );
             }
 
@@ -215,7 +216,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     routeParams: ['id' => $menu->getId()],
                     key: sprintf('editorial.menu.%d', $menu->getId()),
                     label: $menu->getName(),
-                    description: $menu->getLocation(),
+                    description: $menu->getDescription() ?? '',
                 );
             }
 
@@ -236,7 +237,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     routeParams: ['id' => $form->getId()],
                     key: sprintf('editorial.form.%d', $form->getId()),
                     label: $this->formTitle($form),
-                    description: $form->getReference() ?? '',
+                    description: $this->formDescription($form),
                 );
             }
 
@@ -261,7 +262,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     // the active row would be all of them at once.
                     key: sprintf('editorial.post_type.%d', $postType->getId()),
                     label: $postType->getLabel(),
-                    description: $postType->getSlug(),
+                    description: $this->postTypeDescription($postType),
                 );
             }
 
@@ -293,6 +294,43 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
         }
 
         return $items;
+    }
+
+    /**
+     * What each entry says under its name.
+     *
+     * The record's own description, when it has one - the same sentence the
+     * page shows. It was the slug at first, which reads as a technical token
+     * beside "Modérer les commentaires des lecteurs" on the row above: a second
+     * line has to be worth the space it takes.
+     *
+     * The count is the fallback, not the rule: every one of the four has a
+     * description field now, and a record whose author left it blank says what
+     * it holds instead. A fact is not a sentence, but it beats a blank line
+     * under a name.
+     */
+    private function taxonomyDescription(TaxonomyInterface $taxonomy): string
+    {
+        $translation = $taxonomy->getTranslation($this->translator->getLocale())
+            ?? ($taxonomy->getTranslations()->first() ?: null);
+
+        return $translation?->getDescription()
+            ?? $this->translator->trans('backend.nav.counts.terms', ['%count%' => $taxonomy->getTerms()->count()]);
+    }
+
+    private function formDescription(FormInterface $form): string
+    {
+        $translation = $form->getTranslation($this->translator->getLocale())
+            ?? ($form->getTranslations()->first() ?: null);
+
+        return $translation?->getDescription()
+            ?? $this->translator->trans('backend.nav.counts.fields', ['%count%' => $form->getFields()->count()]);
+    }
+
+    private function postTypeDescription(PostTypeInterface $postType): string
+    {
+        return $postType->getDescription()
+            ?? $this->translator->trans('backend.nav.counts.posts', ['%count%' => $postType->getPosts()->count()]);
     }
 
     /**
