@@ -89,9 +89,34 @@ class UsersController extends AbstractController
         return $this->jsonSuccess(['items' => $items]);
     }
 
+    /**
+     * One address, two answers: the user's record for the page's own XHR, and
+     * the listing with that user open for somebody arriving from a link.
+     *
+     * A user was a modal over a table and nothing else - it could not be sent
+     * to a colleague, did not appear in the breadcrumb and was invisible to the
+     * palette. Same treatment the settings tabs got in 0.9.29, and the same
+     * `X-Requested-With` contract `AuditController` uses, which every call
+     * through `useRequest` already sends.
+     *
+     * The listing does not redirect to a first user the way Editorial's do: a
+     * user list is a table you browse and filter, and the record is what you
+     * open from it. `/users` is a destination in its own right.
+     */
     #[Route('/{id}', name: '_show', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
-    public function show(User $user): JsonResponse
+    public function show(User $user, Request $request): Response
     {
+        if (!$request->isXmlHttpRequest()) {
+            $currentUser = $this->getUser();
+
+            return $this->render('@Platform/backend/users/index.html.twig', $this->viewBuilder->indexView(
+                $this->isGranted(UserRoleEnum::Dev->value),
+                $currentUser instanceof User ? $currentUser : null,
+                $this->isGranted('platform.users.module_access.manage'),
+                $user->getId(),
+            ));
+        }
+
         return $this->jsonSuccess(['user' => $this->userSerializer->serializeWithSubordinates($user)]);
     }
 
