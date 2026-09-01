@@ -42,10 +42,36 @@ class PostTypesController extends AbstractController
         private readonly PostTypeFieldInputFactoryInterface $postTypeFieldInputFactory,
     ) {}
 
+    /**
+     * Sends the reader to the first post type, so the listing has exactly one
+     * address per record rather than a bare `/post-types` that shows the same
+     * thing as `/post-types/3`. Same arrangement the settings page took in
+     * 0.9.29, and for the same reason: two ways to address one view is one too
+     * many.
+     *
+     * Renders the empty state instead when there is nothing to redirect to.
+     */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
     {
+        $first = $this->viewBuilder->firstId();
+
+        if (null !== $first) {
+            return $this->redirectToRoute('backend_editorial_post_types_show', ['id' => $first]);
+        }
+
         return $this->render('@Editorial/backend/post-types/index.html.twig', $this->viewBuilder->indexView());
+    }
+
+    /**
+     * The digit requirement is not decoration: `/{id}` with none would swallow
+     * any literal GET sub-route added here later, silently, because Symfony
+     * matches in declaration order.
+     */
+    #[Route('/{id}', name: '_show', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    public function show(PostType $postType): Response
+    {
+        return $this->render('@Editorial/backend/post-types/index.html.twig', $this->viewBuilder->indexView($postType->getId()));
     }
 
     #[Route('', name: '_create', methods: [HttpMethodEnum::Post->value])]

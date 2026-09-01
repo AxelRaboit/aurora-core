@@ -46,10 +46,31 @@ class MenusController extends AbstractController
         private readonly MenuTargetFinder $targetFinder,
     ) {}
 
+    /**
+     * One address per menu: a bare `/menus` redirects to the first rather than
+     * showing what `/menus/3` already shows.
+     */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
     {
+        $first = $this->viewBuilder->firstId();
+
+        if (null !== $first) {
+            return $this->redirectToRoute('backend_editorial_menus_show', ['id' => $first]);
+        }
+
         return $this->render('@Editorial/backend/menus/index.html.twig', $this->viewBuilder->indexView());
+    }
+
+    /**
+     * Digits only, and here it earns its keep rather than merely guarding the
+     * future: `/menus/targets` is a literal GET route on this very controller,
+     * and without the requirement `/{id}` would answer for it.
+     */
+    #[Route('/{id}', name: '_show', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    public function show(Menu $menu): Response
+    {
+        return $this->render('@Editorial/backend/menus/index.html.twig', $this->viewBuilder->indexView($menu->getId()));
     }
 
     /**

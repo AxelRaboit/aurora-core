@@ -39,10 +39,12 @@ const props = defineProps({
     fieldReorderPathTemplate: { type: String, required: true },
     submissionsPathTemplate: { type: String, required: true },
     exportPathTemplate: { type: String, required: true },
+    /** The form this URL is. Decided by the server, not by the browser. */
+    activeId: { type: Number, default: null },
 });
 
 const {
-    items, selectedId, selected, upsert,
+    items, selected, upsert,
     showEditor, editing, editorForm, errors, loading,
     openCreate, openEdit, submit, addStep, removeStep,
     pendingDelete, deleteLoading, doDelete,
@@ -101,37 +103,15 @@ function formatDate(value) {
         </template>
     </AppNoData>
 
-    <div v-else class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-4">
-        <aside class="space-y-2">
-            <AppButton
-                v-if="can('editorial.forms.create')"
-                variant="primary"
-                size="md"
-                class="w-full"
-                v-on:click="openCreate"
-            >
+    <div v-else class="space-y-4">
+        <!-- No picker column: the side menu lists the forms, one entry per
+             record and one address each. The create button stays - a group
+             header in the menu has nowhere to put one. -->
+        <div v-if="can('editorial.forms.create')" class="flex justify-end">
+            <AppButton variant="primary" size="md" v-on:click="openCreate">
                 <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.forms.create") }}
             </AppButton>
-
-            <button
-                v-for="form in items"
-                :key="form.id"
-                type="button"
-                class="w-full text-left px-4 py-3 rounded-xl border transition-colors"
-                :class="form.id === selectedId
-                    ? 'bg-surface border-accent-500/60 text-primary'
-                    : 'bg-surface border-line/60 text-secondary hover:text-primary hover:bg-surface-2/40'"
-                v-on:click="selectedId = form.id"
-            >
-                <span class="flex items-center justify-between gap-2">
-                    <span class="font-medium truncate">{{ titleOf(form) }}</span>
-                    <AppBadge v-if="!form.active" color="amber">{{ t("backend.forms.active") }}</AppBadge>
-                </span>
-                <span class="block text-xs text-muted mt-0.5 truncate">
-                    {{ form.reference }} · {{ t("backend.forms.submissions.title") }} {{ form.submissionCount }}
-                </span>
-            </button>
-        </aside>
+        </div>
 
         <section v-if="selected" class="space-y-4">
             <div class="bg-surface border border-line rounded-xl p-5 space-y-3">

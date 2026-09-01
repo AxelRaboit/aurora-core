@@ -22,9 +22,29 @@ final readonly class PostTypesViewBuilder
     /**
      * @return array<string, mixed>
      */
-    public function indexView(): array
+    /**
+     * The post type a bare `/post-types` should send the reader to, or null
+     * when there is nothing to send them to.
+     *
+     * Asked of the builder rather than of a repository injected into the
+     * controller: the builder already owns the ordering the menu and the page
+     * both show, and "first" has to mean the same thing in all three.
+     */
+    public function firstId(): ?int
+    {
+        $postTypes = $this->postTypeRepository->findAllWithRelations();
+
+        return [] === $postTypes ? null : $postTypes[0]->getId();
+    }
+
+    /**
+     * @param ?int $activeId the post type the address names, null when there
+     *                       are none to name
+     */
+    public function indexView(?int $activeId = null): array
     {
         return [
+            'activeId' => $activeId,
             'postTypes' => array_map(
                 $this->postTypeSerializer->serialize(...),
                 $this->postTypeRepository->findAllWithRelations(),

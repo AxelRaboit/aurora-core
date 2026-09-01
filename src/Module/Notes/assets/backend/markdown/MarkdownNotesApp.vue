@@ -18,7 +18,9 @@ import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import AppModal from '@shared/components/overlay/AppModal.vue';
 import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
-import { Plus, Trash2, FileText, PanelRightOpen, PanelRightClose, X, Settings2, Network, Menu, Share2} from 'lucide-vue-next';
+import { onMounted, onUnmounted } from 'vue';
+import { onPanelRequest } from '@/shared/nav/modulePanelBridge.js';
+import { Plus, Trash2, FileText, PanelRightOpen, PanelRightClose, X, Settings2, Network, Share2} from 'lucide-vue-next';
 
 const props = defineProps({
     notes: { type: Array, default: () => [] },
@@ -52,13 +54,14 @@ const props = defineProps({
      * the `extra-form-fields` slot's scoped `form` binding.
      */
     extraFields: { type: Object, default: () => ({}) },
+    /** The note this URL is. Decided by the server, not by the browser. */
+    activeId: { type: Number, default: null },
 });
 
 const { t } = useI18n();
 
 const {
     isMobile,
-    sidebarOpen,
     api,
     tagsApi,
     notes,
@@ -113,176 +116,42 @@ const {
 // sharing is opened from the toolbar and closed by the modal, and nothing in
 // the page composable reads it.
 const shareModalOpen = ref(false);
+
+/**
+ * The panel's half of the contract.
+ *
+ * A row was clicked: open that note in place, and the bridge cancels the link
+ * so the browser stays put - exactly what the tree's own handler did before it
+ * moved. The create button asks too, because making a note is naming it and
+ * putting the cursor in it, which only this page can do.
+ */
+const stopListening = [];
+
+onMounted(() => {
+    stopListening.push(
+        onPanelRequest('notes:note', ({ id }) => selectNote(id)),
+        onPanelRequest('notes:create', () => createNote(null)),
+    );
+});
+
+onUnmounted(() => {
+    while (stopListening.length) stopListening.pop()();
+});
+
 </script>
 
 <template>
     <div class="relative flex h-[calc(100vh-8rem)] bg-surface rounded-xl border border-line overflow-hidden">
-        <!-- Mobile backdrop - only renders while the drawer is open. -->
-        <div
-            v-if="isMobile && sidebarOpen"
-            class="absolute inset-0 z-30 bg-black/40 md:hidden"
-            v-on:click="sidebarOpen = false"
-        />
-
-        <!-- Sidebar tree - static column on md+, slide-in drawer below md.
-             Mobile uses an opaque `bg-surface` so the drawer hides the
-             editor behind it; desktop falls back to the tinted
-             `bg-surface-2/30` that pairs with the static column. -->
-        <aside
-            class="w-72 shrink-0 border-r border-line flex flex-col bg-surface md:bg-surface-2/30 z-40 md:z-auto transition-transform duration-200 md:relative md:translate-x-0 md:shadow-none absolute inset-y-0 left-0 shadow-xl"
-            :class="!isMobile || sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-        >
-            <div class="p-3 border-b border-line flex items-center justify-between gap-2">
-                <h2 class="text-sm font-semibold text-primary">{{ t('notes.markdown.title') }}</h2>
-                <div class="flex items-center gap-1">
-                    <AppIconButton
-                        :title="t('notes.markdown.graph.open')"
-                        size="sm"
-                        variant="ghost"
-                        v-on:click="graphOpen = true"
-                    >
-                        <Network class="w-4 h-4" :stroke-width="2" />
-                    </AppIconButton>
-                    <AppIconButton
-                        :title="t('notes.markdown.create_root')"
-                        size="sm"
-                        variant="ghost"
-                        v-on:click="() => createNote(null)"
-                    >
-                        <Plus class="w-4 h-4" :stroke-width="2" />
-                    </AppIconButton>
-                    <AppIconButton
-                        class="md:hidden"
-                        :title="t('shared.common.close')"
-                        size="sm"
-                        variant="ghost"
-                        v-on:click="sidebarOpen = false"
-                    >
-                        <X class="w-4 h-4" :stroke-width="2" />
-                    </AppIconButton>
-                </div>
-            </div>
-
-            <div class="px-3 pt-2">
-                <AppSearchInput
-                    v-model="treeQuery"
-                    :placeholder="t('notes.markdown.search_placeholder')"
-                />
-            </div>
-
-            <!-- Sidebar header extension point. Clients render custom
-                 controls (filter chips, view-switcher, etc.) right above
-                 the tree without forking this component. -->
-            <slot name="extra-headers" />
-
-
-            <div v-if="availableTags.length > 0" class="px-3 pt-2">
-                <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs font-medium text-muted uppercase tracking-wide">
-                        {{ t('notes.markdown.tags.filter_label') }}
-                    </span>
-                    <div class="flex items-center gap-2">
-                        <AppButton
-                            v-if="selectedTags.length > 0"
-                            variant="link"
-                            size="none"
-                            v-on:click="clearTags"
-                        >
-                            {{ t('notes.markdown.tags.clear') }}
-                        </AppButton>
-                        <AppIconButton
-                            size="sm"
-                            variant="ghost"
-                            :title="t('notes.markdown.tags.manage.title')"
-                            v-on:click="tagManagerOpen = true"
-                        >
-                            <Settings2 class="w-3.5 h-3.5" :stroke-width="2" />
-                        </AppIconButton>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-1">
-                    <AppTab
-                        v-for="tag in availableTags"
-                        :key="tag"
-                        size="xs"
-                        :active="selectedTags.includes(tag)"
-                        v-on:click="toggleTag(tag)"
-                    >
-                        {{ tag }}
-                    </AppTab>
-                </div>
-            </div>
-
-            <div
-                class="flex-1 overflow-auto p-2 transition-colors"
-                :class="rootDragOver ? 'bg-accent-50 dark:bg-accent-900/10 ring-1 ring-accent-500/40 rounded-md' : ''"
-                v-on:dragover="dragEnabled ? onDragOverRoot($event) : null"
-                v-on:dragleave="dragEnabled ? onDragLeaveRoot($event) : null"
-                v-on:drop="dragEnabled ? onDropOnRoot($event) : null"
-            >
-                <div v-if="tree.length > 0" class="space-y-0.5">
-                    <NoteTreeItem
-                        v-for="node in tree"
-                        :key="node.id"
-                        :node="node"
-                        :selected-id="selectedId"
-                        :draggable="dragEnabled"
-                        :dragging-id="draggingId"
-                        :drag-over-id="dragOverId"
-                        v-on:select="selectNote"
-                        v-on:create-child="createNote"
-                        v-on:delete="requestDelete"
-                        v-on:drag-start="onDragStart"
-                        v-on:drag-end="onDragEnd"
-                        v-on:drag-over="onDragOverNote"
-                        v-on:drag-leave="onDragLeaveNote"
-                        v-on:drop="onDropOnNote"
-                    >
-                        <!-- Forward the `extra-cells` slot down through
-                             the recursive tree so clients can decorate
-                             each row (status pill, custom icon, …)
-                             regardless of nesting depth. -->
-                        <template #extra-cells="{ note }">
-                            <slot name="extra-cells" :note="note" />
-                        </template>
-                    </NoteTreeItem>
-                </div>
-                <AppNoData
-                    v-else-if="treeQuery.trim() !== ''"
-                    :title="t('notes.markdown.search_no_results')"
-                    :description="t('notes.markdown.search_no_results_description', { query: treeQuery })"
-                    :icon="FileText"
-                />
-                <AppNoData
-                    v-else-if="selectedTags.length > 0"
-                    :title="t('notes.markdown.tags.no_results')"
-                    :description="t('notes.markdown.tags.no_results_description')"
-                    :icon="FileText"
-                />
-                <AppNoData
-                    v-else
-                    :title="t('notes.markdown.empty.title')"
-                    :description="t('notes.markdown.empty.description')"
-                    :icon="FileText"
-                />
-            </div>
-        </aside>
+        <!-- No tree column and no drawer of its own: the notes are in the
+             side menu's panel now, on every page of the module rather than
+             this one, and the menu already has a drawer on small screens.
+             Two drawers was two gestures to learn for the same thing. -->
 
         <!-- Editor pane -->
         <section class="flex-1 flex flex-col min-w-0">
             <div v-if="selectedNote" class="flex-1 flex flex-col">
                 <header class="p-4 border-b border-line flex flex-col gap-2">
                     <div class="flex flex-wrap items-center gap-2 md:gap-3">
-                        <AppIconButton
-                            class="md:hidden"
-                            :title="t('notes.markdown.title')"
-                            size="md"
-                            variant="ghost"
-                            v-on:click="sidebarOpen = true"
-                        >
-                            <Menu class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-
                         <AppInput
                             v-model="form.title"
                             :placeholder="t('notes.markdown.title_placeholder')"
@@ -425,14 +294,6 @@ const shareModalOpen = ref(false);
 
             <div v-else class="flex-1 flex flex-col">
                 <header class="p-3 border-b border-line flex items-center gap-2 md:hidden">
-                    <AppIconButton
-                        :title="t('notes.markdown.title')"
-                        size="md"
-                        variant="ghost"
-                        v-on:click="sidebarOpen = true"
-                    >
-                        <Menu class="w-4 h-4" :stroke-width="2" />
-                    </AppIconButton>
                     <h2 class="text-sm font-semibold text-primary">{{ t('notes.markdown.title') }}</h2>
                 </header>
                 <div class="flex-1 flex items-center justify-center text-muted text-sm">

@@ -14,6 +14,7 @@
 {% block body %}
 <div {{ vue_component('notes/backend/markdown/MarkdownNotesApp', {
     notes: notes,
+    activeId: activeId,
     listPath: listPath,
     showPath: showPath,
     createPath: createPath,

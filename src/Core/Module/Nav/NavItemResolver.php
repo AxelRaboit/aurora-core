@@ -52,7 +52,9 @@ final readonly class NavItemResolver
             'route' => $item->activeRoutePrefix ?? $item->route,
             'path' => $this->urlGenerator->generate($item->route, $item->routeParams),
             'labelKey' => $item->labelKey,
+            'label' => $item->label,
             'descriptionKey' => $item->descriptionKey,
+            'description' => $item->description,
             'icon' => $item->icon,
             'activeColor' => $item->activeColor,
             // Several entries on one route name cannot be told apart by that

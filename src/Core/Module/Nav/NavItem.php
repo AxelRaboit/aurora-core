@@ -17,6 +17,16 @@ final readonly class NavItem
      *                                          sont onze entrées sur `..._settings_tab`), et deux choses
      *                                          changent alors : il faut une `$key` distincte, et l'entrée
      *                                          active se reconnaît à son chemin, pas à son nom de route.
+     * @param ?string              $label       Libellé **littéral**, déjà lisible, quand le nom de l'entrée
+     *                                          est une donnée et non un mot de l'interface : un type de contenu
+     *                                          s'appelle « Article » parce que quelqu'un l'a saisi. `labelKey`
+     *                                          reste obligatoire et sert de repli ; passer le libellé dedans
+     *                                          reviendrait à demander à `t()` de traduire une donnée, qui
+     *                                          renverrait la chaîne telle quelle en avertissant à chaque rendu.
+     * @param ?string              $description Ligne secondaire **littérale**, même raison que `$label` : ce qui
+     *                                          distingue deux enregistrements est leur donnée - un slug, un
+     *                                          emplacement - et non une phrase de l'interface. C'est ce que la
+     *                                          colonne de sélection affichait sous le nom avant de disparaître.
      * @param ?string              $key         Identifiant stable, quand le nom de route n'en est pas un.
      *                                          Défaut : le nom de route, ce qu'il a toujours été. Renseigné,
      *                                          il devient ce que persistent les préférences utilisateur -
@@ -34,6 +44,8 @@ final readonly class NavItem
         public ?string $descriptionKey = null,
         public array $routeParams = [],
         public ?string $key = null,
+        public ?string $label = null,
+        public ?string $description = null,
     ) {}
 
     /** Ce que les préférences utilisateur persistent, et ce que la palette indexe. */

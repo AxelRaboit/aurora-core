@@ -18,6 +18,10 @@ import { HttpStatus } from "@/shared/utils/http/HttpStatus.js";
  *   signal    - AbortSignal for cancellation; aborted requests are silently ignored
  *   noGuard   - skip the loading guard so sequential calls in a loop work
  *   rawBody   - pass a non-JSON body (FormData, Blob…); Content-Type is omitted
+ *   silent    - no toast on failure; the caller reports it, or deliberately
+ *               does not. For a request the reader never asked for - a side
+ *               panel filling itself on arrival - a red toast on every page of
+ *               the module is louder than the thing it reports.
  */
 export function useRequest() {
     const { t } = useI18n();
@@ -32,6 +36,7 @@ export function useRequest() {
         const signal = isOpts ? (methodOrOpts.signal ?? null) : null;
         const noGuard = isOpts ? (methodOrOpts.noGuard ?? false) : false;
         const rawBody = isOpts ? (methodOrOpts.rawBody ?? null) : null;
+        const silent = isOpts ? (methodOrOpts.silent ?? false) : false;
 
         if (!noGuard && loading.value) return null;
         if (!noGuard) loading.value = true;
@@ -70,7 +75,7 @@ export function useRequest() {
             return await response.json();
         } catch (err) {
             if (err?.name === "AbortError") return null;
-            toast.error(t("shared.common.error"));
+            if (!silent) toast.error(t("shared.common.error"));
             return null;
         } finally {
             if (!noGuard) loading.value = false;

@@ -82,8 +82,19 @@ export function useSidemenuNav(
              */
             matchPath: item.matchPath ?? false,
             label:
-                itemAliases[item.key ?? item.route]?.trim() || t(item.labelKey),
-            description: item.descriptionKey ? t(item.descriptionKey) : "",
+                itemAliases[item.key ?? item.route]?.trim() ||
+                // A literal label wins over the key: an entry named after a
+                // record - a post type someone called "Article" - has nothing
+                // to translate, and handing that to `t()` would return the
+                // string while warning about a missing key on every render.
+                item.label ||
+                t(item.labelKey),
+            // Same rule as the label: an entry named after a record carries
+            // its own second line - a slug, a location - which is data and has
+            // no key to look up.
+            description:
+                item.description ||
+                (item.descriptionKey ? t(item.descriptionKey) : ""),
             icon: resolveNavIcon(item.icon),
             activeColor: item.activeColor ?? "accent",
             children: (item.children ?? []).map(buildItem),

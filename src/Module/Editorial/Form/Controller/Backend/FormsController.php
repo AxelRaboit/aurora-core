@@ -52,10 +52,31 @@ class FormsController extends AbstractController
         private readonly LocaleContextInterface $localeContext,
     ) {}
 
+    /**
+     * One address per form: a bare `/forms` redirects to the first rather than
+     * showing what `/forms/3` already shows.
+     */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
     {
+        $first = $this->viewBuilder->firstId();
+
+        if (null !== $first) {
+            return $this->redirectToRoute('backend_editorial_forms_show', ['id' => $first]);
+        }
+
         return $this->render('@Editorial/backend/forms/index.html.twig', $this->viewBuilder->indexView());
+    }
+
+    /**
+     * Digits only. `{id}` never matches across a slash, so the submissions
+     * sub-routes are safe either way - but the requirement is what keeps a
+     * future literal GET here from being swallowed.
+     */
+    #[Route('/{id}', name: '_show', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    public function show(Form $form): Response
+    {
+        return $this->render('@Editorial/backend/forms/index.html.twig', $this->viewBuilder->indexView($form->getId()));
     }
 
     #[Route('', name: '_create', methods: [HttpMethodEnum::Post->value])]

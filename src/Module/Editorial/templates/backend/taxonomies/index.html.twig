@@ -14,6 +14,7 @@
 {% block body %}
 <div {{ vue_component('editorial/backend/taxonomies/TaxonomiesApp', {
     taxonomies: taxonomies,
+    activeId: activeId,
     postTypes: postTypes,
     locales: locales,
     createPath: path('backend_editorial_taxonomies_create'),

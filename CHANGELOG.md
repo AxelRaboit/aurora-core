@@ -5,6 +5,90 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+
+#### Les types de contenu, taxonomies, menus et formulaires sont des pages
+Chacun a désormais **son adresse** — `/backend/editorial/post-types/3` — donc il
+se partage, porte un fil d'Ariane et se trouve dans la palette. Ils vivaient
+jusqu'ici dans une `selectedId` locale, sans URL : le même argument que pour les
+onglets de réglages en 0.9.29.
+
+Le menu latéral en liste un par enregistrement, sous un intitulé de famille, et
+la colonne de boutons qui servait à en choisir un a quitté les trois pages.
+
+- Une adresse nue (`/post-types`) **redirige** vers le premier enregistrement,
+  au lieu d'afficher ce que `/post-types/3` affiche déjà. Deux adresses pour une
+  seule vue, c'est une de trop — même arbitrage qu'en 0.9.29.
+- La ligne générique disparaît de la vue de module : c'est l'intitulé du groupe
+  qui nomme la famille, comme pour les réglages. Le menu projet garde la sienne,
+  qui est le chemin d'entrée.
+- Le bouton « créer » reste sur la page : un intitulé de groupe n'a nulle part
+  où en mettre un, et c'est le seul chemin pour ajouter le suivant.
+- `/{id}` porte une contrainte de chiffres. Sur les menus elle n'est pas
+  théorique : `/menus/targets` est une route GET littérale du même contrôleur,
+  que `/{id}` aurait sinon interceptée.
+
+#### Les notes sont dans le menu, avec leur arbre, leur recherche et leurs étiquettes
+La plus large des six barres latérales, et celle pour laquelle le panneau avait
+été inventé : neuf cents notes ne peuvent pas être neuf cents entrées de menu
+comme le sont trois types de contenu, et ce qui va par-dessus la liste — un
+champ de recherche, un filtre par étiquette, un état de pliage — n'est pas ce
+qu'exprime une liste de liens.
+
+- **Une note est une page** : `/backend/notes/markdown/42`. L'adresse existait
+  déjà mais ne répondait qu'en JSON ; elle négocie maintenant, JSON pour les
+  appels de la page, page entière pour qui arrive par un lien. Même patron que
+  `AuditController`.
+- Cliquer une note depuis l'éditeur la change **sans recharger** : c'est la page
+  qui répond, par le pont. Créer aussi — nommer une note et y poser le curseur,
+  seule la page sait le faire.
+- Le tiroir mobile propre à Notes disparaît : le menu a le sien, et deux tiroirs
+  c'était deux gestes à connaître pour la même chose.
+- Le point d'extension `<slot name="extra-headers" />` de cette page disparaît
+  avec l'aside. **Changement d'API** pour les projets clients — aucun ne s'en
+  servait sur Notes, la couture reste ouverte sur les autres composants qui la
+  proposent.
+
+### Supprimé
+
+#### La colonne d'onglets des préférences du profil
+Elle affichait **un seul onglet**, donc une navigation entre une destination et
+elle-même, et gardait ce choix dans le fragment d'URL — l'arrangement que la
+page des réglages a quitté en 0.9.29. Il n'y avait rien à déporter ici, juste un
+contrôle à retirer. À remettre le jour où un deuxième onglet existe, et alors
+dans la vue de module, pas dans la page.
+
+### Modifié
+
+#### `NavItem` accepte un libellé et une description littéraux
+Une entrée nommée d'après une donnée — un type de contenu que quelqu'un a appelé
+« Article » — n'a rien à traduire. Passer ce nom dans `labelKey` revenait à
+demander à `t()` de traduire une donnée : il rend la chaîne telle quelle **en
+avertissant à chaque rendu**. `label` porte le nom lisible, `labelKey` reste le
+repli.
+
+`description` suit la même logique, et pour une raison qui se voyait à l'écran :
+avec « Afficher les descriptions » actif, une entrée sans seconde ligne restait
+blanche à côté de celles qui en avaient une. Pire, la ligne manquante était
+précisément **ce qui distingue deux enregistrements** — le slug d'un type de
+contenu, l'emplacement d'un menu. C'est ce que la colonne de sélection affichait
+sous chaque nom avant de disparaître ; les entrées le portent maintenant.
+
+C'est le socle qui bouge sous son premier vrai client, comme `routeParams` en
+0.9.29 : rien ne le réclamait tant qu'aucune entrée n'était nommée par une
+donnée.
+
+#### Le chargement d'un panneau passe par `useRequest`
+`useModulePanelData` appelait `fetch` directement, ce qu'interdit
+`convention_no_raw_fetch` — et la raison invoquée par cette convention s'est
+réalisée dans le même chantier : `useRequest` est seul à envoyer
+`X-Requested-With`, l'en-tête sur lequel Symfony décide de répondre en JSON
+plutôt qu'une page. La route d'une note vient précisément de se mettre à en
+dépendre. `useRequest` gagne une option `silent`, parce qu'un panneau qui se
+remplit tout seul ne doit pas afficher d'erreur que personne n'a demandée.
+
 ## [0.9.36] - 2026-08-31
 
 ### Ajouté

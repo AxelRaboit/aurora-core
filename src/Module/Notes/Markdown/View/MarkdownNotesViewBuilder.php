@@ -20,9 +20,11 @@ final readonly class MarkdownNotesViewBuilder
     ) {}
 
     /** @return array<string, mixed> */
-    public function indexView(CoreUserInterface $user): array
+    /** @param ?int $activeId the note the address names, null when there are none */
+    public function indexView(CoreUserInterface $user, ?int $activeId = null): array
     {
         return [
+            'activeId' => $activeId,
             'notes' => $this->noteRepository->findFlatListForUser($user),
             'listPath' => $this->urlGenerator->generate('backend_notes_markdown_list'),
             'showPath' => $this->urlGenerator->generate('backend_notes_markdown_show', ['id' => '__id__']),

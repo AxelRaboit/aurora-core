@@ -32,10 +32,12 @@ const props = defineProps({
     termEditPathTemplate: { type: String, required: true },
     termDeletePathTemplate: { type: String, required: true },
     termReorderPathTemplate: { type: String, required: true },
+    /** The taxonomy this URL is. Decided by the server, not by the browser. */
+    activeId: { type: Number, default: null },
 });
 
 const {
-    items, selectedId, selected, upsert,
+    items, selected, upsert,
     showCreate, createForm, createErrors, createLoading, openCreate, submitCreate,
     showEdit, editing, editForm, editErrors, editLoading, openEdit, submitEdit,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
@@ -83,35 +85,15 @@ function nameOf(term) {
         </template>
     </AppNoData>
 
-    <div v-else class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-4">
-        <aside class="space-y-2">
-            <AppButton
-                v-if="can('editorial.taxonomies.create')"
-                variant="primary"
-                size="md"
-                class="w-full"
-                v-on:click="openCreate"
-            >
+    <div v-else class="space-y-4">
+        <!-- No picker column: the side menu lists the taxonomies, one entry per
+             record and one address each. The create button stays - a group
+             header in the menu has nowhere to put one. -->
+        <div v-if="can('editorial.taxonomies.create')" class="flex justify-end">
+            <AppButton variant="primary" size="md" v-on:click="openCreate">
                 <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.taxonomies.create") }}
             </AppButton>
-
-            <button
-                v-for="taxonomy in items"
-                :key="taxonomy.id"
-                type="button"
-                class="w-full text-left px-4 py-3 rounded-xl border transition-colors"
-                :class="taxonomy.id === selectedId
-                    ? 'bg-surface border-accent-500/60 text-primary'
-                    : 'bg-surface border-line/60 text-secondary hover:text-primary hover:bg-surface-2/40'"
-                v-on:click="selectedId = taxonomy.id"
-            >
-                <span class="flex items-center justify-between gap-2">
-                    <span class="font-medium truncate">{{ labelOf(taxonomy) }}</span>
-                    <AppBadge v-if="taxonomy.isBuiltIn" color="gray">{{ t("backend.taxonomies.built_in") }}</AppBadge>
-                </span>
-                <span class="block text-xs text-muted font-mono mt-0.5 truncate">{{ taxonomy.slug }}</span>
-            </button>
-        </aside>
+        </div>
 
         <section v-if="selected" class="space-y-4">
             <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
