@@ -19,85 +19,122 @@
  * which open dialogs belonging to the page, and the mobile drawer - the menu
  * has its own, and two drawers is two gestures to learn.
  */
-import { computed, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { ChevronDown, ChevronRight, FileText, Plus, X } from "lucide-vue-next";
-import AppNavLink from "@/shared/components/nav/AppNavLink.vue";
+import { Plus, X } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
-import { askPage } from "@/shared/nav/modulePanelBridge.js";
+import { askPage, onPageNotice } from "@/shared/nav/modulePanelBridge.js";
 import { useModulePanelData } from "@/shared/nav/useModulePanelData.js";
-import { useSidemenuSectionTheme } from "@/backend/sidemenu/composables/useSidemenuSectionTheme.js";
 import { useNoteTree } from "./composables/useNoteTree.js";
 import { useNoteTagFilter } from "./composables/useNoteTagFilter.js";
+import NoteTreeItem from "./components/NoteTreeItem.vue";
 
-const NOTES_PATH = "/backend/notes/markdown";
 const LIST_ENDPOINT = "/backend/notes/markdown/list";
 
 const { t } = useI18n();
-const { itemClasses, iconClasses } = useSidemenuSectionTheme();
 
+/**
+ * The rows are `NoteTreeItem`, the component the aside used, and every one of
+ * its events is handed straight to the page.
+ *
+ * Rebuilding the row here was the mistake in the first pass: it lost the
+ * create-child button, the delete button and the whole drag-and-drop, silently,
+ * because a hand-written `v-for` only has what you remember to give it. The
+ * page still owns the note API - it always exists while this panel is on
+ * screen, Notes having exactly one destination - so there is nothing to
+ * duplicate and nothing to keep in agreement.
+ */
 const {
-    data: notes,
+    data: fetched,
     loading,
     failed,
 } = useModulePanelData(LIST_ENDPOINT, { key: "notes" });
+
+/**
+ * The page's list wins over our own fetch as soon as it speaks.
+ *
+ * We fetch on arrival because the panel may render before the editor is
+ * mounted; from then on the editor announces every change, which is what makes
+ * a note created in the editor appear here without a reload. Without it the
+ * tree showed whatever was true when the page loaded, for as long as the reader
+ * stayed on it.
+ */
+const announced = ref(null);
+const notes = computed(() => announced.value ?? fetched.value);
+const selectedId = ref(null);
 
 const treeQuery = ref("");
 const { availableTags, selectedTags, toggleTag, clearTags } =
     useNoteTagFilter(notes);
 const { tree } = useNoteTree(notes, treeQuery, selectedTags);
 
-/**
- * Which note the page is showing, read from the address once and then kept in
- * step by our own asks - the page swaps notes without navigating, so nothing
- * else would tell us.
- */
-const currentId = ref(
-    Number(window.location.pathname.match(/\/markdown\/(\d+)$/)?.[1]) || null,
-);
-
-const collapsed = ref(new Set());
 const isEmpty = computed(() => 0 === notes.value.length);
 
-function toggleCollapse(id) {
-    const next = new Set(collapsed.value);
-    next.has(id) ? next.delete(id) : next.add(id);
-    collapsed.value = next;
+/**
+ * Our own copy of what is being dragged, so the rows can highlight.
+ *
+ * The page keeps the same state - it has to, the drop handler reads it - but
+ * mirroring it here costs one assignment per event we are forwarding anyway,
+ * where reading it back would mean an announcement on every `dragover`.
+ */
+const draggingId = ref(null);
+const dragOverId = ref(null);
+
+function forward(name, ...args) {
+    askPage(`notes:${name}`, { args });
 }
 
-/** The tree flattened for drawing, hiding whatever the reader folded away. */
-const rows = computed(() => {
-    const out = [];
-    const walk = (nodes, depth) => {
-        for (const node of nodes) {
-            out.push({ node, depth });
-            if (node.children?.length && !collapsed.value.has(node.id)) {
-                walk(node.children, depth + 1);
-            }
-        }
-    };
-    walk(tree.value, 0);
+function onSelect(id) {
+    selectedId.value = id;
+    forward("select", id);
+}
 
-    return out;
+function onDragStart(note, event) {
+    draggingId.value = note.id;
+    forward("drag-start", note, event);
+}
+
+function onDragEnd() {
+    draggingId.value = null;
+    dragOverId.value = null;
+    forward("drag-end");
+}
+
+function onDragOver(note, event) {
+    if (note.id !== draggingId.value) dragOverId.value = note.id;
+    forward("drag-over", note, event);
+}
+
+function onDragLeave(note, event) {
+    if (dragOverId.value === note.id) dragOverId.value = null;
+    forward("drag-leave", note, event);
+}
+
+function onDrop(note, event) {
+    dragOverId.value = null;
+    draggingId.value = null;
+    forward("drop", note, event);
+}
+
+/** A note is a page: the row offers its address for every gesture but a plain click. */
+const hrefFor = (note) => `/backend/notes/markdown/${note.id}`;
+
+const stopListening = [];
+
+onMounted(() => {
+    stopListening.push(
+        onPageNotice("notes:changed", (detail) => {
+            if (Array.isArray(detail?.notes)) announced.value = detail.notes;
+            if ("selectedId" in (detail ?? {})) selectedId.value = detail.selectedId;
+        }),
+    );
 });
 
-const hrefFor = (id) => `${NOTES_PATH}/${id}`;
-
-function onRowClick(event, id) {
-    if (askPage("notes:note", { id })) {
-        currentId.value = id;
-        event.preventDefault();
-    }
-}
-
-function onCreate() {
-    // Creating belongs to the page: it makes the note, names it and puts the
-    // cursor in it. If nobody is listening we go to the notes and let the page
-    // take it from there.
-    if (!askPage("notes:create", {})) window.location.href = NOTES_PATH;
-}
+onUnmounted(() => {
+    while (stopListening.length) stopListening.pop()();
+});
 </script>
 
 <template>
@@ -111,7 +148,7 @@ function onCreate() {
                 size="sm"
                 variant="ghost"
                 :title="t('notes.markdown.create_root')"
-                v-on:click="onCreate"
+                v-on:click="forward('create', null)"
             >
                 <Plus class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
@@ -154,49 +191,23 @@ function onCreate() {
             {{ t("notes.markdown.tree_empty") }}
         </p>
 
-        <div
-            v-for="{ node, depth } in rows"
+        <NoteTreeItem
+            v-for="node in tree"
             :key="node.id"
-            class="flex items-center"
-            :data-note-depth="depth"
-            :style="{ paddingLeft: `${depth * 0.75}rem` }"
-        >
-            <button
-                v-if="node.children?.length"
-                type="button"
-                class="shrink-0 rounded p-0.5 text-muted hover:text-primary"
-                :title="t('notes.markdown.title')"
-                v-on:click.stop="toggleCollapse(node.id)"
-            >
-                <ChevronRight
-                    v-if="collapsed.has(node.id)"
-                    class="h-3 w-3"
-                    :stroke-width="2"
-                />
-                <ChevronDown v-else class="h-3 w-3" :stroke-width="2" />
-            </button>
-            <span v-else class="w-4 shrink-0" />
-
-            <div class="min-w-0 flex-1" v-on:click="onRowClick($event, node.id)">
-                <AppNavLink
-                    :href="hrefFor(node.id)"
-                    :active="currentId === node.id"
-                    :link-classes-override="
-                        itemClasses('notes', { isActive: currentId === node.id })
-                    "
-                >
-                    <FileText
-                        class="h-4 w-4 shrink-0"
-                        :class="
-                            iconClasses('notes', {
-                                isActive: currentId === node.id,
-                            })
-                        "
-                        :stroke-width="2"
-                    />
-                    <span class="min-w-0 flex-1 truncate">{{ node.title }}</span>
-                </AppNavLink>
-            </div>
-        </div>
+            :node="node"
+            :selected-id="selectedId"
+            :draggable="true"
+            :dragging-id="draggingId"
+            :drag-over-id="dragOverId"
+            :href-for="hrefFor"
+            v-on:select="onSelect"
+            v-on:create-child="(id) => forward('create', id)"
+            v-on:delete="(note) => forward('delete', note)"
+            v-on:drag-start="onDragStart"
+            v-on:drag-end="onDragEnd"
+            v-on:drag-over="onDragOver"
+            v-on:drag-leave="onDragLeave"
+            v-on:drop="onDrop"
+        />
     </AppModulePanel>
 </template>

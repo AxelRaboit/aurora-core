@@ -84,7 +84,7 @@ describe("the documents page, once its folder aside moved to the menu", () => {
         render();
         await flushPromises();
 
-        expect(askPage("ged:folder", { folderId: 2, scope: "all" })).toBe(true);
+        expect(askPage("ged:select", { folderId: 2, scope: "all" })).toBe(true);
         await flushPromises();
 
         const listCall = global.fetch.mock.calls
@@ -98,7 +98,7 @@ describe("the documents page, once its folder aside moved to the menu", () => {
         await flushPromises();
 
         const renamed = [{ ...FOLDERS[0], name: "Contrats signés" }];
-        expect(askPage("ged:folders-changed", { folders: renamed })).toBe(true);
+        expect(askPage("ged:reload", { folders: renamed })).toBe(true);
         await flushPromises();
 
         expect(wrapper.html()).toBeTruthy();
@@ -110,6 +110,6 @@ describe("the documents page, once its folder aside moved to the menu", () => {
         await flushPromises();
         wrapper.unmount();
 
-        expect(askPage("ged:folder", { folderId: 1 })).toBe(false);
+        expect(askPage("ged:select", { folderId: 1 })).toBe(false);
     });
 });

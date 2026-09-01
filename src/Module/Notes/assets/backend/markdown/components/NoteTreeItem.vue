@@ -10,6 +10,17 @@ const props = defineProps({
     draggingId: { type: Number, default: null },
     dragOverId: { type: Number, default: null },
     depth: { type: Number, default: 0 },
+    /**
+     * Turns the row into a real link.
+     *
+     * A note is a page, so a row in the side menu has to be middle-clickable
+     * and sendable - the whole reason its address exists. The click handler
+     * still runs and still wins: `select` swaps the note in place, and the
+     * navigation is cancelled, so the href is what the browser offers rather
+     * than what normally happens. Left empty the row stays a plain div, which
+     * is what it was.
+     */
+    hrefFor: { type: Function, default: null },
 });
 
 const emit = defineEmits([
@@ -25,6 +36,16 @@ const emit = defineEmits([
 
 const expanded = ref(true);
 
+/**
+ * Selecting is what a click means; the address is for the other gestures.
+ * Cancelling the navigation is what keeps the editor from reloading under a
+ * reader who only meant to switch notes.
+ */
+function onRowClick(event) {
+    if (props.hrefFor) event.preventDefault();
+    emit('select', props.node.id);
+}
+
 const children = computed(() => props.node.children ?? []);
 const hasChildren = computed(() => children.value.length > 0);
 const isSelected = computed(() => props.selectedId === props.node.id);
@@ -38,7 +59,14 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
 
 <template>
     <div>
+        <!-- The row is a div, and only the title inside it is a link.
+             Putting the whole row in an `<a>` seemed tidier and was wrong twice
+             over: interactive content inside a link is invalid HTML, and the
+             action buttons stop the click before the row can cancel the
+             navigation - so pressing "new child note" followed the href and
+             reloaded the page instead. -->
         <div
+            :data-note-row="node.id"
             class="group flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors min-w-0 text-sm"
             :class="[
                 isDragOver
@@ -51,7 +79,6 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
             ]"
             :style="indentStyle"
             :draggable="draggable"
-            v-on:click="emit('select', node.id)"
             v-on:dragstart="emit('drag-start', node, $event)"
             v-on:dragend="emit('drag-end', $event)"
             v-on:dragover="emit('drag-over', node, $event)"
@@ -71,16 +98,27 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
             </AppIconButton>
             <span v-else class="w-4 shrink-0" />
 
+            <!-- A note is a page, so this is a real address: middle-click and
+                 "open in a new tab" work, and the plain click is cancelled
+                 because selecting swaps the note in place. Without an address
+                 - the editor's own tree had none - it stays a span. -->
             <component
-                :is="hasChildren ? Folder : FileText"
-                class="w-4 h-4 shrink-0"
-                :class="isSelected || isDragOver ? 'text-accent-400' : 'text-muted'"
-                :stroke-width="2"
-            />
+                :is="hrefFor ? 'a' : 'span'"
+                :href="hrefFor ? hrefFor(node) : undefined"
+                class="flex min-w-0 flex-1 items-center gap-2 no-underline"
+                v-on:click="onRowClick"
+            >
+                <component
+                    :is="hasChildren ? Folder : FileText"
+                    class="w-4 h-4 shrink-0"
+                    :class="isSelected || isDragOver ? 'text-accent-400' : 'text-muted'"
+                    :stroke-width="2"
+                />
 
-            <span class="flex-1 truncate min-w-0">
-                {{ node.title || $t('notes.markdown.untitled') }}
-            </span>
+                <span class="flex-1 truncate min-w-0">
+                    {{ node.title || $t('notes.markdown.untitled') }}
+                </span>
+            </component>
 
             <!-- Per-row extension point. Wrapped so a client decorator
                  sits between the title and the hover action buttons. -->
@@ -116,6 +154,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
                 :dragging-id="draggingId"
                 :drag-over-id="dragOverId"
                 :depth="depth + 1"
+                :href-for="hrefFor"
                 v-on:select="(id) => emit('select', id)"
                 v-on:create-child="(id) => emit('create-child', id)"
                 v-on:delete="(n) => emit('delete', n)"

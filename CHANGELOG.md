@@ -5,6 +5,56 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Corrigé
+
+#### Les boutons d'une ligne de l'arbre des notes rechargeaient la page
+Le « + » qui ajoute une sous-note suivait le lien de la ligne au lieu de créer
+quoi que ce soit, et la suppression ouvrait sa modale sans jamais aboutir. Même
+cause : j'avais mis les boutons **à l'intérieur** du lien. Du contenu interactif
+dans un `<a>` est du HTML invalide, et leur `.stop` empêchait la ligne d'annuler
+la navigation — donc le navigateur partait.
+
+La ligne redevient un `div` — cible de dépôt et poignée de glissement — et seul
+le titre est un lien. Les boutons sont à côté, pas dedans.
+
+#### Le panneau des notes avait perdu trois fonctions
+Créer une sous-note, supprimer, et tout le glisser-déposer. En déportant l'arbre
+j'ai réécrit la ligne à la main alors qu'il existait déjà un composant,
+`NoteTreeItem`, qui portait les trois. Un `v-for` écrit à la main n'a que ce
+qu'on pense à lui donner.
+
+Le panneau utilise ce composant et **transmet ses huit événements à la page**,
+qui a déjà tous les gestionnaires : la page est toujours montée quand le panneau
+s'affiche, Notes n'ayant qu'une destination.
+
+#### Une note créée dans l'éditeur n'apparaissait qu'après rechargement
+Le pont ne parlait que dans un sens. Le socle gagne l'autre — `tellPanels` et
+`onPageNotice` — et l'éditeur annonce sa liste à chaque changement.
+
+### Modifié
+
+#### Une ligne de dossier est un composant, comme une ligne de note
+`FolderTreeRow`, extrait des cent quarante-sept lignes de markup que le panneau
+GED tenait dans un `v-for`. C'est la forme qui a coûté ses trois fonctions à
+Notes : rien n'y dit ce qu'une ligne est censée porter. Le contrat est
+maintenant la liste des props et des événements, et six tests l'épinglent.
+
+#### Une intention du pont dit sa direction
+`changed` désignait **deux directions opposées** selon le module : le panneau
+vers la page côté GED, la page vers le panneau côté Notes. Un nom est désormais
+`<module>:<verbe>` et dit ce que l'émetteur veut ; `changed` est réservé aux
+annonces de la page vers ses panneaux. `ged:folder` devient `ged:select`,
+`ged:folders-changed` devient `ged:reload`.
+
+### Ajouté
+
+#### La vue de module de Notes a enfin un test
+Le seul des cinq modules sans. Rien n'affirmait qu'il déclare une vue, ni qu'il
+cesse de le faire quand on l'éteint. Le test de Configuration rejoint au passage
+le dossier où vivent les quatre autres.
+
 ## [0.9.38] - 2026-09-01
 
 ### Modifié

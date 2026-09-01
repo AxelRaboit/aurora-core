@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Tests\Unit\Module;
+namespace Aurora\Tests\Unit\Module\Configuration;
 
 use Aurora\Core\Module\Nav\ModuleNavGroup;
 use Aurora\Core\Module\Nav\NavItem;
