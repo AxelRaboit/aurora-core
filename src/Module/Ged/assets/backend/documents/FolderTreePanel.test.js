@@ -129,7 +129,7 @@ describe("the GED folder panel", () => {
      */
     it("lets the page take the click instead of navigating", async () => {
         const handler = vi.fn();
-        stops.push(onPanelRequest("ged:folder", handler));
+        stops.push(onPanelRequest("ged:select", handler));
 
         const wrapper = await render("/backend/ged/documents");
         await folderLinks(wrapper)[2].trigger("click");
@@ -138,7 +138,7 @@ describe("the GED folder panel", () => {
     });
 
     it("marks the folder the page moved to", async () => {
-        stops.push(onPanelRequest("ged:folder", () => {}));
+        stops.push(onPanelRequest("ged:select", () => {}));
 
         const wrapper = await render("/backend/ged/documents");
         await folderLinks(wrapper)[2].trigger("click");

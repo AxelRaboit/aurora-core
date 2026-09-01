@@ -7,9 +7,10 @@
  * event is `EventModal`. What is left here is the toolbar, the sidebar, and
  * turning a click into a request.
  */
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { BellPlus, CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Pencil, Plus } from "lucide-vue-next";
+import { onPanelRequest, tellPanels } from "@/shared/nav/modulePanelBridge.js";
+import { BellPlus, CalendarPlus, ChevronLeft, ChevronRight, Pencil, Plus } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -20,8 +21,6 @@ import CalendarModal from "./components/CalendarModal.vue";
 import CalendarShareModal from "./components/CalendarShareModal.vue";
 import CalendarDayList from "./components/CalendarDayList.vue";
 import CalendarAgenda from "./components/CalendarAgenda.vue";
-import CalendarBar from "./components/CalendarBar.vue";
-import CalendarSidebar from "./components/CalendarSidebar.vue";
 import CalendarMonth from "./components/CalendarMonth.vue";
 import CalendarTimeGrid from "./components/CalendarTimeGrid.vue";
 import RecurrenceScopeModal from "./components/RecurrenceScopeModal.vue";
@@ -126,13 +125,10 @@ const viewOptions = computed(() =>
 );
 
 /**
- * Whether the calendar list is showing as a sheet.
- *
- * Only ever true on a narrow viewport, where the sidebar has nowhere to be: at
- * 375px a 13rem column leaves 167 pixels for a seven-day grid. Both Google and
- * Apple put this behind a button on a phone.
+ * The calendar list has no sheet of its own any more: it lives in the side
+ * menu's panel, and the menu already has a drawer on a narrow viewport. Two
+ * drawers for the same list was two gestures to learn.
  */
-const sheetOpen = ref(false);
 
 /**
  * The day the phone's list is showing.
@@ -158,11 +154,6 @@ const canManageCalendars = computed(() => can("planning.calendars.manage"));
 /** An event needs a calendar to live in, so an empty sidebar closes this too. */
 const canCreateEvents = computed(() => can("planning.events.create") && calendars.value.length > 0);
 
-/** The sheet has to go before any modal opens, or it opens behind it on a phone. */
-function closeSheet() {
-    sheetOpen.value = false;
-}
-
 const {
     openCalendar,
     openShare,
@@ -185,7 +176,6 @@ const {
     load,
     upsertCalendar,
     removeCalendar,
-    onOpen: closeSheet,
 });
 
 const {
@@ -207,7 +197,6 @@ const {
     load,
     zone,
     canCreate: canCreateEvents,
-    onOpen: closeSheet,
 });
 
 const {
@@ -223,7 +212,6 @@ const {
 } = usePlanningReminders(props, {
     load,
     canCreate: canCreateEvents,
-    onOpen: closeSheet,
 });
 
 /**
@@ -248,7 +236,6 @@ function isBusy() {
         || null !== openReminder.value
         || null !== openCalendar.value
         || null !== openShare.value
-        || sheetOpen.value
     );
 }
 
@@ -261,6 +248,65 @@ usePlanningShortcuts({
     createReminder: () => createReminder(),
 });
 
+
+/**
+ * The panel's half of the contract.
+ *
+ * Everything the calendar list used to do inside this page is an ask from the
+ * side menu now, answered by the handlers the bar and the sheet already called.
+ * The panel forwards their arguments untouched.
+ *
+ * And the page announces its state, because no endpoint could serve it: the
+ * counts depend on the range the grid is showing, so only the grid knows them.
+ */
+const PANEL_INTENTS = {
+    "set-zone": (value) => setZone(value),
+    "create-event": (...a) => create(...a),
+    "create-reminder": (...a) => createReminder(...a),
+    "create-calendar": (...a) => createCalendar(...a),
+    "edit-calendar": (...a) => editCalendar(...a),
+    "share-calendar": (...a) => openShareFor(...a),
+    "toggle-calendar": (...a) => toggleCalendar(...a),
+};
+
+const stopListening = [];
+
+function announce() {
+    tellPanels("planning:changed", {
+        calendars: calendars.value,
+        hidden: [...hidden.value],
+        countsByCalendar: countsByCalendar.value,
+        canCreateEvents: canCreateEvents.value,
+        canManageCalendars: canManageCalendars.value,
+        zone: zone.value,
+        timezones: props.timezones ?? [],
+    });
+}
+
+onMounted(() => {
+    for (const [intent, run] of Object.entries(PANEL_INTENTS)) {
+        stopListening.push(
+            onPanelRequest(`planning:${intent}`, ({ args = [] }) => run(...args)),
+        );
+    }
+
+    // A panel that mounted after the grid missed the first announcement.
+    stopListening.push(onPanelRequest("planning:announce", announce));
+
+    announce();
+    stopListening.push(
+        watch(
+            [calendars, hidden, countsByCalendar, zone],
+            announce,
+            { deep: true },
+        ),
+    );
+});
+
+onUnmounted(() => {
+    while (stopListening.length) stopListening.pop()();
+});
+
 </script>
 
 <template>
@@ -268,39 +314,15 @@ usePlanningShortcuts({
         <AppLoader :active="loading" />
 
         <div class="min-w-0 space-y-3">
-            <!-- Everything the sidebar used to hold, on one line. Hidden below
-                 `lg`, where the same content is drawn as a column in the sheet:
-                 at 375px a row of pills would scroll further than the grid it
-                 filters. -->
-            <CalendarBar
-                class="hidden lg:flex"
-                :calendars="calendars"
-                :hidden="hidden"
-                :counts-by-calendar="countsByCalendar"
-                :can-create-events="canCreateEvents"
-                :can-manage-calendars="canManageCalendars"
-                :zone="zone"
-                :timezones="timezones"
-                v-on:set-zone="setZone"
-                v-on:create-event="create"
-                v-on:create-reminder="createReminder"
-                v-on:create-calendar="createCalendar"
-                v-on:edit-calendar="editCalendar"
-                v-on:share-calendar="openShareFor"
-                v-on:toggle-calendar="toggleCalendar"
-            />
+            <!-- No calendar bar: the side menu's panel draws the list, the
+                 toggles and the two create buttons. It was a 13 rem column
+                 beside the grid before it was a row above it - one cost width,
+                 the other height, and the menu's column costs neither. -->
 
             <!-- Two rows below `md`. Everything on one line needs about 366
                  pixels of controls at 375 of viewport, so the label truncated to
                  nothing and the switcher wrapped under the chevrons. -->
             <div class="flex flex-wrap items-center gap-2">
-                <AppIconButton
-                    class="lg:hidden"
-                    :title="t('backend.plannings.calendars')"
-                    v-on:click="sheetOpen = true"
-                >
-                    <CalendarDays class="w-4 h-4" :stroke-width="2" />
-                </AppIconButton>
                 <AppIconButton :title="t('shared.common.previous')" v-on:click="go(-1)">
                     <ChevronLeft class="w-4 h-4" :stroke-width="2" />
                 </AppIconButton>
@@ -403,30 +425,6 @@ usePlanningShortcuts({
              it already handles the overlay, escape, the browser's back button and
              locking the page behind it, and getting those wrong is what makes a
              phone sheet feel broken. -->
-        <AppModal
-            :show="sheetOpen"
-            max-width="sm"
-            mobile-fullscreen
-            :title="t('backend.plannings.calendars')"
-            v-on:close="sheetOpen = false"
-        >
-            <CalendarSidebar
-                :calendars="calendars"
-                :hidden="hidden"
-                :counts-by-calendar="countsByCalendar"
-                :can-create-events="canCreateEvents"
-                :can-manage-calendars="canManageCalendars"
-                :zone="zone"
-                :timezones="timezones"
-                v-on:set-zone="setZone"
-                v-on:create-event="create"
-                v-on:create-reminder="createReminder"
-                v-on:create-calendar="createCalendar"
-                v-on:edit-calendar="editCalendar"
-                v-on:share-calendar="openShareFor"
-                v-on:toggle-calendar="toggleCalendar"
-            />
-        </AppModal>
 
         <CalendarShareModal
             :calendar="openShare"

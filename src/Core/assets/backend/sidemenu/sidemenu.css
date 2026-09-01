@@ -10,8 +10,13 @@
  * AppSidemenu.vue : celui-ci est appliqué au premier rendu, celui-là dès que Vue
  * monte (`watch(..., { immediate: true })`). Deux valeurs différentes font
  * sauter la largeur sous les yeux, une fois, chez qui n'a jamais redimensionné.
+ *
+ * C'est le maximum que le redimensionnement autorise, et c'est voulu : le menu
+ * n'est plus une liste de liens qu'on longe du regard, il porte des
+ * arborescences, des recherches et des boutons. Il s'ouvre donc à la largeur
+ * qu'il peut occuper, et qui veut la reprendre la reprend en tirant la poignée.
  */
-:root { --sidemenu-width: 280px; }
+:root { --sidemenu-width: 480px; }
 
 #sidemenu {
     width: var(--sidemenu-width);

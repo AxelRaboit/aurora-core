@@ -161,12 +161,12 @@ const stopListening = [];
 
 onMounted(() => {
     stopListening.push(
-        onPanelRequest("ged:folder", ({ folderId = null, scope = "all" }) => {
+        onPanelRequest("ged:select", ({ folderId = null, scope = "all" }) => {
             if (folderId) return navigateTo(folderId);
 
             return "root" === scope ? navigateToRoot() : navigateToAll();
         }),
-        onPanelRequest("ged:folders-changed", (detail) => {
+        onPanelRequest("ged:reload", (detail) => {
             if (Array.isArray(detail?.folders)) folders.value = detail.folders;
             reset();
         }),

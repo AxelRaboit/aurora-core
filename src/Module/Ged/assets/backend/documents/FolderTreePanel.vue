@@ -22,10 +22,7 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import {
-    ChevronDown,
-    ChevronRight,
     Folder,
-    GripVertical,
     Home,
     Layers,
     Pencil,
@@ -36,6 +33,7 @@ import {
     X,
 } from "lucide-vue-next";
 import AppNavLink from "@/shared/components/nav/AppNavLink.vue";
+import FolderTreeRow from "./components/FolderTreeRow.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -120,7 +118,7 @@ const {
         ) {
             select({ folderId: change.parentId, scope: "all" });
         }
-        askPage("ged:folders-changed", { folders: folders.value });
+        askPage("ged:reload", { folders: folders.value });
         reload();
     },
 });
@@ -141,7 +139,7 @@ function hrefFor({ folderId = null, scope: next = "all" }) {
  * never reloads, so nothing else would.
  */
 function select(target) {
-    const handled = askPage("ged:folder", target);
+    const handled = askPage("ged:select", target);
     if (handled) {
         currentFolderId.value = target.folderId ?? null;
         scope.value = target.scope ?? "all";
@@ -283,152 +281,28 @@ const rowClasses = (active) => itemClasses("ged", { isActive: active });
             {{ t("backend.ged.documents.folder_tree_empty") }}
         </p>
 
-        <div
+        <FolderTreeRow
             v-for="folder in flatFolders"
             :key="folder.id"
-            class="group relative flex min-h-8 items-center"
-            :data-folder-depth="folder.depth"
-            :class="[
-                'into' === zoneOn(folder.id)
-                    ? 'rounded-md ring-1 ring-lime-500'
-                    : '',
-                draggingFolderId === folder.id ? 'opacity-40' : '',
-            ]"
-            :style="{ paddingLeft: `${folder.depth * 0.75}rem` }"
-            :draggable="canManage"
+            :folder="folder"
+            :href="hrefFor({ folderId: folder.id })"
+            :current="isCurrent(folder.id)"
+            :zone="zoneOn(folder.id)"
+            :dragging="draggingFolderId === folder.id"
+            :collapsed="collapsedFolderIds.has(folder.id)"
+            :favourite="favouriteFolderIds.has(folder.id)"
+            :can-manage="canManage"
+            v-on:select="onRowClick($event, { folderId: folder.id, scope: 'all' })"
+            v-on:toggle-collapse="toggleCollapse(folder.id)"
+            v-on:toggle-favourite="toggleFavourite(folder.id)"
+            v-on:edit="openEditFolder(folder)"
+            v-on:delete="deletingFolder = folder"
             v-on:dragstart="onFolderDragStart($event, folder)"
             v-on:dragover="onFolderDragOver($event, folder)"
             v-on:dragleave="onDragLeave"
             v-on:dragend="onDragEnd"
             v-on:drop="onFolderDrop($event, folder)"
-        >
-            <!-- The two ordering bands are the top and bottom 40 % of the row;
-                 the middle fifth reparents. `min-h-8` is what makes that
-                 middle band big enough to hit here - on the folders page these
-                 rows were `py-3` and the column is 280 px wide. -->
-            <div
-                v-if="'before' === zoneOn(folder.id)"
-                class="pointer-events-none absolute inset-x-0 top-0 h-0.5 rounded-full bg-lime-500"
-            />
-            <div
-                v-if="'after' === zoneOn(folder.id)"
-                class="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-lime-500"
-            />
-            <!-- Says the row can be dragged, which nothing else does: a row
-                 that is also a link reads as clickable, not as movable. Dim
-                 until the row is hovered, like the folders page had it. -->
-            <GripVertical
-                v-if="canManage"
-                class="h-3 w-3 shrink-0 text-muted/40 transition-colors group-hover:text-muted"
-                :stroke-width="2"
-            />
-
-            <!-- Unfolding is not going somewhere, so it is a button beside the
-                 link and not part of it: looking inside a folder must not cost
-                 the reader the page they are on. -->
-            <button
-                v-if="folder.childCount > 0"
-                type="button"
-                class="shrink-0 rounded p-0.5 text-muted hover:text-primary"
-                :title="
-                    collapsedFolderIds.has(folder.id)
-                        ? t('backend.ged.documents.expand')
-                        : t('backend.ged.documents.collapse')
-                "
-                v-on:click.stop="toggleCollapse(folder.id)"
-            >
-                <ChevronRight
-                    v-if="collapsedFolderIds.has(folder.id)"
-                    class="h-3 w-3"
-                    :stroke-width="2"
-                />
-                <ChevronDown v-else class="h-3 w-3" :stroke-width="2" />
-            </button>
-            <span v-else class="w-4 shrink-0" />
-
-            <!-- The wrapper carries the width, not `AppNavLink`: its root is an
-                 `AppTooltip` rendering `display: contents`, so a class handed to
-                 the component is dropped on the floor. -->
-            <div
-                class="min-w-0 flex-1"
-                v-on:click="
-                    onRowClick($event, { folderId: folder.id, scope: 'all' })
-                "
-            >
-                <AppNavLink
-                    :href="hrefFor({ folderId: folder.id })"
-                    :active="isCurrent(folder.id)"
-                    :link-classes-override="rowClasses(isCurrent(folder.id))"
-                >
-                    <Folder
-                        class="h-4 w-4 shrink-0"
-                        :class="
-                            iconClasses('ged', {
-                                isActive: isCurrent(folder.id),
-                            })
-                        "
-                        :stroke-width="2"
-                    />
-                    <span class="min-w-0 flex-1 truncate">{{
-                        folder.name
-                    }}</span>
-                    <span
-                        v-if="folder.documentCount > 0"
-                        class="font-mono text-xs text-muted"
-                    >
-                        {{ folder.documentCount }}
-                    </span>
-                </AppNavLink>
-            </div>
-
-            <div
-                class="flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-            >
-                <AppIconButton
-                    size="sm"
-                    variant="ghost"
-                    :class="
-                        favouriteFolderIds.has(folder.id)
-                            ? 'text-amber-400'
-                            : 'text-muted hover:text-amber-400'
-                    "
-                    :title="
-                        favouriteFolderIds.has(folder.id)
-                            ? t('backend.ged.documents.unfavourite')
-                            : t('backend.ged.documents.favourite')
-                    "
-                    v-on:click.stop="toggleFavourite(folder.id)"
-                >
-                    <Star
-                        class="h-3 w-3"
-                        :stroke-width="2"
-                        :fill="
-                            favouriteFolderIds.has(folder.id)
-                                ? 'currentColor'
-                                : 'none'
-                        "
-                    />
-                </AppIconButton>
-                <AppIconButton
-                    v-if="canManage"
-                    size="sm"
-                    variant="ghost"
-                    :title="t('backend.ged.documents.edit_folder')"
-                    v-on:click.stop="openEditFolder(folder)"
-                >
-                    <Pencil class="h-3 w-3" :stroke-width="2" />
-                </AppIconButton>
-                <AppIconButton
-                    v-if="canManage"
-                    size="sm"
-                    variant="ghost"
-                    :title="t('shared.common.delete')"
-                    v-on:click.stop="deletingFolder = folder"
-                >
-                    <Trash2 class="h-3 w-3" :stroke-width="2" />
-                </AppIconButton>
-            </div>
-        </div>
+        />
 
         <template #overlay>
             <AppModal

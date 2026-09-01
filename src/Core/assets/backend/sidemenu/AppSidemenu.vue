@@ -111,7 +111,11 @@ const { dragging: sidemenuDragging, startResize: startSidemenuResize, reset: res
     key: "aurora-sidemenu-width",
     // À garder égal au `--sidemenu-width` de sidemenu.css, cf. le commentaire
     // qui y est : une divergence se voit comme un saut au chargement.
-    defaultValue: 280,
+    //
+    // Le défaut est le maximum : le menu porte maintenant des arborescences et
+    // des recherches, pas seulement des liens. Une largeur déjà choisie est
+    // conservée - ceci ne déplace que ceux qui n'ont jamais tiré la poignée.
+    defaultValue: 480,
     min: 200,
     max: 480,
     onChange: (px) => { document.documentElement.style.setProperty("--sidemenu-width", `${px}px`); },
@@ -408,7 +412,7 @@ function openSearchFromMobile() {
     >
         <div class="absolute inset-0 bg-black/60" v-on:click="closeMobile" />
         <div
-            class="relative w-60 max-w-[85vw] bg-surface h-full flex flex-col shadow-2xl transition-transform duration-200"
+            class="relative w-[480px] max-w-[85vw] bg-surface h-full flex flex-col shadow-2xl transition-transform duration-200"
             :class="mobileOpen ? 'translate-x-0' : '-translate-x-full'"
         >
             <div class="flex items-center justify-between px-4 h-16 border-b border-line shrink-0">

@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMarkdownNotesPage } from '@notes/backend/markdown/composables/useMarkdownNotesPage.js';
-import NoteTreeItem from '@notes/backend/markdown/components/NoteTreeItem.vue';
 import NotePreview from '@notes/backend/markdown/components/NotePreview.vue';
 import NoteSidePanel from '@notes/backend/markdown/components/NoteSidePanel.vue';
 import NoteTagManagerModal from '@notes/backend/markdown/components/NoteTagManagerModal.vue';
@@ -18,8 +17,8 @@ import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import AppModal from '@shared/components/overlay/AppModal.vue';
 import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
-import { onMounted, onUnmounted } from 'vue';
-import { onPanelRequest } from '@/shared/nav/modulePanelBridge.js';
+import { onMounted, onUnmounted, watch } from 'vue';
+import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
 import { Plus, Trash2, FileText, PanelRightOpen, PanelRightClose, X, Settings2, Network, Share2} from 'lucide-vue-next';
 
 const props = defineProps({
@@ -120,18 +119,48 @@ const shareModalOpen = ref(false);
 /**
  * The panel's half of the contract.
  *
- * A row was clicked: open that note in place, and the bridge cancels the link
- * so the browser stays put - exactly what the tree's own handler did before it
- * moved. The create button asks too, because making a note is naming it and
- * putting the cursor in it, which only this page can do.
+ * Every row action the tree used to perform itself is now an ask from the side
+ * menu, answered here - selecting, creating a child, deleting, and the whole
+ * drag. The handlers are the ones the aside called; the panel forwards their
+ * arguments untouched, DOM event included, because both applications run in one
+ * JavaScript context and it is the same event object either way.
+ *
+ * And the traffic goes both ways: `notes:changed` is how a note created in this
+ * editor reaches the tree. Without it the panel showed the list it fetched on
+ * arrival until the reader reloaded the page.
  */
+const PANEL_INTENTS = {
+    select: (id) => selectNote(id),
+    create: (parentId) => createNote(parentId ?? null),
+    delete: (note) => requestDelete(note),
+    'drag-start': (note, event) => onDragStart(note, event),
+    'drag-end': () => onDragEnd(),
+    'drag-over': (note, event) => onDragOverNote(note, event),
+    'drag-leave': (note, event) => onDragLeaveNote(note, event),
+    drop: (note, event) => onDropOnNote(note, event),
+};
+
 const stopListening = [];
 
+function announce() {
+    tellPanels('notes:changed', {
+        notes: notes.value,
+        selectedId: selectedId.value,
+    });
+}
+
 onMounted(() => {
-    stopListening.push(
-        onPanelRequest('notes:note', ({ id }) => selectNote(id)),
-        onPanelRequest('notes:create', () => createNote(null)),
-    );
+    for (const [intent, run] of Object.entries(PANEL_INTENTS)) {
+        stopListening.push(
+            onPanelRequest(`notes:${intent}`, ({ args = [] }) => run(...args)),
+        );
+    }
+
+    // The panel fetches on arrival too, but it may well have done so before
+    // this list existed; saying it once on mount settles which of the two wins.
+    announce();
+    stopListening.push(watch(notes, announce, { deep: true }));
+    stopListening.push(watch(selectedId, announce));
 });
 
 onUnmounted(() => {
