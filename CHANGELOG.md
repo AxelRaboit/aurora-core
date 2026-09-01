@@ -5,6 +5,26 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.40] - 2026-09-01
+
+### Ajouté
+
+#### Un utilisateur a une adresse
+`/backend/platform/users/42` ouvre la liste sur cet utilisateur. Il était une
+**modale au-dessus d'un tableau** et rien d'autre : impossible à envoyer à un
+collègue, absent du fil d'Ariane, invisible à la palette. C'est le même manque
+que les onglets de réglages avaient avant la 0.9.29.
+
+L'adresse existait déjà comme point d'API pour les appels de la page ; elle
+répond maintenant aux deux, JSON pour la page et page entière pour qui arrive
+par un lien, distingués par `X-Requested-With`. La barre d'adresse suit
+l'ouverture et la fermeture de la modale, en `replace` et non en `push` : ouvrir
+une modale n'est pas une page où revenir en arrière.
+
+**La liste ne redirige pas** vers un premier utilisateur, contrairement à celles
+d'Editorial. Un tableau qu'on parcourt et qu'on filtre est une destination en
+soi ; l'enregistrement est ce qu'on en ouvre.
+
 ## [0.9.39] - 2026-09-01
 
 ### Ajouté

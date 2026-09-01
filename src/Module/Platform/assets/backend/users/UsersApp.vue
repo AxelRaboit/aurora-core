@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { UserPlus, Save, Upload, Trash2, X, Send, Pencil, LayoutGrid } from "lucide-vue-next";
 import { toast } from "vue-sonner";
@@ -16,6 +16,7 @@ import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+import { buildPath } from "@/shared/utils/http/buildPath.js";
 import UserRowActions from "@platform/backend/users/UserRowActions.vue";
 import ModuleAccessNode from "@platform/backend/users/ModuleAccessNode.vue";
 import AppAvatar from "@/shared/components/display/AppAvatar.vue";
@@ -60,6 +61,8 @@ const props = defineProps({
      * Example: { phoneNumber: { default: '', fromEntity: (u) => u.phoneNumber ?? '' } }
      */
     extraFields: { type: Object, default: () => ({}) },
+    /** The user this URL names, opened on arrival. Decided by the server. */
+    activeId: { type: Number, default: null },
 });
 
 const { search, roleFilter, users, loading, page, totalPages, fetchUsers, goToPage } = useUsersSearch(props.listPath);
@@ -67,6 +70,33 @@ const { inviteModal, inviteForm, openInvite, submitInvite } = useUsersInvite(pro
 const { editModal, editForm, managerOptions, openEdit, onPhotoSelected, removePhoto, submitEdit } = useUsersEdit(props, fetchUsers, { extraFields: props.extraFields });
 
 const { viewingUser, openView, resendInvitation, togglingUser, askToggleDisabled, confirmToggleDisabled, deletingUser, confirmDelete, statusBadgeColor, isCurrent, canActOn, canEditUser, UserStatus } = useUsersActions(props, fetchUsers);
+
+/**
+ * A user is an address now, and the address is kept in step with the modal.
+ *
+ * Arriving on `/users/42` opens that user; opening one from the table rewrites
+ * the bar so the link can be sent from wherever the reader got to. `replace`
+ * rather than `push`: opening and closing a modal is not a page to go back
+ * through, and stacking history entries would make Back feel broken.
+ */
+function syncAddress(user) {
+    const path = user ? buildPath(props.showPath, { id: user.id }) : props.listPath.replace(/\/list$/, "");
+
+    window.history.replaceState(window.history.state, "", path);
+}
+
+watch(viewingUser, syncAddress);
+
+onMounted(async () => {
+    if (!props.activeId) return;
+
+    // Wait for the list, so the modal opens with a full record rather than an
+    // id it has to fill in a moment later.
+    await fetchUsers();
+    const known = users.value.find((user) => user.id === props.activeId);
+
+    await openView(known ?? { id: props.activeId });
+});
 
 function openViewWithPrivileges(user) {
     openView(user);

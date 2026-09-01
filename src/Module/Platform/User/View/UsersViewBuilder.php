@@ -55,7 +55,10 @@ final readonly class UsersViewBuilder
     /**
      * @return array<string, mixed>
      */
-    public function indexView(bool $isDev, ?User $currentUser, bool $canManageDisabledModules = false): array
+    /**
+     * @param ?int $activeId the user the address names, opened on arrival
+     */
+    public function indexView(bool $isDev, ?User $currentUser, bool $canManageDisabledModules = false, ?int $activeId = null): array
     {
         $selectableRoles = $isDev
             ? [UserRoleEnum::Dev, ...UserRoleEnum::selectableForAdmin()]
@@ -120,6 +123,7 @@ final readonly class UsersViewBuilder
         );
 
         return [
+            'activeId' => $activeId,
             'roles' => $roles,
             'userTypes' => $types,
             'isDev' => $isDev,
