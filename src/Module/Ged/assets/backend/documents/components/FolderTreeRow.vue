@@ -83,8 +83,8 @@ const folderIconClasses = computed(() =>
     >
         <!-- The two ordering bands are the top and bottom 40 % of the row; the
              middle fifth reparents. `min-h-8` is what makes that middle band
-             big enough to hit - on the folders page these rows were `py-3` and
-             the column is 280 px wide. -->
+             big enough to hit: the folders page had `py-3` rows, and a plain
+             nav row is half that. -->
         <div
             v-if="'before' === zone"
             class="pointer-events-none absolute inset-x-0 top-0 h-0.5 rounded-full bg-lime-500"

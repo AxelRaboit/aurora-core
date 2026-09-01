@@ -7,8 +7,8 @@ namespace Aurora\Core\Module\Nav;
 /**
  * What the side menu shows while the reader is inside a module.
  *
- * The menu is one column with two views, never two columns: the 280 px do not
- * change width, they change contents. The project view is the eight sections
+ * The menu is one column with two views, never two columns: the column does not
+ * change width, it changes contents. The project view is the eight sections
  * of `ModuleRegistry::getNavSections()`; the module view is this - the open
  * module's own destinations, plus optionally a panel component for the cases a
  * list of links cannot express (a folder tree, a note list).

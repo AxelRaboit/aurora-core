@@ -7,6 +7,29 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [Unreleased]
 
+### Ajouté
+
+#### Les calendriers sont dans le menu, et la grille récupère sa place
+Sixième module à passer dans la nouvelle colonne, et celui que mon inventaire
+avait raté : sa navigation n'était pas une balise `<aside>` mais un composant,
+donc elle est passée au travers du balayage.
+
+Son propre code plaidait pour ce déplacement mieux que moi. La liste était une
+colonne de 13 rem à côté de la grille, ce qui coûtait 224 pixels sur une semaine
+de sept jours — **32 pixels par jour, soit un titre d'événement entier**. Elle
+avait donc été remontée en barre horizontale, ce qui rendait la largeur et
+prenait une rangée de hauteur. La colonne du menu est déjà à l'écran : elle ne
+coûte ni l'une ni l'autre, et la rangée est rendue.
+
+- **Un rendu au lieu de deux.** `CalendarBar` et `CalendarSidebar` avaient
+  exactement les mêmes props et les mêmes émissions — deux dessins du même
+  contrat, à tenir d'accord à la main. La barre est supprimée ; le panneau
+  réutilise la colonne, qui était déjà écrite.
+- La feuille mobile propre à Planning disparaît aussi : le menu a son tiroir.
+- La page répond aux sept intentions du panneau avec les gestionnaires que la
+  barre appelait déjà, et lui annonce son état — aucun endpoint ne pourrait le
+  servir, les compteurs dépendant de la plage que la grille affiche.
+
 ### Corrigé
 
 #### Les boutons d'une ligne de l'arbre des notes rechargeaient la page

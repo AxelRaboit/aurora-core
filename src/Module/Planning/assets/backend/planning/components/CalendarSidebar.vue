@@ -2,11 +2,11 @@
 /**
  * The calendar list and the two things you can make, as a column.
  *
- * The phone's shape only, since the wide screen moved all of this into
- * `CalendarBar` above the grid. It stays a separate component rather than a
- * breakpoint on that one because the two are not the same layout with different
- * padding: this one stacks full-width blocks in a sheet, that one fits on a single
- * line. What they genuinely share - drawing one calendar - is `CalendarToggle`.
+ * The one shape there is now. It was the phone's, beside a `CalendarBar` that
+ * drew the same contract on a single line for wide screens - identical props,
+ * identical events, two renderings to keep in agreement. The list moved into
+ * the side menu's panel, which is a column at every width, so the row above the
+ * grid went and this is what both the panel and the menu's own drawer show.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";

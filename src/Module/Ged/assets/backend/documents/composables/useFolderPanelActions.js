@@ -171,8 +171,9 @@ export function useFolderPanelActions({ folders, allFlatFolders, onChanged }) {
      * edges.
      *
      * The bands are 40 / 20 / 40 of the row height, so `into` is the narrow
-     * one. That is fine on the page's `py-3` rows and tight in a 280 px
-     * column, which is why the panel's rows are taller than a plain nav row.
+     * one - and it is the row's *height* that decides whether it can be hit,
+     * not the column's width. The folders page had `py-3` rows; a plain nav row
+     * is half that, which is why the panel's are given a floor of `min-h-8`.
      */
     const dropTarget = ref(null);
     const draggingFolderId = ref(null);
