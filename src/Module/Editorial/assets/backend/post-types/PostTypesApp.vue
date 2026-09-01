@@ -29,10 +29,12 @@ const props = defineProps({
     fieldEditPathTemplate: { type: String, required: true },
     fieldDeletePathTemplate: { type: String, required: true },
     fieldReorderPathTemplate: { type: String, required: true },
+    /** The post type this URL is. Decided by the server, not by the browser. */
+    activeId: { type: Number, default: null },
 });
 
 const {
-    items, selectedId, selected, upsert,
+    items, selected, upsert,
     showCreate, createForm, createErrors, createLoading, openCreate, submitCreate,
     showEdit, editing, editForm, editErrors, editLoading, openEdit, submitEdit,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
@@ -60,36 +62,16 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
         </template>
     </AppNoData>
 
-    <div v-else class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-4">
-        <!-- Types -->
-        <aside class="space-y-2">
-            <AppButton
-                v-if="can('editorial.post_types.create')"
-                variant="primary"
-                size="md"
-                class="w-full"
-                v-on:click="openCreate"
-            >
+    <div v-else class="space-y-4">
+        <!-- No picker column: the side menu lists the post types, one entry
+             per record and one address each. The create button stays, because
+             a group header in the menu has nowhere to put one - and it is the
+             only way to make the next type. -->
+        <div v-if="can('editorial.post_types.create')" class="flex justify-end">
+            <AppButton variant="primary" size="md" v-on:click="openCreate">
                 <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.post_types.create") }}
             </AppButton>
-
-            <button
-                v-for="postType in items"
-                :key="postType.id"
-                type="button"
-                class="w-full text-left px-4 py-3 rounded-xl border transition-colors"
-                :class="postType.id === selectedId
-                    ? 'bg-surface border-accent-500/60 text-primary'
-                    : 'bg-surface border-line/60 text-secondary hover:text-primary hover:bg-surface-2/40'"
-                v-on:click="selectedId = postType.id"
-            >
-                <span class="flex items-center justify-between gap-2">
-                    <span class="font-medium truncate">{{ postType.label }}</span>
-                    <AppBadge v-if="postType.isBuiltIn" color="gray">{{ t("backend.post_types.built_in") }}</AppBadge>
-                </span>
-                <span class="block text-xs text-muted font-mono mt-0.5 truncate">{{ postType.slug }}</span>
-            </button>
-        </aside>
+        </div>
 
         <!-- Selected type -->
         <section v-if="selected" class="space-y-4">

@@ -22,9 +22,19 @@ final readonly class MenusViewBuilder
     ) {}
 
     /** @return array<string, mixed> */
-    public function indexView(): array
+    /** The menu a bare `/menus` should send the reader to, or null when there is none. */
+    public function firstId(): ?int
+    {
+        $menus = $this->menuRepository->findAllWithItems();
+
+        return [] === $menus ? null : $menus[0]->getId();
+    }
+
+    /** @param ?int $activeId the menu the address names */
+    public function indexView(?int $activeId = null): array
     {
         return [
+            'activeId' => $activeId,
             'menus' => array_map(
                 $this->menuSerializer->serialize(...),
                 $this->menuRepository->findAllWithItems(),

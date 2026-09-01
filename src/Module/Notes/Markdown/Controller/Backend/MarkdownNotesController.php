@@ -48,11 +48,23 @@ final class MarkdownNotesController extends AbstractController
      * map preloaded by the view builder. Initial note list is fetched
      * client-side via the JSON list endpoint.
      */
+    /**
+     * Sends the reader to their first note, so a note has one address and the
+     * listing has none of its own. Renders the empty state when there is no
+     * note to send them to.
+     */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
+
+        $notes = $this->repository->findFlatListForUser($user);
+        $first = $notes[0]['id'] ?? null;
+
+        if (null !== $first) {
+            return $this->redirectToRoute('backend_notes_markdown_show', ['id' => $first]);
+        }
 
         return $this->render('@Notes/backend/markdown/index.html.twig', $this->viewBuilder->indexView($user));
     }
@@ -226,13 +238,31 @@ final class MarkdownNotesController extends AbstractController
      * Declared after the static GET routes (/list, /graph) so the router
      * matches those first - otherwise /{id} with id="graph" would shadow them.
      */
+    /**
+     * One address, two answers: the note's content for the page's own XHR, and
+     * the whole page for somebody arriving from a link or the side menu.
+     *
+     * `X-Requested-With` is the contract - the same one `AuditController` uses,
+     * and the reason `convention_no_raw_fetch` exists: every call through
+     * `useRequest` sends it, so the JSON callers here are unaffected while a
+     * plain navigation now gets a page instead of a JSON blob.
+     */
     #[Route('/{id}', name: '_show', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
-    public function show(int $id): JsonResponse
+    public function show(int $id, Request $request): Response
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
         $note = $this->repository->findOneByUserAndId($user, $id);
+
+        if (!$request->isXmlHttpRequest()) {
+            if (!$note instanceof MarkdownNoteInterface) {
+                throw $this->createNotFoundException();
+            }
+
+            return $this->render('@Notes/backend/markdown/index.html.twig', $this->viewBuilder->indexView($user, $id));
+        }
+
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }

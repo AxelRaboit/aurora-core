@@ -14,6 +14,7 @@
 {% block body %}
 <div {{ vue_component('editorial/backend/post-types/PostTypesApp', {
     postTypes: postTypes,
+    activeId: activeId,
     supportOptions: supportOptions,
     fieldTypes: fieldTypes,
     createPath: path('backend_editorial_post_types_create'),

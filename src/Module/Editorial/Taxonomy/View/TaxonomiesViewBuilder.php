@@ -26,9 +26,22 @@ final readonly class TaxonomiesViewBuilder
     /**
      * @return array<string, mixed>
      */
-    public function indexView(): array
+    /**
+     * The taxonomy a bare `/taxonomies` should send the reader to, or null when
+     * there is nothing to send them to.
+     */
+    public function firstId(): ?int
+    {
+        $taxonomies = $this->taxonomyRepository->findAllForIndex();
+
+        return [] === $taxonomies ? null : $taxonomies[0]->getId();
+    }
+
+    /** @param ?int $activeId the taxonomy the address names */
+    public function indexView(?int $activeId = null): array
     {
         return [
+            'activeId' => $activeId,
             'taxonomies' => array_map(
                 $this->taxonomySerializer->serializeFull(...),
                 $this->taxonomyRepository->findAllForIndex(),

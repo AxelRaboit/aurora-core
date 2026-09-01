@@ -1,4 +1,6 @@
 import { onMounted, ref } from "vue";
+import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
 /**
  * What a side-menu panel needs to get its own data.
@@ -24,16 +26,29 @@ export function useModulePanelData(endpoint, { skip = false, key } = {}) {
     const loading = ref(!skip);
     const failed = ref(false);
 
+    // Through `useRequest`, not `fetch` - `convention_no_raw_fetch`. It is the
+    // only thing that sends `X-Requested-With`, which is the contract Symfony
+    // reads to answer JSON instead of an HTML page. A hand-rolled `fetch` works
+    // right up to the day the route it calls starts branching on that header,
+    // and then it parses a page as JSON.
+    const { request } = useRequest();
+
     async function load() {
         if (skip) return;
 
         try {
-            const response = await fetch(endpoint, {
-                headers: { Accept: "application/json" },
+            // `silent`, because nobody asked for this: the panel fills itself
+            // on arrival, and a toast on every page of the module would be
+            // louder than what it reports. `noGuard`, because the panel and
+            // the page legitimately talk to the server at the same time.
+            const payload = await request(endpoint, null, {
+                method: HttpMethod.Get,
+                silent: true,
+                noGuard: true,
             });
-            if (!response.ok) throw new Error(String(response.status));
 
-            const payload = await response.json();
+            if (null === payload) throw new Error("request failed");
+
             data.value = (key ? payload[key] : payload) ?? [];
             failed.value = false;
         } catch {

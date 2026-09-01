@@ -97,6 +97,7 @@ notes:
     drag_handle: Drag to reorder
     content_placeholder: "# Write markdown here\n\nLink to other notes with [[Title]]"
     create_root: New note
+    tree_empty: No note yet.
     create_child: Add a child note
     confirm_delete: 'Permanently delete "{title}"?'
     confirm_discard_changes: You have unsaved changes. Discard them?

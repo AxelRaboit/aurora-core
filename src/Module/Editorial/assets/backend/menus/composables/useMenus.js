@@ -12,7 +12,11 @@ export function useMenus(props) {
     const { t } = useI18n();
 
     const items = ref([...props.menus]);
-    const selectedId = ref(items.value[0]?.id ?? null);
+    /**
+     * Which menu is on screen, and it is the address that says so. The first of
+     * the list is only a fallback for the empty case the redirect cannot cover.
+     */
+    const selectedId = ref(props.activeId ?? items.value[0]?.id ?? null);
     const selected = computed(
         () => items.value.find((menu) => menu.id === selectedId.value) ?? null,
     );

@@ -1,4 +1,4 @@
-import { ref, computed, watch } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { Pencil, Eye, Columns } from "lucide-vue-next";
 import { useDebounce } from "@/shared/composables/useDebounce.js";
 import { useMediaQuery } from "@/shared/composables/useMediaQuery.js";
@@ -188,6 +188,18 @@ export function useMarkdownNotesPage(props, t) {
         await createNoteRaw(parentId);
         if (isMobile.value) sidebarOpen.value = false;
     }
+
+    /**
+     * Open the note the address names.
+     *
+     * The page used to open on nothing until the reader picked from its own
+     * tree. That tree is in the side menu now and every row is a link, so the
+     * server has already answered which note this is - and a link somebody was
+     * sent has to land on the note it names.
+     */
+    onMounted(() => {
+        if (props.activeId) void selectNoteRaw(props.activeId);
+    });
 
     // ── Auto-save status display ───────────────────────────────────
     const { relative: lastSavedRelative } = useRelativeTime(lastSavedAt);

@@ -24,7 +24,16 @@ final readonly class FormsViewBuilder
     ) {}
 
     /** @return array<string, mixed> */
-    public function indexView(): array
+    /** The form a bare `/forms` should send the reader to, or null when there is none. */
+    public function firstId(): ?int
+    {
+        $forms = $this->formRepository->findAllForIndex();
+
+        return [] === $forms ? null : $forms[0]->getId();
+    }
+
+    /** @param ?int $activeId the form the address names */
+    public function indexView(?int $activeId = null): array
     {
         // One grouped query for every form's tally, rather than counting a
         // collection per row.
@@ -39,6 +48,7 @@ final readonly class FormsViewBuilder
         }
 
         return [
+            'activeId' => $activeId,
             'forms' => $forms,
             'locales' => $this->localeContext->getActiveLocales(),
             'fieldTypes' => $this->fieldTypes(),

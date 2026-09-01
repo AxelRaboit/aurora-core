@@ -25,7 +25,15 @@ export function usePostTypesForm(props) {
     const { t } = useI18n();
 
     const items = ref([...props.postTypes]);
-    const selectedId = ref(items.value[0]?.id ?? null);
+    /**
+     * Which post type is on screen, and it is the address that says so.
+     *
+     * It used to default to the first of the list, because the page owned the
+     * switching through a picker column. That column is in the side menu now
+     * and every entry is a route, so the server has already answered - falling
+     * back to the first only for the empty case the redirect cannot cover.
+     */
+    const selectedId = ref(props.activeId ?? items.value[0]?.id ?? null);
 
     const selected = computed(
         () =>

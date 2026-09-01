@@ -97,6 +97,7 @@ notes:
     drag_handle: Glisser pour réordonner
     content_placeholder: "# Écrivez du markdown ici\n\nReliez vos notes avec [[Titre]]"
     create_root: Nouvelle note
+    tree_empty: Aucune note pour l'instant.
     create_child: Ajouter une sous-note
     confirm_delete: 'Supprimer définitivement « {title} » ?'
 

@@ -42,10 +42,28 @@ class TaxonomiesController extends AbstractController
         private readonly TaxonomyTermInputFactoryInterface $termInputFactory,
     ) {}
 
+    /**
+     * One address per taxonomy: a bare `/taxonomies` redirects to the first
+     * rather than showing what `/taxonomies/3` already shows. The empty state
+     * renders in place, having nowhere to redirect to.
+     */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
     {
+        $first = $this->viewBuilder->firstId();
+
+        if (null !== $first) {
+            return $this->redirectToRoute('backend_editorial_taxonomies_show', ['id' => $first]);
+        }
+
         return $this->render('@Editorial/backend/taxonomies/index.html.twig', $this->viewBuilder->indexView());
+    }
+
+    /** Digits only, so a literal GET sub-route added later is not swallowed. */
+    #[Route('/{id}', name: '_show', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    public function show(Taxonomy $taxonomy): Response
+    {
+        return $this->render('@Editorial/backend/taxonomies/index.html.twig', $this->viewBuilder->indexView($taxonomy->getId()));
     }
 
     #[Route('', name: '_create', methods: [HttpMethodEnum::Post->value])]

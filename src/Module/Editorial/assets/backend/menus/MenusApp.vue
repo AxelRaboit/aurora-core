@@ -31,10 +31,12 @@ const props = defineProps({
     itemEditPathTemplate: { type: String, required: true },
     itemDeletePathTemplate: { type: String, required: true },
     itemReorderPathTemplate: { type: String, required: true },
+    /** The menu this URL is. Decided by the server, not by the browser. */
+    activeId: { type: Number, default: null },
 });
 
 const {
-    items, selectedId, selected, upsert,
+    items, selected, upsert,
     showEdit, editForm, editErrors, editLoading, openEdit, submitEdit,
 } = useMenus(props);
 
@@ -80,26 +82,9 @@ function isUnresolved(item) {
         :hint="t('backend.menus.empty_hint')"
     />
 
-    <div v-else class="grid grid-cols-1 lg:grid-cols-[18rem_1fr] gap-4">
-        <aside class="space-y-2">
-            <button
-                v-for="menu in items"
-                :key="menu.id"
-                type="button"
-                class="w-full text-left px-4 py-3 rounded-xl border transition-colors"
-                :class="menu.id === selectedId
-                    ? 'bg-surface border-accent-500/60 text-primary'
-                    : 'bg-surface border-line/60 text-secondary hover:text-primary hover:bg-surface-2/40'"
-                v-on:click="selectedId = menu.id"
-            >
-                <span class="flex items-center justify-between gap-2">
-                    <span class="font-medium truncate">{{ menu.name }}</span>
-                    <AppBadge v-if="!menu.locationKnown" color="amber">{{ t("backend.menus.location") }}</AppBadge>
-                </span>
-                <span class="block text-xs text-muted font-mono mt-0.5 truncate">{{ menu.location }}</span>
-            </button>
-        </aside>
-
+    <div v-else class="space-y-4">
+        <!-- No picker column: the side menu lists the menus, one entry per
+             record and one address each. -->
         <section v-if="selected" class="space-y-4">
             <div class="bg-surface border border-line rounded-xl p-5 space-y-3">
                 <div class="flex items-start justify-between gap-3">
