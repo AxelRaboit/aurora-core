@@ -16,6 +16,7 @@ class PostTypeInputFactory implements PostTypeInputFactoryInterface
         return new PostTypeInput(
             slug: mb_strtolower(Str::trimOrNull((string) ($data['slug'] ?? '')) ?? ''),
             label: Str::trimOrNull((string) ($data['label'] ?? '')) ?? '',
+            description: Str::trimOrNull((string) ($data['description'] ?? '')),
             icon: Str::trimOrNull((string) ($data['icon'] ?? '')),
             hasArchive: (bool) ($data['hasArchive'] ?? false),
             supports: $this->stringList($data['supports'] ?? null),

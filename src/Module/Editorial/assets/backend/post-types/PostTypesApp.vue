@@ -186,6 +186,15 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
                 :error="createErrors.label"
                 required
             />
+            <!-- What this type is for, in the author's words. The side menu
+                 shows it under the name; left blank it says how many posts the
+                 type holds instead. -->
+            <AppTextarea
+                v-model="createForm.description"
+                :label="t('backend.post_types.description')"
+                :placeholder="t('backend.post_types.description_placeholder')"
+                :rows="2"
+            />
             <AppInput
                 v-model="createForm.slug"
                 :label="t('backend.post_types.slug')"
@@ -232,6 +241,15 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
                 :placeholder="t('backend.post_types.label_placeholder')"
                 :error="editErrors.label"
                 required
+            />
+            <!-- What this type is for, in the author's words. The side menu
+                 shows it under the name; left blank it says how many posts the
+                 type holds instead. -->
+            <AppTextarea
+                v-model="editForm.description"
+                :label="t('backend.post_types.description')"
+                :placeholder="t('backend.post_types.description_placeholder')"
+                :rows="2"
             />
             <AppInput
                 v-model="editForm.slug"

@@ -10,6 +10,8 @@ interface PostTypeInputInterface
 
     public function getLabel(): string;
 
+    public function getDescription(): ?string;
+
     public function getIcon(): ?string;
 
     public function hasArchive(): bool;

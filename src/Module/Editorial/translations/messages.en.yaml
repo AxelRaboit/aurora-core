@@ -210,6 +210,8 @@ backend:
       field_label_required: A label is required.
       field_type_invalid: Unknown field type.
     label_placeholder: "Article"
+    description: Description
+    description_placeholder: "What this type of content is for, in one sentence."
     icon_placeholder: "file-text"
   posts:
     banner:

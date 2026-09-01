@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import PostGridCanvas from "./PostGridCanvas.vue";
 
@@ -733,7 +734,17 @@ describe("PostGridCanvas", () => {
      * slice is aiming at a rectangle that holds still, which is the same reason
      * dropping *between* zones was refused on the row axis.
      */
-    it("moves a zone into a stack when it is dropped on one of its slices", () => {
+    /**
+     * The slices are looked up *after* the drag has started, in these three
+     * tests and only these three.
+     *
+     * `drag` dispatches straight onto an element, so a handle taken before the
+     * `dragstart` is a handle to whatever the canvas rendered before it knew a
+     * drag was under way. If the highlight re-renders those nodes - and it does
+     * - the drop lands on a detached element and no event is emitted at all.
+     * That is what made this file fail once in a while and pass on the retry.
+     */
+    it("moves a zone into a stack when it is dropped on one of its slices", async () => {
         const wrapper = mountCanvas([
             zone("a", 24),
             stack("s", 24, [
@@ -742,10 +753,12 @@ describe("PostGridCanvas", () => {
             ]),
         ]);
 
-        const slices = wrapper.findAll('.aurora-grid [style*="flex-grow"]');
-
         drag(boxes(wrapper)[0], "dragstart");
+        await nextTick();
+
+        const slices = wrapper.findAll('.aurora-grid [style*="flex-grow"]');
         drag(slices[1], "dragover");
+        await nextTick();
         drag(slices[1], "drop");
 
         expect(wrapper.emitted("moveInto")[0]).toEqual([0, 1, 1]);
@@ -759,16 +772,18 @@ describe("PostGridCanvas", () => {
      * nothing, and the highlight says which of the two happened: the box
      * lights up, the slice does not.
      */
-    it("falls back to an exchange when a stack is dropped on a stack's slice", () => {
+    it("falls back to an exchange when a stack is dropped on a stack's slice", async () => {
         const wrapper = mountCanvas([
             stack("a", 24, [{ type: "media", lg: 48 }]),
             stack("b", 24, [{ type: "media", lg: 48 }]),
         ]);
 
-        const slices = wrapper.findAll('.aurora-grid [style*="flex-grow"]');
-
         drag(boxes(wrapper)[0], "dragstart");
+        await nextTick();
+
+        const slices = wrapper.findAll('.aurora-grid [style*="flex-grow"]');
         drag(slices[1], "dragover");
+        await nextTick();
         drag(slices[1], "drop");
 
         expect(wrapper.emitted("moveInto")).toBeFalsy();
@@ -778,7 +793,7 @@ describe("PostGridCanvas", () => {
         );
     });
 
-    it("takes a zone out of a stack when its slice is dropped on the row", () => {
+    it("takes a zone out of a stack when its slice is dropped on the row", async () => {
         const wrapper = mountCanvas([
             zone("a", 24),
             stack("s", 24, [
@@ -787,10 +802,15 @@ describe("PostGridCanvas", () => {
             ]),
         ]);
 
+        // The dragged handle has to be taken before the drag starts - it is
+        // what starts it - but the targets are looked up after, for the reason
+        // above.
         const slices = wrapper.findAll('.aurora-grid [style*="flex-grow"]');
-
         drag(slices[1], "dragstart");
+        await nextTick();
+
         drag(boxes(wrapper)[0], "dragover");
+        await nextTick();
         drag(boxes(wrapper)[0], "drop");
 
         expect(wrapper.emitted("moveOut")[0]).toEqual([1, 1, 0]);

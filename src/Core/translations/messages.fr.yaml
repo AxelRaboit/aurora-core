@@ -172,6 +172,10 @@ backend:
     show_descriptions: Afficher les descriptions
     filter_nav_empty: Aucun élément trouvé
     view_site: Voir le site
+    counts:
+      terms: '{0}Aucun terme|{1}Un terme|]1,Inf[%count% termes'
+      fields: '{0}Aucun champ|{1}Un champ|]1,Inf[%count% champs'
+      posts: '{0}Aucune publication|{1}Une publication|]1,Inf[%count% publications'
     back_to_modules: Tous les modules
     back_to_module: "Revenir à {module}"
     logout: Déconnexion

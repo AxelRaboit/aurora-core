@@ -23,6 +23,7 @@ class PostTypeInput implements PostTypeInputInterface
         #[Assert\NotBlank(message: 'backend.post_types.errors.label_required')]
         #[Assert\Length(max: 100)]
         public readonly string $label,
+        public readonly ?string $description = null,
         public readonly ?string $icon = null,
         public readonly bool $hasArchive = false,
         public readonly array $supports = [],
@@ -36,6 +37,11 @@ class PostTypeInput implements PostTypeInputInterface
     public function getLabel(): string
     {
         return $this->label;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
     }
 
     public function getIcon(): ?string

@@ -118,19 +118,16 @@ final class GedModuleNavViewTest extends IntegrationTestCase
     }
 
     /**
-     * The folders page is gone, but its address was in menus and bookmarks for
-     * a year. It redirects rather than 404s - a bridge, to drop in two
-     * versions.
+     * The bridge is gone, on the version it was dated for. It shipped in 0.9.35
+     * as a redirect for an address that had lived in menus and bookmarks; a
+     * bridge that stays becomes a second way to address a page that no longer
+     * exists.
      */
-    public function testTheOldFoldersPageRedirectsToTheDocuments(): void
+    public function testTheOldFoldersPageIsGone(): void
     {
         $this->client->request('GET', '/backend/ged/folders');
 
-        self::assertSame(302, $this->client->getResponse()->getStatusCode());
-        self::assertStringEndsWith(
-            '/backend/ged/documents',
-            (string) $this->client->getResponse()->headers->get('Location'),
-        );
+        self::assertSame(404, $this->client->getResponse()->getStatusCode());
     }
 
     public function testTheFolderEndpointServesTheTreeThePanelDraws(): void

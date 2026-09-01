@@ -10,6 +10,7 @@ function emptyForm(supportOptions) {
     return {
         slug: "",
         label: "",
+        description: "",
         icon: "",
         hasArchive: false,
         supports: [...supportOptions],
@@ -121,6 +122,7 @@ export function usePostTypesForm(props) {
         editForm.value = {
             slug: postType.slug,
             label: postType.label,
+            description: postType.description ?? "",
             icon: postType.icon ?? "",
             hasArchive: postType.hasArchive,
             supports: [...(postType.supports ?? [])],

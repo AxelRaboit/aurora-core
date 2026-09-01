@@ -210,6 +210,8 @@ backend:
       field_label_required: Un libellé est requis.
       field_type_invalid: Type de champ inconnu.
     label_placeholder: "Article"
+    description: Description
+    description_placeholder: "À quoi sert ce type de contenu, en une phrase."
     icon_placeholder: "file-text"
   posts:
     banner:
