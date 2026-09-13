@@ -99,6 +99,17 @@ const postTypeOptions = props.postTypes.map((type) => ({ value: type.id, label: 
  */
 const formOptions = props.forms.map((form) => ({ value: form.id, label: form.title }));
 
+/**
+ * The taxonomies themselves, for the zone that draws a whole set of terms
+ * rather than narrowing by one of them. Flat where `termOptions` below is
+ * nested, because the question is different: "which taxonomy" against "which
+ * term, wherever it lives".
+ */
+const taxonomyOptions = props.taxonomies.map((taxonomy) => ({
+    value: taxonomy.id,
+    label: taxonomy.name,
+}));
+
 const termOptions = props.taxonomies.flatMap((taxonomy) =>
     (taxonomy.terms ?? []).map((term) => ({
         value: term.id,
@@ -503,6 +514,7 @@ function termLabel(term) {
                         <PostGridPanel
                             :post-type-options="postTypeOptions"
                             :term-options="termOptions"
+                            :taxonomy-options="taxonomyOptions"
                             :form-options="formOptions"
                             :layout="form.gridLayout"
                             :content="current.grid"

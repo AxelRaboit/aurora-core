@@ -12,6 +12,7 @@ import {
     LayoutList,
     ListFilter,
     ListTree,
+    Tags,
     MousePointerClick,
     Newspaper,
     SeparatorHorizontal,
@@ -44,6 +45,7 @@ export const LEAF_ZONE_TYPES = [
     "video",
     "audio",
     "document",
+    "terms",
     "button",
     "separator",
     "items",
@@ -77,6 +79,8 @@ export const ZONE_ICONS = {
     // The arrow is the whole point of this zone - a sheet of paper alone would
     // read as the text zone beside it.
     document: FileDown,
+    // Labels on a string, which is what a set of terms is.
+    terms: Tags,
     button: MousePointerClick,
     separator: SeparatorHorizontal,
     items: LayoutList,
@@ -408,6 +412,7 @@ function newZone(type) {
         items: [],
         // A list with no filter is the whole site, newest first - the answer
         // that needs no setting up, which is what a zone should do on arrival.
+        taxonomyId: null,
         postTypeId: null,
         termId: null,
         limit: 3,
@@ -1095,6 +1100,7 @@ export function usePostGrid(layout, content) {
                 separatorStyle: shared("separatorStyle"),
                 display: shared("display"),
                 columns: shared("columns"),
+                taxonomyId: shared("taxonomyId"),
                 postTypeId: shared("postTypeId"),
                 termId: shared("termId"),
                 limit: shared("limit"),

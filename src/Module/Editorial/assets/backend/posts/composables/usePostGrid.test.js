@@ -431,7 +431,7 @@ describe("usePostGrid", () => {
         ]);
     });
 
-    it("offers the three steps and the fourteen zone types", () => {
+    it("offers the three steps and the fifteen zone types", () => {
         const { snapOptions, typeOptions } = make().api;
 
         expect(snapOptions.value.map((o) => o.value)).toEqual([4, 2, 1]);
@@ -442,6 +442,7 @@ describe("usePostGrid", () => {
             "video",
             "audio",
             "document",
+            "terms",
             "button",
             "separator",
             "items",
@@ -462,6 +463,7 @@ describe("usePostGrid", () => {
             "video",
             "audio",
             "document",
+            "terms",
             "button",
             "separator",
             "items",

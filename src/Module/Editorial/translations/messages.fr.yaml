@@ -452,6 +452,7 @@ backend:
         video: Vidéo
         audio: Audio
         document: Document
+        terms: Termes
         button: Bouton
         separator: Séparateur
         items: Liste
@@ -637,6 +638,11 @@ backend:
       zone_document_published_hint: "Seul un document publié s'affiche sur le site. Un brouillon laisse la zone vide, sans message : la médiathèque contient aussi les papiers internes."
       zone_document_label: Intitulé du lien
       zone_document_label_placeholder: "Notre plaquette 2026"
+      terms_taxonomy: Taxonomie
+      terms_taxonomy_hint: "Tous ses termes sont affichés, dans l'ordre du back-office, chacun vers sa page. Un terme ajouté plus tard apparaît tout seul."
+      terms_taxonomy_none: "Choisir une taxonomie…"
+      terms_caption: Titre au-dessus
+      terms_caption_placeholder: "Nos domaines"
       zone_document_label_hint: "Ce que le visiteur lit sur la carte. Vide, c'est le titre du document dans la médiathèque qui est repris."
       zone_video_hint: "YouTube, Vimeo ou Dailymotion. Une autre adresse s'affichera en lien plutôt qu'en lecteur."
       move_up: Monter
@@ -994,6 +1000,7 @@ frontend:
       copy: Copier
       copied: Copié
       on_this_page: Sur cette page
+      terms: Termes
       get_in_touch: Écrire
     forms:
       submit: Envoyer

@@ -38,6 +38,8 @@ const props = defineProps({
     postTypeOptions: { type: Array, default: () => [] },
     /** The terms it may narrow to, across every taxonomy. */
     termOptions: { type: Array, default: () => [] },
+    /** The taxonomies a terms zone may unroll. */
+    taxonomyOptions: { type: Array, default: () => [] },
     /** The active forms a zone may pose. */
     formOptions: { type: Array, default: () => [] },
     /** True for a zone inside a stack, where the row controls do not apply. */
@@ -326,6 +328,29 @@ const displayHint = computed(() =>
                 :options="formOptions"
                 :placeholder="t('backend.posts.grid.zone_form_none')"
             />
+        </template>
+
+        <template v-else-if="zone.type === 'terms'">
+            <AppSelect
+                v-model="bound.taxonomyId.value"
+                :label="t('backend.posts.grid.terms_taxonomy')"
+                :hint="t('backend.posts.grid.terms_taxonomy_hint')"
+                :options="taxonomyOptions"
+                :placeholder="t('backend.posts.grid.terms_taxonomy_none')"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <!-- The words above the chips. The taxonomy has a name of its
+                     own, but it is the one the backend files things under, not
+                     necessarily the one a visitor should read. -->
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.terms_caption')"
+                    :placeholder="t('backend.posts.grid.terms_caption_placeholder')"
+                />
+            </div>
         </template>
 
         <template v-else-if="zone.type === 'postList'">

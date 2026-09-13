@@ -452,6 +452,7 @@ backend:
         video: Video
         audio: Audio
         document: Document
+        terms: Terms
         button: Button
         separator: Separator
         items: List
@@ -637,6 +638,11 @@ backend:
       zone_document_published_hint: "Only a published document is shown on the site. A draft leaves the zone empty, with nothing said: the library holds internal papers too."
       zone_document_label: Link wording
       zone_document_label_placeholder: "Our 2026 brochure"
+      terms_taxonomy: Taxonomy
+      terms_taxonomy_hint: "Every one of its terms is shown, in the backend's order, each linking to its page. A term added later appears on its own."
+      terms_taxonomy_none: "Choose a taxonomy…"
+      terms_caption: Heading above
+      terms_caption_placeholder: "What we do"
       zone_document_label_hint: "What the visitor reads on the card. Left empty, the document's own title in the library is used."
       zone_video_hint: "YouTube, Vimeo or Dailymotion. Any other address renders as a link rather than a player."
       move_up: Move up
@@ -994,6 +1000,7 @@ frontend:
       copy: Copy
       copied: Copied
       on_this_page: On this page
+      terms: Terms
       get_in_touch: Get in touch
     forms:
       submit: Send

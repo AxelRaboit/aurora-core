@@ -16,6 +16,11 @@ backend:
       zone_document_published_hint: "Solo se muestra en el sitio un documento publicado. Un borrador deja la zona vacía, sin aviso: la mediateca también guarda los papeles internos."
       zone_document_label: Texto del enlace
       zone_document_label_placeholder: "Nuestro folleto 2026"
+      terms_taxonomy: Taxonomía
+      terms_taxonomy_hint: "Se muestran todos sus términos, en el orden del back-office, cada uno hacia su página. Un término añadido después aparece solo."
+      terms_taxonomy_none: "Elegir una taxonomía…"
+      terms_caption: Título encima
+      terms_caption_placeholder: "Nuestros ámbitos"
       zone_document_label_hint: "Lo que lee el visitante en la tarjeta. Vacío, se usa el título del documento en la mediateca."
       zone_form_none: "Elegir un formulario…"
       anchor: "Ancla"
@@ -55,6 +60,7 @@ frontend:
       copy: Copiar
       copied: Copiado
       on_this_page: En esta página
+      terms: Términos
       get_in_touch: Contactar
     forms:
       submit: Enviar

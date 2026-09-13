@@ -16,6 +16,10 @@ use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Service\BlocksRenderer;
 use Aurora\Module\Editorial\Post\Service\ThumbnailPresenter;
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermTranslationInterface;
+use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
+use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyTermRepository;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentCreditPresenter;
@@ -53,6 +57,8 @@ final readonly class GridViewBuilder
         private ThumbnailPresenter $thumbnailPresenter,
         private FormRepository $formRepository,
         private FormSerializer $formSerializer,
+        private TaxonomyRepository $taxonomyRepository,
+        private TaxonomyTermRepository $taxonomyTermRepository,
         private UrlGeneratorInterface $urlGenerator,
     ) {}
 
@@ -209,6 +215,9 @@ final readonly class GridViewBuilder
                     : null,
                 'postList' => GridNormalizer::ZONE_POST_LIST === $zone['type']
                     ? $this->postListView($zone, $locale, $currentPostId)
+                    : null,
+                'terms' => GridNormalizer::ZONE_TERMS === $zone['type']
+                    ? $this->termsView($zone, $locale)
                     : null,
                 'form' => GridNormalizer::ZONE_FORM === $zone['type']
                     ? $this->formView($zone['formId'], $locale)
@@ -455,6 +464,61 @@ final readonly class GridViewBuilder
             'columns' => (int) $zone['columns'],
             'variant' => (string) $zone['cardVariant'],
             'cards' => $cards,
+        ];
+    }
+
+    /**
+     * The terms of one taxonomy, in the order the backend arranges them.
+     *
+     * One query per zone, like the list beside it, and for the same reason: a
+     * page that answers the question on every render is a page nobody has to
+     * remember to edit.
+     *
+     * A term with nothing written in this language is dropped rather than
+     * shown under its slug. A word an author never wrote is not a word to put
+     * in front of a reader, and a link labelled with a slug reads as a fault.
+     *
+     * @param array<string, mixed> $zone
+     *
+     * @return array{name: string, entries: list<array{label: string, url: string}>}
+     */
+    private function termsView(array $zone, string $locale): array
+    {
+        $taxonomy = null === $zone['taxonomyId']
+            ? null
+            : $this->taxonomyRepository->find($zone['taxonomyId']);
+
+        if (!$taxonomy instanceof TaxonomyInterface) {
+            return ['name' => '', 'entries' => []];
+        }
+
+        $entries = [];
+        foreach ($this->taxonomyTermRepository->findByTaxonomyOrdered($taxonomy) as $term) {
+            $translation = $term->getTranslation($locale);
+            if (!$translation instanceof TaxonomyTermTranslationInterface) {
+                continue;
+            }
+
+            if ('' === $translation->getName()) {
+                continue;
+            }
+
+            $entries[] = [
+                'label' => $translation->getName(),
+                'url' => $this->urlGenerator->generate('editorial_term', [
+                    'locale' => $locale,
+                    'taxonomySlug' => $taxonomy->getSlug(),
+                    'termSlug' => $translation->getSlug(),
+                ]),
+            ];
+        }
+
+        return [
+            // The taxonomy's own name in this language, for a zone that wants
+            // to say what it is listing. Empty when untranslated, and the
+            // template draws no heading rather than an empty one.
+            'name' => $taxonomy->getTranslation($locale)?->getLabel() ?? '',
+            'entries' => $entries,
         ];
     }
 

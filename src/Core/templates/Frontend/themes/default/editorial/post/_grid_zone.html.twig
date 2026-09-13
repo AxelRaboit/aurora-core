@@ -160,6 +160,30 @@
             <span class="shrink-0 text-accent" aria-hidden="true">&darr;</span>
         </a>
 
+    {% elseif zone.type == 'terms' and zone.terms.entries is not empty %}
+        {# A `<nav>` with a name, which is what makes it skippable - the same
+           reasoning as the summary further down this file. A reader moving by
+           landmark meets the taxonomy's own name and can step over the lot.
+
+           Wrapped rather than listed down the page: a taxonomy is a set, not a
+           sequence, and a row of chips says that where a bulleted list would
+           claim an order nobody chose. #}
+        <nav class="not-prose" aria-label="{{ zone.terms.name ?: 'frontend.editorial.grid.terms'|trans }}">
+            {% if zone.caption %}
+                <p class="m-0 mb-3 text-xs font-semibold uppercase tracking-wider text-muted">{{ zone.caption }}</p>
+            {% endif %}
+            <ul class="m-0 flex list-none flex-wrap gap-2 p-0">
+                {% for entry in zone.terms.entries %}
+                    <li class="m-0">
+                        <a
+                            href="{{ entry.url }}"
+                            class="inline-block rounded-full border border-line px-4 py-1.5 text-sm text-secondary no-underline transition-colors hover:border-accent hover:text-accent"
+                        >{{ entry.label }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </nav>
+
     {% elseif zone.type == 'post' and zone.post %}
         {{ include('Frontend/themes/default/editorial/_post_card.html.twig', {post: zone.post, locale: locale, variant: zone.cardVariant}) }}
 

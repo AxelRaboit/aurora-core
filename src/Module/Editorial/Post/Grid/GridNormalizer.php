@@ -139,6 +139,16 @@ final readonly class GridNormalizer
     public const string ZONE_POST_LIST = 'postList';
 
     /**
+     * The terms of one taxonomy, each linking to its archive.
+     *
+     * The mirror of `postList`: that one draws the publications, this one
+     * draws the doors that lead to them. On a hub page it replaces a menu
+     * written by hand, which is out of date the first time a term is added -
+     * the same argument the automatic list is built on.
+     */
+    public const string ZONE_TERMS = 'terms';
+
+    /**
      * A form of the site, posed inside a page.
      *
      * A form already has a page of its own at `/{locale}/forms/{slug}`. This
@@ -342,6 +352,7 @@ final readonly class GridNormalizer
         self::ZONE_VIDEO,
         self::ZONE_AUDIO,
         self::ZONE_DOCUMENT,
+        self::ZONE_TERMS,
         self::ZONE_BUTTON,
         self::ZONE_SEPARATOR,
         self::ZONE_ITEMS,
@@ -591,6 +602,11 @@ final readonly class GridNormalizer
                 'items' => self::ZONE_ITEMS === $type ? $this->itemList($entry['items'] ?? null) : [],
                 // What a list zone asks for. Both filters are optional and
                 // combine; null on either side means "do not narrow by this".
+                // Which taxonomy a terms zone unrolls. Shared like every
+                // other id here: a taxonomy carries its own translations, so
+                // the renderer picks the right ones rather than asking an
+                // author to name a different taxonomy per language.
+                'taxonomyId' => $this->values->id($entry['taxonomyId'] ?? null),
                 'postTypeId' => $this->values->id($entry['postTypeId'] ?? null),
                 'termId' => $this->values->id($entry['termId'] ?? null),
                 'limit' => min(self::MAX_LIST_LIMIT, max(1, (int) ($entry['limit'] ?? 3))),
