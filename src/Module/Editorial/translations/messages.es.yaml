@@ -2,6 +2,9 @@ backend:
   posts:
     grid:
       zone_video_file: Elegir un vídeo
+      item_display_hint_faq: "Cada entrada se pliega. Sirve para preguntas, y también para todo lo que se lee cuando hace falta: lo que se incluye, las garantías, el aviso legal."
+      item_exclusive_open: Una sola entrada abierta a la vez
+      item_exclusive_open_hint: "Abrir una entrada cierra la anterior. Útil en una lista larga; déjelo desactivado si el lector debe comparar dos respuestas."
       zone_video_file_chosen: Vídeo de la mediateca
       zone_video_file_none: Ningún vídeo elegido
       zone_audio_file: Elegir un archivo de sonido

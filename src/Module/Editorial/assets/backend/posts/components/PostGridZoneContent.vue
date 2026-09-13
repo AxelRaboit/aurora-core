@@ -162,6 +162,30 @@ const itemHasFeatured = computed(() => "offers" === bound.display.value);
 const descriptionHint = computed(() =>
     "offers" === bound.display.value ? t("backend.posts.grid.offer_lines_hint") : undefined,
 );
+
+/**
+ * Only the folding costume has panels to keep shut.
+ *
+ * The flag is stored on every list whatever the costume, like the picture and
+ * the recommended flag: trying another costume and coming back should not lose
+ * the choice.
+ */
+const itemFolds = computed(() => "faq" === bound.display.value);
+
+/**
+ * What the chosen costume is good for, where the name alone does not say it.
+ *
+ * `faq` is the one that needs it: it folds any pair of a title and a few
+ * lines - what is included, the guarantees, the small print - and an author
+ * reading "Questions fréquentes" has no way to know that. The generic line is
+ * the fallback, so a costume whose name is its own explanation says nothing
+ * extra.
+ */
+const displayHint = computed(() =>
+    itemFolds.value
+        ? t("backend.posts.grid.item_display_hint_faq")
+        : t("backend.posts.grid.item_display_hint"),
+);
 </script>
 
 <template>
@@ -395,8 +419,15 @@ const descriptionHint = computed(() =>
             <AppChoiceRow
                 v-model="bound.display.value"
                 :label="t('backend.posts.grid.item_display')"
-                :hint="t('backend.posts.grid.item_display_hint')"
+                :hint="displayHint"
                 :options="choices.display ?? []"
+            />
+            <!-- Only where there are panels to keep shut. -->
+            <AppToggle
+                v-if="itemFolds"
+                v-model="bound.exclusiveOpen.value"
+                :label="t('backend.posts.grid.item_exclusive_open')"
+                :hint="t('backend.posts.grid.item_exclusive_open_hint')"
             />
             <!-- Only where the costume lays its entries in a row: a list of
                  steps and an accordion read down the page, and offering a

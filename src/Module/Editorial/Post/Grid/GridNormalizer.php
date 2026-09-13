@@ -613,6 +613,11 @@ final readonly class GridNormalizer
                 // a three-line example needs no coordinates, and a page that
                 // numbers everything makes the numbers mean nothing.
                 'lineNumbers' => (bool) ($entry['lineNumbers'] ?? false),
+                // One panel open at a time, for a list that folds. Off by
+                // default, which is the behaviour already published: a reader
+                // comparing two answers should not have the first close under
+                // them because nobody asked for that.
+                'exclusiveOpen' => (bool) ($entry['exclusiveOpen'] ?? false),
                 // What the zone sits on. Every type can have one: a card of
                 // figures, a tinted FAQ, a call to action on accent.
                 'surface' => $this->values->oneOf($entry['surface'] ?? null, self::SURFACES, self::SURFACES[0]),

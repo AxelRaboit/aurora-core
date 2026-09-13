@@ -521,6 +521,9 @@ backend:
         space: Space
       item_display: Display
       item_display_hint: "The same list, drawn differently. Switching display keeps what is written."
+      item_display_hint_faq: "Each entry folds away. Good for questions, and for anything else read on demand: what is included, the guarantees, the small print."
+      item_exclusive_open: One entry open at a time
+      item_exclusive_open_hint: "Opening an entry closes the previous one. Handy on a long list; leave it off when the reader has to compare two answers side by side."
       item_displays:
         steps: Numbered steps
         stats: Key figures

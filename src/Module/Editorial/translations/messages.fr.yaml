@@ -521,6 +521,9 @@ backend:
         space: Espace
       item_display: Présentation
       item_display_hint: "La même liste, dessinée autrement. Changer de présentation ne perd pas ce qui est écrit."
+      item_display_hint_faq: "Chaque entrée se replie. Bon pour des questions, mais aussi pour tout ce qui se lit au besoin : ce qui est compris, les garanties, les mentions."
+      item_exclusive_open: Une seule entrée ouverte à la fois
+      item_exclusive_open_hint: "Ouvrir une entrée referme la précédente. Pratique sur une longue liste ; à laisser désactivé si le lecteur doit comparer deux réponses côte à côte."
       item_displays:
         steps: Étapes numérotées
         stats: Chiffres clés

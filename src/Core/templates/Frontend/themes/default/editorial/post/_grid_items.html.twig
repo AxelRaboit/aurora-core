@@ -59,9 +59,17 @@
            announced correctly, and a browser's find-in-page reaches inside a
            closed one. The marker is hidden and replaced by a sign that turns,
            because the default triangle cannot be styled across browsers. #}
+        {# `name` groups the panels so the browser closes the others itself -
+           no script, and it degrades to "several may be open" in a browser
+           that does not know the attribute, which is the behaviour every list
+           already published has. Scoped to the zone: two lists on one page
+           must not close each other's panels. #}
         <div class="divide-y divide-line border-y border-line">
             {% for entry in items.entries %}
-                <details class="group py-4">
+                <details
+                    class="group py-4"
+                    {% if items.exclusiveOpen %}name="fold-{{ items.id }}"{% endif %}
+                >
                     <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-primary [&::-webkit-details-marker]:hidden">
                         {{ entry.title }}
                         <span class="shrink-0 text-accent transition-transform group-open:rotate-45" aria-hidden="true">+</span>

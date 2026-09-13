@@ -416,6 +416,7 @@ function newZone(type) {
         language: null,
         textSize: "normal",
         lineNumbers: false,
+        exclusiveOpen: false,
         // No name until someone means to link to the zone. An id on every
         // zone would be a page full of addresses nobody chose.
         anchor: "",
@@ -1102,6 +1103,7 @@ export function usePostGrid(layout, content) {
                 language: shared("language"),
                 textSize: shared("textSize"),
                 lineNumbers: shared("lineNumbers"),
+                exclusiveOpen: shared("exclusiveOpen"),
                 anchor: shared("anchor"),
                 surface: shared("surface"),
                 fullBleed: shared("fullBleed"),

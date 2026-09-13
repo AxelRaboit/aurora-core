@@ -518,6 +518,15 @@ final readonly class GridViewBuilder
             'display' => (string) $zone['display'],
             'columns' => (int) $zone['columns'],
             'entries' => $entries,
+            // Carried into the view rather than read off the zone in Twig,
+            // because `_grid_items` is handed `items` and nothing else - and
+            // giving it the whole zone to reach one flag would hand it the
+            // span, the surface and the anchor as well.
+            'exclusiveOpen' => (bool) ($zone['exclusiveOpen'] ?? false),
+            // The grouping name the browser folds on. Per zone, so two lists
+            // on one page do not close each other's panels; `id` is already
+            // unique across the grid, stacks included.
+            'id' => (string) $zone['id'],
         ];
     }
 
