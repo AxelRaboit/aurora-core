@@ -14,6 +14,7 @@ import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useDecksList } from "./composables/useDecksList.js";
+import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
@@ -35,6 +36,7 @@ import {
 } from "lucide-vue-next";
 
 const { t } = useI18n();
+const { container, isNarrow } = useNarrowContainer();
 const { can } = usePrivileges();
 
 const props = defineProps({
@@ -132,7 +134,7 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div ref="container" class="space-y-4">
         <AppListToolbar>
             <AppSearchInput
                 v-model="search"
@@ -166,7 +168,7 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
             :description="t('backend.studio.decks.empty_description')"
         />
 
-        <div v-else class="overflow-x-auto rounded-xl border border-line bg-surface">
+        <div v-else-if="!isNarrow" class="overflow-x-auto rounded-xl border border-line bg-surface">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-line text-xs uppercase tracking-wide text-muted">
@@ -218,6 +220,56 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- La même ligne, lue de haut en bas. Le titre reste le lien vers la
+             présentation, et les actions sont dépliées : une carte a la place,
+             et un menu dans un menu sur un téléphone est un geste de trop. -->
+        <div v-else class="space-y-2">
+            <article
+                v-for="deck in filteredItems"
+                :key="deck.id"
+                class="rounded-lg border border-line bg-surface p-3 space-y-2.5"
+            >
+                <div>
+                    <a
+                        class="block font-medium text-primary no-underline hover:text-accent"
+                        :href="deckUrl(deck)"
+                    >{{ deck.title }}</a>
+                    <span v-if="deck.description" class="block text-xs text-muted">{{ deck.description }}</span>
+                </div>
+
+                <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+                    <span
+                        v-if="deck.category"
+                        class="inline-flex items-center gap-1.5 rounded-full border border-line px-2 py-0.5"
+                    >
+                        <span
+                            v-if="deck.category.color"
+                            class="h-2 w-2 rounded-full"
+                            :style="{ backgroundColor: deck.category.color }"
+                        />
+                        {{ deck.category.name }}
+                    </span>
+                    <span v-else>{{ t("backend.studio.decks.uncategorised") }}</span>
+                    <span v-if="deck.customer" class="text-secondary">{{ deck.customer.legalName }}</span>
+                    <span class="tabular-nums">{{ t("backend.studio.decks.slides") }} : {{ deck.slideCount }}</span>
+                </p>
+
+                <div class="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-line/40 pt-2">
+                    <AppButton
+                        v-for="action in actionsFor(deck)"
+                        :key="action.key"
+                        variant="ghost"
+                        size="sm"
+                        :href="action.href"
+                        v-on:click="action.onSelect?.()"
+                    >
+                        <component :is="action.icon" v-if="action.icon" class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ action.title }}
+                    </AppButton>
+                </div>
+            </article>
         </div>
 
         <AppModal

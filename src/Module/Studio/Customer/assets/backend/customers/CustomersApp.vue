@@ -1,5 +1,6 @@
 <script setup>
 import { useI18n } from "vue-i18n";
+import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
 import { useCustomersForm } from "./composables/useCustomersForm.js";
@@ -14,6 +15,7 @@ import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { Building2, Pencil, Plus, Save, Trash2, X } from "lucide-vue-next";
 
 const { t } = useI18n();
+const { container, isNarrow } = useNarrowContainer();
 const { can } = usePrivileges();
 
 const props = defineProps({
@@ -97,7 +99,7 @@ function formatCapital(customer) {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div ref="container" class="space-y-4">
         <AppListToolbar>
             <AppSearchInput
                 v-model="search"
@@ -118,7 +120,7 @@ function formatCapital(customer) {
         </AppListToolbar>
 
         <!-- Mobile cards -->
-        <div class="sm:hidden space-y-2">
+        <div v-if="isNarrow" class="space-y-2">
             <AppNoData
                 v-if="!filteredItems.length"
                 :message="t('backend.studio.customers.empty')"
@@ -159,7 +161,8 @@ function formatCapital(customer) {
 
         <!-- Desktop table -->
         <div
-            class="hidden sm:block bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin"
+            v-else
+            class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin"
         >
             <table class="w-full text-sm">
                 <thead>

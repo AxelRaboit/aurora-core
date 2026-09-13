@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { UserPlus, Save, Upload, Trash2, X, Send, Pencil, LayoutGrid } from "lucide-vue-next";
 import { toast } from "vue-sonner";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
@@ -29,6 +30,7 @@ import { useUsersPrivileges } from "@platform/backend/users/composables/useUsers
 import { useUsersDisabledModules } from "@platform/backend/users/composables/useUsersDisabledModules.js";
 
 const { t } = useI18n();
+const { container, isNarrow } = useNarrowContainer();
 const { formatDate, formatDateShort } = useDateFormat();
 
 const props = defineProps({
@@ -139,7 +141,7 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div ref="container" class="space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3">
             <AppSearchInput v-model="search" :placeholder="t('backend.users.search_placeholder')" class="flex-1" />
             <AppMultiselect
@@ -156,7 +158,7 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
         </div>
 
         <div class="relative space-y-4">
-            <div class="sm:hidden space-y-2">
+            <div v-if="isNarrow" class="space-y-2">
                 <AppNoData v-if="!loading && !users.length" :message="t('backend.users.empty')" />
                 <div v-for="user in users" :key="user.id" class="bg-surface border border-line/60 rounded-xl overflow-hidden shadow-sm">
                     <!-- Avatar + nom + email -->
@@ -204,7 +206,7 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                 </div>
             </div>
 
-            <div class="hidden sm:block bg-surface border border-line/60 rounded-xl overflow-x-auto scrollbar-thin">
+            <div v-else class="bg-surface border border-line/60 rounded-xl overflow-x-auto scrollbar-thin">
                 <AppNoData v-if="!loading && !users.length" :message="t('backend.users.empty')" />
                 <table v-else class="w-full text-sm">
                     <thead>
