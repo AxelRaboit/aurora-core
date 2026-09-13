@@ -5,6 +5,7 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { usePostsList } from "./composables/usePostsList.js";
+import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePostRowActions } from "./composables/usePostRowActions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
@@ -129,6 +130,8 @@ async function duplicatePost(post) {
  * every row of every render, and "how many" once. Kept as a plain ref reassigned on
  * change, because Vue does not track mutations of a Set.
  */
+const { container, isNarrow } = useNarrowContainer();
+
 const selected = ref(new Set());
 
 /**
@@ -228,7 +231,7 @@ const allTerms = computed(() =>
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div ref="container" class="space-y-4">
         <AppListToolbar>
             <AppSearchInput v-model="search" :placeholder="t('backend.posts.search_placeholder')" />
             <template #actions>
@@ -332,7 +335,7 @@ const allTerms = computed(() =>
             </div>
         </div>
 
-        <div class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
+        <div v-if="!isNarrow" class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
@@ -415,6 +418,70 @@ const allTerms = computed(() =>
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- The same row, read down instead of across. Every fact the table
+             column carries is here, in the same order, and the actions are
+             laid out rather than folded behind a button: a card has the room,
+             and a menu inside a menu on a phone is one tap too many. -->
+        <div v-else class="space-y-2">
+            <article
+                v-for="post in items"
+                :key="post.id"
+                class="bg-surface border rounded-lg p-3 space-y-2.5 transition-colors"
+                :class="selected.has(post.id) ? 'border-accent-600/50 bg-accent-600/5' : 'border-line'"
+            >
+                <div class="flex items-start gap-3">
+                    <input
+                        type="checkbox"
+                        class="mt-1 cursor-pointer accent-accent-600 shrink-0"
+                        :checked="selected.has(post.id)"
+                        :aria-label="post.title || t('backend.posts.untitled')"
+                        v-on:change="toggleRow(post)"
+                    >
+                    <div class="min-w-0 flex-1">
+                        <p class="font-medium text-primary break-words">{{ post.title || t("backend.posts.untitled") }}</p>
+                        <p class="text-xs text-muted font-mono mt-0.5">{{ post.reference }}</p>
+                    </div>
+                    <AppBadge :color="statusColors[post.status] ?? 'gray'">
+                        {{ t(`backend.posts.status.${post.status}`) }}
+                    </AppBadge>
+                </div>
+
+                <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+                    <span class="text-secondary">{{ post.postType.label }}</span>
+                    <span v-if="locales.length > 1" class="flex items-center gap-1">
+                        <span
+                            v-for="code in locales"
+                            :key="code"
+                            class="rounded px-1.5 py-0.5 text-2xs font-medium uppercase"
+                            :class="(post.translatedLocales ?? []).includes(code)
+                                ? 'bg-emerald-500/15 text-emerald-500'
+                                : 'bg-surface-2 text-muted/60'"
+                            :title="(post.translatedLocales ?? []).includes(code)
+                                ? t('backend.posts.translations.translated', { locale: code })
+                                : t('backend.posts.translations.missing', { locale: code })"
+                        >{{ code }}</span>
+                    </span>
+                    <span>{{ formatDateTime(post.updatedAt) }}</span>
+                </p>
+
+                <div class="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-line/40 pt-2">
+                    <AppButton
+                        v-for="action in actionsFor(post)"
+                        :key="action.key"
+                        variant="ghost"
+                        size="sm"
+                        :href="action.href"
+                        v-on:click="action.onSelect?.()"
+                    >
+                        <component :is="action.icon" v-if="action.icon" class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ action.title }}
+                    </AppButton>
+                </div>
+            </article>
+
+            <AppNoData v-if="!items.length && !loading" :message="t('backend.posts.empty')" />
         </div>
 
         <div v-if="totalPages > 1" class="flex items-center justify-between gap-3">

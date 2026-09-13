@@ -415,6 +415,7 @@ function sealedRowActions(contract) {
                 {{ t("backend.studio.contracts.sealed") }}
             </h2>
             <div
+                v-if="!isNarrow"
                 class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin"
             >
                 <table class="w-full text-sm">
@@ -523,6 +524,49 @@ function sealedRowActions(contract) {
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div v-else class="space-y-2">
+                <article
+                    v-for="contract in sealed"
+                    :key="contract.id"
+                    class="bg-surface border border-line rounded-lg p-3 space-y-2.5"
+                >
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="font-mono text-xs text-primary">{{ contract.reference }}</p>
+                            <p class="font-medium text-primary break-words">{{ contract.customerName }}</p>
+                            <p v-if="contract.amends" class="text-2xs text-muted">
+                                {{ t("backend.studio.contracts.amends_short", { reference: contract.amends.reference }) }}
+                            </p>
+                            <p v-if="contract.termination" class="text-2xs text-amber-500">
+                                {{ t("backend.studio.contracts.terminated_short", {
+                                    date: new Date(contract.termination.effectiveAt).toLocaleDateString(),
+                                }) }}
+                            </p>
+                        </div>
+                        <span class="text-xs text-muted shrink-0">{{ t(contract.statusLabel) }}</span>
+                    </div>
+
+                    <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+                        <span v-if="contract.frozenAt">{{ new Date(contract.frozenAt).toLocaleDateString() }}</span>
+                        <span v-if="contract.link">{{ contract.link.recipientEmail }}</span>
+                    </p>
+
+                    <div class="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-line/40 pt-2">
+                        <AppButton
+                            v-for="action in sealedRowActions(contract)"
+                            :key="action.key"
+                            variant="ghost"
+                            size="sm"
+                            :href="action.href"
+                            v-on:click="action.onSelect?.()"
+                        >
+                            <component :is="action.icon" v-if="action.icon" class="w-3.5 h-3.5" :stroke-width="2" />
+                            {{ action.title }}
+                        </AppButton>
+                    </div>
+                </article>
             </div>
         </section>
 

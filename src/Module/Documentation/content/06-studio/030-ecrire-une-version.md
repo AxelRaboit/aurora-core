@@ -27,6 +27,14 @@ Tout en bas, les autres versions de la trame, avec leur état.
 
 ![Le bas du panneau des variables, et les autres versions](../../images/06-studio/ecrire-une-version-03-le-bas-de-l-editeur.png)
 
+## Aperçu
+
+Écrire un contrat, c'est écrire `{{customer.legal_name}}` et faire confiance. Le bouton **Aperçu** ouvre le document tel que le client le lira, variables remplacées, assemblé exactement comme le scellement l'assemblera.
+
+Les valeurs sont celles que le panneau des variables affiche déjà, donc l'aperçu et le panneau ne peuvent pas se contredire. Sauf celles de votre entreprise, qui sont les vraies : elles viennent des réglages, et un réglage vide se voit à l'endroit exact où le trou apparaîtrait chez le client. Les champs remplis à la création d'un contrat s'affichent entre crochets, parce qu'il n'y a pas d'exemple à donner pour une case qui n'est pas encore répondue.
+
+Le brouillon est enregistré avant l'ouverture : l'aperçu montre ce qui est à l'écran, pas ce qui était en base il y a une heure. Et un bloc que l'aperçu refuse de dessiner est un bloc que le scellement aurait refusé : le rencontrer ici est l'intérêt.
+
 ## Enregistrer, publier, abandonner
 
 - **Enregistrer** garde le brouillon sans le mettre en vigueur. Rien ne change pour les contrats.

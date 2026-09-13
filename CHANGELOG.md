@@ -5,6 +5,43 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.161] - 2026-09-13
+
+### Ajouté
+
+#### Chaque liste sait se montrer en cartes
+Cinq listes n'avaient aucune forme de rechange : Publications, Présentations,
+les contrats scellés, Utilisateurs et Clients. Elles en ont une, qui porte les
+mêmes faits dans le même ordre que la ligne qu'elle remplace, avec les actions
+dépliées plutôt que repliées derrière un bouton. Une carte a la place, et un
+menu dans un menu sur un téléphone est un geste de trop.
+
+Utilisateurs et Clients avaient déjà un repli, qui basculait à 640 pixels de
+**fenêtre** : c'est pour cette raison qu'ils débordaient encore de 1024 à 1440.
+Les deux suivent maintenant le conteneur comme le reste.
+
+Résultat vérifié sur les sept listes à cinq largeurs : cartes jusqu'à 1280,
+tableau à partir de 1440, et aucune liste ne perd ses actions.
+
+### Modifié
+
+#### La documentation dit ce que les écrans font aujourd'hui
+La page des trames annonçait cinq actions, il y en a six depuis que
+« Consulter » existe, et elle décrivait une colonne Langues qui a laissé la
+place à la catégorie. Elle explique maintenant à quoi sert une catégorie, et
+pourquoi une trame peut n'en avoir aucune.
+
+Les pages « Écrire une version » et « Sceller un contrat » décrivent l'aperçu :
+d'où viennent ses valeurs, pourquoi celles du prestataire sont les vraies, et
+pourquoi un champ vide s'affiche vide.
+
+Sept captures d'écran ont été refaites.
+
+### Dans aurora-client
+Rien à répercuter.
+
+---
+
 ## [0.9.160] - 2026-09-13
 
 ### Corrigé
