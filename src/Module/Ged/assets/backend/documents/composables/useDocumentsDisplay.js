@@ -20,7 +20,8 @@ export const DOCUMENT_SORT_FIELDS = [
 export function useDocumentsDisplay(items) {
     // Both in the query string: the sort and the layout describe what is on
     // screen, so a link to this list carries them.
-    const { viewMode, setViewMode } = useListViewMode(["grid", "list"], "list");
+    const { viewMode, setViewMode, storedViewMode, container, isNarrow } =
+        useListViewMode(["grid", "list"], "list");
     const { sortBy, sortDir, setSort } = useListSort("date", "desc", {
         // Named after the columns rather than the module: nothing else on this
         // page competes for them, and ?sort=date reads better than
@@ -49,6 +50,9 @@ export function useDocumentsDisplay(items) {
     return {
         viewMode,
         setViewMode,
+        storedViewMode,
+        container,
+        isNarrow,
         sortBy,
         sortDir,
         setSort,

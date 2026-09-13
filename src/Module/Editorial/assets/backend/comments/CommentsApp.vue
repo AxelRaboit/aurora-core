@@ -52,10 +52,14 @@ function badgeColor(value) {
 
 <template>
     <div class="space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="inline-flex p-1 bg-surface-2 border border-line rounded-lg gap-1">
+        <!-- Stacked on a phone, side by side from `sm`, like every other filter
+             row: a control narrower than the screen is a smaller target for no
+             reason. -->
+        <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <div class="flex w-full flex-col p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:flex-row">
                 <AppTab
                     size="sm"
+                    class="justify-between sm:flex-none sm:justify-start"
                     :active="status === ''"
                     active-class="bg-surface text-primary shadow-sm"
                     inactive-class="text-secondary hover:text-primary"
@@ -67,6 +71,7 @@ function badgeColor(value) {
                     v-for="option in statuses"
                     :key="option.value"
                     size="sm"
+                    class="justify-between sm:flex-none sm:justify-start"
                     :active="status === option.value"
                     active-class="bg-surface text-primary shadow-sm"
                     inactive-class="text-secondary hover:text-primary"

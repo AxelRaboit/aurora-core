@@ -97,7 +97,8 @@ const {
  * Kept in the query string like every other list in the app, so a view is part
  * of the link somebody sends.
  */
-const { viewMode, setViewMode } = useListViewMode(["list", "grid"], "list");
+const { viewMode, setViewMode, storedViewMode, isNarrow, container } =
+    useListViewMode(["list", "grid"], "list");
 
 const kindOptions = props.kinds.map((kind) => ({
     value: kind.value,
@@ -136,6 +137,25 @@ const categoryFilterOptions = computed(() => [
         label: `${option.label} (${categoryCounts.value[option.value] ?? 0})`,
     })),
 ]);
+
+/**
+ * A colour per trade, picked against what the row already holds.
+ *
+ * Emerald is the version in force and amber the open draft, two columns away,
+ * so neither can be spent here without saying something they do not mean.
+ * Sky, violet and rose are free, and grey is the absence - a trade nobody has
+ * chosen should read as quieter than the three that were.
+ */
+const CATEGORY_COLORS = {
+    community_management: "sky",
+    photography: "violet",
+    development: "rose",
+};
+
+/** An unknown trade keeps the neutral badge rather than losing its pill. */
+function categoryColor(value) {
+    return CATEGORY_COLORS[value] ?? "gray";
+}
 
 /** Null, undefined and "" all read as unclassified; anything else names a trade. */
 function categoryLabel(value) {
@@ -210,7 +230,7 @@ function rowActions(template) {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div ref="container" class="space-y-4">
         <AppListToolbar>
             <AppSearchInput
                 v-model="search"
@@ -221,17 +241,17 @@ function rowActions(template) {
                  Same control as every other list, so the gesture is learned
                  once. -->
             <template #inline>
-                <div class="flex shrink-0 border border-line/60 rounded-lg p-0.5">
+                <div v-if="!isNarrow" class="flex shrink-0 border border-line/60 rounded-lg p-0.5">
                     <AppIconButton
                         :title="t('shared.common.list_view')"
-                        :class="viewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                        :class="storedViewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
                         v-on:click="setViewMode('list')"
                     >
                         <List class="w-4 h-4" :stroke-width="2" />
                     </AppIconButton>
                     <AppIconButton
                         :title="t('shared.common.grid_view')"
-                        :class="viewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                        :class="storedViewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
                         v-on:click="setViewMode('grid')"
                     >
                         <LayoutGrid class="w-4 h-4" :stroke-width="2" />
@@ -275,10 +295,14 @@ function rowActions(template) {
              keep on the posts list, which filters on three dimensions at
              once. The count sits next to the label because a filter leading
              to an empty list is better seen before the click than after. -->
-        <div class="flex flex-wrap items-center gap-2">
-            <div class="inline-flex p-1 bg-surface-2 border border-line rounded-lg gap-1">
+        <!-- Stacked on a phone, side by side from `sm`. A filter that hugs its
+             own text leaves a thumb aiming at a third of the screen width, and
+             the row it sits on looks like a mistake rather than a control. -->
+        <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+            <div class="flex w-full flex-col p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:flex-row">
                 <AppTab
                     size="sm"
+                    class="justify-between sm:flex-none sm:justify-start"
                     :active="kind === ''"
                     active-class="bg-surface text-primary shadow-sm"
                     inactive-class="text-secondary hover:text-primary"
@@ -291,6 +315,7 @@ function rowActions(template) {
                     v-for="option in kindOptions"
                     :key="option.value"
                     size="sm"
+                    class="justify-between sm:flex-none sm:justify-start"
                     :active="kind === option.value"
                     active-class="bg-surface text-primary shadow-sm"
                     inactive-class="text-secondary hover:text-primary"
@@ -310,7 +335,7 @@ function rowActions(template) {
             <AppSelect
                 :model-value="category"
                 :options="categoryFilterOptions"
-                class="min-w-56"
+                class="w-full sm:w-56"
                 v-on:update:model-value="setCategory"
             />
         </div>
@@ -343,11 +368,8 @@ function rowActions(template) {
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
                             {{ t("backend.studio.contract_templates.kind_label") }}
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
                             {{ t("backend.studio.contract_templates.category_label") }}
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">
-                            {{ t("backend.studio.contract_templates.col_locales") }}
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
                             {{ t("backend.studio.contract_templates.in_force") }}
@@ -358,7 +380,7 @@ function rowActions(template) {
                         <!-- Named, and the only column aligned right: it is
                              where the hand goes, not something to read across
                              with the rest. -->
-                        <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">
+                        <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">
                             {{ t("shared.common.actions") }}
                         </th>
                     </tr>
@@ -390,35 +412,16 @@ function rowActions(template) {
                                 {{ kindLabel(template.kind) }}
                             </span>
                         </td>
-                        <!-- Plain text, not a pill. The kind beside it is a
-                             rule the document obeys; a trade is a label, and
-                             two badges on one row compete for the same glance.
-                             Unclassified is greyed rather than blank: an empty
-                             cell reads as a bug. -->
-                        <td class="px-6 py-3 hidden lg:table-cell whitespace-nowrap">
-                            <span
-                                class="text-xs"
-                                :class="template.category ? 'text-secondary' : 'text-muted italic'"
-                            >
+                        <!-- A badge, like the kind beside it. Unclassified gets
+                             one too rather than an empty cell: a blank reads as
+                             a bug, and grey against three colours says plainly
+                             that nobody has chosen yet. -->
+                        <td class="px-6 py-3 whitespace-nowrap">
+                            <AppBadge :color="categoryColor(template.category)">
                                 {{ categoryLabel(template.category) }}
-                            </span>
+                            </AppBadge>
                         </td>
-                        <!-- One badge per language rather than a comma list:
-                             the question asked here is whether a given
-                             language is written, and a badge answers it
-                             without reading the line. -->
-                        <td class="px-6 py-3 hidden lg:table-cell">
-                            <span v-if="template.locales.length" class="flex flex-wrap gap-1">
-                                <AppBadge
-                                    v-for="locale in template.locales"
-                                    :key="locale"
-                                    color="slate"
-                                >
-                                    {{ locale }}
-                                </AppBadge>
-                            </span>
-                            <span v-else class="text-muted text-xs">-</span>
-                        </td>
+
                         <!-- The version in force reads as a state, so it gets
                              the colour the app gives a published thing. An
                              absence stays plain text: "never published" is a
@@ -458,7 +461,7 @@ function rowActions(template) {
                                 {{ t("backend.studio.contract_templates.no_draft") }}
                             </span>
                         </td>
-                        <td class="px-6 py-3">
+                        <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
                             <AppRowActions
                                 :actions="rowActions(template)"
                                 :label="template.name"
@@ -505,12 +508,9 @@ function rowActions(template) {
                             >
                                 {{ kindLabel(template.kind) }}
                             </span>
-                            <span
-                                class="text-2xs"
-                                :class="template.category ? 'text-secondary' : 'text-muted italic'"
-                            >
+                            <AppBadge :color="categoryColor(template.category)">
                                 {{ categoryLabel(template.category) }}
-                            </span>
+                            </AppBadge>
                             <AppBadge
                                 v-for="locale in template.locales"
                                 :key="locale"

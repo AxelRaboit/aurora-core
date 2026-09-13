@@ -216,7 +216,7 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.status_label') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t('backend.users.created') }}</th>
                             <slot name="extra-headers" />
-                            <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.actions') }}</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">{{ t('backend.users.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-line/40">
@@ -248,7 +248,7 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                             </td>
                             <td class="px-4 py-3 text-xs text-muted hidden lg:table-cell">{{ formatDateShort(user.createdAt) }}</td>
                             <slot name="extra-cells" :user="user" />
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3 sticky right-0 bg-surface border-l border-line/40">
                                 <div class="flex justify-end">
                                     <UserRowActions
                                         :user="user"

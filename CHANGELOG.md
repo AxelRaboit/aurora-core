@@ -5,6 +5,43 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Corrigé
+
+#### Les listes du back-office tiennent enfin dans la place qu'on leur donne
+Le menu latéral fait 480 pixels fixes à partir de 1024 et disparaît en dessous.
+Une fenêtre de 768 laisse donc 718 pixels à une liste, et une fenêtre de 1024
+n'en laisse que 478 : élargir l'écran de 256 pixels coûte 240 pixels au
+contenu. Une liste était plus à l'aise sur une tablette que sur un petit
+portable.
+
+Conséquence mesurée sur les dix listes : cinq largeurs d'écran sur sept
+voyaient au moins un tableau déborder de son cadre, et la colonne qui tombait
+dehors était toujours la dernière, Actions, c'est-à-dire la seule raison
+d'ouvrir une ligne. Elle restait atteignable par un défilement horizontal que
+personne ne pense à essayer.
+
+**Une liste interroge maintenant son conteneur, plus jamais la fenêtre.**
+`useListViewMode` mesure l'élément qui porte réellement la liste et bascule en
+cartes sous 768 pixels de conteneur. Le seuil est écrit une fois pour toute
+l'application : un écran ajouté demain en hérite, et le jour où le menu latéral
+change de largeur, aucune page ne casse en silence. Le choix de vue n'est pas
+effacé, il est outrepassé tant qu'il ne peut pas être honoré, et revient dès
+qu'il y a la place.
+
+**La colonne Actions est épinglée à droite** sur les sept tableaux qui
+restent. Le menu d'une ligne est atteignable à toute largeur, y compris quand
+le reste du tableau défile.
+
+La bascule entre tableau et cartes disparaît là où elle ne peut rien changer,
+plutôt que de rester affichée sans effet.
+
+### Dans aurora-client
+Rien à répercuter.
+
+---
+
 ## [0.9.159] - 2026-09-13
 
 ### Ajouté

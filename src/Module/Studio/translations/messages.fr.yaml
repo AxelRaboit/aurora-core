@@ -257,7 +257,7 @@ backend:
                 body: Corps de contrat
                 annex: Annexe
             category:
-                community_management: Community management
+                community_management: CM
                 photography: Photographie
                 development: Développement web
             errors:
