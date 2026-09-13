@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Ged\Document\Service;
 
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -22,12 +23,39 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  *
  * All methods accept `null` so call sites can fold `$doc?->getPublicUrl()`
  * into a single call without re-introducing null-safe checks.
+ *
+ * **Two routes, one method.** A published document is addressed through the
+ * public catch-all, which is what an image embedded in a page needs: one
+ * stable address, cacheable, no session. Anything else is addressed through
+ * `backend_ged_files`, which asks for the privilege. Callers do not choose
+ * and mostly do not know - a serializer, a banner builder and an `og:image`
+ * tag each ask for "the URL of this document" and get one that works for
+ * whoever is entitled to it.
+ *
+ * The corollary is worth stating: a document that is *not* published, but
+ * that somebody has pointed a public page at, now yields an address a
+ * visitor cannot open. That is the withholding working, not a bug, and
+ * `ged:audit-public-documents` is the command that finds those before the
+ * visitors do.
  */
 final readonly class DocumentUrlGenerator
 {
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
     ) {}
+
+    /**
+     * The route that will actually answer for this document's files.
+     *
+     * Read from the document rather than from the key, because the key of a
+     * variant says nothing about the status of the picture it was made from.
+     */
+    private function routeFor(?DocumentInterface $document): string
+    {
+        return DocumentStatusEnum::Published === $document?->getStatus()
+            ? 'uploads_serve'
+            : 'backend_ged_files';
+    }
 
     public function publicUrl(?DocumentInterface $document): ?string
     {
@@ -36,7 +64,7 @@ final readonly class DocumentUrlGenerator
             return null;
         }
 
-        return $this->urlGenerator->generate('uploads_serve', ['path' => $filePath]);
+        return $this->urlGenerator->generate($this->routeFor($document), ['path' => $filePath]);
     }
 
     /**
@@ -51,7 +79,7 @@ final readonly class DocumentUrlGenerator
         }
 
         return $this->urlGenerator->generate(
-            'uploads_serve',
+            $this->routeFor($document),
             ['path' => $filePath],
             UrlGeneratorInterface::ABSOLUTE_URL,
         );
@@ -72,7 +100,7 @@ final readonly class DocumentUrlGenerator
             return null;
         }
 
-        return $this->urlGenerator->generate('uploads_serve', ['path' => $path]);
+        return $this->urlGenerator->generate($this->routeFor($document), ['path' => $path]);
     }
 
     public function variantUrl(?DocumentInterface $document, string $variant): ?string
@@ -85,7 +113,7 @@ final readonly class DocumentUrlGenerator
 
         return null === $path
             ? null
-            : $this->urlGenerator->generate('uploads_serve', ['path' => $path]);
+            : $this->urlGenerator->generate($this->routeFor($document), ['path' => $path]);
     }
 
     /**

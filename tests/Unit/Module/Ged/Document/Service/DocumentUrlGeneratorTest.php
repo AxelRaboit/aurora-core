@@ -6,6 +6,7 @@ namespace Aurora\Tests\Unit\Module\Ged\Document\Service;
 
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
+use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -22,14 +23,26 @@ final class DocumentUrlGeneratorTest extends TestCase
         $this->documentUrlGenerator = new DocumentUrlGenerator($this->urlGenerator);
     }
 
-    /** @param array<string, string> $variants */
-    private function makeDocument(?string $filePath, array $variants = [], ?float $focalX = null, ?float $focalY = null): DocumentInterface
-    {
+    /**
+     * Published by default, because that is what every assertion below about
+     * `uploads_serve` means: the public route is what a *published* document
+     * gets. The draft case has its own tests at the end.
+     *
+     * @param array<string, string> $variants
+     */
+    private function makeDocument(
+        ?string $filePath,
+        array $variants = [],
+        ?float $focalX = null,
+        ?float $focalY = null,
+        DocumentStatusEnum $status = DocumentStatusEnum::Published,
+    ): DocumentInterface {
         $document = $this->createMock(DocumentInterface::class);
         $document->method('getFilePath')->willReturn($filePath);
         $document->method('getVariants')->willReturn($variants);
         $document->method('getFocalX')->willReturn($focalX);
         $document->method('getFocalY')->willReturn($focalY);
+        $document->method('getStatus')->willReturn($status);
 
         return $document;
     }
@@ -164,5 +177,59 @@ final class DocumentUrlGeneratorTest extends TestCase
         $document = $this->makeDocument('ged/photo.webp', [], 0.25, 0.75);
 
         self::assertSame('25% 75%', $this->documentUrlGenerator->focalPositionCss($document));
+    }
+
+    // ── The route depends on the status ──────────────────────────────────
+    //
+    // The public catch-all serves published documents alone, so addressing a
+    // draft there would hand out a URL that answers 404 to everybody,
+    // including the backend screen that asked for it.
+
+    public function testADraftIsAddressedThroughTheGatedBackendRoute(): void
+    {
+        $this->urlGenerator->expects(self::once())
+            ->method('generate')
+            ->with('backend_ged_files', ['path' => 'ged/2026/05/contract.pdf'])
+            ->willReturn('/backend/ged/files/ged/2026/05/contract.pdf');
+
+        $document = $this->makeDocument('ged/2026/05/contract.pdf', status: DocumentStatusEnum::Draft);
+
+        self::assertSame('/backend/ged/files/ged/2026/05/contract.pdf', $this->documentUrlGenerator->publicUrl($document));
+    }
+
+    public function testAnArchivedDocumentIsAddressedThroughTheGatedBackendRouteToo(): void
+    {
+        $this->urlGenerator->expects(self::once())
+            ->method('generate')
+            ->with('backend_ged_files', self::anything())
+            ->willReturn('/backend/ged/files/x');
+
+        $document = $this->makeDocument('ged/2026/05/old.pdf', status: DocumentStatusEnum::Archived);
+
+        self::assertSame('/backend/ged/files/x', $this->documentUrlGenerator->publicUrl($document));
+    }
+
+    /**
+     * A variant follows the status of the picture it was made from, not the
+     * shape of its own key. Withholding an image while serving a legible
+     * copy of it would be the whole hole, reopened one directory down.
+     */
+    public function testTheVariantOfADraftIsAddressedThroughTheGatedRoute(): void
+    {
+        $this->urlGenerator->expects(self::once())
+            ->method('generate')
+            ->with('backend_ged_files', ['path' => 'ged/2026/05/variants/medium/photo.webp'])
+            ->willReturn('/backend/ged/files/ged/2026/05/variants/medium/photo.webp');
+
+        $document = $this->makeDocument(
+            'ged/2026/05/photo.jpg',
+            ['medium' => 'ged/2026/05/variants/medium/photo.webp'],
+            status: DocumentStatusEnum::Draft,
+        );
+
+        self::assertSame(
+            '/backend/ged/files/ged/2026/05/variants/medium/photo.webp',
+            $this->documentUrlGenerator->variantUrl($document, 'medium'),
+        );
     }
 }

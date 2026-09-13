@@ -261,10 +261,25 @@ fichier vit ailleurs : l'éditeur inscrit cette adresse dans le corps des
 publications, donc elle ne doit pas suivre son fichier. `UploadsServeController`
 sert, redirige vers un lien signé ou vers un domaine public selon le réglage.
 
+**Ce que le catch-all sert dépend de l'aire.** Chaque requête passe par
+`UploadAccessDecider` ; une aire pose sa règle en enregistrant un
+`UploadAccessGuardInterface` (tag `aurora.upload_access_guard`). Aujourd'hui :
+`ged/` ne sert anonymement que les documents `published` (variants et
+vignettes compris), `contracts/` ne sert rien, et toute aire non réclamée
+reste anonyme - le défaut qui évite de casser un client qui stocke sous son
+propre préfixe.
+
 Auth granulaire : pour gater une catégorie (PDF signés, notes per-user),
 définir une route plus spécifique sous `/backend/<module>/…` qui prend
-précédence sur le catch-all. Les contrats font ainsi, et restent servis par
-l'application quel que soit le mode de livraison.
+précédence sur le catch-all. Les contrats font ainsi, la GED aussi depuis
+`backend_ged_files`, et toutes restent servies par l'application quel que
+soit le mode de livraison.
+
+**Une route backend n'est pas un choix de style ici.** Le firewall `admin`
+est `^/(backend|dev)` : sur `/uploads/…`, aucune identité backend n'est
+restaurée, donc un contrôle de privilège posé sur le catch-all refuserait le
+personnel exactement comme un inconnu. C'est la seule raison pour laquelle
+`backend_ged_files` existe.
 
 Prod : `mod_xsendfile` offload les octets une fois l'auth PHP passée, sur le
 support local. Voir `docs/aurora-client/deployment/apache_xsendfile.md`.

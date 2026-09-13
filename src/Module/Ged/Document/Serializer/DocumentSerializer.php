@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Aurora\Module\Ged\Document\Serializer;
 
 use Aurora\Core\Storage\Enum\MimeTypeEnum;
-use Aurora\Core\Storage\Service\UploadUrlGenerator;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use DateTimeInterface;
@@ -18,7 +17,6 @@ class DocumentSerializer implements DocumentSerializerInterface
 {
     public function __construct(
         protected readonly TranslatorInterface $translator,
-        protected readonly UploadUrlGenerator $uploadUrlGenerator,
         protected readonly UrlGeneratorInterface $urlGenerator,
         protected readonly DocumentUrlGenerator $documentUrlGenerator,
     ) {}
@@ -37,9 +35,10 @@ class DocumentSerializer implements DocumentSerializerInterface
             'statusLabel' => $this->translator->trans($document->getStatus()->getLabelKey()),
             'categoryId' => $category?->getId(),
             'categoryName' => $category?->getName(),
-            // Self-owned file fields - no Media coupling. URL is built via
-            // the canonical `uploads_serve` route through UploadUrlGenerator
-            // (no hardcoded `/uploads/` prefix).
+            // Self-owned file fields - no Media coupling. The URL is built
+            // by DocumentUrlGenerator, which picks the public route for a
+            // published document and the gated backend one otherwise. No
+            // hardcoded `/uploads/` prefix either way.
             'filePath' => $document->getFilePath(),
             'fileName' => $document->getFileName(),
             'originalName' => $document->getOriginalName(),
@@ -108,15 +107,25 @@ class DocumentSerializer implements DocumentSerializerInterface
         return $urls;
     }
 
+    /**
+     * Through `DocumentUrlGenerator`, not `UploadUrlGenerator`.
+     *
+     * The generic one takes a key and nothing else, so it can only ever
+     * build the public address - which is the wrong one for a document that
+     * is not published, and used to be the address that served it anyway.
+     * The document-aware one knows the status and picks the route that will
+     * answer. Same URL as before for a published document; a backend URL,
+     * which the grid and the picker can open, for everything else.
+     */
     private function resolveThumbnailUrl(DocumentInterface $document): ?string
     {
         if (null !== $document->getThumbnailPath()) {
-            return $this->uploadUrlGenerator->publicUrl($document->getThumbnailPath());
+            return $this->documentUrlGenerator->thumbnailPathUrl($document);
         }
 
         $mime = MimeTypeEnum::tryFrom($document->getMimeType() ?? '');
         if (null !== $mime && str_starts_with($mime->value, 'image/')) {
-            return $this->uploadUrlGenerator->publicUrl($document->getFilePath());
+            return $this->documentUrlGenerator->publicUrl($document);
         }
 
         return null;

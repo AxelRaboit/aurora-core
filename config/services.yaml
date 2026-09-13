@@ -66,6 +66,8 @@ services:
             tags: [aurora.recurring_message_provider]
         Aurora\Core\Storage\Adapter\StorageAdapterInterface:
             tags: [aurora.storage_adapter]
+        Aurora\Core\Storage\Access\UploadAccessGuardInterface:
+            tags: [aurora.upload_access_guard]
 
     Aurora\Core\Scheduler\MainSchedule:
         arguments:

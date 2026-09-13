@@ -8,6 +8,7 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Core\Repository\Trait\PaginationTrait;
 use Aurora\Core\Storage\Enum\MimeGroupEnum;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
+use Aurora\Core\Storage\Service\ImageVariantGenerator;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
@@ -204,6 +205,79 @@ class DocumentRepository extends ResolveTargetEntityRepository
         }
 
         return array_keys($inUse);
+    }
+
+    /**
+     * The status of the living document that owns `$path`, or null when no
+     * living document does.
+     *
+     * Asked by the serving endpoint, which receives a key and nothing else,
+     * to decide whether a visitor with no session may read it. Three kinds of
+     * key reach it and all three must resolve, because a picture that is
+     * withheld while its `medium` variant is not has been published by
+     * accident:
+     *
+     *  - the document's own file, matched on `filePath`;
+     *  - its rendered still (a PDF's first page, a film's poster), matched on
+     *    `thumbnailPath`, which is a column like the other;
+     *  - one of its responsive variants, which live in a JSON column and so
+     *    are matched by shape instead - see {@see variantSourcePattern()}.
+     *
+     * Null for a key no row claims, which covers an orphan file left behind
+     * by a deletion and the snapshot of a previous version: neither is a
+     * document anybody may read without being asked who they are.
+     *
+     * Trashed documents answer null too. A document in the bin is withdrawn,
+     * whatever its status column still says.
+     */
+    public function findStatusForPath(string $path): ?DocumentStatusEnum
+    {
+        $queryBuilder = $this->createQueryBuilder('d')
+            ->select('d.status')
+            ->andWhere('d.deletedAt IS NULL')
+            ->setMaxResults(1);
+
+        $variantPattern = $this->variantSourcePattern($path);
+
+        if (null === $variantPattern) {
+            $queryBuilder
+                ->andWhere('d.filePath = :path OR d.thumbnailPath = :path')
+                ->setParameter('path', $path);
+        } else {
+            // A variant carries its source's basename but not its extension
+            // (everything is re-encoded to WebP), so the source is matched on
+            // its stem. `ESCAPE` is set because a stem is slugged and could
+            // in principle be made to carry a wildcard.
+            $queryBuilder
+                ->andWhere("d.filePath LIKE :pattern ESCAPE '!'")
+                ->setParameter('pattern', $variantPattern);
+        }
+
+        /** @var array{status: DocumentStatusEnum}|null $row */
+        $row = $queryBuilder->getQuery()->getOneOrNullResult();
+
+        return $row['status'] ?? null;
+    }
+
+    /**
+     * `ged/2026/05/variants/medium/photo-a1b2.webp` → `ged/2026/05/photo-a1b2.%`,
+     * and null for any key that is not shaped like a variant.
+     *
+     * Mirrors the key {@see ImageVariantGenerator}
+     * writes, which is the source's own directory plus `variants/<size>/`.
+     * The coupling is real and is pinned by a test: change how a variant is
+     * named and this stops finding its owner, which fails open onto the
+     * privilege check rather than onto the public.
+     */
+    private function variantSourcePattern(string $path): ?string
+    {
+        if (1 !== preg_match('#^(?P<dir>.+)/variants/[^/]+/(?P<stem>[^/]+)\.[^/.]+$#', $path, $matches)) {
+            return null;
+        }
+
+        $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $matches['dir'].'/'.$matches['stem']);
+
+        return $escaped.'.%';
     }
 
     public function searchByName(string $query, int $limit = 10): array

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Aurora\Core\Storage\Controller;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Storage\Access\UploadAccessDecider;
+use Aurora\Core\Storage\Access\UploadAccessEnum;
 use Aurora\Core\Storage\Adapter\R2StorageAdapter;
 use Aurora\Core\Storage\Adapter\StorageAdapterInterface;
 use Aurora\Core\Storage\Adapter\StoredObject;
@@ -39,11 +41,23 @@ use Symfony\Component\Routing\Attribute\Route;
  * a redirect to a signed link, a redirect to the public hostname, or a stream
  * through PHP for installations that want their access rules to keep applying.
  *
- * **Auth model**: public by default, since these assets are typically embedded
- * on public pages. An area needing stricter gating defines its OWN route under
- * a backend prefix, which takes precedence over this catch-all. Note that the
- * two redirecting delivery modes hand the visitor a link the application no
- * longer sees, which is exactly why they are a choice and not the default.
+ * **Auth model**: every request is put to {@see UploadAccessDecider} first,
+ * and an area states its own rule by registering a guard. Anonymous is still
+ * the answer for an area nobody claims, because these assets are typically
+ * embedded on public pages - but it is now an answer rather than an absence
+ * of one.
+ *
+ * That distinction was not academic. Until guards existed this endpoint
+ * served anything under the upload directory to anybody at all, which meant a
+ * GED document was readable by whoever guessed its path, and the
+ * authorisation the contracts module put on its own route could be walked
+ * around by asking this one instead.
+ *
+ * A key the decider marks restricted is served, but only the long way: the
+ * bytes come through the application and the response is private. The two
+ * redirecting delivery modes are for public assets only - they hand the
+ * visitor a link the application no longer sees, and a link that outlives the
+ * check that produced it is not a check.
  */
 final class UploadsServeController extends AbstractController
 {
@@ -58,6 +72,7 @@ final class UploadsServeController extends AbstractController
         private readonly BinaryFileServer $binaryFileServer,
         private readonly StoredFileLocator $locator,
         private readonly StorageDeliveryModeProviderInterface $deliveryModeProvider,
+        private readonly UploadAccessDecider $accessDecider,
         #[Autowire(param: 'app.upload_dir')]
         private readonly string $uploadRoot,
     ) {}
@@ -76,6 +91,15 @@ final class UploadsServeController extends AbstractController
             throw $this->createNotFoundException();
         }
 
+        $access = $this->accessDecider->decide($path);
+
+        // The same 404 a missing file gets. A distinct 403 would confirm that
+        // the path names something, which is the one bit of information an id
+        // or a reference is guessed in order to obtain.
+        if (UploadAccessEnum::Denied === $access) {
+            throw $this->createNotFoundException();
+        }
+
         $adapter = $this->locator->locate($path);
 
         if (!$adapter instanceof StorageAdapterInterface) {
@@ -83,29 +107,41 @@ final class UploadsServeController extends AbstractController
         }
 
         if ($adapter instanceof LocalPathAware) {
-            return $this->serveLocal($path);
+            return $this->serveLocal($path, $access);
         }
 
-        return $this->serveRemote($adapter, $path);
+        return $this->serveRemote($adapter, $path, $access);
     }
 
-    private function serveLocal(string $path): Response
+    private function serveLocal(string $path, UploadAccessEnum $access): Response
     {
+        $absolute = $this->binaryFileServer->path($this->uploadRoot, $path);
+
         try {
-            return $this->binaryFileServer->servePublic(
-                $this->binaryFileServer->path($this->uploadRoot, $path),
-                $this->uploadRoot,
-            );
+            if (UploadAccessEnum::Restricted === $access) {
+                // `serve()`'s own default: private, an hour. Still offloaded
+                // through mod_xsendfile in production, which happens after
+                // this check rather than instead of it.
+                return $this->binaryFileServer->serve($absolute, $this->uploadRoot);
+            }
+
+            return $this->binaryFileServer->servePublic($absolute, $this->uploadRoot);
         } catch (RuntimeException) {
             throw $this->createNotFoundException();
         }
     }
 
-    private function serveRemote(StorageAdapterInterface $adapter, string $path): Response
+    private function serveRemote(StorageAdapterInterface $adapter, string $path, UploadAccessEnum $access): Response
     {
         $mode = $this->deliveryModeProvider->deliveryMode();
 
-        if ($adapter instanceof R2StorageAdapter && $mode->isRedirect()) {
+        // A restricted file is never handed over as a link, whatever the
+        // administrator configured. Both redirecting modes end the
+        // application's involvement: the public hostname permanently, a
+        // signed link for as long as it lives. Either one would let a file
+        // the visitor may read right now be re-fetched later, by anybody, on
+        // an address that no longer asks.
+        if ($adapter instanceof R2StorageAdapter && $mode->isRedirect() && UploadAccessEnum::Anonymous === $access) {
             $target = StorageDeliveryModeEnum::PublicUrl === $mode
                 ? $adapter->publicUrl($path)
                 : $adapter->temporaryUrl($path, self::SIGNED_URL_TTL);
@@ -122,7 +158,7 @@ final class UploadsServeController extends AbstractController
             // should degrade, not take the images down.
         }
 
-        return $this->streamThrough($adapter, $path);
+        return $this->streamThrough($adapter, $path, $access);
     }
 
     /**
@@ -133,7 +169,7 @@ final class UploadsServeController extends AbstractController
      * installations most likely to be serving something too big to hold in
      * memory.
      */
-    private function streamThrough(StorageAdapterInterface $adapter, string $path): Response
+    private function streamThrough(StorageAdapterInterface $adapter, string $path, UploadAccessEnum $access): Response
     {
         $stored = $adapter->stat($path);
 
@@ -144,9 +180,17 @@ final class UploadsServeController extends AbstractController
             }
         });
 
-        $response->setPublic();
-        $response->setMaxAge(86400);
-        $response->headers->addCacheControlDirective('immutable');
+        if (UploadAccessEnum::Restricted === $access) {
+            // One visitor's copy. A proxy that kept this would be answering
+            // the next request itself, with the bytes of a file the decider
+            // was never asked about.
+            $response->setPrivate();
+            $response->setMaxAge(3600);
+        } else {
+            $response->setPublic();
+            $response->setMaxAge(86400);
+            $response->headers->addCacheControlDirective('immutable');
+        }
 
         if ($stored instanceof StoredObject) {
             $response->headers->set('Content-Length', (string) $stored->size);

@@ -13,6 +13,7 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -77,6 +78,8 @@ final class SeoExtensionTest extends TestCase
     public function testExtractsImageUrlFromMediaEntity(): void
     {
         $media = $this->createMock(DocumentInterface::class);
+        // DocumentUrlGenerator reads the status to pick its route.
+        $media->method('getStatus')->willReturn(DocumentStatusEnum::Published);
         $media->method('getFilePath')->willReturn('x.jpg');
 
         $extension = $this->makeExtension(siteUrl: 'https://monsite.com');
