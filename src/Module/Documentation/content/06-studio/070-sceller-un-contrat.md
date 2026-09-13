@@ -9,6 +9,10 @@ Sceller, c'est arrêter le texte. Le document est rendu une fois pour toutes, la
 
 Relisez : c'est le dernier moment. Un contrat scellé ne se modifie pas, et ne se supprime pas avant la fin de sa durée de conservation. Pour changer quelque chose après, il faudra un avenant, qui est un document à part, signé lui aussi.
 
+Pour relire, l'action **Aperçu** d'un contrat en préparation ouvre le document tel que le client le lira, avec les vraies valeurs de ce contrat. Un champ que la fiche client laisse vide s'affiche vide, parce que c'est ce que le signataire lirait. Seuls la référence et les mentions écrites à la signature apparaissent entre crochets : elles n'existent pas encore.
+
+L'aperçu n'écrit rien et ne tire aucune référence. Il signale aussi les variables inconnues, celles qui bloqueront le scellement : les trouver là ne coûte rien, les trouver au scellement coûte un aller-retour.
+
 ## 1. Le brouillon prêt
 
 Le contrat est en préparation, tous ses champs sont remplis, et les blancs demandés par la trame aussi.
