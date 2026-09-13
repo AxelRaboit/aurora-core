@@ -123,6 +123,30 @@ class DocumentCategoryManager implements DocumentCategoryManagerInterface
         return count($categories);
     }
 
+    /**
+     * Destroys the categories that have been in the trash long enough.
+     *
+     * Same gesture as emptying the trash by hand, with a date instead of a
+     * button: the documents that carried the category lose it through the
+     * database's own `SET NULL`, and keep everything else.
+     */
+    public function purgeTrashedBefore(DateTimeImmutable $cutoff): int
+    {
+        $categories = $this->categoryRepository->findTrashedBefore($cutoff);
+        if ([] === $categories) {
+            return 0;
+        }
+
+        foreach ($categories as $category) {
+            $this->auditDeleted($category);
+            $this->entityManager->remove($category);
+        }
+
+        $this->entityManager->flush();
+
+        return count($categories);
+    }
+
     protected function createDocumentCategory(): DocumentCategoryInterface
     {
         return new DocumentCategory();

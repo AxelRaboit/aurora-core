@@ -6,6 +6,8 @@ namespace Aurora\Module\Ged\Document\Scheduler;
 
 use Aurora\Core\Scheduler\RecurringMessageProviderInterface;
 use Aurora\Module\Ged\Document\Message\PurgeTrashedDocumentsMessage;
+use Aurora\Module\Ged\DocumentCategory\Message\PurgeTrashedCategoriesMessage;
+use Aurora\Module\Ged\DocumentFolder\Message\PurgeTrashedFoldersMessage;
 use Symfony\Component\Scheduler\RecurringMessage;
 
 /**
@@ -20,5 +22,12 @@ final class GedRecurringMessageProvider implements RecurringMessageProviderInter
     public function getRecurringMessages(): iterable
     {
         yield RecurringMessage::cron('0 3 * * *', new PurgeTrashedDocumentsMessage());
+
+        // Documents first, by declaration order: it changes nothing about the
+        // outcome - both foreign keys are `SET NULL` - but a document purged
+        // while its folder still exists leaves a cleaner audit trail than the
+        // other way round.
+        yield RecurringMessage::cron('0 3 * * *', new PurgeTrashedFoldersMessage());
+        yield RecurringMessage::cron('0 3 * * *', new PurgeTrashedCategoriesMessage());
     }
 }

@@ -159,6 +159,36 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
     }
 
     /**
+     * Destroys the folders that have been in the trash long enough.
+     *
+     * Deliberately not `forceDelete` in a loop. That method releases what fell
+     * with a folder back to the root, which is the right answer to somebody
+     * clicking "delete for good" on one folder and the wrong one here: it
+     * would clear `deletedAt` on documents the purge is about to take, and
+     * they would reappear in the library thirty days after being deleted.
+     *
+     * The documents are left to their own purge, which runs on the same
+     * setting and destroys their files with them. Whichever runs first, the
+     * foreign key is `SET NULL`, so neither can strand the other.
+     */
+    public function purgeTrashedBefore(DateTimeImmutable $cutoff): int
+    {
+        $folders = $this->folderRepository->findTrashedBefore($cutoff);
+        if ([] === $folders) {
+            return 0;
+        }
+
+        foreach ($folders as $folder) {
+            $this->auditDeleted($folder);
+            $this->entityManager->remove($folder);
+        }
+
+        $this->entityManager->flush();
+
+        return count($folders);
+    }
+
+    /**
      * Every folder below this one, at any depth.
      *
      * @return list<DocumentFolderInterface>

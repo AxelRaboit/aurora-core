@@ -40,6 +40,25 @@ la fenêtre restait ouverte, le bouton redevenait normal, et le clic avait l'air
 de ne pas avoir été pris en compte. Le refus est maintenant affiché tel qu'il a
 été écrit, pour toutes les suppressions du back-office, pas seulement en
 comptabilité.
+## [0.9.153] - 2026-09-13
+
+### Corrigé
+
+#### La corbeille des dossiers et des catégories GED se vide vraiment
+La page Corbeille annonce, pour chaque ligne, le nombre de jours qui reste
+avant la purge. C'était vrai pour les documents, les publications et les notes,
+et faux pour les dossiers et les catégories : rien ne les purgeait. Un décompte
+qui ne se termine jamais est pire que pas de décompte du tout.
+
+Les deux se branchent maintenant sur le même réglage `TrashAutoPurgeDays` et le
+même passage de 3 h que les autres.
+
+La purge d'un dossier n'est volontairement pas la suppression définitive en
+boucle. Supprimer définitivement un dossier remonte son contenu à la racine,
+parce que c'est le dossier qu'on a voulu perdre et pas les documents. Appliqué
+à la purge, ce geste effacerait la date de suppression de documents que la
+purge s'apprête justement à prendre, et on les verrait revenir dans la
+bibliothèque trente jours après avoir été supprimés.
 
 ---
 

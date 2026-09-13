@@ -6,6 +6,7 @@ namespace Aurora\Module\Ged\DocumentCategory\Manager;
 
 use Aurora\Module\Ged\DocumentCategory\Dto\DocumentCategoryInputInterface;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
+use DateTimeImmutable;
 
 interface DocumentCategoryManagerInterface
 {
@@ -24,4 +25,7 @@ interface DocumentCategoryManagerInterface
 
     /** Destroys every category in the trash. Returns how many went. */
     public function emptyTrash(): int;
+
+    /** @return int how many categories were destroyed */
+    public function purgeTrashedBefore(DateTimeImmutable $cutoff): int;
 }

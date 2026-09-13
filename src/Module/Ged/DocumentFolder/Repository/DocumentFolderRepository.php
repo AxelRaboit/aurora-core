@@ -87,6 +87,26 @@ class DocumentFolderRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * Every folder in the trash since before this moment, including those
+     * that fell with a parent.
+     *
+     * Unlike `countTrashed`, the cascade is not excluded here: the purge
+     * destroys a branch whole, and a sub-folder left behind would be a row
+     * pointing at a parent that no longer exists.
+     *
+     * @return list<DocumentFolderInterface>
+     */
+    public function findTrashedBefore(DateTimeImmutable $cutoff): array
+    {
+        return $this->createQueryBuilder('f')
+            ->andWhere('f.deletedAt IS NOT NULL')
+            ->andWhere('f.deletedAt < :cutoff')
+            ->setParameter('cutoff', $cutoff)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countTrashed(): int
     {
         return (int) $this->createQueryBuilder('f')

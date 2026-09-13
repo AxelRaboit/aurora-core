@@ -315,4 +315,43 @@ final class DocumentFolderManagerTest extends TestCase
 
         $this->manager->reorder([]);
     }
+
+    /**
+     * The purge destroys, where `forceDelete` releases.
+     *
+     * This is the distinction the whole method exists for: `forceDelete` puts
+     * a folder's contents back at the root because somebody asked to lose the
+     * folder and not its documents. Reusing it here would clear `deletedAt` on
+     * documents the purge is about to take, and they would walk back into the
+     * library thirty days after being deleted.
+     */
+    public function testThePurgeDestroysFoldersWithoutTouchingTheirDocuments(): void
+    {
+        $cutoff = new DateTimeImmutable('-30 days');
+        // Named, because the purge writes an audit line naming what it took.
+        $folder = $this->folderWithId(4);
+        $folder->setName('Archives 2024');
+
+        $this->folderRepository->expects(self::once())
+            ->method('findTrashedBefore')
+            ->with($cutoff)
+            ->willReturn([$folder]);
+
+        // The releasing finders are the ones `forceDelete` uses. Never called.
+        $this->folderRepository->expects(self::never())->method('findTrashedWith');
+        $this->documentRepository->expects(self::never())->method('findTrashedWith');
+
+        $this->entityManager->expects(self::once())->method('remove')->with($folder);
+        $this->entityManager->expects(self::once())->method('flush');
+
+        self::assertSame(1, $this->manager->purgeTrashedBefore($cutoff));
+    }
+
+    public function testThePurgeDoesNothingWhenTheTrashIsEmpty(): void
+    {
+        $this->folderRepository->method('findTrashedBefore')->willReturn([]);
+        $this->entityManager->expects(self::never())->method('flush');
+
+        self::assertSame(0, $this->manager->purgeTrashedBefore(new DateTimeImmutable()));
+    }
 }

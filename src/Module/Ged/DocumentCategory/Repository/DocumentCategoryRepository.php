@@ -50,6 +50,21 @@ class DocumentCategoryRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * Every category in the trash since before this moment.
+     *
+     * @return list<DocumentCategoryInterface>
+     */
+    public function findTrashedBefore(DateTimeImmutable $cutoff): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.deletedAt IS NOT NULL')
+            ->andWhere('c.deletedAt < :cutoff')
+            ->setParameter('cutoff', $cutoff)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countTrashed(): int
     {
         return (int) $this->createQueryBuilder('c')

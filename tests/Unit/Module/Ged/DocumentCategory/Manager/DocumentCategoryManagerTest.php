@@ -10,6 +10,7 @@ use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
 use Aurora\Module\Ged\DocumentCategory\Manager\DocumentCategoryManager;
 use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
@@ -189,5 +190,36 @@ final class DocumentCategoryManagerTest extends TestCase
         $this->entityManager->expects(self::once())->method('remove')->with($category);
 
         $this->manager->forceDelete($category);
+    }
+
+    /**
+     * The nightly purge, which is emptying the trash with a date instead of a
+     * button. Worth its own test because the overview screen counts the days
+     * down in front of the reader, and a promise nothing keeps is worse than
+     * no promise.
+     */
+    public function testThePurgeDestroysWhatHasWaitedLongEnough(): void
+    {
+        $cutoff = new DateTimeImmutable('-30 days');
+        $category = new DocumentCategory();
+        $category->setName('Anciennes')->setSlug('anciennes');
+
+        $this->categoryRepository->expects(self::once())
+            ->method('findTrashedBefore')
+            ->with($cutoff)
+            ->willReturn([$category]);
+
+        $this->entityManager->expects(self::once())->method('remove')->with($category);
+        $this->entityManager->expects(self::once())->method('flush');
+
+        self::assertSame(1, $this->manager->purgeTrashedBefore($cutoff));
+    }
+
+    public function testThePurgeDoesNothingWhenTheTrashIsEmpty(): void
+    {
+        $this->categoryRepository->method('findTrashedBefore')->willReturn([]);
+        $this->entityManager->expects(self::never())->method('flush');
+
+        self::assertSame(0, $this->manager->purgeTrashedBefore(new DateTimeImmutable()));
     }
 }

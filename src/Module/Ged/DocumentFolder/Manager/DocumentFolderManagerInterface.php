@@ -6,6 +6,7 @@ namespace Aurora\Module\Ged\DocumentFolder\Manager;
 
 use Aurora\Module\Ged\DocumentFolder\Dto\DocumentFolderInputInterface;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
+use DateTimeImmutable;
 
 interface DocumentFolderManagerInterface
 {
@@ -26,6 +27,9 @@ interface DocumentFolderManagerInterface
 
     /** Deletes the folder for good, releasing its contents to the root. */
     public function forceDelete(DocumentFolderInterface $folder): void;
+
+    /** @return int how many folders were destroyed */
+    public function purgeTrashedBefore(DateTimeImmutable $cutoff): int;
 
     /**
      * Refiles a folder under a new parent, or at the root with null.
