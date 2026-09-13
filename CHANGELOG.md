@@ -40,6 +40,9 @@ la fenêtre restait ouverte, le bouton redevenait normal, et le clic avait l'air
 de ne pas avoir été pris en compte. Le refus est maintenant affiché tel qu'il a
 été écrit, pour toutes les suppressions du back-office, pas seulement en
 comptabilité.
+
+---
+
 ## [0.9.153] - 2026-09-13
 
 ### Corrigé
