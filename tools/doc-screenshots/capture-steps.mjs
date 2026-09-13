@@ -1067,6 +1067,23 @@ const FLOWS = {
   },
 
   /**
+   * La modale d'import, avec l'éditeur de blocs dedans.
+   */
+  "partir-d-un-document": async () => {
+    await page.goto(`${BASE}/backend/studio/decks`, { waitUntil: "domcontentloaded" });
+    await wait(2500);
+    await page.getByRole("button", { name: /Importer un document/ }).first().click();
+    await wait(2000);
+
+    // Quelques mots dans l'éditeur : une modale vide ne montre pas qu'on y
+    // écrit, et c'est la seule chose que cette image a à dire.
+    await page.locator(".codex-editor__redactor [contenteditable='true']").first().click();
+    await page.keyboard.type("Ce qui bloque aujourd'hui");
+    await wait(900);
+    await shot("la-modale");
+  },
+
+  /**
    * Le panneau d'apparence : la grille des thèmes, et l'aperçu qui suit.
    */
   "l-apparence": async () => {

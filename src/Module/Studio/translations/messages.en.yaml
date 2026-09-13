@@ -419,6 +419,7 @@ backend:
                 title_too_long: The title is too long.
                 layout_unknown: That layout does not exist.
                 theme_unknown: That theme does not exist.
+                import_empty: There is nothing in this document a slide could be made of.
             share: Share
             share_intro: A secret address that opens this presentation without an account. The speaker notes are never on it.
             share_label: Label
@@ -537,6 +538,13 @@ backend:
             media_fit_contain: Whole, never cropped
             media_fit_cover: Fill the frame
             media_focus_hint: Click what has to stay visible when the picture is cropped.
+            import: Import a document
+            import_submit: Make the slides
+            imported: Deck built from the document
+            import_intro: Write or paste your document. A heading opens a slide, and what follows fills it.
+            import_document: The document
+            import_placeholder: Paste here, or write…
+            import_hint: Lists become bullet slides, quotes become quotes, tables become tables. Several blocks under one heading make several slides that repeat it.
             slots:
                 mediaFit: How the picture fills
                 mediaFocus: Focal point

@@ -266,6 +266,7 @@ final readonly class DecksViewBuilder
         return [
             'showPath' => $this->pathTemplates->generate('backend_studio_deck', ['id' => '__id__']),
             'createPath' => $this->urlGenerator->generate('backend_studio_decks_create'),
+            'importPath' => $this->urlGenerator->generate('backend_studio_decks_import'),
             'updatePath' => $this->pathTemplates->generate('backend_studio_decks_update', ['id' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('backend_studio_decks_delete', ['id' => '__id__']),
             'duplicatePath' => $this->pathTemplates->generate('backend_studio_decks_duplicate', ['id' => '__id__']),

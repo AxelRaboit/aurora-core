@@ -15,6 +15,7 @@ use Aurora\Module\Studio\Deck\Duplicate\DeckDuplicator;
 use Aurora\Module\Studio\Deck\Entity\Deck;
 use Aurora\Module\Studio\Deck\Entity\DeckCategory;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
+use Aurora\Module\Studio\Deck\Import\DeckFromBlocks;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Repository\DeckCategoryRepository;
 use Aurora\Module\Studio\Deck\View\DecksViewBuilder;
@@ -26,6 +27,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+use function array_values;
+use function is_array;
 use function is_int;
 use function is_string;
 
@@ -47,6 +50,7 @@ class DecksController extends AbstractController
     public function __construct(
         protected readonly DeckManager $deckManager,
         protected readonly DeckDuplicator $deckDuplicator,
+        protected readonly DeckFromBlocks $deckFromBlocks,
         protected readonly DeckCategoryRepository $categoryRepository,
         protected readonly CustomerRepository $customerRepository,
         protected readonly DecksViewBuilder $viewBuilder,
@@ -74,6 +78,44 @@ class DecksController extends AbstractController
 
         $deck = $this->deckManager->create($input->title);
         $this->applyInput($deck, $input);
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess($this->viewBuilder->deckPayload($deck));
+    }
+
+    /**
+     * A written document, in as a deck.
+     *
+     * The conversion lives on the server rather than in the modal, because the
+     * rule it applies - a heading opens a slide, what follows fills it - is the
+     * kind of thing a second implementation drifts on, and because every slide
+     * it writes goes through `DeckManager` and is whitelisted there like any
+     * other. A converter in the browser would be a second way into the content
+     * column.
+     */
+    #[Route('/import', name: '_import', methods: [HttpMethodEnum::Post->value], priority: 10)]
+    #[IsGranted('studio.decks.create')]
+    public function import(Request $request): JsonResponse
+    {
+        $payload = $this->decodeJson($request);
+        $input = $this->toInput($payload);
+
+        $errors = $this->payloadValidator->errors($input);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $blocks = is_array($payload['blocks'] ?? null) ? array_values($payload['blocks']) : [];
+
+        $deck = $this->deckManager->create($input->title);
+        $this->applyInput($deck, $input);
+
+        $written = $this->deckFromBlocks->fill($deck, $blocks);
+
+        if (0 === $written) {
+            return $this->jsonInvalidInput(['blocks' => 'backend.studio.decks.errors.import_empty']);
+        }
+
         $this->entityManager->flush();
 
         return $this->jsonSuccess($this->viewBuilder->deckPayload($deck));

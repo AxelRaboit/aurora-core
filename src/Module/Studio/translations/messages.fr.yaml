@@ -419,6 +419,7 @@ backend:
                 title_too_long: Le titre est trop long.
                 layout_unknown: Ce gabarit n'existe pas.
                 theme_unknown: Ce thème n'existe pas.
+                import_empty: Ce document ne contient rien dont on puisse faire une slide.
             share: Partager
             share_intro: Une adresse secrète qui ouvre cette présentation sans compte. Les notes d'orateur n'y sont jamais.
             share_label: Intitulé
@@ -537,6 +538,13 @@ backend:
             media_fit_contain: Entière, sans rognage
             media_fit_cover: Remplir le cadre
             media_focus_hint: Cliquez sur ce qui doit rester visible quand l'image est rognée.
+            import: Importer un document
+            import_submit: Créer les slides
+            imported: Présentation créée à partir du document
+            import_intro: Écrivez ou collez votre document. Un titre ouvre une slide, et ce qui suit la remplit.
+            import_document: Le document
+            import_placeholder: Collez ici, ou écrivez…
+            import_hint: Les listes deviennent des slides à puces, les citations des citations, les tableaux des tableaux. Plusieurs blocs sous un même titre font plusieurs slides qui le répètent.
             slots:
                 mediaFit: Cadrage de l'image
                 mediaFocus: Point de visée

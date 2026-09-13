@@ -132,6 +132,49 @@ export function useDecksList(props) {
         showCreate.value = true;
     }
 
+    /**
+     * A written document, in as a deck.
+     *
+     * The blocks are sent as they are and converted on the server, which is
+     * where the rule lives. On success the page goes straight to the new deck:
+     * an import is not finished when the row appears, it is finished when
+     * somebody has seen what it made of their document.
+     */
+    const showImport = ref(false);
+    const importDeck = ref(emptyForm());
+    const importBlocks = ref([]);
+
+    const {
+        errors: importErrors,
+        loading: importLoading,
+        submit: submitImport,
+        clearErrors: clearImport,
+    } = useFormAction({
+        rules: () => rulesFor(importDeck),
+        url: () => props.importPath,
+        body: () => ({
+            ...toPayload(importDeck.value),
+            blocks: importBlocks.value,
+        }),
+        onSuccess: (data) => {
+            showImport.value = false;
+            toast.success(t("backend.studio.decks.imported"));
+
+            if (data?.deck?.id) {
+                window.location.assign(
+                    buildPath(props.showPath, { id: data.deck.id }),
+                );
+            }
+        },
+    });
+
+    function openImport() {
+        importDeck.value = emptyForm();
+        importBlocks.value = [];
+        clearImport();
+        showImport.value = true;
+    }
+
     const showEdit = ref(false);
     const editingDeck = ref(null);
     const editForm = ref(emptyForm());
@@ -210,6 +253,13 @@ export function useDecksList(props) {
         createLoading,
         openCreate,
         submitCreate,
+        showImport,
+        importDeck,
+        importBlocks,
+        importErrors,
+        importLoading,
+        openImport,
+        submitImport,
         showEdit,
         editingDeck,
         editForm,
