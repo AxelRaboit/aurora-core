@@ -216,6 +216,9 @@ final readonly class GridViewBuilder
                 'postList' => GridNormalizer::ZONE_POST_LIST === $zone['type']
                     ? $this->postListView($zone, $locale, $currentPostId)
                     : null,
+                'map' => GridNormalizer::ZONE_MAP === $zone['type']
+                    ? $this->mapView($held['label'], $held['caption'], $documents[$zone['mediaId']] ?? null)
+                    : null,
                 'terms' => GridNormalizer::ZONE_TERMS === $zone['type']
                     ? $this->termsView($zone, $locale)
                     : null,
@@ -468,6 +471,56 @@ final readonly class GridViewBuilder
     }
 
     /**
+     * An address, and a way to be taken to it.
+     *
+     * Nothing here reaches a provider while the page is being read: the
+     * address is text the author typed, the picture is one they chose, and the
+     * link is only followed if the reader decides to. That is the whole design
+     * of this zone - a draggable map would be a third party on every view,
+     * chosen once by us for every client.
+     *
+     * The link goes to Google Maps' universal address, which is what opens the
+     * native application on Android and iOS and a page anywhere else. It is a
+     * choice rather than a neutrality: OpenStreetMap would not profile anyone,
+     * and would not open the application a reader already navigates with. One
+     * line to change here if the trade is judged the other way.
+     *
+     * @param string|null $name  what the place is called, in this language
+     * @param string|null $lines the address as typed, one line per line
+     *
+     * @return array{name: string, lines: list<string>, directionsUrl: string, media: array<string, mixed>|null}|null
+     */
+    private function mapView(?string $name, ?string $lines, ?DocumentInterface $media): ?array
+    {
+        $address = [];
+        foreach (explode("\n", (string) $lines) as $line) {
+            $line = mb_trim($line);
+
+            if ('' !== $line) {
+                $address[] = $line;
+            }
+        }
+
+        // A zone with no address is not a place, whatever else it carries. A
+        // name and a photograph alone would draw a card that cannot answer the
+        // one question it is there for.
+        if ([] === $address) {
+            return null;
+        }
+
+        return [
+            'name' => (string) $name,
+            'lines' => $address,
+            // Joined by commas rather than by the newlines it was typed with:
+            // a query string carrying line breaks is a query string that has
+            // to be repaired at the other end.
+            'directionsUrl' => 'https://www.google.com/maps/search/?api=1&query='
+                .rawurlencode(implode(', ', $address)),
+            'media' => $this->mediaData($media, ''),
+        ];
+    }
+
+    /**
      * The terms of one taxonomy, in the order the backend arranges them.
      *
      * One query per zone, like the list beside it, and for the same reason: a
@@ -653,6 +706,7 @@ final readonly class GridViewBuilder
                 GridNormalizer::ZONE_VIDEO,
                 GridNormalizer::ZONE_AUDIO,
                 GridNormalizer::ZONE_DOCUMENT,
+                GridNormalizer::ZONE_MAP,
             ], true);
 
             if ($carriesMedia && null !== $zone['mediaId']) {

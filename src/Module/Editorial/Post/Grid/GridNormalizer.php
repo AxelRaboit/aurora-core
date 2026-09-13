@@ -139,6 +139,21 @@ final readonly class GridNormalizer
     public const string ZONE_POST_LIST = 'postList';
 
     /**
+     * Where to find somebody, and how to get there.
+     *
+     * Deliberately **not** a map. A map that can be dragged means a tile
+     * provider, which means a key and a third party watching the client's
+     * visitors arrive - the very thing the integration zone exists to arbitrate
+     * deliberately rather than by accident. This draws the address as an
+     * address, offers a link that opens the reader's own map application, and
+     * loads nothing from anybody.
+     *
+     * The picture, when there is one, is the author's: a photograph of the shop
+     * front says more about finding the door than a pin on a grey rectangle.
+     */
+    public const string ZONE_MAP = 'map';
+
+    /**
      * The terms of one taxonomy, each linking to its archive.
      *
      * The mirror of `postList`: that one draws the publications, this one
@@ -353,6 +368,7 @@ final readonly class GridNormalizer
         self::ZONE_AUDIO,
         self::ZONE_DOCUMENT,
         self::ZONE_TERMS,
+        self::ZONE_MAP,
         self::ZONE_BUTTON,
         self::ZONE_SEPARATOR,
         self::ZONE_ITEMS,

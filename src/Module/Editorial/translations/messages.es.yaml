@@ -21,6 +21,13 @@ backend:
       terms_taxonomy_none: "Elegir una taxonomía…"
       terms_caption: Título encima
       terms_caption_placeholder: "Nuestros ámbitos"
+      map_image: Foto del lugar
+      map_image_hint: "Opcional. Una fachada dice más sobre cómo encontrar la puerta que un punto en un rectángulo gris."
+      map_name: Nombre del lugar
+      map_name_placeholder: "Nuestro taller"
+      map_address: Dirección
+      map_address_hint: "Una línea por línea, como en un sobre. Es lo que alimenta el enlace de itinerario."
+      map_address_placeholder: "12 rue des Lilas\n69004 Lyon\nFrancia"
       zone_document_label_hint: "Lo que lee el visitante en la tarjeta. Vacío, se usa el título del documento en la mediateca."
       zone_form_none: "Elegir un formulario…"
       anchor: "Ancla"
@@ -61,6 +68,7 @@ frontend:
       copied: Copiado
       on_this_page: En esta página
       terms: Términos
+      directions: Cómo llegar
       get_in_touch: Contactar
     forms:
       submit: Enviar

@@ -13,6 +13,7 @@ import {
     ListFilter,
     ListTree,
     Tags,
+    MapPin,
     MousePointerClick,
     Newspaper,
     SeparatorHorizontal,
@@ -46,6 +47,7 @@ export const LEAF_ZONE_TYPES = [
     "audio",
     "document",
     "terms",
+    "map",
     "button",
     "separator",
     "items",
@@ -81,6 +83,9 @@ export const ZONE_ICONS = {
     document: FileDown,
     // Labels on a string, which is what a set of terms is.
     terms: Tags,
+    // A pin, and the one place in this map where a pin is honest: it marks
+    // an address rather than standing on a tile somebody else served.
+    map: MapPin,
     button: MousePointerClick,
     separator: SeparatorHorizontal,
     items: LayoutList,

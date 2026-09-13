@@ -160,6 +160,49 @@
             <span class="shrink-0 text-accent" aria-hidden="true">&darr;</span>
         </a>
 
+    {% elseif zone.type == 'map' and zone.map %}
+        {# `<address>` because that is what this is - the element exists for
+           contact details and nothing else, and a screen reader announces it
+           as such. Wrapped in a `Place` so a search engine can read the same
+           thing: `address` accepts plain text in that vocabulary, which is
+           what an author typed, so nothing here pretends to know which line is
+           the street and which is the town.
+
+           `white-space: pre-line` keeps the lines the author typed without
+           asking them for markup, and the `<address>` is not italic here
+           because browsers set it that way by default and an address is not an
+           aside. #}
+        <div class="not-prose space-y-4" itemscope itemtype="https://schema.org/Place">
+            {% if zone.map.media %}
+                <img
+                    src="{{ zone.map.media.url }}"
+                    alt="{{ zone.map.media.alt }}"
+                    loading="lazy"
+                    class="w-full rounded-lg object-cover"
+                    style="object-position: {{ zone.map.media.focalPosition }};"
+                    itemprop="photo"
+                >
+            {% endif %}
+            {% if zone.map.name %}
+                <p class="m-0 font-semibold text-primary" itemprop="name">{{ zone.map.name }}</p>
+            {% endif %}
+            <address class="m-0 not-italic text-secondary" itemprop="address">
+                {%- for line in zone.map.lines -%}
+                    {{ line }}{% if not loop.last %}<br>{% endif %}
+                {%- endfor -%}
+            </address>
+            {# A link, and only followed if the reader wants it: nothing on this
+               page has reached a map provider up to here. #}
+            <a
+                href="{{ zone.map.directionsUrl }}"
+                rel="noopener"
+                class="inline-flex items-center gap-2 text-sm font-medium text-accent no-underline hover:underline"
+            >
+                {{ 'frontend.editorial.grid.directions'|trans }}
+                <span aria-hidden="true">&rarr;</span>
+            </a>
+        </div>
+
     {% elseif zone.type == 'terms' and zone.terms.entries is not empty %}
         {# A `<nav>` with a name, which is what makes it skippable - the same
            reasoning as the summary further down this file. A reader moving by

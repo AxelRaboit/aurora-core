@@ -330,6 +330,36 @@ const displayHint = computed(() =>
             />
         </template>
 
+        <template v-else-if="zone.type === 'map'">
+            <!-- The author's own picture, and shared like every other: a shop
+                 front is the same shop front in every language. -->
+            <AppImagePickerField
+                v-model="bound.media.value"
+                :label="t('backend.posts.grid.map_image')"
+                :hint="t('backend.posts.grid.map_image_hint')"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.label.value"
+                    :label="t('backend.posts.grid.map_name')"
+                    :placeholder="t('backend.posts.grid.map_name_placeholder')"
+                />
+                <!-- Translated because a country is not spelled the same in
+                     every language, and because the floor and the door code
+                     are words rather than coordinates. -->
+                <AppTextarea
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.map_address')"
+                    :hint="t('backend.posts.grid.map_address_hint')"
+                    :placeholder="t('backend.posts.grid.map_address_placeholder')"
+                    :rows="4"
+                />
+            </div>
+        </template>
+
         <template v-else-if="zone.type === 'terms'">
             <AppSelect
                 v-model="bound.taxonomyId.value"

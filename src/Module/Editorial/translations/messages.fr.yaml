@@ -453,6 +453,7 @@ backend:
         audio: Audio
         document: Document
         terms: Termes
+        map: Adresse
         button: Bouton
         separator: Séparateur
         items: Liste
@@ -643,6 +644,13 @@ backend:
       terms_taxonomy_none: "Choisir une taxonomie…"
       terms_caption: Titre au-dessus
       terms_caption_placeholder: "Nos domaines"
+      map_image: Photo du lieu
+      map_image_hint: "Facultative. Une façade ou une devanture dit plus sur la manière de trouver la porte qu'un point sur un rectangle gris."
+      map_name: Nom du lieu
+      map_name_placeholder: "Notre atelier"
+      map_address: Adresse
+      map_address_hint: "Une ligne par ligne, comme sur une enveloppe. C'est elle qui alimente le lien d'itinéraire."
+      map_address_placeholder: "12 rue des Lilas\n69004 Lyon\nFrance"
       zone_document_label_hint: "Ce que le visiteur lit sur la carte. Vide, c'est le titre du document dans la médiathèque qui est repris."
       zone_video_hint: "YouTube, Vimeo ou Dailymotion. Une autre adresse s'affichera en lien plutôt qu'en lecteur."
       move_up: Monter
@@ -1001,6 +1009,7 @@ frontend:
       copied: Copié
       on_this_page: Sur cette page
       terms: Termes
+      directions: Itinéraire
       get_in_touch: Écrire
     forms:
       submit: Envoyer
