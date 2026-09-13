@@ -41,7 +41,7 @@ final class DocumentVersionSerializerTest extends TestCase
 
     public function testSerializeReturnsAllExpectedFields(): void
     {
-        $result = (new DocumentVersionSerializer($this->makeUploadUrlGenerator()))->serialize($this->makeVersion());
+        $result = (new DocumentVersionSerializer($this->makeStubbedUrlGenerator()))->serialize($this->makeVersion());
 
         self::assertSame(3, $result['id']);
         self::assertSame(2, $result['versionNumber']);
@@ -55,14 +55,14 @@ final class DocumentVersionSerializerTest extends TestCase
 
     public function testSerializeWithNullNotePreservesNull(): void
     {
-        $result = (new DocumentVersionSerializer($this->makeUploadUrlGenerator()))->serialize($this->makeVersion(note: null));
+        $result = (new DocumentVersionSerializer($this->makeStubbedUrlGenerator()))->serialize($this->makeVersion(note: null));
 
         self::assertNull($result['note']);
     }
 
     public function testSerializeContainsExactlyExpectedKeys(): void
     {
-        $result = (new DocumentVersionSerializer($this->makeUploadUrlGenerator()))->serialize($this->makeVersion());
+        $result = (new DocumentVersionSerializer($this->makeStubbedUrlGenerator()))->serialize($this->makeVersion());
 
         self::assertSame(
             ['id', 'versionNumber', 'fileName', 'fileUrl', 'fileMime', 'fileSize', 'note', 'createdAt'],

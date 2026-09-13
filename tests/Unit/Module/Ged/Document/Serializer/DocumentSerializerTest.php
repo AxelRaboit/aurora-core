@@ -29,7 +29,7 @@ final class DocumentSerializerTest extends TestCase
     {
         $this->translator = $this->createStub(TranslatorInterface::class);
         $this->translator->method('trans')->willReturnArgument(0);
-        $this->serializer = new DocumentSerializer($this->translator, $this->makeUploadUrlGenerator(), $this->makeStubbedUrlGenerator(), $this->makeDocumentUrlGenerator());
+        $this->serializer = new DocumentSerializer($this->translator, $this->makeStubbedUrlGenerator(), $this->makeDocumentUrlGenerator());
     }
 
     private function makeDocument(

@@ -39,6 +39,21 @@ vers `var/uploads/`.
    public ; les catégories auth-gated (OCR, PDF, notes per-user)
    définissent leur propre route sous `/backend/<module>/files/...`
    qui prend précédence.
+
+   **Depuis la 0.9.140, le catch-all n'est plus public par défaut pour
+   une aire qui se réclame.** Il interroge `UploadAccessDecider`, et une
+   aire pose sa règle en enregistrant un `UploadAccessGuardInterface`
+   (tag `aurora.upload_access_guard`). Une aire que personne ne réclame
+   reste anonyme, donc rien ne casse chez un client qui stocke sous son
+   propre préfixe. `ged/` ne sert que les documents `published`,
+   `contracts/` ne sert rien du tout.
+
+   **Le firewall décide où la question peut être posée.** `admin` est
+   `^/(backend|dev)` : sur `/uploads/…` aucune identité backend n'est
+   restaurée, donc un guard qui testerait un privilège là refuserait le
+   personnel comme les inconnus. Une catégorie qui doit rester lisible
+   par le back-office a donc *besoin* de sa route sous `/backend`
+   (cf. `backend_ged_files`) - ce n'est pas une préférence de style.
 4. **URL construction** : injecter `UrlGeneratorInterface` ou un URL
    generator dédié (cf. `DocumentUrlGenerator`, `UserProfilePhotoUrlGenerator`
    comme exemples canoniques côté core). **Jamais** concaténer

@@ -101,6 +101,18 @@ peut changer demain - `UploadUrlGenerator` encapsule cette dépendance.
 
 Pour les URLs absolues (emails, RSS) : `publicUrlAbsolute()`.
 
+> **Si l'entité porte un statut de publication, `UploadUrlGenerator` ne
+> suffit plus.** Il reçoit une clé et rien d'autre, donc il ne sait
+> construire que l'adresse publique - et depuis que le catch-all ne sert
+> que les documents `published`, c'est la mauvaise adresse pour tout le
+> reste. Il faut un générateur qui voit l'entité et choisit sa route,
+> comme `DocumentUrlGenerator::routeFor()`. Le piège est silencieux :
+> l'URL se construit sans erreur et répond 404 en production.
+>
+> Vaut aussi pour les fichiers dérivés. La clé d'un variant ne dit rien
+> du statut de l'image dont il vient : c'est l'entité qu'on interroge,
+> jamais le chemin.
+
 ## Référencer un fichier d'un autre module
 
 Si une entité a besoin de **référencer un fichier appartenant à un autre

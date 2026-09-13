@@ -303,11 +303,18 @@ class ContractsController extends AbstractController
      * The signed file, streamed through the application.
      *
      * Its own route under `/backend`, never the catch-all `/uploads/{path}`:
-     * that one serves anything under the upload directory to anybody who is
-     * logged in, and a signed contract is not that kind of file. Streamed
-     * rather than redirected whatever the storage settings say, because the
-     * only way it stays behind this authorisation is if the bytes keep coming
-     * through it.
+     * a signed contract is not the kind of file that endpoint should hand
+     * out. Streamed rather than redirected whatever the storage settings say,
+     * because the only way it stays behind this authorisation is if the bytes
+     * keep coming through it.
+     *
+     * This used to say the catch-all served "anybody who is logged in", and
+     * that was the dangerous half of the sentence: it asked for no session at
+     * all, and `contracts/2026/CM-2026-0001.pdf` is a year and a sequential
+     * reference. The authorisation on this route could be walked around by
+     * anyone who had ever seen one contract number. `ContractUploadAccessGuard`
+     * now refuses the whole area there, so the reasoning above is finally
+     * true rather than merely intended.
      */
     private function storedPdf(Contract $contract): Response
     {
