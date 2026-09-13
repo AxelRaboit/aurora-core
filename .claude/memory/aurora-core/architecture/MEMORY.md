@@ -1,5 +1,6 @@
 # Architecture & Décisions
 
+- [pitfall_rate_limiter_client_config.md](pitfall_rate_limiter_client_config.md) - un limiteur câblé par nom dans un contrôleur core doit être déclaré **à la main** chez chaque client, sinon son conteneur ne se construit plus
 - [architecture_module_parameter_enum.md](architecture_module_parameter_enum.md) - toggles modules : depuis le split, chaque module a son `<Module>ModuleParameterEnum` + provider ; l'enum central est core-infra only ; câblage `->value`, scaffolding via skills
 - [pattern_core_submodules_split.md](pattern_core_submodules_split.md) - Core est 5 `<Name>Module.php` (GeneralModule/PlatformModule/MediaModule/ConfigurationModule/DevModule), pas un god-class. Pattern "1 module = 1 section = 1 toggle root = 1 context" uniforme avec les modules métier
 - [pattern_configuration_tab_provider.md](pattern_configuration_tab_provider.md) - `ConfigurationTabProviderInterface` + `SettingDefinitionRegistry` : un module contribue ses onglets dans la page Settings sans patcher le core

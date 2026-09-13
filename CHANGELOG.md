@@ -5,6 +5,37 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.167] - 2026-09-13
+
+### Corrigé
+
+#### Le limiteur du partage de présentation était à déclarer côté client
+La 0.9.166 a ajouté un mot de passe sur les liens de partage, et son contrôleur
+public câble le limiteur `deck_share_password` par son nom. Or
+`config/packages/rate_limiter.yaml` d'aurora-core est la config de son
+application de développement : composer ne la distribue pas. Le premier
+`make aurora-update` d'un projet client échouait donc sur un conteneur qui ne
+se construit pas, avec un message qui parle d'autowiring et pas de limiteur.
+
+Rien à corriger dans le code : c'est une ligne de documentation qui manquait.
+La voici, et la mémoire projet correspondante existe désormais pour que le
+prochain contrôleur public l'ajoute des deux côtés du premier coup.
+
+### Dans aurora-client
+**À ajouter dans `config/packages/rate_limiter.yaml`**, à côté des deux
+limiteurs de contrat, si ce n'est pas déjà fait :
+
+```yaml
+        deck_share_password:
+            policy: sliding_window
+            limit: 20
+            interval: '1 hour'
+```
+
+Sans cette entrée, le conteneur ne se construit pas.
+
+---
+
 ## [0.9.166] - 2026-09-13
 
 ### Ajouté
