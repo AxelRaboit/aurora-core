@@ -563,6 +563,14 @@ backend:
             share_locked: Password protected
             share_opened: 'Opened {count} times'
             share_opened_once: Opened once
+            overview: Overview
+            pointer: Pointer
+            transition: Transition
+            transitions:
+                none: None
+                fade: Fade
+                slide: Slide
+            transition_hint: It only exists in the full screen. Paper and share links carry none.
             slots:
                 mediaFit: How the picture fills
                 mediaFocus: Focal point

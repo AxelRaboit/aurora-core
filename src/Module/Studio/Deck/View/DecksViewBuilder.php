@@ -11,6 +11,7 @@ use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Repository\DeckCategoryRepository;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
@@ -82,6 +83,7 @@ final readonly class DecksViewBuilder
             'themes' => $this->themeOptions(),
             'fontPairs' => $this->fontPairOptions(),
             'logoPlacements' => $this->logoPlacementOptions(),
+            'transitions' => $this->transitionOptions(),
             'appearancePath' => $this->urlGenerator->generate('backend_studio_deck_appearance', ['id' => $deck->getId()]),
             'backPath' => $this->urlGenerator->generate('backend_studio_decks'),
             'printPath' => $this->urlGenerator->generate('backend_studio_deck_print', ['id' => $deck->getId()]),
@@ -247,6 +249,18 @@ final readonly class DecksViewBuilder
                 'body' => $pair->body(),
             ],
             DeckFontPairEnum::cases(),
+        );
+    }
+
+    /** @return list<array{value: string, labelKey: string}> */
+    private function transitionOptions(): array
+    {
+        return array_map(
+            static fn (DeckTransitionEnum $transition): array => [
+                'value' => $transition->value,
+                'labelKey' => $transition->labelKey(),
+            ],
+            DeckTransitionEnum::cases(),
         );
     }
 

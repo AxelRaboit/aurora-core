@@ -146,6 +146,8 @@ final class DecksScreenTest extends IntegrationTestCase
         self::assertSame('#faf8f4', $payload['appearance']['background']);
         self::assertTrue($payload['appearance']['slideNumbers']);
         self::assertSame('none', $payload['appearance']['logoPlacement'], 'no picture means no placement');
+        // Nothing was chosen, so the deck presents with the quiet default.
+        self::assertSame('fade', $payload['appearance']['transition']);
     }
 
     /**

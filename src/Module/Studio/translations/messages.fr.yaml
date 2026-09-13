@@ -563,6 +563,14 @@ backend:
             share_locked: Protégé par mot de passe
             share_opened: 'Ouvert {count} fois'
             share_opened_once: Ouvert une fois
+            overview: Sommaire
+            pointer: Pointeur
+            transition: Transition
+            transitions:
+                none: Aucune
+                fade: Fondu
+                slide: Glissement
+            transition_hint: Elle n'existe qu'au plein écran. Le papier et le lien de partage n'en portent pas.
             slots:
                 mediaFit: Cadrage de l'image
                 mediaFocus: Point de visée

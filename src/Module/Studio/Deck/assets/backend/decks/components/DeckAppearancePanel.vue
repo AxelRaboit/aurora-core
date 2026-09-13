@@ -30,6 +30,7 @@ const props = defineProps({
     themes: { type: Array, default: () => [] },
     fontPairs: { type: Array, default: () => [] },
     logoPlacements: { type: Array, default: () => [] },
+    transitions: { type: Array, default: () => [] },
     /** The first slide of the deck, or null for a deck with none yet. */
     sample: { type: Object, default: null },
     theme: { type: String, default: "slate" },
@@ -89,6 +90,13 @@ const fontOptions = computed(() => [
         label: t(pair.labelKey),
     })),
 ]);
+
+const transitionOptions = computed(() =>
+    props.transitions.map((transition) => ({
+        value: transition.value,
+        label: t(transition.labelKey),
+    })),
+);
 
 const placementOptions = computed(() =>
     props.logoPlacements.map((placement) => ({
@@ -239,6 +247,17 @@ const placementOptions = computed(() =>
                         :label="t('backend.studio.decks.slide_numbers')"
                         :hint="t('backend.studio.decks.slide_numbers_hint')"
                         v-on:update:model-value="(value) => write('slideNumbers', value)"
+                    />
+
+                    <!-- La transition ne change ni le papier ni le lien de
+                         partage : elle n'existe qu'au plein écran, d'où sa
+                         place en bas, après ce qui se voit partout. -->
+                    <AppSelect
+                        :model-value="overrides.transition ?? 'fade'"
+                        :options="transitionOptions"
+                        :label="t('backend.studio.decks.transition')"
+                        :hint="t('backend.studio.decks.transition_hint')"
+                        v-on:update:model-value="(value) => write('transition', value)"
                     />
                 </div>
             </div>

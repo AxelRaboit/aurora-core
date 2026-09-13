@@ -61,6 +61,21 @@ final class DeckStyleWhitelistTest extends TestCase
         self::assertSame(['accent' => '#aabbcc'], $clean);
     }
 
+    /**
+     * The transition is the one key written even at its default. `fade` is what
+     * a deck does when nobody chose, so storing nothing for it would make
+     * "I picked fade" and "I never looked at this" the same row - and the cut,
+     * which is a real choice, would be indistinguishable from an old deck.
+     */
+    public function testTheTransitionIsKeptEvenWhenItIsTheDefault(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        self::assertSame(['transition' => 'fade'], $normalizer->normalize(['transition' => 'fade']));
+        self::assertSame(['transition' => 'none'], $normalizer->normalize(['transition' => 'none']));
+        self::assertSame([], $normalizer->normalize(['transition' => 'cube']));
+    }
+
     public function testAnUnknownFontPairOrPlacementIsDropped(): void
     {
         $clean = (new DeckStyleNormalizer())->normalize([

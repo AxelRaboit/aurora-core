@@ -6,6 +6,7 @@ namespace Aurora\Module\Studio\Deck\Service;
 
 use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
 
 use function array_key_exists;
 use function is_bool;
@@ -56,6 +57,14 @@ final readonly class DeckStyleNormalizer
 
         if (is_string($style['fontPair'] ?? null) && DeckFontPairEnum::tryFrom($style['fontPair']) instanceof DeckFontPairEnum) {
             $clean['fontPair'] = $style['fontPair'];
+        }
+
+        // The default here is `fade` rather than the absence of a key, so the
+        // one stored is the one somebody chose - including when they chose the
+        // cut. Storing nothing for `fade` would make "I picked fade" and "I
+        // never looked at this" the same row.
+        if (is_string($style['transition'] ?? null) && DeckTransitionEnum::tryFrom($style['transition']) instanceof DeckTransitionEnum) {
+            $clean['transition'] = $style['transition'];
         }
 
         // A zero or a negative id is not a document, it is a picker that was

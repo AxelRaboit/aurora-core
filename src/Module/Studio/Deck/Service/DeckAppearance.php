@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\Deck\Service;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
 
 use function is_int;
 use function is_string;
@@ -66,6 +67,9 @@ final readonly class DeckAppearance
             'logoPlacement' => $placement->value,
             'footerText' => is_string($style['footerText'] ?? null) ? $style['footerText'] : null,
             'slideNumbers' => true === ($style['slideNumbers'] ?? false),
+            'transition' => is_string($style['transition'] ?? null)
+                ? (DeckTransitionEnum::tryFrom($style['transition']) ?? DeckTransitionEnum::Fade)->value
+                : DeckTransitionEnum::Fade->value,
         ];
     }
 }

@@ -77,6 +77,7 @@ const props = defineProps({
     themes: { type: Array, default: () => [] },
     fontPairs: { type: Array, default: () => [] },
     logoPlacements: { type: Array, default: () => [] },
+    transitions: { type: Array, default: () => [] },
     appearancePath: { type: String, required: true },
 });
 
@@ -823,6 +824,7 @@ onBeforeUnmount(() => {
             :themes="themes"
             :font-pairs="fontPairs"
             :logo-placements="logoPlacements"
+            :transitions="transitions"
             :sample="slides[0] ?? null"
             :theme="theme"
             :overrides="style"

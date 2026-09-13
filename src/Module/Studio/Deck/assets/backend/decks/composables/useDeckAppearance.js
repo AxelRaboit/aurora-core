@@ -48,6 +48,7 @@ export function useDeckAppearance(props) {
         logoPlacement: "none",
         footerText: "",
         slideNumbers: false,
+        transition: null,
     };
 
     const theme = ref(saved.value.theme);
@@ -128,6 +129,11 @@ export function useDeckAppearance(props) {
             written.footerText = style.footerText.trim();
         if (style.slideNumbers) written.slideNumbers = true;
 
+        // Written even when it is the default, unlike the colours: `fade` is
+        // what a deck does when nobody chose, and storing nothing for it would
+        // make "I picked fade" and "I never looked at this" the same row.
+        if (style.transition) written.transition = style.transition;
+
         return written;
     }
 
@@ -190,6 +196,7 @@ export function useDeckAppearance(props) {
             logoPlacement: style.logoMediaId ? style.logoPlacement : "none",
             footerText: style.footerText?.trim() || null,
             slideNumbers: style.slideNumbers === true,
+            transition: style.transition ?? "fade",
         };
     });
 
