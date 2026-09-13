@@ -524,6 +524,16 @@ backend:
             duplicate_slide: Duplicate the slide
             slide_duplicated: Slide duplicated
             drag_hint: Drag to move
+            presenter: Presenter view
+            presenter_now: Current slide
+            presenter_next: Next slide
+            presenter_end: End of the deck.
+            presenter_no_note: No note for this slide.
+            presenter_linked: Linked to the full screen
+            presenter_alone: No presentation window open
+            timer_start: Start the timer
+            timer_pause: Pause
+            timer_reset: Reset
             slots:
                 chartType: Chart type
                 series: Data

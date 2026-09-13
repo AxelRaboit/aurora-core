@@ -222,6 +222,38 @@ final class DecksScreenTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(422);
     }
 
+    /**
+     * The presenter's page is behind the back office's door.
+     *
+     * The notes are the presenter's, and this is the only page that draws them:
+     * the public share link strips them from its payload, and the full-screen
+     * player never asks for them. A presenter view reachable without signing in
+     * would undo all of that in one route.
+     */
+    public function testThePresenterPageCarriesTheNotesAndNeedsAnAccount(): void
+    {
+        $container = static::getContainer();
+        $deckManager = $container->get(DeckManager::class);
+
+        $deck = $deckManager->create('Comité de pilotage');
+        $slide = $deckManager->addSlide($deck, SlideLayoutEnum::Section);
+        $slide->setSpeakerNotes('Marquer un temps avant la troisième puce.');
+        $container->get(EntityManagerInterface::class)->flush();
+
+        $this->client->request('GET', '/backend/studio/decks/'.$deck->getId().'/presenter');
+        self::assertResponseRedirects();
+
+        $this->signIn();
+        $this->client->request('GET', '/backend/studio/decks/'.$deck->getId().'/presenter');
+
+        self::assertResponseIsSuccessful();
+
+        $body = (string) $this->client->getResponse()->getContent();
+
+        self::assertStringContainsString('DeckPresenterApp', $body);
+        self::assertStringContainsString('Marquer un temps', $body);
+    }
+
     private function signIn(): void
     {
         $admin = static::getContainer()->get(UserRepository::class)

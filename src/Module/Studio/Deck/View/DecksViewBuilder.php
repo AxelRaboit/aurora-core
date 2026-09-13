@@ -85,6 +85,7 @@ final readonly class DecksViewBuilder
             'appearancePath' => $this->urlGenerator->generate('backend_studio_deck_appearance', ['id' => $deck->getId()]),
             'backPath' => $this->urlGenerator->generate('backend_studio_decks'),
             'printPath' => $this->urlGenerator->generate('backend_studio_deck_print', ['id' => $deck->getId()]),
+            'presenterPath' => $this->urlGenerator->generate('backend_studio_deck_presenter', ['id' => $deck->getId()]),
             'shareCreatePath' => $this->urlGenerator->generate('backend_studio_deck_share_create', ['id' => $deck->getId()]),
             'shareRevokePath' => $this->pathTemplates->generate('backend_studio_deck_share_revoke', ['id' => $deck->getId(), 'linkId' => '__linkId__']),
             ...$this->sharePayload($deck),

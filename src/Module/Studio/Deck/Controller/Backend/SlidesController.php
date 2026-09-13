@@ -102,6 +102,23 @@ class SlidesController extends AbstractController
         return $this->jsonSuccess($this->viewBuilder->appearancePayload($deck));
     }
 
+    /**
+     * The presenter's own screen.
+     *
+     * Behind `studio.decks.view` like the rest of this controller, and that is
+     * the whole difference with the public share link: the notes are the
+     * presenter's, so the page that shows them is one somebody signed in to
+     * reach. `PublicDeckController` strips them from its payload for the same
+     * reason, one door further out.
+     */
+    #[Route('/presenter', name: '_presenter', methods: [HttpMethodEnum::Get->value])]
+    public function presenter(Deck $deck): Response
+    {
+        return $this->render('@Studio/backend/decks/presenter.html.twig', [
+            'deck' => $this->serializer->full($deck),
+        ]);
+    }
+
     #[Route('/slides/create', name: '_slide_create', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.decks.edit')]
     public function create(Deck $deck, Request $request): JsonResponse

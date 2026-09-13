@@ -15,11 +15,16 @@
  * Keyboard first, because that is what a presentation is driven with - a
  * clicker sends Page Up and Page Down, which is why they are bound alongside
  * the arrows.
+ *
+ * The presenter window, when one is open, steps in lockstep with this one
+ * through a `BroadcastChannel`: either window drives, so a presenter reading
+ * their notes can step from there and a clicker still steps from here.
  */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { ChevronLeft, ChevronRight, X } from "lucide-vue-next";
 import SlideFrame from "./SlideFrame.vue";
+import { useDeckStage } from "../composables/useDeckStage.js";
 
 const props = defineProps({
     slides: { type: Array, default: () => [] },
@@ -27,6 +32,8 @@ const props = defineProps({
     appearance: { type: Object, default: null },
     /** Where to open on, so "present from here" lands on the right slide. */
     startAt: { type: Number, default: 0 },
+    /** The deck's id, which is the room the presenter window listens in. */
+    channel: { type: [String, Number], default: null },
 });
 
 const emit = defineEmits(["close"]);
@@ -40,11 +47,25 @@ const current = computed(() => props.slides[at.value] ?? null);
 const isFirst = computed(() => at.value === 0);
 const isLast = computed(() => at.value >= props.slides.length - 1);
 
+/**
+ * Named `link` and not `stage`: the template ref above is the element that goes
+ * full screen, and two bindings by that name would have the overlay opening in
+ * a channel object.
+ */
+const link = useDeckStage(props.channel);
+
+link.onMove((index) => {
+    if (index >= 0 && index < props.slides.length) at.value = index;
+});
+
 /** Clamped rather than wrapping: the end of a deck is the end of it. */
 function step(by) {
     const next = at.value + by;
 
-    if (next >= 0 && next < props.slides.length) at.value = next;
+    if (next < 0 || next >= props.slides.length) return;
+
+    at.value = next;
+    link.announce(next);
 }
 
 function close() {
@@ -88,6 +109,10 @@ onMounted(() => {
     stage.value?.requestFullscreen?.().catch(() => {});
 
     stage.value?.focus();
+
+    // Says which slide is up, so a presenter window opened mid-talk lands on it
+    // rather than on the first.
+    link.announce(at.value);
 });
 
 onBeforeUnmount(() => {

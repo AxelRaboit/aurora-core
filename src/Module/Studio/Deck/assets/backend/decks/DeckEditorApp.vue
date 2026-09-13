@@ -39,6 +39,7 @@ import {
     Copy,
     CopyPlus,
     GripVertical,
+    MonitorSpeaker,
     Palette,
     Play,
     Plus,
@@ -65,6 +66,7 @@ const props = defineProps({
     slideDuplicatePath: { type: String, required: true },
     slideReorderPath: { type: String, required: true },
     printPath: { type: String, required: true },
+    presenterPath: { type: String, required: true },
     shareLinks: { type: Array, default: () => [] },
     shareCreatePath: { type: String, required: true },
     shareRevokePath: { type: String, required: true },
@@ -135,6 +137,19 @@ const playFrom = computed(() =>
 async function present() {
     await flushCurrent();
     playing.value = true;
+}
+
+/**
+ * The notes, on the other screen.
+ *
+ * Opened before the player rather than from inside it, because the window the
+ * browser opens takes focus and would drop the full screen the player just
+ * asked for. Opening it first leaves the reader one click from presenting, on
+ * the screen they were already looking at.
+ */
+async function openPresenter() {
+    await flushCurrent();
+    window.open(props.presenterPath, `deck-presenter-${props.deck.id}`, "noopener");
 }
 
 async function print() {
@@ -262,6 +277,10 @@ onBeforeUnmount(() => {
             <AppButton variant="primary" :disabled="!slides.length" v-on:click="present">
                 <Play class="h-4 w-4" :stroke-width="2" />
                 {{ t("backend.studio.decks.present") }}
+            </AppButton>
+            <AppButton variant="ghost" :disabled="!slides.length" v-on:click="openPresenter">
+                <MonitorSpeaker class="h-4 w-4" :stroke-width="2" />
+                {{ t("backend.studio.decks.presenter") }}
             </AppButton>
             <AppButton variant="ghost" :disabled="!slides.length" v-on:click="print">
                 <Printer class="h-4 w-4" :stroke-width="2" />
@@ -676,6 +695,7 @@ onBeforeUnmount(() => {
             v-if="playing"
             :slides="slides"
             :appearance="appearance"
+            :channel="deck.id"
             :start-at="playFrom"
             v-on:close="playing = false"
         />

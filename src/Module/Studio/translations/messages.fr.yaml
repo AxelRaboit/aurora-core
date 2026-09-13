@@ -524,6 +524,16 @@ backend:
             duplicate_slide: Dupliquer la slide
             slide_duplicated: Slide dupliquée
             drag_hint: Glisser pour déplacer
+            presenter: Vue présentateur
+            presenter_now: Slide en cours
+            presenter_next: Slide suivante
+            presenter_end: Fin de la présentation.
+            presenter_no_note: Aucune note pour cette slide.
+            presenter_linked: Reliée au plein écran
+            presenter_alone: Aucune fenêtre de présentation ouverte
+            timer_start: Démarrer le minuteur
+            timer_pause: Mettre en pause
+            timer_reset: Remettre à zéro
             slots:
                 chartType: Type de graphique
                 series: Données
