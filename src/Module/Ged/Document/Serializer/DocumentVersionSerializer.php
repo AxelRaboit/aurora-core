@@ -43,7 +43,7 @@ class DocumentVersionSerializer implements DocumentVersionSerializerInterface
     {
         $filePath = $version->getFilePath();
 
-        if (null === $filePath || '' === $filePath) {
+        if ('' === $filePath) {
             return null;
         }
 

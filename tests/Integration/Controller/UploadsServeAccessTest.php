@@ -10,12 +10,14 @@ use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+use function dirname;
 use function sprintf;
 use function uniqid;
 
@@ -152,7 +154,7 @@ final class UploadsServeAccessTest extends IntegrationTestCase
     public function testADocumentInTheBinIsWithheldEvenThoughItSaysPublished(): void
     {
         $document = $this->document(DocumentStatusEnum::Published);
-        $document->setDeletedAt(new \DateTimeImmutable());
+        $document->setDeletedAt(new DateTimeImmutable());
         $this->entityManager->flush();
 
         $this->assertWithheld((string) $document->getFilePath());
@@ -315,7 +317,7 @@ final class UploadsServeAccessTest extends IntegrationTestCase
     private function write(string $relativePath): void
     {
         $absolute = Path::join($this->uploadDir, $relativePath);
-        $this->filesystem->mkdir(\dirname($absolute));
+        $this->filesystem->mkdir(dirname($absolute));
         file_put_contents($absolute, 'hello-from-uploads');
 
         $this->written[] = $absolute;
