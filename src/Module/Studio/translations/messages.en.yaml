@@ -125,6 +125,10 @@ backend:
             col_sealed_at: Sealed on
             col_link: Link
             read_document: Read the document
+            preview: Preview
+            preview_notice: "The document as the client will read it, with this contract's real data. The reference and the signature mentions show in square brackets: they are written at the seal and at the signature."
+            preview_unknown_tokens: 'Unknown variables, they will stop the seal: {tokens}'
+            preview_failed: The preview could not be produced.
             download_pdf: 'Download the signed PDF'
             countersign: 'Countersign'
             countersign_intro: 'Your countersignature concludes the contract. The customer is notified by email.'
@@ -183,6 +187,7 @@ backend:
                 delete_description: Deletes the draft. Nothing has been sent to the customer yet.
                 send_description: Sends the customer a single-use signing link.
                 revoke_description: Kills the current link. Its verification codes go with it.
+                preview_description: Shows the document as the client will read it, before sealing.
                 document_description: Opens the sealed document and its proof block.
             not_sealed_yet: This contract is not sealed yet. Its wording is frozen at the moment of sealing.
             seal_intact: The seal is intact
@@ -204,6 +209,7 @@ backend:
                 expired: Expired
                 revoked: Revoked
             errors:
+                preview_sealed: "This contract is already sealed: its stored document is the reference, and it is never re-rendered."
                 body_required: A contract needs a contract body.
                 version_not_published: 'Version {number} of "{template}" is not published. A draft cannot be sent.'
                 locale_missing: '"{template}" carries no wording in {locale}.'
@@ -250,6 +256,10 @@ backend:
             kind:
                 body: Contract body
                 annex: Annex
+            category:
+                community_management: Community management
+                photography: Photography
+                development: Web development
             errors:
                 name_required: The template name is required.
                 name_too_long: The template name cannot exceed 180 characters.
@@ -265,6 +275,15 @@ backend:
             name_placeholder: Service agreement, monthly plan
             kind_label: Type
             kind_hint: A body is signed on its own. An annex completes a body.
+            category_label: Category
+            category_hint: Which trade this trame is for. It can be left unset.
+            category_none: No category
+            category_none_hint: The trade has not been set yet. The trame stays usable.
+            category_all: All categories
+            preview: Preview
+            preview_notice: "Variables are replaced with examples, except your own business details which come from your settings. Fields filled per contract show in square brackets."
+            preview_failed: The preview could not be produced.
+            filter_category: 'Category: {name}'
             add: Add a template
             create: New template
             edit: 'Edit {name}'

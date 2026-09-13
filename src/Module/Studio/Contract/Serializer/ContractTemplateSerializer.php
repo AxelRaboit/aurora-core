@@ -24,6 +24,9 @@ class ContractTemplateSerializer implements ContractTemplateSerializerInterface
             'id' => $template->getId(),
             'name' => $template->getName(),
             'kind' => $template->getKind()->value,
+            // Null travels as null rather than as a string: the screen has to
+            // tell "unclassified" from a trade, and an empty string is neither.
+            'category' => $template->getCategory()?->value,
             'archivedAt' => $template->getArchivedAt()?->format(DATE_ATOM),
             'isArchived' => $template->isArchived(),
             // The two numbers a reader of the list actually needs: what a

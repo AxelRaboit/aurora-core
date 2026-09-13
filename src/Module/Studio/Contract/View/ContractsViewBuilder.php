@@ -49,6 +49,7 @@ final readonly class ContractsViewBuilder
             'updatePath' => $this->pathTemplates->generate('backend_studio_contracts_update', ['id' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('backend_studio_contracts_delete', ['id' => '__id__']),
             'freezePath' => $this->pathTemplates->generate('backend_studio_contracts_freeze', ['id' => '__id__']),
+            'previewPath' => $this->pathTemplates->generate('backend_studio_contracts_preview', ['id' => '__id__']),
             'sendPath' => $this->pathTemplates->generate('backend_studio_contracts_send', ['id' => '__id__']),
             'revokeLinkPath' => $this->pathTemplates->generate('backend_studio_contracts_revoke_link', ['id' => '__id__']),
             'countersignPath' => $this->pathTemplates->generate('backend_studio_contracts_countersign', ['id' => '__id__']),
@@ -157,13 +158,19 @@ final readonly class ContractsViewBuilder
         );
     }
 
-    /** @return list<array{value: string, label: string}> */
+    /** @return list<array{value: string, label: string, category: string|null, customFields: list<string>}> */
     private function templateOptions(ContractTemplateKindEnum $kind): array
     {
         return array_map(
             fn (ContractTemplateInterface $template): array => [
                 'value' => (string) $template->getId(),
                 'label' => $template->getName(),
+                // Carried, not filtered on. The form narrows the list by trade
+                // to make a library of twenty readable, but every trame stays
+                // reachable: a body written for one activity is sometimes the
+                // right starting point for another, and a picker that hides it
+                // would be helping in a way that costs an hour.
+                'category' => $template->getCategory()?->value,
                 // The blanks this trame will ask for, so the form can put them
                 // on screen the moment it is chosen rather than at the freeze,
                 // where a refusal means going back and starting again.

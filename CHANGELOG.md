@@ -5,6 +5,84 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.159] - 2026-09-13
+
+### Ajouté
+
+#### Une catégorie sur les trames de contrat
+Une trame disait de quel **type** elle est, corps ou annexe. Elle dit maintenant
+aussi pour quel **métier** : community management, photographie, développement
+web. Les deux ne se remplacent pas. Le type décide comment un contrat
+s'assemble, la catégorie décide ce qui se range ensemble.
+
+La question se pose le jour où une activité en devient deux. Une bibliothèque
+de vingt trames qui couvrent trois métiers ne se lit plus : la liste est une
+suite alphabétique où rien n'est à côté de ce qui lui ressemble, et le
+sélecteur du contrat propose l'annexe photo pendant qu'on rédige un contrat de
+site.
+
+La liste gagne une colonne et un filtre, où « sans catégorie » est un choix à
+part entière : « qu'est-ce que je n'ai pas encore rangé » est la question qu'on
+se pose en premier. À la création d'un contrat, les trames sont **regroupées**
+par métier et non filtrées : un corps écrit pour une activité est parfois le
+bon point de départ pour une autre, et un sélecteur qui l'aurait caché serait
+un cul-de-sac.
+
+Une trame peut n'avoir aucune catégorie, et c'est volontaire. Une catégorie est
+une classification que quelqu'un applique ; une valeur par défaut ferait naître
+chaque trame dans un métier que personne ne lui a donné. La migration laisse
+donc la colonne vide partout : deviner reviendrait à décider, pour chaque
+installation, de quel métier relèvent les contrats de quelqu'un d'autre.
+
+#### Voir une trame comme le client la lira
+Écrire un contrat, c'est écrire `{{customer.legal_name}}` et faire confiance.
+Ça marche presque toujours, et les fois où ça ne marche pas coûtent cher : un
+jeton mal orthographié s'imprime tel quel dans le document signé, une clause
+qui se lit bien avec un nom court se casse avec un nom long, une variable qui
+ne résout rien laisse un trou que personne ne voit avant le client.
+
+Un bouton **Aperçu** dans l'éditeur ouvre le document rendu, variables
+remplacées, exactement comme le scellement l'assemblera. Jusqu'ici la seule
+façon de le savoir était de fabriquer un vrai contrat et de le sceller, ce qui
+tire une référence, écrit une ligne d'audit et laisse un document à supprimer.
+
+Les valeurs sont celles que le panneau des variables affiche déjà, donc l'aperçu
+et le panneau ne peuvent pas se contredire. Sauf celles de votre entreprise,
+qui sont les vraies : elles viennent des réglages et c'est ce que le client
+lira. Les champs propres à chaque contrat apparaissent entre crochets, parce
+qu'il n'y a pas d'exemple à donner pour une case remplie à la création.
+
+Le brouillon est enregistré avant l'ouverture : l'aperçu montre ce qui est à
+l'écran, pas ce qui était en base il y a une heure. Un bloc que l'aperçu refuse
+de dessiner est un bloc que le scellement aurait refusé aussi, et le rencontrer
+ici est précisément l'intérêt.
+
+#### Relire un contrat avant de le sceller
+Le même bouton, sur la liste des contrats, pour un contrat en préparation.
+Cette fois les valeurs ne sont pas des exemples : ce contrat a un client, un
+montant et une date, donc il n'y a rien à inventer. Un champ que la fiche
+client laisse vide s'affiche vide, parce que c'est ce que le signataire
+lirait, et le voir est précisément l'intérêt.
+
+Seules deux choses ne peuvent pas encore être réelles et s'affichent entre
+crochets : la référence, tirée au scellement, et les mentions écrites à la
+signature. Un blanc à ces endroits se lirait comme un défaut plutôt que comme
+une étape qui n'a pas eu lieu.
+
+L'aperçu emprunte le chemin du scellement : les mêmes parties dans le même
+ordre, le même moteur de rendu, la clause de langue ajoutée au même endroit.
+Il n'écrit rien et ne tire aucune référence. Les variables inconnues, celles
+qui bloqueront le scellement, sont **nommées** au lieu d'être refusées : les
+trouver ici ne coûte rien, les trouver au scellement coûte un aller-retour.
+
+Un contrat déjà scellé n'est pas concerné : son document est stocké et haché,
+et l'écran qui le montre imprime ces octets plutôt que de les recalculer.
+
+### Dans aurora-client
+Une migration à jouer, ce que `make deploy-prod` fait déjà.
+
+---
+
 ## [0.9.158] - 2026-09-13
 
 ### Ajouté

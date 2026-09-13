@@ -314,7 +314,8 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
     {
         $template
             ->setName($input->getName())
-            ->setKind($input->getKind());
+            ->setKind($input->getKind())
+            ->setCategory($input->getCategory());
     }
 
     protected function auditCreated(ContractTemplateInterface $template): void

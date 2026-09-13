@@ -47,5 +47,12 @@ interface ContractManagerInterface
      * @throws FrozenContractIsImmutableException when already frozen
      * @throws FieldException                     when the wording cannot produce a document
      */
+    /**
+     * The contract as it will read, before anything is sealed.
+     *
+     * @return array{html: string, unknownTokens: list<string>}
+     */
+    public function preview(ContractInterface $contract): array;
+
     public function freeze(ContractInterface $contract): void;
 }

@@ -149,7 +149,12 @@ export function useContractTemplateEditor(props) {
             !needsGoverningLocale.value,
     );
 
-    async function save() {
+    /**
+     * @param {object} [options]
+     * @param {boolean} [options.silent] no toast - for a caller that saves as a
+     *   means rather than as the act, like opening the preview
+     */
+    async function save({ silent = false } = {}) {
         if (saving.value || isPublished.value) return false;
 
         await flushEditors();
@@ -171,7 +176,9 @@ export function useContractTemplateEditor(props) {
             }
 
             if (data?.version) version.value = data.version;
-            toast.success(t("backend.studio.contract_templates.saved"));
+
+            if (!silent)
+                toast.success(t("backend.studio.contract_templates.saved"));
 
             return true;
         } finally {

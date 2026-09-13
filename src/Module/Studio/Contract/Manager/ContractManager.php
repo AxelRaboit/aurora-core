@@ -329,6 +329,92 @@ class ContractManager implements ContractManagerInterface
         }
     }
 
+    /**
+     * The contract as it will read, before anything is sealed.
+     *
+     * Writes nothing, mints nothing, and takes the same road the freeze takes:
+     * the same parts in the same order, rendered by the same renderer, with
+     * the governing-language clause appended in the same place. A preview
+     * assembled separately would be a preview of a different document, which
+     * is the one thing it must not be.
+     *
+     * **The values are the real ones**, not examples. This contract has a
+     * customer, an amount and a date, so there is nothing to invent - and a
+     * field the customer record leaves blank renders blank here, because that
+     * is what the signer would read. Seeing the hole is the point.
+     *
+     * Two kinds of token cannot be real yet and are shown as slots rather than
+     * as blanks: the reference, minted at the freeze, and everything filled at
+     * signature. A blank there would read as a defect rather than as a step
+     * that has not happened.
+     *
+     * **Refusals are reported, not thrown.** The freeze stops on an unknown
+     * token because it is about to seal it; here, naming them is the service
+     * being rendered.
+     *
+     * @return array{html: string, unknownTokens: list<string>}
+     */
+    public function preview(ContractInterface $contract): array
+    {
+        $values = $this->variables->resolve($contract);
+        $deferred = $this->variables->deferredTokens();
+        $shown = [...$values, ...$this->pendingPlaceholders($contract, $values, $deferred)];
+
+        $html = '';
+
+        foreach ($this->partsOf($contract) as $role => $version) {
+            $html .= $this->renderPart($role, $version, $contract->getLocale(), $shown)['html'];
+        }
+
+        $governingLocale = $this->governingLocaleOf($contract);
+
+        if (null !== $governingLocale) {
+            $html .= $this->governingLanguageClause($contract->getLocale(), $governingLocale);
+        }
+
+        return [
+            'html' => $html,
+            // Checked against the real values, so what comes back is what the
+            // freeze would refuse - not an artefact of the placeholders.
+            'unknownTokens' => $this->renderer->unknownTokens($html, $values, $deferred),
+        ];
+    }
+
+    /**
+     * What is not knowable yet, drawn as a slot.
+     *
+     * `[référence]` rather than nothing, because an empty space where the
+     * contract number belongs reads as a bug to whoever is proofreading.
+     *
+     * @param array<string, string> $values
+     * @param list<string>          $deferred
+     *
+     * @return array<string, string>
+     */
+    protected function pendingPlaceholders(ContractInterface $contract, array $values, array $deferred): array
+    {
+        $pending = [];
+
+        foreach ($deferred as $token) {
+            $pending[$token] = $this->slot($token);
+        }
+
+        // Only while it is still unminted: an amendment carries its parent's
+        // reference from the day it is created.
+        if ('' === ($values['contract.reference'] ?? '')) {
+            $pending['contract.reference'] = $this->slot('contract.reference');
+        }
+
+        return $pending;
+    }
+
+    private function slot(string $token): string
+    {
+        $name = str_contains($token, '.') ? mb_substr($token, (int) mb_strrpos($token, '.') + 1) : $token;
+
+        return sprintf('[%s]', str_replace('_', ' ', $name));
+    }
+
     public function freeze(ContractInterface $contract): void
     {
         $contract->assertEditable();

@@ -334,6 +334,57 @@ final class ContractFreezeTest extends IntegrationTestCase
         self::assertNull($this->entityManager->find(ContractTemplate::class, $id));
     }
 
+    /**
+     * The preview reads the real contract and mints nothing.
+     *
+     * The screen exists so somebody can proofread before the point of no
+     * return, so the two things worth asserting are that the values are this
+     * contract's own, and that looking at it leaves no trace: no reference, no
+     * status change, nothing the sequence has to explain.
+     */
+    public function testThePreviewShowsTheRealValuesAndSealsNothing(): void
+    {
+        $contract = $this->draft([
+            ['type' => 'paragraph', 'data' => ['text' => 'Conclu avec {{customer.legal_name}} pour {{contract.amount}}.']],
+            ['type' => 'paragraph', 'data' => ['text' => 'Référence {{contract.reference}}.']],
+        ]);
+
+        $preview = $this->contracts->preview($contract);
+
+        self::assertStringContainsString('Boulangerie Durand', $preview['html']);
+        self::assertStringContainsString('850', $preview['html']);
+        self::assertSame([], $preview['unknownTokens']);
+
+        // Not yet minted, so it reads as a slot rather than as a hole.
+        self::assertStringContainsString('[reference]', $preview['html']);
+
+        // And nothing happened to the contract.
+        self::assertNull($contract->getReference());
+        self::assertSame(ContractStatusEnum::Draft, $contract->getStatus());
+    }
+
+    /**
+     * A token nobody will ever fill is named rather than thrown.
+     *
+     * The freeze refuses on these because it is about to seal them. Here,
+     * saying which ones is the whole service: finding them costs nothing now
+     * and costs a trip back through the form at the freeze.
+     */
+    public function testThePreviewNamesTheTokensThatWouldStopTheSeal(): void
+    {
+        $contract = $this->draft([
+            ['type' => 'paragraph', 'data' => ['text' => 'Objet : {{contract.objet_invente}}.']],
+        ]);
+
+        $preview = $this->contracts->preview($contract);
+
+        self::assertSame(['contract.objet_invente'], $preview['unknownTokens']);
+
+        // Reported, not thrown: the document still comes back so the rest of
+        // it can be read.
+        self::assertStringContainsString('Objet', $preview['html']);
+    }
+
     /** @param list<array<string, mixed>>|null $body */
     private function draft(?array $body = null): ContractInterface
     {

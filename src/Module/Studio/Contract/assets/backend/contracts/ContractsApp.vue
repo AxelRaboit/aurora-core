@@ -1,7 +1,10 @@
 <script setup>
-import { onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { buildPath } from "@/shared/utils/http/buildPath.js";
+import { safeContractHtml } from "../shared/contractHtml.js";
 import { useContractsList } from "./composables/useContractsList.js";
 import { useContractActions } from "./composables/useContractActions.js";
 import ContractFormFields from "./components/ContractFormFields.vue";
@@ -14,9 +17,11 @@ import { useListViewMode } from "@/shared/composables/list/useListViewMode.js";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
+import AppMessage from "@/shared/components/feedback/AppMessage.vue";
 import {
     AlertTriangle,
     Ban,
+    Eye,
     FileSignature,
     LayoutGrid,
     List,
@@ -31,6 +36,7 @@ import {
 } from "lucide-vue-next";
 
 const { t } = useI18n();
+const { request } = useRequest();
 const { can } = usePrivileges();
 
 const props = defineProps({
@@ -44,6 +50,7 @@ const props = defineProps({
     updatePath: { type: String, required: true },
     deletePath: { type: String, required: true },
     freezePath: { type: String, required: true },
+    previewPath: { type: String, required: true },
     sendPath: { type: String, required: true },
     revokeLinkPath: { type: String, required: true },
     countersignPath: { type: String, required: true },
@@ -128,7 +135,62 @@ onMounted(() => {
  */
 const { draftActions, sealedActions } = useContractActions();
 
+/**
+ * The contract as the client will read it, before it is sealed.
+ *
+ * Fetched rather than assembled here: the substitution is the application's,
+ * and a second implementation in JavaScript would be a second answer to the
+ * only question that matters - what the signer will see. The server renders
+ * with the real customer, the real amount and the real date; what is not
+ * knowable yet comes back as a slot.
+ */
+const preview = ref({
+    open: false,
+    loading: false,
+    html: "",
+    error: "",
+    unknownTokens: [],
+    reference: "",
+});
+
+const previewHtml = computed(() => safeContractHtml(preview.value.html));
+
+async function openPreview(contract) {
+    preview.value = {
+        open: true,
+        loading: true,
+        html: "",
+        error: "",
+        unknownTokens: [],
+        reference: contract.reference ?? contract.customerName ?? "",
+    };
+
+    const data = await request(buildPath(props.previewPath, { id: contract.id }), {
+        method: "GET",
+    });
+
+    if (!data?.success) {
+        preview.value = {
+            ...preview.value,
+            loading: false,
+            error: data?.errors?.preview ?? t("backend.studio.contracts.preview_failed"),
+        };
+
+        return;
+    }
+
+    preview.value = {
+        ...preview.value,
+        loading: false,
+        html: data.html ?? "",
+        // Named rather than counted: these are the tokens that will stop the
+        // seal, and the author needs to know which.
+        unknownTokens: data.unknownTokens ?? [],
+    };
+}
+
 const draftHandlers = {
+    preview: openPreview,
     edit: openEdit,
     freeze: (contract) => (pendingFreeze.value = contract),
     remove: (contract) => (pendingDelete.value = contract),
@@ -462,6 +524,55 @@ function sealedRowActions(contract) {
                 </table>
             </div>
         </section>
+
+        <!-- The document before it is sealed. Wide, because line length is
+             part of what somebody proofreading is checking. -->
+        <AppModal
+            :show="preview.open"
+            max-width="4xl"
+            :title="t('backend.studio.contracts.preview')"
+            :icon="Eye"
+            v-on:close="preview.open = false"
+        >
+            <div class="space-y-3">
+                <AppMessage variant="info">
+                    {{ t("backend.studio.contracts.preview_notice") }}
+                </AppMessage>
+
+                <!-- Named, not counted. These are the tokens that will stop the
+                     seal, and finding them here costs nothing - finding them at
+                     the freeze costs a trip back through the form. -->
+                <AppMessage v-if="preview.unknownTokens.length" variant="warning">
+                    {{
+                        t("backend.studio.contracts.preview_unknown_tokens", {
+                            tokens: preview.unknownTokens.join(", "),
+                        })
+                    }}
+                </AppMessage>
+
+                <AppMessage v-if="preview.error" variant="danger">
+                    {{ preview.error }}
+                </AppMessage>
+
+                <p v-else-if="preview.loading" class="text-sm text-muted">
+                    {{ t("shared.common.loading") }}
+                </p>
+
+                <article
+                    v-else
+                    class="bg-surface border border-line rounded-lg p-6 prose-contract max-h-[65vh] overflow-y-auto"
+                    v-html="previewHtml"
+                />
+            </div>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="preview.open = false">
+                        <X class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ t("shared.common.close") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
 
         <AppModal
             :show="showCreate"

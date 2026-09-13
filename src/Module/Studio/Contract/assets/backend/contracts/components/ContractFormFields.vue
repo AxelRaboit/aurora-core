@@ -36,6 +36,44 @@ const localeOptions = computed(() =>
     props.locales.map((locale) => ({ value: locale.code, label: locale.label })),
 );
 
+/**
+ * The trames, grouped by trade and named by it.
+ *
+ * A library that covers one activity reads fine alphabetically. One that
+ * covers three does not: the photography annex sits between two community
+ * management ones, and the only way to tell is to know the names by heart.
+ *
+ * Sorted rather than filtered, and the trade is appended rather than replacing
+ * anything. A picker that hid the other trades would be right until the day a
+ * body written for one is the right starting point for another - and on that
+ * day it would be a dead end with no way out. Here the reader sees everything,
+ * in an order that puts what they are looking for together.
+ *
+ * Untitled trames come last under their own label rather than first: an
+ * unclassified document is the one somebody is least likely to be reaching
+ * for, and the pile it makes is a reminder to sort it.
+ */
+function byCategory(options) {
+    const rank = (option) => (option.category ? 0 : 1);
+
+    return [...options]
+        .sort(
+            (a, b) =>
+                rank(a) - rank(b) ||
+                (a.category ?? "").localeCompare(b.category ?? "") ||
+                a.label.localeCompare(b.label),
+        )
+        .map((option) => ({
+            value: option.value,
+            label: option.category
+                ? `${option.label} · ${t(`backend.studio.contract_templates.category.${option.category}`)}`
+                : `${option.label} · ${t("backend.studio.contract_templates.category_none")}`,
+        }));
+}
+
+const bodyOptions = computed(() => byCategory(props.bodies));
+const annexOptions = computed(() => byCategory(props.annexes));
+
 const amendableOptions = computed(() =>
     props.amendable.map((contract) => ({
         value: contract.id,
@@ -134,7 +172,7 @@ function setCustomField(key, value) {
             :model-value="form.bodyTemplateId"
             :label="t('backend.studio.contracts.body')"
             :placeholder="t('backend.studio.contracts.body_placeholder')"
-            :options="bodies"
+            :options="bodyOptions"
             :hint="t('backend.studio.contracts.body_hint')"
             :error="errors.bodyTemplateId"
             required
@@ -145,7 +183,7 @@ function setCustomField(key, value) {
             :model-value="form.annexTemplateId"
             :label="t('backend.studio.contracts.annex')"
             :placeholder="t('backend.studio.contracts.annex_none')"
-            :options="annexes"
+            :options="annexOptions"
             :hint="t('backend.studio.contracts.annex_hint')"
             :error="errors.annexTemplateId"
             v-on:update:model-value="set('annexTemplateId', $event)"

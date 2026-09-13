@@ -37,6 +37,7 @@ const BODY = {
     publishedVersion: 2,
     draftId: null,
     draftVersion: null,
+    category: "community_management",
 };
 
 const ANNEX = {
@@ -48,12 +49,19 @@ const ANNEX = {
     publishedVersion: 1,
     draftId: 77,
     draftVersion: 2,
+    // Never classified, which is a state of its own and not a missing value.
+    category: null,
 };
 
 function list(templates = [BODY, ANNEX]) {
     return useContractTemplatesList({
         templates,
         kinds: [{ value: "body" }, { value: "annex" }],
+        categories: [
+            { value: "community_management" },
+            { value: "photography" },
+            { value: "development" },
+        ],
         createPath: "/create",
         updatePath: "/__id__/update",
         archivePath: "/__id__/archive",
@@ -144,5 +152,53 @@ describe("useContractTemplatesList", () => {
 
         state.setKind("");
         expect(state.visibleItems.value).toHaveLength(2);
+    });
+});
+
+/**
+ * A library that covers one trade reads fine as one list. The day it covers
+ * three, "show me what nobody has sorted yet" is the question the screen is
+ * opened with - and it cannot be asked by leaving the filter empty, which
+ * already means "show everything".
+ */
+describe("the category filter", () => {
+    it("shows everything until a trade is picked", () => {
+        const { visibleItems } = list();
+
+        expect(visibleItems.value).toHaveLength(2);
+    });
+
+    it("narrows to one trade", () => {
+        const { visibleItems, setCategory } = list();
+
+        setCategory("community_management");
+
+        expect(visibleItems.value.map((each) => each.id)).toEqual([1]);
+    });
+
+    it("answers what nobody has classified", () => {
+        const { visibleItems, setCategory, NO_CATEGORY } = list();
+
+        setCategory(NO_CATEGORY);
+
+        expect(visibleItems.value.map((each) => each.id)).toEqual([2]);
+    });
+
+    it("refuses a trade the application does not declare", () => {
+        const { visibleItems, setCategory } = list();
+
+        setCategory("plomberie");
+
+        // Left as it was rather than emptying the list: a hand-edited query
+        // string must not be able to hide every row.
+        expect(visibleItems.value).toHaveLength(2);
+    });
+
+    it("counts each trade, unclassified included", () => {
+        const { categoryCounts, NO_CATEGORY } = list();
+
+        expect(categoryCounts.value.community_management).toBe(1);
+        expect(categoryCounts.value[NO_CATEGORY]).toBe(1);
+        expect(categoryCounts.value.photography).toBe(0);
     });
 });

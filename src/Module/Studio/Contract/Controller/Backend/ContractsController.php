@@ -17,6 +17,7 @@ use Aurora\Module\Studio\Contract\Access\Repository\ContractAccessLinkRepository
 use Aurora\Module\Studio\Contract\Dto\ContractInputFactoryInterface;
 use Aurora\Module\Studio\Contract\Dto\ContractInputInterface;
 use Aurora\Module\Studio\Contract\Entity\Contract;
+use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Exception\FrozenContractIsImmutableException;
 use Aurora\Module\Studio\Contract\Manager\ContractManagerInterface;
 use Aurora\Module\Studio\Contract\Serializer\ContractSerializerInterface;
@@ -125,6 +126,26 @@ class ContractsController extends AbstractController
      * `edit` for now; when the link and the mail land, sending will be its own
      * permission because it is the act that reaches somebody outside.
      */
+    /**
+     * The contract read the way the client will read it, before sealing.
+     *
+     * Only while it is still in preparation. A sealed contract already has its
+     * document, stored and hashed, and the screen that shows it prints those
+     * bytes rather than re-rendering: re-rendering would show what today's code
+     * produces instead of what was signed.
+     */
+    #[Route('/{id}/preview', name: '_preview', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    public function preview(Contract $contract): JsonResponse
+    {
+        if (ContractStatusEnum::Draft !== $contract->getStatus()) {
+            return $this->jsonInvalidInput([
+                'preview' => $this->translator->trans('backend.studio.contracts.errors.preview_sealed'),
+            ]);
+        }
+
+        return $this->jsonSuccess($this->contractManager->preview($contract));
+    }
+
     #[Route('/{id}/freeze', name: '_freeze', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.contracts.edit')]
     public function freeze(Contract $contract): JsonResponse

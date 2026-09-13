@@ -1,6 +1,7 @@
 import { useI18n } from "vue-i18n";
 import {
     Ban,
+    Eye,
     FileSignature,
     Lock,
     Mail,
@@ -33,6 +34,17 @@ export function useContractActions() {
      */
     function draftActions(contract, handlers) {
         const actions = [];
+
+        // First, and offered to anybody who may see a contract: reading what a
+        // document will say is not editing it, and this is the only way to read
+        // one before it is sealed - after which it can no longer be changed.
+        actions.push({
+            key: "preview",
+            icon: Eye,
+            title: t(`${prefix}.preview`),
+            description: t(`${prefix}.row_actions.preview_description`),
+            onSelect: () => handlers.preview(contract),
+        });
 
         if (can("studio.contracts.edit")) {
             actions.push({
