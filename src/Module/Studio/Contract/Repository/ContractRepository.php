@@ -8,7 +8,9 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLink;
 use Aurora\Module\Studio\Contract\Entity\Contract;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
+use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\Query\Expr\Join;
@@ -57,6 +59,45 @@ class ContractRepository extends ResolveTargetEntityRepository
             ->orderBy('c.id', Order::Ascending->value)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * How many contracts name this customer, whatever their state.
+     *
+     * Asked before a customer is deleted. The foreign key is `RESTRICT`, so
+     * the database already refuses - but it refuses with an SQL error in the
+     * middle of a request, which reaches the screen as a 500 and tells the
+     * reader nothing about what they did.
+     */
+    public function countForCustomer(CustomerInterface $customer): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->andWhere('c.customer = :customer')
+            ->setParameter('customer', $customer)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * How many frozen contracts still point at a version of this template.
+     *
+     * Frozen only: a draft still being written can be rebuilt from another
+     * trame, while a contract that went out to somebody is a record, and the
+     * trail from it to the wording it was made from is part of what makes it
+     * one.
+     */
+    public function countFrozenUsingTemplate(ContractTemplateInterface $template): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->leftJoin('c.bodyVersion', 'bv')
+            ->leftJoin('c.annexVersion', 'av')
+            ->andWhere('c.frozenAt IS NOT NULL')
+            ->andWhere('bv.template = :template OR av.template = :template')
+            ->setParameter('template', $template)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**

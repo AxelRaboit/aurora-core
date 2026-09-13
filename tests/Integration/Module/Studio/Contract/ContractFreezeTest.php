@@ -83,6 +83,7 @@ final class ContractFreezeTest extends IntegrationTestCase
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
+            $container->get(ContractRepository::class),
         );
 
         $this->contracts = new ContractManager(
@@ -277,28 +278,60 @@ final class ContractFreezeTest extends IntegrationTestCase
         self::assertFalse($this->seal->verify($reloaded));
     }
 
-    public function testTheSnapshotSurvivesTheTemplateBeingDeleted(): void
+    /**
+     * A trame a frozen contract came from is not deleted.
+     *
+     * The document itself would survive it: a contract carries its own sealed
+     * copy and reads nothing back from the trame. What would not survive is
+     * the answer to "which version of our terms did they sign", since the
+     * foreign key is `SET NULL` and the trail would simply be gone. So the
+     * manager refuses, and archiving is the way to put a trame aside.
+     *
+     * This test used to assert the opposite, and the reasoning it recorded was
+     * sound as far as it went: nothing of the wording is lost. The rule
+     * changed because a record is more than its wording.
+     */
+    public function testATrameAFrozenContractCameFromCannotBeDeleted(): void
     {
         $contract = $this->draft();
         $this->contracts->freeze($contract);
 
-        $hash = $contract->getContentHash();
-        $html = $contract->getRenderedHtml();
         $template = $contract->getBodyVersion()?->getTemplate();
-
         self::assertNotNull($template);
-        $this->templates->delete($template);
+
+        try {
+            $this->templates->delete($template);
+            self::fail('Deleting a trame a frozen contract came from should be refused.');
+        } catch (FieldException $refusal) {
+            self::assertStringContainsString('1', $refusal->getMessage(), 'the refusal counts what it is protecting');
+        }
 
         $this->entityManager->clear();
         $reloaded = $this->entityManager->find(Contract::class, $contract->getId());
 
         self::assertInstanceOf(ContractInterface::class, $reloaded);
-        // The trail is gone, the document is not. That is the property that
-        // makes deleting a template safe.
-        self::assertNull($reloaded->getBodyVersion());
-        self::assertSame($html, $reloaded->getRenderedHtml());
-        self::assertSame($hash, $reloaded->getContentHash());
+        // The trail is intact, which is the whole point of the refusal, and so
+        // is the document.
+        self::assertNotNull($reloaded->getBodyVersion());
         self::assertTrue($this->seal->verify($reloaded));
+    }
+
+    /**
+     * A trame nothing went out from is still deletable.
+     *
+     * The rule is about records, not about trames: one written, tried and
+     * abandoned before anything was sent is nobody's evidence, and holding it
+     * forever would turn the refusal into clutter.
+     */
+    public function testATrameNoFrozenContractCameFromIsStillDeleted(): void
+    {
+        $template = $this->templates->create(new ContractTemplateInput('Trame jamais utilisée', ContractTemplateKindEnum::Body));
+        $id = $template->getId();
+
+        $this->templates->delete($template);
+
+        $this->entityManager->clear();
+        self::assertNull($this->entityManager->find(ContractTemplate::class, $id));
     }
 
     /** @param list<array<string, mixed>>|null $body */

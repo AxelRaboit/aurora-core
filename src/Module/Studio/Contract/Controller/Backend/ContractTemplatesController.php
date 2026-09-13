@@ -129,7 +129,14 @@ class ContractTemplatesController extends AbstractController
     #[IsGranted('studio.contract_templates.delete')]
     public function delete(ContractTemplate $template): JsonResponse
     {
-        $this->templateManager->delete($template);
+        try {
+            $this->templateManager->delete($template);
+        } catch (FieldException $fieldException) {
+            // A trame a frozen contract was built from. The screen shows the
+            // refusal where it asked the question, and archiving is still
+            // there beside it.
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
 
         return $this->jsonSuccess($this->viewBuilder->listPayload());
     }

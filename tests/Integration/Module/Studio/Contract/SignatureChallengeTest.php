@@ -17,6 +17,7 @@ use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
 use Aurora\Module\Studio\Contract\Signature\Entity\AbstractContractSignatureChallenge;
 use Aurora\Module\Studio\Contract\Signature\Manager\ContractSignatureChallengeManager;
@@ -74,6 +75,7 @@ final class SignatureChallengeTest extends IntegrationTestCase
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
+            $container->get(ContractRepository::class),
         );
 
         // Built here: its own controller lands with the signing form, so the

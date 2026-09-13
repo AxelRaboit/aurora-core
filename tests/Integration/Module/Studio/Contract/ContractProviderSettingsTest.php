@@ -76,6 +76,7 @@ final class ContractProviderSettingsTest extends IntegrationTestCase
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
+            $container->get(ContractRepository::class),
         );
 
         $this->contracts = new ContractManager(

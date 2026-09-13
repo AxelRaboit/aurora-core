@@ -257,6 +257,7 @@ backend:
                 draft_already_open: 'Un brouillon est déjà ouvert sur cette trame (version {number}). Terminez-le ou abandonnez-le avant d''en ouvrir un autre.'
                 nothing_to_publish: Cette version n'a aucun texte à publier.
                 already_published: 'Cette version est publiée : son texte ne peut plus être modifié. Ouvrez une nouvelle version.'
+                used_by_contracts: '{count} contrat(s) figés ont été établis à partir de cette trame. La supprimer effacerait le lien entre eux et le texte signé : archivez-la plutôt.'
                 governing_locale_unknown: Cette langue n'est pas gérée par l'application.
                 governing_locale_not_written: 'La langue faisant foi ({locale}) n''est pas rédigée dans cette version.'
                 governing_locale_required: 'Cette version est rédigée en plusieurs langues : indiquez laquelle fait foi avant de publier.'
@@ -276,7 +277,7 @@ backend:
             empty: Aucune trame de contrat pour le moment.
             search_placeholder: Rechercher une trame…
             delete_confirm: 'Supprimer {name} ?'
-            delete_warning: Les contrats déjà signés depuis cette trame gardent leur propre copie du texte et ne sont pas touchés. Ce qui disparaît est le lien vers la trame d'origine.
+            delete_warning: 'Les contrats déjà signés gardent leur propre copie du texte. Si l''un d''eux est issu de cette trame, la suppression est refusée : archivez-la plutôt.'
             in_force: En vigueur
             never_published: Jamais publiée
             no_draft: Aucun brouillon
@@ -471,7 +472,7 @@ backend:
             updated: Client mis à jour.
             deleted: Client supprimé.
             delete_confirm: 'Supprimer {name} ?'
-            delete_warning: Les contrats déjà signés avec ce client resteront en base, mais ne pointeront plus vers sa fiche.
+            delete_warning: 'Un client nommé par un contrat ne se supprime pas : la suppression sera refusée tant qu''il en reste un.'
             linked_account: 'Compte : {name}'
 
             col_company: Société
@@ -529,6 +530,7 @@ backend:
                 contractual_email_invalid: Cet email n'est pas valide.
                 share_capital_invalid: Le capital social ne peut pas être négatif.
                 siret_invalid: 'Ce SIRET est invalide : quatorze chiffres et une clé de contrôle correcte sont attendus.'
+                has_contracts: 'Ce client est nommé par {count} contrat(s). Un client lié à un contrat ne se supprime pas : ce sont eux qui prouvent ce qui a été convenu, et avec qui.'
                 siret_taken: 'Ce SIRET est déjà enregistré pour {name}.'
 studio:
     contract:
