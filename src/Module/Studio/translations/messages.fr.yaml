@@ -521,6 +521,9 @@ backend:
                 bar: Barres
                 line: Courbe
                 doughnut: Anneau
+            duplicate_slide: Dupliquer la slide
+            slide_duplicated: Slide dupliquée
+            drag_hint: Glisser pour déplacer
             slots:
                 chartType: Type de graphique
                 series: Données

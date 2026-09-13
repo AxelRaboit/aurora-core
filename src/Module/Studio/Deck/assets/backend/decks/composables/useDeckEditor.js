@@ -173,6 +173,47 @@ export function useDeckEditor(props) {
         });
     }
 
+    /**
+     * The order after a drag, saved as one write.
+     *
+     * The dragged slide is already where the reader dropped it - the component
+     * hands back the reordered list - so this is the same call `move` makes,
+     * without the arithmetic.
+     */
+    async function reorder(ordered) {
+        await flushCurrent();
+
+        slides.value = ordered;
+
+        await request(props.slideReorderPath, {
+            orderedIds: ordered.map((row) => row.id),
+        });
+    }
+
+    /**
+     * Copy a slide, right after the one it copies.
+     *
+     * At the end would be the cheaper answer and the wrong one: a slide is
+     * duplicated to write a variant of it, and a variant that lands twenty
+     * slides away has to be dragged back before it can be edited.
+     */
+    async function duplicateSlide(slide) {
+        await flushCurrent();
+
+        const data = await request(
+            buildPath(props.slideDuplicatePath, { slideId: slide.id }),
+        );
+
+        if (!data?.slide) return;
+
+        const at = slides.value.findIndex((row) => row.id === slide.id);
+
+        slides.value = slides.value.toSpliced(at + 1, 0, data.slide);
+        selectedId.value = data.slide.id;
+        takeSnapshot();
+        toast.success(t("backend.studio.decks.slide_duplicated"));
+    }
+
     /** Write one slot of the selected slide, without touching the others. */
     function writeSlot(slot, value) {
         if (!selected.value) return;
@@ -206,7 +247,9 @@ export function useDeckEditor(props) {
         select,
         addSlide,
         confirmDeleteSlide,
+        duplicateSlide,
         move,
+        reorder,
         writeSlot,
         writeLayout,
         writeNotes,

@@ -521,6 +521,9 @@ backend:
                 bar: Bars
                 line: Line
                 doughnut: Doughnut
+            duplicate_slide: Duplicate the slide
+            slide_duplicated: Slide duplicated
+            drag_hint: Drag to move
             slots:
                 chartType: Chart type
                 series: Data

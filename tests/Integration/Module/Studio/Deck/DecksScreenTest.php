@@ -147,6 +147,66 @@ final class DecksScreenTest extends IntegrationTestCase
         self::assertSame('none', $payload['appearance']['logoPlacement'], 'no picture means no placement');
     }
 
+    /**
+     * A copy lands right after its source, not at the end.
+     *
+     * A slide is duplicated to write a variant of it, and a variant that lands
+     * twenty slides away has to be dragged back before it can be edited.
+     */
+    public function testADuplicatedSlideLandsRightAfterItsSource(): void
+    {
+        $this->signIn();
+
+        $container = static::getContainer();
+        $deckManager = $container->get(DeckManager::class);
+
+        $deck = $deckManager->create('Trois temps');
+
+        foreach (['Un', 'Deux', 'Trois'] as $title) {
+            $slide = $deckManager->addSlide($deck, SlideLayoutEnum::Section);
+            $deckManager->writeContent($slide, ['title' => $title]);
+        }
+
+        $container->get(EntityManagerInterface::class)->flush();
+
+        $first = $deck->getSlides()->first();
+
+        $this->client->request(
+            'POST',
+            '/backend/studio/decks/'.$deck->getId().'/slides/'.$first->getId().'/duplicate',
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame(1, $payload['slide']['position'], 'the copy sits right after what it copies');
+        self::assertSame(['title' => 'Un'], $payload['slide']['content']);
+        self::assertNotSame($first->getId(), $payload['slide']['id']);
+    }
+
+    /** A slide of one deck is never reachable through another deck's address. */
+    public function testASlideOfAnotherDeckCannotBeDuplicated(): void
+    {
+        $this->signIn();
+
+        $container = static::getContainer();
+        $deckManager = $container->get(DeckManager::class);
+
+        $mine = $deckManager->create('Le mien');
+        $other = $deckManager->create('Un autre');
+        $slide = $deckManager->addSlide($other, SlideLayoutEnum::Title);
+
+        $container->get(EntityManagerInterface::class)->flush();
+
+        $this->client->request(
+            'POST',
+            '/backend/studio/decks/'.$mine->getId().'/slides/'.$slide->getId().'/duplicate',
+        );
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
     public function testAnUnknownThemeIsRefused(): void
     {
         $this->signIn();

@@ -15,6 +15,7 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { VueDraggable } from "vue-draggable-plus";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useDeckEditor } from "./composables/useDeckEditor.js";
 import { useDeckSharing } from "./composables/useDeckSharing.js";
@@ -36,6 +37,8 @@ import {
     ArrowDown,
     ArrowUp,
     Copy,
+    CopyPlus,
+    GripVertical,
     Palette,
     Play,
     Plus,
@@ -59,6 +62,7 @@ const props = defineProps({
     slideCreatePath: { type: String, required: true },
     slideUpdatePath: { type: String, required: true },
     slideDeletePath: { type: String, required: true },
+    slideDuplicatePath: { type: String, required: true },
     slideReorderPath: { type: String, required: true },
     printPath: { type: String, required: true },
     shareLinks: { type: Array, default: () => [] },
@@ -81,7 +85,9 @@ const {
     select,
     addSlide,
     confirmDeleteSlide,
+    duplicateSlide,
     move,
+    reorder,
     writeSlot,
     writeLayout,
     writeNotes,
@@ -285,7 +291,18 @@ onBeforeUnmount(() => {
                     <span class="text-xs tabular-nums text-muted">{{ slides.length }}</span>
                 </div>
 
-                <div class="flex flex-col gap-2">
+                <!-- La poignée plutôt que la vignette entière : la vignette est
+                     un bouton qui sélectionne la slide, et un cliquer-glisser
+                     qui commence sur un bouton devient une sélection ratée une
+                     fois sur deux. -->
+                <VueDraggable
+                    :model-value="slides"
+                    handle=".slide-drag-handle"
+                    :animation="150"
+                    :disabled="!editable"
+                    class="flex flex-col gap-2"
+                    v-on:update:model-value="reorder"
+                >
                     <div
                         v-for="(slide, at) in slides"
                         :key="slide.id"
@@ -324,6 +341,10 @@ onBeforeUnmount(() => {
                             v-if="editable"
                             class="absolute top-1 right-1 flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
                         >
+                            <!-- Les flèches restent à côté de la poignée : le
+                                 glisser demande une souris et une main, elles
+                                 non, et c'est le seul chemin au clavier vers
+                                 un changement d'ordre. -->
                             <AppIconButton
                                 size="sm"
                                 variant="ghost"
@@ -345,14 +366,30 @@ onBeforeUnmount(() => {
                             <AppIconButton
                                 size="sm"
                                 variant="ghost"
+                                :title="t('backend.studio.decks.duplicate_slide')"
+                                v-on:click="duplicateSlide(slide)"
+                            >
+                                <CopyPlus class="h-3 w-3" :stroke-width="2" />
+                            </AppIconButton>
+                            <AppIconButton
+                                size="sm"
+                                variant="ghost"
                                 :title="t('backend.studio.decks.delete_slide')"
                                 v-on:click="pendingDelete = slide"
                             >
                                 <Trash2 class="h-3 w-3" :stroke-width="2" />
                             </AppIconButton>
                         </div>
+
+                        <span
+                            v-if="editable"
+                            class="slide-drag-handle absolute bottom-1 right-1 cursor-grab rounded p-0.5 text-muted opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+                            :title="t('backend.studio.decks.drag_hint')"
+                        >
+                            <GripVertical class="h-3.5 w-3.5" :stroke-width="2" />
+                        </span>
                     </div>
-                </div>
+                </VueDraggable>
 
                 <div v-if="editable" class="mt-3 space-y-1">
                     <p class="m-0 px-1 text-xs text-muted">{{ t("backend.studio.decks.add_slide") }}</p>

@@ -91,6 +91,7 @@ final readonly class DecksViewBuilder
             'slideCreatePath' => $this->urlGenerator->generate('backend_studio_deck_slide_create', ['id' => $deck->getId()]),
             'slideUpdatePath' => $this->pathTemplates->generate('backend_studio_deck_slide_update', ['id' => $deck->getId(), 'slideId' => '__slideId__']),
             'slideDeletePath' => $this->pathTemplates->generate('backend_studio_deck_slide_delete', ['id' => $deck->getId(), 'slideId' => '__slideId__']),
+            'slideDuplicatePath' => $this->pathTemplates->generate('backend_studio_deck_slide_duplicate', ['id' => $deck->getId(), 'slideId' => '__slideId__']),
             'slideReorderPath' => $this->urlGenerator->generate('backend_studio_deck_slide_reorder', ['id' => $deck->getId()]),
         ];
     }

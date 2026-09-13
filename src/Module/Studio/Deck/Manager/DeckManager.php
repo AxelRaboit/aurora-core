@@ -12,6 +12,7 @@ use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
+use LogicException;
 
 use function array_key_exists;
 use function in_array;
@@ -143,6 +144,45 @@ class DeckManager
         $slide->setContent($clean);
 
         return $slide;
+    }
+
+    /**
+     * Copy one slide, placed right after the one it copies.
+     *
+     * Through the same `addSlide` and `writeContent` the editor uses, so a slot
+     * added to a layout is carried over without anybody remembering to come
+     * back here. The positions after the copy are pushed along rather than
+     * recomputed from scratch: the rest of the deck has not moved, and
+     * rewriting every row would be a hundred updates to insert one.
+     */
+    public function duplicateSlide(SlideInterface $source): SlideInterface
+    {
+        $deck = $source->getDeck();
+
+        // A slide always has a deck: the column is not nullable and the only
+        // way to hold one is through the deck it belongs to. Said out loud
+        // because the getter is nullable for the moment between `new` and the
+        // `addSlide` that attaches it.
+        if (!$deck instanceof DeckInterface) {
+            throw new LogicException('a slide cannot be duplicated before it belongs to a deck');
+        }
+
+        $copy = $this->addSlide($deck, $source->getLayout());
+
+        $this->writeContent($copy, $source->getContent());
+        $copy->setSpeakerNotes($source->getSpeakerNotes());
+
+        $at = $source->getPosition() + 1;
+
+        foreach ($deck->getSlides() as $slide) {
+            if ($slide !== $copy && $slide->getPosition() >= $at) {
+                $slide->setPosition($slide->getPosition() + 1);
+            }
+        }
+
+        $copy->setPosition($at);
+
+        return $copy;
     }
 
     /**

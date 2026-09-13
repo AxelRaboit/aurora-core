@@ -148,6 +148,29 @@ class SlidesController extends AbstractController
         return $this->jsonSuccess(['slide' => $this->serializer->slide($slide)]);
     }
 
+    /**
+     * Copy a slide inside its own deck.
+     *
+     * The `edit` privilege and not `create`: the deck already exists and its
+     * row count does not change, unlike duplicating a whole deck, which writes
+     * a new one and asks for `create` accordingly.
+     */
+    #[Route('/slides/{slideId}/duplicate', name: '_slide_duplicate', requirements: ['slideId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.decks.edit')]
+    public function duplicateSlide(Deck $deck, int $slideId): JsonResponse
+    {
+        $slide = $this->slideOf($deck, $slideId);
+
+        if (!$slide instanceof SlideInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $copy = $this->deckManager->duplicateSlide($slide);
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess(['slide' => $this->serializer->slide($copy)]);
+    }
+
     #[Route('/slides/{slideId}/delete', name: '_slide_delete', requirements: ['slideId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.decks.edit')]
     public function delete(Deck $deck, int $slideId): JsonResponse
