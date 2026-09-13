@@ -250,6 +250,10 @@ backend:
             kind:
                 body: Corps de contrat
                 annex: Annexe
+            category:
+                community_management: Community management
+                photography: Photographie
+                development: Développement web
             errors:
                 name_required: Le nom de la trame est obligatoire.
                 name_too_long: Le nom de la trame ne peut pas dépasser 180 caractères.
@@ -264,6 +268,15 @@ backend:
             name: Nom de la trame
             name_placeholder: Contrat de prestation de services, formule mensuelle
             kind_label: Type
+            category_label: Catégorie
+            category_hint: Le métier auquel cette trame se rapporte. Peut rester vide.
+            category_none: Sans catégorie
+            category_none_hint: Le métier n'a pas encore été précisé. La trame reste utilisable.
+            category_all: Toutes les catégories
+            preview: Aperçu
+            preview_notice: "Les variables sont remplacées par des exemples, sauf celles de votre entreprise qui viennent de vos réglages. Les champs propres à chaque contrat apparaissent entre crochets."
+            preview_failed: L'aperçu n'a pas pu être produit.
+            filter_category: 'Catégorie : {name}'
             kind_hint: Un corps se signe seul. Une annexe complète un corps.
             add: Ajouter une trame
             create: Nouvelle trame

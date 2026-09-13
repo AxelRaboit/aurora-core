@@ -16,7 +16,9 @@ use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersion;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Exception\PublishedVersionIsImmutableException;
+use Aurora\Module\Studio\Contract\Exception\UnrenderableBlockException;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManagerInterface;
+use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Serializer\ContractTemplateSerializerInterface;
 use Aurora\Module\Studio\Contract\View\ContractTemplatesViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -41,6 +43,7 @@ class ContractTemplatesController extends AbstractController
         protected readonly ContractTemplateVersionInputFactoryInterface $versionInputFactory,
         protected readonly ContractTemplateSerializerInterface $serializer,
         protected readonly ContractTemplatesViewBuilder $viewBuilder,
+        protected readonly ContractTemplatePreviewer $previewer,
         protected readonly PayloadValidator $payloadValidator,
         protected readonly TranslatorInterface $translator,
     ) {}
@@ -66,6 +69,44 @@ class ContractTemplatesController extends AbstractController
             '@Studio/backend/contract-templates/editor.html.twig',
             $this->viewBuilder->editorView($template, $version),
         );
+    }
+
+    /**
+     * The wording with its variables filled, as the client will read it.
+     *
+     * A GET that writes nothing and mints nothing: the alternative was to
+     * build a real contract and freeze it to find out whether a clause reads
+     * properly, which costs a reference and an audit line.
+     *
+     * Read, not write: it is offered under the view privilege, like the editor
+     * it opens from.
+     */
+    #[Route('/{id}/versions/{versionId}/preview', name: '_preview', methods: [HttpMethodEnum::Get->value])]
+    public function preview(ContractTemplate $template, int $versionId, Request $request): JsonResponse
+    {
+        $version = $this->versionOf($template, $versionId);
+        $locales = $this->previewer->locales($version);
+
+        if ([] === $locales) {
+            return $this->jsonSuccess(['html' => null, 'locale' => null, 'locales' => []]);
+        }
+
+        $asked = (string) $request->query->get('locale', '');
+        $locale = in_array($asked, $locales, true) ? $asked : $locales[0];
+
+        try {
+            $html = $this->previewer->preview($version, $locale);
+        } catch (UnrenderableBlockException $unrenderableBlockException) {
+            // The same refusal a freeze would meet, said here where it can be
+            // fixed rather than in the middle of sending a contract.
+            return $this->jsonInvalidInput(['preview' => $unrenderableBlockException->getMessage()]);
+        }
+
+        return $this->jsonSuccess([
+            'html' => $html,
+            'locale' => $locale,
+            'locales' => $locales,
+        ]);
     }
 
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]

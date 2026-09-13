@@ -142,6 +142,28 @@ final readonly class ContractVariableCatalogue
         return in_array($token, $this->tokens(), true);
     }
 
+    /**
+     * Every token with the example the editor already shows beside it.
+     *
+     * The same strings, deliberately. A preview built on a second set of
+     * made-up values would drift from the panel an author reads while writing,
+     * and the two would disagree about what `{{customer.siret}}` looks like.
+     *
+     * @return array<string, string> token => example
+     */
+    public function examples(): array
+    {
+        $examples = [];
+
+        foreach ($this->groups() as $group) {
+            foreach ($group['variables'] as $variable) {
+                $examples[$variable['token']] = $variable['example'];
+            }
+        }
+
+        return $examples;
+    }
+
     /** @return list<string> */
     public function signatureTokens(): array
     {

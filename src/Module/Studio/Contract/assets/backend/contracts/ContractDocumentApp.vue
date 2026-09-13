@@ -9,8 +9,8 @@
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { safeContractHtml } from "../shared/contractHtml.js";
 import { toast } from "vue-sonner";
-import DOMPurify from "dompurify";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import AppSignaturePad from "@/shared/components/form/input/AppSignaturePad.vue";
@@ -231,37 +231,7 @@ const refusedAt = computed(() =>
  * something that had no business being there.
  */
 const documentHtml = computed(() =>
-    DOMPurify.sanitize(props.contract.renderedHtml ?? "", {
-        ALLOWED_TAGS: [
-            "section",
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "p",
-            "ul",
-            "ol",
-            "li",
-            "blockquote",
-            "footer",
-            "table",
-            "tr",
-            "th",
-            "td",
-            "hr",
-            "b",
-            "strong",
-            "i",
-            "em",
-            "u",
-            "s",
-            "mark",
-            "code",
-            "br",
-            "span",
-        ],
-        ALLOWED_ATTR: ["class", "style"],
-    }),
+    safeContractHtml(props.contract.renderedHtml),
 );
 </script>
 

@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useContractTemplatesList } from "./composables/useContractTemplatesList.js";
@@ -36,6 +37,7 @@ const { can } = usePrivileges();
 const props = defineProps({
     templates: { type: Array, default: () => [] },
     kinds: { type: Array, default: () => [] },
+    categories: { type: Array, default: () => [] },
     createPath: { type: String, required: true },
     updatePath: { type: String, required: true },
     archivePath: { type: String, required: true },
@@ -54,6 +56,10 @@ const {
     showArchived,
     archivedCount,
     kind,
+    category,
+    setCategory,
+    categoryCounts,
+    NO_CATEGORY,
     setKind,
     kindCounts,
     showCreate,
@@ -100,6 +106,43 @@ const kindOptions = props.kinds.map((kind) => ({
 
 function kindLabel(value) {
     return kindOptions.find((kind) => kind.value === value)?.label ?? value;
+}
+
+const categoryOptions = props.categories.map((category) => ({
+    value: category.value,
+    label: t(category.labelKey),
+}));
+
+/**
+ * The form's list, with the empty option first.
+ *
+ * A select rather than a required choice: a trame written before anybody
+ * decided how the library was organised has a legitimate answer, and it is
+ * this one.
+ */
+const categorySelectOptions = [
+    { value: "", label: t("backend.studio.contract_templates.category_none") },
+    ...categoryOptions,
+];
+
+const categoryFilterOptions = computed(() => [
+    { value: "", label: t("backend.studio.contract_templates.category_all") },
+    {
+        value: NO_CATEGORY,
+        label: `${t("backend.studio.contract_templates.category_none")} (${categoryCounts.value[NO_CATEGORY] ?? 0})`,
+    },
+    ...categoryOptions.map((option) => ({
+        value: option.value,
+        label: `${option.label} (${categoryCounts.value[option.value] ?? 0})`,
+    })),
+]);
+
+/** Null, undefined and "" all read as unclassified; anything else names a trade. */
+function categoryLabel(value) {
+    return (
+        categoryOptions.find((category) => category.value === value)?.label ??
+        t("backend.studio.contract_templates.category_none")
+    );
 }
 
 /**
@@ -257,6 +300,19 @@ function rowActions(template) {
                     <span class="ml-1 text-xs text-muted">{{ kindCounts[option.value] ?? 0 }}</span>
                 </AppTab>
             </div>
+
+            <!-- A select rather than a second row of tabs: the two filters cross
+                 rather than compete, and three trades plus "unclassified" plus
+                 "all" is five more tabs on a line that already holds three.
+                 Unclassified is an option of its own because "what have I not
+                 sorted yet" is the question this screen is opened with the day
+                 a second trade appears. -->
+            <AppSelect
+                :model-value="category"
+                :options="categoryFilterOptions"
+                class="min-w-56"
+                v-on:update:model-value="setCategory"
+            />
         </div>
 
         <!-- Two different absences: nothing exists yet, or nothing matches
@@ -286,6 +342,9 @@ function rowActions(template) {
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
                             {{ t("backend.studio.contract_templates.kind_label") }}
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">
+                            {{ t("backend.studio.contract_templates.category_label") }}
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">
                             {{ t("backend.studio.contract_templates.col_locales") }}
@@ -329,6 +388,19 @@ function rowActions(template) {
                                 :class="kindStyle(template.kind).pill"
                             >
                                 {{ kindLabel(template.kind) }}
+                            </span>
+                        </td>
+                        <!-- Plain text, not a pill. The kind beside it is a
+                             rule the document obeys; a trade is a label, and
+                             two badges on one row compete for the same glance.
+                             Unclassified is greyed rather than blank: an empty
+                             cell reads as a bug. -->
+                        <td class="px-6 py-3 hidden lg:table-cell whitespace-nowrap">
+                            <span
+                                class="text-xs"
+                                :class="template.category ? 'text-secondary' : 'text-muted italic'"
+                            >
+                                {{ categoryLabel(template.category) }}
                             </span>
                         </td>
                         <!-- One badge per language rather than a comma list:
@@ -432,6 +504,12 @@ function rowActions(template) {
                                 :class="kindStyle(template.kind).pill"
                             >
                                 {{ kindLabel(template.kind) }}
+                            </span>
+                            <span
+                                class="text-2xs"
+                                :class="template.category ? 'text-secondary' : 'text-muted italic'"
+                            >
+                                {{ categoryLabel(template.category) }}
                             </span>
                             <AppBadge
                                 v-for="locale in template.locales"
@@ -539,6 +617,12 @@ function rowActions(template) {
                     :options="kindOptions"
                     :hint="t('backend.studio.contract_templates.kind_hint')"
                 />
+                <AppSelect
+                    v-model="newTemplate.category"
+                    :label="t('backend.studio.contract_templates.category_label')"
+                    :options="categorySelectOptions"
+                    :hint="t('backend.studio.contract_templates.category_hint')"
+                />
             </form>
             <template #footer>
                 <AppModalFooter>
@@ -580,6 +664,12 @@ function rowActions(template) {
                     :label="t('backend.studio.contract_templates.kind_label')"
                     :options="kindOptions"
                     :hint="t('backend.studio.contract_templates.kind_hint')"
+                />
+                <AppSelect
+                    v-model="renameForm.category"
+                    :label="t('backend.studio.contract_templates.category_label')"
+                    :options="categorySelectOptions"
+                    :hint="t('backend.studio.contract_templates.category_hint')"
                 />
             </form>
             <template #footer>

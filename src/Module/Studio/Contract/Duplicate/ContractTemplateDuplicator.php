@@ -48,6 +48,9 @@ final readonly class ContractTemplateDuplicator
         $copy = $this->templates->create(new ContractTemplateInput(
             name: $this->copyName($source),
             kind: $source->getKind(),
+            // The trade travels with the wording, like the kind: a copy made to
+            // start from this trame is a document for the same business.
+            category: $source->getCategory(),
         ));
 
         $version = $this->sourceVersion($source);

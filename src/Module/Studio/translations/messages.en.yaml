@@ -250,6 +250,10 @@ backend:
             kind:
                 body: Contract body
                 annex: Annex
+            category:
+                community_management: Community management
+                photography: Photography
+                development: Web development
             errors:
                 name_required: The template name is required.
                 name_too_long: The template name cannot exceed 180 characters.
@@ -265,6 +269,15 @@ backend:
             name_placeholder: Service agreement, monthly plan
             kind_label: Type
             kind_hint: A body is signed on its own. An annex completes a body.
+            category_label: Category
+            category_hint: Which trade this trame is for. It can be left unset.
+            category_none: No category
+            category_none_hint: The trade has not been set yet. The trame stays usable.
+            category_all: All categories
+            preview: Preview
+            preview_notice: "Variables are replaced with examples, except your own business details which come from your settings. Fields filled per contract show in square brackets."
+            preview_failed: The preview could not be produced.
+            filter_category: 'Category: {name}'
             add: Add a template
             create: New template
             edit: 'Edit {name}'

@@ -8,6 +8,7 @@ use Aurora\Core\Locale\Service\LocaleOptionsProviderInterface;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
+use Aurora\Module\Studio\Contract\Enum\ContractTemplateCategoryEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
 use Aurora\Module\Studio\Contract\Serializer\ContractTemplateSerializerInterface;
@@ -31,6 +32,7 @@ final readonly class ContractTemplatesViewBuilder
         return [
             'templates' => $this->templates(),
             'kinds' => $this->kinds(),
+            'categories' => $this->categories(),
             'createPath' => $this->urlGenerator->generate('backend_studio_contract_templates_create'),
             'updatePath' => $this->pathTemplates->generate('backend_studio_contract_templates_update', ['id' => '__id__']),
             'archivePath' => $this->pathTemplates->generate('backend_studio_contract_templates_archive', ['id' => '__id__']),
@@ -80,6 +82,10 @@ final readonly class ContractTemplatesViewBuilder
                 'id' => $template->getId(),
                 'versionId' => $version->getId(),
             ]),
+            'previewPath' => $this->urlGenerator->generate('backend_studio_contract_templates_preview', [
+                'id' => $template->getId(),
+                'versionId' => $version->getId(),
+            ]),
             'indexPath' => $this->urlGenerator->generate('backend_studio_contract_templates'),
             'editorPath' => $this->urlGenerator->generate('backend_studio_contract_templates_editor', [
                 'id' => $template->getId(),
@@ -101,6 +107,18 @@ final readonly class ContractTemplatesViewBuilder
     public function listPayload(): array
     {
         return ['success' => true, 'templates' => $this->templates()];
+    }
+
+    /** @return list<array{value: string, labelKey: string}> */
+    private function categories(): array
+    {
+        return array_map(
+            static fn (ContractTemplateCategoryEnum $category): array => [
+                'value' => $category->value,
+                'labelKey' => $category->getLabel(),
+            ],
+            ContractTemplateCategoryEnum::cases(),
+        );
     }
 
     /** @return list<array{value: string, labelKey: string}> */

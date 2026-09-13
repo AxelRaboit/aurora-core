@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Contract\Dto;
 
 use Aurora\Core\Support\Str;
+use Aurora\Module\Studio\Contract\Enum\ContractTemplateCategoryEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
@@ -21,6 +22,11 @@ class ContractTemplateInputFactory implements ContractTemplateInputFactoryInterf
             // stands on its own, so it is the safer of the two to assume.
             kind: ContractTemplateKindEnum::tryFrom(Str::trimFromArray($data, 'kind'))
                 ?? ContractTemplateKindEnum::Body,
+            // An unreadable category falls back to none, which is the honest
+            // answer: the value said nothing usable, so nothing is claimed.
+            // Unlike the kind, there is no safer of two to assume here -
+            // picking a trade at random is exactly what must not happen.
+            category: ContractTemplateCategoryEnum::tryFrom(Str::trimFromArray($data, 'category')),
         );
     }
 }

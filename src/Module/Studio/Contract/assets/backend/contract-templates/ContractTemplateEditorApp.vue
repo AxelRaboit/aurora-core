@@ -1,6 +1,8 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { safeContractHtml } from "../shared/contractHtml.js";
 import { useContractTemplateEditor } from "./composables/useContractTemplateEditor.js";
 import ContractVariablePanel from "./components/ContractVariablePanel.vue";
 import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
@@ -10,9 +12,10 @@ import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppMessage from "@/shared/components/feedback/AppMessage.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import { Check, Lock, Save, ScrollText, Trash2, X } from "lucide-vue-next";
+import { Check, Eye, Lock, Save, ScrollText, Trash2, X } from "lucide-vue-next";
 
 const { t } = useI18n();
+const { request } = useRequest();
 
 const props = defineProps({
     template: { type: Object, required: true },
@@ -25,6 +28,7 @@ const props = defineProps({
     discardPath: { type: String, required: true },
     indexPath: { type: String, required: true },
     editorPath: { type: String, required: true },
+    previewPath: { type: String, required: true },
 });
 
 const {
@@ -53,6 +57,67 @@ const {
 const otherVersions = computed(() =>
     props.versions.filter((each) => each.id !== version.value.id),
 );
+
+/**
+ * The wording with its variables filled, fetched rather than assembled here.
+ *
+ * The substitution is the application's, and a second implementation in
+ * JavaScript would be a second answer to "what will the client read" - the one
+ * that matters being the one the freeze uses. So the server renders, and this
+ * shows what came back.
+ *
+ * Saved first when there is something to save: previewing the draft as it
+ * stands on screen rather than as it was stored an hour ago is the whole
+ * point, and a published version has nothing to save.
+ */
+const preview = ref({ open: false, loading: false, html: "", error: "", locale: "" });
+
+/** Cleaned on the way into the DOM, exactly like the sealed document is. */
+const previewHtml = computed(() => safeContractHtml(preview.value.html));
+
+/** Only offered when there is a choice to make. */
+const previewLocales = computed(() =>
+    props.locales.filter((locale) => writtenLocales.value.includes(locale.code)),
+);
+
+async function openPreview() {
+    preview.value = { ...preview.value, open: true, loading: true, error: "" };
+
+    if (!isPublished.value) {
+        await save({ silent: true });
+    }
+
+    await loadPreview(preview.value.locale || activeLocale.value);
+}
+
+async function loadPreview(locale) {
+    preview.value = { ...preview.value, loading: true, error: "" };
+
+    const data = await request(`${props.previewPath}?locale=${encodeURIComponent(locale)}`, {
+        method: "GET",
+    });
+
+    if (!data?.success) {
+        preview.value = {
+            ...preview.value,
+            loading: false,
+            html: "",
+            error:
+                data?.errors?.preview ??
+                t("backend.studio.contract_templates.preview_failed"),
+        };
+
+        return;
+    }
+
+    preview.value = {
+        ...preview.value,
+        loading: false,
+        html: data.html ?? "",
+        locale: data.locale ?? locale,
+        error: "",
+    };
+}
 
 const governingSelectOptions = computed(() =>
     governingOptions.value.map((locale) => ({
@@ -123,6 +188,15 @@ const governingLabel = computed(
             <div class="flex flex-wrap items-center gap-2">
                 <AppButton variant="ghost" size="md" :href="indexPath">
                     {{ t("shared.common.back") }}
+                </AppButton>
+                <AppButton
+                    variant="ghost"
+                    size="md"
+                    :loading="preview.loading && !preview.open"
+                    v-on:click="openPreview"
+                >
+                    <Eye class="w-3.5 h-3.5" :stroke-width="2" />
+                    {{ t("backend.studio.contract_templates.preview") }}
                 </AppButton>
                 <AppButton
                     v-if="!isPublished"
@@ -278,6 +352,71 @@ const governingLabel = computed(
                 </div>
             </div>
         </div>
+
+        <!-- The wording as the client will read it. Wide, because a contract
+             read in a narrow column is not the contract: line length is part
+             of what an author is checking. -->
+        <AppModal
+            :show="preview.open"
+            max-width="4xl"
+            :title="t('backend.studio.contract_templates.preview')"
+            :icon="Eye"
+            v-on:close="preview.open = false"
+        >
+            <div class="space-y-3">
+                <!-- Said before the document rather than after it: a reader who
+                     takes these example values for real ones would be reading a
+                     contract that does not exist. -->
+                <AppMessage variant="info">
+                    {{ t("backend.studio.contract_templates.preview_notice") }}
+                </AppMessage>
+
+                <div
+                    v-if="previewLocales.length > 1"
+                    class="flex flex-wrap gap-1 border-b border-line/60"
+                    role="tablist"
+                >
+                    <button
+                        v-for="locale in previewLocales"
+                        :key="locale.code"
+                        type="button"
+                        role="tab"
+                        :aria-selected="locale.code === preview.locale"
+                        class="px-3 py-2 text-sm border-b-2 -mb-px transition-colors"
+                        :class="
+                            locale.code === preview.locale
+                                ? 'border-accent text-primary'
+                                : 'border-transparent text-muted hover:text-primary'
+                        "
+                        v-on:click="loadPreview(locale.code)"
+                    >
+                        {{ locale.label }}
+                    </button>
+                </div>
+
+                <AppMessage v-if="preview.error" variant="danger">
+                    {{ preview.error }}
+                </AppMessage>
+
+                <p v-else-if="preview.loading" class="text-sm text-muted">
+                    {{ t("shared.common.loading") }}
+                </p>
+
+                <article
+                    v-else
+                    class="bg-surface border border-line rounded-lg p-6 prose-contract max-h-[65vh] overflow-y-auto"
+                    v-html="previewHtml"
+                />
+            </div>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="preview.open = false">
+                        <X class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ t("shared.common.close") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
 
         <AppModal
             :show="showPublish"

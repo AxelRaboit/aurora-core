@@ -8,8 +8,16 @@ import { useClientFilteredList } from "@/shared/composables/list/useClientFilter
 import { useQueryState } from "@/shared/composables/useQueryState.js";
 import { required } from "@/shared/utils/validation/validators.js";
 
+/**
+ * The filter value that means "classified by nobody".
+ *
+ * A string rather than null because it travels in the query string, and one
+ * the enum cannot produce so it can never collide with a real trade.
+ */
+const NO_CATEGORY = "none";
+
 function emptyForm() {
-    return { name: "", kind: "body" };
+    return { name: "", kind: "body", category: "" };
 }
 
 export function useContractTemplatesList(props) {
@@ -45,13 +53,59 @@ export function useContractTemplatesList(props) {
         valid: ["", ...kindValues],
     });
 
+    /**
+     * The trade filter, beside the type filter and stored the same way.
+     *
+     * `none` is a value of its own rather than an absence: "show me what
+     * nobody has classified" is the question this screen is opened with the
+     * day a second trade appears, and it cannot be asked by leaving the filter
+     * empty - that already means "show everything".
+     */
+    const categoryValues = props.categories.map((category) => category.value);
+    const { value: category, set: setCategory } = useQueryState("category", {
+        defaultValue: "",
+        valid: ["", NO_CATEGORY, ...categoryValues],
+    });
+
     const visibleItems = computed(() =>
         filteredItems.value.filter(
             (template) =>
                 (showArchived.value || !template.isArchived) &&
-                ("" === kind.value || template.kind === kind.value),
+                ("" === kind.value || template.kind === kind.value) &&
+                matchesCategory(template),
         ),
     );
+
+    function matchesCategory(template) {
+        if ("" === category.value) {
+            return true;
+        }
+
+        // Null and undefined both mean unclassified: the serializer sends
+        // null, and a row from an older payload may not carry the key at all.
+        if (NO_CATEGORY === category.value) {
+            return null === (template.category ?? null);
+        }
+
+        return template.category === category.value;
+    }
+
+    /** How many trames each trade holds, unclassified included, archived ones excluded. */
+    const categoryCounts = computed(() => {
+        const counts = { [NO_CATEGORY]: 0 };
+
+        for (const value of categoryValues) counts[value] = 0;
+
+        for (const template of filteredItems.value) {
+            if (!showArchived.value && template.isArchived) continue;
+
+            const key = template.category ?? NO_CATEGORY;
+
+            if (undefined !== counts[key]) counts[key] += 1;
+        }
+
+        return counts;
+    });
 
     const archivedCount = computed(
         () => items.value.filter((template) => template.isArchived).length,
@@ -147,7 +201,14 @@ export function useContractTemplatesList(props) {
 
     function openRename(template) {
         renaming.value = template;
-        renameForm.value = { name: template.name, kind: template.kind };
+        renameForm.value = {
+            name: template.name,
+            kind: template.kind,
+            // The select works in strings and the column in null, so the empty
+            // option and "no category" have to be the same value on the way in
+            // as on the way out.
+            category: template.category ?? "",
+        };
         clearRename();
         showRename.value = true;
     }
@@ -332,6 +393,10 @@ export function useContractTemplatesList(props) {
         showArchived,
         archivedCount,
         kind,
+        category,
+        setCategory,
+        categoryCounts,
+        NO_CATEGORY,
         setKind,
         kindCounts,
         showCreate,

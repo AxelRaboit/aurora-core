@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Contract\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
+use Aurora\Module\Studio\Contract\Enum\ContractTemplateCategoryEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -45,6 +46,16 @@ abstract class AbstractContractTemplate implements ContractTemplateInterface
 
     #[ORM\Column(length: 16, enumType: ContractTemplateKindEnum::class)]
     protected ContractTemplateKindEnum $kind = ContractTemplateKindEnum::Body;
+
+    /**
+     * Which trade this template serves, or null while nobody has said.
+     *
+     * Nullable on purpose: see {@see ContractTemplateCategoryEnum}. An
+     * unclassified template is a question, a template defaulted into a trade is
+     * a wrong answer.
+     */
+    #[ORM\Column(length: 32, nullable: true, enumType: ContractTemplateCategoryEnum::class)]
+    protected ?ContractTemplateCategoryEnum $category = null;
 
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $archivedAt = null;
@@ -107,6 +118,18 @@ abstract class AbstractContractTemplate implements ContractTemplateInterface
     public function setKind(ContractTemplateKindEnum $kind): static
     {
         $this->kind = $kind;
+
+        return $this;
+    }
+
+    public function getCategory(): ?ContractTemplateCategoryEnum
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?ContractTemplateCategoryEnum $category): static
+    {
+        $this->category = $category;
 
         return $this;
     }
