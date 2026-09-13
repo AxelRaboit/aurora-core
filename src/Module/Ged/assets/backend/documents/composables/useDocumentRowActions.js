@@ -6,7 +6,6 @@ import {
     HardDriveDownload,
     Pencil,
     QrCode,
-    RotateCcw,
     Trash2,
 } from "lucide-vue-next";
 
@@ -36,56 +35,10 @@ export function useDocumentRowActions({
     confirmDelete,
     relocate = null,
     relocationAvailable = false,
-    viewingTrash = null,
-    restore = null,
-    askForceDelete = null,
 }) {
     const { t } = useI18n();
 
     return function actionsFor(doc) {
-        // A trashed document offers two verbs and no third: editing or moving
-        // something on its way out is an offer the screen should not make.
-        if (viewingTrash?.value) {
-            const trashActions = [
-                {
-                    key: "view",
-                    color: "sky",
-                    icon: Eye,
-                    title: t("shared.common.view"),
-                    description: t(
-                        "backend.ged.documents.row_actions.view_description",
-                    ),
-                    onSelect: () => viewDoc(doc),
-                },
-            ];
-
-            if (can("ged.documents.delete")) {
-                trashActions.push({
-                    key: "restore",
-                    color: "accent",
-                    icon: RotateCcw,
-                    title: t("backend.ged.documents.trash.restore"),
-                    description: t(
-                        "backend.ged.documents.trash.restore_description",
-                    ),
-                    onSelect: () => restore?.(doc),
-                });
-
-                trashActions.push({
-                    key: "force-delete",
-                    color: "rose",
-                    icon: Trash2,
-                    title: t("backend.ged.documents.trash.delete_forever"),
-                    description: t(
-                        "backend.ged.documents.trash.delete_forever_description",
-                    ),
-                    onSelect: () => askForceDelete?.(doc),
-                });
-            }
-
-            return trashActions;
-        }
-
         const actions = [
             {
                 key: "view",

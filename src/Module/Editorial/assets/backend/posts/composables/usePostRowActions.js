@@ -1,13 +1,13 @@
 import { useI18n } from "vue-i18n";
-import { Copy, Eye, Flame, Pencil, Trash2, Undo2 } from "lucide-vue-next";
+import { Copy, Eye, Pencil, Trash2 } from "lucide-vue-next";
 
 /**
- * What one publication row offers, given who is looking and where it sits.
+ * What one publication row offers, given who is looking.
  *
- * A post in the trash and a post on the shelf offer opposite things: one is
- * restored or burnt, the other is edited or thrown away. That is a rule about
- * the record, not a layout decision, so it lives here rather than as four
- * `v-if` in a table cell.
+ * This list shows live publications only: what is in the trash is restored or
+ * destroyed from the Trash screen, which is the one place that does it for
+ * every module. The `trashed` guards below stay as a floor, because the list
+ * endpoint can still be asked for trashed rows.
  *
  * Returns a function rather than a computed: a list renders one of these per
  * row, and a computed per row would mean one watcher per row for values that
@@ -16,9 +16,7 @@ import { Copy, Eye, Flame, Pencil, Trash2, Undo2 } from "lucide-vue-next";
 export function usePostRowActions({
     can,
     editPath,
-    restore,
     confirmDelete,
-    forceDelete,
     duplicate,
     preview,
     canPreview = false,
@@ -69,29 +67,6 @@ export function usePostRowActions({
                     "backend.posts.row_actions.duplicate_description",
                 ),
                 onSelect: () => duplicate(post),
-            });
-        }
-
-        if (can("editorial.posts.delete") && post.trashed) {
-            actions.push({
-                key: "restore",
-                color: "emerald",
-                icon: Undo2,
-                title: t("backend.posts.restore"),
-                description: t("backend.posts.row_actions.restore_description"),
-                onSelect: () => restore(post),
-            });
-
-            // Read last, as everywhere: the one that cannot be undone.
-            actions.push({
-                key: "force-delete",
-                color: "rose",
-                icon: Flame,
-                title: t("backend.posts.force_delete"),
-                description: t(
-                    "backend.posts.row_actions.force_delete_description",
-                ),
-                onSelect: () => forceDelete(post),
             });
         }
 

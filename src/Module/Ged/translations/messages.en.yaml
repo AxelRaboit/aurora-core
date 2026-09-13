@@ -131,23 +131,6 @@ backend:
       empty: No documents yet
       delete_confirm: "Are you sure you want to delete document « {title} »?"
       delete_warning: The document goes to the trash. You can restore it until the trash is emptied.
-      trash:
-        title: Trash
-        folders_title: Folders in the trash
-        folder_restored: Folder restored
-        folder_deleted_forever: Folder permanently deleted
-        banner: These documents are deleted. Their files are kept until the trash is emptied.
-        empty: Empty the trash
-        empty_confirm: "Permanently delete the {count} documents in the trash?"
-        restore: Restore
-        restore_description: Puts the document back in the library, file included.
-        restored: Document restored
-        delete_forever: Delete permanently
-        delete_forever_description: Deletes the document and its file, with no way back.
-        delete_forever_confirm: "Permanently delete document « {title} »?"
-        delete_forever_warning: The file will be erased from disk. This action cannot be undone.
-        deleted_forever: Document permanently deleted
-        emptied: "{count} document(s) permanently deleted"
       back_to_list: Back to documents
       no_category: No category
       tags: Tags
@@ -235,20 +218,6 @@ backend:
       empty: No categories yet
       delete_confirm: "Are you sure you want to delete category « {name} »?"
       delete_warning: Linked documents will not be deleted.
-      trash:
-        empty: Empty the trash
-        empty_confirm: "Permanently delete the {count} categories in the trash?"
-        emptied: "{count} category/categories permanently deleted"
-        title: Trash
-        banner: These categories are deleted. The documents that carried them will get them back if you restore them.
-        restore: Restore
-        restore_description: Puts the category back in the list, with the documents that carried it.
-        restored: Category restored
-        delete_forever: Delete permanently
-        delete_forever_description: Deletes the category. The documents that carried it will no longer have one.
-        delete_forever_confirm: "Permanently delete category « {name} »?"
-        delete_forever_warning: Linked documents are not deleted, but they lose this category. This action cannot be undone.
-        deleted_forever: Category permanently deleted
       name_placeholder: Category name…
       description_placeholder: Optional description…
       errors:

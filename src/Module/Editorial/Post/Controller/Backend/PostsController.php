@@ -89,7 +89,6 @@ class PostsController extends AbstractController
         return $this->render('@Editorial/backend/posts/index.html.twig', $this->viewBuilder->indexView(
             $list,
             $pagination,
-            $filters['trashed'],
             $filters['postTypeIds'],
             $filters['termIds'],
             $filters['statuses'],

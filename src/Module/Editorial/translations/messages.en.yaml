@@ -327,22 +327,11 @@ backend:
     total: '{count} posts'
     created: Post created.
     updated: Post saved.
-    restore: Restore
     row_actions:
       preview_description: Opens the page as a visitor sees it, in a new tab.
       edit_description: "Open the editor : content, header, layout."
       duplicate_description: "Creates an identical draft to work from."
-      restore_description: Takes the publication out of the trash, as it was.
-      force_delete_description: Deletes for good. There is no undo.
       delete_description: Moves it to the trash, recoverable until the trash is emptied.
-    restored: Post restored.
-    force_delete: Delete for good
-    force_deleted: Post deleted for good.
-    force_delete_confirm: 'Delete "{title}" for good?'
-    empty_trash: Empty the trash
-    empty_trash_confirm: Delete every post in the trash for good?
-    trash_emptied: '{count} posts deleted for good.'
-    irreversible: This cannot be undone.
     back_to_list: Back to the list
     revisions:
       title: Version history
@@ -378,8 +367,6 @@ backend:
       action_publish: "Publish"
       action_draft: "Back to draft"
       action_trash: "Move to trash"
-      action_restore: "Restore"
-      action_force_delete: "Delete for good"
       errors:
         unknown_action: "Unknown action."
         nothing_selected: "No publication selected."
@@ -683,10 +670,6 @@ backend:
     conflict_overwrite: Save mine anyway
     filters: Filters
     clear_filters: Clear
-    views: Which list
-    view_active: Posts
-    view_trash: Trash
-    trash_empty: The trash is empty.
     filter_type: Content type
     filter_status: Status
     filter_term: Term
