@@ -545,6 +545,11 @@ backend:
             import_document: Le document
             import_placeholder: Collez ici, ou écrivez…
             import_hint: Les listes deviennent des slides à puces, les citations des citations, les tableaux des tableaux. Plusieurs blocs sous un même titre font plusieurs slides qui le répètent.
+            is_template: C'est un modèle
+            is_template_hint: Les modèles sont proposés au moment de créer une présentation.
+            template_badge: Modèle
+            from_template: Partir d'un modèle
+            from_nothing: Partir de rien
             slots:
                 mediaFit: Cadrage de l'image
                 mediaFocus: Point de visée

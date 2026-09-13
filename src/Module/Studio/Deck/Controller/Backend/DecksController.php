@@ -18,6 +18,7 @@ use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Import\DeckFromBlocks;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Repository\DeckCategoryRepository;
+use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deck\View\DecksViewBuilder;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -52,6 +53,7 @@ class DecksController extends AbstractController
         protected readonly DeckDuplicator $deckDuplicator,
         protected readonly DeckFromBlocks $deckFromBlocks,
         protected readonly DeckCategoryRepository $categoryRepository,
+        protected readonly DeckRepository $deckRepository,
         protected readonly CustomerRepository $customerRepository,
         protected readonly DecksViewBuilder $viewBuilder,
         protected readonly PayloadValidator $payloadValidator,
@@ -78,6 +80,18 @@ class DecksController extends AbstractController
 
         $deck = $this->deckManager->create($input->title);
         $this->applyInput($deck, $input);
+
+        // Opened from a model: the shape is copied, the filing comes from the
+        // form somebody has just filled. An id that no longer resolves opens an
+        // empty deck rather than failing - the picker is fed from the list, so
+        // the only way to send an unknown one is a model deleted between the
+        // page load and the save, and refusing then would lose the title.
+        $template = null === $input->fromTemplateId ? null : $this->deckRepository->find($input->fromTemplateId);
+
+        if ($template instanceof DeckInterface) {
+            $this->deckDuplicator->copyInto($deck, $template);
+        }
+
         $this->entityManager->flush();
 
         return $this->jsonSuccess($this->viewBuilder->deckPayload($deck));
@@ -238,6 +252,8 @@ class DecksController extends AbstractController
             is_string($payload['description'] ?? null) ? $payload['description'] : null,
             is_int($payload['categoryId'] ?? null) ? $payload['categoryId'] : null,
             is_int($payload['customerId'] ?? null) ? $payload['customerId'] : null,
+            true === ($payload['isTemplate'] ?? false),
+            is_int($payload['fromTemplateId'] ?? null) ? $payload['fromTemplateId'] : null,
         );
     }
 
@@ -252,6 +268,7 @@ class DecksController extends AbstractController
     private function applyInput(DeckInterface $deck, DeckInput $input): void
     {
         $deck->setDescription($input->description);
+        $deck->setTemplate($input->isTemplate);
         $deck->setCategory(null === $input->categoryId ? null : $this->categoryRepository->find($input->categoryId));
         $deck->setCustomer(null === $input->customerId ? null : $this->customerRepository->find($input->customerId));
     }

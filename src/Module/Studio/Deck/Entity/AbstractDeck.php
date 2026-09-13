@@ -56,6 +56,18 @@ abstract class AbstractDeck implements DeckInterface
     protected ?CustomerInterface $customer = null;
 
     /**
+     * Whether this deck exists to be copied rather than to be shown.
+     *
+     * A flag rather than a table of its own, because a template *is* a deck:
+     * it is composed, previewed, presented and shared like any other, and the
+     * day somebody wants to show one they should not have to convert it first.
+     * What the flag buys is a filter in the list and a place in the picker
+     * that opens a new deck.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $template = false;
+
+    /**
      * The look the slides are drawn in.
      *
      * `Slate` is what every deck looked like before the column existed, so
@@ -136,6 +148,18 @@ abstract class AbstractDeck implements DeckInterface
     public function setCustomer(?CustomerInterface $customer): static
     {
         $this->customer = $customer;
+
+        return $this;
+    }
+
+    public function isTemplate(): bool
+    {
+        return $this->template;
+    }
+
+    public function setTemplate(bool $template): static
+    {
+        $this->template = $template;
 
         return $this;
     }

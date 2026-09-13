@@ -26,6 +26,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
+import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import {
     Copy,
     FileInput,
@@ -63,6 +64,7 @@ const {
     filteredItems,
     categoryOptions,
     customerOptions,
+    templateOptions,
     showCreate,
     newDeck,
     createErrors,
@@ -212,6 +214,15 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                                 class="block font-medium text-primary no-underline hover:text-accent"
                                 :href="deckUrl(deck)"
                             >{{ deck.title }}</a>
+                            <!-- Le badge sur la ligne plutôt qu'un filtre de
+                                 plus : un modèle se reconnaît en passant, et
+                                 la liste en porte trois, pas trente. -->
+                            <span
+                                v-if="deck.isTemplate"
+                                class="mt-0.5 inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-600/10 px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide text-accent"
+                            >
+                                {{ t("backend.studio.decks.template_badge") }}
+                            </span>
                             <span v-if="deck.description" class="block text-xs text-muted line-clamp-1">{{ deck.description }}</span>
                         </td>
                         <td class="hidden px-6 py-3 lg:table-cell">
@@ -299,6 +310,16 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
             v-on:close="showCreate = false"
         >
             <form class="space-y-4" v-on:submit.prevent="submitCreate">
+                <!-- Le modèle en premier : c'est la question qui décide de
+                     tout ce qui suit, et on n'a pas envie de la découvrir
+                     après avoir tapé un titre. -->
+                <AppSelect
+                    v-if="templateOptions.length"
+                    v-model="newDeck.fromTemplateId"
+                    :options="templateOptions"
+                    :label="t('backend.studio.decks.from_template')"
+                    :placeholder="t('backend.studio.decks.from_nothing')"
+                />
                 <AppInput
                     v-model="newDeck.title"
                     :label="t('backend.studio.decks.title_column')"
@@ -324,6 +345,11 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                     :options="customerOptions"
                     :label="t('backend.studio.decks.customer')"
                     :placeholder="t('backend.studio.decks.no_customer')"
+                />
+                <AppToggle
+                    v-model="newDeck.isTemplate"
+                    :label="t('backend.studio.decks.is_template')"
+                    :hint="t('backend.studio.decks.is_template_hint')"
                 />
             </form>
             <template #footer>
@@ -444,6 +470,11 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                     :options="customerOptions"
                     :label="t('backend.studio.decks.customer')"
                     :placeholder="t('backend.studio.decks.no_customer')"
+                />
+                <AppToggle
+                    v-model="editForm.isTemplate"
+                    :label="t('backend.studio.decks.is_template')"
+                    :hint="t('backend.studio.decks.is_template_hint')"
                 />
             </form>
             <template #footer>

@@ -43,6 +43,7 @@ class DeckSerializer
                 'id' => $deck->getCustomer()->getId(),
                 'legalName' => $deck->getCustomer()->getLegalName(),
             ] : null,
+            'isTemplate' => $deck->isTemplate(),
             'theme' => $deck->getTheme()->value,
             'slideCount' => $slideCount,
             'updatedAt' => $deck->getUpdatedAt()->format(DATE_ATOM),

@@ -545,6 +545,11 @@ backend:
             import_document: The document
             import_placeholder: Paste here, or write…
             import_hint: Lists become bullet slides, quotes become quotes, tables become tables. Several blocks under one heading make several slides that repeat it.
+            is_template: This is a model
+            is_template_hint: Models are offered when a new deck is created.
+            template_badge: Model
+            from_template: Start from a model
+            from_nothing: Start from nothing
             slots:
                 mediaFit: How the picture fills
                 mediaFocus: Focal point

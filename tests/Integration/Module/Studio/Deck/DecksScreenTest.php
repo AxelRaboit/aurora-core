@@ -6,6 +6,7 @@ namespace Aurora\Tests\Integration\Module\Studio\Deck;
 
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
+use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -252,6 +253,67 @@ final class DecksScreenTest extends IntegrationTestCase
 
         self::assertStringContainsString('DeckPresenterApp', $body);
         self::assertStringContainsString('Marquer un temps', $body);
+    }
+
+    /**
+     * A deck opened from a model takes its shape and its look, and its own
+     * filing from the form somebody has just filled.
+     *
+     * And it is not itself a model: a copy that arrived in the picker as a
+     * second template is how a list of three models becomes a list of thirty.
+     */
+    public function testADeckOpenedFromAModelTakesItsShapeButNotItsFiling(): void
+    {
+        $this->signIn();
+
+        $container = static::getContainer();
+        $deckManager = $container->get(DeckManager::class);
+
+        $model = $deckManager->create('Trame d\'audit');
+        $model->setTemplate(true);
+        $deckManager->writeAppearance($model, DeckThemeEnum::Ink, ['slideNumbers' => true]);
+
+        foreach (['Constat', 'Recommandations'] as $title) {
+            $slide = $deckManager->addSlide($model, SlideLayoutEnum::Section);
+            $deckManager->writeContent($slide, ['title' => $title]);
+        }
+
+        $container->get(EntityManagerInterface::class)->flush();
+
+        $this->client->jsonRequest('POST', '/backend/studio/decks/create', [
+            'title' => 'Audit Dupont',
+            'fromTemplateId' => $model->getId(),
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame('Audit Dupont', $payload['deck']['title']);
+        self::assertSame(2, $payload['deck']['slideCount']);
+        self::assertSame('ink', $payload['deck']['theme']);
+        self::assertTrue($payload['deck']['appearance']['slideNumbers']);
+        self::assertFalse($payload['deck']['isTemplate'], 'a deck opened from a model is not itself one');
+    }
+
+    /**
+     * A model that vanished between the page load and the save opens an empty
+     * deck rather than losing the title somebody just typed.
+     */
+    public function testAnUnknownModelOpensAnEmptyDeck(): void
+    {
+        $this->signIn();
+
+        $this->client->jsonRequest('POST', '/backend/studio/decks/create', [
+            'title' => 'Sans modèle',
+            'fromTemplateId' => 999999,
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame(0, $payload['deck']['slideCount']);
     }
 
     private function signIn(): void

@@ -29,6 +29,10 @@ interface DeckInterface extends TimestampableInterface
 
     public function setCustomer(?CustomerInterface $customer): static;
 
+    public function isTemplate(): bool;
+
+    public function setTemplate(bool $template): static;
+
     public function getTheme(): DeckThemeEnum;
 
     public function setTheme(DeckThemeEnum $theme): static;
