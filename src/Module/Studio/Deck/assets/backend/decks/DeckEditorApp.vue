@@ -15,24 +15,36 @@
  */
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { VueDraggable } from "vue-draggable-plus";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useDeckEditor } from "./composables/useDeckEditor.js";
 import { useDeckSharing } from "./composables/useDeckSharing.js";
+import { useDeckAppearance } from "./composables/useDeckAppearance.js";
+import { useDeckChapters } from "./composables/useDeckChapters.js";
 import SlideFrame from "./components/SlideFrame.vue";
 import DeckPlayer from "./components/DeckPlayer.vue";
+import DeckAppearancePanel from "./components/DeckAppearancePanel.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
+import AppRange from "@/shared/components/form/toggle/AppRange.vue";
+import AppFocalPointField from "@/shared/components/form/file/AppFocalPointField.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import {
     ArrowDown,
     ArrowUp,
+    ChevronDown,
+    ChevronRight,
     Copy,
+    CopyPlus,
+    GripVertical,
+    MonitorSpeaker,
+    Palette,
     Play,
     Plus,
     Presentation,
@@ -48,14 +60,27 @@ const { can } = usePrivileges();
 const props = defineProps({
     deck: { type: Object, required: true },
     layouts: { type: Array, default: () => [] },
+    /** Slots every layout accepts: the line above the title, and the backdrop. */
+    commonSlots: { type: Array, default: () => [] },
+    /** Slots that hold one line per row rather than one string. */
+    listSlots: { type: Array, default: () => [] },
     slideCreatePath: { type: String, required: true },
     slideUpdatePath: { type: String, required: true },
     slideDeletePath: { type: String, required: true },
+    slideDuplicatePath: { type: String, required: true },
     slideReorderPath: { type: String, required: true },
     printPath: { type: String, required: true },
+    presenterPath: { type: String, required: true },
     shareLinks: { type: Array, default: () => [] },
+    /** Pictures on this deck that a link's holder would not be served. */
+    withheldPictures: { type: Array, default: () => [] },
     shareCreatePath: { type: String, required: true },
     shareRevokePath: { type: String, required: true },
+    themes: { type: Array, default: () => [] },
+    fontPairs: { type: Array, default: () => [] },
+    logoPlacements: { type: Array, default: () => [] },
+    transitions: { type: Array, default: () => [] },
+    appearancePath: { type: String, required: true },
 });
 
 const {
@@ -69,7 +94,9 @@ const {
     select,
     addSlide,
     confirmDeleteSlide,
+    duplicateSlide,
     move,
+    reorder,
     writeSlot,
     writeLayout,
     writeNotes,
@@ -77,6 +104,40 @@ const {
 } = useDeckEditor(props);
 
 const editable = can("studio.decks.edit");
+
+/**
+ * The chapters, read off the section slides rather than stored.
+ *
+ * Folding one hides its slides without taking them out of the list the
+ * drag-and-drop reorders: a filtered list would come back short and save that
+ * as the new order.
+ */
+const { isHidden, isFolded, sizes, toggle: toggleChapter, foldable } = useDeckChapters(slides);
+
+/**
+ * The deck's look, held here because every frame on the page draws with it.
+ *
+ * `appearance` is the saved answer and `preview` the one being composed; the
+ * panel shows the second, everything else shows the first. A page that
+ * previewed everywhere would repaint thirty thumbnails on every drag of a
+ * colour slider, for a decision that is being made in one frame.
+ */
+const {
+    open: appearanceOpen,
+    saving: savingAppearance,
+    appearance,
+    theme,
+    style,
+    logo,
+    inherited,
+    isOverridden,
+    carriesOverrides,
+    preview,
+    resetColours,
+    write: writeStyle,
+    writeLogo,
+    save: saveAppearance,
+} = useDeckAppearance(props);
 
 /**
  * Presenting saves first.
@@ -94,6 +155,19 @@ async function present() {
     playing.value = true;
 }
 
+/**
+ * The notes, on the other screen.
+ *
+ * Opened before the player rather than from inside it, because the window the
+ * browser opens takes focus and would drop the full screen the player just
+ * asked for. Opening it first leaves the reader one click from presenting, on
+ * the screen they were already looking at.
+ */
+async function openPresenter() {
+    await flushCurrent();
+    window.open(props.presenterPath, `deck-presenter-${props.deck.id}`, "noopener");
+}
+
 async function print() {
     await flushCurrent();
     window.open(`${props.printPath}?print=1`, "_blank", "noopener");
@@ -104,6 +178,8 @@ const {
     links,
     newLabel,
     expiresInDays,
+    newPassword,
+    withheld,
     creating,
     createLink,
     revoke,
@@ -141,15 +217,99 @@ function writePicture(value) {
     writeSlot("mediaUrl", value?.url ?? null);
 }
 
-/** Bullets are a list in the model and one line per bullet in the form. */
-const bulletsText = () => (selected.value?.content.bullets ?? []).join("\n");
+/**
+ * How the picture fills its box, and the point it is cropped around.
+ *
+ * The focal field speaks in fractions and the slide stores an
+ * `object-position` string, because that is what the frame writes into CSS and
+ * a pair of floats in the content would be two slots to keep in agreement.
+ */
+const fitOptions = computed(() => [
+    { value: "contain", label: t("backend.studio.decks.media_fit_contain") },
+    { value: "cover", label: t("backend.studio.decks.media_fit_cover") },
+]);
 
-function writeBullets(value) {
+const focus = () => {
+    const stored = selected.value?.content.mediaFocus;
+
+    if (!stored) return { x: null, y: null };
+
+    const [x, y] = stored.split(/\s+/).map((part) => parseInt(part, 10) / 100);
+
+    return { x, y };
+};
+
+function writeFocus(axis, value) {
+    const current = focus();
+    const next = { ...current, [axis]: value };
+
+    // Half a position is not a position: clearing one axis clears both, and
+    // the picture falls back to the point the document itself carries.
+    if (next.x === null || next.y === null) {
+        writeSlot("mediaFocus", null);
+
+        return;
+    }
+
     writeSlot(
-        "bullets",
+        "mediaFocus",
+        `${Math.round(next.x * 100)}% ${Math.round(next.y * 100)}%`,
+    );
+}
+
+/**
+ * The backdrop, as the picker speaks it.
+ *
+ * Same arrangement as the picture slot above: the model stores an id, the
+ * picker wants `{id, url}`, and the address is written alongside so the preview
+ * redraws without a round trip. `bgMediaUrl` is not one of the slots, so the
+ * manager drops it on save.
+ */
+const backdrop = () => ({
+    id: selected.value?.content.bgMediaId ?? null,
+    url: selected.value?.content.bgMediaUrl ?? null,
+});
+
+function writeBackdrop(value) {
+    if (!selected.value) return;
+
+    writeSlot("bgMediaId", value?.id ?? null);
+    writeSlot("bgMediaUrl", value?.url ?? null);
+
+    // A backdrop with no veil is a slide whose text sits on a photograph. Forty
+    // per cent is the point where a title stays readable over most pictures;
+    // the slider is right there for the ones where it does not.
+    if (value?.id && selected.value.content.bgDim == null) writeSlot("bgDim", 40);
+}
+
+/**
+ * A list slot is an array in the model and one line per row in the form.
+ *
+ * The same shape for bullets, cards, steps and table rows, because they are the
+ * same gesture: type a line, press return, type the next. What differs between
+ * them is what a line means, and that is what the placeholder is for.
+ */
+const linesText = (slot) => (selected.value?.content[slot] ?? []).join("\n");
+
+function writeLines(slot, value) {
+    writeSlot(
+        slot,
         value.split("\n").map((line) => line.trim()).filter(Boolean),
     );
 }
+
+/** Which side the picture sits on, in the layout that has one. */
+const sideOptions = computed(() => [
+    { value: "left", label: t("backend.studio.decks.side_left") },
+    { value: "right", label: t("backend.studio.decks.side_right") },
+]);
+
+const chartOptions = computed(() =>
+    ["bar", "line", "doughnut"].map((kind) => ({
+        value: kind,
+        label: t(`backend.studio.decks.chart_types.${kind}`),
+    })),
+);
 
 /**
  * The last write out.
@@ -176,6 +336,10 @@ onBeforeUnmount(() => {
                 <Play class="h-4 w-4" :stroke-width="2" />
                 {{ t("backend.studio.decks.present") }}
             </AppButton>
+            <AppButton variant="ghost" :disabled="!slides.length" v-on:click="openPresenter">
+                <MonitorSpeaker class="h-4 w-4" :stroke-width="2" />
+                {{ t("backend.studio.decks.presenter") }}
+            </AppButton>
             <AppButton variant="ghost" :disabled="!slides.length" v-on:click="print">
                 <Printer class="h-4 w-4" :stroke-width="2" />
                 {{ t("backend.studio.decks.print") }}
@@ -187,6 +351,10 @@ onBeforeUnmount(() => {
             >
                 <Share2 class="h-4 w-4" :stroke-width="2" />
                 {{ t("backend.studio.decks.share") }}
+            </AppButton>
+            <AppButton v-if="editable" variant="ghost" v-on:click="appearanceOpen = true">
+                <Palette class="h-4 w-4" :stroke-width="2" />
+                {{ t("backend.studio.decks.appearance") }}
             </AppButton>
         </div>
 
@@ -200,15 +368,46 @@ onBeforeUnmount(() => {
                     <span class="text-xs tabular-nums text-muted">{{ slides.length }}</span>
                 </div>
 
-                <div class="flex flex-col gap-2">
+                <!-- La poignée plutôt que la vignette entière : la vignette est
+                     un bouton qui sélectionne la slide, et un cliquer-glisser
+                     qui commence sur un bouton devient une sélection ratée une
+                     fois sur deux. -->
+                <VueDraggable
+                    :model-value="slides"
+                    handle=".slide-drag-handle"
+                    :animation="150"
+                    :disabled="!editable"
+                    class="flex flex-col gap-2"
+                    v-on:update:model-value="reorder"
+                >
                     <div
                         v-for="(slide, at) in slides"
+                        v-show="!isHidden(at)"
                         :key="slide.id"
                         class="group relative rounded-lg border p-1 transition-colors"
-                        :class="slide.id === selectedId
-                            ? 'border-accent bg-accent-600/10'
-                            : 'border-line hover:border-line-strong'"
+                        :class="[
+                            slide.id === selectedId
+                                ? 'border-accent bg-accent-600/10'
+                                : 'border-line hover:border-line-strong',
+                            foldable(slide) ? 'border-dashed' : '',
+                        ]"
                     >
+                        <!-- Le chevron sur la vignette d'intercalaire : c'est
+                             lui le chapitre, on ne stocke rien de plus. -->
+                        <button
+                            v-if="foldable(slide)"
+                            type="button"
+                            class="absolute top-1 left-1 z-10 flex cursor-pointer items-center gap-1 rounded bg-surface/80 px-1 py-0.5 text-[0.65rem] text-muted backdrop-blur"
+                            :aria-expanded="!isFolded(slide.id)"
+                            :title="isFolded(slide.id)
+                                ? t('backend.studio.decks.unfold_chapter')
+                                : t('backend.studio.decks.fold_chapter')"
+                            v-on:click.stop="toggleChapter(slide.id)"
+                        >
+                            <ChevronDown v-if="!isFolded(slide.id)" class="h-3 w-3" :stroke-width="2" />
+                            <ChevronRight v-else class="h-3 w-3" :stroke-width="2" />
+                            <span class="tabular-nums">{{ sizes[slide.id] }}</span>
+                        </button>
                         <!-- `flex flex-col` plutôt que `block` : le contenu d'un
                          `<button>` se comporte comme une boîte qui étire ses
                          enfants, ce qui écrasait le rapport 16/9 de la
@@ -219,14 +418,25 @@ onBeforeUnmount(() => {
                             :aria-current="slide.id === selectedId ? 'true' : undefined"
                             v-on:click="select(slide.id)"
                         >
-                            <span class="mb-1 block px-1 text-[0.65rem] uppercase tracking-wide text-muted">
+                            <!-- Décalé quand le chevron est là : la pastille
+                                 est posée sur ce coin, et « INTERCALAIRE »
+                                 passait dessous. -->
+                            <span
+                                class="mb-1 block px-1 text-[0.65rem] uppercase tracking-wide text-muted"
+                                :class="foldable(slide) ? 'pl-9' : ''"
+                            >
                                 {{ at + 1 }}. {{ t(`backend.studio.decks.layouts.${slide.layout}`) }}
                             </span>
                             <!-- Dans une simple boîte de bloc : élément flex, la
                              vignette voyait sa hauteur décidée par son contenu
                              et le rapport 16/9 restait lettre morte. -->
                             <span class="block w-full">
-                                <SlideFrame :slide="slide" compact />
+                                <SlideFrame
+                                    :slide="slide"
+                                    :appearance="appearance"
+                                    :index="at + 1"
+                                    compact
+                                />
                             </span>
                         </button>
 
@@ -234,6 +444,10 @@ onBeforeUnmount(() => {
                             v-if="editable"
                             class="absolute top-1 right-1 flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
                         >
+                            <!-- Les flèches restent à côté de la poignée : le
+                                 glisser demande une souris et une main, elles
+                                 non, et c'est le seul chemin au clavier vers
+                                 un changement d'ordre. -->
                             <AppIconButton
                                 size="sm"
                                 variant="ghost"
@@ -255,14 +469,30 @@ onBeforeUnmount(() => {
                             <AppIconButton
                                 size="sm"
                                 variant="ghost"
+                                :title="t('backend.studio.decks.duplicate_slide')"
+                                v-on:click="duplicateSlide(slide)"
+                            >
+                                <CopyPlus class="h-3 w-3" :stroke-width="2" />
+                            </AppIconButton>
+                            <AppIconButton
+                                size="sm"
+                                variant="ghost"
                                 :title="t('backend.studio.decks.delete_slide')"
                                 v-on:click="pendingDelete = slide"
                             >
                                 <Trash2 class="h-3 w-3" :stroke-width="2" />
                             </AppIconButton>
                         </div>
+
+                        <span
+                            v-if="editable"
+                            class="slide-drag-handle absolute bottom-1 right-1 cursor-grab rounded p-0.5 text-muted opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+                            :title="t('backend.studio.decks.drag_hint')"
+                        >
+                            <GripVertical class="h-3.5 w-3.5" :stroke-width="2" />
+                        </span>
                     </div>
-                </div>
+                </VueDraggable>
 
                 <div v-if="editable" class="mt-3 space-y-1">
                     <p class="m-0 px-1 text-xs text-muted">{{ t("backend.studio.decks.add_slide") }}</p>
@@ -291,7 +521,11 @@ onBeforeUnmount(() => {
 
                 <template v-else>
                     <div class="mx-auto max-w-3xl">
-                        <SlideFrame :slide="selected" />
+                        <SlideFrame
+                            :slide="selected"
+                            :appearance="appearance"
+                            :index="playFrom + 1"
+                        />
                     </div>
 
                     <div class="mx-auto max-w-3xl space-y-4 rounded-xl border border-line bg-surface p-4">
@@ -315,16 +549,55 @@ onBeforeUnmount(() => {
 
                         <template v-for="slot in slots" :key="slot">
                             <AppTextarea
-                                v-if="slot === 'bullets'"
-                                :model-value="bulletsText()"
+                                v-if="listSlots.includes(slot)"
+                                :model-value="linesText(slot)"
                                 :label="labelFor(slot)"
-                                :placeholder="t('backend.studio.decks.bullets_placeholder')"
+                                :placeholder="t(`backend.studio.decks.line_placeholders.${slot}`)"
                                 :rows="5"
                                 :disabled="!editable"
-                                v-on:update:model-value="writeBullets"
+                                v-on:update:model-value="(value) => writeLines(slot, value)"
+                            />
+                            <AppSelect
+                                v-else-if="slot === 'mediaFit'"
+                                :model-value="selected.content.mediaFit ?? 'contain'"
+                                :options="fitOptions"
+                                :label="labelFor(slot)"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('mediaFit', value)"
+                            />
+                            <!-- Viser ne se fait qu'une fois l'image choisie :
+                                 un cadre de visée vide n'a rien à montrer et
+                                 rien à recevoir. -->
+                            <AppFocalPointField
+                                v-else-if="slot === 'mediaFocus' && selected.content.mediaUrl"
+                                :src="selected.content.mediaUrl"
+                                :label="labelFor(slot)"
+                                :hint="t('backend.studio.decks.media_focus_hint')"
+                                :x="focus().x"
+                                :y="focus().y"
+                                :inherited="selected.content.mediaFocusDefault ?? '50% 50%'"
+                                :fit-class="selected.content.mediaFit === 'cover' ? 'object-cover' : 'object-contain'"
+                                v-on:update:x="(value) => writeFocus('x', value)"
+                                v-on:update:y="(value) => writeFocus('y', value)"
+                            />
+                            <AppSelect
+                                v-else-if="slot === 'chartType'"
+                                :model-value="selected.content.chartType ?? 'bar'"
+                                :options="chartOptions"
+                                :label="labelFor(slot)"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('chartType', value)"
+                            />
+                            <AppSelect
+                                v-else-if="slot === 'side'"
+                                :model-value="selected.content.side ?? 'left'"
+                                :options="sideOptions"
+                                :label="labelFor(slot)"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('side', value)"
                             />
                             <AppTextarea
-                                v-else-if="['left', 'right', 'quote'].includes(slot)"
+                                v-else-if="['left', 'right', 'quote', 'text'].includes(slot)"
                                 :model-value="selected.content[slot] ?? ''"
                                 :label="labelFor(slot)"
                                 :placeholder="t('backend.studio.decks.prose_placeholder')"
@@ -349,6 +622,56 @@ onBeforeUnmount(() => {
                                 v-on:update:model-value="(value) => writeSlot(slot, value)"
                             />
                         </template>
+
+                        <div class="flex flex-col gap-4 border-t border-line pt-4">
+                            <p class="m-0 text-xs font-semibold uppercase tracking-wide text-muted">
+                                {{ t("backend.studio.decks.common_slots") }}
+                            </p>
+
+                            <AppInput
+                                v-if="commonSlots.includes('kicker')"
+                                :model-value="selected.content.kicker ?? ''"
+                                :label="labelFor('kicker')"
+                                :placeholder="t('backend.studio.decks.kicker_placeholder')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('kicker', value)"
+                            />
+
+                            <AppImagePickerField
+                                v-if="commonSlots.includes('bgMediaId')"
+                                :model-value="backdrop()"
+                                :label="labelFor('bgMediaId')"
+                                :hint="t('backend.studio.decks.backdrop_hint')"
+                                :size="120"
+                                v-on:update:model-value="writeBackdrop"
+                            />
+
+                            <!-- Le curseur n'a de sens qu'avec une image
+                                 derrière : voilé à 40 %, un fond qui n'existe
+                                 pas ne change rien et le réglage n'explique
+                                 rien. -->
+                            <div v-if="selected.content.bgMediaUrl" class="flex flex-col gap-1.5">
+                                <span class="text-xs uppercase tracking-wide text-muted">
+                                    {{ t("backend.studio.decks.backdrop_dim") }}
+                                    <span class="tabular-nums">{{ selected.content.bgDim ?? 40 }} %</span>
+                                </span>
+                                <AppRange
+                                    :model-value="selected.content.bgDim ?? 40"
+                                    :min="0"
+                                    :max="90"
+                                    :step="5"
+                                    :disabled="!editable"
+                                    v-on:update:model-value="(value) => writeSlot('bgDim', value)"
+                                />
+                                <p class="m-0 text-xs text-muted">
+                                    {{ t("backend.studio.decks.backdrop_dim_hint") }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <p class="m-0 text-xs text-muted">
+                            {{ t("backend.studio.decks.emphasis_hint") }}
+                        </p>
 
                         <AppTextarea
                             :model-value="selected.speakerNotes ?? ''"
@@ -399,6 +722,24 @@ onBeforeUnmount(() => {
                     {{ t("backend.studio.decks.share_intro") }}
                 </p>
 
+                <!-- L'avertissement avant le formulaire : il change ce qu'on
+                     s'apprête à envoyer, pas ce qu'on vient d'envoyer. -->
+                <div
+                    v-if="withheld.length"
+                    class="flex flex-col gap-1 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3"
+                    role="status"
+                >
+                    <p class="m-0 text-sm font-medium text-amber-300">
+                        {{ t("backend.studio.decks.withheld_title", withheld.length) }}
+                    </p>
+                    <p class="m-0 text-xs text-secondary">
+                        {{ t("backend.studio.decks.withheld_hint") }}
+                    </p>
+                    <p class="m-0 truncate text-xs text-muted">
+                        {{ withheld.map((picture) => picture.name).join(", ") }}
+                    </p>
+                </div>
+
                 <div class="flex flex-wrap items-end gap-2">
                     <AppInput
                         v-model="newLabel"
@@ -422,6 +763,14 @@ onBeforeUnmount(() => {
                         {{ t("backend.studio.decks.share_create") }}
                     </AppButton>
                 </div>
+
+                <AppInput
+                    v-model="newPassword"
+                    type="password"
+                    :label="t('backend.studio.decks.share_password')"
+                    :placeholder="t('backend.studio.decks.share_password_placeholder')"
+                    :hint="t('backend.studio.decks.share_password_hint')"
+                />
 
                 <p v-if="!links.length" class="m-0 text-sm text-muted">
                     {{ t("backend.studio.decks.share_none") }}
@@ -467,7 +816,14 @@ onBeforeUnmount(() => {
                             <span v-if="link.revokedAt">{{ t("backend.studio.decks.share_revoked") }}</span>
                             <span v-else-if="link.expiresAt">{{ t("backend.studio.decks.share_expires_on", { date: d(new Date(link.expiresAt), "short") }) }}</span>
                             <span v-else>{{ t("backend.studio.decks.share_no_expiry") }}</span>
-                            <span v-if="link.lastUsedAt"> · {{ t("backend.studio.decks.share_last_used", { date: d(new Date(link.lastUsedAt), "short") }) }}</span>
+                            <span v-if="link.locked"> · {{ t("backend.studio.decks.share_locked") }}</span>
+                            <span v-if="link.lastUsedAt">
+                                ·
+                                {{ link.openCount > 1
+                                    ? t("backend.studio.decks.share_opened", { count: link.openCount })
+                                    : t("backend.studio.decks.share_opened_once") }}
+                                · {{ t("backend.studio.decks.share_last_used", { date: d(new Date(link.lastUsedAt), "short") }) }}
+                            </span>
                             <span v-else> · {{ t("backend.studio.decks.share_never_opened") }}</span>
                         </p>
                     </li>
@@ -478,8 +834,33 @@ onBeforeUnmount(() => {
         <DeckPlayer
             v-if="playing"
             :slides="slides"
+            :appearance="appearance"
+            :channel="deck.id"
             :start-at="playFrom"
             v-on:close="playing = false"
+        />
+
+        <DeckAppearancePanel
+            :show="appearanceOpen"
+            :themes="themes"
+            :font-pairs="fontPairs"
+            :logo-placements="logoPlacements"
+            :transitions="transitions"
+            :sample="slides[0] ?? null"
+            :theme="theme"
+            :overrides="style"
+            :logo="logo"
+            :inherited="inherited"
+            :preview="preview"
+            :is-overridden="isOverridden"
+            :carries-overrides="carriesOverrides"
+            :saving="savingAppearance"
+            v-on:close="appearanceOpen = false"
+            v-on:save="saveAppearance"
+            v-on:write="writeStyle"
+            v-on:update:theme="(value) => (theme = value)"
+            v-on:update:logo="writeLogo"
+            v-on:reset-colours="resetColours"
         />
     </div>
 </template>

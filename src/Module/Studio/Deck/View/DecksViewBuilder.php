@@ -8,10 +8,15 @@ use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
+use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Repository\DeckCategoryRepository;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deck\Serializer\DeckSerializer;
+use Aurora\Module\Studio\Deck\Service\DeckPictures;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
 use Aurora\Module\Studio\StudioContext;
@@ -27,6 +32,7 @@ final readonly class DecksViewBuilder
         private CustomerRepository $customerRepository,
         private DeckSerializer $serializer,
         private DeckShareLinkRepository $shareLinks,
+        private DeckPictures $deckPictures,
         private StudioContext $studioContext,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
@@ -74,14 +80,23 @@ final readonly class DecksViewBuilder
         return [
             'deck' => $this->serializer->full($deck),
             'layouts' => $this->layoutOptions(),
+            'commonSlots' => SlideLayoutEnum::commonSlots(),
+            'listSlots' => SlideLayoutEnum::listSlots(),
+            'themes' => $this->themeOptions(),
+            'fontPairs' => $this->fontPairOptions(),
+            'logoPlacements' => $this->logoPlacementOptions(),
+            'transitions' => $this->transitionOptions(),
+            'appearancePath' => $this->urlGenerator->generate('backend_studio_deck_appearance', ['id' => $deck->getId()]),
             'backPath' => $this->urlGenerator->generate('backend_studio_decks'),
             'printPath' => $this->urlGenerator->generate('backend_studio_deck_print', ['id' => $deck->getId()]),
+            'presenterPath' => $this->urlGenerator->generate('backend_studio_deck_presenter', ['id' => $deck->getId()]),
             'shareCreatePath' => $this->urlGenerator->generate('backend_studio_deck_share_create', ['id' => $deck->getId()]),
             'shareRevokePath' => $this->pathTemplates->generate('backend_studio_deck_share_revoke', ['id' => $deck->getId(), 'linkId' => '__linkId__']),
             ...$this->sharePayload($deck),
             'slideCreatePath' => $this->urlGenerator->generate('backend_studio_deck_slide_create', ['id' => $deck->getId()]),
             'slideUpdatePath' => $this->pathTemplates->generate('backend_studio_deck_slide_update', ['id' => $deck->getId(), 'slideId' => '__slideId__']),
             'slideDeletePath' => $this->pathTemplates->generate('backend_studio_deck_slide_delete', ['id' => $deck->getId(), 'slideId' => '__slideId__']),
+            'slideDuplicatePath' => $this->pathTemplates->generate('backend_studio_deck_slide_duplicate', ['id' => $deck->getId(), 'slideId' => '__slideId__']),
             'slideReorderPath' => $this->urlGenerator->generate('backend_studio_deck_slide_reorder', ['id' => $deck->getId()]),
         ];
     }
@@ -90,6 +105,24 @@ final readonly class DecksViewBuilder
     public function deckPayload(DeckInterface $deck): array
     {
         return ['deck' => $this->serializer->full($deck)];
+    }
+
+    /**
+     * A deck's look after a write, without its slides.
+     *
+     * The panel changes colours, not content, and the whole deck would be the
+     * slides sent back for three hexadecimal strings the page then has to pick
+     * out of them.
+     *
+     * @return array<string, mixed>
+     */
+    public function appearancePayload(DeckInterface $deck): array
+    {
+        return [
+            'theme' => $deck->getTheme()->value,
+            'style' => $deck->getStyle(),
+            'appearance' => $this->serializer->appearanceOf($deck),
+        ];
     }
 
     /**
@@ -104,6 +137,11 @@ final readonly class DecksViewBuilder
     public function sharePayload(DeckInterface $deck): array
     {
         return [
+            // Answered with the links rather than with the deck: it is only a
+            // problem once there is somebody who cannot see the picture, and
+            // the panel that creates links is where the author is standing
+            // when that becomes true.
+            'withheldPictures' => $this->deckPictures->withheldIn($deck),
             'shareLinks' => array_map(
                 fn (DeckShareLinkInterface $link): array => [
                     'id' => $link->getId(),
@@ -116,6 +154,8 @@ final readonly class DecksViewBuilder
                     'expiresAt' => $link->getExpiresAt()?->format(DATE_ATOM),
                     'revokedAt' => $link->getRevokedAt()?->format(DATE_ATOM),
                     'lastUsedAt' => $link->getLastUsedAt()?->format(DATE_ATOM),
+                    'openCount' => $link->getOpenCount(),
+                    'locked' => $link->isLocked(),
                     'createdAt' => $link->getCreatedAt()->format(DATE_ATOM),
                 ],
                 $this->shareLinks->findForDeck($deck),
@@ -179,12 +219,77 @@ final readonly class DecksViewBuilder
         );
     }
 
+    /**
+     * The themes, each carrying the colours it starts from.
+     *
+     * The palette travels with the option so the picker can draw the theme
+     * rather than name it: five words in a select say nothing about what they
+     * look like, and the whole point of the list is the look.
+     *
+     * The pair of faces travels with it for the same reason as the palette: the
+     * panel previews a theme before it is saved, and without the theme's own
+     * pair it would preview the new colours in the *previous* theme's faces.
+     *
+     * @return list<array{value: string, labelKey: string, palette: array{background: string, ink: string, accent: string}, fontPair: string}>
+     */
+    private function themeOptions(): array
+    {
+        return array_map(
+            static fn (DeckThemeEnum $theme): array => [
+                'value' => $theme->value,
+                'labelKey' => $theme->labelKey(),
+                'palette' => $theme->palette(),
+                'fontPair' => $theme->fonts()->value,
+            ],
+            DeckThemeEnum::cases(),
+        );
+    }
+
+    /** @return list<array{value: string, labelKey: string, heading: string, body: string}> */
+    private function fontPairOptions(): array
+    {
+        return array_map(
+            static fn (DeckFontPairEnum $pair): array => [
+                'value' => $pair->value,
+                'labelKey' => $pair->labelKey(),
+                'heading' => $pair->heading(),
+                'body' => $pair->body(),
+            ],
+            DeckFontPairEnum::cases(),
+        );
+    }
+
+    /** @return list<array{value: string, labelKey: string}> */
+    private function transitionOptions(): array
+    {
+        return array_map(
+            static fn (DeckTransitionEnum $transition): array => [
+                'value' => $transition->value,
+                'labelKey' => $transition->labelKey(),
+            ],
+            DeckTransitionEnum::cases(),
+        );
+    }
+
+    /** @return list<array{value: string, labelKey: string}> */
+    private function logoPlacementOptions(): array
+    {
+        return array_map(
+            static fn (DeckLogoPlacementEnum $placement): array => [
+                'value' => $placement->value,
+                'labelKey' => $placement->labelKey(),
+            ],
+            DeckLogoPlacementEnum::cases(),
+        );
+    }
+
     /** @return array<string, string> */
     private function paths(): array
     {
         return [
             'showPath' => $this->pathTemplates->generate('backend_studio_deck', ['id' => '__id__']),
             'createPath' => $this->urlGenerator->generate('backend_studio_decks_create'),
+            'importPath' => $this->urlGenerator->generate('backend_studio_decks_import'),
             'updatePath' => $this->pathTemplates->generate('backend_studio_decks_update', ['id' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('backend_studio_decks_delete', ['id' => '__id__']),
             'duplicatePath' => $this->pathTemplates->generate('backend_studio_decks_duplicate', ['id' => '__id__']),

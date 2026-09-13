@@ -1,0 +1,26 @@
+{# La vue présentateur, sur sa propre page.
+
+   Page autonome et non panneau de l'éditeur, comme la page d'impression et
+   pour la même raison : elle vit dans une seconde fenêtre, sur un second
+   écran, et tout ce que le back-office porte autour d'un module y serait du
+   décor qui prend la place des notes. #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="robots" content="noindex, nofollow">
+        <title>{{ deck.title }}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        {{ include('@Shared/components/theme_script.html.twig', {colorScheme: true}) }}
+        {{ vite_entry_link_tags('app') }}
+        {{ include('@Shared/components/primary_color_style.html.twig') }}
+        {{ vite_entry_script_tags('app') }}
+        {{ vite_entry_script_tags('theme') }}
+    </head>
+    <body class="bg-body">
+        <div {{ vue_component('studio/backend/decks/DeckPresenterApp', {
+            deck: deck,
+        }) }}></div>
+    </body>
+</html>

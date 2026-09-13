@@ -29,6 +29,16 @@ Le menu d'une ligne propose « Dupliquer ». La copie emporte les slides et la r
 
 ![Le menu d'une ligne](../../images/06-studio/presentations-03-le-menu-d-une-ligne.png)
 
+## Les modèles
+
+Une présentation peut être marquée **« C'est un modèle »**, dans la fenêtre qui la crée ou dans celle qui la modifie. Elle porte alors un badge dans la liste, et elle est proposée au moment d'en créer une nouvelle, sous « Partir d'un modèle ».
+
+Partir d'un modèle reprend **ses slides et son apparence**, et rien d'autre : le titre, la rubrique et le client sont ceux que vous venez de saisir. C'est ce qui distingue le modèle de la duplication, laquelle reprend aussi le classement de la présentation copiée.
+
+La présentation ainsi créée **n'est pas elle-même un modèle**. Sans quoi une liste de trois modèles en compte trente au bout d'un mois.
+
+Un modèle reste une présentation ordinaire : elle se compose, se présente, s'imprime et se partage comme les autres. Le jour où vous voulez montrer votre modèle, il n'y a rien à convertir.
+
 ## Ce que la liste montre
 
 Le nombre de slides de chaque présentation, sa rubrique, son client s'il y en a un. La colonne de droite trie les plus récemment modifiées en premier : une présentation se retrouve par ce sur quoi on a travaillé récemment, pas par un nom qu'on connaîtrait déjà.

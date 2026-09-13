@@ -9,6 +9,7 @@ use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Module\Studio\Deck\Entity\Deck;
 use Aurora\Module\Studio\Deck\Entity\SlideInterface;
+use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Serializer\DeckSerializer;
@@ -28,6 +29,10 @@ use function is_array;
 use function is_int;
 use function is_string;
 use function mb_substr;
+use function mb_trim;
+use function password_hash;
+
+use const PASSWORD_DEFAULT;
 
 /**
  * One deck's slides: the page that composes them, and the four writes it makes.
@@ -71,6 +76,50 @@ class SlidesController extends AbstractController
         return $this->render('@Studio/backend/decks/print.html.twig', [
             'deck' => $this->serializer->full($deck),
             'autoPrint' => $request->query->getBoolean('print'),
+        ]);
+    }
+
+    /**
+     * The deck's appearance, written from the panel on its own page.
+     *
+     * Its own route rather than a field on the deck update, because the two are
+     * edited from two different screens: the title and the client are set in
+     * the list's modal, the look is set while looking at a slide. Posting the
+     * whole deck from here would mean the panel carrying a title it never shows
+     * and overwriting whatever the list had just changed.
+     */
+    #[Route('/appearance', name: '_appearance', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.decks.edit')]
+    public function appearance(Deck $deck, Request $request): JsonResponse
+    {
+        $payload = $this->decodeJson($request);
+
+        $theme = DeckThemeEnum::tryFrom(is_string($payload['theme'] ?? null) ? $payload['theme'] : '');
+
+        if (null === $theme) {
+            return $this->jsonInvalidInput(['theme' => 'backend.studio.decks.errors.theme_unknown']);
+        }
+
+        $this->deckManager->writeAppearance($deck, $theme, is_array($payload['style'] ?? null) ? $payload['style'] : []);
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess($this->viewBuilder->appearancePayload($deck));
+    }
+
+    /**
+     * The presenter's own screen.
+     *
+     * Behind `studio.decks.view` like the rest of this controller, and that is
+     * the whole difference with the public share link: the notes are the
+     * presenter's, so the page that shows them is one somebody signed in to
+     * reach. `PublicDeckController` strips them from its payload for the same
+     * reason, one door further out.
+     */
+    #[Route('/presenter', name: '_presenter', methods: [HttpMethodEnum::Get->value])]
+    public function presenter(Deck $deck): Response
+    {
+        return $this->render('@Studio/backend/decks/presenter.html.twig', [
+            'deck' => $this->serializer->full($deck),
         ]);
     }
 
@@ -118,6 +167,29 @@ class SlidesController extends AbstractController
         $this->entityManager->flush();
 
         return $this->jsonSuccess(['slide' => $this->serializer->slide($slide)]);
+    }
+
+    /**
+     * Copy a slide inside its own deck.
+     *
+     * The `edit` privilege and not `create`: the deck already exists and its
+     * row count does not change, unlike duplicating a whole deck, which writes
+     * a new one and asks for `create` accordingly.
+     */
+    #[Route('/slides/{slideId}/duplicate', name: '_slide_duplicate', requirements: ['slideId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.decks.edit')]
+    public function duplicateSlide(Deck $deck, int $slideId): JsonResponse
+    {
+        $slide = $this->slideOf($deck, $slideId);
+
+        if (!$slide instanceof SlideInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $copy = $this->deckManager->duplicateSlide($slide);
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess(['slide' => $this->serializer->slide($copy)]);
     }
 
     #[Route('/slides/{slideId}/delete', name: '_slide_delete', requirements: ['slideId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
@@ -177,6 +249,15 @@ class SlidesController extends AbstractController
         $days = is_int($payload['expiresInDays'] ?? null) ? $payload['expiresInDays'] : null;
         if (null !== $days && $days > 0) {
             $link->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', $days)));
+        }
+
+        // `password_hash` and not the SHA-256 the contract access link uses on
+        // its token. That token is 32 random bytes, where a fast hash is the
+        // right tool; this is a phrase a person chose, and people reuse
+        // phrases. What leaks here must not open anything else.
+        $password = is_string($payload['password'] ?? null) ? mb_trim($payload['password']) : '';
+        if ('' !== $password) {
+            $link->setPasswordHash(password_hash($password, PASSWORD_DEFAULT));
         }
 
         $this->entityManager->persist($link);

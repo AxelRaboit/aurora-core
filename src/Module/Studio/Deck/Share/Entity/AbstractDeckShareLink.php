@@ -69,6 +69,32 @@ abstract class AbstractDeckShareLink implements DeckShareLinkInterface
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $lastUsedAt = null;
 
+    /**
+     * How many times the link has been opened.
+     *
+     * A counter and not a log. "Did they read it, and did they come back to it"
+     * is the question a sender actually has, and it is answered by a number;
+     * a row per opening would be a record of somebody's reading habits kept
+     * because it was easy, which is not a reason to keep one.
+     */
+    #[ORM\Column(options: ['default' => 0])]
+    protected int $openCount = 0;
+
+    /**
+     * A second secret, on top of the address, for the deck that needs one.
+     *
+     * **Hashed, unlike the token.** The address is the credential and hashing it
+     * would buy nothing, since a database of decks that leaks has already
+     * leaked the decks. A password is different in one way that decides it:
+     * people reuse passwords. What leaks here must not open anything else.
+     *
+     * Null is the ordinary case. A link that is hard to guess and expires is
+     * enough for most of what gets shared, and a password on every link is a
+     * password nobody types and everybody mails alongside the address.
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    protected ?string $passwordHash = null;
+
     #[ORM\Column]
     protected DateTimeImmutable $createdAt;
 
@@ -135,8 +161,35 @@ abstract class AbstractDeckShareLink implements DeckShareLinkInterface
     public function touch(DateTimeImmutable $at): static
     {
         $this->lastUsedAt = $at;
+        ++$this->openCount;
 
         return $this;
+    }
+
+    public function getOpenCount(): int
+    {
+        return $this->openCount;
+    }
+
+    public function isLocked(): bool
+    {
+        return null !== $this->passwordHash;
+    }
+
+    /**
+     * Sets or clears the password. The hashing is the caller's, because the
+     * hasher is a service and an entity does not reach for one.
+     */
+    public function setPasswordHash(?string $passwordHash): static
+    {
+        $this->passwordHash = $passwordHash;
+
+        return $this;
+    }
+
+    public function getPasswordHash(): ?string
+    {
+        return $this->passwordHash;
     }
 
     public function getCreatedAt(): DateTimeImmutable

@@ -418,6 +418,8 @@ backend:
                 title_required: Le titre est obligatoire.
                 title_too_long: Le titre est trop long.
                 layout_unknown: Ce gabarit n'existe pas.
+                theme_unknown: Ce thème n'existe pas.
+                import_empty: Ce document ne contient rien dont on puisse faire une slide.
             share: Partager
             share_intro: Une adresse secrète qui ouvre cette présentation sans compte. Les notes d'orateur n'y sont jamais.
             share_label: Intitulé
@@ -463,7 +465,129 @@ backend:
             bullets_placeholder: Une puce par ligne.
             prose_placeholder: Le texte affiché sur la slide.
             image_hint: Choisie dans la médiathèque, ou déposée depuis votre machine.
+            appearance: Apparence
+            appearance_saved: Apparence enregistrée
+            appearance_preview_hint: L'aperçu suit vos choix, la présentation ne change qu'à l'enregistrement.
+            appearance_sample_title: Le titre de votre présentation
+            appearance_sample_subtitle: Le sous-titre, sur une ligne
+            appearance_overrides_kept: Vos couleurs personnalisées restent appliquées par-dessus ce thème.
+            theme: Thème
+            themes:
+                slate: Ardoise
+                ink: Encre
+                paper: Papier
+                bold: Affirmé
+                midnight: Minuit
+            colours: Couleurs
+            colour_background: Fond
+            colour_ink: Texte
+            colour_accent: Accent
+            colour_inherited: Du thème
+            colour_reset: Revenir au thème
+            colour_reset_all: Tout revenir au thème
+            fonts_label: Typographie
+            font_from_theme: Celle du thème
+            fonts:
+                sans: Sans empattement
+                serif: Avec empattements
+                editorial: Titres serif, texte sans
+                technical: Titres chasse fixe, texte sans
+            signature: Signature
+            logo: Logo
+            logo_hint: Affiché en petit, dans un coin de la slide.
+            logo_placement: Où l'afficher
+            logo_placements:
+                none: Nulle part
+                cover: Sur la couverture
+                every: Sur toutes les slides
+            footer_text: Mention de pied de page
+            footer_text_placeholder: Confidentiel, ne pas diffuser
+            slide_numbers: Numéroter les slides
+            slide_numbers_hint: La couverture n'est jamais numérotée.
+            common_slots: Fond et sur-titre
+            kicker_placeholder: Audit, partie 2, Notre proposition…
+            backdrop_hint: Une photo derrière le texte, sur n'importe quel gabarit.
+            backdrop_dim: Voile
+            backdrop_dim_hint: Assombrit l'image vers la couleur de fond, pour que le texte reste lisible.
+            side_left: À gauche
+            side_right: À droite
+            line_placeholders:
+                series: "Une donnée par ligne. Étiquette | valeur"
+                bullets: Une puce par ligne.
+                items: "Une carte par ligne. Titre | description"
+                steps: "Une étape par ligne. Nom | précision"
+                rows: "Une ligne du tableau par ligne, cellules séparées par |. La première est l'en-tête."
+            emphasis_hint: "Dans le texte d'une slide : **gras**, *italique*, `code`."
+            chart_types:
+                bar: Barres
+                line: Courbe
+                doughnut: Anneau
+            duplicate_slide: Dupliquer la slide
+            slide_duplicated: Slide dupliquée
+            drag_hint: Glisser pour déplacer
+            presenter: Vue présentateur
+            presenter_now: Slide en cours
+            presenter_next: Slide suivante
+            presenter_end: Fin de la présentation.
+            presenter_no_note: Aucune note pour cette slide.
+            presenter_linked: Reliée au plein écran
+            presenter_alone: Aucune fenêtre de présentation ouverte
+            timer_start: Démarrer le minuteur
+            timer_pause: Mettre en pause
+            timer_reset: Remettre à zéro
+            media_fit_contain: Entière, sans rognage
+            media_fit_cover: Remplir le cadre
+            media_focus_hint: Cliquez sur ce qui doit rester visible quand l'image est rognée.
+            import: Importer un document
+            import_submit: Créer les slides
+            imported: Présentation créée à partir du document
+            import_intro: Écrivez ou collez votre document. Un titre ouvre une slide, et ce qui suit la remplit.
+            import_document: Le document
+            import_placeholder: Collez ici, ou écrivez…
+            import_hint: Les listes deviennent des slides à puces, les citations des citations, les tableaux des tableaux. Plusieurs blocs sous un même titre font plusieurs slides qui le répètent.
+            is_template: C'est un modèle
+            is_template_hint: Les modèles sont proposés au moment de créer une présentation.
+            template_badge: Modèle
+            from_template: Partir d'un modèle
+            from_nothing: Partir de rien
+            fold_chapter: Replier ce chapitre
+            unfold_chapter: Déplier ce chapitre
+            locked_title: Présentation protégée
+            locked_intro: Cette adresse demande un mot de passe. Il vous a été communiqué avec le lien.
+            locked_password: Mot de passe
+            locked_submit: Ouvrir la présentation
+            locked_failed: Ce lien ou ce mot de passe ne convient pas.
+            share_password: Mot de passe
+            share_password_placeholder: Laisser vide pour un lien sans mot de passe
+            share_password_hint: Communiquez-le autrement que par le message qui porte le lien.
+            share_locked: Protégé par mot de passe
+            share_opened: 'Ouvert {count} fois'
+            share_opened_once: Ouvert une fois
+            overview: Sommaire
+            pointer: Pointeur
+            transition: Transition
+            transitions:
+                none: Aucune
+                fade: Fondu
+                slide: Glissement
+            transition_hint: Elle n'existe qu'au plein écran. Le papier et le lien de partage n'en portent pas.
+            withheld_title: "Une image de cette présentation n'est pas publiée | {count} images de cette présentation ne sont pas publiées"
+            withheld_hint: Le destinataire d'un lien ne les verra pas. Publiez-les dans la médiathèque pour qu'elles apparaissent.
+            usage_detail: Présentation
             slots:
+                mediaFit: Cadrage de l'image
+                mediaFocus: Point de visée
+                chartType: Type de graphique
+                series: Données
+                value: Le chiffre
+                label: Ce qu'il compte
+                text: Texte
+                side: Côté de l'image
+                items: Cartes
+                steps: Étapes
+                rows: Lignes
+                kicker: Sur-titre
+                bgMediaId: Image de fond
                 title: Titre
                 subtitle: Sous-titre
                 bullets: Puces
@@ -474,6 +598,12 @@ backend:
                 caption: Légende
                 mediaId: Image
             layouts:
+                chart: Graphique
+                stat: Chiffre clé
+                image_text: Image et texte
+                cards: Cartes
+                timeline: Frise
+                table: Tableau
                 title: Titre
                 bullets: Titre et puces
                 image: Image pleine page

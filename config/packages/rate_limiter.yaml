@@ -17,3 +17,12 @@ framework:
             policy: sliding_window
             limit: 15
             interval: '1 hour'
+
+        # The password on a deck share link. Keyed on the client IP, like the
+        # two above and with the same caveat: an attacker rotates addresses, so
+        # this is the outer wall. The inner one is that a wrong password says
+        # exactly what a wrong address says, and nothing about which it was.
+        deck_share_password:
+            policy: sliding_window
+            limit: 20
+            interval: '1 hour'

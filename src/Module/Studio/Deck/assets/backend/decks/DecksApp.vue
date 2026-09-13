@@ -25,8 +25,11 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
+import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
+import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import {
     Copy,
+    FileInput,
     Pencil,
     Plus,
     Presentation,
@@ -46,6 +49,7 @@ const props = defineProps({
     layouts: { type: Array, default: () => [] },
     showPath: { type: String, required: true },
     createPath: { type: String, required: true },
+    importPath: { type: String, required: true },
     updatePath: { type: String, required: true },
     deletePath: { type: String, required: true },
     duplicatePath: { type: String, required: true },
@@ -60,12 +64,20 @@ const {
     filteredItems,
     categoryOptions,
     customerOptions,
+    templateOptions,
     showCreate,
     newDeck,
     createErrors,
     createLoading,
     openCreate,
     submitCreate,
+    showImport,
+    importDeck,
+    importBlocks,
+    importErrors,
+    importLoading,
+    openImport,
+    submitImport,
     showEdit,
     editingDeck,
     editForm,
@@ -152,6 +164,14 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
             <template #actions>
                 <AppButton
                     v-if="can('studio.decks.create')"
+                    variant="ghost"
+                    v-on:click="openImport"
+                >
+                    <FileInput class="h-4 w-4" :stroke-width="2" />
+                    {{ t("backend.studio.decks.import") }}
+                </AppButton>
+                <AppButton
+                    v-if="can('studio.decks.create')"
                     variant="primary"
                     v-on:click="openCreate"
                 >
@@ -194,6 +214,15 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                                 class="block font-medium text-primary no-underline hover:text-accent"
                                 :href="deckUrl(deck)"
                             >{{ deck.title }}</a>
+                            <!-- Le badge sur la ligne plutôt qu'un filtre de
+                                 plus : un modèle se reconnaît en passant, et
+                                 la liste en porte trois, pas trente. -->
+                            <span
+                                v-if="deck.isTemplate"
+                                class="mt-0.5 inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-600/10 px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide text-accent"
+                            >
+                                {{ t("backend.studio.decks.template_badge") }}
+                            </span>
                             <span v-if="deck.description" class="block text-xs text-muted line-clamp-1">{{ deck.description }}</span>
                         </td>
                         <td class="hidden px-6 py-3 lg:table-cell">
@@ -281,6 +310,16 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
             v-on:close="showCreate = false"
         >
             <form class="space-y-4" v-on:submit.prevent="submitCreate">
+                <!-- Le modèle en premier : c'est la question qui décide de
+                     tout ce qui suit, et on n'a pas envie de la découvrir
+                     après avoir tapé un titre. -->
+                <AppSelect
+                    v-if="templateOptions.length"
+                    v-model="newDeck.fromTemplateId"
+                    :options="templateOptions"
+                    :label="t('backend.studio.decks.from_template')"
+                    :placeholder="t('backend.studio.decks.from_nothing')"
+                />
                 <AppInput
                     v-model="newDeck.title"
                     :label="t('backend.studio.decks.title_column')"
@@ -307,6 +346,11 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                     :label="t('backend.studio.decks.customer')"
                     :placeholder="t('backend.studio.decks.no_customer')"
                 />
+                <AppToggle
+                    v-model="newDeck.isTemplate"
+                    :label="t('backend.studio.decks.is_template')"
+                    :hint="t('backend.studio.decks.is_template_hint')"
+                />
             </form>
             <template #footer>
                 <AppModalFooter>
@@ -317,6 +361,76 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                     <AppButton variant="primary" size="md" :loading="createLoading" v-on:click="submitCreate">
                         <Save class="h-3.5 w-3.5" :stroke-width="2" />
                         {{ t("shared.common.save") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
+
+        <AppModal
+            :show="showImport"
+            max-width="4xl"
+            :closeable="false"
+            :title="t('backend.studio.decks.import')"
+            :icon="FileInput"
+            v-on:close="showImport = false"
+        >
+            <form class="space-y-4" v-on:submit.prevent="submitImport">
+                <p class="m-0 text-sm text-secondary">
+                    {{ t("backend.studio.decks.import_intro") }}
+                </p>
+
+                <AppInput
+                    v-model="importDeck.title"
+                    :label="t('backend.studio.decks.title_column')"
+                    :placeholder="t('backend.studio.decks.title_placeholder')"
+                    :error="importErrors.title ?? ''"
+                    required
+                />
+
+                <AppSelect
+                    v-model="importDeck.categoryId"
+                    :options="categoryOptions"
+                    :label="t('backend.studio.decks.category')"
+                    :placeholder="t('backend.studio.decks.uncategorised')"
+                />
+
+                <div class="space-y-1.5">
+                    <span class="text-xs uppercase tracking-wide text-muted">
+                        {{ t("backend.studio.decks.import_document") }}
+                    </span>
+                    <!-- Le document vit dans la modale et n'est jamais
+                         enregistré : ce qui est gardé, ce sont les slides qu'il
+                         produit. Un brouillon conservé à côté du deck serait
+                         une seconde version du même texte, et la question de
+                         savoir laquelle fait foi. -->
+                    <div class="max-h-96 overflow-y-auto rounded-lg border border-line bg-surface-2 p-2">
+                        <AppBlockEditor
+                            v-model="importBlocks"
+                            :placeholder="t('backend.studio.decks.import_placeholder')"
+                        />
+                    </div>
+                    <p class="m-0 text-xs text-muted">
+                        {{ t("backend.studio.decks.import_hint") }}
+                    </p>
+                    <p v-if="importErrors.blocks" class="m-0 text-xs text-rose-400">
+                        {{ t(importErrors.blocks) }}
+                    </p>
+                </div>
+            </form>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="showImport = false">
+                        <X class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.cancel") }}
+                    </AppButton>
+                    <AppButton
+                        variant="primary"
+                        size="md"
+                        :loading="importLoading"
+                        v-on:click="submitImport"
+                    >
+                        <FileInput class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("backend.studio.decks.import_submit") }}
                     </AppButton>
                 </AppModalFooter>
             </template>
@@ -356,6 +470,11 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                     :options="customerOptions"
                     :label="t('backend.studio.decks.customer')"
                     :placeholder="t('backend.studio.decks.no_customer')"
+                />
+                <AppToggle
+                    v-model="editForm.isTemplate"
+                    :label="t('backend.studio.decks.is_template')"
+                    :hint="t('backend.studio.decks.is_template_hint')"
                 />
             </form>
             <template #footer>

@@ -13,7 +13,14 @@ import { required } from "@/shared/utils/validation/validators.js";
  * time and the tenth. What differs is only where the answer is sent.
  */
 function emptyForm() {
-    return { title: "", description: "", categoryId: "", customerId: "" };
+    return {
+        title: "",
+        description: "",
+        categoryId: "",
+        customerId: "",
+        isTemplate: false,
+        fromTemplateId: "",
+    };
 }
 
 function formFrom(deck) {
@@ -22,6 +29,8 @@ function formFrom(deck) {
         description: deck.description ?? "",
         categoryId: deck.category?.id ? String(deck.category.id) : "",
         customerId: deck.customer?.id ? String(deck.customer.id) : "",
+        isTemplate: deck.isTemplate === true,
+        fromTemplateId: "",
     };
 }
 
@@ -32,6 +41,10 @@ function toPayload(form) {
         description: form.description || null,
         categoryId: form.categoryId ? Number(form.categoryId) : null,
         customerId: form.customerId ? Number(form.customerId) : null,
+        isTemplate: form.isTemplate === true,
+        fromTemplateId: form.fromTemplateId
+            ? Number(form.fromTemplateId)
+            : null,
     };
 }
 
@@ -72,6 +85,19 @@ export function useDecksList(props) {
             value: String(category.id),
             label: category.name,
         })),
+    );
+
+    /**
+     * The models a new deck can be opened from.
+     *
+     * Read off the list itself rather than fetched: the list is already here,
+     * a template is a row in it, and a second source would be a second thing
+     * that can disagree about which decks are models.
+     */
+    const templateOptions = computed(() =>
+        items.value
+            .filter((deck) => deck.isTemplate)
+            .map((deck) => ({ value: String(deck.id), label: deck.title })),
     );
 
     const customerOptions = computed(() =>
@@ -130,6 +156,49 @@ export function useDecksList(props) {
         newDeck.value = emptyForm();
         clearCreate();
         showCreate.value = true;
+    }
+
+    /**
+     * A written document, in as a deck.
+     *
+     * The blocks are sent as they are and converted on the server, which is
+     * where the rule lives. On success the page goes straight to the new deck:
+     * an import is not finished when the row appears, it is finished when
+     * somebody has seen what it made of their document.
+     */
+    const showImport = ref(false);
+    const importDeck = ref(emptyForm());
+    const importBlocks = ref([]);
+
+    const {
+        errors: importErrors,
+        loading: importLoading,
+        submit: submitImport,
+        clearErrors: clearImport,
+    } = useFormAction({
+        rules: () => rulesFor(importDeck),
+        url: () => props.importPath,
+        body: () => ({
+            ...toPayload(importDeck.value),
+            blocks: importBlocks.value,
+        }),
+        onSuccess: (data) => {
+            showImport.value = false;
+            toast.success(t("backend.studio.decks.imported"));
+
+            if (data?.deck?.id) {
+                window.location.assign(
+                    buildPath(props.showPath, { id: data.deck.id }),
+                );
+            }
+        },
+    });
+
+    function openImport() {
+        importDeck.value = emptyForm();
+        importBlocks.value = [];
+        clearImport();
+        showImport.value = true;
     }
 
     const showEdit = ref(false);
@@ -204,12 +273,20 @@ export function useDecksList(props) {
         categories,
         categoryOptions,
         customerOptions,
+        templateOptions,
         showCreate,
         newDeck,
         createErrors,
         createLoading,
         openCreate,
         submitCreate,
+        showImport,
+        importDeck,
+        importBlocks,
+        importErrors,
+        importLoading,
+        openImport,
+        submitImport,
         showEdit,
         editingDeck,
         editForm,

@@ -418,6 +418,8 @@ backend:
                 title_required: The title is required.
                 title_too_long: The title is too long.
                 layout_unknown: That layout does not exist.
+                theme_unknown: That theme does not exist.
+                import_empty: There is nothing in this document a slide could be made of.
             share: Share
             share_intro: A secret address that opens this presentation without an account. The speaker notes are never on it.
             share_label: Label
@@ -463,7 +465,129 @@ backend:
             bullets_placeholder: One bullet per line.
             prose_placeholder: The text shown on the slide.
             image_hint: Picked from the library, or uploaded from your machine.
+            appearance: Appearance
+            appearance_saved: Appearance saved
+            appearance_preview_hint: The preview follows your choices; the deck only changes once you save.
+            appearance_sample_title: Your deck's title
+            appearance_sample_subtitle: The subtitle, on one line
+            appearance_overrides_kept: Your own colours stay applied on top of this theme.
+            theme: Theme
+            themes:
+                slate: Slate
+                ink: Ink
+                paper: Paper
+                bold: Bold
+                midnight: Midnight
+            colours: Colours
+            colour_background: Background
+            colour_ink: Text
+            colour_accent: Accent
+            colour_inherited: From the theme
+            colour_reset: Back to the theme
+            colour_reset_all: All back to the theme
+            fonts_label: Typography
+            font_from_theme: The theme's own
+            fonts:
+                sans: Sans serif
+                serif: Serif
+                editorial: Serif headings, sans text
+                technical: Monospaced headings, sans text
+            signature: Signature
+            logo: Logo
+            logo_hint: Drawn small, in a corner of the slide.
+            logo_placement: Where to show it
+            logo_placements:
+                none: Nowhere
+                cover: On the cover
+                every: On every slide
+            footer_text: Footer line
+            footer_text_placeholder: Confidential, do not circulate
+            slide_numbers: Number the slides
+            slide_numbers_hint: The cover is never numbered.
+            common_slots: Backdrop and kicker
+            kicker_placeholder: Audit, Part two, Our proposal…
+            backdrop_hint: A photograph behind the text, on any layout.
+            backdrop_dim: Veil
+            backdrop_dim_hint: Dims the picture towards the background colour, so the text stays readable.
+            side_left: On the left
+            side_right: On the right
+            line_placeholders:
+                series: "One value per line. Label | figure"
+                bullets: One bullet per line.
+                items: "One card per line. Heading | description"
+                steps: "One step per line. Name | detail"
+                rows: "One row per line, cells separated by |. The first row is the header."
+            emphasis_hint: "In a slide's text: **bold**, *italic*, `code`."
+            chart_types:
+                bar: Bars
+                line: Line
+                doughnut: Doughnut
+            duplicate_slide: Duplicate the slide
+            slide_duplicated: Slide duplicated
+            drag_hint: Drag to move
+            presenter: Presenter view
+            presenter_now: Current slide
+            presenter_next: Next slide
+            presenter_end: End of the deck.
+            presenter_no_note: No note for this slide.
+            presenter_linked: Linked to the full screen
+            presenter_alone: No presentation window open
+            timer_start: Start the timer
+            timer_pause: Pause
+            timer_reset: Reset
+            media_fit_contain: Whole, never cropped
+            media_fit_cover: Fill the frame
+            media_focus_hint: Click what has to stay visible when the picture is cropped.
+            import: Import a document
+            import_submit: Make the slides
+            imported: Deck built from the document
+            import_intro: Write or paste your document. A heading opens a slide, and what follows fills it.
+            import_document: The document
+            import_placeholder: Paste here, or write…
+            import_hint: Lists become bullet slides, quotes become quotes, tables become tables. Several blocks under one heading make several slides that repeat it.
+            is_template: This is a model
+            is_template_hint: Models are offered when a new deck is created.
+            template_badge: Model
+            from_template: Start from a model
+            from_nothing: Start from nothing
+            fold_chapter: Fold this chapter
+            unfold_chapter: Unfold this chapter
+            locked_title: Protected deck
+            locked_intro: This address asks for a password. It was given to you with the link.
+            locked_password: Password
+            locked_submit: Open the deck
+            locked_failed: That link or that password does not fit.
+            share_password: Password
+            share_password_placeholder: Leave empty for a link without one
+            share_password_hint: Send it by something other than the message carrying the link.
+            share_locked: Password protected
+            share_opened: 'Opened {count} times'
+            share_opened_once: Opened once
+            overview: Overview
+            pointer: Pointer
+            transition: Transition
+            transitions:
+                none: None
+                fade: Fade
+                slide: Slide
+            transition_hint: It only exists in the full screen. Paper and share links carry none.
+            withheld_title: "One picture on this deck is not published | {count} pictures on this deck are not published"
+            withheld_hint: A link's holder will not see them. Publish them in the library for them to appear.
+            usage_detail: Deck
             slots:
+                mediaFit: How the picture fills
+                mediaFocus: Focal point
+                chartType: Chart type
+                series: Data
+                value: The figure
+                label: What it counts
+                text: Text
+                side: Picture side
+                items: Cards
+                steps: Steps
+                rows: Rows
+                kicker: Kicker
+                bgMediaId: Background picture
                 title: Title
                 subtitle: Subtitle
                 bullets: Bullets
@@ -474,6 +598,12 @@ backend:
                 caption: Caption
                 mediaId: Image
             layouts:
+                chart: Chart
+                stat: Key figure
+                image_text: Picture and text
+                cards: Cards
+                timeline: Timeline
+                table: Table
                 title: Title
                 bullets: Title and bullets
                 image: Full-page image

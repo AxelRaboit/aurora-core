@@ -23,5 +23,8 @@ class DeckInput
         public readonly ?string $description = null,
         public readonly ?int $categoryId = null,
         public readonly ?int $customerId = null,
+        public readonly bool $isTemplate = false,
+        /** The deck to copy the slides and the look from, when opening from a model. */
+        public readonly ?int $fromTemplateId = null,
     ) {}
 }

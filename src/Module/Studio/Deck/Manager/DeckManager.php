@@ -8,13 +8,20 @@ use Aurora\Module\Studio\Deck\Entity\Deck;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Entity\Slide;
 use Aurora\Module\Studio\Deck\Entity\SlideInterface;
+use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
+use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
+use LogicException;
 
 use function array_key_exists;
+use function in_array;
 use function is_array;
 use function is_int;
 use function is_string;
+use function max;
+use function min;
+use function preg_match;
 
 /**
  * Everything that writes a deck goes through here.
@@ -26,7 +33,10 @@ use function is_string;
  */
 class DeckManager
 {
-    public function __construct(protected readonly EntityManagerInterface $entityManager) {}
+    public function __construct(
+        protected readonly EntityManagerInterface $entityManager,
+        protected readonly DeckStyleNormalizer $styleNormalizer,
+    ) {}
 
     public function create(string $title): DeckInterface
     {
@@ -34,6 +44,24 @@ class DeckManager
         $deck->setTitle($title);
 
         $this->entityManager->persist($deck);
+
+        return $deck;
+    }
+
+    /**
+     * Write a deck's appearance: the theme it starts from, and what it changes.
+     *
+     * The two travel together because they are one panel and one answer: a
+     * theme chosen without its overrides being re-read would keep an accent
+     * from the previous theme, and a reader who picks `Paper` after `Ink` would
+     * get the paper ground under the ink deck's amber.
+     *
+     * @param array<string, mixed> $style
+     */
+    public function writeAppearance(DeckInterface $deck, DeckThemeEnum $theme, array $style): DeckInterface
+    {
+        $deck->setTheme($theme);
+        $deck->setStyle($this->styleNormalizer->normalize($style));
 
         return $deck;
     }
@@ -71,25 +99,57 @@ class DeckManager
     {
         $clean = [];
 
-        foreach ($slide->getLayout()->slots() as $slot) {
+        foreach ($slide->getLayout()->allSlots() as $slot) {
             if (!array_key_exists($slot, $content)) {
                 continue;
             }
 
             $value = $content[$slot];
 
-            // `mediaId` is the one slot that is not text: it points at a
-            // document in the library, and a string there would silently fail
-            // to resolve at render.
-            if ('mediaId' === $slot) {
-                if (is_int($value)) {
+            // The two picture slots are not text: they point at a document in
+            // the library, and a string there would silently fail to resolve at
+            // render. A zero or a negative is a picker that was cleared and
+            // posted what an empty field holds.
+            if ('mediaId' === $slot || 'bgMediaId' === $slot) {
+                if (is_int($value) && $value > 0) {
                     $clean[$slot] = $value;
                 }
 
                 continue;
             }
 
-            if ('bullets' === $slot) {
+            // `mediaFocus` lands in `object-position`, a CSS property, so a
+            // string that is not a position there does not fail: it makes the
+            // declaration invalid and the picture quietly re-centres, which
+            // reads as a choice being ignored. Two percentages or nothing.
+            if ('mediaFocus' === $slot) {
+                if (is_string($value) && 1 === preg_match('/^\d{1,3}% \d{1,3}%$/', $value)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            if ('mediaFit' === $slot) {
+                if (in_array($value, ['contain', 'cover'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // Clamped rather than refused: the control is a slider bounded at
+            // both ends, so an out-of-range value is a payload edited by hand,
+            // and a veil at 300% is a slide that is only a veil.
+            if ('bgDim' === $slot) {
+                if (is_int($value)) {
+                    $clean[$slot] = max(0, min(90, $value));
+                }
+
+                continue;
+            }
+
+            if (in_array($slot, SlideLayoutEnum::listSlots(), true)) {
                 if (is_array($value)) {
                     $clean[$slot] = array_values(array_filter($value, is_string(...)));
                 }
@@ -105,6 +165,45 @@ class DeckManager
         $slide->setContent($clean);
 
         return $slide;
+    }
+
+    /**
+     * Copy one slide, placed right after the one it copies.
+     *
+     * Through the same `addSlide` and `writeContent` the editor uses, so a slot
+     * added to a layout is carried over without anybody remembering to come
+     * back here. The positions after the copy are pushed along rather than
+     * recomputed from scratch: the rest of the deck has not moved, and
+     * rewriting every row would be a hundred updates to insert one.
+     */
+    public function duplicateSlide(SlideInterface $source): SlideInterface
+    {
+        $deck = $source->getDeck();
+
+        // A slide always has a deck: the column is not nullable and the only
+        // way to hold one is through the deck it belongs to. Said out loud
+        // because the getter is nullable for the moment between `new` and the
+        // `addSlide` that attaches it.
+        if (!$deck instanceof DeckInterface) {
+            throw new LogicException('a slide cannot be duplicated before it belongs to a deck');
+        }
+
+        $copy = $this->addSlide($deck, $source->getLayout());
+
+        $this->writeContent($copy, $source->getContent());
+        $copy->setSpeakerNotes($source->getSpeakerNotes());
+
+        $at = $source->getPosition() + 1;
+
+        foreach ($deck->getSlides() as $slide) {
+            if ($slide !== $copy && $slide->getPosition() >= $at) {
+                $slide->setPosition($slide->getPosition() + 1);
+            }
+        }
+
+        $copy->setPosition($at);
+
+        return $copy;
     }
 
     /**
