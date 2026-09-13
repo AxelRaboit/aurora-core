@@ -281,6 +281,7 @@ backend:
             in_force: En vigueur
             never_published: Jamais publiée
             no_draft: Aucun brouillon
+            view: Consulter
             open_draft: Ouvrir un brouillon
             duplicate: Dupliquer
             duplicate_suffix: (copie)
@@ -293,6 +294,7 @@ backend:
             show_archived: 'Afficher les archivées ({count})'
             hide_archived: Masquer les archivées
             row_actions:
+                view_description: Ouvre la version en vigueur, en lecture seule.
                 open_draft_description: Ouvre une nouvelle version modifiable, à partir du texte en vigueur.
                 discard_description: Supprime le brouillon et laisse la trame telle qu'elle est publiée.
                 duplicate_description: Crée une autre trame, en brouillon, avec le même texte.

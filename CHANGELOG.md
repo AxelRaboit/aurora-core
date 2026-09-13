@@ -5,6 +5,45 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.158] - 2026-09-13
+
+### Ajouté
+
+#### Consulter une trame de contrat sans l'ouvrir pour la modifier
+La liste des trames savait tout faire sauf lire. On pouvait ouvrir un
+brouillon, dupliquer, renommer, archiver, supprimer, mais la version en vigueur
+- celle qui sert à fabriquer les contrats, donc la plus intéressante à relire -
+n'avait aucune porte d'entrée.
+
+Les actions d'une ligne commencent maintenant par « Consulter », qui ouvre cette
+version en lecture seule. C'est un lien : on peut l'ouvrir dans un nouvel onglet
+et garder sa place dans la liste. Le badge vert de la version en vigueur y mène
+aussi, comme le badge orange menait déjà au brouillon.
+
+L'action demande le privilège de consultation, pas celui de modification : lire
+une trame et la réécrire ne sont pas le même droit.
+
+#### Importer des fichiers dans la médiathèque depuis la ligne de commande
+`aurora:ged:import` verse dans la médiathèque des fichiers déjà présents sur le
+serveur : un dossier de photographies, le contenu d'un site qu'on déménage, ce
+qu'un script a produit.
+
+Le chemin emprunté est exactement celui d'un dépôt par le navigateur : les
+octets partent sur le disque actif, la référence est tirée, les variantes
+responsives sont fabriquées, la première version est enregistrée et la ligne
+d'audit est écrite. Un document importé est indistinguable d'un document
+déposé, ce qui n'était pas le cas d'un INSERT écrit à la main.
+
+Le titre est le nom du fichier, rendu lisible. Le texte alternatif n'est pas
+deviné : un nom de fichier fait un titre passable et une description inutile, et
+un mauvais texte alternatif est pire que pas de texte alternatif, parce qu'un
+lecteur d'écran l'annonce avec aplomb. `--dry-run` liste sans rien écrire.
+
+### Dans aurora-client
+Rien à répercuter.
+
+---
+
 ## [0.9.157] - 2026-09-13
 
 ### Modifié

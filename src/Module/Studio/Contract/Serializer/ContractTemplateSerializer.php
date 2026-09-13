@@ -31,6 +31,10 @@ class ContractTemplateSerializer implements ContractTemplateSerializerInterface
             // being written. Either can be absent, and the absences mean
             // different things - never published, versus nothing open.
             'publishedVersion' => $published?->getNumber(),
+            // Its id as well as its number: the number is what a reader goes
+            // by, the id is what a link to it needs. Without it the version in
+            // force was the one thing on this screen with no way in.
+            'publishedVersionId' => $published?->getId(),
             'publishedAt' => $published?->getPublishedAt()?->format(DATE_ATOM),
             'draftVersion' => $draft?->getNumber(),
             'draftId' => $draft?->getId(),

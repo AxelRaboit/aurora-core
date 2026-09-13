@@ -207,6 +207,69 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         self::assertStringContainsString('Contrat mensuel', (string) $this->client->getResponse()->getContent());
     }
 
+    /**
+     * The list can link to the version in force, and could not before.
+     *
+     * The number was serialised and the id was not, so the one row on this
+     * screen a reader most wants to open - the wording actually in force - was
+     * the one with no way in. Asserted from the rendered index rather than
+     * from the serializer, because a field nobody passes to the component is
+     * still a field the screen does not have.
+     */
+    public function testTheIndexCarriesTheIdOfTheVersionInForce(): void
+    {
+        $created = $this->create('Contrat mensuel');
+        $templateId = $created['template']['id'];
+        $versionId = $created['draftId'];
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/backend/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
+            ['translations' => [
+                'fr' => ['title' => 'Contrat', 'content' => ['blocks' => [['type' => 'header']]]],
+            ]],
+        );
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/backend/studio/contract-templates/%d/versions/%d/publish', $templateId, $versionId),
+        );
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->client->request('GET', '/backend/studio/contract-templates');
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $row = $this->rowFromIndex($templateId);
+
+        self::assertNotNull($row);
+        self::assertSame($versionId, $row['publishedVersionId']);
+    }
+
+    /**
+     * One row of the `templates` prop, read back out of the rendered page.
+     *
+     * Named by its component rather than by the props attribute alone: the
+     * backend layout mounts the sidemenu the same way, and it comes first.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function rowFromIndex(int $templateId): ?array
+    {
+        $props = $this->client->getCrawler()
+            ->filter('[data-symfony--ux-vue--vue-component-value="studio/backend/contract-templates/ContractTemplatesApp"]')
+            ->attr('data-symfony--ux-vue--vue-props-value');
+
+        $templates = json_decode((string) $props, true)['templates'] ?? [];
+
+        foreach ($templates as $template) {
+            if ($templateId === $template['id']) {
+                return $template;
+            }
+        }
+
+        return null;
+    }
+
     /** @return array<string, mixed> */
     private function create(string $name): array
     {
