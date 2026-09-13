@@ -552,6 +552,17 @@ backend:
             from_nothing: Start from nothing
             fold_chapter: Fold this chapter
             unfold_chapter: Unfold this chapter
+            locked_title: Protected deck
+            locked_intro: This address asks for a password. It was given to you with the link.
+            locked_password: Password
+            locked_submit: Open the deck
+            locked_failed: That link or that password does not fit.
+            share_password: Password
+            share_password_placeholder: Leave empty for a link without one
+            share_password_hint: Send it by something other than the message carrying the link.
+            share_locked: Password protected
+            share_opened: 'Opened {count} times'
+            share_opened_once: Opened once
             slots:
                 mediaFit: How the picture fills
                 mediaFocus: Focal point

@@ -175,6 +175,7 @@ const {
     links,
     newLabel,
     expiresInDays,
+    newPassword,
     creating,
     createLink,
     revoke,
@@ -735,6 +736,14 @@ onBeforeUnmount(() => {
                     </AppButton>
                 </div>
 
+                <AppInput
+                    v-model="newPassword"
+                    type="password"
+                    :label="t('backend.studio.decks.share_password')"
+                    :placeholder="t('backend.studio.decks.share_password_placeholder')"
+                    :hint="t('backend.studio.decks.share_password_hint')"
+                />
+
                 <p v-if="!links.length" class="m-0 text-sm text-muted">
                     {{ t("backend.studio.decks.share_none") }}
                 </p>
@@ -779,7 +788,14 @@ onBeforeUnmount(() => {
                             <span v-if="link.revokedAt">{{ t("backend.studio.decks.share_revoked") }}</span>
                             <span v-else-if="link.expiresAt">{{ t("backend.studio.decks.share_expires_on", { date: d(new Date(link.expiresAt), "short") }) }}</span>
                             <span v-else>{{ t("backend.studio.decks.share_no_expiry") }}</span>
-                            <span v-if="link.lastUsedAt"> · {{ t("backend.studio.decks.share_last_used", { date: d(new Date(link.lastUsedAt), "short") }) }}</span>
+                            <span v-if="link.locked"> · {{ t("backend.studio.decks.share_locked") }}</span>
+                            <span v-if="link.lastUsedAt">
+                                ·
+                                {{ link.openCount > 1
+                                    ? t("backend.studio.decks.share_opened", { count: link.openCount })
+                                    : t("backend.studio.decks.share_opened_once") }}
+                                · {{ t("backend.studio.decks.share_last_used", { date: d(new Date(link.lastUsedAt), "short") }) }}
+                            </span>
                             <span v-else> · {{ t("backend.studio.decks.share_never_opened") }}</span>
                         </p>
                     </li>

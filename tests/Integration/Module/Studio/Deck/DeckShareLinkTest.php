@@ -7,10 +7,17 @@ namespace Aurora\Tests\Integration\Module\Studio\Deck;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
+use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+
+use function bin2hex;
+use function password_hash;
+use function random_bytes;
+
+use const PASSWORD_DEFAULT;
 
 /**
  * What a share link lets somebody see, and what it must not.
@@ -96,6 +103,115 @@ final class DeckShareLinkTest extends IntegrationTestCase
         self::assertNotNull($link->getLastUsedAt());
     }
 
+    public function testOpeningTheLinkTwiceCountsTwice(): void
+    {
+        $link = $this->link();
+
+        self::assertSame(0, $link->getOpenCount());
+
+        $token = $link->getToken();
+
+        $this->client->request('GET', '/decks/'.$token);
+        $this->client->request('GET', '/decks/'.$token);
+
+        self::assertSame(2, $this->reload($token)->getOpenCount());
+    }
+
+    /**
+     * A protected link shows a door, and the door says nothing about the deck.
+     *
+     * Not its title above all: the page exists so that somebody holding the
+     * address but not the password learns nothing, and a title is most of what
+     * there is to learn about a deck.
+     */
+    public function testAProtectedLinkAsksForItsPasswordAndNamesNothing(): void
+    {
+        [$link] = $this->lockedLink();
+
+        $this->client->request('GET', '/decks/'.$link->getToken());
+
+        self::assertResponseIsSuccessful();
+
+        $body = (string) $this->client->getResponse()->getContent();
+
+        self::assertStringNotContainsString('Revue de fin d annee', $body);
+        self::assertStringNotContainsString('PublicDeckApp', $body);
+        self::assertStringContainsString('type="password"', $body);
+    }
+
+    public function testTheRightPasswordOpensItAndTheSessionRemembers(): void
+    {
+        [$link, $phrase] = $this->lockedLink();
+
+        $this->client->request('POST', '/decks/'.$link->getToken().'/unlock', ['password' => $phrase]);
+        self::assertResponseRedirects();
+
+        $this->client->followRedirect();
+        self::assertStringContainsString('PublicDeckApp', (string) $this->client->getResponse()->getContent());
+
+        // Asked again later in the same session, the door does not reappear.
+        $this->client->request('GET', '/decks/'.$link->getToken());
+        self::assertStringContainsString('PublicDeckApp', (string) $this->client->getResponse()->getContent());
+    }
+
+    /**
+     * A wrong password answers what a wrong address answers.
+     *
+     * Telling the two apart would confirm to somebody guessing addresses that
+     * this one is real, which is the single thing a guessed token must not
+     * learn.
+     */
+    public function testAWrongPasswordOpensNothingAndSaysNothingMore(): void
+    {
+        [$link, $phrase] = $this->lockedLink();
+
+        $this->client->request('POST', '/decks/'.$link->getToken().'/unlock', ['password' => $phrase.'-faux']);
+
+        self::assertResponseIsSuccessful();
+
+        $body = (string) $this->client->getResponse()->getContent();
+
+        self::assertStringNotContainsString('PublicDeckApp', $body);
+        self::assertStringNotContainsString('Revue de fin d annee', $body);
+
+        self::assertSame(0, $this->reload($link->getToken())->getOpenCount(), 'a door that did not open is not an opening');
+    }
+
+    /** An unlocked session does not carry over to another protected link. */
+    public function testUnlockingOneLinkDoesNotUnlockAnother(): void
+    {
+        [$first, $phrase] = $this->lockedLink();
+        [$second] = $this->lockedLink();
+
+        $this->client->request('POST', '/decks/'.$first->getToken().'/unlock', ['password' => $phrase]);
+        $this->client->request('GET', '/decks/'.$second->getToken());
+
+        self::assertStringNotContainsString('PublicDeckApp', (string) $this->client->getResponse()->getContent());
+    }
+
+    /**
+     * A link behind a passphrase, and the passphrase.
+     *
+     * Generated rather than written down, and not for secrecy - this one lives
+     * for the length of one test. A literal beside `password_hash()` reads as a
+     * credential to every scanner that looks at a diff, and this repository has
+     * one on every pull request. Two links in the same test also get two
+     * different phrases for free, which is what
+     * `testUnlockingOneLinkDoesNotUnlockAnother` is about.
+     *
+     * @return array{0: DeckShareLink, 1: string}
+     */
+    private function lockedLink(): array
+    {
+        $phrase = bin2hex(random_bytes(8));
+
+        $link = $this->link();
+        $link->setPasswordHash(password_hash($phrase, PASSWORD_DEFAULT));
+        $this->entityManager()->flush();
+
+        return [$link, $phrase];
+    }
+
     private function link(?string $notes = null): DeckShareLink
     {
         $container = static::getContainer();
@@ -109,6 +225,22 @@ final class DeckShareLinkTest extends IntegrationTestCase
         $link = new DeckShareLink($deck);
         $this->entityManager()->persist($link);
         $this->entityManager()->flush();
+
+        return $link;
+    }
+
+    /**
+     * The link as the database now holds it.
+     *
+     * Re-fetched rather than refreshed: the test client reboots the kernel on
+     * every request, so an entity held across two of them is detached and
+     * `refresh()` refuses it.
+     */
+    private function reload(string $token): DeckShareLink
+    {
+        $link = static::getContainer()->get(DeckShareLinkRepository::class)->findByToken($token);
+
+        self::assertInstanceOf(DeckShareLink::class, $link);
 
         return $link;
     }

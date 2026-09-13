@@ -145,6 +145,8 @@ final readonly class DecksViewBuilder
                     'expiresAt' => $link->getExpiresAt()?->format(DATE_ATOM),
                     'revokedAt' => $link->getRevokedAt()?->format(DATE_ATOM),
                     'lastUsedAt' => $link->getLastUsedAt()?->format(DATE_ATOM),
+                    'openCount' => $link->getOpenCount(),
+                    'locked' => $link->isLocked(),
                     'createdAt' => $link->getCreatedAt()->format(DATE_ATOM),
                 ],
                 $this->shareLinks->findForDeck($deck),

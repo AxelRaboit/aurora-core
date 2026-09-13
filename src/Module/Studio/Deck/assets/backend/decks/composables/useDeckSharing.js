@@ -19,6 +19,7 @@ export function useDeckSharing(props) {
     const links = ref([...(props.shareLinks ?? [])]);
     const newLabel = ref("");
     const expiresInDays = ref("");
+    const newPassword = ref("");
     const creating = ref(false);
     const copiedId = ref(null);
 
@@ -41,12 +42,17 @@ export function useDeckSharing(props) {
                 expiresInDays: expiresInDays.value
                     ? Number(expiresInDays.value)
                     : null,
+                password: newPassword.value,
             });
 
             if (!data?.success) return;
 
             apply(data);
             newLabel.value = "";
+            // Cleared rather than kept: the field holds a secret, and a second
+            // link created from this panel would otherwise silently inherit
+            // the password of the first.
+            newPassword.value = "";
             toast.success(t("backend.studio.decks.share_created"));
         } finally {
             creating.value = false;
@@ -91,6 +97,7 @@ export function useDeckSharing(props) {
         links: computed(() => links.value),
         newLabel,
         expiresInDays,
+        newPassword,
         creating,
         copiedId,
         createLink,

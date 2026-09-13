@@ -552,6 +552,17 @@ backend:
             from_nothing: Partir de rien
             fold_chapter: Replier ce chapitre
             unfold_chapter: Déplier ce chapitre
+            locked_title: Présentation protégée
+            locked_intro: Cette adresse demande un mot de passe. Il vous a été communiqué avec le lien.
+            locked_password: Mot de passe
+            locked_submit: Ouvrir la présentation
+            locked_failed: Ce lien ou ce mot de passe ne convient pas.
+            share_password: Mot de passe
+            share_password_placeholder: Laisser vide pour un lien sans mot de passe
+            share_password_hint: Communiquez-le autrement que par le message qui porte le lien.
+            share_locked: Protégé par mot de passe
+            share_opened: 'Ouvert {count} fois'
+            share_opened_once: Ouvert une fois
             slots:
                 mediaFit: Cadrage de l'image
                 mediaFocus: Point de visée

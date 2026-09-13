@@ -29,6 +29,10 @@ use function is_array;
 use function is_int;
 use function is_string;
 use function mb_substr;
+use function mb_trim;
+use function password_hash;
+
+use const PASSWORD_DEFAULT;
 
 /**
  * One deck's slides: the page that composes them, and the four writes it makes.
@@ -245,6 +249,15 @@ class SlidesController extends AbstractController
         $days = is_int($payload['expiresInDays'] ?? null) ? $payload['expiresInDays'] : null;
         if (null !== $days && $days > 0) {
             $link->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', $days)));
+        }
+
+        // `password_hash` and not the SHA-256 the contract access link uses on
+        // its token. That token is 32 random bytes, where a fast hash is the
+        // right tool; this is a phrase a person chose, and people reuse
+        // phrases. What leaks here must not open anything else.
+        $password = is_string($payload['password'] ?? null) ? mb_trim($payload['password']) : '';
+        if ('' !== $password) {
+            $link->setPasswordHash(password_hash($password, PASSWORD_DEFAULT));
         }
 
         $this->entityManager->persist($link);
