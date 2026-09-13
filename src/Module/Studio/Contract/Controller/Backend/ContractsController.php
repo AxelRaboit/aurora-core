@@ -7,7 +7,6 @@ namespace Aurora\Module\Studio\Contract\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
-use Aurora\Core\Storage\BinaryFileServer;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -57,7 +56,6 @@ class ContractsController extends AbstractController
         protected readonly ContractSignatureInputFactoryInterface $signatureInputFactory,
         protected readonly ContractPdfGenerator $pdfGenerator,
         protected readonly ContractPdfExporter $pdfExporter,
-        protected readonly BinaryFileServer $fileServer,
         protected readonly TranslatorInterface $translator,
     ) {}
 

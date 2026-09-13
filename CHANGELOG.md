@@ -5,6 +5,22 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.163] - 2026-09-13
+
+### Interne
+
+#### Le contrôleur des contrats ne demande plus le serveur de fichiers
+`ContractsController` recevait un `BinaryFileServer` que plus aucune de ses
+méthodes n'appelait. Le PDF signé part par une `StreamedResponse` qui lit
+`ContractPdfGenerator::readStream()` : les octets passent par l'application,
+c'est ce qui les garde derrière l'autorisation, et le serveur de fichiers n'a
+jamais eu de rôle là-dedans. La dépendance est retirée, avec son import.
+
+Le constructeur perd donc un argument. La classe est un point d'extension, mais
+aucune sous-classe n'existe, ni ici ni dans les projets clients, et rien ne
+l'instancie à la main : l'autowiring fait le reste. `BinaryFileServer` reste le
+service qui sert `/uploads/{path}` via `UploadsServeController`.
+
 ## [0.9.162] - 2026-09-13
 
 ### Ajouté
