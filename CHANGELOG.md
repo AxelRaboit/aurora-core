@@ -5,6 +5,76 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.164] - 2026-09-13
+
+### Corrigé
+
+#### Un document de la GED ne se télécharge plus en devinant son adresse
+`/uploads/{path}` servait n'importe quel fichier déposé dans l'application à
+n'importe quel visiteur, sans session. Un contrat, une pièce d'identité, un
+document interne était donc lisible par qui devinait son chemin, ou son
+identifiant : `/document/{id}` est une séquence, elle s'énumère en comptant.
+
+L'entité portait pourtant déjà un statut, `draft` / `published` / `archived`,
+que personne ne consultait au moment de servir. C'est lui qui décide
+désormais : sans session, seuls les documents publiés sortent. Un brouillon,
+un document archivé, un document à la corbeille et un fichier qu'aucune ligne
+ne réclame répondent 404, le même 404 qu'un fichier absent, pour ne pas
+confirmer que l'adresse nomme quelque chose.
+
+Les fichiers dérivés suivent leur source. Une vignette et chacun des variants
+responsive ont leur propre adresse, dans leur propre dossier : retenir l'image
+en laissant sortir sa version « medium » aurait rouvert le trou un répertoire
+plus bas.
+
+#### Les PDF de contrats signés sortaient par la même porte
+Le module des contrats sert ses PDF par une route autorisée sous `/backend`,
+et le chemin de stockage est `contracts/<année>/<référence>.pdf`, une
+référence séquentielle. Cette autorisation se contournait donc en demandant le
+fichier au fourre-tout, qui ne demandait rien à personne. L'aire `contracts`
+n'est plus servie par cette adresse, pour personne : le module garde sa route,
+qui reste la seule.
+
+### Ajouté
+
+#### Savoir avant de livrer si une image publique va disparaître
+`php bin/console aurora:ged:audit-public-documents` liste, en lecture seule,
+les documents qu'une page publique référence sans qu'ils soient publiés : le
+logo, le favicon, l'image de partage par défaut, la vignette et l'`og:image`
+d'une publication, et les photos posées dans un bandeau, une grille ou une
+galerie.
+
+À lancer avant de déployer cette version. Le statut par défaut d'un envoi est
+`draft`, et le logo comme le favicon sont résolus par identifiant sans regarder
+le statut : un visuel choisi alors qu'il était encore en brouillon est le cas
+attendu, pas l'exception. La commande ne corrige rien, elle dit quoi regarder.
+
+### Interne
+
+#### Une aire de stockage déclare qui peut la lire
+`UploadsServeController` interroge `UploadAccessDecider` avant de répondre, et
+une aire pose sa règle en enregistrant un `UploadAccessGuardInterface` (tag
+`aurora.upload_access_guard`). Une aire que personne ne réclame reste
+anonyme : c'est le comportement d'avant, et il évite de casser un projet
+client qui range ses fichiers sous son propre préfixe.
+
+Le personnel lit les fichiers retenus par `backend_ged_files`, et cette route
+n'est pas un choix de style. Le pare-feu `admin` couvre `^/(backend|dev)` :
+sur `/uploads/…` aucune identité de back-office n'est restaurée, donc un
+contrôle de privilège posé là aurait refusé le back-office exactement comme un
+inconnu. `DocumentUrlGenerator` choisit la route selon le statut du document,
+si bien qu'aucun appelant n'a eu à changer.
+
+Un fichier retenu n'est jamais redirigé vers un lien signé ni vers un domaine
+public, quel que soit le mode de livraison configuré : un lien qui survit au
+contrôle qui l'a produit n'est pas un contrôle.
+
+### Dans aurora-client
+Rien à répercuter dans le code. En revanche, lancer
+`php bin/console aurora:ged:audit-public-documents` **avant** de basculer sur
+cette version, et publier les documents qu'elle remonte : sinon ils cessent
+d'être servis aux visiteurs.
+
 ## [0.9.163] - 2026-09-13
 
 ### Interne
