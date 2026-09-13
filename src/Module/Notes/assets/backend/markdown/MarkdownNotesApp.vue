@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMarkdownNotesPage } from '@notes/backend/markdown/composables/useMarkdownNotesPage.js';
-import { useNotesTrash } from '@notes/backend/markdown/composables/useNotesTrash.js';
 import NotePreview from '@notes/backend/markdown/components/NotePreview.vue';
 import NoteSidePanel from '@notes/backend/markdown/components/NoteSidePanel.vue';
 import NoteTagManagerModal from '@notes/backend/markdown/components/NoteTagManagerModal.vue';
@@ -20,7 +19,7 @@ import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
 import { onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { Plus, Trash2, FileText, PanelRightOpen, PanelRightClose, X, Settings2, Network, Share2, RotateCcw} from 'lucide-vue-next';
+import { Plus, Trash2, FileText, PanelRightOpen, PanelRightClose, X, Settings2, Network, Share2} from 'lucide-vue-next';
 
 const props = defineProps({
     notes: { type: Array, default: () => [] },
@@ -29,9 +28,6 @@ const props = defineProps({
     createPath: { type: String, required: true },
     updatePath: { type: String, required: true },
     deletePath: { type: String, required: true },
-    trashPath: { type: String, default: "" },
-    restorePath: { type: String, default: "" },
-    forceDeletePath: { type: String, default: "" },
     movePath: { type: String, required: true },
     reorderPath: { type: String, required: true },
     backlinksPath: { type: String, required: true },
@@ -116,18 +112,6 @@ const {
     refreshList,
 } = useMarkdownNotesPage(props, t);
 
-// The trash is opened from the toolbar and read on demand: nothing else on
-// this page needs to know it exists until somebody deleted something by
-// mistake.
-const {
-    open: trashOpen,
-    loading: trashLoading,
-    notes: trashedNotes,
-    openTrash,
-    restore: restoreNote,
-    forceDelete: forceDeleteNote,
-} = useNotesTrash(api, { onChanged: () => refreshList() });
-
 // Local to this component rather than folded into `useMarkdownNotesPage`:
 // sharing is opened from the toolbar and closed by the modal, and nothing in
 // the page composable reads it.
@@ -207,15 +191,6 @@ onUnmounted(() => {
                         <!-- Disabled until a note is selected: there is nothing to
                              share from an empty editor, and a modal that opens on
                              null would ask the server for share links of no note. -->
-                        <AppIconButton
-                            :title="t('notes.markdown.trash.title')"
-                            size="md"
-                            variant="ghost"
-                            v-on:click="openTrash"
-                        >
-                            <Trash2 class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-
                         <AppIconButton
                             :title="t('notes.markdown.share.button')"
                             size="md"
@@ -380,50 +355,6 @@ onUnmounted(() => {
             v-on:close="graphOpen = false"
             v-on:navigate="navigateFromGraph"
         />
-
-        <AppModal
-            :show="trashOpen"
-            max-width="md"
-            :title="t('notes.markdown.trash.title')"
-            :icon="Trash2"
-            v-on:close="trashOpen = false"
-        >
-            <p class="text-sm text-secondary">{{ t("notes.markdown.trash.banner") }}</p>
-            <p v-if="trashLoading" class="mt-4 text-sm text-muted">{{ t("shared.common.loading") }}</p>
-            <p v-else-if="!trashedNotes.length" class="mt-4 text-sm text-muted">{{ t("notes.markdown.trash.empty") }}</p>
-            <ul v-else class="mt-4 flex flex-col gap-1">
-                <li
-                    v-for="note in trashedNotes"
-                    :key="note.id"
-                    class="flex items-center gap-2 rounded-lg border border-line/60 px-3 py-2 text-sm"
-                >
-                    <FileText class="h-3.5 w-3.5 shrink-0 text-muted" :stroke-width="2" />
-                    <span class="min-w-0 flex-1 truncate">{{ note.title || t("notes.markdown.trash.untitled") }}</span>
-                    <AppIconButton
-                        :title="t('notes.markdown.trash.restore')"
-                        size="xs"
-                        v-on:click="restoreNote(note)"
-                    >
-                        <RotateCcw class="h-3.5 w-3.5" :stroke-width="2" />
-                    </AppIconButton>
-                    <AppIconButton
-                        :title="t('notes.markdown.trash.delete_forever')"
-                        size="xs"
-                        color="rose"
-                        v-on:click="forceDeleteNote(note)"
-                    >
-                        <X class="h-3.5 w-3.5" :stroke-width="2" />
-                    </AppIconButton>
-                </li>
-            </ul>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="trashOpen = false">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.close") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
 
         <NoteShareModal
             :show="shareModalOpen"

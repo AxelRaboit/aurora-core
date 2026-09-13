@@ -16,10 +16,19 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
  * Mirrors {@see StatsService}: the
  * General shell owns no domain knowledge, each module contributes its own
  * source, and a module that is switched off contributes nothing rather than
- * showing a row that leads to a screen the reader cannot open.
+ * showing rows nobody can act on.
  */
 final readonly class TrashOverviewService
 {
+    /**
+     * How many rows each trash shows at once.
+     *
+     * Not pagination: a trash is a waiting room, and one that holds more than
+     * this has a purge to run rather than a page to leaf through. The count
+     * above the list stays the real total, so nothing is hidden silently.
+     */
+    public const int ROWS_PER_TRASH = 100;
+
     /**
      * @param iterable<TrashSourceInterface> $sources
      */
@@ -48,11 +57,12 @@ final readonly class TrashOverviewService
                 continue;
             }
 
-            $summaries[] = $source->getSummary();
+            $summaries[] = $source->getSummary(self::ROWS_PER_TRASH);
         }
 
         // What is waiting first, and the fullest of those at the top: the page
-        // exists to say where something is, and an empty trash says nothing.
+        // exists to say what there is to deal with, and an empty trash has
+        // nothing to say.
         usort($summaries, static fn (TrashSummary $a, TrashSummary $b): int => [0 === $b->count ? 0 : 1, $b->count] <=> [0 === $a->count ? 0 : 1, $a->count]);
 
         return $summaries;

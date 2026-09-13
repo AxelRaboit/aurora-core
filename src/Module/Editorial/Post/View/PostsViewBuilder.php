@@ -85,7 +85,6 @@ final readonly class PostsViewBuilder
     public function indexView(
         array $listPayload,
         PaginationRequest $pagination,
-        bool $trashed,
         array $postTypeIds = [],
         array $termIds = [],
         array $statuses = [],
@@ -93,7 +92,6 @@ final readonly class PostsViewBuilder
         return [
             'posts' => $listPayload,
             'search' => $pagination->search ?? '',
-            'trashed' => $trashed,
             'postTypeIds' => $postTypeIds,
             'termIds' => $termIds,
             'statuses' => $statuses,

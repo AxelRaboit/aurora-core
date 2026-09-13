@@ -1,6 +1,4 @@
 import { computed, ref, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useDelete } from "@/shared/composables/form/useDelete.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
@@ -11,7 +9,6 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
  * live in the query string too: a filtered list stays a link you can send.
  */
 export function usePostsList(props) {
-    const { t } = useI18n();
     const { request } = useRequest();
 
     const items = ref(props.posts.items ?? []);
@@ -21,26 +18,10 @@ export function usePostsList(props) {
     const loading = ref(false);
 
     const search = ref(props.search ?? "");
-    const trashed = ref(Boolean(props.trashed));
-
-    /**
-     * Which list is on screen right now - not which one has been asked for.
-     *
-     * The two differ for the length of a request, and the trash controls used
-     * to read the intent while the rows were still the previous list's. Ticking
-     * "show the trash" therefore flashed an "Empty the trash" button, built
-     * from a count of posts that were not in the trash, and took it away again
-     * when the answer arrived.
-     */
-    const showingTrash = ref(Boolean(props.trashed));
     const postTypeIds = ref([...(props.postTypeIds ?? [])]);
     const termIds = ref([...(props.termIds ?? [])]);
     const statuses = ref([...(props.statuses ?? [])]);
 
-    // The trash deliberately does not count. It is not a filter narrowing the
-    // list, it is the choice of *which* list - the screen says so with its own
-    // tabs - and counting it made "Clear" offer to leave the trash, which is a
-    // different thing from clearing the filters applied inside it.
     const activeFilterCount = computed(
         () =>
             postTypeIds.value.length +
@@ -52,7 +33,6 @@ export function usePostsList(props) {
         const params = new URLSearchParams();
         if (search.value) params.set("search", search.value);
         if (page.value > 1) params.set("page", String(page.value));
-        if (trashed.value) params.set("trashed", "1");
         if (postTypeIds.value.length)
             params.set("postTypeIds", postTypeIds.value.join(","));
         if (termIds.value.length)
@@ -77,7 +57,6 @@ export function usePostsList(props) {
             if (!data?.success) return;
 
             items.value = data.items;
-            showingTrash.value = trashed.value;
             total.value = data.total;
             page.value = data.page;
             totalPages.value = data.totalPages;
@@ -96,7 +75,7 @@ export function usePostsList(props) {
 
     // Any filter change resets to the first page: staying on page 4 of a
     // result set that now has two pages shows an empty screen.
-    watch([search, trashed, postTypeIds, termIds, statuses], () => {
+    watch([search, postTypeIds, termIds, statuses], () => {
         page.value = 1;
         reload();
     });
@@ -133,54 +112,6 @@ export function usePostsList(props) {
         "backend.posts.deleted",
     );
 
-    const pendingForceDelete = ref(null);
-    const emptyingTrash = ref(false);
-
-    async function restore(post) {
-        const data = await request(
-            buildPath(props.restorePathTemplate, { id: post.id }),
-        );
-        if (data?.success) {
-            toast.success(t("backend.posts.restored"));
-            reload();
-        }
-    }
-
-    async function forceDelete() {
-        if (!pendingForceDelete.value) return;
-
-        const data = await request(
-            buildPath(props.forceDeletePathTemplate, {
-                id: pendingForceDelete.value.id,
-            }),
-        );
-        if (data?.success) {
-            toast.success(t("backend.posts.force_deleted"));
-            pendingForceDelete.value = null;
-            reload();
-        }
-    }
-
-    const confirmEmptyTrash = ref(false);
-
-    async function emptyTrash() {
-        if (emptyingTrash.value) return;
-
-        emptyingTrash.value = true;
-        try {
-            const data = await request(props.emptyTrashPath);
-            if (data?.success) {
-                toast.success(
-                    t("backend.posts.trash_emptied", { count: data.deleted }),
-                );
-                confirmEmptyTrash.value = false;
-                reload();
-            }
-        } finally {
-            emptyingTrash.value = false;
-        }
-    }
-
     function editPath(post) {
         return buildPath(props.editPathTemplate, { id: post.id });
     }
@@ -192,7 +123,6 @@ export function usePostsList(props) {
         totalPages,
         loading,
         search,
-        trashed,
         postTypeIds,
         termIds,
         statuses,
@@ -205,13 +135,6 @@ export function usePostsList(props) {
         deleteLoading,
         confirmDelete,
         doDelete,
-        pendingForceDelete,
-        forceDelete,
-        confirmEmptyTrash,
-        emptyingTrash,
-        emptyTrash,
-        showingTrash,
-        restore,
         editPath,
     };
 }

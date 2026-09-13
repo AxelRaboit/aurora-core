@@ -17,8 +17,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
-import AppTab from "@/shared/components/nav/AppTab.vue";
-import { Plus, Trash2, X, FileText, Filter, Flame } from "lucide-vue-next";
+import { Plus, Trash2, X, FileText, Filter } from "lucide-vue-next";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
@@ -28,7 +27,6 @@ const { formatDateTime } = useDateFormat();
 const props = defineProps({
     posts: { type: Object, default: () => ({ items: [], total: 0, page: 1, totalPages: 1 }) },
     search: { type: String, default: "" },
-    trashed: { type: Boolean, default: false },
     postTypes: { type: Array, default: () => [] },
     taxonomies: { type: Array, default: () => [] },
     locales: { type: Array, default: () => [] },
@@ -43,32 +41,23 @@ const props = defineProps({
     duplicatePathTemplate: { type: String, default: "" },
     previewPathTemplate: { type: String, default: "" },
     bulkPath: { type: String, default: "" },
-    restorePathTemplate: { type: String, required: true },
-    forceDeletePathTemplate: { type: String, required: true },
-    emptyTrashPath: { type: String, required: true },
 });
 
 const {
     items, total, page, totalPages, loading,
-    search, trashed, postTypeIds, termIds, statuses,
+    search, postTypeIds, termIds, statuses,
     activeFilterCount, goToPage, toggleIn, clearFilters,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
-    pendingForceDelete, forceDelete, confirmEmptyTrash, emptyingTrash, emptyTrash, showingTrash, restore,
     editPath, reload,
 } = usePostsList(props);
 
-// What a row offers depends on the permission and on whether the post sits in
-// the trash - a rule about the record, not a layout decision, so it is not four
-// `v-if` in a table cell. `pendingForceDelete` rather than `forceDelete`: that
-// one cannot be undone and keeps its confirmation.
+// What a row offers depends on the permission, not on a `v-if` in a table
+// cell. Restoring and destroying are not here: this list holds live
+// publications, and the Trash screen owns what has been deleted.
 const actionsFor = usePostRowActions({
     can,
     editPath,
-    restore,
     confirmDelete,
-    forceDelete: (post) => {
-        pendingForceDelete.value = post;
-    },
     duplicate: duplicatePost,
     preview: previewPost,
     canPreview: Boolean(props.previewPathTemplate),
@@ -149,7 +138,7 @@ const selected = ref(new Set());
  * that scrolled out of sight - the reader ticks three, filters, presses publish,
  * and three posts they can no longer see change.
  */
-watch([items, trashed], () => {
+watch(items, () => {
     selected.value = new Set();
 });
 
@@ -180,22 +169,17 @@ const bulkRunning = ref(false);
 const bulkResult = ref(null);
 
 /**
- * The actions worth offering on what is currently listed.
+ * What a selection of live publications can be put through.
  *
- * Trashed rows restore or burn; live rows publish, unpublish or go to the trash.
- * The same rule the row menu follows, for the same reason: offering "restore" on a
- * live post is a button that does nothing.
+ * Restoring and destroying are not here any more: they belong to the Trash
+ * screen, which owns them for every module at once. This list only ever shows
+ * what has not been deleted.
  */
-const bulkActions = computed(() => (showingTrash.value
-    ? [
-        { value: "restore", label: t("backend.posts.bulk.action_restore"), variant: "secondary" },
-        { value: "force_delete", label: t("backend.posts.bulk.action_force_delete"), variant: "danger" },
-    ]
-    : [
-        { value: "publish", label: t("backend.posts.bulk.action_publish"), variant: "secondary" },
-        { value: "draft", label: t("backend.posts.bulk.action_draft"), variant: "secondary" },
-        { value: "trash", label: t("backend.posts.bulk.action_trash"), variant: "danger" },
-    ]));
+const bulkActions = computed(() => [
+    { value: "publish", label: t("backend.posts.bulk.action_publish"), variant: "secondary" },
+    { value: "draft", label: t("backend.posts.bulk.action_draft"), variant: "secondary" },
+    { value: "trash", label: t("backend.posts.bulk.action_trash"), variant: "danger" },
+]);
 
 async function runBulk(action) {
     if (bulkRunning.value || 0 === selected.value.size) {
@@ -259,34 +243,6 @@ const allTerms = computed(() =>
                 </AppButton>
             </template>
         </AppListToolbar>
-
-        <!-- Two lists, not one list narrowed. A trashed post supports different
-             actions from a live one - restore and delete for good, never edit -
-             so this picks *which* list you are working on, the same job the
-             tabs do everywhere else in the backend. A toggle button read as
-             "apply something to what I'm looking at", which is not what it does. -->
-        <div class="flex items-center justify-between gap-3 flex-wrap">
-            <nav class="flex items-center gap-1" :aria-label="t('backend.posts.views')">
-                <AppTab :active="!trashed" size="sm" v-on:click="trashed = false">
-                    <FileText class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.view_active") }}
-                </AppTab>
-                <AppTab :active="trashed" color="rose" size="sm" v-on:click="trashed = true">
-                    <Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.view_trash") }}
-                </AppTab>
-            </nav>
-
-            <!-- Keyed on the list that is on screen, not on the one being
-                 fetched: reading `trashed` here made this flash into view
-                 against the previous list's rows and vanish a moment later. -->
-            <AppButton
-                v-if="showingTrash && can('editorial.posts.delete') && items.length"
-                variant="danger"
-                size="sm"
-                v-on:click="confirmEmptyTrash = true"
-            >
-                <Flame class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.empty_trash") }}
-            </AppButton>
-        </div>
 
         <!-- Only once something is ticked. A permanently visible bar of disabled
              buttons is furniture; one that appears is an answer to what the reader
@@ -453,10 +409,8 @@ const allTerms = computed(() =>
                         </td>
                     </tr>
                     <tr v-if="!items.length && !loading">
-                        <!-- "No post" and "the trash is empty" are different
-                             facts, and the second is the reassuring one. -->
                         <td :colspan="locales.length > 1 ? 7 : 6">
-                            <AppNoData :message="t(showingTrash ? 'backend.posts.trash_empty' : 'backend.posts.empty')" />
+                            <AppNoData :message="t('backend.posts.empty')" />
                         </td>
                     </tr>
                 </tbody>
@@ -482,41 +436,6 @@ const allTerms = computed(() =>
                 <AppModalFooter>
                     <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
                     <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-        <AppModal
-            :show="!!pendingForceDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('backend.posts.force_delete')"
-            :icon="Flame"
-            v-on:close="pendingForceDelete = null"
-        >
-            <p class="text-sm text-primary">{{ t("backend.posts.force_delete_confirm", { title: pendingForceDelete?.title ?? "" }) }}</p>
-            <p class="text-sm text-secondary">{{ t("backend.posts.irreversible") }}</p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingForceDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="danger" size="md" v-on:click="forceDelete"><Flame class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.force_delete") }}</AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="confirmEmptyTrash"
-            max-width="sm"
-            :closeable="false"
-            :title="t('backend.posts.empty_trash')"
-            :icon="Flame"
-            v-on:close="confirmEmptyTrash = false"
-        >
-            <p class="text-sm text-primary">{{ t("backend.posts.empty_trash_confirm") }}</p>
-            <p class="text-sm text-secondary">{{ t("backend.posts.irreversible") }}</p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="confirmEmptyTrash = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="danger" size="md" :loading="emptyingTrash" v-on:click="emptyTrash"><Flame class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.empty_trash") }}</AppButton>
                 </AppModalFooter>
             </template>
         </AppModal>
