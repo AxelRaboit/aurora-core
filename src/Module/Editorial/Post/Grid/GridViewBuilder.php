@@ -20,6 +20,7 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentCreditPresenter;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
+use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -164,6 +165,21 @@ final readonly class GridViewBuilder
                 // and a conference talk has no business on their server.
                 'file' => GridNormalizer::ZONE_VIDEO === $zone['type']
                     ? $this->videoFile($documents[$zone['mediaId']] ?? null)
+                    : null,
+                // The same library, read as a recording rather than as a film.
+                // Its own key rather than sharing `file`: the two carry
+                // different things - a film has a poster and a pixel size, a
+                // recording has neither - and one key holding two shapes is a
+                // template guessing which it got.
+                'audio' => GridNormalizer::ZONE_AUDIO === $zone['type']
+                    ? $this->audioFile($documents[$zone['mediaId']] ?? null)
+                    : null,
+                // A file to take away. The words on the card are translated,
+                // like a button's: the same plaquette is "Download the
+                // brochure" on one page and "Télécharger la plaquette" on the
+                // other, and the file underneath does not change.
+                'document' => GridNormalizer::ZONE_DOCUMENT === $zone['type']
+                    ? $this->documentCard($documents[$zone['mediaId']] ?? null, $held['label'])
                     : null,
                 // Kept beside the embed so a zone whose address belongs to
                 // no known provider can still offer the link rather than
@@ -556,8 +572,15 @@ final readonly class GridViewBuilder
         foreach (GridNormalizer::flatten($layout['zones']) as $zone) {
             // A video zone too: it can play a film the library holds, and it
             // reads it from the same prefetch rather than from a query of its
-            // own.
-            $carriesMedia = in_array($zone['type'], [GridNormalizer::ZONE_MEDIA, GridNormalizer::ZONE_VIDEO], true);
+            // own. Audio and document zones name a file the same way, so they
+            // join the same query - a page offering four things to download
+            // should cost one query, not five.
+            $carriesMedia = in_array($zone['type'], [
+                GridNormalizer::ZONE_MEDIA,
+                GridNormalizer::ZONE_VIDEO,
+                GridNormalizer::ZONE_AUDIO,
+                GridNormalizer::ZONE_DOCUMENT,
+            ], true);
 
             if ($carriesMedia && null !== $zone['mediaId']) {
                 $ids[] = $zone['mediaId'];
@@ -798,6 +821,100 @@ final readonly class GridViewBuilder
             // rectangle. Null when the document predates the column.
             'width' => $media->getWidth(),
             'height' => $media->getHeight(),
+        ];
+    }
+
+    /**
+     * A recording the library holds, for a player the browser draws itself.
+     *
+     * Asked at render for the reason {@see videoFile} is: a zone configured
+     * with a recording stays configured with it after the file behind it is
+     * replaced by a spreadsheet, and only the render knows what it is today.
+     * A player pointed at the wrong thing is a silent control that does
+     * nothing, with no message anywhere.
+     *
+     * No poster and no dimensions, unlike a film: a `<audio>` element has a
+     * height of its own that owes nothing to what it plays.
+     *
+     * @return array{url: string, mimeType: string}|null
+     */
+    private function audioFile(?DocumentInterface $media): ?array
+    {
+        if (!$media instanceof DocumentInterface) {
+            return null;
+        }
+
+        if (!MimeGroupEnum::Audio->matches($media->getMimeType())) {
+            return null;
+        }
+
+        // Published only, for the reason {@see documentCard} gives, and it
+        // bites harder here. Since `/uploads` began withholding anything not
+        // published, {@see DocumentUrlGenerator::publicUrl} hands back the
+        // backend address for a draft - so a zone naming one would draw a
+        // player that answers 403 to every visitor, silently. A picture in
+        // that state at least shows a broken image; a dead player shows
+        // nothing at all and reads as a site that does not work.
+        if (DocumentStatusEnum::Published !== $media->getStatus()) {
+            return null;
+        }
+
+        $url = $this->documentUrlGenerator->publicUrl($media);
+
+        if (null === $url) {
+            return null;
+        }
+
+        return [
+            'url' => $url,
+            'mimeType' => (string) $media->getMimeType(),
+        ];
+    }
+
+    /**
+     * A file offered for download, as the card that describes it.
+     *
+     * **Published only.** A library holds a client's internal papers beside
+     * the ones they hand out, and the status column is what already tells them
+     * apart; a draft named in a zone renders as nothing rather than as a link.
+     * That is the whole of the check, and it is worth being plain about what it
+     * is not: the file itself is served by a public route, so this decides what
+     * a page *advertises*, not what the server will hand over to somebody who
+     * already has the address.
+     *
+     * The extension comes off the original name rather than off the mime type:
+     * it is what the reader will see in their downloads folder, and `xlsx` says
+     * more to them than `application/vnd.openxmlformats-officedocument…` ever
+     * will.
+     *
+     * @param string|null $label what the control says, in the page's language;
+     *                           the document's own title when nothing is typed
+     *
+     * @return array{title: string, url: string, extension: string, size: int|null}|null
+     */
+    private function documentCard(?DocumentInterface $media, ?string $label): ?array
+    {
+        if (!$media instanceof DocumentInterface) {
+            return null;
+        }
+
+        if (DocumentStatusEnum::Published !== $media->getStatus()) {
+            return null;
+        }
+
+        $url = $this->documentUrlGenerator->publicUrl($media);
+
+        if (null === $url) {
+            return null;
+        }
+
+        $extension = pathinfo((string) $media->getOriginalName(), PATHINFO_EXTENSION);
+
+        return [
+            'title' => null !== $label && '' !== $label ? $label : $media->getTitle(),
+            'url' => $url,
+            'extension' => mb_strtoupper($extension),
+            'size' => $media->getSize(),
         ];
     }
 

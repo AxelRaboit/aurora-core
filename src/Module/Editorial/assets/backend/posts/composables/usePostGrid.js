@@ -1,8 +1,10 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import {
+    AudioLines,
     ClipboardList,
     Code,
+    FileDown,
     FileText,
     Film,
     Image,
@@ -40,6 +42,8 @@ export const LEAF_ZONE_TYPES = [
     "media",
     "post",
     "video",
+    "audio",
+    "document",
     "button",
     "separator",
     "items",
@@ -67,6 +71,12 @@ export const ZONE_ICONS = {
     media: Image,
     post: Newspaper,
     video: Film,
+    // A waveform, not a speaker: the zone holds a recording, and a speaker is
+    // what a reader turns off.
+    audio: AudioLines,
+    // The arrow is the whole point of this zone - a sheet of paper alone would
+    // read as the text zone beside it.
+    document: FileDown,
     button: MousePointerClick,
     separator: SeparatorHorizontal,
     items: LayoutList,
@@ -88,7 +98,7 @@ export const SIZES = ["sm", "md", "lg"];
 /** Mirrors GridNormalizer::SEPARATOR_STYLES. */
 export const SEPARATOR_STYLES = ["line", "space"];
 
-/** Mirrors GridNormalizer::ITEM_DISPLAYS - the five costumes of an item list. */
+/** Mirrors GridNormalizer::ITEM_DISPLAYS - the eight costumes of an item list. */
 export const ITEM_DISPLAYS = [
     "steps",
     "stats",
@@ -97,6 +107,7 @@ export const ITEM_DISPLAYS = [
     "logos",
     "timeline",
     "offers",
+    "people",
 ];
 
 /** Mirrors GridNormalizer::ITEM_COLUMNS. */

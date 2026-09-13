@@ -108,6 +108,58 @@
             {% endif %}
         </figure>
 
+    {% elseif zone.type == 'audio' and zone.audio %}
+        {# The browser's own player. No `preload="none"` here, unlike the film
+           beside it: a recording has no poster to stand in for it, so a player
+           that has fetched nothing shows an unknown duration and a scrub bar
+           that cannot be aimed. `metadata` buys the duration for a few hundred
+           bytes and leaves the audio itself unfetched. #}
+        <div class="not-prose space-y-2">
+            <audio class="w-full" controls preload="metadata">
+                <source src="{{ zone.audio.url }}" type="{{ zone.audio.mimeType }}">
+            </audio>
+            {% if zone.caption %}
+                <p class="m-0 text-sm text-secondary">{{ zone.caption }}</p>
+            {% endif %}
+        </div>
+
+    {% elseif zone.type == 'document' and zone.document %}
+        {# A link, not a button: it goes somewhere, and a reader who wants it in
+           a new tab or saved to a folder should get what their browser
+           normally gives them for an address.
+
+           `download` is deliberately absent. The library's permalink redirects
+           to the file, and the attribute is ignored across a redirect to
+           another origin anyway - so promising a save and delivering a tab is
+           worse than saying nothing. A PDF opening in the viewer is what most
+           readers want from a plaquette. #}
+        <a
+            href="{{ zone.document.url }}"
+            class="not-prose flex items-center gap-4 rounded-xl border border-line bg-surface p-4 no-underline transition-colors hover:border-accent"
+        >
+            {# The extension rather than an icon per format: a set of glyphs
+               would need one per type the library accepts, and "PDF" in a box
+               is read faster than a picture of a document anyway. #}
+            <span
+                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent-500/10 text-2xs font-bold uppercase tracking-wider text-accent"
+                aria-hidden="true"
+            >{{ zone.document.extension }}</span>
+            <span class="min-w-0 flex-1">
+                <span class="block truncate font-medium text-primary">{{ zone.document.title }}</span>
+                {# What the reader is about to receive, in the order they ask
+                   it: what kind of file, and how big. The size is spelled out
+                   by `file_size`, which is the filter the backend's own lists
+                   already use. #}
+                <span class="block text-sm text-muted">
+                    {{ zone.document.extension }}{% if zone.document.size %} &middot; {{ zone.document.size|file_size }}{% endif %}
+                </span>
+                {% if zone.caption %}
+                    <span class="mt-1 block text-sm text-secondary">{{ zone.caption }}</span>
+                {% endif %}
+            </span>
+            <span class="shrink-0 text-accent" aria-hidden="true">&darr;</span>
+        </a>
+
     {% elseif zone.type == 'post' and zone.post %}
         {{ include('Frontend/themes/default/editorial/_post_card.html.twig', {post: zone.post, locale: locale, variant: zone.cardVariant}) }}
 

@@ -85,6 +85,28 @@ async function pickVideo() {
     }
 }
 
+/** The same, for a recording. */
+async function pickAudio() {
+    const picked = await openDocumentPicker({ mimePrefix: "audio/" });
+
+    if (picked) {
+        bound.media.value = picked;
+    }
+}
+
+/**
+ * Unfiltered: a document zone offers whatever the library holds, which is the
+ * point of it - a plaquette is a PDF, a price list is often a spreadsheet, and
+ * a press kit is a zip.
+ */
+async function pickDocument() {
+    const picked = await openDocumentPicker({});
+
+    if (picked) {
+        bound.media.value = picked;
+    }
+}
+
 const publicationOptions = computed(() =>
     props.postOptions.map((post) => ({ value: post.id, label: post.title ?? `#${post.id}` })),
 );
@@ -108,16 +130,22 @@ const ITEM_LABELS = {
     // what lets an author switch costume without losing what they wrote.
     timeline: { title: "timeline_title", description: "timeline_text", caption: "timeline_date", url: null },
     offers: { title: "offer_name", description: "offer_lines", caption: "offer_price", url: "offer_url" },
+    // The role is the caption, like a quote's: the small line under the name.
+    // Same field, so an author who tries the quotes costume and comes back
+    // still has the roles they typed.
+    people: { title: "person_name", description: "person_bio", caption: "person_role", url: "person_url" },
 };
 
 const itemLabels = computed(() => ITEM_LABELS[bound.display.value] ?? ITEM_LABELS.steps);
 
-/** Only the quotes and the logos hang a picture on an entry. */
-const itemHasMedia = computed(() => ["quotes", "logos"].includes(bound.display.value));
+/** The costumes that hang a picture on an entry: a face, a mark, a portrait. */
+const itemHasMedia = computed(() =>
+    ["quotes", "logos", "people"].includes(bound.display.value),
+);
 
 /** Only the displays that lay their entries in a row have a count to choose. */
 const itemHasColumns = computed(() =>
-    ["stats", "quotes", "offers"].includes(bound.display.value),
+    ["stats", "quotes", "offers", "people"].includes(bound.display.value),
 );
 
 /**
@@ -515,6 +543,85 @@ const descriptionHint = computed(() =>
                     :label="t('backend.posts.grid.zone_video')"
                     :hint="t('backend.posts.grid.zone_video_hint')"
                     placeholder="https://youtu.be/…"
+                />
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'audio'">
+            <!-- Shared by every language, like the film above: the same
+                 recording plays whatever the page is read in. -->
+            <div class="flex items-center gap-3">
+                <span class="min-w-0 flex-1 truncate text-sm text-secondary">
+                    {{ bound.media.value?.id
+                        ? t("backend.posts.grid.zone_audio_file_chosen")
+                        : t("backend.posts.grid.zone_audio_file_none") }}
+                </span>
+                <AppTextLinkButton size="xs" v-on:click="pickAudio">
+                    {{ bound.media.value?.id ? t("shared.media.change") : t("backend.posts.grid.zone_audio_file") }}
+                </AppTextLinkButton>
+                <AppTextLinkButton
+                    v-if="bound.media.value?.id"
+                    color="danger"
+                    size="xs"
+                    v-on:click="bound.media.value = null"
+                >
+                    {{ t("shared.common.remove") }}
+                </AppTextLinkButton>
+            </div>
+
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'document'">
+            <div class="flex items-center gap-3">
+                <span class="min-w-0 flex-1 truncate text-sm text-secondary">
+                    {{ bound.media.value?.id
+                        ? t("backend.posts.grid.zone_document_chosen")
+                        : t("backend.posts.grid.zone_document_none") }}
+                </span>
+                <AppTextLinkButton size="xs" v-on:click="pickDocument">
+                    {{ bound.media.value?.id ? t("shared.media.change") : t("backend.posts.grid.zone_document_file") }}
+                </AppTextLinkButton>
+                <AppTextLinkButton
+                    v-if="bound.media.value?.id"
+                    color="danger"
+                    size="xs"
+                    v-on:click="bound.media.value = null"
+                >
+                    {{ t("shared.common.remove") }}
+                </AppTextLinkButton>
+            </div>
+
+            <!-- Said here rather than discovered on the published page: the
+                 library is where a client's internal papers live too, and a
+                 zone that silently renders nothing looks like a bug. -->
+            <p class="text-xs text-muted">
+                {{ t("backend.posts.grid.zone_document_published_hint") }}
+            </p>
+
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.label.value"
+                    :label="t('backend.posts.grid.zone_document_label')"
+                    :hint="t('backend.posts.grid.zone_document_label_hint')"
+                    :placeholder="t('backend.posts.grid.zone_document_label_placeholder')"
                 />
                 <AppInput
                     v-model="bound.caption.value"

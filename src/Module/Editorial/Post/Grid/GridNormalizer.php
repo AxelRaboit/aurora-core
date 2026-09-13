@@ -63,6 +63,31 @@ final readonly class GridNormalizer
     public const string ZONE_VIDEO = 'video';
 
     /**
+     * A sound file the library holds, played by the browser.
+     *
+     * The video zone's other half, and deliberately a type of its own rather
+     * than a second branch inside it: a film offers an address to a provider
+     * and a poster to stand in for it, and a recording has neither. One zone
+     * answering both would ask an author which of two unrelated questions
+     * they meant.
+     */
+    public const string ZONE_AUDIO = 'audio';
+
+    /**
+     * A file to take away, drawn as a card rather than played.
+     *
+     * The plaquette, the terms, the price list. Until now the only way to
+     * offer one was a button pointed at an address typed by hand, which stops
+     * working the day the file is replaced - the whole point of the library's
+     * permalink is that it does not.
+     *
+     * Only a **published** document is ever drawn. A library holds a client's
+     * internal papers alongside the ones they hand out, and the status column
+     * is what already tells them apart.
+     */
+    public const string ZONE_DOCUMENT = 'document';
+
+    /**
      * Zones stacked one above another, sharing the height of the row they sit
      * in.
      *
@@ -148,13 +173,13 @@ final readonly class GridNormalizer
     /**
      * The costumes of an item list.
      *
-     * One zone rather than seven, because they are the same four fields asked
+     * One zone rather than eight, because they are the same four fields asked
      * differently - a step's title is a figure's value is a question is an
-     * offer's name - and switching costume keeps what was written. New ones go
-     * at the end: the first is the default, and moving it would restyle every
-     * list already published.
+     * offer's name is a colleague's name - and switching costume keeps what was
+     * written. New ones go at the end: the first is the default, and moving it
+     * would restyle every list already published.
      */
-    public const array ITEM_DISPLAYS = ['steps', 'stats', 'faq', 'quotes', 'logos', 'timeline', 'offers'];
+    public const array ITEM_DISPLAYS = ['steps', 'stats', 'faq', 'quotes', 'logos', 'timeline', 'offers', 'people'];
 
     /**
      * How densely a publication card is drawn. The same publication either
@@ -315,6 +340,8 @@ final readonly class GridNormalizer
         self::ZONE_MEDIA,
         self::ZONE_POST,
         self::ZONE_VIDEO,
+        self::ZONE_AUDIO,
+        self::ZONE_DOCUMENT,
         self::ZONE_BUTTON,
         self::ZONE_SEPARATOR,
         self::ZONE_ITEMS,

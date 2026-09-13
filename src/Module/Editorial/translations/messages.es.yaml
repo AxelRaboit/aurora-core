@@ -4,6 +4,16 @@ backend:
       zone_video_file: Elegir un vídeo
       zone_video_file_chosen: Vídeo de la mediateca
       zone_video_file_none: Ningún vídeo elegido
+      zone_audio_file: Elegir un archivo de sonido
+      zone_audio_file_chosen: Sonido de la mediateca
+      zone_audio_file_none: Ningún sonido elegido
+      zone_document_file: Elegir un documento
+      zone_document_chosen: Documento de la mediateca
+      zone_document_none: Ningún documento elegido
+      zone_document_published_hint: "Solo se muestra en el sitio un documento publicado. Un borrador deja la zona vacía, sin aviso: la mediateca también guarda los papeles internos."
+      zone_document_label: Texto del enlace
+      zone_document_label_placeholder: "Nuestro folleto 2026"
+      zone_document_label_hint: "Lo que lee el visitante en la tarjeta. Vacío, se usa el título del documento en la mediateca."
       zone_form_none: "Elegir un formulario…"
       anchor: "Ancla"
       anchor_placeholder: "donde-encontrarme"
@@ -42,6 +52,7 @@ frontend:
       copy: Copiar
       copied: Copiado
       on_this_page: En esta página
+      get_in_touch: Contactar
     forms:
       submit: Enviar
       next: Siguiente

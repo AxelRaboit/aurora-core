@@ -450,6 +450,8 @@ backend:
         media: Image
         post: Publication
         video: Video
+        audio: Audio
+        document: Document
         button: Button
         separator: Separator
         items: List
@@ -527,6 +529,7 @@ backend:
         logos: Logos
         timeline: Timeline
         offers: Plan cards
+        people: Team
       item_columns: Columns
       item_number: "Entry {number}"
       item_add: Add an entry
@@ -573,6 +576,14 @@ backend:
       offer_price_placeholder: "from £1,500"
       offer_lines_placeholder: "Five pages\nA contact form\nGoing live included"
       offer_url_placeholder: "https://example.com/contact"
+      person_name: Name
+      person_name_placeholder: "Camille Rousseau"
+      person_role: Role
+      person_role_placeholder: "Art director"
+      person_bio: Introduction
+      person_bio_placeholder: "Two lines on what they do in the team."
+      person_url: Link
+      person_url_placeholder: "mailto:camille@example.com"
       scale: Image size
       scale_hint: "How much of the zone's width the picture takes. Proportions are kept, so an image at 50% is half as tall too. The zone itself does not move."
       scales:
@@ -614,6 +625,16 @@ backend:
       zone_video_file: Choose a video
       zone_video_file_chosen: Video from the library
       zone_video_file_none: No video chosen
+      zone_audio_file: Choose a sound file
+      zone_audio_file_chosen: Sound from the library
+      zone_audio_file_none: No sound chosen
+      zone_document_file: Choose a document
+      zone_document_chosen: Document from the library
+      zone_document_none: No document chosen
+      zone_document_published_hint: "Only a published document is shown on the site. A draft leaves the zone empty, with nothing said: the library holds internal papers too."
+      zone_document_label: Link wording
+      zone_document_label_placeholder: "Our 2026 brochure"
+      zone_document_label_hint: "What the visitor reads on the card. Left empty, the document's own title in the library is used."
       zone_video_hint: "YouTube, Vimeo or Dailymotion. Any other address renders as a link rather than a player."
       move_up: Move up
       move_down: Move down
@@ -970,6 +991,7 @@ frontend:
       copy: Copy
       copied: Copied
       on_this_page: On this page
+      get_in_touch: Get in touch
     forms:
       submit: Send
       next: Next

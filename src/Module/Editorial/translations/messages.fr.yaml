@@ -450,6 +450,8 @@ backend:
         media: Image
         post: Publication
         video: Vidéo
+        audio: Audio
+        document: Document
         button: Bouton
         separator: Séparateur
         items: Liste
@@ -527,6 +529,7 @@ backend:
         logos: Logos
         timeline: Chronologie
         offers: Cartes d'offres
+        people: Équipe
       item_columns: Colonnes
       item_number: "Entrée {number}"
       item_add: Ajouter une entrée
@@ -573,6 +576,14 @@ backend:
       offer_price_placeholder: "à partir de 1 500 €"
       offer_lines_placeholder: "Cinq pages\nUn formulaire de contact\nMise en ligne comprise"
       offer_url_placeholder: "https://exemple.fr/contact"
+      person_name: Nom
+      person_name_placeholder: "Camille Rousseau"
+      person_role: Rôle
+      person_role_placeholder: "Directrice artistique"
+      person_bio: Présentation
+      person_bio_placeholder: "Deux lignes sur ce qu'elle fait dans l'équipe."
+      person_url: Lien
+      person_url_placeholder: "mailto:camille@exemple.fr"
       scale: Taille de l'image
       scale_hint: "Part de la largeur de la zone occupée par l'image. Les proportions sont gardées, donc une image à 50 % est deux fois moins haute aussi. La zone, elle, ne bouge pas."
       scales:
@@ -614,6 +625,16 @@ backend:
       zone_video_file: Choisir une vidéo
       zone_video_file_chosen: Vidéo de la médiathèque
       zone_video_file_none: Aucune vidéo choisie
+      zone_audio_file: Choisir un fichier son
+      zone_audio_file_chosen: Son de la médiathèque
+      zone_audio_file_none: Aucun son choisi
+      zone_document_file: Choisir un document
+      zone_document_chosen: Document de la médiathèque
+      zone_document_none: Aucun document choisi
+      zone_document_published_hint: "Seul un document publié s'affiche sur le site. Un brouillon laisse la zone vide, sans message : la médiathèque contient aussi les papiers internes."
+      zone_document_label: Intitulé du lien
+      zone_document_label_placeholder: "Notre plaquette 2026"
+      zone_document_label_hint: "Ce que le visiteur lit sur la carte. Vide, c'est le titre du document dans la médiathèque qui est repris."
       zone_video_hint: "YouTube, Vimeo ou Dailymotion. Une autre adresse s'affichera en lien plutôt qu'en lecteur."
       move_up: Monter
       move_down: Descendre
@@ -970,6 +991,7 @@ frontend:
       copy: Copier
       copied: Copié
       on_this_page: Sur cette page
+      get_in_touch: Écrire
     forms:
       submit: Envoyer
       next: Suivant
