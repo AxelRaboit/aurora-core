@@ -168,14 +168,16 @@ export function useDeckAppearance(props) {
      */
     const preview = computed(() => {
         const base = themeOf(theme.value);
-        const pair = (props.fontPairs ?? []).find(
-            (row) => row.value === (style.fontPair ?? base?.fontPair),
-        );
-        const themePair = (props.fontPairs ?? []).find(
-            (row) => row.value === appearance.value.fontPair,
-        );
-        const faces = pair ??
-            themePair ?? { heading: "inherit", body: "inherit" };
+
+        // The deck's own choice, else the theme's own pair, else whatever the
+        // server last resolved. The middle one is why `themeOptions()` carries
+        // `fontPair`: without it, picking Paper previewed its colours in the
+        // previous theme's faces, which is the one thing the preview is for.
+        const wanted =
+            style.fontPair ?? base?.fontPair ?? appearance.value.fontPair;
+        const faces = (props.fontPairs ?? []).find(
+            (row) => row.value === wanted,
+        ) ?? { heading: "inherit", body: "inherit" };
 
         return {
             background: style.background ?? base?.palette.background,

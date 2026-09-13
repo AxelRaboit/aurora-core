@@ -1005,6 +1005,21 @@ const FLOWS = {
   },
 
   /**
+   * Le bloc commun à tous les gabarits : sur-titre, fond, voile.
+   */
+  "fond-et-sur-titre": async () => {
+    await page.goto(`${BASE}/backend/studio/decks`, { waitUntil: "domcontentloaded" });
+    await wait(2500);
+    await page.getByRole("link", { name: /Audit du site/ }).first().click();
+    await wait(3500);
+
+    const block = page.locator("section .border-t.border-line").first();
+    await block.scrollIntoViewIfNeeded();
+    await wait(800);
+    await shotOf(block, "le-bloc-commun", 16, 12);
+  },
+
+  /**
    * L'éditeur : la page, les gabarits, le formulaire, les notes, l'ordre.
    */
   "composer-les-slides": async () => {
@@ -1052,7 +1067,28 @@ const FLOWS = {
   },
 
   /**
-   * Le plein écran, puis la page d'impression.
+   * Le panneau d'apparence : la grille des thèmes, et l'aperçu qui suit.
+   */
+  "l-apparence": async () => {
+    await page.goto(`${BASE}/backend/studio/decks`, { waitUntil: "domcontentloaded" });
+    await wait(2500);
+    await page.getByRole("link", { name: /Audit du site/ }).first().click();
+    await wait(3500);
+
+    await page.getByRole("button", { name: /^Apparence/ }).first().click();
+    await wait(1500);
+    await shot("le-panneau");
+
+    // Un thème clair sur une capture faite dans un back-office sombre : c'est
+    // exactement ce que le panneau sert à montrer, et ce qu'une liste de noms
+    // ne dirait pas.
+    await page.getByRole("button", { name: /^Papier$/ }).first().click();
+    await wait(1200);
+    await shot("un-theme-clair");
+  },
+
+  /**
+   * Le plein écran, la vue présentateur, puis la page d'impression.
    */
   "presenter-un-deck": async () => {
     await page.goto(`${BASE}/backend/studio/decks`, { waitUntil: "domcontentloaded" });

@@ -215,7 +215,11 @@ final readonly class DecksViewBuilder
      * rather than name it: five words in a select say nothing about what they
      * look like, and the whole point of the list is the look.
      *
-     * @return list<array{value: string, labelKey: string, palette: array{background: string, ink: string, accent: string}}>
+     * The pair of faces travels with it for the same reason as the palette: the
+     * panel previews a theme before it is saved, and without the theme's own
+     * pair it would preview the new colours in the *previous* theme's faces.
+     *
+     * @return list<array{value: string, labelKey: string, palette: array{background: string, ink: string, accent: string}, fontPair: string}>
      */
     private function themeOptions(): array
     {
@@ -224,6 +228,7 @@ final readonly class DecksViewBuilder
                 'value' => $theme->value,
                 'labelKey' => $theme->labelKey(),
                 'palette' => $theme->palette(),
+                'fontPair' => $theme->fonts()->value,
             ],
             DeckThemeEnum::cases(),
         );
