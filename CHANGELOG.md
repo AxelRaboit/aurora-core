@@ -5,6 +5,50 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.165] - 2026-09-13
+
+### Corrigé
+
+#### Les images publiques sont enfin gardées en cache
+Une image posée dans une page publique repartait avec
+`Cache-Control: immutable, max-age=0, must-revalidate, private`, alors que le
+code demandait un cache public d'une journée. Le navigateur la redemandait donc
+à chaque affichage, et aucun cache partagé ne pouvait la garder. Mesuré sur la
+production le 13/09/2026, et reproduit à l'identique en local.
+
+La cause n'est pas celle qu'on croyait. Le `SessionListener` de Symfony
+réécrit l'en-tête à la fin de toute requête qui **lit** la session, et non
+seulement de celles qui en ouvrent une : la condition est `getUsageIndex()`,
+pas `isStarted()`. Ici la session n'était jamais démarrée, jamais écrite,
+aucun cookie n'était envoyé, mais `LocaleSubscriber` la consulte à chaque
+requête pour savoir dans quelle langue répondre, et cette seule lecture
+suffisait.
+
+Le détail cruel est que demander un cache public aggravait les choses : le
+listener calcule `max-age = 0` quand la réponse se déclare `public`, et
+conserve le `max-age` existant sinon. La ligne censée rendre la réponse
+cachable est donc exactement celle qui ramenait la durée à zéro.
+
+`BinaryFileServer::servePublic()` pose désormais l'en-tête d'échappement que
+Symfony documente pour ce cas, et que Symfony retire avant l'envoi. Ces
+octets sont un fichier sur disque, identique pour tout le monde, et qui a le
+droit de le lire a déjà été décidé avant d'arriver là.
+
+Rien ne change pour un fichier retenu : il reste `private`, il reste streamé
+par l'application, et l'échappement n'est volontairement pas posé sur la
+variante gatée de `BinaryFileServer`.
+
+### Interne
+
+#### Les tests assertaient la survie d'un mot, pas l'en-tête envoyé
+`UploadsServeControllerTest` n'assertait que la présence de `immutable`, avec
+un commentaire expliquant que le reste était écrasé par Symfony. C'était
+exact, et c'est passé au vert pendant tout le temps où les images publiques
+n'étaient pas cachables. Les tests portent maintenant sur l'en-tête réellement
+émis, `public` et `max-age` compris, et vérifient au passage que la session
+est bien lue sur ces requêtes : sans cela l'assertion deviendrait verte pour
+une autre raison le jour où plus personne ne la lit.
+
 ## [0.9.164] - 2026-09-13
 
 ### Corrigé

@@ -9,6 +9,8 @@ use Aurora\Tests\Integration\IntegrationTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Path;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpKernel\EventListener\AbstractSessionListener;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -57,12 +59,61 @@ final class UploadsServeControllerTest extends IntegrationTestCase
         ob_end_clean();
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        // Cache-Control directives are normalised + potentially overridden by
-        // Symfony's session listener at request end - we only assert the
-        // `immutable` hint we added explicitly survives. The full
-        // `public, max-age=…` story is validated at the unit level via
-        // `BinaryFileServerTest::testServePublicUsesPublicCacheControl`.
-        self::assertStringContainsString('immutable', (string) $this->client->getResponse()->headers->get('Cache-Control'));
+
+        // This used to assert only that `immutable` survived, and explained
+        // in a comment that the session listener overrode the rest. It did,
+        // and the consequence was never measured: in production a published
+        // image came back `max-age=0, must-revalidate, private`, so it was
+        // revalidated on every view and no shared cache could hold it. The
+        // assertion is now on the header that is actually sent.
+        $cacheControl = (string) $this->client->getResponse()->headers->get('Cache-Control');
+
+        self::assertStringContainsString('public', $cacheControl);
+        self::assertStringContainsString('max-age=86400', $cacheControl);
+        self::assertStringContainsString('immutable', $cacheControl);
+        self::assertStringNotContainsString('private', $cacheControl);
+        self::assertStringNotContainsString('must-revalidate', $cacheControl);
+
+        // Symfony strips its own opt-out header before sending. A visitor
+        // seeing it would mean the listener never ran, which would make the
+        // assertions above prove nothing.
+        self::assertFalse(
+            $this->client->getResponse()->headers->has(AbstractSessionListener::NO_AUTO_CACHE_CONTROL_HEADER),
+            'the opt-out header is internal and must not reach the visitor',
+        );
+    }
+
+    /**
+     * The guard rail under the fix above.
+     *
+     * The listener rewrites `Cache-Control` on any request that merely
+     * *reads* the session - `getUsageIndex() !== 0`, not `isStarted()` - and
+     * on this application `LocaleSubscriber` reads it on every request to
+     * decide the language. So the session really is used here; what the
+     * opt-out says is that these bytes do not depend on it.
+     *
+     * If a future change stops the session being read at all, this test goes
+     * green for a different reason and the one above stops proving anything.
+     * Hence asserting the usage, not just the header.
+     */
+    public function testTheSessionIsIndeedReadOnThisRequest(): void
+    {
+        ob_start();
+        $this->client->request(
+            HttpMethodEnum::Get->value,
+            $this->urlGenerator->generate('uploads_serve', ['path' => $this->fixtureRelativePath]),
+        );
+        ob_end_clean();
+
+        $session = $this->client->getRequest()->getSession();
+
+        self::assertInstanceOf(Session::class, $session);
+        self::assertFalse($session->isStarted(), 'nothing writes to the session here');
+        self::assertGreaterThan(
+            0,
+            $session->getUsageIndex(),
+            'something reads the session on every request, which is what downgrades the cache header',
+        );
     }
 
     public function testReturns404OnMissingPath(): void
