@@ -5,6 +5,191 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.166] - 2026-09-13
+
+### Ajouté
+
+#### Une présentation a sa propre apparence
+Toutes les présentations étaient dessinées dans le gris du back-office, et rien
+dans le modèle ne pouvait dire autrement : le cadre qui dessine une slide
+écrivait ses couleurs en constantes. Deux présentations ne pouvaient pas
+différer, ce qui pour un document remis à un client est tout le problème.
+
+Le bouton « Apparence » ouvre un panneau où l'on choisit un thème parmi cinq
+(Ardoise, Encre, Papier, Affirmé, Minuit), puis, si on le souhaite, on remplace
+une à une ses trois couleurs, sa paire de polices, et on ajoute un logo, une
+mention de pied de page et la numérotation des slides.
+
+**Une couleur laissée au thème continue de suivre le thème**, y compris s'il est
+retouché dans une version ultérieure ; une couleur choisie est gelée à ce
+choix. C'est la raison pour laquelle rien n'est enregistré par défaut : stocker
+le bleu du thème comme le bleu de la présentation le figerait sans que personne
+le sache.
+
+Le panneau montre en permanence une vraie slide de la présentation, redessinée à
+chaque changement : la question posée est visuelle, la réponse est dessinée.
+
+L'apparence suit la présentation partout où elle est dessinée, y compris à
+l'impression et dans un lien de partage, et une présentation dupliquée garde la
+sienne.
+
+#### Cinq gabarits de plus, et un graphique
+Chiffre clé, image et texte, cartes, frise, tableau, plus un gabarit graphique
+qui dessine des barres, une courbe ou un anneau dans la couleur d'accent de la
+présentation.
+
+Cartes, frise, tableau et graphique se remplissent comme les puces, une ligne
+par élément, avec une **barre verticale** entre les valeurs d'une même ligne :
+`Cache | Listes et fiches produit`. Un sous-formulaire répétable par gabarit
+aurait été trois éditeurs de plus à construire et à maintenir.
+
+#### Une présentation peut être un modèle
+« C'est un modèle » range une présentation parmi celles qu'on propose au moment
+d'en créer une nouvelle. Partir d'un modèle reprend ses slides et son
+apparence ; le titre, la rubrique et le client sont ceux qu'on vient de saisir,
+ce qui est la différence avec la duplication. La présentation ainsi créée n'est
+pas elle-même un modèle, sans quoi une liste de trois en compte trente au bout
+d'un mois.
+
+Un modèle reste une présentation ordinaire : le jour où on veut le montrer, il
+n'y a rien à convertir.
+
+#### Une présentation longue se replie par chapitres
+Sur la vignette d'un intercalaire, un chevron cache les slides qui le suivent et
+affiche leur nombre. Les chapitres sont lus dans les intercalaires eux-mêmes :
+rien de plus à créer, et une présentation qui n'en utilise pas a simplement un
+seul chapitre.
+
+#### Un lien de partage peut demander un mot de passe, et compte ses ouvertures
+Facultatif : une adresse impossible à deviner et une expiration suffisent le
+plus souvent. Quand il y en a un, le destinataire tombe d'abord sur une page qui
+ne dit rien de la présentation, et un mot de passe faux répond exactement ce que
+répond une adresse fausse, pour qu'une adresse devinée n'apprenne pas qu'elle
+est bonne.
+
+Le mot de passe est haché, là où le jeton ne l'est pas, et la différence est le
+raisonnement : l'adresse **est** le secret, donc la hacher n'achèterait rien ;
+un mot de passe est une phrase choisie par quelqu'un, et les phrases se
+réutilisent. Ce qui fuit ici ne doit ouvrir rien d'autre.
+
+Chaque lien affiche aussi combien de fois il a été ouvert. Un compteur et pas un
+journal : « est-ce qu'ils l'ont lu, et est-ce qu'ils y sont revenus » se répond
+par un nombre, là où une ligne par ouverture serait un relevé des habitudes de
+lecture de quelqu'un.
+
+#### Faire une présentation à partir d'un document écrit
+« Importer un document », dans la liste, ouvre l'éditeur de blocs que vous
+connaissez déjà. Vous y écrivez ou vous y collez, et le document devient des
+slides.
+
+La règle tient en une phrase : **un titre ouvre une slide, et ce qui suit la
+remplit**. Une liste devient une slide à puces, un tableau un tableau, une
+citation une citation, une image de la médiathèque une slide image. Plusieurs
+blocs sous un même titre font plusieurs slides qui le répètent, et rien n'est
+jeté pour rendre la conversion plus propre. Le gras et l'italique arrivent
+jusqu'à la slide ; les liens y perdent leur adresse et gardent leurs mots.
+
+La conversion est faite par le serveur, où la règle est écrite une fois et où
+chaque slide produite passe par le même filtrage que les autres.
+
+L'éditeur n'est pas dans la slide, et c'est un choix : un cadre 16/9 ne peut
+promettre que ce qu'on y arrange arrive au mur que parce que ses gabarits sont
+déclarés, ce qui est aussi ce qui permet de mesurer le texte et de le réduire.
+Un document de hauteur quelconque ne se mesure pas. L'éditeur est donc là où le
+texte qui coule a raison, l'écriture, et passe la main à la projection.
+
+#### Cadrer une image dans sa slide
+Une image peut désormais **remplir son cadre** au lieu d'y tenir en entier, et
+on choisit le point qui doit survivre au rognage en cliquant dessus : le
+drapeau, le visage, le coin de la capture. Par défaut, c'est le point de visée
+que porte le document lui-même, donc une photo cadrée une fois garde son
+cadrage dans toutes les présentations qui l'utilisent.
+
+#### Un fond et un sur-titre sur n'importe quel gabarit
+L'image était enfermée dans son gabarit : une présentation qui voulait une photo
+derrière un intercalaire devait choisir entre la photo et les mots. Trois
+réglages sont désormais communs à tous les gabarits : un sur-titre, une image de
+fond, et le voile qui assombrit cette image vers la couleur de fond de la
+présentation pour que le texte reste lisible.
+
+#### Du gras et de l'italique dans le texte d'une slide
+`**gras**`, `*italique*` et `` `code` `` sont reconnus dans le texte d'une
+slide. Rien d'autre : un titre ou une liste tapés dans un champ restent les
+caractères tapés, parce que la mise en page d'une slide est décidée par son
+gabarit. Les liens et les images sont retirés, le texte qu'ils entouraient
+reste.
+
+#### Un sommaire, un pointeur, et des transitions
+**O** ouvre une grille de toutes les slides, où un clic saute. **P** allume un
+cercle rouge qui suit la souris : un interrupteur et non une touche à maintenir,
+parce qu'une touche maintenue se répète et qu'un pointeur qui clignote au rythme
+du clavier est pire que pas de pointeur. Et le curseur de la souris disparaît
+quand elle ne bouge plus, une flèche garée au milieu d'une slide projetée étant
+la tache que personne ne voit sur sa propre présentation.
+
+Entre deux slides, un fondu. C'est le seul réglage du module dont la valeur par
+défaut n'est pas le comportement d'avant, et le raisonnement est qu'une
+transition n'appartient pas au document : le papier et le lien de partage n'en
+portent pas, donc aucune présentation déjà écrite ne change d'aspect. Aucune,
+fondu ou glissement, dans « Apparence ». Un système réglé sur « réduire les
+animations » n'en voit aucune, quel que soit le choix de la présentation.
+
+#### Une vue présentateur
+Les notes d'orateur avaient une colonne à elles depuis l'origine, précisément
+pour qu'aucun gabarit ne puisse les mettre au mur par accident. Rien ne les
+lisait.
+
+« Vue présentateur » ouvre une seconde fenêtre, à poser sur son propre écran :
+la slide en cours, la suivante, les notes en gros caractères et un minuteur. Les
+deux fenêtres avancent ensemble, dans les deux sens. La liaison passe par un
+canal du navigateur, de même origine et en mémoire : les notes ne quittent pas
+la machine où elles sont lues.
+
+#### Glisser une vignette, dupliquer une slide
+Une poignée sur chaque vignette permet de la déplacer à la souris ; les flèches
+restent, parce qu'elles sont le seul chemin au clavier. La copie d'une slide se
+pose juste après celle qu'elle copie.
+
+### Corrigé
+
+#### Le texte ne sort plus de la slide
+Une colonne centrée dans une boîte qu'elle déborde sort par les **deux** bouts :
+une slide à puces avec une puce de trop perdait son titre au-dessus du cadre et
+sa dernière ligne en dessous, sans rien dire, `overflow: hidden` faisant la
+coupe. Mesuré sur le cas signalé : 659 px de contenu dans une boîte de 409.
+
+La typographie se réduit désormais jusqu'à ce que la slide tienne. Toutes les
+tailles du cadre sont une fraction de la largeur de la slide, donc un seul
+facteur appliqué à toutes est la même décision en vignette et au mur. Et si les
+mots sont vraiment trop nombreux, la slide s'aligne en haut plutôt que d'être
+coupée aux deux extrémités : on lit à partir du début.
+
+#### Une image en « sans rognage » n'est plus rognée
+Le cadre de l'image était une grille dont la hauteur était décidée par l'image,
+qui elle-même demandait 100 % de cette hauteur. Le navigateur rompait le cycle
+en revenant à la taille naturelle : une photo carrée de 1280 px se dessinait sur
+815 px de haut dans une boîte de 293, et se faisait couper en haut et en bas.
+
+#### Le gras se voit dans un titre
+Un titre est déjà en graisse 600, et en chasse fixe l'écart jusqu'à 700 était
+invisible. Dans un titre, le gras prend la couleur d'accent ; dans le texte
+courant, où l'on part de 400, la graisse suffit.
+
+### Dans aurora-client
+**Trois migrations à passer** après `make aurora-update` : `core_decks` gagne
+`theme`, `style` et `template`, `core_deck_share_links` gagne `open_count` et
+`password_hash`. Toutes ont pour valeur par défaut exactement le comportement
+d'avant : aucune présentation déjà composée ne change d'aspect, aucune ne
+devient un modèle, aucun lien ne se met à demander un mot de passe. Les liens
+déjà ouverts voient leur compteur mis à un, zéro à côté d'une date d'ouverture
+se lisant comme un bug.
+
+Rien d'autre à répercuter à la main. Un projet client qui aurait surchargé
+`SlideFrame.vue` doit en revanche reprendre les propriétés personnalisées
+`--slide-*` : le cadre lit désormais ses couleurs plutôt que de les écrire.
+
+---
+
 ## [0.9.165] - 2026-09-13
 
 ### Corrigé
