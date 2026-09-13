@@ -19,6 +19,7 @@
 import { computed } from "vue";
 import { cells, headed } from "../cells.js";
 import { emphasis } from "../emphasis.js";
+import SlideChart from "./SlideChart.vue";
 
 const props = defineProps({
     slide: { type: Object, required: true },
@@ -201,6 +202,25 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
                     </table>
                     <div v-else class="sf-lines">
                         <span v-for="(row, at) in (slide.content.rows ?? []).slice(0, 4)" :key="at" />
+                    </div>
+                </template>
+
+                <template v-else-if="slide.layout === 'chart'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
+                    <!-- Pas de canevas dans une vignette de 160 px : une toile
+                         Chart.js par slide dans la colonne, c'est une douzaine
+                         de contextes de rendu pour des barres hautes de trois
+                         pixels. Les barres grises disent qu'il y a un graphique
+                         là, ce qui est tout ce qu'une vignette a à dire. -->
+                    <SlideChart
+                        v-if="!compact"
+                        :rows="slide.content.series ?? []"
+                        :kind="slide.content.chartType ?? 'bar'"
+                        :ink="appearance?.ink ?? '#e6e9ef'"
+                        :accent="appearance?.accent ?? '#58a6ff'"
+                    />
+                    <div v-else class="sf-bars">
+                        <span v-for="(row, at) in (slide.content.series ?? []).slice(0, 5)" :key="at" />
                     </div>
                 </template>
 
@@ -409,6 +429,15 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
 /* `contain` et pas `cover` : une capture rognée pour remplir le cadre perd
    justement le coin qu'on voulait montrer. */
 .sf-image-file { width: 100%; height: 100%; object-fit: contain; }
+
+/* Le tenant-lieu d'un graphique dans une vignette : des hauteurs fixes, parce
+   que les mesurer demanderait de lire les données pour trois pixels de haut. */
+.sf-bars { display: flex; align-items: flex-end; gap: 2cqw; height: 28cqw; }
+.sf-bars span { flex: 1; background: currentColor; opacity: 0.25; border-radius: 1px 1px 0 0; height: 45%; }
+.sf-bars span:nth-child(2) { height: 75%; }
+.sf-bars span:nth-child(3) { height: 100%; }
+.sf-bars span:nth-child(4) { height: 60%; }
+.sf-bars span:nth-child(5) { height: 35%; }
 
 /* The thumbnail's stand-in for body text: grey bars say "there are four
    bullets here" without pretending 3px of type is readable. */

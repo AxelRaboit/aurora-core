@@ -53,6 +53,9 @@ enum SlideLayoutEnum: string
     /** A small table. Its first row is its header. */
     case Table = 'table';
 
+    /** Figures, drawn. Bars, a line or a doughnut, in the deck's accent. */
+    case Chart = 'chart';
+
     /**
      * The slots that hold a list of lines rather than one string.
      *
@@ -66,7 +69,7 @@ enum SlideLayoutEnum: string
      */
     public static function listSlots(): array
     {
-        return ['bullets', 'items', 'steps', 'rows'];
+        return ['bullets', 'items', 'steps', 'rows', 'series'];
     }
 
     /**
@@ -128,6 +131,7 @@ enum SlideLayoutEnum: string
             self::Cards => ['title', 'items'],
             self::Timeline => ['title', 'steps'],
             self::Table => ['title', 'rows'],
+            self::Chart => ['title', 'chartType', 'series'],
         };
     }
 

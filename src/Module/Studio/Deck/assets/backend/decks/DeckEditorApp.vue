@@ -225,6 +225,13 @@ const sideOptions = computed(() => [
     { value: "right", label: t("backend.studio.decks.side_right") },
 ]);
 
+const chartOptions = computed(() =>
+    ["bar", "line", "doughnut"].map((kind) => ({
+        value: kind,
+        label: t(`backend.studio.decks.chart_types.${kind}`),
+    })),
+);
+
 /**
  * The last write out.
  *
@@ -409,6 +416,14 @@ onBeforeUnmount(() => {
                                 :rows="5"
                                 :disabled="!editable"
                                 v-on:update:model-value="(value) => writeLines(slot, value)"
+                            />
+                            <AppSelect
+                                v-else-if="slot === 'chartType'"
+                                :model-value="selected.content.chartType ?? 'bar'"
+                                :options="chartOptions"
+                                :label="labelFor(slot)"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('chartType', value)"
                             />
                             <AppSelect
                                 v-else-if="slot === 'side'"

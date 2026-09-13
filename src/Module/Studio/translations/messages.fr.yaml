@@ -511,12 +511,19 @@ backend:
             side_left: À gauche
             side_right: À droite
             line_placeholders:
+                series: "Une donnée par ligne. Étiquette | valeur"
                 bullets: Une puce par ligne.
                 items: "Une carte par ligne. Titre | description"
                 steps: "Une étape par ligne. Nom | précision"
                 rows: "Une ligne du tableau par ligne, cellules séparées par |. La première est l'en-tête."
             emphasis_hint: "Dans le texte d'une slide : **gras**, *italique*, `code`."
+            chart_types:
+                bar: Barres
+                line: Courbe
+                doughnut: Anneau
             slots:
+                chartType: Type de graphique
+                series: Données
                 value: Le chiffre
                 label: Ce qu'il compte
                 text: Texte
@@ -536,6 +543,7 @@ backend:
                 caption: Légende
                 mediaId: Image
             layouts:
+                chart: Graphique
                 stat: Chiffre clé
                 image_text: Image et texte
                 cards: Cartes

@@ -511,12 +511,19 @@ backend:
             side_left: On the left
             side_right: On the right
             line_placeholders:
+                series: "One value per line. Label | figure"
                 bullets: One bullet per line.
                 items: "One card per line. Heading | description"
                 steps: "One step per line. Name | detail"
                 rows: "One row per line, cells separated by |. The first row is the header."
             emphasis_hint: "In a slide's text: **bold**, *italic*, `code`."
+            chart_types:
+                bar: Bars
+                line: Line
+                doughnut: Doughnut
             slots:
+                chartType: Chart type
+                series: Data
                 value: The figure
                 label: What it counts
                 text: Text
@@ -536,6 +543,7 @@ backend:
                 caption: Caption
                 mediaId: Image
             layouts:
+                chart: Chart
                 stat: Key figure
                 image_text: Picture and text
                 cards: Cards
