@@ -72,14 +72,6 @@ const SHOTS = [
   { name: "sidemenu", path: "/backend/general/profile/sidemenu" },
 
   { name: "posts", path: "/backend/editorial/posts" },
-  {
-    name: "posts-trash",
-    path: "/backend/editorial/posts",
-    async prepare(page) {
-      await page.getByRole("button", { name: /^Corbeille$/ }).click();
-      await settle(page, 1500);
-    },
-  },
   { name: "post-editor-content", prepare: tab(/^Contenu$/) },
   { name: "post-editor-header", prepare: tab(/En-tête/) },
   { name: "post-editor-settings", prepare: tab(/Paramétrage/) },

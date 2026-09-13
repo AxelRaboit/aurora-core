@@ -32,7 +32,7 @@ Le mode présentation n'affiche pas les notes d'orateur. Un seul écran est l'é
 
 « Imprimer » ouvre une page qui ne porte que les slides, une par page, en paysage, et lance le dialogue d'impression.
 
-![La page d'impression](../../images/06-studio/presenter-un-deck-02-la-page-d-impression.png)
+![La page d'impression](../../images/06-studio/presenter-un-deck-03-la-page-d-impression.png)
 
 ## Obtenir un PDF
 

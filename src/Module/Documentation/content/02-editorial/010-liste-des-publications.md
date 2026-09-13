@@ -1,6 +1,6 @@
 ---
 title: "La liste des publications"
-description: "Filtrer, chercher, agir en masse, et la corbeille."
+description: "Filtrer, chercher, agir en masse."
 rubric: "Éditorial"
 ---
 Tout le contenu du site passe par cet écran : les pages, les articles, et les types que vous avez créés vous-même.
@@ -21,7 +21,7 @@ Elle porte sur le titre, l'adresse, et accepte aussi qu'on lui colle une URL com
 
 ## 3. Les actions en masse
 
-Cocher une ou plusieurs lignes fait apparaître les cinq actions : publier, repasser en brouillon, mettre à la corbeille, restaurer, supprimer définitivement.
+Cocher une ou plusieurs lignes fait apparaître les trois actions : publier, repasser en brouillon, mettre à la corbeille.
 
 Elles s'appliquent à la sélection entière, y compris aux publications que le filtre courant ne montre pas si la sélection les inclut. Vérifiez le compteur avant de cliquer.
 
@@ -29,6 +29,4 @@ Elles s'appliquent à la sélection entière, y compris aux publications que le 
 
 ## 4. La corbeille
 
-Un onglet à part. Une publication à la corbeille n'est plus en ligne mais rien n'est perdu : elle se restaure d'un clic. La purge automatique la supprime définitivement au bout du nombre de jours réglé dans Lecture.
-
-![La corbeille](../../images/02-editorial/liste-des-publications-04-la-corbeille.png)
+Cette liste ne montre que les publications en ligne ou en brouillon. Une publication mise à la corbeille n'est plus ici : elle attend dans **Général > Corbeille**, avec ce qui a été supprimé dans les autres modules, et c'est de là qu'elle se restaure.
