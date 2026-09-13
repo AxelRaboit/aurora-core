@@ -20,7 +20,6 @@
  * and it is why the aside could be deleted rather than merely duplicated.
  */
 import { computed, ref } from "vue";
-import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
 import {
     Folder,
@@ -29,7 +28,6 @@ import {
     Pencil,
     Plus,
     Save,
-    RotateCcw,
     Star,
     Trash2,
     X,
@@ -46,26 +44,17 @@ import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
 import { askPage } from "@/shared/nav/modulePanelBridge.js";
 import { useModulePanelData } from "@/shared/nav/useModulePanelData.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
-import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useSidemenuSectionTheme } from "@/backend/sidemenu/composables/useSidemenuSectionTheme.js";
 import { useDocumentSidebarTree } from "./composables/useDocumentSidebarTree.js";
 import { useFolderPanelActions } from "./composables/useFolderPanelActions.js";
 
 const DOCUMENTS_PATH = "/backend/ged/documents";
 const FOLDERS_ENDPOINT = "/backend/ged/documents/folders";
-// Written out like the panel's other endpoints: this surface fetches its own
-// data and is handed no props, so there is no template to carry a generated
-// path here.
-const FOLDER_RESTORE = "/backend/ged/folders/__id__/restore";
-const FOLDER_FORCE_DELETE = "/backend/ged/folders/__id__/force-delete";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
 const { itemClasses, iconClasses } = useSidemenuSectionTheme();
 
-// The whole payload rather than its `folders` key: the same response carries
-// the trashed folders and the two paths that act on them, and asking for it
-// twice would be a second request for data already in hand.
 const {
     data: panelPayload,
     loading,
@@ -74,30 +63,6 @@ const {
 } = useModulePanelData(FOLDERS_ENDPOINT);
 
 const folders = computed(() => panelPayload.value?.folders ?? []);
-const trashedFolders = computed(() => panelPayload.value?.trashedFolders ?? []);
-
-const { request: trashRequest } = useRequest();
-
-function trashPath(template, id) {
-    return template.replace("__id__", String(id));
-}
-
-async function restoreFolder(folder) {
-    const res = await trashRequest(trashPath(FOLDER_RESTORE, folder.id));
-    if (!res?.success) return;
-
-    toast.success(t("backend.ged.documents.trash.folder_restored"));
-    await reload();
-}
-
-async function forceDeleteFolder(folder) {
-    const res = await trashRequest(trashPath(FOLDER_FORCE_DELETE, folder.id));
-    if (!res?.success) return;
-
-    toast.success(t("backend.ged.documents.trash.folder_deleted_forever"));
-    await reload();
-}
-
 /**
  * Which folder the page is showing, kept in step with it.
  *
@@ -397,36 +362,6 @@ const rowClasses = (active) => itemClasses("ged", { isActive: active });
                 </template>
             </AppModal>
 
-            <div v-if="trashedFolders.length" class="mt-4 border-t border-line/60 pt-3">
-                <p class="px-2 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted">
-                    {{ t("backend.ged.documents.trash.folders_title") }}
-                </p>
-                <ul class="flex flex-col gap-1">
-                    <li
-                        v-for="folder in trashedFolders"
-                        :key="folder.id"
-                        class="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm text-secondary"
-                    >
-                        <Trash2 class="h-3.5 w-3.5 shrink-0" :stroke-width="2" />
-                        <span class="min-w-0 flex-1 truncate">{{ folder.name }}</span>
-                        <AppIconButton
-                            :title="t('backend.ged.documents.trash.restore')"
-                            size="xs"
-                            v-on:click="restoreFolder(folder)"
-                        >
-                            <RotateCcw class="h-3.5 w-3.5" :stroke-width="2" />
-                        </AppIconButton>
-                        <AppIconButton
-                            :title="t('backend.ged.documents.trash.delete_forever')"
-                            size="xs"
-                            color="rose"
-                            v-on:click="forceDeleteFolder(folder)"
-                        >
-                            <X class="h-3.5 w-3.5" :stroke-width="2" />
-                        </AppIconButton>
-                    </li>
-                </ul>
-            </div>
 
             <AppModal
                 :show="!!deletingFolder"

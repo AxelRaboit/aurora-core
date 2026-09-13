@@ -17,9 +17,7 @@ function actionsFor(post, options = {}) {
             const build = usePostRowActions({
                 can: () => true,
                 editPath: (item) => `/posts/${item.id}/edit`,
-                restore: vi.fn(),
                 confirmDelete: vi.fn(),
-                forceDelete: vi.fn(),
                 duplicate: vi.fn(),
                 preview: vi.fn(),
                 ...options,
@@ -60,11 +58,18 @@ describe("usePostRowActions", () => {
         ]);
     });
 
-    /** Nothing to preview and nothing to copy on the way out. */
-    it("offers restore and permanent delete on a trashed row, and nothing else", () => {
+    /**
+     * A trashed row offers nothing here any more.
+     *
+     * Restoring and destroying moved to the Trash screen, which does it for
+     * every module at once. The list endpoint can still be asked for trashed
+     * rows, so the guards stay as a floor: what is on its way out is not
+     * edited, previewed or copied.
+     */
+    it("offers nothing on a trashed row, since this list is for live publications", () => {
         expect(
             actionsFor({ id: 1, trashed: true }, { canPreview: true }),
-        ).toEqual(["restore", "force-delete"]);
+        ).toEqual([]);
     });
 
     it("calls back with the row it was given", () => {
@@ -76,9 +81,7 @@ describe("usePostRowActions", () => {
                 const build = usePostRowActions({
                     can: () => true,
                     editPath: () => "/x",
-                    restore: vi.fn(),
                     confirmDelete: vi.fn(),
-                    forceDelete: vi.fn(),
                     duplicate: vi.fn(),
                     preview,
                     canPreview: true,

@@ -83,9 +83,6 @@ final class MarkdownNotesController extends AbstractController
 
         return $this->jsonSuccess([
             'notes' => $this->repository->findFlatListForUser($user),
-            // Sent on every listing so the screen knows whether to offer the
-            // trash at all, and what number to show on it.
-            'trashedTotal' => $this->repository->countTrashedForUser($user),
         ]);
     }
 
@@ -144,6 +141,27 @@ final class MarkdownNotesController extends AbstractController
         $this->manager->forceDelete($note);
 
         return $this->jsonSuccess();
+    }
+
+    /**
+     * Destroys every note this user has in the trash, sub-pages included.
+     *
+     * Only theirs: a note belongs to its author, and there is no view in which
+     * emptying one person's trash should reach another's.
+     */
+    #[Route('/empty-trash', name: '_empty_trash', methods: [HttpMethodEnum::Post->value])]
+    public function emptyTrash(): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $deleted = 0;
+        foreach ($this->repository->findTrashedRootsForUser($user) as $note) {
+            $this->manager->forceDelete($note);
+            ++$deleted;
+        }
+
+        return $this->jsonSuccess(['deleted' => $deleted]);
     }
 
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]

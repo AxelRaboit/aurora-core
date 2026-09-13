@@ -17,13 +17,10 @@ final readonly class DocumentCategoriesViewBuilder
         private UrlGeneratorInterface $urlGenerator,
     ) {}
 
-    public function indexView(PaginationRequest $pagination, bool $trashed = false): array
+    public function indexView(PaginationRequest $pagination): array
     {
         return [
-            // Built for the view being opened, so a link into the trash does
-            // not show the live list for the time of one fetch.
-            'categories' => $this->buildListPayload($pagination, $trashed),
-            'trashed' => $trashed,
+            'categories' => $this->buildListPayload($pagination),
             'search' => $pagination->search ?? '',
             'createPath' => $this->urlGenerator->generate('backend_ged_categories_create'),
             'updatePath' => $this->urlGenerator->generate('backend_ged_categories_update', ['id' => '__id__']),
@@ -47,7 +44,6 @@ final readonly class DocumentCategoriesViewBuilder
             'totalPages' => $result['totalPages'],
             // Sent on every page so the screen knows whether to offer the
             // trash at all, and what number to put on it.
-            'trashedTotal' => $this->categoryRepository->countTrashed(),
         ];
     }
 }

@@ -2,26 +2,31 @@ import { describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
 /**
- * The trash is a list, not a filter - and the composable has to agree with the
- * screen about that.
+ * What "Clear" clears, now that the list has one list to show.
  *
- * The list used to count the trash among the active filters, so "Clear" offered
- * itself as soon as you opened the trash and, pressed, threw you back to the
- * live posts. That reads as a bug even when you know why: clearing the filters
- * applied *inside* a list is a different act from leaving it.
- *
- * These pin the separation, since it is the kind of thing a later "let's make
- * Clear reset everything" tidy-up would quietly undo.
+ * The trash used to be a second list reachable from here, and counting it
+ * among the active filters made "Clear" throw the reader back to the live
+ * posts. Both are gone: the trash lives on its own screen, and this list only
+ * ever shows what has not been deleted. What remains worth pinning is that
+ * clearing the filters clears the filters and nothing else.
  */
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
 vi.mock("vue-sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+const requestedUrls = [];
 vi.mock("@/shared/composables/http/backend/useRequest.js", () => ({
     useRequest: () => ({
-        request: vi.fn(async () => ({
-            ok: true,
-            data: { items: [], total: 0, page: 1, totalPages: 1 },
-        })),
+        request: vi.fn(async (url) => {
+            requestedUrls.push(url);
+
+            return {
+                success: true,
+                items: [],
+                total: 0,
+                page: 1,
+                totalPages: 1,
+            };
+        }),
     }),
 }));
 vi.mock("@/shared/composables/form/useDelete.js", () => ({
@@ -38,39 +43,28 @@ const { usePostsList } = await import("./usePostsList.js");
 const props = (overrides = {}) => ({
     posts: { items: [], total: 0, page: 1, totalPages: 1 },
     search: "",
-    trashed: false,
     postTypeIds: [],
     termIds: [],
     statuses: [],
     listPath: "/backend/editorial/posts",
     editPathTemplate: "/backend/editorial/posts/__id__/edit",
     deletePathTemplate: "/backend/editorial/posts/__id__/delete",
-    restorePathTemplate: "/backend/editorial/posts/__id__/restore",
-    forceDeletePathTemplate: "/backend/editorial/posts/__id__/force-delete",
-    emptyTrashPath: "/backend/editorial/posts/empty-trash",
     ...overrides,
 });
 
 describe("usePostsList", () => {
-    it("does not count the chosen list among the active filters", async () => {
-        const list = usePostsList(props({ trashed: true }));
-        await nextTick();
-
-        expect(list.activeFilterCount.value).toBe(0);
-    });
-
-    it("counts the filters applied inside it", async () => {
+    it("counts the filters that are applied, and only those", async () => {
         const list = usePostsList(
-            props({ trashed: true, statuses: ["draft"], postTypeIds: [2] }),
+            props({ statuses: ["draft"], postTypeIds: [2] }),
         );
         await nextTick();
 
         expect(list.activeFilterCount.value).toBe(2);
     });
 
-    it("clears the filters without leaving the trash", async () => {
+    it("clears every filter at once", async () => {
         const list = usePostsList(
-            props({ trashed: true, statuses: ["draft"] }),
+            props({ statuses: ["draft"], postTypeIds: [2], termIds: [7] }),
         );
         await nextTick();
 
@@ -78,6 +72,20 @@ describe("usePostsList", () => {
         await nextTick();
 
         expect(list.statuses.value).toEqual([]);
-        expect(list.trashed.value).toBe(true);
+        expect(list.postTypeIds.value).toEqual([]);
+        expect(list.termIds.value).toEqual([]);
+        expect(list.activeFilterCount.value).toBe(0);
+    });
+
+    it("never asks the server for trashed rows", async () => {
+        const list = usePostsList(props());
+        requestedUrls.length = 0;
+
+        list.statuses.value = ["draft"];
+        await nextTick();
+        await nextTick();
+
+        expect(requestedUrls.length).toBeGreaterThan(0);
+        expect(requestedUrls.join(" ")).not.toContain("trashed");
     });
 });

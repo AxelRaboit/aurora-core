@@ -1,6 +1,6 @@
 import { ref, computed } from "vue";
 
-export function useDocumentFilters(reload, { trashed = false } = {}) {
+export function useDocumentFilters(reload) {
     const filterCategoryId = ref(null);
     const filterTagId = ref(null);
     const filterFolderId = ref(null);
@@ -9,14 +9,6 @@ export function useDocumentFilters(reload, { trashed = false } = {}) {
     // Only ever set on installations with a second backend; the screen hides
     // the control otherwise, and an unset filter costs nothing here.
     const filterStorageDisk = ref(null);
-    // The trash is a view over the same listing, not a filter: it stays out of
-    // `hasActiveFilter` and out of `resetFilters` on purpose, so clearing the
-    // filters inside the trash clears the filters and leaves you in the trash.
-    //
-    // It can start open, which is how the overview screen links to what it
-    // counted. Read once, not watched: from then on the page owns the view.
-    const viewingTrash = ref(Boolean(trashed));
-
     const hasActiveFilter = computed(
         () =>
             !!(
@@ -36,7 +28,6 @@ export function useDocumentFilters(reload, { trashed = false } = {}) {
         status: filterStatus.value || undefined,
         mimeGroup: filterMimeGroup.value || undefined,
         storageDisk: filterStorageDisk.value || undefined,
-        trashed: viewingTrash.value ? 1 : undefined,
     });
 
     function applyFilter() {
@@ -53,15 +44,7 @@ export function useDocumentFilters(reload, { trashed = false } = {}) {
         reload();
     }
 
-    function toggleTrash(next) {
-        viewingTrash.value =
-            typeof next === "boolean" ? next : !viewingTrash.value;
-        reload();
-    }
-
     return {
-        viewingTrash,
-        toggleTrash,
         filterCategoryId,
         filterTagId,
         filterFolderId,

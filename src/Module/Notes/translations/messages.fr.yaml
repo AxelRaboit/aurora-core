@@ -39,15 +39,6 @@ backend:
           removed: Tag supprimé
 notes:
   markdown:
-    trash:
-      title: Corbeille
-      banner: Les notes supprimées attendent ici. Les restaurer remet aussi leurs sous-notes en place.
-      empty: La corbeille est vide.
-      untitled: Note sans titre
-      restore: Restaurer
-      restored: Note restaurée
-      delete_forever: Supprimer définitivement
-      deleted_forever: Note supprimée définitivement
     share:
       button: Partager
       title: Partager cette note

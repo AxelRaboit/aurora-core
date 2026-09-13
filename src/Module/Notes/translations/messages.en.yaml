@@ -39,15 +39,6 @@ backend:
           removed: Tag removed
 notes:
   markdown:
-    trash:
-      title: Trash
-      banner: Deleted notes wait here. Restoring one puts its sub-notes back too.
-      empty: The trash is empty.
-      untitled: Untitled note
-      restore: Restore
-      restored: Note restored
-      delete_forever: Delete permanently
-      deleted_forever: Note permanently deleted
     share:
       button: Share
       title: Share this note

@@ -12,7 +12,6 @@ use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
 use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
 use Aurora\Module\Ged\DocumentCategory\Serializer\DocumentCategorySerializerInterface;
-use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use Aurora\Module\Ged\DocumentFolder\Repository\DocumentFolderRepository;
 use Aurora\Module\Ged\DocumentFolder\Serializer\DocumentFolderSerializerInterface;
 use Aurora\Module\Ged\DocumentTag\Repository\DocumentTagRepository;
@@ -35,7 +34,7 @@ final readonly class DocumentsViewBuilder
         private StorageSettings $storageSettings,
     ) {}
 
-    public function indexView(PaginationRequest $pagination, bool $trashed = false): array
+    public function indexView(PaginationRequest $pagination): array
     {
         $categories = array_map(
             $this->categorySerializer->serialize(...),
@@ -50,11 +49,7 @@ final readonly class DocumentsViewBuilder
         $folders = $this->serializeFoldersWithCounts();
 
         return [
-            // The first page is built for the view the reader is landing on,
-            // so a link into the trash does not show the library for the time
-            // of one fetch.
-            'documents' => $this->buildListPayload($pagination, trashed: $trashed),
-            'trashed' => $trashed,
+            'documents' => $this->buildListPayload($pagination),
             'categories' => $categories,
             'tags' => $tags,
             'folders' => $folders,
@@ -130,10 +125,6 @@ final readonly class DocumentsViewBuilder
             // Sidebar refreshes counts on every navigation so the badges next
             // to folder names stay in sync after moves / deletes / uploads.
             'folders' => $this->serializeFoldersWithCounts(),
-            // Sent on every page, trash or not: it is what the trash filter
-            // shows as a badge, and what tells the screen to offer the filter
-            // at all rather than pointing at an empty room.
-            'trashedTotal' => $this->documentRepository->countTrashed(),
         ];
     }
 
@@ -153,18 +144,6 @@ final readonly class DocumentsViewBuilder
         return [
             'success' => true,
             'folders' => $this->serializeFoldersWithCounts(),
-            // Only the folders trashed on their own: one deleted with its
-            // parent is part of that parent's branch, and offering to restore
-            // it separately would put it back under a folder that is still
-            // deleted.
-            'trashedFolders' => array_map(
-                static fn (DocumentFolderInterface $folder): array => [
-                    'id' => $folder->getId(),
-                    'name' => $folder->getName(),
-                    'deletedAt' => $folder->getDeletedAt()?->format(DATE_ATOM),
-                ],
-                $this->folderRepository->findTrashedRoots(),
-            ),
         ];
     }
 

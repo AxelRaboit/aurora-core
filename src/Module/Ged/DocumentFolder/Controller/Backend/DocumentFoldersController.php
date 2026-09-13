@@ -95,6 +95,26 @@ final class DocumentFoldersController extends AbstractController
         return $this->jsonSuccess(['folders' => $this->allFolders()]);
     }
 
+    /**
+     * Destroys every folder waiting in the trash.
+     *
+     * Destroys the folders and nothing else: what fell with one is released to
+     * the root, exactly as a single permanent deletion does, because the
+     * documents are the part nobody asked to lose. Emptying the document trash
+     * is what removes those.
+     */
+    #[Route('/empty-trash', name: '_empty_trash', methods: [HttpMethodEnum::Post->value])]
+    public function emptyTrash(): JsonResponse
+    {
+        $deleted = 0;
+        foreach ($this->folderRepository->findTrashedRoots() as $folder) {
+            $this->manager->forceDelete($folder);
+            ++$deleted;
+        }
+
+        return $this->jsonSuccess(['deleted' => $deleted, 'folders' => $this->allFolders()]);
+    }
+
     #[Route('/{id}/move', name: '_move', methods: [HttpMethodEnum::Post->value])]
     public function move(DocumentFolder $folder, Request $request): JsonResponse
     {

@@ -15,7 +15,6 @@
 <div {{ vue_component('editorial/backend/posts/PostsApp', {
     posts: posts,
     search: search,
-    trashed: trashed,
     postTypes: postTypes,
     taxonomies: taxonomies,
     locales: locales,
@@ -30,8 +29,5 @@
     duplicatePathTemplate: path_template('backend_editorial_posts_duplicate', {id: '__id__'}),
     previewPathTemplate: path_template('backend_editorial_posts_preview', {id: '__id__'}),
     bulkPath: path('backend_editorial_posts_bulk'),
-    restorePathTemplate: path_template('backend_editorial_posts_restore', {id: '__id__'}),
-    forceDeletePathTemplate: path_template('backend_editorial_posts_force_delete', {id: '__id__'}),
-    emptyTrashPath: path('backend_editorial_posts_empty_trash'),
 }) }} class="flex-1 min-w-0"></div>
 {% endblock %}
