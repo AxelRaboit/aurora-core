@@ -49,6 +49,7 @@ final readonly class ContractsViewBuilder
             'updatePath' => $this->pathTemplates->generate('backend_studio_contracts_update', ['id' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('backend_studio_contracts_delete', ['id' => '__id__']),
             'freezePath' => $this->pathTemplates->generate('backend_studio_contracts_freeze', ['id' => '__id__']),
+            'previewPath' => $this->pathTemplates->generate('backend_studio_contracts_preview', ['id' => '__id__']),
             'sendPath' => $this->pathTemplates->generate('backend_studio_contracts_send', ['id' => '__id__']),
             'revokeLinkPath' => $this->pathTemplates->generate('backend_studio_contracts_revoke_link', ['id' => '__id__']),
             'countersignPath' => $this->pathTemplates->generate('backend_studio_contracts_countersign', ['id' => '__id__']),

@@ -57,6 +57,27 @@ l'écran, pas ce qui était en base il y a une heure. Un bloc que l'aperçu refu
 de dessiner est un bloc que le scellement aurait refusé aussi, et le rencontrer
 ici est précisément l'intérêt.
 
+#### Relire un contrat avant de le sceller
+Le même bouton, sur la liste des contrats, pour un contrat en préparation.
+Cette fois les valeurs ne sont pas des exemples : ce contrat a un client, un
+montant et une date, donc il n'y a rien à inventer. Un champ que la fiche
+client laisse vide s'affiche vide, parce que c'est ce que le signataire
+lirait, et le voir est précisément l'intérêt.
+
+Seules deux choses ne peuvent pas encore être réelles et s'affichent entre
+crochets : la référence, tirée au scellement, et les mentions écrites à la
+signature. Un blanc à ces endroits se lirait comme un défaut plutôt que comme
+une étape qui n'a pas eu lieu.
+
+L'aperçu emprunte le chemin du scellement : les mêmes parties dans le même
+ordre, le même moteur de rendu, la clause de langue ajoutée au même endroit.
+Il n'écrit rien et ne tire aucune référence. Les variables inconnues, celles
+qui bloqueront le scellement, sont **nommées** au lieu d'être refusées : les
+trouver ici ne coûte rien, les trouver au scellement coûte un aller-retour.
+
+Un contrat déjà scellé n'est pas concerné : son document est stocké et haché,
+et l'écran qui le montre imprime ces octets plutôt que de les recalculer.
+
 ### Dans aurora-client
 Une migration à jouer, ce que `make deploy-prod` fait déjà.
 

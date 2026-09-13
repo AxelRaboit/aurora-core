@@ -125,6 +125,10 @@ backend:
             col_sealed_at: Scellé le
             col_link: Lien
             read_document: Lire le document
+            preview: Aperçu
+            preview_notice: "Le document tel que le client le lira, avec les vraies données de ce contrat. La référence et les mentions de signature apparaissent entre crochets : elles sont écrites au scellement et à la signature."
+            preview_unknown_tokens: 'Variables inconnues, elles bloqueront le scellement : {tokens}'
+            preview_failed: L'aperçu n'a pas pu être produit.
             download_pdf: 'Télécharger le PDF signé'
             countersign: 'Contresigner'
             countersign_intro: 'Votre contresignature conclut le contrat. Le client en sera informé par email.'
@@ -183,6 +187,7 @@ backend:
                 delete_description: Supprime le brouillon. Rien n'a encore été envoyé au client.
                 send_description: Envoie au client un lien de signature à usage unique.
                 revoke_description: Coupe le lien en cours. Ses codes de vérification tombent avec lui.
+                preview_description: Montre le document tel que le client le lira, avant scellement.
                 document_description: Ouvre le document scellé et son bloc de preuve.
             not_sealed_yet: Ce contrat n'est pas encore scellé. Son texte sera figé au moment du scellement.
             seal_intact: Le sceau est intact
@@ -204,6 +209,7 @@ backend:
                 expired: Expiré
                 revoked: Révoqué
             errors:
+                preview_sealed: "Ce contrat est déjà scellé : son document stocké est la référence, il ne se rejoue pas."
                 body_required: Un contrat a besoin d'un corps de contrat.
                 version_not_published: 'La version {number} de « {template} » n''est pas publiée. Un brouillon ne peut pas être envoyé.'
                 locale_missing: '« {template} » n''a pas de texte en {locale}.'

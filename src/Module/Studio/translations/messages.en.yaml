@@ -125,6 +125,10 @@ backend:
             col_sealed_at: Sealed on
             col_link: Link
             read_document: Read the document
+            preview: Preview
+            preview_notice: "The document as the client will read it, with this contract's real data. The reference and the signature mentions show in square brackets: they are written at the seal and at the signature."
+            preview_unknown_tokens: 'Unknown variables, they will stop the seal: {tokens}'
+            preview_failed: The preview could not be produced.
             download_pdf: 'Download the signed PDF'
             countersign: 'Countersign'
             countersign_intro: 'Your countersignature concludes the contract. The customer is notified by email.'
@@ -183,6 +187,7 @@ backend:
                 delete_description: Deletes the draft. Nothing has been sent to the customer yet.
                 send_description: Sends the customer a single-use signing link.
                 revoke_description: Kills the current link. Its verification codes go with it.
+                preview_description: Shows the document as the client will read it, before sealing.
                 document_description: Opens the sealed document and its proof block.
             not_sealed_yet: This contract is not sealed yet. Its wording is frozen at the moment of sealing.
             seal_intact: The seal is intact
@@ -204,6 +209,7 @@ backend:
                 expired: Expired
                 revoked: Revoked
             errors:
+                preview_sealed: "This contract is already sealed: its stored document is the reference, and it is never re-rendered."
                 body_required: A contract needs a contract body.
                 version_not_published: 'Version {number} of "{template}" is not published. A draft cannot be sent.'
                 locale_missing: '"{template}" carries no wording in {locale}.'
