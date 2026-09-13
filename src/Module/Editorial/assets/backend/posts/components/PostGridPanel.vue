@@ -92,6 +92,9 @@ const {
     addItem,
     removeItem,
     moveItem,
+    addGalleryImages,
+    removeGalleryImage,
+    moveGalleryImage,
     itemFields,
     widthLabel,
     resizeZoneFromLeft: resizeZoneStart,
@@ -474,6 +477,9 @@ function resizeZone(index, columns) {
                                 v-on:add-item="addItem(index, childIndex)"
                                 v-on:remove-item="(i) => removeItem(index, i, childIndex)"
                                 v-on:move-item="(i, d) => moveItem(index, i, d, childIndex)"
+                                v-on:add-gallery="(picked) => addGalleryImages(index, picked, childIndex)"
+                                v-on:remove-gallery="(i) => removeGalleryImage(index, i, childIndex)"
+                                v-on:move-gallery="(i, d) => moveGalleryImage(index, i, d, childIndex)"
                             />
                         </div>
 
@@ -514,6 +520,9 @@ function resizeZone(index, columns) {
                     v-on:add-item="addItem(index)"
                     v-on:remove-item="(i) => removeItem(index, i)"
                     v-on:move-item="(i, d) => moveItem(index, i, d)"
+                    v-on:add-gallery="(picked) => addGalleryImages(index, picked)"
+                    v-on:remove-gallery="(i) => removeGalleryImage(index, i)"
+                    v-on:move-gallery="(i, d) => moveGalleryImage(index, i, d)"
                 />
             </div>
 

@@ -216,6 +216,9 @@ final readonly class GridViewBuilder
                 'postList' => GridNormalizer::ZONE_POST_LIST === $zone['type']
                     ? $this->postListView($zone, $locale, $currentPostId)
                     : null,
+                'gallery' => GridNormalizer::ZONE_GALLERY === $zone['type']
+                    ? $this->galleryView($zone, $documents)
+                    : null,
                 'map' => GridNormalizer::ZONE_MAP === $zone['type']
                     ? $this->mapView($held['label'], $held['caption'], $documents[$zone['mediaId']] ?? null)
                     : null,
@@ -373,6 +376,26 @@ final readonly class GridViewBuilder
             }
         }
 
+        // A gallery is many pictures in one zone, so the number goes on each
+        // of them rather than on the zone. They are numbered here, in the
+        // order they are drawn, which is the order the overlay steps through.
+        if (GridNormalizer::ZONE_GALLERY === $zone['type'] && is_array($zone['gallery'] ?? null)) {
+            foreach ($zone['gallery']['items'] as $index => $picture) {
+                $zone['gallery']['items'][$index]['lightboxIndex'] = count($lightbox);
+                $lightbox[] = [
+                    'url' => $picture['url'],
+                    'alt' => $picture['alt'] ?? '',
+                    // A gallery's caption belongs to the zone as a whole, so
+                    // there is nothing per picture to show under the overlay.
+                    'caption' => '',
+                ];
+            }
+
+            $zone['lightboxIndex'] = null;
+
+            return $zone;
+        }
+
         $media = $zone['media'] ?? null;
 
         if (GridNormalizer::ZONE_MEDIA !== $zone['type'] || !is_array($media)) {
@@ -467,6 +490,41 @@ final readonly class GridViewBuilder
             'columns' => (int) $zone['columns'],
             'variant' => (string) $zone['cardVariant'],
             'cards' => $cards,
+        ];
+    }
+
+    /**
+     * The pictures of a gallery zone, resolved against the one prefetch.
+     *
+     * A document named here but since deleted, or replaced by something that
+     * is not a picture, drops out rather than leaving a hole: {@see mediaData}
+     * already answers that question and this only has to respect the answer.
+     *
+     * `ratioStyle` is empty when the zone asks for its own proportions, and
+     * that emptiness is what the template reads to flow the pictures down
+     * columns instead of cropping them into a grid.
+     *
+     * @param array<string, mixed>          $zone
+     * @param array<int, DocumentInterface> $documents
+     *
+     * @return array{columns: int, ratioStyle: string, items: list<array<string, mixed>>}
+     */
+    private function galleryView(array $zone, array $documents): array
+    {
+        $items = [];
+
+        foreach (is_array($zone['mediaIds'] ?? null) ? $zone['mediaIds'] : [] as $id) {
+            $picture = $this->mediaData($documents[$id] ?? null, '');
+
+            if (null !== $picture) {
+                $items[] = $picture;
+            }
+        }
+
+        return [
+            'columns' => (int) $zone['columns'],
+            'ratioStyle' => $this->ratioStyle($zone['ratio']),
+            'items' => $items,
         ];
     }
 
@@ -708,6 +766,13 @@ final readonly class GridViewBuilder
                 GridNormalizer::ZONE_DOCUMENT,
                 GridNormalizer::ZONE_MAP,
             ], true);
+
+            // A gallery names many at once, and they join the same query as
+            // everything else: twenty-four photographs on a page should cost
+            // one lookup, which is the whole reason this prefetch exists.
+            foreach (is_array($zone['mediaIds'] ?? null) ? $zone['mediaIds'] : [] as $galleryId) {
+                $ids[] = $galleryId;
+            }
 
             if ($carriesMedia && null !== $zone['mediaId']) {
                 $ids[] = $zone['mediaId'];

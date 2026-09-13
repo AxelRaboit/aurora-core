@@ -17,6 +17,7 @@ import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
 import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import { openDocumentPicker } from "@/shared/utils/documentPicker.js";
+import { MAX_GALLERY_IMAGES } from "../composables/usePostGrid.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -60,7 +61,14 @@ const props = defineProps({
     canAddItem: { type: Boolean, default: true },
 });
 
-const emit = defineEmits(["add-item", "remove-item", "move-item"]);
+const emit = defineEmits([
+    "add-item",
+    "remove-item",
+    "move-item",
+    "add-gallery",
+    "remove-gallery",
+    "move-gallery",
+]);
 
 const { t } = useI18n();
 
@@ -108,6 +116,23 @@ async function pickDocument() {
         bound.media.value = picked;
     }
 }
+
+/**
+ * The library, filtered to pictures and letting several be taken at once -
+ * which is the whole ergonomic point of a gallery zone over six media zones.
+ */
+async function pickGalleryImages() {
+    const picked = await openDocumentPicker({ imagesOnly: true, multiple: true });
+
+    if (Array.isArray(picked) && picked.length > 0) {
+        emit("add-gallery", picked);
+    }
+}
+
+/** What the panel draws: the previews, which travel beside the saved ids. */
+const galleryImages = computed(() => props.zone.gallery?.items ?? []);
+
+const galleryIsFull = computed(() => galleryImages.value.length >= MAX_GALLERY_IMAGES);
 
 const publicationOptions = computed(() =>
     props.postOptions.map((post) => ({ value: post.id, label: post.title ?? `#${post.id}` })),
@@ -328,6 +353,89 @@ const displayHint = computed(() =>
                 :options="formOptions"
                 :placeholder="t('backend.posts.grid.zone_form_none')"
             />
+        </template>
+
+        <template v-else-if="zone.type === 'gallery'">
+            <div class="flex items-center justify-between gap-3">
+                <span class="text-sm text-secondary">
+                    {{ t("backend.posts.grid.gallery_count", { count: galleryImages.length, max: MAX_GALLERY_IMAGES }) }}
+                </span>
+                <AppButton
+                    variant="secondary"
+                    size="sm"
+                    :disabled="galleryIsFull"
+                    v-on:click="pickGalleryImages"
+                >
+                    <Plus class="w-3.5 h-3.5" :stroke-width="2" />
+                    {{ t("backend.posts.grid.gallery_add") }}
+                </AppButton>
+            </div>
+
+            <!-- Thumbnails rather than a list of names: an author arranging
+                 photographs is looking at photographs. Up and down rather than
+                 dragging, which is what the zones themselves offer and what
+                 stays reachable from a keyboard. -->
+            <ul v-if="galleryImages.length" class="m-0 grid list-none grid-cols-3 gap-2 p-0">
+                <li
+                    v-for="(picture, pictureIndex) in galleryImages"
+                    :key="`${pictureIndex}-${picture.url}`"
+                    class="group relative overflow-hidden rounded-lg border border-line"
+                >
+                    <img :src="picture.url" alt="" class="aspect-square w-full object-cover">
+                    <div class="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-surface/90 p-1">
+                        <div class="flex gap-1">
+                            <AppIconButton
+                                :icon="ChevronUp"
+                                size="sm"
+                                :disabled="pictureIndex === 0"
+                                :title="t('backend.posts.grid.item_move_up')"
+                                v-on:click="emit('move-gallery', pictureIndex, -1)"
+                            />
+                            <AppIconButton
+                                :icon="ChevronDown"
+                                size="sm"
+                                :disabled="pictureIndex === galleryImages.length - 1"
+                                :title="t('backend.posts.grid.item_move_down')"
+                                v-on:click="emit('move-gallery', pictureIndex, 1)"
+                            />
+                        </div>
+                        <AppIconButton
+                            :icon="Trash2"
+                            size="sm"
+                            color="danger"
+                            :title="t('backend.posts.grid.gallery_remove')"
+                            v-on:click="emit('remove-gallery', pictureIndex)"
+                        />
+                    </div>
+                </li>
+            </ul>
+            <p v-else class="text-sm text-muted">{{ t("backend.posts.grid.gallery_empty") }}</p>
+
+            <AppChoiceRow
+                v-model="bound.columns.value"
+                :label="t('backend.posts.grid.item_columns')"
+                :options="choices.columns ?? []"
+            />
+            <!-- The same control the media zone offers, and the same words.
+                 Asked for their own proportions the pictures flow down
+                 columns; asked for a shape they are cropped into a grid. -->
+            <AppChoiceRow
+                v-model="bound.ratio.value"
+                :label="t('backend.posts.grid.ratio')"
+                :hint="t('backend.posts.grid.gallery_ratio_hint')"
+                :options="ratioOptions"
+            />
+
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
+                />
+            </div>
         </template>
 
         <template v-else-if="zone.type === 'map'">

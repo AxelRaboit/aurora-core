@@ -454,6 +454,7 @@ backend:
         document: Document
         terms: Termes
         map: Adresse
+        gallery: Galerie
         button: Bouton
         separator: Séparateur
         items: Liste
@@ -651,6 +652,11 @@ backend:
       map_address: Adresse
       map_address_hint: "Une ligne par ligne, comme sur une enveloppe. C'est elle qui alimente le lien d'itinéraire."
       map_address_placeholder: "12 rue des Lilas\n69004 Lyon\nFrance"
+      gallery_add: Ajouter des images
+      gallery_remove: Retirer cette image
+      gallery_empty: "Aucune image. Ajoutez-en plusieurs d'un coup : la galerie existe pour ça."
+      gallery_count: "{count} image sur {max} | {count} images sur {max}"
+      gallery_ratio_hint: "« Naturelles » laisse chaque image à ses proportions et les fait couler en colonnes. Une forme les recadre toutes pareil, dans une vraie grille qui se lit de gauche à droite."
       zone_document_label_hint: "Ce que le visiteur lit sur la carte. Vide, c'est le titre du document dans la médiathèque qui est repris."
       zone_video_hint: "YouTube, Vimeo ou Dailymotion. Une autre adresse s'affichera en lien plutôt qu'en lecteur."
       move_up: Monter

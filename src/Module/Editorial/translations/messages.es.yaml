@@ -28,6 +28,11 @@ backend:
       map_address: Dirección
       map_address_hint: "Una línea por línea, como en un sobre. Es lo que alimenta el enlace de itinerario."
       map_address_placeholder: "12 rue des Lilas\n69004 Lyon\nFrancia"
+      gallery_add: Añadir imágenes
+      gallery_remove: Quitar esta imagen
+      gallery_empty: "Ninguna imagen. Añada varias de una vez: para eso existe la galería."
+      gallery_count: "{count} imagen de {max} | {count} imágenes de {max}"
+      gallery_ratio_hint: "«Naturales» deja cada imagen con sus proporciones y las hace fluir en columnas. Una forma las recorta todas igual, en una cuadrícula que se lee de izquierda a derecha."
       zone_document_label_hint: "Lo que lee el visitante en la tarjeta. Vacío, se usa el título del documento en la mediateca."
       zone_form_none: "Elegir un formulario…"
       anchor: "Ancla"

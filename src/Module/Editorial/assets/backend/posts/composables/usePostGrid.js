@@ -8,6 +8,7 @@ import {
     FileText,
     Film,
     Image,
+    Images,
     Layers,
     LayoutList,
     ListFilter,
@@ -48,6 +49,7 @@ export const LEAF_ZONE_TYPES = [
     "document",
     "terms",
     "map",
+    "gallery",
     "button",
     "separator",
     "items",
@@ -86,6 +88,9 @@ export const ZONE_ICONS = {
     // A pin, and the one place in this map where a pin is honest: it marks
     // an address rather than standing on a tile somebody else served.
     map: MapPin,
+    // Pictures, plural - the one thing that separates it from the media
+    // zone above, and the whole of what it is.
+    gallery: Images,
     button: MousePointerClick,
     separator: SeparatorHorizontal,
     items: LayoutList,
@@ -124,6 +129,9 @@ export const ITEM_COLUMNS = [2, 3, 4];
 
 /** Mirrors GridNormalizer::MAX_ITEMS. */
 export const MAX_ITEMS = 12;
+
+/** Mirrors GridNormalizer::MAX_GALLERY_IMAGES. */
+export const MAX_GALLERY_IMAGES = 24;
 
 /** Mirrors GridNormalizer::CARD_VARIANTS - how densely a card is drawn. */
 export const CARD_VARIANTS = ["full", "compact", "horizontal"];
@@ -404,6 +412,7 @@ function newZone(type) {
         scale: 100,
         align: "center",
         mediaId: null,
+        mediaIds: [],
         media: null,
         mediaUrl: "",
         postId: null,
@@ -1251,6 +1260,62 @@ export function usePostGrid(layout, content) {
         heldFor(zone).items[id] = newItemText();
     }
 
+    /**
+     * The pictures of a gallery, kept as ids with their previews beside them.
+     *
+     * `mediaIds` is what is saved and `gallery.items` is what the panel draws,
+     * the same split the single media field makes: the server re-resolves the
+     * urls from the ids on the way out, and the preview only has to survive
+     * until then.
+     *
+     * A picture already in the list is skipped rather than added twice - the
+     * normaliser refuses a duplicate anyway, and letting the editor show one
+     * that will not come back is how a panel starts lying.
+     */
+    function addGalleryImages(index, picked, childIndex = null) {
+        const zone = zoneAt(index, childIndex);
+        const chosen = Array.isArray(picked) ? picked : [picked];
+
+        if (!Array.isArray(zone.mediaIds)) {
+            zone.mediaIds = [];
+        }
+
+        if (!zone.gallery || !Array.isArray(zone.gallery.items)) {
+            zone.gallery = { items: [] };
+        }
+
+        for (const item of chosen) {
+            if (!item?.id || zone.mediaIds.includes(item.id)) continue;
+            if (zone.mediaIds.length >= MAX_GALLERY_IMAGES) break;
+
+            zone.mediaIds.push(item.id);
+            zone.gallery.items.push({ url: item.url ?? null });
+        }
+    }
+
+    function removeGalleryImage(index, at, childIndex = null) {
+        const zone = zoneAt(index, childIndex);
+
+        zone.mediaIds?.splice(at, 1);
+        zone.gallery?.items?.splice(at, 1);
+    }
+
+    /** The two lists move together, or the previews stop matching the ids. */
+    function moveGalleryImage(index, at, direction, childIndex = null) {
+        const zone = zoneAt(index, childIndex);
+        const ids = zone.mediaIds ?? [];
+        const target = at + direction;
+
+        if (target < 0 || target >= ids.length) return;
+
+        [ids[at], ids[target]] = [ids[target], ids[at]];
+
+        const items = zone.gallery?.items;
+        if (Array.isArray(items) && items.length === ids.length) {
+            [items[at], items[target]] = [items[target], items[at]];
+        }
+    }
+
     function removeItem(index, itemIndex, childIndex = null) {
         const zone = zoneAt(index, childIndex);
         const [removed] = zone.items.splice(itemIndex, 1);
@@ -1381,6 +1446,9 @@ export function usePostGrid(layout, content) {
         addItem,
         removeItem,
         moveItem,
+        addGalleryImages,
+        removeGalleryImage,
+        moveGalleryImage,
         itemFields,
         widthLabel,
     };

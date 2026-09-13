@@ -139,6 +139,23 @@ final readonly class GridNormalizer
     public const string ZONE_POST_LIST = 'postList';
 
     /**
+     * A run of pictures from the library, in one zone.
+     *
+     * The publication already has a gallery, but there is exactly one of it and
+     * it sits under the whole grid - so a page cannot put six photographs
+     * between two paragraphs and then carry on. This can, and it is the zone a
+     * portfolio page is mostly made of.
+     *
+     * It borrows the vocabulary the media zone already teaches rather than
+     * inventing its own: `columns` says how many stand side by side, and
+     * `ratio` answers "how tall is a picture" exactly as it does next door.
+     * `natural` there means "its own proportions", and that is what tells this
+     * zone to flow the pictures down columns instead of cropping them into a
+     * grid - one setting, two mechanisms, and no third field to explain.
+     */
+    public const string ZONE_GALLERY = 'gallery';
+
+    /**
      * Where to find somebody, and how to get there.
      *
      * Deliberately **not** a map. A map that can be dragged means a tile
@@ -258,6 +275,17 @@ final readonly class GridNormalizer
      */
     public const int MAX_ITEMS = 12;
 
+    /**
+     * How many pictures one gallery zone may hold.
+     *
+     * The same number the automatic list is capped at, and for the same
+     * reason: a cap rather than a recommendation. Without one a zone could
+     * name the whole library and the page would become an archive by accident.
+     * A page that needs more than this needs a second zone, which is also a
+     * second place for the reader to breathe.
+     */
+    public const int MAX_GALLERY_IMAGES = 24;
+
     /** How many entries sit side by side, where the display lays them out in a row. */
     public const array ITEM_COLUMNS = [2, 3, 4];
 
@@ -369,6 +397,7 @@ final readonly class GridNormalizer
         self::ZONE_DOCUMENT,
         self::ZONE_TERMS,
         self::ZONE_MAP,
+        self::ZONE_GALLERY,
         self::ZONE_BUTTON,
         self::ZONE_SEPARATOR,
         self::ZONE_ITEMS,
@@ -592,6 +621,12 @@ final readonly class GridNormalizer
                 // Shared with the size it depends on: both are design.
                 'align' => $this->values->oneOf($entry['align'] ?? null, self::ALIGNMENTS, self::ALIGNMENTS[0]),
                 'mediaId' => $this->values->id($entry['mediaId'] ?? null),
+                // The pictures of a gallery, in the order they were arranged.
+                // Shared like the single id beside it: which photographs a page
+                // shows is not a matter of language.
+                'mediaIds' => self::ZONE_GALLERY === $type
+                    ? $this->mediaIdList($entry['mediaIds'] ?? null)
+                    : [],
                 // An address, for a picture that is not in the library - a
                 // placeholder service while a page is being drafted, or an
                 // image already hosted elsewhere. Shared like the id, and for
@@ -705,6 +740,46 @@ final readonly class GridNormalizer
         }
 
         return $texts;
+    }
+
+    /**
+     * The pictures of a gallery, as a plain list of library ids.
+     *
+     * Order is the author's and is kept exactly: a gallery is read in the
+     * order it was arranged, and sorting it here would silently rewrite a
+     * sequence somebody composed.
+     *
+     * The same picture twice is refused. Not a matter of taste - the overlay
+     * numbers the pictures of a grid in the order they are drawn, and two
+     * entries pointing at one document would give a reader two stops on the
+     * same photograph with no way to tell them apart.
+     *
+     * Capped like every other list here, and for the same reason: the payload
+     * comes from a browser.
+     *
+     * @return list<int>
+     */
+    private function mediaIdList(mixed $raw): array
+    {
+        $ids = [];
+
+        foreach (is_array($raw) ? $raw : [] as $value) {
+            $id = $this->values->id($value);
+            if (null === $id) {
+                continue;
+            }
+            if (in_array($id, $ids, true)) {
+                continue;
+            }
+
+            $ids[] = $id;
+
+            if (count($ids) >= self::MAX_GALLERY_IMAGES) {
+                break;
+            }
+        }
+
+        return $ids;
     }
 
     /**
