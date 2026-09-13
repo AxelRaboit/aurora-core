@@ -18,8 +18,10 @@ import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useDeckEditor } from "./composables/useDeckEditor.js";
 import { useDeckSharing } from "./composables/useDeckSharing.js";
+import { useDeckAppearance } from "./composables/useDeckAppearance.js";
 import SlideFrame from "./components/SlideFrame.vue";
 import DeckPlayer from "./components/DeckPlayer.vue";
+import DeckAppearancePanel from "./components/DeckAppearancePanel.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -33,6 +35,7 @@ import {
     ArrowDown,
     ArrowUp,
     Copy,
+    Palette,
     Play,
     Plus,
     Presentation,
@@ -56,6 +59,10 @@ const props = defineProps({
     shareLinks: { type: Array, default: () => [] },
     shareCreatePath: { type: String, required: true },
     shareRevokePath: { type: String, required: true },
+    themes: { type: Array, default: () => [] },
+    fontPairs: { type: Array, default: () => [] },
+    logoPlacements: { type: Array, default: () => [] },
+    appearancePath: { type: String, required: true },
 });
 
 const {
@@ -77,6 +84,31 @@ const {
 } = useDeckEditor(props);
 
 const editable = can("studio.decks.edit");
+
+/**
+ * The deck's look, held here because every frame on the page draws with it.
+ *
+ * `appearance` is the saved answer and `preview` the one being composed; the
+ * panel shows the second, everything else shows the first. A page that
+ * previewed everywhere would repaint thirty thumbnails on every drag of a
+ * colour slider, for a decision that is being made in one frame.
+ */
+const {
+    open: appearanceOpen,
+    saving: savingAppearance,
+    appearance,
+    theme,
+    style,
+    logo,
+    inherited,
+    isOverridden,
+    carriesOverrides,
+    preview,
+    resetColours,
+    write: writeStyle,
+    writeLogo,
+    save: saveAppearance,
+} = useDeckAppearance(props);
 
 /**
  * Presenting saves first.
@@ -188,6 +220,10 @@ onBeforeUnmount(() => {
                 <Share2 class="h-4 w-4" :stroke-width="2" />
                 {{ t("backend.studio.decks.share") }}
             </AppButton>
+            <AppButton v-if="editable" variant="ghost" v-on:click="appearanceOpen = true">
+                <Palette class="h-4 w-4" :stroke-width="2" />
+                {{ t("backend.studio.decks.appearance") }}
+            </AppButton>
         </div>
 
         <div class="flex flex-col gap-4 xl:flex-row xl:items-start">
@@ -226,7 +262,12 @@ onBeforeUnmount(() => {
                              vignette voyait sa hauteur décidée par son contenu
                              et le rapport 16/9 restait lettre morte. -->
                             <span class="block w-full">
-                                <SlideFrame :slide="slide" compact />
+                                <SlideFrame
+                                    :slide="slide"
+                                    :appearance="appearance"
+                                    :index="at + 1"
+                                    compact
+                                />
                             </span>
                         </button>
 
@@ -291,7 +332,11 @@ onBeforeUnmount(() => {
 
                 <template v-else>
                     <div class="mx-auto max-w-3xl">
-                        <SlideFrame :slide="selected" />
+                        <SlideFrame
+                            :slide="selected"
+                            :appearance="appearance"
+                            :index="playFrom + 1"
+                        />
                     </div>
 
                     <div class="mx-auto max-w-3xl space-y-4 rounded-xl border border-line bg-surface p-4">
@@ -478,8 +523,31 @@ onBeforeUnmount(() => {
         <DeckPlayer
             v-if="playing"
             :slides="slides"
+            :appearance="appearance"
             :start-at="playFrom"
             v-on:close="playing = false"
+        />
+
+        <DeckAppearancePanel
+            :show="appearanceOpen"
+            :themes="themes"
+            :font-pairs="fontPairs"
+            :logo-placements="logoPlacements"
+            :sample="slides[0] ?? null"
+            :theme="theme"
+            :overrides="style"
+            :logo="logo"
+            :inherited="inherited"
+            :preview="preview"
+            :is-overridden="isOverridden"
+            :carries-overrides="carriesOverrides"
+            :saving="savingAppearance"
+            v-on:close="appearanceOpen = false"
+            v-on:save="saveAppearance"
+            v-on:write="writeStyle"
+            v-on:update:theme="(value) => (theme = value)"
+            v-on:update:logo="writeLogo"
+            v-on:reset-colours="resetColours"
         />
     </div>
 </template>

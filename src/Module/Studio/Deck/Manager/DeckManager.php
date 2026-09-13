@@ -8,7 +8,9 @@ use Aurora\Module\Studio\Deck\Entity\Deck;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Entity\Slide;
 use Aurora\Module\Studio\Deck\Entity\SlideInterface;
+use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
+use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
 
 use function array_key_exists;
@@ -26,7 +28,10 @@ use function is_string;
  */
 class DeckManager
 {
-    public function __construct(protected readonly EntityManagerInterface $entityManager) {}
+    public function __construct(
+        protected readonly EntityManagerInterface $entityManager,
+        protected readonly DeckStyleNormalizer $styleNormalizer,
+    ) {}
 
     public function create(string $title): DeckInterface
     {
@@ -34,6 +39,24 @@ class DeckManager
         $deck->setTitle($title);
 
         $this->entityManager->persist($deck);
+
+        return $deck;
+    }
+
+    /**
+     * Write a deck's appearance: the theme it starts from, and what it changes.
+     *
+     * The two travel together because they are one panel and one answer: a
+     * theme chosen without its overrides being re-read would keep an accent
+     * from the previous theme, and a reader who picks `Paper` after `Ink` would
+     * get the paper ground under the ink deck's amber.
+     *
+     * @param array<string, mixed> $style
+     */
+    public function writeAppearance(DeckInterface $deck, DeckThemeEnum $theme, array $style): DeckInterface
+    {
+        $deck->setTheme($theme);
+        $deck->setStyle($this->styleNormalizer->normalize($style));
 
         return $deck;
     }

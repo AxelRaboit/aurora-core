@@ -23,6 +23,8 @@ import SlideFrame from "./SlideFrame.vue";
 
 const props = defineProps({
     slides: { type: Array, default: () => [] },
+    /** The deck's resolved look, handed down to the frame unchanged. */
+    appearance: { type: Object, default: null },
     /** Where to open on, so "present from here" lands on the right slide. */
     startAt: { type: Number, default: 0 },
 });
@@ -104,7 +106,12 @@ onBeforeUnmount(() => {
         :aria-label="t('backend.studio.decks.present')"
     >
         <div class="deck-player-stage">
-            <SlideFrame v-if="current" :slide="current" />
+            <SlideFrame
+                v-if="current"
+                :slide="current"
+                :appearance="appearance"
+                :index="at + 1"
+            />
         </div>
 
         <div class="deck-player-bar">

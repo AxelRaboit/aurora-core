@@ -418,6 +418,7 @@ backend:
                 title_required: Le titre est obligatoire.
                 title_too_long: Le titre est trop long.
                 layout_unknown: Ce gabarit n'existe pas.
+                theme_unknown: Ce thème n'existe pas.
             share: Partager
             share_intro: Une adresse secrète qui ouvre cette présentation sans compte. Les notes d'orateur n'y sont jamais.
             share_label: Intitulé
@@ -463,6 +464,45 @@ backend:
             bullets_placeholder: Une puce par ligne.
             prose_placeholder: Le texte affiché sur la slide.
             image_hint: Choisie dans la médiathèque, ou déposée depuis votre machine.
+            appearance: Apparence
+            appearance_saved: Apparence enregistrée
+            appearance_preview_hint: L'aperçu suit vos choix, la présentation ne change qu'à l'enregistrement.
+            appearance_sample_title: Le titre de votre présentation
+            appearance_sample_subtitle: Le sous-titre, sur une ligne
+            appearance_overrides_kept: Vos couleurs personnalisées restent appliquées par-dessus ce thème.
+            theme: Thème
+            themes:
+                slate: Ardoise
+                ink: Encre
+                paper: Papier
+                bold: Affirmé
+                midnight: Minuit
+            colours: Couleurs
+            colour_background: Fond
+            colour_ink: Texte
+            colour_accent: Accent
+            colour_inherited: Du thème
+            colour_reset: Revenir au thème
+            colour_reset_all: Tout revenir au thème
+            fonts_label: Typographie
+            font_from_theme: Celle du thème
+            fonts:
+                sans: Sans empattement
+                serif: Avec empattements
+                editorial: Titres serif, texte sans
+                technical: Titres chasse fixe, texte sans
+            signature: Signature
+            logo: Logo
+            logo_hint: Affiché en petit, dans un coin de la slide.
+            logo_placement: Où l'afficher
+            logo_placements:
+                none: Nulle part
+                cover: Sur la couverture
+                every: Sur toutes les slides
+            footer_text: Mention de pied de page
+            footer_text_placeholder: Confidentiel, ne pas diffuser
+            slide_numbers: Numéroter les slides
+            slide_numbers_hint: La couverture n'est jamais numérotée.
             slots:
                 title: Titre
                 subtitle: Sous-titre

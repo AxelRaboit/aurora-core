@@ -418,6 +418,7 @@ backend:
                 title_required: The title is required.
                 title_too_long: The title is too long.
                 layout_unknown: That layout does not exist.
+                theme_unknown: That theme does not exist.
             share: Share
             share_intro: A secret address that opens this presentation without an account. The speaker notes are never on it.
             share_label: Label
@@ -463,6 +464,45 @@ backend:
             bullets_placeholder: One bullet per line.
             prose_placeholder: The text shown on the slide.
             image_hint: Picked from the library, or uploaded from your machine.
+            appearance: Appearance
+            appearance_saved: Appearance saved
+            appearance_preview_hint: The preview follows your choices; the deck only changes once you save.
+            appearance_sample_title: Your deck's title
+            appearance_sample_subtitle: The subtitle, on one line
+            appearance_overrides_kept: Your own colours stay applied on top of this theme.
+            theme: Theme
+            themes:
+                slate: Slate
+                ink: Ink
+                paper: Paper
+                bold: Bold
+                midnight: Midnight
+            colours: Colours
+            colour_background: Background
+            colour_ink: Text
+            colour_accent: Accent
+            colour_inherited: From the theme
+            colour_reset: Back to the theme
+            colour_reset_all: All back to the theme
+            fonts_label: Typography
+            font_from_theme: The theme's own
+            fonts:
+                sans: Sans serif
+                serif: Serif
+                editorial: Serif headings, sans text
+                technical: Monospaced headings, sans text
+            signature: Signature
+            logo: Logo
+            logo_hint: Drawn small, in a corner of the slide.
+            logo_placement: Where to show it
+            logo_placements:
+                none: Nowhere
+                cover: On the cover
+                every: On every slide
+            footer_text: Footer line
+            footer_text_placeholder: Confidential, do not circulate
+            slide_numbers: Number the slides
+            slide_numbers_hint: The cover is never numbered.
             slots:
                 title: Title
                 subtitle: Subtitle

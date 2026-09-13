@@ -103,6 +103,65 @@ final class DecksScreenTest extends IntegrationTestCase
         self::assertNotSame($deck->getId(), $payload['deck']['id']);
     }
 
+    /**
+     * The look is written, merged with the theme, and comes back resolved.
+     *
+     * Two answers in one payload on purpose: `style` is what somebody chose and
+     * `appearance` is what the frame draws. The accent below is overridden and
+     * the background is not, so the response proves both halves of the merge in
+     * one go.
+     */
+    public function testTheAppearanceIsWrittenAndComesBackResolved(): void
+    {
+        $this->signIn();
+
+        $container = static::getContainer();
+        $deckManager = $container->get(DeckManager::class);
+
+        $deck = $deckManager->create('Proposition commerciale');
+        $container->get(EntityManagerInterface::class)->flush();
+
+        $this->client->jsonRequest('POST', '/backend/studio/decks/'.$deck->getId().'/appearance', [
+            'theme' => 'paper',
+            'style' => [
+                'accent' => '#C2371F',
+                'slideNumbers' => true,
+                'footerText' => ' Confidentiel ',
+                'nonsense' => 'dropped',
+            ],
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame('paper', $payload['theme']);
+        self::assertArrayNotHasKey('nonsense', $payload['style']);
+        self::assertSame('Confidentiel', $payload['style']['footerText']);
+
+        // Overridden, so the deck's own value wins.
+        self::assertSame('#c2371f', $payload['appearance']['accent']);
+        // Untouched, so the theme's own value reaches the slide.
+        self::assertSame('#faf8f4', $payload['appearance']['background']);
+        self::assertTrue($payload['appearance']['slideNumbers']);
+        self::assertSame('none', $payload['appearance']['logoPlacement'], 'no picture means no placement');
+    }
+
+    public function testAnUnknownThemeIsRefused(): void
+    {
+        $this->signIn();
+
+        $container = static::getContainer();
+        $deck = $container->get(DeckManager::class)->create('Sans thème');
+        $container->get(EntityManagerInterface::class)->flush();
+
+        $this->client->jsonRequest('POST', '/backend/studio/decks/'.$deck->getId().'/appearance', [
+            'theme' => 'neon',
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+    }
+
     private function signIn(): void
     {
         $admin = static::getContainer()->get(UserRepository::class)

@@ -24,6 +24,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  *   ends up presented to one company with another company's name on it.
  * - **The category comes along**, because it describes the kind of document
  *   rather than its recipient, and that is exactly what is being reused.
+ * - **The look comes along too**, and it is most of why anybody duplicates a
+ *   deck: "start from this one" means the same theme, the same accent and the
+ *   same logo, with other words in it.
  * - **The title says it is a copy**, so two identical rows in the list can be
  *   told apart before either is opened.
  */
@@ -42,6 +45,8 @@ final readonly class DeckDuplicator
 
         $copy->setDescription($source->getDescription());
         $copy->setCategory($source->getCategory());
+
+        $this->deckManager->writeAppearance($copy, $source->getTheme(), $source->getStyle());
 
         foreach ($source->getSlides() as $slide) {
             $new = $this->deckManager->addSlide($copy, $slide->getLayout());

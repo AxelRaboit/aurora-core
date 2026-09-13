@@ -9,6 +9,7 @@ use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Module\Studio\Deck\Entity\Deck;
 use Aurora\Module\Studio\Deck\Entity\SlideInterface;
+use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Serializer\DeckSerializer;
@@ -72,6 +73,33 @@ class SlidesController extends AbstractController
             'deck' => $this->serializer->full($deck),
             'autoPrint' => $request->query->getBoolean('print'),
         ]);
+    }
+
+    /**
+     * The deck's appearance, written from the panel on its own page.
+     *
+     * Its own route rather than a field on the deck update, because the two are
+     * edited from two different screens: the title and the client are set in
+     * the list's modal, the look is set while looking at a slide. Posting the
+     * whole deck from here would mean the panel carrying a title it never shows
+     * and overwriting whatever the list had just changed.
+     */
+    #[Route('/appearance', name: '_appearance', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.decks.edit')]
+    public function appearance(Deck $deck, Request $request): JsonResponse
+    {
+        $payload = $this->decodeJson($request);
+
+        $theme = DeckThemeEnum::tryFrom(is_string($payload['theme'] ?? null) ? $payload['theme'] : '');
+
+        if (null === $theme) {
+            return $this->jsonInvalidInput(['theme' => 'backend.studio.decks.errors.theme_unknown']);
+        }
+
+        $this->deckManager->writeAppearance($deck, $theme, is_array($payload['style'] ?? null) ? $payload['style'] : []);
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess($this->viewBuilder->appearancePayload($deck));
     }
 
     #[Route('/slides/create', name: '_slide_create', methods: [HttpMethodEnum::Post->value])]

@@ -8,6 +8,9 @@ use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
+use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Repository\DeckCategoryRepository;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
@@ -74,6 +77,10 @@ final readonly class DecksViewBuilder
         return [
             'deck' => $this->serializer->full($deck),
             'layouts' => $this->layoutOptions(),
+            'themes' => $this->themeOptions(),
+            'fontPairs' => $this->fontPairOptions(),
+            'logoPlacements' => $this->logoPlacementOptions(),
+            'appearancePath' => $this->urlGenerator->generate('backend_studio_deck_appearance', ['id' => $deck->getId()]),
             'backPath' => $this->urlGenerator->generate('backend_studio_decks'),
             'printPath' => $this->urlGenerator->generate('backend_studio_deck_print', ['id' => $deck->getId()]),
             'shareCreatePath' => $this->urlGenerator->generate('backend_studio_deck_share_create', ['id' => $deck->getId()]),
@@ -90,6 +97,24 @@ final readonly class DecksViewBuilder
     public function deckPayload(DeckInterface $deck): array
     {
         return ['deck' => $this->serializer->full($deck)];
+    }
+
+    /**
+     * A deck's look after a write, without its slides.
+     *
+     * The panel changes colours, not content, and the whole deck would be the
+     * slides sent back for three hexadecimal strings the page then has to pick
+     * out of them.
+     *
+     * @return array<string, mixed>
+     */
+    public function appearancePayload(DeckInterface $deck): array
+    {
+        return [
+            'theme' => $deck->getTheme()->value,
+            'style' => $deck->getStyle(),
+            'appearance' => $this->serializer->appearanceOf($deck),
+        ];
     }
 
     /**
@@ -176,6 +201,53 @@ final readonly class DecksViewBuilder
                 'slots' => $layout->slots(),
             ],
             SlideLayoutEnum::cases(),
+        );
+    }
+
+    /**
+     * The themes, each carrying the colours it starts from.
+     *
+     * The palette travels with the option so the picker can draw the theme
+     * rather than name it: five words in a select say nothing about what they
+     * look like, and the whole point of the list is the look.
+     *
+     * @return list<array{value: string, labelKey: string, palette: array{background: string, ink: string, accent: string}}>
+     */
+    private function themeOptions(): array
+    {
+        return array_map(
+            static fn (DeckThemeEnum $theme): array => [
+                'value' => $theme->value,
+                'labelKey' => $theme->labelKey(),
+                'palette' => $theme->palette(),
+            ],
+            DeckThemeEnum::cases(),
+        );
+    }
+
+    /** @return list<array{value: string, labelKey: string, heading: string, body: string}> */
+    private function fontPairOptions(): array
+    {
+        return array_map(
+            static fn (DeckFontPairEnum $pair): array => [
+                'value' => $pair->value,
+                'labelKey' => $pair->labelKey(),
+                'heading' => $pair->heading(),
+                'body' => $pair->body(),
+            ],
+            DeckFontPairEnum::cases(),
+        );
+    }
+
+    /** @return list<array{value: string, labelKey: string}> */
+    private function logoPlacementOptions(): array
+    {
+        return array_map(
+            static fn (DeckLogoPlacementEnum $placement): array => [
+                'value' => $placement->value,
+                'labelKey' => $placement->labelKey(),
+            ],
+            DeckLogoPlacementEnum::cases(),
         );
     }
 

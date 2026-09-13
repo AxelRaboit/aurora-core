@@ -7,6 +7,7 @@ namespace Aurora\Tests\Unit\Module\Studio\Deck;
 use Aurora\Module\Studio\Deck\Entity\Slide;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
+use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -74,9 +75,12 @@ final class SlideContentWhitelistTest extends TestCase
     /**
      * A stub rather than a mock: `writeContent` never touches the entity
      * manager, so there is nothing to expect of it and PHPUnit says so.
+     *
+     * The normalizer is the real one: it has no collaborators, and stubbing it
+     * would only make this test agree with itself about what a style may hold.
      */
     private function manager(): DeckManager
     {
-        return new DeckManager($this->createStub(EntityManagerInterface::class));
+        return new DeckManager($this->createStub(EntityManagerInterface::class), new DeckStyleNormalizer());
     }
 }

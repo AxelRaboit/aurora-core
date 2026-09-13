@@ -6,6 +6,7 @@ namespace Aurora\Module\Studio\Deck\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -53,6 +54,33 @@ abstract class AbstractDeck implements DeckInterface
     #[ORM\ManyToOne(targetEntity: CustomerInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?CustomerInterface $customer = null;
+
+    /**
+     * The look the slides are drawn in.
+     *
+     * `Slate` is what every deck looked like before the column existed, so
+     * adding it changes nothing anybody had already composed.
+     */
+    #[ORM\Column(length: 20, enumType: DeckThemeEnum::class, options: ['default' => 'slate'])]
+    protected DeckThemeEnum $theme = DeckThemeEnum::Slate;
+
+    /**
+     * What this deck overrides of its theme, and the few things no theme
+     * carries: the logo, the footer line, the slide numbers.
+     *
+     * JSON and whitelisted on the way in by `DeckStyleNormalizer`, for the
+     * reason `AbstractSlide::$content` gives at length: a column per setting
+     * means a migration per new setting and a table of mostly-null columns, and
+     * a free-form blob means whatever a form happened to post.
+     *
+     * An absent key means "inherit the theme". Nothing is written with a
+     * default, so a theme retuned in a later version reaches the decks that
+     * never overrode it.
+     *
+     * @var array<string, mixed>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
+    protected array $style = [];
 
     /** @var Collection<int, SlideInterface> */
     #[ORM\OneToMany(targetEntity: SlideInterface::class, mappedBy: 'deck', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -108,6 +136,32 @@ abstract class AbstractDeck implements DeckInterface
     public function setCustomer(?CustomerInterface $customer): static
     {
         $this->customer = $customer;
+
+        return $this;
+    }
+
+    public function getTheme(): DeckThemeEnum
+    {
+        return $this->theme;
+    }
+
+    public function setTheme(DeckThemeEnum $theme): static
+    {
+        $this->theme = $theme;
+
+        return $this;
+    }
+
+    /** @return array<string, mixed> */
+    public function getStyle(): array
+    {
+        return $this->style;
+    }
+
+    /** @param array<string, mixed> $style */
+    public function setStyle(array $style): static
+    {
+        $this->style = $style;
 
         return $this;
     }

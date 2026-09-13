@@ -1,6 +1,6 @@
 <script setup>
 /**
- * One slide, drawn at the shape it will be shown in.
+ * One slide, drawn at the shape it will be shown in, in the deck's own colours.
  *
  * **A fixed 16:9 frame**, which is the whole reason this module has layouts
  * rather than a flowing grid: what the reader arranges here is what lands on
@@ -8,61 +8,133 @@
  * scales with its container and its type scales with it, through `cqw` units,
  * so the same component is a thumbnail in the list and the full preview beside
  * the form without drawing twice.
+ *
+ * **The look arrives as custom properties, resolved on the server.** Five
+ * places draw this component - the thumbnails, the editor's preview, the
+ * player, the print page and the public share link - and each of them would
+ * otherwise have to merge the theme with the deck's overrides the same way.
+ * `DeckAppearance` does it once; here there is nothing to decide, only
+ * properties to set.
  */
-defineProps({
+import { computed } from "vue";
+
+const props = defineProps({
     slide: { type: Object, required: true },
     /** Thumbnails drop the body text: at 160px nothing of it is legible. */
     compact: { type: Boolean, default: false },
+    /**
+     * The deck's resolved look. Absent on a frame drawn outside a deck, which
+     * then falls back to the back office's own surface, exactly as before.
+     */
+    appearance: { type: Object, default: null },
+    /** 1-based, for the slide number in the footer. */
+    index: { type: Number, default: 0 },
 });
+
+const skin = computed(() => {
+    const look = props.appearance;
+
+    if (!look) return {};
+
+    return {
+        "--slide-bg": look.background,
+        "--slide-ink": look.ink,
+        "--slide-accent": look.accent,
+        "--slide-heading": look.headingFont,
+        "--slide-body": look.bodyFont,
+    };
+});
+
+/**
+ * The logo shows on the cover when it was asked for on the cover.
+ *
+ * The cover is the first slide, whatever its layout: a deck that opens on a
+ * full-page image has no `title` slide and would otherwise never show the mark.
+ */
+const showsLogo = computed(() => {
+    const placement = props.appearance?.logoPlacement ?? "none";
+
+    if (props.compact || !props.appearance?.logoUrl) return false;
+
+    return placement === "every" || (placement === "cover" && props.index === 1);
+});
+
+const footerText = computed(() => (props.compact ? "" : (props.appearance?.footerText ?? "")));
+
+/** The cover carries no number: "1" under a title slide reads as a typo. */
+const showsNumber = computed(
+    () => !props.compact && props.appearance?.slideNumbers === true && props.index > 1,
+);
+
+const hasFooter = computed(() => showsLogo.value || !!footerText.value || showsNumber.value);
 </script>
 
 <template>
     <div class="slide-ratio">
-        <div class="slide-frame" :class="compact ? 'is-compact' : ''">
-            <template v-if="slide.layout === 'title'">
-                <p class="sf-title">{{ slide.content.title }}</p>
-                <p v-if="!compact && slide.content.subtitle" class="sf-subtitle">{{ slide.content.subtitle }}</p>
-            </template>
+        <div
+            class="slide-frame"
+            :class="[compact ? 'is-compact' : '', hasFooter ? 'has-footer' : '']"
+            :style="skin"
+        >
+            <div class="slide-stage">
+                <template v-if="slide.layout === 'title'">
+                    <p class="sf-title">{{ slide.content.title }}</p>
+                    <p v-if="!compact && slide.content.subtitle" class="sf-subtitle">{{ slide.content.subtitle }}</p>
+                </template>
 
-            <template v-else-if="slide.layout === 'section'">
-                <p class="sf-section">{{ slide.content.title }}</p>
-            </template>
+                <template v-else-if="slide.layout === 'section'">
+                    <p class="sf-section">{{ slide.content.title }}</p>
+                </template>
 
-            <template v-else-if="slide.layout === 'bullets'">
-                <p class="sf-heading">{{ slide.content.title }}</p>
-                <ul v-if="!compact" class="sf-list">
-                    <li v-for="(bullet, at) in slide.content.bullets ?? []" :key="at">{{ bullet }}</li>
-                </ul>
-                <div v-else class="sf-lines">
-                    <span v-for="(bullet, at) in (slide.content.bullets ?? []).slice(0, 4)" :key="at" />
-                </div>
-            </template>
+                <template v-else-if="slide.layout === 'bullets'">
+                    <p class="sf-heading">{{ slide.content.title }}</p>
+                    <ul v-if="!compact" class="sf-list">
+                        <li v-for="(bullet, at) in slide.content.bullets ?? []" :key="at">{{ bullet }}</li>
+                    </ul>
+                    <div v-else class="sf-lines">
+                        <span v-for="(bullet, at) in (slide.content.bullets ?? []).slice(0, 4)" :key="at" />
+                    </div>
+                </template>
 
-            <template v-else-if="slide.layout === 'quote'">
-                <p class="sf-quote">{{ slide.content.quote }}</p>
-                <p v-if="slide.content.attribution" class="sf-attribution">{{ slide.content.attribution }}</p>
-            </template>
+                <template v-else-if="slide.layout === 'quote'">
+                    <p class="sf-quote">{{ slide.content.quote }}</p>
+                    <p v-if="slide.content.attribution" class="sf-attribution">{{ slide.content.attribution }}</p>
+                </template>
 
-            <template v-else-if="slide.layout === 'split'">
-                <p class="sf-heading">{{ slide.content.title }}</p>
-                <div class="sf-columns">
-                    <p>{{ compact ? "" : slide.content.left }}</p>
-                    <p>{{ compact ? "" : slide.content.right }}</p>
-                </div>
-            </template>
+                <template v-else-if="slide.layout === 'split'">
+                    <p class="sf-heading">{{ slide.content.title }}</p>
+                    <div class="sf-columns">
+                        <p>{{ compact ? "" : slide.content.left }}</p>
+                        <p>{{ compact ? "" : slide.content.right }}</p>
+                    </div>
+                </template>
 
-            <template v-else-if="slide.layout === 'image'">
-                <div class="sf-image">
-                    <img
-                        v-if="slide.content.mediaUrl"
-                        class="sf-image-file"
-                        :src="slide.content.mediaUrl"
-                        :alt="slide.content.mediaAlt ?? ''"
-                    >
-                    <span v-else class="sf-image-mark" />
-                </div>
-                <p v-if="!compact && slide.content.caption" class="sf-caption">{{ slide.content.caption }}</p>
-            </template>
+                <template v-else-if="slide.layout === 'image'">
+                    <div class="sf-image">
+                        <img
+                            v-if="slide.content.mediaUrl"
+                            class="sf-image-file"
+                            :src="slide.content.mediaUrl"
+                            :alt="slide.content.mediaAlt ?? ''"
+                        >
+                        <span v-else class="sf-image-mark" />
+                    </div>
+                    <p v-if="!compact && slide.content.caption" class="sf-caption">{{ slide.content.caption }}</p>
+                </template>
+            </div>
+
+            <!-- Hors du flux : la bande porte un logo et un numéro, pas du
+                 contenu, et un pied de page qui pousse le texte vers le haut
+                 ferait d'une slide numérotée une slide plus petite que ses
+                 voisines. -->
+            <div v-if="hasFooter" class="sf-footer">
+                <img v-if="showsLogo" class="sf-logo" :src="appearance.logoUrl" :alt="appearance.logoAlt ?? ''">
+                <span v-else />
+                <span v-if="footerText" class="sf-footer-text">{{ footerText }}</span>
+                <span v-else />
+                <span v-if="showsNumber" class="sf-number">{{ index }}</span>
+                <span v-else />
+            </div>
         </div>
     </div>
 </template>
@@ -93,16 +165,28 @@ defineProps({
     padding-top: 56.25%;
 }
 
-
+/**
+ * Les valeurs de repli sont celles d'avant les thèmes.
+ *
+ * Un cadre dessiné hors d'un deck - une vignette de démonstration, un test de
+ * composant - n'a pas d'apparence à recevoir, et doit rester lisible. Les
+ * propriétés personnalisées le disent une fois ici plutôt qu'à chaque usage.
+ */
 .slide-frame {
+    --slide-bg: var(--color-surface-2, #161b22);
+    --slide-ink: inherit;
+    --slide-accent: currentColor;
+    --slide-heading: inherit;
+    --slide-body: inherit;
+
     position: absolute;
     inset: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 2cqw;
     padding: 6cqw;
-    background: var(--color-surface-2, #161b22);
+    background: var(--slide-bg);
+    color: var(--slide-ink);
+    font-family: var(--slide-body);
     border: 1px solid var(--color-line, #30363d);
     border-radius: 0.5rem;
     /* Rogné plutôt qu'étiré : une slide trop remplie déborde au mur aussi, et
@@ -110,17 +194,27 @@ defineProps({
     overflow: hidden;
 }
 
+.slide-stage {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2cqw;
+}
 
-
-.sf-title { margin: 0; font-size: 8cqw; font-weight: 600; line-height: 1.1; }
+.sf-title { margin: 0; font-family: var(--slide-heading); font-size: 8cqw; font-weight: 600; line-height: 1.1; }
 .sf-subtitle { margin: 0; font-size: 4cqw; opacity: 0.7; }
-.sf-section { margin: 0; font-size: 7cqw; font-weight: 600; text-align: center; }
-.sf-heading { margin: 0; font-size: 6cqw; font-weight: 600; }
+.sf-section { margin: 0; font-family: var(--slide-heading); font-size: 7cqw; font-weight: 600; text-align: center; }
+.sf-heading { margin: 0; font-family: var(--slide-heading); font-size: 6cqw; font-weight: 600; }
 /* `list-style` rétabli explicitement : la réinitialisation de Tailwind retire
    les marqueurs de toutes les listes, et une liste à puces sans puces se lit
    comme un paragraphe coupé. */
 .sf-list { margin: 0; padding-left: 5cqw; font-size: 4cqw; line-height: 1.5; list-style: disc outside; }
 .sf-list li { margin-bottom: 1cqw; }
+/* La couleur d'accent se dépense sur les marqueurs et nulle part ailleurs dans
+   une liste : une puce colorée se remarque, une phrase colorée se lit mal. */
+.sf-list li::marker { color: var(--slide-accent); }
 .sf-quote { margin: 0; font-size: 6cqw; font-style: italic; line-height: 1.3; }
 .sf-attribution { margin: 0; font-size: 3.5cqw; opacity: 0.7; }
 .sf-caption { margin: 0; font-size: 3.5cqw; opacity: 0.7; }
@@ -128,7 +222,7 @@ defineProps({
 .sf-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 4cqw; font-size: 3.6cqw; }
 .sf-columns p { margin: 0; }
 
-.sf-image { flex: 1; min-height: 0; display: grid; place-items: center; overflow: hidden; border-radius: 0.25rem; background: var(--color-surface-3, #21262d); }
+.sf-image { flex: 1; min-height: 0; display: grid; place-items: center; overflow: hidden; border-radius: 0.25rem; background: color-mix(in srgb, currentColor 10%, transparent); }
 .sf-image-mark { width: 12cqw; height: 12cqw; border-radius: 9999px; background: currentColor; opacity: 0.25; }
 /* `contain` et pas `cover` : une capture rognée pour remplir le cadre perd
    justement le coin qu'on voulait montrer. */
@@ -142,5 +236,22 @@ defineProps({
 .sf-lines span:nth-child(3) { width: 65%; }
 .sf-lines span:nth-child(4) { width: 72%; }
 
-.is-compact { gap: 1.5cqw; padding: 7cqw; }
+/* Trois colonnes et non un `space-between` : le texte du pied reste au centre
+   de la slide même quand il n'y a ni logo ni numéro de part et d'autre. */
+.sf-footer {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 2cqw;
+    padding-top: 2cqw;
+    font-size: 2.4cqw;
+    opacity: 0.55;
+}
+
+.sf-footer-text { text-align: center; }
+.sf-number { justify-self: end; font-variant-numeric: tabular-nums; }
+.sf-logo { justify-self: start; max-height: 4cqw; max-width: 22cqw; object-fit: contain; }
+
+.is-compact { padding: 7cqw; }
+.is-compact .slide-stage { gap: 1.5cqw; }
 </style>
