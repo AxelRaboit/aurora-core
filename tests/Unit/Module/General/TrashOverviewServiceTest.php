@@ -80,7 +80,7 @@ final class TrashOverviewServiceTest extends TestCase
 
             public function getSummary(int $limit): TrashSummary
             {
-                return new TrashSummary($this->key, 'backend.nav.documents', 'folder-open', $this->count);
+                return new TrashSummary($this->key, 'backend.nav.documents', 'ged', 'folder-open', $this->count);
             }
         };
     }

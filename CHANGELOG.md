@@ -5,6 +5,34 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.157] - 2026-09-13
+
+### Modifié
+
+#### Un onglet de la corbeille dit de quel module il parle
+« Dossiers », seul, peut désigner trois choses. Dans le menu latéral le mot est
+lisible parce qu'il est rangé sous un intitulé de section ; sur un écran qui
+montre cinq corbeilles côte à côte, cet intitulé a disparu.
+
+Chaque onglet porte donc le nom de sa section : « GED · Dossiers », « Éditorial
+· Publications ». C'est le nom que le menu affiche, alias compris : renommer une
+section dans les réglages renomme les onglets. Quand le préfixe répète le
+libellé, il n'apparaît pas : « Notes Markdown » reste « Notes Markdown ».
+
+### Ajouté
+
+#### Un lien vers la liste, depuis la corbeille
+Restaurer un élément sans voir l'endroit où il revient était ce que la
+centralisation avait coûté. Le bandeau de chaque onglet porte maintenant un lien
+vers l'écran concerné, et un onglet vide le porte aussi, à la place d'un état
+vide qui ne proposait rien.
+
+Le lien n'est montré que si le module en a un : il vient de la source, comme le
+reste, et le privilège est déjà celui de l'onglet - il ne peut donc pas mener à
+un refus.
+
+---
+
 ## [0.9.156] - 2026-09-13
 
 ### Corrigé

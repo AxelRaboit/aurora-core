@@ -31,6 +31,7 @@ final readonly class DocumentsTrashSource implements TrashSourceInterface
         return new TrashSummary(
             key: 'ged_documents',
             labelKey: 'backend.nav.documents',
+            sectionId: 'ged',
             icon: 'folder-open',
             count: $page['total'],
             items: array_map($this->present(...), $page['items']),
@@ -39,6 +40,7 @@ final readonly class DocumentsTrashSource implements TrashSourceInterface
             forceDeleteRoute: 'backend_ged_documents_force_delete',
             emptyTrashRoute: 'backend_ged_documents_empty_trash',
             actionPrivilege: 'ged.documents.delete',
+            listRoute: 'backend_ged_documents',
         );
     }
 

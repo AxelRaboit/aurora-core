@@ -31,6 +31,8 @@ function props(overrides = {}) {
             {
                 key: "ged_documents",
                 labelKey: "backend.nav.documents",
+                sectionLabel: "GED",
+                listPath: "/backend/ged/documents",
                 icon: "folder-open",
                 count: 2,
                 oldestDeletedAt: new Date(Date.now() - 4 * DAY).toISOString(),
@@ -42,6 +44,8 @@ function props(overrides = {}) {
             {
                 key: "notes_markdown",
                 labelKey: "backend.nav.notes_markdown",
+                sectionLabel: "Notes",
+                listPath: "/backend/notes/markdown",
                 icon: "notebook-pen",
                 count: 0,
                 oldestDeletedAt: null,

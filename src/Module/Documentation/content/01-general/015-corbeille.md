@@ -19,6 +19,8 @@ La fenêtre nomme l'élément et rappelle qu'il reste récupérable.
 
 Un onglet par type, avec le nombre en attente. Ce qui n'est pas vide passe en premier : la page existe pour dire ce qu'il y a à traiter.
 
+Chaque onglet dit à quel module il appartient : « GED · Dossiers » plutôt que « Dossiers », parce qu'un mot seul, sorti du menu qui le classait, peut en désigner trois. Le lien à droite du bandeau ouvre la liste correspondante, pour aller voir sur place ce qui vient d'être restauré.
+
 Sous les onglets, une ligne par élément, avec la date de suppression et **le nombre de jours qui reste avant la purge**. Ce délai est réglé dans Configuration > Lecture, trente jours par défaut.
 
 ![L'écran Corbeille](../../images/01-general/corbeille-03-l-ecran.png)
