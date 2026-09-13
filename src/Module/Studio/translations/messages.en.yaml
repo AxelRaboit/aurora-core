@@ -130,6 +130,7 @@ backend:
             preview_unknown_tokens: 'Unknown variables, they will stop the seal: {tokens}'
             preview_failed: The preview could not be produced.
             download_pdf: 'Download the signed PDF'
+            export_pdf: 'Export as PDF'
             countersign: 'Countersign'
             countersign_intro: 'Your countersignature concludes the contract. The customer is notified by email.'
             countersigned: 'Contract countersigned and concluded.'
@@ -189,6 +190,7 @@ backend:
                 revoke_description: Kills the current link. Its verification codes go with it.
                 preview_description: Shows the document as the client will read it, before sealing.
                 document_description: Opens the sealed document and its proof block.
+                export_description: Outputs the contract as a PDF. The signed document if there is one, a working copy marked as such otherwise.
             not_sealed_yet: This contract is not sealed yet. Its wording is frozen at the moment of sealing.
             seal_intact: The seal is intact
             seal_intact_hint: The stored document matches exactly the hash taken when it was sealed.
@@ -660,6 +662,15 @@ studio:
     pdf:
         footer: 'Contract {reference} - electronically signed document'
         signed_at: 'Signed at {place}, on {date}'
+        provisional:
+            filename_suffix: 'draft'
+            footer: 'Contract {name} - working copy, unsigned'
+            draft_title: 'Draft contract'
+            draft_notice: "This document is a draft. Its wording is not final yet, the bracketed mentions are written at sealing, and it binds nobody."
+            sealed_title: 'Sealed contract, unsigned'
+            sealed_notice: "This document is the final wording of the contract, but it has not been signed by both parties yet. Only the signed version, with its electronic signature evidence, is authoritative."
+            seal_title: 'Sealed document fingerprint'
+            seal_notice: "This fingerprint identifies the sealed text. Any change to the document would produce a different one. This document is not signed yet: the electronic signature evidence appears only on the signed version."
         role:
             customer: 'The Customer'
             provider: 'The Provider'

@@ -130,6 +130,7 @@ backend:
             preview_unknown_tokens: 'Variables inconnues, elles bloqueront le scellement : {tokens}'
             preview_failed: L'aperçu n'a pas pu être produit.
             download_pdf: 'Télécharger le PDF signé'
+            export_pdf: 'Exporter en PDF'
             countersign: 'Contresigner'
             countersign_intro: 'Votre contresignature conclut le contrat. Le client en sera informé par email.'
             countersigned: 'Contrat contresigné et conclu.'
@@ -189,6 +190,7 @@ backend:
                 revoke_description: Coupe le lien en cours. Ses codes de vérification tombent avec lui.
                 preview_description: Montre le document tel que le client le lira, avant scellement.
                 document_description: Ouvre le document scellé et son bloc de preuve.
+                export_description: "Sort le contrat en PDF. Le document signé s'il existe, une copie de travail marquée comme telle sinon."
             not_sealed_yet: Ce contrat n'est pas encore scellé. Son texte sera figé au moment du scellement.
             seal_intact: Le sceau est intact
             seal_intact_hint: Le document stocké correspond exactement au hash pris lors du scellement.
@@ -660,6 +662,15 @@ studio:
     pdf:
         footer: 'Contrat {reference} - document signé électroniquement'
         signed_at: 'Fait à {place}, le {date}'
+        provisional:
+            filename_suffix: 'projet'
+            footer: 'Contrat {name} - copie de travail, non signée'
+            draft_title: 'Projet de contrat'
+            draft_notice: "Ce document est un brouillon. Son texte n'est pas encore figé, les mentions entre crochets seront écrites au scellement, et il n'engage personne."
+            sealed_title: 'Contrat scellé, non signé'
+            sealed_notice: "Ce document est le texte définitif du contrat, mais il n'est pas encore signé par les deux parties. Seule la version signée, avec sa preuve de signature électronique, fait foi."
+            seal_title: 'Empreinte du document scellé'
+            seal_notice: "Cette empreinte identifie le texte scellé. Toute modification du document produirait une empreinte différente. Ce document n'est pas encore signé : la preuve de signature électronique n'apparaît que sur la version signée."
         role:
             customer: 'Le Client'
             provider: 'Le Prestataire'
