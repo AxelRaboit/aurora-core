@@ -28,6 +28,7 @@ import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
+import AppRange from "@/shared/components/form/toggle/AppRange.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
@@ -51,6 +52,8 @@ const { can } = usePrivileges();
 const props = defineProps({
     deck: { type: Object, required: true },
     layouts: { type: Array, default: () => [] },
+    /** Slots every layout accepts: the line above the title, and the backdrop. */
+    commonSlots: { type: Array, default: () => [] },
     slideCreatePath: { type: String, required: true },
     slideUpdatePath: { type: String, required: true },
     slideDeletePath: { type: String, required: true },
@@ -171,6 +174,31 @@ function writePicture(value) {
 
     writeSlot("mediaId", value?.id ?? null);
     writeSlot("mediaUrl", value?.url ?? null);
+}
+
+/**
+ * The backdrop, as the picker speaks it.
+ *
+ * Same arrangement as the picture slot above: the model stores an id, the
+ * picker wants `{id, url}`, and the address is written alongside so the preview
+ * redraws without a round trip. `bgMediaUrl` is not one of the slots, so the
+ * manager drops it on save.
+ */
+const backdrop = () => ({
+    id: selected.value?.content.bgMediaId ?? null,
+    url: selected.value?.content.bgMediaUrl ?? null,
+});
+
+function writeBackdrop(value) {
+    if (!selected.value) return;
+
+    writeSlot("bgMediaId", value?.id ?? null);
+    writeSlot("bgMediaUrl", value?.url ?? null);
+
+    // A backdrop with no veil is a slide whose text sits on a photograph. Forty
+    // per cent is the point where a title stays readable over most pictures;
+    // the slider is right there for the ones where it does not.
+    if (value?.id && selected.value.content.bgDim == null) writeSlot("bgDim", 40);
 }
 
 /** Bullets are a list in the model and one line per bullet in the form. */
@@ -394,6 +422,52 @@ onBeforeUnmount(() => {
                                 v-on:update:model-value="(value) => writeSlot(slot, value)"
                             />
                         </template>
+
+                        <div class="flex flex-col gap-4 border-t border-line pt-4">
+                            <p class="m-0 text-xs font-semibold uppercase tracking-wide text-muted">
+                                {{ t("backend.studio.decks.common_slots") }}
+                            </p>
+
+                            <AppInput
+                                v-if="commonSlots.includes('kicker')"
+                                :model-value="selected.content.kicker ?? ''"
+                                :label="labelFor('kicker')"
+                                :placeholder="t('backend.studio.decks.kicker_placeholder')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('kicker', value)"
+                            />
+
+                            <AppImagePickerField
+                                v-if="commonSlots.includes('bgMediaId')"
+                                :model-value="backdrop()"
+                                :label="labelFor('bgMediaId')"
+                                :hint="t('backend.studio.decks.backdrop_hint')"
+                                :size="120"
+                                v-on:update:model-value="writeBackdrop"
+                            />
+
+                            <!-- Le curseur n'a de sens qu'avec une image
+                                 derrière : voilé à 40 %, un fond qui n'existe
+                                 pas ne change rien et le réglage n'explique
+                                 rien. -->
+                            <div v-if="selected.content.bgMediaUrl" class="flex flex-col gap-1.5">
+                                <span class="text-xs uppercase tracking-wide text-muted">
+                                    {{ t("backend.studio.decks.backdrop_dim") }}
+                                    <span class="tabular-nums">{{ selected.content.bgDim ?? 40 }} %</span>
+                                </span>
+                                <AppRange
+                                    :model-value="selected.content.bgDim ?? 40"
+                                    :min="0"
+                                    :max="90"
+                                    :step="5"
+                                    :disabled="!editable"
+                                    v-on:update:model-value="(value) => writeSlot('bgDim', value)"
+                                />
+                                <p class="m-0 text-xs text-muted">
+                                    {{ t("backend.studio.decks.backdrop_dim_hint") }}
+                                </p>
+                            </div>
+                        </div>
 
                         <AppTextarea
                             :model-value="selected.speakerNotes ?? ''"

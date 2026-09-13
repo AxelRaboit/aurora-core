@@ -62,6 +62,60 @@ final class SlideContentWhitelistTest extends TestCase
     }
 
     /**
+     * The three common slots reach a layout that declares none of them, which
+     * is the whole point of their being common.
+     */
+    public function testTheCommonSlotsReachEveryLayout(): void
+    {
+        $slide = (new Slide())->setLayout(SlideLayoutEnum::Quote);
+
+        $this->manager()->writeContent($slide, [
+            'quote' => 'Une phrase.',
+            'kicker' => 'Partie 2',
+            'bgMediaId' => 7,
+            'bgDim' => 55,
+        ]);
+
+        self::assertSame(
+            ['quote' => 'Une phrase.', 'kicker' => 'Partie 2', 'bgMediaId' => 7, 'bgDim' => 55],
+            $slide->getContent(),
+        );
+    }
+
+    /**
+     * The slider is bounded at both ends, so a value outside them was edited by
+     * hand. Clamped rather than refused: a veil at 300% is a slide that is only
+     * a veil, and losing the sentence somebody typed for it would be worse.
+     */
+    public function testTheVeilIsClampedRatherThanRefused(): void
+    {
+        $manager = $this->manager();
+
+        $high = (new Slide())->setLayout(SlideLayoutEnum::Title);
+        $manager->writeContent($high, ['bgDim' => 300]);
+        self::assertSame(['bgDim' => 90], $high->getContent());
+
+        $low = (new Slide())->setLayout(SlideLayoutEnum::Title);
+        $manager->writeContent($low, ['bgDim' => -20]);
+        self::assertSame(['bgDim' => 0], $low->getContent());
+    }
+
+    /** The address is derived at render, never stored beside the id. */
+    public function testADerivedPictureAddressIsNeverPersisted(): void
+    {
+        $slide = (new Slide())->setLayout(SlideLayoutEnum::Image);
+
+        $this->manager()->writeContent($slide, [
+            'mediaId' => 42,
+            'mediaUrl' => 'https://elsewhere.example/forged.png',
+            'bgMediaId' => 43,
+            'bgMediaUrl' => 'https://elsewhere.example/forged-too.png',
+        ]);
+
+        self::assertSame(['mediaId' => 42, 'bgMediaId' => 43], $slide->getContent());
+    }
+
+    /**
      * Every layout's slots must be reachable, or a field exists in the editor
      * that the manager throws away on save.
      */

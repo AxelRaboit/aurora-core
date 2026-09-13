@@ -77,6 +77,7 @@ final readonly class DecksViewBuilder
         return [
             'deck' => $this->serializer->full($deck),
             'layouts' => $this->layoutOptions(),
+            'commonSlots' => SlideLayoutEnum::commonSlots(),
             'themes' => $this->themeOptions(),
             'fontPairs' => $this->fontPairOptions(),
             'logoPlacements' => $this->logoPlacementOptions(),

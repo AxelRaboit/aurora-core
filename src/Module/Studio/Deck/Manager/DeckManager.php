@@ -17,6 +17,8 @@ use function array_key_exists;
 use function is_array;
 use function is_int;
 use function is_string;
+use function max;
+use function min;
 
 /**
  * Everything that writes a deck goes through here.
@@ -94,19 +96,31 @@ class DeckManager
     {
         $clean = [];
 
-        foreach ($slide->getLayout()->slots() as $slot) {
+        foreach ($slide->getLayout()->allSlots() as $slot) {
             if (!array_key_exists($slot, $content)) {
                 continue;
             }
 
             $value = $content[$slot];
 
-            // `mediaId` is the one slot that is not text: it points at a
-            // document in the library, and a string there would silently fail
-            // to resolve at render.
-            if ('mediaId' === $slot) {
-                if (is_int($value)) {
+            // The two picture slots are not text: they point at a document in
+            // the library, and a string there would silently fail to resolve at
+            // render. A zero or a negative is a picker that was cleared and
+            // posted what an empty field holds.
+            if ('mediaId' === $slot || 'bgMediaId' === $slot) {
+                if (is_int($value) && $value > 0) {
                     $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // Clamped rather than refused: the control is a slider bounded at
+            // both ends, so an out-of-range value is a payload edited by hand,
+            // and a veil at 300% is a slide that is only a veil.
+            if ('bgDim' === $slot) {
+                if (is_int($value)) {
+                    $clean[$slot] = max(0, min(90, $value));
                 }
 
                 continue;

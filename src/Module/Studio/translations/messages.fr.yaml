@@ -503,7 +503,14 @@ backend:
             footer_text_placeholder: Confidentiel, ne pas diffuser
             slide_numbers: Numéroter les slides
             slide_numbers_hint: La couverture n'est jamais numérotée.
+            common_slots: Fond et sur-titre
+            kicker_placeholder: Audit, partie 2, Notre proposition…
+            backdrop_hint: Une photo derrière le texte, sur n'importe quel gabarit.
+            backdrop_dim: Voile
+            backdrop_dim_hint: Assombrit l'image vers la couleur de fond, pour que le texte reste lisible.
             slots:
+                kicker: Sur-titre
+                bgMediaId: Image de fond
                 title: Titre
                 subtitle: Sous-titre
                 bullets: Puces

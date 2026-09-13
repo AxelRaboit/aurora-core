@@ -66,9 +66,12 @@ class DeckSerializer
         // ids that are known before the loop starts.
         $ids = [];
         foreach ($deck->getSlides() as $slide) {
-            $id = $slide->getContent()['mediaId'] ?? null;
-            if (is_int($id)) {
-                $ids[] = $id;
+            foreach (['mediaId', 'bgMediaId'] as $slot) {
+                $id = $slide->getContent()[$slot] ?? null;
+
+                if (is_int($id)) {
+                    $ids[] = $id;
+                }
             }
         }
 
@@ -109,18 +112,27 @@ class DeckSerializer
     public function slide(SlideInterface $slide, array $pictures = []): array
     {
         $content = $slide->getContent();
+
+        // `mediaUrl`, `mediaAlt` and `bgMediaUrl` are derived, never stored: the
+        // manager whitelists the content against the layout's slots and none of
+        // them is one, so a payload carrying them back is dropped rather than
+        // persisted. The address of a picture changes when its file does, and a
+        // copy of it in the slide would be a second truth to keep.
         $mediaId = $content['mediaId'] ?? null;
 
         if (is_int($mediaId)) {
             $picture = $pictures[$mediaId] ?? $this->pictures->byId($mediaId);
 
-            // `mediaUrl` and `mediaAlt` are derived, never stored: the manager
-            // whitelists the content against the layout's slots and neither is
-            // one, so a payload carrying them back is dropped rather than
-            // persisted. The address of a picture changes when its file does,
-            // and a copy of it in the slide would be a second truth to keep.
             $content['mediaUrl'] = $picture['url'] ?? null;
             $content['mediaAlt'] = $picture['alt'] ?? '';
+        }
+
+        $backgroundId = $content['bgMediaId'] ?? null;
+
+        if (is_int($backgroundId)) {
+            $background = $pictures[$backgroundId] ?? $this->pictures->byId($backgroundId);
+
+            $content['bgMediaUrl'] = $background['url'] ?? null;
         }
 
         return [

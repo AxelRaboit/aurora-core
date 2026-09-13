@@ -67,6 +67,25 @@ const showsNumber = computed(
 );
 
 const hasFooter = computed(() => showsLogo.value || !!footerText.value || showsNumber.value);
+
+/**
+ * The picture behind everything, and the veil that keeps the text readable.
+ *
+ * The veil is the deck's own background colour at the chosen strength rather
+ * than a flat black: on a paper theme a black veil turns a light slide grey,
+ * which is the one thing a light theme was chosen to avoid. Dimming towards
+ * the ground keeps the slide recognisably the deck's.
+ */
+const background = computed(() => {
+    const url = props.slide.content.bgMediaUrl;
+
+    if (!url) return null;
+
+    return { url, dim: Math.min(Math.max(props.slide.content.bgDim ?? 40, 0), 90) / 100 };
+});
+
+/** The line above the title. Empty on a thumbnail, where it would be one pixel. */
+const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker ?? "")));
 </script>
 
 <template>
@@ -76,7 +95,17 @@ const hasFooter = computed(() => showsLogo.value || !!footerText.value || showsN
             :class="[compact ? 'is-compact' : '', hasFooter ? 'has-footer' : '']"
             :style="skin"
         >
+            <div v-if="background" class="sf-backdrop" aria-hidden="true">
+                <img class="sf-backdrop-file" :src="background.url" alt="">
+                <span
+                    class="sf-backdrop-veil"
+                    :style="{ opacity: background.dim }"
+                />
+            </div>
+
             <div class="slide-stage">
+                <p v-if="kicker" class="sf-kicker">{{ kicker }}</p>
+
                 <template v-if="slide.layout === 'title'">
                     <p class="sf-title">{{ slide.content.title }}</p>
                     <p v-if="!compact && slide.content.subtitle" class="sf-subtitle">{{ slide.content.subtitle }}</p>
@@ -195,12 +224,32 @@ const hasFooter = computed(() => showsLogo.value || !!footerText.value || showsN
 }
 
 .slide-stage {
+    position: relative;
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 2cqw;
+}
+
+/* Sous le contenu et sous le pied de page, dans leur propre couche : posée en
+   `background-image` sur le cadre, l'image aurait été rognée par le
+   remplissage et le voile aurait eu à être une seconde image. */
+.sf-backdrop { position: absolute; inset: 0; overflow: hidden; }
+/* `cover` ici, contrairement à la slide image : un fond est un décor, et une
+   bande de couleur sur le côté d'un décor se voit plus que le coin qu'il perd. */
+.sf-backdrop-file { width: 100%; height: 100%; object-fit: cover; }
+.sf-backdrop-veil { position: absolute; inset: 0; background: var(--slide-bg); }
+
+.sf-kicker {
+    margin: 0;
+    font-family: var(--slide-heading);
+    font-size: 2.8cqw;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--slide-accent);
 }
 
 .sf-title { margin: 0; font-family: var(--slide-heading); font-size: 8cqw; font-weight: 600; line-height: 1.1; }
@@ -239,6 +288,9 @@ const hasFooter = computed(() => showsLogo.value || !!footerText.value || showsN
 /* Trois colonnes et non un `space-between` : le texte du pied reste au centre
    de la slide même quand il n'y a ni logo ni numéro de part et d'autre. */
 .sf-footer {
+    /* Positionné, comme la scène : une couche de fond l'est aussi, et un
+       élément non positionné passe dessous quoi qu'en dise l'ordre du DOM. */
+    position: relative;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;

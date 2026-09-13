@@ -39,6 +39,28 @@ enum SlideLayoutEnum: string
     case Section = 'section';
 
     /**
+     * The slots every layout accepts, whatever its shape.
+     *
+     * **Separate from `slots()` because they answer a different question.** A
+     * layout's own slots are what that shape is made of; these three are
+     * settings that happen to live in the same JSON: a line above the title, a
+     * picture behind everything, and how far that picture is dimmed. Putting
+     * them in `slots()` would put them in the middle of the form, between a
+     * quote and its attribution, where they read as part of the shape.
+     *
+     * The background is deliberately not a layout of its own. "A section
+     * divider over a photograph" and "a stat over a photograph" would be two
+     * more cases each, and the day a third shape wanted one it would be two
+     * more again.
+     *
+     * @return list<string>
+     */
+    public static function commonSlots(): array
+    {
+        return ['kicker', 'bgMediaId', 'bgDim'];
+    }
+
+    /**
      * The slots this layout accepts, in the order the editor shows them.
      *
      * `mediaId` is an integer, everything else is a string. The manager reads
@@ -57,6 +79,17 @@ enum SlideLayoutEnum: string
             self::Quote => ['quote', 'attribution'],
             self::Section => ['title'],
         };
+    }
+
+    /**
+     * Everything this layout's content may carry: its own slots and the common
+     * ones. What the manager filters against.
+     *
+     * @return list<string>
+     */
+    public function allSlots(): array
+    {
+        return [...$this->slots(), ...self::commonSlots()];
     }
 
     public function labelKey(): string

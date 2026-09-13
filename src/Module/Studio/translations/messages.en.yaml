@@ -503,7 +503,14 @@ backend:
             footer_text_placeholder: Confidential, do not circulate
             slide_numbers: Number the slides
             slide_numbers_hint: The cover is never numbered.
+            common_slots: Backdrop and kicker
+            kicker_placeholder: Audit, Part two, Our proposal…
+            backdrop_hint: A photograph behind the text, on any layout.
+            backdrop_dim: Veil
+            backdrop_dim_hint: Dims the picture towards the background colour, so the text stays readable.
             slots:
+                kicker: Kicker
+                bgMediaId: Background picture
                 title: Title
                 subtitle: Subtitle
                 bullets: Bullets
