@@ -14,6 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
+use function sprintf;
 use function uniqid;
 
 /**
@@ -42,9 +43,11 @@ final class AuditPublicDocumentsCommandTest extends IntegrationTestCase
         $post = new Post();
         $post->setPostType($this->postType($entityManager))
             ->setStatus(PostStatusEnum::Published)
-            // The shape the banner editor writes: pictures nested under
-            // zones, each one carrying the document's id.
-            ->setBannerLayout(['zones' => [['items' => [['id' => $draft->getId()]]]]]);
+            // The shape the banner editor really writes. `id` names the
+            // block ("banner-text"); the picture is `mediaId`. The first
+            // version of this test used `id` and passed against a command
+            // that collected nothing.
+            ->setBannerLayout(['items' => [['id' => 'banner-text', 'mediaId' => $draft->getId()]]]);
         $entityManager->persist($post);
         $entityManager->flush();
 
@@ -69,7 +72,7 @@ final class AuditPublicDocumentsCommandTest extends IntegrationTestCase
         $post = new Post();
         $post->setPostType($this->postType($entityManager))
             ->setStatus(PostStatusEnum::Published)
-            ->setGridLayout(['rows' => [['items' => [['id' => $published->getId()]]]]]);
+            ->setGridLayout(['zones' => [['mediaId' => $published->getId()]]]);
         $entityManager->persist($post);
         $entityManager->flush();
 
@@ -95,11 +98,73 @@ final class AuditPublicDocumentsCommandTest extends IntegrationTestCase
         $post = new Post();
         $post->setPostType($this->postType($entityManager))
             ->setStatus(PostStatusEnum::Draft)
-            ->setGalleryLayout(['items' => [['id' => $draft->getId()]]]);
+            ->setGalleryLayout(['items' => [['id' => 'shot-1', 'mediaId' => $draft->getId()]]]);
         $entityManager->persist($post);
         $entityManager->flush();
 
         self::assertStringNotContainsString((string) $draft->getId(), $this->audit());
+    }
+
+    /**
+     * A gallery zone names many pictures at once, under `mediaIds`, and a
+     * banner carries its logo under `logoMediaId`. Both were missed by the
+     * first version of this command, which is why they have their own case.
+     */
+    public function testItReadsGalleryListsAndTheBannerLogo(): void
+    {
+        static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $inAList = new Document();
+        $inAList->setTitle('Dans une liste '.uniqid())
+            ->setStatus(DocumentStatusEnum::Draft)
+            ->setFilePath('ged/1999/07/liste-'.uniqid().'.png');
+        $entityManager->persist($inAList);
+
+        $logo = new Document();
+        $logo->setTitle('Logo '.uniqid())
+            ->setStatus(DocumentStatusEnum::Draft)
+            ->setFilePath('ged/1999/07/logo-'.uniqid().'.png');
+        $entityManager->persist($logo);
+        $entityManager->flush();
+
+        $post = new Post();
+        $post->setPostType($this->postType($entityManager))
+            ->setStatus(PostStatusEnum::Published)
+            ->setGridLayout(['zones' => [['mediaIds' => [$inAList->getId()]]]])
+            ->setBannerLayout(['logoMediaId' => $logo->getId()]);
+        $entityManager->persist($post);
+        $entityManager->flush();
+
+        $output = $this->audit();
+
+        self::assertStringContainsString((string) $inAList->getId(), $output);
+        self::assertStringContainsString((string) $logo->getId(), $output);
+    }
+
+    /**
+     * The block identifiers themselves are not documents. A command that
+     * treated them as ids would report rows that name nothing.
+     */
+    public function testBlockIdentifiersAreNotMistakenForDocuments(): void
+    {
+        static::createClient();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $post = new Post();
+        $post->setPostType($this->postType($entityManager))
+            ->setStatus(PostStatusEnum::Published)
+            ->setGalleryLayout(['items' => [['id' => 'shot-1'], ['id' => 'shot-2']]]);
+        $entityManager->persist($post);
+        $entityManager->flush();
+
+        // Scoped to this post: the rows the other cases created are still in
+        // the database, so asserting the report is empty would assert the
+        // order tests run in.
+        self::assertStringNotContainsString(
+            sprintf('publication #%d', (int) $post->getId()),
+            $this->audit(),
+        );
     }
 
     private function postType(EntityManagerInterface $entityManager): PostType

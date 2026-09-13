@@ -20,7 +20,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 use function is_array;
 use function is_int;
+use function is_string;
 use function sprintf;
+use function str_ends_with;
 
 /**
  * Which documents a public page points at while not being published.
@@ -121,8 +123,11 @@ final class AuditPublicDocumentsCommand extends Command
         $rows = [];
         foreach ($this->documentRepository->findBy(['id' => array_keys($referencedBy)]) as $document) {
             $id = $document->getId();
+            if (null === $id) {
+                continue;
+            }
 
-            if (null === $id || DocumentStatusEnum::Published === $document->getStatus()) {
+            if (DocumentStatusEnum::Published === $document->getStatus()) {
                 continue;
             }
 
@@ -165,11 +170,23 @@ final class AuditPublicDocumentsCommand extends Command
     /**
      * The document ids inside one layout array.
      *
-     * Walked rather than read at a fixed depth: a banner nests its pictures
-     * under zones and a grid under rows, and the shapes have changed more
-     * than once. Every `id` in these three columns is a document id - it is
-     * the value the view builders hand to `findBy(['id' => $ids])` - so
-     * collecting them all is exact here, and would not be somewhere else.
+     * **It is `mediaId`, never `id`.** An `id` in these columns names the
+     * block, not the picture: a banner item is `"banner-text"`, a gallery
+     * slot is `"shot-1"`. Reading `id` here finds strings, silently collects
+     * nothing, and reports a clean site that is not one - which is the worst
+     * thing a pre-deployment check can do. Confirmed against the three view
+     * builders and against real rows.
+     *
+     * Three shapes carry a document, and all three are read:
+     * `mediaId` (a zone or an item), `logoMediaId` (a banner's logo) and
+     * `mediaIds` (a gallery zone, which names many at once).
+     *
+     * Matched on the suffix rather than on a fixed list, and walked at any
+     * depth, because the grid's shape is actively changing: a zone kind
+     * added next week with its own `…MediaId` is picked up without this
+     * command being touched. The cost of the suffix rule is that a key
+     * outside these columns could match it by accident; these three columns
+     * are the only place it is applied.
      *
      * @param array<mixed> $layout
      *
@@ -180,7 +197,19 @@ final class AuditPublicDocumentsCommand extends Command
         $ids = [];
 
         foreach ($layout as $key => $value) {
-            if ('id' === $key && is_int($value) && $value > 0) {
+            $name = is_string($key) ? mb_strtolower($key) : '';
+
+            if (str_ends_with($name, 'mediaids') && is_array($value)) {
+                foreach ($value as $mediaId) {
+                    if (is_int($mediaId) && $mediaId > 0) {
+                        $ids[] = $mediaId;
+                    }
+                }
+
+                continue;
+            }
+
+            if (str_ends_with($name, 'mediaid') && is_int($value) && $value > 0) {
                 $ids[] = $value;
 
                 continue;
