@@ -11,6 +11,7 @@ use Aurora\Core\Trash\TrashSummary;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\General\Trash\Service\TrashOverviewService;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * The payload of the trash screen.
@@ -40,6 +41,7 @@ final readonly class TrashViewBuilder
         private ModuleAccessChecker $moduleAccessChecker,
         private SettingRepository $settingRepository,
         private PathTemplateGenerator $pathTemplates,
+        private TranslatorInterface $translator,
     ) {}
 
     /**
@@ -84,6 +86,11 @@ final readonly class TrashViewBuilder
         return [
             'key' => $summary->key,
             'labelKey' => $summary->labelKey,
+            // Translated here rather than sent as a key: the name of a section
+            // is whatever the installation renamed it to, and that alias lives
+            // in a setting the screen has no business reading.
+            'sectionLabel' => $this->sectionLabel($summary->sectionId),
+            'listPath' => $this->pathFor($summary->listRoute, withId: false),
             'icon' => $summary->icon,
             'count' => $summary->count,
             'oldestDeletedAt' => $summary->oldestDeletedAt?->format(DATE_ATOM),
@@ -108,6 +115,27 @@ final readonly class TrashViewBuilder
      * routes declare `id` as `\d+`, and generating one straight refuses while
      * the page is rendering - a 500 in place of the screen.
      */
+    /**
+     * What the side menu calls this section, alias included.
+     *
+     * The tab needs it because it is read out of context: under the menu's own
+     * heading "Dossiers" is unambiguous, and on a screen showing five trashes
+     * in a row it is not.
+     */
+    private function sectionLabel(string $sectionId): string
+    {
+        $aliases = json_decode(
+            $this->settingRepository->get(ApplicationParameterEnum::NavSectionAliases->value, '{}') ?? '{}',
+            true,
+        );
+
+        if (is_array($aliases) && isset($aliases[$sectionId]) && is_string($aliases[$sectionId]) && '' !== $aliases[$sectionId]) {
+            return $aliases[$sectionId];
+        }
+
+        return $this->translator->trans('backend.nav.sections.'.$sectionId);
+    }
+
     private function pathFor(?string $route, bool $withId = true): ?string
     {
         if (null === $route) {

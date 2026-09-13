@@ -30,11 +30,24 @@ export function useTrashOverview(props) {
     const emptying = ref(false);
 
     const rows = computed(() =>
-        trashes.value.map((trash) => ({
-            ...trash,
-            iconComponent: resolveNavIcon(trash.icon),
-            daysLeft: daysLeft(trash.oldestDeletedAt, props.retentionDays),
-        })),
+        trashes.value.map((trash) => {
+            const label = t(trash.labelKey);
+
+            return {
+                ...trash,
+                label,
+                iconComponent: resolveNavIcon(trash.icon),
+                daysLeft: daysLeft(trash.oldestDeletedAt, props.retentionDays),
+                // Le module devant ce qu'il contient, sauf quand il le répète :
+                // « Notes · Notes Markdown » dit deux fois la même chose, et le
+                // préfixe n'est là que pour lever une ambiguïté.
+                showSection:
+                    Boolean(trash.sectionLabel) &&
+                    !label
+                        .toLowerCase()
+                        .startsWith(String(trash.sectionLabel).toLowerCase()),
+            };
+        }),
     );
 
     const total = computed(() =>

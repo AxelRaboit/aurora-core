@@ -31,6 +31,7 @@ final readonly class CategoriesTrashSource implements TrashSourceInterface
         return new TrashSummary(
             key: 'ged_categories',
             labelKey: 'backend.nav.ged_categories',
+            sectionId: 'ged',
             icon: 'tags',
             count: count($trashed),
             items: array_map($this->present(...), array_slice($trashed, 0, $limit)),
@@ -39,6 +40,7 @@ final readonly class CategoriesTrashSource implements TrashSourceInterface
             forceDeleteRoute: 'backend_ged_categories_force_delete',
             emptyTrashRoute: 'backend_ged_categories_empty_trash',
             actionPrivilege: 'ged.categories.delete',
+            listRoute: 'backend_ged_categories',
         );
     }
 
