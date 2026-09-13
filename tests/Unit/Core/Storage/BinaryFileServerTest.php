@@ -8,6 +8,7 @@ use Aurora\Core\Storage\BinaryFileServer;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpKernel\EventListener\AbstractSessionListener;
 
 use const DIRECTORY_SEPARATOR;
 
@@ -57,6 +58,32 @@ final class BinaryFileServerTest extends TestCase
 
         self::assertStringContainsString('public', (string) $response->headers->get('Cache-Control'));
         self::assertStringContainsString('immutable', (string) $response->headers->get('Cache-Control'));
+    }
+
+    /**
+     * Without this header the three lines above are decoration: Symfony's
+     * session listener rewrites `Cache-Control` at the end of every request
+     * that reads the session, and declaring the response `public` is what
+     * makes it choose `max-age=0` rather than keeping the day we asked for.
+     */
+    public function testServePublicOptsOutOfTheSessionCacheDowngrade(): void
+    {
+        $response = $this->server->servePublic($this->rootDir.'/sample.txt', $this->rootDir);
+
+        self::assertTrue($response->headers->has(AbstractSessionListener::NO_AUTO_CACHE_CONTROL_HEADER));
+    }
+
+    /**
+     * And the gated flavour must not opt out. Its callers serve files whose
+     * reader was checked, so the listener landing on `private` is the answer
+     * we want anyway.
+     */
+    public function testServeDoesNotOptOut(): void
+    {
+        $response = $this->server->serve($this->rootDir.'/sample.txt', $this->rootDir);
+
+        self::assertFalse($response->headers->has(AbstractSessionListener::NO_AUTO_CACHE_CONTROL_HEADER));
+        self::assertStringContainsString('private', (string) $response->headers->get('Cache-Control'));
     }
 
     public function testServeRefusesFileOutsideAllowedRoot(): void

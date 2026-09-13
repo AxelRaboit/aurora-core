@@ -8,6 +8,7 @@ use RuntimeException;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpKernel\EventListener\AbstractSessionListener;
 
 use function sprintf;
 
@@ -82,14 +83,38 @@ final readonly class BinaryFileServer
     }
 
     /**
-     * Convenience for public assets (CDN-cacheable, no auth). Uses the
-     * Response API (`setPublic` + `setMaxAge`) rather than a raw header
-     * so Symfony's session listener doesn't downgrade it to `private`
-     * when a logged-in user requests the file.
+     * Convenience for public assets (CDN-cacheable, no auth).
+     *
+     * **The opt-out header is what makes this actually public**, and without
+     * it the two lines under it were decoration. Symfony's session listener
+     * rewrites `Cache-Control` at the end of any request that so much as
+     * *reads* the session - `getUsageIndex() !== 0`, not `isStarted()` - and
+     * on this application every request reads it, because `LocaleSubscriber`
+     * asks the session which language to use before it knows what was
+     * requested. Measured in production on 13/09/2026: a published GED image
+     * came back `immutable, max-age=0, must-revalidate, private`, so every
+     * picture on every public page was revalidated on every view and no
+     * shared cache could hold one.
+     *
+     * The cruel detail is that `setPublic()` made it worse rather than
+     * better: the listener computes `$maxAge = hasCacheControlDirective(
+     * 'public') ? 0 : (int) $response->getMaxAge()`, so declaring the
+     * response public is precisely what turned a day of caching into zero.
+     *
+     * `NO_AUTO_CACHE_CONTROL_HEADER` is the escape hatch Symfony documents
+     * for exactly this case - "a scenario where caching responses with
+     * session information in them makes sense". Here there is no session
+     * information at all: the bytes are a file on disk, identical for every
+     * visitor, and who may read it was already decided before we got here.
+     * Symfony strips the header before the response is sent.
+     *
+     * Deliberately **not** applied to {@see serve()}, whose default is
+     * `private` and whose callers are the auth-gated ones.
      */
     public function servePublic(string $absolutePath, string $allowedRoot): BinaryFileResponse
     {
         $response = $this->serve($absolutePath, $allowedRoot, '');
+        $response->headers->set(AbstractSessionListener::NO_AUTO_CACHE_CONTROL_HEADER, 'true');
         $response->setPublic();
         $response->setMaxAge(86400);
         $response->headers->addCacheControlDirective('immutable');

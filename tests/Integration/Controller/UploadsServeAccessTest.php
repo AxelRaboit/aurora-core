@@ -229,12 +229,30 @@ final class UploadsServeAccessTest extends IntegrationTestCase
         $document = $this->document(DocumentStatusEnum::Published);
 
         $this->request((string) $document->getFilePath());
+        $cacheControl = (string) $this->client->getResponse()->headers->get('Cache-Control');
 
-        self::assertStringContainsString(
-            'immutable',
-            (string) $this->client->getResponse()->headers->get('Cache-Control'),
-            'an image embedded in a public page must stay cacheable by everything in between',
-        );
+        // Asserted in full, not just on `immutable`. Until 0.9.165 this said
+        // only that `immutable` survived, and it did survive next to
+        // `max-age=0, must-revalidate, private` - so a picture on a public
+        // page was revalidated on every view while the test stayed green.
+        self::assertStringContainsString('public', $cacheControl);
+        self::assertStringContainsString('max-age=86400', $cacheControl);
+        self::assertStringContainsString('immutable', $cacheControl);
+        self::assertStringNotContainsString('private', $cacheControl);
+        self::assertStringNotContainsString('must-revalidate', $cacheControl);
+    }
+
+    /** A variant is embedded in the same pages, and must be as cacheable. */
+    public function testTheVariantOfAPublishedDocumentIsPubliclyCacheableToo(): void
+    {
+        $document = $this->document(DocumentStatusEnum::Published);
+
+        $this->request($document->getVariants()['medium']);
+        $cacheControl = (string) $this->client->getResponse()->headers->get('Cache-Control');
+
+        self::assertStringContainsString('public', $cacheControl);
+        self::assertStringContainsString('max-age=86400', $cacheControl);
+        self::assertStringNotContainsString('private', $cacheControl);
     }
 
     // ── The permalink ────────────────────────────────────────────────────
