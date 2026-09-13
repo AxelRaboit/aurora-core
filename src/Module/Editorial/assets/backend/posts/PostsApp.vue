@@ -355,7 +355,7 @@ const allTerms = computed(() =>
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.posts.status_column") }}</th>
                         <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.posts.updated_column") }}</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t("shared.common.actions") }}</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-line/40">
@@ -404,7 +404,7 @@ const allTerms = computed(() =>
                             </AppBadge>
                         </td>
                         <td class="px-6 py-3 text-muted text-xs hidden lg:table-cell">{{ formatDateTime(post.updatedAt) }}</td>
-                        <td class="px-6 py-3">
+                        <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
                             <AppRowActions :actions="actionsFor(post)" :label="post.title" />
                         </td>
                     </tr>

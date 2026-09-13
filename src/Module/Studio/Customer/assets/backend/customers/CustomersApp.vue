@@ -185,7 +185,7 @@ function formatCapital(customer) {
                             {{ t("backend.studio.customers.col_contact") }}
                         </th>
                         <th
-                            class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted"
+                            class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40"
                         >
                             {{ t("shared.common.actions") }}
                         </th>
@@ -237,7 +237,7 @@ function formatCapital(customer) {
                                 }}
                             </div>
                         </td>
-                        <td class="px-6 py-3">
+                        <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
                             <div class="flex items-center justify-end gap-0.5">
                                 <AppRowActions
                                     :actions="actionsFor(customer)"

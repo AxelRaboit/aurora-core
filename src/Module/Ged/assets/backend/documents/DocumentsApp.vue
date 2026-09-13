@@ -148,7 +148,17 @@ const {
     pendingDelete, deleteLoading, confirmDelete, doDelete,
 } = useDocumentsForm(props.createPath, props.updatePath, props.deletePath, reset, props.uploadPath);
 
-const { viewMode, setViewMode, sortBy, sortDir, setSort, displayedItems } = useDocumentsDisplay(items);
+const {
+    viewMode,
+    setViewMode,
+    storedViewMode,
+    container,
+    isNarrow,
+    sortBy,
+    sortDir,
+    setSort,
+    displayedItems,
+} = useDocumentsDisplay(items);
 
 const { currentFolder, breadcrumbs, folderEditOptions } = useDocumentSidebarTree(folders, currentFolderId);
 
@@ -210,7 +220,7 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div ref="container" class="space-y-4">
         <!-- Header: breadcrumb + search + add -->
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface border border-line/60 rounded-xl px-4 py-3">
             <nav class="flex items-center gap-1 text-sm text-muted min-w-0 flex-1 flex-wrap">
@@ -360,7 +370,7 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                         <AppIconButton
                             size="sm"
                             variant="ghost"
-                            :class="viewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                            :class="storedViewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
                             v-on:click="setViewMode('grid')"
                         >
                             <LayoutGrid class="w-4 h-4" :stroke-width="2" />
@@ -368,7 +378,7 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                         <AppIconButton
                             size="sm"
                             variant="ghost"
-                            :class="viewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                            :class="storedViewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
                             v-on:click="setViewMode('list')"
                         >
                             <List class="w-4 h-4" :stroke-width="2" />
@@ -465,7 +475,7 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                     </div>
 
                     <!-- Mobile cards (list view fallback on mobile) -->
-                    <div v-else-if="viewMode === 'list' && displayedItems?.length" class="sm:hidden space-y-2">
+                    <div v-else-if="viewMode === 'list' && isNarrow && displayedItems?.length" class="space-y-2">
                         <div
                             v-for="doc in displayedItems"
                             :key="doc.id"
@@ -528,7 +538,7 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                     </div>
 
                     <!-- Desktop table (list view) -->
-                    <div v-show="viewMode === 'list'" class="hidden sm:block bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
+                    <div v-show="viewMode === 'list' && !isNarrow" class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="bg-surface-2/50 border-b border-line/40">
@@ -540,7 +550,7 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                                     <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.ged.documents.size") }}</th>
                                     <th v-if="storageRelocationAvailable" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.ged.documents.storage.column") }}</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell">{{ t("backend.ged.documents.preview") }}</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t("shared.common.actions") }}</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-line/40">
@@ -618,7 +628,7 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                                         </button>
                                         <span v-else class="text-muted text-xs">-</span>
                                     </td>
-                                    <td class="px-6 py-3">
+                                    <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
                                         <div class="flex items-center justify-end gap-0.5">
                                             <AppRowActions :actions="documentActions(doc)" :label="doc.title ?? ''" />
                                         </div>

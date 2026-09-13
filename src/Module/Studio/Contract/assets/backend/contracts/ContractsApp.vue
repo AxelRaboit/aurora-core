@@ -96,7 +96,8 @@ const {
  * is already a table, so the list view makes it one continuous list rather
  * than cards above rows.
  */
-const { viewMode, setViewMode } = useListViewMode(["list", "grid"], "list");
+const { viewMode, setViewMode, storedViewMode, isNarrow, container } =
+    useListViewMode(["list", "grid"], "list");
 
 /**
  * `?amends=<id>` opens the form on an amendment of that contract.
@@ -212,7 +213,7 @@ function sealedRowActions(contract) {
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div ref="container" class="space-y-6">
         <AppListToolbar>
             <AppSearchInput
                 v-model="search"
@@ -223,17 +224,17 @@ function sealedRowActions(contract) {
                  beside the search on a phone, where stacked under the field it
                  read as a second filter. -->
             <template #inline>
-                <div class="flex shrink-0 border border-line/60 rounded-lg p-0.5">
+                <div v-if="!isNarrow" class="flex shrink-0 border border-line/60 rounded-lg p-0.5">
                     <AppIconButton
                         :title="t('shared.common.list_view')"
-                        :class="viewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                        :class="storedViewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
                         v-on:click="setViewMode('list')"
                     >
                         <List class="w-4 h-4" :stroke-width="2" />
                     </AppIconButton>
                     <AppIconButton
                         :title="t('shared.common.grid_view')"
-                        :class="viewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                        :class="storedViewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
                         v-on:click="setViewMode('grid')"
                     >
                         <LayoutGrid class="w-4 h-4" :stroke-width="2" />
@@ -351,7 +352,7 @@ function sealedRowActions(contract) {
                             <!-- Named, and the only column aligned right: it is
                                  where the hand goes, not something to read
                                  across with the rest. -->
-                            <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">
+                            <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">
                                 {{ t("shared.common.actions") }}
                             </th>
                         </tr>
@@ -397,7 +398,7 @@ function sealedRowActions(contract) {
                                         : "-"
                                 }}
                             </td>
-                            <td class="px-6 py-3">
+                            <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
                                 <AppRowActions
                                     :actions="draftRowActions(contract)"
                                     :label="contract.customerName ?? ''"
@@ -434,7 +435,7 @@ function sealedRowActions(contract) {
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell">
                                 {{ t("backend.studio.contracts.col_link") }}
                             </th>
-                            <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">
+                            <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">
                                 {{ t("shared.common.actions") }}
                             </th>
                         </tr>
@@ -513,7 +514,7 @@ function sealedRowActions(contract) {
                                     {{ t("backend.studio.contracts.no_link") }}
                                 </span>
                             </td>
-                            <td class="px-6 py-3">
+                            <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
                                 <AppRowActions
                                     :actions="sealedRowActions(contract)"
                                     :label="contract.reference ?? ''"

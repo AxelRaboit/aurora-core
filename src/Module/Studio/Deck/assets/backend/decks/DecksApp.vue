@@ -174,7 +174,7 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                         <th class="hidden px-6 py-3 text-left font-medium lg:table-cell">{{ t("backend.studio.decks.category") }}</th>
                         <th class="hidden px-6 py-3 text-left font-medium lg:table-cell">{{ t("backend.studio.decks.customer") }}</th>
                         <th class="px-6 py-3 text-right font-medium">{{ t("backend.studio.decks.slides") }}</th>
-                        <th class="px-6 py-3 text-right font-medium">{{ t("shared.common.actions") }}</th>
+                        <th class="px-6 py-3 text-right font-medium sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -212,7 +212,7 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                             {{ deck.customer?.legalName ?? "—" }}
                         </td>
                         <td class="px-6 py-3 text-right tabular-nums text-secondary">{{ deck.slideCount }}</td>
-                        <td class="px-6 py-3 text-right">
+                        <td class="px-6 py-3 text-right sticky right-0 bg-surface border-l border-line/40">
                             <AppRowActions :actions="actionsFor(deck)" :label="deck.title" />
                         </td>
                     </tr>
