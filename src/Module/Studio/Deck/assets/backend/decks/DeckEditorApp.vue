@@ -414,7 +414,13 @@ onBeforeUnmount(() => {
                             :aria-current="slide.id === selectedId ? 'true' : undefined"
                             v-on:click="select(slide.id)"
                         >
-                            <span class="mb-1 block px-1 text-[0.65rem] uppercase tracking-wide text-muted">
+                            <!-- Décalé quand le chevron est là : la pastille
+                                 est posée sur ce coin, et « INTERCALAIRE »
+                                 passait dessous. -->
+                            <span
+                                class="mb-1 block px-1 text-[0.65rem] uppercase tracking-wide text-muted"
+                                :class="foldable(slide) ? 'pl-9' : ''"
+                            >
                                 {{ at + 1 }}. {{ t(`backend.studio.decks.layouts.${slide.layout}`) }}
                             </span>
                             <!-- Dans une simple boîte de bloc : élément flex, la

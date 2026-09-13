@@ -75,6 +75,8 @@ Au survol d'une vignette apparaissent quatre actions : monter, descendre, **dupl
 
 Les flèches restent à côté de la poignée, et c'est voulu : glisser demande une souris et une main, elles non, et ce sont le seul chemin au clavier vers un changement d'ordre.
 
+Une présentation longue **se replie par chapitres** : sur la vignette d'un intercalaire, un chevron cache les slides qui le suivent et affiche leur nombre. Les chapitres sont lus dans les intercalaires eux-mêmes, il n'y a rien de plus à créer, et une présentation qui n'en utilise pas a simplement un seul chapitre.
+
 La copie d'une slide se pose **juste après celle qu'elle copie**, parce qu'on duplique une slide pour en écrire une variante, et qu'une variante vingt slides plus loin doit être ramenée avant de pouvoir être modifiée.
 
 ![Les actions d'une vignette](../../images/06-studio/composer-les-slides-04-les-actions-d-une-vignette.png)

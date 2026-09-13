@@ -41,6 +41,18 @@ L'icône en croix révoque le lien. **La ligne n'est pas supprimée**, elle est 
 
 Un lien révoqué, expiré ou inventé donne la même réponse : page introuvable. Distinguer les trois confirmerait à quelqu'un qui tâtonne que l'adresse était bonne.
 
-## Savoir s'il a été ouvert
+## Protéger un lien par un mot de passe
 
-Chaque ligne indique la date de première ouverture, ou « Jamais ouvert ». C'est l'essentiel de ce qui justifie de garder un lien par destinataire plutôt qu'une adresse unique.
+Le champ **« Mot de passe »**, sous l'intitulé, est facultatif. Laissé vide, le lien s'ouvre avec sa seule adresse, ce qui suffit dans la plupart des cas : elle est impossible à deviner et elle peut expirer.
+
+Rempli, le destinataire tombe d'abord sur une page qui demande ce mot de passe. Cette page **ne dit rien de la présentation** : ni son titre, ni son auteur, ni le nombre de slides. Et un mot de passe faux répond exactement ce que répond une adresse fausse, pour qu'une adresse devinée n'apprenne pas qu'elle est bonne.
+
+**Communiquez-le autrement que par le message qui porte le lien.** Un mot de passe écrit sous l'adresse qu'il protège ne protège rien : il suffit de faire suivre le message.
+
+Une fois ouvert, le lien le reste tant que le navigateur du destinataire n'est pas fermé. Ouvrir un lien protégé n'en ouvre aucun autre.
+
+## Savoir s'il a été ouvert, et combien de fois
+
+Chaque ligne indique combien de fois le lien a été ouvert et la date de la dernière fois, ou « Jamais ouvert ». C'est l'essentiel de ce qui justifie de garder un lien par destinataire plutôt qu'une adresse unique : « est-ce qu'ils l'ont lu, et est-ce qu'ils y sont revenus » est une question qui se répond par un nombre.
+
+Un compteur, et pas un journal. Aurora n'enregistre pas qui a ouvert quoi ni quand exactement, ni quelles slides ont été regardées : une ligne par ouverture serait un relevé des habitudes de lecture de quelqu'un, gardé parce qu'il était facile à garder.
