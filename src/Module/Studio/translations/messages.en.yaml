@@ -550,6 +550,8 @@ backend:
             template_badge: Model
             from_template: Start from a model
             from_nothing: Start from nothing
+            fold_chapter: Fold this chapter
+            unfold_chapter: Unfold this chapter
             slots:
                 mediaFit: How the picture fills
                 mediaFocus: Focal point

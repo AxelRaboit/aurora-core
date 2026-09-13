@@ -20,6 +20,7 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useDeckEditor } from "./composables/useDeckEditor.js";
 import { useDeckSharing } from "./composables/useDeckSharing.js";
 import { useDeckAppearance } from "./composables/useDeckAppearance.js";
+import { useDeckChapters } from "./composables/useDeckChapters.js";
 import SlideFrame from "./components/SlideFrame.vue";
 import DeckPlayer from "./components/DeckPlayer.vue";
 import DeckAppearancePanel from "./components/DeckAppearancePanel.vue";
@@ -37,6 +38,8 @@ import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import {
     ArrowDown,
     ArrowUp,
+    ChevronDown,
+    ChevronRight,
     Copy,
     CopyPlus,
     GripVertical,
@@ -98,6 +101,15 @@ const {
 } = useDeckEditor(props);
 
 const editable = can("studio.decks.edit");
+
+/**
+ * The chapters, read off the section slides rather than stored.
+ *
+ * Folding one hides its slides without taking them out of the list the
+ * drag-and-drop reorders: a filtered list would come back short and save that
+ * as the new order.
+ */
+const { isHidden, isFolded, sizes, toggle: toggleChapter, foldable } = useDeckChapters(slides);
 
 /**
  * The deck's look, held here because every frame on the page draws with it.
@@ -365,12 +377,32 @@ onBeforeUnmount(() => {
                 >
                     <div
                         v-for="(slide, at) in slides"
+                        v-show="!isHidden(at)"
                         :key="slide.id"
                         class="group relative rounded-lg border p-1 transition-colors"
-                        :class="slide.id === selectedId
-                            ? 'border-accent bg-accent-600/10'
-                            : 'border-line hover:border-line-strong'"
+                        :class="[
+                            slide.id === selectedId
+                                ? 'border-accent bg-accent-600/10'
+                                : 'border-line hover:border-line-strong',
+                            foldable(slide) ? 'border-dashed' : '',
+                        ]"
                     >
+                        <!-- Le chevron sur la vignette d'intercalaire : c'est
+                             lui le chapitre, on ne stocke rien de plus. -->
+                        <button
+                            v-if="foldable(slide)"
+                            type="button"
+                            class="absolute top-1 left-1 z-10 flex cursor-pointer items-center gap-1 rounded bg-surface/80 px-1 py-0.5 text-[0.65rem] text-muted backdrop-blur"
+                            :aria-expanded="!isFolded(slide.id)"
+                            :title="isFolded(slide.id)
+                                ? t('backend.studio.decks.unfold_chapter')
+                                : t('backend.studio.decks.fold_chapter')"
+                            v-on:click.stop="toggleChapter(slide.id)"
+                        >
+                            <ChevronDown v-if="!isFolded(slide.id)" class="h-3 w-3" :stroke-width="2" />
+                            <ChevronRight v-else class="h-3 w-3" :stroke-width="2" />
+                            <span class="tabular-nums">{{ sizes[slide.id] }}</span>
+                        </button>
                         <!-- `flex flex-col` plutôt que `block` : le contenu d'un
                          `<button>` se comporte comme une boîte qui étire ses
                          enfants, ce qui écrasait le rapport 16/9 de la

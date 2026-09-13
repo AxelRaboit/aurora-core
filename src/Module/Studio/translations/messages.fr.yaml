@@ -550,6 +550,8 @@ backend:
             template_badge: Modèle
             from_template: Partir d'un modèle
             from_nothing: Partir de rien
+            fold_chapter: Replier ce chapitre
+            unfold_chapter: Déplier ce chapitre
             slots:
                 mediaFit: Cadrage de l'image
                 mediaFocus: Point de visée
