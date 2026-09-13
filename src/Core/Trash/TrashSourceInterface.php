@@ -7,36 +7,39 @@ namespace Aurora\Core\Trash;
 use Aurora\Core\Dashboard\DashboardStatsProviderInterface;
 
 /**
- * A trash a module owns, offered to the overview screen.
+ * A trash a module owns, offered whole to the trash screen.
  *
  * Lives in core for the same reason {@see DashboardStatsProviderInterface}
  * does: the General shell must never import a business module's repositories.
  * Each module ships its own source, auto-registered through the
  * `aurora.trash_source` tag, and a module that is absent simply contributes
- * no row.
+ * nothing.
  *
- * A source answers for the user who is looking. Documents and categories are
- * shared, so their answer is the same for everyone; notes belong to their
- * author, so theirs is not. The overview does not know the difference and does
- * not need to.
+ * A source answers for the user who is looking, and that is not a detail:
+ * publications are scoped to their author for whoever is neither developer nor
+ * administrator, and notes belong to their author outright. A source that
+ * ignored this would turn one screen into the log of what everybody else
+ * deleted.
  */
 interface TrashSourceInterface
 {
     /**
-     * Module id gating this source, matched against the modules the overview
+     * Module id gating this source, matched against the modules the screen
      * reports enabled (e.g. 'ged', 'notes', 'editorial').
      */
     public function getModuleKey(): string;
 
     /**
-     * The privilege that opens the screen this trash belongs to, null when it
-     * needs none.
+     * The privilege that opens this trash, null when it needs none.
      *
-     * The overview drops a source the reader may not open: a count and a link
-     * to a screen that answers 403 says something about content they were not
-     * given, and offers no way to act on it.
+     * A source the reader may not open is dropped entirely: a count of things
+     * they were never shown is still something about them.
      */
     public function getRequiredPrivilege(): ?string;
 
-    public function getSummary(): TrashSummary;
+    /**
+     * @param int $limit how many rows to return at most; `count` on the
+     *                   summary stays the real total
+     */
+    public function getSummary(int $limit): TrashSummary;
 }

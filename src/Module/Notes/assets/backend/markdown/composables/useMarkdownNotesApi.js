@@ -48,11 +48,6 @@ export function useMarkdownNotesApi(props) {
             call(HttpMethod.Post, resolvePath(props.updatePath, id), payload),
         remove: (id) =>
             call(HttpMethod.Post, resolvePath(props.deletePath, id), {}),
-        trash: () => call(HttpMethod.Get, props.trashPath),
-        restore: (id) =>
-            call(HttpMethod.Post, resolvePath(props.restorePath, id), {}),
-        forceDelete: (id) =>
-            call(HttpMethod.Post, resolvePath(props.forceDeletePath, id), {}),
         move: (id, parentId) =>
             call(HttpMethod.Post, resolvePath(props.movePath, id), {
                 parentId,

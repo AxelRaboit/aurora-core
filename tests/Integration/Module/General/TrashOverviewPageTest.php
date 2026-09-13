@@ -68,7 +68,15 @@ final class TrashOverviewPageTest extends IntegrationTestCase
 
         self::assertSame($before + 1, $row['count']);
         self::assertNotNull($row['oldestDeletedAt'], 'the page can only say how long is left once it knows when it fell');
-        self::assertStringContainsString('trashed=1', (string) $row['url']);
+
+        // The row carries what it takes to act on it without leaving the page.
+        self::assertStringContainsString('__id__', (string) $row['restorePath']);
+        self::assertStringContainsString('__id__', (string) $row['forceDeletePath']);
+        self::assertContains(
+            $category->getId(),
+            array_column($row['items'], 'id'),
+            'the category that was just deleted is listed',
+        );
     }
 
     /**

@@ -5,6 +5,44 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.155] - 2026-09-13
+
+### Modifié
+
+#### La corbeille est un endroit, plus un coin de chaque écran
+Cinq corbeilles vivaient chacune dans son module : un onglet pour les
+publications, un bouton dans la GED, une section du panneau latéral pour les
+dossiers, une modale pour les notes. Chercher ce qu'on venait de supprimer
+demandait de savoir d'où on l'avait supprimé.
+
+**Général > Corbeille** fait maintenant tout : un onglet par type, ce qui
+attend dedans, les jours restants avant la purge, et sur chaque ligne
+restaurer ou supprimer définitivement. Vider une corbeille se fait de là
+aussi. Les corbeilles des modules sont retirées : il n'y a plus qu'un endroit,
+donc plus de question sur lequel regarder.
+
+L'écran ne sait toujours pas restaurer quoi que ce soit : il poste aux adresses
+que le module lui a données, c'est-à-dire aux endpoints que l'écran du module
+appelait avant lui. Un dossier rend son contenu à la racine, une catégorie
+reçoit un slug libre, une note dont le parent est encore supprimé revient à la
+racine. Ces règles restent écrites une fois, là où elles sont.
+
+Ce que la page montre dépend de qui regarde : une publication n'apparaît que
+pour son auteur si le lecteur n'est ni développeur ni administrateur, les notes
+sont celles du lecteur, et une corbeille dont il n'a pas le privilège n'a pas
+d'onglet du tout.
+
+### Ajouté
+
+#### Vider la corbeille des dossiers et celle des notes
+Les deux n'avaient que la suppression une par une. Elles ont désormais leur
+`empty-trash` comme les trois autres, ce qui est ce que la nouvelle page
+appelle. Vider celle des dossiers rend leur contenu à la racine, comme le fait
+déjà une suppression définitive unitaire : ce sont les documents que personne
+n'a demandé à perdre.
+
+---
+
 ## [0.9.154] - 2026-09-13
 
 ### Corrigé

@@ -131,23 +131,6 @@ backend:
       empty: Aucun document pour le moment
       delete_confirm: "Êtes-vous sûr de vouloir supprimer le document « {title} » ?"
       delete_warning: Le document part à la corbeille. Vous pourrez le restaurer tant qu'elle n'a pas été vidée.
-      trash:
-        title: Corbeille
-        folders_title: Dossiers en corbeille
-        folder_restored: Dossier restauré
-        folder_deleted_forever: Dossier supprimé définitivement
-        banner: Ces documents sont supprimés. Leur fichier est conservé jusqu'à ce que la corbeille soit vidée.
-        empty: Vider la corbeille
-        empty_confirm: "Supprimer définitivement les {count} documents de la corbeille ?"
-        restore: Restaurer
-        restore_description: Remet le document dans la bibliothèque, avec son fichier.
-        restored: Document restauré
-        delete_forever: Supprimer définitivement
-        delete_forever_description: Supprime le document et son fichier, sans retour possible.
-        delete_forever_confirm: "Supprimer définitivement le document « {title} » ?"
-        delete_forever_warning: Le fichier sera effacé du disque. Cette action est irréversible.
-        deleted_forever: Document supprimé définitivement
-        emptied: "{count} document(s) supprimé(s) définitivement"
       back_to_list: Retour aux documents
       no_category: Sans catégorie
       tags: Étiquettes
@@ -235,20 +218,6 @@ backend:
       empty: Aucune catégorie pour le moment
       delete_confirm: "Êtes-vous sûr de vouloir supprimer la catégorie « {name} » ?"
       delete_warning: Les documents liés ne seront pas supprimés.
-      trash:
-        empty: Vider la corbeille
-        empty_confirm: "Supprimer définitivement les {count} catégories de la corbeille ?"
-        emptied: "{count} catégorie(s) supprimée(s) définitivement"
-        title: Corbeille
-        banner: Ces catégories sont supprimées. Les documents qu'elles portaient les retrouveront si vous les restaurez.
-        restore: Restaurer
-        restore_description: Remet la catégorie dans la liste, avec les documents qui la portaient.
-        restored: Catégorie restaurée
-        delete_forever: Supprimer définitivement
-        delete_forever_description: Supprime la catégorie. Les documents qui la portaient n'en auront plus.
-        delete_forever_confirm: "Supprimer définitivement la catégorie « {name} » ?"
-        delete_forever_warning: Les documents liés ne seront pas supprimés, mais ils perdront cette catégorie. Cette action est irréversible.
-        deleted_forever: Catégorie supprimée définitivement
       name_placeholder: Nom de la catégorie…
       description_placeholder: Description optionnelle…
       errors:

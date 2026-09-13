@@ -134,39 +134,12 @@ describe("useDocumentFilters - applyFilter / resetFilters", () => {
     });
 });
 
-describe("useDocumentFilters - trash view", () => {
-    it("adds nothing to the params while the library is shown", () => {
+describe("useDocumentFilters - the trash is not here any more", () => {
+    it("never asks the server for trashed rows", () => {
         const { extraParams } = useDocumentFilters(vi.fn());
+
+        // The listing shows the library, full stop. What was deleted lives on
+        // the Trash screen, which reads it from its own sources.
         expect(extraParams().trashed).toBeUndefined();
-    });
-
-    it("asks the server for the trash once toggled, and reloads", () => {
-        const reload = vi.fn();
-        const { toggleTrash, viewingTrash, extraParams } =
-            useDocumentFilters(reload);
-
-        toggleTrash();
-
-        expect(viewingTrash.value).toBe(true);
-        expect(extraParams().trashed).toBe(1);
-        expect(reload).toHaveBeenCalledTimes(1);
-    });
-
-    it("is a view, not a filter: it stays out of hasActiveFilter and survives a reset", () => {
-        const {
-            toggleTrash,
-            resetFilters,
-            viewingTrash,
-            hasActiveFilter,
-            extraParams,
-        } = useDocumentFilters(vi.fn());
-
-        toggleTrash();
-        expect(hasActiveFilter.value).toBe(false);
-
-        resetFilters();
-
-        expect(viewingTrash.value).toBe(true);
-        expect(extraParams().trashed).toBe(1);
     });
 });
