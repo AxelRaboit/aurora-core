@@ -1023,9 +1023,10 @@ const FLOWS = {
     await wait(600);
     await shotOf(adder, "ajouter-une-slide", 16, 26);
 
-    // La deuxième slide est celle à puces, c'est-à-dire le gabarit que la page
-    // décrit en exemple.
-    await page.getByRole("button", { name: /2\./ }).first().click();
+    // La troisième slide est celle à puces, c'est-à-dire le gabarit que la
+    // page décrit en exemple. La deuxième est une intercalaire, qui ne porte
+    // qu'un titre et ne montrerait pas le formulaire dont il est question.
+    await page.getByRole("button", { name: /3\./ }).first().click();
     await wait(1800);
 
     // Les notes remplies avant la photo du formulaire, pas après : sinon
@@ -1063,6 +1064,15 @@ const FLOWS = {
     await page.getByRole("button", { name: /^Présenter/ }).first().click();
     await wait(2000);
     await shot("le-plein-ecran");
+
+    // La quatrième slide est l'image pleine page. Photographiée en
+    // présentation et non dans l'éditeur : c'est le seul endroit où ce
+    // gabarit occupe l'écran, ce qui est tout ce qu'il fait.
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
+    await wait(1800);
+    await shot("une-image-pleine-page");
 
     await page.keyboard.press("Escape");
     await wait(1200);
@@ -1487,33 +1497,31 @@ const FLOWS = {
   },
 
   /**
-   * Mettre à la corbeille, puis en ressortir.
+   * Mettre à la corbeille depuis un écran, ressortir depuis l'autre.
    *
    * La publication est vraiment jetée et vraiment restaurée : une corbeille
    * photographiée vide n'apprend rien, et c'est l'état dans lequel la démo
    * se trouve tant que personne n'a rien supprimé.
+   *
+   * Deux écrans, parce que le geste en traverse deux depuis que la corbeille
+   * est un endroit : on supprime là où l'on travaille, on restaure dans
+   * Général > Corbeille.
    */
   "corbeille": async () => {
-    await page.goto(`${BASE}/backend/editorial/posts`, { waitUntil: "domcontentloaded" });
-    await wait(3000);
-
     // Reprise après un parcours interrompu : la publication est peut-être
     // restée dans la corbeille, et le flux commencerait alors par chercher
     // une ligne qui n'est plus dans la liste.
-    const trashTab = page.getByRole("button", { name: /^Corbeille/ }).first();
-    await trashTab.click();
-    await wait(2000);
-    const stranded = page.getByRole("button", { name: /Actions pour Ce qui arrive ensuite/ }).first();
+    await page.goto(`${BASE}/backend/trash`, { waitUntil: "domcontentloaded" });
+    await wait(2500);
+    const stranded = page.getByText("Ce qui arrive ensuite").first();
 
     if (await stranded.count() > 0) {
-      await stranded.click();
-      await wait(1000);
-      await page.getByRole("button", { name: /^Restaurer/ }).last().click();
+      await page.getByRole("button", { name: /^Restaurer/ }).first().click();
       await wait(2500);
     }
 
-    await page.getByRole("button", { name: /^Publications/ }).first().click();
-    await wait(2000);
+    await page.goto(`${BASE}/backend/editorial/posts`, { waitUntil: "domcontentloaded" });
+    await wait(3000);
 
     await page.getByRole("button", { name: /Actions pour Ce qui arrive ensuite/ }).first().click();
     await wait(1200);
@@ -1528,17 +1536,20 @@ const FLOWS = {
     await page.locator("[role='dialog']").getByRole("button", { name: /^Supprimer$/ }).first().click();
     await wait(2500);
 
-    await page.getByRole("button", { name: /^Corbeille/ }).first().click();
-    await wait(2200);
-    await shot("l-onglet-corbeille");
-
-    await page.getByRole("button", { name: /Actions pour Ce qui arrive ensuite/ }).first().click();
-    await wait(1200);
-    await shot("restaurer-ou-effacer");
-
-    await page.getByRole("button", { name: /^Restaurer/ }).last().click();
+    await page.goto(`${BASE}/backend/trash`, { waitUntil: "domcontentloaded" });
     await wait(2500);
-    await shot("la-publication-est-revenue");
+    await shot("l-ecran");
+
+    // L'onglet des publications, qui n'est pas forcément le premier : les
+    // corbeilles les plus pleines passent devant.
+    await page.getByRole("button", { name: /Publications/ }).first().click();
+    await wait(1500);
+
+    const row = page.locator("div").filter({ hasText: /^Ce qui arrive ensuite/ }).last();
+    await shotOf(row, "restaurer-ou-effacer", 18, 10);
+
+    await page.getByRole("button", { name: /^Restaurer/ }).first().click();
+    await wait(2500);
   },
 
   /**

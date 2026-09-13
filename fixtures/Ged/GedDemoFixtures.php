@@ -74,9 +74,12 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
         $this->createVersionHistory($manager);
 
-        // Favicon + logo point at the landscape image (media[1]); after flush so IDs exist.
-        if (isset($media[1]) && null !== $media[1]->getId()) {
-            $faviconId = (string) $media[1]->getId();
+        // Favicon + logo point at the generated gradient (media[3]), not at one
+        // of the photographs: a logo is a mark, and the demo's photographs are
+        // subjects - a flag in the corner of every screen of the manual reads
+        // as the product's identity, which it is not. After flush so IDs exist.
+        if (isset($media[3]) && null !== $media[3]->getId()) {
+            $faviconId = (string) $media[3]->getId();
             $this->settingsManager->set(ApplicationParameterEnum::FaviconMediaId->value, $faviconId);
             $this->settingsManager->set(ApplicationParameterEnum::LogoMediaId->value, $faviconId);
         }
@@ -90,7 +93,14 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         $destDir = $this->uploadDir.'/ged/'.$month;
         $this->fs->mkdir($destDir);
 
-        $sourceDir = dirname(__DIR__, 4).'/test_files';
+        // Two levels up, which is the repository root: `fixtures/Ged` sits
+        // two deep. It said four, so it looked for `test_files/` two levels
+        // above the project, found nothing, and drew a placeholder for every
+        // picture - on every machine, for as long as the folder has been
+        // shipped with the repository. The test next door checks that the
+        // files named here exist; it resolves the root correctly, so it
+        // passed while the fixture read somewhere else entirely.
+        $sourceDir = dirname(__DIR__, 2).'/test_files';
         $defs = [
             ['src' => 'images/ai-generated-8359510_1280-1816135935.jpg', 'name' => 'hero-banner.jpg',      'original' => 'hero-banner.jpg',    'mime' => 'image/jpeg', 'w' => 1280, 'h' => 853],
             ['src' => 'images/canadian-flag-canada-maple-country-wallpaper-1506073439.jpg', 'name' => 'landscape.jpg', 'original' => 'landscape.jpg', 'mime' => 'image/jpeg', 'w' => 1280, 'h' => 720],
