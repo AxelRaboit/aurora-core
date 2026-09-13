@@ -515,6 +515,7 @@ backend:
                 items: "Une carte par ligne. Titre | description"
                 steps: "Une étape par ligne. Nom | précision"
                 rows: "Une ligne du tableau par ligne, cellules séparées par |. La première est l'en-tête."
+            emphasis_hint: "Dans le texte d'une slide : **gras**, *italique*, `code`."
             slots:
                 value: Le chiffre
                 label: Ce qu'il compte

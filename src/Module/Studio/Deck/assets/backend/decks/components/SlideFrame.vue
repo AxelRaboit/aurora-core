@@ -18,6 +18,7 @@
  */
 import { computed } from "vue";
 import { cells, headed } from "../cells.js";
+import { emphasis } from "../emphasis.js";
 
 const props = defineProps({
     slide: { type: Object, required: true },
@@ -108,18 +109,18 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
                 <p v-if="kicker" class="sf-kicker">{{ kicker }}</p>
 
                 <template v-if="slide.layout === 'title'">
-                    <p class="sf-title">{{ slide.content.title }}</p>
-                    <p v-if="!compact && slide.content.subtitle" class="sf-subtitle">{{ slide.content.subtitle }}</p>
+                    <p class="sf-title" v-html="emphasis(slide.content.title)" />
+                    <p v-if="!compact && slide.content.subtitle" class="sf-subtitle" v-html="emphasis(slide.content.subtitle)" />
                 </template>
 
                 <template v-else-if="slide.layout === 'section'">
-                    <p class="sf-section">{{ slide.content.title }}</p>
+                    <p class="sf-section" v-html="emphasis(slide.content.title)" />
                 </template>
 
                 <template v-else-if="slide.layout === 'bullets'">
-                    <p class="sf-heading">{{ slide.content.title }}</p>
+                    <p class="sf-heading" v-html="emphasis(slide.content.title)" />
                     <ul v-if="!compact" class="sf-list">
-                        <li v-for="(bullet, at) in slide.content.bullets ?? []" :key="at">{{ bullet }}</li>
+                        <li v-for="(bullet, at) in slide.content.bullets ?? []" :key="at" v-html="emphasis(bullet)" />
                     </ul>
                     <div v-else class="sf-lines">
                         <span v-for="(bullet, at) in (slide.content.bullets ?? []).slice(0, 4)" :key="at" />
@@ -127,25 +128,25 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
                 </template>
 
                 <template v-else-if="slide.layout === 'quote'">
-                    <p class="sf-quote">{{ slide.content.quote }}</p>
-                    <p v-if="slide.content.attribution" class="sf-attribution">{{ slide.content.attribution }}</p>
+                    <p class="sf-quote" v-html="emphasis(slide.content.quote)" />
+                    <p v-if="slide.content.attribution" class="sf-attribution" v-html="emphasis(slide.content.attribution)" />
                 </template>
 
                 <template v-else-if="slide.layout === 'split'">
-                    <p class="sf-heading">{{ slide.content.title }}</p>
+                    <p class="sf-heading" v-html="emphasis(slide.content.title)" />
                     <div class="sf-columns">
-                        <p>{{ compact ? "" : slide.content.left }}</p>
-                        <p>{{ compact ? "" : slide.content.right }}</p>
+                        <p v-html="compact ? '' : emphasis(slide.content.left)" />
+                        <p v-html="compact ? '' : emphasis(slide.content.right)" />
                     </div>
                 </template>
 
                 <template v-else-if="slide.layout === 'stat'">
                     <p class="sf-stat">{{ slide.content.value }}</p>
-                    <p v-if="!compact && slide.content.label" class="sf-stat-label">{{ slide.content.label }}</p>
+                    <p v-if="!compact && slide.content.label" class="sf-stat-label" v-html="emphasis(slide.content.label)" />
                 </template>
 
                 <template v-else-if="slide.layout === 'image_text'">
-                    <p v-if="slide.content.title" class="sf-heading sf-heading-small">{{ slide.content.title }}</p>
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <div class="sf-beside" :class="slide.content.side === 'right' ? 'is-right' : ''">
                         <div class="sf-beside-media">
                             <img
@@ -156,33 +157,33 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
                             >
                             <span v-else class="sf-image-mark" />
                         </div>
-                        <p v-if="!compact" class="sf-beside-text">{{ slide.content.text }}</p>
+                        <p v-if="!compact" class="sf-beside-text" v-html="emphasis(slide.content.text)" />
                     </div>
                 </template>
 
                 <template v-else-if="slide.layout === 'cards'">
-                    <p v-if="slide.content.title" class="sf-heading sf-heading-small">{{ slide.content.title }}</p>
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <div class="sf-cards" :style="{ '--cards': Math.min((slide.content.items ?? []).length || 1, 4) }">
                         <div v-for="(item, at) in slide.content.items ?? []" :key="at" class="sf-card">
-                            <span class="sf-card-head">{{ headed(item).head }}</span>
-                            <span v-if="!compact && headed(item).body" class="sf-card-body">{{ headed(item).body }}</span>
+                            <span class="sf-card-head" v-html="emphasis(headed(item).head)" />
+                            <span v-if="!compact && headed(item).body" class="sf-card-body" v-html="emphasis(headed(item).body)" />
                         </div>
                     </div>
                 </template>
 
                 <template v-else-if="slide.layout === 'timeline'">
-                    <p v-if="slide.content.title" class="sf-heading sf-heading-small">{{ slide.content.title }}</p>
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <ol class="sf-steps">
                         <li v-for="(step, at) in slide.content.steps ?? []" :key="at" class="sf-step">
                             <span class="sf-step-mark" />
-                            <span class="sf-step-head">{{ headed(step).head }}</span>
-                            <span v-if="!compact && headed(step).body" class="sf-step-body">{{ headed(step).body }}</span>
+                            <span class="sf-step-head" v-html="emphasis(headed(step).head)" />
+                            <span v-if="!compact && headed(step).body" class="sf-step-body" v-html="emphasis(headed(step).body)" />
                         </li>
                     </ol>
                 </template>
 
                 <template v-else-if="slide.layout === 'table'">
-                    <p v-if="slide.content.title" class="sf-heading sf-heading-small">{{ slide.content.title }}</p>
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <table v-if="!compact" class="sf-table">
                         <!-- La première ligne est l'en-tête, et c'est une
                              convention du gabarit : un tableau de slide sans
@@ -194,7 +195,7 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
                         </thead>
                         <tbody>
                             <tr v-for="(row, at) in (slide.content.rows ?? []).slice(1)" :key="at">
-                                <td v-for="(cell, column) in cells(row)" :key="column">{{ cell }}</td>
+                                <td v-for="(cell, column) in cells(row)" :key="column" v-html="emphasis(cell)" />
                             </tr>
                         </tbody>
                     </table>
@@ -213,7 +214,7 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
                         >
                         <span v-else class="sf-image-mark" />
                     </div>
-                    <p v-if="!compact && slide.content.caption" class="sf-caption">{{ slide.content.caption }}</p>
+                    <p v-if="!compact && slide.content.caption" class="sf-caption" v-html="emphasis(slide.content.caption)" />
                 </template>
             </div>
 
@@ -386,6 +387,19 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
 .sf-table td { padding: 1.2cqw 0; border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent); }
 .sf-table tr:last-child td { border-bottom: 0; }
 .sf-table th + th, .sf-table td + td { padding-left: 3cqw; }
+
+/* `code` dans une slide : une teinte de la couleur du texte plutôt qu'une
+   boîte grise, qui sur un thème clair devient la seule tache sombre de la
+   slide et attire l'œil plus que ce qu'elle marque. */
+.slide-frame :deep(code) {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    padding: 0.1em 0.3em;
+    border-radius: 0.2em;
+    background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.slide-frame :deep(strong) { font-weight: 700; }
 
 .sf-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 4cqw; font-size: 3.6cqw; }
 .sf-columns p { margin: 0; }

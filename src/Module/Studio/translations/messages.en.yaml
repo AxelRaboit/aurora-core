@@ -515,6 +515,7 @@ backend:
                 items: "One card per line. Heading | description"
                 steps: "One step per line. Name | detail"
                 rows: "One row per line, cells separated by |. The first row is the header."
+            emphasis_hint: "In a slide's text: **bold**, *italic*, `code`."
             slots:
                 value: The figure
                 label: What it counts
