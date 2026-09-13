@@ -21,6 +21,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Exception\FrozenContractIsImmutableException;
 use Aurora\Module\Studio\Contract\Manager\ContractManagerInterface;
 use Aurora\Module\Studio\Contract\Serializer\ContractSerializerInterface;
+use Aurora\Module\Studio\Contract\Service\ContractPdfExporter;
 use Aurora\Module\Studio\Contract\Service\ContractPdfGenerator;
 use Aurora\Module\Studio\Contract\Signature\Dto\ContractSignatureInputFactoryInterface;
 use Aurora\Module\Studio\Contract\Signature\Manager\ContractSignatureManagerInterface;
@@ -55,6 +56,7 @@ class ContractsController extends AbstractController
         protected readonly ContractSignatureManagerInterface $signatures,
         protected readonly ContractSignatureInputFactoryInterface $signatureInputFactory,
         protected readonly ContractPdfGenerator $pdfGenerator,
+        protected readonly ContractPdfExporter $pdfExporter,
         protected readonly BinaryFileServer $fileServer,
         protected readonly TranslatorInterface $translator,
     ) {}
@@ -247,13 +249,12 @@ class ContractsController extends AbstractController
     }
 
     /**
-     * The signed PDF.
+     * The signed PDF, and only that.
      *
-     * Its own route under `/backend`, never the catch-all `/uploads/{path}`:
-     * that one serves anything under the upload directory to anybody who is
-     * logged in, and a signed contract is not that kind of file. This one
-     * checks the contract permission first and hands the bytes to the file
-     * server, which refuses any path that escapes the upload root.
+     * A contract with no stored file is a 404 rather than a render: this is the
+     * address the document page links to when it says "the signed PDF", and an
+     * answer that is not the signed PDF would make the sentence false. Everything
+     * else goes through `export`.
      */
     #[Route('/{id}/pdf', name: '_pdf', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     #[IsGranted('studio.contracts.view')]
@@ -263,6 +264,55 @@ class ContractsController extends AbstractController
             throw $this->createNotFoundException();
         }
 
+        return $this->storedPdf($contract);
+    }
+
+    /**
+     * The contract on paper, whatever state it is in.
+     *
+     * One action on the list, three answers, and the order of the checks is the
+     * safety: a concluded contract hands back the file that was signed, byte
+     * for byte, and everything else is rendered on the spot and stamped as a
+     * working copy. A stored file that has gone missing is a 404 here too - the
+     * one thing this route must never do is answer a request for the signed
+     * document with a fresh render of today's templates.
+     */
+    #[Route('/{id}/export', name: '_export', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    #[IsGranted('studio.contracts.view')]
+    public function export(Contract $contract): Response
+    {
+        if (!$this->pdfExporter->isProvisional($contract)) {
+            return $this->storedPdf($contract);
+        }
+
+        $response = new Response($this->pdfExporter->render($contract));
+        $response->headers->set('Content-Type', 'application/pdf');
+        $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            $this->pdfExporter->filename($contract),
+        ));
+
+        // Never cached, anywhere. A draft changes between two clicks, and a
+        // browser holding yesterday's copy would be showing a document that no
+        // longer exists.
+        $response->setPrivate();
+        $response->headers->set('Cache-Control', 'no-store, private');
+
+        return $response;
+    }
+
+    /**
+     * The signed file, streamed through the application.
+     *
+     * Its own route under `/backend`, never the catch-all `/uploads/{path}`:
+     * that one serves anything under the upload directory to anybody who is
+     * logged in, and a signed contract is not that kind of file. Streamed
+     * rather than redirected whatever the storage settings say, because the
+     * only way it stays behind this authorisation is if the bytes keep coming
+     * through it.
+     */
+    private function storedPdf(Contract $contract): Response
+    {
         if (!$this->pdfGenerator->exists($contract)) {
             // A row that names a file no backend holds. A 404 rather than a
             // 500: the contract exists, its copy does not, and the page that
@@ -270,10 +320,6 @@ class ContractsController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        // Streamed through the application rather than redirected, whatever the
-        // storage settings say. A signed contract is not a public asset: the
-        // only way it stays behind this route's authorisation is if the bytes
-        // keep coming through it.
         $response = new StreamedResponse(function () use ($contract): void {
             foreach ($this->pdfGenerator->readStream($contract) as $chunk) {
                 echo $chunk;

@@ -30,6 +30,12 @@ use function sprintf;
  * asking for a second one has misunderstood something, and returning the old
  * path quietly would hide that.
  *
+ * `renderProvisional()` is the other half, and it is deliberately not a second
+ * way to reach the same file: it renders on demand, writes nothing, and marks
+ * the result as a working copy. A contract gets read on paper long before it is
+ * signed; what must never happen is a working copy that looks like the signed
+ * one, so a contract that already has its file is refused there and read here.
+ *
  * dompdf rather than a headless browser: no process to supervise, no Chrome to
  * keep patched on a small VPS, and a legal document needs a fixed layout and
  * no JavaScript at all - which is exactly the subset dompdf does well. The cost
@@ -62,14 +68,9 @@ final readonly class ContractPdfGenerator
             throw ContractPdfAlreadyGeneratedException::forContract($contract->getReference(), $contract->getPdfPath());
         }
 
-        $html = $this->twig->render('@Studio/pdf/contract.html.twig', [
-            'contract' => $contract,
-            'customer' => $contract->getCustomer(),
-            'signatures' => $signatures,
-            // The document as it was sealed, printed verbatim. Re-rendering it
-            // from the snapshot would mean trusting the renderer of the day.
-            'documentHtml' => $contract->getRenderedHtml() ?? '',
-        ]);
+        // The document as it was sealed, printed verbatim. Re-rendering it
+        // from the snapshot would mean trusting the renderer of the day.
+        $html = $this->html($contract, $signatures, $contract->getRenderedHtml() ?? '', false);
 
         $relative = $this->relativePathFor($contract);
         $adapter = $this->storageManager->active();
@@ -88,6 +89,33 @@ final readonly class ContractPdfGenerator
         // would be a second call for the same bytes, and on a remote backend a
         // billed one.
         return ['path' => $relative, 'hash' => hash('sha256', $bytes)];
+    }
+
+    /**
+     * The same document, rendered now and kept by nobody.
+     *
+     * The counterpart of `generate()`, and everything it is not: nothing is
+     * written, nothing is hashed, and the file carries a banner saying which
+     * state it was taken from. It exists because a contract is worth reading on
+     * paper long before it is signed - a draft goes to a client for comment, a
+     * sealed contract gets printed and filed - and the only PDF this module had
+     * was the one minted at the countersignature.
+     *
+     * The two must never be confused, so they cannot share a path: this one is
+     * refused for a contract that already has a stored file, whose bytes are
+     * the only honest answer and are read rather than rebuilt.
+     *
+     * @param list<ContractSignatureInterface> $signatures whatever has been signed so far, possibly none
+     *
+     * @throws ContractPdfAlreadyGeneratedException when the signed file exists and should be read instead
+     */
+    public function renderProvisional(ContractInterface $contract, string $documentHtml, array $signatures): string
+    {
+        if (null !== $contract->getPdfPath()) {
+            throw ContractPdfAlreadyGeneratedException::forContract($contract->getReference(), $contract->getPdfPath());
+        }
+
+        return $this->render($this->html($contract, $signatures, $documentHtml, true));
     }
 
     /**
@@ -155,6 +183,25 @@ final readonly class ContractPdfGenerator
             $this->keyFor($contract),
             $work,
         );
+    }
+
+    /**
+     * The template, with the one flag that changes what it prints.
+     *
+     * @param list<ContractSignatureInterface> $signatures
+     */
+    private function html(ContractInterface $contract, array $signatures, string $documentHtml, bool $provisional): string
+    {
+        return $this->twig->render('@Studio/pdf/contract.html.twig', [
+            'contract' => $contract,
+            'customer' => $contract->getCustomer(),
+            'signatures' => $signatures,
+            'documentHtml' => $documentHtml,
+            // Says which of the two files the reader is holding. A PDF that
+            // leaves the building without saying it is a working copy is the
+            // one way this feature could do harm.
+            'provisional' => $provisional,
+        ]);
     }
 
     /**

@@ -1,4 +1,10 @@
-{# The signed contract, as a file.
+{# The contract, as a file.
+
+   Two documents share this template, and `provisional` is what separates them:
+   the signed PDF written once at the countersignature, and the export somebody
+   asks for before that. The second one says so on its first page and drops the
+   proof block, because a working copy carrying a signature panel and no
+   signatures is worse than one that admits what it is.
 
    Its own stylesheet rather than the shared partial, and no flex or grid
    anywhere: dompdf understands neither, and a layout that silently collapses
@@ -154,12 +160,56 @@
             color: #444;
             padding-top: 1.5mm;
         }
+
+        /* The banner, and it is the first thing on the page on purpose: a
+           reader who skips it is a reader who files a draft as a contract. */
+        .provisional {
+            border: 0.5pt solid #b45309;
+            background: #fef3c7;
+            color: #7c2d12;
+            padding: 3mm;
+            margin: 0 0 6mm;
+            font-size: 8pt;
+        }
+
+        .provisional-title {
+            font-weight: bold;
+            margin: 0 0 1mm;
+            text-transform: uppercase;
+            letter-spacing: 0.4pt;
+        }
+
+        .provisional p {
+            margin: 0;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
     <div class="page-footer">
-        {{ 'studio.pdf.footer'|trans({'{reference}': contract.reference}, null, contract.locale) }}
+        {% if provisional %}
+            {{ 'studio.pdf.provisional.footer'|trans({
+                '{name}': contract.reference ?? customer.legalName,
+            }, null, contract.locale) }}
+        {% else %}
+            {{ 'studio.pdf.footer'|trans({'{reference}': contract.reference}, null, contract.locale) }}
+        {% endif %}
     </div>
+
+    {# Which of the two files this is, before a word of the contract. The two
+       cases are different mistakes to prevent: a draft can still change under
+       the reader, and a sealed document is final but binds nobody until it is
+       signed. #}
+    {% if provisional %}
+        <div class="provisional">
+            <p class="provisional-title">
+                {{ (contract.frozenAt ? 'studio.pdf.provisional.sealed_title' : 'studio.pdf.provisional.draft_title')|trans({}, null, contract.locale) }}
+            </p>
+            <p>
+                {{ (contract.frozenAt ? 'studio.pdf.provisional.sealed_notice' : 'studio.pdf.provisional.draft_notice')|trans({}, null, contract.locale) }}
+            </p>
+        </div>
+    {% endif %}
 
     {# The document, verbatim from what was sealed and hashed. #}
     <div class="document">
@@ -167,7 +217,10 @@
     </div>
 
     {# The signatures, side by side, in the order they were given: the customer
-       signs and the provider countersigns. #}
+       signs and the provider countersigns. Absent on an export taken before
+       anybody signed: empty frames on a PDF that is not the one being signed
+       would invite somebody to sign the wrong copy. #}
+    {% if signatures %}
     <table class="signatures">
         <tr>
             {% for signature in signatures %}
@@ -189,6 +242,7 @@
             {% endfor %}
         </tr>
     </table>
+    {% endif %}
 
     {# The evidence, printed inside the document it belongs to.
 
@@ -196,8 +250,11 @@
        PDF can check the hash against the contract, see which address was used,
        when the code was verified, and from where each signature came. Without
        it the proof lives only in a database the reader has no access to. #}
+    {% if contract.frozenAt %}
     <div class="seal">
-        <p class="seal-title">{{ 'studio.pdf.seal.title'|trans({}, null, contract.locale) }}</p>
+        <p class="seal-title">
+            {{ (provisional ? 'studio.pdf.provisional.seal_title' : 'studio.pdf.seal.title')|trans({}, null, contract.locale) }}
+        </p>
         <table>
             <tr>
                 <td class="label">{{ 'studio.pdf.seal.reference'|trans({}, null, contract.locale) }}</td>
@@ -234,8 +291,12 @@
             {% endfor %}
         </table>
         <p style="margin: 3mm 0 0; color: #555;">
-            {{ 'studio.pdf.seal.notice'|trans({}, null, contract.locale) }}
+            {# The signed document's notice talks about the signed text. On a
+               working copy nothing is signed yet, and saying otherwise inside
+               the proof block is the worst place to be inaccurate. #}
+            {{ (provisional ? 'studio.pdf.provisional.seal_notice' : 'studio.pdf.seal.notice')|trans({}, null, contract.locale) }}
         </p>
     </div>
+    {% endif %}
 </body>
 </html>

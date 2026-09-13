@@ -55,6 +55,7 @@ const props = defineProps({
     revokeLinkPath: { type: String, required: true },
     countersignPath: { type: String, required: true },
     pdfPath: { type: String, required: true },
+    exportPath: { type: String, required: true },
     showPath: { type: String, required: true },
     terminatePath: { type: String, required: true },
     terminationOrigins: { type: Array, default: () => [] },
@@ -190,8 +191,20 @@ async function openPreview(contract) {
     };
 }
 
+/**
+ * The address the export link points at.
+ *
+ * Built here rather than in the composable, which has no idea where the
+ * application lives: the path template comes down with the page, and this is
+ * the only place that holds it.
+ */
+function exportHref(contract) {
+    return buildPath(props.exportPath, { id: contract.id });
+}
+
 const draftHandlers = {
     preview: openPreview,
+    exportPath: exportHref,
     edit: openEdit,
     freeze: (contract) => (pendingFreeze.value = contract),
     remove: (contract) => (pendingDelete.value = contract),
@@ -201,6 +214,7 @@ const sealedHandlers = {
     send: (contract) => (pendingSend.value = contract),
     revoke: (contract) => (pendingRevoke.value = contract),
     documentPath,
+    exportPath: exportHref,
 };
 
 function draftRowActions(contract) {
@@ -315,9 +329,10 @@ function sealedRowActions(contract) {
                             :key="action.key"
                             :variant="action.key === 'freeze' ? 'secondary' : 'ghost'"
                             size="sm"
-                            v-on:click="action.onSelect()"
+                            :href="action.href"
+                            v-on:click="action.onSelect?.()"
                         >
-                            <component :is="action.icon" class="w-3.5 h-3.5" :stroke-width="2" />
+                            <component :is="action.icon" v-if="action.icon" class="w-3.5 h-3.5" :stroke-width="2" />
                             {{ action.title }}
                         </AppButton>
                     </div>

@@ -110,6 +110,15 @@ studio:
     pdf:
         footer: 'Contrato {reference} - documento firmado electrónicamente'
         signed_at: 'Firmado en {place}, el {date}'
+        provisional:
+            filename_suffix: 'borrador'
+            footer: 'Contrato {name} - copia de trabajo, sin firmar'
+            draft_title: 'Borrador de contrato'
+            draft_notice: "Este documento es un borrador. Su texto aún no es definitivo, las menciones entre corchetes se escriben al sellar, y no vincula a nadie."
+            sealed_title: 'Contrato sellado, sin firmar'
+            sealed_notice: "Este documento es el texto definitivo del contrato, pero aún no está firmado por ambas partes. Solo la versión firmada, con su prueba de firma electrónica, da fe."
+            seal_title: 'Huella del documento sellado'
+            seal_notice: "Esta huella identifica el texto sellado. Cualquier modificación del documento produciría una huella diferente. Este documento aún no está firmado: la prueba de firma electrónica solo aparece en la versión firmada."
         role:
             customer: 'El Cliente'
             provider: 'El Prestador'

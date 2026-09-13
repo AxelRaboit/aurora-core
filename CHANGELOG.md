@@ -5,6 +5,40 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.162] - 2026-09-13
+
+### Ajouté
+
+#### Sortir un contrat en PDF, à n'importe quel moment
+La liste des contrats a une action « Exporter en PDF », sur les brouillons
+comme sur les contrats scellés. Jusqu'ici le seul PDF du module était celui
+frappé à la contresignature : pour faire relire un contrat avant de le sceller,
+ou pour en classer un exemplaire papier, il n'y avait rien.
+
+L'action répond trois choses selon l'état, et l'ordre des tests est la sécurité :
+
+- **contrat conclu** : le PDF signé, octet pour octet. Rien n'est régénéré, et
+  si le fichier stocké manque c'est un 404, jamais un re-rendu.
+- **contrat scellé** : le document tel qu'il a été scellé, imprimé verbatim,
+  avec son empreinte.
+- **brouillon** : ce que le document dirait aujourd'hui, mentions entre
+  crochets comprises.
+
+Les deux derniers sont des copies de travail et le disent : bandeau en première
+page, pas de cadre de signature vide, et un nom de fichier suffixé
+(`CTR-2026-0001-projet.pdf`). Rien n'est écrit sur le disque, et
+`renderProvisional()` refuse un contrat qui a déjà son fichier signé : c'est
+la garde qui empêche qu'une route serve un sosie du document signé.
+
+L'adresse `/pdf` garde son sens exact, le fichier signé ou 404, parce que
+c'est elle que la page document annonce comme « le PDF signé ».
+
+Vérifié sur les trois états : brouillon rendu avec son bandeau, contrat scellé
+rendu avec son bloc d'empreinte et sans cadre de signature, contrat conclu
+identique au fichier stocké.
+
+---
+
 ## [0.9.161] - 2026-09-13
 
 ### Ajouté
