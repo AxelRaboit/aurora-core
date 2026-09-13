@@ -44,8 +44,12 @@ onMounted(() => {
             <p>{{ t("backend.studio.decks.print_hint") }}</p>
         </header>
 
-        <div v-for="slide in deck.slides" :key="slide.id" class="deck-print-page">
-            <SlideFrame :slide="slide" />
+        <div v-for="(slide, at) in deck.slides" :key="slide.id" class="deck-print-page">
+            <SlideFrame
+                :slide="slide"
+                :appearance="deck.appearance"
+                :index="at + 1"
+            />
         </div>
     </div>
 </template>

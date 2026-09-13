@@ -49,7 +49,13 @@ const slides = props.deck.slides ?? [];
         </header>
 
         <div class="flex flex-col gap-4">
-            <SlideFrame v-for="slide in slides" :key="slide.id" :slide="slide" />
+            <SlideFrame
+                v-for="(slide, at) in slides"
+                :key="slide.id"
+                :slide="slide"
+                :appearance="deck.appearance"
+                :index="at + 1"
+            />
         </div>
 
         <footer class="mt-auto border-t border-line/50 pt-3 text-xs text-muted">
@@ -62,6 +68,7 @@ const slides = props.deck.slides ?? [];
         <DeckPlayer
             v-if="playing"
             :slides="slides"
+            :appearance="deck.appearance"
             v-on:close="playing = false"
         />
     </div>

@@ -17,8 +17,18 @@ export function useDeckSharing(props) {
 
     const sharing = ref(false);
     const links = ref([...(props.shareLinks ?? [])]);
+
+    /**
+     * The pictures a recipient will not see, recomputed on every write.
+     *
+     * The server answers with them alongside the links, so publishing a
+     * picture and creating a link in the same sitting clears the warning
+     * without a reload.
+     */
+    const withheld = ref([...(props.withheldPictures ?? [])]);
     const newLabel = ref("");
     const expiresInDays = ref("");
+    const newPassword = ref("");
     const creating = ref(false);
     const copiedId = ref(null);
 
@@ -28,6 +38,8 @@ export function useDeckSharing(props) {
 
     function apply(data) {
         if (Array.isArray(data?.shareLinks)) links.value = data.shareLinks;
+        if (Array.isArray(data?.withheldPictures))
+            withheld.value = data.withheldPictures;
     }
 
     async function createLink() {
@@ -41,12 +53,17 @@ export function useDeckSharing(props) {
                 expiresInDays: expiresInDays.value
                     ? Number(expiresInDays.value)
                     : null,
+                password: newPassword.value,
             });
 
             if (!data?.success) return;
 
             apply(data);
             newLabel.value = "";
+            // Cleared rather than kept: the field holds a secret, and a second
+            // link created from this panel would otherwise silently inherit
+            // the password of the first.
+            newPassword.value = "";
             toast.success(t("backend.studio.decks.share_created"));
         } finally {
             creating.value = false;
@@ -91,6 +108,8 @@ export function useDeckSharing(props) {
         links: computed(() => links.value),
         newLabel,
         expiresInDays,
+        newPassword,
+        withheld,
         creating,
         copiedId,
         createLink,

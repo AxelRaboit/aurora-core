@@ -34,4 +34,12 @@ interface DeckShareLinkInterface
     public function getCreatedAt(): DateTimeImmutable;
 
     public function isUsable(DateTimeImmutable $now): bool;
+
+    public function getOpenCount(): int;
+
+    public function isLocked(): bool;
+
+    public function getPasswordHash(): ?string;
+
+    public function setPasswordHash(?string $passwordHash): static;
 }

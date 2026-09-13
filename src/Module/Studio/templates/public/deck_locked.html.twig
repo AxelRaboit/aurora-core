@@ -1,0 +1,61 @@
+{# La porte d'un lien protégé.
+
+   Cette page ne dit rien de la présentation qu'elle garde : ni son titre, ni
+   son auteur, ni le nombre de slides. Une adresse devinée ne doit rien
+   apprendre, et un mot de passe faux répond exactement ce que répond une
+   adresse fausse. #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="robots" content="noindex, nofollow, noarchive">
+        <meta name="referrer" content="no-referrer">
+        <title>{{ 'backend.studio.decks.locked_title'|trans }}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        {{ include('@Shared/components/theme_script.html.twig', {colorScheme: true}) }}
+        {{ vite_entry_link_tags('app') }}
+        {{ include('@Shared/components/primary_color_style.html.twig') }}
+    </head>
+    <body class="min-h-screen bg-body">
+        <main class="mx-auto flex min-h-screen w-full max-w-sm flex-col justify-center gap-4 p-6">
+            <h1 class="m-0 text-lg font-semibold text-primary">
+                {{ 'backend.studio.decks.locked_title'|trans }}
+            </h1>
+            <p class="m-0 text-sm text-secondary">
+                {{ 'backend.studio.decks.locked_intro'|trans }}
+            </p>
+
+            <form method="post" action="{{ path('public_deck_unlock', {token: token}) }}" class="flex flex-col gap-3">
+                <label class="flex flex-col gap-1.5">
+                    <span class="text-xs uppercase tracking-wide text-muted">
+                        {{ 'backend.studio.decks.locked_password'|trans }}
+                    </span>
+                    {# `autofocus` : la page n'a qu'un champ et une seule chose
+                       à faire, et le lecteur arrive d'un mail. #}
+                    <input
+                        type="password"
+                        name="password"
+                        autocomplete="current-password"
+                        autofocus
+                        required
+                        class="rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary focus:border-accent focus:outline-none"
+                    >
+                </label>
+
+                {% if failed %}
+                    <p class="m-0 text-sm text-rose-400" role="alert">
+                        {{ 'backend.studio.decks.locked_failed'|trans }}
+                    </p>
+                {% endif %}
+
+                <button
+                    type="submit"
+                    class="cursor-pointer rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-600"
+                >
+                    {{ 'backend.studio.decks.locked_submit'|trans }}
+                </button>
+            </form>
+        </main>
+    </body>
+</html>

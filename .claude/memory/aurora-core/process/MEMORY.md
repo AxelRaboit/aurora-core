@@ -8,4 +8,5 @@
 - [process_atomic_commits.md](process_atomic_commits.md) - un commit par entité lors des rollouts massifs
 - [process_release.md](process_release.md) - processus de release : CHANGELOG, tag, communication vers aurora-client et projets clients
 - [process_propagate_aurora_updates.md](process_propagate_aurora_updates.md) - après un changement core sur develop : push + `make aurora-update` sur les consommateurs (aurora-client = modèle, à bumper en premier)
+- [pitfall_shared_test_database.md](pitfall_shared_test_database.md) - un worktree qui teste a besoin de **sa** base de test : deux suites sur `aurora_test` produisent des dizaines de 302 dans des modules sans rapport
 - [pitfall_empty_migration_registered.md](pitfall_empty_migration_registered.md) - écrire `up()` AVANT le premier `migrations:migrate`, sinon le template vide est marqué exécuté et il faut une migration de rattrapage
