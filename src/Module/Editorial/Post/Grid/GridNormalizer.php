@@ -156,6 +156,20 @@ final readonly class GridNormalizer
     public const string ZONE_GALLERY = 'gallery';
 
     /**
+     * Two pictures of one thing, and a handle between them.
+     *
+     * A renovation, a retouch, a site rebuilt: the demonstration that needs no
+     * caption. It is the one zone here nobody else has, and the one a visitor
+     * remembers.
+     *
+     * Two images and not a list, but stored in the same `mediaIds` the gallery
+     * fills: the position carries the meaning - first is before, second is
+     * after - and a second id field used by one type would have been a column
+     * for a special case.
+     */
+    public const string ZONE_COMPARE = 'compare';
+
+    /**
      * Where to find somebody, and how to get there.
      *
      * Deliberately **not** a map. A map that can be dragged means a tile
@@ -286,6 +300,12 @@ final readonly class GridNormalizer
      */
     public const int MAX_GALLERY_IMAGES = 24;
 
+    /**
+     * Before and after. Not a setting - a third picture would have no place to
+     * be, and the handle only ever separates two things.
+     */
+    public const int COMPARE_IMAGES = 2;
+
     /** How many entries sit side by side, where the display lays them out in a row. */
     public const array ITEM_COLUMNS = [2, 3, 4];
 
@@ -398,6 +418,7 @@ final readonly class GridNormalizer
         self::ZONE_TERMS,
         self::ZONE_MAP,
         self::ZONE_GALLERY,
+        self::ZONE_COMPARE,
         self::ZONE_BUTTON,
         self::ZONE_SEPARATOR,
         self::ZONE_ITEMS,
@@ -624,9 +645,11 @@ final readonly class GridNormalizer
                 // The pictures of a gallery, in the order they were arranged.
                 // Shared like the single id beside it: which photographs a page
                 // shows is not a matter of language.
-                'mediaIds' => self::ZONE_GALLERY === $type
-                    ? $this->mediaIdList($entry['mediaIds'] ?? null)
-                    : [],
+                'mediaIds' => match ($type) {
+                    self::ZONE_GALLERY => $this->mediaIdList($entry['mediaIds'] ?? null, self::MAX_GALLERY_IMAGES),
+                    self::ZONE_COMPARE => $this->mediaIdList($entry['mediaIds'] ?? null, self::COMPARE_IMAGES),
+                    default => [],
+                },
                 // An address, for a picture that is not in the library - a
                 // placeholder service while a page is being drafted, or an
                 // image already hosted elsewhere. Shared like the id, and for
@@ -759,7 +782,7 @@ final readonly class GridNormalizer
      *
      * @return list<int>
      */
-    private function mediaIdList(mixed $raw): array
+    private function mediaIdList(mixed $raw, int $limit): array
     {
         $ids = [];
 
@@ -768,13 +791,14 @@ final readonly class GridNormalizer
             if (null === $id) {
                 continue;
             }
+
             if (in_array($id, $ids, true)) {
                 continue;
             }
 
             $ids[] = $id;
 
-            if (count($ids) >= self::MAX_GALLERY_IMAGES) {
+            if (count($ids) >= $limit) {
                 break;
             }
         }

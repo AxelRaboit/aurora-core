@@ -455,6 +455,7 @@ backend:
         terms: Termes
         map: Adresse
         gallery: Galerie
+        compare: Avant / après
         button: Bouton
         separator: Séparateur
         items: Liste
@@ -657,6 +658,11 @@ backend:
       gallery_empty: "Aucune image. Ajoutez-en plusieurs d'un coup : la galerie existe pour ça."
       gallery_count: "{count} image sur {max} | {count} images sur {max}"
       gallery_ratio_hint: "« Naturelles » laisse chaque image à ses proportions et les fait couler en colonnes. Une forme les recadre toutes pareil, dans une vraie grille qui se lit de gauche à droite."
+      compare_before: Avant
+      compare_after: Après
+      compare_pick: "Choisir une image"
+      compare_before_label: "Mot sous l'image de gauche"
+      compare_after_label: "Mot sous l'image de droite"
       zone_document_label_hint: "Ce que le visiteur lit sur la carte. Vide, c'est le titre du document dans la médiathèque qui est repris."
       zone_video_hint: "YouTube, Vimeo ou Dailymotion. Une autre adresse s'affichera en lien plutôt qu'en lecteur."
       move_up: Monter
@@ -1016,6 +1022,9 @@ frontend:
       on_this_page: Sur cette page
       terms: Termes
       directions: Itinéraire
+      before: Avant
+      after: Après
+      compare_handle: "Déplacer la séparation entre les deux images"
       get_in_touch: Écrire
     forms:
       submit: Envoyer

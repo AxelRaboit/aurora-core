@@ -216,6 +216,9 @@ final readonly class GridViewBuilder
                 'postList' => GridNormalizer::ZONE_POST_LIST === $zone['type']
                     ? $this->postListView($zone, $locale, $currentPostId)
                     : null,
+                'compare' => GridNormalizer::ZONE_COMPARE === $zone['type']
+                    ? $this->compareView($zone, $held, $documents)
+                    : null,
                 'gallery' => GridNormalizer::ZONE_GALLERY === $zone['type']
                     ? $this->galleryView($zone, $documents)
                     : null,
@@ -490,6 +493,54 @@ final readonly class GridViewBuilder
             'columns' => (int) $zone['columns'],
             'variant' => (string) $zone['cardVariant'],
             'cards' => $cards,
+        ];
+    }
+
+    /**
+     * Before and after, or nothing.
+     *
+     * Both or neither, decided here rather than by the template: one picture
+     * of a pair is not a comparison, and a handle with nothing on its right is
+     * a control that lies about what it does. The same reasoning the button
+     * zone applies to its label and its address.
+     *
+     * The words under each side are translated, and the template supplies a
+     * default when the author typed none: "before" and "after" are what they
+     * say in nine cases out of ten, and asking every time is asking for
+     * nothing.
+     *
+     * @param array<string, mixed>          $zone
+     * @param array<string, mixed>          $held
+     * @param array<int, DocumentInterface> $documents
+     *
+     * @return array{before: array<string, mixed>, after: array<string, mixed>, beforeLabel: string, afterLabel: string}|null
+     */
+    private function compareView(array $zone, array $held, array $documents): ?array
+    {
+        $ids = is_array($zone['mediaIds'] ?? null) ? $zone['mediaIds'] : [];
+
+        if (2 !== count($ids)) {
+            return null;
+        }
+
+        $before = $this->mediaData($documents[$ids[0]] ?? null, '');
+        $after = $this->mediaData($documents[$ids[1]] ?? null, '');
+
+        if (null === $before || null === $after) {
+            return null;
+        }
+
+        return [
+            'before' => $before,
+            'after' => $after,
+            // `alt` and `label` rather than two fields of their own: the two
+            // spare translated slots a zone already carries, used for the two
+            // words this one needs. Empty when the author typed nothing, and
+            // the template falls back to a translated default - this class has
+            // no translator, and a French word hard-coded here would be a
+            // French word on an English page.
+            'beforeLabel' => (string) $held['alt'],
+            'afterLabel' => (string) $held['label'],
         ];
     }
 

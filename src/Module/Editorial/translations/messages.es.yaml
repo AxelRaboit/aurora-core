@@ -33,6 +33,11 @@ backend:
       gallery_empty: "Ninguna imagen. Añada varias de una vez: para eso existe la galería."
       gallery_count: "{count} imagen de {max} | {count} imágenes de {max}"
       gallery_ratio_hint: "«Naturales» deja cada imagen con sus proporciones y las hace fluir en columnas. Una forma las recorta todas igual, en una cuadrícula que se lee de izquierda a derecha."
+      compare_before: Antes
+      compare_after: Después
+      compare_pick: "Elegir una imagen"
+      compare_before_label: "Palabra bajo la imagen de la izquierda"
+      compare_after_label: "Palabra bajo la imagen de la derecha"
       zone_document_label_hint: "Lo que lee el visitante en la tarjeta. Vacío, se usa el título del documento en la mediateca."
       zone_form_none: "Elegir un formulario…"
       anchor: "Ancla"
@@ -74,6 +79,9 @@ frontend:
       on_this_page: En esta página
       terms: Términos
       directions: Cómo llegar
+      before: Antes
+      after: Después
+      compare_handle: "Mover la separación entre las dos imágenes"
       get_in_touch: Contactar
     forms:
       submit: Enviar

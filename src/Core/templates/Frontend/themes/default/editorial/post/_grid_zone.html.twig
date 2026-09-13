@@ -160,6 +160,54 @@
             <span class="shrink-0 text-accent" aria-hidden="true">&darr;</span>
         </a>
 
+    {% elseif zone.type == 'compare' and zone.compare %}
+        {# Two pictures side by side, and that is the whole zone until a script
+           says otherwise.
+
+           Written this way round on purpose. The handle is the point of this
+           zone, but a reader without JavaScript - or before it arrives, which
+           is every reader for the first moment - must still be able to compare
+           the two, and two labelled pictures beside each other is a comparison.
+           `compareSlider.js` finds `[data-compare]` and turns it into the
+           overlay with the handle; everything below works if it never runs.
+
+           The labels are `<figcaption>`s and not decoration: without them a
+           screen reader is offered two pictures of the same thing with nothing
+           to say which is which. #}
+        <div
+            class="not-prose grid grid-cols-2 gap-3"
+            data-compare
+            data-compare-label="{{ 'frontend.editorial.grid.compare_handle'|trans }}"
+        >
+            <figure class="m-0" data-compare-before>
+                <img
+                    src="{{ zone.compare.before.url }}"
+                    alt="{{ zone.compare.before.alt }}"
+                    loading="lazy"
+                    class="h-auto w-full rounded-lg object-cover"
+                    style="object-position: {{ zone.compare.before.focalPosition }};"
+                >
+                <figcaption class="mt-2 text-sm text-secondary">
+                    {{ zone.compare.beforeLabel ?: 'frontend.editorial.grid.before'|trans }}
+                </figcaption>
+            </figure>
+            <figure class="m-0" data-compare-after>
+                <img
+                    src="{{ zone.compare.after.url }}"
+                    alt="{{ zone.compare.after.alt }}"
+                    loading="lazy"
+                    class="h-auto w-full rounded-lg object-cover"
+                    style="object-position: {{ zone.compare.after.focalPosition }};"
+                >
+                <figcaption class="mt-2 text-sm text-secondary">
+                    {{ zone.compare.afterLabel ?: 'frontend.editorial.grid.after'|trans }}
+                </figcaption>
+            </figure>
+        </div>
+        {% if zone.caption %}
+            <p class="mt-3 mb-0 text-sm text-secondary not-prose">{{ zone.caption }}</p>
+        {% endif %}
+
     {% elseif zone.type == 'gallery' and zone.gallery.items is not empty %}
         {# Two layouts, and they are two mechanisms rather than two sets of
            classes - the same split the publication's own gallery makes, for the

@@ -68,6 +68,7 @@ const emit = defineEmits([
     "add-gallery",
     "remove-gallery",
     "move-gallery",
+    "set-compare",
 ]);
 
 const { t } = useI18n();
@@ -128,6 +129,23 @@ async function pickGalleryImages() {
         emit("add-gallery", picked);
     }
 }
+
+/**
+ * The two sides of a comparison, as pickers rather than as a list.
+ *
+ * They share the gallery's `mediaIds` - position is what says which is which -
+ * but an author choosing "before" and "after" should be shown two labelled
+ * slots, not two rows of an ordered list they have to reason about.
+ */
+async function pickCompare(slot) {
+    const picked = await openDocumentPicker({ imagesOnly: true });
+
+    if (!picked?.id) return;
+
+    emit("set-compare", slot, picked);
+}
+
+const compareImages = computed(() => props.zone.gallery?.items ?? []);
 
 /** What the panel draws: the previews, which travel beside the saved ids. */
 const galleryImages = computed(() => props.zone.gallery?.items ?? []);
@@ -353,6 +371,59 @@ const displayHint = computed(() =>
                 :options="formOptions"
                 :placeholder="t('backend.posts.grid.zone_form_none')"
             />
+        </template>
+
+        <template v-else-if="zone.type === 'compare'">
+            <!-- Both or neither: the zone draws nothing until the pair is
+                 complete, and the panel says so rather than leaving an author
+                 to discover it on the published page. -->
+            <div class="grid grid-cols-2 gap-3">
+                <div v-for="(slot, slotIndex) in [0, 1]" :key="slot" class="space-y-2">
+                    <p class="text-xs uppercase tracking-wide text-muted">
+                        {{ slotIndex === 0
+                            ? t("backend.posts.grid.compare_before")
+                            : t("backend.posts.grid.compare_after") }}
+                    </p>
+                    <button
+                        type="button"
+                        class="block w-full overflow-hidden rounded-lg border border-dashed border-line"
+                        v-on:click="pickCompare(slotIndex)"
+                    >
+                        <img
+                            v-if="compareImages[slotIndex]?.url"
+                            :src="compareImages[slotIndex].url"
+                            alt=""
+                            class="aspect-square w-full object-cover"
+                        >
+                        <span v-else class="flex aspect-square items-center justify-center text-sm text-muted">
+                            {{ t("backend.posts.grid.compare_pick") }}
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <!-- The words under each side. Empty is the common case, and
+                     the page says "Avant" and "Après" on its own. -->
+                <AppInput
+                    v-model="bound.alt.value"
+                    :label="t('backend.posts.grid.compare_before_label')"
+                    :placeholder="t('backend.posts.grid.compare_before')"
+                />
+                <AppInput
+                    v-model="bound.label.value"
+                    :label="t('backend.posts.grid.compare_after_label')"
+                    :placeholder="t('backend.posts.grid.compare_after')"
+                />
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
+                />
+            </div>
         </template>
 
         <template v-else-if="zone.type === 'gallery'">

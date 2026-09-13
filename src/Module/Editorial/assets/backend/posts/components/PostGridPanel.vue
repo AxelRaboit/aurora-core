@@ -95,6 +95,7 @@ const {
     addGalleryImages,
     removeGalleryImage,
     moveGalleryImage,
+    setCompareImage,
     itemFields,
     widthLabel,
     resizeZoneFromLeft: resizeZoneStart,
@@ -480,6 +481,7 @@ function resizeZone(index, columns) {
                                 v-on:add-gallery="(picked) => addGalleryImages(index, picked, childIndex)"
                                 v-on:remove-gallery="(i) => removeGalleryImage(index, i, childIndex)"
                                 v-on:move-gallery="(i, d) => moveGalleryImage(index, i, d, childIndex)"
+                                v-on:set-compare="(slot, picked) => setCompareImage(index, slot, picked, childIndex)"
                             />
                         </div>
 
@@ -523,6 +525,7 @@ function resizeZone(index, columns) {
                     v-on:add-gallery="(picked) => addGalleryImages(index, picked)"
                     v-on:remove-gallery="(i) => removeGalleryImage(index, i)"
                     v-on:move-gallery="(i, d) => moveGalleryImage(index, i, d)"
+                    v-on:set-compare="(slot, picked) => setCompareImage(index, slot, picked)"
                 />
             </div>
 

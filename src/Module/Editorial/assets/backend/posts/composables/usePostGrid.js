@@ -9,6 +9,7 @@ import {
     Film,
     Image,
     Images,
+    Columns2,
     Layers,
     LayoutList,
     ListFilter,
@@ -50,6 +51,7 @@ export const LEAF_ZONE_TYPES = [
     "terms",
     "map",
     "gallery",
+    "compare",
     "button",
     "separator",
     "items",
@@ -91,6 +93,8 @@ export const ZONE_ICONS = {
     // Pictures, plural - the one thing that separates it from the media
     // zone above, and the whole of what it is.
     gallery: Images,
+    // Two panes with a line between them, which is the zone in one glyph.
+    compare: Columns2,
     button: MousePointerClick,
     separator: SeparatorHorizontal,
     items: LayoutList,
@@ -132,6 +136,9 @@ export const MAX_ITEMS = 12;
 
 /** Mirrors GridNormalizer::MAX_GALLERY_IMAGES. */
 export const MAX_GALLERY_IMAGES = 24;
+
+/** Mirrors GridNormalizer::COMPARE_IMAGES - before and after, never a third. */
+export const COMPARE_IMAGES = 2;
 
 /** Mirrors GridNormalizer::CARD_VARIANTS - how densely a card is drawn. */
 export const CARD_VARIANTS = ["full", "compact", "horizontal"];
@@ -1293,6 +1300,32 @@ export function usePostGrid(layout, content) {
         }
     }
 
+    /**
+     * One side of a comparison, by position: 0 is before, 1 is after.
+     *
+     * Writing into a slot rather than pushing, because the two are not a list
+     * an author appends to - replacing "after" must leave "before" where it
+     * is, and a picture already used on the other side is refused for the
+     * reason the gallery refuses a duplicate.
+     */
+    function setCompareImage(index, slot, picked, childIndex = null) {
+        const zone = zoneAt(index, childIndex);
+
+        if (!Array.isArray(zone.mediaIds)) {
+            zone.mediaIds = [];
+        }
+
+        if (!zone.gallery || !Array.isArray(zone.gallery.items)) {
+            zone.gallery = { items: [] };
+        }
+
+        const other = slot === 0 ? 1 : 0;
+        if (zone.mediaIds[other] === picked.id) return;
+
+        zone.mediaIds[slot] = picked.id;
+        zone.gallery.items[slot] = { url: picked.url ?? null };
+    }
+
     function removeGalleryImage(index, at, childIndex = null) {
         const zone = zoneAt(index, childIndex);
 
@@ -1449,6 +1482,7 @@ export function usePostGrid(layout, content) {
         addGalleryImages,
         removeGalleryImage,
         moveGalleryImage,
+        setCompareImage,
         itemFields,
         widthLabel,
     };

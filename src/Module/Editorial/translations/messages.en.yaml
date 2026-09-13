@@ -455,6 +455,7 @@ backend:
         terms: Terms
         map: Address
         gallery: Gallery
+        compare: Before / after
         button: Button
         separator: Separator
         items: List
@@ -657,6 +658,11 @@ backend:
       gallery_empty: "No pictures yet. Add several at once: that is what a gallery is for."
       gallery_count: "{count} picture of {max} | {count} pictures of {max}"
       gallery_ratio_hint: "\"Natural\" leaves each picture at its own proportions and flows them down columns. A shape crops them all alike, into a real grid read left to right."
+      compare_before: Before
+      compare_after: After
+      compare_pick: "Choose a picture"
+      compare_before_label: "Word under the left picture"
+      compare_after_label: "Word under the right picture"
       zone_document_label_hint: "What the visitor reads on the card. Left empty, the document's own title in the library is used."
       zone_video_hint: "YouTube, Vimeo or Dailymotion. Any other address renders as a link rather than a player."
       move_up: Move up
@@ -1016,6 +1022,9 @@ frontend:
       on_this_page: On this page
       terms: Terms
       directions: Directions
+      before: Before
+      after: After
+      compare_handle: "Move the divider between the two pictures"
       get_in_touch: Get in touch
     forms:
       submit: Send
