@@ -135,6 +135,41 @@ final class SlideContentWhitelistTest extends TestCase
         self::assertSame(['bgDim' => 0], $low->getContent());
     }
 
+    /**
+     * `mediaFocus` is written into `object-position`.
+     *
+     * A string that is not a position there does not fail: it makes the
+     * declaration invalid and the picture quietly re-centres, which reads as a
+     * choice being ignored rather than as an error.
+     */
+    public function testTheFocalPointMustBeTwoPercentages(): void
+    {
+        $manager = $this->manager();
+
+        $good = (new Slide())->setLayout(SlideLayoutEnum::Image);
+        $manager->writeContent($good, ['mediaFocus' => '50% 18%']);
+        self::assertSame(['mediaFocus' => '50% 18%'], $good->getContent());
+
+        foreach (['top left', '50%18%', '50px 18px', 'center', '50% 18%; z-index: 9'] as $wrong) {
+            $slide = (new Slide())->setLayout(SlideLayoutEnum::Image);
+            $manager->writeContent($slide, ['mediaFocus' => $wrong]);
+            self::assertSame([], $slide->getContent(), sprintf('"%s" is not a focal point', $wrong));
+        }
+    }
+
+    public function testTheFitIsOneOfTheTwoTheFrameKnows(): void
+    {
+        $manager = $this->manager();
+
+        $cover = (new Slide())->setLayout(SlideLayoutEnum::Image);
+        $manager->writeContent($cover, ['mediaFit' => 'cover']);
+        self::assertSame(['mediaFit' => 'cover'], $cover->getContent());
+
+        $nonsense = (new Slide())->setLayout(SlideLayoutEnum::Image);
+        $manager->writeContent($nonsense, ['mediaFit' => 'scale-down']);
+        self::assertSame([], $nonsense->getContent());
+    }
+
     /** The address is derived at render, never stored beside the id. */
     public function testADerivedPictureAddressIsNeverPersisted(): void
     {
@@ -143,6 +178,7 @@ final class SlideContentWhitelistTest extends TestCase
         $this->manager()->writeContent($slide, [
             'mediaId' => 42,
             'mediaUrl' => 'https://elsewhere.example/forged.png',
+            'mediaFocusDefault' => '10% 90%',
             'bgMediaId' => 43,
             'bgMediaUrl' => 'https://elsewhere.example/forged-too.png',
         ]);

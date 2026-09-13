@@ -30,6 +30,7 @@ import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppRange from "@/shared/components/form/toggle/AppRange.vue";
+import AppFocalPointField from "@/shared/components/form/file/AppFocalPointField.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
@@ -197,6 +198,46 @@ function writePicture(value) {
 
     writeSlot("mediaId", value?.id ?? null);
     writeSlot("mediaUrl", value?.url ?? null);
+}
+
+/**
+ * How the picture fills its box, and the point it is cropped around.
+ *
+ * The focal field speaks in fractions and the slide stores an
+ * `object-position` string, because that is what the frame writes into CSS and
+ * a pair of floats in the content would be two slots to keep in agreement.
+ */
+const fitOptions = computed(() => [
+    { value: "contain", label: t("backend.studio.decks.media_fit_contain") },
+    { value: "cover", label: t("backend.studio.decks.media_fit_cover") },
+]);
+
+const focus = () => {
+    const stored = selected.value?.content.mediaFocus;
+
+    if (!stored) return { x: null, y: null };
+
+    const [x, y] = stored.split(/\s+/).map((part) => parseInt(part, 10) / 100);
+
+    return { x, y };
+};
+
+function writeFocus(axis, value) {
+    const current = focus();
+    const next = { ...current, [axis]: value };
+
+    // Half a position is not a position: clearing one axis clears both, and
+    // the picture falls back to the point the document itself carries.
+    if (next.x === null || next.y === null) {
+        writeSlot("mediaFocus", null);
+
+        return;
+    }
+
+    writeSlot(
+        "mediaFocus",
+        `${Math.round(next.x * 100)}% ${Math.round(next.y * 100)}%`,
+    );
 }
 
 /**
@@ -472,6 +513,29 @@ onBeforeUnmount(() => {
                                 :rows="5"
                                 :disabled="!editable"
                                 v-on:update:model-value="(value) => writeLines(slot, value)"
+                            />
+                            <AppSelect
+                                v-else-if="slot === 'mediaFit'"
+                                :model-value="selected.content.mediaFit ?? 'contain'"
+                                :options="fitOptions"
+                                :label="labelFor(slot)"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('mediaFit', value)"
+                            />
+                            <!-- Viser ne se fait qu'une fois l'image choisie :
+                                 un cadre de visée vide n'a rien à montrer et
+                                 rien à recevoir. -->
+                            <AppFocalPointField
+                                v-else-if="slot === 'mediaFocus' && selected.content.mediaUrl"
+                                :src="selected.content.mediaUrl"
+                                :label="labelFor(slot)"
+                                :hint="t('backend.studio.decks.media_focus_hint')"
+                                :x="focus().x"
+                                :y="focus().y"
+                                :inherited="selected.content.mediaFocusDefault ?? '50% 50%'"
+                                :fit-class="selected.content.mediaFit === 'cover' ? 'object-cover' : 'object-contain'"
+                                v-on:update:x="(value) => writeFocus('x', value)"
+                                v-on:update:y="(value) => writeFocus('y', value)"
                             />
                             <AppSelect
                                 v-else-if="slot === 'chartType'"

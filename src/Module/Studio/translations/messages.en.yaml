@@ -534,7 +534,12 @@ backend:
             timer_start: Start the timer
             timer_pause: Pause
             timer_reset: Reset
+            media_fit_contain: Whole, never cropped
+            media_fit_cover: Fill the frame
+            media_focus_hint: Click what has to stay visible when the picture is cropped.
             slots:
+                mediaFit: How the picture fills
+                mediaFocus: Focal point
                 chartType: Chart type
                 series: Data
                 value: The figure

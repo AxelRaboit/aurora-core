@@ -21,6 +21,7 @@ use function is_int;
 use function is_string;
 use function max;
 use function min;
+use function preg_match;
 
 /**
  * Everything that writes a deck goes through here.
@@ -111,6 +112,26 @@ class DeckManager
             // posted what an empty field holds.
             if ('mediaId' === $slot || 'bgMediaId' === $slot) {
                 if (is_int($value) && $value > 0) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // `mediaFocus` lands in `object-position`, a CSS property, so a
+            // string that is not a position there does not fail: it makes the
+            // declaration invalid and the picture quietly re-centres, which
+            // reads as a choice being ignored. Two percentages or nothing.
+            if ('mediaFocus' === $slot) {
+                if (is_string($value) && 1 === preg_match('/^\d{1,3}% \d{1,3}%$/', $value)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            if ('mediaFit' === $slot) {
+                if (in_array($value, ['contain', 'cover'], true)) {
                     $clean[$slot] = $value;
                 }
 

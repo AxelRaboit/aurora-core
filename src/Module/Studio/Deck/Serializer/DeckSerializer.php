@@ -105,7 +105,7 @@ class DeckSerializer
     }
 
     /**
-     * @param array<int, array{url: string, alt: string}> $pictures already-resolved pictures, by id
+     * @param array<int, array{url: string, alt: string, focus: string}> $pictures already-resolved pictures, by id
      *
      * @return array<string, mixed>
      */
@@ -125,6 +125,7 @@ class DeckSerializer
 
             $content['mediaUrl'] = $picture['url'] ?? null;
             $content['mediaAlt'] = $picture['alt'] ?? '';
+            $content['mediaFocusDefault'] = $picture['focus'] ?? '50% 50%';
         }
 
         $backgroundId = $content['bgMediaId'] ?? null;

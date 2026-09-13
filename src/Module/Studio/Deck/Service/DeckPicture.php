@@ -9,6 +9,9 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 
+use function round;
+use function sprintf;
+
 /**
  * A picture id, as an address a slide can draw.
  *
@@ -38,7 +41,7 @@ final readonly class DeckPicture
      *
      * @param list<int> $ids
      *
-     * @return array<int, array{url: string, alt: string}>
+     * @return array<int, array{url: string, alt: string, focus: string}>
      */
     public function byIds(array $ids): array
     {
@@ -59,7 +62,7 @@ final readonly class DeckPicture
         return $pictures;
     }
 
-    /** @return array{url: string, alt: string}|null */
+    /** @return array{url: string, alt: string, focus: string}|null */
     public function byId(?int $id): ?array
     {
         if (null === $id) {
@@ -69,7 +72,17 @@ final readonly class DeckPicture
         return $this->of($this->documents->find($id));
     }
 
-    /** @return array{url: string, alt: string}|null */
+    /**
+     * The picture, with the point the document itself says to crop around.
+     *
+     * Carried here rather than looked up again by every caller: a document
+     * photographed with its subject low in the frame keeps that point across
+     * every deck that uses it, which is the whole reason it is stored on the
+     * document rather than on whatever is showing it today. A slide may still
+     * override it, for the one deck where the crop has to say something else.
+     *
+     * @return array{url: string, alt: string, focus: string}|null
+     */
     public function of(?DocumentInterface $document): ?array
     {
         if (!$document instanceof DocumentInterface) {
@@ -83,6 +96,18 @@ final readonly class DeckPicture
         $url = $this->documentUrls->variantUrl($document, 'large')
             ?? $this->documentUrls->publicUrl($document);
 
-        return null === $url ? null : ['url' => $url, 'alt' => $document->getAlt() ?? ''];
+        if (null === $url) {
+            return null;
+        }
+
+        return [
+            'url' => $url,
+            'alt' => $document->getAlt() ?? '',
+            'focus' => sprintf(
+                '%d%% %d%%',
+                (int) round(100 * ($document->getFocalX() ?? 0.5)),
+                (int) round(100 * ($document->getFocalY() ?? 0.5)),
+            ),
+        ];
     }
 }

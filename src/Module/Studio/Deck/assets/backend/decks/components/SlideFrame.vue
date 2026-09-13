@@ -18,6 +18,7 @@
  */
 import { computed } from "vue";
 import { cells, headed } from "../cells.js";
+import { useSlideFit } from "../composables/useSlideFit.js";
 import { emphasis } from "../emphasis.js";
 import SlideChart from "./SlideChart.vue";
 
@@ -89,6 +90,25 @@ const background = computed(() => {
 
 /** The line above the title. Empty on a thumbnail, where it would be one pixel. */
 const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker ?? "")));
+
+/**
+ * How the picture fills its box, and what stays when it cannot all fit.
+ *
+ * The focus is the slide's own choice when it made one, else the point the
+ * document itself carries. A document photographed with its subject low in the
+ * frame keeps that point across every deck that uses it, which is the whole
+ * reason it is stored on the document.
+ */
+const media = computed(() => ({
+    "--media-fit": props.slide.content.mediaFit === "cover" ? "cover" : "contain",
+    "--media-focus":
+        props.slide.content.mediaFocus ??
+        props.slide.content.mediaFocusDefault ??
+        "50% 50%",
+}));
+
+// Re-measured when the words change, which in the editor is on every keystroke.
+const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layout]);
 </script>
 
 <template>
@@ -96,7 +116,7 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
         <div
             class="slide-frame"
             :class="[compact ? 'is-compact' : '', hasFooter ? 'has-footer' : '']"
-            :style="skin"
+            :style="[skin, media]"
         >
             <div v-if="background" class="sf-backdrop" aria-hidden="true">
                 <img class="sf-backdrop-file" :src="background.url" alt="">
@@ -106,7 +126,7 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
                 />
             </div>
 
-            <div class="slide-stage">
+            <div ref="stage" class="slide-stage" :style="{ '--fit': fit }">
                 <p v-if="kicker" class="sf-kicker">{{ kicker }}</p>
 
                 <template v-if="slide.layout === 'title'">
@@ -309,14 +329,27 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
     overflow: hidden;
 }
 
+/**
+ * Le facteur d'ajustement, et le centrage qui ne jette rien dehors.
+ *
+ * `safe center` centre tant que le contenu tient et bascule en alignement haut
+ * dès qu'il déborde. Sans lui, une colonne centrée qui dépasse sort par les
+ * deux bouts : le titre partait au-dessus du cadre, la dernière ligne en
+ * dessous, et `overflow: hidden` coupait les deux sans rien dire.
+ *
+ * C'est la ceinture ; `useSlideFit` est les bretelles, et fait que le cas ne
+ * se présente qu'avec vraiment trop de mots.
+ */
 .slide-stage {
+    --fit: 1;
+
     position: relative;
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 2cqw;
+    justify-content: safe center;
+    gap: calc(2cqw * var(--fit));
 }
 
 /* Sous le contenu et sous le pied de page, dans leur propre couche : posée en
@@ -331,37 +364,37 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
 .sf-kicker {
     margin: 0;
     font-family: var(--slide-heading);
-    font-size: 2.8cqw;
+    font-size: calc(2.8cqw * var(--fit));
     font-weight: 600;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--slide-accent);
 }
 
-.sf-title { margin: 0; font-family: var(--slide-heading); font-size: 8cqw; font-weight: 600; line-height: 1.1; }
-.sf-subtitle { margin: 0; font-size: 4cqw; opacity: 0.7; }
-.sf-section { margin: 0; font-family: var(--slide-heading); font-size: 7cqw; font-weight: 600; text-align: center; }
-.sf-heading { margin: 0; font-family: var(--slide-heading); font-size: 6cqw; font-weight: 600; }
+.sf-title { margin: 0; font-family: var(--slide-heading); font-size: calc(8cqw * var(--fit)); font-weight: 600; line-height: 1.1; }
+.sf-subtitle { margin: 0; font-size: calc(4cqw * var(--fit)); opacity: 0.7; }
+.sf-section { margin: 0; font-family: var(--slide-heading); font-size: calc(7cqw * var(--fit)); font-weight: 600; text-align: center; }
+.sf-heading { margin: 0; font-family: var(--slide-heading); font-size: calc(6cqw * var(--fit)); font-weight: 600; }
 /* `list-style` rétabli explicitement : la réinitialisation de Tailwind retire
    les marqueurs de toutes les listes, et une liste à puces sans puces se lit
    comme un paragraphe coupé. */
-.sf-list { margin: 0; padding-left: 5cqw; font-size: 4cqw; line-height: 1.5; list-style: disc outside; }
+.sf-list { margin: 0; padding-left: 5cqw; font-size: calc(4cqw * var(--fit)); line-height: 1.5; list-style: disc outside; }
 .sf-list li { margin-bottom: 1cqw; }
 /* La couleur d'accent se dépense sur les marqueurs et nulle part ailleurs dans
    une liste : une puce colorée se remarque, une phrase colorée se lit mal. */
 .sf-list li::marker { color: var(--slide-accent); }
-.sf-quote { margin: 0; font-size: 6cqw; font-style: italic; line-height: 1.3; }
-.sf-attribution { margin: 0; font-size: 3.5cqw; opacity: 0.7; }
-.sf-caption { margin: 0; font-size: 3.5cqw; opacity: 0.7; }
+.sf-quote { margin: 0; font-size: calc(6cqw * var(--fit)); font-style: italic; line-height: 1.3; }
+.sf-attribution { margin: 0; font-size: calc(3.5cqw * var(--fit)); opacity: 0.7; }
+.sf-caption { margin: 0; font-size: calc(3.5cqw * var(--fit)); opacity: 0.7; }
 
 /* Un titre au-dessus d'un contenu dense : plus petit que celui d'une slide à
    puces, sans quoi il prend le tiers de la hauteur qui reste au tableau. */
-.sf-heading-small { font-size: 4.8cqw; }
+.sf-heading-small { font-size: calc(4.8cqw * var(--fit)); }
 
 .sf-stat {
     margin: 0;
     font-family: var(--slide-heading);
-    font-size: 20cqw;
+    font-size: calc(20cqw * var(--fit));
     font-weight: 700;
     line-height: 0.85;
     letter-spacing: -0.03em;
@@ -369,15 +402,16 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
     font-variant-numeric: tabular-nums;
 }
 
-.sf-stat-label { margin: 0; font-size: 4cqw; line-height: 1.35; max-width: 70%; opacity: 0.85; }
+.sf-stat-label { margin: 0; font-size: calc(4cqw * var(--fit)); line-height: 1.35; max-width: 70%; opacity: 0.85; }
 
 .sf-beside { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.1fr 1fr; gap: 4cqw; align-items: center; }
 /* L'image passe à droite en inversant l'ordre plutôt que les colonnes : le
    texte reste avant l'image dans le document, donc dans l'ordre de lecture
    d'un lecteur d'écran, quel que soit le côté choisi à l'œil. */
 .sf-beside.is-right .sf-beside-media { order: 2; }
-.sf-beside-media { height: 100%; min-height: 0; display: grid; place-items: center; overflow: hidden; border-radius: 0.25rem; background: color-mix(in srgb, currentColor 10%, transparent); }
-.sf-beside-text { margin: 0; font-size: 3.6cqw; line-height: 1.5; }
+/* Même arrangement que `.sf-image`, pour la même raison. */
+.sf-beside-media { position: relative; height: 100%; min-height: 0; overflow: hidden; border-radius: 0.25rem; background: color-mix(in srgb, currentColor 10%, transparent); }
+.sf-beside-text { margin: 0; font-size: calc(3.6cqw * var(--fit)); line-height: 1.5; }
 
 .sf-cards { display: grid; grid-template-columns: repeat(var(--cards, 3), 1fr); gap: 2.4cqw; }
 .sf-card {
@@ -389,8 +423,8 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
     background: color-mix(in srgb, currentColor 8%, transparent);
     border-top: 0.5cqw solid var(--slide-accent);
 }
-.sf-card-head { font-family: var(--slide-heading); font-size: 3.4cqw; font-weight: 600; line-height: 1.2; }
-.sf-card-body { font-size: 2.6cqw; line-height: 1.35; opacity: 0.72; }
+.sf-card-head { font-family: var(--slide-heading); font-size: calc(3.4cqw * var(--fit)); font-weight: 600; line-height: 1.2; }
+.sf-card-body { font-size: calc(2.6cqw * var(--fit)); line-height: 1.35; opacity: 0.72; }
 
 .sf-steps { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2cqw; margin: 0; padding: 0; list-style: none; }
 .sf-step { display: flex; flex-direction: column; gap: 1.2cqw; }
@@ -399,10 +433,10 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
 .sf-step-mark { position: relative; height: 2.4cqw; border-radius: 50%; width: 2.4cqw; background: var(--slide-accent); }
 .sf-step-mark::after { content: ""; position: absolute; top: 50%; left: 2.4cqw; width: 100cqw; height: 0.3cqw; background: currentColor; opacity: 0.22; }
 .sf-step:last-child .sf-step-mark::after { display: none; }
-.sf-step-head { font-family: var(--slide-heading); font-size: 3cqw; font-weight: 600; line-height: 1.2; }
-.sf-step-body { font-size: 2.5cqw; line-height: 1.3; opacity: 0.7; }
+.sf-step-head { font-family: var(--slide-heading); font-size: calc(3cqw * var(--fit)); font-weight: 600; line-height: 1.2; }
+.sf-step-body { font-size: calc(2.5cqw * var(--fit)); line-height: 1.3; opacity: 0.7; }
 
-.sf-table { width: 100%; border-collapse: collapse; font-size: 3cqw; }
+.sf-table { width: 100%; border-collapse: collapse; font-size: calc(3cqw * var(--fit)); }
 .sf-table th { text-align: left; font-family: var(--slide-heading); font-weight: 600; padding-bottom: 1.2cqw; border-bottom: 0.3cqw solid var(--slide-accent); }
 .sf-table td { padding: 1.2cqw 0; border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent); }
 .sf-table tr:last-child td { border-bottom: 0; }
@@ -419,16 +453,49 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
     background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
+/**
+ * Le gras, dans un titre, par la couleur autant que par la graisse.
+ *
+ * Un titre est déjà en 600, et en chasse fixe l'écart jusqu'à 700 est
+ * invisible : le mot mis en valeur ne l'était pas. L'accent le dit dans toutes
+ * les paires. Dans le texte courant, où l'on part de 400, la graisse suffit et
+ * une couleur de plus ferait une deuxième chose à lire.
+ */
 .slide-frame :deep(strong) { font-weight: 700; }
+.sf-title :deep(strong),
+.sf-section :deep(strong),
+.sf-heading :deep(strong) { color: var(--slide-accent); }
 
-.sf-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 4cqw; font-size: 3.6cqw; }
+.sf-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 4cqw; font-size: calc(3.6cqw * var(--fit)); }
 .sf-columns p { margin: 0; }
 
-.sf-image { flex: 1; min-height: 0; display: grid; place-items: center; overflow: hidden; border-radius: 0.25rem; background: color-mix(in srgb, currentColor 10%, transparent); }
+/**
+ * L'image occupe sa boîte, et la boîte décide.
+ *
+ * En grille avec `place-items: center`, le `height: 100%` de l'image se
+ * résolvait contre une rangée dont la hauteur était décidée par l'image :
+ * le navigateur rompait le cycle en revenant à la taille naturelle, une image
+ * carrée de 1280 px se dessinait en 815 px de haut dans une boîte de 293, et
+ * `overflow: hidden` la rognait en haut et en bas. Une image en `contain` qui
+ * se fait rogner est précisément ce que `contain` promet de ne pas faire.
+ *
+ * En absolu contre une boîte positionnée, il n'y a plus de cycle : la boîte a
+ * sa hauteur avant que l'image ne demande la sienne.
+ */
+.sf-image { position: relative; flex: 1; min-height: 0; overflow: hidden; border-radius: 0.25rem; background: color-mix(in srgb, currentColor 10%, transparent); }
+.sf-image-mark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 .sf-image-mark { width: 12cqw; height: 12cqw; border-radius: 9999px; background: currentColor; opacity: 0.25; }
-/* `contain` et pas `cover` : une capture rognée pour remplir le cadre perd
-   justement le coin qu'on voulait montrer. */
-.sf-image-file { width: 100%; height: 100%; object-fit: contain; }
+/* `contain` par défaut : une capture rognée pour remplir le cadre perd
+   justement le coin qu'on voulait montrer. Une photo, elle, gagne souvent à
+   remplir, d'où le réglage par slide - et le point de visée qui va avec. */
+.sf-image-file {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: var(--media-fit, contain);
+    object-position: var(--media-focus, 50% 50%);
+}
 
 /* Le tenant-lieu d'un graphique dans une vignette : des hauteurs fixes, parce
    que les mesurer demanderait de lire les données pour trois pixels de haut. */
@@ -467,5 +534,5 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
 .sf-logo { justify-self: start; max-height: 4cqw; max-width: 22cqw; object-fit: contain; }
 
 .is-compact { padding: 7cqw; }
-.is-compact .slide-stage { gap: 1.5cqw; }
+.is-compact .slide-stage { gap: calc(1.5cqw * var(--fit)); }
 </style>

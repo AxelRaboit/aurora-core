@@ -534,7 +534,12 @@ backend:
             timer_start: Démarrer le minuteur
             timer_pause: Mettre en pause
             timer_reset: Remettre à zéro
+            media_fit_contain: Entière, sans rognage
+            media_fit_cover: Remplir le cadre
+            media_focus_hint: Cliquez sur ce qui doit rester visible quand l'image est rognée.
             slots:
+                mediaFit: Cadrage de l'image
+                mediaFocus: Point de visée
                 chartType: Type de graphique
                 series: Données
                 value: Le chiffre
