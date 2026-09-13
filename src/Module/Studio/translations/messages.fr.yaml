@@ -571,7 +571,7 @@ backend:
                 fade: Fondu
                 slide: Glissement
             transition_hint: Elle n'existe qu'au plein écran. Le papier et le lien de partage n'en portent pas.
-            withheld_title: '{count} image(s) de cette présentation ne sont pas publiées'
+            withheld_title: "Une image de cette présentation n'est pas publiée | {count} images de cette présentation ne sont pas publiées"
             withheld_hint: Le destinataire d'un lien ne les verra pas. Publiez-les dans la médiathèque pour qu'elles apparaissent.
             usage_detail: Présentation
             slots:

@@ -571,7 +571,7 @@ backend:
                 fade: Fade
                 slide: Slide
             transition_hint: It only exists in the full screen. Paper and share links carry none.
-            withheld_title: '{count} picture(s) on this deck are not published'
+            withheld_title: "One picture on this deck is not published | {count} pictures on this deck are not published"
             withheld_hint: A link's holder will not see them. Publish them in the library for them to appear.
             usage_detail: Deck
             slots:

@@ -730,7 +730,7 @@ onBeforeUnmount(() => {
                     role="status"
                 >
                     <p class="m-0 text-sm font-medium text-amber-300">
-                        {{ t("backend.studio.decks.withheld_title", { count: withheld.length }) }}
+                        {{ t("backend.studio.decks.withheld_title", withheld.length) }}
                     </p>
                     <p class="m-0 text-xs text-secondary">
                         {{ t("backend.studio.decks.withheld_hint") }}
