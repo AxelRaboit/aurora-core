@@ -13,6 +13,8 @@ Pour relire, l'action **Aperçu** d'un contrat en préparation ouvre le document
 
 L'aperçu n'écrit rien et ne tire aucune référence. Il signale aussi les variables inconnues, celles qui bloqueront le scellement : les trouver là ne coûte rien, les trouver au scellement coûte un aller-retour.
 
+Pour faire relire le contrat par quelqu'un d'autre, l'action **Exporter en PDF** sort le même document sous forme de fichier, avec un bandeau qui dit que c'est un brouillon. La page « Le PDF signé » décrit ce que l'export rend selon l'état du contrat.
+
 ## 1. Le brouillon prêt
 
 Le contrat est en préparation, tous ses champs sont remplis, et les blancs demandés par la trame aussi.
@@ -21,7 +23,7 @@ Le contrat est en préparation, tous ses champs sont remplis, et les blancs dema
 
 ## 2. Le menu d'actions
 
-Le bouton en bout de ligne ouvre les trois actions possibles sur un brouillon, chacune avec sa conséquence écrite : modifier, sceller, supprimer. « Supprimer » ne vaut que pour un brouillon, justement parce que rien n'a encore été envoyé.
+Le bouton en bout de ligne ouvre les actions possibles sur un brouillon, chacune avec sa conséquence écrite : l'aperçu, l'export en PDF, puis modifier, sceller, supprimer. « Supprimer » ne vaut que pour un brouillon, justement parce que rien n'a encore été envoyé.
 
 ![Le menu d'actions d'un contrat en préparation](../../images/06-studio/sceller-un-contrat-02-le-menu-d-actions.png)
 

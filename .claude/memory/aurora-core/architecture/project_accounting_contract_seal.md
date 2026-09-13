@@ -118,6 +118,27 @@ contresignature conclut le contrat et déclenche le PDF.
 invalidée par une modification ultérieure - la classe de bugs disparaît au lieu
 d'être gardée.
 
+## L'export PDF, et pourquoi il ne contredit pas la mesure 4
+
+Depuis la 0.9.162, la liste des contrats a une action « Exporter en PDF »
+(`/backend/studio/contracts/{id}/export`). Elle rend **trois** réponses, et
+l'ordre des tests est la sécurité :
+
+1. contrat conclu → les octets stockés, tels quels, jamais un re-rendu ;
+2. contrat scellé → `renderedHtml` imprimé verbatim, comme la mesure 4 l'exige ;
+3. brouillon → l'aperçu du manager, parce qu'il n'y a encore rien de scellé.
+
+**Why:** un contrat se lit sur papier bien avant d'être signé, et le seul PDF du
+module était celui frappé à la contresignature. Le risque n'est pas de produire
+un fichier, c'est d'en produire un qui ressemble au signé.
+
+**How to apply:** la copie de travail porte un bandeau en première page, n'a pas
+de bloc de preuve, pas de cadre de signature vide, et un nom de fichier
+suffixé (`CTR-2026-0001-projet.pdf`). `ContractPdfGenerator::renderProvisional()`
+**refuse** un contrat qui a déjà son fichier : c'est la garde qui empêche qu'une
+route serve un sosie. La route `/pdf` garde son sens exact - le fichier signé, ou
+404 - parce que c'est elle que la page document annonce comme « le PDF signé ».
+
 ## Ce qui reste ouvert, et n'est pas un oubli
 
 - **Horodatage RFC 3161** par un tiers. Aujourd'hui l'heure est celle du serveur.

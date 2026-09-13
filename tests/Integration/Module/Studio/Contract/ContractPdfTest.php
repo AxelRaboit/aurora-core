@@ -32,7 +32,6 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Mime\Email;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-use function is_file;
 use function json_decode;
 use function preg_match;
 use function sprintf;
@@ -191,6 +190,48 @@ final class ContractPdfTest extends IntegrationTestCase
     }
 
     /**
+     * The export of a concluded contract is the signed file, byte for byte.
+     *
+     * This is the rule the whole export hangs on. One action on the list, three
+     * answers, and for a contract that has been signed the only honest answer
+     * is the bytes that were hashed - a fresh render would be today's templates
+     * wearing the reference of a signed document.
+     */
+    public function testTheExportOfAConcludedContractIsTheStoredFile(): void
+    {
+        $contract = $this->concludedContract();
+
+        $this->login();
+        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/export', $contract->getId()));
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $disposition = (string) $this->client->getResponse()->headers->get('Content-Disposition');
+        // No working-copy suffix: there is nothing provisional about this one.
+        self::assertStringContainsString(sprintf('%s.pdf', (string) $contract->getReference()), $disposition);
+        self::assertStringNotContainsString('projet', $disposition);
+
+        self::assertSame($this->readPdf($contract), $this->streamed());
+    }
+
+    /**
+     * And the generator refuses to build a look-alike for it.
+     *
+     * The guard sits under the route rather than only in it: a second caller
+     * asking for a provisional copy of a signed contract is asking for a file
+     * that would differ from the one the parties hold, and be indistinguishable
+     * from it once saved.
+     */
+    public function testAProvisionalRenderIsRefusedOnceTheSignedFileExists(): void
+    {
+        $contract = $this->concludedContract();
+
+        $this->expectException(ContractPdfAlreadyGeneratedException::class);
+
+        $this->pdf->renderProvisional($contract, '<p>anything</p>', []);
+    }
+
+    /**
      * A guest cannot read it.
      *
      * The route lives under `/backend` and carries the contract permission, so
@@ -239,6 +280,18 @@ final class ContractPdfTest extends IntegrationTestCase
         }
 
         self::assertTrue($attached, 'The concluded mail has to carry the signed PDF.');
+    }
+
+    /**
+     * What the streamed response actually wrote out.
+     *
+     * Off the BrowserKit response rather than the Symfony one: a
+     * `StreamedResponse` has no content to give back, and the test client
+     * already buffered what the callback echoed.
+     */
+    private function streamed(): string
+    {
+        return (string) $this->client->getInternalResponse()->getContent();
     }
 
     /**

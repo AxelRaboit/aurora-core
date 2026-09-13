@@ -54,6 +54,9 @@ final readonly class ContractsViewBuilder
             'revokeLinkPath' => $this->pathTemplates->generate('backend_studio_contracts_revoke_link', ['id' => '__id__']),
             'countersignPath' => $this->pathTemplates->generate('backend_studio_contracts_countersign', ['id' => '__id__']),
             'pdfPath' => $this->pathTemplates->generate('backend_studio_contracts_pdf', ['id' => '__id__']),
+            // One address for every row, whatever state it is in: the signed
+            // file when there is one, a working copy otherwise.
+            'exportPath' => $this->pathTemplates->generate('backend_studio_contracts_export', ['id' => '__id__']),
             'showPath' => $this->pathTemplates->generate('backend_studio_contracts_show', ['id' => '__id__']),
             'terminatePath' => $this->pathTemplates->generate('backend_studio_contracts_terminate', ['id' => '__id__']),
             'terminationOrigins' => $this->terminationOrigins(),
