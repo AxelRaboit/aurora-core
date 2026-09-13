@@ -3,6 +3,7 @@ import {
     Archive,
     ArchiveRestore,
     Copy,
+    Eye,
     FilePlus2,
     FileX2,
     Pencil,
@@ -23,21 +24,47 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
  * than to leave again - and they are the reason this is not inline in the
  * template.
  *
- * The order is the order they are meant to be read: work on it, copy it,
- * rename it, put it away, and destroy it last.
+ * The order is the order they are meant to be read: look at it, work on it,
+ * copy it, rename it, put it away, and destroy it last.
+ *
+ * @param {Function} editorPath `(templateId, versionId) => string`, from the
+ *   list composable. Reading a trame is a navigation rather than a command, so
+ *   its action carries an `href` and stays openable in a new tab.
  */
-export function useContractTemplateActions() {
+export function useContractTemplateActions(editorPath) {
     const { t } = useI18n();
     const { can } = usePrivileges();
 
     /**
      * @param {object} template the row
      * @param {object} handlers one function per action, named by its key
-     * @returns {Array<object>} `{ key, title, description, color, icon, onSelect }`
+     * @returns {Array<object>} `{ key, title, description, color, icon, href?, onSelect? }`
      */
     return function actionsFor(template, handlers) {
         const actions = [];
         const prefix = "backend.studio.contract_templates";
+
+        // First, because reading is what somebody opening this screen without
+        // the intent to change anything is here for - and because it was the
+        // one thing the list could not do. The editor already refuses to write
+        // a published version and says so, so "consulter" and "ouvrir la
+        // version en vigueur" are the same screen, named for what it is.
+        //
+        // Offered only when there is a version in force: a trame that has never
+        // been published has nothing settled to read, and its draft is reached
+        // by the badge beside it.
+        if (
+            template.publishedVersionId &&
+            can("studio.contract_templates.view")
+        ) {
+            actions.push({
+                key: "view",
+                icon: Eye,
+                title: t(`${prefix}.view`),
+                description: t(`${prefix}.row_actions.view_description`),
+                href: editorPath?.(template.id, template.publishedVersionId),
+            });
+        }
 
         if (
             !template.draftId &&

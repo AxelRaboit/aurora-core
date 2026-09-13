@@ -149,7 +149,7 @@ function kindStyle(kind) {
  * app; the cards keep them laid out, because a card has the room and losing
  * them would make the wider view the poorer one.
  */
-const actionsFor = useContractTemplateActions();
+const actionsFor = useContractTemplateActions(editorPath);
 
 const handlers = {
     openDraft,
@@ -352,7 +352,11 @@ function rowActions(template) {
                              absence stays plain text: "never published" is a
                              sentence, not a state to spot. -->
                         <td class="px-6 py-3 whitespace-nowrap">
-                            <AppBadge v-if="template.publishedVersion" color="emerald">
+                            <AppBadge
+                                v-if="template.publishedVersion"
+                                color="emerald"
+                                :href="editorPath(template.id, template.publishedVersionId)"
+                            >
                                 {{
                                     t("backend.studio.contract_templates.version_label", {
                                         number: template.publishedVersion,
@@ -454,7 +458,11 @@ function rowActions(template) {
                             {{ t("backend.studio.contract_templates.in_force") }}
                         </dt>
                         <dd class="text-primary">
-                            <AppBadge v-if="template.publishedVersion" color="emerald">
+                            <AppBadge
+                                v-if="template.publishedVersion"
+                                color="emerald"
+                                :href="editorPath(template.id, template.publishedVersionId)"
+                            >
                                 {{
                                     t("backend.studio.contract_templates.version_label", {
                                         number: template.publishedVersion,
@@ -498,8 +506,9 @@ function rowActions(template) {
                         :key="action.key"
                         variant="ghost"
                         size="sm"
+                        :href="action.href"
                         :loading="action.key === 'openDraft' && busy"
-                        v-on:click="action.onSelect()"
+                        v-on:click="action.onSelect?.()"
                     >
                         <component :is="action.icon" class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ action.title }}
