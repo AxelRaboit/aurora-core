@@ -10,6 +10,7 @@ use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Entity\SlideInterface;
 use Aurora\Module\Studio\Deck\Service\DeckAppearance;
 use Aurora\Module\Studio\Deck\Service\DeckPicture;
+use Aurora\Module\Studio\Deck\Service\DeckPictures;
 
 use function count;
 use function is_int;
@@ -21,6 +22,7 @@ class DeckSerializer
     public function __construct(
         private readonly DeckPicture $pictures,
         private readonly DeckAppearance $appearance,
+        private readonly DeckPictures $deckPictures,
     ) {}
 
     /**
@@ -65,18 +67,7 @@ class DeckSerializer
         // The pictures resolved in one query rather than one per slide: a deck
         // of thirty slides is thirty round trips otherwise, for a handful of
         // ids that are known before the loop starts.
-        $ids = [];
-        foreach ($deck->getSlides() as $slide) {
-            foreach (['mediaId', 'bgMediaId'] as $slot) {
-                $id = $slide->getContent()[$slot] ?? null;
-
-                if (is_int($id)) {
-                    $ids[] = $id;
-                }
-            }
-        }
-
-        $pictures = $this->pictures->byIds($ids);
+        $pictures = $this->pictures->byIds($this->deckPictures->idsUsedBy($deck));
 
         $slides = [];
         foreach ($deck->getSlides() as $slide) {

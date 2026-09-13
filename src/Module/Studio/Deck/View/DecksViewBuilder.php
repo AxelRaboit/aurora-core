@@ -16,6 +16,7 @@ use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Repository\DeckCategoryRepository;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deck\Serializer\DeckSerializer;
+use Aurora\Module\Studio\Deck\Service\DeckPictures;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
 use Aurora\Module\Studio\StudioContext;
@@ -31,6 +32,7 @@ final readonly class DecksViewBuilder
         private CustomerRepository $customerRepository,
         private DeckSerializer $serializer,
         private DeckShareLinkRepository $shareLinks,
+        private DeckPictures $deckPictures,
         private StudioContext $studioContext,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
@@ -135,6 +137,11 @@ final readonly class DecksViewBuilder
     public function sharePayload(DeckInterface $deck): array
     {
         return [
+            // Answered with the links rather than with the deck: it is only a
+            // problem once there is somebody who cannot see the picture, and
+            // the panel that creates links is where the author is standing
+            // when that becomes true.
+            'withheldPictures' => $this->deckPictures->withheldIn($deck),
             'shareLinks' => array_map(
                 fn (DeckShareLinkInterface $link): array => [
                     'id' => $link->getId(),

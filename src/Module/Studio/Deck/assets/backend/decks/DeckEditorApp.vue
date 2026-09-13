@@ -72,6 +72,8 @@ const props = defineProps({
     printPath: { type: String, required: true },
     presenterPath: { type: String, required: true },
     shareLinks: { type: Array, default: () => [] },
+    /** Pictures on this deck that a link's holder would not be served. */
+    withheldPictures: { type: Array, default: () => [] },
     shareCreatePath: { type: String, required: true },
     shareRevokePath: { type: String, required: true },
     themes: { type: Array, default: () => [] },
@@ -177,6 +179,7 @@ const {
     newLabel,
     expiresInDays,
     newPassword,
+    withheld,
     creating,
     createLink,
     revoke,
@@ -718,6 +721,24 @@ onBeforeUnmount(() => {
                 <p class="m-0 text-sm text-secondary">
                     {{ t("backend.studio.decks.share_intro") }}
                 </p>
+
+                <!-- L'avertissement avant le formulaire : il change ce qu'on
+                     s'apprête à envoyer, pas ce qu'on vient d'envoyer. -->
+                <div
+                    v-if="withheld.length"
+                    class="flex flex-col gap-1 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3"
+                    role="status"
+                >
+                    <p class="m-0 text-sm font-medium text-amber-300">
+                        {{ t("backend.studio.decks.withheld_title", { count: withheld.length }) }}
+                    </p>
+                    <p class="m-0 text-xs text-secondary">
+                        {{ t("backend.studio.decks.withheld_hint") }}
+                    </p>
+                    <p class="m-0 truncate text-xs text-muted">
+                        {{ withheld.map((picture) => picture.name).join(", ") }}
+                    </p>
+                </div>
 
                 <div class="flex flex-wrap items-end gap-2">
                     <AppInput

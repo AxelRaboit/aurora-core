@@ -152,6 +152,27 @@ pose juste après celle qu'elle copie.
 
 ### Corrigé
 
+#### Une image non publiée ne part plus en silence dans un lien de partage
+Depuis la 0.9.163, `/uploads` ne sert un document à un visiteur sans compte que
+s'il est publié, ce qui est voulu et ce qui est bien. Mais un téléversement est
+un brouillon tant que personne n'en décide autrement : une présentation partagée
+pouvait donc arriver avec des images manquantes, et l'auteur l'apprenait de la
+personne à qui il avait envoyé le lien.
+
+Le panneau de partage nomme désormais ces images avant qu'on crée le lien. Rien
+n'est publié automatiquement : ce qu'on fait d'un fichier retenu est un
+jugement, et une présentation n'est pas une raison de publier une image à toute
+la médiathèque.
+
+Dans le back-office rien ne change : l'éditeur, le plein écran, la vue
+présentateur et l'impression passent par la porte qui demande un compte.
+
+#### Supprimer une image dit enfin qu'une présentation s'en sert
+L'écran de la médiathèque demande à chaque module « qui utilise ce document » et
+personne ne répondait pour les présentations : une photo posée sur quatre slides
+se supprimait sans un mot, et les quatre slides ne dessinaient plus rien. Le
+point d'extension existait et n'avait aucune implémentation ; c'est la première.
+
 #### Le texte ne sort plus de la slide
 Une colonne centrée dans une boîte qu'elle déborde sort par les **deux** bouts :
 une slide à puces avec une puce de trop perdait son titre au-dessus du cadre et

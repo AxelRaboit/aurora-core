@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\Deck;
 
+use Aurora\Module\Ged\Document\Entity\Document;
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
+use Aurora\Module\Studio\Deck\View\DecksViewBuilder;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -210,6 +214,72 @@ final class DeckShareLinkTest extends IntegrationTestCase
         $this->entityManager()->flush();
 
         return [$link, $phrase];
+    }
+
+    /**
+     * A picture that a link's holder will not be served is named in the panel.
+     *
+     * `/uploads` serves published documents alone and `draft` is what an
+     * upload is until somebody says otherwise, which is deliberate and right.
+     * What was missing is that the author sends the link and learns about the
+     * missing picture from the person who received it.
+     */
+    public function testTheSharePanelNamesThePicturesARecipientWillNotSee(): void
+    {
+        $container = static::getContainer();
+        $withheld = $this->picture(DocumentStatusEnum::Draft, 'plan-de-salle.jpg');
+
+        $decks = $container->get(DeckManager::class);
+        $deck = $decks->create('Avec une image retenue');
+        $slide = $decks->addSlide($deck, SlideLayoutEnum::Image);
+        $decks->writeContent($slide, ['mediaId' => (int) $withheld->getId()]);
+        $this->entityManager()->flush();
+
+        $payload = $container->get(DecksViewBuilder::class)->sharePayload($deck);
+
+        self::assertSame(
+            [['id' => (int) $withheld->getId(), 'name' => $withheld->getOriginalName()]],
+            $payload['withheldPictures'],
+        );
+    }
+
+    /** A published picture is not a warning: the recipient sees it. */
+    public function testAPublishedPictureIsNotReported(): void
+    {
+        $container = static::getContainer();
+        $published = $this->picture(DocumentStatusEnum::Published, 'facade.jpg');
+
+        $decks = $container->get(DeckManager::class);
+        $deck = $decks->create('Avec une image publiée');
+        $slide = $decks->addSlide($deck, SlideLayoutEnum::Image);
+        $decks->writeContent($slide, ['mediaId' => (int) $published->getId()]);
+        $this->entityManager()->flush();
+
+        self::assertSame([], $container->get(DecksViewBuilder::class)->sharePayload($deck)['withheldPictures']);
+    }
+
+    /**
+     * A filed picture, at the status under test.
+     *
+     * Built here rather than looked for in the fixtures: `draft` and
+     * `published` both have to exist for these two tests, and a fixture set
+     * that happens to hold one of them today is a test that breaks the day
+     * somebody tidies the demo library.
+     */
+    private function picture(DocumentStatusEnum $status, string $name): DocumentInterface
+    {
+        $document = new Document();
+        $document
+            ->setTitle($name)
+            ->setOriginalName($name)
+            ->setFilePath('ged/2026/09/'.$name)
+            ->setMimeType('image/jpeg')
+            ->setStatus($status);
+
+        $this->entityManager()->persist($document);
+        $this->entityManager()->flush();
+
+        return $document;
     }
 
     private function link(?string $notes = null): DeckShareLink

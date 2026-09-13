@@ -41,6 +41,14 @@ L'icône en croix révoque le lien. **La ligne n'est pas supprimée**, elle est 
 
 Un lien révoqué, expiré ou inventé donne la même réponse : page introuvable. Distinguer les trois confirmerait à quelqu'un qui tâtonne que l'adresse était bonne.
 
+## Les images doivent être publiées
+
+Une image de la médiathèque n'est servie à un visiteur sans compte que si elle est **publiée**. Or une image qui vient d'être téléversée est un brouillon.
+
+Le panneau de partage vous le dit : s'il reste des images non publiées sur la présentation, un encadré les nomme avant que vous créiez le lien. Publiez-les dans la médiathèque et l'avertissement disparaît.
+
+Dans le back-office, ces images s'affichent normalement : l'éditeur, le plein écran, la vue présentateur et la page d'impression passent par une autre porte, celle qui demande un compte. C'est uniquement le destinataire du lien qui ne les verrait pas.
+
 ## Protéger un lien par un mot de passe
 
 Le champ **« Mot de passe »**, sous l'intitulé, est facultatif. Laissé vide, le lien s'ouvre avec sa seule adresse, ce qui suffit dans la plupart des cas : elle est impossible à deviner et elle peut expirer.

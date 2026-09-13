@@ -17,6 +17,15 @@ export function useDeckSharing(props) {
 
     const sharing = ref(false);
     const links = ref([...(props.shareLinks ?? [])]);
+
+    /**
+     * The pictures a recipient will not see, recomputed on every write.
+     *
+     * The server answers with them alongside the links, so publishing a
+     * picture and creating a link in the same sitting clears the warning
+     * without a reload.
+     */
+    const withheld = ref([...(props.withheldPictures ?? [])]);
     const newLabel = ref("");
     const expiresInDays = ref("");
     const newPassword = ref("");
@@ -29,6 +38,8 @@ export function useDeckSharing(props) {
 
     function apply(data) {
         if (Array.isArray(data?.shareLinks)) links.value = data.shareLinks;
+        if (Array.isArray(data?.withheldPictures))
+            withheld.value = data.withheldPictures;
     }
 
     async function createLink() {
@@ -98,6 +109,7 @@ export function useDeckSharing(props) {
         newLabel,
         expiresInDays,
         newPassword,
+        withheld,
         creating,
         copiedId,
         createLink,
