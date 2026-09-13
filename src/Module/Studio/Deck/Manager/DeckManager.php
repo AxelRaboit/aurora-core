@@ -14,6 +14,7 @@ use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
 
 use function array_key_exists;
+use function in_array;
 use function is_array;
 use function is_int;
 use function is_string;
@@ -126,7 +127,7 @@ class DeckManager
                 continue;
             }
 
-            if ('bullets' === $slot) {
+            if (in_array($slot, SlideLayoutEnum::listSlots(), true)) {
                 if (is_array($value)) {
                     $clean[$slot] = array_values(array_filter($value, is_string(...)));
                 }

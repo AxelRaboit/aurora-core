@@ -508,7 +508,21 @@ backend:
             backdrop_hint: Une photo derrière le texte, sur n'importe quel gabarit.
             backdrop_dim: Voile
             backdrop_dim_hint: Assombrit l'image vers la couleur de fond, pour que le texte reste lisible.
+            side_left: À gauche
+            side_right: À droite
+            line_placeholders:
+                bullets: Une puce par ligne.
+                items: "Une carte par ligne. Titre | description"
+                steps: "Une étape par ligne. Nom | précision"
+                rows: "Une ligne du tableau par ligne, cellules séparées par |. La première est l'en-tête."
             slots:
+                value: Le chiffre
+                label: Ce qu'il compte
+                text: Texte
+                side: Côté de l'image
+                items: Cartes
+                steps: Étapes
+                rows: Lignes
                 kicker: Sur-titre
                 bgMediaId: Image de fond
                 title: Titre
@@ -521,6 +535,11 @@ backend:
                 caption: Légende
                 mediaId: Image
             layouts:
+                stat: Chiffre clé
+                image_text: Image et texte
+                cards: Cartes
+                timeline: Frise
+                table: Tableau
                 title: Titre
                 bullets: Titre et puces
                 image: Image pleine page

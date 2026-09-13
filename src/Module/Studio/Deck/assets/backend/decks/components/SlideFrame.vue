@@ -17,6 +17,7 @@
  * properties to set.
  */
 import { computed } from "vue";
+import { cells, headed } from "../cells.js";
 
 const props = defineProps({
     slide: { type: Object, required: true },
@@ -135,6 +136,70 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
                     <div class="sf-columns">
                         <p>{{ compact ? "" : slide.content.left }}</p>
                         <p>{{ compact ? "" : slide.content.right }}</p>
+                    </div>
+                </template>
+
+                <template v-else-if="slide.layout === 'stat'">
+                    <p class="sf-stat">{{ slide.content.value }}</p>
+                    <p v-if="!compact && slide.content.label" class="sf-stat-label">{{ slide.content.label }}</p>
+                </template>
+
+                <template v-else-if="slide.layout === 'image_text'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small">{{ slide.content.title }}</p>
+                    <div class="sf-beside" :class="slide.content.side === 'right' ? 'is-right' : ''">
+                        <div class="sf-beside-media">
+                            <img
+                                v-if="slide.content.mediaUrl"
+                                class="sf-image-file"
+                                :src="slide.content.mediaUrl"
+                                :alt="slide.content.mediaAlt ?? ''"
+                            >
+                            <span v-else class="sf-image-mark" />
+                        </div>
+                        <p v-if="!compact" class="sf-beside-text">{{ slide.content.text }}</p>
+                    </div>
+                </template>
+
+                <template v-else-if="slide.layout === 'cards'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small">{{ slide.content.title }}</p>
+                    <div class="sf-cards" :style="{ '--cards': Math.min((slide.content.items ?? []).length || 1, 4) }">
+                        <div v-for="(item, at) in slide.content.items ?? []" :key="at" class="sf-card">
+                            <span class="sf-card-head">{{ headed(item).head }}</span>
+                            <span v-if="!compact && headed(item).body" class="sf-card-body">{{ headed(item).body }}</span>
+                        </div>
+                    </div>
+                </template>
+
+                <template v-else-if="slide.layout === 'timeline'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small">{{ slide.content.title }}</p>
+                    <ol class="sf-steps">
+                        <li v-for="(step, at) in slide.content.steps ?? []" :key="at" class="sf-step">
+                            <span class="sf-step-mark" />
+                            <span class="sf-step-head">{{ headed(step).head }}</span>
+                            <span v-if="!compact && headed(step).body" class="sf-step-body">{{ headed(step).body }}</span>
+                        </li>
+                    </ol>
+                </template>
+
+                <template v-else-if="slide.layout === 'table'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small">{{ slide.content.title }}</p>
+                    <table v-if="!compact" class="sf-table">
+                        <!-- La première ligne est l'en-tête, et c'est une
+                             convention du gabarit : un tableau de slide sans
+                             en-tête est une grille de chiffres sans légende. -->
+                        <thead v-if="(slide.content.rows ?? []).length">
+                            <tr>
+                                <th v-for="(cell, at) in cells(slide.content.rows[0])" :key="at">{{ cell }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(row, at) in (slide.content.rows ?? []).slice(1)" :key="at">
+                                <td v-for="(cell, column) in cells(row)" :key="column">{{ cell }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div v-else class="sf-lines">
+                        <span v-for="(row, at) in (slide.content.rows ?? []).slice(0, 4)" :key="at" />
                     </div>
                 </template>
 
@@ -267,6 +332,60 @@ const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker 
 .sf-quote { margin: 0; font-size: 6cqw; font-style: italic; line-height: 1.3; }
 .sf-attribution { margin: 0; font-size: 3.5cqw; opacity: 0.7; }
 .sf-caption { margin: 0; font-size: 3.5cqw; opacity: 0.7; }
+
+/* Un titre au-dessus d'un contenu dense : plus petit que celui d'une slide à
+   puces, sans quoi il prend le tiers de la hauteur qui reste au tableau. */
+.sf-heading-small { font-size: 4.8cqw; }
+
+.sf-stat {
+    margin: 0;
+    font-family: var(--slide-heading);
+    font-size: 20cqw;
+    font-weight: 700;
+    line-height: 0.85;
+    letter-spacing: -0.03em;
+    color: var(--slide-accent);
+    font-variant-numeric: tabular-nums;
+}
+
+.sf-stat-label { margin: 0; font-size: 4cqw; line-height: 1.35; max-width: 70%; opacity: 0.85; }
+
+.sf-beside { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.1fr 1fr; gap: 4cqw; align-items: center; }
+/* L'image passe à droite en inversant l'ordre plutôt que les colonnes : le
+   texte reste avant l'image dans le document, donc dans l'ordre de lecture
+   d'un lecteur d'écran, quel que soit le côté choisi à l'œil. */
+.sf-beside.is-right .sf-beside-media { order: 2; }
+.sf-beside-media { height: 100%; min-height: 0; display: grid; place-items: center; overflow: hidden; border-radius: 0.25rem; background: color-mix(in srgb, currentColor 10%, transparent); }
+.sf-beside-text { margin: 0; font-size: 3.6cqw; line-height: 1.5; }
+
+.sf-cards { display: grid; grid-template-columns: repeat(var(--cards, 3), 1fr); gap: 2.4cqw; }
+.sf-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1cqw;
+    padding: 2.8cqw;
+    border-radius: 0.25rem;
+    background: color-mix(in srgb, currentColor 8%, transparent);
+    border-top: 0.5cqw solid var(--slide-accent);
+}
+.sf-card-head { font-family: var(--slide-heading); font-size: 3.4cqw; font-weight: 600; line-height: 1.2; }
+.sf-card-body { font-size: 2.6cqw; line-height: 1.35; opacity: 0.72; }
+
+.sf-steps { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2cqw; margin: 0; padding: 0; list-style: none; }
+.sf-step { display: flex; flex-direction: column; gap: 1.2cqw; }
+/* Le trait part du point et file vers la droite : c'est la ligne du temps, et
+   elle s'arrête à la dernière étape plutôt que de sortir du cadre. */
+.sf-step-mark { position: relative; height: 2.4cqw; border-radius: 50%; width: 2.4cqw; background: var(--slide-accent); }
+.sf-step-mark::after { content: ""; position: absolute; top: 50%; left: 2.4cqw; width: 100cqw; height: 0.3cqw; background: currentColor; opacity: 0.22; }
+.sf-step:last-child .sf-step-mark::after { display: none; }
+.sf-step-head { font-family: var(--slide-heading); font-size: 3cqw; font-weight: 600; line-height: 1.2; }
+.sf-step-body { font-size: 2.5cqw; line-height: 1.3; opacity: 0.7; }
+
+.sf-table { width: 100%; border-collapse: collapse; font-size: 3cqw; }
+.sf-table th { text-align: left; font-family: var(--slide-heading); font-weight: 600; padding-bottom: 1.2cqw; border-bottom: 0.3cqw solid var(--slide-accent); }
+.sf-table td { padding: 1.2cqw 0; border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent); }
+.sf-table tr:last-child td { border-bottom: 0; }
+.sf-table th + th, .sf-table td + td { padding-left: 3cqw; }
 
 .sf-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 4cqw; font-size: 3.6cqw; }
 .sf-columns p { margin: 0; }

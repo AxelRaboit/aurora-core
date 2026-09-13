@@ -11,6 +11,8 @@ use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
+use function sprintf;
+
 /**
  * What a slide keeps out of what a form sends.
  *
@@ -57,6 +59,39 @@ final class SlideContentWhitelistTest extends TestCase
 
         self::assertSame(
             ['title' => 'Ce qui bloque', 'bullets' => ['Le temps de réponse', 'La sauvegarde']],
+            $slide->getContent(),
+        );
+    }
+
+    /**
+     * The list slots are declared once and consulted everywhere. A slot that
+     * holds lines but is not named in `listSlots()` would be stored as the raw
+     * string a textarea posts, and drawn as nothing.
+     */
+    public function testEveryListSlotIsDeclaredOnSomeLayout(): void
+    {
+        $declared = [];
+
+        foreach (SlideLayoutEnum::cases() as $layout) {
+            $declared = [...$declared, ...$layout->slots()];
+        }
+
+        foreach (SlideLayoutEnum::listSlots() as $slot) {
+            self::assertContains($slot, $declared, sprintf('list slot "%s" belongs to no layout', $slot));
+        }
+    }
+
+    public function testAListSlotKeepsItsLinesAndDropsWhatIsNotOne(): void
+    {
+        $slide = (new Slide())->setLayout(SlideLayoutEnum::Table);
+
+        $this->manager()->writeContent($slide, [
+            'title' => 'Temps de réponse',
+            'rows' => ['Page | Avant | Après', 'Accueil | 2,4 s | 0,8 s', ['nested']],
+        ]);
+
+        self::assertSame(
+            ['title' => 'Temps de réponse', 'rows' => ['Page | Avant | Après', 'Accueil | 2,4 s | 0,8 s']],
             $slide->getContent(),
         );
     }

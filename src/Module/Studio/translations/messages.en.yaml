@@ -508,7 +508,21 @@ backend:
             backdrop_hint: A photograph behind the text, on any layout.
             backdrop_dim: Veil
             backdrop_dim_hint: Dims the picture towards the background colour, so the text stays readable.
+            side_left: On the left
+            side_right: On the right
+            line_placeholders:
+                bullets: One bullet per line.
+                items: "One card per line. Heading | description"
+                steps: "One step per line. Name | detail"
+                rows: "One row per line, cells separated by |. The first row is the header."
             slots:
+                value: The figure
+                label: What it counts
+                text: Text
+                side: Picture side
+                items: Cards
+                steps: Steps
+                rows: Rows
                 kicker: Kicker
                 bgMediaId: Background picture
                 title: Title
@@ -521,6 +535,11 @@ backend:
                 caption: Caption
                 mediaId: Image
             layouts:
+                stat: Key figure
+                image_text: Picture and text
+                cards: Cards
+                timeline: Timeline
+                table: Table
                 title: Title
                 bullets: Title and bullets
                 image: Full-page image

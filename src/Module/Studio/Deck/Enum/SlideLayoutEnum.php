@@ -38,6 +38,51 @@ enum SlideLayoutEnum: string
     /** A divider that announces what follows. Carries a title alone. */
     case Section = 'section';
 
+    /** One number, as large as the frame allows, and what it counts. */
+    case Stat = 'stat';
+
+    /** A picture beside a paragraph, on whichever side suits it. */
+    case ImageText = 'image_text';
+
+    /** Two to four short blocks, side by side. Three chantiers, three offres. */
+    case Cards = 'cards';
+
+    /** Steps in order, on a line. A calendar, a method, a sequence. */
+    case Timeline = 'timeline';
+
+    /** A small table. Its first row is its header. */
+    case Table = 'table';
+
+    /**
+     * The slots that hold a list of lines rather than one string.
+     *
+     * Declared once because three places have to agree about it: the manager,
+     * which keeps only the strings; the editor, which shows a textarea and
+     * splits on newlines; and the frame, which draws one row per line. A fourth
+     * list slot added to a layout without being named here would be stored as
+     * the raw string a textarea posts, and drawn as nothing.
+     *
+     * @return list<string>
+     */
+    public static function listSlots(): array
+    {
+        return ['bullets', 'items', 'steps', 'rows'];
+    }
+
+    /**
+     * The separator inside one line of a list slot.
+     *
+     * A card is a heading and a sentence, a step is a name and a date, a table
+     * row is its cells: all of them are several values on one line, and a
+     * repeatable sub-form for each would be three more editors to build and
+     * maintain. One character, typed, and the placeholder says so.
+     *
+     * The split is done at render, never at write: the line is what somebody
+     * typed, and storing the pieces would mean a shape the editor then has to
+     * put back together to let them edit it again.
+     */
+    public const string CELL_SEPARATOR = '|';
+
     /**
      * The slots every layout accepts, whatever its shape.
      *
@@ -78,6 +123,11 @@ enum SlideLayoutEnum: string
             self::Split => ['title', 'left', 'right'],
             self::Quote => ['quote', 'attribution'],
             self::Section => ['title'],
+            self::Stat => ['value', 'label'],
+            self::ImageText => ['title', 'text', 'mediaId', 'side'],
+            self::Cards => ['title', 'items'],
+            self::Timeline => ['title', 'steps'],
+            self::Table => ['title', 'rows'],
         };
     }
 

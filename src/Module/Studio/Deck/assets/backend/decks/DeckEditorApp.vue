@@ -54,6 +54,8 @@ const props = defineProps({
     layouts: { type: Array, default: () => [] },
     /** Slots every layout accepts: the line above the title, and the backdrop. */
     commonSlots: { type: Array, default: () => [] },
+    /** Slots that hold one line per row rather than one string. */
+    listSlots: { type: Array, default: () => [] },
     slideCreatePath: { type: String, required: true },
     slideUpdatePath: { type: String, required: true },
     slideDeletePath: { type: String, required: true },
@@ -201,15 +203,27 @@ function writeBackdrop(value) {
     if (value?.id && selected.value.content.bgDim == null) writeSlot("bgDim", 40);
 }
 
-/** Bullets are a list in the model and one line per bullet in the form. */
-const bulletsText = () => (selected.value?.content.bullets ?? []).join("\n");
+/**
+ * A list slot is an array in the model and one line per row in the form.
+ *
+ * The same shape for bullets, cards, steps and table rows, because they are the
+ * same gesture: type a line, press return, type the next. What differs between
+ * them is what a line means, and that is what the placeholder is for.
+ */
+const linesText = (slot) => (selected.value?.content[slot] ?? []).join("\n");
 
-function writeBullets(value) {
+function writeLines(slot, value) {
     writeSlot(
-        "bullets",
+        slot,
         value.split("\n").map((line) => line.trim()).filter(Boolean),
     );
 }
+
+/** Which side the picture sits on, in the layout that has one. */
+const sideOptions = computed(() => [
+    { value: "left", label: t("backend.studio.decks.side_left") },
+    { value: "right", label: t("backend.studio.decks.side_right") },
+]);
 
 /**
  * The last write out.
@@ -388,16 +402,24 @@ onBeforeUnmount(() => {
 
                         <template v-for="slot in slots" :key="slot">
                             <AppTextarea
-                                v-if="slot === 'bullets'"
-                                :model-value="bulletsText()"
+                                v-if="listSlots.includes(slot)"
+                                :model-value="linesText(slot)"
                                 :label="labelFor(slot)"
-                                :placeholder="t('backend.studio.decks.bullets_placeholder')"
+                                :placeholder="t(`backend.studio.decks.line_placeholders.${slot}`)"
                                 :rows="5"
                                 :disabled="!editable"
-                                v-on:update:model-value="writeBullets"
+                                v-on:update:model-value="(value) => writeLines(slot, value)"
+                            />
+                            <AppSelect
+                                v-else-if="slot === 'side'"
+                                :model-value="selected.content.side ?? 'left'"
+                                :options="sideOptions"
+                                :label="labelFor(slot)"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('side', value)"
                             />
                             <AppTextarea
-                                v-else-if="['left', 'right', 'quote'].includes(slot)"
+                                v-else-if="['left', 'right', 'quote', 'text'].includes(slot)"
                                 :model-value="selected.content[slot] ?? ''"
                                 :label="labelFor(slot)"
                                 :placeholder="t('backend.studio.decks.prose_placeholder')"
