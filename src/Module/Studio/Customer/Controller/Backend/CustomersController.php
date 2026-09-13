@@ -65,7 +65,14 @@ class CustomersController extends AbstractController
     #[IsGranted('studio.customers.delete')]
     public function delete(Customer $customer): JsonResponse
     {
-        $this->customerManager->delete($customer);
+        try {
+            $this->customerManager->delete($customer);
+        } catch (FieldException $fieldException) {
+            // A customer a contract points at. Answered like a field rejection
+            // rather than a 500, which is what the `RESTRICT` foreign key was
+            // producing on its own.
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
 
         return $this->jsonSuccess($this->viewBuilder->listPayload());
     }

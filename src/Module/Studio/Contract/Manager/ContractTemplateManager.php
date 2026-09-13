@@ -14,6 +14,7 @@ use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersion;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionTranslation;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionTranslationInterface;
+use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -45,6 +46,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         protected readonly AuditLogger $auditLogger,
         protected readonly ContractTemplateVersionRepository $versionRepository,
         protected readonly TranslatorInterface $translator,
+        protected readonly ContractRepository $contractRepository,
     ) {}
 
     public function create(ContractTemplateInputInterface $input): ContractTemplateInterface
@@ -94,16 +96,26 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
     }
 
     /**
-     * Removes the template and every version of it.
+     * Removes the template and every version of it, unless a contract that
+     * went out was made from one.
      *
-     * Safe even when contracts were built from it, and that is a property of
-     * the snapshot design rather than luck: a contract carries its own frozen
-     * copy of the wording and reads nothing back from here. What is lost is
-     * the trail from a contract to the trame it came from, which is why the
-     * back office offers archiving first.
+     * Nothing of the wording is lost either way: a contract carries its own
+     * frozen copy and reads nothing back from here. What is lost is the trail
+     * from a signed contract to the trame it came from, and that trail is part
+     * of the record - it is what answers "which version of our terms did they
+     * sign". Archiving keeps the trame out of the way and keeps the trail.
+     *
+     * Drafts do not count. A contract still being written can be rebuilt from
+     * another trame, and holding a template hostage to an abandoned draft
+     * would make the rule impossible to satisfy.
      */
     public function delete(ContractTemplateInterface $template): void
     {
+        $frozen = $this->contractRepository->countFrozenUsingTemplate($template);
+        if ($frozen > 0) {
+            throw new FieldException('template', $this->translator->trans('backend.studio.contract_templates.errors.used_by_contracts', ['{count}' => (string) $frozen]));
+        }
+
         $this->auditLogger->log('studio', 'contract_template.deleted', 'ContractTemplate', $template->getId(), $this->auditPayload($template));
 
         $this->entityManager->remove($template);

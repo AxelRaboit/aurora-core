@@ -5,6 +5,44 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.154] - 2026-09-13
+
+### Corrigé
+
+#### Supprimer un client lié à un contrat ne casse plus la page
+La base refusait déjà : la clé étrangère est en `RESTRICT`. Mais elle refusait
+par une erreur SQL au milieu de la requête, qui arrivait à l'écran en 500, sans
+un mot sur ce qui venait de se passer. La règle est une règle comptable, elle se
+dit maintenant en français, à l'endroit où le bouton a été cliqué : un client
+nommé par un contrat ne se supprime pas, et le message compte les contrats
+concernés.
+
+Le texte d'avertissement de la fenêtre de confirmation promettait l'inverse
+(« les contrats resteront en base mais ne pointeront plus vers sa fiche »). Il
+est corrigé.
+
+### Modifié
+
+#### Une trame dont un contrat figé est issu ne se supprime plus
+Le document, lui, y survivait : un contrat porte sa propre copie scellée du
+texte et ne relit rien depuis la trame. Ce qui ne survivait pas, c'est la
+réponse à « quelle version de nos conditions ont-ils signée » : la clé étrangère
+est en `SET NULL`, et le lien disparaissait sans bruit.
+
+La suppression est donc refusée tant qu'un contrat figé est issu de la trame,
+et l'archivage reste là pour la mettre de côté. Une trame qu'aucun contrat
+figé n'a utilisée se supprime toujours : un brouillon abandonné n'est la preuve
+de rien.
+
+#### Un refus de suppression ne passe plus inaperçu
+Quand le serveur répondait « non, et voici pourquoi », l'écran ne montrait rien :
+la fenêtre restait ouverte, le bouton redevenait normal, et le clic avait l'air
+de ne pas avoir été pris en compte. Le refus est maintenant affiché tel qu'il a
+été écrit, pour toutes les suppressions du back-office, pas seulement en
+comptabilité.
+
+---
+
 ## [0.9.153] - 2026-09-13
 
 ### Corrigé

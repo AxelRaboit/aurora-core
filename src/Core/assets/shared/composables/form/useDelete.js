@@ -48,7 +48,18 @@ export function useDelete(deletePath, onSuccess, successMessageKey) {
                 pendingDelete.value = null;
                 toast.success(t(resolve(successMessageKey)));
                 onSuccess(id);
+
+                return;
             }
+
+            // A refusal, not a failure: the server answered that this row is
+            // not deletable and said why. It used to land here in silence, the
+            // modal still open and its button back to normal, which reads as a
+            // click that did not register. The message is already written for
+            // a human, so it is shown as it came.
+            const reason = Object.values(data.errors ?? {})[0];
+            toast.error(reason ?? t("shared.common.error"));
+            pendingDelete.value = null;
         } finally {
             loading.value = false;
         }

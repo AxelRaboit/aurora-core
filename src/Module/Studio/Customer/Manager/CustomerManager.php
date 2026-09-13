@@ -8,6 +8,7 @@ use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Customer\Dto\CustomerInputInterface;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
@@ -23,6 +24,7 @@ class CustomerManager implements CustomerManagerInterface
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
         protected readonly CustomerRepository $customerRepository,
+        protected readonly ContractRepository $contractRepository,
         protected readonly UserRepository $userRepository,
         protected readonly TranslatorInterface $translator,
     ) {}
@@ -48,8 +50,22 @@ class CustomerManager implements CustomerManagerInterface
         $this->auditUpdated($customer);
     }
 
+    /**
+     * Deleting a customer is refused as soon as a contract names them.
+     *
+     * The database said the same thing already - the foreign key is
+     * `RESTRICT` - but it said it as an SQL error in the middle of a request,
+     * which reached the screen as a 500. The rule is an accounting rule, so it
+     * is stated here, in the language of the person who clicked: a client with
+     * contracts is not a record anybody deletes by hand.
+     */
     public function delete(CustomerInterface $customer): void
     {
+        $contracts = $this->contractRepository->countForCustomer($customer);
+        if ($contracts > 0) {
+            throw new FieldException('customer', $this->translator->trans('backend.studio.customers.errors.has_contracts', ['{count}' => (string) $contracts]));
+        }
+
         $this->auditDeleted($customer);
 
         $this->entityManager->remove($customer);

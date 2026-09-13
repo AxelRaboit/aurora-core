@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Studio\Customer;
 
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use Aurora\Module\Studio\Contract\Entity\Contract;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -53,6 +54,11 @@ final class CustomersControllerTest extends IntegrationTestCase
      */
     protected function tearDown(): void
     {
+        // Contracts first: they point at the customers, and the foreign key
+        // that makes this test worth writing would refuse the other order.
+        $this->entityManager->createQuery(
+            sprintf('DELETE FROM %s', Contract::class),
+        )->execute();
         $this->entityManager->createQuery(
             sprintf('DELETE FROM %s', Customer::class),
         )->execute();
@@ -167,5 +173,57 @@ final class CustomersControllerTest extends IntegrationTestCase
 
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertArrayHasKey('legalName', $payload['errors']);
+    }
+
+    /**
+     * A customer a contract names is not deleted.
+     *
+     * The rule was already in the database - the foreign key is `RESTRICT` -
+     * and that is exactly the problem this pins: the refusal used to arrive as
+     * an SQL error, which reached the screen as a 500 and told the reader
+     * nothing. Here it is a 422 with a sentence, pinned to the field.
+     */
+    public function testACustomerNamedByAContractCannotBeDeleted(): void
+    {
+        $customer = new Customer();
+        $customer
+            ->setLegalName('Boulangerie Durand')
+            ->setSiret('73282932000074')
+            ->setContractualEmail('contact@durand.test')
+            ->setRepresentativeFirstName('Camille')
+            ->setRepresentativeLastName('Durand');
+        $this->entityManager->persist($customer);
+
+        $contract = new Contract();
+        $contract->setCustomer($customer);
+        $this->entityManager->persist($contract);
+        $this->entityManager->flush();
+
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/customers/%d/delete', $customer->getId()));
+
+        self::assertSame(422, $this->client->getResponse()->getStatusCode());
+
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
+        self::assertArrayHasKey('customer', $payload['errors']);
+        self::assertNotNull($this->customers->find($customer->getId()), 'the row is still there');
+    }
+
+    public function testACustomerWithNoContractIsDeleted(): void
+    {
+        $customer = new Customer();
+        $customer
+            ->setLegalName('Sans contrat')
+            ->setSiret('90451233600028')
+            ->setContractualEmail('sans@contrat.test')
+            ->setRepresentativeFirstName('Alex')
+            ->setRepresentativeLastName('Autre');
+        $this->entityManager->persist($customer);
+        $this->entityManager->flush();
+        $id = $customer->getId();
+
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/customers/%d/delete', $id));
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertNull($this->customers->find($id));
     }
 }

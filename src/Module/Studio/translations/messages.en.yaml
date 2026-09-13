@@ -257,6 +257,7 @@ backend:
                 draft_already_open: 'A draft is already open on this template (version {number}). Finish or discard it before opening another.'
                 nothing_to_publish: This version has no wording to publish.
                 already_published: 'This version is published: its wording can no longer be changed. Open a new version.'
+                used_by_contracts: '{count} frozen contract(s) were built from this template. Deleting it would erase the link between them and the wording that was signed: archive it instead.'
                 governing_locale_unknown: This language is not one the application offers.
                 governing_locale_not_written: 'The governing language ({locale}) is not written in this version.'
                 governing_locale_required: 'This version is written in several languages: say which one prevails before publishing it.'
@@ -276,7 +277,7 @@ backend:
             empty: No contract templates yet.
             search_placeholder: Search a template…
             delete_confirm: 'Delete {name}?'
-            delete_warning: Contracts already signed from this template keep their own copy of the wording and are untouched. What disappears is the trail back to the template.
+            delete_warning: 'Contracts already signed keep their own copy of the wording. If one of them was built from this template, deleting is refused: archive it instead.'
             in_force: In force
             never_published: Never published
             no_draft: No draft
@@ -471,7 +472,7 @@ backend:
             updated: Customer updated.
             deleted: Customer deleted.
             delete_confirm: 'Delete {name}?'
-            delete_warning: Contracts already signed with this customer stay in the database, but will no longer point to their record.
+            delete_warning: 'A customer a contract names is not deleted: this will be refused for as long as one remains.'
             linked_account: 'Account: {name}'
 
             col_company: Company
@@ -530,6 +531,7 @@ backend:
                 share_capital_invalid: Share capital cannot be negative.
                 siret_invalid: 'This registration number is invalid: fourteen digits with a correct checksum are expected.'
                 siret_taken: 'This registration number is already recorded for {name}.'
+                has_contracts: '{count} contract(s) name this customer. A customer a contract points at is not deleted: those contracts are what proves what was agreed, and with whom.'
 studio:
     contract:
         # Written into the document itself, and therefore sealed with it: these

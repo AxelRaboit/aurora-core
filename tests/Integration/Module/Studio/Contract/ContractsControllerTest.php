@@ -13,6 +13,7 @@ use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
@@ -57,6 +58,7 @@ final class ContractsControllerTest extends IntegrationTestCase
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
+            $container->get(ContractRepository::class),
         );
     }
 

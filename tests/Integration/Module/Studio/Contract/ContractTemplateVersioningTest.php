@@ -14,6 +14,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Exception\PublishedVersionIsImmutableException;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManagerInterface;
+use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -59,6 +60,7 @@ final class ContractTemplateVersioningTest extends IntegrationTestCase
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
+            $container->get(ContractRepository::class),
         );
     }
 

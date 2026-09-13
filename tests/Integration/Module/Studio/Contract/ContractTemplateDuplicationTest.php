@@ -13,6 +13,7 @@ use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
@@ -48,6 +49,7 @@ final class ContractTemplateDuplicationTest extends IntegrationTestCase
             $container->get(AuditLogger::class),
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
+            $container->get(ContractRepository::class),
         );
 
         $this->duplicator = new ContractTemplateDuplicator(
