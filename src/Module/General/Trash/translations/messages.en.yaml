@@ -7,6 +7,7 @@ backend:
     rules_note: "Restoring puts an item back where it was when that is still possible: a folder whose parent is deleted returns to the root, a category whose name was taken gets a free one."
     count: "1 item | {count} items"
     empty_one: "This trash is empty."
+    open_list: "Open {list}"
     days_left: "purged in 1 day | purged in {count} days"
     purge_due: "purged tonight"
     deleted_on: "deleted on {date}"

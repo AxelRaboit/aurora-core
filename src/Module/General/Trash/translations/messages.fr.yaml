@@ -7,6 +7,7 @@ backend:
     rules_note: "Restaurer remet l'élément là où il était, quand c'est encore possible : un dossier dont le parent est supprimé revient à la racine, une catégorie dont le nom a été repris reçoit un nom libre."
     count: "1 élément | {count} éléments"
     empty_one: "Cette corbeille est vide."
+    open_list: "Ouvrir {list}"
     days_left: "purge dans 1 jour | purge dans {count} jours"
     purge_due: "purge cette nuit"
     deleted_on: "supprimé le {date}"

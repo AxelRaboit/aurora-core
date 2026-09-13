@@ -38,6 +38,7 @@ final readonly class FoldersTrashSource implements TrashSourceInterface
         return new TrashSummary(
             key: 'ged_folders',
             labelKey: 'backend.nav.ged_folders',
+            sectionId: 'ged',
             icon: 'folder',
             count: count($roots),
             items: array_map($this->present(...), array_slice($roots, 0, $limit)),
@@ -46,6 +47,9 @@ final readonly class FoldersTrashSource implements TrashSourceInterface
             forceDeleteRoute: 'backend_ged_folders_force_delete',
             emptyTrashRoute: 'backend_ged_folders_empty_trash',
             actionPrivilege: 'ged.folders.manage',
+            // Les dossiers n'ont pas d'écran à eux : leur arborescence est le
+            // panneau de la médiathèque, et c'est là qu'on va les revoir.
+            listRoute: 'backend_ged_documents',
         );
     }
 

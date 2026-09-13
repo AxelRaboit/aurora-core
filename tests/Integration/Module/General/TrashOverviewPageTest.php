@@ -51,6 +51,41 @@ final class TrashOverviewPageTest extends IntegrationTestCase
         self::assertContains('notes_markdown', $keys);
     }
 
+    /**
+     * Each tab says which module it is talking about, and how to get there.
+     *
+     * "Dossiers" alone names three plausible things once the side menu's own
+     * heading is gone, and a reader who has just restored something wants the
+     * list it went back to.
+     */
+    public function testEachTabNamesItsModuleAndLinksToIt(): void
+    {
+        $rows = [];
+        foreach ($this->rowsByKey() as $key => $row) {
+            $rows[$key] = [$row['sectionLabel'], $row['listPath']];
+        }
+
+        self::assertSame(['GED', '/backend/ged/documents'], $rows['ged_folders']);
+        self::assertSame(['Éditorial', '/backend/editorial/posts'], $rows['editorial_posts']);
+        self::assertSame('Notes', $rows['notes_markdown'][0]);
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private function rowsByKey(): array
+    {
+        $this->client->request('GET', '/backend/trash');
+        self::assertResponseIsSuccessful();
+
+        $rows = [];
+        foreach ($this->trashPayload() as $row) {
+            $rows[$row['key']] = $row;
+        }
+
+        return $rows;
+    }
+
     public function testSomethingDeletedIsCountedWithTheDateItFell(): void
     {
         $container = static::getContainer();

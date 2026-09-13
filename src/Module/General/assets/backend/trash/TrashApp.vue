@@ -4,6 +4,8 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
+import AppMessage from "@/shared/components/feedback/AppMessage.vue";
+import AppLink from "@/shared/components/nav/AppLink.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import { Trash2, RotateCcw, Flame, X, Info } from "lucide-vue-next";
@@ -81,7 +83,14 @@ function formatDate(value) {
                     v-on:click="select(row.key)"
                 >
                     <component :is="row.iconComponent" class="w-3.5 h-3.5" :stroke-width="2" />
-                    {{ t(row.labelKey) }}
+                    <!-- Le module avant ce qu'il contient : « Dossiers » seul
+                         pourrait nommer trois choses, et l'intitulé de section
+                         qui le désambiguïse dans le menu n'est pas ici. -->
+                    <template v-if="row.showSection">
+                        <span class="text-muted">{{ row.sectionLabel }}</span>
+                        <span class="text-muted">·</span>
+                    </template>
+                    {{ row.label }}
                     <span v-if="row.count" class="ml-1 tabular-nums">({{ row.count }})</span>
                 </AppTab>
             </nav>
@@ -99,18 +108,33 @@ function formatDate(value) {
                             </template>
                         </span>
                     </p>
+                    <!-- Dans le bandeau qui existe déjà, pas au-dessus : deux
+                         bandeaux l'un sur l'autre pour une liste de trois
+                         lignes seraient plus de mobilier que de contenu. -->
+                    <AppLink
+                        v-if="active.listPath"
+                        :href="active.listPath"
+                        class="ml-auto text-sm"
+                    >
+                        {{ t("backend.trash.open_list", { list: active.label }) }}
+                    </AppLink>
                     <AppButton
                         v-if="active.emptyTrashPath && active.count > 0 && mayAct(active)"
                         size="sm"
                         variant="danger"
-                        class="ml-auto"
+                        :class="active.listPath ? '' : 'ml-auto'"
                         v-on:click="askEmpty(active)"
                     >
                         <Flame class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.trash.empty") }}
                     </AppButton>
                 </div>
 
-                <AppNoData v-if="!active.items.length" :message="t('backend.trash.empty_one')" />
+                <AppMessage v-if="!active.items.length" variant="info">
+                    {{ t("backend.trash.empty_one") }}
+                    <AppLink v-if="active.listPath" :href="active.listPath" class="ml-1">
+                        {{ t("backend.trash.open_list", { list: active.label }) }}
+                    </AppLink>
+                </AppMessage>
 
                 <div v-else class="bg-surface border border-line/60 rounded-xl overflow-hidden shadow-sm divide-y divide-line/40">
                     <div

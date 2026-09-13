@@ -17,6 +17,11 @@ use DateTimeImmutable;
  * The action routes are the module's own. The screen does not know how to
  * restore a document, and must not: it posts to the endpoint the module
  * already exposes, which is where the rules and the privileges live.
+ *
+ * `sectionId` is there because a tab is read out of context. In the side menu
+ * "Dossiers" sits under an intitulé that says which module it belongs to; on
+ * one screen showing five trashes side by side that heading is gone, and the
+ * word alone could name three different things.
  */
 final readonly class TrashSummary
 {
@@ -35,6 +40,7 @@ final readonly class TrashSummary
     public function __construct(
         public string $key,
         public string $labelKey,
+        public string $sectionId,
         public string $icon,
         public int $count,
         public array $items = [],
@@ -43,5 +49,6 @@ final readonly class TrashSummary
         public ?string $forceDeleteRoute = null,
         public ?string $emptyTrashRoute = null,
         public ?string $actionPrivilege = null,
+        public ?string $listRoute = null,
     ) {}
 }

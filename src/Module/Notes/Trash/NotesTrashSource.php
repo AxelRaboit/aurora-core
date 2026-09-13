@@ -47,6 +47,7 @@ final readonly class NotesTrashSource implements TrashSourceInterface
         return new TrashSummary(
             key: 'notes_markdown',
             labelKey: 'backend.nav.notes_markdown',
+            sectionId: 'notes',
             icon: 'notebook-pen',
             count: count($roots),
             items: array_map($this->present(...), array_slice($roots, 0, $limit)),
@@ -57,6 +58,7 @@ final readonly class NotesTrashSource implements TrashSourceInterface
             forceDeleteRoute: 'backend_notes_markdown_force_delete',
             emptyTrashRoute: 'backend_notes_markdown_empty_trash',
             actionPrivilege: 'notes.markdown.use',
+            listRoute: 'backend_notes_markdown',
         );
     }
 
