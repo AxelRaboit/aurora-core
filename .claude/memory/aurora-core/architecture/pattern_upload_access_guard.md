@@ -38,7 +38,25 @@ sous `var/uploads` à n'importe qui. Conséquences mesurées le 13/09/2026 :
    laisserait les variants ouverts, c'est-à-dire une copie lisible de chaque
    image retenue. `DocumentRepository::findStatusForPath()` couvre les trois
    formes, les variants par dérivation du chemin source.
-5. **Le générateur d'URL doit suivre.** Un générateur qui ne reçoit qu'une
+5. **`Anonymous` n'est cachable que grâce à une opt-out explicite.** Le
+   `SessionListener` de Symfony réécrit `Cache-Control` à la fin de toute
+   requête qui *lit* la session - la condition est `getUsageIndex() !== 0`,
+   **pas** `isStarted()` - et ici `LocaleSubscriber` la lit à chaque requête
+   pour choisir la langue. Pire, le listener calcule
+   `$maxAge = hasCacheControlDirective('public') ? 0 : getMaxAge()` : déclarer
+   la réponse publique est précisément ce qui ramène le cache à zéro.
+   `BinaryFileServer::servePublic()` pose donc
+   `AbstractSessionListener::NO_AUTO_CACHE_CONTROL_HEADER`, l'échappatoire que
+   Symfony documente pour ce cas ; Symfony la retire avant l'envoi. Mesuré en
+   prod le 13/09/2026 : chaque image publique repartait en
+   `max-age=0, must-revalidate, private`. Ne jamais poser cette opt-out sur
+   `serve()`, dont les appelants sont gatés.
+
+   À noter : `_stateless` sur la route **ne corrige rien**. Dans le listener,
+   le `return` lié à `_stateless` est *après* le bloc de cache ; il ne fait
+   que lever une exception en debug ou logger un avertissement.
+
+6. **Le générateur d'URL doit suivre.** Un générateur qui ne reçoit qu'une
    clé ne sait produire que l'adresse publique ; pour une entité à statut il
    faut voir l'entité (`DocumentUrlGenerator::routeFor()`). Sinon l'URL se
    construit sans erreur et répond 404 en production.

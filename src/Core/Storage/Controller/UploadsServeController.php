@@ -21,6 +21,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\EventListener\AbstractSessionListener;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
@@ -183,10 +184,17 @@ final class UploadsServeController extends AbstractController
         if (UploadAccessEnum::Restricted === $access) {
             // One visitor's copy. A proxy that kept this would be answering
             // the next request itself, with the bytes of a file the decider
-            // was never asked about.
+            // was never asked about. The session listener's own downgrade
+            // lands on the same answer, so nothing opts out of it here.
             $response->setPrivate();
             $response->setMaxAge(3600);
         } else {
+            // Same opt-out as BinaryFileServer::servePublic(), for the same
+            // reason: without it the session listener rewrites all of this
+            // into `max-age=0, must-revalidate, private` at the end of the
+            // request, because something upstream read the session. See that
+            // method for the measurement.
+            $response->headers->set(AbstractSessionListener::NO_AUTO_CACHE_CONTROL_HEADER, 'true');
             $response->setPublic();
             $response->setMaxAge(86400);
             $response->headers->addCacheControlDirective('immutable');
