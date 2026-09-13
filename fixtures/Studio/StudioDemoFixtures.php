@@ -6,8 +6,10 @@ namespace Aurora\Fixtures\Studio;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Fixtures\Core\AppFixtures;
+use Aurora\Fixtures\Ged\GedDemoFixtures;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Studio\Contract\Dto\ContractInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateVersionInput;
@@ -31,6 +33,7 @@ use Aurora\Module\Studio\Deck\Entity\DeckCategory;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
+use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -76,8 +79,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * invented one is the only honest choice in a public repository.
      */
     private const array PROVIDER = [
-        'studio_provider_name' => 'Studio Aurora (demonstration)',
-        'studio_provider_representative' => 'Camille Vasseur, gerante',
+        'studio_provider_name' => 'Studio Aurora (démonstration)',
+        'studio_provider_representative' => 'Camille Vasseur, gérante',
         'studio_provider_address' => '12 rue des Fabriques, 69000 Lyon',
         'studio_provider_siret' => '83787330207491',
         'studio_provider_ape_code' => '62.01Z (programmation informatique)',
@@ -87,7 +90,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         'studio_provider_bank_holder' => 'Studio Aurora',
         'studio_provider_bank_iban' => 'FR7630001007941234567890185',
         'studio_provider_bank_bic' => 'DEMOFRPP',
-        'studio_provider_bank_name' => 'Banque de demonstration',
+        'studio_provider_bank_name' => 'Banque de démonstration',
     ];
 
     public function __construct(
@@ -98,6 +101,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly ContractManagerInterface $contracts,
         private readonly ContractRepository $contractRepository,
         private readonly DeckManager $decks,
+        private readonly DeckRepository $deckRepository,
         private readonly SettingRepository $settings,
         private readonly EntityManagerInterface $entityManager,
     ) {}
@@ -109,7 +113,10 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
 
     public function getDependencies(): array
     {
-        return [AppFixtures::class];
+        // The GED fixtures, for the two slides that carry a picture: a
+        // full-page image points at a document in the library rather than
+        // carrying a file of its own.
+        return [AppFixtures::class, GedDemoFixtures::class];
     }
 
     public function load(ObjectManager $manager): void
@@ -120,10 +127,10 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             legalName: 'Atelier Dupont',
             legalForm: 'SARL',
             siret: '11281704039760',
-            office: '4 place du Marche, 38230 Pont-de-Cheruy',
+            office: '4 place du Marché, 38230 Pont-de-Chéruy',
             firstName: 'Marie',
             lastName: 'Dupont',
-            role: 'Gerante',
+            role: 'Gérante',
             email: 'marie.dupont@aurora.app',
             sector: 'Menuiserie',
             capitalCents: 1_000_000,
@@ -136,7 +143,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             office: '17 avenue de la Gare, 69100 Villeurbanne',
             firstName: 'Jean',
             lastName: 'Martin',
-            role: 'President',
+            role: 'Président',
             email: 'jean.martin@aurora.app',
             sector: 'Archivage',
             capitalCents: 5_000_000,
@@ -175,11 +182,19 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             $this->entityManager->flush();
         }
 
+        // Before the contracts guard below, and not after it: the decks were
+        // seeded at the end of this method and therefore never seeded at all
+        // on an instance that already had contracts, which is every instance
+        // where `make demo` had been run once.
+        $this->seedDecks($marie);
+
         // Nothing below is built if the instance already has contracts. The
         // seal mints a reference from a yearly sequence, so a second run would
         // not collide - it would just quietly double a list that is meant to be
         // read, which is worse.
         if (0 !== $this->contractRepository->count([])) {
+            $this->entityManager->flush();
+
             return;
         }
 
@@ -212,8 +227,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         //    design: the parent is untouched and this document says what it
         //    changes.
         $amendment = $this->amendment($concluded, $amendmentTrame, 490_00, '+1 month', [
-            'avenant_objet' => 'Passage de la formule Essentiel a la formule Suivi',
-            'avenant_duree' => 'Jusqu au terme du contrat initial',
+            'avenant_objet' => 'Passage de la formule Essentiel à la formule Suivi',
+            'avenant_duree' => "Jusqu'au terme du contrat initial",
         ]);
 
         $this->seal($amendment, ContractStatusEnum::Countersigned);
@@ -246,74 +261,185 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             new DateTimeImmutable('now'),
             new DateTimeImmutable('+2 months'),
             ContractTerminationOriginEnum::Customer,
-            'Fin de la mission, arret a l echeance annuelle.',
+            "Fin de la mission, arrêt à l'échéance annuelle.",
         );
-
-        $this->seedDecks($marie);
 
         $this->entityManager->flush();
     }
 
     /**
-     * Two decks, which is what it takes to show what the module is for.
+     * Two decks: one written to be looked at, one written to be duplicated.
      *
-     * One addressed to a customer and one addressed to nobody, because the
-     * nullable customer is the decision worth seeing on screen: a deck written
-     * for oneself is the ordinary internal case, not a degraded one.
+     * The first is a real talk, in the sense that it has a beginning, a claim
+     * and an end - twelve slides that could be given to a client without
+     * anybody apologising for the demo. That is what the module's screenshots
+     * need: a deck built to fill a page shows the editor, not the thing the
+     * editor is for.
      *
-     * Between them they use every layout, so the editor's six shapes can be
-     * looked at without anybody having to build them first.
+     * The second stays four slides on purpose. A trame is a skeleton somebody
+     * duplicates and fills, and dressing it up would hide what it is.
+     *
+     * Between them they use every layout, images included: the full-page
+     * picture reads nothing from the deck itself, it points at a document in
+     * the library, so the two slides that carry one pull it by reference from
+     * the GED fixtures rather than inventing a file of their own.
      */
     private function seedDecks(CustomerInterface $customer): void
     {
+        // Built once, like the contracts above. Nothing here is looked up
+        // before it is created - a deck has no natural key to look it up by -
+        // so a second run would silently double a list meant to be read.
+        if (0 !== $this->deckRepository->count([])) {
+            return;
+        }
+
         $audit = new DeckCategory();
         $audit->setName('Audit')->setColor('#f59e0b')->setPosition(0);
 
         $strategy = new DeckCategory();
-        $strategy->setName('Strategie')->setColor('#6366f1')->setPosition(1);
+        $strategy->setName('Stratégie')->setColor('#6366f1')->setPosition(1);
 
         $this->entityManager->persist($audit);
         $this->entityManager->persist($strategy);
 
-        $first = $this->decks->create('Audit du site, septembre');
-        $first->setDescription('Ce que le site fait mal, et dans quel ordre le reprendre.');
-        $first->setCategory($audit);
-        $first->setCustomer($customer);
+        $this->seedAuditDeck($customer, $audit);
+        $this->seedStrategyTemplate($strategy);
+    }
 
-        $this->slide($first, SlideLayoutEnum::Title, [
+    /**
+     * The deck that gets shown: an audit, from the complaint to the quote.
+     *
+     * Ordered the way the conversation actually goes. The client says the site
+     * is slow, so the numbers come before the causes, the causes before the
+     * plan, and the plan before what it costs. The quote at the end is the
+     * sentence that lets somebody decide, which is what a deck is for.
+     */
+    private function seedAuditDeck(CustomerInterface $customer, DeckCategory $category): void
+    {
+        $deck = $this->decks->create('Audit du site, septembre');
+        $deck->setDescription('Ce que le site fait mal, ce que ça coûte, et dans quel ordre le reprendre.');
+        $deck->setCategory($category);
+        $deck->setCustomer($customer);
+
+        $this->slide($deck, SlideLayoutEnum::Title, [
             'title' => 'Audit du site',
             'subtitle' => 'Atelier Dupont, septembre 2026',
-        ], 'Remercier pour l acces aux statistiques.');
+        ], "Remercier pour l'accès aux statistiques. Annoncer vingt minutes, questions comprises.");
 
-        $this->slide($first, SlideLayoutEnum::Bullets, [
-            'title' => 'Ce qui bloque',
+        $this->slide($deck, SlideLayoutEnum::Section, [
+            'title' => 'Ce que disent les chiffres',
+        ], null);
+
+        $this->slide($deck, SlideLayoutEnum::Bullets, [
+            'title' => 'Trois mesures, prises sur mobile',
             'bullets' => [
-                'Le temps de reponse depasse trois secondes sur mobile',
-                'Les images pesent quatre fois ce qu elles devraient',
-                'Aucune page n a de description pour les moteurs',
+                '3,4 secondes avant que la première image apparaisse',
+                "54 % des visiteurs repartent avant d'avoir vu quoi que ce soit",
+                '4,2 Mo chargés pour une page qui en montre 300 Ko',
             ],
-        ], null);
+        ], 'Insister sur la deuxième ligne : le reste en découle.');
 
-        $this->slide($first, SlideLayoutEnum::Split, [
-            'title' => 'Avant, apres',
-            'left' => 'Trois secondes de chargement, un visiteur sur deux qui repart avant la premiere image.',
-            'right' => 'Moins d une seconde, et les images servies a la taille reellement affichee.',
-        ], null);
+        // La photo de la médiathèque de démonstration, légendée pour ce
+        // qu'elle est réellement : une image de bannière. Une légende qui
+        // promettrait une capture d'écran mentirait sur la seule chose que
+        // cette slide montre.
+        $this->slide($deck, SlideLayoutEnum::Image, [
+            'mediaId' => $this->mediaId(1),
+            'caption' => "La bannière d'accueil : 1,4 Mo servis pour 180 Ko réellement affichés",
+        ], "Laisser l'image dix secondes avant de commenter.");
 
-        $this->slide($first, SlideLayoutEnum::Quote, [
-            'quote' => 'On ne repare pas un site lent, on arrete de le ralentir.',
-            'attribution' => 'La seule regle de cet audit',
+        $this->slide($deck, SlideLayoutEnum::Quote, [
+            'quote' => 'On ne répare pas un site lent, on arrête de le ralentir.',
+            'attribution' => 'La seule règle de cet audit',
         ], 'Marquer un temps ici.');
 
-        $second = $this->decks->create('Trame de strategie annuelle');
-        $second->setDescription('La forme que prend une revue de fin d annee. A dupliquer par client.');
-        $second->setCategory($strategy);
+        $this->slide($deck, SlideLayoutEnum::Section, [
+            'title' => "D'où ça vient",
+        ], null);
 
-        $this->slide($second, SlideLayoutEnum::Section, ['title' => 'Ou en est-on'], null);
+        $this->slide($deck, SlideLayoutEnum::Bullets, [
+            'title' => 'Trois causes, dans cet ordre',
+            'bullets' => [
+                "Les images partent à leur taille d'origine, quelle que soit la place où elles s'affichent",
+                'Six polices sont chargées, deux sont utilisées',
+                'Chaque page rappelle la base quarante fois pour afficher le menu',
+            ],
+        ], "Ne pas s'excuser : ce sont des réglages, pas des fautes.");
 
-        $this->slide($second, SlideLayoutEnum::Image, [
-            'caption' => 'La courbe de frequentation sur douze mois',
-        ], 'Laisser la courbe parler dix secondes avant de commenter.');
+        $this->slide($deck, SlideLayoutEnum::Split, [
+            'title' => 'Avant, après',
+            'left' => '3,4 secondes de chargement, un visiteur sur deux qui repart avant la première image, et un référencement qui plafonne parce que Google mesure la même chose que lui.',
+            'right' => "Moins d'une seconde, les images servies à la taille réellement affichée, et le menu calculé une fois pour toutes au lieu de quarante requêtes par page.",
+        ], 'Les deux colonnes se lisent en parallèle : laisser le temps.');
+
+        $this->slide($deck, SlideLayoutEnum::Section, [
+            'title' => 'Ce que je propose',
+        ], null);
+
+        $this->slide($deck, SlideLayoutEnum::Bullets, [
+            'title' => 'Trois semaines, trois chantiers',
+            'bullets' => [
+                'Semaine 1 : les images, qui à elles seules rendent deux secondes',
+                'Semaine 2 : les polices et le menu, moins spectaculaire, plus durable',
+                'Semaine 3 : les mesures refaites, et la page qui les affiche',
+            ],
+        ], "Dire que la semaine 3 n'est pas négociable : sans mesure, rien ne prouve que ça a marché.");
+
+        $this->slide($deck, SlideLayoutEnum::Quote, [
+            'quote' => "Trois semaines pour passer de 3,4 secondes à moins d'une. Le reste du site n'y touche pas.",
+            'attribution' => "Ce qu'il faut retenir",
+        ], 'Fin. Laisser venir les questions sans enchaîner.');
+    }
+
+    /**
+     * The other kind of deck: a skeleton, addressed to nobody.
+     *
+     * Deliberately short and deliberately vague, because it exists to be
+     * duplicated per client rather than presented as it stands. The nullable
+     * customer is the decision worth seeing on screen: a deck written for
+     * oneself is the ordinary internal case, not a degraded one.
+     */
+    private function seedStrategyTemplate(DeckCategory $category): void
+    {
+        $deck = $this->decks->create('Trame de stratégie annuelle');
+        $deck->setDescription("La forme que prend une revue de fin d'année. À dupliquer par client, puis à remplir.");
+        $deck->setCategory($category);
+
+        $this->slide($deck, SlideLayoutEnum::Title, [
+            'title' => 'Revue annuelle',
+            'subtitle' => '{client}, {année}',
+        ], 'Remplacer les deux mentions avant de présenter.');
+
+        $this->slide($deck, SlideLayoutEnum::Section, [
+            'title' => 'Où en est-on',
+        ], null);
+
+        $this->slide($deck, SlideLayoutEnum::Split, [
+            'title' => "L'année écoulée",
+            'left' => 'Ce qui était prévu.',
+            'right' => "Ce qui a été fait, et ce qui ne l'a pas été.",
+        ], "La colonne de droite d'abord : c'est celle qu'on attend.");
+
+        $this->slide($deck, SlideLayoutEnum::Bullets, [
+            'title' => "L'année qui vient",
+            'bullets' => [
+                'Trois priorités, pas plus',
+                'Ce que chacune demande, en semaines',
+                'Ce qui est abandonné, et pourquoi',
+            ],
+        ], null);
+    }
+
+    /**
+     * The id of a demo picture from the media library.
+     *
+     * By reference rather than by a hardcoded id: the fixtures run in whatever
+     * order the loader chooses, and a number written here would point at
+     * whatever happened to be created first.
+     */
+    private function mediaId(int $index): int
+    {
+        return (int) $this->getReference(GedDemoFixtures::mediaRef($index), Document::class)->getId();
     }
 
     /** @param array<string, mixed> $content */
@@ -502,7 +628,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             ->setDeclaredFirstName(ContractSignatureRoleEnum::Provider === $role ? 'Camille' : (string) $customer->getRepresentativeFirstName())
             ->setDeclaredLastName(ContractSignatureRoleEnum::Provider === $role ? 'Vasseur' : (string) $customer->getRepresentativeLastName())
             ->setDeclaredEmail(ContractSignatureRoleEnum::Provider === $role ? 'contact@studio-aurora.test' : $customer->getContractualEmail())
-            ->setDeclaredPlace(ContractSignatureRoleEnum::Provider === $role ? 'Lyon' : 'Pont-de-Cheruy')
+            ->setDeclaredPlace(ContractSignatureRoleEnum::Provider === $role ? 'Lyon' : 'Pont-de-Chéruy')
             ->setDeclaredDate(new DateTimeImmutable($signedAt))
             ->setSignedAt(new DateTimeImmutable($signedAt))
             ->setSignedContentHash((string) $contract->getContentHash())
@@ -521,16 +647,16 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     {
         return [
             $this->header('Objet du contrat'),
-            $this->paragraph('Le present contrat definit les conditions dans lesquelles {{provider.name}}, representee par {{provider.representative}}, assure pour {{customer.legal_name}} une prestation de suivi mensuel de son site internet.'),
+            $this->paragraph('Le présent contrat définit les conditions dans lesquelles {{provider.name}}, représentée par {{provider.representative}}, assure pour {{customer.legal_name}} une prestation de suivi mensuel de son site internet.'),
             $this->header('Les parties'),
             $this->paragraph('Le prestataire : {{provider.name}}, {{provider.address}}, SIRET {{provider.siret}}, code APE {{provider.ape_code}}. {{provider.vat_mention}}.'),
-            $this->paragraph('Le client : {{customer.legal_name}}, {{customer.legal_form}} au capital de {{customer.share_capital}}, dont le siege est {{customer.registered_office}}, SIRET {{customer.siret}}, representee par {{customer.representative_full_name}} en qualite de {{customer.representative_role}}.'),
-            $this->header('Duree et formule'),
-            $this->paragraph('La formule retenue est la formule {{contract.custom.formule}}, pour une duree de {{contract.custom.duree}} a compter du {{contract.effective_date}}.'),
+            $this->paragraph('Le client : {{customer.legal_name}}, {{customer.legal_form}} au capital de {{customer.share_capital}}, dont le siège est {{customer.registered_office}}, SIRET {{customer.siret}}, représentée par {{customer.representative_full_name}} en qualité de {{customer.representative_role}}.'),
+            $this->header('Durée et formule'),
+            $this->paragraph('La formule retenue est la formule {{contract.custom.formule}}, pour une durée de {{contract.custom.duree}} à compter du {{contract.effective_date}}.'),
             $this->header('Prix'),
-            $this->paragraph('La prestation est facturee {{contract.amount}} par mois, payable a reception de facture par virement sur le compte {{provider.bank_iban}} ouvert au nom de {{provider.bank_holder}} chez {{provider.bank_name}}.'),
+            $this->paragraph('La prestation est facturée {{contract.amount}} par mois, payable à réception de facture par virement sur le compte {{provider.bank_iban}} ouvert au nom de {{provider.bank_holder}} chez {{provider.bank_name}}.'),
             $this->header('Signature'),
-            $this->paragraph('Fait a {{contract.signature_city}}, le {{contract.signature_date}}, en un exemplaire electronique valant original.'),
+            $this->paragraph('Fait à {{contract.signature_city}}, le {{contract.signature_date}}, en un exemplaire électronique valant original.'),
         ];
     }
 
@@ -539,14 +665,14 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     {
         return [
             $this->header('Annexe - contenu de la formule {{contract.custom.formule}}'),
-            $this->paragraph('La presente annexe fait partie integrante du contrat de reference {{contract.reference}} conclu avec {{customer.legal_name}}.'),
+            $this->paragraph('La présente annexe fait partie intégrante du contrat de référence {{contract.reference}} conclu avec {{customer.legal_name}}.'),
             $this->list([
-                'Mises a jour de securite du socle et des dependances, une fois par mois.',
-                'Sauvegarde quotidienne, avec verification de restauration une fois par trimestre.',
-                'Deux heures d evolutions incluses par mois, non reportables.',
-                'Reponse aux demandes sous un jour ouvre.',
+                'Mises à jour de sécurité du socle et des dépendances, une fois par mois.',
+                'Sauvegarde quotidienne, avec vérification de restauration une fois par trimestre.',
+                "Deux heures d'évolutions incluses par mois, non reportables.",
+                'Réponse aux demandes sous un jour ouvré.',
             ]),
-            $this->paragraph('Toute prestation hors annexe fait l objet d un devis distinct.'),
+            $this->paragraph("Toute prestation hors annexe fait l'objet d'un devis distinct."),
         ];
     }
 
@@ -555,11 +681,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     {
         return [
             $this->header('Objet'),
-            $this->paragraph('{{provider.name}} realise pour {{customer.legal_name}} la prestation ponctuelle decrite ci-dessous, sans engagement de duree.'),
-            $this->header('Prix et reglement'),
-            $this->paragraph('Le montant est de {{contract.amount}}, dont un acompte de {{contract.custom.acompte}} a la commande.'),
+            $this->paragraph('{{provider.name}} réalise pour {{customer.legal_name}} la prestation ponctuelle décrite ci-dessous, sans engagement de durée.'),
+            $this->header('Prix et règlement'),
+            $this->paragraph('Le montant est de {{contract.amount}}, dont un acompte de {{contract.custom.acompte}} à la commande.'),
             $this->header('Signature'),
-            $this->paragraph('Fait a {{contract.signature_city}}, le {{contract.signature_date}}.'),
+            $this->paragraph('Fait à {{contract.signature_city}}, le {{contract.signature_date}}.'),
         ];
     }
 
@@ -567,16 +693,16 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     private function amendmentBody(): array
     {
         return [
-            $this->header('Avenant n {{contract.amends_rank}} au contrat {{contract.amends_reference}}'),
-            $this->paragraph('Le present avenant modifie le contrat {{contract.amends_reference}} conclu le {{contract.amends_effective_date}} entre {{provider.name}} et {{customer.legal_name}}. Toutes les clauses du contrat initial non modifiees ci-dessous demeurent applicables.'),
-            $this->header('Objet de l avenant'),
+            $this->header('Avenant n° {{contract.amends_rank}} au contrat {{contract.amends_reference}}'),
+            $this->paragraph('Le présent avenant modifie le contrat {{contract.amends_reference}} conclu le {{contract.amends_effective_date}} entre {{provider.name}} et {{customer.legal_name}}. Toutes les clauses du contrat initial non modifiées ci-dessous demeurent applicables.'),
+            $this->header("Objet de l'avenant"),
             $this->paragraph('{{contract.custom.avenant_objet}}'),
-            $this->header('Prise d effet et duree'),
-            $this->paragraph('Le present avenant prend effet le {{contract.effective_date}} et s applique {{contract.custom.avenant_duree}}.'),
+            $this->header("Prise d'effet et durée"),
+            $this->paragraph("Le présent avenant prend effet le {{contract.effective_date}} et s'applique {{contract.custom.avenant_duree}}."),
             $this->header('Prix'),
-            $this->paragraph('Le montant de la prestation est porte a {{contract.amount}}.'),
+            $this->paragraph('Le montant de la prestation est porté à {{contract.amount}}.'),
             $this->header('Signature'),
-            $this->paragraph('Fait a {{contract.signature_city}}, le {{contract.signature_date}}.'),
+            $this->paragraph('Fait à {{contract.signature_city}}, le {{contract.signature_date}}.'),
         ];
     }
 

@@ -5,6 +5,44 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.156] - 2026-09-13
+
+### Corrigé
+
+#### La médiathèque de démonstration montrait des images inventées
+Les quatre photos livrées avec le dépôt n'ont jamais été copiées : la fixture
+les cherchait deux niveaux au-dessus du projet, ne trouvait rien, et dessinait
+un dégradé à la place. Sur toutes les machines, depuis que le dossier est
+livré avec le dépôt. Le test voisin, écrit précisément pour attraper ce genre
+de dérive, vérifie que les fichiers nommés existent, et il résout la racine
+correctement : il passait pendant que la fixture lisait ailleurs.
+
+Le logo et le favicon de démonstration pointent désormais sur un dégradé
+plutôt que sur une des photos : un logo est une marque, et un drapeau dans le
+coin de chaque écran du manuel se lit comme l'identité du produit.
+
+#### La documentation décrivait une corbeille qui n'existe plus
+La centralisation livrée en 0.9.155 a retiré l'onglet Corbeille des
+publications ; le manuel l'expliquait encore en cinq étapes, et la capture qui
+l'illustrait échouait à se reprendre. La page a déménagé dans **Général**, où
+vit maintenant la corbeille, et dit ce qu'elle fait vraiment : supprimer depuis
+l'écran où l'on travaille, restaurer depuis un seul endroit.
+
+### Modifié
+
+#### Une présentation de démonstration qu'on peut montrer
+Deux decks existaient, six slides en tout, sans accents et avec une slide image
+sans image. Le premier est maintenant un vrai exposé de onze slides, avec un
+début, une thèse et une fin, et la slide image porte une photo de la
+médiathèque. Le second reste court : c'est une trame à dupliquer, et l'habiller
+cacherait ce qu'elle est.
+
+Les decks étaient aussi semés après le garde qui arrête la fixture quand des
+contrats existent, donc jamais semés sur une instance qui avait déjà tourné une
+fois. Ils le sont avant, et une seconde fois ne les double plus.
+
+---
+
 ## [0.9.155] - 2026-09-13
 
 ### Modifié

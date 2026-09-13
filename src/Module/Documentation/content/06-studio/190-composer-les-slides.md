@@ -26,6 +26,10 @@ Les six boutons en bas de la colonne ajoutent une slide à la fin, dans le gabar
 - **Citation** : une phrase et son attribution.
 - **Intercalaire** : un titre seul, qui annonce ce qui suit.
 
+![Une slide « image pleine page », en présentation](../../images/06-studio/presenter-un-deck-02-une-image-pleine-page.png)
+
+L'image d'une slide n'est pas déposée dans la slide : elle est **choisie dans la médiathèque**. La slide retient l'identifiant du document, pas son adresse, ce qui veut dire que remplacer le fichier dans la médiathèque met la présentation à jour sans y toucher.
+
 Le gabarit d'une slide **peut changer après coup**. Une slide écrite en puces veut souvent devenir un intercalaire une fois que la présentation a pris forme. Les champs que le nouveau gabarit ne porte pas disparaissent alors.
 
 ![Le formulaire d'une slide à puces](../../images/06-studio/composer-les-slides-03-le-formulaire.png)

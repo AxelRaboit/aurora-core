@@ -24,7 +24,7 @@ Les compteurs sont regroupés par module, et un module éteint n'a pas d'onglet.
 
 ## Ce que « à la corbeille » recouvre
 
-Uniquement les publications. Un document supprimé de la médiathèque l'est pour de bon, un événement aussi : la corbeille est une fonction de l'éditorial, pas de l'application. Le compteur est donc un rappel qu'il reste des pages à restaurer ou à effacer définitivement, et rien d'autre.
+Uniquement les publications : c'est un compteur de l'onglet Éditorial, pas de l'application. Ce qui a été supprimé partout ailleurs se lit sur l'écran **Corbeille**, qui rassemble les cinq corbeilles et dit ce qu'il reste de temps à chacune.
 
 ## Ce qui n'y est pas
 
