@@ -55,16 +55,16 @@ bord compte cette part à son tour.
 
 #### Les cartes des contrats en préparation avaient le même plancher que celles des trames
 Le défaut corrigé sur la liste des trames en 0.9.168 se trouvait aussi sur la
-liste des contrats, au même endroit : la grille de cartes ne déclarait ses
-colonnes qu'à partir des écrans moyens, si bien que sur un téléphone la colonne
-se dimensionnait sur le contenu des cartes plutôt que sur la place disponible.
+liste des contrats, au même endroit : sur un téléphone, la colonne unique se
+dimensionnait sur le contenu des cartes plutôt que sur la place disponible. Le
+plancher est levé de la même façon que chez la voisine, pour que les deux
+listes se corrigent et se relisent pareil.
 
 Rien ne débordait encore, faute d'un texte assez long dans ces cartes. Mais un
 nom de client d'un seul tenant suffisait à élargir la colonne, et le jour où
 cela arrive ce ne sont pas une carte mais toutes les cartes de la liste qui
-sortent de la page ensemble. Le plancher est levé des deux côtés, la grille des
-contrats étant la voisine immédiate de celle des trames : corriger l'une et
-laisser l'autre revenait à attendre le prochain nom trop long.
+sortent de la page ensemble. Corriger une liste et laisser sa voisine revenait
+à attendre le prochain nom trop long.
 
 ### Dans aurora-client
 Rien à répercuter : les nouveaux types apparaissent d'eux-mêmes dans le menu de

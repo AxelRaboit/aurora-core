@@ -279,11 +279,19 @@ function sealedRowActions(contract) {
             <h2 class="text-xs font-medium uppercase tracking-wider text-muted">
                 {{ t("backend.studio.contracts.in_preparation") }}
             </h2>
-            <div v-if="viewMode === 'grid'" class="grid gap-3 grid-cols-1 md:grid-cols-2">
+            <div v-if="viewMode === 'grid'" class="grid gap-3 md:grid-cols-2">
+                <!-- `min-w-0` for the same reason as on the trames cards next
+                     door: a grid item is `min-width: auto`, so the single
+                     column below `md` sizes itself on the card's minimum
+                     content width rather than on the space there is. Nothing
+                     overflowed here yet, no text in this card being long
+                     enough, but a customer name in one piece would widen the
+                     track - and a widened track hangs every card in the list
+                     past the right edge, not just the one at fault. -->
                 <article
                     v-for="contract in drafts"
                     :key="contract.id"
-                    class="bg-surface border border-line rounded-lg p-4 space-y-3"
+                    class="bg-surface border border-line rounded-lg p-4 space-y-3 min-w-0"
                 >
                     <div class="space-y-1">
                         <h3 class="font-medium text-primary">
