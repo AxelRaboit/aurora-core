@@ -11,9 +11,9 @@ Au scellement, ce bloc d'identité est **recopié dans le contrat**. C'est la co
 
 ## 1. Ouvrir la liste des clients
 
-Studio → Clients. La recherche porte sur la raison sociale, le SIRET et le représentant. Le bouton « Ajouter un client » est en haut à droite.
+Studio → Clients. La recherche porte sur la raison sociale, le SIRET et le représentant. « Ajouter un client » est dans le menu « Actions », en haut à droite.
 
-![La liste des clients, avec le bouton Ajouter un client](../../images/06-studio/fiche-client-01-la-liste.png)
+![La liste des clients, avec son menu Actions](../../images/06-studio/fiche-client-01-la-liste.png)
 
 ## 2. La fenêtre s'ouvre en trois blocs
 
