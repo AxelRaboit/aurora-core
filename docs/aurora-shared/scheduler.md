@@ -104,6 +104,7 @@ Lance toutes les heures. Couvre :
 |---|---|---|
 | `PublishScheduledPostsMessage` | Chaque minute | Publie les posts avec `scheduledAt` passé |
 | `PurgeTrashedPostsMessage` | 3h du matin | Supprime les posts dans la corbeille depuis N jours (paramètre admin) |
+| `PurgeFormSubmissionsMessage` | 3h du matin | Efface les soumissions de formulaire passé la durée de conservation (paramètre admin, 0 = sans limite) |
 | `CleanTempFilesMessage` | Toutes les heures (H:00) | Nettoie les fichiers temporaires orphelins (voir tableau ci-dessus) |
 | `RecoverStuckOcrJobsMessage` | Toutes les heures (H:30) | Marque comme `failed` les jobs OCR bloqués en `extracting`/`parsing` depuis > 60 min |
 
