@@ -22,6 +22,12 @@ framework:
             # browser should not be made to wait on a bucket.
             Aurora\Module\Ged\Document\Message\RelocateDocumentMessage: async
 
+            # The mails and the webhook a form submission causes. Queued so an
+            # unreachable mail server answers the worker, not the visitor -
+            # who would otherwise be told their message failed after it was
+            # stored, and would write it again.
+            Aurora\Module\Editorial\Form\Message\DeliverFormSubmissionMessage: async
+
         # Modules used to declare their own routing from their bundle's
         # prependExtension, back when each shipped as a separate package. The
         # split was abandoned, so routing for this monorepo's modules is

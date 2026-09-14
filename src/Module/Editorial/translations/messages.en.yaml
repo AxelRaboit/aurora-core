@@ -1124,5 +1124,7 @@ editorial:
       subject_confirmation: 'Your message: {form}'
       admin_heading: New submission
       admin_intro: 'The "{form}" form has just been filled in.'
+      admin_language: Language
+      cta_open: Open in the back office
       confirmation_heading: Message received
       confirmation_intro: 'Thanks, we have received the message you sent through "{form}".'

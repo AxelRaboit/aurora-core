@@ -134,8 +134,13 @@ final class FormCaptchaTest extends IntegrationTestCase
         $form->setActive(true);
         $form->translate('fr')->setTitle('Contact')->setSlug('contact-'.$suffix);
 
+        // addField, not setForm alone: the collection carries orphanRemoval, so
+        // a field attached only from its own side is removed again by the same
+        // flush - and the form this test submits to would have no questions at
+        // all, which accepts anything and proves nothing.
         $field = new FormField();
-        $field->setForm($form)->setType(FormFieldTypeEnum::Text)->setRequired(true)->setPosition(0);
+        $form->addField($field);
+        $field->setType(FormFieldTypeEnum::Text)->setRequired(true)->setPosition(0);
         $field->translate('fr')->setLabel('Message');
 
         $this->entityManager->persist($form);

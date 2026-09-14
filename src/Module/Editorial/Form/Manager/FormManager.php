@@ -21,12 +21,12 @@ use Aurora\Module\Editorial\Form\Entity\FormSubmissionInterface;
 use Aurora\Module\Editorial\Form\Entity\FormTranslationInterface;
 use Aurora\Module\Editorial\Form\Enum\FormFieldTypeEnum;
 use Aurora\Module\Editorial\Form\Event\FormSubmissionCreatedEvent;
+use Aurora\Module\Editorial\Form\Message\DeliverFormSubmissionMessage;
 use Aurora\Module\Editorial\Form\Repository\FormTranslationRepository;
-use Aurora\Module\Editorial\Form\Service\FormNotificationService;
-use Aurora\Module\Editorial\Form\Service\FormWebhookService;
 use Aurora\Module\Editorial\Setting\EditorialSettingEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -39,8 +39,7 @@ class FormManager implements FormManagerInterface
         protected readonly FormTranslationRepository $translationRepository,
         protected readonly TranslatorInterface $translator,
         protected readonly SluggerInterface $slugger,
-        protected readonly FormNotificationService $notificationService,
-        protected readonly FormWebhookService $webhookService,
+        protected readonly MessageBusInterface $messageBus,
         protected readonly SequenceGenerator $sequenceGenerator,
         protected readonly SettingRepository $settingRepository,
         protected readonly EventDispatcherInterface $eventDispatcher,
@@ -175,11 +174,17 @@ class FormManager implements FormManagerInterface
     }
 
     /**
-     * Stores the submission, then tells everyone who asked to be told.
+     * Stores the submission, then queues everything it causes.
      *
      * The order matters: the submission is committed before any of the
-     * outbound work, so a mail server that is down or a webhook that hangs
-     * cannot cost the visitor what they typed.
+     * outbound work is even queued, so a mail server that is down or a
+     * webhook that hangs cannot cost the visitor what they typed - nor, since
+     * that work moved to a worker, answer them with an error for a message
+     * that was in fact recorded.
+     *
+     * The contact signal stays inline. It is an in-process event a CRM listens
+     * to, not a call out of the application, and a listener that writes a row
+     * belongs in the same transaction as the submission it describes.
      */
     public function submit(FormInterface $form, array $answers, string $locale, ?string $ip): FormSubmissionInterface
     {
@@ -197,13 +202,10 @@ class FormManager implements FormManagerInterface
         ));
         $this->entityManager->flush();
 
-        $this->notificationService->notifyAdmin($form, $submission, $locale);
-        $this->notificationService->notifySubmitter($form, $submission, $locale);
-
         $this->eventDispatcher->dispatch(new FormSubmissionCreatedEvent($form, $submission));
         $this->signalContact($form, $submission);
 
-        $this->webhookService->send($form, $submission, $locale);
+        $this->messageBus->dispatch(new DeliverFormSubmissionMessage((int) $submission->getId()));
 
         return $submission;
     }
