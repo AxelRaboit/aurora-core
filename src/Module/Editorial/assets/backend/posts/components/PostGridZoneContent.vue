@@ -317,6 +317,28 @@ const displayHint = computed(() =>
             </div>
         </template>
 
+        <template v-else-if="zone.type === 'embed'">
+            <p class="text-xs text-muted">{{ t("backend.posts.grid.embed_providers") }}</p>
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <!-- Translated, like a video address: a booking page and a
+                     podcast episode both have a language. -->
+                <AppInput
+                    v-model="bound.url.value"
+                    :label="t('backend.posts.grid.zone_embed')"
+                    :hint="t('backend.posts.grid.zone_embed_hint')"
+                    placeholder="https://open.spotify.com/episode/…"
+                />
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
+                />
+            </div>
+        </template>
+
         <template v-else-if="zone.type === 'tabs'">
             <p class="text-xs text-muted">{{ t("backend.posts.grid.tabs_hint") }}</p>
 

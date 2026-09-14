@@ -160,6 +160,43 @@
             <span class="shrink-0 text-accent" aria-hidden="true">&darr;</span>
         </a>
 
+    {% elseif zone.type == 'embed' %}
+        {% if zone.embed %}
+            {# The src is built from what a whitelist pattern captured, never
+               from the string as it arrived - see EmbedResolver. An iframe runs
+               what its host serves, so an author-supplied address is never put
+               here.
+
+               A ratio where the content has one, a height where it does not: a
+               booking form is a column of dates whose height owes nothing to
+               its width, and forcing it into 16:9 gives a scrollbar inside a
+               frame. #}
+            <div
+                class="not-prose overflow-hidden rounded-lg"
+                style="{% if zone.embed.aspect %}aspect-ratio: {{ zone.embed.aspect }};{% else %}height: {{ zone.embed.height }}px;{% endif %}"
+            >
+                <iframe
+                    src="{{ zone.embed.embedUrl }}"
+                    class="h-full w-full border-0"
+                    loading="lazy"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"
+                    allowfullscreen
+                    title="{{ zone.caption ?: zone.embed.provider }}"
+                ></iframe>
+            </div>
+            {% if zone.caption %}
+                <p class="mt-2 text-sm text-secondary not-prose">{{ zone.caption }}</p>
+            {% endif %}
+        {% elseif zone.url %}
+            {# An address no provider claims still reaches the reader, as a
+               link. Showing nothing would look like a fault to the author, who
+               pasted something and saw it accepted. #}
+            <a href="{{ zone.url }}" rel="noopener" class="text-sm underline not-prose">
+                {{ zone.caption ?: zone.url }}
+            </a>
+        {% endif %}
+
     {% elseif zone.type == 'tabs' and zone.tabs.panels is not empty %}
         {# Every panel, open, each under its own heading. That is the zone
            until a script says otherwise, and it is deliberate: a reader

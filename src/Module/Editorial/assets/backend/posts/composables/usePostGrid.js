@@ -7,6 +7,7 @@ import {
     FileDown,
     FileText,
     Film,
+    Frame,
     Image,
     Images,
     Columns2,
@@ -59,6 +60,7 @@ export const LEAF_ZONE_TYPES = [
     "compare",
     "shared",
     "tabs",
+    "embed",
     "search",
     "comments",
     "deck",
@@ -108,6 +110,8 @@ export const ZONE_ICONS = {
     // The same thing, coming round again on another page.
     shared: Recycle,
     // Panels behind one strip of labels.
+    // A frame holding something that lives somewhere else.
+    embed: Frame,
     tabs: LayoutPanelTop,
     search: Search,
     comments: MessageSquare,

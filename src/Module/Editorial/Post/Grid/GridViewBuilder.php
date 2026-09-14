@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Post\Grid;
 
 use Aurora\Core\Content\ContentValueNormalizer;
+use Aurora\Core\Content\EmbedResolver;
 use Aurora\Core\Content\VideoEmbedResolver;
 use Aurora\Core\Storage\Enum\MimeGroupEnum;
 use Aurora\Core\Storage\Enum\MimeTypeEnum;
@@ -62,6 +63,7 @@ final readonly class GridViewBuilder
         private PostRepository $postRepository,
         private BlocksRenderer $blocksRenderer,
         private VideoEmbedResolver $videoEmbedResolver,
+        private EmbedResolver $embedResolver,
         private ThumbnailPresenter $thumbnailPresenter,
         private FormRepository $formRepository,
         private FormSerializer $formSerializer,
@@ -212,7 +214,11 @@ final readonly class GridViewBuilder
                 // no known provider can still offer the link rather than
                 // silently showing nothing. A button reads the same two keys:
                 // it is an address with a word on it.
-                'url' => in_array($zone['type'], [GridNormalizer::ZONE_VIDEO, GridNormalizer::ZONE_BUTTON], true)
+                'url' => in_array($zone['type'], [
+                    GridNormalizer::ZONE_VIDEO,
+                    GridNormalizer::ZONE_BUTTON,
+                    GridNormalizer::ZONE_EMBED,
+                ], true)
                     ? $held['url']
                     : null,
                 // A button with no words is a control nobody can read, and one
@@ -236,6 +242,9 @@ final readonly class GridViewBuilder
                     : null,
                 'postList' => GridNormalizer::ZONE_POST_LIST === $zone['type']
                     ? $this->postListView($zone, $locale, $currentPostId)
+                    : null,
+                'embed' => GridNormalizer::ZONE_EMBED === $zone['type']
+                    ? $this->embedResolver->resolve($held['url'])
                     : null,
                 'tabs' => GridNormalizer::ZONE_TABS === $zone['type']
                     ? $this->tabsView($zone, $held, $locale, $forEditor)

@@ -457,6 +457,7 @@ backend:
         gallery: Galerie
         compare: Avant / après
         shared: Bloc partagé
+        embed: Intégration
         tabs: Onglets
         search: Recherche
         comments: Commentaires
@@ -678,6 +679,9 @@ backend:
       tabs_remove: Retirer ce panneau
       tabs_label: Intitulé de l'onglet
       tabs_label_placeholder: "Formule simple"
+      zone_embed: Adresse à intégrer
+      zone_embed_hint: "Collez l'adresse de la page chez le fournisseur. Une adresse qu'aucun des quatre ne revendique s'affiche en simple lien plutôt que de disparaître."
+      embed_providers: "Quatre fournisseurs reconnus : Spotify, SoundCloud, CodePen et Calendly. Chacun voit passer les visiteurs de la page où vous posez la zone."
       comments_hint: "Rien à régler : le fil est celui de cette publication. Quand cette zone existe, le pied de page ne le dessine plus - une conversation par page, là où vous l'avez mise."
       zone_deck: Présentation
       zone_deck_none: "Choisir une présentation…"

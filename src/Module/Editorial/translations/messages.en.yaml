@@ -457,6 +457,7 @@ backend:
         gallery: Gallery
         compare: Before / after
         shared: Shared block
+        embed: Integration
         tabs: Tabs
         search: Search
         comments: Comments
@@ -678,6 +679,9 @@ backend:
       tabs_remove: Remove this panel
       tabs_label: Tab label
       tabs_label_placeholder: "Basic plan"
+      zone_embed: Address to embed
+      zone_embed_hint: "Paste the address of the page at the provider. An address none of the four claims is shown as a plain link rather than disappearing."
+      embed_providers: "Four providers are recognised: Spotify, SoundCloud, CodePen and Calendly. Each one sees the visitors of the page you put the zone on."
       comments_hint: "Nothing to set: the thread is this publication's. When this zone exists the foot of the page stops drawing it - one conversation per page, where you put it."
       zone_deck: Presentation
       zone_deck_none: "Choose a presentation…"

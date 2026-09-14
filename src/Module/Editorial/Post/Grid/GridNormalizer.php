@@ -156,6 +156,19 @@ final readonly class GridNormalizer
     public const string ZONE_GALLERY = 'gallery';
 
     /**
+     * Something hosted elsewhere, from a named list of providers.
+     *
+     * The clean answer to "I want to paste this thing into my page", which is
+     * the request that HTML brut always arrives behind. A podcast, a booking
+     * form, a code demo: four providers, named in {@see EmbedResolver}, and
+     * nothing else resolves.
+     *
+     * The address is translated, like the video zone's beside it: a booking
+     * page and a podcast episode both have a language.
+     */
+    public const string ZONE_EMBED = 'embed';
+
+    /**
      * Several bodies of text in one zone, one shown at a time.
      *
      * The only thing the model could not express. Three plans side by side,
@@ -516,6 +529,7 @@ final readonly class GridNormalizer
         self::ZONE_COMPARE,
         self::ZONE_SHARED,
         self::ZONE_TABS,
+        self::ZONE_EMBED,
         self::ZONE_SEARCH,
         self::ZONE_COMMENTS,
         self::ZONE_DECK,

@@ -48,6 +48,9 @@ backend:
       tabs_remove: Quitar este panel
       tabs_label: Rótulo de la pestaña
       tabs_label_placeholder: "Plan básico"
+      zone_embed: Dirección a integrar
+      zone_embed_hint: "Pegue la dirección de la página del proveedor. Una dirección que ninguno de los cuatro reclama se muestra como enlace simple."
+      embed_providers: "Cuatro proveedores reconocidos: Spotify, SoundCloud, CodePen y Calendly. Cada uno ve pasar a los visitantes de la página."
       comments_hint: "Nada que ajustar: el hilo es el de esta publicación. Cuando existe esta zona, el pie de página deja de dibujarlo."
       zone_deck: Presentación
       zone_deck_none: "Elegir una presentación…"
