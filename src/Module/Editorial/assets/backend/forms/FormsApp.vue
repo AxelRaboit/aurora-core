@@ -262,6 +262,11 @@ function formatDate(value) {
                 :error="errors.webhookUrl"
             />
             <AppCheckbox v-model="editorForm.crmSync" :label="t('backend.forms.crm_sync')" />
+            <AppCheckbox
+                v-model="editorForm.standalonePageIndexed"
+                :label="t('backend.forms.standalone_page_indexed')"
+                :hint="t('backend.forms.standalone_page_indexed_hint')"
+            />
 
             <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
                 <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>

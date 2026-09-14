@@ -887,6 +887,8 @@ backend:
     webhook_url: Webhook
     webhook_url_hint: 'Every submission is posted there, signed with the application secret.'
     crm_sync: Signal the contact
+    standalone_page_indexed: List the form's own page
+    standalone_page_indexed_hint: "The form's page keeps working either way. Unchecked, it asks search engines to leave it out, so it does not compete with the page the form is posed in."
     public_url: Public URL
     fields:
       row_actions:

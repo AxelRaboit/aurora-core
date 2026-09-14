@@ -887,6 +887,8 @@ backend:
     webhook_url: Webhook
     webhook_url_hint: "Chaque soumission y est envoyée, signée avec le secret de l'application."
     crm_sync: Signaler le contact
+    standalone_page_indexed: Référencer la page du formulaire
+    standalone_page_indexed_hint: "La page du formulaire reste accessible dans tous les cas. Décochée, elle demande aux moteurs de ne pas l'indexer, pour ne pas concurrencer la page où le formulaire est posé."
     public_url: URL publique
     fields:
       row_actions:

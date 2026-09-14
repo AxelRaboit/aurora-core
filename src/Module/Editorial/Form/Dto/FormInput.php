@@ -24,6 +24,7 @@ class FormInput implements FormInputInterface
         public readonly bool $crmSync = false,
         public readonly bool $active = true,
         public readonly ?array $steps = null,
+        public readonly bool $standalonePageIndexed = false,
     ) {}
 
     public function getTranslations(): array
@@ -54,5 +55,10 @@ class FormInput implements FormInputInterface
     public function getSteps(): ?array
     {
         return $this->steps;
+    }
+
+    public function isStandalonePageIndexed(): bool
+    {
+        return $this->standalonePageIndexed;
     }
 }

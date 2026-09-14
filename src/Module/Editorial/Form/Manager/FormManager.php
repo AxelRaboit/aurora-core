@@ -235,6 +235,7 @@ class FormManager implements FormManagerInterface
         $form->setWebhookUrl($input->getWebhookUrl());
         $form->setCrmSync($input->isCrmSync());
         $form->setActive($input->isActive());
+        $form->setStandalonePageIndexed($input->isStandalonePageIndexed());
         $form->setSteps($input->getSteps());
 
         foreach ($input->getTranslations() as $locale => $payload) {

@@ -44,6 +44,17 @@ abstract class AbstractForm implements FormInterface
     #[ORM\Column]
     protected bool $active = true;
 
+    /**
+     * Whether `/{locale}/forms/{slug}` asks to be indexed.
+     *
+     * Off by default, because the page a form is usually read on is the one it
+     * was posed in - and the two carry the same questions under two addresses.
+     * The page itself keeps working either way: it is what a link in a mail or
+     * behind a QR code lands on.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $standalonePageIndexed = false;
+
     /** @var Collection<string, FormTranslationInterface> */
     #[ORM\OneToMany(targetEntity: FormTranslationInterface::class, mappedBy: 'form', cascade: ['persist', 'remove'], orphanRemoval: true, indexBy: 'locale')]
     protected Collection $translations;
@@ -104,6 +115,18 @@ abstract class AbstractForm implements FormInterface
     public function setWebhookUrl(?string $webhookUrl): static
     {
         $this->webhookUrl = $webhookUrl;
+
+        return $this;
+    }
+
+    public function isStandalonePageIndexed(): bool
+    {
+        return $this->standalonePageIndexed;
+    }
+
+    public function setStandalonePageIndexed(bool $standalonePageIndexed): static
+    {
+        $this->standalonePageIndexed = $standalonePageIndexed;
 
         return $this;
     }

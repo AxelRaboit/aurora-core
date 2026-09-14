@@ -17,6 +17,8 @@ interface FormInputInterface
 
     public function isActive(): bool;
 
+    public function isStandalonePageIndexed(): bool;
+
     /** @return list<array{title: string}>|null */
     public function getSteps(): ?array;
 }
