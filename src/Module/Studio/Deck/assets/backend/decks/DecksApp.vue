@@ -10,6 +10,7 @@
  * Duplicating is a row action rather than a button inside the deck, because
  * "start from this one" is decided while looking at the list.
  */
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -24,6 +25,7 @@ import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
@@ -140,6 +142,36 @@ function actionsFor(deck) {
     return actions;
 }
 
+/**
+ * What the page offers, as opposed to what one deck offers.
+ *
+ * Both entries need the same privilege - importing a document produces a deck
+ * like creating one does - so the list is empty or whole, never half.
+ * Creating comes first and carries the accent: it is what somebody arriving on
+ * an empty list is looking for.
+ */
+const pageActions = computed(() => {
+    if (!can("studio.decks.create")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.studio.decks.create"),
+            onSelect: openCreate,
+        },
+        {
+            key: "import",
+            icon: FileInput,
+            title: t("backend.studio.decks.import"),
+            onSelect: openImport,
+        },
+    ];
+});
+
 const filterOptions = () => categoryOptions.value;
 
 const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
@@ -162,22 +194,11 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                 />
             </template>
             <template #actions>
-                <AppButton
-                    v-if="can('studio.decks.create')"
-                    variant="ghost"
-                    v-on:click="openImport"
-                >
-                    <FileInput class="h-4 w-4" :stroke-width="2" />
-                    {{ t("backend.studio.decks.import") }}
-                </AppButton>
-                <AppButton
-                    v-if="can('studio.decks.create')"
-                    variant="primary"
-                    v-on:click="openCreate"
-                >
-                    <Plus class="h-4 w-4" :stroke-width="2" />
-                    {{ t("backend.studio.decks.create") }}
-                </AppButton>
+                <AppPageActions
+                    v-if="pageActions.length"
+                    :actions="pageActions"
+                    class="w-full sm:w-auto"
+                />
             </template>
         </AppListToolbar>
 

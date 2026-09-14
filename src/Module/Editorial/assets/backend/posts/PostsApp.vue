@@ -9,6 +9,7 @@ import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer
 import { usePostRowActions } from "./composables/usePostRowActions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
@@ -18,7 +19,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
-import { Plus, Trash2, X, FileText, Filter } from "lucide-vue-next";
+import { Globe, Plus, Trash2, X, FileText, Filter } from "lucide-vue-next";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
@@ -179,9 +180,29 @@ const bulkResult = ref(null);
  * what has not been deleted.
  */
 const bulkActions = computed(() => [
-    { value: "publish", label: t("backend.posts.bulk.action_publish"), variant: "secondary" },
-    { value: "draft", label: t("backend.posts.bulk.action_draft"), variant: "secondary" },
-    { value: "trash", label: t("backend.posts.bulk.action_trash"), variant: "danger" },
+    {
+        key: "publish",
+        icon: Globe,
+        title: t("backend.posts.bulk.action_publish"),
+        loading: bulkRunning.value,
+        onSelect: () => runBulk("publish"),
+    },
+    {
+        key: "draft",
+        icon: FileText,
+        title: t("backend.posts.bulk.action_draft"),
+        loading: bulkRunning.value,
+        onSelect: () => runBulk("draft"),
+    },
+    // Last, as everywhere: the one that takes something away.
+    {
+        key: "trash",
+        color: "rose",
+        icon: Trash2,
+        title: t("backend.posts.bulk.action_trash"),
+        loading: bulkRunning.value,
+        onSelect: () => runBulk("trash"),
+    },
 ]);
 
 async function runBulk(action) {
@@ -258,17 +279,12 @@ const allTerms = computed(() =>
                 {{ t("backend.posts.bulk.selected", { count: selected.size }, selected.size) }}
             </span>
 
+            <!-- The count and the way out stay: they are what the bar is for.
+                 The three verbs sit behind one button, which is also what keeps
+                 the destructive one from being a thumb's width from the other
+                 two on a phone. -->
             <div class="ms-auto flex flex-wrap items-center gap-2">
-                <AppButton
-                    v-for="action in bulkActions"
-                    :key="action.value"
-                    :variant="action.variant"
-                    size="sm"
-                    :loading="bulkRunning"
-                    v-on:click="runBulk(action.value)"
-                >
-                    {{ action.label }}
-                </AppButton>
+                <AppPageActions :actions="bulkActions" variant="secondary" size="sm" :busy="bulkRunning" />
                 <AppButton variant="ghost" size="sm" v-on:click="selected = new Set()">
                     {{ t("backend.posts.bulk.clear") }}
                 </AppButton>
