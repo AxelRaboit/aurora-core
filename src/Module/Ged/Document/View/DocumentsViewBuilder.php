@@ -73,6 +73,11 @@ final readonly class DocumentsViewBuilder
             'movePath' => $this->urlGenerator->generate('backend_ged_documents_move', ['id' => '__id__']),
             'storagePath' => $this->urlGenerator->generate('backend_ged_documents_storage', ['id' => '__id__']),
             'bulkStoragePath' => $this->urlGenerator->generate('backend_ged_documents_bulk_storage'),
+            // "Everything onto that backend", without a selection. Its own
+            // endpoint rather than the bulk one with every id in the payload:
+            // the list of ids belongs on the server, where it cannot go stale
+            // between the page being drawn and the button being pressed.
+            'relocateAllPath' => $this->urlGenerator->generate('backend_ged_documents_relocate_all'),
             // Whether the screen may offer to move a document at all. There is
             // nowhere to move it to until an administrator has configured a
             // second backend, and an action that can only fail is worse than

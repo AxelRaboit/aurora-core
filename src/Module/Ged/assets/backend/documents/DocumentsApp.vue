@@ -34,6 +34,7 @@ import { useDocumentDragSource } from "./composables/useDocumentDragSource.js";
 import { onPanelRequest } from "@/shared/nav/modulePanelBridge.js";
 import { useDocumentBulkActions } from "./composables/useDocumentBulkActions.js";
 import { useDocumentRelocation } from "./composables/useDocumentRelocation.js";
+import { useDocumentRelocateAll } from "./composables/useDocumentRelocateAll.js";
 import { useDocumentCrop } from "./composables/useDocumentCrop.js";
 import { useMultiSelection } from "@/shared/composables/list/useMultiSelection.js";
 import AppTab from "@/shared/components/nav/AppTab.vue";
@@ -74,6 +75,7 @@ const props = defineProps({
     bulkMovePath: { type: String, default: "" },
     storagePath: { type: String, default: "" },
     bulkStoragePath: { type: String, default: "" },
+    relocateAllPath: { type: String, default: "" },
     storageRelocationAvailable: { type: Boolean, default: false },
     folderCreatePath: { type: String, default: "" },
     folderEditPath: { type: String, default: "" },
@@ -273,22 +275,52 @@ const bulkActions = computed(() => {
 
 const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
 
+const {
+    pendingDisk: relocateAllDisk,
+    confirmLabel: relocateAllLabel,
+    running: relocatingAll,
+    askRelocateAll,
+    cancelRelocateAll,
+    confirmRelocateAll,
+} = useDocumentRelocateAll(props, reset);
+
 // One entry and still a sheet: every list in the backend opens its actions the
 // same way, and a toolbar's width belongs to the search, not to a verb.
 const pageActions = computed(() => {
-    if (!can("ged.documents.create")) {
-        return [];
-    }
+    const actions = [];
 
-    return [
-        {
+    if (can("ged.documents.create")) {
+        actions.push({
             key: "create",
             color: "accent",
             icon: Plus,
             title: t("backend.ged.documents.add"),
             onSelect: openCreate,
-        },
-    ];
+        });
+    }
+
+    // Up here rather than in the selection bar, because it is not an answer to
+    // a selection: the bar only exists once rows are ticked, and "move all of
+    // them" is precisely the instruction somebody gives instead of ticking.
+    // Absent until a second backend is configured, exactly as on a single row.
+    if (props.storageRelocationAvailable && can("ged.documents.relocate")) {
+        actions.push({
+            key: "relocate-all-remote",
+            icon: CloudUpload,
+            title: t("backend.ged.documents.relocation.all_to_remote"),
+            loading: relocatingAll.value,
+            onSelect: () => askRelocateAll("r2"),
+        });
+        actions.push({
+            key: "relocate-all-local",
+            icon: HardDriveDownload,
+            title: t("backend.ged.documents.relocation.all_to_local"),
+            loading: relocatingAll.value,
+            onSelect: () => askRelocateAll("local"),
+        });
+    }
+
+    return actions;
 });
 </script>
 
@@ -881,6 +913,31 @@ const pageActions = computed(() => {
 
         <!-- Folder modal (sidebar create/edit) -->
 
+
+        <!-- Move the whole médiathèque to one backend. Confirmed, unlike the
+             per-row move: this one is not undone by pressing the other button,
+             it is undone by moving everything back. -->
+        <AppModal
+            :show="!!relocateAllDisk"
+            max-width="lg"
+            :closeable="false"
+            :title="relocateAllDisk === 'local' ? t('backend.ged.documents.relocation.all_to_local') : t('backend.ged.documents.relocation.all_to_remote')"
+            :icon="relocateAllDisk === 'local' ? HardDriveDownload : CloudUpload"
+            v-on:close="cancelRelocateAll"
+        >
+            <p class="text-sm text-primary">{{ relocateAllLabel }}</p>
+            <p class="text-sm text-secondary">{{ t("backend.ged.documents.relocation.all_explain") }}</p>
+            <p class="text-sm text-secondary">{{ t("backend.ged.documents.relocation.all_background") }}</p>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="cancelRelocateAll"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                    <AppButton variant="primary" size="md" :loading="relocatingAll" v-on:click="confirmRelocateAll">
+                        <component :is="relocateAllDisk === 'local' ? HardDriveDownload : CloudUpload" class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ t("shared.common.confirm") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
 
         <!-- Bulk move modal -->
         <AppModal :show="openBulkMove" max-width="sm" v-on:close="openBulkMove = false">

@@ -11,6 +11,7 @@ use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Storage\Service\ImageVariantGenerator;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\Document\Service\DocumentRelocator;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
@@ -124,6 +125,59 @@ class DocumentRepository extends ResolveTargetEntityRepository
             ->setParameter('disk', $disk)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * The same count, of the documents that are still in the médiathèque.
+     *
+     * The plain one deliberately counts the trash too, because it guards
+     * disconnecting a backend and bytes in the trash are still bytes only
+     * those credentials can reach. "Move everything across" is the other
+     * question: what it reports on is what the reader can see in the listing.
+     */
+    public function countLivingOnDisk(StorageDiskEnum $disk): int
+    {
+        return (int) $this->createQueryBuilder('d')
+            ->select('COUNT(d.id)')
+            ->where('d.storageDisk = :disk')
+            ->andWhere('d.deletedAt IS NULL')
+            ->setParameter('disk', $disk)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Everything that would have to move for one backend to hold it all.
+     *
+     * Ids rather than entities: the caller hands each one to a worker, which
+     * loads the document itself when it gets there, so hydrating hundreds of
+     * them here would be building objects to read one column off each.
+     *
+     * **The trash stays where it is.** Its files are on their way out - the
+     * retention sweep deletes the bytes - and copying them to a metered bucket
+     * on the way would be paying to store what is about to be thrown away.
+     *
+     * A document already mid-move is not excluded here. The state is claimed
+     * inside {@see DocumentRelocator}, under
+     * a condition, and re-reading it now would only widen the window between
+     * the question and the answer: the relocator turns the second attempt away
+     * as busy, which is the same outcome with no race in it.
+     *
+     * @return list<int>
+     */
+    public function idsNotOnDisk(StorageDiskEnum $disk): array
+    {
+        /** @var list<array{id: int}> $rows */
+        $rows = $this->createQueryBuilder('d')
+            ->select('d.id')
+            ->where('d.storageDisk != :disk')
+            ->andWhere('d.deletedAt IS NULL')
+            ->setParameter('disk', $disk)
+            ->orderBy('d.id', Order::Ascending->value)
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_map(static fn (array $row): int => (int) $row['id'], $rows);
     }
 
     /**
