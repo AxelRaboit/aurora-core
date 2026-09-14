@@ -2,7 +2,7 @@
 import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -39,6 +39,39 @@ onMounted(() => {
     if (!mp.mountPoints.value.length) mp.load();
 });
 
+
+/**
+ * What one mount point offers.
+ *
+ * Three glyphs in a row said what they did only to whoever already knew them,
+ * and the destructive one sat a few pixels from the one that only pings the
+ * host. Named rows, and the delete last.
+ */
+function actionsFor(mountPoint) {
+    return [
+        {
+            key: "test",
+            icon: Wifi,
+            title: t("backend.mount_points.test"),
+            disabled: mp.testModal.value.testing,
+            onSelect: () => mp.openTestModal(mountPoint),
+        },
+        {
+            key: "edit",
+            color: "accent",
+            icon: Pencil,
+            title: t("shared.common.edit"),
+            onSelect: () => mp.openEdit(mountPoint),
+        },
+        {
+            key: "delete",
+            color: "rose",
+            icon: Trash2,
+            title: t("shared.common.delete"),
+            onSelect: () => mp.confirmDelete(mountPoint),
+        },
+    ];
+}
 </script>
 
 <template>
@@ -95,17 +128,7 @@ onMounted(() => {
                             </span>
                         </td>
                         <td class="px-5 py-3">
-                            <div class="flex items-center justify-end gap-1">
-                                <AppIconButton color="gray" :title="t('backend.mount_points.test')" :disabled="mp.testModal.value.testing" v-on:click="mp.openTestModal(mountPoint)">
-                                    <Wifi class="w-4 h-4" :stroke-width="2" />
-                                </AppIconButton>
-                                <AppIconButton color="accent" :title="t('shared.common.edit')" v-on:click="mp.openEdit(mountPoint)">
-                                    <Pencil class="w-4 h-4" :stroke-width="2" />
-                                </AppIconButton>
-                                <AppIconButton color="rose" :title="t('shared.common.delete')" v-on:click="mp.confirmDelete(mountPoint)">
-                                    <Trash2 class="w-4 h-4" :stroke-width="2" />
-                                </AppIconButton>
-                            </div>
+                            <AppRowActions :actions="actionsFor(mountPoint)" :label="mountPoint.name" />
                         </td>
                     </tr>
                 </tbody>

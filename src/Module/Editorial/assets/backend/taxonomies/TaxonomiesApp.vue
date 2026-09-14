@@ -65,6 +65,40 @@ const termActions = useEditDeleteActions({
     deleteDescription: "backend.taxonomies.terms.row_actions.delete_description",
 });
 
+/**
+ * The taxonomy itself, in the card header above its terms.
+ *
+ * Written out rather than borrowed from `useEditDeleteActions`, which asks for
+ * a description key per entry: the terms have theirs, the taxonomy never got
+ * any. A named row with no sentence under it is what AppActionButton is built
+ * to render, so it stays honest rather than inventing copy.
+ */
+function taxonomyActions(taxonomy) {
+    const actions = [];
+
+    if (can("editorial.taxonomies.edit")) {
+        actions.push({
+            key: "edit",
+            color: "accent",
+            icon: Pencil,
+            title: t("shared.common.edit"),
+            onSelect: () => openEdit(taxonomy),
+        });
+    }
+
+    if (can("editorial.taxonomies.delete") && !taxonomy.isBuiltIn) {
+        actions.push({
+            key: "delete",
+            color: "rose",
+            icon: Trash2,
+            title: t("shared.common.delete"),
+            onSelect: () => confirmDelete(taxonomy),
+        });
+    }
+
+    return actions;
+}
+
 const primaryLocale = computed(() => props.locales[0] ?? "en");
 
 function labelOf(taxonomy) {
@@ -102,24 +136,12 @@ function nameOf(term) {
                         <h2 class="text-lg font-semibold text-primary truncate">{{ labelOf(selected) }}</h2>
                         <p class="text-xs text-muted font-mono mt-0.5">{{ selected.slug }}</p>
                     </div>
-                    <div class="flex items-center gap-0.5 shrink-0">
-                        <AppIconButton
-                            v-if="can('editorial.taxonomies.edit')"
-                            color="accent"
-                            :title="t('shared.common.edit')"
-                            v-on:click="openEdit(selected)"
-                        >
-                            <Pencil class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-                        <AppIconButton
-                            v-if="can('editorial.taxonomies.delete') && !selected.isBuiltIn"
-                            color="rose"
-                            :title="t('shared.common.delete')"
-                            v-on:click="confirmDelete(selected)"
-                        >
-                            <Trash2 class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-                    </div>
+                    <AppRowActions
+                        v-if="taxonomyActions(selected).length"
+                        class="shrink-0"
+                        :actions="taxonomyActions(selected)"
+                        :label="labelOf(selected)"
+                    />
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">

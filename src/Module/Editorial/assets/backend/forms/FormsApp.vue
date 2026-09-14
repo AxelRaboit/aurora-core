@@ -58,6 +58,38 @@ const {
     pendingFieldDelete, fieldDeleteLoading, deleteField, move,
 } = useFormFields(props, selected, upsert);
 
+/**
+ * The form itself, in the card header above its fields.
+ *
+ * Written out rather than borrowed from `useEditDeleteActions`, which asks for
+ * a description key per entry: the fields have theirs, the form never got any.
+ */
+function formActions(form) {
+    const actions = [];
+
+    if (can("editorial.forms.edit")) {
+        actions.push({
+            key: "edit",
+            color: "accent",
+            icon: Pencil,
+            title: t("shared.common.edit"),
+            onSelect: () => openEdit(form),
+        });
+    }
+
+    if (can("editorial.forms.delete")) {
+        actions.push({
+            key: "delete",
+            color: "rose",
+            icon: Trash2,
+            title: t("shared.common.delete"),
+            onSelect: () => (pendingDelete.value = form),
+        });
+    }
+
+    return actions;
+}
+
 // The two actions a field row offers. The reorder arrows beside them stay as they
 // are: they are pressed repeatedly, and a sheet would turn each nudge into
 // open-click-close.
@@ -122,24 +154,12 @@ function formatDate(value) {
                             /{{ primaryLocale }}/forms/{{ selected.translations?.[primaryLocale]?.slug }}
                         </p>
                     </div>
-                    <div class="flex items-center gap-0.5 shrink-0">
-                        <AppIconButton
-                            v-if="can('editorial.forms.edit')"
-                            color="accent"
-                            :title="t('shared.common.edit')"
-                            v-on:click="openEdit(selected)"
-                        >
-                            <Pencil class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-                        <AppIconButton
-                            v-if="can('editorial.forms.delete')"
-                            color="rose"
-                            :title="t('shared.common.delete')"
-                            v-on:click="pendingDelete = selected"
-                        >
-                            <Trash2 class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-                    </div>
+                    <AppRowActions
+                        v-if="formActions(selected).length"
+                        class="shrink-0"
+                        :actions="formActions(selected)"
+                        :label="titleOf(selected)"
+                    />
                 </div>
             </div>
 

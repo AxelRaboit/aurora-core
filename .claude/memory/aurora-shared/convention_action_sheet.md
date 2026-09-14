@@ -36,8 +36,14 @@ disabled?, loading? }`.
 1. **Un seul geste primaire reste visible.** Enregistrer, Publier, Créer gardent
    leur propre bouton. Enterrer le verbe principal derrière un clic est
    l'erreur que ce composant rend facile.
-2. **À partir de trois actions, une feuille.** Deux boutons tiennent partout,
-   y compris à 375 px (cf. [[convention_multi_button_toolbar]]).
+2. **Deux seuils, pas un.** Une **ligne** passe en feuille dès **deux**
+   actions, c'est la convention déjà appliquée par une quinzaine de listes et
+   ce qu'outille `@/shared/composables/useEditDeleteActions.js` (qui exige une
+   clé de description par entrée : sans clé, écrire la liste à la main plutôt
+   qu'inventer la phrase). Un **en-tête de page** ou
+   une **barre de sélection** n'y passe qu'à partir de **trois** : deux boutons
+   tiennent partout, y compris à 375 px
+   (cf. [[convention_multi_button_toolbar]]).
 3. **La navigation n'est pas une action.** « Retour à la liste » reste à gauche,
    hors de la feuille.
 4. **Ordre : ordinaire, puis prudent (amber), puis destructeur (rose), en
@@ -75,6 +81,22 @@ où elle peut diverger. D'où la mécanique unique et les deux façades.
 - Une action déjà offerte ailleurs sur l'écran peut sortir de la feuille sans
   disparaître : `DocumentShowApp` a laissé partir « Télécharger » parce que le
   bloc fichier plus bas l'offre déjà.
+
+## Ce qui reste en glyphes
+
+Un **glyphe qui porte un état ou qu'on presse en rafale n'est pas une action**
+et ne descend pas dans la feuille :
+
+- Monter / descendre d'un rang (`FormsApp`, `TaxonomiesApp`, l'éditeur de
+  deck) : une feuille ferait de chaque cran un open-click-close.
+- Le chevron d'un arbre, l'étoile d'un favori : ils montrent leur propre état.
+- Les outils d'un canevas (`PostGridPanel`, `PostGridCanvas`) : ils sont en
+  contact direct avec ce qu'ils modifient.
+
+Deux rangées d'arbre gardent leur bande de glyphes au survol,
+`FolderTreeRow` et `NoteTreeItem` : elles n'ont que deux actions chacune à côté
+d'un toggle qui reste de toute façon en ligne, et leur déclencheur demanderait
+un `v-on:click.stop` que `AppRowActions` n'expose pas.
 
 ## Pointeurs
 

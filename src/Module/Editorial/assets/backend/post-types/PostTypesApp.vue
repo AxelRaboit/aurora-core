@@ -3,8 +3,9 @@ import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { usePostTypesForm } from "./composables/usePostTypesForm.js";
 import { usePostTypeFields } from "./composables/usePostTypeFields.js";
+import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
@@ -54,6 +55,55 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
     value: type,
     label: t(`backend.post_types.fields.types.${type}`),
 }));
+
+/**
+ * The type itself, and one of its fields.
+ *
+ * Two pairs of glyphs on the same screen, one in a card header and one per
+ * field row, each with the destructive one a few pixels from the harmless one.
+ * A built-in type cannot be deleted, so its list is one entry long and the
+ * sheet says so by having nothing else in it.
+ */
+function typeActions(postType) {
+    const actions = [];
+
+    if (can("editorial.post_types.edit")) {
+        actions.push({
+            key: "edit",
+            color: "accent",
+            icon: Pencil,
+            title: t("shared.common.edit"),
+            onSelect: () => openEdit(postType),
+        });
+    }
+
+    if (can("editorial.post_types.delete") && !postType.isBuiltIn) {
+        actions.push({
+            key: "delete",
+            color: "rose",
+            icon: Trash2,
+            title: t("shared.common.delete"),
+            onSelect: () => confirmDelete(postType),
+        });
+    }
+
+    return actions;
+}
+
+// A field is edited and deleted under the same privilege as the type that
+// holds it: it is part of that type's shape, not a record of its own. The
+// descriptions were already written for it, they had nowhere to be read.
+const fieldActions = useEditDeleteActions({
+    can,
+    editPermission: "editorial.post_types.edit",
+    deletePermission: "editorial.post_types.edit",
+    openEdit: openFieldEdit,
+    confirmDelete: (field) => {
+        pendingFieldDelete.value = field;
+    },
+    editDescription: "backend.post_types.fields.row_actions.edit_description",
+    deleteDescription: "backend.post_types.fields.row_actions.delete_description",
+});
 </script>
 
 <template>
@@ -84,24 +134,12 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
                         <h2 class="text-lg font-semibold text-primary truncate">{{ selected.label }}</h2>
                         <p class="text-xs text-muted font-mono mt-0.5">{{ selected.slug }}</p>
                     </div>
-                    <div class="flex items-center gap-0.5 shrink-0">
-                        <AppIconButton
-                            v-if="can('editorial.post_types.edit')"
-                            color="accent"
-                            :title="t('shared.common.edit')"
-                            v-on:click="openEdit(selected)"
-                        >
-                            <Pencil class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-                        <AppIconButton
-                            v-if="can('editorial.post_types.delete') && !selected.isBuiltIn"
-                            color="rose"
-                            :title="t('shared.common.delete')"
-                            v-on:click="confirmDelete(selected)"
-                        >
-                            <Trash2 class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-                    </div>
+                    <AppRowActions
+                        v-if="typeActions(selected).length"
+                        class="shrink-0"
+                        :actions="typeActions(selected)"
+                        :label="selected.label"
+                    />
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
@@ -144,22 +182,11 @@ const fieldTypeOptions = props.fieldTypes.map((type) => ({
                             <AppBadge color="gray">{{ t(`backend.post_types.fields.types.${field.type}`) }}</AppBadge>
                             <AppBadge v-if="field.required" color="amber">{{ t("backend.post_types.fields.required") }}</AppBadge>
                             <AppBadge v-if="field.translatable" color="sky">{{ t("backend.post_types.fields.translatable") }}</AppBadge>
-                            <AppIconButton
-                                v-if="can('editorial.post_types.edit')"
-                                color="accent"
-                                :title="t('shared.common.edit')"
-                                v-on:click="openFieldEdit(field)"
-                            >
-                                <Pencil class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-                            <AppIconButton
-                                v-if="can('editorial.post_types.edit')"
-                                color="rose"
-                                :title="t('shared.common.delete')"
-                                v-on:click="pendingFieldDelete = field"
-                            >
-                                <Trash2 class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
+                            <AppRowActions
+                                v-if="fieldActions(field).length"
+                                :actions="fieldActions(field)"
+                                :label="field.label"
+                            />
                         </div>
                     </div>
                 </div>
