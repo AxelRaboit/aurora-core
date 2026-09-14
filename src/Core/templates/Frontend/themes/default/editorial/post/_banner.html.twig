@@ -29,11 +29,22 @@
     end: 'justify-end',
 } %}
 
+{# Three steps rather than two, because the first one was not a phone step.
+   `xl` started at 48px below `sm`, and a banner title is the one string on the
+   page nobody can shorten. Measured on a live page, a three-segment title
+   filled 343px of a 343px column: it fits a 375px phone by luck and overflows
+   a narrower one.
+
+   At the new base step that same title's widest word measures 238px, which
+   fits both the 288px a full-width banner offers at 320px and the 256px a
+   `contained` one leaves - the tightest combination there is. Breaking the
+   words would be the other fix and it is worse: a title split mid-word reads
+   as damage, where a smaller one just reads. #}
 {% set titleSizes = {
-    sm: 'text-xl sm:text-2xl',
-    md: 'text-3xl sm:text-4xl',
-    lg: 'text-4xl sm:text-5xl',
-    xl: 'text-5xl sm:text-6xl',
+    sm: 'text-lg sm:text-xl md:text-2xl',
+    md: 'text-2xl sm:text-3xl md:text-4xl',
+    lg: 'text-3xl sm:text-4xl md:text-5xl',
+    xl: 'text-4xl sm:text-5xl md:text-6xl',
 } %}
 
 {# Three placements:
