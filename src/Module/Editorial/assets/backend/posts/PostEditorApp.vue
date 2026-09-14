@@ -6,6 +6,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { usePostEditor } from "./composables/usePostEditor.js";
 import { useTabState } from "@/shared/composables/useTabState.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
@@ -240,6 +241,67 @@ const previewing = ref(false);
 const showRevisions = ref(false);
 
 /**
+ * Everything the header used to carry, minus the two that stay out of it.
+ *
+ * `Enregistrer` is what the page is for and keeps its own button; `Retour à la
+ * liste` is navigation, not an action. The rest was five buttons on a row that
+ * could not wrap, so on a phone a post awaiting review squashed them into
+ * unreadable slivers.
+ *
+ * The review decision reads better here than it did as two bare buttons: the
+ * sheet gives each one a full-width row and a colour, and refusing already
+ * opened a modal of its own.
+ */
+const headerActions = computed(() => {
+    const actions = [];
+
+    // Both need the post to exist: a preview needs an id, and a history needs
+    // something to have a history of.
+    if (postId.value) {
+        actions.push({
+            key: "preview",
+            icon: Eye,
+            title: t("backend.posts.preview.open"),
+            loading: previewing.value,
+            onSelect: openPreview,
+        });
+    }
+
+    if (postId.value && props.revisionsPathTemplate) {
+        actions.push({
+            key: "revisions",
+            icon: History,
+            title: t("backend.posts.revisions.open"),
+            onSelect: () => (showRevisions.value = true),
+        });
+    }
+
+    // Last, and in this order: the decision is only ever offered to whoever
+    // holds it, and the one that sends the post back is read after the one
+    // that lets it through.
+    if (awaitingReview.value && canReview.value && postId.value) {
+        actions.push({
+            key: "approve",
+            color: "emerald",
+            icon: Check,
+            title: t("backend.posts.review.approve"),
+            loading: decidingReview.value,
+            onSelect: approveReview,
+        });
+        actions.push({
+            key: "reject",
+            color: "amber",
+            icon: X,
+            title: t("backend.posts.review.reject"),
+            loading: decidingReview.value,
+            onSelect: () => (rejecting.value = true),
+        });
+    }
+
+    return actions;
+});
+
+/**
  * A restore rewrites the publication server-side and returns it whole.
  * Reloading rather than patching the form in place: the editor holds a grid,
  * a banner, a gallery and a translation per language, and a half-applied
@@ -345,61 +407,23 @@ function termLabel(term) {
 
 <template>
     <div class="space-y-4">
-        <div class="flex items-center justify-between gap-3">
+        <!-- `flex-wrap` on both halves: the row used to be unbreakable, and a
+             post awaiting review put seven items on it. -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <AppButton variant="ghost" size="md" :href="listPath">
                 <ArrowLeft class="w-4 h-4" :stroke-width="2" /> {{ t("backend.posts.back_to_list") }}
             </AppButton>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3">
                 <!-- Status stays visible whatever section is open. Knowing you
                      are editing a live page should not require opening a tab. -->
                 <AppBadge :color="STATUS_COLORS[form.status] ?? 'gray'">
                     {{ t(`backend.posts.status.${form.status}`) }}
                 </AppBadge>
-                <!-- The decision, for whoever holds it, on a post that is waiting.
-                     Beside the status badge because that is what they are acting
-                     on. -->
-                <template v-if="awaitingReview && canReview && postId">
-                    <AppButton
-                        variant="ghost"
-                        size="md"
-                        :loading="decidingReview"
-                        v-on:click="rejecting = true"
-                    >
-                        {{ t("backend.posts.review.reject") }}
-                    </AppButton>
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        :loading="decidingReview"
-                        v-on:click="approveReview"
-                    >
-                        <Check class="w-4 h-4" :stroke-width="2" /> {{ t("backend.posts.review.approve") }}
-                    </AppButton>
-                </template>
-
-                <!-- Same condition as the preview: a history needs something
-                     to have a history of. -->
-                <AppButton
-                    v-if="postId && revisionsPathTemplate"
-                    variant="ghost"
-                    size="md"
-                    v-on:click="showRevisions = true"
-                >
-                    <History class="w-4 h-4" :stroke-width="2" /> {{ t("backend.posts.revisions.open") }}
-                </AppButton>
-
-                <!-- Only once the post exists: a preview needs an id, and offering
-                     it on a form that has not saved yet would be a button that
-                     cannot work. -->
-                <AppButton
-                    v-if="postId"
-                    variant="secondary"
-                    size="md"
-                    :loading="previewing"
-                    v-on:click="openPreview"
-                >
-                    <Eye class="w-4 h-4" :stroke-width="2" /> {{ t("backend.posts.preview.open") }}
-                </AppButton>
+                <AppPageActions
+                    v-if="headerActions.length"
+                    :actions="headerActions"
+                    :busy="previewing || decidingReview"
+                />
                 <AppButton variant="primary" size="md" :loading="saving" v-on:click="save(false)">
                     <Save class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.save") }}
                 </AppButton>
