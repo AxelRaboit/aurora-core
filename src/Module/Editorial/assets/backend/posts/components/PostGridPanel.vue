@@ -387,6 +387,41 @@ function resizeZone(index, columns) {
                     :hint="anchorHint(index)"
                 />
 
+                <!-- When the zone is drawn, and for whom. Kept with the
+                     arrangement and not with the fields of one type, because
+                     every zone can be withheld and none of them is by default.
+                     The panel always shows the zone - an author cannot arrange
+                     what is hidden from them, and a zone waiting for its date
+                     has to stay editable until it arrives. -->
+                <details class="rounded-lg border border-line p-3">
+                    <summary class="cursor-pointer text-sm font-medium text-primary">
+                        {{ t("backend.posts.grid.visibility") }}
+                    </summary>
+                    <div class="mt-3 space-y-3">
+                        <p class="text-xs text-muted">{{ t("backend.posts.grid.visibility_hint") }}</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <AppInput
+                                v-model="zoneFields(index).visibleFrom.value"
+                                type="date"
+                                :label="t('backend.posts.grid.visible_from')"
+                                :placeholder="t('backend.posts.grid.visible_any')"
+                            />
+                            <AppInput
+                                v-model="zoneFields(index).visibleUntil.value"
+                                type="date"
+                                :label="t('backend.posts.grid.visible_until')"
+                                :placeholder="t('backend.posts.grid.visible_any')"
+                            />
+                        </div>
+                        <AppChoiceRow
+                            v-model="zoneFields(index).audience.value"
+                            :label="t('backend.posts.grid.audience')"
+                            :hint="t('backend.posts.grid.audience_hint')"
+                            :options="zoneChoices.audience"
+                        />
+                    </div>
+                </details>
+
                 <!-- A stack holds zones instead of content, so it shows them
                      here: same fields, one level down. The share row is the
                      width row over again - inside a stack the axis of flow is

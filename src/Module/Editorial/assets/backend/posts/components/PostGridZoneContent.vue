@@ -315,6 +315,18 @@ const displayHint = computed(() =>
             </div>
         </template>
 
+        <template v-else-if="zone.type === 'shared'">
+            <!-- Shared, not translated, for the reason the publication zone
+                 gives: the block carries its own translations and the page it
+                 lands on picks the right one. -->
+            <AppSelect
+                v-model="bound.postId.value"
+                :label="t('backend.posts.grid.zone_shared')"
+                :hint="t('backend.posts.grid.zone_shared_hint')"
+                :options="publicationOptions"
+            />
+        </template>
+
         <template v-else-if="zone.type === 'post'">
             <!-- Shared, not translated: the linked publication carries
                  its own translations and the page picks the right one. -->

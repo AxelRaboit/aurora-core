@@ -11,6 +11,7 @@ import {
     Images,
     Columns2,
     Layers,
+    Recycle,
     LayoutList,
     ListFilter,
     ListTree,
@@ -52,6 +53,7 @@ export const LEAF_ZONE_TYPES = [
     "map",
     "gallery",
     "compare",
+    "shared",
     "button",
     "separator",
     "items",
@@ -95,6 +97,8 @@ export const ZONE_ICONS = {
     gallery: Images,
     // Two panes with a line between them, which is the zone in one glyph.
     compare: Columns2,
+    // The same thing, coming round again on another page.
+    shared: Recycle,
     button: MousePointerClick,
     separator: SeparatorHorizontal,
     items: LayoutList,
@@ -160,6 +164,9 @@ export const CODE_LANGUAGES = [
     "typescript",
     "yaml",
 ];
+
+/** Mirrors GridNormalizer::AUDIENCES - everybody, or somebody signed in. */
+export const AUDIENCES = ["everyone", "members"];
 
 /** Mirrors GridNormalizer::TEXT_SIZES. */
 export const TEXT_SIZES = ["normal", "lead", "small"];
@@ -443,6 +450,11 @@ function newZone(type) {
         textSize: "normal",
         lineNumbers: false,
         exclusiveOpen: false,
+        // No limits and everybody: a zone arrives visible, which is what
+        // every zone written before this existed already means.
+        visibleFrom: null,
+        visibleUntil: null,
+        audience: "everyone",
         // No name until someone means to link to the zone. An id on every
         // zone would be a page full of addresses nobody chose.
         anchor: "",
@@ -541,6 +553,7 @@ export function usePostGrid(layout, content) {
         cardVariant: labelled(CARD_VARIANTS, "card_variants"),
         textSize: labelled(TEXT_SIZES, "text_sizes"),
         surface: labelled(SURFACES, "surfaces"),
+        audience: labelled(AUDIENCES, "audiences"),
         // A language names itself; there is nothing to translate.
         language: CODE_LANGUAGES.map((value) => ({ value, label: value })),
         limit: Array.from({ length: MAX_LIST_LIMIT }, (_, i) => ({
@@ -1131,6 +1144,9 @@ export function usePostGrid(layout, content) {
                 textSize: shared("textSize"),
                 lineNumbers: shared("lineNumbers"),
                 exclusiveOpen: shared("exclusiveOpen"),
+                visibleFrom: shared("visibleFrom"),
+                visibleUntil: shared("visibleUntil"),
+                audience: shared("audience"),
                 anchor: shared("anchor"),
                 surface: shared("surface"),
                 fullBleed: shared("fullBleed"),

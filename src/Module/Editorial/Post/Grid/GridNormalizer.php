@@ -156,6 +156,27 @@ final readonly class GridNormalizer
     public const string ZONE_GALLERY = 'gallery';
 
     /**
+     * Another publication's grid, drawn here.
+     *
+     * The one thing a CMS starts missing the moment a site passes ten pages:
+     * the band that says "parlons de votre projet" at the foot of twelve of
+     * them, corrected twelve times. A page names a block once and every page
+     * that names it changes together.
+     *
+     * It reuses `postId`, and the library is therefore a content type rather
+     * than a new kind of thing: whoever runs the site already knows how to
+     * write, translate and version a publication, and a block is a
+     * publication that happens not to have a page of its own.
+     *
+     * **Depth stops at one.** A shared block that shares another would be a
+     * page whose content cannot be read off the list, and two blocks naming
+     * each other would resolve for ever. `GridViewBuilder` carries the depth
+     * and draws nothing at the second level, which is the same bound the stack
+     * lives under and for the same reason.
+     */
+    public const string ZONE_SHARED = 'shared';
+
+    /**
      * Two pictures of one thing, and a handle between them.
      *
      * A renovation, a retouch, a site rebuilt: the demonstration that needs no
@@ -216,6 +237,15 @@ final readonly class GridNormalizer
      * time a section is renamed, and this one cannot be.
      */
     public const string ZONE_TOC = 'toc';
+
+    /**
+     * Who a zone is for.
+     *
+     * `everyone` is what every zone already published means, which is why it
+     * is first: a default that changed behaviour would republish the whole
+     * site on the day it shipped.
+     */
+    public const array AUDIENCES = ['everyone', 'members'];
 
     /** How loudly a button is drawn. */
     public const array BUTTON_VARIANTS = ['solid', 'outline', 'ghost'];
@@ -419,6 +449,7 @@ final readonly class GridNormalizer
         self::ZONE_MAP,
         self::ZONE_GALLERY,
         self::ZONE_COMPARE,
+        self::ZONE_SHARED,
         self::ZONE_BUTTON,
         self::ZONE_SEPARATOR,
         self::ZONE_ITEMS,
@@ -703,6 +734,16 @@ final readonly class GridNormalizer
                 // a three-line example needs no coordinates, and a page that
                 // numbers everything makes the numbers mean nothing.
                 'lineNumbers' => (bool) ($entry['lineNumbers'] ?? false),
+                // When a zone starts and stops being drawn, and who it is
+                // drawn for. Shared, like everything else about arrangement: a
+                // promotion ends on the same day in every language.
+                //
+                // Dates and not datetimes. An author thinks "until the end of
+                // the month", not "until 23:59:59 in which timezone" - and a
+                // day is a question a server and a reader can agree on.
+                'visibleFrom' => $this->day($entry['visibleFrom'] ?? null),
+                'visibleUntil' => $this->day($entry['visibleUntil'] ?? null),
+                'audience' => $this->values->oneOf($entry['audience'] ?? null, self::AUDIENCES, self::AUDIENCES[0]),
                 // One panel open at a time, for a list that folds. Off by
                 // default, which is the behaviour already published: a reader
                 // comparing two answers should not have the first close under
@@ -763,6 +804,25 @@ final readonly class GridNormalizer
         }
 
         return $texts;
+    }
+
+    /**
+     * A day, or nothing.
+     *
+     * Kept as the string it arrived as rather than turned into a date object:
+     * this shape is written to a JSON column and read by an editor in a
+     * browser, and both sides speak `YYYY-MM-DD`. Anything that is not one is
+     * dropped, which reads as "no limit" - the safe answer, because the
+     * alternative is a zone that vanishes because somebody typed a month into
+     * a day.
+     */
+    private function day(mixed $value): ?string
+    {
+        if (!is_string($value) || 1 !== preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return null;
+        }
+
+        return false === strtotime($value) ? null : $value;
     }
 
     /**

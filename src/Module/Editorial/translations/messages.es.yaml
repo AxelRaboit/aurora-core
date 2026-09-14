@@ -38,6 +38,18 @@ backend:
       compare_pick: "Elegir una imagen"
       compare_before_label: "Palabra bajo la imagen de la izquierda"
       compare_after_label: "Palabra bajo la imagen de la derecha"
+      zone_shared: Bloque a reutilizar
+      zone_shared_hint: "La cuadrícula de esa publicación se dibuja aquí. Modifíquela una vez y cambian todas las páginas que la reutilizan. Un bloque que reutiliza un bloque no se dibuja: la profundidad se detiene en uno."
+      visibility: "Cuándo y para quién"
+      visibility_hint: "Sin nada aquí, la zona se ve siempre y para todos. Es lo que ya hace una zona que no dice nada."
+      visible_from: Desde el
+      visible_until: Hasta el
+      visible_any: Sin límite
+      audience: Público
+      audience_hint: "«Miembros» dibuja la zona solo para un visitante conectado. El panel se la sigue mostrando a usted."
+      audiences:
+        everyone: Todo el mundo
+        members: Miembros conectados
       zone_document_label_hint: "Lo que lee el visitante en la tarjeta. Vacío, se usa el título del documento en la mediateca."
       zone_form_none: "Elegir un formulario…"
       anchor: "Ancla"

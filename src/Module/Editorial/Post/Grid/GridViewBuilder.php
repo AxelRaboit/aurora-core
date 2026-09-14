@@ -13,6 +13,7 @@ use Aurora\Module\Editorial\Form\Entity\FormTranslationInterface;
 use Aurora\Module\Editorial\Form\Repository\FormRepository;
 use Aurora\Module\Editorial\Form\Serializer\FormSerializer;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
+use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Service\BlocksRenderer;
 use Aurora\Module\Editorial\Post\Service\ThumbnailPresenter;
@@ -25,6 +26,8 @@ use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentCreditPresenter;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
+use DateTimeImmutable;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -60,6 +63,7 @@ final readonly class GridViewBuilder
         private TaxonomyRepository $taxonomyRepository,
         private TaxonomyTermRepository $taxonomyTermRepository,
         private UrlGeneratorInterface $urlGenerator,
+        private Security $security,
     ) {}
 
     /**
@@ -102,15 +106,24 @@ final readonly class GridViewBuilder
      *
      * @return array<string, mixed>
      */
-    private function resolve(array $rawLayout, array $rawContent, string $locale, ?int $currentPostId = null, bool $forEditor = false): array
+    private function resolve(array $rawLayout, array $rawContent, string $locale, ?int $currentPostId = null, bool $forEditor = false, int $depth = 0): array
     {
         $layout = $this->gridNormalizer->normalizeLayout($rawLayout);
         $content = $this->gridNormalizer->normalizeContent($rawContent, $layout);
 
+        // Withheld zones go before anything else is worked out, and before
+        // `place()` decides who sits where: a zone that is not drawn should not
+        // leave a gap in the row it would have been on. The editor sees them
+        // all - an author cannot arrange what the panel hides from them, and a
+        // zone waiting for its date has to stay editable until it arrives.
+        if (!$forEditor) {
+            $layout['zones'] = $this->visibleOnly($layout['zones']);
+        }
+
         $documents = $this->documents($layout);
         $posts = $this->posts($layout);
 
-        $resolve = function (array $zone) use (&$resolve, $content, $documents, $posts, $locale, $currentPostId, $forEditor): array {
+        $resolve = function (array $zone) use (&$resolve, $content, $documents, $posts, $locale, $currentPostId, $forEditor, $depth): array {
             $held = $content['zones'][$zone['id']];
 
             return [
@@ -215,6 +228,9 @@ final readonly class GridViewBuilder
                     : null,
                 'postList' => GridNormalizer::ZONE_POST_LIST === $zone['type']
                     ? $this->postListView($zone, $locale, $currentPostId)
+                    : null,
+                'shared' => GridNormalizer::ZONE_SHARED === $zone['type']
+                    ? $this->sharedView($posts[$zone['postId']] ?? null, $locale, $depth)
                     : null,
                 'compare' => GridNormalizer::ZONE_COMPARE === $zone['type']
                     ? $this->compareView($zone, $held, $documents)
@@ -494,6 +510,105 @@ final readonly class GridViewBuilder
             'variant' => (string) $zone['cardVariant'],
             'cards' => $cards,
         ];
+    }
+
+    /**
+     * The zones a visitor may actually be shown, right now.
+     *
+     * Two questions, and they are different in kind. A **date** is the same
+     * for everybody and is answered against the server's day. An **audience**
+     * is answered against who is asking, which is why this needs the security
+     * context at all.
+     *
+     * A stack's children are filtered too: hiding a stack whose zones have all
+     * expired would be right, but hiding one zone inside a stack that still
+     * has others is what an author actually asked for.
+     *
+     * No page cache stands in front of this - there is no `framework.cache`
+     * configured for responses - so "now" really is now. That is worth saying
+     * because it is the assumption the whole feature rests on: put a reverse
+     * proxy in front of the site and a promotion could outlive its date by
+     * however long the cache keeps a page.
+     *
+     * @param list<array<string, mixed>> $zones
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function visibleOnly(array $zones): array
+    {
+        $today = new DateTimeImmutable('today')->format('Y-m-d');
+        $isMember = $this->security->isGranted('IS_AUTHENTICATED_FULLY');
+
+        $visible = [];
+
+        foreach ($zones as $zone) {
+            $from = $zone['visibleFrom'] ?? null;
+            $until = $zone['visibleUntil'] ?? null;
+
+            if (is_string($from) && $today < $from) {
+                continue;
+            }
+
+            // Inclusive: "until the 31st" means the 31st is still a day the
+            // zone is drawn, which is what an author means when they type it.
+            if (is_string($until) && $today > $until) {
+                continue;
+            }
+
+            if ('members' === ($zone['audience'] ?? null) && !$isMember) {
+                continue;
+            }
+
+            if (is_array($zone['children'] ?? null) && [] !== $zone['children']) {
+                $zone['children'] = $this->visibleOnly($zone['children']);
+            }
+
+            $visible[] = $zone;
+        }
+
+        return $visible;
+    }
+
+    /**
+     * Another publication's grid, resolved as if it had been written here.
+     *
+     * The block is rendered in the language of the **page it appears on**, not
+     * in some language of its own: that is why the id is shared and this is
+     * not. A block with nothing written in this language draws nothing, the
+     * same answer a linked publication gives.
+     *
+     * `$depth` is the whole of the recursion guard. At the second level this
+     * returns null whatever the zone names, so a block that shares a block
+     * draws the first and stops - and two blocks naming each other terminate
+     * instead of resolving until the process dies.
+     *
+     * Trashed blocks are refused. A page should not go on showing a band
+     * somebody deleted, and the publication zone beside this one already takes
+     * the same view.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function sharedView(?PostInterface $post, string $locale, int $depth): ?array
+    {
+        if ($depth >= 1 || !$post instanceof PostInterface || $post->isTrashed()) {
+            return null;
+        }
+
+        $translation = $post->getTranslation($locale);
+
+        if (!$translation instanceof PostTranslationInterface) {
+            return null;
+        }
+
+        $grid = $this->resolve(
+            $post->getGridLayout(),
+            $translation->getGrid(),
+            $locale,
+            $post->getId(),
+            depth: $depth + 1,
+        );
+
+        return [] === $grid['zones'] ? null : $grid;
     }
 
     /**
@@ -861,7 +976,12 @@ final readonly class GridViewBuilder
     {
         $ids = [];
         foreach (GridNormalizer::flatten($layout['zones']) as $zone) {
-            if (GridNormalizer::ZONE_POST === $zone['type'] && null !== $zone['postId']) {
+            $namesAPost = in_array($zone['type'], [
+                GridNormalizer::ZONE_POST,
+                GridNormalizer::ZONE_SHARED,
+            ], true);
+
+            if ($namesAPost && null !== $zone['postId']) {
                 $ids[] = $zone['postId'];
             }
         }

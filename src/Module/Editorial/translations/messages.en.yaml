@@ -456,6 +456,7 @@ backend:
         map: Address
         gallery: Gallery
         compare: Before / after
+        shared: Shared block
         button: Button
         separator: Separator
         items: List
@@ -663,6 +664,18 @@ backend:
       compare_pick: "Choose a picture"
       compare_before_label: "Word under the left picture"
       compare_after_label: "Word under the right picture"
+      zone_shared: Block to reuse
+      zone_shared_hint: "That publication's grid is drawn here. Edit it once and every page reusing it changes. A block reusing a block is not drawn: depth stops at one."
+      visibility: "When and for whom"
+      visibility_hint: "With nothing here, the zone is visible all the time and to everybody. That is what a zone saying nothing already does."
+      visible_from: From
+      visible_until: Until
+      visible_any: No limit
+      audience: Audience
+      audience_hint: "\"Members\" draws the zone only for a signed-in visitor. The panel still shows it to you."
+      audiences:
+        everyone: Everybody
+        members: Signed-in members
       zone_document_label_hint: "What the visitor reads on the card. Left empty, the document's own title in the library is used."
       zone_video_hint: "YouTube, Vimeo or Dailymotion. Any other address renders as a link rather than a player."
       move_up: Move up

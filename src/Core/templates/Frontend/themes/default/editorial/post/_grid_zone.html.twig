@@ -160,6 +160,18 @@
             <span class="shrink-0 text-accent" aria-hidden="true">&darr;</span>
         </a>
 
+    {% elseif zone.type == 'shared' and zone.shared %}
+        {# The block's own grid, drawn inside this zone's box.
+
+           `_grid.html.twig`, the very file that drew the zone we are standing
+           in - `.aurora-grid` divides whatever width it is given into 48, so a
+           block laid out in halves is laid out in halves of this zone rather
+           than of the page. Nothing here has to know how a zone is placed.
+
+           The recursion terminates in PHP and not here: at the second level
+           `shared` resolves to null, so this branch is not entered again. #}
+        {{ include('Frontend/themes/default/editorial/post/_grid.html.twig', {grid: zone.shared, locale: locale}) }}
+
     {% elseif zone.type == 'compare' and zone.compare %}
         {# Two pictures side by side, and that is the whole zone until a script
            says otherwise.
