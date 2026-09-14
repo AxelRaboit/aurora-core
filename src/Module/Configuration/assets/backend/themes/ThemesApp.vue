@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { Palette, Check, Pencil, Trash2, Plus, Save, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppTextLinkButton from "@/shared/components/action/AppTextLinkButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
@@ -70,6 +71,39 @@ function contrastNote(hex) {
     return meetsAaa(hex)
         ? `${text} · ${ratio}`
         : `${text} · ${ratio} · ${t("backend.themes.surface_below_aaa")}`;
+}
+
+/**
+ * What one theme card offers, minus the button that is the card's point.
+ *
+ * Activating stays a full-width button: it is what somebody scanning the grid
+ * came to press, and its disabled state is how a card says it is the live one.
+ * The default theme cannot be deleted and neither can the active one, so the
+ * entry is offered but disabled rather than hidden - a card that silently had
+ * one fewer entry than its neighbour read as a bug.
+ */
+function themeActions(theme) {
+    if (!can("configuration.themes.manage")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "edit",
+            color: "accent",
+            icon: Pencil,
+            title: t("backend.themes.edit"),
+            onSelect: () => openEdit(theme),
+        },
+        {
+            key: "delete",
+            color: "rose",
+            icon: Trash2,
+            title: t("shared.common.delete"),
+            disabled: theme.slug === "default" || theme.active,
+            onSelect: () => (deletingTheme.value = theme),
+        },
+    ];
 }
 
 // One entry and still a sheet: every list in the backend opens its actions the
@@ -148,20 +182,11 @@ const pageActions = computed(() => {
                         <Check class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ t("backend.themes.activate") }}
                     </AppButton>
-                    <AppButton v-if="can('configuration.themes.manage')" size="sm" variant="ghost" v-on:click="openEdit(theme)">
-                        <Pencil class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("backend.themes.edit") }}
-                    </AppButton>
-                    <AppButton
-                        v-if="can('configuration.themes.manage')"
-                        size="sm"
-                        variant="ghost"
-                        :disabled="theme.slug === 'default' || theme.active"
-                        class="text-rose-400 hover:bg-rose-500/10 disabled:opacity-40"
-                        v-on:click="deletingTheme = theme"
-                    >
-                        <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                    </AppButton>
+                    <AppRowActions
+                        v-if="themeActions(theme).length"
+                        :actions="themeActions(theme)"
+                        :label="theme.name"
+                    />
                 </div>
             </div>
         </div>
