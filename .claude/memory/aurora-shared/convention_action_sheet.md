@@ -33,9 +33,20 @@ disabled?, loading? }`.
 
 **Les cinq règles de placement :**
 
-1. **Un seul geste primaire reste visible.** Enregistrer, Publier, Créer gardent
-   leur propre bouton. Enterrer le verbe principal derrière un clic est
-   l'erreur que ce composant rend facile.
+1. **Un seul geste primaire reste visible, sauf sur un toolbar de liste.**
+   Sur une page qui édite ou montre **un** enregistrement, le verbe de la page
+   garde son bouton : Enregistrer sur un éditeur, Présenter sur un deck,
+   Contresigner sur un contrat. L'enterrer derrière un clic est l'erreur que ce
+   composant rend facile.
+
+   Le **toolbar d'une liste** est l'exception, et elle est **validée en
+   regardant l'écran** (Axel, 14/09/2026, sur `/backend/studio/decks`) : Créer
+   part dans la feuille avec les autres, et il ne reste qu'un bouton
+   « Actions » à droite de la recherche. La différence tient à ce qui occupe la
+   rangée : un en-tête d'éditeur n'a que ses boutons, un toolbar de liste a une
+   recherche et souvent un filtre qui veulent la largeur. **Ne pas « corriger »
+   `DecksApp` ou `ContractTemplatesApp` en ressortant Créer** : c'est le rendu
+   voulu, pas un oubli.
 2. **Deux seuils, pas un.** Une **ligne** passe en feuille dès **deux**
    actions, c'est la convention déjà appliquée par une quinzaine de listes et
    ce qu'outille `@/shared/composables/useEditDeleteActions.js` (qui exige une
