@@ -25,6 +25,13 @@ use function uniqid;
  * A command that answered "nothing to report" because its query was wrong
  * would be worse than no command: it is read by somebody deciding whether it
  * is safe to deploy.
+ *
+ * The cases assert on **titles** rather than on ids, and that is not a matter
+ * of taste. A document id is two or three digits, the report prints titles
+ * carrying a `uniqid()`, and `assertStringContainsString` does not care which
+ * column it matched in: the day an id was 78 and a neighbouring title happened
+ * to read `6aa784ab225fe`, the suite went red on a command that was working.
+ * A title is unique by construction here, so it cannot collide.
  */
 final class AuditPublicDocumentsCommandTest extends IntegrationTestCase
 {
@@ -33,8 +40,10 @@ final class AuditPublicDocumentsCommandTest extends IntegrationTestCase
         static::createClient();
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
+        $title = 'Visuel '.uniqid();
+
         $draft = new Document();
-        $draft->setTitle('Visuel '.uniqid())
+        $draft->setTitle($title)
             ->setStatus(DocumentStatusEnum::Draft)
             ->setFilePath('ged/1999/04/visuel-'.uniqid().'.png');
         $entityManager->persist($draft);
@@ -53,7 +62,7 @@ final class AuditPublicDocumentsCommandTest extends IntegrationTestCase
 
         $output = $this->audit();
 
-        self::assertStringContainsString((string) $draft->getId(), $output);
+        self::assertStringContainsString($title, $output);
         self::assertStringContainsString('draft', $output);
         self::assertStringContainsString('bandeau', $output);
     }
@@ -63,8 +72,10 @@ final class AuditPublicDocumentsCommandTest extends IntegrationTestCase
         static::createClient();
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
+        $title = 'Publié '.uniqid();
+
         $published = new Document();
-        $published->setTitle('Publié '.uniqid())
+        $published->setTitle($title)
             ->setStatus(DocumentStatusEnum::Published)
             ->setFilePath('ged/1999/05/publie-'.uniqid().'.png');
         $entityManager->persist($published);
@@ -76,7 +87,7 @@ final class AuditPublicDocumentsCommandTest extends IntegrationTestCase
         $entityManager->persist($post);
         $entityManager->flush();
 
-        self::assertStringNotContainsString((string) $published->getId(), $this->audit());
+        self::assertStringNotContainsString($title, $this->audit());
     }
 
     /**
@@ -89,8 +100,10 @@ final class AuditPublicDocumentsCommandTest extends IntegrationTestCase
         static::createClient();
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
+        $title = 'Brouillon '.uniqid();
+
         $draft = new Document();
-        $draft->setTitle('Brouillon '.uniqid())
+        $draft->setTitle($title)
             ->setStatus(DocumentStatusEnum::Draft)
             ->setFilePath('ged/1999/06/brouillon-'.uniqid().'.png');
         $entityManager->persist($draft);
@@ -102,7 +115,7 @@ final class AuditPublicDocumentsCommandTest extends IntegrationTestCase
         $entityManager->persist($post);
         $entityManager->flush();
 
-        self::assertStringNotContainsString((string) $draft->getId(), $this->audit());
+        self::assertStringNotContainsString($title, $this->audit());
     }
 
     /**
@@ -115,14 +128,18 @@ final class AuditPublicDocumentsCommandTest extends IntegrationTestCase
         static::createClient();
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
+        $listedTitle = 'Dans une liste '.uniqid();
+
         $inAList = new Document();
-        $inAList->setTitle('Dans une liste '.uniqid())
+        $inAList->setTitle($listedTitle)
             ->setStatus(DocumentStatusEnum::Draft)
             ->setFilePath('ged/1999/07/liste-'.uniqid().'.png');
         $entityManager->persist($inAList);
 
+        $logoTitle = 'Logo '.uniqid();
+
         $logo = new Document();
-        $logo->setTitle('Logo '.uniqid())
+        $logo->setTitle($logoTitle)
             ->setStatus(DocumentStatusEnum::Draft)
             ->setFilePath('ged/1999/07/logo-'.uniqid().'.png');
         $entityManager->persist($logo);
@@ -138,8 +155,8 @@ final class AuditPublicDocumentsCommandTest extends IntegrationTestCase
 
         $output = $this->audit();
 
-        self::assertStringContainsString((string) $inAList->getId(), $output);
-        self::assertStringContainsString((string) $logo->getId(), $output);
+        self::assertStringContainsString($listedTitle, $output);
+        self::assertStringContainsString($logoTitle, $output);
     }
 
     /**
