@@ -10,6 +10,7 @@ use Aurora\Module\Editorial\Form\Entity\Form;
 use Aurora\Module\Editorial\Form\Entity\FormField;
 use Aurora\Module\Editorial\Form\Enum\FormFieldTypeEnum;
 use Aurora\Module\Editorial\Form\Repository\FormSubmissionRepository;
+use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -32,6 +33,8 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
  */
 final class FormCaptchaTest extends IntegrationTestCase
 {
+    use ResetsRateLimiters;
+
     private KernelBrowser $client;
 
     private EntityManagerInterface $entityManager;
@@ -44,6 +47,7 @@ final class FormCaptchaTest extends IntegrationTestCase
         parent::setUp();
         $this->client = static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->resetRateLimiter('form_submission');
     }
 
     protected function tearDown(): void
@@ -134,8 +138,14 @@ final class FormCaptchaTest extends IntegrationTestCase
         $form->setActive(true);
         $form->translate('fr')->setTitle('Contact')->setSlug('contact-'.$suffix);
 
+        // Both sides kept in sync. The row is written either way - this test
+        // read its field back through a real request, so it was never wrong -
+        // but a fixture that leaves the parent's collection empty is a trap
+        // for the next test written against it, which may read the collection
+        // instead.
         $field = new FormField();
-        $field->setForm($form)->setType(FormFieldTypeEnum::Text)->setRequired(true)->setPosition(0);
+        $form->addField($field);
+        $field->setType(FormFieldTypeEnum::Text)->setRequired(true)->setPosition(0);
         $field->translate('fr')->setLabel('Message');
 
         $this->entityManager->persist($form);

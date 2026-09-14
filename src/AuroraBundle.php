@@ -33,6 +33,7 @@ use Aurora\Module\Editorial\Form\Entity\FormSubmission;
 use Aurora\Module\Editorial\Form\Entity\FormSubmissionInterface;
 use Aurora\Module\Editorial\Form\Entity\FormTranslation;
 use Aurora\Module\Editorial\Form\Entity\FormTranslationInterface;
+use Aurora\Module\Editorial\Form\Message\DeliverFormSubmissionMessage;
 use Aurora\Module\Editorial\Menu\Entity\Menu;
 use Aurora\Module\Editorial\Menu\Entity\MenuInterface;
 use Aurora\Module\Editorial\Menu\Entity\MenuItem;
@@ -65,6 +66,7 @@ use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Entity\DocumentVersion;
 use Aurora\Module\Ged\Document\Entity\DocumentVersionInterface;
+use Aurora\Module\Ged\Document\Message\RelocateDocumentMessage;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolder;
@@ -387,6 +389,25 @@ class AuroraBundle extends AbstractBundle
                 'DoctrineMigrations' => $dir.'/migrations',
             ],
             'enable_profiler' => false,
+        ]);
+
+        // Aurora's own messages are routed by Aurora. A client only provides
+        // the `async` transport, which its messenger.yaml already documents as
+        // required.
+        //
+        // It used to be the client's job to repeat this list, and nothing said
+        // so: a message left unrouted is not an error, Symfony simply handles
+        // it inline. So the queue silently did not exist on consumer projects
+        // - the GED relocation ran inside the request that asked for it, and a
+        // form submission would have gone on mailing from the visitor's own.
+        // Same shape as the rate limiters, which do fail loudly; these did not.
+        $builder->prependExtensionConfig('framework', [
+            'messenger' => [
+                'routing' => [
+                    RelocateDocumentMessage::class => 'async',
+                    DeliverFormSubmissionMessage::class => 'async',
+                ],
+            ],
         ]);
 
         $coreDirs = array_merge(

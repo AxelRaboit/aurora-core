@@ -5,6 +5,90 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.171] - 2026-09-14
+
+### Corrigé
+
+#### Un serveur mail en panne répondait au visiteur, pas au site
+Une soumission de formulaire déclenchait deux mails et un webhook en ligne,
+dans la requête du visiteur, juste après l'enregistrement. Le commentaire
+au-dessus du code promettait qu'un serveur mail injoignable ne coûterait pas
+au visiteur ce qu'il avait tapé : c'était vrai de la base, pas de la réponse.
+`MailService` n'attrape rien, donc l'exception remontait jusqu'au contrôleur
+et le visiteur lisait une erreur pour un message pourtant enregistré. Il le
+réécrivait, et le site recevait la même demande deux ou trois fois. Le
+webhook, lui, attrapait déjà ce qui le concernait : seuls les mails avaient
+été oubliés.
+
+Tout cela part maintenant sur la file `async`. Ce qui échoue est retenté trois
+fois puis conservé dans `failed` au lieu d'être perdu, et le visiteur n'attend
+plus deux allers-retours vers le serveur mail. Le signal contact, lui, reste
+en ligne : c'est un événement interne qu'un CRM écoute, pas un appel sortant.
+
+#### Le routage Messenger n'arrivait pas jusqu'aux projets clients
+Il était déclaré dans le `config/packages/messenger.yaml` de core, c'est-à-dire
+dans la configuration de son application de développement, qui n'est pas
+distribuée. Et rien ne le signalait : un message sans route n'est pas une
+erreur, Symfony l'exécute en ligne. La file existait donc en développement et
+nulle part ailleurs. Le déplacement d'un document GED tournait ainsi dans la
+requête qui l'avait demandé. `AuroraBundle` porte désormais le routage des
+messages d'Aurora ; le client ne fournit que le transport.
+
+#### Répondre à une soumission demandait de rouvrir le back-office
+La notification arrivait de l'adresse d'envoi du site, sans `Reply-To`.
+Répondre depuis sa boîte écrivait donc à `noreply`, et la seule façon de
+joindre la personne était d'ouvrir le formulaire dans le back-office et de
+recopier son adresse à la main, une fois par message. Elle porte maintenant
+l'adresse de qui a écrit.
+
+#### La notification partait dans la langue du visiteur
+Une soumission par la version espagnole d'un formulaire arrivait en espagnol,
+sujet compris, ce qui ne dit rien du message et rend la boîte de réception
+intriable. Elle suit désormais la langue des e-mails du site, avec repli sur
+la langue par défaut. La confirmation envoyée au visiteur, elle, reste dans
+la sienne.
+
+### Ajouté
+
+#### La notification dit de quelle soumission il s'agit
+Elle ne portait que les réponses : ni référence, ni date, ni lien. Retrouver
+une demande deux semaines plus tard se faisait à la main dans le back-office.
+Elle indique maintenant la référence, la date, la langue du formulaire, et
+porte un bouton vers la fiche.
+
+#### Une durée de conservation pour les soumissions
+Une soumission garde un nom, une adresse, ce qui a été écrit et l'IP d'où cela
+venait. Rien n'expirait : un formulaire laissé en ligne collectait des données
+personnelles aussi longtemps que le site vivait, et aucune durée ne pouvait
+être annoncée dans une politique de confidentialité.
+
+Le réglage **Conservation des soumissions (jours)** répond à la question. Il
+part à 0, c'est-à-dire sans limite : une version qui se mettrait à effacer le
+courrier d'un client le jour de son installation serait pire que le problème.
+La purge tourne à 3 h avec les autres, par lots de 500, et journalise ce
+qu'elle efface sans copier les réponses.
+
+#### Un formulaire dit si sa page propre doit être référencée
+`/{locale}/forms/{slug}` porte les mêmes questions que le contenu où le
+formulaire est posé, sous une seconde adresse. Aujourd'hui rien n'y mène et
+elle est hors du sitemap, donc le doublon est théorique ; il cesse de l'être
+le jour où une entrée de menu pointe dessus.
+
+La case **Référencer la page du formulaire** est décochée par défaut, y compris
+sur les formulaires existants : c'est déjà ce que ces sites font de cette page.
+Elle continue de répondre dans tous les cas, c'est ce sur quoi tombe un lien
+dans un mail ou derrière un QR code.
+
+### Dans aurora-client
+Rien à répercuter. Le routage Messenger arrive maintenant par le bundle, donc
+le `messenger.yaml` du client n'a rien à gagner ; il lui faut toujours le
+transport `async`, qu'il déclare déjà.
+
+Vérifier en revanche que le worker tourne, puisque les mails de formulaire en
+dépendent désormais : `systemctl status aurora-worker`.
+
+---
+
 ## [0.9.170] - 2026-09-14
 
 ### Corrigé

@@ -10,6 +10,7 @@ function emptyForm(locales) {
         notifyEmail: "",
         webhookUrl: "",
         crmSync: false,
+        standalonePageIndexed: false,
         active: true,
         steps: null,
         translations: Object.fromEntries(
@@ -26,6 +27,7 @@ function formFrom(form, locales) {
         notifyEmail: form.notifyEmail ?? "",
         webhookUrl: form.webhookUrl ?? "",
         crmSync: form.crmSync ?? false,
+        standalonePageIndexed: form.standalonePageIndexed ?? false,
         active: form.active ?? true,
         steps: form.steps ? [...form.steps] : null,
         translations: Object.fromEntries(

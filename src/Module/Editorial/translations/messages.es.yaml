@@ -175,5 +175,7 @@ editorial:
       subject_confirmation: 'Su mensaje: {form}'
       admin_heading: Nuevo envío
       admin_intro: "El formulario «{form}» acaba de rellenarse."
+      admin_language: Idioma
+      cta_open: Abrir en el back-office
       confirmation_heading: Mensaje recibido
       confirmation_intro: "Gracias, hemos recibido su mensaje enviado a través de «{form}»."

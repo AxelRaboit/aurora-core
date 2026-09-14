@@ -230,6 +230,9 @@ backend:
     trash_auto_purge_days:
       label: Purge auto de la corbeille (jours)
       description: Nombre de jours avant suppression définitive des articles en corbeille (0 = jamais)
+    form_submission_retention_days:
+      label: Conservation des soumissions (jours)
+      description: "Nombre de jours de conservation des réponses aux formulaires, adresse IP comprise, avant suppression définitive (0 = sans limite)"
     homepage_post_id:
       label: Page d'accueil (ID du post)
       description: ID d'un post affiché sur la page d'accueil. Vide = liste des derniers articles.
