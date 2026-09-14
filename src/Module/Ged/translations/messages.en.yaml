@@ -145,6 +145,7 @@ backend:
       filter_by_type: Filter by type
       type_image: Images
       type_video: Videos
+      type_audio: Audio
       type_pdf: PDF
       type_other: Other
       alt: Alternative text

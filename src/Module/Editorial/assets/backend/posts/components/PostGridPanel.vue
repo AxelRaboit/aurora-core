@@ -47,6 +47,10 @@ const props = defineProps({
     postTypeOptions: { type: Array, default: () => [] },
     /** The terms it may narrow to, across every taxonomy. */
     termOptions: { type: Array, default: () => [] },
+    /** The taxonomies a terms zone may unroll. */
+    taxonomyOptions: { type: Array, default: () => [] },
+    /** The presentations a deck zone may show. */
+    deckOptions: { type: Array, default: () => [] },
     /** The active forms a zone may pose. */
     formOptions: { type: Array, default: () => [] },
     previewPath: { type: String, required: true },
@@ -90,6 +94,10 @@ const {
     addItem,
     removeItem,
     moveItem,
+    addGalleryImages,
+    removeGalleryImage,
+    moveGalleryImage,
+    setCompareImage,
     itemFields,
     widthLabel,
     resizeZoneFromLeft: resizeZoneStart,
@@ -381,6 +389,41 @@ function resizeZone(index, columns) {
                     :hint="anchorHint(index)"
                 />
 
+                <!-- When the zone is drawn, and for whom. Kept with the
+                     arrangement and not with the fields of one type, because
+                     every zone can be withheld and none of them is by default.
+                     The panel always shows the zone - an author cannot arrange
+                     what is hidden from them, and a zone waiting for its date
+                     has to stay editable until it arrives. -->
+                <details class="rounded-lg border border-line p-3">
+                    <summary class="cursor-pointer text-sm font-medium text-primary">
+                        {{ t("backend.posts.grid.visibility") }}
+                    </summary>
+                    <div class="mt-3 space-y-3">
+                        <p class="text-xs text-muted">{{ t("backend.posts.grid.visibility_hint") }}</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <AppInput
+                                v-model="zoneFields(index).visibleFrom.value"
+                                type="date"
+                                :label="t('backend.posts.grid.visible_from')"
+                                :placeholder="t('backend.posts.grid.visible_any')"
+                            />
+                            <AppInput
+                                v-model="zoneFields(index).visibleUntil.value"
+                                type="date"
+                                :label="t('backend.posts.grid.visible_until')"
+                                :placeholder="t('backend.posts.grid.visible_any')"
+                            />
+                        </div>
+                        <AppChoiceRow
+                            v-model="zoneFields(index).audience.value"
+                            :label="t('backend.posts.grid.audience')"
+                            :hint="t('backend.posts.grid.audience_hint')"
+                            :options="zoneChoices.audience"
+                        />
+                    </div>
+                </details>
+
                 <!-- A stack holds zones instead of content, so it shows them
                      here: same fields, one level down. The share row is the
                      width row over again - inside a stack the axis of flow is
@@ -459,6 +502,8 @@ function resizeZone(index, columns) {
                                 :post-options="postOptions"
                                 :post-type-options="postTypeOptions"
                                 :term-options="termOptions"
+                                :taxonomy-options="taxonomyOptions"
+                                :deck-options="deckOptions"
                                 :form-options="formOptions"
                                 :in-stack="true"
                                 :ratio-options="ratioOptions"
@@ -471,6 +516,10 @@ function resizeZone(index, columns) {
                                 v-on:add-item="addItem(index, childIndex)"
                                 v-on:remove-item="(i) => removeItem(index, i, childIndex)"
                                 v-on:move-item="(i, d) => moveItem(index, i, d, childIndex)"
+                                v-on:add-gallery="(picked) => addGalleryImages(index, picked, childIndex)"
+                                v-on:remove-gallery="(i) => removeGalleryImage(index, i, childIndex)"
+                                v-on:move-gallery="(i, d) => moveGalleryImage(index, i, d, childIndex)"
+                                v-on:set-compare="(slot, picked) => setCompareImage(index, slot, picked, childIndex)"
                             />
                         </div>
 
@@ -499,6 +548,8 @@ function resizeZone(index, columns) {
                     :post-options="postOptions"
                     :post-type-options="postTypeOptions"
                     :term-options="termOptions"
+                    :taxonomy-options="taxonomyOptions"
+                    :deck-options="deckOptions"
                     :form-options="formOptions"
                     :ratio-options="ratioOptions"
                     :scale-options="scaleOptions"
@@ -510,6 +561,10 @@ function resizeZone(index, columns) {
                     v-on:add-item="addItem(index)"
                     v-on:remove-item="(i) => removeItem(index, i)"
                     v-on:move-item="(i, d) => moveItem(index, i, d)"
+                    v-on:add-gallery="(picked) => addGalleryImages(index, picked)"
+                    v-on:remove-gallery="(i) => removeGalleryImage(index, i)"
+                    v-on:move-gallery="(i, d) => moveGalleryImage(index, i, d)"
+                    v-on:set-compare="(slot, picked) => setCompareImage(index, slot, picked)"
                 />
             </div>
 

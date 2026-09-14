@@ -108,6 +108,358 @@
             {% endif %}
         </figure>
 
+    {% elseif zone.type == 'audio' and zone.audio %}
+        {# The browser's own player. No `preload="none"` here, unlike the film
+           beside it: a recording has no poster to stand in for it, so a player
+           that has fetched nothing shows an unknown duration and a scrub bar
+           that cannot be aimed. `metadata` buys the duration for a few hundred
+           bytes and leaves the audio itself unfetched. #}
+        <div class="not-prose space-y-2">
+            <audio class="w-full" controls preload="metadata">
+                <source src="{{ zone.audio.url }}" type="{{ zone.audio.mimeType }}">
+            </audio>
+            {% if zone.caption %}
+                <p class="m-0 text-sm text-secondary">{{ zone.caption }}</p>
+            {% endif %}
+        </div>
+
+    {% elseif zone.type == 'document' and zone.document %}
+        {# A link, not a button: it goes somewhere, and a reader who wants it in
+           a new tab or saved to a folder should get what their browser
+           normally gives them for an address.
+
+           `download` is deliberately absent. The library's permalink redirects
+           to the file, and the attribute is ignored across a redirect to
+           another origin anyway - so promising a save and delivering a tab is
+           worse than saying nothing. A PDF opening in the viewer is what most
+           readers want from a plaquette. #}
+        <a
+            href="{{ zone.document.url }}"
+            class="not-prose flex items-center gap-4 rounded-xl border border-line bg-surface p-4 no-underline transition-colors hover:border-accent"
+        >
+            {# The extension rather than an icon per format: a set of glyphs
+               would need one per type the library accepts, and "PDF" in a box
+               is read faster than a picture of a document anyway. #}
+            <span
+                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent-500/10 text-2xs font-bold uppercase tracking-wider text-accent"
+                aria-hidden="true"
+            >{{ zone.document.extension }}</span>
+            <span class="min-w-0 flex-1">
+                <span class="block truncate font-medium text-primary">{{ zone.document.title }}</span>
+                {# What the reader is about to receive, in the order they ask
+                   it: what kind of file, and how big. The size is spelled out
+                   by `file_size`, which is the filter the backend's own lists
+                   already use. #}
+                <span class="block text-sm text-muted">
+                    {{ zone.document.extension }}{% if zone.document.size %} &middot; {{ zone.document.size|file_size }}{% endif %}
+                </span>
+                {% if zone.caption %}
+                    <span class="mt-1 block text-sm text-secondary">{{ zone.caption }}</span>
+                {% endif %}
+            </span>
+            <span class="shrink-0 text-accent" aria-hidden="true">&darr;</span>
+        </a>
+
+    {% elseif zone.type == 'embed' %}
+        {% if zone.embed %}
+            {# The src is built from what a whitelist pattern captured, never
+               from the string as it arrived - see EmbedResolver. An iframe runs
+               what its host serves, so an author-supplied address is never put
+               here.
+
+               A ratio where the content has one, a height where it does not: a
+               booking form is a column of dates whose height owes nothing to
+               its width, and forcing it into 16:9 gives a scrollbar inside a
+               frame. #}
+            <div
+                class="not-prose overflow-hidden rounded-lg"
+                style="{% if zone.embed.aspect %}aspect-ratio: {{ zone.embed.aspect }};{% else %}height: {{ zone.embed.height }}px;{% endif %}"
+            >
+                <iframe
+                    src="{{ zone.embed.embedUrl }}"
+                    class="h-full w-full border-0"
+                    loading="lazy"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"
+                    allowfullscreen
+                    title="{{ zone.caption ?: zone.embed.provider }}"
+                ></iframe>
+            </div>
+            {% if zone.caption %}
+                <p class="mt-2 text-sm text-secondary not-prose">{{ zone.caption }}</p>
+            {% endif %}
+        {% elseif zone.url %}
+            {# An address no provider claims still reaches the reader, as a
+               link. Showing nothing would look like a fault to the author, who
+               pasted something and saw it accepted. #}
+            <a href="{{ zone.url }}" rel="noopener" class="text-sm underline not-prose">
+                {{ zone.caption ?: zone.url }}
+            </a>
+        {% endif %}
+
+    {% elseif zone.type == 'tabs' and zone.tabs.panels is not empty %}
+        {# Every panel, open, each under its own heading. That is the zone
+           until a script says otherwise, and it is deliberate: a reader
+           without JavaScript - or before it arrives, which is everybody for
+           the first moment - gets all the text rather than one twelfth of it
+           and no way to the rest. `tabs.js` finds `[data-tabs]` and builds the
+           strip of labels; everything below works if it never runs.
+
+           The ids are the stored panel ids and not a counter, so two tab zones
+           on one page cannot fight over `panel-1`. #}
+        <div class="not-prose" data-tabs>
+            {% for panel in zone.tabs.panels %}
+                <section
+                    id="panel-{{ zone.tabs.zoneId }}-{{ panel.id }}"
+                    data-tabs-panel
+                    aria-labelledby="tab-{{ zone.tabs.zoneId }}-{{ panel.id }}"
+                    class="mb-8 last:mb-0"
+                >
+                    {% if panel.label %}
+                        <h3
+                            id="tab-{{ zone.tabs.zoneId }}-{{ panel.id }}"
+                            data-tabs-label
+                            class="mb-3 mt-0 text-lg font-semibold text-primary"
+                        >{{ panel.label }}</h3>
+                    {% endif %}
+                    {# Already sanitised by BlocksRenderer, the same path every
+                       block type goes through. #}
+                    <div class="prose max-w-none">{{ panel.html|raw }}</div>
+                </section>
+            {% endfor %}
+        </div>
+
+    {% elseif zone.type == 'search' and zone.search %}
+        {# The component the sequence search already mounts, against the same
+           endpoint. A second search written for this zone would be a second
+           set of empty states, a second debounce and a second thing to keep in
+           step with the first. #}
+        <div class="not-prose" {{ vue_component('editorial/frontend/SequenceSearch', {
+            searchUrl: zone.search.searchUrl,
+            locale: locale,
+        }) }}></div>
+
+    {% elseif zone.type == 'comments' and zone.comments %}
+        {# The same component the foot of the page mounts, and the reason the
+           foot draws nothing when this zone exists: one conversation per page,
+           where the author put it. #}
+        <div class="not-prose" {{ vue_component('editorial/frontend/PostComments', {
+            listPath: zone.comments.listPath,
+            submitPath: zone.comments.submitPath,
+            reactPathTemplate: zone.comments.reactPathTemplate,
+            captcha: public_captcha(),
+        }) }}></div>
+
+    {% elseif zone.type == 'deck' and zone.deck %}
+        {# Same origin: this is the site showing its own page inside its own
+           page, so no provider is reached and no `allow` list is needed beyond
+           full screen, which is what a presentation is for.
+
+           16:9 because that is the shape a slide is authored in, and a fixed
+           ratio is what stops the frame collapsing before anything loads. #}
+        <figure class="not-prose m-0">
+            <div class="relative aspect-video overflow-hidden rounded-lg border border-line">
+                <iframe
+                    src="{{ zone.deck.url }}"
+                    class="absolute inset-0 h-full w-full"
+                    loading="lazy"
+                    title="{{ zone.deck.title }}"
+                    allowfullscreen
+                ></iframe>
+            </div>
+            {% if zone.caption %}
+                <figcaption class="mt-2 text-sm text-secondary">{{ zone.caption }}</figcaption>
+            {% endif %}
+        </figure>
+
+    {% elseif zone.type == 'shared' and zone.shared %}
+        {# The block's own grid, drawn inside this zone's box.
+
+           `_grid.html.twig`, the very file that drew the zone we are standing
+           in - `.aurora-grid` divides whatever width it is given into 48, so a
+           block laid out in halves is laid out in halves of this zone rather
+           than of the page. Nothing here has to know how a zone is placed.
+
+           The recursion terminates in PHP and not here: at the second level
+           `shared` resolves to null, so this branch is not entered again. #}
+        {{ include('Frontend/themes/default/editorial/post/_grid.html.twig', {grid: zone.shared, locale: locale}) }}
+
+    {% elseif zone.type == 'compare' and zone.compare %}
+        {# Two pictures side by side, and that is the whole zone until a script
+           says otherwise.
+
+           Written this way round on purpose. The handle is the point of this
+           zone, but a reader without JavaScript - or before it arrives, which
+           is every reader for the first moment - must still be able to compare
+           the two, and two labelled pictures beside each other is a comparison.
+           `compareSlider.js` finds `[data-compare]` and turns it into the
+           overlay with the handle; everything below works if it never runs.
+
+           The labels are `<figcaption>`s and not decoration: without them a
+           screen reader is offered two pictures of the same thing with nothing
+           to say which is which. #}
+        <div
+            class="not-prose grid grid-cols-2 gap-3"
+            data-compare
+            data-compare-label="{{ 'frontend.editorial.grid.compare_handle'|trans }}"
+        >
+            <figure class="m-0" data-compare-before>
+                <img
+                    src="{{ zone.compare.before.url }}"
+                    alt="{{ zone.compare.before.alt }}"
+                    loading="lazy"
+                    class="h-auto w-full rounded-lg object-cover"
+                    style="object-position: {{ zone.compare.before.focalPosition }};"
+                >
+                <figcaption class="mt-2 text-sm text-secondary">
+                    {{ zone.compare.beforeLabel ?: 'frontend.editorial.grid.before'|trans }}
+                </figcaption>
+            </figure>
+            <figure class="m-0" data-compare-after>
+                <img
+                    src="{{ zone.compare.after.url }}"
+                    alt="{{ zone.compare.after.alt }}"
+                    loading="lazy"
+                    class="h-auto w-full rounded-lg object-cover"
+                    style="object-position: {{ zone.compare.after.focalPosition }};"
+                >
+                <figcaption class="mt-2 text-sm text-secondary">
+                    {{ zone.compare.afterLabel ?: 'frontend.editorial.grid.after'|trans }}
+                </figcaption>
+            </figure>
+        </div>
+        {% if zone.caption %}
+            <p class="mt-3 mb-0 text-sm text-secondary not-prose">{{ zone.caption }}</p>
+        {% endif %}
+
+    {% elseif zone.type == 'gallery' and zone.gallery.items is not empty %}
+        {# Two layouts, and they are two mechanisms rather than two sets of
+           classes - the same split the publication's own gallery makes, for the
+           same reason.
+
+           Which one is drawn is not a third setting: it falls out of the ratio
+           the zone already carries. Asked for its own proportions, the pictures
+           flow down CSS columns and each keeps its height; asked for a shape,
+           they are cropped into a real grid that reads left to right. That
+           matters when the order carries something, so it is worth knowing
+           which one is in play - the settings panel says so.
+
+           Column counts are written out literally per layout: Tailwind only
+           emits classes it can read in the source, and `sm:columns-{{ n }}`
+           produces nothing at all. #}
+        {% set flows = zone.gallery.ratioStyle is empty %}
+        {% set gridColumns = {
+            2: 'grid-cols-1 sm:grid-cols-2',
+            3: 'grid-cols-2 sm:grid-cols-3',
+            4: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
+        } %}
+        {% set flowColumns = {
+            2: 'columns-1 sm:columns-2',
+            3: 'columns-2 sm:columns-3',
+            4: 'columns-2 sm:columns-3 lg:columns-4',
+        } %}
+
+        <div class="not-prose">
+            <div class="{{ flows ? flowColumns[zone.gallery.columns] ~ ' gap-3' : 'grid ' ~ gridColumns[zone.gallery.columns] ~ ' gap-3' }}">
+                {% for picture in zone.gallery.items %}
+                    <figure class="m-0{{ flows ? ' mb-3 break-inside-avoid' : '' }}">
+                        {# A button rather than a link, like the media zone's:
+                           it opens the grid's own overlay on this page instead
+                           of going anywhere. Without the script it is a button
+                           that does nothing to a picture that is already all
+                           there, which is the right way round. #}
+                        <button
+                            type="button"
+                            data-grid-image-open="{{ picture.lightboxIndex }}"
+                            class="block w-full cursor-zoom-in appearance-none border-0 bg-transparent p-0 text-left"
+                            aria-label="{{ 'frontend.gallery.enlarge'|trans }}"
+                        >
+                            <img
+                                src="{{ picture.url }}"
+                                alt="{{ picture.alt }}"
+                                loading="lazy"
+                                class="h-auto w-full rounded-lg object-cover"
+                                style="object-position: {{ picture.focalPosition }};{{ flows ? '' : zone.gallery.ratioStyle }}"
+                            >
+                        </button>
+                        {% if picture.credit %}
+                            {{ include('Frontend/themes/default/editorial/post/_media_credit.html.twig', {credit: picture.credit}, false) }}
+                        {% endif %}
+                    </figure>
+                {% endfor %}
+            </div>
+            {% if zone.caption %}
+                <p class="mt-3 mb-0 text-sm text-secondary">{{ zone.caption }}</p>
+            {% endif %}
+        </div>
+
+    {% elseif zone.type == 'map' and zone.map %}
+        {# `<address>` because that is what this is - the element exists for
+           contact details and nothing else, and a screen reader announces it
+           as such. Wrapped in a `Place` so a search engine can read the same
+           thing: `address` accepts plain text in that vocabulary, which is
+           what an author typed, so nothing here pretends to know which line is
+           the street and which is the town.
+
+           `white-space: pre-line` keeps the lines the author typed without
+           asking them for markup, and the `<address>` is not italic here
+           because browsers set it that way by default and an address is not an
+           aside. #}
+        <div class="not-prose space-y-4" itemscope itemtype="https://schema.org/Place">
+            {% if zone.map.media %}
+                <img
+                    src="{{ zone.map.media.url }}"
+                    alt="{{ zone.map.media.alt }}"
+                    loading="lazy"
+                    class="w-full rounded-lg object-cover"
+                    style="object-position: {{ zone.map.media.focalPosition }};"
+                    itemprop="photo"
+                >
+            {% endif %}
+            {% if zone.map.name %}
+                <p class="m-0 font-semibold text-primary" itemprop="name">{{ zone.map.name }}</p>
+            {% endif %}
+            <address class="m-0 not-italic text-secondary" itemprop="address">
+                {%- for line in zone.map.lines -%}
+                    {{ line }}{% if not loop.last %}<br>{% endif %}
+                {%- endfor -%}
+            </address>
+            {# A link, and only followed if the reader wants it: nothing on this
+               page has reached a map provider up to here. #}
+            <a
+                href="{{ zone.map.directionsUrl }}"
+                rel="noopener"
+                class="inline-flex items-center gap-2 text-sm font-medium text-accent no-underline hover:underline"
+            >
+                {{ 'frontend.editorial.grid.directions'|trans }}
+                <span aria-hidden="true">&rarr;</span>
+            </a>
+        </div>
+
+    {% elseif zone.type == 'terms' and zone.terms.entries is not empty %}
+        {# A `<nav>` with a name, which is what makes it skippable - the same
+           reasoning as the summary further down this file. A reader moving by
+           landmark meets the taxonomy's own name and can step over the lot.
+
+           Wrapped rather than listed down the page: a taxonomy is a set, not a
+           sequence, and a row of chips says that where a bulleted list would
+           claim an order nobody chose. #}
+        <nav class="not-prose" aria-label="{{ zone.terms.name ?: 'frontend.editorial.grid.terms'|trans }}">
+            {% if zone.caption %}
+                <p class="m-0 mb-3 text-xs font-semibold uppercase tracking-wider text-muted">{{ zone.caption }}</p>
+            {% endif %}
+            <ul class="m-0 flex list-none flex-wrap gap-2 p-0">
+                {% for entry in zone.terms.entries %}
+                    <li class="m-0">
+                        <a
+                            href="{{ entry.url }}"
+                            class="inline-block rounded-full border border-line px-4 py-1.5 text-sm text-secondary no-underline transition-colors hover:border-accent hover:text-accent"
+                        >{{ entry.label }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </nav>
+
     {% elseif zone.type == 'post' and zone.post %}
         {{ include('Frontend/themes/default/editorial/_post_card.html.twig', {post: zone.post, locale: locale, variant: zone.cardVariant}) }}
 

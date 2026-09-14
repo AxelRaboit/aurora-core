@@ -15,6 +15,7 @@ use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\PostType\Serializer\PostTypeSerializerInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
 use Aurora\Module\Editorial\Taxonomy\Serializer\TaxonomySerializerInterface;
+use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 
 /**
  * Builds the payloads for the posts list and the standalone editor page.
@@ -32,6 +33,7 @@ final readonly class PostsViewBuilder
         private TaxonomySerializerInterface $taxonomySerializer,
         private LocaleContextInterface $localeContext,
         private FormRepository $formRepository,
+        private DeckRepository $deckRepository,
     ) {}
 
     /**
@@ -115,6 +117,9 @@ final readonly class PostsViewBuilder
             // Only the edit screen names forms: the list screen has no grid
             // to pose one in.
             'forms' => $this->formChoices(),
+            // Same reasoning as the forms above: only the edit screen has a
+            // grid to place one in.
+            'decks' => $this->deckChoices(),
             ...$this->sharedContext(),
         ];
     }
@@ -132,6 +137,33 @@ final readonly class PostsViewBuilder
      *
      * @return list<array{id: int|null, title: string}>
      */
+    /**
+     * The presentations a deck zone may show.
+     *
+     * Every deck, not only the shared ones: whether a link is live is answered
+     * at render, and a list that silently omitted a deck would leave an author
+     * hunting for one they can see in Studio. The panel says what happens when
+     * there is no link.
+     *
+     * @return list<array{id: int, title: string}>
+     */
+    private function deckChoices(): array
+    {
+        $choices = [];
+
+        foreach ($this->deckRepository->findBy([], ['title' => 'ASC']) as $deck) {
+            $id = $deck->getId();
+
+            if (null === $id) {
+                continue;
+            }
+
+            $choices[] = ['id' => $id, 'title' => $deck->getTitle()];
+        }
+
+        return $choices;
+    }
+
     private function formChoices(): array
     {
         $choices = [];
