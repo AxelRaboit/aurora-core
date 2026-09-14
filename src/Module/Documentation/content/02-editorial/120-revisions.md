@@ -5,11 +5,11 @@ rubric: "Éditorial"
 ---
 Chaque enregistrement laisse une trace de l'état précédent. On peut comparer, et restaurer, sans avoir rien eu à activer.
 
-## 1. Le bouton Historique
+## 1. Historique, dans le menu Actions
 
 Il est en haut de l'éditeur, à gauche de **Prévisualiser**. Comme lui, il n'apparaît que sur une publication déjà enregistrée : une page qui n'a jamais été écrite n'a pas de passé.
 
-![Le bouton Historique, en haut de l'éditeur](../../images/02-editorial/revisions-01-le-bouton-historique.png)
+![Le menu Actions, en haut de l'éditeur](../../images/02-editorial/revisions-01-le-bouton-historique.png)
 
 ## 2. Ce qui est gardé
 

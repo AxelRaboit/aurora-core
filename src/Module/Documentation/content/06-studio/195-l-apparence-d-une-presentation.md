@@ -3,7 +3,7 @@ title: "L'apparence d'une présentation"
 description: "Un thème, trois couleurs, une typographie, un logo."
 rubric: "Studio"
 ---
-Le bouton « Apparence », en haut de la page d'une présentation, décide de quoi elle a l'air. Le choix vaut pour **toutes ses slides** : une présentation est un document, pas une collection de pages indépendantes.
+« Apparence », dans le menu « Actions » en haut de la page d'une présentation, décide de quoi elle a l'air. Le choix vaut pour **toutes ses slides** : une présentation est un document, pas une collection de pages indépendantes.
 
 Le panneau montre en permanence une slide de la présentation, redessinée à chaque changement. C'est la question que vous vous posez, donc c'est ce qu'il affiche : rien n'est enregistré tant que vous n'avez pas validé.
 

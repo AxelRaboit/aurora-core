@@ -13,7 +13,7 @@ Une ligne par document : son titre, sa catégorie, son statut, le nom du fichier
 
 ## Ouvrir le panneau
 
-« Ajouter un document ». Le panneau demande d'abord ce qui vaut pour tous les fichiers : un titre, une description, une catégorie, des étiquettes, un dossier, un statut.
+« Ajouter un document », dans le menu « Actions ». Le panneau demande d'abord ce qui vaut pour tous les fichiers : un titre, une description, une catégorie, des étiquettes, un dossier, un statut.
 
 ![Le panneau de dépôt](../../images/03-mediatheque/deposer-un-document-02-le-panneau-de-depot.png)
 

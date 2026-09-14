@@ -3,7 +3,7 @@ title: "Présenter et imprimer"
 description: "Le plein écran, la vue présentateur, et le PDF par l'impression du navigateur."
 rubric: "Studio"
 ---
-Trois boutons en haut de la page d'une présentation : « Présenter », « Vue présentateur » et « Imprimer ». Tous les trois enregistrent d'abord la slide en cours.
+Trois façons de montrer une présentation : « Présenter », qui garde son bouton en haut de la page, puis « Vue présentateur » et « Imprimer », dans le menu « Actions » à côté. Toutes les trois enregistrent d'abord la slide en cours.
 
 ## 1. Présenter
 
@@ -33,7 +33,7 @@ Les deux boutons sont aussi dans la barre du bas.
 
 ## Les transitions
 
-Entre deux slides, la présentation fait un **fondu** par défaut. Le réglage est dans « Apparence », tout en bas : aucune, fondu, ou glissement.
+Entre deux slides, la présentation fait un **fondu** par défaut. Le réglage est dans « Apparence », au bas du panneau que le menu « Actions » ouvre : aucune, fondu, ou glissement.
 
 Il ne concerne que le plein écran. Le papier et le lien de partage n'en portent pas, et c'est pour cette raison que le fondu est le comportement par défaut alors que le reste des réglages d'apparence, eux, ne changent rien à ce qui existait déjà : une présentation écrite avant ce réglage n'a pas changé d'aspect, elle a seulement gagné cent cinquante millisecondes entre deux slides.
 

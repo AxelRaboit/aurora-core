@@ -3,7 +3,7 @@ title: "Partir d'un document"
 description: "Écrire ou coller un texte, et en faire des slides."
 rubric: "Studio"
 ---
-Le bouton « Importer un document », dans la liste des présentations, ouvre un éditeur de texte. Vous y écrivez, ou vous y collez ce que vous avez déjà. Au moment de valider, le document devient une présentation.
+« Importer un document », dans le menu « Actions » de la liste des présentations, ouvre un éditeur de texte. Vous y écrivez, ou vous y collez ce que vous avez déjà. Au moment de valider, le document devient une présentation.
 
 ![La modale d'import](../../images/06-studio/partir-d-un-document-01-la-modale.png)
 
