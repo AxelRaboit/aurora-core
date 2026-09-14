@@ -15,6 +15,7 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import AppSignaturePad from "@/shared/components/form/input/AppSignaturePad.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import AppMessage from "@/shared/components/feedback/AppMessage.vue";
@@ -233,6 +234,60 @@ const refusedAt = computed(() =>
 const documentHtml = computed(() =>
     safeContractHtml(props.contract.renderedHtml),
 );
+
+/**
+ * The three things that can be done to a sealed contract, in one list.
+ *
+ * Amending and terminating used to sit in a row of their own halfway down the
+ * page, under the seal and the amendment history. That put the two verbs that
+ * change a contract's life below a wall of hashes, where nobody looking for
+ * them would think to scroll. They belong with the PDF, at the top, and the
+ * conditions that governed them are unchanged: only a concluded contract, only
+ * one that is not itself an amendment, and only until it has been terminated.
+ *
+ * Countersigning stays out: when it is offered it is the only thing the reader
+ * came to do.
+ */
+const contractActions = computed(() => {
+    const actions = [];
+
+    // Only once there is a file. The contract says whether one exists, so the
+    // entry never leads to a 404.
+    if (contract.value.hasPdf) {
+        actions.push({
+            key: "pdf",
+            icon: FileDown,
+            title: t("backend.studio.contracts.download_pdf"),
+            href: props.pdfPath,
+        });
+    }
+
+    const liveAndConcluded =
+        isConcluded.value && !contract.value.amends && !contract.value.termination;
+
+    if (liveAndConcluded && can("studio.contracts.create")) {
+        actions.push({
+            key: "amend",
+            color: "accent",
+            icon: FilePlus2,
+            title: t("backend.studio.contracts.amend"),
+            href: props.amendPath,
+        });
+    }
+
+    // Last: it is the one that ends something.
+    if (liveAndConcluded && can("studio.contracts.edit")) {
+        actions.push({
+            key: "terminate",
+            color: "amber",
+            icon: CalendarX,
+            title: t("backend.studio.contracts.terminate"),
+            onSelect: () => (showTerminate.value = true),
+        });
+    }
+
+    return actions;
+});
 </script>
 
 <template>
@@ -251,17 +306,12 @@ const documentHtml = computed(() =>
                     <ArrowLeft class="w-3.5 h-3.5" :stroke-width="2" />
                     {{ t("shared.common.back") }}
                 </AppButton>
-                <!-- Only once there is a file. The row says whether one
-                     exists, so the button never leads to a 404. -->
-                <AppButton
-                    v-if="contract.hasPdf"
-                    variant="secondary"
-                    size="md"
-                    :href="pdfPath"
-                >
-                    <FileDown class="w-3.5 h-3.5" :stroke-width="2" />
-                    {{ t("backend.studio.contracts.download_pdf") }}
-                </AppButton>
+                <AppPageActions
+                    v-if="contractActions.length"
+                    :actions="contractActions"
+                    :label="contract.reference ?? ''"
+                    variant="ghost"
+                />
                 <AppButton
                     v-if="canCountersign"
                     variant="primary"
@@ -473,32 +523,6 @@ const documentHtml = computed(() =>
                 <p v-if="contract.termination.reason" class="text-primary whitespace-pre-line">
                     {{ contract.termination.reason }}
                 </p>
-            </div>
-
-            <!-- Offered only on a concluded contract, because those are the two
-                 things that can happen to one: it gets modified, or it ends. -->
-            <div
-                v-if="isConcluded && !contract.amends"
-                class="flex flex-wrap gap-2"
-            >
-                <AppButton
-                    v-if="can('studio.contracts.create') && !contract.termination"
-                    variant="secondary"
-                    size="md"
-                    :href="amendPath"
-                >
-                    <FilePlus2 class="w-4 h-4" :stroke-width="2" />
-                    {{ t("backend.studio.contracts.amend") }}
-                </AppButton>
-                <AppButton
-                    v-if="can('studio.contracts.edit') && !contract.termination"
-                    variant="ghost"
-                    size="md"
-                    v-on:click="showTerminate = true"
-                >
-                    <CalendarX class="w-4 h-4" :stroke-width="2" />
-                    {{ t("backend.studio.contracts.terminate") }}
-                </AppButton>
             </div>
 
             <!-- The document as it was rendered and hashed. Printed from the

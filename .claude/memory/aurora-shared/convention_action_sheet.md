@@ -87,5 +87,6 @@ où elle peut diverger. D'où la mécanique unique et les deux façades.
   est un geste de trop.
 - Exemples en code : `PostEditorApp.vue` (liste conditionnelle, décision de
   relecture), `DocumentShowApp.vue` (liste partagée avec les lignes de la GED
-  via `useDocumentRowActions`), les quinze listes qui utilisent déjà
-  `AppRowActions`.
+  via `useDocumentRowActions`), `ContractDocumentApp.vue` (deux actions
+  remontées du milieu de page, où elles étaient sous un mur de hashes), les
+  quinze listes qui utilisent déjà `AppRowActions`.

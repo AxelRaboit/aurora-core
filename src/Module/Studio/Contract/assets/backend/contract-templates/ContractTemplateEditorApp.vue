@@ -7,6 +7,7 @@ import { useContractTemplateEditor } from "./composables/useContractTemplateEdit
 import ContractVariablePanel from "./components/ContractVariablePanel.vue";
 import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppMessage from "@/shared/components/feedback/AppMessage.vue";
@@ -71,6 +72,49 @@ const otherVersions = computed(() =>
  * point, and a published version has nothing to save.
  */
 const preview = ref({ open: false, loading: false, html: "", error: "", locale: "" });
+
+/**
+ * Everything but Save, which is what a draft editor is for.
+ *
+ * Publishing sits here rather than beside it, and loses nothing by it: it is
+ * done once per version, it opens a confirmation of its own, and a menu row has
+ * the width to carry the sentence that says what it costs. Discarding is last,
+ * as everywhere.
+ *
+ * A published version can only be read, so all that is left of this list is the
+ * preview.
+ */
+const templateActions = computed(() => {
+    const actions = [
+        {
+            key: "preview",
+            icon: Eye,
+            title: t("backend.studio.contract_templates.preview"),
+            loading: preview.value.loading && !preview.value.open,
+            onSelect: openPreview,
+        },
+    ];
+
+    if (!isPublished.value) {
+        actions.push({
+            key: "publish",
+            color: "emerald",
+            icon: Check,
+            title: t("backend.studio.contract_templates.publish"),
+            disabled: !canPublish.value,
+            onSelect: () => (showPublish.value = true),
+        });
+        actions.push({
+            key: "discard",
+            color: "rose",
+            icon: Trash2,
+            title: t("backend.studio.contract_templates.discard"),
+            onSelect: () => (showDiscard.value = true),
+        });
+    }
+
+    return actions;
+});
 
 /** Cleaned on the way into the DOM, exactly like the sealed document is. */
 const previewHtml = computed(() => safeContractHtml(preview.value.html));
@@ -189,43 +233,23 @@ const governingLabel = computed(
                 <AppButton variant="ghost" size="md" :href="indexPath">
                     {{ t("shared.common.back") }}
                 </AppButton>
-                <AppButton
+                <AppPageActions
+                    :actions="templateActions"
+                    :label="template.name"
                     variant="ghost"
-                    size="md"
-                    :loading="preview.loading && !preview.open"
-                    v-on:click="openPreview"
-                >
-                    <Eye class="w-3.5 h-3.5" :stroke-width="2" />
-                    {{ t("backend.studio.contract_templates.preview") }}
-                </AppButton>
+                    :busy="preview.loading && !preview.open"
+                />
+                <!-- Promoted from secondary: it is now the only button on the
+                     row that does something to the draft. -->
                 <AppButton
                     v-if="!isPublished"
-                    variant="ghost"
-                    size="md"
-                    v-on:click="showDiscard = true"
-                >
-                    <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                    {{ t("backend.studio.contract_templates.discard") }}
-                </AppButton>
-                <AppButton
-                    v-if="!isPublished"
-                    variant="secondary"
+                    variant="primary"
                     size="md"
                     :loading="saving"
                     v-on:click="save"
                 >
                     <Save class="w-3.5 h-3.5" :stroke-width="2" />
                     {{ t("shared.common.save") }}
-                </AppButton>
-                <AppButton
-                    v-if="!isPublished"
-                    variant="primary"
-                    size="md"
-                    :disabled="!canPublish"
-                    v-on:click="showPublish = true"
-                >
-                    <Check class="w-3.5 h-3.5" :stroke-width="2" />
-                    {{ t("backend.studio.contract_templates.publish") }}
                 </AppButton>
             </div>
         </div>

@@ -25,6 +25,7 @@ import SlideFrame from "./components/SlideFrame.vue";
 import DeckPlayer from "./components/DeckPlayer.vue";
 import DeckAppearancePanel from "./components/DeckAppearancePanel.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
@@ -188,6 +189,56 @@ const {
     isLive,
 } = useDeckSharing(props);
 
+/**
+ * The four the header does not need to spell out.
+ *
+ * Presenting is what a deck is for and keeps its own button; the rest are the
+ * ways around it - the other screen, paper, a link, the look - and they were
+ * five buttons wide on a page whose left column is already a list of slides.
+ *
+ * Presenting on paper or on the second screen needs a slide to show, the same
+ * condition the main button carries.
+ */
+const deckActions = computed(() => {
+    const actions = [
+        {
+            key: "presenter",
+            icon: MonitorSpeaker,
+            title: t("backend.studio.decks.presenter"),
+            disabled: !slides.value.length,
+            onSelect: openPresenter,
+        },
+        {
+            key: "print",
+            icon: Printer,
+            title: t("backend.studio.decks.print"),
+            disabled: !slides.value.length,
+            onSelect: print,
+        },
+    ];
+
+    if (can("studio.decks.share")) {
+        actions.push({
+            key: "share",
+            icon: Share2,
+            title: t("backend.studio.decks.share"),
+            onSelect: () => (sharing.value = true),
+        });
+    }
+
+    if (editable) {
+        actions.push({
+            key: "appearance",
+            color: "accent",
+            icon: Palette,
+            title: t("backend.studio.decks.appearance"),
+            onSelect: () => (appearanceOpen.value = true),
+        });
+    }
+
+    return actions;
+});
+
 const layoutOptions = props.layouts.map((layout) => ({
     value: layout.value,
     label: t(layout.labelKey),
@@ -331,31 +382,19 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="space-y-4">
+        <!-- Présenter, et le reste derrière un bouton : la page a déjà une
+             colonne de slides à gauche, elle n'a pas besoin d'une rangée de
+             cinq boutons en haut. -->
         <div class="flex flex-wrap items-center gap-2">
             <AppButton variant="primary" :disabled="!slides.length" v-on:click="present">
                 <Play class="h-4 w-4" :stroke-width="2" />
                 {{ t("backend.studio.decks.present") }}
             </AppButton>
-            <AppButton variant="ghost" :disabled="!slides.length" v-on:click="openPresenter">
-                <MonitorSpeaker class="h-4 w-4" :stroke-width="2" />
-                {{ t("backend.studio.decks.presenter") }}
-            </AppButton>
-            <AppButton variant="ghost" :disabled="!slides.length" v-on:click="print">
-                <Printer class="h-4 w-4" :stroke-width="2" />
-                {{ t("backend.studio.decks.print") }}
-            </AppButton>
-            <AppButton
-                v-if="can('studio.decks.share')"
+            <AppPageActions
+                :actions="deckActions"
+                :label="deck.title ?? ''"
                 variant="ghost"
-                v-on:click="sharing = true"
-            >
-                <Share2 class="h-4 w-4" :stroke-width="2" />
-                {{ t("backend.studio.decks.share") }}
-            </AppButton>
-            <AppButton v-if="editable" variant="ghost" v-on:click="appearanceOpen = true">
-                <Palette class="h-4 w-4" :stroke-width="2" />
-                {{ t("backend.studio.decks.appearance") }}
-            </AppButton>
+            />
         </div>
 
         <div class="flex flex-col gap-4 xl:flex-row xl:items-start">
