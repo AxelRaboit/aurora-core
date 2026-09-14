@@ -20,6 +20,8 @@
  * Renders an `<a>` when given `href`, a `<button>` otherwise - some actions are
  * navigations (impersonating a user) and should be openable in a new tab.
  */
+import { Loader2 } from "lucide-vue-next";
+
 const props = defineProps({
     /** The action, named as an imperative. Never empty. */
     title: { type: String, required: true },
@@ -30,6 +32,11 @@ const props = defineProps({
     /** Renders a link instead of a button. */
     href: { type: String, default: null },
     disabled: { type: Boolean, default: false },
+    /**
+     * The action is running. Takes the icon's place rather than adding a
+     * spinner beside it, so the row does not shift while it waits.
+     */
+    loading: { type: Boolean, default: false },
 });
 
 const colors = {
@@ -47,12 +54,13 @@ const resolved = colors[props.color] ?? colors.default;
 <template>
     <component
         :is="href ? 'a' : 'button'"
-        v-bind="href ? { href } : { type: 'button', disabled }"
+        v-bind="href ? { href } : { type: 'button', disabled: disabled || loading }"
         class="w-full flex items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors no-underline disabled:cursor-not-allowed disabled:opacity-50"
         :class="[resolved.bg, resolved.text]"
     >
-        <span v-if="$slots.icon" class="shrink-0 pt-0.5" :class="resolved.icon">
-            <slot name="icon" />
+        <span v-if="loading || $slots.icon" class="shrink-0 pt-0.5" :class="resolved.icon">
+            <Loader2 v-if="loading" class="w-4 h-4 animate-spin" :stroke-width="2" />
+            <slot v-else name="icon" />
         </span>
 
         <span class="min-w-0 flex-1">
