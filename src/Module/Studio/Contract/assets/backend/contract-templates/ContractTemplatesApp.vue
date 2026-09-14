@@ -8,6 +8,7 @@ import AppButton from "@/shared/components/action/AppButton.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -126,6 +127,15 @@ const categorySelectOptions = [
     ...categoryOptions,
 ];
 
+/**
+ * The filter's list, "all" first.
+ *
+ * Kept as an option rather than left to the control: `AppMultiselect` allows
+ * an empty value but shows nothing to clear one with on a single select -
+ * deselecting means clicking the chosen row again, which nothing on screen
+ * says. An explicit row is the only visible way back, and it is the one the
+ * plain select offered before.
+ */
 const categoryFilterOptions = computed(() => [
     { value: "", label: t("backend.studio.contract_templates.category_all") },
     {
@@ -137,6 +147,16 @@ const categoryFilterOptions = computed(() => [
         label: `${option.label} (${categoryCounts.value[option.value] ?? 0})`,
     })),
 ]);
+
+/**
+ * Deselecting yields null, and the filter works in strings.
+ *
+ * `useQueryState` only accepts the values it was declared valid, so a null
+ * would be discarded and clearing the filter would appear to do nothing.
+ */
+function setCategoryFilter(value) {
+    setCategory(value ?? "");
+}
 
 /**
  * A colour per trade, picked against what the row already holds.
@@ -331,12 +351,20 @@ function rowActions(template) {
                  "all" is five more tabs on a line that already holds three.
                  Unclassified is an option of its own because "what have I not
                  sorted yet" is the question this screen is opened with the day
-                 a second trade appears. -->
-            <AppSelect
+                 a second trade appears.
+
+                 The same searchable select every other list filters with, so
+                 the control is learned once - and so a library with thirty
+                 trades stays usable, which a plain dropdown of thirty rows is
+                 not. `allow-empty` because deselecting the chosen row is a
+                 second way back, next to the "all" option. -->
+            <AppMultiselect
                 :model-value="category"
                 :options="categoryFilterOptions"
-                class="w-full sm:w-56"
-                v-on:update:model-value="setCategory"
+                :allow-empty="true"
+                :placeholder="t('backend.studio.contract_templates.category_all')"
+                class="w-full sm:w-auto sm:min-w-44"
+                v-on:update:model-value="setCategoryFilter"
             />
         </div>
 
@@ -478,10 +506,17 @@ function rowActions(template) {
             v-else-if="viewMode === 'grid'"
             class="grid gap-3 md:grid-cols-2"
         >
+            <!-- `min-w-0` is what keeps the card inside the screen. A grid
+                 item is `min-width: auto`, so the single column sizes itself
+                 on the card's minimum content width rather than on the space
+                 there is: at 320px the track came out at 322px against a 288px
+                 box, every card hung 34px past the right edge and the page
+                 scrolled sideways. Nothing inside needs that width - with the
+                 floor lifted the whole card reflows and nothing overflows. -->
             <article
                 v-for="template in visibleItems"
                 :key="template.id"
-                class="bg-surface border rounded-lg p-4 space-y-3"
+                class="bg-surface border rounded-lg p-4 space-y-3 min-w-0"
                 :class="[
                     kindStyle(template.kind).card,
                     { 'opacity-60': template.isArchived },
