@@ -8,6 +8,7 @@ import { useFormsList } from "./composables/useFormsList.js";
 import { useFormFields } from "./composables/useFormFields.js";
 import { useFormSubmissions } from "./composables/useFormSubmissions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
@@ -124,6 +125,24 @@ function labelOf(field) {
 function formatDate(value) {
     return d(new Date(value), "short");
 }
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("editorial.forms.create")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.forms.create"),
+            onSelect: openCreate,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -139,10 +158,8 @@ function formatDate(value) {
         <!-- No picker column: the side menu lists the forms, one entry per
              record and one address each. The create button stays - a group
              header in the menu has nowhere to put one. -->
-        <div v-if="can('editorial.forms.create')" class="flex justify-end">
-            <AppButton variant="primary" size="md" v-on:click="openCreate">
-                <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.forms.create") }}
-            </AppButton>
+        <div v-if="pageActions.length" class="flex justify-end">
+            <AppPageActions :actions="pageActions" />
         </div>
 
         <section v-if="selected" class="space-y-4">

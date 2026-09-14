@@ -31,7 +31,7 @@ Trois composants dans `@/shared/components/action/` :
 Une action : `{ key, title, description?, color?, icon?, href?, onSelect?,
 disabled?, loading? }`.
 
-**Les cinq règles de placement :**
+**Les six règles de placement :**
 
 1. **Un seul geste primaire reste visible, sauf sur un toolbar de liste.**
    Sur une page qui édite ou montre **un** enregistrement, le verbe de la page
@@ -40,14 +40,25 @@ disabled?, loading? }`.
    composant rend facile.
 
    Le **toolbar d'une liste** est l'exception, et elle est **validée en
-   regardant l'écran** (Axel, 14/09/2026, sur `/backend/studio/decks`) : Créer
-   part dans la feuille avec les autres, et il ne reste qu'un bouton
-   « Actions » à droite de la recherche. La différence tient à ce qui occupe la
-   rangée : un en-tête d'éditeur n'a que ses boutons, un toolbar de liste a une
-   recherche et souvent un filtre qui veulent la largeur. **Ne pas « corriger »
-   `DecksApp` ou `ContractTemplatesApp` en ressortant Créer** : c'est le rendu
-   voulu, pas un oubli.
-2. **Deux seuils, pas un.** Une **ligne** passe en feuille dès **deux**
+   regardant l'écran** (Axel, 14/09/2026, sur `/backend/studio/decks` puis
+   `/backend/studio/customers`) : Créer part dans la feuille avec les autres,
+   et il ne reste qu'un bouton « Actions » à droite de la recherche. La
+   différence tient à ce qui occupe la rangée : un en-tête d'éditeur n'a que
+   ses boutons, un toolbar de liste a une recherche et souvent un filtre qui
+   veulent la largeur. **Ne pas « corriger » une liste en ressortant Créer** :
+   c'est le rendu voulu, pas un oubli.
+2. **Un toolbar de liste n'a pas de seuil : toujours la feuille, même pour
+   une seule action.** Demandé explicitement (Axel, 14/09/2026) : « même un
+   seul bouton je veux ce bouton actions ». Quatorze pages y sont passées, de
+   `CustomersApp` à `MountPointsTab`, y compris celles qui n'offraient que
+   « Ajouter ». Ce qui compte est qu'une liste du back-office s'ouvre toujours
+   de la même façon.
+
+   **L'état vide garde son vrai bouton** (slot `#action` d'`AppNoData`) : une
+   liste sans rien dedans n'a qu'une chose à proposer, et la cacher derrière un
+   menu serait un menu dans une pièce vide.
+
+3. **Deux seuils ailleurs.** Une **ligne** passe en feuille dès **deux**
    actions, c'est la convention déjà appliquée par une quinzaine de listes et
    ce qu'outille `@/shared/composables/useEditDeleteActions.js` (qui exige une
    clé de description par entrée : sans clé, écrire la liste à la main plutôt
@@ -55,11 +66,11 @@ disabled?, loading? }`.
    une **barre de sélection** n'y passe qu'à partir de **trois** : deux boutons
    tiennent partout, y compris à 375 px
    (cf. [[convention_multi_button_toolbar]]).
-3. **La navigation n'est pas une action.** « Retour à la liste » reste à gauche,
+4. **La navigation n'est pas une action.** « Retour à la liste » reste à gauche,
    hors de la feuille.
-4. **Ordre : ordinaire, puis prudent (amber), puis destructeur (rose), en
+5. **Ordre : ordinaire, puis prudent (amber), puis destructeur (rose), en
    dernier.** Même ordre en ligne et en page.
-5. **Le déclencheur page est étiqueté.** Dans un tableau la colonne s'appelle
+6. **Le déclencheur page est étiqueté.** Dans un tableau la colonne s'appelle
    « Actions » et trois points suffisent ; en haut d'une page rien ne le dit.
 
 **La liste appartient à l'appelant**, dans un composable ou un `computed`,

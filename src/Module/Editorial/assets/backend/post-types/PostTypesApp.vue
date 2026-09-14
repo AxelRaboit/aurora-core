@@ -1,10 +1,12 @@
 <script setup>
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { usePostTypesForm } from "./composables/usePostTypesForm.js";
 import { usePostTypeFields } from "./composables/usePostTypeFields.js";
 import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
@@ -104,6 +106,24 @@ const fieldActions = useEditDeleteActions({
     editDescription: "backend.post_types.fields.row_actions.edit_description",
     deleteDescription: "backend.post_types.fields.row_actions.delete_description",
 });
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("editorial.post_types.create")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.post_types.create"),
+            onSelect: openCreate,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -120,10 +140,8 @@ const fieldActions = useEditDeleteActions({
              per record and one address each. The create button stays, because
              a group header in the menu has nowhere to put one - and it is the
              only way to make the next type. -->
-        <div v-if="can('editorial.post_types.create')" class="flex justify-end">
-            <AppButton variant="primary" size="md" v-on:click="openCreate">
-                <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.post_types.create") }}
-            </AppButton>
+        <div v-if="pageActions.length" class="flex justify-end">
+            <AppPageActions :actions="pageActions" />
         </div>
 
         <!-- Selected type -->

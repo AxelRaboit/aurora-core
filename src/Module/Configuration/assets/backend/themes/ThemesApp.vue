@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Palette, Check, Pencil, Trash2, Plus, Save, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppTextLinkButton from "@/shared/components/action/AppTextLinkButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
@@ -70,6 +71,24 @@ function contrastNote(hex) {
         ? `${text} · ${ratio}`
         : `${text} · ${ratio} · ${t("backend.themes.surface_below_aaa")}`;
 }
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("configuration.themes.manage")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.themes.new"),
+            onSelect: openCreate,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -78,11 +97,8 @@ function contrastNote(hex) {
              same word, and the second is already in the topbar. What is left is
              the one control this row exists for, so it sits on its own at the
              end. -->
-        <div class="flex items-center justify-end">
-            <AppButton v-if="can('configuration.themes.manage')" variant="primary" size="md" v-on:click="openCreate">
-                <Plus class="w-4 h-4" :stroke-width="2" />
-                {{ t("backend.themes.new") }}
-            </AppButton>
+        <div v-if="pageActions.length" class="flex items-center justify-end">
+            <AppPageActions :actions="pageActions" />
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">

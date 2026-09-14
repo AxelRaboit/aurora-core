@@ -272,6 +272,24 @@ const bulkActions = computed(() => {
 });
 
 const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("ged.documents.create")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.ged.documents.add"),
+            onSelect: openCreate,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -303,15 +321,11 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                 <div class="w-full sm:w-64">
                     <AppSearchInput v-model="searchInput" :placeholder="t('backend.ged.documents.search_placeholder')" v-on:search="onSearch" />
                 </div>
-                <AppButton
-                    v-if="can('ged.documents.create')"
-                    variant="primary"
-                    size="md"
+                <AppPageActions
+                    v-if="pageActions.length"
+                    :actions="pageActions"
                     class="w-full sm:w-auto"
-                    v-on:click="openCreate"
-                >
-                    <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.ged.documents.add") }}
-                </AppButton>
+                />
             </div>
         </div>
 

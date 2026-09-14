@@ -1,7 +1,8 @@
 <script setup>
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
@@ -72,6 +73,20 @@ function actionsFor(mountPoint) {
         },
     ];
 }
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.mount_points.add"),
+            onSelect: mp.openCreate,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -84,10 +99,7 @@ function actionsFor(mountPoint) {
                 class="flex-1"
                 :placeholder="t('backend.mount_points.search_placeholder')"
             />
-            <AppButton variant="primary" size="md" v-on:click="mp.openCreate">
-                <Plus class="w-4 h-4" :stroke-width="2" />
-                {{ t("backend.mount_points.add") }}
-            </AppButton>
+            <AppPageActions :actions="pageActions" />
         </div>
 
         <div class="bg-surface border border-line rounded-xl overflow-x-auto scrollbar-thin">

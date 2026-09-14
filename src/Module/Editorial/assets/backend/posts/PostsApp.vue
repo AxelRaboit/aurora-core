@@ -8,8 +8,8 @@ import { usePostsList } from "./composables/usePostsList.js";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePostRowActions } from "./composables/usePostRowActions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
@@ -249,6 +249,24 @@ const allTerms = computed(() =>
         })),
     ),
 );
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("editorial.posts.create")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.posts.create"),
+            href: props.newPath,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -256,15 +274,11 @@ const allTerms = computed(() =>
         <AppListToolbar>
             <AppSearchInput v-model="search" :placeholder="t('backend.posts.search_placeholder')" />
             <template #actions>
-                <AppButton
-                    v-if="can('editorial.posts.create')"
-                    variant="primary"
-                    size="md"
-                    :href="newPath"
+                <AppPageActions
+                    v-if="pageActions.length"
+                    :actions="pageActions"
                     class="w-full sm:w-auto"
-                >
-                    <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.posts.create") }}
-                </AppButton>
+                />
             </template>
         </AppListToolbar>
 

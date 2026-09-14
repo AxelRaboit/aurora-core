@@ -6,6 +6,7 @@ import { UserPlus, Save, Upload, Trash2, X, Send, Pencil, LayoutGrid } from "luc
 import { toast } from "vue-sonner";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppFileInput from "@/shared/components/form/file/AppFileInput.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
@@ -138,6 +139,20 @@ const toggleKeys = computed(() => {
 const { privilegesModal, pendingPrivileges, togglePrivilege, openPrivileges, savePrivileges } = useUsersPrivileges(props, fetchUsers);
 const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveModules } = useUsersDisabledModules(props, fetchUsers);
 
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    return [
+        {
+            key: "invite",
+            color: "accent",
+            icon: UserPlus,
+            title: t("backend.users.invite"),
+            onSelect: openInvite,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -151,10 +166,7 @@ const { modulesModal, pendingDisabledModules, openModules, toggleModule, saveMod
                 :allow-empty="true"
                 class="sm:w-48 shrink-0"
             />
-            <AppButton variant="primary" size="md" class="shrink-0" v-on:click="openInvite">
-                <UserPlus class="w-4 h-4" :stroke-width="2" />
-                {{ t('backend.users.invite') }}
-            </AppButton>
+            <AppPageActions :actions="pageActions" class="shrink-0" />
         </div>
 
         <div class="relative space-y-4">
