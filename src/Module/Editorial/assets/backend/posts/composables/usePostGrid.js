@@ -17,8 +17,11 @@ import {
     ListTree,
     Tags,
     MapPin,
+    MessageSquare,
     MousePointerClick,
     Newspaper,
+    Presentation,
+    Search,
     SeparatorHorizontal,
 } from "lucide-vue-next";
 
@@ -54,6 +57,9 @@ export const LEAF_ZONE_TYPES = [
     "gallery",
     "compare",
     "shared",
+    "search",
+    "comments",
+    "deck",
     "button",
     "separator",
     "items",
@@ -99,6 +105,9 @@ export const ZONE_ICONS = {
     compare: Columns2,
     // The same thing, coming round again on another page.
     shared: Recycle,
+    search: Search,
+    comments: MessageSquare,
+    deck: Presentation,
     button: MousePointerClick,
     separator: SeparatorHorizontal,
     items: LayoutList,
@@ -441,6 +450,7 @@ function newZone(type) {
         // A list with no filter is the whole site, newest first - the answer
         // that needs no setting up, which is what a zone should do on arrival.
         taxonomyId: null,
+        deckId: null,
         postTypeId: null,
         termId: null,
         limit: 3,
@@ -1135,6 +1145,7 @@ export function usePostGrid(layout, content) {
                 display: shared("display"),
                 columns: shared("columns"),
                 taxonomyId: shared("taxonomyId"),
+                deckId: shared("deckId"),
                 postTypeId: shared("postTypeId"),
                 termId: shared("termId"),
                 limit: shared("limit"),

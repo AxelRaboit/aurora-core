@@ -17,6 +17,8 @@ use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Service\BlocksRenderer;
 use Aurora\Module\Editorial\Post\Service\ThumbnailPresenter;
+use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
+use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermTranslationInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
@@ -26,6 +28,9 @@ use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentCreditPresenter;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
+use Aurora\Module\Studio\Deck\Entity\DeckInterface;
+use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
 use DateTimeImmutable;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -63,6 +68,9 @@ final readonly class GridViewBuilder
         private TaxonomyRepository $taxonomyRepository,
         private TaxonomyTermRepository $taxonomyTermRepository,
         private UrlGeneratorInterface $urlGenerator,
+        private PostTypeRepository $postTypeRepository,
+        private DeckRepository $deckRepository,
+        private DeckShareLinkRepository $deckShareLinkRepository,
         private Security $security,
     ) {}
 
@@ -229,6 +237,15 @@ final readonly class GridViewBuilder
                 'postList' => GridNormalizer::ZONE_POST_LIST === $zone['type']
                     ? $this->postListView($zone, $locale, $currentPostId)
                     : null,
+                'search' => GridNormalizer::ZONE_SEARCH === $zone['type']
+                    ? $this->searchView($zone, $locale)
+                    : null,
+                'comments' => GridNormalizer::ZONE_COMMENTS === $zone['type']
+                    ? $this->commentsView($currentPostId, $locale)
+                    : null,
+                'deck' => GridNormalizer::ZONE_DECK === $zone['type']
+                    ? $this->deckView($zone['deckId'])
+                    : null,
                 'shared' => GridNormalizer::ZONE_SHARED === $zone['type']
                     ? $this->sharedView($posts[$zone['postId']] ?? null, $locale, $depth)
                     : null,
@@ -288,6 +305,11 @@ final readonly class GridViewBuilder
         return [
             ...$layout,
             'zones' => $zones,
+            // Read by the post template, which draws the thread at the foot of
+            // the page unless the grid has already placed it. Without this a
+            // page carrying the zone would show the same conversation twice,
+            // and the second one would be the one nobody asked for.
+            'hasComments' => $this->holdsComments($zones),
             // The pictures of this grid, in the order a reader meets them, for
             // the one overlay the page mounts. Empty on a page with no picture,
             // which is what the template checks before mounting anything.
@@ -510,6 +532,149 @@ final readonly class GridViewBuilder
             'variant' => (string) $zone['cardVariant'],
             'cards' => $cards,
         ];
+    }
+
+    /**
+     * Whether the grid places the comment thread itself.
+     *
+     * Stacks included: a thread tucked into a column is still the thread, and
+     * the foot of the page should stay quiet either way.
+     *
+     * @param list<array<string, mixed>> $zones
+     */
+    private function holdsComments(array $zones): bool
+    {
+        foreach ($zones as $zone) {
+            if (GridNormalizer::ZONE_COMMENTS === $zone['type']) {
+                return true;
+            }
+
+            if (is_array($zone['children'] ?? null) && $this->holdsComments($zone['children'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Where a search field posts, and what it is allowed to find.
+     *
+     * The endpoint is the one the sequence search already uses, and so is the
+     * component that draws it: a second search built for this zone would be a
+     * second set of empty states, a second debounce and a second thing to keep
+     * in step.
+     *
+     * An empty type means the whole site, which is the answer that needs no
+     * setting up.
+     *
+     * @param array<string, mixed> $zone
+     *
+     * @return array{searchUrl: string}
+     */
+    private function searchView(array $zone, string $locale): array
+    {
+        $parameters = ['locale' => $locale];
+
+        $postType = null === $zone['postTypeId']
+            ? null
+            : $this->postTypeRepository->find($zone['postTypeId']);
+
+        if ($postType instanceof PostTypeInterface) {
+            $parameters['type'] = $postType->getSlug();
+        }
+
+        return ['searchUrl' => $this->urlGenerator->generate('editorial_home_search', $parameters)];
+    }
+
+    /**
+     * The three addresses the comment thread needs, for the page it sits on.
+     *
+     * Built from the current publication rather than from anything on the
+     * zone: a thread belongs to the page it is drawn on, and offering an
+     * author a choice there would be offering them a way to put one page's
+     * replies under another.
+     *
+     * @return array{listPath: string, submitPath: string, reactPathTemplate: string}|null
+     */
+    private function commentsView(?int $currentPostId, string $locale): ?array
+    {
+        // Its own lookup rather than the shared prefetch: the prefetch gathers
+        // what zones *name*, and this zone names nothing - it is about the
+        // page it stands on. One query, and only on a page carrying the zone.
+        $post = null === $currentPostId ? null : $this->postRepository->find($currentPostId);
+
+        if (!$post instanceof PostInterface) {
+            return null;
+        }
+
+        $translation = $post->getTranslation($locale);
+        $typeSlug = $post->getPostType()->getSlug();
+
+        if (!$translation instanceof PostTranslationInterface || '' === $translation->getSlug()) {
+            return null;
+        }
+
+        $parameters = ['locale' => $locale, 'postTypeSlug' => $typeSlug, 'slug' => $translation->getSlug()];
+
+        return [
+            'listPath' => $this->urlGenerator->generate('editorial_post_comments', $parameters),
+            'submitPath' => $this->urlGenerator->generate('editorial_post_comment_submit', $parameters),
+            'reactPathTemplate' => $this->urlGenerator->generate(
+                'editorial_comment_react',
+                [...$parameters, 'commentId' => '__commentId__'],
+            ),
+        ];
+    }
+
+    /**
+     * A presentation, but only one somebody has actually published.
+     *
+     * A deck is an internal document until a share link exists for it, so a
+     * zone naming one with no live link draws nothing. A revoked link, an
+     * expired one and one behind a password are all "no": the last because a
+     * page cannot ask for a password on the deck's behalf, and an iframe onto
+     * the unlock form would be a locked door drawn inside an article.
+     *
+     * Same origin, so nothing here loads a third party - this is the site
+     * showing its own page inside its own page.
+     *
+     * @return array{url: string, title: string}|null
+     */
+    private function deckView(?int $deckId): ?array
+    {
+        if (null === $deckId) {
+            return null;
+        }
+
+        $deck = $this->deckRepository->find($deckId);
+
+        if (!$deck instanceof DeckInterface) {
+            return null;
+        }
+
+        $now = new DateTimeImmutable();
+
+        foreach ($this->deckShareLinkRepository->findForDeck($deck) as $link) {
+            if (null !== $link->getRevokedAt()) {
+                continue;
+            }
+            if (null !== $link->getPasswordHash()) {
+                continue;
+            }
+            $expiresAt = $link->getExpiresAt();
+
+            if (null !== $expiresAt && $expiresAt < $now) {
+                continue;
+            }
+
+            return [
+                'url' => $this->urlGenerator->generate('public_deck_show', ['token' => $link->getToken()]),
+                'title' => $deck->getTitle(),
+            ];
+        }
+
+        return null;
     }
 
     /**

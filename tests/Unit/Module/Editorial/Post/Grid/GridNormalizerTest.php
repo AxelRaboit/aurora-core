@@ -148,7 +148,7 @@ final class GridNormalizerTest extends TestCase
             [
                 'id', 'anchor', 'type', 'span', 'offset', 'newRow', 'ratio', 'scale', 'align',
                 'mediaId', 'mediaIds', 'mediaUrl', 'postId', 'variant', 'size', 'separatorStyle',
-                'display', 'columns', 'items', 'taxonomyId', 'postTypeId', 'termId', 'limit',
+                'display', 'columns', 'items', 'taxonomyId', 'deckId', 'postTypeId', 'termId', 'limit',
                 'cardVariant', 'formId', 'language', 'textSize', 'lineNumbers',
                 'visibleFrom', 'visibleUntil', 'audience', 'exclusiveOpen',
                 'surface', 'fullBleed', 'children',

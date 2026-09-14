@@ -156,6 +156,42 @@ final readonly class GridNormalizer
     public const string ZONE_GALLERY = 'gallery';
 
     /**
+     * A search field, narrowed to one kind of publication.
+     *
+     * The comment at the head of `_sequence.html.twig` already argues for it:
+     * on a hundred and thirty pages, "where is the thing that talks about" is
+     * asked more often than "what is there". A summary answers the second and
+     * this answers the first, and the two belong on the same page rather than
+     * one instead of the other.
+     */
+    public const string ZONE_SEARCH = 'search';
+
+    /**
+     * The page's own comment thread, placed where the author wants it.
+     *
+     * A page that argues for something and takes its replies eight screens
+     * below the argument is two pages. This lets the thread sit under the
+     * section it answers - and the foot of the page then draws nothing, so a
+     * reader never meets the same conversation twice.
+     */
+    public const string ZONE_COMMENTS = 'comments';
+
+    /**
+     * A Studio presentation, shown inside the page.
+     *
+     * Only through a share link that is live: a deck is an internal document
+     * until somebody publishes one, and a zone naming a deck with no link
+     * draws nothing rather than inventing a way in.
+     *
+     * This is the one zone that reaches into another module, and it is worth
+     * being plain about it: `Editorial` asking `Studio` for a share link is a
+     * coupling the module toggles argue against. It is confined to one
+     * resolver and one `null` - a site running without Studio gets a zone that
+     * draws nothing, which is what it already does for a deck nobody shared.
+     */
+    public const string ZONE_DECK = 'deck';
+
+    /**
      * Another publication's grid, drawn here.
      *
      * The one thing a CMS starts missing the moment a site passes ten pages:
@@ -450,6 +486,9 @@ final readonly class GridNormalizer
         self::ZONE_GALLERY,
         self::ZONE_COMPARE,
         self::ZONE_SHARED,
+        self::ZONE_SEARCH,
+        self::ZONE_COMMENTS,
+        self::ZONE_DECK,
         self::ZONE_BUTTON,
         self::ZONE_SEPARATOR,
         self::ZONE_ITEMS,
@@ -712,6 +751,10 @@ final readonly class GridNormalizer
                 // the renderer picks the right ones rather than asking an
                 // author to name a different taxonomy per language.
                 'taxonomyId' => $this->values->id($entry['taxonomyId'] ?? null),
+                // Which presentation a deck zone shows. Shared: a deck carries
+                // its own slides, and which one a page shows is not a matter
+                // of language.
+                'deckId' => $this->values->id($entry['deckId'] ?? null),
                 'postTypeId' => $this->values->id($entry['postTypeId'] ?? null),
                 'termId' => $this->values->id($entry['termId'] ?? null),
                 'limit' => min(self::MAX_LIST_LIMIT, max(1, (int) ($entry['limit'] ?? 3))),

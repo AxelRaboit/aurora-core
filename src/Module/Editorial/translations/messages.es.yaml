@@ -40,6 +40,12 @@ backend:
       compare_after_label: "Palabra bajo la imagen de la derecha"
       zone_shared: Bloque a reutilizar
       zone_shared_hint: "La cuadrícula de esa publicación se dibuja aquí. Modifíquela una vez y cambian todas las páginas que la reutilizan. Un bloque que reutiliza un bloque no se dibuja: la profundidad se detiene en uno."
+      search_post_type: Buscar en
+      search_post_type_hint: "Sin nada aquí, el campo busca en todo el sitio."
+      comments_hint: "Nada que ajustar: el hilo es el de esta publicación. Cuando existe esta zona, el pie de página deja de dibujarlo."
+      zone_deck: Presentación
+      zone_deck_none: "Elegir una presentación…"
+      zone_deck_hint: "Se muestra en la página mediante su enlace para compartir. Una presentación sin enlace activo, revocado, caducado o protegido por contraseña no dibuja nada."
       visibility: "Cuándo y para quién"
       visibility_hint: "Sin nada aquí, la zona se ve siempre y para todos. Es lo que ya hace una zona que no dice nada."
       visible_from: Desde el

@@ -160,6 +160,49 @@
             <span class="shrink-0 text-accent" aria-hidden="true">&darr;</span>
         </a>
 
+    {% elseif zone.type == 'search' and zone.search %}
+        {# The component the sequence search already mounts, against the same
+           endpoint. A second search written for this zone would be a second
+           set of empty states, a second debounce and a second thing to keep in
+           step with the first. #}
+        <div class="not-prose" {{ vue_component('editorial/frontend/SequenceSearch', {
+            searchUrl: zone.search.searchUrl,
+            locale: locale,
+        }) }}></div>
+
+    {% elseif zone.type == 'comments' and zone.comments %}
+        {# The same component the foot of the page mounts, and the reason the
+           foot draws nothing when this zone exists: one conversation per page,
+           where the author put it. #}
+        <div class="not-prose" {{ vue_component('editorial/frontend/PostComments', {
+            listPath: zone.comments.listPath,
+            submitPath: zone.comments.submitPath,
+            reactPathTemplate: zone.comments.reactPathTemplate,
+            captcha: public_captcha(),
+        }) }}></div>
+
+    {% elseif zone.type == 'deck' and zone.deck %}
+        {# Same origin: this is the site showing its own page inside its own
+           page, so no provider is reached and no `allow` list is needed beyond
+           full screen, which is what a presentation is for.
+
+           16:9 because that is the shape a slide is authored in, and a fixed
+           ratio is what stops the frame collapsing before anything loads. #}
+        <figure class="not-prose m-0">
+            <div class="relative aspect-video overflow-hidden rounded-lg border border-line">
+                <iframe
+                    src="{{ zone.deck.url }}"
+                    class="absolute inset-0 h-full w-full"
+                    loading="lazy"
+                    title="{{ zone.deck.title }}"
+                    allowfullscreen
+                ></iframe>
+            </div>
+            {% if zone.caption %}
+                <figcaption class="mt-2 text-sm text-secondary">{{ zone.caption }}</figcaption>
+            {% endif %}
+        </figure>
+
     {% elseif zone.type == 'shared' and zone.shared %}
         {# The block's own grid, drawn inside this zone's box.
 

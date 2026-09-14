@@ -31,6 +31,7 @@ const props = defineProps({
     post: { type: Object, default: null },
     postTypes: { type: Array, default: () => [] },
     taxonomies: { type: Array, default: () => [] },
+    decks: { type: Array, default: () => [] },
     forms: { type: Array, default: () => [] },
     locales: { type: Array, default: () => [] },
     statusOptions: { type: Array, default: () => [] },
@@ -98,6 +99,7 @@ const postTypeOptions = props.postTypes.map((type) => ({ value: type.id, label: 
  * the prefix is what tells them apart in the dropdown.
  */
 const formOptions = props.forms.map((form) => ({ value: form.id, label: form.title }));
+const deckOptions = props.decks.map((deck) => ({ value: deck.id, label: deck.title }));
 
 /**
  * The taxonomies themselves, for the zone that draws a whole set of terms
@@ -515,6 +517,7 @@ function termLabel(term) {
                             :post-type-options="postTypeOptions"
                             :term-options="termOptions"
                             :taxonomy-options="taxonomyOptions"
+                            :deck-options="deckOptions"
                             :form-options="formOptions"
                             :layout="form.gridLayout"
                             :content="current.grid"

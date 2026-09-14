@@ -41,6 +41,8 @@ const props = defineProps({
     termOptions: { type: Array, default: () => [] },
     /** The taxonomies a terms zone may unroll. */
     taxonomyOptions: { type: Array, default: () => [] },
+    /** The presentations a deck zone may show. */
+    deckOptions: { type: Array, default: () => [] },
     /** The active forms a zone may pose. */
     formOptions: { type: Array, default: () => [] },
     /** True for a zone inside a stack, where the row controls do not apply. */
@@ -307,6 +309,45 @@ const displayHint = computed(() =>
                     :label="t('backend.posts.grid.zone_alt')"
                     :placeholder="t('backend.posts.alt_placeholder')"
                 />
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'search'">
+            <!-- Left alone, the field searches the whole site, which is the
+                 answer that needs no setting up. -->
+            <AppSelect
+                v-model="bound.postTypeId.value"
+                :label="t('backend.posts.grid.search_post_type')"
+                :hint="t('backend.posts.grid.search_post_type_hint')"
+                :options="postTypeOptions"
+                :placeholder="t('backend.posts.grid.list_any')"
+            />
+        </template>
+
+        <template v-else-if="zone.type === 'comments'">
+            <!-- Nothing to choose: a thread belongs to the page it is drawn
+                 on, and a choice here would be a way to put one page's replies
+                 under another. -->
+            <p class="text-sm text-muted">{{ t("backend.posts.grid.comments_hint") }}</p>
+        </template>
+
+        <template v-else-if="zone.type === 'deck'">
+            <AppSelect
+                v-model="bound.deckId.value"
+                :label="t('backend.posts.grid.zone_deck')"
+                :hint="t('backend.posts.grid.zone_deck_hint')"
+                :options="deckOptions"
+                :placeholder="t('backend.posts.grid.zone_deck_none')"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
                 <AppInput
                     v-model="bound.caption.value"
                     :label="t('backend.posts.grid.zone_caption')"
