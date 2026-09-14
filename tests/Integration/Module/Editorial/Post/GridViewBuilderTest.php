@@ -55,12 +55,33 @@ final class GridViewBuilderTest extends IntegrationTestCase
     public function testAnAbsentBreakpointEmitsNothingSoItInheritsTheOneBelow(): void
     {
         $grid = $this->gridViewBuilder->buildForEditor(
-            ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'text', 'span' => ['base' => 48, 'lg' => 24]]]],
+            ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'text', 'span' => ['base' => 48, 'md' => 24]]]],
             [],
             'fr',
         );
 
-        self::assertStringNotContainsString('--span-md', $grid['zones'][0]['spanStyle']);
+        self::assertStringNotContainsString('--span-lg', $grid['zones'][0]['spanStyle']);
+    }
+
+    /**
+     * `md` is the one breakpoint that always says its width out loud, and that
+     * is the phone rule showing through: the normaliser widens `base` to the
+     * whole row and writes what `base` used to hold into `md`, so the tablet
+     * and the desktop keep the width they were inheriting.
+     */
+    public function testThePhoneIsAlwaysTheWholeRowAndSaysSoWithoutMovingTheRest(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'media', 'span' => ['base' => 24, 'md' => 12, 'lg' => 8]]]],
+            [],
+            'fr',
+        );
+
+        $style = $grid['zones'][0]['spanStyle'];
+
+        self::assertStringContainsString('--span-base: 48;', $style);
+        self::assertStringContainsString('--span-md: 12;', $style);
+        self::assertStringContainsString('--span-lg: 8;', $style);
     }
 
     /**

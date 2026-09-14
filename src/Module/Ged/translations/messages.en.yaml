@@ -110,6 +110,14 @@ backend:
         already_there: This document is already there.
         bulk_done: "{done} document(s) moved, {skipped} left as they were."
         bulk_partial: "{done} document(s) moved, {failed} failed."
+        all_to_remote: Move everything to remote storage
+        all_to_local: Move everything to the server
+        all_confirm_remote: Move every document that is not on the remote storage yet?
+        all_confirm_local: Bring back to the server every document that is not on it yet?
+        all_explain: "Documents already there are left alone. The trash is not moved."
+        all_background: "The move runs in the background: rows turn to \u201cMoving\u201d as it goes."
+        all_queued: "{queued} document(s) queued, {skipped} already there."
+        all_nothing: Every document is already there.
       reference: Reference
       title: Title
       description: Description

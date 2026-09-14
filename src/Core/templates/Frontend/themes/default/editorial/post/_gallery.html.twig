@@ -21,19 +21,26 @@
 
    Column counts are written out per layout rather than composed, because
    Tailwind only emits classes it can read in the source: `sm:columns-{{ n }}`
-   produces nothing at all. #}
+   produces nothing at all.
+
+   **Every count starts at one.** A phone is 390px wide and the gutter takes
+   its share; two across leaves about 170px per picture, which is a contact
+   sheet rather than a photograph, and the taller the frame the worse it reads.
+   The chosen count is what the layout builds up to, not what it starts from -
+   the same rule the content grid follows, where a zone is alone on its row
+   below the first breakpoint. #}
 {% set columns = gallery.columns|default(3) %}
 {% set grid_columns = {
     2: 'grid-cols-1 sm:grid-cols-2',
-    3: 'grid-cols-2 sm:grid-cols-3',
-    4: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
-    5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5',
+    3: 'grid-cols-1 sm:grid-cols-3',
+    4: 'grid-cols-1 sm:grid-cols-3 lg:grid-cols-4',
+    5: 'grid-cols-1 sm:grid-cols-3 lg:grid-cols-5',
 } %}
 {% set masonry_columns = {
     2: 'columns-1 sm:columns-2',
-    3: 'columns-2 sm:columns-3',
-    4: 'columns-2 sm:columns-3 lg:columns-4',
-    5: 'columns-2 sm:columns-3 lg:columns-5',
+    3: 'columns-1 sm:columns-3',
+    4: 'columns-1 sm:columns-3 lg:columns-4',
+    5: 'columns-1 sm:columns-3 lg:columns-5',
 } %}
 
 <section class="not-prose mt-10">

@@ -407,6 +407,54 @@ final class DocumentsController extends AbstractController
     }
 
     /**
+     * The same move again, over the whole médiathèque.
+     *
+     * The gesture an administrator actually has in mind when they change where
+     * this installation stores things: not "these forty", but "from now on
+     * everything lives there". Ticking eight hundred rows a page at a time to
+     * express that is not a selection, it is a chore, and one that fails
+     * silently when the reader loses count.
+     *
+     * **Everything is queued, nothing is done inline.** The other two endpoints
+     * move a small document inside the request so the row updates while the
+     * reader is still looking at it; that trade only works because they know
+     * how many documents they were handed. Here the answer is however many the
+     * médiathèque holds, and a request that copies eight hundred files to a
+     * bucket is a request that dies half way - which is the one case the
+     * ordering in {@see DocumentRelocator} cannot make pretty. A uniform rule
+     * also means the button behaves the same on the first press and on the
+     * hundredth.
+     *
+     * Documents already on the target are not dispatched at all: the relocator
+     * would answer `alreadyThere` and cost a message and a round trip to do it.
+     * They are counted, because "nothing happened" and "there was nothing left
+     * to do" read identically otherwise.
+     */
+    #[Route('/relocate-all', name: '_relocate_all', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.relocate')]
+    public function relocateAll(Request $request): JsonResponse
+    {
+        $payload = $this->decodeJson($request);
+        $target = StorageDiskEnum::tryFrom((string) ($payload['disk'] ?? ''));
+
+        if (!$target instanceof StorageDiskEnum) {
+            return $this->jsonFailure('backend.ged.documents.errors.unknown_disk');
+        }
+
+        $ids = $this->documentRepository->idsNotOnDisk($target);
+
+        foreach ($ids as $id) {
+            $this->messageBus->dispatch(new RelocateDocumentMessage($id, $target));
+        }
+
+        return $this->jsonSuccess([
+            'queued' => count($ids),
+            'alreadyThere' => $this->documentRepository->countLivingOnDisk($target),
+            'disk' => $target->value,
+        ]);
+    }
+
+    /**
      * Uploads a file to GED storage (`var/uploads/ged/Y/m/<slug>-<uniq>.<ext>`)
      * without persisting any DB row yet. Returns the file metadata the form
      * carries into the `create` / `update` submit. Two-step pattern keeps

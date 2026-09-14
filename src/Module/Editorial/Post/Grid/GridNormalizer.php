@@ -730,6 +730,25 @@ final readonly class GridNormalizer
                 ? array_fill_keys(ContentValueNormalizer::BREAKPOINTS, self::COLUMNS)
                 : $this->values->span($entry['span'] ?? null);
 
+            // On a phone a zone is alone on its row, whatever it stored.
+            //
+            // This is the arrangement the editor has always described - its
+            // width control writes `span.lg` and says in as many words that
+            // below the large breakpoint a zone stays full width - and the one
+            // a new zone is created with. What it was not is what the front
+            // did with a layout built before that, or by a client's own code:
+            // those carry a real `base`, and a page of photographs stored at
+            // half width came out two across on a 390px screen, each picture
+            // about 170px wide. Nobody chose that on a phone; it is the desktop
+            // arrangement surviving down to a width it was never meant for.
+            //
+            // Inside a stack the same field is a share of the height, not a
+            // width, and there is no row to be alone on - hence `$allowStacks`,
+            // true only at the top level.
+            if ($allowStacks && !$fullBleed) {
+                $span = $this->fullWidthOnPhone($span);
+            }
+
             $zones[] = [
                 'id' => $id,
                 'anchor' => $anchor,
@@ -1093,6 +1112,33 @@ final readonly class GridNormalizer
         $columns = $span['lg'] ?? $span['md'] ?? $span['base'] ?? self::COLUMNS;
 
         return max(1, min(self::COLUMNS, $columns));
+    }
+
+    /**
+     * The same widths, with the phone's turned back to the whole row.
+     *
+     * **Only the phone changes.** `md` and `lg` inherit downwards through the
+     * stylesheet's own fallback chain, so widening `base` on its own would
+     * widen every breakpoint that was leaning on it - a zone storing nothing
+     * but `base: 24` would have gone from a half-width column on a desktop to
+     * a full-width one, which is not a phone fix, it is a redesign of somebody
+     * else's page.
+     *
+     * Writing the old base into `md` first is what keeps that from happening:
+     * the tablet now says out loud what it used to inherit, `lg` goes on
+     * inheriting from `md` exactly as it did, and the only breakpoint left
+     * holding a new number is the one nobody chose.
+     *
+     * @param array<string, int|null> $span
+     *
+     * @return array<string, int|null>
+     */
+    private function fullWidthOnPhone(array $span): array
+    {
+        $span['md'] ??= $span['base'];
+        $span['base'] = self::COLUMNS;
+
+        return $span;
     }
 
     /**

@@ -5,6 +5,63 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.174] - 2026-09-14
+
+### Ajouté
+
+#### Basculer toute la médiathèque d'un stockage à l'autre, en un geste
+La barre d'actions de la médiathèque savait déplacer une sélection ; elle ne
+savait pas répondre à « désormais tout vit là-bas ». Cocher huit cents lignes
+page par page n'est pas une sélection, c'est une corvée, et une corvée dont on
+perd le compte.
+
+Deux entrées dans le menu **Actions** de la liste des documents, à côté de
+« Ajouter un document » : *Tout basculer sur le stockage distant* et *Tout
+basculer sur le serveur*. Les documents déjà à destination sont ignorés sans
+qu'on leur demande rien, et la corbeille n'est pas déplacée : ses fichiers sont
+en partance, les copier dans un bucket facturé au volume reviendrait à payer
+pour stocker ce qu'on s'apprête à jeter.
+
+Une confirmation avant, ce que le déplacement d'une seule ligne n'a pas : on
+défait un document en appuyant sur l'autre bouton, on ne défait pas huit cents
+de la même façon. **Tout part au worker**, jamais dans la requête. Les deux
+autres points d'entrée déplacent un petit document sur place pour que la ligne
+se mette à jour sous les yeux du lecteur ; ce compromis ne tient que parce
+qu'ils savent combien de documents on leur a confiés. Ici la réponse est « tous
+ceux que la médiathèque contient », et une requête qui copie huit cents
+fichiers vers un bucket est une requête qui meurt en chemin.
+
+Derrière le bouton : `POST /backend/ged/documents/relocate-all`, sous le
+privilège `ged.documents.relocate` déjà en place.
+
+### Corrigé
+
+#### Sur téléphone, une zone et une photo par ligne
+Une page de portfolio dont les images étaient rangées en demi-largeur sortait
+en deux colonnes sur un écran de 390 px : environ 170 px par photo, gouttière
+déduite. Personne n'a choisi ça pour un téléphone, c'est la mise en page de
+bureau qui survivait jusqu'à une largeur qui ne l'attendait pas.
+
+L'éditeur décrit depuis toujours l'arrangement inverse — son contrôle de
+largeur n'écrit que `span.lg` et dit qu'en dessous du grand palier une zone
+reste pleine largeur — mais le front honorait le `base` des mises en page plus
+anciennes. Le normaliseur tranche maintenant : sur téléphone une zone est
+seule sur sa ligne, quoi qu'elle ait stocké. **La tablette et le bureau ne
+bougent pas** : l'ancienne largeur est recopiée dans `md`, que `lg` continue
+d'hériter exactement comme avant.
+
+Même règle pour les galeries, celle de la publication et celle en zone de
+grille : le nombre de colonnes choisi est ce vers quoi la mise en page monte,
+non ce dont elle part. Une galerie à trois colonnes en montre une sur
+téléphone, trois à partir de `sm`.
+
+### Dans aurora-client
+Rien à répercuter : les deux changements vivent dans le bundle. Le bouton
+n'apparaît que sur les installations qui ont un second stockage configuré et
+vérifié, comme les autres actions de déplacement.
+
+---
+
 ## [0.9.173] - 2026-09-14
 
 ### Modifié

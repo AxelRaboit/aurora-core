@@ -165,19 +165,93 @@ final class GridNormalizerTest extends TestCase
         ])['zones'][0]['span'];
 
         self::assertSame(48, $span['base']);
-        self::assertNull($span['md'], 'absent steps inherit the one below');
-        self::assertNull($span['lg']);
+        self::assertSame(48, $span['md'], 'the phone rule writes the inherited width down');
+        self::assertNull($span['lg'], 'and the step above goes on inheriting it');
     }
 
     public function testSpansAreClampedToTheGrid(): void
     {
         $span = $this->normalizer->normalizeLayout([
-            'zones' => [['id' => 'a1', 'type' => 'text', 'span' => ['base' => 0, 'md' => 900, 'lg' => '24']]],
+            'zones' => [['id' => 'a1', 'type' => 'text', 'span' => ['base' => 900, 'md' => 900, 'lg' => '24']]],
         ])['zones'][0]['span'];
+
+        self::assertSame(48, $span['md']);
+        self::assertSame(24, $span['lg'], 'a numeric string is accepted and cast');
+    }
+
+    /**
+     * The clamp still applies to a width the phone rule does not touch: inside
+     * a stack the same field is a share of the height, so there is no row to be
+     * alone on and nothing to widen.
+     */
+    public function testAStackedShareIsStillClampedToTheGrid(): void
+    {
+        $span = $this->normalizer->normalizeLayout([
+            'zones' => [[
+                'id' => 's1',
+                'type' => 'stack',
+                'children' => [['id' => 'c1', 'type' => 'text', 'span' => ['base' => 0, 'md' => 900]]],
+            ]],
+        ])['zones'][0]['children'][0]['span'];
 
         self::assertSame(1, $span['base']);
         self::assertSame(48, $span['md']);
-        self::assertSame(24, $span['lg'], 'a numeric string is accepted and cast');
+    }
+
+    /**
+     * A zone is alone on its row on a phone, whatever it stored.
+     *
+     * The width control has only ever written `span.lg`, but layouts built
+     * before that - and client code writing the column itself - carry a real
+     * `base`, and a page of photographs stored at half width came out two
+     * across on a 390px screen.
+     */
+    public function testAZoneIsFullWidthOnAPhoneWhateverItStored(): void
+    {
+        $span = $this->normalizer->normalizeLayout([
+            'zones' => [['id' => 'a1', 'type' => 'media', 'span' => ['base' => 24, 'md' => 12, 'lg' => 8]]],
+        ])['zones'][0]['span'];
+
+        self::assertSame(48, $span['base']);
+        self::assertSame(12, $span['md'], 'the tablet keeps what it was given');
+        self::assertSame(8, $span['lg'], 'and so does the desktop');
+    }
+
+    /**
+     * Widening the phone must not widen what was leaning on it.
+     *
+     * A zone storing nothing but `base` used to be that width at every size.
+     * Setting `base` to the full row on its own would have turned it into a
+     * full-width zone on a desktop too - a redesign of somebody's page, not a
+     * phone fix - so the old width is written into `md`, which `lg` goes on
+     * inheriting exactly as it did.
+     */
+    public function testWideningThePhoneLeavesTheLargerScreensWhereTheyWere(): void
+    {
+        $span = $this->normalizer->normalizeLayout([
+            'zones' => [['id' => 'a1', 'type' => 'media', 'span' => ['base' => 16]]],
+        ])['zones'][0]['span'];
+
+        self::assertSame(48, $span['base']);
+        self::assertSame(16, $span['md']);
+        self::assertNull($span['lg']);
+    }
+
+    /**
+     * And the arrangement it produces is unchanged: `place()` reads the large
+     * width, which still resolves to 16 through `md`.
+     */
+    public function testAPhoneWidthDoesNotMoveTheLargeScreenArrangement(): void
+    {
+        self::assertSame(
+            [[1, 1], [1, 17], [1, 33]],
+            $this->place([
+                ['span' => ['base' => 16]],
+                ['span' => ['base' => 16]],
+                ['span' => ['base' => 16]],
+            ]),
+            'three sixteens still share one row on a large screen',
+        );
     }
 
     public function testTheZoneCountIsCapped(): void
