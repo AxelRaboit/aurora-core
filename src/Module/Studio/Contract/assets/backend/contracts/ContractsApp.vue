@@ -279,7 +279,7 @@ function sealedRowActions(contract) {
             <h2 class="text-xs font-medium uppercase tracking-wider text-muted">
                 {{ t("backend.studio.contracts.in_preparation") }}
             </h2>
-            <div v-if="viewMode === 'grid'" class="grid gap-3 md:grid-cols-2">
+            <div v-if="viewMode === 'grid'" class="grid gap-3 grid-cols-1 md:grid-cols-2">
                 <article
                     v-for="contract in drafts"
                     :key="contract.id"
