@@ -68,5 +68,26 @@ le favicon et l'og:image par défaut sont résolus par id sans filtre de statut
 (`SiteBrandingExtension`) - un logo en brouillon est le cas attendu, pas
 l'exception.
 
-Tests : `tests/Integration/Controller/UploadsServeAccessTest.php` (18 cas,
-dont draft/published, variants, vignettes, corbeille, permalink et contrats).
+**`Restricted` n'a aucun producteur livré.** Les deux guards d'aurora-core
+répondent `Anonymous` ou `Denied` : le troisième cas est le vocabulaire offert
+à l'aire d'un client, pas du code mort à supprimer. Depuis la 0.9.168 la suite
+enregistre son propre producteur sous `when@test`
+(`tests/Integration/Support/RestrictedAreaUploadAccessGuard.php`, préfixe
+`restricted-test/`) et vérifie la branche locale : servi, `private`, jamais
+`immutable`.
+
+**Ce qui reste non couvert, et pourquoi.** La moitié distante - les en-têtes
+privés de `streamThrough()` et la règle « un fichier restreint n'est jamais
+redirigé, quel que soit le mode de livraison » - n'est atteignable par aucun
+double. `UploadsServeController::serveRemote()` se restreint sur la classe
+concrète `R2StorageAdapter`, qui est `final readonly`, et `StorageManager`
+indexe les adaptateurs par un `StorageDiskEnum` unique : un faux adaptateur ne
+passe pas le `instanceof`, donc un test écrit avec lui passerait même si la
+condition `Anonymous` disparaissait - c'est une assurance fausse, pire que pas
+de test. Deux sorties le jour où ça compte : remplacer le `instanceof` par une
+capacité (`SupportsDirectLinks`), ou couvrir sous `make test-r2` avec un vrai
+bucket.
+
+Tests : `tests/Integration/Controller/UploadsServeAccessTest.php` (22 cas,
+dont draft/published, variants, vignettes, corbeille, permalink, contrats et
+les trois cas restreints).

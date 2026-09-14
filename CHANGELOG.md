@@ -5,6 +5,69 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.168] - 2026-09-14
+
+### Corrigé
+
+#### Les cartes des trames de contrat débordaient de l'écran
+Sur un téléphone étroit, la liste des trames de contrat passe en cartes, et les
+cartes sortaient de la page par la droite : à 320 px de large, la carte
+mesurait 322 px dans une colonne qui en offrait 288, et la page gagnait un
+défilement horizontal dont personne ne voulait.
+
+La cause tient en un mot : une carte est un élément de grille, donc sa largeur
+minimale est celle de son contenu, et la colonne se dimensionnait dessus plutôt
+que sur la place disponible. Rien à l'intérieur n'avait besoin de cette
+largeur ; une fois le plancher levé, la carte se remet en forme toute seule et
+plus rien ne dépasse. Les écrans plus larges ne bougent pas : à partir de
+375 px il y avait déjà la place, ce qui explique que le défaut se soit vu
+seulement sur les petits appareils.
+
+#### Le filtre par catégorie des trames n'était pas le même que partout ailleurs
+Toutes les autres listes filtrent avec un select cherchable ; celle des trames
+avait un menu déroulant simple. C'est maintenant le même composant, avec la
+frappe pour retrouver une catégorie, ce qui importera le jour où la
+bibliothèque en comptera trente plutôt que trois.
+
+« Toutes les catégories » reste une ligne de la liste et pas seulement un
+état : le composant accepte de se vider, mais n'affiche rien pour le faire sur
+un choix unique, et un filtre qu'on ne sait pas enlever est un filtre qui
+reste. Les liens existants continuent de fonctionner, `?category=none` compris.
+
+#### Le titre d'une bannière était coupé sur un téléphone
+L'échelle des tailles de titre n'avait que deux paliers, et le premier n'était
+pas un palier mobile : en `xl`, un titre démarrait à 48 px sous 640 px de
+large. Mesuré sur une page réelle, un titre en trois segments occupait 343 px
+dans une colonne de 343 px : ça tenait par chance sur un téléphone de 375 px et
+débordait en dessous.
+
+Les quatre tailles gagnent un vrai palier mobile, et l'ancienne taille devient
+celle des écrans moyens. Pas de césure des mots : couper un titre au milieu
+d'un mot se lit comme un dégât, le réduire se lit simplement. Toutes les
+bannières de tous les sites sont concernées, c'est voulu.
+
+### Interne
+
+#### Le troisième cas d'accès aux uploads n'était traversé par aucun test
+`UploadAccessEnum::Restricted` - servi, mais par l'application et à ce
+visiteur-là seulement - n'est produit par aucun des deux guards livrés : la GED
+répond publié ou refusé, les contrats refusent toujours. Le cas n'est pas du
+code mort pour autant, c'est le vocabulaire offert à l'aire d'un projet client,
+et le jour où ce client écrit son guard, c'est cette branche qui garde son
+fichier hors des caches partagés.
+
+La suite enregistre donc son propre producteur sous `when@test` et vérifie ce
+qui fait l'intérêt du cas : le fichier est servi, la réponse est `private`, et
+elle n'est jamais `immutable`. Un test voisin sur une clé que personne ne
+réclame garde la comparaison honnête.
+
+La moitié distante reste non couverte, et la raison est notée dans la mémoire
+projet : le contrôleur se restreint sur la classe concrète `R2StorageAdapter`,
+qui est `final readonly`, donc aucun double ne peut passer le `instanceof` et
+un test écrit avec un faux adaptateur passerait même si la règle disparaissait.
+
+---
+
 ## [0.9.167] - 2026-09-13
 
 ### Corrigé
