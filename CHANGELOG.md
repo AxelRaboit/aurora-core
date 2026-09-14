@@ -35,8 +35,10 @@ sans charger de carte chez personne. *Bloc partagé* dessine ici la grille d'une
 autre publication : le bandeau de contact au pied de douze pages se corrige
 désormais une fois.
 
-La liste d'une zone Liste gagne deux costumes, *Équipe* et un accordéon dont on
-peut n'ouvrir qu'une entrée à la fois.
+La liste d'une zone Liste gagne un costume, *Équipe*. Et *Questions fréquentes*,
+qui repliait déjà ses entrées, sait maintenant n'en garder qu'une ouverte à la
+fois : c'est une case à cocher sur ce costume, pas une entrée de plus dans le
+menu.
 
 #### Chaque zone peut attendre sa date, ou n'être vue que des membres
 Un nouveau bloc « Quand et pour qui » sur toutes les zones : une date de début,
