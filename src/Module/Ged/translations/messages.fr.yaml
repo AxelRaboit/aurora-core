@@ -110,6 +110,14 @@ backend:
         already_there: Ce document est déjà à cet emplacement.
         bulk_done: "{done} document(s) déplacé(s), {skipped} laissé(s) tel(s) quel(s)."
         bulk_partial: "{done} document(s) déplacé(s), {failed} en échec."
+        all_to_remote: Tout basculer sur le stockage distant
+        all_to_local: Tout basculer sur le serveur
+        all_confirm_remote: Envoyer vers le stockage distant tous les documents qui n'y sont pas encore ?
+        all_confirm_local: Rapatrier sur le serveur tous les documents qui n'y sont pas encore ?
+        all_explain: "Les documents déjà à destination sont ignorés. La corbeille n'est pas déplacée."
+        all_background: "Le déplacement se fait en arrière-plan : les lignes passent en « Déplacement » au fur et à mesure."
+        all_queued: "{queued} document(s) mis en file, {skipped} déjà à destination."
+        all_nothing: Tous les documents sont déjà à cet emplacement.
       reference: Référence
       title: Titre
       description: Description
