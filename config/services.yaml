@@ -187,4 +187,14 @@ when@test:
         Aurora\Fixtures\:
             resource: '../fixtures/'
 
+        # The only producer of `UploadAccessEnum::Restricted` there is. The
+        # shipped guards answer Anonymous or Denied, so without this one the
+        # controller's restricted branches are unreachable and the suite
+        # cannot say what they do. Tagged explicitly rather than through the
+        # `_instanceof` above: that block binds the services of the main
+        # section, and a tag this test depends on should not hang on which
+        # section a class happens to be declared in.
+        Aurora\Tests\Integration\Support\RestrictedAreaUploadAccessGuard:
+            tags: [aurora.upload_access_guard]
+
 
