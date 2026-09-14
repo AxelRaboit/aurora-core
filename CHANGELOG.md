@@ -5,6 +5,33 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.170] - 2026-09-14
+
+### Corrigé
+
+#### Les cartes des contrats en préparation avaient le même plancher que celles des trames
+Le défaut corrigé sur la liste des trames en 0.9.168 se trouvait aussi sur la
+liste des contrats, au même endroit : sur un téléphone, la colonne unique se
+dimensionnait sur le contenu des cartes plutôt que sur la place disponible.
+Mesuré sur une carte dont le titre ne peut pas se couper, dans une boîte de
+288 px : la carte sortait à 470 px, soit 182 px hors de la page.
+
+Rien ne débordait encore sur cette liste, faute d'un texte assez long dans ces
+cartes. Mais un nom de client d'un seul tenant suffisait, et le jour où cela
+arrive ce ne sont pas une carte mais toutes les cartes de la liste qui sortent
+de la page ensemble. Corriger une liste et laisser sa voisine revenait à
+attendre le prochain nom trop long.
+
+Les deux listes sont désormais tenues par le même mécanisme, celui déjà en
+place sur les trames depuis la 0.9.168. Elles portaient chacune le sien, ce qui
+laissait deux corrections pour un seul défaut : personne relisant l'une des
+deux ne pouvait dire laquelle tenait, donc aucune n'était sûre à toucher.
+
+### Dans aurora-client
+Rien à répercuter : la correction est dans le back-office.
+
+---
+
 ## [0.9.169] - 2026-09-14
 
 ### Ajouté
