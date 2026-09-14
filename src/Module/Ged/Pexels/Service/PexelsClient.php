@@ -91,6 +91,53 @@ final readonly class PexelsClient
     }
 
     /**
+     * One photo, named rather than searched for.
+     *
+     * The picker never needs this: it already holds everything about a photo
+     * by the time somebody clicks it, because the search handed it over. A
+     * caller that has only an id does not - a console import, a fixture, a
+     * script reproducing a page - and asking it to search for a word that
+     * happens to return the right photo again is not an answer.
+     *
+     * Null covers both "no such photo" and "could not ask", deliberately: the
+     * distinction needs the provider to be reachable to be made at all, and
+     * the caller's next move is the same either way. What tells them apart is
+     * the log line.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function photo(string $id): ?array
+    {
+        $id = mb_trim($id);
+
+        if (!$this->isConfigured() || '' === $id) {
+            return null;
+        }
+
+        try {
+            $payload = $this->httpClient->request('GET', self::API_BASE.'/photos/'.rawurlencode($id), [
+                'headers' => ['Authorization' => $this->settings->apiKey()],
+                'timeout' => self::TIMEOUT_SECONDS,
+            ])->toArray();
+        } catch (Throwable $throwable) {
+            $this->logger->warning('Pexels photo lookup failed.', [
+                'id' => $id,
+                'exception' => $throwable->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        /* @var array<string, mixed> $payload */
+        $photo = $this->normalizePhoto($payload);
+
+        // An answer shaped like a photo but carrying no file is not one. The
+        // importer would refuse it a moment later; refusing it here means the
+        // caller is told which id was hollow rather than which download failed.
+        return '' === $photo['url'] ? null : $photo;
+    }
+
+    /**
      * Pexels reports a number of results and leaves the division to us,
      * where Unsplash reported pages directly.
      *

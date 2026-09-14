@@ -5,6 +5,55 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.175] - 2026-09-14
+
+### Ajouté
+
+#### Pexels depuis la console, sans navigateur
+Le module Pexels n'avait qu'une porte : le sélecteur de la médiathèque,
+derrière une session. Tout ce qui n'a pas de navigateur — l'amorçage d'une
+démo, un script qui reconstruit une page, un assistant à qui on demande
+d'illustrer trois sections — devait contourner le module, déchiffrer la clé
+lui-même et rappeler le fournisseur à la main. C'est une deuxième
+implémentation de la seule chose que ce module est, et c'est elle qui dérive.
+
+Deux commandes :
+
+- `aurora:ged:pexels:search "<requête>"` liste les résultats avec leurs
+  identifiants, leurs dimensions et leur auteur. `--page`, `--limit`. Rien
+  n'est téléchargé.
+- `aurora:ged:pexels:import <id> [<id>…]` dépose les photos choisies en
+  passant par le **vrai `PexelsImporter`**, celui que le navigateur appelle.
+  `--dry-run` regarde et s'arrête avant de dépenser quoi que ce soit.
+
+Un document déposé par la commande est indiscernable d'un document cliqué :
+même largeur de téléchargement, mêmes variantes, même catégorie *Médias
+éditoriaux*, et surtout **les mêmes colonnes `source_url` et d'attribution**,
+dont le crédit sous l'image est rendu. Pexels demande ce crédit : un
+contournement qui l'oublie n'est pas un défaut cosmétique, c'est un problème
+de licence. C'est aussi la catégorie qui manquait le plus souvent, sans que
+rien n'ait l'air cassé.
+
+Un identifiant inconnu est signalé et n'interrompt pas les suivants, mais le
+code de sortie le dit. Une intégration éteinte renvoie vers l'écran de
+réglages plutôt que vers une trace d'exception.
+
+### Interne
+
+#### `PexelsClient` sait chercher une photo par son identifiant
+`photo(string $id)` interroge `/v1/photos/{id}` et rend la même forme
+normalisée que la recherche, pour un appelant qui a un identifiant et pas un
+mot-clé. Rend `null` aussi bien pour « cette photo n'existe pas » que pour
+« le fournisseur est injoignable » : la différence demande justement que le
+fournisseur réponde, et la suite est la même dans les deux cas. C'est la
+ligne de journal qui les distingue.
+
+### Dans aurora-client
+Rien à répercuter : les deux commandes arrivent avec le bundle et
+n'apparaissent que si le module Pexels est activé et sa clé renseignée.
+
+---
+
 ## [0.9.174] - 2026-09-14
 
 ### Ajouté
