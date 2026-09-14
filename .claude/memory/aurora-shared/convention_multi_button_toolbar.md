@@ -1,6 +1,6 @@
 ---
 name: convention_multi_button_toolbar
-description: Multiple action buttons in AppListToolbar #actions slot must be wrapped in a flex container so they keep their gap on desktop and stack full-width on mobile
+description: Two action buttons in AppListToolbar #actions slot must be wrapped in a flex container so they keep their gap on desktop and stack full-width on mobile - three or more go behind AppPageActions instead
 metadata:
   type: feedback
 ---
@@ -24,6 +24,12 @@ Pour un **seul bouton**, conserver le pattern simple avec
 `class="w-full sm:w-auto"` directement sur l'`AppButton` (cf.
 [[convention_mobile_card_layout]]).
 
+**À partir de trois**, cette règle ne s'applique plus : les actions passent
+derrière un `<AppPageActions>` et il ne reste que le geste primaire dans le
+slot (cf. [[convention_action_sheet]]). Un wrapper flex empile proprement
+trois boutons sur un téléphone, mais trois boutons empilés restent trois
+boutons.
+
 ## Pourquoi
 
 `AppListToolbar` met les actions dans une seule cellule du grid. Sans
@@ -42,7 +48,8 @@ Le wrapper `flex flex-col sm:flex-row gap-2 w-full sm:w-auto` :
 ## Comment l'appliquer
 
 - 1 bouton : `<AppButton class="w-full sm:w-auto" ...>` - pas de wrapper
-- 2+ boutons : wrapper `<div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">`
+- 2 boutons : wrapper `<div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">`
+- 3 boutons ou plus : `<AppPageActions>` (cf. [[convention_action_sheet]])
 - Quand un bouton est secondaire (ex: refresh) sur Dashboard ou Budgets,
   un seul bouton sans `w-full` reste acceptable (cas spécifique des
   pages dashboard, pas une CRUD list).
@@ -53,6 +60,7 @@ Le wrapper `flex flex-col sm:flex-row gap-2 w-full sm:w-auto` :
   pattern mobile cards/desktop table.
 - Lien : [[pattern_admin_list_toolbar]] - le wrapper `AppListToolbar`
   lui-même.
-- Exemples en code : `PersonalFinanceTransactionsApp.vue` (Split +
-  Transfer + Ajouter), `PersonalFinanceRecurringApp.vue` (1 bouton par
-  tab, donc pattern simple).
+- Lien : [[convention_action_sheet]] - le cas à trois actions et plus.
+- Exemples en code : `ContractTemplatesApp.vue` (archivées + ajouter, avec
+  wrapper). `DecksApp.vue` a deux boutons **sans** wrapper : c'est un écart
+  à la règle, pas un exemple.

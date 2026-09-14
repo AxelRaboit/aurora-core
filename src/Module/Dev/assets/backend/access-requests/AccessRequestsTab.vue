@@ -1,7 +1,8 @@
 <script setup>
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -39,6 +40,20 @@ const accessRequests = useAccessRequests(
 onMounted(() => {
     if (!accessRequests.items.value?.length) accessRequests.load();
 });
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    return [
+        {
+            key: "purge",
+            color: "rose",
+            icon: Trash2,
+            title: t("backend.access_requests.purge"),
+            onSelect: () => (accessRequests.confirmPurge.value = true),
+        },
+    ];
+});
 </script>
 
 <template>
@@ -50,10 +65,7 @@ onMounted(() => {
                 :placeholder="t('backend.access_requests.search_placeholder')"
                 v-on:search="accessRequests.performSearch"
             />
-            <AppButton variant="danger" size="md" class="w-full sm:w-auto" v-on:click="accessRequests.confirmPurge.value = true">
-                <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                {{ t('backend.access_requests.purge') }}
-            </AppButton>
+            <AppPageActions :actions="pageActions" class="w-full sm:w-auto" />
         </div>
 
         <div class="relative space-y-4">

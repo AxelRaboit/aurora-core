@@ -8,6 +8,7 @@ import { usePostsList } from "./composables/usePostsList.js";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePostRowActions } from "./composables/usePostRowActions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
@@ -18,7 +19,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
-import { Plus, Trash2, X, FileText, Filter } from "lucide-vue-next";
+import { Globe, Plus, Trash2, X, FileText, Filter } from "lucide-vue-next";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
@@ -179,9 +180,29 @@ const bulkResult = ref(null);
  * what has not been deleted.
  */
 const bulkActions = computed(() => [
-    { value: "publish", label: t("backend.posts.bulk.action_publish"), variant: "secondary" },
-    { value: "draft", label: t("backend.posts.bulk.action_draft"), variant: "secondary" },
-    { value: "trash", label: t("backend.posts.bulk.action_trash"), variant: "danger" },
+    {
+        key: "publish",
+        icon: Globe,
+        title: t("backend.posts.bulk.action_publish"),
+        loading: bulkRunning.value,
+        onSelect: () => runBulk("publish"),
+    },
+    {
+        key: "draft",
+        icon: FileText,
+        title: t("backend.posts.bulk.action_draft"),
+        loading: bulkRunning.value,
+        onSelect: () => runBulk("draft"),
+    },
+    // Last, as everywhere: the one that takes something away.
+    {
+        key: "trash",
+        color: "rose",
+        icon: Trash2,
+        title: t("backend.posts.bulk.action_trash"),
+        loading: bulkRunning.value,
+        onSelect: () => runBulk("trash"),
+    },
 ]);
 
 async function runBulk(action) {
@@ -228,6 +249,24 @@ const allTerms = computed(() =>
         })),
     ),
 );
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("editorial.posts.create")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.posts.create"),
+            href: props.newPath,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -235,15 +274,11 @@ const allTerms = computed(() =>
         <AppListToolbar>
             <AppSearchInput v-model="search" :placeholder="t('backend.posts.search_placeholder')" />
             <template #actions>
-                <AppButton
-                    v-if="can('editorial.posts.create')"
-                    variant="primary"
-                    size="md"
-                    :href="newPath"
+                <AppPageActions
+                    v-if="pageActions.length"
+                    :actions="pageActions"
                     class="w-full sm:w-auto"
-                >
-                    <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.posts.create") }}
-                </AppButton>
+                />
             </template>
         </AppListToolbar>
 
@@ -258,17 +293,12 @@ const allTerms = computed(() =>
                 {{ t("backend.posts.bulk.selected", { count: selected.size }, selected.size) }}
             </span>
 
+            <!-- The count and the way out stay: they are what the bar is for.
+                 The three verbs sit behind one button, which is also what keeps
+                 the destructive one from being a thumb's width from the other
+                 two on a phone. -->
             <div class="ms-auto flex flex-wrap items-center gap-2">
-                <AppButton
-                    v-for="action in bulkActions"
-                    :key="action.value"
-                    :variant="action.variant"
-                    size="sm"
-                    :loading="bulkRunning"
-                    v-on:click="runBulk(action.value)"
-                >
-                    {{ action.label }}
-                </AppButton>
+                <AppPageActions :actions="bulkActions" variant="secondary" size="sm" :busy="bulkRunning" />
                 <AppButton variant="ghost" size="sm" v-on:click="selected = new Set()">
                     {{ t("backend.posts.bulk.clear") }}
                 </AppButton>

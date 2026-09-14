@@ -1,8 +1,9 @@
 <script setup>
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -39,6 +40,53 @@ onMounted(() => {
     if (!mp.mountPoints.value.length) mp.load();
 });
 
+
+/**
+ * What one mount point offers.
+ *
+ * Three glyphs in a row said what they did only to whoever already knew them,
+ * and the destructive one sat a few pixels from the one that only pings the
+ * host. Named rows, and the delete last.
+ */
+function actionsFor(mountPoint) {
+    return [
+        {
+            key: "test",
+            icon: Wifi,
+            title: t("backend.mount_points.test"),
+            disabled: mp.testModal.value.testing,
+            onSelect: () => mp.openTestModal(mountPoint),
+        },
+        {
+            key: "edit",
+            color: "accent",
+            icon: Pencil,
+            title: t("shared.common.edit"),
+            onSelect: () => mp.openEdit(mountPoint),
+        },
+        {
+            key: "delete",
+            color: "rose",
+            icon: Trash2,
+            title: t("shared.common.delete"),
+            onSelect: () => mp.confirmDelete(mountPoint),
+        },
+    ];
+}
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.mount_points.add"),
+            onSelect: mp.openCreate,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -51,10 +99,7 @@ onMounted(() => {
                 class="flex-1"
                 :placeholder="t('backend.mount_points.search_placeholder')"
             />
-            <AppButton variant="primary" size="md" v-on:click="mp.openCreate">
-                <Plus class="w-4 h-4" :stroke-width="2" />
-                {{ t("backend.mount_points.add") }}
-            </AppButton>
+            <AppPageActions :actions="pageActions" />
         </div>
 
         <div class="bg-surface border border-line rounded-xl overflow-x-auto scrollbar-thin">
@@ -95,17 +140,7 @@ onMounted(() => {
                             </span>
                         </td>
                         <td class="px-5 py-3">
-                            <div class="flex items-center justify-end gap-1">
-                                <AppIconButton color="gray" :title="t('backend.mount_points.test')" :disabled="mp.testModal.value.testing" v-on:click="mp.openTestModal(mountPoint)">
-                                    <Wifi class="w-4 h-4" :stroke-width="2" />
-                                </AppIconButton>
-                                <AppIconButton color="accent" :title="t('shared.common.edit')" v-on:click="mp.openEdit(mountPoint)">
-                                    <Pencil class="w-4 h-4" :stroke-width="2" />
-                                </AppIconButton>
-                                <AppIconButton color="rose" :title="t('shared.common.delete')" v-on:click="mp.confirmDelete(mountPoint)">
-                                    <Trash2 class="w-4 h-4" :stroke-width="2" />
-                                </AppIconButton>
-                            </div>
+                            <AppRowActions :actions="actionsFor(mountPoint)" :label="mountPoint.name" />
                         </td>
                     </tr>
                 </tbody>

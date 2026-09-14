@@ -5,6 +5,65 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.172] - 2026-09-14
+
+### Modifié
+
+#### Un bouton « Actions » partout, au lieu d'une rangée de boutons
+Le menu d'actions en modal existait déjà et il était bon, mais il s'arrêtait à
+la ligne de tableau. Les en-têtes de page, eux, gagnaient un bouton par
+capacité jusqu'à en aligner six : l'éditeur d'article portait retour, statut,
+refuser, approuver, révisions, aperçu et enregistrer sur une seule rangée.
+
+Un même bouton « Actions » les rassemble maintenant, sur dix-neuf écrans. Ce
+qui reste dehors est le geste pour lequel la page existe, Enregistrer sur un
+éditeur, Présenter sur un deck, Contresigner sur un contrat, et le retour vers
+la liste, qui est de la navigation. Dans la feuille, chaque action a sa ligne,
+son nom en toutes lettres et sa couleur, la destructrice en dernier.
+
+Les toolbars de liste vont plus loin : ils passent au bouton « Actions » même
+quand ils n'avaient qu'une entrée, pour que toutes les listes du back-office
+s'ouvrent de la même façon. L'état vide, lui, garde son vrai bouton : une
+liste sans rien dedans n'a qu'une chose à proposer.
+
+Les cartes de thèmes suivent la même règle : « Activer » garde son bouton
+pleine largeur, éditer et supprimer passent derrière les trois points, ce qui
+éloigne la corbeille du bouton qu'on presse exprès.
+
+### Corrigé
+
+#### Deux en-têtes s'écrasaient sur téléphone
+L'éditeur d'article et la fiche document plaçaient leurs boutons dans une
+rangée qui ne pouvait pas se replier. Sur un écran étroit, un article en
+attente de relecture tassait sept éléments sur une ligne, jusqu'à les rendre
+illisibles. La rangée se replie désormais, et il ne lui reste de toute façon
+que deux boutons.
+
+### Interne
+
+#### La feuille d'actions a été sortie de son déclencheur
+`AppActionSheet` porte la mécanique, la modale, l'ordre des lignes et la
+fermeture avant exécution. `AppRowActions` et `AppPageActions` en sont les deux
+façades, la première avec ses trois points dans une ligne de tableau, la
+seconde avec le mot « Actions » en haut d'une page, là où aucun en-tête de
+colonne ne le dit à sa place.
+
+Les actions d'en-tête sont asynchrones là où celles d'une ligne ne l'étaient
+pas : `AppActionButton` accepte `loading`, et le déclencheur de page `busy`,
+puisque la feuille se ferme en lançant l'action et que le bouton qui l'a
+lancée n'est plus à l'écran.
+
+La fiche document lit désormais la même liste que les lignes de la GED plutôt
+que de réécrire sa propre direction de relocalisation.
+
+### Dans aurora-client
+Rien à répercuter : les pages de liste distribuées par core portent le nouveau
+bouton sans intervention. Un projet client qui a écrit ses propres pages de
+liste peut suivre la même règle avec `AppPageActions`, importé depuis
+`@shared/components/action/AppPageActions.vue`.
+
+---
+
 ## [0.9.171] - 2026-09-14
 
 ### Corrigé

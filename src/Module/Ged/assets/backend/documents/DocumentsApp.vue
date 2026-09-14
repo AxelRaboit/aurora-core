@@ -1,11 +1,12 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useListPage } from "@/shared/composables/list/useListPage.js";
 import { useQrCode } from "@/shared/composables/overlay/useQrCode.js";
 import { useClipboard } from "@/shared/composables/useClipboard.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import { useDocumentRowActions } from "./composables/useDocumentRowActions.js";
 import { useDocumentsForm, DOCUMENT_STATUS_BADGE } from "./composables/useDocumentsForm.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -217,7 +218,78 @@ const { doBulkDelete, bulkMoveTargetId, openBulkMove, bulkMove, bulkRelocate, bu
     props, items, selectedIds, isSelecting, clearSelection, currentFolderId, reset,
 );
 
+/**
+ * What can be done to a handful of ticked rows.
+ *
+ * The bar used to carry five buttons after the count, and on a phone it took
+ * two full rows of its own above a list the reader was still trying to read.
+ * The count and the way out stay - they are what the bar is *for*, saying how
+ * many and letting go of them - and the verbs move behind one button.
+ */
+const bulkActions = computed(() => {
+    const actions = [
+        {
+            key: "move",
+            icon: Move,
+            title: t("backend.ged.documents.move"),
+            onSelect: () => {
+                bulkMoveTargetId.value = null;
+                openBulkMove.value = true;
+            },
+        },
+    ];
+
+    // Absent until a second backend has actually been configured, exactly as on
+    // a single row.
+    if (props.storageRelocationAvailable && can("ged.documents.relocate")) {
+        actions.push({
+            key: "relocate-remote",
+            icon: CloudUpload,
+            title: t("backend.ged.documents.row_actions.relocate_to_remote"),
+            loading: bulkRelocating.value,
+            onSelect: () => bulkRelocate("r2"),
+        });
+        actions.push({
+            key: "relocate-local",
+            icon: HardDriveDownload,
+            title: t("backend.ged.documents.row_actions.relocate_to_local"),
+            loading: bulkRelocating.value,
+            onSelect: () => bulkRelocate("local"),
+        });
+    }
+
+    if (can("ged.documents.delete")) {
+        actions.push({
+            key: "delete",
+            color: "rose",
+            icon: Trash2,
+            title: t("shared.common.delete"),
+            onSelect: doBulkDelete,
+        });
+    }
+
+    return actions;
+});
+
 const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("ged.documents.create")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.ged.documents.add"),
+            onSelect: openCreate,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -249,15 +321,11 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                 <div class="w-full sm:w-64">
                     <AppSearchInput v-model="searchInput" :placeholder="t('backend.ged.documents.search_placeholder')" v-on:search="onSearch" />
                 </div>
-                <AppButton
-                    v-if="can('ged.documents.create')"
-                    variant="primary"
-                    size="md"
+                <AppPageActions
+                    v-if="pageActions.length"
+                    :actions="pageActions"
                     class="w-full sm:w-auto"
-                    v-on:click="openCreate"
-                >
-                    <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.ged.documents.add") }}
-                </AppButton>
+                />
             </div>
         </div>
 
@@ -318,34 +386,8 @@ const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
                 <div v-if="selectedIds.size" class="flex flex-wrap items-center gap-2 bg-accent-500/10 border border-accent-400/30 rounded-xl px-4 py-2.5">
                     <span class="text-sm font-medium text-accent-400">{{ selectedIds.size }} {{ t("shared.common.selected") }}</span>
                     <div class="flex gap-2 ml-auto flex-wrap">
-                        <AppButton size="sm" variant="ghost" v-on:click="() => { bulkMoveTargetId = null; openBulkMove = true; }">
-                            <Move class="w-3.5 h-3.5" :stroke-width="2" />
-                            {{ t("backend.ged.documents.move") }}
-                        </AppButton>
-                        <template v-if="storageRelocationAvailable && can('ged.documents.relocate')">
-                            <AppButton
-                                size="sm"
-                                variant="ghost"
-                                :loading="bulkRelocating"
-                                v-on:click="bulkRelocate('r2')"
-                            >
-                                <CloudUpload class="w-3.5 h-3.5" :stroke-width="2" />
-                                {{ t("backend.ged.documents.row_actions.relocate_to_remote") }}
-                            </AppButton>
-                            <AppButton
-                                size="sm"
-                                variant="ghost"
-                                :loading="bulkRelocating"
-                                v-on:click="bulkRelocate('local')"
-                            >
-                                <HardDriveDownload class="w-3.5 h-3.5" :stroke-width="2" />
-                                {{ t("backend.ged.documents.row_actions.relocate_to_local") }}
-                            </AppButton>
-                        </template>
-                        <AppButton v-if="can('ged.documents.delete')" size="sm" variant="danger" v-on:click="doBulkDelete">
-                            <Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}
-                        </AppButton>
-                        <AppButton size="sm" variant="ghost" v-on:click="clearSelection">
+                        <AppPageActions :actions="bulkActions" variant="ghost" size="sm" :busy="bulkRelocating" />
+                        <AppButton size="sm" variant="ghost" :title="t('shared.common.cancel')" v-on:click="clearSelection">
                             <X class="w-3.5 h-3.5" :stroke-width="2" />
                         </AppButton>
                     </div>

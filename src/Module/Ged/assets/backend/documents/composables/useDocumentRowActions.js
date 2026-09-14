@@ -21,6 +21,11 @@ import {
  * Download carries `href` and stays a link: it is a navigation, and the browser
  * is what should handle it.
  *
+ * `viewDoc` and `openQr` are optional because the same list is read from two
+ * places now: the library, where a document is a row you can open, and the
+ * document's own page, where opening it is where you already are. Left out,
+ * their entries simply do not appear.
+ *
  * Moving a document between storage backends is offered here rather than as a
  * screen of its own: it is a property of one document, like its folder, and
  * belongs where the other per-document verbs are. It is absent entirely until
@@ -29,8 +34,8 @@ import {
  */
 export function useDocumentRowActions({
     can,
-    viewDoc,
-    openQr,
+    viewDoc = null,
+    openQr = null,
     openEdit,
     confirmDelete,
     relocate = null,
@@ -39,8 +44,10 @@ export function useDocumentRowActions({
     const { t } = useI18n();
 
     return function actionsFor(doc) {
-        const actions = [
-            {
+        const actions = [];
+
+        if (viewDoc) {
+            actions.push({
                 key: "view",
                 color: "sky",
                 icon: Eye,
@@ -49,8 +56,8 @@ export function useDocumentRowActions({
                     "backend.ged.documents.row_actions.view_description",
                 ),
                 onSelect: () => viewDoc(doc),
-            },
-        ];
+            });
+        }
 
         if (doc.fileUrl) {
             actions.push({
@@ -64,16 +71,18 @@ export function useDocumentRowActions({
                 href: doc.fileUrl,
             });
 
-            actions.push({
-                key: "qr",
-                color: "default",
-                icon: QrCode,
-                title: t("shared.common.qr_code"),
-                description: t(
-                    "backend.ged.documents.row_actions.qr_description",
-                ),
-                onSelect: () => openQr(doc),
-            });
+            if (openQr) {
+                actions.push({
+                    key: "qr",
+                    color: "default",
+                    icon: QrCode,
+                    title: t("shared.common.qr_code"),
+                    description: t(
+                        "backend.ged.documents.row_actions.qr_description",
+                    ),
+                    onSelect: () => openQr(doc),
+                });
+            }
         }
 
         if (can("ged.documents.edit")) {

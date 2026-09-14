@@ -9,6 +9,7 @@ import { useContractsList } from "./composables/useContractsList.js";
 import { useContractActions } from "./composables/useContractActions.js";
 import ContractFormFields from "./components/ContractFormFields.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
@@ -224,6 +225,24 @@ function draftRowActions(contract) {
 function sealedRowActions(contract) {
     return sealedActions(contract, sealedHandlers);
 }
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("studio.contracts.create")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.studio.contracts.add"),
+            onSelect: () => openCreate(),
+        },
+    ];
+});
 </script>
 
 <template>
@@ -256,16 +275,11 @@ function sealedRowActions(contract) {
                 </div>
             </template>
             <template #actions>
-                <AppButton
-                    v-if="can('studio.contracts.create')"
-                    variant="primary"
-                    size="md"
+                <AppPageActions
+                    v-if="pageActions.length"
+                    :actions="pageActions"
                     class="w-full sm:w-auto"
-                    v-on:click="openCreate()"
-                >
-                    <Plus class="w-4 h-4" :stroke-width="2" />
-                    {{ t("backend.studio.contracts.add") }}
-                </AppButton>
+                />
             </template>
         </AppListToolbar>
 

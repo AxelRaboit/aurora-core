@@ -79,6 +79,22 @@ describe("AppActionButton", () => {
         expect(wrapper.attributes("disabled")).toBeDefined();
     });
 
+    /**
+     * Header actions are asynchronous where row actions were not: save, publish,
+     * countersign, relocate. The spinner takes the icon's place rather than
+     * sitting beside it, so the row does not shift while it waits.
+     */
+    it("spins in the icon's place while the action runs, and cannot be pressed", () => {
+        const wrapper = mount(AppActionButton, {
+            props: { title: "Publier", loading: true },
+            slots: { icon: '<svg data-test="glyph" />' },
+        });
+
+        expect(wrapper.find(".animate-spin").exists()).toBe(true);
+        expect(wrapper.find('[data-test="glyph"]').exists()).toBe(false);
+        expect(wrapper.attributes("disabled")).toBeDefined();
+    });
+
     it("takes an icon beside the words", () => {
         const wrapper = mount(AppActionButton, {
             props: { title: "Modifier" },
