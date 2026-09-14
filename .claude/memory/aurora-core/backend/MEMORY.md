@@ -46,3 +46,4 @@
 - [pitfall_yaml_duplicate_keys.md](pitfall_yaml_duplicate_keys.md) - clé YAML dupliquée : silencieuse PHP, fatale pour DumpJsTranslations + build Vue
 - [pitfall_route_gate_priority.md](pitfall_route_gate_priority.md) - `*RouteGateSubscriber` priorité < 8 obligatoire, convention : priorité 0
 - [pitfall_decorator_signature_drift.md](pitfall_decorator_signature_drift.md) - étendre un Manager sans sync interface + decorators → PHP drop silencieusement les args en trop
+- [pitfall_orphan_removal_owning_side.md](pitfall_orphan_removal_owning_side.md) - sur une collection `orphanRemoval`, attacher l'enfant par `setParent()` seul le fait supprimer par le flush qui devait l'enregistrer ; passer par `addXxx()`
