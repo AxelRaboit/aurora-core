@@ -37,6 +37,10 @@ interface FormInterface
 
     public function setActive(bool $active): static;
 
+    public function isStandalonePageIndexed(): bool;
+
+    public function setStandalonePageIndexed(bool $standalonePageIndexed): static;
+
     /** @return Collection<string, FormTranslationInterface> */
     public function getTranslations(): Collection;
 

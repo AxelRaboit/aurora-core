@@ -9,6 +9,7 @@ use Aurora\Core\Repository\Trait\PaginationTrait;
 use Aurora\Module\Editorial\Form\Entity\FormInterface;
 use Aurora\Module\Editorial\Form\Entity\FormSubmission;
 use Aurora\Module\Editorial\Form\Entity\FormSubmissionInterface;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -53,6 +54,27 @@ class FormSubmissionRepository extends ResolveTargetEntityRepository
             ->where('s.form = :form')
             ->setParameter('form', $form)
             ->orderBy('s.submittedAt', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Submissions older than a date, oldest first - what the retention purge
+     * removes.
+     *
+     * Batched by the caller rather than returned whole: a site left for a year
+     * with the setting off, then turned on, has every submission it ever took
+     * to delete in one pass.
+     *
+     * @return list<FormSubmissionInterface>
+     */
+    public function findSubmittedBefore(DateTimeImmutable $cutoff, int $limit): array
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.submittedAt < :cutoff')
+            ->setParameter('cutoff', $cutoff)
+            ->orderBy('s.submittedAt', Order::Ascending->value)
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }

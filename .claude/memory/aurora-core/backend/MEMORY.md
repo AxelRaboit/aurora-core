@@ -46,3 +46,5 @@
 - [pitfall_yaml_duplicate_keys.md](pitfall_yaml_duplicate_keys.md) - clé YAML dupliquée : silencieuse PHP, fatale pour DumpJsTranslations + build Vue
 - [pitfall_route_gate_priority.md](pitfall_route_gate_priority.md) - `*RouteGateSubscriber` priorité < 8 obligatoire, convention : priorité 0
 - [pitfall_decorator_signature_drift.md](pitfall_decorator_signature_drift.md) - étendre un Manager sans sync interface + decorators → PHP drop silencieusement les args en trop
+- [pitfall_rate_limiter_counters_in_tests.md](pitfall_rate_limiter_counters_in_tests.md) - les compteurs de limitation vivent dans un pool filesystem : un test qui poste sur une route limitée doit remettre le sien à zéro (`ResetsRateLimiters`), sinon il devient rouge au bout de quelques exécutions, sur un 429 qui ne ressemble pas à sa cause
+- [pitfall_fixture_shares_entity_manager.md](pitfall_fixture_shares_entity_manager.md) - une fixture de test qui n'attache l'enfant que par le côté propriétaire laisse la collection du parent vide **en mémoire** : la base est juste, mais un handler appelé en ligne depuis le test lit la même copie et voit un parent sans enfants

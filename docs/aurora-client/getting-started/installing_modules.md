@@ -129,8 +129,13 @@ when@test:
                 async: 'in-memory://'
 ```
 
-Le **routing** des messages modules est déclaré par chaque bundle module
-(prependExtension) - le client n'a que le transport à fournir.
+Le **routing** est déclaré par les bundles, pas par le client : chaque bundle
+module pour les siens, `AuroraBundle::prependExtension` pour ceux d'aurora-core.
+Le client n'a que le transport à fournir.
+
+Attention à la forme de la panne si le transport manque *et* que le routing
+n'arrive pas : un message sans route n'est pas une erreur, Symfony l'exécute en
+ligne. La file n'existe alors nulle part, sans que rien ne le signale.
 
 ## Désinstaller un module
 

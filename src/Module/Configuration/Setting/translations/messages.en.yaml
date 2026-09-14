@@ -230,6 +230,9 @@ backend:
     trash_auto_purge_days:
       label: Auto-purge trash (days)
       description: Number of days before permanent deletion of trashed posts (0 = never)
+    form_submission_retention_days:
+      label: Keep form submissions (days)
+      description: "How long form answers are kept, IP address included, before permanent deletion (0 = forever)"
     homepage_post_id:
       label: Homepage post ID
       description: ID of a post displayed on the homepage. Empty = latest posts list.

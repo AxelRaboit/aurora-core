@@ -59,6 +59,8 @@ final readonly class MailService
      * @param string|null                              $locale        Override locale (e.g. customer's stored locale).
      *                                                                When null, falls back to EmailLocale setting → DefaultLocale.
      * @param array<string, string>                    $subjectParams Translation parameters for the subject (e.g. ['{title}' => $title])
+     * @param string|null                              $replyTo       Where a reply should go, when that is not the sender.
+     *                                                                Dropped when it is not a valid address.
      * @param list<array{path: string, name?: string}> $attachments   Files to attach, by absolute path.
      *                                                                A path that is not a readable file is skipped
      *                                                                rather than fatal: a mail that says a contract is
@@ -75,12 +77,13 @@ final readonly class MailService
         ?string $locale = null,
         array $subjectParams = [],
         array $attachments = [],
+        ?string $replyTo = null,
     ): void {
         if ('' === $to) {
             return;
         }
 
-        $send = function () use ($to, $subjectKey, $template, $context, $cc, $subjectParams, $attachments): void {
+        $send = function () use ($to, $subjectKey, $template, $context, $cc, $subjectParams, $attachments, $replyTo): void {
             $siteName = $this->siteName();
             $body = $this->twig->render($template, ['siteName' => $siteName] + $context);
             $subject = sprintf('[%s] %s', $siteName, $this->translator->trans($subjectKey, $subjectParams));
@@ -90,6 +93,14 @@ final readonly class MailService
                 ->to($to)
                 ->subject($subject)
                 ->html($body);
+
+            // Where the answer should go when the recipient hits reply. A
+            // malformed address is dropped rather than fatal: the header is a
+            // convenience, and Symfony would throw on it - which would cost
+            // the mail itself.
+            if (null !== $replyTo && false !== filter_var($replyTo, FILTER_VALIDATE_EMAIL)) {
+                $email->replyTo($replyTo);
+            }
 
             foreach ($attachments as $attachment) {
                 $path = $attachment['path'];
@@ -133,14 +144,14 @@ final readonly class MailService
      * @param array<string, mixed>  $context
      * @param array<string, string> $subjectParams
      */
-    public function sendToAdmin(string $subjectKey, string $template, array $context = [], array $subjectParams = []): void
+    public function sendToAdmin(string $subjectKey, string $template, array $context = [], array $subjectParams = [], ?string $replyTo = null): void
     {
         $adminEmail = $this->adminEmail();
         if (null === $adminEmail) {
             return;
         }
 
-        $this->send($adminEmail, $subjectKey, $template, $context, subjectParams: $subjectParams);
+        $this->send($adminEmail, $subjectKey, $template, $context, subjectParams: $subjectParams, replyTo: $replyTo);
     }
 
     public function siteName(): string
@@ -172,7 +183,13 @@ final readonly class MailService
         return '' !== $this->adminEmail ? $this->adminEmail : null;
     }
 
-    private function emailLocale(): ?string
+    /**
+     * The language the application writes in when it addresses its own
+     * operators rather than a visitor. Public because a caller that renders
+     * the body itself has to agree with the envelope about which language
+     * that is.
+     */
+    public function emailLocale(): ?string
     {
         $locale = $this->settingRepository->get(ApplicationParameterEnum::EmailLocale->value);
         if (null !== $locale && '' !== $locale) {

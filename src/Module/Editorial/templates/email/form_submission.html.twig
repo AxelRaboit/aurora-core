@@ -4,6 +4,15 @@
 <h1>{{ 'editorial.mail.form.admin_heading'|trans }}</h1>
 <p>{{ 'editorial.mail.form.admin_intro'|trans({'{form}': formTitle}) }}</p>
 
+{# Which message this is, before what it says. Answering one of these weeks
+   later meant searching the back office by hand: the mail named neither the
+   submission nor the day it arrived. #}
+<p style="margin:0 0 12px;color:#6b7280;font-size:13px;">
+    {% if submission.reference %}{{ submission.reference }} · {% endif %}
+    {{ submission.submittedAt|date('d/m/Y H:i') }} ·
+    {{ 'editorial.mail.form.admin_language'|trans }} : {{ submission.locale }}
+</p>
+
 <table class="panel" role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
     <tr>
         <td class="panel-content">
@@ -13,4 +22,11 @@
         </td>
     </tr>
 </table>
+
+{% if submissionUrl is defined %}
+    {{ include('@Shared/email/partials/action_button.html.twig', {
+        url: submissionUrl,
+        label: 'editorial.mail.form.cta_open'|trans,
+    }) }}
+{% endif %}
 {% endblock %}

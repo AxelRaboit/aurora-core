@@ -72,6 +72,8 @@ backend:
           created: Formulaire créé
           updated: Formulaire modifié
           deleted: Formulaire supprimé
+        form_submission:
+          purged: Soumission effacée par la conservation
         comment:
           submitted: Commentaire déposé
           approved: Commentaire approuvé
@@ -885,6 +887,8 @@ backend:
     webhook_url: Webhook
     webhook_url_hint: "Chaque soumission y est envoyée, signée avec le secret de l'application."
     crm_sync: Signaler le contact
+    standalone_page_indexed: Référencer la page du formulaire
+    standalone_page_indexed_hint: "La page du formulaire reste accessible dans tous les cas. Décochée, elle demande aux moteurs de ne pas l'indexer, pour ne pas concurrencer la page où le formulaire est posé."
     public_url: URL publique
     fields:
       row_actions:
@@ -1124,5 +1128,7 @@ editorial:
       subject_confirmation: 'Votre message : {form}'
       admin_heading: Nouvelle soumission
       admin_intro: "Le formulaire « {form} » vient d'être rempli."
+      admin_language: Langue
+      cta_open: Ouvrir dans le back-office
       confirmation_heading: Message bien reçu
       confirmation_intro: "Merci, nous avons bien reçu votre message envoyé via « {form} »."

@@ -72,6 +72,8 @@ backend:
           created: Form created
           updated: Form updated
           deleted: Form deleted
+        form_submission:
+          purged: Submission erased by retention
         comment:
           submitted: Comment submitted
           approved: Comment approved
@@ -885,6 +887,8 @@ backend:
     webhook_url: Webhook
     webhook_url_hint: 'Every submission is posted there, signed with the application secret.'
     crm_sync: Signal the contact
+    standalone_page_indexed: List the form's own page
+    standalone_page_indexed_hint: "The form's page keeps working either way. Unchecked, it asks search engines to leave it out, so it does not compete with the page the form is posed in."
     public_url: Public URL
     fields:
       row_actions:
@@ -1124,5 +1128,7 @@ editorial:
       subject_confirmation: 'Your message: {form}'
       admin_heading: New submission
       admin_intro: 'The "{form}" form has just been filled in.'
+      admin_language: Language
+      cta_open: Open in the back office
       confirmation_heading: Message received
       confirmation_intro: 'Thanks, we have received the message you sent through "{form}".'

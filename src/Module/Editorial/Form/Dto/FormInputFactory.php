@@ -20,6 +20,7 @@ class FormInputFactory implements FormInputFactoryInterface
             crmSync: (bool) ($data['crmSync'] ?? false),
             active: (bool) ($data['active'] ?? true),
             steps: $this->steps($data['steps'] ?? null),
+            standalonePageIndexed: (bool) ($data['standalonePageIndexed'] ?? false),
         );
     }
 

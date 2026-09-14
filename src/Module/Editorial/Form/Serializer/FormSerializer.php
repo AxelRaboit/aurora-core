@@ -35,6 +35,7 @@ class FormSerializer implements FormSerializerInterface
             'webhookUrl' => $form->getWebhookUrl(),
             'crmSync' => $form->isCrmSync(),
             'active' => $form->isActive(),
+            'standalonePageIndexed' => $form->isStandalonePageIndexed(),
             'steps' => $form->getSteps(),
             'translations' => $translations,
             'fields' => array_map($this->serializeField(...), array_values($form->getFields()->toArray())),

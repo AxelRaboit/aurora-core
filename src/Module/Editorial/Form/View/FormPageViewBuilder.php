@@ -43,6 +43,12 @@ final readonly class FormPageViewBuilder
                 'locale' => $locale,
                 'slug' => $translation->getSlug(),
             ]),
+            // The form's own page carries the same questions as the content it
+            // was posed in, under a second address. Nothing links to it and it
+            // is out of the sitemap, so this only matters the day a link is
+            // added - at which point the site would be publishing a duplicate
+            // of its own contact page without having asked to.
+            'noindex' => !$form->isStandalonePageIndexed(),
             'alternates' => $this->alternatesBuilder->forForm($form),
         ];
     }

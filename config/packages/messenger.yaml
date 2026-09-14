@@ -17,15 +17,12 @@ framework:
             scheduler_main: 'schedule://main'
 
         routing:
-            # Moving a document between storage backends. Small ones are done
-            # inline by the request that asked; this is for the rest, where a
-            # browser should not be made to wait on a bucket.
-            Aurora\Module\Ged\Document\Message\RelocateDocumentMessage: async
-
-        # Modules used to declare their own routing from their bundle's
-        # prependExtension, back when each shipped as a separate package. The
-        # split was abandoned, so routing for this monorepo's modules is
-        # declared above.
+            # Route this application's OWN messages here. Aurora's are routed
+            # by AuroraBundle::prependExtension, so they arrive on consumer
+            # projects too - which is the whole point: an unrouted message is
+            # not an error, it is a message Symfony handles inline, so a queue
+            # declared only here was a queue that quietly did not exist
+            # anywhere else.
 
 when@test:
     framework:
