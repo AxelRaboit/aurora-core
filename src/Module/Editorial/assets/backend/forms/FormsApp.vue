@@ -8,6 +8,7 @@ import { useFormsList } from "./composables/useFormsList.js";
 import { useFormFields } from "./composables/useFormFields.js";
 import { useFormSubmissions } from "./composables/useFormSubmissions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
@@ -58,6 +59,38 @@ const {
     pendingFieldDelete, fieldDeleteLoading, deleteField, move,
 } = useFormFields(props, selected, upsert);
 
+/**
+ * The form itself, in the card header above its fields.
+ *
+ * Written out rather than borrowed from `useEditDeleteActions`, which asks for
+ * a description key per entry: the fields have theirs, the form never got any.
+ */
+function formActions(form) {
+    const actions = [];
+
+    if (can("editorial.forms.edit")) {
+        actions.push({
+            key: "edit",
+            color: "accent",
+            icon: Pencil,
+            title: t("shared.common.edit"),
+            onSelect: () => openEdit(form),
+        });
+    }
+
+    if (can("editorial.forms.delete")) {
+        actions.push({
+            key: "delete",
+            color: "rose",
+            icon: Trash2,
+            title: t("shared.common.delete"),
+            onSelect: () => (pendingDelete.value = form),
+        });
+    }
+
+    return actions;
+}
+
 // The two actions a field row offers. The reorder arrows beside them stay as they
 // are: they are pressed repeatedly, and a sheet would turn each nudge into
 // open-click-close.
@@ -92,6 +125,24 @@ function labelOf(field) {
 function formatDate(value) {
     return d(new Date(value), "short");
 }
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("editorial.forms.create")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.forms.create"),
+            onSelect: openCreate,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -107,10 +158,8 @@ function formatDate(value) {
         <!-- No picker column: the side menu lists the forms, one entry per
              record and one address each. The create button stays - a group
              header in the menu has nowhere to put one. -->
-        <div v-if="can('editorial.forms.create')" class="flex justify-end">
-            <AppButton variant="primary" size="md" v-on:click="openCreate">
-                <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.forms.create") }}
-            </AppButton>
+        <div v-if="pageActions.length" class="flex justify-end">
+            <AppPageActions :actions="pageActions" />
         </div>
 
         <section v-if="selected" class="space-y-4">
@@ -122,24 +171,12 @@ function formatDate(value) {
                             /{{ primaryLocale }}/forms/{{ selected.translations?.[primaryLocale]?.slug }}
                         </p>
                     </div>
-                    <div class="flex items-center gap-0.5 shrink-0">
-                        <AppIconButton
-                            v-if="can('editorial.forms.edit')"
-                            color="accent"
-                            :title="t('shared.common.edit')"
-                            v-on:click="openEdit(selected)"
-                        >
-                            <Pencil class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-                        <AppIconButton
-                            v-if="can('editorial.forms.delete')"
-                            color="rose"
-                            :title="t('shared.common.delete')"
-                            v-on:click="pendingDelete = selected"
-                        >
-                            <Trash2 class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-                    </div>
+                    <AppRowActions
+                        v-if="formActions(selected).length"
+                        class="shrink-0"
+                        :actions="formActions(selected)"
+                        :label="titleOf(selected)"
+                    />
                 </div>
             </div>
 

@@ -1,9 +1,11 @@
 <script setup>
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
 import { useDocumentTagsForm } from "./composables/useDocumentTagsForm.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
@@ -41,6 +43,24 @@ const actionsFor = useEditDeleteActions({
     editDescription: "backend.ged.tags.row_actions.edit_description",
     deleteDescription: "backend.ged.tags.row_actions.delete_description",
 });
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("ged.tags.manage")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.ged.tags.add"),
+            onSelect: openCreate,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -48,15 +68,11 @@ const actionsFor = useEditDeleteActions({
         <AppListToolbar>
             <AppSearchInput v-model="tagSearch" :placeholder="t('backend.ged.tags.search_placeholder')" />
             <template #actions>
-                <AppButton
-                    v-if="can('ged.tags.manage')"
-                    variant="primary"
-                    size="md"
+                <AppPageActions
+                    v-if="pageActions.length"
+                    :actions="pageActions"
                     class="w-full sm:w-auto"
-                    v-on:click="openCreate"
-                >
-                    <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.ged.tags.add") }}
-                </AppButton>
+                />
             </template>
         </AppListToolbar>
 

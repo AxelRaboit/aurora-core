@@ -6,6 +6,7 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
 import { useDocumentCategoriesForm } from "./composables/useDocumentCategoriesForm.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
@@ -60,6 +61,24 @@ const actionsFor = useEditDeleteActions({
 // Name + slug + actions, plus whatever the client added - otherwise the empty
 // row stops spanning the table the moment an extra column exists.
 const columnCount = computed(() => 3 + Object.keys(props.extraFields).length);
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("ged.categories.create")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.ged.categories.add"),
+            onSelect: openCreate,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -67,15 +86,11 @@ const columnCount = computed(() => 3 + Object.keys(props.extraFields).length);
         <AppListToolbar>
             <AppSearchInput v-model="searchInput" :placeholder="t('backend.ged.categories.search_placeholder')" v-on:search="onSearch" />
             <template #actions>
-                <AppButton
-                    v-if="can('ged.categories.create')"
-                    variant="primary"
-                    size="md"
+                <AppPageActions
+                    v-if="pageActions.length"
+                    :actions="pageActions"
                     class="w-full sm:w-auto"
-                    v-on:click="openCreate"
-                >
-                    <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.ged.categories.add") }}
-                </AppButton>
+                />
             </template>
         </AppListToolbar>
 

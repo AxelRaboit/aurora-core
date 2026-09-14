@@ -5,9 +5,10 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useDocumentsForm, DOCUMENT_STATUS_BADGE } from "./composables/useDocumentsForm.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import DocumentStorageChip from "@ged/backend/documents/components/DocumentStorageChip.vue";
-import { CloudUpload, HardDriveDownload } from "lucide-vue-next";
 import { useDocumentRelocation } from "./composables/useDocumentRelocation.js";
+import { useDocumentRowActions } from "./composables/useDocumentRowActions.js";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
@@ -49,7 +50,6 @@ const singleton = computed({
 });
 const { relocate, relocatingId } = useDocumentRelocation(props, singleton);
 
-const relocationTarget = computed(() => (doc.value.storageDisk === "r2" ? "local" : "r2"));
 const cropTarget = ref(null);
 
 function onCropped(updatedDoc) {
@@ -75,13 +75,24 @@ const {
     onSaved,
 );
 
-function handleDelete() {
-    confirmDelete(doc.value);
-}
+/**
+ * The same list the library rows offer, minus the two entries that make no
+ * sense here: opening the document is where the reader already is, and the QR
+ * code belongs to the screen that hands out addresses.
+ *
+ * Read from the shared composable rather than written again: the header used
+ * to spell out its own relocation direction and its own pending check, which
+ * is the drift this list exists to avoid.
+ */
+const actionsFor = useDocumentRowActions({
+    can,
+    openEdit,
+    confirmDelete,
+    relocate,
+    relocationAvailable: props.storageRelocationAvailable,
+});
 
-function openEditDoc() {
-    openEdit(doc.value);
-}
+const documentActions = computed(() => actionsFor(doc.value));
 
 function isImage(mimeType) {
     return mimeType?.startsWith('image/');
@@ -94,50 +105,27 @@ function isPdf(mimeType) {
 
 <template>
     <div class="space-y-6 max-w-3xl">
-        <!-- Header actions -->
-        <div class="flex items-center justify-between gap-4">
+        <!-- Four buttons and a chip on a row that could not wrap: on a phone
+             they were squeezed to slivers. The download stays reachable, and
+             more than once - the file block further down offers it beside the
+             preview, where somebody looking at the document already is. -->
+        <div class="flex flex-wrap items-center justify-between gap-4">
             <a :href="backPath" class="flex items-center gap-1.5 text-sm text-muted hover:text-primary transition">
                 <ArrowLeft class="w-4 h-4" :stroke-width="2" /> {{ t("backend.ged.documents.back_to_list") }}
             </a>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 <DocumentStorageChip
                     v-if="storageRelocationAvailable"
                     :disk="doc.storageDisk"
                     :state="doc.storageTransferState"
                     :error="doc.storageTransferError"
                 />
-                <AppButton
-                    v-if="storageRelocationAvailable && can('ged.documents.relocate')"
-                    variant="secondary"
-                    size="md"
-                    :loading="relocatingId === doc.id"
-                    :disabled="doc.storageTransferState === 'pending'"
-                    v-on:click="relocate(doc, relocationTarget)"
-                >
-                    <component
-                        :is="relocationTarget === 'r2' ? CloudUpload : HardDriveDownload"
-                        class="w-3.5 h-3.5"
-                        :stroke-width="2"
-                    />
-                    {{ t(relocationTarget === "r2"
-                        ? "backend.ged.documents.row_actions.relocate_to_remote"
-                        : "backend.ged.documents.row_actions.relocate_to_local") }}
-                </AppButton>
-                <AppButton v-if="can('ged.documents.edit')" variant="secondary" size="md" v-on:click="openEditDoc">
-                    <Pencil class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.edit") }}
-                </AppButton>
-                <AppButton
-                    v-if="doc.fileUrl"
-                    variant="secondary"
-                    size="md"
-                    :href="doc.fileUrl"
-                    download
-                >
-                    <Download class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.download") }}
-                </AppButton>
-                <AppButton v-if="can('ged.documents.delete')" variant="danger" size="md" v-on:click="handleDelete">
-                    <Trash2 class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.delete") }}
-                </AppButton>
+                <AppPageActions
+                    v-if="documentActions.length"
+                    :actions="documentActions"
+                    :label="doc.title ?? ''"
+                    :busy="relocatingId === doc.id"
+                />
             </div>
         </div>
 

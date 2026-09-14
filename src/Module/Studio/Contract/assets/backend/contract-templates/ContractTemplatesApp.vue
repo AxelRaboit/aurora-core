@@ -6,6 +6,7 @@ import { useContractTemplatesList } from "./composables/useContractTemplatesList
 import { useContractTemplateActions } from "./composables/useContractTemplateActions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
@@ -247,6 +248,43 @@ const handlers = {
 function rowActions(template) {
     return actionsFor(template, handlers);
 }
+
+/**
+ * What the page offers, as opposed to what one trame offers.
+ *
+ * The archived toggle rides along rather than staying a button of its own: it
+ * only appears when something has been archived, and a control that comes and
+ * goes beside a permanent one made the row two different widths on two
+ * different days.
+ */
+const pageActions = computed(() => {
+    const actions = [];
+
+    if (can("studio.contract_templates.create")) {
+        actions.push({
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("backend.studio.contract_templates.add"),
+            onSelect: openCreate,
+        });
+    }
+
+    if (archivedCount.value) {
+        actions.push({
+            key: "archived",
+            icon: Archive,
+            title: showArchived.value
+                ? t("backend.studio.contract_templates.hide_archived")
+                : t("backend.studio.contract_templates.show_archived", {
+                    count: archivedCount.value,
+                }),
+            onSelect: () => (showArchived.value = !showArchived.value),
+        });
+    }
+
+    return actions;
+});
 </script>
 
 <template>
@@ -279,33 +317,11 @@ function rowActions(template) {
                 </div>
             </template>
             <template #actions>
-                <div class="flex items-center gap-2">
-                    <AppButton
-                        v-if="archivedCount"
-                        variant="ghost"
-                        size="md"
-                        v-on:click="showArchived = !showArchived"
-                    >
-                        <Archive class="w-4 h-4" :stroke-width="2" />
-                        {{
-                            showArchived
-                                ? t("backend.studio.contract_templates.hide_archived")
-                                : t("backend.studio.contract_templates.show_archived", {
-                                    count: archivedCount,
-                                })
-                        }}
-                    </AppButton>
-                    <AppButton
-                        v-if="can('studio.contract_templates.create')"
-                        variant="primary"
-                        size="md"
-                        class="flex-1 sm:flex-none"
-                        v-on:click="openCreate"
-                    >
-                        <Plus class="w-4 h-4" :stroke-width="2" />
-                        {{ t("backend.studio.contract_templates.add") }}
-                    </AppButton>
-                </div>
+                <AppPageActions
+                    v-if="pageActions.length"
+                    :actions="pageActions"
+                    class="w-full sm:w-auto"
+                />
             </template>
         </AppListToolbar>
 

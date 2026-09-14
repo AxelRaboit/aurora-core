@@ -1,10 +1,11 @@
 <script setup>
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
@@ -46,6 +47,20 @@ const users = useUsers(
 onMounted(() => {
     if (!users.parsedUsers.value.items?.length) users.load();
 });
+
+// One entry and still a sheet: every list in the backend opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("shared.common.add"),
+            onSelect: users.openCreate,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -57,10 +72,7 @@ onMounted(() => {
                 :placeholder="t('backend.users.search_placeholder')"
                 v-on:search="users.performSearch"
             />
-            <AppButton variant="primary" size="md" class="w-full sm:w-auto" v-on:click="users.openCreate">
-                <Plus class="w-3.5 h-3.5" :stroke-width="2" />
-                {{ t('shared.common.add') }}
-            </AppButton>
+            <AppPageActions :actions="pageActions" class="w-full sm:w-auto" />
         </div>
 
         <div class="sm:hidden space-y-3">
