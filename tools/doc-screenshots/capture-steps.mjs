@@ -83,6 +83,34 @@ async function shotOf(locator, name, padX = 16, padY = 0) {
 }
 
 /**
+ * Un verbe de page, lu dans la feuille plutôt que sur la barre.
+ *
+ * Depuis la 0.9.172 un en-tête de liste ou d'éditeur n'a plus qu'un bouton
+ * « Actions » : le verbe est une ligne de la modale qu'il ouvre. Les parcours
+ * qui visaient le bouton directement passent par ici, ce qui garde le nom du
+ * verbe dans le scénario et ne met le chemin qu'à un seul endroit.
+ *
+ * `exact` sur le déclencheur : les menus de ligne s'annoncent « Actions pour
+ * Untel » et se feraient viser en premier sans lui.
+ */
+async function pageAction(name) {
+  await page.getByRole("button", { name: "Actions", exact: true }).first().click();
+  await wait(900);
+
+  const entry = page.getByRole("button", { name }).first();
+
+  if (await entry.count() > 0) {
+    await entry.click();
+  } else {
+    // Une action qui navigue reste un lien, pour rester ouvrable dans un
+    // nouvel onglet.
+    await page.getByRole("link", { name }).first().click();
+  }
+
+  await wait(1500);
+}
+
+/**
  * Un brouillon de contrat, sans photo, pour les parcours qui commencent après.
  *
  * Créé par l'écran plutôt que posé en base : un parcours qui part d'une
@@ -91,8 +119,8 @@ async function shotOf(locator, name, padX = 16, padY = 0) {
 async function createDraft() {
   await page.goto(`${BASE}/backend/studio/contracts`, { waitUntil: "domcontentloaded" });
   await wait(2500);
-  await page.getByRole("button", { name: "Préparer un contrat" }).first().click();
-  await wait(1800);
+  await pageAction("Préparer un contrat");
+  await wait(300);
 
   const selects = page.locator("select");
   await selects.nth(1).selectOption({ index: 1 });
@@ -505,6 +533,9 @@ const FLOWS = {
     await wait(3000);
     await shot("la-liste-des-themes");
 
+    // « Activer » garde son bouton, le reste est dans la feuille de la carte.
+    await page.getByRole("button", { name: /^Actions pour/ }).first().click();
+    await wait(1200);
     await page.getByRole("button", { name: /^Modifier/ }).first().click();
     await wait(2500);
     await shot("l-editeur-d-un-theme");
@@ -792,11 +823,22 @@ const FLOWS = {
     await page.getByPlaceholder(/Chercher un titre/).first().fill("");
     await wait(1500);
 
-    // Cocher une ligne fait apparaître la barre d'actions en masse.
+    // Cocher une ligne fait apparaître la barre d'actions en masse. Les verbes
+    // sont derrière son bouton « Actions » : la feuille est ouverte pour la
+    // photo, sans quoi l'image d'une page qui parle d'actions en masse ne
+    // montrerait qu'un bouton fermé.
     await page.getByRole("row").nth(1).getByRole("checkbox").first().check();
     await wait(1200);
+    await page.getByRole("button", { name: "Actions", exact: true }).first().click();
+    await wait(1000);
     await shot("les-actions-en-masse");
 
+    // Attendue détachée, pas seulement demandée : la modale garde le défilement
+    // de la page le temps de sa transition, et le clic suivant visait le menu
+    // latéral pendant que le verrou courait encore.
+    await page.keyboard.press("Escape");
+    await page.locator("[role='dialog']").first().waitFor({ state: "detached" }).catch(() => {});
+    await wait(800);
     await page.getByRole("row").nth(1).getByRole("checkbox").first().uncheck();
     await wait(800);
     await page.getByRole("button", { name: /^Corbeille$/ }).first().click();
@@ -879,8 +921,7 @@ const FLOWS = {
 
     await page.keyboard.press("Escape");
     await wait(800);
-    await page.getByRole("button", { name: "Ajouter une trame" }).first().click();
-    await wait(1500);
+    await pageAction("Ajouter une trame");
     await shot("ajouter-une-trame");
   },
 
@@ -986,8 +1027,7 @@ const FLOWS = {
     await wait(2500);
     await shot("la-liste");
 
-    await page.getByRole("button", { name: /Créer une présentation/ }).first().click();
-    await wait(1800);
+    await pageAction(/Créer une présentation/);
     await page.getByPlaceholder("Audit du site, octobre").first().fill("Revue trimestrielle");
     await page.getByPlaceholder("Une ligne, lue dans la liste.").first().fill("Ce qui a avancé, ce qui reste.");
     await wait(600);
@@ -1072,8 +1112,8 @@ const FLOWS = {
   "partir-d-un-document": async () => {
     await page.goto(`${BASE}/backend/studio/decks`, { waitUntil: "domcontentloaded" });
     await wait(2500);
-    await page.getByRole("button", { name: /Importer un document/ }).first().click();
-    await wait(2000);
+    await pageAction("Importer un document");
+    await wait(500);
 
     // Quelques mots dans l'éditeur : une modale vide ne montre pas qu'on y
     // écrit, et c'est la seule chose que cette image a à dire.
@@ -1092,8 +1132,7 @@ const FLOWS = {
     await page.getByRole("link", { name: /Audit du site/ }).first().click();
     await wait(3500);
 
-    await page.getByRole("button", { name: /^Apparence/ }).first().click();
-    await wait(1500);
+    await pageAction("Apparence");
     await shot("le-panneau");
 
     // Un thème clair sur une capture faite dans un back-office sombre : c'est
@@ -1146,8 +1185,7 @@ const FLOWS = {
     await page.getByRole("link", { name: /Audit du site/ }).first().click();
     await wait(3000);
 
-    await page.getByRole("button", { name: /^Partager/ }).first().click();
-    await wait(1500);
+    await pageAction("Partager");
     await page.getByPlaceholder("Envoyé à Marie, le 12 septembre").first().fill("Envoyé à Marie Dupont");
     await wait(600);
     await shot("la-fenetre");
@@ -1168,8 +1206,7 @@ const FLOWS = {
     await wait(2500);
     await shot("la-liste");
 
-    await page.getByRole("button", { name: "Ajouter un client" }).first().click();
-    await wait(1800);
+    await pageAction("Ajouter un client");
     await shot("la-fenetre-vide");
 
     // `getByPlaceholder` et pas un sélecteur CSS : plusieurs de ces textes
@@ -1217,8 +1254,7 @@ const FLOWS = {
     await wait(2500);
     await shot("la-liste");
 
-    await page.getByRole("button", { name: "Préparer un contrat" }).first().click();
-    await wait(1800);
+    await pageAction("Préparer un contrat");
     await shot("la-fenetre-vide");
 
     const selects = page.locator("select");
@@ -1286,8 +1322,7 @@ const FLOWS = {
     await wait(3000);
     await shot("un-formulaire-et-ses-champs");
 
-    await page.getByRole("button", { name: "Nouveau formulaire" }).first().click();
-    await wait(1600);
+    await pageAction("Nouveau formulaire");
     await shot("la-fenetre-de-creation");
 
     // Les trois langues sont empilées dans la même fenêtre : le premier
@@ -1320,6 +1355,9 @@ const FLOWS = {
     await shot("un-formulaire-neuf-sans-champ");
 
     // Ménage : la démo repart avec un seul formulaire, celui des fixtures.
+    // Supprimer est dans la feuille de la carte, avec Modifier.
+    await page.getByRole("button", { name: /^Actions pour/ }).first().click();
+    await wait(1200);
     await page.getByRole("button", { name: "Supprimer" }).first().click();
     await wait(1400);
     await page.getByRole("button", { name: /^(Supprimer|Confirmer)$/ }).last().click();
@@ -1519,7 +1557,12 @@ const FLOWS = {
     // L'onglet s'ouvre avant la requête, côté produit : on l'attend donc dès
     // le clic, pas après.
     const opened = page.context().waitForEvent("page");
-    await page.getByRole("button", { name: "Prévisualiser" }).first().click();
+    // Attrapée sans être attendue : si le clic échoue, le flux part en erreur
+    // et personne ne consomme plus cette promesse. Sans ce garde-fou, son
+    // rejet vingt secondes plus tard tuait tout le script, et les parcours
+    // suivants n'étaient jamais photographiés.
+    opened.catch(() => {});
+    await pageAction("Prévisualiser");
     const preview = await opened;
     await preview.waitForLoadState("domcontentloaded");
     await preview.waitForTimeout(3000);
@@ -1679,8 +1722,8 @@ const FLOWS = {
       .locator("xpath=ancestor::div[contains(@class,'justify-between')][1]"),
       "le-bouton-historique", 8, 8);
 
-    await page.getByRole("button", { name: /^Historique$/ }).first().click();
-    await wait(2500);
+    await pageAction(/^Historique$/);
+    await wait(1000);
     await shot("la-liste-des-versions");
 
     // La deuxième entrée : l'état d'avant la réécriture.
@@ -1876,7 +1919,7 @@ const FLOWS = {
     await wait(2500);
     await shot("la-bibliotheque");
 
-    await page.getByRole("button", { name: "Ajouter un document" }).first().click();
+    await pageAction("Ajouter un document");
     await wait(1500);
     await shot("le-panneau-de-depot");
 
@@ -2091,7 +2134,7 @@ const FLOWS = {
     await page.goto(`${BASE}/backend/platform/users`, { waitUntil: "domcontentloaded" });
     await wait(3000);
 
-    await page.getByRole("button", { name: /Inviter un utilisateur/ }).first().click();
+    await pageAction(/Inviter un utilisateur/);
     await wait(2000);
     await shot("le-panneau-d-invitation");
   },
@@ -2239,7 +2282,7 @@ const FLOWS = {
     await wait(2500);
     await shot("la-liste-des-categories");
 
-    await page.getByRole("button", { name: "Ajouter une catégorie" }).first().click();
+    await pageAction("Ajouter une catégorie");
     await wait(1500);
     await shot("creer-une-categorie");
 
@@ -2261,7 +2304,7 @@ const FLOWS = {
     await wait(2500);
     await shot("la-liste-des-etiquettes");
 
-    await page.getByRole("button", { name: /Ajouter une étiquette/i }).first().click();
+    await pageAction(/Ajouter une étiquette/i);
     await wait(1500);
     await shot("creer-une-etiquette");
 

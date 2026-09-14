@@ -5,6 +5,44 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.173] - 2026-09-14
+
+### Modifié
+
+#### La documentation montre l'interface telle qu'elle est
+Les 0.9.172 avait déplacé les actions derrière un bouton unique sur dix-neuf
+écrans, et les 225 captures qui illustrent les pages de documentation
+montraient encore la rangée de boutons d'avant. 177 d'entre elles sont
+reprises.
+
+Dix pages nommaient un bouton qui a bougé, et disaient donc faux : « Le bouton
+Créer une présentation », « Le bouton Apparence, en haut de la page », « Le
+bouton Historique ». Elles nomment maintenant le menu qui les contient. Les
+légendes d'images suivent.
+
+### Interne
+
+#### Les scénarios de capture savent ouvrir la feuille
+`tools/doc-screenshots/capture-steps.mjs` pilote le produit en cliquant, donc
+dix parcours visaient un bouton qui n'est plus sur la barre. Un `pageAction()`
+ouvre la feuille et y lit le verbe, ce qui garde le nom du geste dans le
+scénario et ne met le chemin qu'à un seul endroit.
+
+Deux corrections de solidité au passage. La promesse d'ouverture d'onglet du
+parcours de prévisualisation est désormais attrapée même quand le clic échoue :
+son rejet, vingt secondes plus tard, tuait le script entier et les parcours
+suivants n'étaient jamais photographiés. Et la fermeture d'une modale est
+attendue détachée plutôt que seulement demandée.
+
+La photo des actions en masse ouvre maintenant la feuille avant de déclencher :
+une page qui parle d'actions en masse ne pouvait pas s'illustrer d'un bouton
+fermé.
+
+### Dans aurora-client
+Rien à répercuter : la documentation est servie depuis le bundle.
+
+---
+
 ## [0.9.172] - 2026-09-14
 
 ### Modifié

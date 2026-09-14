@@ -13,7 +13,7 @@ Studio → Présentations. La recherche porte sur le titre, la description et le
 
 ## 2. Créer
 
-Le bouton « Créer une présentation » ouvre une fenêtre à quatre champs. Seul le titre est obligatoire.
+Le menu « Actions », en haut à droite de la liste, offre « Créer une présentation ». La fenêtre a quatre champs, dont seul le titre est obligatoire.
 
 ![La fenêtre de création](../../images/06-studio/presentations-02-la-fenetre-de-creation.png)
 

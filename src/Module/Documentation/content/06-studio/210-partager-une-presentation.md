@@ -3,7 +3,7 @@ title: "Partager une présentation"
 description: "Une adresse secrète, qui s'ouvre sans compte et se révoque."
 rubric: "Studio"
 ---
-Le bouton « Partager » crée une adresse qui ouvre la présentation sans compte. C'est ce qu'on envoie à un client après un rendez-vous.
+« Partager », dans le menu « Actions » de la présentation, crée une adresse qui l'ouvre sans compte. C'est ce qu'on envoie à un client après un rendez-vous.
 
 ## 1. Créer un lien
 

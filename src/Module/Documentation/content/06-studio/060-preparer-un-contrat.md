@@ -13,9 +13,9 @@ Un contrat se prépare avant d'être scellé. Tant qu'il est en préparation, to
 
 ## 1. Ouvrir la liste des contrats
 
-Studio → Contrats. La liste sépare ce qui est **en préparation**, encore modifiable, de ce qui est **scellé**, définitif. Le bouton « Préparer un contrat » est en haut à droite.
+Studio → Contrats. La liste sépare ce qui est **en préparation**, encore modifiable, de ce qui est **scellé**, définitif. « Préparer un contrat » est dans le menu « Actions », en haut à droite.
 
-![La liste des contrats, avec le bouton Préparer un contrat en haut à droite](../../images/06-studio/preparer-un-contrat-01-la-liste.png)
+![La liste des contrats, avec son menu Actions en haut à droite](../../images/06-studio/preparer-un-contrat-01-la-liste.png)
 
 ## 2. La fenêtre de préparation
 

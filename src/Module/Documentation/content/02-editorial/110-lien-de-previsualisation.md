@@ -5,13 +5,13 @@ rubric: "Éditorial"
 ---
 Un lien qui rend la page telle qu'elle sera, sans la publier et sans demander de compte à celui qui l'ouvre.
 
-## 1. Le bouton Prévisualiser
+## 1. Prévisualiser, dans le menu Actions
 
 Il est en haut de l'éditeur, à gauche d'**Enregistrer**. Il enregistre d'abord, puis ouvre la page dans un nouvel onglet : un aperçu du dernier enregistrement serait l'aperçu de quelque chose que vous n'avez pas sous les yeux.
 
 Il n'apparaît que sur une publication déjà créée : un aperçu a besoin d'une adresse, et un formulaire jamais enregistré n'en a pas.
 
-![Le bouton Prévisualiser, en haut de l'éditeur](../../images/02-editorial/lien-de-previsualisation-01-le-bouton-previsualiser.png)
+![Le menu Actions, en haut de l'éditeur](../../images/02-editorial/lien-de-previsualisation-01-le-bouton-previsualiser.png)
 
 ## 2. La page telle qu'elle sera
 
