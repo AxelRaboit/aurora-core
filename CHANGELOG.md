@@ -5,6 +5,57 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.169] - 2026-09-14
+
+### Ajouté
+
+#### Douze types de zone de plus sur la grille de contenu
+La grille passe de 12 à 24 types. Ce qui arrive, dans l'ordre où on les
+rencontrera sans doute :
+
+**Des fichiers.** *Audio* joue un enregistrement de la médiathèque. *Document*
+offre un fichier à emporter, avec son format et son poids, sans passer par un
+bouton vers une adresse écrite à la main qui casse au premier remplacement.
+*Galerie* pose jusqu'à vingt-quatre photos dans une seule zone, entre deux
+paragraphes, là où la galerie de publication est unique et reste sous la page.
+
+**Des choses à regarder.** *Avant / après* superpose deux images avec une
+poignée qu'on tire. *Présentation* montre un deck Studio dans la page par son
+lien de partage. *Intégration* accepte une adresse Spotify, SoundCloud, CodePen
+ou Calendly, et rien d'autre.
+
+**Des choses qui se remplissent toutes seules.** *Termes* déroule les termes
+d'une taxonomie, chacun vers sa page, et un terme ajouté plus tard apparaît de
+lui-même. *Recherche* pose un champ limité à un type de contenu.
+*Commentaires* place le fil là où vous le voulez plutôt qu'au pied de la page.
+
+**Du texte autrement.** *Onglets* met plusieurs corps de texte dans une zone,
+un affiché à la fois. *Adresse* écrit une adresse avec un lien d'itinéraire,
+sans charger de carte chez personne. *Bloc partagé* dessine ici la grille d'une
+autre publication : le bandeau de contact au pied de douze pages se corrige
+désormais une fois.
+
+La liste d'une zone Liste gagne deux costumes, *Équipe* et un accordéon dont on
+peut n'ouvrir qu'une entrée à la fois.
+
+#### Chaque zone peut attendre sa date, ou n'être vue que des membres
+Un nouveau bloc « Quand et pour qui » sur toutes les zones : une date de début,
+une date de fin, et un public. Une promotion s'éteint donc toute seule, et un
+tarif peut n'apparaître qu'aux visiteurs connectés. Les deux dates sont
+inclusives : « jusqu'au 31 » comprend le 31. Le panneau, lui, vous montre
+toujours la zone, sinon vous ne pourriez pas la modifier en attendant.
+
+#### La médiathèque sait filtrer les fichiers son
+Un filtre « Audio » s'ajoute aux images, vidéos, PDF et autres, et le tableau de
+bord compte cette part à son tour.
+
+### Dans aurora-client
+Rien à répercuter : les nouveaux types apparaissent d'eux-mêmes dans le menu de
+zones après la mise à jour. Une page qui affichait déjà ses commentaires en pied
+continue de le faire tant qu'aucune zone Commentaires n'est posée dessus.
+
+---
+
 ## [0.9.168] - 2026-09-14
 
 ### Corrigé
