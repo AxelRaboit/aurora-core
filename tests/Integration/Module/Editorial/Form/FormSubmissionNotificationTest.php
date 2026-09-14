@@ -11,12 +11,12 @@ use Aurora\Module\Editorial\Form\Entity\FormField;
 use Aurora\Module\Editorial\Form\Enum\FormFieldTypeEnum;
 use Aurora\Module\Editorial\Form\Message\DeliverFormSubmissionMessage;
 use Aurora\Module\Editorial\Form\MessageHandler\DeliverFormSubmissionHandler;
+use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Messenger\Transport\InMemory\InMemoryTransport;
 use Symfony\Component\Mime\Email;
-use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 
 /**
  * What a submission causes once it is stored: who is told, when, and in which
@@ -30,10 +30,9 @@ use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
  */
 final class FormSubmissionNotificationTest extends IntegrationTestCase
 {
-    private const string OWNER = 'owner@aurora.test';
+    use ResetsRateLimiters;
 
-    /** What BrowserKit presents as the client address. */
-    private const string CLIENT_IP = '127.0.0.1';
+    private const string OWNER = 'owner@aurora.test';
 
     private KernelBrowser $client;
 
@@ -55,14 +54,7 @@ final class FormSubmissionNotificationTest extends IntegrationTestCase
         $this->client = static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
-        // The submission limiter counts ten an hour per address, and its
-        // counters outlive the run in the cache pool. Six submissions here
-        // plus the captcha suite's three is already most of the allowance, so
-        // without this the class starts failing on the second run of the hour
-        // - with a 429 that looks nothing like its cause.
-        $limiter = static::getContainer()->get('limiter.form_submission');
-        self::assertInstanceOf(RateLimiterFactoryInterface::class, $limiter);
-        $limiter->create(self::CLIENT_IP)->reset();
+        $this->resetRateLimiter('form_submission');
     }
 
     protected function tearDown(): void
@@ -280,10 +272,14 @@ final class FormSubmissionNotificationTest extends IntegrationTestCase
         $form->translate('fr')->setTitle('Me contacter')->setSlug('contact-'.$suffix);
         $form->translate('en')->setTitle('Get in touch')->setSlug('contact-en-'.$suffix);
 
-        // addField, not setForm: the collection carries orphanRemoval, so a
-        // field attached only from its own side is deleted again by the very
-        // flush that was meant to store it - leaving a form with no questions,
-        // which accepts an empty payload and looks like it worked.
+        // addField, not setForm alone. The row is written either way; what
+        // differs is this entity manager's copy of the form, and the handler
+        // below runs in-process against that same copy. A form whose inverse
+        // collection was never updated hands the code under test no fields at
+        // all, so the confirmation mail finds no address and the notification
+        // gets no Reply-To - a failure that looks like the feature, not like
+        // the fixture. MenuSectionHighlightTest solves the same problem from
+        // the other end, with a refresh().
         $name = new FormField();
         $form->addField($name);
         $name->setType(FormFieldTypeEnum::Text)->setRequired(true)->setPosition(0);
@@ -305,10 +301,9 @@ final class FormSubmissionNotificationTest extends IntegrationTestCase
         $this->created[] = $name;
         $this->created[] = $form;
 
-        // Held as ids rather than read back off $form->getFields(): the fields
-        // were attached from their own side, so the form's collection in this
-        // entity manager is still the empty one it was built with, and a test
-        // that asks it for them silently posts no answers at all.
+        // Held as ids rather than read back off $form->getFields(): a request
+        // reboots the kernel, so the collection this test would read is not
+        // the one the server answers from.
         $this->nameFieldId = (int) $name->getId();
         $this->emailFieldId = (int) $email->getId();
         $this->slugs = ['fr' => 'contact-'.$suffix, 'en' => 'contact-en-'.$suffix];
