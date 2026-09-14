@@ -72,6 +72,8 @@ backend:
           created: Form created
           updated: Form updated
           deleted: Form deleted
+        form_submission:
+          purged: Submission erased by retention
         comment:
           submitted: Comment submitted
           approved: Comment approved

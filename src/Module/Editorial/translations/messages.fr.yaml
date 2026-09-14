@@ -72,6 +72,8 @@ backend:
           created: Formulaire créé
           updated: Formulaire modifié
           deleted: Formulaire supprimé
+        form_submission:
+          purged: Soumission effacée par la conservation
         comment:
           submitted: Commentaire déposé
           approved: Commentaire approuvé

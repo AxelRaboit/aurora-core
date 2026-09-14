@@ -32,6 +32,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
     case FrontRegistrationEnabled = 'frontend_registration_enabled';
     case PostRevisionsLimit = 'post_revisions_limit';
     case TrashAutoPurgeDays = 'trash_auto_purge_days';
+    case FormSubmissionRetentionDays = 'form_submission_retention_days';
     case HomepagePostId = 'homepage_post_id';
     case DefaultFront = 'default_front';
     case LogoMediaId = 'logo_media_id';
@@ -138,6 +139,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::FileVersionsLimit => 'backend.parameters.file_versions_limit.label',
             self::MediaCreditVisible => 'backend.parameters.media_credit_visible.label',
             self::TrashAutoPurgeDays => 'backend.parameters.trash_auto_purge_days.label',
+            self::FormSubmissionRetentionDays => 'backend.parameters.form_submission_retention_days.label',
             self::HomepagePostId => 'backend.parameters.homepage_post_id.label',
             self::DefaultFront => 'backend.parameters.default_front.label',
             self::LogoMediaId => 'backend.parameters.logo_media_id.label',
@@ -204,6 +206,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::FileVersionsLimit => 'backend.parameters.file_versions_limit.description',
             self::MediaCreditVisible => 'backend.parameters.media_credit_visible.description',
             self::TrashAutoPurgeDays => 'backend.parameters.trash_auto_purge_days.description',
+            self::FormSubmissionRetentionDays => 'backend.parameters.form_submission_retention_days.description',
             self::HomepagePostId => 'backend.parameters.homepage_post_id.description',
             self::DefaultFront => 'backend.parameters.default_front.description',
             self::LogoMediaId => 'backend.parameters.logo_media_id.description',
@@ -276,6 +279,10 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::FileVersionsLimit => '3',
             self::MediaCreditVisible => '1',
             self::TrashAutoPurgeDays => '30',
+            // Off. Submissions are business records, not a bin: a version that
+            // starts deleting them on its own, the day it is installed, is a
+            // version that loses a client's mail without being asked to.
+            self::FormSubmissionRetentionDays => '0',
             self::HomepagePostId => '',
             self::DefaultFront => '',
             self::LogoMediaId => '',
@@ -320,7 +327,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
     public function getType(): string
     {
         return match ($this) {
-            self::PostsPerPage, self::MaxUploadSizeMb, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FileVersionsLimit, self::StudioContractRetentionYears, self::StudioContractReminderDays, self::StudioContractReminderMax => 'int',
+            self::PostsPerPage, self::MaxUploadSizeMb, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays, self::FileVersionsLimit, self::StudioContractRetentionYears, self::StudioContractReminderDays, self::StudioContractReminderMax => 'int',
             self::HomepagePostId => 'post',
             self::DefaultFront, self::DefaultLocale, self::EmailLocale, self::Timezone => 'select',
             self::CommentsEnabled, self::CommentModerationEnabled, self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled, self::SingleLocaleMode, self::MediaCreditVisible, self::StudioContractReminderEnabled => 'bool',
@@ -343,7 +350,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
         return match ($this) {
             self::SiteName, self::SiteDescription, self::SiteUrl, self::AdminEmail => 'general',
             self::DefaultLocale, self::SingleLocaleMode, self::Timezone, self::DateFormat => 'localization',
-            self::PostsPerPage, self::CommentsEnabled, self::CommentModerationEnabled, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::HomepagePostId, self::DefaultFront => 'reading',
+            self::PostsPerPage, self::CommentsEnabled, self::CommentModerationEnabled, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays, self::HomepagePostId, self::DefaultFront => 'reading',
             self::MaxUploadSizeMb, self::AllowedUploadExtensions, self::FileVersionsLimit, self::MediaCreditVisible => 'media',
             self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled => 'system',
             self::LogoMediaId, self::FaviconMediaId => 'branding',
