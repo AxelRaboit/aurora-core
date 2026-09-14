@@ -59,6 +59,77 @@ final class PexelsClientTest extends TestCase
         return new PexelsSettings($repository, $encryption);
     }
 
+    public function testAPhotoCanBeFetchedByIdForCallersThatNeverSearched(): void
+    {
+        $http = new MockHttpClient(function (string $method, string $url): MockResponse {
+            self::assertSame('GET', $method);
+            self::assertStringEndsWith('/v1/photos/2014422', $url);
+
+            return new MockResponse(json_encode([
+                'id' => 2014422,
+                'width' => 4000,
+                'height' => 3000,
+                'alt' => 'A tidy desk',
+                'photographer' => 'Jane Doe',
+                'photographer_url' => 'https://www.pexels.com/@jane',
+                'src' => ['original' => 'https://images.pexels.com/photos/2014422/pexels-photo-2014422.jpeg'],
+            ], JSON_THROW_ON_ERROR));
+        });
+
+        $photo = (new PexelsClient($http, new NullLogger(), $this->settings('key')))->photo('2014422');
+
+        // The same shape the search hands over, so the importer cannot tell
+        // which of the two found the photo.
+        self::assertNotNull($photo);
+        self::assertSame('2014422', $photo['id']);
+        self::assertSame('https://images.pexels.com/photos/2014422/pexels-photo-2014422.jpeg', $photo['url']);
+        self::assertSame('Jane Doe', $photo['authorName']);
+    }
+
+    public function testAPhotoLookupIsSkippedWhileTheIntegrationIsOff(): void
+    {
+        $http = new MockHttpClient(static function (): MockResponse {
+            self::fail('No request should be made while the integration is off.');
+        });
+
+        self::assertNull((new PexelsClient($http, new NullLogger(), $this->settings('')))->photo('2014422'));
+    }
+
+    /**
+     * An id nobody owns answers 404, and an answer shaped like a photo but
+     * carrying no file is not one. Both come back as null: what the caller
+     * does next is the same, and the log line is what tells them apart.
+     */
+    public function testAnUnknownOrHollowPhotoIsNull(): void
+    {
+        $missing = new PexelsClient(
+            new MockHttpClient(new MockResponse('{"error":"Not Found"}', ['http_code' => 404])),
+            new NullLogger(),
+            $this->settings('key'),
+        );
+        self::assertNull($missing->photo('404404'));
+
+        $hollow = new PexelsClient(
+            new MockHttpClient(new MockResponse(json_encode([
+                'id' => 7,
+                'photographer' => 'Jane Doe',
+                'src' => [],
+            ], JSON_THROW_ON_ERROR))),
+            new NullLogger(),
+            $this->settings('key'),
+        );
+        self::assertNull($hollow->photo('7'));
+    }
+
+    public function testAnEmptyIdNeverReachesTheProvider(): void
+    {
+        $http = new MockHttpClient(static function (): MockResponse {
+            self::fail('An empty id must not reach the provider.');
+        });
+
+        self::assertNull((new PexelsClient($http, new NullLogger(), $this->settings('key')))->photo('  '));
+    }
+
     public function testSearchIsSkippedWhileTheIntegrationIsOff(): void
     {
         $http = new MockHttpClient(static function (): MockResponse {
