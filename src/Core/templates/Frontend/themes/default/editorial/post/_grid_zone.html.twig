@@ -160,6 +160,38 @@
             <span class="shrink-0 text-accent" aria-hidden="true">&darr;</span>
         </a>
 
+    {% elseif zone.type == 'tabs' and zone.tabs.panels is not empty %}
+        {# Every panel, open, each under its own heading. That is the zone
+           until a script says otherwise, and it is deliberate: a reader
+           without JavaScript - or before it arrives, which is everybody for
+           the first moment - gets all the text rather than one twelfth of it
+           and no way to the rest. `tabs.js` finds `[data-tabs]` and builds the
+           strip of labels; everything below works if it never runs.
+
+           The ids are the stored panel ids and not a counter, so two tab zones
+           on one page cannot fight over `panel-1`. #}
+        <div class="not-prose" data-tabs>
+            {% for panel in zone.tabs.panels %}
+                <section
+                    id="panel-{{ zone.tabs.zoneId }}-{{ panel.id }}"
+                    data-tabs-panel
+                    aria-labelledby="tab-{{ zone.tabs.zoneId }}-{{ panel.id }}"
+                    class="mb-8 last:mb-0"
+                >
+                    {% if panel.label %}
+                        <h3
+                            id="tab-{{ zone.tabs.zoneId }}-{{ panel.id }}"
+                            data-tabs-label
+                            class="mb-3 mt-0 text-lg font-semibold text-primary"
+                        >{{ panel.label }}</h3>
+                    {% endif %}
+                    {# Already sanitised by BlocksRenderer, the same path every
+                       block type goes through. #}
+                    <div class="prose max-w-none">{{ panel.html|raw }}</div>
+                </section>
+            {% endfor %}
+        </div>
+
     {% elseif zone.type == 'search' and zone.search %}
         {# The component the sequence search already mounts, against the same
            endpoint. A second search written for this zone would be a second

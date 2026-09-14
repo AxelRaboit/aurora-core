@@ -457,6 +457,7 @@ backend:
         gallery: Galerie
         compare: Avant / après
         shared: Bloc partagé
+        tabs: Onglets
         search: Recherche
         comments: Commentaires
         deck: Présentation
@@ -671,6 +672,12 @@ backend:
       zone_shared_hint: "La grille de cette publication est dessinée ici. Modifiez-la une fois et toutes les pages qui la reprennent changent. Un bloc qui reprend un bloc n'est pas dessiné : la profondeur s'arrête à un."
       search_post_type: Chercher dans
       search_post_type_hint: "Sans rien ici, le champ cherche dans tout le site."
+      tabs_hint: "Chaque panneau a son intitulé et son propre texte. Sans JavaScript, tout s'affiche déplié : un lecteur voit tout plutôt qu'un panneau et aucun moyen d'atteindre les autres."
+      tabs_number: "Panneau {number}"
+      tabs_add: Ajouter un panneau
+      tabs_remove: Retirer ce panneau
+      tabs_label: Intitulé de l'onglet
+      tabs_label_placeholder: "Formule simple"
       comments_hint: "Rien à régler : le fil est celui de cette publication. Quand cette zone existe, le pied de page ne le dessine plus - une conversation par page, là où vous l'avez mise."
       zone_deck: Présentation
       zone_deck_none: "Choisir une présentation…"

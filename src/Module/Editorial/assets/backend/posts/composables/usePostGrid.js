@@ -11,6 +11,7 @@ import {
     Images,
     Columns2,
     Layers,
+    LayoutPanelTop,
     Recycle,
     LayoutList,
     ListFilter,
@@ -57,6 +58,7 @@ export const LEAF_ZONE_TYPES = [
     "gallery",
     "compare",
     "shared",
+    "tabs",
     "search",
     "comments",
     "deck",
@@ -105,6 +107,8 @@ export const ZONE_ICONS = {
     compare: Columns2,
     // The same thing, coming round again on another page.
     shared: Recycle,
+    // Panels behind one strip of labels.
+    tabs: LayoutPanelTop,
     search: Search,
     comments: MessageSquare,
     deck: Presentation,
@@ -146,6 +150,9 @@ export const ITEM_COLUMNS = [2, 3, 4];
 
 /** Mirrors GridNormalizer::MAX_ITEMS. */
 export const MAX_ITEMS = 12;
+
+/** Mirrors GridNormalizer::MAX_TABS - six labels already wrap on a phone. */
+export const MAX_TABS = 6;
 
 /** Mirrors GridNormalizer::MAX_GALLERY_IMAGES. */
 export const MAX_GALLERY_IMAGES = 24;
@@ -1271,8 +1278,12 @@ export function usePostGrid(layout, content) {
         return Array.isArray(items) ? items : [];
     }
 
+    /** Tabs and item lists share the entry list; they do not share its cap. */
     function canAddItem(index, childIndex = null) {
-        return zoneItems(index, childIndex).length < MAX_ITEMS;
+        const cap =
+            "tabs" === zoneAt(index, childIndex)?.type ? MAX_TABS : MAX_ITEMS;
+
+        return zoneItems(index, childIndex).length < cap;
     }
 
     function addItem(index, childIndex = null) {
@@ -1429,6 +1440,15 @@ export function usePostGrid(layout, content) {
 
             itemFieldsCache.set(key, {
                 title: localised("title"),
+                // A panel's body. Only a tabs zone writes it, and the
+                // normaliser keeps it for that type alone - an item list that
+                // gained one would be carrying a key nothing reads.
+                blocks: writable(
+                    () => words().blocks ?? [],
+                    (value) => {
+                        words().blocks = value;
+                    },
+                ),
                 description: localised("description"),
                 caption: localised("caption"),
                 url: localised("url"),

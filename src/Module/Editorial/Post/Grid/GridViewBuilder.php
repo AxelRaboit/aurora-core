@@ -237,6 +237,9 @@ final readonly class GridViewBuilder
                 'postList' => GridNormalizer::ZONE_POST_LIST === $zone['type']
                     ? $this->postListView($zone, $locale, $currentPostId)
                     : null,
+                'tabs' => GridNormalizer::ZONE_TABS === $zone['type']
+                    ? $this->tabsView($zone, $held, $locale, $forEditor)
+                    : null,
                 'search' => GridNormalizer::ZONE_SEARCH === $zone['type']
                     ? $this->searchView($zone, $locale)
                     : null,
@@ -535,6 +538,55 @@ final readonly class GridViewBuilder
     }
 
     /**
+     * The panels of a tabs zone, each with its label and its body.
+     *
+     * The body goes through the same renderer a text zone's does, so a panel
+     * is sanitised on exactly the path everything else already takes - there
+     * is no second way into the markup here.
+     *
+     * A panel with no label and nothing written is dropped, for the reason a
+     * blank item entry is: a row typed into tomorrow belongs in the editor and
+     * not on the page. The editor keeps them, which is what `forEditor` is for.
+     *
+     * Ids come from the stored list rather than from a counter, because that
+     * is what the labels and the panels are tied together by in the markup -
+     * and a page with two tab zones must not have them fighting over `panel-1`.
+     *
+     * @param array<string, mixed> $zone
+     * @param array<string, mixed> $held
+     *
+     * @return array{zoneId: string, panels: list<array{id: string, label: string, html: string}>}
+     */
+    private function tabsView(array $zone, array $held, string $locale, bool $forEditor): array
+    {
+        $texts = is_array($held['items'] ?? null) ? $held['items'] : [];
+        $panels = [];
+
+        foreach (is_array($zone['items'] ?? null) ? $zone['items'] : [] as $panel) {
+            $id = $panel['id'] ?? null;
+
+            if (!is_string($id)) {
+                continue;
+            }
+
+            $words = is_array($texts[$id] ?? null) ? $texts[$id] : [];
+            $label = (string) ($words['title'] ?? '');
+            $html = $this->blocksRenderer->render(
+                is_array($words['blocks'] ?? null) ? $words['blocks'] : [],
+                $locale,
+            );
+
+            if (!$forEditor && '' === $label && '' === mb_trim(strip_tags($html))) {
+                continue;
+            }
+
+            $panels[] = ['id' => $id, 'label' => $label, 'html' => $html];
+        }
+
+        return ['zoneId' => (string) $zone['id'], 'panels' => $panels];
+    }
+
+    /**
      * Whether the grid places the comment thread itself.
      *
      * Stacks included: a thread tucked into a column is still the thread, and
@@ -659,9 +711,11 @@ final readonly class GridViewBuilder
             if (null !== $link->getRevokedAt()) {
                 continue;
             }
+
             if (null !== $link->getPasswordHash()) {
                 continue;
             }
+
             $expiresAt = $link->getExpiresAt();
 
             if (null !== $expiresAt && $expiresAt < $now) {

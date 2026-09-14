@@ -156,6 +156,25 @@ final readonly class GridNormalizer
     public const string ZONE_GALLERY = 'gallery';
 
     /**
+     * Several bodies of text in one zone, one shown at a time.
+     *
+     * The only thing the model could not express. Three plans side by side,
+     * three levels of service, three sectors: each needs paragraphs, and a
+     * zone has room for exactly one body of them.
+     *
+     * **Bounded on purpose.** Tabs of text, not tabs holding zones - the same
+     * bound the stack lives under, and for the same reason: nesting further
+     * would turn a page into a layout tree, and what a zone draws could no
+     * longer be read off the list. A panel carries Editor.js blocks like a
+     * text zone and nothing else.
+     *
+     * It borrows the entry list an item zone uses for identity and order,
+     * because that is exactly what a panel needs and writing a second one
+     * would be writing the same thing twice.
+     */
+    public const string ZONE_TABS = 'tabs';
+
+    /**
      * A search field, narrowed to one kind of publication.
      *
      * The comment at the head of `_sequence.html.twig` already argues for it:
@@ -372,6 +391,16 @@ final readonly class GridNormalizer
      */
     public const int COMPARE_IMAGES = 2;
 
+    /**
+     * How many panels one zone may hold.
+     *
+     * Half what a list is allowed, and not for storage reasons: past six the
+     * strip of labels wraps onto a second line and stops reading as a row of
+     * choices. A page that needs more is a page whose sections should be
+     * sections.
+     */
+    public const int MAX_TABS = 6;
+
     /** How many entries sit side by side, where the display lays them out in a row. */
     public const array ITEM_COLUMNS = [2, 3, 4];
 
@@ -486,6 +515,7 @@ final readonly class GridNormalizer
         self::ZONE_GALLERY,
         self::ZONE_COMPARE,
         self::ZONE_SHARED,
+        self::ZONE_TABS,
         self::ZONE_SEARCH,
         self::ZONE_COMMENTS,
         self::ZONE_DECK,
@@ -743,7 +773,11 @@ final readonly class GridNormalizer
                 // there are, in what order, and the picture each one carries.
                 // Their words live on the translation, like every other word
                 // on the page.
-                'items' => self::ZONE_ITEMS === $type ? $this->itemList($entry['items'] ?? null) : [],
+                'items' => match ($type) {
+                    self::ZONE_ITEMS => $this->itemList($entry['items'] ?? null, self::MAX_ITEMS),
+                    self::ZONE_TABS => $this->itemList($entry['items'] ?? null, self::MAX_TABS),
+                    default => [],
+                },
                 // What a list zone asks for. Both filters are optional and
                 // combine; null on either side means "do not narrow by this".
                 // Which taxonomy a terms zone unrolls. Shared like every
@@ -819,11 +853,16 @@ final readonly class GridNormalizer
      *
      * @param array<string, mixed> $zone the already-normalised layout zone
      *
-     * @return array<string, array<string, string|null>>
+     * The body is a list of Editor.js blocks and only a tabs panel has one,
+     * which is why the value type is wider than the four words beside it.
+     *
+     * @return array<string, array{title: string, description: string, caption: string, url: string|null, blocks: list<mixed>}>
      */
     private function itemTexts(mixed $raw, array $zone): array
     {
-        if (self::ZONE_ITEMS !== ($zone['type'] ?? null)) {
+        $type = $zone['type'] ?? null;
+
+        if (self::ZONE_ITEMS !== $type && self::ZONE_TABS !== $type) {
             return [];
         }
 
@@ -843,6 +882,13 @@ final readonly class GridNormalizer
                 'description' => $this->values->text($entry['description'] ?? null),
                 'caption' => $this->values->text($entry['caption'] ?? null),
                 'url' => $this->values->url($entry['url'] ?? null),
+                // A panel's body, kept raw like a text zone's and sanitised at
+                // render by the same path. Only for tabs: giving every entry
+                // of every item list an empty array would be writing a key
+                // nothing reads into every row of the column.
+                'blocks' => self::ZONE_TABS === $type && is_array($entry['blocks'] ?? null)
+                    ? array_values($entry['blocks'])
+                    : [],
             ];
         }
 
@@ -919,14 +965,14 @@ final readonly class GridNormalizer
      *
      * @return list<array{id: string, mediaId: int|null, featured: bool}>
      */
-    private function itemList(mixed $raw): array
+    private function itemList(mixed $raw, int $limit): array
     {
         $entries = is_array($raw) ? $raw : [];
         $items = [];
         $used = [];
 
         foreach ($entries as $entry) {
-            if (count($items) >= self::MAX_ITEMS) {
+            if (count($items) >= $limit) {
                 break;
             }
 

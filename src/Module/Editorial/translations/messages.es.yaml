@@ -42,6 +42,12 @@ backend:
       zone_shared_hint: "La cuadrícula de esa publicación se dibuja aquí. Modifíquela una vez y cambian todas las páginas que la reutilizan. Un bloque que reutiliza un bloque no se dibuja: la profundidad se detiene en uno."
       search_post_type: Buscar en
       search_post_type_hint: "Sin nada aquí, el campo busca en todo el sitio."
+      tabs_hint: "Cada panel tiene su rótulo y su propio texto. Sin JavaScript todo se muestra desplegado."
+      tabs_number: "Panel {number}"
+      tabs_add: Añadir un panel
+      tabs_remove: Quitar este panel
+      tabs_label: Rótulo de la pestaña
+      tabs_label_placeholder: "Plan básico"
       comments_hint: "Nada que ajustar: el hilo es el de esta publicación. Cuando existe esta zona, el pie de página deja de dibujarlo."
       zone_deck: Presentación
       zone_deck_none: "Elegir una presentación…"

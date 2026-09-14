@@ -317,6 +317,72 @@ const displayHint = computed(() =>
             </div>
         </template>
 
+        <template v-else-if="zone.type === 'tabs'">
+            <p class="text-xs text-muted">{{ t("backend.posts.grid.tabs_hint") }}</p>
+
+            <div class="space-y-3">
+                <div
+                    v-for="(panel, panelIndex) in items"
+                    :key="panel.id"
+                    class="rounded-lg border border-line p-3 space-y-3"
+                >
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs uppercase tracking-wide text-muted">
+                            {{ t("backend.posts.grid.tabs_number", { number: panelIndex + 1 }) }}
+                        </span>
+                        <div class="flex items-center gap-1">
+                            <AppIconButton
+                                :icon="ChevronUp"
+                                size="sm"
+                                :title="t('backend.posts.grid.item_move_up')"
+                                :disabled="panelIndex === 0"
+                                v-on:click="emit('move-item', panelIndex, -1)"
+                            />
+                            <AppIconButton
+                                :icon="ChevronDown"
+                                size="sm"
+                                :title="t('backend.posts.grid.item_move_down')"
+                                :disabled="panelIndex === items.length - 1"
+                                v-on:click="emit('move-item', panelIndex, 1)"
+                            />
+                            <AppIconButton
+                                :icon="Trash2"
+                                size="sm"
+                                color="danger"
+                                :title="t('backend.posts.grid.tabs_remove')"
+                                v-on:click="emit('remove-item', panelIndex)"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="rounded-lg border border-dashed border-line p-3 space-y-3">
+                        <p class="text-xs uppercase tracking-wide text-muted">
+                            {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                        </p>
+                        <AppInput
+                            v-model="itemFields(panelIndex).title.value"
+                            :label="t('backend.posts.grid.tabs_label')"
+                            :placeholder="t('backend.posts.grid.tabs_label_placeholder')"
+                        />
+                        <AppBlockEditor
+                            v-model="itemFields(panelIndex).blocks.value"
+                            :placeholder="t('backend.posts.content_placeholder')"
+                        />
+                    </div>
+                </div>
+
+                <AppButton
+                    variant="secondary"
+                    size="sm"
+                    :disabled="!canAddItem"
+                    v-on:click="emit('add-item')"
+                >
+                    <Plus class="w-3.5 h-3.5" :stroke-width="2" />
+                    {{ t("backend.posts.grid.tabs_add") }}
+                </AppButton>
+            </div>
+        </template>
+
         <template v-else-if="zone.type === 'search'">
             <!-- Left alone, the field searches the whole site, which is the
                  answer that needs no setting up. -->

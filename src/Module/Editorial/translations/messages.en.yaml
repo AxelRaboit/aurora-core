@@ -457,6 +457,7 @@ backend:
         gallery: Gallery
         compare: Before / after
         shared: Shared block
+        tabs: Tabs
         search: Search
         comments: Comments
         deck: Presentation
@@ -671,6 +672,12 @@ backend:
       zone_shared_hint: "That publication's grid is drawn here. Edit it once and every page reusing it changes. A block reusing a block is not drawn: depth stops at one."
       search_post_type: Search in
       search_post_type_hint: "With nothing here, the field searches the whole site."
+      tabs_hint: "Each panel has its own label and its own text. Without JavaScript everything shows unfolded: a reader gets all of it rather than one panel and no way to the rest."
+      tabs_number: "Panel {number}"
+      tabs_add: Add a panel
+      tabs_remove: Remove this panel
+      tabs_label: Tab label
+      tabs_label_placeholder: "Basic plan"
       comments_hint: "Nothing to set: the thread is this publication's. When this zone exists the foot of the page stops drawing it - one conversation per page, where you put it."
       zone_deck: Presentation
       zone_deck_none: "Choose a presentation…"
