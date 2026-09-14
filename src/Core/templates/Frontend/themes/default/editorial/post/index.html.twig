@@ -120,7 +120,9 @@
     {% endif %}
 </article>
 
-{% if commentsEnabled|default(false) %}
+{# Quiet when the grid has placed the thread itself: one conversation per
+   page, where the author put it. #}
+{% if commentsEnabled|default(false) and not (grid.hasComments|default(false)) %}
     <section {{ vue_component('editorial/frontend/PostComments', {
         listPath: path('editorial_post_comments', {locale: locale, postTypeSlug: postData.postTypeSlug, slug: translationData.slug}),
         submitPath: path('editorial_post_comment_submit', {locale: locale, postTypeSlug: postData.postTypeSlug, slug: translationData.slug}),

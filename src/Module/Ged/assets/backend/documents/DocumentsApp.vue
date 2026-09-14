@@ -107,6 +107,7 @@ const {
 const mimeGroupOptions = [
     { value: "image", label: t("backend.ged.documents.type_image") },
     { value: "video", label: t("backend.ged.documents.type_video") },
+    { value: "audio", label: t("backend.ged.documents.type_audio") },
     { value: "pdf", label: t("backend.ged.documents.type_pdf") },
     { value: "other", label: t("backend.ged.documents.type_other") },
 ];

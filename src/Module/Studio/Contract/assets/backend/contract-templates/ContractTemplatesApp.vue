@@ -504,7 +504,7 @@ function rowActions(template) {
              by the whole card rather than by one pill. -->
         <div
             v-else-if="viewMode === 'grid'"
-            class="grid gap-3 md:grid-cols-2"
+            class="grid gap-3 grid-cols-1 md:grid-cols-2"
         >
             <!-- `min-w-0` is what keeps the card inside the screen. A grid
                  item is `min-width: auto`, so the single column sizes itself

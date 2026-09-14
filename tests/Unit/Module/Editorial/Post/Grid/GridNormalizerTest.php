@@ -147,9 +147,11 @@ final class GridNormalizerTest extends TestCase
         self::assertSame(
             [
                 'id', 'anchor', 'type', 'span', 'offset', 'newRow', 'ratio', 'scale', 'align',
-                'mediaId', 'mediaUrl', 'postId', 'variant', 'size', 'separatorStyle',
-                'display', 'columns', 'items', 'postTypeId', 'termId', 'limit',
-                'cardVariant', 'formId', 'language', 'textSize', 'lineNumbers', 'surface', 'fullBleed', 'children',
+                'mediaId', 'mediaIds', 'mediaUrl', 'postId', 'variant', 'size', 'separatorStyle',
+                'display', 'columns', 'items', 'taxonomyId', 'deckId', 'postTypeId', 'termId', 'limit',
+                'cardVariant', 'formId', 'language', 'textSize', 'lineNumbers',
+                'visibleFrom', 'visibleUntil', 'audience', 'exclusiveOpen',
+                'surface', 'fullBleed', 'children',
             ],
             array_keys($zone),
             'switching a zone type in the editor must not lose what was picked',

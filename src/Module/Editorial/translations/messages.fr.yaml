@@ -450,6 +450,18 @@ backend:
         media: Image
         post: Publication
         video: Vidéo
+        audio: Audio
+        document: Document
+        terms: Termes
+        map: Adresse
+        gallery: Galerie
+        compare: Avant / après
+        shared: Bloc partagé
+        embed: Intégration
+        tabs: Onglets
+        search: Recherche
+        comments: Commentaires
+        deck: Présentation
         button: Bouton
         separator: Séparateur
         items: Liste
@@ -519,6 +531,9 @@ backend:
         space: Espace
       item_display: Présentation
       item_display_hint: "La même liste, dessinée autrement. Changer de présentation ne perd pas ce qui est écrit."
+      item_display_hint_faq: "Chaque entrée se replie. Bon pour des questions, mais aussi pour tout ce qui se lit au besoin : ce qui est compris, les garanties, les mentions."
+      item_exclusive_open: Une seule entrée ouverte à la fois
+      item_exclusive_open_hint: "Ouvrir une entrée referme la précédente. Pratique sur une longue liste ; à laisser désactivé si le lecteur doit comparer deux réponses côte à côte."
       item_displays:
         steps: Étapes numérotées
         stats: Chiffres clés
@@ -527,6 +542,7 @@ backend:
         logos: Logos
         timeline: Chronologie
         offers: Cartes d'offres
+        people: Équipe
       item_columns: Colonnes
       item_number: "Entrée {number}"
       item_add: Ajouter une entrée
@@ -573,6 +589,14 @@ backend:
       offer_price_placeholder: "à partir de 1 500 €"
       offer_lines_placeholder: "Cinq pages\nUn formulaire de contact\nMise en ligne comprise"
       offer_url_placeholder: "https://exemple.fr/contact"
+      person_name: Nom
+      person_name_placeholder: "Camille Rousseau"
+      person_role: Rôle
+      person_role_placeholder: "Directrice artistique"
+      person_bio: Présentation
+      person_bio_placeholder: "Deux lignes sur ce qu'elle fait dans l'équipe."
+      person_url: Lien
+      person_url_placeholder: "mailto:camille@exemple.fr"
       scale: Taille de l'image
       scale_hint: "Part de la largeur de la zone occupée par l'image. Les proportions sont gardées, donc une image à 50 % est deux fois moins haute aussi. La zone, elle, ne bouge pas."
       scales:
@@ -614,6 +638,65 @@ backend:
       zone_video_file: Choisir une vidéo
       zone_video_file_chosen: Vidéo de la médiathèque
       zone_video_file_none: Aucune vidéo choisie
+      zone_audio_file: Choisir un fichier son
+      zone_audio_file_chosen: Son de la médiathèque
+      zone_audio_file_none: Aucun son choisi
+      zone_document_file: Choisir un document
+      zone_document_chosen: Document de la médiathèque
+      zone_document_none: Aucun document choisi
+      zone_document_published_hint: "Seul un document publié s'affiche sur le site. Un brouillon laisse la zone vide, sans message : la médiathèque contient aussi les papiers internes."
+      zone_document_label: Intitulé du lien
+      zone_document_label_placeholder: "Notre plaquette 2026"
+      terms_taxonomy: Taxonomie
+      terms_taxonomy_hint: "Tous ses termes sont affichés, dans l'ordre du back-office, chacun vers sa page. Un terme ajouté plus tard apparaît tout seul."
+      terms_taxonomy_none: "Choisir une taxonomie…"
+      terms_caption: Titre au-dessus
+      terms_caption_placeholder: "Nos domaines"
+      map_image: Photo du lieu
+      map_image_hint: "Facultative. Une façade ou une devanture dit plus sur la manière de trouver la porte qu'un point sur un rectangle gris."
+      map_name: Nom du lieu
+      map_name_placeholder: "Notre atelier"
+      map_address: Adresse
+      map_address_hint: "Une ligne par ligne, comme sur une enveloppe. C'est elle qui alimente le lien d'itinéraire."
+      map_address_placeholder: "12 rue des Lilas\n69004 Lyon\nFrance"
+      gallery_add: Ajouter des images
+      gallery_remove: Retirer cette image
+      gallery_empty: "Aucune image. Ajoutez-en plusieurs d'un coup : la galerie existe pour ça."
+      gallery_count: "{count} image sur {max} | {count} images sur {max}"
+      gallery_ratio_hint: "« Naturelles » laisse chaque image à ses proportions et les fait couler en colonnes. Une forme les recadre toutes pareil, dans une vraie grille qui se lit de gauche à droite."
+      compare_before: Avant
+      compare_after: Après
+      compare_pick: "Choisir une image"
+      compare_before_label: "Mot sous l'image de gauche"
+      compare_after_label: "Mot sous l'image de droite"
+      zone_shared: Bloc à reprendre
+      zone_shared_hint: "La grille de cette publication est dessinée ici. Modifiez-la une fois et toutes les pages qui la reprennent changent. Un bloc qui reprend un bloc n'est pas dessiné : la profondeur s'arrête à un."
+      search_post_type: Chercher dans
+      search_post_type_hint: "Sans rien ici, le champ cherche dans tout le site."
+      tabs_hint: "Chaque panneau a son intitulé et son propre texte. Sans JavaScript, tout s'affiche déplié : un lecteur voit tout plutôt qu'un panneau et aucun moyen d'atteindre les autres."
+      tabs_number: "Panneau {number}"
+      tabs_add: Ajouter un panneau
+      tabs_remove: Retirer ce panneau
+      tabs_label: Intitulé de l'onglet
+      tabs_label_placeholder: "Formule simple"
+      zone_embed: Adresse à intégrer
+      zone_embed_hint: "Collez l'adresse de la page chez le fournisseur. Une adresse qu'aucun des quatre ne revendique s'affiche en simple lien plutôt que de disparaître."
+      embed_providers: "Quatre fournisseurs reconnus : Spotify, SoundCloud, CodePen et Calendly. Chacun voit passer les visiteurs de la page où vous posez la zone."
+      comments_hint: "Rien à régler : le fil est celui de cette publication. Quand cette zone existe, le pied de page ne le dessine plus - une conversation par page, là où vous l'avez mise."
+      zone_deck: Présentation
+      zone_deck_none: "Choisir une présentation…"
+      zone_deck_hint: "Affichée dans la page par son lien de partage. Une présentation sans lien actif, ou dont le lien est révoqué, expiré ou protégé par un mot de passe, ne dessine rien."
+      visibility: "Quand et pour qui"
+      visibility_hint: "Sans rien ici, la zone est visible tout le temps et par tout le monde. C'est ce que fait toute zone qui ne dit rien."
+      visible_from: À partir du
+      visible_until: "Jusqu'au"
+      visible_any: Sans limite
+      audience: Public
+      audience_hint: "« Membres » ne dessine la zone que pour un visiteur connecté. Le panneau, lui, vous la montre toujours."
+      audiences:
+        everyone: Tout le monde
+        members: Membres connectés
+      zone_document_label_hint: "Ce que le visiteur lit sur la carte. Vide, c'est le titre du document dans la médiathèque qui est repris."
       zone_video_hint: "YouTube, Vimeo ou Dailymotion. Une autre adresse s'affichera en lien plutôt qu'en lecteur."
       move_up: Monter
       move_down: Descendre
@@ -970,6 +1053,12 @@ frontend:
       copy: Copier
       copied: Copié
       on_this_page: Sur cette page
+      terms: Termes
+      directions: Itinéraire
+      before: Avant
+      after: Après
+      compare_handle: "Déplacer la séparation entre les deux images"
+      get_in_touch: Écrire
     forms:
       submit: Envoyer
       next: Suivant

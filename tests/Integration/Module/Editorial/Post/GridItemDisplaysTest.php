@@ -116,6 +116,30 @@ final class GridItemDisplaysTest extends IntegrationTestCase
         self::assertStringNotContainsString('<img', $html);
     }
 
+    /**
+     * One panel at a time, when the author asks for it. `name` is what makes
+     * the browser close the others, with no script - and its absence is what
+     * keeps every list already published behaving as it did.
+     */
+    public function testAFoldingListCanKeepOnlyOnePanelOpen(): void
+    {
+        $plain = $this->render('faq', [['id' => 'i1']], ['i1' => ['title' => 'Combien ça coûte ?']]);
+
+        self::assertStringContainsString('<details', $plain);
+        self::assertStringNotContainsString('name="fold-', $plain);
+
+        $exclusive = $this->render(
+            'faq',
+            [['id' => 'i1'], ['id' => 'i2']],
+            ['i1' => ['title' => 'Combien ça coûte ?'], 'i2' => ['title' => 'En combien de temps ?']],
+            exclusiveOpen: true,
+        );
+
+        // Both panels in the same group, named after the zone so a second list
+        // on the page does not close this one's answers.
+        self::assertSame(2, mb_substr_count($exclusive, 'name="fold-z1"'));
+    }
+
     private function picture(): int
     {
         $document = new Document();
@@ -152,12 +176,18 @@ final class GridItemDisplaysTest extends IntegrationTestCase
      * @param list<array<string, mixed>>          $items
      * @param array<string, array<string, mixed>> $words
      */
-    private function render(string $display, array $items, array $words): string
+    private function render(string $display, array $items, array $words, bool $exclusiveOpen = false): string
     {
         $grid = $this->gridViewBuilder->build(
             [
                 'enabled' => true,
-                'zones' => [['id' => 'z1', 'type' => 'items', 'display' => $display, 'items' => $items]],
+                'zones' => [[
+                    'id' => 'z1',
+                    'type' => 'items',
+                    'display' => $display,
+                    'items' => $items,
+                    'exclusiveOpen' => $exclusiveOpen,
+                ]],
             ],
             ['zones' => ['z1' => ['items' => $words]]],
             'fr',

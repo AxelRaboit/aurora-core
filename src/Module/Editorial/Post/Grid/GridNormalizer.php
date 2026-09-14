@@ -63,6 +63,31 @@ final readonly class GridNormalizer
     public const string ZONE_VIDEO = 'video';
 
     /**
+     * A sound file the library holds, played by the browser.
+     *
+     * The video zone's other half, and deliberately a type of its own rather
+     * than a second branch inside it: a film offers an address to a provider
+     * and a poster to stand in for it, and a recording has neither. One zone
+     * answering both would ask an author which of two unrelated questions
+     * they meant.
+     */
+    public const string ZONE_AUDIO = 'audio';
+
+    /**
+     * A file to take away, drawn as a card rather than played.
+     *
+     * The plaquette, the terms, the price list. Until now the only way to
+     * offer one was a button pointed at an address typed by hand, which stops
+     * working the day the file is replaced - the whole point of the library's
+     * permalink is that it does not.
+     *
+     * Only a **published** document is ever drawn. A library holds a client's
+     * internal papers alongside the ones they hand out, and the status column
+     * is what already tells them apart.
+     */
+    public const string ZONE_DOCUMENT = 'document';
+
+    /**
      * Zones stacked one above another, sharing the height of the row they sit
      * in.
      *
@@ -114,6 +139,151 @@ final readonly class GridNormalizer
     public const string ZONE_POST_LIST = 'postList';
 
     /**
+     * A run of pictures from the library, in one zone.
+     *
+     * The publication already has a gallery, but there is exactly one of it and
+     * it sits under the whole grid - so a page cannot put six photographs
+     * between two paragraphs and then carry on. This can, and it is the zone a
+     * portfolio page is mostly made of.
+     *
+     * It borrows the vocabulary the media zone already teaches rather than
+     * inventing its own: `columns` says how many stand side by side, and
+     * `ratio` answers "how tall is a picture" exactly as it does next door.
+     * `natural` there means "its own proportions", and that is what tells this
+     * zone to flow the pictures down columns instead of cropping them into a
+     * grid - one setting, two mechanisms, and no third field to explain.
+     */
+    public const string ZONE_GALLERY = 'gallery';
+
+    /**
+     * Something hosted elsewhere, from a named list of providers.
+     *
+     * The clean answer to "I want to paste this thing into my page", which is
+     * the request that HTML brut always arrives behind. A podcast, a booking
+     * form, a code demo: four providers, named in {@see EmbedResolver}, and
+     * nothing else resolves.
+     *
+     * The address is translated, like the video zone's beside it: a booking
+     * page and a podcast episode both have a language.
+     */
+    public const string ZONE_EMBED = 'embed';
+
+    /**
+     * Several bodies of text in one zone, one shown at a time.
+     *
+     * The only thing the model could not express. Three plans side by side,
+     * three levels of service, three sectors: each needs paragraphs, and a
+     * zone has room for exactly one body of them.
+     *
+     * **Bounded on purpose.** Tabs of text, not tabs holding zones - the same
+     * bound the stack lives under, and for the same reason: nesting further
+     * would turn a page into a layout tree, and what a zone draws could no
+     * longer be read off the list. A panel carries Editor.js blocks like a
+     * text zone and nothing else.
+     *
+     * It borrows the entry list an item zone uses for identity and order,
+     * because that is exactly what a panel needs and writing a second one
+     * would be writing the same thing twice.
+     */
+    public const string ZONE_TABS = 'tabs';
+
+    /**
+     * A search field, narrowed to one kind of publication.
+     *
+     * The comment at the head of `_sequence.html.twig` already argues for it:
+     * on a hundred and thirty pages, "where is the thing that talks about" is
+     * asked more often than "what is there". A summary answers the second and
+     * this answers the first, and the two belong on the same page rather than
+     * one instead of the other.
+     */
+    public const string ZONE_SEARCH = 'search';
+
+    /**
+     * The page's own comment thread, placed where the author wants it.
+     *
+     * A page that argues for something and takes its replies eight screens
+     * below the argument is two pages. This lets the thread sit under the
+     * section it answers - and the foot of the page then draws nothing, so a
+     * reader never meets the same conversation twice.
+     */
+    public const string ZONE_COMMENTS = 'comments';
+
+    /**
+     * A Studio presentation, shown inside the page.
+     *
+     * Only through a share link that is live: a deck is an internal document
+     * until somebody publishes one, and a zone naming a deck with no link
+     * draws nothing rather than inventing a way in.
+     *
+     * This is the one zone that reaches into another module, and it is worth
+     * being plain about it: `Editorial` asking `Studio` for a share link is a
+     * coupling the module toggles argue against. It is confined to one
+     * resolver and one `null` - a site running without Studio gets a zone that
+     * draws nothing, which is what it already does for a deck nobody shared.
+     */
+    public const string ZONE_DECK = 'deck';
+
+    /**
+     * Another publication's grid, drawn here.
+     *
+     * The one thing a CMS starts missing the moment a site passes ten pages:
+     * the band that says "parlons de votre projet" at the foot of twelve of
+     * them, corrected twelve times. A page names a block once and every page
+     * that names it changes together.
+     *
+     * It reuses `postId`, and the library is therefore a content type rather
+     * than a new kind of thing: whoever runs the site already knows how to
+     * write, translate and version a publication, and a block is a
+     * publication that happens not to have a page of its own.
+     *
+     * **Depth stops at one.** A shared block that shares another would be a
+     * page whose content cannot be read off the list, and two blocks naming
+     * each other would resolve for ever. `GridViewBuilder` carries the depth
+     * and draws nothing at the second level, which is the same bound the stack
+     * lives under and for the same reason.
+     */
+    public const string ZONE_SHARED = 'shared';
+
+    /**
+     * Two pictures of one thing, and a handle between them.
+     *
+     * A renovation, a retouch, a site rebuilt: the demonstration that needs no
+     * caption. It is the one zone here nobody else has, and the one a visitor
+     * remembers.
+     *
+     * Two images and not a list, but stored in the same `mediaIds` the gallery
+     * fills: the position carries the meaning - first is before, second is
+     * after - and a second id field used by one type would have been a column
+     * for a special case.
+     */
+    public const string ZONE_COMPARE = 'compare';
+
+    /**
+     * Where to find somebody, and how to get there.
+     *
+     * Deliberately **not** a map. A map that can be dragged means a tile
+     * provider, which means a key and a third party watching the client's
+     * visitors arrive - the very thing the integration zone exists to arbitrate
+     * deliberately rather than by accident. This draws the address as an
+     * address, offers a link that opens the reader's own map application, and
+     * loads nothing from anybody.
+     *
+     * The picture, when there is one, is the author's: a photograph of the shop
+     * front says more about finding the door than a pin on a grey rectangle.
+     */
+    public const string ZONE_MAP = 'map';
+
+    /**
+     * The terms of one taxonomy, each linking to its archive.
+     *
+     * The mirror of `postList`: that one draws the publications, this one
+     * draws the doors that lead to them. On a hub page it replaces a menu
+     * written by hand, which is out of date the first time a term is added -
+     * the same argument the automatic list is built on.
+     */
+    public const string ZONE_TERMS = 'terms';
+
+    /**
      * A form of the site, posed inside a page.
      *
      * A form already has a page of its own at `/{locale}/forms/{slug}`. This
@@ -136,6 +306,15 @@ final readonly class GridNormalizer
      */
     public const string ZONE_TOC = 'toc';
 
+    /**
+     * Who a zone is for.
+     *
+     * `everyone` is what every zone already published means, which is why it
+     * is first: a default that changed behaviour would republish the whole
+     * site on the day it shipped.
+     */
+    public const array AUDIENCES = ['everyone', 'members'];
+
     /** How loudly a button is drawn. */
     public const array BUTTON_VARIANTS = ['solid', 'outline', 'ghost'];
 
@@ -148,13 +327,13 @@ final readonly class GridNormalizer
     /**
      * The costumes of an item list.
      *
-     * One zone rather than seven, because they are the same four fields asked
+     * One zone rather than eight, because they are the same four fields asked
      * differently - a step's title is a figure's value is a question is an
-     * offer's name - and switching costume keeps what was written. New ones go
-     * at the end: the first is the default, and moving it would restyle every
-     * list already published.
+     * offer's name is a colleague's name - and switching costume keeps what was
+     * written. New ones go at the end: the first is the default, and moving it
+     * would restyle every list already published.
      */
-    public const array ITEM_DISPLAYS = ['steps', 'stats', 'faq', 'quotes', 'logos', 'timeline', 'offers'];
+    public const array ITEM_DISPLAYS = ['steps', 'stats', 'faq', 'quotes', 'logos', 'timeline', 'offers', 'people'];
 
     /**
      * How densely a publication card is drawn. The same publication either
@@ -207,6 +386,33 @@ final readonly class GridNormalizer
      * that the list stays a list. Past this it is a page of its own.
      */
     public const int MAX_ITEMS = 12;
+
+    /**
+     * How many pictures one gallery zone may hold.
+     *
+     * The same number the automatic list is capped at, and for the same
+     * reason: a cap rather than a recommendation. Without one a zone could
+     * name the whole library and the page would become an archive by accident.
+     * A page that needs more than this needs a second zone, which is also a
+     * second place for the reader to breathe.
+     */
+    public const int MAX_GALLERY_IMAGES = 24;
+
+    /**
+     * Before and after. Not a setting - a third picture would have no place to
+     * be, and the handle only ever separates two things.
+     */
+    public const int COMPARE_IMAGES = 2;
+
+    /**
+     * How many panels one zone may hold.
+     *
+     * Half what a list is allowed, and not for storage reasons: past six the
+     * strip of labels wraps onto a second line and stops reading as a row of
+     * choices. A page that needs more is a page whose sections should be
+     * sections.
+     */
+    public const int MAX_TABS = 6;
 
     /** How many entries sit side by side, where the display lays them out in a row. */
     public const array ITEM_COLUMNS = [2, 3, 4];
@@ -315,6 +521,18 @@ final readonly class GridNormalizer
         self::ZONE_MEDIA,
         self::ZONE_POST,
         self::ZONE_VIDEO,
+        self::ZONE_AUDIO,
+        self::ZONE_DOCUMENT,
+        self::ZONE_TERMS,
+        self::ZONE_MAP,
+        self::ZONE_GALLERY,
+        self::ZONE_COMPARE,
+        self::ZONE_SHARED,
+        self::ZONE_TABS,
+        self::ZONE_EMBED,
+        self::ZONE_SEARCH,
+        self::ZONE_COMMENTS,
+        self::ZONE_DECK,
         self::ZONE_BUTTON,
         self::ZONE_SEPARATOR,
         self::ZONE_ITEMS,
@@ -538,6 +756,14 @@ final readonly class GridNormalizer
                 // Shared with the size it depends on: both are design.
                 'align' => $this->values->oneOf($entry['align'] ?? null, self::ALIGNMENTS, self::ALIGNMENTS[0]),
                 'mediaId' => $this->values->id($entry['mediaId'] ?? null),
+                // The pictures of a gallery, in the order they were arranged.
+                // Shared like the single id beside it: which photographs a page
+                // shows is not a matter of language.
+                'mediaIds' => match ($type) {
+                    self::ZONE_GALLERY => $this->mediaIdList($entry['mediaIds'] ?? null, self::MAX_GALLERY_IMAGES),
+                    self::ZONE_COMPARE => $this->mediaIdList($entry['mediaIds'] ?? null, self::COMPARE_IMAGES),
+                    default => [],
+                },
                 // An address, for a picture that is not in the library - a
                 // placeholder service while a page is being drafted, or an
                 // image already hosted elsewhere. Shared like the id, and for
@@ -561,9 +787,22 @@ final readonly class GridNormalizer
                 // there are, in what order, and the picture each one carries.
                 // Their words live on the translation, like every other word
                 // on the page.
-                'items' => self::ZONE_ITEMS === $type ? $this->itemList($entry['items'] ?? null) : [],
+                'items' => match ($type) {
+                    self::ZONE_ITEMS => $this->itemList($entry['items'] ?? null, self::MAX_ITEMS),
+                    self::ZONE_TABS => $this->itemList($entry['items'] ?? null, self::MAX_TABS),
+                    default => [],
+                },
                 // What a list zone asks for. Both filters are optional and
                 // combine; null on either side means "do not narrow by this".
+                // Which taxonomy a terms zone unrolls. Shared like every
+                // other id here: a taxonomy carries its own translations, so
+                // the renderer picks the right ones rather than asking an
+                // author to name a different taxonomy per language.
+                'taxonomyId' => $this->values->id($entry['taxonomyId'] ?? null),
+                // Which presentation a deck zone shows. Shared: a deck carries
+                // its own slides, and which one a page shows is not a matter
+                // of language.
+                'deckId' => $this->values->id($entry['deckId'] ?? null),
                 'postTypeId' => $this->values->id($entry['postTypeId'] ?? null),
                 'termId' => $this->values->id($entry['termId'] ?? null),
                 'limit' => min(self::MAX_LIST_LIMIT, max(1, (int) ($entry['limit'] ?? 3))),
@@ -586,6 +825,21 @@ final readonly class GridNormalizer
                 // a three-line example needs no coordinates, and a page that
                 // numbers everything makes the numbers mean nothing.
                 'lineNumbers' => (bool) ($entry['lineNumbers'] ?? false),
+                // When a zone starts and stops being drawn, and who it is
+                // drawn for. Shared, like everything else about arrangement: a
+                // promotion ends on the same day in every language.
+                //
+                // Dates and not datetimes. An author thinks "until the end of
+                // the month", not "until 23:59:59 in which timezone" - and a
+                // day is a question a server and a reader can agree on.
+                'visibleFrom' => $this->day($entry['visibleFrom'] ?? null),
+                'visibleUntil' => $this->day($entry['visibleUntil'] ?? null),
+                'audience' => $this->values->oneOf($entry['audience'] ?? null, self::AUDIENCES, self::AUDIENCES[0]),
+                // One panel open at a time, for a list that folds. Off by
+                // default, which is the behaviour already published: a reader
+                // comparing two answers should not have the first close under
+                // them because nobody asked for that.
+                'exclusiveOpen' => (bool) ($entry['exclusiveOpen'] ?? false),
                 // What the zone sits on. Every type can have one: a card of
                 // figures, a tinted FAQ, a call to action on accent.
                 'surface' => $this->values->oneOf($entry['surface'] ?? null, self::SURFACES, self::SURFACES[0]),
@@ -613,11 +867,16 @@ final readonly class GridNormalizer
      *
      * @param array<string, mixed> $zone the already-normalised layout zone
      *
-     * @return array<string, array<string, string|null>>
+     * The body is a list of Editor.js blocks and only a tabs panel has one,
+     * which is why the value type is wider than the four words beside it.
+     *
+     * @return array<string, array{title: string, description: string, caption: string, url: string|null, blocks: list<mixed>}>
      */
     private function itemTexts(mixed $raw, array $zone): array
     {
-        if (self::ZONE_ITEMS !== ($zone['type'] ?? null)) {
+        $type = $zone['type'] ?? null;
+
+        if (self::ZONE_ITEMS !== $type && self::ZONE_TABS !== $type) {
             return [];
         }
 
@@ -637,10 +896,77 @@ final readonly class GridNormalizer
                 'description' => $this->values->text($entry['description'] ?? null),
                 'caption' => $this->values->text($entry['caption'] ?? null),
                 'url' => $this->values->url($entry['url'] ?? null),
+                // A panel's body, kept raw like a text zone's and sanitised at
+                // render by the same path. Only for tabs: giving every entry
+                // of every item list an empty array would be writing a key
+                // nothing reads into every row of the column.
+                'blocks' => self::ZONE_TABS === $type && is_array($entry['blocks'] ?? null)
+                    ? array_values($entry['blocks'])
+                    : [],
             ];
         }
 
         return $texts;
+    }
+
+    /**
+     * A day, or nothing.
+     *
+     * Kept as the string it arrived as rather than turned into a date object:
+     * this shape is written to a JSON column and read by an editor in a
+     * browser, and both sides speak `YYYY-MM-DD`. Anything that is not one is
+     * dropped, which reads as "no limit" - the safe answer, because the
+     * alternative is a zone that vanishes because somebody typed a month into
+     * a day.
+     */
+    private function day(mixed $value): ?string
+    {
+        if (!is_string($value) || 1 !== preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return null;
+        }
+
+        return false === strtotime($value) ? null : $value;
+    }
+
+    /**
+     * The pictures of a gallery, as a plain list of library ids.
+     *
+     * Order is the author's and is kept exactly: a gallery is read in the
+     * order it was arranged, and sorting it here would silently rewrite a
+     * sequence somebody composed.
+     *
+     * The same picture twice is refused. Not a matter of taste - the overlay
+     * numbers the pictures of a grid in the order they are drawn, and two
+     * entries pointing at one document would give a reader two stops on the
+     * same photograph with no way to tell them apart.
+     *
+     * Capped like every other list here, and for the same reason: the payload
+     * comes from a browser.
+     *
+     * @return list<int>
+     */
+    private function mediaIdList(mixed $raw, int $limit): array
+    {
+        $ids = [];
+
+        foreach (is_array($raw) ? $raw : [] as $value) {
+            $id = $this->values->id($value);
+            if (null === $id) {
+                continue;
+            }
+
+            if (in_array($id, $ids, true)) {
+                continue;
+            }
+
+            $ids[] = $id;
+
+            if (count($ids) >= $limit) {
+                break;
+            }
+        }
+
+        return $ids;
     }
 
     /**
@@ -653,14 +979,14 @@ final readonly class GridNormalizer
      *
      * @return list<array{id: string, mediaId: int|null, featured: bool}>
      */
-    private function itemList(mixed $raw): array
+    private function itemList(mixed $raw, int $limit): array
     {
         $entries = is_array($raw) ? $raw : [];
         $items = [];
         $used = [];
 
         foreach ($entries as $entry) {
-            if (count($items) >= self::MAX_ITEMS) {
+            if (count($items) >= $limit) {
                 break;
             }
 

@@ -1,17 +1,29 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import {
+    AudioLines,
     ClipboardList,
     Code,
+    FileDown,
     FileText,
     Film,
+    Frame,
     Image,
+    Images,
+    Columns2,
     Layers,
+    LayoutPanelTop,
+    Recycle,
     LayoutList,
     ListFilter,
     ListTree,
+    Tags,
+    MapPin,
+    MessageSquare,
     MousePointerClick,
     Newspaper,
+    Presentation,
+    Search,
     SeparatorHorizontal,
 } from "lucide-vue-next";
 
@@ -40,6 +52,18 @@ export const LEAF_ZONE_TYPES = [
     "media",
     "post",
     "video",
+    "audio",
+    "document",
+    "terms",
+    "map",
+    "gallery",
+    "compare",
+    "shared",
+    "tabs",
+    "embed",
+    "search",
+    "comments",
+    "deck",
     "button",
     "separator",
     "items",
@@ -67,6 +91,31 @@ export const ZONE_ICONS = {
     media: Image,
     post: Newspaper,
     video: Film,
+    // A waveform, not a speaker: the zone holds a recording, and a speaker is
+    // what a reader turns off.
+    audio: AudioLines,
+    // The arrow is the whole point of this zone - a sheet of paper alone would
+    // read as the text zone beside it.
+    document: FileDown,
+    // Labels on a string, which is what a set of terms is.
+    terms: Tags,
+    // A pin, and the one place in this map where a pin is honest: it marks
+    // an address rather than standing on a tile somebody else served.
+    map: MapPin,
+    // Pictures, plural - the one thing that separates it from the media
+    // zone above, and the whole of what it is.
+    gallery: Images,
+    // Two panes with a line between them, which is the zone in one glyph.
+    compare: Columns2,
+    // The same thing, coming round again on another page.
+    shared: Recycle,
+    // Panels behind one strip of labels.
+    // A frame holding something that lives somewhere else.
+    embed: Frame,
+    tabs: LayoutPanelTop,
+    search: Search,
+    comments: MessageSquare,
+    deck: Presentation,
     button: MousePointerClick,
     separator: SeparatorHorizontal,
     items: LayoutList,
@@ -88,7 +137,7 @@ export const SIZES = ["sm", "md", "lg"];
 /** Mirrors GridNormalizer::SEPARATOR_STYLES. */
 export const SEPARATOR_STYLES = ["line", "space"];
 
-/** Mirrors GridNormalizer::ITEM_DISPLAYS - the five costumes of an item list. */
+/** Mirrors GridNormalizer::ITEM_DISPLAYS - the eight costumes of an item list. */
 export const ITEM_DISPLAYS = [
     "steps",
     "stats",
@@ -97,6 +146,7 @@ export const ITEM_DISPLAYS = [
     "logos",
     "timeline",
     "offers",
+    "people",
 ];
 
 /** Mirrors GridNormalizer::ITEM_COLUMNS. */
@@ -104,6 +154,15 @@ export const ITEM_COLUMNS = [2, 3, 4];
 
 /** Mirrors GridNormalizer::MAX_ITEMS. */
 export const MAX_ITEMS = 12;
+
+/** Mirrors GridNormalizer::MAX_TABS - six labels already wrap on a phone. */
+export const MAX_TABS = 6;
+
+/** Mirrors GridNormalizer::MAX_GALLERY_IMAGES. */
+export const MAX_GALLERY_IMAGES = 24;
+
+/** Mirrors GridNormalizer::COMPARE_IMAGES - before and after, never a third. */
+export const COMPARE_IMAGES = 2;
 
 /** Mirrors GridNormalizer::CARD_VARIANTS - how densely a card is drawn. */
 export const CARD_VARIANTS = ["full", "compact", "horizontal"];
@@ -125,6 +184,9 @@ export const CODE_LANGUAGES = [
     "typescript",
     "yaml",
 ];
+
+/** Mirrors GridNormalizer::AUDIENCES - everybody, or somebody signed in. */
+export const AUDIENCES = ["everyone", "members"];
 
 /** Mirrors GridNormalizer::TEXT_SIZES. */
 export const TEXT_SIZES = ["normal", "lead", "small"];
@@ -384,6 +446,7 @@ function newZone(type) {
         scale: 100,
         align: "center",
         mediaId: null,
+        mediaIds: [],
         media: null,
         mediaUrl: "",
         postId: null,
@@ -397,6 +460,8 @@ function newZone(type) {
         items: [],
         // A list with no filter is the whole site, newest first - the answer
         // that needs no setting up, which is what a zone should do on arrival.
+        taxonomyId: null,
+        deckId: null,
         postTypeId: null,
         termId: null,
         limit: 3,
@@ -405,6 +470,12 @@ function newZone(type) {
         language: null,
         textSize: "normal",
         lineNumbers: false,
+        exclusiveOpen: false,
+        // No limits and everybody: a zone arrives visible, which is what
+        // every zone written before this existed already means.
+        visibleFrom: null,
+        visibleUntil: null,
+        audience: "everyone",
         // No name until someone means to link to the zone. An id on every
         // zone would be a page full of addresses nobody chose.
         anchor: "",
@@ -503,6 +574,7 @@ export function usePostGrid(layout, content) {
         cardVariant: labelled(CARD_VARIANTS, "card_variants"),
         textSize: labelled(TEXT_SIZES, "text_sizes"),
         surface: labelled(SURFACES, "surfaces"),
+        audience: labelled(AUDIENCES, "audiences"),
         // A language names itself; there is nothing to translate.
         language: CODE_LANGUAGES.map((value) => ({ value, label: value })),
         limit: Array.from({ length: MAX_LIST_LIMIT }, (_, i) => ({
@@ -1083,6 +1155,8 @@ export function usePostGrid(layout, content) {
                 separatorStyle: shared("separatorStyle"),
                 display: shared("display"),
                 columns: shared("columns"),
+                taxonomyId: shared("taxonomyId"),
+                deckId: shared("deckId"),
                 postTypeId: shared("postTypeId"),
                 termId: shared("termId"),
                 limit: shared("limit"),
@@ -1091,6 +1165,10 @@ export function usePostGrid(layout, content) {
                 language: shared("language"),
                 textSize: shared("textSize"),
                 lineNumbers: shared("lineNumbers"),
+                exclusiveOpen: shared("exclusiveOpen"),
+                visibleFrom: shared("visibleFrom"),
+                visibleUntil: shared("visibleUntil"),
+                audience: shared("audience"),
                 anchor: shared("anchor"),
                 surface: shared("surface"),
                 fullBleed: shared("fullBleed"),
@@ -1204,8 +1282,12 @@ export function usePostGrid(layout, content) {
         return Array.isArray(items) ? items : [];
     }
 
+    /** Tabs and item lists share the entry list; they do not share its cap. */
     function canAddItem(index, childIndex = null) {
-        return zoneItems(index, childIndex).length < MAX_ITEMS;
+        const cap =
+            "tabs" === zoneAt(index, childIndex)?.type ? MAX_TABS : MAX_ITEMS;
+
+        return zoneItems(index, childIndex).length < cap;
     }
 
     function addItem(index, childIndex = null) {
@@ -1225,6 +1307,88 @@ export function usePostGrid(layout, content) {
         // others gain theirs when the server normalises them against the
         // arrangement, and an empty string is what an untranslated entry means.
         heldFor(zone).items[id] = newItemText();
+    }
+
+    /**
+     * The pictures of a gallery, kept as ids with their previews beside them.
+     *
+     * `mediaIds` is what is saved and `gallery.items` is what the panel draws,
+     * the same split the single media field makes: the server re-resolves the
+     * urls from the ids on the way out, and the preview only has to survive
+     * until then.
+     *
+     * A picture already in the list is skipped rather than added twice - the
+     * normaliser refuses a duplicate anyway, and letting the editor show one
+     * that will not come back is how a panel starts lying.
+     */
+    function addGalleryImages(index, picked, childIndex = null) {
+        const zone = zoneAt(index, childIndex);
+        const chosen = Array.isArray(picked) ? picked : [picked];
+
+        if (!Array.isArray(zone.mediaIds)) {
+            zone.mediaIds = [];
+        }
+
+        if (!zone.gallery || !Array.isArray(zone.gallery.items)) {
+            zone.gallery = { items: [] };
+        }
+
+        for (const item of chosen) {
+            if (!item?.id || zone.mediaIds.includes(item.id)) continue;
+            if (zone.mediaIds.length >= MAX_GALLERY_IMAGES) break;
+
+            zone.mediaIds.push(item.id);
+            zone.gallery.items.push({ url: item.url ?? null });
+        }
+    }
+
+    /**
+     * One side of a comparison, by position: 0 is before, 1 is after.
+     *
+     * Writing into a slot rather than pushing, because the two are not a list
+     * an author appends to - replacing "after" must leave "before" where it
+     * is, and a picture already used on the other side is refused for the
+     * reason the gallery refuses a duplicate.
+     */
+    function setCompareImage(index, slot, picked, childIndex = null) {
+        const zone = zoneAt(index, childIndex);
+
+        if (!Array.isArray(zone.mediaIds)) {
+            zone.mediaIds = [];
+        }
+
+        if (!zone.gallery || !Array.isArray(zone.gallery.items)) {
+            zone.gallery = { items: [] };
+        }
+
+        const other = slot === 0 ? 1 : 0;
+        if (zone.mediaIds[other] === picked.id) return;
+
+        zone.mediaIds[slot] = picked.id;
+        zone.gallery.items[slot] = { url: picked.url ?? null };
+    }
+
+    function removeGalleryImage(index, at, childIndex = null) {
+        const zone = zoneAt(index, childIndex);
+
+        zone.mediaIds?.splice(at, 1);
+        zone.gallery?.items?.splice(at, 1);
+    }
+
+    /** The two lists move together, or the previews stop matching the ids. */
+    function moveGalleryImage(index, at, direction, childIndex = null) {
+        const zone = zoneAt(index, childIndex);
+        const ids = zone.mediaIds ?? [];
+        const target = at + direction;
+
+        if (target < 0 || target >= ids.length) return;
+
+        [ids[at], ids[target]] = [ids[target], ids[at]];
+
+        const items = zone.gallery?.items;
+        if (Array.isArray(items) && items.length === ids.length) {
+            [items[at], items[target]] = [items[target], items[at]];
+        }
     }
 
     function removeItem(index, itemIndex, childIndex = null) {
@@ -1280,6 +1444,15 @@ export function usePostGrid(layout, content) {
 
             itemFieldsCache.set(key, {
                 title: localised("title"),
+                // A panel's body. Only a tabs zone writes it, and the
+                // normaliser keeps it for that type alone - an item list that
+                // gained one would be carrying a key nothing reads.
+                blocks: writable(
+                    () => words().blocks ?? [],
+                    (value) => {
+                        words().blocks = value;
+                    },
+                ),
                 description: localised("description"),
                 caption: localised("caption"),
                 url: localised("url"),
@@ -1357,6 +1530,10 @@ export function usePostGrid(layout, content) {
         addItem,
         removeItem,
         moveItem,
+        addGalleryImages,
+        removeGalleryImage,
+        moveGalleryImage,
+        setCompareImage,
         itemFields,
         widthLabel,
     };

@@ -17,6 +17,7 @@ import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
 import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import { openDocumentPicker } from "@/shared/utils/documentPicker.js";
+import { MAX_GALLERY_IMAGES } from "../composables/usePostGrid.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -38,6 +39,10 @@ const props = defineProps({
     postTypeOptions: { type: Array, default: () => [] },
     /** The terms it may narrow to, across every taxonomy. */
     termOptions: { type: Array, default: () => [] },
+    /** The taxonomies a terms zone may unroll. */
+    taxonomyOptions: { type: Array, default: () => [] },
+    /** The presentations a deck zone may show. */
+    deckOptions: { type: Array, default: () => [] },
     /** The active forms a zone may pose. */
     formOptions: { type: Array, default: () => [] },
     /** True for a zone inside a stack, where the row controls do not apply. */
@@ -58,7 +63,15 @@ const props = defineProps({
     canAddItem: { type: Boolean, default: true },
 });
 
-const emit = defineEmits(["add-item", "remove-item", "move-item"]);
+const emit = defineEmits([
+    "add-item",
+    "remove-item",
+    "move-item",
+    "add-gallery",
+    "remove-gallery",
+    "move-gallery",
+    "set-compare",
+]);
 
 const { t } = useI18n();
 
@@ -85,6 +98,62 @@ async function pickVideo() {
     }
 }
 
+/** The same, for a recording. */
+async function pickAudio() {
+    const picked = await openDocumentPicker({ mimePrefix: "audio/" });
+
+    if (picked) {
+        bound.media.value = picked;
+    }
+}
+
+/**
+ * Unfiltered: a document zone offers whatever the library holds, which is the
+ * point of it - a plaquette is a PDF, a price list is often a spreadsheet, and
+ * a press kit is a zip.
+ */
+async function pickDocument() {
+    const picked = await openDocumentPicker({});
+
+    if (picked) {
+        bound.media.value = picked;
+    }
+}
+
+/**
+ * The library, filtered to pictures and letting several be taken at once -
+ * which is the whole ergonomic point of a gallery zone over six media zones.
+ */
+async function pickGalleryImages() {
+    const picked = await openDocumentPicker({ imagesOnly: true, multiple: true });
+
+    if (Array.isArray(picked) && picked.length > 0) {
+        emit("add-gallery", picked);
+    }
+}
+
+/**
+ * The two sides of a comparison, as pickers rather than as a list.
+ *
+ * They share the gallery's `mediaIds` - position is what says which is which -
+ * but an author choosing "before" and "after" should be shown two labelled
+ * slots, not two rows of an ordered list they have to reason about.
+ */
+async function pickCompare(slot) {
+    const picked = await openDocumentPicker({ imagesOnly: true });
+
+    if (!picked?.id) return;
+
+    emit("set-compare", slot, picked);
+}
+
+const compareImages = computed(() => props.zone.gallery?.items ?? []);
+
+/** What the panel draws: the previews, which travel beside the saved ids. */
+const galleryImages = computed(() => props.zone.gallery?.items ?? []);
+
+const galleryIsFull = computed(() => galleryImages.value.length >= MAX_GALLERY_IMAGES);
+
 const publicationOptions = computed(() =>
     props.postOptions.map((post) => ({ value: post.id, label: post.title ?? `#${post.id}` })),
 );
@@ -108,16 +177,22 @@ const ITEM_LABELS = {
     // what lets an author switch costume without losing what they wrote.
     timeline: { title: "timeline_title", description: "timeline_text", caption: "timeline_date", url: null },
     offers: { title: "offer_name", description: "offer_lines", caption: "offer_price", url: "offer_url" },
+    // The role is the caption, like a quote's: the small line under the name.
+    // Same field, so an author who tries the quotes costume and comes back
+    // still has the roles they typed.
+    people: { title: "person_name", description: "person_bio", caption: "person_role", url: "person_url" },
 };
 
 const itemLabels = computed(() => ITEM_LABELS[bound.display.value] ?? ITEM_LABELS.steps);
 
-/** Only the quotes and the logos hang a picture on an entry. */
-const itemHasMedia = computed(() => ["quotes", "logos"].includes(bound.display.value));
+/** The costumes that hang a picture on an entry: a face, a mark, a portrait. */
+const itemHasMedia = computed(() =>
+    ["quotes", "logos", "people"].includes(bound.display.value),
+);
 
 /** Only the displays that lay their entries in a row have a count to choose. */
 const itemHasColumns = computed(() =>
-    ["stats", "quotes", "offers"].includes(bound.display.value),
+    ["stats", "quotes", "offers", "people"].includes(bound.display.value),
 );
 
 /**
@@ -133,6 +208,30 @@ const itemHasFeatured = computed(() => "offers" === bound.display.value);
  */
 const descriptionHint = computed(() =>
     "offers" === bound.display.value ? t("backend.posts.grid.offer_lines_hint") : undefined,
+);
+
+/**
+ * Only the folding costume has panels to keep shut.
+ *
+ * The flag is stored on every list whatever the costume, like the picture and
+ * the recommended flag: trying another costume and coming back should not lose
+ * the choice.
+ */
+const itemFolds = computed(() => "faq" === bound.display.value);
+
+/**
+ * What the chosen costume is good for, where the name alone does not say it.
+ *
+ * `faq` is the one that needs it: it folds any pair of a title and a few
+ * lines - what is included, the guarantees, the small print - and an author
+ * reading "Questions fréquentes" has no way to know that. The generic line is
+ * the fallback, so a costume whose name is its own explanation says nothing
+ * extra.
+ */
+const displayHint = computed(() =>
+    itemFolds.value
+        ? t("backend.posts.grid.item_display_hint_faq")
+        : t("backend.posts.grid.item_display_hint"),
 );
 </script>
 
@@ -218,6 +317,145 @@ const descriptionHint = computed(() =>
             </div>
         </template>
 
+        <template v-else-if="zone.type === 'embed'">
+            <p class="text-xs text-muted">{{ t("backend.posts.grid.embed_providers") }}</p>
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <!-- Translated, like a video address: a booking page and a
+                     podcast episode both have a language. -->
+                <AppInput
+                    v-model="bound.url.value"
+                    :label="t('backend.posts.grid.zone_embed')"
+                    :hint="t('backend.posts.grid.zone_embed_hint')"
+                    placeholder="https://open.spotify.com/episode/…"
+                />
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'tabs'">
+            <p class="text-xs text-muted">{{ t("backend.posts.grid.tabs_hint") }}</p>
+
+            <div class="space-y-3">
+                <div
+                    v-for="(panel, panelIndex) in items"
+                    :key="panel.id"
+                    class="rounded-lg border border-line p-3 space-y-3"
+                >
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs uppercase tracking-wide text-muted">
+                            {{ t("backend.posts.grid.tabs_number", { number: panelIndex + 1 }) }}
+                        </span>
+                        <div class="flex items-center gap-1">
+                            <AppIconButton
+                                :icon="ChevronUp"
+                                size="sm"
+                                :title="t('backend.posts.grid.item_move_up')"
+                                :disabled="panelIndex === 0"
+                                v-on:click="emit('move-item', panelIndex, -1)"
+                            />
+                            <AppIconButton
+                                :icon="ChevronDown"
+                                size="sm"
+                                :title="t('backend.posts.grid.item_move_down')"
+                                :disabled="panelIndex === items.length - 1"
+                                v-on:click="emit('move-item', panelIndex, 1)"
+                            />
+                            <AppIconButton
+                                :icon="Trash2"
+                                size="sm"
+                                color="danger"
+                                :title="t('backend.posts.grid.tabs_remove')"
+                                v-on:click="emit('remove-item', panelIndex)"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="rounded-lg border border-dashed border-line p-3 space-y-3">
+                        <p class="text-xs uppercase tracking-wide text-muted">
+                            {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                        </p>
+                        <AppInput
+                            v-model="itemFields(panelIndex).title.value"
+                            :label="t('backend.posts.grid.tabs_label')"
+                            :placeholder="t('backend.posts.grid.tabs_label_placeholder')"
+                        />
+                        <AppBlockEditor
+                            v-model="itemFields(panelIndex).blocks.value"
+                            :placeholder="t('backend.posts.content_placeholder')"
+                        />
+                    </div>
+                </div>
+
+                <AppButton
+                    variant="secondary"
+                    size="sm"
+                    :disabled="!canAddItem"
+                    v-on:click="emit('add-item')"
+                >
+                    <Plus class="w-3.5 h-3.5" :stroke-width="2" />
+                    {{ t("backend.posts.grid.tabs_add") }}
+                </AppButton>
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'search'">
+            <!-- Left alone, the field searches the whole site, which is the
+                 answer that needs no setting up. -->
+            <AppSelect
+                v-model="bound.postTypeId.value"
+                :label="t('backend.posts.grid.search_post_type')"
+                :hint="t('backend.posts.grid.search_post_type_hint')"
+                :options="postTypeOptions"
+                :placeholder="t('backend.posts.grid.list_any')"
+            />
+        </template>
+
+        <template v-else-if="zone.type === 'comments'">
+            <!-- Nothing to choose: a thread belongs to the page it is drawn
+                 on, and a choice here would be a way to put one page's replies
+                 under another. -->
+            <p class="text-sm text-muted">{{ t("backend.posts.grid.comments_hint") }}</p>
+        </template>
+
+        <template v-else-if="zone.type === 'deck'">
+            <AppSelect
+                v-model="bound.deckId.value"
+                :label="t('backend.posts.grid.zone_deck')"
+                :hint="t('backend.posts.grid.zone_deck_hint')"
+                :options="deckOptions"
+                :placeholder="t('backend.posts.grid.zone_deck_none')"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'shared'">
+            <!-- Shared, not translated, for the reason the publication zone
+                 gives: the block carries its own translations and the page it
+                 lands on picks the right one. -->
+            <AppSelect
+                v-model="bound.postId.value"
+                :label="t('backend.posts.grid.zone_shared')"
+                :hint="t('backend.posts.grid.zone_shared_hint')"
+                :options="publicationOptions"
+            />
+        </template>
+
         <template v-else-if="zone.type === 'post'">
             <!-- Shared, not translated: the linked publication carries
                  its own translations and the page picks the right one. -->
@@ -274,6 +512,195 @@ const descriptionHint = computed(() =>
                 :options="formOptions"
                 :placeholder="t('backend.posts.grid.zone_form_none')"
             />
+        </template>
+
+        <template v-else-if="zone.type === 'compare'">
+            <!-- Both or neither: the zone draws nothing until the pair is
+                 complete, and the panel says so rather than leaving an author
+                 to discover it on the published page. -->
+            <div class="grid grid-cols-2 gap-3">
+                <div v-for="(slot, slotIndex) in [0, 1]" :key="slot" class="space-y-2">
+                    <p class="text-xs uppercase tracking-wide text-muted">
+                        {{ slotIndex === 0
+                            ? t("backend.posts.grid.compare_before")
+                            : t("backend.posts.grid.compare_after") }}
+                    </p>
+                    <button
+                        type="button"
+                        class="block w-full overflow-hidden rounded-lg border border-dashed border-line"
+                        v-on:click="pickCompare(slotIndex)"
+                    >
+                        <img
+                            v-if="compareImages[slotIndex]?.url"
+                            :src="compareImages[slotIndex].url"
+                            alt=""
+                            class="aspect-square w-full object-cover"
+                        >
+                        <span v-else class="flex aspect-square items-center justify-center text-sm text-muted">
+                            {{ t("backend.posts.grid.compare_pick") }}
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <!-- The words under each side. Empty is the common case, and
+                     the page says "Avant" and "Après" on its own. -->
+                <AppInput
+                    v-model="bound.alt.value"
+                    :label="t('backend.posts.grid.compare_before_label')"
+                    :placeholder="t('backend.posts.grid.compare_before')"
+                />
+                <AppInput
+                    v-model="bound.label.value"
+                    :label="t('backend.posts.grid.compare_after_label')"
+                    :placeholder="t('backend.posts.grid.compare_after')"
+                />
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'gallery'">
+            <div class="flex items-center justify-between gap-3">
+                <span class="text-sm text-secondary">
+                    {{ t("backend.posts.grid.gallery_count", { count: galleryImages.length, max: MAX_GALLERY_IMAGES }) }}
+                </span>
+                <AppButton
+                    variant="secondary"
+                    size="sm"
+                    :disabled="galleryIsFull"
+                    v-on:click="pickGalleryImages"
+                >
+                    <Plus class="w-3.5 h-3.5" :stroke-width="2" />
+                    {{ t("backend.posts.grid.gallery_add") }}
+                </AppButton>
+            </div>
+
+            <!-- Thumbnails rather than a list of names: an author arranging
+                 photographs is looking at photographs. Up and down rather than
+                 dragging, which is what the zones themselves offer and what
+                 stays reachable from a keyboard. -->
+            <ul v-if="galleryImages.length" class="m-0 grid list-none grid-cols-3 gap-2 p-0">
+                <li
+                    v-for="(picture, pictureIndex) in galleryImages"
+                    :key="`${pictureIndex}-${picture.url}`"
+                    class="group relative overflow-hidden rounded-lg border border-line"
+                >
+                    <img :src="picture.url" alt="" class="aspect-square w-full object-cover">
+                    <div class="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-surface/90 p-1">
+                        <div class="flex gap-1">
+                            <AppIconButton
+                                :icon="ChevronUp"
+                                size="sm"
+                                :disabled="pictureIndex === 0"
+                                :title="t('backend.posts.grid.item_move_up')"
+                                v-on:click="emit('move-gallery', pictureIndex, -1)"
+                            />
+                            <AppIconButton
+                                :icon="ChevronDown"
+                                size="sm"
+                                :disabled="pictureIndex === galleryImages.length - 1"
+                                :title="t('backend.posts.grid.item_move_down')"
+                                v-on:click="emit('move-gallery', pictureIndex, 1)"
+                            />
+                        </div>
+                        <AppIconButton
+                            :icon="Trash2"
+                            size="sm"
+                            color="danger"
+                            :title="t('backend.posts.grid.gallery_remove')"
+                            v-on:click="emit('remove-gallery', pictureIndex)"
+                        />
+                    </div>
+                </li>
+            </ul>
+            <p v-else class="text-sm text-muted">{{ t("backend.posts.grid.gallery_empty") }}</p>
+
+            <AppChoiceRow
+                v-model="bound.columns.value"
+                :label="t('backend.posts.grid.item_columns')"
+                :options="choices.columns ?? []"
+            />
+            <!-- The same control the media zone offers, and the same words.
+                 Asked for their own proportions the pictures flow down
+                 columns; asked for a shape they are cropped into a grid. -->
+            <AppChoiceRow
+                v-model="bound.ratio.value"
+                :label="t('backend.posts.grid.ratio')"
+                :hint="t('backend.posts.grid.gallery_ratio_hint')"
+                :options="ratioOptions"
+            />
+
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'map'">
+            <!-- The author's own picture, and shared like every other: a shop
+                 front is the same shop front in every language. -->
+            <AppImagePickerField
+                v-model="bound.media.value"
+                :label="t('backend.posts.grid.map_image')"
+                :hint="t('backend.posts.grid.map_image_hint')"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.label.value"
+                    :label="t('backend.posts.grid.map_name')"
+                    :placeholder="t('backend.posts.grid.map_name_placeholder')"
+                />
+                <!-- Translated because a country is not spelled the same in
+                     every language, and because the floor and the door code
+                     are words rather than coordinates. -->
+                <AppTextarea
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.map_address')"
+                    :hint="t('backend.posts.grid.map_address_hint')"
+                    :placeholder="t('backend.posts.grid.map_address_placeholder')"
+                    :rows="4"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'terms'">
+            <AppSelect
+                v-model="bound.taxonomyId.value"
+                :label="t('backend.posts.grid.terms_taxonomy')"
+                :hint="t('backend.posts.grid.terms_taxonomy_hint')"
+                :options="taxonomyOptions"
+                :placeholder="t('backend.posts.grid.terms_taxonomy_none')"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <!-- The words above the chips. The taxonomy has a name of its
+                     own, but it is the one the backend files things under, not
+                     necessarily the one a visitor should read. -->
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.terms_caption')"
+                    :placeholder="t('backend.posts.grid.terms_caption_placeholder')"
+                />
+            </div>
         </template>
 
         <template v-else-if="zone.type === 'postList'">
@@ -367,8 +794,15 @@ const descriptionHint = computed(() =>
             <AppChoiceRow
                 v-model="bound.display.value"
                 :label="t('backend.posts.grid.item_display')"
-                :hint="t('backend.posts.grid.item_display_hint')"
+                :hint="displayHint"
                 :options="choices.display ?? []"
+            />
+            <!-- Only where there are panels to keep shut. -->
+            <AppToggle
+                v-if="itemFolds"
+                v-model="bound.exclusiveOpen.value"
+                :label="t('backend.posts.grid.item_exclusive_open')"
+                :hint="t('backend.posts.grid.item_exclusive_open_hint')"
             />
             <!-- Only where the costume lays its entries in a row: a list of
                  steps and an accordion read down the page, and offering a
@@ -515,6 +949,85 @@ const descriptionHint = computed(() =>
                     :label="t('backend.posts.grid.zone_video')"
                     :hint="t('backend.posts.grid.zone_video_hint')"
                     placeholder="https://youtu.be/…"
+                />
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'audio'">
+            <!-- Shared by every language, like the film above: the same
+                 recording plays whatever the page is read in. -->
+            <div class="flex items-center gap-3">
+                <span class="min-w-0 flex-1 truncate text-sm text-secondary">
+                    {{ bound.media.value?.id
+                        ? t("backend.posts.grid.zone_audio_file_chosen")
+                        : t("backend.posts.grid.zone_audio_file_none") }}
+                </span>
+                <AppTextLinkButton size="xs" v-on:click="pickAudio">
+                    {{ bound.media.value?.id ? t("shared.media.change") : t("backend.posts.grid.zone_audio_file") }}
+                </AppTextLinkButton>
+                <AppTextLinkButton
+                    v-if="bound.media.value?.id"
+                    color="danger"
+                    size="xs"
+                    v-on:click="bound.media.value = null"
+                >
+                    {{ t("shared.common.remove") }}
+                </AppTextLinkButton>
+            </div>
+
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.caption.value"
+                    :label="t('backend.posts.grid.zone_caption')"
+                    :placeholder="t('backend.posts.caption_placeholder')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'document'">
+            <div class="flex items-center gap-3">
+                <span class="min-w-0 flex-1 truncate text-sm text-secondary">
+                    {{ bound.media.value?.id
+                        ? t("backend.posts.grid.zone_document_chosen")
+                        : t("backend.posts.grid.zone_document_none") }}
+                </span>
+                <AppTextLinkButton size="xs" v-on:click="pickDocument">
+                    {{ bound.media.value?.id ? t("shared.media.change") : t("backend.posts.grid.zone_document_file") }}
+                </AppTextLinkButton>
+                <AppTextLinkButton
+                    v-if="bound.media.value?.id"
+                    color="danger"
+                    size="xs"
+                    v-on:click="bound.media.value = null"
+                >
+                    {{ t("shared.common.remove") }}
+                </AppTextLinkButton>
+            </div>
+
+            <!-- Said here rather than discovered on the published page: the
+                 library is where a client's internal papers live too, and a
+                 zone that silently renders nothing looks like a bug. -->
+            <p class="text-xs text-muted">
+                {{ t("backend.posts.grid.zone_document_published_hint") }}
+            </p>
+
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.label.value"
+                    :label="t('backend.posts.grid.zone_document_label')"
+                    :hint="t('backend.posts.grid.zone_document_label_hint')"
+                    :placeholder="t('backend.posts.grid.zone_document_label_placeholder')"
                 />
                 <AppInput
                     v-model="bound.caption.value"

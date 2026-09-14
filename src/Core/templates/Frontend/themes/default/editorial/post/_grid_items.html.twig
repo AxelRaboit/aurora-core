@@ -4,10 +4,11 @@
    `entries`; the caller has already checked there is at least one entry, so
    nothing here draws an empty frame.
 
-   Four fields serve the five displays, because they are the same four
+   Four fields serve the eight displays, because they are the same four
    questions asked differently - a step's title is a figure's value is a
-   question is a quote's author. What changes between costumes is which of
-   them is loud, which is quiet, and in what order they are read.
+   question is a quote's author is a colleague's name. What changes between
+   costumes is which of them is loud, which is quiet, and in what order they
+   are read.
 
    Column counts are written out literally: Tailwind only emits classes it can
    read in the source, and `md:grid-cols-{{ n }}` is one it never sees. #}
@@ -58,9 +59,17 @@
            announced correctly, and a browser's find-in-page reaches inside a
            closed one. The marker is hidden and replaced by a sign that turns,
            because the default triangle cannot be styled across browsers. #}
+        {# `name` groups the panels so the browser closes the others itself -
+           no script, and it degrades to "several may be open" in a browser
+           that does not know the attribute, which is the behaviour every list
+           already published has. Scoped to the zone: two lists on one page
+           must not close each other's panels. #}
         <div class="divide-y divide-line border-y border-line">
             {% for entry in items.entries %}
-                <details class="group py-4">
+                <details
+                    class="group py-4"
+                    {% if items.exclusiveOpen %}name="fold-{{ items.id }}"{% endif %}
+                >
                     <summary class="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-primary [&::-webkit-details-marker]:hidden">
                         {{ entry.title }}
                         <span class="shrink-0 text-accent transition-transform group-open:rotate-45" aria-hidden="true">+</span>
@@ -152,6 +161,51 @@
                 </div>
             {% endfor %}
         </div>
+
+    {% elseif items.display == 'people' %}
+        {# The face first, because that is what the section is for: a reader
+           scanning "who are these people" is looking for faces, and a name
+           they meet before the portrait is a name they read twice.
+
+           Round, and centred under it the name then the role - the order the
+           two are asked in. The quotes costume sets the same three fields
+           beside one another because a testimonial is read as a sentence with
+           a signature; this one stacks them because a row of colleagues is
+           read as a row. #}
+        <ul class="m-0 grid list-none grid-cols-1 gap-8 p-0 {{ columns[items.columns] }}">
+            {% for entry in items.entries %}
+                <li class="m-0 flex flex-col items-center text-center">
+                    {% if entry.media %}
+                        <img
+                            src="{{ entry.media.url }}"
+                            alt=""
+                            loading="lazy"
+                            class="mb-4 h-28 w-28 rounded-full object-cover"
+                            style="object-position: {{ entry.media.focalPosition }};"
+                        >
+                    {% else %}
+                        {# The initial, so a card with no portrait yet keeps the
+                           height and the rhythm of the ones beside it. A row
+                           where one person is 112px shorter than the rest reads
+                           as a fault rather than as a missing photograph. #}
+                        <span
+                            class="mb-4 flex h-28 w-28 items-center justify-center rounded-full border border-line bg-surface text-3xl font-semibold text-muted"
+                            aria-hidden="true"
+                        >{{ entry.title|slice(0, 1)|upper }}</span>
+                    {% endif %}
+                    {% if entry.title %}<h3 class="m-0 text-lg font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
+                    {% if entry.caption %}
+                        <p class="m-0 mt-1 text-sm font-medium uppercase tracking-wider text-accent">{{ entry.caption }}</p>
+                    {% endif %}
+                    {% if entry.description %}<p class="mt-3 mb-0 text-sm text-secondary">{{ entry.description }}</p>{% endif %}
+                    {% if entry.url %}
+                        <a href="{{ entry.url }}" rel="noopener" class="mt-3 text-sm text-accent no-underline hover:underline">
+                            {{ 'frontend.editorial.grid.get_in_touch'|trans }}
+                        </a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
 
     {% elseif items.display == 'quotes' %}
         {# The quote before the name, which is the order it is read in, and a
