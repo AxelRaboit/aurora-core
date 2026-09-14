@@ -10,6 +10,7 @@ use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use Aurora\Tests\Integration\Support\RestrictedAreaUploadAccessGuard;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -302,6 +303,57 @@ final class UploadsServeAccessTest extends IntegrationTestCase
         self::assertSame(404, $this->request($path));
     }
 
+    // ── Restricted ───────────────────────────────────────────────────────
+    //
+    // The third answer, which no shipped guard produces: served, but through
+    // the application and to this visitor alone. `RestrictedAreaUploadAccessGuard`
+    // is registered for these tests so the branch is executed by something -
+    // see its docblock for why that is worth doing before a client needs it.
+
+    public function testARestrictedKeyIsServedRatherThanWithheld(): void
+    {
+        $path = $this->restrictedPath();
+
+        // The point of the answer: not a 404. A guard that means "some of my
+        // visitors may read this" gets bytes back, where `Denied` would not.
+        $this->assertServed($path);
+    }
+
+    /**
+     * Served and left nowhere. `private` rather than the `public,
+     * max-age=86400, immutable` an anonymous file gets: a shared cache holding
+     * this would answer the next request itself, with the bytes of a file the
+     * decider was never asked about.
+     */
+    public function testARestrictedKeyIsNeverPubliclyCacheable(): void
+    {
+        $this->request($this->restrictedPath());
+        $cacheControl = (string) $this->client->getResponse()->headers->get('Cache-Control');
+
+        self::assertStringContainsString('private', $cacheControl);
+        self::assertStringNotContainsString('public', $cacheControl);
+        self::assertStringNotContainsString('immutable', $cacheControl);
+    }
+
+    /**
+     * The contrast that makes the previous assertion mean something: the same
+     * request, on a key no guard claims, comes back publicly cacheable. Without
+     * it a controller that had lost the restricted branch entirely would still
+     * pass, since `private` is also what an unconfigured response could carry.
+     */
+    public function testAnUnclaimedKeyBesideItStaysPubliclyCacheable(): void
+    {
+        $path = sprintf('unclaimed-test/%s.png', uniqid());
+        $this->write($path);
+
+        $this->request($path);
+
+        self::assertStringContainsString(
+            'immutable',
+            (string) $this->client->getResponse()->headers->get('Cache-Control'),
+        );
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────
 
     private function document(DocumentStatusEnum $status): Document
@@ -330,6 +382,22 @@ final class UploadsServeAccessTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         return $document;
+    }
+
+    /**
+     * A key the test guard claims, with its bytes on disk.
+     *
+     * On disk because `StoredFileLocator` asks the local filesystem first and
+     * a missing file is a 404 of its own: a restricted key nobody wrote would
+     * be withheld for the wrong reason, and the test would pass without ever
+     * reaching the branch it is about.
+     */
+    private function restrictedPath(): string
+    {
+        $path = sprintf('%s/%s.png', RestrictedAreaUploadAccessGuard::PREFIX, uniqid());
+        $this->write($path);
+
+        return $path;
     }
 
     private function write(string $relativePath): void
