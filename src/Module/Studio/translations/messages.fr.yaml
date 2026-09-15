@@ -12,6 +12,8 @@ backend:
         studio_contract_templates_description: Les documents types dont partent les contrats, et leurs versions.
         studio_customers: Clients
         studio_customers_description: Les sociétés avec qui vous contractez, et leur bloc d'identité légale.
+        studio_spaces: Espaces clients
+        studio_spaces_description: Un espace par chantier client, avec son équipe et, bientôt, son calendrier.
         studio_contracts: Contrats
         studio_contracts_description: Les contrats préparés, scellés et signés.
         studio_decks: Présentations
@@ -23,6 +25,10 @@ backend:
                     created: Client créé
                     updated: Client mis à jour
                     deleted: Client supprimé
+                customer_space:
+                    created: Espace client créé
+                    updated: Espace client modifié
+                    deleted: Espace client supprimé
                 contract_template:
                     created: Trame de contrat créée
                     updated: Trame de contrat mise à jour
@@ -54,6 +60,11 @@ backend:
                     create: Créer un client
                     edit: Modifier un client
                     delete: Supprimer un client
+                spaces:
+                    view: Consulter les espaces clients
+                    create: Créer un espace client
+                    edit: Modifier un espace client
+                    delete: Supprimer un espace client
                 contract_templates:
                     view: Consulter les trames de contrat
                     create: Créer une trame de contrat
@@ -685,6 +696,71 @@ backend:
                 siret_invalid: 'Ce SIRET est invalide : quatorze chiffres et une clé de contrôle correcte sont attendus.'
                 has_contracts: 'Ce client est nommé par {count} contrat(s). Un client lié à un contrat ne se supprime pas : ce sont eux qui prouvent ce qui a été convenu, et avec qui.'
                 siret_taken: 'Ce SIRET est déjà enregistré pour {name}.'
+                has_spaces: 'Ce client a encore {count} espace(s) ouvert(s). Supprimez ou archivez son travail avant de supprimer la fiche.'
+        spaces:
+            title: Espaces clients
+            add: Ajouter un espace
+            create: Nouvel espace
+            edit: 'Modifier {name}'
+            empty: Aucun espace pour le moment.
+            empty_hint: Un espace regroupe le travail mené pour un client. Créez-en un par chantier, pas un par société.
+            search_placeholder: Rechercher par nom d'espace ou par société…
+            created: Espace créé.
+            updated: Espace mis à jour.
+            deleted: Espace supprimé.
+            delete_confirm: 'Supprimer {name} ?'
+            delete_warning: L'espace et la liste de son équipe disparaissent. Le client, ses contrats et ses documents ne bougent pas.
+            show_archived: Afficher les espaces archivés
+            archived_badge: Archivé
+            member_count: '{count} personne(s)'
+            no_members: Aucun membre
+
+            col_space: Espace
+            col_customer: Client
+            col_team: Équipe
+            col_status: Statut
+
+            group_identity: L'espace
+            group_team: L'équipe
+
+            name: Nom de l'espace
+            name_placeholder: 'Boulangerie Martin - Réseaux sociaux'
+            name_hint: Ce que vous lisez dans la liste. Pas la raison sociale, elle est déjà sur la fiche client.
+            description: Description
+            description_placeholder: Ce que couvre cet espace, en une ou deux phrases.
+            customer: Client
+            customer_none: Choisir un client
+            customer_hint: La société pour qui ce travail est mené. Un même client peut avoir plusieurs espaces.
+            status: Statut
+            status_hint: Un espace archivé sort de la liste sans rien perdre de son contenu.
+            colour: Couleur
+            colour_hint: Elle distingue cet espace des autres partout où ses dates apparaissent.
+            colour_auto: Choisie automatiquement
+            timezone: Fuseau horaire
+            timezone_hint: 'Le fuseau dans lequel les journées de cet espace sont découpées. À changer pour un client à l''étranger.'
+            members: Membres
+            members_hint: Qui, chez vous, travaille sur cet espace. Ce n'est pas un droit d'accès, c'est un nom à donner au client.
+            member_add: Ajouter une personne
+            member_remove: Retirer
+            member_none_left: Tout le monde est déjà sur cet espace.
+
+            statuses:
+                active: Actif
+                archived: Archivé
+
+            roles:
+                lead: Référent
+                member: Membre
+
+            row_actions:
+                edit_description: Modifier cet espace
+                delete_description: Supprimer cet espace
+
+            errors:
+                name_required: Le nom de l'espace est obligatoire.
+                name_too_long: Le nom ne peut pas dépasser 150 caractères.
+                customer_required: Choisissez le client à qui cet espace appartient.
+                timezone_invalid: Ce fuseau horaire n'est pas reconnu.
 studio:
     contract:
         # Écrit dans le document lui-même, donc scellé avec lui : ces phrases

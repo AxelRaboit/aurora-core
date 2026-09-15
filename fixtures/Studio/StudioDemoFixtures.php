@@ -6,10 +6,14 @@ namespace Aurora\Fixtures\Studio;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Fixtures\Core\AppFixtures;
+use Aurora\Fixtures\Core\CoreDemoFixtures;
 use Aurora\Fixtures\Ged\GedDemoFixtures;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Ged\Document\Entity\Document;
+use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
+use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Contract\Dto\ContractInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateVersionInput;
@@ -29,6 +33,10 @@ use Aurora\Module\Studio\Customer\Dto\CustomerInput;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Manager\CustomerManagerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
+use Aurora\Module\Studio\CustomerSpace\Dto\CustomerSpaceInput;
+use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
+use Aurora\Module\Studio\CustomerSpace\Manager\CustomerSpaceManagerInterface;
+use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\Deck\Entity\DeckCategory;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
@@ -40,10 +48,13 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
+use RuntimeException;
+
+use function sprintf;
 
 /**
- * Demo content for the Studio module: three customers, three trames and a
- * contract in each state the list can draw.
+ * Demo content for the Studio module: three customers, five client spaces,
+ * three trames and a contract in each state the list can draw.
  *
  * Written because the module had none, and because a module with no demo data
  * has no screenshot of itself - the three screens could be opened locally and
@@ -96,6 +107,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     public function __construct(
         private readonly CustomerManagerInterface $customers,
         private readonly CustomerRepository $customerRepository,
+        private readonly CustomerSpaceManagerInterface $spaces,
+        private readonly CustomerSpaceRepository $spaceRepository,
+        private readonly UserRepository $userRepository,
         private readonly ContractTemplateManagerInterface $templates,
         private readonly ContractTemplateRepository $templateRepository,
         private readonly ContractManagerInterface $contracts,
@@ -115,8 +129,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     {
         // The GED fixtures, for the two slides that carry a picture: a
         // full-page image points at a document in the library rather than
-        // carrying a file of its own.
-        return [AppFixtures::class, GedDemoFixtures::class];
+        // carrying a file of its own. `CoreDemoFixtures` for the two demo
+        // accounts the spaces put on their teams.
+        return [AppFixtures::class, CoreDemoFixtures::class, GedDemoFixtures::class];
     }
 
     public function load(ObjectManager $manager): void
@@ -187,6 +202,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // on an instance that already had contracts, which is every instance
         // where `make demo` had been run once.
         $this->seedDecks($marie);
+        $this->seedSpaces($marie, $jean, $sophie);
 
         // Nothing below is built if the instance already has contracts. The
         // seal mints a reference from a yearly sequence, so a second run would
@@ -265,6 +281,129 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         );
 
         $this->entityManager->flush();
+    }
+
+    /**
+     * Five client spaces, chosen for the states a reader needs to recognise.
+     *
+     * Atelier Dupont gets two, which is the decision the whole design turns on:
+     * a space belongs to a customer and a customer may have several, so a
+     * client with two engagements running at once is the normal case rather
+     * than a workaround. A single space per company would have looked tidier
+     * here and taught the wrong thing.
+     *
+     * One is archived, and it has to be: the "show archived" switch only
+     * appears once there is something behind it, so a demo with none hides a
+     * feature nobody would then think to look for. It is also the space in a
+     * foreign zone, which is where the timezone field stops being decoration.
+     *
+     * One has nobody on it, so the empty team reads as a state rather than as
+     * a loading failure.
+     */
+    private function seedSpaces(
+        CustomerInterface $marie,
+        CustomerInterface $jean,
+        CustomerInterface $sophie,
+    ): void {
+        // Built once, like the decks and the contracts. A space has no natural
+        // key to look one up by, so a second `make demo` would quietly double
+        // a list that is meant to be read.
+        if (0 !== $this->spaceRepository->count([])) {
+            return;
+        }
+
+        $admin = $this->backendUser('dev@aurora.app');
+        $marieAccount = $this->backendUser('marie.dupont@aurora.app');
+        $jeanAccount = $this->backendUser('jean.martin@aurora.app');
+
+        $this->space(
+            name: 'Atelier Dupont - Réseaux sociaux',
+            description: 'Deux publications par semaine, Instagram et Facebook. Validation le jeudi.',
+            customer: $marie,
+            members: [$marieAccount => 'lead', $jeanAccount => 'member'],
+        );
+
+        $this->space(
+            name: 'Atelier Dupont - Refonte du site',
+            description: 'Reprise des textes et des photos de chantier, livraison au printemps.',
+            customer: $marie,
+            members: [$admin => 'lead'],
+        );
+
+        $this->space(
+            name: 'Martin Documents - Contenus LinkedIn',
+            description: 'Une publication hebdomadaire sur l\'archivage réglementaire.',
+            customer: $jean,
+            members: [$jeanAccount => 'lead', $admin => 'member'],
+        );
+
+        $this->space(
+            name: 'Roux Photographie - Portfolio 2026',
+            description: "Sélection des séries de l'année et mise à jour des pages du site.",
+            customer: $sophie,
+            members: [],
+        );
+
+        $this->space(
+            name: 'Martin Documents - Marché espagnol',
+            description: 'Campagne de lancement en Espagne. Chantier terminé, gardé pour ses contenus.',
+            customer: $jean,
+            members: [$jeanAccount => 'lead'],
+            status: CustomerSpaceStatusEnum::Archived,
+            timezone: 'Europe/Madrid',
+        );
+    }
+
+    /**
+     * One space, through the Manager rather than around it.
+     *
+     * So the demo exercises the same path a person does: the colour is spread
+     * across the palette by the same rule, and the audit log carries the same
+     * rows. Fixtures that persist entities directly produce data no code ever
+     * produced, which is how a demo stops resembling the product.
+     *
+     * @param array<int, string> $members account id => role value
+     */
+    private function space(
+        string $name,
+        string $description,
+        CustomerInterface $customer,
+        array $members,
+        CustomerSpaceStatusEnum $status = CustomerSpaceStatusEnum::Active,
+        string $timezone = 'Europe/Paris',
+    ): void {
+        $rows = [];
+        foreach ($members as $userId => $role) {
+            $rows[] = ['userId' => $userId, 'role' => $role];
+        }
+
+        $this->spaces->create(new CustomerSpaceInput(
+            name: $name,
+            description: $description,
+            customerId: $customer->getId(),
+            status: $status,
+            // Left null so the Manager spreads the palette itself. Naming a
+            // slot here would have hard-coded five colours that stop being
+            // free the moment somebody adds a space of their own.
+            colourSlot: null,
+            timezone: $timezone,
+            members: $rows,
+        ));
+    }
+
+    /** The demo account behind an address, which the core fixtures put there. */
+    private function backendUser(string $email): int
+    {
+        $user = $this->userRepository->findOneBy([
+            'email' => $email,
+            'type' => UserTypeEnum::Backend->value,
+        ]);
+
+        if (!$user instanceof User) {
+            throw new RuntimeException(sprintf('The demo account %s is missing - run the core fixtures first.', $email));
+        }
+
+        return (int) $user->getId();
     }
 
     /**

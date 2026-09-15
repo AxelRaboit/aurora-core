@@ -35,4 +35,9 @@ final readonly class StudioContext
     {
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioDecks);
     }
+
+    public function areSpacesEnabled(): bool
+    {
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioSpaces);
+    }
 }

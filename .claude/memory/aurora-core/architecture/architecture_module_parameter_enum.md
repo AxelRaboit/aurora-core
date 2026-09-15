@@ -1,80 +1,98 @@
 ---
 name: Architecture ModuleParameterEnum
-description: Toggles de modules - chaque module métier a son <Module>ModuleParameterEnum + provider ; l'enum central est core-infra only
+description: Toggles de modules - un seul enum central, y compris pour les modules métier ; la distribution par module n'existe plus dans le code
 type: project
 ---
 
 ## Règle
 
-Les paramètres "module on/off" vivent dans un enum dédié, **séparément** d'`ApplicationParameterEnum`
-(paramètres applicatifs : SEO, séquences, seuils…). Tous implémentent
-`ApplicationParameterEnumInterface`, groupe `'modules'`.
+Les paramètres "module on/off" vivent dans un enum dédié, **séparément**
+d'`ApplicationParameterEnum` (paramètres applicatifs : SEO, séquences,
+seuils…). Tous implémentent `ApplicationParameterEnumInterface`, groupe
+`'modules'`.
 
-**Depuis la distribution des enums (2026-05-30)** la propriété est répartie :
+**Il y a exactement un enum** :
+`Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum`. Il porte les
+toggles de **tous** les modules, infra comme métier : General, Platform,
+Configuration, Media, Editorial, Ged, Planning, Notes, Studio. Un seul
+provider l'expose, `CoreModuleParameterProvider`.
 
-- **Chaque module métier** porte ses toggles dans son **propre**
-  `Aurora\Module\<Module>\Setting\<Module>ModuleParameterEnum` + un
-  `<Module>ModuleParameterProvider` (implements `ApplicationParameterProviderInterface`,
-  `yield from <Module>ModuleParameterEnum::cases()`). C'est ce qui rend le module
-  installable à la carte (le package embarque ses propres toggles).
-- **L'enum central** `Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum`
-  est désormais **core-infra only** : General / Platform / Configuration / Media / Ged
-  (~20 cases). Il ne connaît plus aucun module métier. **Ne JAMAIS y rajouter
-  un toggle de module métier** (régression #1 post-split).
+**Why:** séparation config applicative ↔ activation modules (le groupe
+`'modules'` est filtré hors de l'onglet Parameters par
+`SettingRepository::findPaginated`).
 
-**Why:** séparation config applicative ↔ activation modules (le groupe `'modules'`
-est filtré hors de l'onglet Parameters par `SettingRepository::findPaginated`) ;
-et distribution Composer (un module léger n'embarque pas les toggles des autres).
+## ⛔ Correction du 15/09/2026 : la distribution par module n'existe pas
 
-## Forme d'un `<Module>ModuleParameterEnum` (mirror : `ToolsModuleParameterEnum`, `NotesModuleParameterEnum`)
+Cette mémoire affirmait jusqu'ici que chaque module métier portait son propre
+`<Module>ModuleParameterEnum` + provider, et que rajouter un toggle métier dans
+l'enum central était « la régression #1 post-split ». **C'est faux, et ça l'est
+sur le disque** :
 
-- Cases **courtes** : `Backend`, `<Sub1>`, `Frontend`… La **valeur** garde la clé
-  legacy `modules_<module>_<feature>` (pas de migration BDD au split).
+```bash
+find src/Module -name '*ModuleParameterEnum.php'
+# → src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php, et rien d'autre
+```
+
+La distribution a appartenu au split en dépôts `aurora-*`, abandonné en août
+2026 (cf. [[project_monorepo_split_chantier]]). Les enums par module sont
+partis avec lui. La mémoire, elle, avait gardé la version d'après-split, et
+elle envoyait donc créer un fichier qui n'a aucun équivalent dans le dépôt.
+
+**Ne pas y croire sans vérifier vaut aussi pour les skills.** `/add-module`,
+`/add-submodule`, `/audit-module-toggles` et `/register-module-toggle`
+décrivent tous le même monde disparu (`<Module>ModuleParameterEnum`,
+`getDisplayParent()`, un provider par package). `/audit-module-toggles`
+signalerait aujourd'hui ❌ tous les modules du dépôt. Ces quatre skills
+restent à reprendre.
+
+## Forme de l'enum
+
+- Case **explicite et préfixée** : `StudioBackend`, `StudioCustomers`,
+  `GedDocuments`… et non `Backend` court. La **valeur** est la clé BDD
+  `modules_<module>_<feature>`, sans suffixe `_enabled`.
 - `getType()` → `'bool'`, `getGroup()` → `'modules'`, `getDefaultValue()` → `'1'`.
-- `getModuleId(): ?string` → `'<module>'` pour `Backend`, null sinon (résolution navItems).
-- `getCascadeRequires(): ?string` → `self::Backend->value` pour les sous-cases, null pour `Backend`
-  (le prérequis qui force l'enfant à `'0'` quand le parent est OFF).
-- `getDisplayParent(): ?string` → idem (hiérarchie d'affichage dashboard). **Remplace**
-  l'ancien `getParentCase()` du monolithe.
-- `toToggle(): ModuleToggle` → `{key, labelKey, descriptionKey, parentKey (=cascade),
-  moduleId, displayParentKey}`. Consommé par `<Module>Module::getToggles()`.
-- `match ($this)` de `getLabel`/`getDescription` **exhaustif** (pas de `default`) :
-  forcing function pour ne pas oublier d'arm en ajoutant une sous-case.
+- `getModuleId(): ?string` → `'<module>'` pour les cases `*Backend`, null sinon.
+- `getParentCase(): ?self` → la case racine du module (hiérarchie d'affichage).
+  Il n'y a **pas** de `getDisplayParent()`.
+- `getCascadeRequires(): ?string` → la clé qui doit être active avant celle-ci.
+  Ce n'est pas forcément le `*Backend` du module : `StudioContracts` et
+  `StudioSpaces` dépendent de `StudioCustomers`, parce qu'un contrat et un
+  espace s'adressent tous deux à un client.
+- `getCascadeDisableTargets()` est dérivé des deux précédents, rien à écrire.
+- `toToggle(): ModuleToggle`, consommé par `<Module>Module::getToggles()`.
+- Les `match ($this)` de `getLabel`/`getDescription` sont **exhaustifs** (pas de
+  `default`) : c'est la forcing function qui fait échouer la compilation quand
+  on ajoute une case sans la libeller. `getParentCase` et `getCascadeRequires`
+  ont un `default => null`, eux.
 
-> Cascade intra-module générique (ternaire `self::Backend === $this ? null : self::Backend->value`,
-> cf. Notes) → ajouter une sous-case ne touche que `getLabel`/`getDescription`.
-> Si l'enum utilise un `match` (cf. Photo : Frontend/Galleries), ajouter aussi l'arm cascade.
+## Câblage au runtime
 
-## Câblage du toggle au runtime
-
-- `<Module>Context::isBackendEnabled()` → `moduleAccessChecker->isEnabled(<Module>ModuleParameterEnum::Backend->value)`.
-  **Passer `->value` (string)** : l'enum par-module ne satisfait pas le type-hint de l'enum
-  central, et `ModuleAccessChecker::isEnabled()` accepte `ModuleParameterEnum|string`.
-- Le provider est tagué `aurora.application_parameter_provider` par le `_instanceof`
-  central de `config/services.yaml`. (L'autre voie, un `config/services.php` par
-  package, appartenait aux dépôts `aurora-*` : le split est abandonné, voir
-  [[project_monorepo_split_chantier]].) Sans le tag,
-  `aurora:application-parameter` flague les rows obsolètes et les wipe.
+- `<Module>Context::is<Sub>Enabled()` →
+  `moduleAccessChecker->isEnabled(ModuleParameterEnum::<Case>)`. La case elle-même,
+  pas `->value` : le type-hint accepte les deux, et les contextes existants
+  passent la case.
+- Le provider est tagué `aurora.application_parameter_provider` par le
+  `_instanceof` de `config/services.yaml`. Sans le tag,
+  `aurora:application-parameter` flague les rows comme obsolètes et les wipe.
 
 ## Consommateurs cross-module
 
-Registry-driven (lisent l'union de tous les `getToggles()` / providers), donc agnostiques
-au lieu de stockage : `SettingsService` (cascade), `ModulesViewBuilder`, `UsersViewBuilder`
-(`getModuleId()`), `ApplicationParameterCommand` (sync BDD), `ModuleToggleRegistry`.
-`DashboardViewBuilder` / `MenuRenderer` référencent des clés string.
+Registry-driven (lisent l'union des `getToggles()`), donc agnostiques au
+stockage : `SettingsService` (cascade), `ModulesViewBuilder`,
+`UsersViewBuilder` (`getModuleId()`), `ApplicationParameterCommand` (sync BDD),
+`ModuleToggleRegistry`.
 
 ## How to apply
 
-- Nouveau module → `/add-module` génère `<Module>ModuleParameterEnum` + provider + bundle.
-- Nouvelle sous-feature → `/add-submodule` ajoute une `case <Sub>` dans le
-  `<Module>ModuleParameterEnum` du parent (jamais l'enum central).
-- Vérifier le câblage → `/audit-module-toggles` (un module métier resté dans l'enum central = `❌`).
-- Après ajout → `make sf CMD="aurora:application-parameter"` pour seed les rows.
+- Nouvelle sous-feature → ajouter une `case <Module><Sub>` dans l'enum central,
+  ses arms `getLabel`/`getDescription`, son `getParentCase`, son
+  `getCascadeRequires`, puis `->toToggle()` dans `<Module>Module::getToggles()`.
+- Après ajout → `php bin/console aurora:application-parameter` pour seed la row.
 - `ApplicationParameterEnum` ne contient jamais de case module.
 
 ## Liens
 
-- [[project_monorepo_split_chantier]] - le chantier qui a distribué les enums. Le split lui-même a été abandonné ; la distribution des enums, elle, est restée.
+- [[project_monorepo_split_chantier]] - le chantier qui avait distribué les enums,
+  et qui les a remportés en étant abandonné.
 - [[pattern_core_submodules_split]] - "1 module = 1 toggle root = 1 context".
-- Outils alignés sur ce pattern : skills `/add-module`, `/register-module-toggle`,
-  `/audit-module-toggles`, `/add-submodule` + doc `docs/aurora-core/dev/add_module.md`.
+- [[project_studio_customer_spaces]] - le lot qui a trouvé cette mémoire fausse.

@@ -12,6 +12,8 @@ backend:
         studio_contract_templates_description: The model documents contracts are built from, and their versions.
         studio_customers: Customers
         studio_customers_description: The companies you contract with, and their legal identity block.
+        studio_spaces: Client spaces
+        studio_spaces_description: One space per client engagement, with its team and, soon, its calendar.
         studio_contracts: Contracts
         studio_contracts_description: Contracts prepared, sealed and signed.
         studio_decks: Presentations
@@ -23,6 +25,10 @@ backend:
                     created: Customer created
                     updated: Customer updated
                     deleted: Customer deleted
+                customer_space:
+                    created: Client space created
+                    updated: Client space updated
+                    deleted: Client space deleted
                 contract_template:
                     created: Contract template created
                     updated: Contract template updated
@@ -54,6 +60,11 @@ backend:
                     create: Create a customer
                     edit: Edit a customer
                     delete: Delete a customer
+                spaces:
+                    view: View client spaces
+                    create: Create a client space
+                    edit: Edit a client space
+                    delete: Delete a client space
                 contract_templates:
                     view: View contract templates
                     create: Create a contract template
@@ -683,8 +694,73 @@ backend:
                 contractual_email_invalid: This email is not valid.
                 share_capital_invalid: Share capital cannot be negative.
                 siret_invalid: 'This registration number is invalid: fourteen digits with a correct checksum are expected.'
-                siret_taken: 'This registration number is already recorded for {name}.'
                 has_contracts: '{count} contract(s) name this customer. A customer a contract points at is not deleted: those contracts are what proves what was agreed, and with whom.'
+                siret_taken: 'This registration number is already recorded for {name}.'
+                has_spaces: 'This client still has {count} open space(s). Delete or archive their work before deleting the record.'
+        spaces:
+            title: Client spaces
+            add: Add a space
+            create: New space
+            edit: 'Edit {name}'
+            empty: No space yet.
+            empty_hint: A space holds the work done for one client. Create one per engagement, not one per company.
+            search_placeholder: Search by space name or company…
+            created: Space created.
+            updated: Space updated.
+            deleted: Space deleted.
+            delete_confirm: 'Delete {name}?'
+            delete_warning: The space and its team list go. The customer, their contracts and their documents stay where they are.
+            show_archived: Show archived spaces
+            archived_badge: Archived
+            member_count: '{count} people'
+            no_members: Nobody assigned
+
+            col_space: Space
+            col_customer: Client
+            col_team: Team
+            col_status: Status
+
+            group_identity: The space
+            group_team: The team
+
+            name: Space name
+            name_placeholder: 'Martin Bakery - Social media'
+            name_hint: What you read in the list. Not the legal name, which is already on the customer record.
+            description: Description
+            description_placeholder: What this space covers, in a sentence or two.
+            customer: Client
+            customer_none: Choose a client
+            customer_hint: The company this work is for. One client can have several spaces.
+            status: Status
+            status_hint: An archived space leaves the list without losing any of its content.
+            colour: Colour
+            colour_hint: It tells this space from the others everywhere its dates appear.
+            colour_auto: Chosen automatically
+            timezone: Time zone
+            timezone_hint: The zone this space's days are cut in. Change it for a client abroad.
+            members: Members
+            members_hint: Who on your side works on this space. It is not an access right, it is a name to give the client.
+            member_add: Add someone
+            member_remove: Remove
+            member_none_left: Everybody is already on this space.
+
+            statuses:
+                active: Active
+                archived: Archived
+
+            roles:
+                lead: Lead
+                member: Member
+
+            row_actions:
+                edit_description: Edit this space
+                delete_description: Delete this space
+
+            errors:
+                name_required: The space name is required.
+                name_too_long: The name cannot be longer than 150 characters.
+                customer_required: Choose the client this space belongs to.
+                timezone_invalid: That time zone is not recognised.
 studio:
     contract:
         # Written into the document itself, and therefore sealed with it: these

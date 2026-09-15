@@ -5,6 +5,91 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.176] - 2026-09-15
+
+### Ajouté
+
+#### Studio gagne les espaces clients
+Un **espace** est le contenant du travail mené pour un client : un nom lisible,
+le client à qui il appartient, une équipe, une couleur et un fuseau horaire.
+La liste s'ouvre sur « Espaces clients », au-dessus de la fiche client dans le
+menu, parce qu'un espace s'ouvre tous les jours et qu'une identité légale se
+remplit une fois.
+
+**Un client peut en avoir plusieurs**, et c'est la décision sur laquelle repose
+tout ce qui suivra. Un client avec deux marques fait tourner deux calendriers
+éditoriaux ; un client qui signe pour un site puis pour du social a deux
+chantiers de rythmes différents. La contrainte inverse aurait eu l'air plus
+propre et se serait payée à la première société qui en demande deux.
+
+L'équipe d'un espace n'est **pas un droit d'accès**. Qui peut ouvrir un espace
+est décidé par `studio.spaces.view` sur le compte, comme partout ailleurs dans
+le back-office ; la liste des membres dit qui travaille dessus, ce qui est le
+nom qu'on donne au client. Deux sources de vérité pour l'accès auraient
+divergé au premier cas limite.
+
+Un espace **archivé** sort de la liste sans rien perdre : le filtre qui les
+ramène n'apparaît que lorsqu'il y a quelque chose derrière, un interrupteur qui
+ne fait rien étant un interrupteur qu'on apprend à ne plus croire. Archiver
+n'est pas supprimer, et les deux colonnes répondent à deux questions.
+
+La bascule `studio_spaces` est en cascade **sous les clients**, pas sous le
+module : un espace est l'espace de quelqu'un, donc l'écran client en est un
+prérequis réel. C'est le même raisonnement que pour les contrats.
+
+#### Supprimer un client qui a encore un espace est refusé en toutes lettres
+La clé étrangère disait déjà non, mais elle le disait comme une erreur SQL au
+milieu d'une requête, qui arrivait à l'écran en 500. Le refus est maintenant
+une phrase sous le champ, qui dit combien d'espaces sont ouverts.
+
+Les contrats sont vérifiés en premier quand les deux refus sont vrais à la
+fois : un espace se supprime, un contrat signé non.
+
+### Modifié
+
+#### La règle du module Studio admet la surface de livraison
+Le docblock de `StudioModule` disait « ce qui est vendu et ce qui est livré, pas
+les outils avec lesquels on le fait ». Un espace client n'est ni vendu ni
+livré : c'est la surface sur laquelle on livre, et les premiers mots de la règle
+ne pouvaient pas l'accueillir. La règle devient : Studio tient ce qui est vendu,
+ce qui est livré, **et la surface sur laquelle on le livre**.
+
+La frontière qu'elle refuse ne bouge pas : un outil appartient à son module.
+C'est pour cette raison que la suite annoncera ses dates au Calendrier au lieu
+de dessiner son propre calendrier, et rangera ses fichiers dans la Médiathèque
+au lieu d'en tenir une seconde.
+
+Un module `Workspace` séparé a été écarté pour la raison exacte qui avait déjà
+coûté le renommage d'Accounting en Studio : un module ne peut pas porter de
+relation vers l'entité d'un autre module, et un espace sans relation vers un
+client n'est pas un espace client.
+
+### Interne
+
+#### Données de démonstration
+Cinq espaces sur les trois clients existants, choisis pour les états que
+l'écran sait dessiner : deux sur le même client, un sans personne dans
+l'équipe, un archivé dans un fuseau étranger. Ils passent par le Manager et non
+par un `persist()` direct, donc la démo emprunte le chemin d'un humain, couleur
+étalée sur la palette et journal d'audit compris.
+
+#### La mémoire projet décrivait des enums de modules qui n'existent plus
+`architecture_module_parameter_enum` affirmait que chaque module portait son
+propre `<Module>ModuleParameterEnum` et qu'ajouter un toggle métier dans l'enum
+central était « la régression #1 ». Il n'existe qu'un seul enum, et il contient
+tous les modules métier : la distribution est partie avec le split abandonné en
+août. La mémoire est corrigée.
+
+Les skills `/add-module`, `/add-submodule`, `/register-module-toggle` et
+`/audit-module-toggles` décrivent encore ce monde disparu. Ils restent à
+reprendre.
+
+### Dans aurora-client
+`make aurora-update` puis la migration. La bascule arrive activée : un projet
+qui ne veut pas des espaces la coupe depuis l'écran d'accès aux modules.
+
+---
+
 ## [0.9.175] - 2026-09-14
 
 ### Ajouté
