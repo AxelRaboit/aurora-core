@@ -33,6 +33,11 @@ backend:
                     created: Content created
                     updated: Content updated
                     deleted: Content deleted
+                space_access_link:
+                    issued: Client access link created
+                    revoked: Client access link revoked
+                    deleted: Client access link deleted
+                    opened: Space opened by a client
                 space_content_column:
                     created: Board step created
                     updated: Board step renamed
@@ -73,6 +78,7 @@ backend:
                     create: Create a client space
                     edit: Edit a client space
                     delete: Delete a client space
+                    share: Give a client access to a space
                 contract_templates:
                     view: View contract templates
                     create: Create a contract template
@@ -772,6 +778,44 @@ backend:
                 name_too_long: The name cannot be longer than 150 characters.
                 customer_required: Choose the client this space belongs to.
                 timezone_invalid: That time zone is not recognised.
+        space_access:
+            tab: Client access
+            intro: A link opens this space read-only, with no account. It is personal, it expires, and it can be revoked.
+            issue: Create a link
+            issued: Link created.
+            revoke: Revoke
+            revoked: Link revoked.
+            deleted: Link deleted.
+            empty: No link yet.
+            empty_hint: Create one to show this content plan to your client.
+
+            minted_title: Here is the address
+            minted_hint: 'Copy it now: it will never be shown again. Only its fingerprint is kept, so nobody can recover it, you included.'
+
+            recipient_email: Recipient email
+            recipient_email_placeholder: camille@company.com
+            recipient_email_hint: The address you will send the link to. It is also how you know who opened what.
+            label: Name
+            label_placeholder: 'Camille, marketing lead'
+            label_hint: Optional. Useful when one client has several links.
+            valid_for_days: Validity
+            valid_for_days_hint: 'In days, {max} at most. An access that outlives the engagement is one nobody remembers to close.'
+
+            never_opened: Never opened
+            opened_on: 'Opened on {date}'
+            expires_on: 'Expires on {date}'
+
+            states:
+                active: Active
+                revoked: Revoked
+                expired: Expired
+
+            delete_confirm: 'Delete the link for {name}?'
+            delete_warning: 'The link stops working and its record goes with it. To keep the record, revoke it instead.'
+
+            errors:
+                email_required: The recipient email is required.
+                email_invalid: This email is not valid.
         space_content:
             board: Board
             calendar: Calendar
@@ -931,6 +975,12 @@ studio:
                 too_many_codes: 'Too many codes requested for this contract. Try again in an hour.'
                 too_many_requests: 'Too many attempts. Wait a few minutes.'
                 code_not_sent: "The code could not be sent. Try again in a moment, or tell your contact."
+        space:
+            unavailable_message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a space's content plan, ask your contact for a new link.
+            timezone_notice: 'Times in {timezone}'
+            valid_until: 'This address is valid until {date}.'
+            footer: This address is personal. Please do not pass it on.
+            no_body: The text is not written yet.
         unavailable:
             title: This link is no longer valid
             message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a contract, ask your contact for a new link.

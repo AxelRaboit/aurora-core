@@ -1,0 +1,172 @@
+<script setup>
+/**
+ * A client's own content plan, read from a secret address.
+ *
+ * **The same month grid the studio sees**, not a second rendering of it: the
+ * component is shared, so what a client is shown is what their agency is
+ * looking at, and the two cannot drift into disagreeing about which Tuesday a
+ * post lands on.
+ *
+ * Read-only, with nothing on the page that could write. It carries no
+ * endpoint addresses at all - a screen with no writes has no business holding
+ * the URLs of six of them - so there is nothing here for a template mistake to
+ * call.
+ *
+ * What is deliberately not shown: the steps as columns. A client does not need
+ * to see that a post moved from "en rédaction" to "à valider", they need to see
+ * what is coming and when. The step travels as a word on the card, which is the
+ * part that answers "where is this".
+ */
+import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import CalendarMonth from "@/shared/components/calendar/CalendarMonth.vue";
+import AppModal from "@/shared/components/overlay/AppModal.vue";
+import AppThemeToggle from "@/shared/components/action/AppThemeToggle.vue";
+import { monthGrid } from "@/shared/composables/calendar/monthGrid.js";
+import { ChevronLeft, ChevronRight, FileText } from "lucide-vue-next";
+
+const props = defineProps({
+    space: { type: Object, required: true },
+    columns: { type: Array, default: () => [] },
+    items: { type: Array, default: () => [] },
+    expiresAt: { type: String, default: null },
+});
+
+const { t, d } = useI18n();
+
+const today = new Date();
+const year = ref(today.getFullYear());
+const month = ref(today.getMonth());
+
+const cells = computed(() => monthGrid(year.value, month.value));
+
+const columnNames = computed(
+    () => new Map(props.columns.map((column) => [column.id, column.name])),
+);
+
+const events = computed(() =>
+    props.items
+        .filter((item) => item.scheduledAt)
+        .map((item) => ({
+            id: item.id,
+            title: item.title,
+            startAt: item.scheduledAt,
+            endAt: item.scheduledAt,
+            allDay: false,
+            colourSlot: props.space.colourSlot,
+            // The grid already honours this: a read-only event cannot be
+            // dragged and draws no handles. Saying it here rather than trusting
+            // the absence of a listener is what makes the page read-only by
+            // construction instead of by omission.
+            readOnly: true,
+        })),
+);
+
+const itemsById = computed(
+    () => new Map(props.items.map((item) => [item.id, item])),
+);
+
+const openItem = ref(null);
+
+function open(event) {
+    openItem.value = itemsById.value.get(event.id) ?? null;
+}
+
+const monthTitle = computed(() =>
+    d(new Date(year.value, month.value, 1), { year: "numeric", month: "long" }),
+);
+
+function goToMonth(delta) {
+    const moved = new Date(year.value, month.value + delta, 1);
+    year.value = moved.getFullYear();
+    month.value = moved.getMonth();
+}
+
+const openWhen = computed(() => {
+    if (!openItem.value?.scheduledAt) return "";
+
+    return d(new Date(openItem.value.scheduledAt), "long");
+});
+</script>
+
+<template>
+    <div class="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 p-4 sm:p-8">
+        <header class="flex flex-wrap items-start justify-between gap-3">
+            <div class="flex min-w-0 items-center gap-2.5">
+                <span
+                    class="h-2.5 w-2.5 shrink-0 rounded-full"
+                    :style="{ backgroundColor: `var(--chart-cat-${space.colourSlot})` }"
+                />
+                <div class="min-w-0">
+                    <h1 class="truncate text-base font-semibold text-primary">
+                        {{ space.name }}
+                    </h1>
+                    <p class="truncate text-sm text-muted">{{ space.customerName }}</p>
+                </div>
+            </div>
+            <AppThemeToggle />
+        </header>
+
+        <p v-if="space.description" class="max-w-2xl text-sm text-secondary">
+            {{ space.description }}
+        </p>
+
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-1">
+                <button
+                    type="button"
+                    class="rounded-md p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+                    :aria-label="t('shared.common.previous')"
+                    v-on:click="goToMonth(-1)"
+                >
+                    <ChevronLeft class="h-4 w-4" :stroke-width="2" />
+                </button>
+                <button
+                    type="button"
+                    class="rounded-md p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+                    :aria-label="t('shared.common.next')"
+                    v-on:click="goToMonth(1)"
+                >
+                    <ChevronRight class="h-4 w-4" :stroke-width="2" />
+                </button>
+                <h2 class="ml-2 text-sm font-medium capitalize text-primary">
+                    {{ monthTitle }}
+                </h2>
+            </div>
+            <p class="text-xs text-muted">
+                {{ t("studio.public.space.timezone_notice", { timezone: space.timezone }) }}
+            </p>
+        </div>
+
+        <CalendarMonth :cells="cells" :events="events" v-on:open-event="open" />
+
+        <footer class="mt-auto border-t border-line/50 pt-3 text-xs text-muted">
+            <p v-if="expiresAt">
+                {{ t("studio.public.space.valid_until", { date: d(new Date(expiresAt), "long") }) }}
+            </p>
+            <p>{{ t("studio.public.space.footer") }}</p>
+        </footer>
+
+        <AppModal
+            :show="!!openItem"
+            max-width="lg"
+            :title="openItem?.title ?? ''"
+            :icon="FileText"
+            v-on:close="openItem = null"
+        >
+            <p class="text-xs text-muted">
+                {{ columnNames.get(openItem?.columnId) }}
+                <span v-if="openWhen"> · {{ openWhen }}</span>
+            </p>
+            <p
+                v-if="openItem?.body"
+                class="mt-3 whitespace-pre-line text-sm text-primary"
+            >
+                {{ openItem.body }}
+            </p>
+            <p v-else class="mt-3 text-sm text-muted">
+                {{ t("studio.public.space.no_body") }}
+            </p>
+        </AppModal>
+    </div>
+</template>

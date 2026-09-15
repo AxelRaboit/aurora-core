@@ -34,6 +34,10 @@
         {{ include('@Shared/components/theme_script.html.twig', {colorScheme: true}) }}
         {{ vite_entry_link_tags('app') }}
         {{ include('@Shared/components/primary_color_style.html.twig') }}
+        {# Privileges, flash messages and the colour presets. Without them a
+           `usePrivileges()` call answers "no" to everything and the screen
+           draws itself with every button missing. #}
+        {{ include('@Shared/components/backend_globals.html.twig') }}
         {{ vite_entry_script_tags('app') }}
         {{ vite_entry_script_tags('theme') }}
         {# Every write on this screen reports through a toast, so the
@@ -83,6 +87,7 @@
                     {% set tabs = [
                         {label: 'backend.studio.space_content.board'|trans, url: boardPath, key: 'board'},
                         {label: 'backend.studio.space_content.calendar'|trans, url: calendarPath, key: 'calendar'},
+                        {label: 'backend.studio.space_access.tab'|trans, url: accessPath, key: 'access'},
                     ] %}
                     {% for tab in tabs %}
                         {% if tab.key == activeTab|default('board') %}

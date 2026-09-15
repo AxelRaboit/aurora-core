@@ -104,6 +104,12 @@ studio:
                 too_many_codes: 'Demasiados códigos solicitados para este contrato. Vuelva a intentarlo dentro de una hora.'
                 too_many_requests: 'Demasiados intentos. Espere unos minutos.'
                 code_not_sent: "No se ha podido enviar el código. Inténtelo de nuevo en un momento o avise a su interlocutor."
+        space:
+            unavailable_message: La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba el plan de contenidos de un espacio, pida un nuevo enlace a su contacto.
+            timezone_notice: 'Horas en {timezone}'
+            valid_until: 'Esta dirección es válida hasta el {date}.'
+            footer: Esta dirección es personal. No la transmita.
+            no_body: El texto aún no está escrito.
         unavailable:
             title: Este enlace ya no es válido
             message: La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba un contrato, pida un nuevo enlace a su interlocutor.

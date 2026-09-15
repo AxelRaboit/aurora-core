@@ -94,6 +94,13 @@ security:
         - { path: '^/[a-z]{2}/verify-email', roles: PUBLIC_ACCESS }
         - { path: ^/backend, roles: ROLE_USER }
         - { path: ^/dev, roles: ROLE_DEV }
+        # Le second mur des espaces clients. Le contrôleur porte déjà son
+        # `#[IsGranted]`, donc un anonyme est refusé sans cette ligne - mais le
+        # jour où une action arrive sous ce préfixe sans attribut, le fourre-tout
+        # `^/` plus bas la rendrait publique en silence. `/backend` a cette
+        # ceinture depuis toujours ; `/workspace` est sorti de `/backend` sans
+        # elle, et c'est tout ce que cette ligne répare.
+        - { path: ^/workspace, roles: ROLE_USER }
         - { path: '^/[a-z]{2}/account', roles: ROLE_USER }
         - { path: ^/, roles: PUBLIC_ACCESS }
 

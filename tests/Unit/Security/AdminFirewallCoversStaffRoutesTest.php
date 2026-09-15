@@ -48,9 +48,7 @@ final class AdminFirewallCoversStaffRoutesTest extends TestCase
     #[DataProvider('staffPrefixProvider')]
     public function testTheAdminFirewallCoversIt(string $path, string $what): void
     {
-        $security = Yaml::parseFile(__DIR__.'/../../../config/packages/security.yaml');
-
-        $pattern = $security['security']['firewalls']['admin']['pattern'] ?? null;
+        $pattern = $this->security()['firewalls']['admin']['pattern'] ?? null;
         self::assertIsString($pattern, 'the admin firewall has a pattern');
 
         self::assertSame(
@@ -63,5 +61,40 @@ final class AdminFirewallCoversStaffRoutesTest extends TestCase
                 $what,
             ),
         );
+    }
+
+    /**
+     * And a rule stops it before the public catch-all does.
+     *
+     * The second wall, and the one the controller attribute cannot be. Every
+     * staff path ends up matching `^/` eventually; what decides whether it is
+     * public is which rule matches first. An action added under one of these
+     * prefixes without its own `#[IsGranted]` would otherwise be reachable by
+     * anybody, silently, which is the shape of the accident worth a test.
+     */
+    #[DataProvider('staffPrefixProvider')]
+    public function testARuleGuardsItBeforeTheCatchAll(string $path, string $what): void
+    {
+        foreach ($this->security()['access_control'] ?? [] as $rule) {
+            if (1 !== preg_match('#'.$rule['path'].'#', $path)) {
+                continue;
+            }
+
+            self::assertNotSame(
+                'PUBLIC_ACCESS',
+                $rule['roles'],
+                sprintf('"%s" (%s) is matched by a PUBLIC_ACCESS rule before anything guards it', $path, $what),
+            );
+
+            return;
+        }
+
+        self::fail(sprintf('no access_control rule matches "%s" (%s)', $path, $what));
+    }
+
+    /** @return array<string, mixed> */
+    private function security(): array
+    {
+        return Yaml::parseFile(__DIR__.'/../../../config/packages/security.yaml')['security'];
     }
 }

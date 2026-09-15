@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Aurora\Module\Studio\SpaceAccess\Dto;
+
+use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManager;
+use Symfony\Component\Validator\Constraints as Assert;
+
+class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
+{
+    public function __construct(
+        #[Assert\NotBlank(message: 'backend.studio.space_access.errors.email_required')]
+        #[Assert\Email(message: 'backend.studio.space_access.errors.email_invalid')]
+        #[Assert\Length(max: 180)]
+        public readonly string $recipientEmail = '',
+        #[Assert\Length(max: 120)]
+        public readonly ?string $label = null,
+        // A ceiling rather than a free number: past a year nobody is choosing a
+        // duration, they are avoiding one. The Manager clamps as well, because
+        // it is also called by fixtures and commands that have no DTO.
+        #[Assert\Range(min: 1, max: SpaceAccessLinkManager::MAX_VALID_DAYS)]
+        public readonly int $validForDays = SpaceAccessLinkManager::DEFAULT_VALID_DAYS,
+    ) {}
+
+    public function getRecipientEmail(): string
+    {
+        return $this->recipientEmail;
+    }
+
+    public function getLabel(): ?string
+    {
+        return $this->label;
+    }
+
+    public function getValidForDays(): int
+    {
+        return $this->validForDays;
+    }
+}

@@ -53,6 +53,7 @@ final readonly class SpaceBoardViewBuilder
             'backPath' => $this->urlGenerator->generate('backend_studio_spaces'),
             'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
             'calendarPath' => $this->urlGenerator->generate('workspace_space_content_calendar', ['id' => $space->getId()]),
+            'accessPath' => $this->urlGenerator->generate('workspace_space_access', ['id' => $space->getId()]),
             'itemCreatePath' => $this->urlGenerator->generate('workspace_space_content_item_create', ['id' => $space->getId()]),
             'itemUpdatePath' => $this->pathTemplates->generate('workspace_space_content_item_update', ['id' => $space->getId(), 'itemId' => '__id__']),
             'itemDeletePath' => $this->pathTemplates->generate('workspace_space_content_item_delete', ['id' => $space->getId(), 'itemId' => '__id__']),

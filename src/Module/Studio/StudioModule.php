@@ -77,6 +77,7 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             new NavPermission('studio.spaces.create'),
             new NavPermission('studio.spaces.edit'),
             new NavPermission('studio.spaces.delete'),
+            new NavPermission('studio.spaces.share'),
         ];
     }
 

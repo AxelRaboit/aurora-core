@@ -5,6 +5,69 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.179] - 2026-09-15
+
+### Ajouté
+
+#### Un client peut voir son plan de contenu, sans compte
+Un troisième onglet, **Accès client**, émet une adresse secrète qui ouvre
+l'espace en lecture seule. Elle est personnelle, elle expire (90 jours par
+défaut, un an au maximum) et elle se révoque. Le client y voit le mois, ses
+publications aux jours prévus, et le texte de chacune en cliquant.
+
+**C'est la même grille que celle de l'agence**, pas une seconde implémentation :
+le composant est partagé depuis la 0.9.178, donc ce que lit un client est ce que
+regarde son prestataire, et les deux ne peuvent pas diverger sur le mardi où un
+contenu tombe.
+
+**L'adresse n'est affichée qu'une fois.** Seule son empreinte SHA-256 est
+conservée, donc personne ne peut la retrouver, pas même celui qui l'a créée.
+L'écran le dit au lieu de proposer un bouton de copie qui n'aurait rien à
+copier. C'est le schéma des contrats, repris tel quel : un sélecteur identifie
+la ligne, un secret prouve le porteur, et une base volée donne le premier sans
+le second.
+
+Toutes les raisons d'un refus rendent la même page : adresse inconnue, secret
+faux, lien révoqué, lien expiré. Les distinguer dirait à un inconnu laquelle de
+ses tentatives a porté.
+
+**En lecture seule, et c'est une décision de périmètre plutôt qu'une étape.** Les
+droits de commenter et de valider arrivent avec les colonnes qui les portent et
+la limite de débit qu'une écriture invitée réclame - les deux choses que les
+liens de partage du calendrier sont documentés comme n'ayant volontairement pas.
+Livrer la moitié qui lit d'abord donne au client ce qu'il réclame chaque semaine
+sans que personne ne bâcle la moitié qui a un attaquant en face.
+
+La page ne transporte aucune adresse d'écriture. Un écran sans écriture n'a pas
+à porter les URL de six points d'entrée, et il n'y a donc rien qu'une erreur de
+gabarit puisse appeler.
+
+### Corrigé
+
+#### La coquille de l'espace n'armait pas `usePrivileges`
+Le layout du back-office pose `window.__isAdmin__`, `__isDev__` et
+`__privileges__` ; la coquille autonome introduite à la 0.9.177 ne les posait
+pas. `can()` répondait donc « non » à tout, et **un administrateur voyait un
+tableau sans aucun de ses boutons**, en silence et sans erreur nulle part.
+
+Les six lignes deviennent un `@Shared/components/backend_globals.html.twig`
+inclus par les deux gabarits. C'est la deuxième surface qui a prouvé qu'elles ne
+devaient pas être recopiées.
+
+#### `/workspace` n'avait pas son second mur
+Le contrôleur porte son `#[IsGranted]`, donc un anonyme était bien refusé. Mais
+`access_control` n'avait aucune règle pour ce préfixe, et le fourre-tout `^/`
+l'aurait rendu public le jour où une action y arrive sans attribut. `/backend` a
+cette ceinture depuis toujours ; `/workspace` en est sorti sans elle à la
+0.9.177. Un test le vérifie maintenant pour les trois préfixes réservés à
+l'équipe.
+
+### Dans aurora-client
+`make aurora-update`, la migration, puis **`make sync-security`** : une règle
+`access_control` s'ajoute pour `/workspace`.
+
+---
+
 ## [0.9.178] - 2026-09-15
 
 ### Ajouté

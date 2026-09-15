@@ -33,6 +33,11 @@ backend:
                     created: Contenu créé
                     updated: Contenu modifié
                     deleted: Contenu supprimé
+                space_access_link:
+                    issued: Lien d'accès client créé
+                    revoked: Lien d'accès client révoqué
+                    deleted: Lien d'accès client supprimé
+                    opened: Espace ouvert par un client
                 space_content_column:
                     created: Étape de tableau créée
                     updated: Étape de tableau renommée
@@ -73,6 +78,7 @@ backend:
                     create: Créer un espace client
                     edit: Modifier un espace client
                     delete: Supprimer un espace client
+                    share: Donner un accès client à un espace
                 contract_templates:
                     view: Consulter les trames de contrat
                     create: Créer une trame de contrat
@@ -772,6 +778,44 @@ backend:
                 name_too_long: Le nom ne peut pas dépasser 150 caractères.
                 customer_required: Choisissez le client à qui cet espace appartient.
                 timezone_invalid: Ce fuseau horaire n'est pas reconnu.
+        space_access:
+            tab: Accès client
+            intro: Un lien ouvre cet espace en lecture seule, sans compte. Il est personnel, il expire, et il se révoque.
+            issue: Créer un lien
+            issued: Lien créé.
+            revoke: Révoquer
+            revoked: Lien révoqué.
+            deleted: Lien supprimé.
+            empty: Aucun lien pour le moment.
+            empty_hint: Créez-en un pour montrer ce plan de contenu à votre client.
+
+            minted_title: Voici l'adresse
+            minted_hint: 'Copiez-la maintenant : elle ne sera plus jamais affichée. Seule son empreinte est conservée, donc personne ne peut la retrouver, pas même vous.'
+
+            recipient_email: Email du destinataire
+            recipient_email_placeholder: camille@societe.fr
+            recipient_email_hint: L'adresse à qui vous allez envoyer le lien. Elle sert aussi à savoir qui a ouvert quoi.
+            label: Intitulé
+            label_placeholder: 'Camille, responsable marketing'
+            label_hint: Facultatif. Utile quand un même client a plusieurs liens.
+            valid_for_days: Validité
+            valid_for_days_hint: 'En jours, {max} au maximum. Un accès qui survit à la mission est un accès que personne ne pense à fermer.'
+
+            never_opened: Jamais ouvert
+            opened_on: 'Ouvert le {date}'
+            expires_on: 'Expire le {date}'
+
+            states:
+                active: Actif
+                revoked: Révoqué
+                expired: Expiré
+
+            delete_confirm: 'Supprimer le lien de {name} ?'
+            delete_warning: 'Le lien cesse de fonctionner et sa trace disparaît. Pour garder la trace, révoquez-le plutôt.'
+
+            errors:
+                email_required: L'email du destinataire est obligatoire.
+                email_invalid: Cet email n'est pas valide.
         space_content:
             board: Tableau
             calendar: Calendrier
@@ -931,6 +975,12 @@ studio:
                 too_many_codes: 'Trop de codes demandés pour ce contrat. Réessayez dans une heure.'
                 too_many_requests: 'Trop de tentatives. Patientez quelques minutes.'
                 code_not_sent: "Le code n'a pas pu être envoyé. Réessayez dans un instant, ou prévenez votre interlocuteur."
+        space:
+            unavailable_message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez le plan de contenu d'un espace, demandez un nouveau lien à votre interlocuteur.
+            timezone_notice: 'Heures en {timezone}'
+            valid_until: 'Cette adresse est valide jusqu''au {date}.'
+            footer: Cette adresse est personnelle. Ne la transmettez pas.
+            no_body: Le texte n'est pas encore écrit.
         unavailable:
             title: Ce lien n'est plus valide
             message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez un contrat, demandez un nouveau lien à votre interlocuteur.
