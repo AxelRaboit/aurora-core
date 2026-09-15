@@ -34,7 +34,6 @@ final readonly class SpaceAccessViewBuilder
             'maxValidDays' => SpaceAccessLinkManager::MAX_VALID_DAYS,
             'backPath' => $this->urlGenerator->generate('backend_studio_spaces'),
             'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
-            'calendarPath' => $this->urlGenerator->generate('workspace_space_content_calendar', ['id' => $space->getId()]),
             'accessPath' => $this->urlGenerator->generate('workspace_space_access', ['id' => $space->getId()]),
             'issuePath' => $this->urlGenerator->generate('workspace_space_access_issue', ['id' => $space->getId()]),
             'revokePath' => $this->pathTemplates->generate('workspace_space_access_revoke', ['id' => $space->getId(), 'linkId' => '__id__']),

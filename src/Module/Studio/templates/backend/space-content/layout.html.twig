@@ -84,9 +84,13 @@
                    which one is open is what makes that possible. The back
                    button works for free. #}
                 <nav class="flex shrink-0 items-center gap-1" aria-label="{{ space.name }}">
+                    {# Two tabs, not four. The board, the list and the month are
+                       three ways of reading the same rows, so they are a
+                       selector inside Contenu rather than destinations beside
+                       it: a reader should not have to know that one alternative
+                       lives in a tab and another in a switch. #}
                     {% set tabs = [
-                        {label: 'backend.studio.space_content.board'|trans, url: boardPath, key: 'board'},
-                        {label: 'backend.studio.space_content.calendar'|trans, url: calendarPath, key: 'calendar'},
+                        {label: 'backend.studio.space_content.tab'|trans, url: boardPath, key: 'content'},
                         {label: 'backend.studio.space_access.tab'|trans, url: accessPath, key: 'access'},
                     ] %}
                     {% for tab in tabs %}

@@ -30,25 +30,17 @@ final readonly class SpaceBoardViewBuilder
     ) {}
 
     /**
-     * The calendar's page, which is the board's data read the other way.
+     * Everything the three views need, sent once.
      *
-     * Deliberately the same payload. The two views are two readings of the same
-     * rows, so a calendar that fetched a shape of its own would be the first
-     * place the two could disagree; it takes the steps as well, because a card
-     * on a day still shows which step it is on.
+     * One payload and not one per view, because they are three readings of the
+     * same rows: a calendar that fetched a shape of its own would be the first
+     * place the two could disagree. Switching views is then instant and costs
+     * no request, which is what makes it a preference rather than a
+     * destination.
      *
      * @return array<string, mixed>
      */
-    public function calendarView(CustomerSpaceInterface $space): array
-    {
-        return [
-            ...$this->boardView($space),
-            'schedulePath' => $this->pathTemplates->generate('workspace_space_content_item_schedule', ['id' => $space->getId(), 'itemId' => '__id__']),
-        ];
-    }
-
-    /** @return array<string, mixed> */
-    public function boardView(CustomerSpaceInterface $space): array
+    public function contentView(CustomerSpaceInterface $space): array
     {
         return [
             'space' => $this->spaceSerializer->serialize($space),
@@ -57,12 +49,12 @@ final readonly class SpaceBoardViewBuilder
             'comments' => $this->comments($space),
             'backPath' => $this->urlGenerator->generate('backend_studio_spaces'),
             'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
-            'calendarPath' => $this->urlGenerator->generate('workspace_space_content_calendar', ['id' => $space->getId()]),
             'accessPath' => $this->urlGenerator->generate('workspace_space_access', ['id' => $space->getId()]),
             'itemCreatePath' => $this->urlGenerator->generate('workspace_space_content_item_create', ['id' => $space->getId()]),
             'itemUpdatePath' => $this->pathTemplates->generate('workspace_space_content_item_update', ['id' => $space->getId(), 'itemId' => '__id__']),
             'itemDeletePath' => $this->pathTemplates->generate('workspace_space_content_item_delete', ['id' => $space->getId(), 'itemId' => '__id__']),
             'itemReorderPath' => $this->urlGenerator->generate('workspace_space_content_item_reorder', ['id' => $space->getId()]),
+            'schedulePath' => $this->pathTemplates->generate('workspace_space_content_item_schedule', ['id' => $space->getId(), 'itemId' => '__id__']),
             'commentPostPath' => $this->pathTemplates->generate('workspace_space_content_comment_post', ['id' => $space->getId(), 'itemId' => '__id__']),
             'commentDeletePath' => $this->pathTemplates->generate('workspace_space_content_comment_delete', ['id' => $space->getId(), 'commentId' => '__id__']),
             'columnCreatePath' => $this->urlGenerator->generate('workspace_space_content_column_create', ['id' => $space->getId()]),

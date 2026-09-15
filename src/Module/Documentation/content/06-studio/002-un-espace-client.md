@@ -1,0 +1,49 @@
+---
+title: "Un espace client"
+description: "Le contenant du travail mené pour un client, et l'équipe qui s'en occupe."
+rubric: "Studio"
+---
+Un espace regroupe le travail mené pour un client : ses publications, son calendrier, et bientôt ses fichiers. C'est l'endroit où l'on passe l'heure de travail, pas un écran que l'on traverse.
+
+## Un chantier, pas une société
+
+**Un client peut avoir plusieurs espaces.** Un client avec deux marques fait tourner deux calendriers ; un client qui signe pour un site puis pour du social a deux chantiers de rythmes différents. Créez-en un par chantier, pas un par société.
+
+La fiche du client, elle, reste unique : l'espace pointe dessus et ne recopie rien.
+
+## 1. Ouvrir la liste
+
+Studio → Espaces clients. Elle est au-dessus des Clients dans le menu, parce qu'un espace s'ouvre tous les jours là où une identité légale se remplit une fois.
+
+![La liste des espaces clients](../../images/06-studio/un-espace-client-01-la-liste.png)
+
+## 2. Créer l'espace
+
+« Ajouter un espace » est dans le menu « Actions ». La fenêtre demande peu : un nom, un client, et le reste est facultatif.
+
+![La fenêtre Nouvel espace](../../images/06-studio/un-espace-client-02-la-fenetre.png)
+
+- Le **nom** est ce que vous lirez dans la liste. « Boulangerie Martin - Réseaux sociaux », pas la raison sociale : elle est déjà sur la fiche client.
+- Le **client** est la société pour qui ce travail est mené. C'est le seul champ obligatoire avec le nom.
+- La **couleur** distingue cet espace partout où ses dates apparaissent, y compris dans le calendrier de l'équipe. Laissée vide, elle est choisie pour vous, en évitant celles déjà prises.
+- Le **fuseau horaire** découpe les journées de cet espace. À changer pour un client à l'étranger : « mardi 9h » est une promesse faite à quelqu'un, et elle ne doit pas bouger selon qui ouvre la page.
+
+## 3. L'équipe
+
+Qui, chez vous, travaille sur cet espace. **Ce n'est pas un droit d'accès** : qui peut ouvrir un espace est décidé par les privilèges du compte, comme partout ailleurs. C'est un nom à donner au client.
+
+![Le bloc L'équipe, avec deux personnes](../../images/06-studio/un-espace-client-03-l-equipe.png)
+
+Dans la liste, l'équipe se lit en visages. Cliquer dessus ouvre la liste complète avec les rôles et les adresses.
+
+![La modale de l'équipe](../../images/06-studio/un-espace-client-04-la-modale-d-equipe.png)
+
+## Archiver plutôt que supprimer
+
+Un espace **archivé** sort de la liste sans rien perdre : son contenu, ses échanges et ses liens restent. Le filtre qui les ramène n'apparaît que lorsqu'il y a quelque chose derrière.
+
+Supprimer, au contraire, emporte tout ce que l'espace contenait. Le client, ses contrats et ses documents ne bougent pas.
+
+## Ce que l'écran refuse
+
+Supprimer un **client** qui a encore un espace ouvert est refusé, avec le nombre d'espaces en cause. Archivez ou supprimez son travail d'abord.

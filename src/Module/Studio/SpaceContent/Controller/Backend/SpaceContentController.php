@@ -66,16 +66,20 @@ class SpaceContentController extends AbstractController
         protected readonly PayloadValidator $payloadValidator,
     ) {}
 
+    /**
+     * The space's content, in whichever view the reader prefers.
+     *
+     * **One address for three views**, because they show the same rows and
+     * differ only in how somebody likes to read them. The board, the list and
+     * the month were two routes and a tab before; a reader then had to know
+     * that one alternative lived in a tab and another in a selector, for the
+     * same content. What is on screen belongs in the URL, and how it is drawn
+     * belongs to the person drawing it.
+     */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
-    public function board(CustomerSpace $space): Response
+    public function content(CustomerSpace $space): Response
     {
-        return $this->render('@Studio/backend/space-content/board.html.twig', $this->viewBuilder->boardView($space));
-    }
-
-    #[Route('/calendar', name: '_calendar', methods: [HttpMethodEnum::Get->value])]
-    public function calendar(CustomerSpace $space): Response
-    {
-        return $this->render('@Studio/backend/space-content/calendar.html.twig', $this->viewBuilder->calendarView($space));
+        return $this->render('@Studio/backend/space-content/content.html.twig', $this->viewBuilder->contentView($space));
     }
 
     /**

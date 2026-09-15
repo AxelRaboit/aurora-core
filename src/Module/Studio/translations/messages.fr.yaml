@@ -824,11 +824,20 @@ backend:
                 email_required: L'email du destinataire est obligatoire.
                 email_invalid: Cet email n'est pas valide.
         space_content:
+            tab: Contenu
+            view_label: Vue
+            view_board: Tableau
+            view_list: Liste
+            view_calendar: Calendrier
             board: Tableau
             calendar: Calendrier
             today: Aujourd'hui
             unscheduled_rail: Sans date
             unscheduled_rail_empty: Tout est programmé.
+
+            row_actions:
+                edit_description: Modifier ce contenu
+                delete_description: Supprimer ce contenu
             calendar_name: Contenus clients
             back_to_spaces: Retour aux espaces
             add_item: Ajouter un contenu

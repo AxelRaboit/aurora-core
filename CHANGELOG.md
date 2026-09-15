@@ -5,6 +5,62 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.183] - 2026-09-15
+
+### Ajouté
+
+#### Trois vues du même contenu, au choix du lecteur
+L'onglet Contenu porte un sélecteur : **Tableau**, **Liste**, **Calendrier**.
+Ce ne sont pas trois fonctionnalités, ce sont trois lectures des mêmes fiches -
+le tableau dit où en est chaque chose, la liste dit ce qu'il y a, le calendrier
+dit quand ça sort.
+
+La **liste** est nouvelle. Elle groupe par étape, met une fiche par ligne avec sa
+date et l'avis du client, et c'est la seule des trois qui tient sur un téléphone
+sans défiler de côté. Elle existe parce qu'un tableau n'est pas la façon de
+penser de tout le monde.
+
+**Le choix est retenu, par personne et pour tous les espaces.** Quelqu'un qui ne
+pense pas en colonnes choisit la liste une fois et ne revoit plus le tableau. Une
+mémoire par espace l'aurait obligé à rechoisir à chaque nouveau client, ce qui
+est précisément ce que cette fonctionnalité sert à éviter.
+
+### Modifié
+
+#### Deux onglets au lieu de trois
+Le calendrier était un onglet à côté du tableau, la liste aurait été un sélecteur
+à l'intérieur : deux mécanismes pour choisir comment lire le même contenu, et un
+lecteur obligé de savoir lequel cache quoi. Il reste **Contenu** et **Accès
+client**, et les trois vues sont un sélecteur.
+
+Ce qui est à l'écran - quel espace - reste dans l'adresse. Comment il est dessiné
+appartient à la personne qui le dessine, donc ne s'y trouve pas. Une seule route
+sert le contenu, `/workspace/{id}`, et changer de vue ne coûte aucune requête :
+les trois reçoivent la même charge utile, envoyée une fois.
+
+#### Le tableau, la liste et le calendrier ne possèdent plus rien
+Les deux composables d'écran fusionnent en un seul, `useSpaceContent`. Les trois
+vues sont présentationnelles : elles reçoivent tout en propriétés et rendent tout
+en événements. C'est ce qui fait qu'une fiche modifiée dans l'une est juste dans
+les deux autres, sans que personne n'ait à les tenir en accord.
+
+### Ajouté
+
+#### Quatre pages de documentation pour les espaces clients
+« Un espace client », « Le tableau d'un espace », « Le calendrier d'un espace » et
+« L'accès d'un client à son espace », avec dix-sept captures produites par
+`tools/doc-screenshots`. Elles ouvrent la rubrique Studio, avant la fiche client.
+
+Le parcours de l'accès client suit vraiment le lien émis, dans un contexte sans
+session : une capture de ce que voit le client prise en étant connecté ne
+prouverait rien.
+
+### Dans aurora-client
+`make aurora-update`. Rien d'autre : la route du calendrier disparaît, mais elle
+n'est référencée que par le module.
+
+---
+
 ## [0.9.182] - 2026-09-15
 
 ### Ajouté
