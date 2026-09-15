@@ -51,6 +51,22 @@ class EntityScheduledEvent
         private readonly string $sourceLabel = '',
         /** Where to send a reader who wants the thing itself, if it has a page. */
         private readonly ?string $url = null,
+        /**
+         * Which palette slot to draw this date in, when the module has a
+         * reason to prefer one.
+         *
+         * Null for a producer that has nothing to say about colour, which is
+         * the common case: the entry then wears the colour of the calendar it
+         * lands in, and one module's dates read as one module's dates.
+         *
+         * It exists for the producer that announces dates on behalf of several
+         * things at once. A client space sends every space's schedule into one
+         * calendar - one per space would put a row in everybody's sidebar for
+         * every client - and without this they would all arrive the same
+         * colour, which is the calendar saying "these are all the same thing"
+         * about work for five different companies.
+         */
+        private readonly ?int $colourSlot = null,
     ) {}
 
     public function getSourceType(): string
@@ -86,6 +102,11 @@ class EntityScheduledEvent
     public function getSourceLabel(): string
     {
         return $this->sourceLabel;
+    }
+
+    public function getColourSlot(): ?int
+    {
+        return $this->colourSlot;
     }
 
     public function getUrl(): ?string

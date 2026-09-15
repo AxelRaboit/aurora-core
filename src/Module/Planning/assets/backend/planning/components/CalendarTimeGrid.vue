@@ -22,8 +22,8 @@ import {
     nowOffset,
     timeAt,
     visibleDays,
-} from "../composables/timeGrid.js";
-import { dayKey, sameDay } from "../composables/monthGrid.js";
+} from "@/shared/composables/calendar/timeGrid.js";
+import { dayKey, sameDay } from "@/shared/composables/calendar/monthGrid.js";
 import { useMinuteTicker } from "../composables/useMinuteTicker.js";
 import { useTimeGridDrag } from "../composables/useTimeGridDrag.js";
 

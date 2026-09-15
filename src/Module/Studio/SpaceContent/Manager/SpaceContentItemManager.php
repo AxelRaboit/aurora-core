@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceContent\Manager;
 
+use Aurora\Core\Scheduling\Event\EntityScheduledEvent;
+use Aurora\Core\Scheduling\Event\EntityUnscheduledEvent;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
@@ -17,18 +19,25 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsAlias(SpaceContentItemManagerInterface::class)]
 class SpaceContentItemManager implements SpaceContentItemManagerInterface
 {
+    /** What the calendar files these dates under. Part of the schema of `core_planning_events`. */
+    protected const string SCHEDULE_SOURCE = 'studio.space_content';
+
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
         protected readonly SpaceContentItemRepository $itemRepository,
         protected readonly SpaceContentColumnRepository $columnRepository,
         protected readonly TranslatorInterface $translator,
+        protected readonly EventDispatcherInterface $eventDispatcher,
+        protected readonly UrlGeneratorInterface $urlGenerator,
     ) {}
 
     public function create(CustomerSpaceInterface $space, SpaceContentItemInputInterface $input): SpaceContentItemInterface
@@ -43,6 +52,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $this->entityManager->flush();
 
         $this->auditCreated($item);
+        $this->announceSchedule($item);
 
         return $item;
     }
@@ -63,14 +73,21 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $this->entityManager->flush();
 
         $this->auditUpdated($item);
+        $this->announceSchedule($item);
     }
 
     public function delete(SpaceContentItemInterface $item): void
     {
         $this->auditDeleted($item);
 
+        $id = (int) $item->getId();
+
         $this->entityManager->remove($item);
         $this->entityManager->flush();
+
+        // After the row is gone, not before: an announcement that fails must
+        // not leave a card deleted from the calendar and present on the board.
+        $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, $id));
     }
 
     /** @param list<int> $itemIds */
@@ -108,6 +125,49 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $this->entityManager->flush();
 
         $this->auditUpdated($item);
+        $this->announceSchedule($item);
+    }
+
+    /**
+     * Tells the calendar module that this card has a date, or no longer does.
+     *
+     * The producer knows nothing about calendars: it says so into core, and if
+     * Planning is absent or switched off nobody is listening. That is the same
+     * contract Editorial's posts use, and it is why a space does not draw an
+     * agenda of its own.
+     *
+     * **One source type for every space, not one per space.** A per-space
+     * source would make `ModuleCalendarProvider` create a shared, ownerless
+     * calendar for each client, and `findVisibleTo` returns every shared
+     * calendar to everybody: fifteen clients would put fifteen rows in every
+     * member's sidebar. The colour is what tells them apart instead, and the
+     * provenance line names the space.
+     */
+    protected function announceSchedule(SpaceContentItemInterface $item): void
+    {
+        $id = (int) $item->getId();
+        $scheduledAt = $item->getScheduledAt();
+        $space = $item->getSpace();
+
+        if (!$scheduledAt instanceof DateTimeImmutable) {
+            $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, $id));
+
+            return;
+        }
+
+        $this->eventDispatcher->dispatch(new EntityScheduledEvent(
+            sourceType: static::SCHEDULE_SOURCE,
+            sourceId: $id,
+            label: $item->getTitle(),
+            startAt: $scheduledAt,
+            calendarName: $this->translator->trans('backend.studio.space_content.calendar_name'),
+            // The space, not the module: a reader looking at a busy week needs
+            // to know which client a date belongs to, and "Espaces clients"
+            // told them the same thing eight times.
+            sourceLabel: $space->getName(),
+            url: $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
+            colourSlot: $space->getColourSlot(),
+        ));
     }
 
     /**

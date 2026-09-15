@@ -774,6 +774,11 @@ backend:
                 timezone_invalid: That time zone is not recognised.
         space_content:
             board: Board
+            calendar: Calendar
+            today: Today
+            unscheduled_rail: No date
+            unscheduled_rail_empty: Everything is scheduled.
+            calendar_name: Client content
             back_to_spaces: Back to spaces
             add_item: Add content
             create_item: New content

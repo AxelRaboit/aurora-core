@@ -774,6 +774,11 @@ backend:
                 timezone_invalid: Ce fuseau horaire n'est pas reconnu.
         space_content:
             board: Tableau
+            calendar: Calendrier
+            today: Aujourd'hui
+            unscheduled_rail: Sans date
+            unscheduled_rail_empty: Tout est programmé.
+            calendar_name: Contenus clients
             back_to_spaces: Retour aux espaces
             add_item: Ajouter un contenu
             create_item: Nouveau contenu

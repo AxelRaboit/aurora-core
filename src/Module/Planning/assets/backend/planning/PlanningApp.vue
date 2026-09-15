@@ -21,7 +21,7 @@ import CalendarModal from "./components/CalendarModal.vue";
 import CalendarShareModal from "./components/CalendarShareModal.vue";
 import CalendarDayList from "./components/CalendarDayList.vue";
 import CalendarAgenda from "./components/CalendarAgenda.vue";
-import CalendarMonth from "./components/CalendarMonth.vue";
+import CalendarMonth from "@/shared/components/calendar/CalendarMonth.vue";
 import CalendarTimeGrid from "./components/CalendarTimeGrid.vue";
 import RecurrenceScopeModal from "./components/RecurrenceScopeModal.vue";
 import ReminderModal from "./components/ReminderModal.vue";
@@ -30,7 +30,7 @@ import { usePlanningCalendar } from "./composables/usePlanningCalendar.js";
 import { usePlanningCalendarForm } from "./composables/usePlanningCalendarForm.js";
 import { usePlanningEvents } from "./composables/usePlanningEvents.js";
 import { usePlanningReminders } from "./composables/usePlanningReminders.js";
-import { defaultTimeOn, draftAt } from "./composables/timeGrid.js";
+import { defaultTimeOn, draftAt } from "@/shared/composables/calendar/timeGrid.js";
 import { usePlanningShortcuts } from "./composables/usePlanningShortcuts.js";
 
 const props = defineProps({

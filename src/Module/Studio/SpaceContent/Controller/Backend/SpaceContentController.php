@@ -29,6 +29,7 @@ use function array_map;
 use function array_values;
 use function is_array;
 use function is_numeric;
+use function is_string;
 
 /**
  * The board of one space.
@@ -65,6 +66,37 @@ class SpaceContentController extends AbstractController
     public function board(CustomerSpace $space): Response
     {
         return $this->render('@Studio/backend/space-content/board.html.twig', $this->viewBuilder->boardView($space));
+    }
+
+    #[Route('/calendar', name: '_calendar', methods: [HttpMethodEnum::Get->value])]
+    public function calendar(CustomerSpace $space): Response
+    {
+        return $this->render('@Studio/backend/space-content/calendar.html.twig', $this->viewBuilder->calendarView($space));
+    }
+
+    /**
+     * The calendar's only write: a card moved to another day.
+     *
+     * Its own route rather than `update`, because dragging a card across a
+     * month should not have to resend a title and a step to say "this goes out
+     * on Thursday instead".
+     */
+    #[Route('/content/{itemId}/schedule', name: '_item_schedule', requirements: ['itemId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function scheduleItem(
+        CustomerSpace $space,
+        #[MapEntity(id: 'itemId')]
+        SpaceContentItem $item,
+        Request $request,
+    ): JsonResponse {
+        $this->assertOwned($space, $item->getSpace()->getId());
+
+        $payload = $this->decodeJson($request);
+        $scheduledAt = $payload['scheduledAt'] ?? null;
+
+        $this->itemManager->reschedule($item, is_string($scheduledAt) && '' !== $scheduledAt ? $scheduledAt : null);
+
+        return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
     }
 
     #[Route('/content/create', name: '_item_create', methods: [HttpMethodEnum::Post->value])]

@@ -25,6 +25,24 @@ final readonly class SpaceBoardViewBuilder
         private UrlGeneratorInterface $urlGenerator,
     ) {}
 
+    /**
+     * The calendar's page, which is the board's data read the other way.
+     *
+     * Deliberately the same payload. The two views are two readings of the same
+     * rows, so a calendar that fetched a shape of its own would be the first
+     * place the two could disagree; it takes the steps as well, because a card
+     * on a day still shows which step it is on.
+     *
+     * @return array<string, mixed>
+     */
+    public function calendarView(CustomerSpaceInterface $space): array
+    {
+        return [
+            ...$this->boardView($space),
+            'schedulePath' => $this->pathTemplates->generate('workspace_space_content_item_schedule', ['id' => $space->getId(), 'itemId' => '__id__']),
+        ];
+    }
+
     /** @return array<string, mixed> */
     public function boardView(CustomerSpaceInterface $space): array
     {
@@ -33,6 +51,8 @@ final readonly class SpaceBoardViewBuilder
             'columns' => $this->columns($space),
             'items' => $this->items($space),
             'backPath' => $this->urlGenerator->generate('backend_studio_spaces'),
+            'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
+            'calendarPath' => $this->urlGenerator->generate('workspace_space_content_calendar', ['id' => $space->getId()]),
             'itemCreatePath' => $this->urlGenerator->generate('workspace_space_content_item_create', ['id' => $space->getId()]),
             'itemUpdatePath' => $this->pathTemplates->generate('workspace_space_content_item_update', ['id' => $space->getId(), 'itemId' => '__id__']),
             'itemDeletePath' => $this->pathTemplates->generate('workspace_space_content_item_delete', ['id' => $space->getId(), 'itemId' => '__id__']),

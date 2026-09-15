@@ -75,13 +75,26 @@
                     {% endif %}
                 </div>
 
-                {# One tab today. The bar exists now rather than when the second
-                   view lands, because the place a reader looks for "calendar"
-                   should not move the day it appears. #}
+                {# Real links rather than a client-side switch: each view is a
+                   place somebody sends a colleague to, and a URL that says
+                   which one is open is what makes that possible. The back
+                   button works for free. #}
                 <nav class="flex shrink-0 items-center gap-1" aria-label="{{ space.name }}">
-                    <span class="rounded-md bg-surface-2 px-2.5 py-1 text-sm font-medium text-primary" aria-current="page">
-                        {{ 'backend.studio.space_content.board'|trans }}
-                    </span>
+                    {% set tabs = [
+                        {label: 'backend.studio.space_content.board'|trans, url: boardPath, key: 'board'},
+                        {label: 'backend.studio.space_content.calendar'|trans, url: calendarPath, key: 'calendar'},
+                    ] %}
+                    {% for tab in tabs %}
+                        {% if tab.key == activeTab|default('board') %}
+                            <span class="rounded-md bg-surface-2 px-2.5 py-1 text-sm font-medium text-primary" aria-current="page">
+                                {{ tab.label }}
+                            </span>
+                        {% else %}
+                            <a href="{{ tab.url }}" class="rounded-md px-2.5 py-1 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary">
+                                {{ tab.label }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
                 </nav>
             </div>
         </header>

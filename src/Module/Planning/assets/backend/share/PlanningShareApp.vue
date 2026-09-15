@@ -23,7 +23,7 @@ import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import CalendarAgenda from "../planning/components/CalendarAgenda.vue";
-import CalendarMonth from "../planning/components/CalendarMonth.vue";
+import CalendarMonth from "@/shared/components/calendar/CalendarMonth.vue";
 import CalendarTimeGrid from "../planning/components/CalendarTimeGrid.vue";
 import { usePlanningCalendar } from "../planning/composables/usePlanningCalendar.js";
 

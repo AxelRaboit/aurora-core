@@ -15,7 +15,7 @@ import { useI18n } from "vue-i18n";
 import { Check, Plus } from "lucide-vue-next";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
-import { itemsOn } from "../composables/monthGrid.js";
+import { itemsOn } from "@/shared/composables/calendar/monthGrid.js";
 
 const props = defineProps({
     /** The day being listed. */

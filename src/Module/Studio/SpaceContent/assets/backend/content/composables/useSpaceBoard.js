@@ -4,6 +4,7 @@ import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useFormAction } from "@/shared/composables/form/useFormAction.js";
 import { useDelete } from "@/shared/composables/form/useDelete.js";
+import { useSpaceContentItemForm } from "./useSpaceContentItemForm.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { required } from "@/shared/utils/validation/validators.js";
 
@@ -16,21 +17,6 @@ import { required } from "@/shared/utils/validation/validators.js";
  * reconciled those itself would drift from the server within three gestures.
  * The board is small; being right is cheaper than being clever.
  */
-function emptyItemForm(columnId = "") {
-    return { title: "", body: "", columnId, scheduledAt: "" };
-}
-
-function itemFormFrom(item) {
-    return {
-        title: item.title ?? "",
-        body: item.body ?? "",
-        columnId: item.columnId ?? "",
-        // The wall clock the server already expressed in the space's zone, so
-        // the field never converts and can never convert it wrong.
-        scheduledAt: item.scheduledAtLocal ?? "",
-    };
-}
-
 export function useSpaceBoard(initialColumns, initialItems, paths) {
     const { t } = useI18n();
     const { request } = useRequest();
@@ -62,77 +48,22 @@ export function useSpaceBoard(initialColumns, initialItems, paths) {
         })),
     );
 
-    // --- cards ------------------------------------------------------------
-
-    const showItemForm = ref(false);
-    const editingItem = ref(null);
-    const itemForm = ref(emptyItemForm());
-
-    const itemRules = () => ({
-        title: () =>
-            required(t("backend.studio.space_content.errors.title_required"))(
-                itemForm.value.title,
-            ),
-        columnId: () =>
-            required(t("backend.studio.space_content.errors.column_required"))(
-                itemForm.value.columnId,
-            ),
-    });
-
     const {
-        errors: itemErrors,
-        loading: itemLoading,
-        submit: submitItem,
-        clearErrors: clearItemErrors,
-    } = useFormAction({
-        rules: itemRules,
-        url: () =>
-            editingItem.value
-                ? buildPath(paths.itemUpdatePath, { id: editingItem.value.id })
-                : paths.itemCreatePath,
-        body: () => itemForm.value,
-        onSuccess: (data) => {
-            showItemForm.value = false;
-            toast.success(
-                t(
-                    editingItem.value
-                        ? "backend.studio.space_content.item_updated"
-                        : "backend.studio.space_content.item_created",
-                ),
-            );
-            applyBoard(data);
-        },
+        showItemForm,
+        editingItem,
+        itemForm,
+        itemErrors,
+        itemLoading,
+        openItemCreate,
+        openItemEdit,
+        submitItem,
+        pendingItemDelete,
+        itemDeleteLoading,
+        confirmItemDelete,
+        deleteItem,
+    } = useSpaceContentItemForm(paths, applyBoard, (id) => {
+        items.value = items.value.filter((item) => item.id !== id);
     });
-
-    function openItemCreate(columnId) {
-        editingItem.value = null;
-        itemForm.value = emptyItemForm(String(columnId ?? ""));
-        clearItemErrors();
-        showItemForm.value = true;
-    }
-
-    function openItemEdit(item) {
-        editingItem.value = item;
-        itemForm.value = itemFormFrom(item);
-        clearItemErrors();
-        showItemForm.value = true;
-    }
-
-    // Removed locally rather than from the answer: deleting a card leaves the
-    // others' positions alone, so dropping it from the list is exactly what the
-    // server did.
-    const {
-        pendingDelete: pendingItemDelete,
-        loading: itemDeleteLoading,
-        confirm: confirmItemDelete,
-        submit: deleteItem,
-    } = useDelete(
-        paths.itemDeletePath,
-        (id) => {
-            items.value = items.value.filter((item) => item.id !== id);
-        },
-        "backend.studio.space_content.item_deleted",
-    );
 
     /**
      * Writes the order of one column after a drag.

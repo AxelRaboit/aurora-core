@@ -5,6 +5,83 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.178] - 2026-09-15
+
+### Ajouté
+
+#### L'espace client a son calendrier, et c'est le même contenu
+L'onglet Calendrier montre les mêmes cartes que le tableau, rangées par leur
+date. Glisser une carte d'un jour à l'autre la reprogramme ; cliquer un jour
+vide ouvre un contenu déjà daté ; cliquer une carte l'ouvre.
+
+**Aucune des deux vues ne possède quoi que ce soit.** C'est le pari annoncé à la
+0.9.177 et il tient : le tableau lit l'étape, le calendrier lit la date, et il
+n'y a qu'une ligne en base. Il n'y a donc rien à tenir en accord, et rien à
+saisir deux fois.
+
+La colonne de droite est la moitié qu'un calendrier cache d'habitude : **les
+contenus sans date**. C'est le travail qui attend d'être programmé, et un mois
+qui ne montrerait que la moitié programmée dirait qu'une semaine est vide alors
+qu'il y a six idées à y placer.
+
+#### Les dates d'un espace apparaissent dans le calendrier de l'équipe
+Sans double saisie et sans que les deux modules se connaissent : l'espace
+annonce ses dates à travers l'événement que Editorial utilise déjà, et si le
+module Calendrier est absent ou désactivé, personne n'écoute.
+
+**Un seul calendrier pour tous les espaces, pas un par espace.** Un par espace
+aurait créé un calendrier partagé et sans propriétaire par client, et
+`findVisibleTo` rend tout ce qui est partagé à tout le monde : quinze clients
+auraient mis quinze lignes dans la barre latérale de chaque membre de l'équipe.
+Ce qui les distingue, c'est la couleur, et la provenance nomme l'espace plutôt
+que le module - un lecteur qui regarde une semaine chargée a besoin de savoir de
+quel client une date relève, pas de lire huit fois « Espaces clients ».
+
+### Modifié
+
+#### `EntityScheduledEvent` transporte une couleur
+Facultative, et nulle pour un producteur qui n'a rien à dire là-dessus : l'entrée
+porte alors la couleur de son calendrier, comme avant. Elle existe pour le
+producteur qui annonce au nom de plusieurs choses à la fois, ce qu'un espace
+client est par construction. Sans elle, cinq clients arrivaient de la même
+couleur, c'est-à-dire que le calendrier disait « c'est la même chose » de cinq
+travaux différents.
+
+#### La grille du mois passe dans `@shared`
+`CalendarMonth.vue` et l'arithmétique qui la nourrit - `monthGrid.js`,
+`timeGrid.js`, `useMonthDrag.js`, `usePointerDrag.js` - quittent le module
+Calendrier pour `src/Core/assets/shared/`. Le composant était déjà purement
+présentationnel et `monthGrid.js` n'avait aucun import : il n'y avait rien à
+découpler, seulement un dossier à changer.
+
+C'était la condition pour que l'espace client dessine un mois sans réécrire un
+moteur ni importer depuis un autre module - il n'existe aujourd'hui **aucun**
+import Vue croisé entre modules, et Studio doit continuer à se construire sans
+le module Calendrier. Leurs tests suivent, et le module Calendrier consomme
+désormais la version partagée.
+
+### Interne
+
+#### Le formulaire d'un contenu est partagé par les deux vues
+Extrait au moment où le calendrier en a eu besoin, plutôt que copié : les deux
+vues modifient les mêmes lignes, et deux copies d'un formulaire divergent à la
+première modification faite d'un seul côté.
+
+#### Une heure ne fait jamais l'aller-retour
+Une carte glissée dans le mois envoie son propre horaire décalé du même nombre
+de jours, pas l'instant que la grille a calculé. Passer par l'instant voudrait
+dire convertir vers le fuseau de l'espace et en revenir à chaque glissement, et
+l'heure promise à un client n'est pas une valeur à convertir deux fois. Le
+décalage est calculé en UTC, sinon un changement d'heure transforme « +1 jour »
+en « +23 heures » et repose la carte sur le jour d'où elle vient.
+
+### Dans aurora-client
+`make aurora-update`. Un projet client qui importerait `CalendarMonth.vue` ou
+`monthGrid.js` depuis `@planning` doit pointer sur `@/shared/components/calendar/`
+et `@/shared/composables/calendar/`.
+
+---
+
 ## [0.9.177] - 2026-09-15
 
 ### Ajouté

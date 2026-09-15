@@ -200,7 +200,7 @@ function onCardsChanged(columnId, cards) {
                         v-if="editable"
                         type="button"
                         class="m-2 mt-0 flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-muted transition-colors hover:bg-surface hover:text-primary"
-                        v-on:click="openItemCreate(group.column.id)"
+                        v-on:click="openItemCreate({ columnId: group.column.id })"
                     >
                         <Plus class="h-3.5 w-3.5" :stroke-width="2" />
                         {{ t("backend.studio.space_content.add_item") }}

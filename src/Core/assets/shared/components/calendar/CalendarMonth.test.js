@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import CalendarMonth from "./CalendarMonth.vue";
-import { monthGrid } from "../composables/monthGrid.js";
+import { monthGrid } from "@/shared/composables/calendar/monthGrid.js";
 
 vi.mock("vue-i18n", () => ({
     useI18n: () => ({

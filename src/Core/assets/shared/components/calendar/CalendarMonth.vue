@@ -15,9 +15,9 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Check } from "lucide-vue-next";
-import { countsPerDay, layOutWeek, sameDay, timedEventsOn } from "../composables/monthGrid.js";
-import { defaultTimeOn, draftAt } from "../composables/timeGrid.js";
-import { useMonthDrag } from "../composables/useMonthDrag.js";
+import { countsPerDay, layOutWeek, sameDay, timedEventsOn } from "@/shared/composables/calendar/monthGrid.js";
+import { defaultTimeOn, draftAt } from "@/shared/composables/calendar/timeGrid.js";
+import { useMonthDrag } from "@/shared/composables/calendar/useMonthDrag.js";
 
 const props = defineProps({
     /** The 42 cells from `monthGrid`. */
