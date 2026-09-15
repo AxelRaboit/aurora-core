@@ -844,7 +844,7 @@ backend:
             column: Step
             scheduled_at: Publication date
             scheduled_at_hint: 'Optional. An idea with no date lives on the board and joins the calendar when you schedule it.'
-            scheduled_at_placeholder: '2026-09-22 09:00'
+            scheduled_at_placeholder: '22/09/2026 09:00'
             timezone_notice: 'Times are in the space''s zone, {timezone}.'
 
             add_column: Add a step

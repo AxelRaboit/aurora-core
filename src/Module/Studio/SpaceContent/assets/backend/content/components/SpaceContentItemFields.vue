@@ -12,6 +12,7 @@ import { useI18n } from "vue-i18n";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 
 const props = defineProps({
     modelValue: { type: Object, required: true },
@@ -61,33 +62,21 @@ function set(field, value) {
                 v-on:update:model-value="set('columnId', $event)"
             />
 
-            <div class="flex flex-col gap-1.5">
-                <label
-                    class="text-sm font-medium text-primary"
-                    for="space-content-scheduled-at"
-                >
-                    {{ t("backend.studio.space_content.scheduled_at") }}
-                </label>
-                <!-- A native picker rather than `AppInput`: a date and an
-                     hour typed as free text is two parsers and a locale
-                     argument, and every browser already ships the control. The
-                     placeholder is what the field's own chrome does not say -
-                     the shape a typed value takes when somebody types it. -->
-                <input
-                    id="space-content-scheduled-at"
-                    type="datetime-local"
-                    :value="form.scheduledAt"
-                    :placeholder="t('backend.studio.space_content.scheduled_at_placeholder')"
-                    class="block w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-primary transition focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
-                    v-on:input="set('scheduledAt', $event.target.value)"
-                >
-                <p v-if="errors.scheduledAt" class="text-xs text-red-500">
-                    {{ errors.scheduledAt }}
-                </p>
-                <p v-else class="text-xs text-muted">
-                    {{ t("backend.studio.space_content.scheduled_at_hint") }}
-                </p>
-            </div>
+            <!-- The application's own picker, not a native `datetime-local`:
+                 the browser's control takes its format from the machine's
+                 locale rather than the reader's, so a French back-office showed
+                 an American date on an English system. This one reads the app's
+                 locale, accepts several typed formats, and emits exactly the
+                 `Y-m-d\TH:i` wall clock the field carries. -->
+            <AppDatePicker
+                :model-value="form.scheduledAt"
+                enable-time
+                :label="t('backend.studio.space_content.scheduled_at')"
+                :placeholder="t('backend.studio.space_content.scheduled_at_placeholder')"
+                :hint="t('backend.studio.space_content.scheduled_at_hint')"
+                :error="errors.scheduledAt"
+                v-on:update:model-value="set('scheduledAt', $event)"
+            />
         </div>
 
         <p class="text-xs text-muted">

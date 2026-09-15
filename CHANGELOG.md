@@ -54,6 +54,14 @@ Les six lignes deviennent un `@Shared/components/backend_globals.html.twig`
 inclus par les deux gabarits. C'est la deuxième surface qui a prouvé qu'elles ne
 devaient pas être recopiées.
 
+#### La date de publication utilisait un champ natif
+Le formulaire d'un contenu posait un `<input type="datetime-local">` au lieu
+d'`AppDatePicker`. Le contrôle natif prend son format du système et non de
+l'application : sur une machine en anglais, un back-office en français affichait
+une date à l'américaine. Le composant du dépôt lit la locale de l'application,
+accepte plusieurs formats tapés, et rend exactement l'horaire mural que le champ
+transporte.
+
 #### `/workspace` n'avait pas son second mur
 Le contrôleur porte son `#[IsGranted]`, donc un anonyme était bien refusé. Mais
 `access_control` n'avait aucune règle pour ce préfixe, et le fourre-tout `^/`

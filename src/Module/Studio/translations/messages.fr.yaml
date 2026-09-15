@@ -844,7 +844,7 @@ backend:
             column: Étape
             scheduled_at: Date de publication
             scheduled_at_hint: 'Facultative. Une idée sans date vit sur le tableau et rejoint le calendrier quand vous la programmez.'
-            scheduled_at_placeholder: '2026-09-22 09:00'
+            scheduled_at_placeholder: '22/09/2026 09:00'
             timezone_notice: 'Les heures sont celles du fuseau de l''espace, {timezone}.'
 
             add_column: Ajouter une étape
