@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\CustomerSpace\Entity;
 
+use Aurora\Core\Support\ChartPalette;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
@@ -40,7 +41,7 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     use TimestampableTrait;
 
     /** Highest slot the shared categorical palette defines. Mirrors `AbstractPlanning`. */
-    public const int MAX_COLOUR_SLOT = 8;
+    public const int MAX_COLOUR_SLOT = ChartPalette::MAX_SLOT;
 
     public const int DEFAULT_COLOUR_SLOT = 1;
 
@@ -186,7 +187,7 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     /** Clamped rather than rejected: an out-of-range slot is a bug in a caller, not input a person typed. */
     public function setColourSlot(int $colourSlot): static
     {
-        $this->colourSlot = max(1, min(self::MAX_COLOUR_SLOT, $colourSlot));
+        $this->colourSlot = ChartPalette::clamp($colourSlot);
 
         return $this;
     }

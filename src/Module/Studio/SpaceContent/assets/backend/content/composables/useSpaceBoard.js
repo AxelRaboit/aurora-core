@@ -95,7 +95,7 @@ export function useSpaceBoard(initialColumns, initialItems, paths) {
 
     const showColumnForm = ref(false);
     const editingColumn = ref(null);
-    const columnForm = ref({ name: "" });
+    const columnForm = ref({ name: "", colourSlot: null });
 
     const {
         errors: columnErrors,
@@ -133,14 +133,17 @@ export function useSpaceBoard(initialColumns, initialItems, paths) {
 
     function openColumnCreate() {
         editingColumn.value = null;
-        columnForm.value = { name: "" };
+        columnForm.value = { name: "", colourSlot: null };
         clearColumnErrors();
         showColumnForm.value = true;
     }
 
     function openColumnEdit(column) {
         editingColumn.value = column;
-        columnForm.value = { name: column.name };
+        columnForm.value = {
+            name: column.name,
+            colourSlot: column.colourSlot ?? null,
+        };
         clearColumnErrors();
         showColumnForm.value = true;
     }

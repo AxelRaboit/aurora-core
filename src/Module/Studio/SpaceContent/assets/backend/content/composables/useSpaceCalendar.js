@@ -59,13 +59,25 @@ export function useSpaceCalendar(initialItems, initialColumns, paths) {
         () => new Map(columns.value.map((column) => [column.id, column.name])),
     );
 
+    const columnColours = computed(
+        () =>
+            new Map(
+                columns.value.map((column) => [column.id, column.colourSlot]),
+            ),
+    );
+
     /**
      * The scheduled cards, as the grid's events.
      *
      * `endAt` equals `startAt`: a publication is a moment, not a span, and the
-     * grid refuses an end before a start while accepting one equal to it. The
-     * colour is the space's, so a member reading their own agenda later sees
-     * this client's week in this client's colour.
+     * grid refuses an end before a start while accepting one equal to it.
+     *
+     * **The colour is the step's, and falls back to the space's.** Inside one
+     * space every card belongs to the same client, so the space's colour says
+     * nothing here - what a reader scans a month for is what still needs
+     * approving. On the team's shared agenda the question is the opposite one,
+     * which client a date belongs to, and that calendar keeps the space's
+     * colour: two surfaces, two questions, and the same rows.
      */
     const events = computed(() =>
         items.value
@@ -76,7 +88,8 @@ export function useSpaceCalendar(initialItems, initialColumns, paths) {
                 startAt: item.scheduledAt,
                 endAt: item.scheduledAt,
                 allDay: false,
-                colourSlot: paths.colourSlot,
+                colourSlot:
+                    columnColours.value.get(item.columnId) ?? paths.colourSlot,
                 readOnly: false,
                 columnName: columnNames.value.get(item.columnId) ?? "",
             })),

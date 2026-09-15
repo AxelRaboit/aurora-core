@@ -852,6 +852,8 @@ backend:
             edit_column: Rename the step
             column_name: Step name
             column_name_placeholder: 'To review, Live…'
+            column_colour: Colour
+            column_colour_hint: Optional. It marks the step on the board, and colours its content on the calendar.
             column_created: Step added.
             column_updated: Step renamed.
             column_deleted: Step deleted.

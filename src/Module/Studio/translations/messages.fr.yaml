@@ -852,6 +852,8 @@ backend:
             edit_column: Renommer l'étape
             column_name: Nom de l'étape
             column_name_placeholder: 'À relire, En ligne…'
+            column_colour: Couleur
+            column_colour_hint: Facultative. Elle distingue l'étape sur le tableau, et colore ses contenus au calendrier.
             column_created: Étape ajoutée.
             column_updated: Étape renommée.
             column_deleted: Étape supprimée.

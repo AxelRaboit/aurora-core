@@ -83,6 +83,58 @@ final class SpaceBoardTest extends IntegrationTestCase
         ));
         self::assertSame('Idées', $columns[0]->getName());
         self::assertSame('Publié', $columns[4]->getName());
+
+        // Ideas carry no colour on purpose: the step holding everything not
+        // started yet is the board's background rather than a state worth
+        // flagging. The four that follow do, so the feature is visible on a
+        // board nobody has configured.
+        self::assertNull($columns[0]->getColourSlot());
+        self::assertSame([1, 4, 3, 6], array_map(
+            static fn ($column): ?int => $column->getColourSlot(),
+            array_slice($columns, 1),
+        ));
+    }
+
+    public function testAStepTakesAColourAndGivesItBack(): void
+    {
+        $space = $this->givenSpace();
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/create', $space->getId()), [
+            'name' => 'Relecture juridique',
+            'colourSlot' => 8,
+        ]);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $created = $this->lastColumnOf($space);
+        self::assertSame(8, $created['colourSlot']);
+
+        // And cleared again, because "no colour" is a choice rather than an
+        // absence: a board where every step is coloured is one where colour
+        // has stopped meaning anything.
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/%d/update', $space->getId(), $created['id']), [
+            'name' => 'Relecture juridique',
+            'colourSlot' => null,
+        ]);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertNull($this->lastColumnOf($space)['colourSlot']);
+    }
+
+    public function testASlotOutsideThePaletteIsRefused(): void
+    {
+        $space = $this->givenSpace();
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/create', $space->getId()), [
+            'name' => 'Hors palette',
+            'colourSlot' => 99,
+        ]);
+
+        // Reported under the field rather than clamped silently: a person typed
+        // this, so the answer belongs on the form. The entity clamps too, for
+        // the callers that have no form.
+        self::assertSame(422, $this->client->getResponse()->getStatusCode());
+        self::assertArrayHasKey('colourSlot', $this->payload()['errors']);
     }
 
     public function testTheBoardScreenRenders(): void
@@ -237,6 +289,14 @@ final class SpaceBoardTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertSame([], $this->columns->findForSpace($space));
         self::assertSame(0, $this->items->countForSpace($space));
+    }
+
+    /** @return array<string, mixed> */
+    private function lastColumnOf(CustomerSpace $space): array
+    {
+        $columns = $this->payload()['columns'];
+
+        return $columns[count($columns) - 1];
     }
 
     private function givenSpace(

@@ -43,7 +43,9 @@ use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInput;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInput;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use DateTimeImmutable;
@@ -115,6 +117,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly CustomerSpaceRepository $spaceRepository,
         private readonly UserRepository $userRepository,
         private readonly SpaceContentItemManagerInterface $contentItems,
+        private readonly SpaceContentColumnManagerInterface $contentColumnManager,
         private readonly SpaceContentColumnRepository $contentColumns,
         private readonly ContractTemplateManagerInterface $templates,
         private readonly ContractTemplateRepository $templateRepository,
@@ -380,11 +383,22 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      */
     private function seedBoard(CustomerSpaceInterface $space): void
     {
-        $columns = $this->contentColumns->findForSpace($space);
-
-        if ([] === $columns) {
+        if ([] === $this->contentColumns->findForSpace($space)) {
             return;
         }
+
+        // A sixth step, added after the fact and given a colour of its own.
+        // The five a space is born with show the defaults; this one shows the
+        // decision behind them - the steps belong to the space, so a client
+        // whose posts go past a lawyer has one nobody else has. A demo that
+        // only ever showed the default five would teach that they are the
+        // product's, which is the opposite of what the table is for.
+        $this->contentColumnManager->create($space, new SpaceContentColumnInput(
+            name: 'Relecture juridique',
+            colourSlot: 8,
+        ));
+
+        $columns = $this->contentColumns->findForSpace($space);
 
         // Keyed by the step's place, not its name: the names are translated at
         // creation and a demo that matched on "Idées" would seed nothing the
@@ -407,6 +421,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             ],
             4 => [
                 ['Le nouvel atelier', "L'annonce du déménagement, parue la semaine dernière.", '-4 days 09:00'],
+            ],
+            5 => [
+                ['Conditions du jeu concours', 'Le règlement relu par le cabinet avant publication.', '+14 days 09:00'],
             ],
         ];
 

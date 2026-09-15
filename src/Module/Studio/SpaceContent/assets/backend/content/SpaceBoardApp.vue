@@ -19,6 +19,7 @@ import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
+import AppColourSlotPicker from "@/shared/components/form/picker/AppColourSlotPicker.vue";
 import {
     Columns3,
     FileText,
@@ -141,8 +142,20 @@ function onCardsChanged(columnId, cards) {
                 <section
                     v-for="group in grouped"
                     :key="group.column.id"
-                    class="flex w-72 shrink-0 flex-col rounded-xl border border-line/60 bg-surface-2/40"
+                    class="flex w-72 shrink-0 flex-col overflow-hidden rounded-xl border border-line/60 bg-surface-2/40"
                 >
+                    <!-- A rule across the top rather than a dot beside the
+                         name: the column is what is being identified, and a
+                         full-width bar is read without being looked for. A
+                         step with no colour gets no bar, which is the point of
+                         letting it have none. -->
+                    <div
+                        v-if="group.column.colourSlot"
+                        class="h-1 w-full"
+                        :style="{
+                            backgroundColor: `var(--chart-cat-${group.column.colourSlot})`,
+                        }"
+                    />
                     <header
                         class="flex items-center gap-2 border-b border-line/40 px-3 py-2"
                     >
@@ -262,7 +275,7 @@ function onCardsChanged(columnId, cards) {
             :closeable="false"
             v-on:close="showColumnForm = false"
         >
-            <form v-on:submit.prevent="submitColumn">
+            <form class="space-y-4" v-on:submit.prevent="submitColumn">
                 <AppInput
                     :model-value="columnForm.name"
                     :label="t('backend.studio.space_content.column_name')"
@@ -270,6 +283,14 @@ function onCardsChanged(columnId, cards) {
                     :error="columnErrors.name"
                     required
                     v-on:update:model-value="columnForm = { ...columnForm, name: $event }"
+                />
+                <AppColourSlotPicker
+                    :model-value="columnForm.colourSlot"
+                    clearable
+                    :label="t('backend.studio.space_content.column_colour')"
+                    :hint="t('backend.studio.space_content.column_colour_hint')"
+                    :error="columnErrors.colourSlot"
+                    v-on:update:model-value="columnForm = { ...columnForm, colourSlot: $event }"
                 />
             </form>
             <template #footer>

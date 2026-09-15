@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Planning\Entity;
 
+use Aurora\Core\Support\ChartPalette;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Planning\Enum\PlanningVisibilityEnum;
@@ -22,7 +23,7 @@ abstract class AbstractPlanning implements PlanningInterface
     use TimestampableTrait;
 
     /** Highest slot the shared categorical palette defines. */
-    public const int MAX_COLOUR_SLOT = 8;
+    public const int MAX_COLOUR_SLOT = ChartPalette::MAX_SLOT;
 
     public const int DEFAULT_COLOUR_SLOT = 1;
 
@@ -155,7 +156,7 @@ abstract class AbstractPlanning implements PlanningInterface
      */
     public function setColourSlot(int $colourSlot): static
     {
-        $this->colourSlot = max(1, min(self::MAX_COLOUR_SLOT, $colourSlot));
+        $this->colourSlot = ChartPalette::clamp($colourSlot);
 
         return $this;
     }

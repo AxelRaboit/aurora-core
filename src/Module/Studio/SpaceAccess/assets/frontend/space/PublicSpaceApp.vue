@@ -44,6 +44,10 @@ const columnNames = computed(
     () => new Map(props.columns.map((column) => [column.id, column.name])),
 );
 
+const columnColours = computed(
+    () => new Map(props.columns.map((column) => [column.id, column.colourSlot])),
+);
+
 const events = computed(() =>
     props.items
         .filter((item) => item.scheduledAt)
@@ -53,7 +57,11 @@ const events = computed(() =>
             startAt: item.scheduledAt,
             endAt: item.scheduledAt,
             allDay: false,
-            colourSlot: props.space.colourSlot,
+            // The step's colour, as the agency sees it. A client watching
+            // their own month has one client on it, so the space's colour says
+            // nothing; what they are looking for is what is waiting on them.
+            colourSlot:
+                columnColours.value.get(item.columnId) ?? props.space.colourSlot,
             // The grid already honours this: a read-only event cannot be
             // dragged and draws no handles. Saying it here rather than trusting
             // the absence of a listener is what makes the page read-only by

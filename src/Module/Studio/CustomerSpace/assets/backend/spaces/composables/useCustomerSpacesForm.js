@@ -6,20 +6,7 @@ import { useFormAction } from "@/shared/composables/form/useFormAction.js";
 import { useDelete } from "@/shared/composables/form/useDelete.js";
 import { useClientFilteredList } from "@/shared/composables/list/useClientFilteredList.js";
 import { required } from "@/shared/utils/validation/validators.js";
-
-/**
- * Mirrors `AbstractCustomerSpace::MAX_COLOUR_SLOT`, which mirrors the eight
- * `--chart-cat-*` tokens. Declared here rather than imported from the calendar
- * module: a Vue import across modules would make this screen stop building the
- * day somebody ships Studio without Planning, and the number is a property of
- * the palette rather than of either module.
- */
-const MAX_COLOUR_SLOT = 8;
-
-export const COLOUR_SLOTS = Array.from(
-    { length: MAX_COLOUR_SLOT },
-    (_, index) => index + 1,
-);
+import { COLOUR_SLOTS } from "@/shared/composables/chart/paletteSlots.js";
 
 /**
  * One form shape for create and edit, because the fields are the same either
@@ -56,6 +43,8 @@ function formFrom(space) {
         })),
     };
 }
+
+export { COLOUR_SLOTS };
 
 export function useCustomerSpacesForm(
     initialSpaces,

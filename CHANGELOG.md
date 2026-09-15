@@ -5,6 +5,61 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.180] - 2026-09-15
+
+### Ajouté
+
+#### Une étape de tableau peut porter une couleur
+Facultative, choisie dans la palette partagée, et **nulle est une vraie
+réponse** : un tableau où chaque étape est colorée est un tableau où la couleur
+ne veut plus rien dire. L'intérêt est que deux ou trois ressortent.
+
+Les cinq étapes d'un nouvel espace arrivent colorées, sauf « Idées ». Une étape
+qui contient tout ce qui n'est pas commencé est le fond du tableau plutôt qu'un
+état à signaler ; les quatre suivantes sont jaune pour ce qui attend quelqu'un,
+aqua pour ce qui est calé, vert pour ce qui est sorti.
+
+**Le gain est au calendrier.** Une carte y porte désormais la couleur de son
+étape, pas celle de l'espace : à l'intérieur d'un espace, toutes les cartes sont
+du même client, donc la couleur de l'espace n'y dit rien, alors qu'on parcourt un
+mois pour voir ce qui attend encore une validation. L'agenda de l'équipe garde
+la couleur de l'espace, parce que la question y est l'inverse - de quel client
+relève cette date. Deux surfaces, deux questions, les mêmes lignes.
+
+La page que lit le client suit la même règle.
+
+### Interne
+
+#### Données de démonstration
+Le tableau rempli reçoit une **sixième étape, « Relecture juridique »**, ajoutée
+après coup et colorée en rouge. Les cinq premières montrent les valeurs par
+défaut ; celle-ci montre la décision derrière elles - les étapes appartiennent à
+l'espace, donc un client dont les publications passent par un avocat en a une que
+personne d'autre n'a. Une démo qui n'aurait jamais montré que les cinq
+enseignerait qu'elles appartiennent au produit, ce qui est l'inverse de ce à
+quoi la table sert.
+
+#### Le plafond de la palette était écrit à quatre endroits
+`AbstractPlanning`, `AbstractCustomerSpace`, un composable Vue et bientôt les
+étapes portaient chacun leur `8`. C'est une propriété des huit jetons
+`--chart-cat-*` du thème, pas d'un module qui les lit. Un
+`Aurora\Core\Support\ChartPalette` le porte maintenant, avec son `clamp()`,
+et `@/shared/composables/chart/paletteSlots.js` côté navigateur.
+
+Les deux constantes d'entité restent, pointant sur la nouvelle : un projet
+client qui référençait `AbstractPlanning::MAX_COLOUR_SLOT` continue de marcher.
+
+#### Un sélecteur de couleur partagé
+`AppColourSlotPicker` remplace les pastilles recopiées dans le calendrier et
+dans les espaces, et ajoute ce qu'aucune des deux copies ne savait faire :
+proposer « aucune couleur » comme choix.
+
+### Dans aurora-client
+`make aurora-update` puis la migration. Les étapes déjà créées gardent l'absence
+de couleur, ce qui est le défaut honnête : personne n'en a choisi une pour elles.
+
+---
+
 ## [0.9.179] - 2026-09-15
 
 ### Ajouté

@@ -1,4 +1,7 @@
 shared:
+  palette:
+    no_colour: Aucune couleur
+    colour_slot: 'Couleur {slot}'
   placeholders:
     name: Un nom court
     title: Un titre court

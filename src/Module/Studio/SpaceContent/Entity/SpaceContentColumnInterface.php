@@ -21,4 +21,8 @@ interface SpaceContentColumnInterface
     public function getPosition(): int;
 
     public function setPosition(int $position): static;
+
+    public function getColourSlot(): ?int;
+
+    public function setColourSlot(?int $colourSlot): static;
 }

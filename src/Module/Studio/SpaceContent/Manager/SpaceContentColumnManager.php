@@ -29,13 +29,20 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
      * arrive in the language of the person who made the space. They are data
      * from that moment on: renaming one here never renames one already created,
      * which is correct - somebody may have called it something else.
+     *
+     * The colours are chosen, not walked in order. Ideas carry none, because a
+     * step that holds everything not started yet is the board's background
+     * rather than a state worth flagging; then yellow for what is waiting on
+     * somebody, aqua for what is settled, green for what is out. The two that
+     * matter on a calendar - "à valider" and "programmé" - are the two a reader
+     * has to tell apart at a glance.
      */
-    protected const array DEFAULT_COLUMN_KEYS = [
-        'backend.studio.space_content.default_columns.idea',
-        'backend.studio.space_content.default_columns.writing',
-        'backend.studio.space_content.default_columns.review',
-        'backend.studio.space_content.default_columns.scheduled',
-        'backend.studio.space_content.default_columns.published',
+    protected const array DEFAULT_COLUMNS = [
+        ['backend.studio.space_content.default_columns.idea', null],
+        ['backend.studio.space_content.default_columns.writing', 1],
+        ['backend.studio.space_content.default_columns.review', 4],
+        ['backend.studio.space_content.default_columns.scheduled', 3],
+        ['backend.studio.space_content.default_columns.published', 6],
     ];
 
     public function __construct(
@@ -51,6 +58,7 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
         $column
             ->setSpace($space)
             ->setName($input->getName())
+            ->setColourSlot($input->getColourSlot())
             ->setPosition($this->columnRepository->nextPosition($space));
 
         $this->entityManager->persist($column);
@@ -63,7 +71,9 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
 
     public function update(SpaceContentColumnInterface $column, SpaceContentColumnInputInterface $input): void
     {
-        $column->setName($input->getName());
+        $column
+            ->setName($input->getName())
+            ->setColourSlot($input->getColourSlot());
         $this->entityManager->flush();
 
         $this->auditUpdated($column);
@@ -139,11 +149,12 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
     {
         $position = 0;
 
-        foreach (static::DEFAULT_COLUMN_KEYS as $key) {
+        foreach (static::DEFAULT_COLUMNS as [$key, $colourSlot]) {
             $column = $this->createColumn();
             $column
                 ->setSpace($space)
                 ->setName($this->translator->trans($key))
+                ->setColourSlot($colourSlot)
                 ->setPosition($position);
 
             $this->entityManager->persist($column);
@@ -181,6 +192,7 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
     {
         return [
             'name' => $column->getName(),
+            'colourSlot' => $column->getColourSlot(),
             'spaceId' => $column->getSpace()->getId(),
             'spaceName' => $column->getSpace()->getName(),
         ];
