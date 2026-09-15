@@ -132,7 +132,7 @@ final class PublicSpaceController extends AbstractController
         }
 
         try {
-            $this->items->answer($item, $link, $approval, Str::trimOrNullFromArray($payload, 'note'));
+            $this->items->answer($item, $link, $approval);
         } catch (FieldException) {
             // The card belongs to another space. Answered like a stranger, for
             // the reason above.

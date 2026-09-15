@@ -1005,9 +1005,7 @@ studio:
             thread_notice: Ce que vous écrivez ici est lu par votre prestataire.
             approve: Validé
             request_changes: À revoir
-            note: Commentaire
-            note_placeholder: 'Ce qui vous va, ou ce qui ne va pas.'
-            note_hint: 'Facultatif pour valider, utile pour demander une reprise : c''est ce que votre prestataire lira.'
+            answer_hint: 'Pour demander une reprise, dites ce qui ne va pas dans les échanges ci-dessus.'
             answer_recorded: Votre réponse est enregistrée.
             already_approved: 'Vous avez validé ce contenu le {date}.'
             already_changes_requested: 'Vous avez demandé une reprise le {date}.'

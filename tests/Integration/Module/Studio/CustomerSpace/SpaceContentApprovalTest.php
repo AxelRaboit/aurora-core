@@ -22,6 +22,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 use function json_decode;
 use function parse_url;
+use function preg_replace;
 use function sprintf;
 use function str_repeat;
 
@@ -82,7 +83,10 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $answer = $this->answerPathFor($space, $item['id']);
 
         $guest = $this->asGuest();
-        $guest->jsonRequest('POST', $answer, ['approval' => 'approved', 'note' => 'Parfait.']);
+        // Two calls, because they are two things: a message on the thread,
+        // then the verdict. The screen asks for them in that order too.
+        $guest->jsonRequest('POST', $this->commentPathFrom($answer), ['body' => 'Parfait.']);
+        $guest->jsonRequest('POST', $answer, ['approval' => 'approved']);
 
         self::assertSame(200, $guest->getResponse()->getStatusCode());
 
@@ -154,10 +158,9 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $item = $this->givenItem($space, 'Texte a revoir');
 
         $guest = $this->asGuest();
-        $guest->jsonRequest('POST', $this->answerPathFor($space, $item['id']), [
-            'approval' => 'changes_requested',
-            'note' => 'Le ton est trop formel.',
-        ]);
+        $path = $this->answerPathFor($space, $item['id']);
+        $guest->jsonRequest('POST', $this->commentPathFrom($path), ['body' => 'Le ton est trop formel.']);
+        $guest->jsonRequest('POST', $path, ['approval' => 'changes_requested']);
 
         $this->loginAdmin();
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $item['id']), [
@@ -313,6 +316,17 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
     private function answerPathFor(CustomerSpace $space, int $itemId, bool $canApprove = true): string
     {
         return $this->answerPathFromUrl($this->issue($space, $canApprove), $itemId);
+    }
+
+    /**
+     * The thread's address, derived from the verdict's.
+     *
+     * The two hang off the same card, so one is the other with its last segment
+     * swapped - which keeps the test from having to mint a second link.
+     */
+    private function commentPathFrom(string $answerPath): string
+    {
+        return preg_replace('#/answer$#', '/comments', $answerPath);
     }
 
     private function answerPathFromUrl(string $url, int $itemId): string

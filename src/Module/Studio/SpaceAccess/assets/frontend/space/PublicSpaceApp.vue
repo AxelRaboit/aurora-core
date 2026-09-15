@@ -27,7 +27,6 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppThemeToggle from "@/shared/components/action/AppThemeToggle.vue";
 import { monthGrid } from "@/shared/composables/calendar/monthGrid.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 // Same module, another sub-domain: a relative path rather than an alias.
 // The rule that forbids reaching across modules is about modules, and this
 // component is the one thing the two surfaces genuinely share.
@@ -119,7 +118,6 @@ const openWhen = computed(() => {
     return d(new Date(openItem.value.scheduledAt), "long");
 });
 
-const note = ref("");
 const answering = ref("");
 const posting = ref(false);
 
@@ -150,9 +148,10 @@ async function postComment(body) {
 /**
  * Says what the reader thinks of one piece of content.
  *
- * The note travels with the verdict rather than after it: "à revoir" is only
- * actionable with a reason, and asking for it in a second step is asking
- * somebody who has already clicked to come back.
+ * The verdict alone: the reason belongs in the thread, where both sides can see
+ * it and where it survives the studio rewriting the text. It used to travel in
+ * a field of its own beside these buttons, which put two boxes on one screen
+ * and left the reader guessing which one their agency would read.
  */
 async function answer(approval) {
     if (!props.answerPath || !openItem.value) return;
@@ -161,7 +160,7 @@ async function answer(approval) {
     try {
         const data = await request(
             buildPath(props.answerPath, { id: openItem.value.id }),
-            { approval, note: note.value },
+            { approval },
         );
 
         if (!data?.success) return;
@@ -170,7 +169,6 @@ async function answer(approval) {
         if (data.comments) comments.value = data.comments;
         toast.success(t("studio.public.space.answer_recorded"));
         openItem.value = null;
-        note.value = "";
     } finally {
         answering.value = "";
     }
@@ -178,7 +176,6 @@ async function answer(approval) {
 
 function open(event) {
     openItem.value = itemsById.value.get(event.id) ?? null;
-    note.value = "";
 }
 </script>
 
@@ -290,15 +287,14 @@ function open(event) {
                 />
             </div>
 
-            <section v-if="canApprove" class="mt-4 space-y-3 border-t border-line/50 pt-4">
-                <AppTextarea
-                    :model-value="note"
-                    :label="t('studio.public.space.note')"
-                    :placeholder="t('studio.public.space.note_placeholder')"
-                    :hint="t('studio.public.space.note_hint')"
-                    :rows="3"
-                    v-on:update:model-value="note = $event"
-                />
+            <!-- Two buttons and no box of its own. The words go in the thread
+                 above, which is the only place on this page somebody types: a
+                 second field beside the verdict was a second door to the same
+                 message, and the reader had to guess which one counted. -->
+            <section v-if="canApprove" class="mt-4 space-y-2 border-t border-line/50 pt-4">
+                <p class="text-xs text-muted">
+                    {{ t("studio.public.space.answer_hint") }}
+                </p>
                 <div class="flex flex-wrap gap-2">
                     <AppButton
                         variant="primary"

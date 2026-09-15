@@ -1005,9 +1005,7 @@ studio:
             thread_notice: What you write here is read by your agency.
             approve: Approved
             request_changes: Needs changes
-            note: Comment
-            note_placeholder: 'What works, or what does not.'
-            note_hint: 'Optional to approve, useful to ask for changes: this is what your agency reads.'
+            answer_hint: 'To ask for changes, say what is wrong in the discussion above.'
             answer_recorded: Your answer has been recorded.
             already_approved: 'You approved this content on {date}.'
             already_changes_requested: 'You asked for changes on {date}.'

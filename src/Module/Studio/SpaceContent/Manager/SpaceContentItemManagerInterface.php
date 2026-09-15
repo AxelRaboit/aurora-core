@@ -46,6 +46,5 @@ interface SpaceContentItemManagerInterface
         SpaceContentItemInterface $item,
         SpaceAccessLinkInterface $link,
         SpaceContentApprovalEnum $approval,
-        ?string $note,
     ): void;
 }

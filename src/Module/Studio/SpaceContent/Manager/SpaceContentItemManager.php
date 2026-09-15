@@ -38,7 +38,6 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         protected readonly SpaceContentItemRepository $itemRepository,
         protected readonly SpaceContentColumnRepository $columnRepository,
         protected readonly TranslatorInterface $translator,
-        protected readonly SpaceContentCommentManagerInterface $comments,
         protected readonly EventDispatcherInterface $eventDispatcher,
         protected readonly UrlGeneratorInterface $urlGenerator,
     ) {}
@@ -137,6 +136,11 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
     /**
      * Records what a client answered through their link.
      *
+     * The verdict and nothing else. Words are messages on the thread, posted by
+     * their own call: this used to take a note and forward it, which put a
+     * second box on the client's screen beside the one they were already
+     * typing in.
+     *
      * The right is checked by the caller, which holds the link; what is checked
      * here is the one thing a Manager can own - that the card belongs to the
      * space the link opens. A crafted payload naming another client's card is
@@ -146,7 +150,6 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         SpaceContentItemInterface $item,
         SpaceAccessLinkInterface $link,
         SpaceContentApprovalEnum $approval,
-        ?string $note,
     ): void {
         if ($item->getSpace()->getId() !== $link->getSpace()->getId()) {
             throw new FieldException('item', $this->translator->trans('backend.studio.space_content.errors.not_in_space'));
@@ -154,14 +157,6 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
 
         $item->answer($approval, $link, new DateTimeImmutable());
         $this->entityManager->flush();
-
-        // The words go to the thread, not onto the verdict. It is the same
-        // gesture for the person answering - "à revoir" is only actionable with
-        // a reason - and two different lifetimes underneath: the verdict is
-        // reset when the text is rewritten, the message is not.
-        if (null !== $note && '' !== $note) {
-            $this->comments->postAsClient($item, $link, $note);
-        }
 
         $this->auditAnswered($item);
     }

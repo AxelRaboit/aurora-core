@@ -113,9 +113,7 @@ studio:
             thread_notice: Lo que escriba aquí lo lee su proveedor.
             approve: Validado
             request_changes: Revisar
-            note: Comentario
-            note_placeholder: 'Lo que le parece bien, o lo que no.'
-            note_hint: 'Opcional para validar, útil para pedir cambios: es lo que leerá su proveedor.'
+            answer_hint: 'Para pedir cambios, diga qué no funciona en los intercambios de arriba.'
             answer_recorded: Su respuesta ha quedado registrada.
             already_approved: 'Validó este contenido el {date}.'
             already_changes_requested: 'Pidió una revisión el {date}.'

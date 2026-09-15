@@ -27,6 +27,16 @@ entendue sans être celle qui décide, et un plan montré à un prospect ne veut
 l'un ni l'autre. Chacun est appliqué, et un lien qui n'a ni l'un ni l'autre est
 le lien en lecture seule.
 
+#### Une seule zone de saisie sur l'écran du client
+Le fil remplace le champ « Commentaire » qui accompagnait les deux boutons. Il
+finissait de toute façon en message, donc c'était une seconde porte vers la même
+chose, posée à côté de celle que le lecteur venait d'utiliser. Il reste les deux
+verdicts et une phrase qui dit où écrire.
+
+L'endpoint de réponse perd du même coup son paramètre `note` : aucun écran ne
+l'envoyait plus, et un paramètre que personne ne poste est un interrupteur qui ne
+fait rien.
+
 ### Corrigé
 
 #### Le commentaire du client disparaissait au moment où on s'en servait
@@ -72,13 +82,13 @@ lit un client est un namespace qui a cessé de vouloir dire quelque chose.
 ### Ajouté
 
 #### Le client répond : « Validé » ou « À revoir »
-Depuis sa page, en ouvrant une publication, avec un commentaire. C'est la boucle
-que tout le reste préparait : le prestataire envoie un lien, le client parcourt
-son mois et répond, et le studio voit la réponse sur la carte.
+Depuis sa page, en ouvrant une publication. C'est la boucle que tout le reste
+préparait : le prestataire envoie un lien, le client parcourt son mois et répond,
+et le studio voit la réponse sur la carte.
 
-Le commentaire part **dans le même geste** que la réponse. « À revoir » n'est
-actionnable qu'avec une raison, et la demander dans un second temps, c'est la
-demander à quelqu'un qui a déjà cliqué.
+Le pourquoi s'écrit dans le fil d'échanges, juste au-dessus des deux boutons (voir
+0.9.182). La réponse n'a pas de champ à elle : deux zones de saisie sur un même
+écran, c'est le lecteur qui devine laquelle sera lue.
 
 **La réponse ne déplace jamais la carte.** C'est un avis, pas une machine à
 états : un client qui clique par erreur aurait sinon programmé ou déprogrammé une
