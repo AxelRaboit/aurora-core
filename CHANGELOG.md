@@ -5,6 +5,112 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.177] - 2026-09-15
+
+### Ajouté
+
+#### Un espace client a un tableau, et c'est là que son contenu vit
+Chaque espace arrive avec cinq étapes - Idées, En rédaction, À valider,
+Programmé, Publié - créées avec lui et renommables. **Les étapes appartiennent à
+l'espace, pas au produit** : un client dont les publications passent par une
+relecture juridique a une étape que personne d'autre n'a, et un client qui
+publie le jour où c'est écrit en a moins. Un jeu figé aurait été une table de
+moins et faux dès le deuxième client.
+
+Un contenu porte un titre, son texte, son étape et **une date facultative**.
+C'est cette nullité qui compte : une idée existe avant que quiconque sache
+quand elle sort, elle vit sur le tableau, et elle rejoindra le calendrier le
+jour où on la programme.
+
+**Le pari que tout le reste suivra** : le tableau et le calendrier à venir ne
+sont pas deux fonctionnalités, ce sont deux lectures des mêmes lignes. L'étape
+dit où en est un contenu, la date dit quand il sort, et aucune des deux vues ne
+possède quoi que ce soit. Un calendrier d'« événements » à côté d'un tableau de
+« tâches », ce sont deux endroits où saisir la même publication, et ils se
+désaccordent à la première semaine chargée.
+
+L'heure tapée est lue **dans le fuseau de l'espace**, pas dans celui du lecteur.
+« Mardi 9h » est une promesse faite à un client, et quelqu'un en déplacement à
+l'étranger ne doit pas la décaler en ouvrant la page.
+
+#### L'espace s'ouvre dans sa propre coquille, ni back-office ni site public
+Un espace n'est pas un écran qu'on traverse, c'est un endroit où l'on reste une
+heure. Il a donc son gabarit : un bandeau fin avec le retour, la couleur de
+l'espace, son nom et son client, une barre d'onglets. Pas de menu latéral, pas
+de fil d'Ariane d'administration.
+
+Le menu à lui seul coûtait 260 pixels sur des colonnes qui en font 288, soit une
+colonne entière donnée à une navigation dont personne ne se sert en train de
+glisser une carte. C'est le choix que le gabarit public des contrats avait déjà
+fait un écran plus tôt, pour la même raison.
+
+**L'adresse sort de `/backend` avec lui**, parce qu'une coquille autonome à une
+adresse d'administration reste une page d'administration pour qui lit la barre
+du navigateur. Un espace s'ouvre donc sur `/workspace/{id}`.
+
+Ce qu'il ne devait pas perdre en quittant ce préfixe, c'est l'identité : le
+pare-feu d'administration est un motif de chemin, et en dehors aucune session
+backend n'est restaurée - un membre de l'équipe serait arrivé en visiteur
+anonyme sur le tableau de son propre client, sans erreur ni message, juste une
+redirection vers le formulaire de connexion du site. Le motif devient donc
+`^/(backend|dev|workspace)`. Les deux questions sont séparées et se répondent
+séparément : ce qui est dessiné, et qui est reconnu.
+
+Un test échoue désormais si un chemin réservé à l'équipe sort de ce motif, parce
+que c'est le genre d'erreur qu'une suite verte ne remarque pas : le client de
+test s'authentifie lui-même.
+
+Ce que le client verra plus tard, c'est cette même coquille en lecture seule,
+atteinte par un lien signé sur une route publique. Deux adresses, deux façons de
+prouver qui on est, un seul écran : c'est pour ça qu'elle est construite
+maintenant plutôt qu'à l'arrivée du portail.
+
+### Modifié
+
+#### L'équipe d'un espace se lit en visages, plus en texte
+La colonne affichait trois noms et un « +2 », ce qui répond à « est-ce que
+quelqu'un est dessus » et à rien d'autre : la quatrième personne était invisible,
+les rôles n'étaient nulle part, et le libellé passait à la ligne dans la cellule.
+
+La cellule porte maintenant une pile d'avatars, trois au plus puis un `+n`, qui
+ouvre la liste complète avec les rôles et les adresses. Une initiale se
+reconnaît là où « 2 personnes » doit se lire, et c'est ce qu'on fait en
+descendant une colonne. Le libellé accessible est au passage passé au vrai
+pluriel plutôt qu'à « 1 personne(s) ».
+
+Le nom d'un espace est désormais un lien vers son tableau.
+
+### Interne
+
+#### Ce qu'une clé étrangère ne peut pas dire à la place du Manager
+Le lien d'une carte vers son étape est en `CASCADE`, là où `RESTRICT` semble le
+choix prudent. Supprimer un espace cascade vers ses étapes **et** ses cartes
+sans ordre garanti : une restriction aurait refusé une suppression légitime une
+fois sur deux. La règle « une étape qui contient des cartes ne se supprime pas »
+est donc énoncée dans le Manager, seul endroit qui sait distinguer les deux cas,
+et un test couvre la suppression d'un espace au tableau rempli.
+
+#### Le tableau répond toujours entier
+Chaque écriture renvoie les étapes et les cartes au complet plutôt que la ligne
+modifiée. Un glissement renumérote une colonne, la suppression d'une étape
+renumérote le reste, et une page qui réconcilierait elle-même dériverait du
+serveur en trois gestes.
+
+#### Données de démonstration
+Un seul des cinq espaces reçoit un tableau rempli, huit contenus répartis sur les
+cinq étapes dont trois sans date. Une démo où chaque espace porte les mêmes
+cartes enseigne que les cartes viennent avec le produit ; un tableau chargé à
+côté de quatre vides montre les deux états.
+
+### Dans aurora-client
+`make aurora-update`, puis la migration, puis **`make sync-security`** : le motif
+du pare-feu d'administration a changé pour couvrir `/workspace`. La cible écrase
+`config/packages/security.yaml` depuis le vendor, donc il n'y a rien à recopier
+à la main - mais sans elle, les espaces clients redirigent vers la connexion du
+site public.
+
+---
+
 ## [0.9.176] - 2026-09-15
 
 ### Ajouté

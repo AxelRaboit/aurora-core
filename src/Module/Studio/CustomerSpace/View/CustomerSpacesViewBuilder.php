@@ -50,6 +50,7 @@ final readonly class CustomerSpacesViewBuilder
             // The whole list, as the calendar's own screen does it: a
             // shortlist would be right until the first client abroad.
             'timezones' => DateTimeZone::listIdentifiers(),
+            'boardPath' => $this->pathTemplates->generate('workspace_space_content', ['id' => '__id__']),
             'createPath' => $this->urlGenerator->generate('backend_studio_spaces_create'),
             'updatePath' => $this->pathTemplates->generate('backend_studio_spaces_update', ['id' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('backend_studio_spaces_delete', ['id' => '__id__']),

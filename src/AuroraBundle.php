@@ -125,6 +125,10 @@ use Aurora\Module\Studio\Deck\Entity\Slide;
 use Aurora\Module\Studio\Deck\Entity\SlideInterface;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Override;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -235,6 +239,8 @@ class AuroraBundle extends AbstractBundle
                     CustomerInterface::class => Customer::class,
                     CustomerSpaceInterface::class => CustomerSpace::class,
                     CustomerSpaceMemberInterface::class => CustomerSpaceMember::class,
+                    SpaceContentColumnInterface::class => SpaceContentColumn::class,
+                    SpaceContentItemInterface::class => SpaceContentItem::class,
                     DeckInterface::class => Deck::class,
                     DeckCategoryInterface::class => DeckCategory::class,
                     SlideInterface::class => Slide::class,

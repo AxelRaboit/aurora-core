@@ -16,6 +16,7 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMemberInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -29,6 +30,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         protected readonly CustomerSpaceRepository $spaceRepository,
         protected readonly CustomerRepository $customerRepository,
         protected readonly UserRepository $userRepository,
+        protected readonly SpaceContentColumnManagerInterface $columnManager,
         protected readonly TranslatorInterface $translator,
     ) {}
 
@@ -45,6 +47,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         $this->applyInput($space, $input);
 
         $this->entityManager->persist($space);
+        $this->seedBoard($space);
         $this->entityManager->flush();
 
         $this->auditCreated($space);
@@ -74,6 +77,21 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
 
         $this->entityManager->remove($space);
         $this->entityManager->flush();
+    }
+
+    /**
+     * Gives the new space a board it can be used on.
+     *
+     * Here rather than on first visit to the board, so the columns exist before
+     * anybody looks: a screen that seeds itself on read writes during a GET,
+     * and two tabs opened at once then race to create the same five rows.
+     *
+     * A hook of its own so a client project can seed a different set, or none,
+     * without reimplementing creation.
+     */
+    protected function seedBoard(CustomerSpaceInterface $space): void
+    {
+        $this->columnManager->seedDefaults($space);
     }
 
     /**

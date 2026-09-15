@@ -29,6 +29,14 @@ backend:
                     created: Client space created
                     updated: Client space updated
                     deleted: Client space deleted
+                space_content_item:
+                    created: Content created
+                    updated: Content updated
+                    deleted: Content deleted
+                space_content_column:
+                    created: Board step created
+                    updated: Board step renamed
+                    deleted: Board step deleted
                 contract_template:
                     created: Contract template created
                     updated: Contract template updated
@@ -712,8 +720,11 @@ backend:
             delete_warning: The space and its team list go. The customer, their contracts and their documents stay where they are.
             show_archived: Show archived spaces
             archived_badge: Archived
-            member_count: '{count} people'
             no_members: Nobody assigned
+            team_button: '1 person | {count} people'
+            team_modal_title: 'Team of {name}'
+            team_modal_empty: Nobody is assigned to this space.
+            team_modal_hint: This is not an access right. It is who on your side works on this space.
 
             col_space: Space
             col_customer: Client
@@ -761,6 +772,59 @@ backend:
                 name_too_long: The name cannot be longer than 150 characters.
                 customer_required: Choose the client this space belongs to.
                 timezone_invalid: That time zone is not recognised.
+        space_content:
+            board: Board
+            back_to_spaces: Back to spaces
+            add_item: Add content
+            create_item: New content
+            edit_item: 'Edit {title}'
+            item_created: Content created.
+            item_updated: Content updated.
+            item_deleted: Content deleted.
+            delete_item_confirm: 'Delete {title}?'
+            delete_item_warning: The content and its text go. The other cards stay where they are.
+            empty_column: Nothing here yet.
+            empty_board: No content in this space. Add one to get started.
+            unscheduled: No date
+            scheduled_for: 'On {date}'
+
+            title: Title
+            title_placeholder: 'What the post says, in one line'
+            body: Text
+            body_placeholder: The content as it will go out.
+            column: Step
+            scheduled_at: Publication date
+            scheduled_at_hint: 'Optional. An idea with no date lives on the board and joins the calendar when you schedule it.'
+            scheduled_at_placeholder: '2026-09-22 09:00'
+            timezone_notice: 'Times are in the space''s zone, {timezone}.'
+
+            add_column: Add a step
+            create_column: New step
+            edit_column: Rename the step
+            column_name: Step name
+            column_name_placeholder: 'To review, Live…'
+            column_created: Step added.
+            column_updated: Step renamed.
+            column_deleted: Step deleted.
+            delete_column_confirm: 'Delete the step {name}?'
+            delete_column_warning: A step is only deleted when it is empty.
+
+            default_columns:
+                idea: Ideas
+                writing: Writing
+                review: To approve
+                scheduled: Scheduled
+                published: Published
+
+            errors:
+                title_required: The title is required.
+                title_too_long: The title cannot be longer than 255 characters.
+                column_required: Choose a step of this space.
+                scheduled_at_invalid: That date is not valid.
+                column_name_required: The step name is required.
+                column_name_too_long: The name cannot be longer than 100 characters.
+                column_not_empty: 'This step holds {count} items. Move them before deleting it.'
+                column_last: A board keeps at least one step.
 studio:
     contract:
         # Written into the document itself, and therefore sealed with it: these

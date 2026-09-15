@@ -7,7 +7,7 @@
  * that has to go in it. Shipping the shell first would have been a click that
  * leads to an empty screen.
  */
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -23,6 +23,9 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
+import CustomerSpaceTeamModal from "./components/CustomerSpaceTeamModal.vue";
+import CustomerSpaceTeamCell from "./components/CustomerSpaceTeamCell.vue";
+import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { PanelsTopLeft, Pencil, Plus, Save, Trash2, X } from "lucide-vue-next";
 
 const { t } = useI18n();
@@ -36,6 +39,7 @@ const props = defineProps({
     statuses: { type: Array, default: () => [] },
     roles: { type: Array, default: () => [] },
     timezones: { type: Array, default: () => [] },
+    boardPath: { type: String, required: true },
     createPath: { type: String, required: true },
     updatePath: { type: String, required: true },
     deletePath: { type: String, required: true },
@@ -83,25 +87,20 @@ const actionsFor = useEditDeleteActions({
     deleteDescription: "backend.studio.spaces.row_actions.delete_description",
 });
 
-/**
- * Three names, then a count.
- *
- * A team of eight rendered in a table cell is a wall of text nobody reads, and
- * past three the names stop being distinguishable at a glance anyway.
- */
-const MAX_NAMES = 3;
-
-function teamLabel(space) {
-    const members = space.members ?? [];
-
-    if (!members.length) return t("backend.studio.spaces.no_members");
-
-    const names = members.slice(0, MAX_NAMES).map((member) => member.name);
-
-    if (members.length <= MAX_NAMES) return names.join(", ");
-
-    return `${names.join(", ")} +${members.length - MAX_NAMES}`;
+/** Where a row leads: the space's board. */
+function boardHref(space) {
+    return buildPath(props.boardPath, { id: space.id });
 }
+
+/**
+ * The team, as a figure that opens the list.
+ *
+ * It used to be three names and a "+2" written into the cell, which answered
+ * "is anybody on this" and hid the fourth person, the roles and the addresses.
+ * A cell is not the place to read five people: it is the place to see that
+ * there are five. The names live in the modal, where they have room.
+ */
+const teamOf = ref(null);
 
 const pageActions = computed(() => {
     if (!can("studio.spaces.create")) {
@@ -163,7 +162,9 @@ const pageActions = computed(() => {
                     />
                     <div class="min-w-0 space-y-1">
                         <p class="font-medium text-primary text-sm">
-                            {{ space.name }}
+                            <a :href="boardHref(space)" class="hover:underline">
+                                {{ space.name }}
+                            </a>
                             <span
                                 v-if="space.archived"
                                 class="ml-1 text-xs font-normal text-muted"
@@ -172,7 +173,10 @@ const pageActions = computed(() => {
                             </span>
                         </p>
                         <p class="text-xs text-secondary">{{ space.customerName }}</p>
-                        <p class="text-xs text-muted">{{ teamLabel(space) }}</p>
+                        <CustomerSpaceTeamCell
+                            :members="space.members"
+                            v-on:open="teamOf = space"
+                        />
                     </div>
                 </div>
                 <div
@@ -237,9 +241,12 @@ const pageActions = computed(() => {
                                     }"
                                 />
                                 <div class="min-w-0">
-                                    <div class="font-medium text-primary truncate">
+                                    <a
+                                        :href="boardHref(space)"
+                                        class="block truncate font-medium text-primary hover:text-accent-500 hover:underline"
+                                    >
                                         {{ space.name }}
-                                    </div>
+                                    </a>
                                     <div
                                         v-if="space.description"
                                         class="text-xs text-muted truncate"
@@ -250,8 +257,11 @@ const pageActions = computed(() => {
                             </div>
                         </td>
                         <td class="px-6 py-3 text-primary">{{ space.customerName }}</td>
-                        <td class="px-6 py-3 text-muted hidden lg:table-cell">
-                            {{ teamLabel(space) }}
+                        <td class="px-6 py-3 hidden lg:table-cell">
+                            <CustomerSpaceTeamCell
+                                :members="space.members"
+                                v-on:open="teamOf = space"
+                            />
                         </td>
                         <td class="px-6 py-3 hidden md:table-cell">
                             <span
@@ -284,6 +294,12 @@ const pageActions = computed(() => {
                 </tbody>
             </table>
         </div>
+
+        <CustomerSpaceTeamModal
+            :space="teamOf"
+            :roles="roles"
+            v-on:close="teamOf = null"
+        />
 
         <AppModal
             :show="showCreate"

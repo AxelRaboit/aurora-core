@@ -29,6 +29,14 @@ backend:
                     created: Espace client créé
                     updated: Espace client modifié
                     deleted: Espace client supprimé
+                space_content_item:
+                    created: Contenu créé
+                    updated: Contenu modifié
+                    deleted: Contenu supprimé
+                space_content_column:
+                    created: Étape de tableau créée
+                    updated: Étape de tableau renommée
+                    deleted: Étape de tableau supprimée
                 contract_template:
                     created: Trame de contrat créée
                     updated: Trame de contrat mise à jour
@@ -712,8 +720,11 @@ backend:
             delete_warning: L'espace et la liste de son équipe disparaissent. Le client, ses contrats et ses documents ne bougent pas.
             show_archived: Afficher les espaces archivés
             archived_badge: Archivé
-            member_count: '{count} personne(s)'
             no_members: Aucun membre
+            team_button: '1 personne | {count} personnes'
+            team_modal_title: 'Équipe de {name}'
+            team_modal_empty: Personne n'est rattaché à cet espace.
+            team_modal_hint: Ce n'est pas un droit d'accès. C'est qui, chez vous, travaille sur cet espace.
 
             col_space: Espace
             col_customer: Client
@@ -761,6 +772,59 @@ backend:
                 name_too_long: Le nom ne peut pas dépasser 150 caractères.
                 customer_required: Choisissez le client à qui cet espace appartient.
                 timezone_invalid: Ce fuseau horaire n'est pas reconnu.
+        space_content:
+            board: Tableau
+            back_to_spaces: Retour aux espaces
+            add_item: Ajouter un contenu
+            create_item: Nouveau contenu
+            edit_item: 'Modifier {title}'
+            item_created: Contenu créé.
+            item_updated: Contenu mis à jour.
+            item_deleted: Contenu supprimé.
+            delete_item_confirm: 'Supprimer {title} ?'
+            delete_item_warning: Le contenu et son texte disparaissent. Les autres cartes ne bougent pas.
+            empty_column: Rien ici pour le moment.
+            empty_board: Aucun contenu dans cet espace. Ajoutez-en un pour commencer.
+            unscheduled: Sans date
+            scheduled_for: 'Le {date}'
+
+            title: Titre
+            title_placeholder: 'Ce que dit la publication, en une ligne'
+            body: Texte
+            body_placeholder: Le contenu tel qu'il partira.
+            column: Étape
+            scheduled_at: Date de publication
+            scheduled_at_hint: 'Facultative. Une idée sans date vit sur le tableau et rejoint le calendrier quand vous la programmez.'
+            scheduled_at_placeholder: '2026-09-22 09:00'
+            timezone_notice: 'Les heures sont celles du fuseau de l''espace, {timezone}.'
+
+            add_column: Ajouter une étape
+            create_column: Nouvelle étape
+            edit_column: Renommer l'étape
+            column_name: Nom de l'étape
+            column_name_placeholder: 'À relire, En ligne…'
+            column_created: Étape ajoutée.
+            column_updated: Étape renommée.
+            column_deleted: Étape supprimée.
+            delete_column_confirm: 'Supprimer l''étape {name} ?'
+            delete_column_warning: Une étape ne se supprime que si elle est vide.
+
+            default_columns:
+                idea: Idées
+                writing: En rédaction
+                review: À valider
+                scheduled: Programmé
+                published: Publié
+
+            errors:
+                title_required: Le titre est obligatoire.
+                title_too_long: Le titre ne peut pas dépasser 255 caractères.
+                column_required: Choisissez une étape de cet espace.
+                scheduled_at_invalid: Cette date n'est pas valide.
+                column_name_required: Le nom de l'étape est obligatoire.
+                column_name_too_long: Le nom ne peut pas dépasser 100 caractères.
+                column_not_empty: 'Cette étape contient {count} contenu(s). Déplacez-les avant de la supprimer.'
+                column_last: Un tableau garde au moins une étape.
 studio:
     contract:
         # Écrit dans le document lui-même, donc scellé avec lui : ces phrases

@@ -6,6 +6,8 @@ namespace Aurora\Module\Studio\CustomerSpace\Entity;
 
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Collection;
 
@@ -45,6 +47,12 @@ interface CustomerSpaceInterface
     public function addMember(CustomerSpaceMemberInterface $member): static;
 
     public function removeMember(CustomerSpaceMemberInterface $member): static;
+
+    /** @return Collection<int, SpaceContentColumnInterface> */
+    public function getContentColumns(): Collection;
+
+    /** @return Collection<int, SpaceContentItemInterface> */
+    public function getContentItems(): Collection;
 
     public function getCreatedAt(): DateTimeImmutable;
 

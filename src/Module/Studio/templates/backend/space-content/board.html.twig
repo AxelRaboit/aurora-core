@@ -1,0 +1,19 @@
+{% extends '@Studio/backend/space-content/layout.html.twig' %}
+
+{% block title %}{{ space.name }}{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/backend/content/SpaceBoardApp', {
+    space: space,
+    columns: columns,
+    items: items,
+    itemCreatePath: itemCreatePath,
+    itemUpdatePath: itemUpdatePath,
+    itemDeletePath: itemDeletePath,
+    itemReorderPath: itemReorderPath,
+    columnCreatePath: columnCreatePath,
+    columnUpdatePath: columnUpdatePath,
+    columnDeletePath: columnDeletePath,
+    columnReorderPath: columnReorderPath,
+}) }}></div>
+{% endblock %}

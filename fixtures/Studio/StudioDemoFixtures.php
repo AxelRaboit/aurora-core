@@ -34,6 +34,7 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Manager\CustomerManagerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Dto\CustomerSpaceInput;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Manager\CustomerSpaceManagerInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
@@ -42,6 +43,9 @@ use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInput;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
+use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -110,6 +114,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly CustomerSpaceManagerInterface $spaces,
         private readonly CustomerSpaceRepository $spaceRepository,
         private readonly UserRepository $userRepository,
+        private readonly SpaceContentItemManagerInterface $contentItems,
+        private readonly SpaceContentColumnRepository $contentColumns,
         private readonly ContractTemplateManagerInterface $templates,
         private readonly ContractTemplateRepository $templateRepository,
         private readonly ContractManagerInterface $contracts,
@@ -316,12 +322,18 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $marieAccount = $this->backendUser('marie.dupont@aurora.app');
         $jeanAccount = $this->backendUser('jean.martin@aurora.app');
 
-        $this->space(
+        $social = $this->space(
             name: 'Atelier Dupont - Réseaux sociaux',
             description: 'Deux publications par semaine, Instagram et Facebook. Validation le jeudi.',
             customer: $marie,
             members: [$marieAccount => 'lead', $jeanAccount => 'member'],
         );
+
+        // One board filled, and only one. A demo where every space holds the
+        // same five cards teaches that the cards come with the product; a
+        // single busy board beside four empty ones shows both states, which is
+        // what the screens have to be able to draw.
+        $this->seedBoard($social);
 
         $this->space(
             name: 'Atelier Dupont - Refonte du site',
@@ -355,6 +367,68 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
+     * A week of content on one board, spread across its steps.
+     *
+     * Dates are relative to today, like the contracts above: a calendar seeded
+     * with dates written into the file reads as abandoned within a month, and
+     * this is the data the calendar view will be photographed against.
+     *
+     * Three of the eight carry no date on purpose. An idea with no date is the
+     * state the board exists for - it is the work that has not been scheduled
+     * yet - and a demo where everything is scheduled hides half of what the
+     * nullable column is for.
+     */
+    private function seedBoard(CustomerSpaceInterface $space): void
+    {
+        $columns = $this->contentColumns->findForSpace($space);
+
+        if ([] === $columns) {
+            return;
+        }
+
+        // Keyed by the step's place, not its name: the names are translated at
+        // creation and a demo that matched on "Idées" would seed nothing the
+        // day somebody creates a space in English.
+        $cards = [
+            0 => [
+                ['Portrait de l\'équipe', "Photo de groupe devant l'atelier, format carré.", null],
+                ['Les essences de bois', 'Un fil sur le chêne, le noyer et le frêne.', null],
+                ['Avant / après cuisine', 'La rénovation de septembre, en deux images.', null],
+            ],
+            1 => [
+                ['Coulisses du chantier Morel', "Trois photos de l'escalier en cours.", '+3 days 09:00'],
+            ],
+            2 => [
+                ['Offre de rentrée', 'Le devis gratuit jusqu\'au 30. À faire valider avant mardi.', '+5 days 18:00'],
+            ],
+            3 => [
+                ['Journée portes ouvertes', "Rappel de l'événement du 12, avec le plan d'accès.", '+8 days 10:00'],
+                ['Témoignage client', 'Le retour de Mme Lefèvre sur sa bibliothèque.', '+10 days 09:00'],
+            ],
+            4 => [
+                ['Le nouvel atelier', "L'annonce du déménagement, parue la semaine dernière.", '-4 days 09:00'],
+            ],
+        ];
+
+        foreach ($cards as $at => $rows) {
+            if (!isset($columns[$at])) {
+                continue;
+            }
+
+            foreach ($rows as [$title, $body, $when]) {
+                $this->contentItems->create($space, new SpaceContentItemInput(
+                    title: $title,
+                    body: $body,
+                    columnId: $columns[$at]->getId(),
+                    scheduledAt: null === $when
+                        ? null
+                        : new DateTimeImmutable($when)->format('Y-m-d\TH:i'),
+                ));
+            }
+        }
+    }
+
+    /**
      * One space, through the Manager rather than around it.
      *
      * So the demo exercises the same path a person does: the colour is spread
@@ -371,13 +445,13 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         array $members,
         CustomerSpaceStatusEnum $status = CustomerSpaceStatusEnum::Active,
         string $timezone = 'Europe/Paris',
-    ): void {
+    ): CustomerSpaceInterface {
         $rows = [];
         foreach ($members as $userId => $role) {
             $rows[] = ['userId' => $userId, 'role' => $role];
         }
 
-        $this->spaces->create(new CustomerSpaceInput(
+        return $this->spaces->create(new CustomerSpaceInput(
             name: $name,
             description: $description,
             customerId: $customer->getId(),

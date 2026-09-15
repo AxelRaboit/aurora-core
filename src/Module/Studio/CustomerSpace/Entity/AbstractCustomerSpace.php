@@ -7,6 +7,8 @@ namespace Aurora\Module\Studio\CustomerSpace\Entity;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -97,9 +99,28 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     #[ORM\OneToMany(targetEntity: CustomerSpaceMemberInterface::class, mappedBy: 'space', cascade: ['persist', 'remove'], orphanRemoval: true)]
     protected Collection $members;
 
+    /**
+     * The board's columns.
+     *
+     * Declared so the relation has an inverse side to be named from, and left
+     * without a cascade on purpose: the columns are created and removed through
+     * their own Manager, and the database takes them when the space goes.
+     *
+     * @var Collection<int, SpaceContentColumnInterface>
+     */
+    #[ORM\OneToMany(targetEntity: SpaceContentColumnInterface::class, mappedBy: 'space')]
+    #[ORM\OrderBy(['position' => 'ASC'])]
+    protected Collection $contentColumns;
+
+    /** @var Collection<int, SpaceContentItemInterface> */
+    #[ORM\OneToMany(targetEntity: SpaceContentItemInterface::class, mappedBy: 'space')]
+    protected Collection $contentItems;
+
     public function __construct()
     {
         $this->members = new ArrayCollection();
+        $this->contentColumns = new ArrayCollection();
+        $this->contentItems = new ArrayCollection();
     }
 
     abstract public function getId(): ?int;
@@ -203,5 +224,17 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
         $this->members->removeElement($member);
 
         return $this;
+    }
+
+    /** @return Collection<int, SpaceContentColumnInterface> */
+    public function getContentColumns(): Collection
+    {
+        return $this->contentColumns;
+    }
+
+    /** @return Collection<int, SpaceContentItemInterface> */
+    public function getContentItems(): Collection
+    {
+        return $this->contentItems;
     }
 }
