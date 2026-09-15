@@ -190,6 +190,9 @@ const monthTitle = computed(() =>
                     :errors="itemErrors"
                     :column-options="columnOptions"
                     :timezone="space.timezone"
+                    :approval="editingItem?.approval ?? 'pending'"
+                    :approval-note="editingItem?.approvalNote ?? ''"
+                    :approval-by="editingItem?.approvalBy ?? ''"
                 />
             </form>
             <template #footer>

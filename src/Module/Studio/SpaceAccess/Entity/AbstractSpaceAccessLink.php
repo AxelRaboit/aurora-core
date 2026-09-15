@@ -6,6 +6,7 @@ namespace Aurora\Module\Studio\SpaceAccess\Entity;
 
 use Aurora\Module\Studio\Contract\Access\Entity\AbstractContractAccessLink;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -30,10 +31,12 @@ use function random_bytes;
  * three choices at length; this is the same design applied to a screen rather
  * than to a document.
  *
- * **Nothing here says what the holder may do.** That is not an omission: this
- * link only reads, and a column standing for a permission nobody enforces is a
- * switch that does nothing - the trap the calendar's share links are documented
- * as having avoided. The rights arrive with the writes that need them.
+ * **`canApprove` arrives with the write it governs**, not before. The column
+ * was deliberately absent while the link only read: a column standing for a
+ * permission nobody enforces is a switch that does nothing, which is the trap
+ * the calendar's share links are documented as having avoided. It is enforced
+ * by the public controller, on a rate-limited route, which is the other half of
+ * what that memory asks for before a guest may write.
  */
 #[ORM\MappedSuperclass]
 abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
@@ -82,6 +85,20 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
 
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $revokedAt = null;
+
+    /**
+     * Whether the holder may say "validé" or "à revoir".
+     *
+     * True by default, because that is what a link is usually for: the studio
+     * sends it to get an answer. It exists for the second reader - a colleague
+     * of the client, a partner agency - who is shown the plan and does not
+     * decide on it.
+     *
+     * The answer is an opinion recorded against the content, never a move: see
+     * {@see SpaceContentApprovalEnum}.
+     */
+    #[ORM\Column(options: ['default' => true])]
+    protected bool $canApprove = true;
 
     /**
      * The first open, kept apart from the last.
@@ -201,6 +218,18 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     public function getRevokedAt(): ?DateTimeImmutable
     {
         return $this->revokedAt;
+    }
+
+    public function canApprove(): bool
+    {
+        return $this->canApprove;
+    }
+
+    public function setCanApprove(bool $canApprove): static
+    {
+        $this->canApprove = $canApprove;
+
+        return $this;
     }
 
     public function revoke(DateTimeImmutable $at): static

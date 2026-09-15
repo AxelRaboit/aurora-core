@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceContent\Entity;
 
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
 use DateTimeImmutable;
 
 interface SpaceContentItemInterface
@@ -36,6 +38,23 @@ interface SpaceContentItemInterface
     public function getPosition(): int;
 
     public function setPosition(int $position): static;
+
+    public function getApproval(): SpaceContentApprovalEnum;
+
+    public function getApprovalNote(): ?string;
+
+    public function getApprovalAt(): ?DateTimeImmutable;
+
+    public function getApprovalByLink(): ?SpaceAccessLinkInterface;
+
+    public function answer(
+        SpaceContentApprovalEnum $approval,
+        ?string $note,
+        SpaceAccessLinkInterface $link,
+        DateTimeImmutable $at,
+    ): static;
+
+    public function clearApproval(): static;
 
     public function getCreatedAt(): DateTimeImmutable;
 

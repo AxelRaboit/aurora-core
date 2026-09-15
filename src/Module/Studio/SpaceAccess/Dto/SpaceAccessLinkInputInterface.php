@@ -11,4 +11,6 @@ interface SpaceAccessLinkInputInterface
     public function getLabel(): ?string;
 
     public function getValidForDays(): int;
+
+    public function canApprove(): bool;
 }

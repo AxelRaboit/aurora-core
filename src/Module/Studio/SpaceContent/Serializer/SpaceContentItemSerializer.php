@@ -32,6 +32,12 @@ class SpaceContentItemSerializer implements SpaceContentItemSerializerInterface
             'scheduledAtLocal' => $scheduledAt
                 ?->setTimezone(new DateTimeZone($item->getSpace()->getTimezone()))
                 ->format('Y-m-d\TH:i'),
+            'approval' => $item->getApproval()->value,
+            'approvalNote' => $item->getApprovalNote(),
+            'approvalAt' => $item->getApprovalAt()?->format(DATE_ATOM),
+            // The address that answered, by the mailbox it was sent to. There
+            // is no account behind a link, so this is the only name there is.
+            'approvalBy' => $item->getApprovalByLink()?->getRecipientEmail(),
             'createdAt' => $item->getCreatedAt()->format(DATE_ATOM),
         ];
     }

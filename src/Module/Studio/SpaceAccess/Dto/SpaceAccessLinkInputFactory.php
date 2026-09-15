@@ -22,6 +22,9 @@ class SpaceAccessLinkInputFactory implements SpaceAccessLinkInputFactoryInterfac
             recipientEmail: Str::emailFromArray($data, 'recipientEmail'),
             label: Str::trimOrNullFromArray($data, 'label'),
             validForDays: is_numeric($days) ? (int) $days : SpaceAccessLinkManager::DEFAULT_VALID_DAYS,
+            // Absent means true: a payload that says nothing about the right
+            // is a form that did not offer the choice, not a refusal.
+            canApprove: (bool) ($data['canApprove'] ?? true),
         );
     }
 }

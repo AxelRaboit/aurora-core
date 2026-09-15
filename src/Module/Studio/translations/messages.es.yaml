@@ -110,6 +110,17 @@ studio:
             valid_until: 'Esta dirección es válida hasta el {date}.'
             footer: Esta dirección es personal. No la transmita.
             no_body: El texto aún no está escrito.
+            approve: Validado
+            request_changes: Revisar
+            note: Comentario
+            note_placeholder: 'Lo que le parece bien, o lo que no.'
+            note_hint: 'Opcional para validar, útil para pedir cambios: es lo que leerá su proveedor.'
+            answer_recorded: Su respuesta ha quedado registrada.
+            already_approved: 'Validó este contenido el {date}.'
+            already_changes_requested: 'Pidió una revisión el {date}.'
+            errors:
+                approval_invalid: Respuesta no reconocida.
+                too_many_requests: Demasiadas respuestas seguidas. Vuelva a intentarlo en unos minutos.
         unavailable:
             title: Este enlace ya no es válido
             message: La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba un contrato, pida un nuevo enlace a su interlocutor.

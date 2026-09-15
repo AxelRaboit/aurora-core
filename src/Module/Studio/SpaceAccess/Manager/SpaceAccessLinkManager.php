@@ -43,6 +43,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         string $recipientEmail,
         ?string $label,
         int $validForDays,
+        bool $canApprove,
     ): SpaceAccessLinkInterface {
         $days = max(1, min(static::MAX_VALID_DAYS, $validForDays));
 
@@ -52,6 +53,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
             ->setSpace($space)
             ->setRecipientEmail($recipientEmail)
             ->setLabel($label)
+            ->setCanApprove($canApprove)
             ->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', $days)));
 
         $this->entityManager->persist($link);
@@ -174,6 +176,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
             'spaceName' => $link->getSpace()->getName(),
             'recipientEmail' => $link->getRecipientEmail(),
             'expiresAt' => $link->getExpiresAt()->format(DATE_ATOM),
+            'canApprove' => $link->canApprove(),
         ];
     }
 }

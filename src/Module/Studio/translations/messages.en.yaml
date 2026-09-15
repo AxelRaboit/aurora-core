@@ -31,6 +31,7 @@ backend:
                     deleted: Client space deleted
                 space_content_item:
                     created: Content created
+                    answered: Content answered by the client
                     updated: Content updated
                     deleted: Content deleted
                 space_access_link:
@@ -800,6 +801,9 @@ backend:
             label_hint: Optional. Useful when one client has several links.
             valid_for_days: Validity
             valid_for_days_hint: 'In days, {max} at most. An access that outlives the engagement is one nobody remembers to close.'
+            can_approve: May approve
+            can_approve_hint: Unchecked, the link shows the plan without letting anybody answer. For a reader who looks but does not decide.
+            read_only: read-only
 
             never_opened: Never opened
             opened_on: 'Opened on {date}'
@@ -835,6 +839,11 @@ backend:
             empty_column: Nothing here yet.
             empty_board: No content in this space. Add one to get started.
             unscheduled: No date
+            approval_reset_warning: 'Changing the title or the text clears this answer: it was about what was shown.'
+            approvals:
+                pending: Pending
+                approved: Approved
+                changes_requested: Needs changes
             scheduled_for: 'On {date}'
 
             title: Title
@@ -983,6 +992,17 @@ studio:
             valid_until: 'This address is valid until {date}.'
             footer: This address is personal. Please do not pass it on.
             no_body: The text is not written yet.
+            approve: Approved
+            request_changes: Needs changes
+            note: Comment
+            note_placeholder: 'What works, or what does not.'
+            note_hint: 'Optional to approve, useful to ask for changes: this is what your agency reads.'
+            answer_recorded: Your answer has been recorded.
+            already_approved: 'You approved this content on {date}.'
+            already_changes_requested: 'You asked for changes on {date}.'
+            errors:
+                approval_invalid: Answer not recognised.
+                too_many_requests: Too many answers in a row. Try again in a few minutes.
         unavailable:
             title: This link is no longer valid
             message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a contract, ask your contact for a new link.

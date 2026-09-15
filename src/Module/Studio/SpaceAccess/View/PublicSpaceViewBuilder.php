@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceAccess\View;
 
+use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
@@ -29,10 +30,17 @@ final readonly class PublicSpaceViewBuilder
         private SpaceContentColumnRepository $columns,
         private SpaceContentItemSerializerInterface $itemSerializer,
         private SpaceContentColumnSerializerInterface $columnSerializer,
+        private PathTemplateGenerator $pathTemplates,
     ) {}
 
-    /** @return array<string, mixed> */
-    public function view(SpaceAccessLinkInterface $link): array
+    /**
+     * @param string $token the secret half, which only the request that carried
+     *                      it can supply - it is not stored and cannot be read
+     *                      back off the link
+     *
+     * @return array<string, mixed>
+     */
+    public function view(SpaceAccessLinkInterface $link, string $token): array
     {
         $space = $link->getSpace();
 
@@ -48,11 +56,28 @@ final readonly class PublicSpaceViewBuilder
                 $this->columnSerializer->serialize(...),
                 $this->columns->findForSpace($space),
             ),
-            'items' => array_map(
-                $this->itemSerializer->serialize(...),
-                $this->items->findForSpace($space),
-            ),
+            'items' => $this->items($link),
             'expiresAt' => $link->getExpiresAt(),
+            'canApprove' => $link->canApprove(),
+            // The one address this page may post to, and only when it may.
+            // A reader who cannot answer is handed no endpoint at all rather
+            // than a button that would be refused.
+            'answerPath' => $link->canApprove()
+                ? $this->pathTemplates->generate('public_space_answer', [
+                    'selector' => $link->getSelector(),
+                    'token' => $token,
+                    'itemId' => '__id__',
+                ])
+                : null,
         ];
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function items(SpaceAccessLinkInterface $link): array
+    {
+        return array_map(
+            $this->itemSerializer->serialize(...),
+            $this->items->findForSpace($link->getSpace()),
+        );
     }
 }

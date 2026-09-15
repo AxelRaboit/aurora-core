@@ -12,7 +12,7 @@
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { CalendarClock, GripVertical } from "lucide-vue-next";
+import { CalendarClock, Check, GripVertical, MessageSquare } from "lucide-vue-next";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 
 const props = defineProps({
@@ -34,6 +34,15 @@ const when = computed(() => {
 
     return d(new Date(props.item.scheduledAt), "short");
 });
+
+/**
+ * What the client said, when they said anything.
+ *
+ * Silence is drawn as nothing at all rather than as a grey "en attente" badge:
+ * most cards on a board have never been sent to anybody, and a badge on every
+ * one of them would be a column of noise hiding the two that matter.
+ */
+const answered = computed(() => "pending" !== props.item.approval);
 </script>
 
 <template>
@@ -56,12 +65,32 @@ const when = computed(() => {
             </div>
             <AppRowActions :actions="actions" :label="item.title ?? ''" />
         </div>
-        <p
-            class="mt-2 flex items-center gap-1 text-xs"
-            :class="item.scheduledAt ? 'text-secondary' : 'text-muted'"
-        >
-            <CalendarClock class="h-3 w-3 shrink-0" :stroke-width="2" />
-            {{ when }}
-        </p>
+        <div class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <p
+                class="flex items-center gap-1 text-xs"
+                :class="item.scheduledAt ? 'text-secondary' : 'text-muted'"
+            >
+                <CalendarClock class="h-3 w-3 shrink-0" :stroke-width="2" />
+                {{ when }}
+            </p>
+            <span
+                v-if="answered"
+                class="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs"
+                :class="
+                    item.approval === 'approved'
+                        ? 'bg-emerald-500/10 text-emerald-500'
+                        : 'bg-amber-500/10 text-amber-500'
+                "
+                :title="item.approvalNote || undefined"
+            >
+                <Check
+                    v-if="item.approval === 'approved'"
+                    class="h-3 w-3 shrink-0"
+                    :stroke-width="2"
+                />
+                <MessageSquare v-else class="h-3 w-3 shrink-0" :stroke-width="2" />
+                {{ t(`backend.studio.space_content.approvals.${item.approval}`) }}
+            </span>
+        </div>
     </article>
 </template>

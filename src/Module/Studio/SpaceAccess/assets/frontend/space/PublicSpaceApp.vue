@@ -19,20 +19,39 @@
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
+import { buildPath } from "@/shared/utils/http/buildPath.js";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import CalendarMonth from "@/shared/components/calendar/CalendarMonth.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppThemeToggle from "@/shared/components/action/AppThemeToggle.vue";
 import { monthGrid } from "@/shared/composables/calendar/monthGrid.js";
-import { ChevronLeft, ChevronRight, FileText } from "lucide-vue-next";
+import AppButton from "@/shared/components/action/AppButton.vue";
+import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
+import {
+    Check,
+    ChevronLeft,
+    ChevronRight,
+    FileText,
+    MessageSquare,
+} from "lucide-vue-next";
 
 const props = defineProps({
     space: { type: Object, required: true },
     columns: { type: Array, default: () => [] },
     items: { type: Array, default: () => [] },
     expiresAt: { type: String, default: null },
+    canApprove: { type: Boolean, default: false },
+    /** Null when this link may only read, so there is nothing to post to. */
+    answerPath: { type: String, default: null },
 });
 
 const { t, d } = useI18n();
+const { request } = useRequest();
+
+// The rows are replaced by what the server sends back after an answer, so the
+// page never has to work out what its own write did.
+const items = ref(props.items ?? []);
 
 const today = new Date();
 const year = ref(today.getFullYear());
@@ -49,7 +68,7 @@ const columnColours = computed(
 );
 
 const events = computed(() =>
-    props.items
+    items.value
         .filter((item) => item.scheduledAt)
         .map((item) => ({
             id: item.id,
@@ -71,14 +90,10 @@ const events = computed(() =>
 );
 
 const itemsById = computed(
-    () => new Map(props.items.map((item) => [item.id, item])),
+    () => new Map(items.value.map((item) => [item.id, item])),
 );
 
 const openItem = ref(null);
-
-function open(event) {
-    openItem.value = itemsById.value.get(event.id) ?? null;
-}
 
 const monthTitle = computed(() =>
     d(new Date(year.value, month.value, 1), { year: "numeric", month: "long" }),
@@ -95,6 +110,43 @@ const openWhen = computed(() => {
 
     return d(new Date(openItem.value.scheduledAt), "long");
 });
+
+const note = ref("");
+const answering = ref("");
+
+/**
+ * Says what the reader thinks of one piece of content.
+ *
+ * The note travels with the verdict rather than after it: "à revoir" is only
+ * actionable with a reason, and asking for it in a second step is asking
+ * somebody who has already clicked to come back.
+ */
+async function answer(approval) {
+    if (!props.answerPath || !openItem.value) return;
+
+    answering.value = approval;
+    try {
+        const data = await request(
+            buildPath(props.answerPath, { id: openItem.value.id }),
+            { approval, note: note.value },
+        );
+
+        if (!data?.success) return;
+
+        if (Array.isArray(data.items)) items.value = data.items;
+        toast.success(t("studio.public.space.answer_recorded"));
+        openItem.value = null;
+        note.value = "";
+    } finally {
+        answering.value = "";
+    }
+}
+
+function open(event) {
+    const item = itemsById.value.get(event.id) ?? null;
+    note.value = item?.approvalNote ?? "";
+    openItem.value = item;
+}
 </script>
 
 <template>
@@ -175,6 +227,54 @@ const openWhen = computed(() => {
             <p v-else class="mt-3 text-sm text-muted">
                 {{ t("studio.public.space.no_body") }}
             </p>
+
+            <!-- What was already answered, shown before anything is asked: a
+                 reader coming back should see what they said rather than be
+                 asked again. -->
+            <p
+                v-if="openItem && openItem.approval !== 'pending'"
+                class="mt-4 rounded-lg bg-surface-2 px-3 py-2 text-xs text-secondary"
+            >
+                {{
+                    t(
+                        openItem.approval === "approved"
+                            ? "studio.public.space.already_approved"
+                            : "studio.public.space.already_changes_requested",
+                        { date: d(new Date(openItem.approvalAt), "short") },
+                    )
+                }}
+            </p>
+
+            <section v-if="canApprove" class="mt-4 space-y-3 border-t border-line/50 pt-4">
+                <AppTextarea
+                    :model-value="note"
+                    :label="t('studio.public.space.note')"
+                    :placeholder="t('studio.public.space.note_placeholder')"
+                    :hint="t('studio.public.space.note_hint')"
+                    :rows="3"
+                    v-on:update:model-value="note = $event"
+                />
+                <div class="flex flex-wrap gap-2">
+                    <AppButton
+                        variant="primary"
+                        size="md"
+                        :loading="answering === 'approved'"
+                        v-on:click="answer('approved')"
+                    >
+                        <Check class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("studio.public.space.approve") }}
+                    </AppButton>
+                    <AppButton
+                        variant="ghost"
+                        size="md"
+                        :loading="answering === 'changes_requested'"
+                        v-on:click="answer('changes_requested')"
+                    >
+                        <MessageSquare class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("studio.public.space.request_changes") }}
+                    </AppButton>
+                </div>
+            </section>
         </AppModal>
     </div>
 </template>

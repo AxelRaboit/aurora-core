@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceContent\Manager;
 
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInputInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
 
 interface SpaceContentItemManagerInterface
 {
@@ -34,4 +36,16 @@ interface SpaceContentItemManagerInterface
      * must not need a title and a column to perform it.
      */
     public function reschedule(SpaceContentItemInterface $item, ?string $scheduledAt): void;
+
+    /**
+     * Records what a client answered through their link.
+     *
+     * The verdict never moves the card. See {@see SpaceContentApprovalEnum}.
+     */
+    public function answer(
+        SpaceContentItemInterface $item,
+        SpaceAccessLinkInterface $link,
+        SpaceContentApprovalEnum $approval,
+        ?string $note,
+    ): void;
 }

@@ -31,6 +31,7 @@ backend:
                     deleted: Espace client supprimé
                 space_content_item:
                     created: Contenu créé
+                    answered: Contenu validé ou renvoyé par le client
                     updated: Contenu modifié
                     deleted: Contenu supprimé
                 space_access_link:
@@ -800,6 +801,9 @@ backend:
             label_hint: Facultatif. Utile quand un même client a plusieurs liens.
             valid_for_days: Validité
             valid_for_days_hint: 'En jours, {max} au maximum. Un accès qui survit à la mission est un accès que personne ne pense à fermer.'
+            can_approve: Peut valider
+            can_approve_hint: Décoché, le lien montre le plan sans permettre de répondre. Pour un lecteur qui regarde mais ne décide pas.
+            read_only: lecture seule
 
             never_opened: Jamais ouvert
             opened_on: 'Ouvert le {date}'
@@ -835,6 +839,11 @@ backend:
             empty_column: Rien ici pour le moment.
             empty_board: Aucun contenu dans cet espace. Ajoutez-en un pour commencer.
             unscheduled: Sans date
+            approval_reset_warning: 'Modifier le titre ou le texte efface cette réponse : elle portait sur ce qui a été montré.'
+            approvals:
+                pending: En attente
+                approved: Validé
+                changes_requested: À revoir
             scheduled_for: 'Le {date}'
 
             title: Titre
@@ -983,6 +992,17 @@ studio:
             valid_until: 'Cette adresse est valide jusqu''au {date}.'
             footer: Cette adresse est personnelle. Ne la transmettez pas.
             no_body: Le texte n'est pas encore écrit.
+            approve: Validé
+            request_changes: À revoir
+            note: Commentaire
+            note_placeholder: 'Ce qui vous va, ou ce qui ne va pas.'
+            note_hint: 'Facultatif pour valider, utile pour demander une reprise : c''est ce que votre prestataire lira.'
+            answer_recorded: Votre réponse est enregistrée.
+            already_approved: 'Vous avez validé ce contenu le {date}.'
+            already_changes_requested: 'Vous avez demandé une reprise le {date}.'
+            errors:
+                approval_invalid: Réponse non reconnue.
+                too_many_requests: Trop de réponses envoyées coup sur coup. Réessayez dans quelques minutes.
         unavailable:
             title: Ce lien n'est plus valide
             message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez un contrat, demandez un nouveau lien à votre interlocuteur.

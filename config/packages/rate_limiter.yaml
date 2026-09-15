@@ -26,3 +26,16 @@ framework:
             policy: sliding_window
             limit: 20
             interval: '1 hour'
+
+        # L'écriture qu'un client tenant un lien d'espace peut atteindre : dire
+        # qu'il valide, ou qu'il veut revoir. Calée sur l'IP, donc mur extérieur
+        # comme les précédentes - le mur intérieur est que le lien porte ses
+        # propres droits, et qu'un lien révoqué ou expiré ne mène nulle part.
+        #
+        # Plus haut que les limiteurs de signature parce que le geste est
+        # différent : on signe un contrat une fois, on parcourt un mois et on
+        # valide six publications d'affilée.
+        space_guest_write:
+            policy: sliding_window
+            limit: 40
+            interval: '1 hour'

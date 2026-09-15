@@ -9,10 +9,12 @@ use Aurora\Core\Scheduling\Event\EntityUnscheduledEvent;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInputInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use DateTimeImmutable;
@@ -60,8 +62,11 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
     public function update(SpaceContentItemInterface $item, SpaceContentItemInputInterface $input): void
     {
         $previousColumn = $item->getColumn();
+        $previousTitle = $item->getTitle();
+        $previousBody = $item->getBody();
 
         $this->applyInput($item, $input);
+        $this->clearApprovalIfContentChanged($item, $previousTitle, $previousBody);
 
         // A card whose step changed from the form, rather than by being
         // dragged, has to land somewhere in its new column. The bottom is
@@ -126,6 +131,55 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
 
         $this->auditUpdated($item);
         $this->announceSchedule($item);
+    }
+
+    /**
+     * Records what a client answered through their link.
+     *
+     * The right is checked by the caller, which holds the link; what is checked
+     * here is the one thing a Manager can own - that the card belongs to the
+     * space the link opens. A crafted payload naming another client's card is
+     * the only interesting attack on this endpoint, and it stops here.
+     */
+    public function answer(
+        SpaceContentItemInterface $item,
+        SpaceAccessLinkInterface $link,
+        SpaceContentApprovalEnum $approval,
+        ?string $note,
+    ): void {
+        if ($item->getSpace()->getId() !== $link->getSpace()->getId()) {
+            throw new FieldException('item', $this->translator->trans('backend.studio.space_content.errors.not_in_space'));
+        }
+
+        $item->answer($approval, $note, $link, new DateTimeImmutable());
+        $this->entityManager->flush();
+
+        $this->auditAnswered($item);
+    }
+
+    /**
+     * Drops an answer whose text has changed under it.
+     *
+     * An approval is of a wording, so a rewrite makes it evidence of nothing -
+     * keeping it would tell the board a client agreed to something they never
+     * read. Moving a card between steps, renaming it in place or rescheduling
+     * it leaves the answer alone; only the title and the copy count, because
+     * they are what the client was shown.
+     */
+    protected function clearApprovalIfContentChanged(
+        SpaceContentItemInterface $item,
+        string $previousTitle,
+        ?string $previousBody,
+    ): void {
+        if (!$item->getApproval()->isAnswered()) {
+            return;
+        }
+
+        if ($item->getTitle() === $previousTitle && $item->getBody() === $previousBody) {
+            return;
+        }
+
+        $item->clearApproval();
     }
 
     /**
@@ -244,6 +298,17 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
     protected function auditUpdated(SpaceContentItemInterface $item): void
     {
         $this->auditLogger->log('studio', 'space_content_item.updated', 'SpaceContentItem', $item->getId(), $this->auditPayload($item));
+    }
+
+    protected function auditAnswered(SpaceContentItemInterface $item): void
+    {
+        $this->auditLogger->log('studio', 'space_content_item.answered', 'SpaceContentItem', $item->getId(), [
+            ...$this->auditPayload($item),
+            'approval' => $item->getApproval()->value,
+            // Who, by the address they hold: there is no account behind this,
+            // and the email the link was sent to is the only name there is.
+            'answeredBy' => $item->getApprovalByLink()?->getRecipientEmail(),
+        ]);
     }
 
     protected function auditDeleted(SpaceContentItemInterface $item): void

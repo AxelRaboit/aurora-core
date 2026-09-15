@@ -39,6 +39,10 @@ interface SpaceAccessLinkInterface
 
     public function revoke(DateTimeImmutable $at): static;
 
+    public function canApprove(): bool;
+
+    public function setCanApprove(bool $canApprove): static;
+
     public function getFirstOpenedAt(): ?DateTimeImmutable;
 
     public function getLastUsedAt(): ?DateTimeImmutable;

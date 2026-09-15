@@ -6,6 +6,8 @@ namespace Aurora\Module\Studio\SpaceContent\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -88,6 +90,42 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
     #[ORM\Column(options: ['default' => 0])]
     protected int $position = 0;
 
+    /**
+     * What the client answered, if they have.
+     *
+     * An opinion recorded against this text, which is why editing the text
+     * clears it - see `clearApprovalIfContentChanged` on the Manager. An
+     * approval that survived a rewrite would be the client agreeing to
+     * something they never read.
+     */
+    #[ORM\Column(length: 20, enumType: SpaceContentApprovalEnum::class, options: ['default' => 'pending'])]
+    protected SpaceContentApprovalEnum $approval = SpaceContentApprovalEnum::Pending;
+
+    /**
+     * What they said about it, when they said anything.
+     *
+     * One field rather than a thread, and that is the scope: a decision is not
+     * a conversation. "À revoir" is only actionable with a reason attached, and
+     * the reason arrives in the same gesture as the decision - which also means
+     * it cannot be left behind by somebody who answered and closed the tab.
+     */
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    protected ?string $approvalNote = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $approvalAt = null;
+
+    /**
+     * Which address answered.
+     *
+     * `SET NULL`: deleting a link must not delete the answer it carried. What
+     * is lost is who, not what, and the studio deleting an address a month
+     * later should not silently unapprove six publications.
+     */
+    #[ORM\ManyToOne(targetEntity: SpaceAccessLinkInterface::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?SpaceAccessLinkInterface $approvalByLink = null;
+
     abstract public function getId(): ?int;
 
     public function getSpace(): CustomerSpaceInterface
@@ -163,6 +201,65 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
     public function setPosition(int $position): static
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function getApproval(): SpaceContentApprovalEnum
+    {
+        return $this->approval;
+    }
+
+    public function getApprovalNote(): ?string
+    {
+        return $this->approvalNote;
+    }
+
+    public function getApprovalAt(): ?DateTimeImmutable
+    {
+        return $this->approvalAt;
+    }
+
+    public function getApprovalByLink(): ?SpaceAccessLinkInterface
+    {
+        return $this->approvalByLink;
+    }
+
+    /**
+     * Records what a client answered, with who and when.
+     *
+     * One method rather than four setters: the four values are one event, and a
+     * caller able to set the verdict without the date could leave a row saying
+     * "approved by nobody, never".
+     */
+    public function answer(
+        SpaceContentApprovalEnum $approval,
+        ?string $note,
+        SpaceAccessLinkInterface $link,
+        DateTimeImmutable $at,
+    ): static {
+        $this->approval = $approval;
+        $this->approvalNote = $note;
+        $this->approvalByLink = $link;
+        $this->approvalAt = $at;
+
+        return $this;
+    }
+
+    /**
+     * Forgets the answer, because the text it was about has changed.
+     *
+     * Not a rollback anybody asked for: an approval is of a specific wording,
+     * so a rewrite makes it evidence of nothing. Losing it is the honest
+     * outcome and keeping it would be a quiet lie to the person reading the
+     * board.
+     */
+    public function clearApproval(): static
+    {
+        $this->approval = SpaceContentApprovalEnum::Pending;
+        $this->approvalNote = null;
+        $this->approvalByLink = null;
+        $this->approvalAt = null;
 
         return $this;
     }

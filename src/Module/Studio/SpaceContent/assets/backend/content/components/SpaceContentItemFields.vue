@@ -19,6 +19,9 @@ const props = defineProps({
     errors: { type: Object, default: () => ({}) },
     columnOptions: { type: Array, default: () => [] },
     timezone: { type: String, default: "Europe/Paris" },
+    approval: { type: String, default: "pending" },
+    approvalNote: { type: String, default: "" },
+    approvalBy: { type: String, default: "" },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -82,5 +85,26 @@ function set(field, value) {
         <p class="text-xs text-muted">
             {{ t("backend.studio.space_content.timezone_notice", { timezone }) }}
         </p>
+
+        <!-- The client's own words, shown and not editable. The warning under
+             it is the part nobody would guess: an approval is of a wording, so
+             changing the text here drops it. -->
+        <section
+            v-if="approval && approval !== 'pending'"
+            class="space-y-1 rounded-lg border border-line/60 bg-surface-2/40 px-3 py-2"
+        >
+            <p class="text-xs font-medium text-primary">
+                {{ t(`backend.studio.space_content.approvals.${approval}`) }}
+                <span v-if="approvalBy" class="font-normal text-muted">
+                    · {{ approvalBy }}
+                </span>
+            </p>
+            <p v-if="approvalNote" class="whitespace-pre-line text-sm text-secondary">
+                {{ approvalNote }}
+            </p>
+            <p class="text-xs text-muted">
+                {{ t("backend.studio.space_content.approval_reset_warning") }}
+            </p>
+        </section>
     </div>
 </template>

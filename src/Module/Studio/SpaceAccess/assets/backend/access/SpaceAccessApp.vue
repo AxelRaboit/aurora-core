@@ -28,6 +28,7 @@ import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
+import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import { Copy, Link2, Trash2, X } from "lucide-vue-next";
 
 const { t, d } = useI18n();
@@ -58,6 +59,7 @@ const issueForm = ref({
     recipientEmail: "",
     label: "",
     validForDays: props.defaultValidDays,
+    canApprove: true,
 });
 
 /** The one and only moment the address exists in readable form. */
@@ -90,6 +92,7 @@ function openIssue() {
         recipientEmail: "",
         label: "",
         validForDays: props.defaultValidDays,
+        canApprove: true,
     };
     clearIssue();
     showIssue.value = true;
@@ -214,6 +217,9 @@ function openedLabel(link) {
                                 date: d(new Date(link.expiresAt), "short"),
                             })
                         }}
+                        <template v-if="!link.canApprove">
+                            · {{ t("backend.studio.space_access.read_only") }}
+                        </template>
                     </p>
                 </div>
 
@@ -288,6 +294,12 @@ function openedLabel(link) {
                     "
                     :error="issueErrors.validForDays"
                     v-on:update:model-value="issueForm.validForDays = Number($event)"
+                />
+                <AppCheckbox
+                    :model-value="issueForm.canApprove"
+                    :label="t('backend.studio.space_access.can_approve')"
+                    :hint="t('backend.studio.space_access.can_approve_hint')"
+                    v-on:update:model-value="issueForm.canApprove = $event"
                 />
             </form>
             <template #footer>

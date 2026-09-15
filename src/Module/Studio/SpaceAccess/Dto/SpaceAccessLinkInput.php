@@ -21,6 +21,10 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
         // it is also called by fixtures and commands that have no DTO.
         #[Assert\Range(min: 1, max: SpaceAccessLinkManager::MAX_VALID_DAYS)]
         public readonly int $validForDays = SpaceAccessLinkManager::DEFAULT_VALID_DAYS,
+        // True by default: getting an answer is what a link is usually for.
+        // False is for the second reader - a colleague of the client, a partner
+        // agency - who is shown the plan and does not decide on it.
+        public readonly bool $canApprove = true,
     ) {}
 
     public function getRecipientEmail(): string
@@ -36,5 +40,10 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
     public function getValidForDays(): int
     {
         return $this->validForDays;
+    }
+
+    public function canApprove(): bool
+    {
+        return $this->canApprove;
     }
 }

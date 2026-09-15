@@ -18,6 +18,7 @@ interface SpaceAccessLinkManagerInterface
         string $recipientEmail,
         ?string $label,
         int $validForDays,
+        bool $canApprove,
     ): SpaceAccessLinkInterface;
 
     public function revoke(SpaceAccessLinkInterface $link): void;

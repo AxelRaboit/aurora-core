@@ -5,6 +5,78 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.181] - 2026-09-15
+
+### Ajouté
+
+#### Le client répond : « Validé » ou « À revoir »
+Depuis sa page, en ouvrant une publication, avec un commentaire. C'est la boucle
+que tout le reste préparait : le prestataire envoie un lien, le client parcourt
+son mois et répond, et le studio voit la réponse sur la carte.
+
+Le commentaire part **dans le même geste** que la réponse. « À revoir » n'est
+actionnable qu'avec une raison, et la demander dans un second temps, c'est la
+demander à quelqu'un qui a déjà cliqué.
+
+**La réponse ne déplace jamais la carte.** C'est un avis, pas une machine à
+états : un client qui clique par erreur aurait sinon programmé ou déprogrammé une
+publication. Le tableau montre la réponse, un humain déplace.
+
+**Et « en attente » n'est pas « refusé ».** Le silence veut dire que personne n'a
+rien dit, ce qui n'est pas la même chose ; une carte sans réponse ne porte donc
+aucun badge, parce qu'un badge sur chacune serait une colonne de bruit qui
+cacherait les deux qui comptent.
+
+#### Modifier le texte efface la réponse
+Une validation porte sur une formulation. La réécrire rend la validation preuve
+de rien, et la garder dirait au tableau qu'un client a approuvé quelque chose
+qu'il n'a jamais lu. Déplacer la carte, la reprogrammer ou changer son étape ne
+touche à rien : seuls le titre et le texte comptent, parce que c'est ce qui a été
+montré.
+
+Le formulaire le dit sous la réponse, parce que personne ne le devinerait.
+
+#### Un lien peut être en lecture seule
+La case « Peut valider » est cochée par défaut, parce que c'est à ça qu'un lien
+sert. Décochée, elle est pour le second lecteur - un collègue du client, une
+agence partenaire - qui regarde le plan sans décider. Sa page ne reçoit alors
+**aucune adresse d'écriture** : ce n'est pas un bouton caché, c'est un point
+d'entrée qui n'arrive pas.
+
+Un lien sans le droit qui tente de répondre reçoit le 404 d'un inconnu. Répondre
+« vous pouvez lire mais pas valider » dirait à qui tient une adresse fuitée
+exactement ce qu'il a.
+
+### Interne
+
+#### Les deux prérequis à une écriture invitée, dans le même lot
+La colonne `can_approve` arrive **avec** l'écriture qu'elle gouverne, pas avant :
+une colonne qui représente une permission que personne n'applique est un
+interrupteur qui ne fait rien. Et la route est limitée en débit, parce qu'un
+jeton qui fuite n'a personne à bloquer. Ce sont les deux choses que les liens de
+partage du calendrier sont documentés comme n'ayant volontairement pas.
+
+La limite est calée sur l'IP, donc mur extérieur : les murs qui tiennent sont le
+droit porté par le lien et le fait qu'un lien révoqué ou expiré ne résout rien.
+Quarante réponses par heure, plus haut que les limiteurs de signature, parce que
+le geste est différent - on signe un contrat une fois, on valide six publications
+d'affilée.
+
+### Dans aurora-client
+`make aurora-update`, la migration, puis **ajouter le limiteur
+`space_guest_write`** à `config/packages/rate_limiter.yaml`. Le contrôleur public
+le câble par nom : sans l'entrée, le conteneur ne se construit pas. L'entrée est
+déjà écrite dans le dépôt client, avec son commentaire.
+
+```yaml
+space_guest_write:
+    policy: sliding_window
+    limit: 40
+    interval: '1 hour'
+```
+
+---
+
 ## [0.9.180] - 2026-09-15
 
 ### Ajouté
