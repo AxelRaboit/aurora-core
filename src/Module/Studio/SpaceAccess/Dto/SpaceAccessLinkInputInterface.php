@@ -13,4 +13,6 @@ interface SpaceAccessLinkInputInterface
     public function getValidForDays(): int;
 
     public function canApprove(): bool;
+
+    public function canComment(): bool;
 }

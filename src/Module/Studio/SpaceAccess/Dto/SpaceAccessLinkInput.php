@@ -25,6 +25,7 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
         // False is for the second reader - a colleague of the client, a partner
         // agency - who is shown the plan and does not decide on it.
         public readonly bool $canApprove = true,
+        public readonly bool $canComment = true,
     ) {}
 
     public function getRecipientEmail(): string
@@ -45,5 +46,10 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
     public function canApprove(): bool
     {
         return $this->canApprove;
+    }
+
+    public function canComment(): bool
+    {
+        return $this->canComment;
     }
 }

@@ -28,6 +28,10 @@ import AppThemeToggle from "@/shared/components/action/AppThemeToggle.vue";
 import { monthGrid } from "@/shared/composables/calendar/monthGrid.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
+// Same module, another sub-domain: a relative path rather than an alias.
+// The rule that forbids reaching across modules is about modules, and this
+// component is the one thing the two surfaces genuinely share.
+import SpaceContentThread from "../../../../SpaceContent/assets/shared/SpaceContentThread.vue";
 import {
     Check,
     ChevronLeft,
@@ -42,8 +46,11 @@ const props = defineProps({
     items: { type: Array, default: () => [] },
     expiresAt: { type: String, default: null },
     canApprove: { type: Boolean, default: false },
+    canComment: { type: Boolean, default: false },
+    comments: { type: Object, default: () => ({}) },
     /** Null when this link may only read, so there is nothing to post to. */
     answerPath: { type: String, default: null },
+    commentPath: { type: String, default: null },
 });
 
 const { t, d } = useI18n();
@@ -52,6 +59,7 @@ const { request } = useRequest();
 // The rows are replaced by what the server sends back after an answer, so the
 // page never has to work out what its own write did.
 const items = ref(props.items ?? []);
+const comments = ref(props.comments ?? {});
 
 const today = new Date();
 const year = ref(today.getFullYear());
@@ -113,6 +121,31 @@ const openWhen = computed(() => {
 
 const note = ref("");
 const answering = ref("");
+const posting = ref(false);
+
+const thread = computed(() =>
+    openItem.value ? (comments.value[openItem.value.id] ?? []) : [],
+);
+
+/** A message with no verdict attached: the reader is answering a rewrite. */
+async function postComment(body) {
+    if (!props.commentPath || !openItem.value || posting.value) return;
+
+    posting.value = true;
+    try {
+        const data = await request(
+            buildPath(props.commentPath, { id: openItem.value.id }),
+            { body },
+        );
+
+        if (!data?.success) return;
+
+        if (Array.isArray(data.items)) items.value = data.items;
+        if (data.comments) comments.value = data.comments;
+    } finally {
+        posting.value = false;
+    }
+}
 
 /**
  * Says what the reader thinks of one piece of content.
@@ -134,6 +167,7 @@ async function answer(approval) {
         if (!data?.success) return;
 
         if (Array.isArray(data.items)) items.value = data.items;
+        if (data.comments) comments.value = data.comments;
         toast.success(t("studio.public.space.answer_recorded"));
         openItem.value = null;
         note.value = "";
@@ -143,9 +177,8 @@ async function answer(approval) {
 }
 
 function open(event) {
-    const item = itemsById.value.get(event.id) ?? null;
-    note.value = item?.approvalNote ?? "";
-    openItem.value = item;
+    openItem.value = itemsById.value.get(event.id) ?? null;
+    note.value = "";
 }
 </script>
 
@@ -244,6 +277,18 @@ function open(event) {
                     )
                 }}
             </p>
+
+            <!-- The same thread the studio reads, in the same component:
+                 one conversation, not two renderings of it. -->
+            <div v-if="openItem" class="mt-4 border-t border-line/50 pt-4">
+                <SpaceContentThread
+                    :comments="thread"
+                    :can-post="canComment"
+                    :loading="posting"
+                    :notice="t('studio.public.space.thread_notice')"
+                    v-on:post="postComment"
+                />
+            </div>
 
             <section v-if="canApprove" class="mt-4 space-y-3 border-t border-line/50 pt-4">
                 <AppTextarea

@@ -3,6 +3,7 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { monthGrid } from "@/shared/composables/calendar/monthGrid.js";
 import { useSpaceContentItemForm } from "./useSpaceContentItemForm.js";
+import { useSpaceThread } from "./useSpaceThread.js";
 
 /**
  * The same content, read by its date.
@@ -103,9 +104,12 @@ export function useSpaceCalendar(initialItems, initialColumns, paths) {
         () => new Map(items.value.map((item) => [item.id, item])),
     );
 
+    const comments = ref(paths.comments ?? {});
+
     function applyBoard(data) {
         if (Array.isArray(data?.columns)) columns.value = data.columns;
         if (Array.isArray(data?.items)) items.value = data.items;
+        if (data?.comments) comments.value = data.comments;
     }
 
     const form = useSpaceContentItemForm(paths, applyBoard, (id) => {
@@ -170,7 +174,15 @@ export function useSpaceCalendar(initialItems, initialColumns, paths) {
         month.value = now.getMonth();
     }
 
+    const { commentLoading, threadOf, postComment, deleteComment } =
+        useSpaceThread(comments, paths, applyBoard);
+
     return {
+        comments,
+        commentLoading,
+        threadOf,
+        postComment,
+        deleteComment,
         items,
         cells,
         events,

@@ -129,6 +129,8 @@ use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentCommentInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
@@ -243,6 +245,7 @@ class AuroraBundle extends AbstractBundle
                     CustomerSpaceMemberInterface::class => CustomerSpaceMember::class,
                     SpaceContentColumnInterface::class => SpaceContentColumn::class,
                     SpaceContentItemInterface::class => SpaceContentItem::class,
+                    SpaceContentCommentInterface::class => SpaceContentComment::class,
                     SpaceAccessLinkInterface::class => SpaceAccessLink::class,
                     DeckInterface::class => Deck::class,
                     DeckCategoryInterface::class => DeckCategory::class,

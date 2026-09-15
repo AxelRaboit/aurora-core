@@ -8,8 +8,10 @@ use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Serializer\CustomerSpaceSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
+use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentCommentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentColumnSerializerInterface;
+use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentCommentSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentItemSerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -20,6 +22,8 @@ final readonly class SpaceBoardViewBuilder
         private SpaceContentItemRepository $itemRepository,
         private SpaceContentColumnSerializerInterface $columnSerializer,
         private SpaceContentItemSerializerInterface $itemSerializer,
+        private SpaceContentCommentRepository $commentRepository,
+        private SpaceContentCommentSerializerInterface $commentSerializer,
         private CustomerSpaceSerializerInterface $spaceSerializer,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
@@ -50,6 +54,7 @@ final readonly class SpaceBoardViewBuilder
             'space' => $this->spaceSerializer->serialize($space),
             'columns' => $this->columns($space),
             'items' => $this->items($space),
+            'comments' => $this->comments($space),
             'backPath' => $this->urlGenerator->generate('backend_studio_spaces'),
             'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
             'calendarPath' => $this->urlGenerator->generate('workspace_space_content_calendar', ['id' => $space->getId()]),
@@ -58,6 +63,8 @@ final readonly class SpaceBoardViewBuilder
             'itemUpdatePath' => $this->pathTemplates->generate('workspace_space_content_item_update', ['id' => $space->getId(), 'itemId' => '__id__']),
             'itemDeletePath' => $this->pathTemplates->generate('workspace_space_content_item_delete', ['id' => $space->getId(), 'itemId' => '__id__']),
             'itemReorderPath' => $this->urlGenerator->generate('workspace_space_content_item_reorder', ['id' => $space->getId()]),
+            'commentPostPath' => $this->pathTemplates->generate('workspace_space_content_comment_post', ['id' => $space->getId(), 'itemId' => '__id__']),
+            'commentDeletePath' => $this->pathTemplates->generate('workspace_space_content_comment_delete', ['id' => $space->getId(), 'commentId' => '__id__']),
             'columnCreatePath' => $this->urlGenerator->generate('workspace_space_content_column_create', ['id' => $space->getId()]),
             'columnUpdatePath' => $this->pathTemplates->generate('workspace_space_content_column_update', ['id' => $space->getId(), 'columnId' => '__id__']),
             'columnDeletePath' => $this->pathTemplates->generate('workspace_space_content_column_delete', ['id' => $space->getId(), 'columnId' => '__id__']),
@@ -72,6 +79,26 @@ final readonly class SpaceBoardViewBuilder
             $this->columnSerializer->serialize(...),
             $this->columnRepository->findForSpace($space),
         );
+    }
+
+    /**
+     * The threads of the space, keyed by the card they hang off.
+     *
+     * The whole space at once rather than a fetch per card opened: both screens
+     * draw every card and open one of them, and a space's threads are small -
+     * this is a validation loop, not a forum.
+     *
+     * @return array<int, list<array<string, mixed>>>
+     */
+    public function comments(CustomerSpaceInterface $space): array
+    {
+        $byItem = [];
+
+        foreach ($this->commentRepository->findForSpaceByItem($space) as $itemId => $comments) {
+            $byItem[$itemId] = array_map($this->commentSerializer->serialize(...), $comments);
+        }
+
+        return $byItem;
     }
 
     /** @return list<array<string, mixed>> */
@@ -100,6 +127,7 @@ final readonly class SpaceBoardViewBuilder
             'success' => true,
             'columns' => $this->columns($space),
             'items' => $this->items($space),
+            'comments' => $this->comments($space),
         ];
     }
 }

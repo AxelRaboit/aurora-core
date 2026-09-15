@@ -39,6 +39,9 @@ backend:
                     revoked: Lien d'accès client révoqué
                     deleted: Lien d'accès client supprimé
                     opened: Espace ouvert par un client
+                space_content_comment:
+                    posted: Message envoyé sur un contenu
+                    deleted: Message supprimé
                 space_content_column:
                     created: Étape de tableau créée
                     updated: Étape de tableau renommée
@@ -839,6 +842,9 @@ backend:
             empty_column: Rien ici pour le moment.
             empty_board: Aucun contenu dans cet espace. Ajoutez-en un pour commencer.
             unscheduled: Sans date
+            thread_notice: Ce que vous écrivez ici est lu par le client.
+            comment_posted: Message envoyé.
+            comment_deleted: Message supprimé.
             approval_reset_warning: 'Modifier le titre ou le texte efface cette réponse : elle portait sur ce qui a été montré.'
             approvals:
                 pending: En attente
@@ -885,6 +891,10 @@ backend:
                 column_name_too_long: Le nom ne peut pas dépasser 100 caractères.
                 column_not_empty: 'Cette étape contient {count} contenu(s). Déplacez-les avant de la supprimer.'
                 column_last: Un tableau garde au moins une étape.
+                comment_required: Le message ne peut pas être vide.
+                comment_needs_account: Il faut être connecté pour écrire sur un échange.
+                comment_from_client: Un message du client ne se supprime pas. C'est ce qu'il vous a demandé.
+                not_in_space: Ce contenu n'appartient pas à cet espace.
 studio:
     contract:
         # Écrit dans le document lui-même, donc scellé avec lui : ces phrases
@@ -992,6 +1002,7 @@ studio:
             valid_until: 'Cette adresse est valide jusqu''au {date}.'
             footer: Cette adresse est personnelle. Ne la transmettez pas.
             no_body: Le texte n'est pas encore écrit.
+            thread_notice: Ce que vous écrivez ici est lu par votre prestataire.
             approve: Validé
             request_changes: À revoir
             note: Commentaire
@@ -1002,6 +1013,7 @@ studio:
             already_changes_requested: 'Vous avez demandé une reprise le {date}.'
             errors:
                 approval_invalid: Réponse non reconnue.
+                comment_required: Le message ne peut pas être vide.
                 too_many_requests: Trop de réponses envoyées coup sur coup. Réessayez dans quelques minutes.
         unavailable:
             title: Ce lien n'est plus valide

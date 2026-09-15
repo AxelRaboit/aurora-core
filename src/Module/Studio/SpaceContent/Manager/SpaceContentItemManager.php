@@ -38,6 +38,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         protected readonly SpaceContentItemRepository $itemRepository,
         protected readonly SpaceContentColumnRepository $columnRepository,
         protected readonly TranslatorInterface $translator,
+        protected readonly SpaceContentCommentManagerInterface $comments,
         protected readonly EventDispatcherInterface $eventDispatcher,
         protected readonly UrlGeneratorInterface $urlGenerator,
     ) {}
@@ -151,8 +152,16 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
             throw new FieldException('item', $this->translator->trans('backend.studio.space_content.errors.not_in_space'));
         }
 
-        $item->answer($approval, $note, $link, new DateTimeImmutable());
+        $item->answer($approval, $link, new DateTimeImmutable());
         $this->entityManager->flush();
+
+        // The words go to the thread, not onto the verdict. It is the same
+        // gesture for the person answering - "à revoir" is only actionable with
+        // a reason - and two different lifetimes underneath: the verdict is
+        // reset when the text is rewritten, the message is not.
+        if (null !== $note && '' !== $note) {
+            $this->comments->postAsClient($item, $link, $note);
+        }
 
         $this->auditAnswered($item);
     }

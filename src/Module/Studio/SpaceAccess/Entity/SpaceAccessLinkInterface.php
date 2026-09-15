@@ -43,6 +43,10 @@ interface SpaceAccessLinkInterface
 
     public function setCanApprove(bool $canApprove): static;
 
+    public function canComment(): bool;
+
+    public function setCanComment(bool $canComment): static;
+
     public function getFirstOpenedAt(): ?DateTimeImmutable;
 
     public function getLastUsedAt(): ?DateTimeImmutable;

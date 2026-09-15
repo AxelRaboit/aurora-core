@@ -13,6 +13,7 @@ import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
+import SpaceContentThread from "../../../shared/SpaceContentThread.vue";
 
 const props = defineProps({
     modelValue: { type: Object, required: true },
@@ -20,11 +21,14 @@ const props = defineProps({
     columnOptions: { type: Array, default: () => [] },
     timezone: { type: String, default: "Europe/Paris" },
     approval: { type: String, default: "pending" },
-    approvalNote: { type: String, default: "" },
     approvalBy: { type: String, default: "" },
+    comments: { type: Array, default: () => [] },
+    commentLoading: { type: Boolean, default: false },
+    /** False while creating: a card with no id has nothing to hang a thread on. */
+    canDiscuss: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "post-comment", "delete-comment"]);
 
 const { t } = useI18n();
 
@@ -99,12 +103,22 @@ function set(field, value) {
                     · {{ approvalBy }}
                 </span>
             </p>
-            <p v-if="approvalNote" class="whitespace-pre-line text-sm text-secondary">
-                {{ approvalNote }}
-            </p>
             <p class="text-xs text-muted">
                 {{ t("backend.studio.space_content.approval_reset_warning") }}
             </p>
         </section>
+
+        <!-- The conversation, which the verdict above does not carry: resetting
+             an approval must not take the client's words with it, and it is
+             those words the studio is acting on. -->
+        <SpaceContentThread
+            v-if="canDiscuss"
+            :comments="comments"
+            :loading="commentLoading"
+            can-delete
+            :notice="t('backend.studio.space_content.thread_notice')"
+            v-on:post="emit('post-comment', $event)"
+            v-on:delete="emit('delete-comment', $event)"
+        />
     </div>
 </template>

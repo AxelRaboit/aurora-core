@@ -33,7 +33,6 @@ class SpaceContentItemSerializer implements SpaceContentItemSerializerInterface
                 ?->setTimezone(new DateTimeZone($item->getSpace()->getTimezone()))
                 ->format('Y-m-d\TH:i'),
             'approval' => $item->getApproval()->value,
-            'approvalNote' => $item->getApprovalNote(),
             'approvalAt' => $item->getApprovalAt()?->format(DATE_ATOM),
             // The address that answered, by the mailbox it was sent to. There
             // is no account behind a link, so this is the only name there is.

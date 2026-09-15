@@ -43,6 +43,9 @@ const props = defineProps({
     itemCreatePath: { type: String, required: true },
     itemUpdatePath: { type: String, required: true },
     itemDeletePath: { type: String, required: true },
+    commentPostPath: { type: String, required: true },
+    commentDeletePath: { type: String, required: true },
+    comments: { type: Object, default: () => ({}) },
     schedulePath: { type: String, required: true },
 });
 
@@ -64,6 +67,10 @@ const {
     itemErrors,
     itemLoading,
     openItemEdit,
+    threadOf,
+    commentLoading,
+    postComment,
+    deleteComment,
     submitItem,
     pendingItemDelete,
     itemDeleteLoading,
@@ -73,6 +80,9 @@ const {
     itemCreatePath: props.itemCreatePath,
     itemUpdatePath: props.itemUpdatePath,
     itemDeletePath: props.itemDeletePath,
+    commentPostPath: props.commentPostPath,
+    commentDeletePath: props.commentDeletePath,
+    comments: props.comments,
     schedulePath: props.schedulePath,
     colourSlot: props.space.colourSlot,
 });
@@ -191,8 +201,12 @@ const monthTitle = computed(() =>
                     :column-options="columnOptions"
                     :timezone="space.timezone"
                     :approval="editingItem?.approval ?? 'pending'"
-                    :approval-note="editingItem?.approvalNote ?? ''"
                     :approval-by="editingItem?.approvalBy ?? ''"
+                    :comments="threadOf(editingItem)"
+                    :comment-loading="commentLoading"
+                    :can-discuss="!!editingItem"
+                    v-on:post-comment="postComment(editingItem, $event)"
+                    v-on:delete-comment="deleteComment"
                 />
             </form>
             <template #footer>

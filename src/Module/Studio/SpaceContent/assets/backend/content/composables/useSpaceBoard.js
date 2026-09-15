@@ -5,6 +5,7 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useFormAction } from "@/shared/composables/form/useFormAction.js";
 import { useDelete } from "@/shared/composables/form/useDelete.js";
 import { useSpaceContentItemForm } from "./useSpaceContentItemForm.js";
+import { useSpaceThread } from "./useSpaceThread.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { required } from "@/shared/utils/validation/validators.js";
 
@@ -24,9 +25,12 @@ export function useSpaceBoard(initialColumns, initialItems, paths) {
     const columns = ref(initialColumns ?? []);
     const items = ref(initialItems ?? []);
 
+    const comments = ref(paths.comments ?? {});
+
     function applyBoard(data) {
         if (Array.isArray(data?.columns)) columns.value = data.columns;
         if (Array.isArray(data?.items)) items.value = data.items;
+        if (data?.comments) comments.value = data.comments;
     }
 
     /** The cards of each column, in their stored order. */
@@ -164,7 +168,15 @@ export function useSpaceBoard(initialColumns, initialItems, paths) {
         "backend.studio.space_content.column_deleted",
     );
 
+    const { commentLoading, threadOf, postComment, deleteComment } =
+        useSpaceThread(comments, paths, applyBoard);
+
     return {
+        comments,
+        commentLoading,
+        threadOf,
+        postComment,
+        deleteComment,
         columns,
         items,
         grouped,

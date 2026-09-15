@@ -39,6 +39,9 @@ backend:
                     revoked: Client access link revoked
                     deleted: Client access link deleted
                     opened: Space opened by a client
+                space_content_comment:
+                    posted: Message posted on a content item
+                    deleted: Message deleted
                 space_content_column:
                     created: Board step created
                     updated: Board step renamed
@@ -839,6 +842,9 @@ backend:
             empty_column: Nothing here yet.
             empty_board: No content in this space. Add one to get started.
             unscheduled: No date
+            thread_notice: What you write here is read by the client.
+            comment_posted: Message sent.
+            comment_deleted: Message deleted.
             approval_reset_warning: 'Changing the title or the text clears this answer: it was about what was shown.'
             approvals:
                 pending: Pending
@@ -885,6 +891,10 @@ backend:
                 column_name_too_long: The name cannot be longer than 100 characters.
                 column_not_empty: 'This step holds {count} items. Move them before deleting it.'
                 column_last: A board keeps at least one step.
+                comment_required: The message cannot be empty.
+                comment_needs_account: You have to be signed in to write on a thread.
+                comment_from_client: A client's message is not deleted. It is what they asked you for.
+                not_in_space: This content does not belong to this space.
 studio:
     contract:
         # Written into the document itself, and therefore sealed with it: these
@@ -992,6 +1002,7 @@ studio:
             valid_until: 'This address is valid until {date}.'
             footer: This address is personal. Please do not pass it on.
             no_body: The text is not written yet.
+            thread_notice: What you write here is read by your agency.
             approve: Approved
             request_changes: Needs changes
             note: Comment
@@ -1002,6 +1013,7 @@ studio:
             already_changes_requested: 'You asked for changes on {date}.'
             errors:
                 approval_invalid: Answer not recognised.
+                comment_required: The message cannot be empty.
                 too_many_requests: Too many answers in a row. Try again in a few minutes.
         unavailable:
             title: This link is no longer valid

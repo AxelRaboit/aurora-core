@@ -41,15 +41,12 @@ interface SpaceContentItemInterface
 
     public function getApproval(): SpaceContentApprovalEnum;
 
-    public function getApprovalNote(): ?string;
-
     public function getApprovalAt(): ?DateTimeImmutable;
 
     public function getApprovalByLink(): ?SpaceAccessLinkInterface;
 
     public function answer(
         SpaceContentApprovalEnum $approval,
-        ?string $note,
         SpaceAccessLinkInterface $link,
         DateTimeImmutable $at,
     ): static;

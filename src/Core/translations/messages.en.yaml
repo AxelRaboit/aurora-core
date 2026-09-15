@@ -1,4 +1,10 @@
 shared:
+  thread:
+    title: Discussion
+    empty: No message yet.
+    placeholder: Write a message…
+    send: Send
+    from_client: client
   palette:
     no_colour: No colour
     colour_slot: 'Colour {slot}'

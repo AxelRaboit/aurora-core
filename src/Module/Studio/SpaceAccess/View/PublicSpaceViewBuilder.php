@@ -7,8 +7,10 @@ namespace Aurora\Module\Studio\SpaceAccess\View;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
+use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentCommentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentColumnSerializerInterface;
+use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentCommentSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentItemSerializerInterface;
 
 /**
@@ -30,6 +32,8 @@ final readonly class PublicSpaceViewBuilder
         private SpaceContentColumnRepository $columns,
         private SpaceContentItemSerializerInterface $itemSerializer,
         private SpaceContentColumnSerializerInterface $columnSerializer,
+        private SpaceContentCommentRepository $commentRepository,
+        private SpaceContentCommentSerializerInterface $commentSerializer,
         private PathTemplateGenerator $pathTemplates,
     ) {}
 
@@ -57,8 +61,10 @@ final readonly class PublicSpaceViewBuilder
                 $this->columns->findForSpace($space),
             ),
             'items' => $this->items($link),
+            'comments' => $this->comments($link),
             'expiresAt' => $link->getExpiresAt(),
             'canApprove' => $link->canApprove(),
+            'canComment' => $link->canComment(),
             // The one address this page may post to, and only when it may.
             // A reader who cannot answer is handed no endpoint at all rather
             // than a button that would be refused.
@@ -69,6 +75,51 @@ final readonly class PublicSpaceViewBuilder
                     'itemId' => '__id__',
                 ])
                 : null,
+            'commentPath' => $link->canComment()
+                ? $this->pathTemplates->generate('public_space_comment', [
+                    'selector' => $link->getSelector(),
+                    'token' => $token,
+                    'itemId' => '__id__',
+                ])
+                : null,
+        ];
+    }
+
+    /**
+     * The threads of the space, keyed by the card they hang off.
+     *
+     * The same shape the studio's screens read, because it is the same
+     * conversation: a message that rendered differently depending on who asked
+     * is how two people end up arguing about what was said.
+     *
+     * @return array<int, list<array<string, mixed>>>
+     */
+    public function comments(SpaceAccessLinkInterface $link): array
+    {
+        $byItem = [];
+
+        foreach ($this->commentRepository->findForSpaceByItem($link->getSpace()) as $itemId => $comments) {
+            $byItem[$itemId] = array_map($this->commentSerializer->serialize(...), $comments);
+        }
+
+        return $byItem;
+    }
+
+    /**
+     * What a guest write answers with: the cards and the threads.
+     *
+     * Both, because a verdict carrying a message changes one of each, and a
+     * page that patched its own copy would be the first place the two could
+     * disagree.
+     *
+     * @return array<string, mixed>
+     */
+    public function threadPayload(SpaceAccessLinkInterface $link): array
+    {
+        return [
+            'success' => true,
+            'items' => $this->items($link),
+            'comments' => $this->comments($link),
         ];
     }
 

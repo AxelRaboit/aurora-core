@@ -97,20 +97,15 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
      * clears it - see `clearApprovalIfContentChanged` on the Manager. An
      * approval that survived a rewrite would be the client agreeing to
      * something they never read.
+     *
+     * **The words that came with it are not here.** They are messages on the
+     * thread, which is what lets this be reset without destroying them: a
+     * verdict is a state, and "le ton est trop formel" is an event the studio
+     * is about to act on. Keeping both in one column meant the instruction
+     * disappeared exactly when it was being used.
      */
     #[ORM\Column(length: 20, enumType: SpaceContentApprovalEnum::class, options: ['default' => 'pending'])]
     protected SpaceContentApprovalEnum $approval = SpaceContentApprovalEnum::Pending;
-
-    /**
-     * What they said about it, when they said anything.
-     *
-     * One field rather than a thread, and that is the scope: a decision is not
-     * a conversation. "À revoir" is only actionable with a reason attached, and
-     * the reason arrives in the same gesture as the decision - which also means
-     * it cannot be left behind by somebody who answered and closed the tab.
-     */
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    protected ?string $approvalNote = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $approvalAt = null;
@@ -210,11 +205,6 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
         return $this->approval;
     }
 
-    public function getApprovalNote(): ?string
-    {
-        return $this->approvalNote;
-    }
-
     public function getApprovalAt(): ?DateTimeImmutable
     {
         return $this->approvalAt;
@@ -234,12 +224,10 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
      */
     public function answer(
         SpaceContentApprovalEnum $approval,
-        ?string $note,
         SpaceAccessLinkInterface $link,
         DateTimeImmutable $at,
     ): static {
         $this->approval = $approval;
-        $this->approvalNote = $note;
         $this->approvalByLink = $link;
         $this->approvalAt = $at;
 
@@ -253,11 +241,13 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
      * so a rewrite makes it evidence of nothing. Losing it is the honest
      * outcome and keeping it would be a quiet lie to the person reading the
      * board.
+     *
+     * The thread is untouched. What the client wrote stays written - it is the
+     * reason the studio is rewriting in the first place.
      */
     public function clearApproval(): static
     {
         $this->approval = SpaceContentApprovalEnum::Pending;
-        $this->approvalNote = null;
         $this->approvalByLink = null;
         $this->approvalAt = null;
 

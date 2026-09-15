@@ -81,6 +81,7 @@ final readonly class SpaceAccessViewBuilder
             'expired' => $link->isExpired($now),
             'usable' => $link->isUsable($now),
             'canApprove' => $link->canApprove(),
+            'canComment' => $link->canComment(),
         ];
     }
 

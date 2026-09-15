@@ -11,8 +11,10 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
+use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentCommentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
@@ -42,6 +44,8 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
 
     private SpaceContentItemRepository $items;
 
+    private SpaceContentCommentRepository $comments;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -59,11 +63,12 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->links = $container->get(SpaceAccessLinkRepository::class);
         $this->columns = $container->get(SpaceContentColumnRepository::class);
         $this->items = $container->get(SpaceContentItemRepository::class);
+        $this->comments = $container->get(SpaceContentCommentRepository::class);
     }
 
     protected function tearDown(): void
     {
-        foreach ([SpaceContentItem::class, SpaceAccessLink::class, SpaceContentColumn::class, CustomerSpace::class, Customer::class] as $class) {
+        foreach ([SpaceContentComment::class, SpaceContentItem::class, SpaceAccessLink::class, SpaceContentColumn::class, CustomerSpace::class, Customer::class] as $class) {
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', $class))->execute();
         }
 
@@ -85,8 +90,15 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $stored = $this->items->find($item['id']);
 
         self::assertSame('approved', $stored->getApproval()->value);
-        self::assertSame('Parfait.', $stored->getApprovalNote());
         self::assertNotNull($stored->getApprovalAt());
+
+        // The words are a message on the thread rather than a column on the
+        // verdict, which is what lets the verdict be reset without losing them.
+        $thread = $this->comments->findForSpaceByItem($stored->getSpace())[$item['id']];
+        self::assertCount(1, $thread);
+        self::assertSame('Parfait.', $thread[0]->getBody());
+        self::assertTrue($thread[0]->isFromClient());
+        self::assertSame('camille@societe.test', $thread[0]->getAuthorLabel());
         // Who answered, by the address the link was sent to: there is no
         // account behind this.
         self::assertSame('camille@societe.test', $stored->getApprovalByLink()->getRecipientEmail());
@@ -129,9 +141,43 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
+        $stored = $this->items->find($item['id']);
+
         // An approval is of a wording. Keeping it after a rewrite would tell
         // the board a client agreed to something they never read.
-        self::assertSame('pending', $this->items->find($item['id'])->getApproval()->value);
+        self::assertSame('pending', $stored->getApproval()->value);
+    }
+
+    public function testRewritingTheTextKeepsWhatTheClientWrote(): void
+    {
+        $space = $this->givenSpace();
+        $item = $this->givenItem($space, 'Texte a revoir');
+
+        $guest = $this->asGuest();
+        $guest->jsonRequest('POST', $this->answerPathFor($space, $item['id']), [
+            'approval' => 'changes_requested',
+            'note' => 'Le ton est trop formel.',
+        ]);
+
+        $this->loginAdmin();
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $item['id']), [
+            'title' => 'Texte repris',
+            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+        ]);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->entityManager->clear();
+        $stored = $this->items->find($item['id']);
+
+        // This is the defect the thread exists to fix. The note used to live on
+        // the verdict and was cleared with it - so the instruction disappeared
+        // at the exact moment the studio was acting on it.
+        self::assertSame('pending', $stored->getApproval()->value);
+
+        $thread = $this->comments->findForSpaceByItem($space)[$item['id']];
+        self::assertCount(1, $thread);
+        self::assertSame('Le ton est trop formel.', $thread[0]->getBody());
     }
 
     public function testMovingACardLeavesTheAnswerAlone(): void

@@ -31,12 +31,12 @@ use function random_bytes;
  * three choices at length; this is the same design applied to a screen rather
  * than to a document.
  *
- * **`canApprove` arrives with the write it governs**, not before. The column
- * was deliberately absent while the link only read: a column standing for a
+ * **Each right arrives with the write it governs**, not before. Both columns
+ * were deliberately absent while the link only read: a column standing for a
  * permission nobody enforces is a switch that does nothing, which is the trap
- * the calendar's share links are documented as having avoided. It is enforced
- * by the public controller, on a rate-limited route, which is the other half of
- * what that memory asks for before a guest may write.
+ * the calendar's share links are documented as having avoided. Both are
+ * enforced by the public controller, on rate-limited routes, which is the other
+ * half of what that memory asks for before a guest may write.
  */
 #[ORM\MappedSuperclass]
 abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
@@ -99,6 +99,17 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
      */
     #[ORM\Column(options: ['default' => true])]
     protected bool $canApprove = true;
+
+    /**
+     * Whether the holder may write on the thread.
+     *
+     * Separate from `canApprove` because the two answer different questions. A
+     * partner agency can be worth hearing without being the one who decides;
+     * and a plan shown to a prospect wants neither. Both true by default, both
+     * enforced, and a link with neither is the read-only one.
+     */
+    #[ORM\Column(options: ['default' => true])]
+    protected bool $canComment = true;
 
     /**
      * The first open, kept apart from the last.
@@ -228,6 +239,18 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     public function setCanApprove(bool $canApprove): static
     {
         $this->canApprove = $canApprove;
+
+        return $this;
+    }
+
+    public function canComment(): bool
+    {
+        return $this->canComment;
+    }
+
+    public function setCanComment(bool $canComment): static
+    {
+        $this->canComment = $canComment;
 
         return $this;
     }

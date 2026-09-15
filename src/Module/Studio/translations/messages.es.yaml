@@ -110,6 +110,7 @@ studio:
             valid_until: 'Esta dirección es válida hasta el {date}.'
             footer: Esta dirección es personal. No la transmita.
             no_body: El texto aún no está escrito.
+            thread_notice: Lo que escriba aquí lo lee su proveedor.
             approve: Validado
             request_changes: Revisar
             note: Comentario
@@ -120,6 +121,7 @@ studio:
             already_changes_requested: 'Pidió una revisión el {date}.'
             errors:
                 approval_invalid: Respuesta no reconocida.
+                comment_required: El mensaje no puede estar vacío.
                 too_many_requests: Demasiadas respuestas seguidas. Vuelva a intentarlo en unos minutos.
         unavailable:
             title: Este enlace ya no es válido

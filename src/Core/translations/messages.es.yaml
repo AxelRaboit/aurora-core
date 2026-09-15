@@ -1,4 +1,10 @@
 shared:
+  thread:
+    title: Intercambios
+    empty: Ningún mensaje por ahora.
+    placeholder: Escribir un mensaje…
+    send: Enviar
+    from_client: cliente
   placeholders:
     name: Un nombre corto
     title: Un título corto

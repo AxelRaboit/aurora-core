@@ -25,6 +25,7 @@ class SpaceAccessLinkInputFactory implements SpaceAccessLinkInputFactoryInterfac
             // Absent means true: a payload that says nothing about the right
             // is a form that did not offer the choice, not a refusal.
             canApprove: (bool) ($data['canApprove'] ?? true),
+            canComment: (bool) ($data['canComment'] ?? true),
         );
     }
 }

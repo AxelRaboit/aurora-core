@@ -5,6 +5,68 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.182] - 2026-09-15
+
+### Ajouté
+
+#### Un fil d'échanges sur chaque contenu, partagé avec le client
+Ce que le studio écrit, le client le lit, et inversement. **Un seul fil et pas
+deux boîtes aux lettres** : un échange dont les moitiés ne se voient pas, ce sont
+deux personnes qui se parlent à côté avec des étapes en plus. Rien n'est interne
+ici, et l'écran le dit là où on tape, parce qu'une note destinée à un collègue
+écrite dans le mauvais champ est une note que le client lit.
+
+Le composant est le même des deux côtés, avec les mêmes messages dans le même
+ordre. Une conversation qui se rendrait différemment selon qui la regarde, c'est
+ainsi que deux personnes finissent par se disputer sur ce qui a été dit.
+
+#### Deux droits distincts sur un lien
+« Peut commenter » et « peut valider », cochés par défaut tous les deux. Ils
+répondent à deux questions différentes : une agence partenaire peut mériter d'être
+entendue sans être celle qui décide, et un plan montré à un prospect ne veut ni
+l'un ni l'autre. Chacun est appliqué, et un lien qui n'a ni l'un ni l'autre est
+le lien en lecture seule.
+
+### Corrigé
+
+#### Le commentaire du client disparaissait au moment où on s'en servait
+La 0.9.181 rangeait ses mots dans `approval_note`, sur le verdict. Or modifier le
+texte efface le verdict - ce qui est juste - et emportait donc la phrase avec lui.
+Le client écrivait « le ton est trop formel », le studio corrigeait le ton, et
+**l'instruction disparaissait exactement pendant qu'on l'appliquait.**
+
+Un verdict est un état et se réinitialise ; des mots sont des événements et se
+gardent. Les messages sont donc des lignes à part, et effacer une validation ne
+détruit plus rien. La migration recopie chaque note existante en premier message
+du fil, signée du lien qui avait répondu et datée de sa réponse.
+
+### Interne
+
+#### L'auteur d'un message est stocké deux fois, exprès
+Les relations disent qui tant qu'elles durent - un compte se supprime, une
+adresse se révoque puis se supprime - et les deux sont en `SET NULL`, parce que
+retirer une personne ne doit pas retirer ce qu'elle a dit. Mais un message dont
+l'auteur est devenu nul est un message que personne n'a écrit, ce qui est pire
+qu'inutile dans un fil qu'on relit pour trancher un désaccord. `author_label` et
+`from_client` sont donc écrits une fois, à la publication, et ne dépendent
+d'aucune ligne qui puisse partir.
+
+#### Un message du client ne se supprime pas
+Le studio peut retirer les siens. Ce qu'un client a écrit est ce qu'on lui a
+demandé d'appliquer, et un prestataire capable d'effacer une réclamation a une
+trace de la mission qui ne prouve rien.
+
+#### Le composant et ses mots ont quitté `backend`
+`SpaceContentThread.vue` vit dans `assets/shared/` du sous-domaine, parce que les
+deux surfaces le montent, et ses propres libellés sont passés en `shared.thread.*`
+dans Core, **espagnol compris** : une clé sous `backend.` rendue sur une page que
+lit un client est un namespace qui a cessé de vouloir dire quelque chose.
+
+### Dans aurora-client
+`make aurora-update` puis la migration.
+
+---
+
 ## [0.9.181] - 2026-09-15
 
 ### Ajouté

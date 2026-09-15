@@ -15,6 +15,7 @@ use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\View\PublicSpaceViewBuilder;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentCommentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -48,6 +49,7 @@ final class PublicSpaceController extends AbstractController
     public function __construct(
         private readonly SpaceAccessLinkManagerInterface $links,
         private readonly SpaceContentItemManagerInterface $items,
+        private readonly SpaceContentCommentManagerInterface $comments,
         private readonly SpaceContentItemRepository $itemRepository,
         private readonly PublicSpaceViewBuilder $viewBuilder,
         // Autowired by parameter name: `$spaceGuestWriteLimiter` resolves to
@@ -139,7 +141,56 @@ final class PublicSpaceController extends AbstractController
 
         $this->links->markOpened($link);
 
-        return $this->jsonSuccess(['items' => $this->viewBuilder->items($link)]);
+        return $this->jsonSuccess($this->viewBuilder->threadPayload($link));
+    }
+
+    /**
+     * A message from the client on one card's thread.
+     *
+     * Same limiter as the verdict, and the same 404 for a link that may not:
+     * both are guest writes on the same secret address, and the wall that holds
+     * is the link's own right rather than the count.
+     */
+    #[Route(
+        '/{selector}/{token}/content/{itemId}/comments',
+        name: '_comment',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}', 'itemId' => '\d+'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function comment(string $selector, string $token, int $itemId, Request $request): JsonResponse
+    {
+        if (!$this->spaceGuestWriteLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
+        }
+
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface || !$link->canComment()) {
+            throw $this->createNotFoundException();
+        }
+
+        $item = $this->itemRepository->find($itemId);
+
+        if (!$item instanceof SpaceContentItemInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        $body = Str::trimFromArray($this->decodeJson($request), 'body');
+
+        if ('' === $body) {
+            return $this->jsonInvalidInput(['body' => 'studio.public.space.errors.comment_required']);
+        }
+
+        try {
+            $this->comments->postAsClient($item, $link, $body);
+        } catch (FieldException) {
+            // The card belongs to another space.
+            throw $this->createNotFoundException();
+        }
+
+        $this->links->markOpened($link);
+
+        return $this->jsonSuccess($this->viewBuilder->threadPayload($link));
     }
 
     /**

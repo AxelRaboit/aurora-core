@@ -7,14 +7,17 @@ namespace Aurora\Module\Studio\SpaceContent\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInputFactoryInterface;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInputFactoryInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentCommentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\View\SpaceBoardViewBuilder;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
@@ -56,6 +59,7 @@ class SpaceContentController extends AbstractController
     public function __construct(
         protected readonly SpaceContentItemManagerInterface $itemManager,
         protected readonly SpaceContentColumnManagerInterface $columnManager,
+        protected readonly SpaceContentCommentManagerInterface $comments,
         protected readonly SpaceContentItemInputFactoryInterface $itemInputFactory,
         protected readonly SpaceContentColumnInputFactoryInterface $columnInputFactory,
         protected readonly SpaceBoardViewBuilder $viewBuilder,
@@ -171,6 +175,65 @@ class SpaceContentController extends AbstractController
 
         try {
             $this->itemManager->reorder($space, $columnId, $this->ids($payload['itemIds'] ?? null));
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
+    }
+
+    /**
+     * A message on a card's thread, signed by whoever is logged in.
+     *
+     * **What is written here is read by the client.** One shared thread is what
+     * makes it a conversation rather than two mailboxes, and the screen says so
+     * where somebody types: a note meant for a colleague, written in this box,
+     * is a note the customer reads.
+     */
+    #[Route('/content/{itemId}/comments', name: '_comment_post', requirements: ['itemId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function postComment(
+        CustomerSpace $space,
+        #[MapEntity(id: 'itemId')]
+        SpaceContentItem $item,
+        Request $request,
+    ): JsonResponse {
+        $this->assertOwned($space, $item->getSpace()->getId());
+
+        $body = Str::trimFromArray($this->decodeJson($request), 'body');
+
+        if ('' === $body) {
+            return $this->jsonInvalidInput(['body' => 'backend.studio.space_content.errors.comment_required']);
+        }
+
+        try {
+            $this->comments->postAsStudio($item, $body);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
+    }
+
+    /**
+     * Removes one of the studio's own messages.
+     *
+     * A client's message is refused by the Manager: what a customer wrote is
+     * what the studio was asked to act on, and a provider who can delete a
+     * complaint has a record of the engagement that proves nothing.
+     */
+    #[Route('/comments/{commentId}/delete', name: '_comment_delete', requirements: ['commentId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function deleteComment(
+        CustomerSpace $space,
+        #[MapEntity(id: 'commentId')]
+        SpaceContentComment $comment,
+        Request $request,
+    ): JsonResponse {
+        $this->assertOwned($space, $comment->getItem()->getSpace()->getId());
+
+        try {
+            $this->comments->delete($comment);
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         }
