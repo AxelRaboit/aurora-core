@@ -213,7 +213,7 @@ export function useFolderPanelActions({ folders, allFlatFolders, onChanged }) {
     function isSelfOrBelow(folderId, ancestorId) {
         const seen = new Set();
 
-        for (let id = folderId; id; ) {
+        for (let id = folderId; id;) {
             if (id === ancestorId) return true;
             if (seen.has(id)) return true;
             seen.add(id);
