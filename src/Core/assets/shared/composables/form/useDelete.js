@@ -47,7 +47,11 @@ export function useDelete(deletePath, onSuccess, successMessageKey) {
                 const id = pendingDelete.value.id;
                 pendingDelete.value = null;
                 toast.success(t(resolve(successMessageKey)));
-                onSuccess(id);
+                // The answer as well as the id: a page that needs to react to
+                // what the deletion left behind has no other way to see it,
+                // and every caller that does not care ignores a second
+                // argument for free.
+                onSuccess(id, data);
 
                 return;
             }

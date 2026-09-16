@@ -6,8 +6,10 @@ namespace Aurora\Module\Studio\CustomerSpace\Entity;
 
 use Aurora\Core\Support\ChartPalette;
 use Aurora\Core\Timestampable\TimestampableTrait;
+use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
+use Aurora\Module\Studio\CustomerSpace\Service\SpaceDocumentFolderProvider;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -66,6 +68,30 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     #[ORM\ManyToOne(targetEntity: CustomerInterface::class)]
     #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
     protected CustomerInterface $customer;
+
+    /**
+     * Where this space's uploads are filed in the library.
+     *
+     * **Created on the first upload, not with the space.** A space that never
+     * receives a file would otherwise leave an empty folder behind, and the
+     * library is a screen people read: one empty folder per prospect is
+     * litter. {@see SpaceDocumentFolderProvider}
+     * resolves it, the same way the filing category is resolved on demand.
+     *
+     * **Nullable, and `SET NULL` rather than `RESTRICT`.** The folder belongs
+     * to the library once it exists: somebody may trash it, and that must not
+     * be a deletion the library refuses for a reason it cannot explain. The
+     * provider notices the loss and files the next upload into a fresh folder.
+     *
+     * **Its name is not kept in step with the space's.** Renaming the space
+     * leaves the folder alone, because from the moment it exists it is an
+     * ordinary folder that the studio may rename, move or nest. Writing over
+     * that from another module would be a surprise nobody could trace back
+     * here. The link is the foreign key, never the name.
+     */
+    #[ORM\ManyToOne(targetEntity: DocumentFolderInterface::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?DocumentFolderInterface $documentFolder = null;
 
     #[ORM\Column(length: 20, enumType: CustomerSpaceStatusEnum::class, options: ['default' => 'active'])]
     protected CustomerSpaceStatusEnum $status = CustomerSpaceStatusEnum::Active;
@@ -237,5 +263,17 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     public function getContentItems(): Collection
     {
         return $this->contentItems;
+    }
+
+    public function getDocumentFolder(): ?DocumentFolderInterface
+    {
+        return $this->documentFolder;
+    }
+
+    public function setDocumentFolder(?DocumentFolderInterface $documentFolder): static
+    {
+        $this->documentFolder = $documentFolder;
+
+        return $this;
     }
 }

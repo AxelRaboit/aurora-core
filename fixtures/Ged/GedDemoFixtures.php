@@ -100,14 +100,21 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         // shipped with the repository. The test next door checks that the
         // files named here exist; it resolves the root correctly, so it
         // passed while the fixture read somewhere else entirely.
+        // **Les sources sont des aplats, pas des photographies, et c'est
+        // voulu.** Deux d'entre elles ne l'etaient pas : un chat genere en IA
+        // servait de `hero-banner.jpg` et un drapeau canadien de
+        // `landscape.jpg`. Une demo se montre a des prospects, et une image
+        // qui a un sujet raconte autre chose que le produit - on regarde le
+        // chat, pas la mediatheque. Remplacees le 2026-09-16 par des degrades
+        // du meme langage visuel que les deux placeholders deja presents.
         $sourceDir = dirname(__DIR__, 2).'/test_files';
         $defs = [
-            ['src' => 'images/ai-generated-8359510_1280-1816135935.jpg', 'name' => 'hero-banner.jpg',      'original' => 'hero-banner.jpg',    'mime' => 'image/jpeg', 'w' => 1280, 'h' => 853],
-            ['src' => 'images/canadian-flag-canada-maple-country-wallpaper-1506073439.jpg', 'name' => 'landscape.jpg', 'original' => 'landscape.jpg', 'mime' => 'image/jpeg', 'w' => 1280, 'h' => 720],
+            ['src' => 'images/hero-placeholder.jpg',      'name' => 'hero-banner.jpg',   'original' => 'hero-banner.jpg',   'mime' => 'image/jpeg', 'w' => 1280, 'h' => 853],
+            ['src' => 'images/landscape-placeholder.jpg', 'name' => 'landscape.jpg',     'original' => 'landscape.jpg',     'mime' => 'image/jpeg', 'w' => 1280, 'h' => 720],
             ['src' => 'images/portrait-placeholder.jpg',  'name' => 'portrait-team.jpg', 'original' => 'portrait-team.jpg', 'mime' => 'image/jpeg', 'w' => 800,  'h' => 1000],
             ['src' => 'images/workspace-placeholder.jpg', 'name' => 'office-setup.jpg',  'original' => 'office-setup.jpg',  'mime' => 'image/jpeg', 'w' => 1200, 'h' => 800],
             ['src' => 'videos/sample-30s-720p.mp4',  'name' => 'demo-video.mp4',   'original' => 'demo-video.mp4',   'mime' => 'video/mp4',  'w' => 1280, 'h' => 720],
-            ['src' => 'files/invoices/Commercial-Invoice-Sample.webp', 'name' => 'invoice-sample.webp', 'original' => 'invoice-sample.webp', 'mime' => 'image/webp', 'w' => 0, 'h' => 0],
+            ['src' => 'files/placeholders/document-placeholder.webp', 'name' => 'document-sample.webp', 'original' => 'document-sample.webp', 'mime' => 'image/webp', 'w' => 0, 'h' => 0],
         ];
 
         $media = [];
@@ -367,7 +374,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['title' => 'Architecture Technique Aurora - Whitepaper',  'cat' => 1, 'folder' => 0, 'tags' => [3],        'status' => DocumentStatusEnum::Archived,  'desc' => 'Document d\'architecture technique v1.x (archivé, remplacé par la version 2.x).', 'file' => $samplePdf],
             ['title' => 'Rapport Annuel 2024 - Aurora Tech',           'cat' => 4, 'folder' => 6, 'tags' => [0, 1],    'status' => DocumentStatusEnum::Draft,     'desc' => 'Bilan financier et opérationnel de l\'exercice 2024. En cours de validation.', 'file' => null],
             ['title' => 'Budget Prévisionnel 2025 - Aurora Tech',      'cat' => 4, 'folder' => 6, 'tags' => [0],        'status' => DocumentStatusEnum::Published, 'desc' => 'Budget prévisionnel approuvé par le comité de direction le 10 janvier 2025.', 'file' => $samplePdf],
-            ['title' => 'Facture Commerciale BTQ-2024-156',            'cat' => 4, 'folder' => 6, 'tags' => [0, 2],    'status' => DocumentStatusEnum::Published, 'desc' => 'Facture commerciale d\'exemple - Elegance Boutique → Canadian Fashion Hub. Numérisée pour audit douanier.', 'file' => 'files/invoices/Commercial-Invoice-Sample.webp'],
+            ['title' => 'Facture Commerciale 2025-156',                'cat' => 4, 'folder' => 6, 'tags' => [0, 2],    'status' => DocumentStatusEnum::Published, 'desc' => 'Facture numérisée, rattachée au dossier comptable de l\'exercice.', 'file' => 'files/placeholders/document-placeholder.webp'],
             ['title' => 'Charte Graphique Aurora - Brand Guidelines',  'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Couleurs, typographies, logos et règles d\'utilisation de la marque Aurora.', 'file' => $samplePdf],
             ['title' => 'Kit Presse Aurora Tech Day 2025',             'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Communiqué de presse, visuels HD et biographies intervenants.', 'file' => $samplePdf],
             ['title' => 'Fiche de Poste - Développeur Full Stack',     'cat' => 3, 'folder' => 5, 'tags' => [4],        'status' => DocumentStatusEnum::Published, 'desc' => 'Description du poste, compétences requises et processus de recrutement.', 'file' => $samplePdf],

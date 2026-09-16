@@ -5,13 +5,15 @@ rubric: "Studio"
 ---
 Cliquer sur le nom d'un espace ouvre son contenu. L'écran change : plus de menu latéral, un bandeau fin avec le retour, le nom de l'espace et deux onglets. C'est voulu, un espace est un endroit où l'on reste.
 
-## Trois vues du même contenu
+## Quatre façons de regarder un espace
 
-L'onglet Contenu porte un sélecteur : **Tableau**, **Liste**, **Calendrier**. Ce ne sont pas trois fonctionnalités, ce sont trois façons de lire les mêmes fiches. Le tableau dit où en est chaque chose, la liste dit ce qu'il y a, le calendrier dit quand ça sort.
+L'onglet Contenu porte un sélecteur : **Tableau**, **Liste**, **Calendrier**, **Fichiers**. Les trois premiers ne sont pas trois fonctionnalités, ce sont trois façons de lire les mêmes fiches : le tableau dit où en est chaque chose, la liste dit ce qu'il y a, le calendrier dit quand ça sort.
 
-**Votre choix est retenu.** Quelqu'un qui ne pense pas en colonnes choisit la liste une fois et la retrouve dans tous ses espaces. Rien n'est perdu en changeant de vue : c'est le même contenu, et une fiche modifiée dans l'une est à jour dans les deux autres.
+**Fichiers est d'une autre nature.** Les trois autres montrent les fichiers d'une fiche sur la fiche ; celui-ci rassemble tout ce que l'espace a échangé, du plus récent au plus ancien. C'est la vue qui répond « qu'est-ce que ce client nous a envoyé », et elle a sa page.
 
-Cette page décrit le tableau ; le calendrier a la sienne.
+**Votre choix est retenu.** Quelqu'un qui ne pense pas en colonnes choisit la liste une fois et la retrouve dans tous ses espaces. Rien n'est perdu en changeant de vue : c'est le même contenu, et une fiche modifiée dans l'une est à jour dans les autres.
+
+Cette page décrit le tableau ; le calendrier et les fichiers ont les leurs.
 
 ![Le tableau d'un espace, avec ses étapes](../../images/06-studio/le-tableau-01-le-tableau.png)
 

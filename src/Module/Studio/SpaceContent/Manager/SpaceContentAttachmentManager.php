@@ -64,7 +64,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
 
     public function uploadAsStudio(SpaceContentItemInterface $item, UploadedFile $file): SpaceContentAttachmentInterface
     {
-        return $this->attachAsStudio($item, $this->uploader->upload($file));
+        return $this->attachAsStudio($item, $this->uploader->upload($file, $item->getSpace()));
     }
 
     public function uploadAsClient(
@@ -79,7 +79,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
         $attachment = $this->createAttachment();
         $attachment
             ->setItem($item)
-            ->setDocument($this->uploader->upload($file))
+            ->setDocument($this->uploader->upload($file, $item->getSpace()))
             ->setPosition($this->attachments->nextPosition($item))
             ->addedByClient($link);
 

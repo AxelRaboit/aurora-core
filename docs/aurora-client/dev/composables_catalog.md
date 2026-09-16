@@ -74,6 +74,12 @@ Flow confirmer → supprimer pour les CRUD admin. `deletePath` et
 `successMessageKey` peuvent être des strings ou des getters
 (utile pour soft/force delete selon onglet actif).
 
+`onSuccess` reçoit **deux** arguments : `(id, data)`. Le second est la réponse
+du serveur, pour les suppressions qui ont quelque chose à dire de ce qu'elles
+laissent derrière ; un espace client y renvoie les fichiers que plus rien ne
+référence, pour proposer de les mettre à la corbeille. Les appelants qui n'en
+ont pas besoin l'ignorent.
+
 ```js
 const { pendingDelete, loading, confirm, submit } = useDelete(
     deletePath,             // string avec __id__

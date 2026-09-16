@@ -29,9 +29,34 @@ describe("useDelete", () => {
         confirm({ id: 7 });
         await submit();
 
-        expect(onSuccess).toHaveBeenCalledWith(7);
+        expect(onSuccess).toHaveBeenCalledWith(7, { success: true });
         expect(toast.success).toHaveBeenCalledWith("deleted");
         expect(pendingDelete.value).toBeNull();
+    });
+
+    /**
+     * The answer travels with the id, because some deletions leave something
+     * to say. A client space hands back the files the card was carrying that
+     * nothing points at any more, so the page can offer to bin them; without
+     * the second argument there is no way to see it. Callers that do not care
+     * ignore it.
+     */
+    it("hands the answer to the callback, not only the id", async () => {
+        response = { success: true, orphanedDocuments: [{ id: 3 }] };
+        const onSuccess = vi.fn();
+        const { confirm, submit } = useDelete(
+            "/x/__id__",
+            onSuccess,
+            "deleted",
+        );
+
+        confirm({ id: 7 });
+        await submit();
+
+        expect(onSuccess).toHaveBeenCalledWith(7, {
+            success: true,
+            orphanedDocuments: [{ id: 3 }],
+        });
     });
 
     it("shows the reason when the server refuses, and keeps the row", async () => {
