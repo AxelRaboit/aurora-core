@@ -5,6 +5,98 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.194] - 2026-09-16
+
+### Ajouté
+
+#### Un espace client range ses fichiers dans son propre dossier
+Jusqu'ici tout ce qu'un espace recevait atterrissait dans une seule catégorie
+partagée, `espaces-clients`, et `folder_id` n'était jamais renseigné. Dès le
+deuxième client, la bibliothèque tenait un tas indifférencié : rien sur un
+document ne disait de quel espace il venait, et le seul fil restant était de
+cliquer dessus pour lire son panneau d'usages, ce qui est une consultation, pas
+un rangement.
+
+Un espace ouvre désormais son dossier **au premier envoi**, pas à sa création :
+un espace qui ne reçoit jamais de fichier ne laisse pas de dossier vide
+derrière lui, et un dossier vide par prospect est du déchet dans un écran qu'on
+lit. Au premier niveau plutôt que sous un parent commun, parce qu'un dossier de
+regroupement devrait être retrouvé par son nom à chaque envoi et que les noms
+de dossiers ne portent aucun index unique.
+
+**Rattacher un document existant ne le déplace pas.** Classer est ce que fait
+un envoi en entrant ; déplacer le fichier de quelqu'un parce qu'une carte l'a
+référencé serait un effet de bord que personne n'a demandé, et le même document
+peut pendre à deux espaces. Pour la même raison le nom du dossier ne suit pas
+celui de l'espace : dès qu'il existe, c'est un dossier ordinaire que le studio
+peut renommer, déplacer ou imbriquer.
+
+Rien n'est repris rétroactivement. Les fichiers déjà classés gardent leur
+dossier, c'est-à-dire aucun.
+
+#### Un onglet Fichiers sur l'espace, en liste ou en cartes
+Le tableau, la liste et le calendrier lisent les mêmes cartes et montrent les
+fichiers de chacune sur la carte. Aucun ne répondait « qu'est-ce que ce client
+nous a envoyé », question posée quand un fichier est arrivé la semaine dernière
+et que personne ne se souvient pour quel post.
+
+Une quatrième entrée du sélecteur liste tout l'espace, du plus récent au plus
+ancien, en nommant la carte de chaque ligne. Chronologique et non groupée par
+étape : grouper aurait donné une seconde vue liste et enterré une photo arrivée
+ce matin sous une étape pleine d'idées que personne n'a écrites.
+
+Deux formes, parce que les deux questions diffèrent : les lignes répondent
+« quand est-ce arrivé et de qui », les cartes répondent « c'était quelle
+photo ». Le choix vit dans l'URL, donc un lien vers cette vue le transporte, et
+un conteneur trop étroit rend des cartes sans effacer le choix.
+
+#### Retirer la dernière référence à un fichier propose de le mettre à la corbeille
+Détacher un fichier, supprimer une carte ou supprimer un espace laissent chacun
+un brouillon que plus rien ne référence. Il n'est pas perdu, mais rien ne le
+remonte non plus, le sélecteur de la bibliothèque ne listant que les documents
+publiés.
+
+Le geste se fait, **puis** la proposition arrive à côté en toast ; ne rien
+faire suffit à la refuser. Pas de boîte de dialogue devant un geste à un clic.
+
+Trois conditions décident, et le serveur les tranche toutes : le fichier doit
+être dans le dossier de l'espace, ce qui est fidèle puisque seuls les envois y
+atterrissent ; il ne doit être utilisé nulle part, ce que le registre d'usages
+répond pour tous les modules à la fois ; et l'appelant doit détenir
+`ged.documents.delete`, qu'une personne gérant les espaces n'a pas forcément.
+Rien n'est détruit : c'est la corbeille, donc le pire d'un clic trop rapide est
+une restauration.
+
+**Ce n'est pas une règle qui range toute seule**, et c'était la première idée.
+Elle se serait déclenchée sur la suppression d'une carte et pas sur le
+détachement, qui est le geste le plus courant : l'état aurait paru géré sans
+l'être.
+
+### Modifié
+
+#### `useDelete` passe la réponse à son callback
+`onSuccess` reçoit désormais `(id, data)`. Quatorze pages l'utilisent et
+toutes ignorent un second argument, mais sans lui une suppression n'a aucun
+moyen de dire ce qu'elle a laissé derrière.
+
+#### Les données de démonstration de la GED sont neutres
+Deux sources avaient un sujet : un chat généré en IA servait de
+`hero-banner.jpg` et un drapeau canadien de `landscape.jpg`, et une facture
+commerciale à sociétés fictives portait le copyright d'un tiers. Une démo se
+montre à des prospects, et une image qui a un sujet raconte autre chose que le
+produit. Remplacées par des dégradés du même langage visuel que les
+placeholders déjà présents.
+
+La vidéo de démonstration part avec, faute d'encodeur pour la remplacer et
+parce qu'une vidéo a forcément un sujet. Sa ligne survit sans fichier, ce qui
+est le cas que le fixture documente déjà comme intéressant, et ses 18 Mo
+quittent un dépôt public.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`.
+
+---
+
 ## [0.9.193] - 2026-09-16
 
 ### Sécurité
