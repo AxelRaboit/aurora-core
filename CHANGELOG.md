@@ -92,6 +92,14 @@ parce qu'une vidéo a forcément un sujet. Sa ligne survit sans fichier, ce qui
 est le cas que le fixture documente déjà comme intéressant, et ses 18 Mo
 quittent un dépôt public.
 
+### Documentation
+
+Une page neuve, « Les fichiers d'un espace », sur les trois façons d'en
+déposer, ce que le client peut envoyer, la vue Fichiers et le dossier de la
+médiathèque. Et « Le tableau d'un espace » cesse d'annoncer trois vues : il y
+en a quatre, et la quatrième n'est pas une façon de plus de lire les mêmes
+fiches.
+
 ### Dans aurora-client
 `make aurora-update` puis `make migrate`.
 
