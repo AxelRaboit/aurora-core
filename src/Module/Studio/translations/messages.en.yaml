@@ -841,6 +841,8 @@ backend:
             files_empty_hint: Files put on the content, by you or by the client, appear here newest first.
             files_unknown_card: Deleted content
             files_open: Open
+            files_as_cards: Show as cards
+            files_as_rows: Show as a list
             board: Board
             calendar: Calendar
             today: Today

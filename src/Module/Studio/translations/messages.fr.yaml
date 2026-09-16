@@ -841,6 +841,8 @@ backend:
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
             files_unknown_card: Contenu supprimé
             files_open: Ouvrir
+            files_as_cards: Afficher en cartes
+            files_as_rows: Afficher en liste
             board: Tableau
             calendar: Calendrier
             today: Aujourd'hui

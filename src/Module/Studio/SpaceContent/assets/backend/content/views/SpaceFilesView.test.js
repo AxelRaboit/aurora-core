@@ -42,18 +42,32 @@ function render(props = {}) {
     });
 }
 
+/** The file entries, whichever shape the view is drawing. */
+function entries(view) {
+    const rows = view.findAll("li");
+
+    return rows.length > 0 ? rows : view.findAll("article");
+}
+
+/** The button that opens a card, found by its label rather than its position. */
+function cardLink(view, title) {
+    return view.findAll("button").find((b) => b.text() === title);
+}
+
 describe("SpaceFilesView", () => {
     it("flattens every card's files into one list, newest first", () => {
-        const rows = render().findAll("li");
+        const found = entries(render());
 
-        expect(rows).toHaveLength(2);
-        expect(rows[0].text()).toContain("Photo récente");
-        expect(rows[1].text()).toContain("Vieille photo");
+        expect(found).toHaveLength(2);
+        expect(found[0].text()).toContain("Photo récente");
+        expect(found[1].text()).toContain("Vieille photo");
     });
 
     it("names the card each file sits on", () => {
-        expect(render().text()).toContain("Carrousel de février");
-        expect(render().text()).toContain("Affiche des soldes");
+        const text = render().text();
+
+        expect(text).toContain("Carrousel de février");
+        expect(text).toContain("Affiche des soldes");
     });
 
     /**
@@ -65,7 +79,7 @@ describe("SpaceFilesView", () => {
     it("opens a card with the item itself, not its id", async () => {
         const view = render();
 
-        await view.findAll("button")[0].trigger("click");
+        await cardLink(view, "Affiche des soldes").trigger("click");
 
         expect(view.emitted("open-item")?.[0]).toEqual([
             { id: 2, title: "Affiche des soldes" },
@@ -73,13 +87,35 @@ describe("SpaceFilesView", () => {
     });
 
     it("says so when the space carries no file", () => {
-        expect(render({ attachments: {} }).findAll("li")).toHaveLength(0);
+        const view = render({ attachments: {} });
+
+        expect(entries(view)).toHaveLength(0);
+        expect(view.findAll("button")).toHaveLength(0);
     });
 
     /** A card deleted after its file was filed still leaves the file listed. */
     it("survives a file whose card is gone", () => {
-        const view = render({ items: [] });
+        expect(entries(render({ items: [] }))).toHaveLength(2);
+    });
 
+    /**
+     * The toggle is offered, and only when there is something to shape.
+     *
+     * Not asserted on the resulting layout: which of the two is drawn is
+     * `useListViewMode`'s call, and it overrules the stored choice when the
+     * container is too narrow for rows. What belongs to this view is that the
+     * choice exists at all.
+     */
+    it("offers the two shapes, and neither on an empty space", async () => {
+        const view = render();
+        const toggle = view.findAll("button").filter((b) => b.text() === "");
+
+        expect(toggle).toHaveLength(2);
+
+        await toggle[0].trigger("click");
+        expect(view.findAll("article")).toHaveLength(2);
+
+        await toggle[1].trigger("click");
         expect(view.findAll("li")).toHaveLength(2);
     });
 });
