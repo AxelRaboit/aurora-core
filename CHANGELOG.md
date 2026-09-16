@@ -5,6 +5,55 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.184] - 2026-09-16
+
+### Supprimé
+
+#### Le schéma des treize modules partis
+La migration initiale créait les tables de Crm, Ecommerce, Billing, Photo,
+Project, Erp, Hr, Vault, Assistant, PersonalFinance, Tools, PdfForm et des
+anciennes notes, et ne les supprimait que dans son `down()`. Les modules sont
+sortis du dépôt entre juillet et août ; aucune migration depuis n'y avait
+touché. **Toute base construite depuis cette suite portait encore 65 tables, 58
+séquences et deux colonnes sur `core_users`** que plus aucune entité ne mappait.
+
+`Version20260916120000` les supprime. `core_users.agency_id` et `service_id`
+partent d'abord avec leurs contraintes : ce sont les deux seuls liens entre le
+schéma vivant et le mort, et c'est le geste que `Version20260823140000` avait
+déjà fait pour `core_plannings.agency_id`. `manager_id` reste, il est mappé.
+
+**La migration refuse de tourner si une de ces tables contient une ligne.** Ici
+elles étaient toutes vides, et c'est la seule base que quiconque ait comptée.
+Un client qui s'est servi d'un module avant son extraction a des lignes dedans,
+et un `DROP TABLE` les emporterait sans retour. Un déploiement qui s'arrête en
+nommant les tables est un problème qu'on résout ; un déploiement qui réussit et
+efface les factures d'un client, non.
+
+Le cas le plus probable est `core_markdown_notes` : les notes Markdown ont été
+refaites en août dans `core_notes_markdown_notes`, **créée vide**, sans reprise
+des anciennes. Si des notes d'avant août existent encore quelque part, elles
+sont dans l'ancienne table.
+
+Pas de `down()`. Recréer 65 tables vides dont le code est parti ne rendrait pas
+une seule ligne au seul cas où ça compterait.
+
+### Modifié
+
+#### `doctrine:migrations:diff` redevient lisible
+Il proposait de supprimer une centaine de tables à chaque appel, ce qui obligeait
+à écrire toutes les migrations à la main depuis la première extraction. Il ne
+reste qu'un bruit de fond d'une vingtaine d'instructions, d'une autre nature :
+des index nommés à la main dans les migrations que le mapping ne déclare pas, et
+deux index partiels que Doctrine ne sait pas exprimer. Le diff reste donc à
+relire, mais il est devenu un outil au lieu d'un mur.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`. **Avant de migrer la production**,
+compter les lignes des tables concernées : si la migration s'arrête, elle
+nomme celles qui ne sont pas vides, et rien n'est supprimé.
+
+---
+
 ## [0.9.183] - 2026-09-15
 
 ### Ajouté
