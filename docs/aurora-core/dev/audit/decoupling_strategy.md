@@ -1,9 +1,24 @@
 # Stratégie de découplage « graphe en étoile »
 
+> ⚠️ **Abandonné - cette stratégie a été appliquée, puis inversée.**
+> Le split a bien été réalisé en mai 2026 (13 packages sur GitHub), le
+> recentrage de juillet a retiré 11 des 13 modules du monorepo, puis
+> **Editorial est revenu dans le core en août 2026** et le multi-dépôt a été
+> abandonné : bumps Composer à la main, boucle de dev passant par un zip
+> GitHub, et une présentation déjà scindée puisque les gabarits du thème par
+> défaut vivaient dans le core de toute façon.
+>
+> **Un module est aujourd'hui un simple dossier sous `src/Module/`** - pas de
+> `composer.json`, pas de bundle, pas de `config/services.php`. Voir
+> `../app_architecture.md`, qui décrit ce qui est.
+>
+> Ce document reste pour sa **rationale** : pourquoi le graphe en étoile
+> plutôt que des bridges, et pourquoi une dépendance latérale entre modules
+> est refusée. Cet invariant-là tient toujours, même sans packages. Ne pas
+> suivre ses instructions d'exécution.
+>
 > **Décision d'architecture (2026-05-30)**, en remplacement de l'option
-> « bridges + require » initialement esquissée. Doc de référence du split
-> monorepo : **comment** chaque module distribuable est rendu autonome. Le
-> split est **réalisé** (13 packages sur GitHub) ; ce doc garde la rationale.
+> « bridges + require » initialement esquissée.
 
 ## Principe (invariant à tenir)
 

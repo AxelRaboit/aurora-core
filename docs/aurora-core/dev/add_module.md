@@ -20,11 +20,11 @@ types se cumulent (un module complexe en assemble plusieurs) :
 
 | Cas | Quand | Exemple canonique |
 |---|---|---|
-| **1. Stateless minimal** | Pas d'entité, juste 1 controller + 1 UI | `PasswordGenerator` (sous-module de Vault) |
-| **2. Sous-features togglables** | Plusieurs features indépendamment activables | `Vault` (Safe + PasswordGenerator) |
-| **3. Avec entités CRUD** | Persistance Doctrine + extensibilité Sylius | `Editorial`, `Crm`, `Billing` |
-| **4. Avec frontend public** | Pages publiques (pas que back-office) | `Photo`, `Editorial`, `Ecommerce`, `Ged` |
-| **5. Avec settings** | Onglet dans la page admin Settings | `Crm`, `Photo`, `Ged`, `Editorial`, … |
+| **1. Stateless minimal** | Pas d'entité, juste 1 controller + 1 UI | `Documentation` (le manuel, aucune entité) |
+| **2. Sous-features togglables** | Plusieurs features indépendamment activables | `Studio` (Customers + Contracts + Spaces + Decks) |
+| **3. Avec entités CRUD** | Persistance Doctrine + extensibilité Sylius | `Editorial`, `Ged`, `Planning` |
+| **4. Avec frontend public** | Pages publiques (pas que back-office) | `Editorial`, `Ged` |
+| **5. Avec settings** | Onglet dans la page admin Settings | `Ged`, `Editorial`, `Notes`, `Configuration` |
 
 Chaque cas se construit sur le précédent. Si tu démarres avec un module simple,
 commence par le cas 1 - tu pourras ajouter les autres au fur et à mesure.
@@ -90,9 +90,10 @@ aliases.js                                                     # append "@<kebab
 >
 > Il ne reste rien de l'ancienne convention à suivre : zéro `composer.json`, zéro
 > bundle, zéro enum local et zéro `services.php` par module sous `src/Module/` ;
-> l'enum central porte quinze cases métier ; `make split-module` et
-> `bin/split-modules.sh` n'existent plus ; et les deux modules de référence cités
-> ici, `Notes/` et `Tools/`, ne sont plus dans le core.
+> l'enum central porte 30 cases ; et `make split-module` comme
+> `bin/split-modules.sh` n'existent plus. Des deux modules de référence que
+> citait ce guide, `Notes/` est redevenu un dossier de core comme les autres, et
+> `Tools/` n'est plus là du tout.
 
 Si **client**, pas de package : le module vit dans l'app cliente, qui câble
 ses propres `bundles.php`/`services.yaml`. Trois fichiers de config sont
@@ -121,8 +122,8 @@ aller plus loin :
 - **Ajouter une entité CRUD** (cas 3) : lancer `/add-entity` en ciblant le
   module fraîchement scaffoldé (il ajoute une ligne dans le
   `Aurora<Module>Bundle::resolveTargetEntities()`).
-- **Ajouter une sous-feature togglable** à un module existant (Tools.Vault +
-  Tools.PasswordGenerator) : lancer `/add-submodule` plutôt que de
+- **Ajouter une sous-feature togglable** à un module existant (`Studio.Spaces`
+  à côté de `Studio.Contracts`) : lancer `/add-submodule` plutôt que de
   re-scaffolder.
 
 ---
@@ -244,7 +245,7 @@ my_module:
 
 > **Note** : les permissions (`backend.permissions.names.my_module.use`) ne sont
 > nécessaires que si tu exposes l'admin Users/Permissions au libellé custom.
-> Pour les sous-modules d'un module parent (ex. PasswordGenerator → Vault), les
+> Pour les sous-modules d'un module parent (ex. `Spaces` → `Studio`), les
 > traductions de permission vivent dans le **module parent** qui déclare les
 > `NavPermission`.
 
@@ -315,153 +316,129 @@ ses mappings Doctrine, son namespace Twig, ses paths de traduction et son
 
 ## 5. Cas 2 - module avec sous-features togglables
 
-Quand un module a plusieurs sous-features indépendamment activables (Vault =
-Safe + PasswordGenerator, Editorial = blog + pages, …), suivre le pattern
-**`ModuleToggleProviderInterface` + Context class** :
+Quand un module a plusieurs sous-features indépendamment activables (Studio =
+clients + contrats + présentations + espaces, Editorial = articles + types +
+taxonomies + …), suivre le pattern **`ModuleToggleProviderInterface` + classe
+Context**.
 
-### 5.1 `<Module>Context` - orchestration des feature-flags
+> **Un seul enum de bascules, et il est central.** Toutes les cases vivent dans
+> `src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php`, exposé par
+> `CoreModuleParameterProvider`. Il n'existe **pas** de
+> `<Module>ModuleParameterEnum` ni de provider par module : ça appartenait à la
+> scission en paquets `aurora-*`, abandonnée en août 2026. Vérifier avec
+> `find src/Module -name '*ModuleParameterEnum.php'` avant d'en croire une
+> autre doc.
 
-Centralise les checks de toggles dans une classe dédiée injectée dans le module
-et tous les services concernés. Permet de garder les `if (! $context->isXEnabled())`
+### 5.1 Les cases dans l'enum central
+
+Le nom de case est **préfixé par son module** (`StudioSpaces`, `GedDocuments`) :
+elles partagent toutes un même espace de noms. La clé de premier niveau garde
+son suffixe `_backend`, sinon `modules_studio` serait un préfixe de
+`modules_studio_spaces` et les deux se confondraient dans toute comparaison par
+préfixe.
+
+```php
+// Top-level modules - backend (admin UI)
+case StudioBackend = 'modules_studio_backend';
+
+// Sub-modules - Studio
+case StudioCustomers = 'modules_studio_customers';
+case StudioContracts = 'modules_studio_contracts';
+case StudioDecks = 'modules_studio_decks';
+case StudioSpaces = 'modules_studio_spaces';
+```
+
+Puis les bras de `match` : `getLabel()` et `getDescription()` sont **exhaustifs,
+sans `default`** - ajouter une case sans la libeller ne compile pas, et c'est la
+seule chose qui empêche vraiment une clé de traduction brute d'arriver à
+l'écran. `getParentCase()` et `getCascadeRequires()` ont un `default => null`.
+
+La dépendance n'est pas toujours la bascule racine : `StudioContracts` requiert
+`StudioCustomers`, parce qu'un écran de contrats sans l'écran client auquel il
+se rattache ne sert à rien.
+
+### 5.2 `<Module>Context` - la façade des bascules
+
+Centralise les vérifications dans une classe injectée dans le module et dans
+tous les services concernés, pour garder les `if (!$context->isXEnabled())`
 **hors** du `<Module>Module.php`.
 
 ```php
-// src/Module/Tools/ToolsContext.php
-namespace Aurora\Module\Tools;
+// src/Module/Studio/StudioContext.php
+namespace Aurora\Module\Studio;
 
 use Aurora\Core\Module\Service\ModuleAccessChecker;
-use Aurora\Module\Tools\Setting\ToolsModuleParameterEnum;
+use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 
-final readonly class ToolsContext
+final readonly class StudioContext
 {
     public function __construct(private ModuleAccessChecker $moduleAccessChecker) {}
 
     public function isBackendEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ToolsModuleParameterEnum::Backend->value);
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioBackend);
     }
 
-    public function isVaultEnabled(): bool
+    public function areSpacesEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ToolsModuleParameterEnum::Vault->value);
-    }
-
-    public function isPasswordGeneratorEnabled(): bool
-    {
-        return $this->moduleAccessChecker->isEnabled(ToolsModuleParameterEnum::PasswordGenerator->value);
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioSpaces);
     }
 }
 ```
 
-> Passer `->value` (string) : le `<Module>ModuleParameterEnum` ne satisfait pas
-> le type-hint de l'enum central, et `ModuleAccessChecker::isEnabled()` accepte
-> `ModuleParameterEnum|string`.
-
-### 5.2 `<Module>ModuleParameterEnum` + provider - déclarer les toggles
-
-Depuis le split, chaque module métier porte ses toggles dans son **propre**
-enum `src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php` (PAS l'enum
-central `Configuration/Setting/Enum/ModuleParameterEnum.php`, désormais
-core-infra only) :
-- Cases courtes (`Backend`, `<Sub>`), la **valeur** garde la clé legacy
-  `modules_<module>_<feature>` (pas de migration BDD).
-- Convention clés : `<module>_<feature>` (pas `_enabled` à la fin -
-  cf. [`architecture_module_parameter_enum.md`](../../../.claude/memory/aurora-core/architecture/architecture_module_parameter_enum.md))
-- Cascade encodée dans `getCascadeRequires()` (→ `self::Backend->value`) et
-  hiérarchie d'affichage dans `getDisplayParent()`.
-- Un `<Module>ModuleParameterProvider` (implements
-  `ApplicationParameterProviderInterface`) `yield from
-  <Module>ModuleParameterEnum::cases()` pour que `aurora:application-parameter`
-  seed les rows sans les flaguer obsolètes.
-
-Mirror canonique : `src/Module/Tools/Setting/ToolsModuleParameterEnum.php`.
+> Passer **la case**, pas `->value`. `isEnabled()` accepte
+> `ModuleParameterEnum|string`, mais tous les contexts existants passent la
+> case : la forme chaîne est là pour un module client, dont les clés n'ont pas
+> de case dans l'enum du core.
 
 ### 5.3 `<Module>Module` avec `ModuleToggleProviderInterface`
 
 ```php
-// Exemple illustratif (module fictif "Vault" à sous-features). En vrai,
-// Vault est un sous-module de Tools - cf. src/Module/Tools/ToolsModule.php.
-final readonly class VaultModule implements ModuleInterface, ModuleToggleProviderInterface
+final readonly class StudioModule implements ModuleInterface, ModuleToggleProviderInterface
 {
-    public function __construct(private VaultContext $vaultContext) {}
-
-    public function getId(): string { return 'vault'; }
-
-    public function getPermissions(): array
-    {
-        return [
-            new NavPermission('vault.use'),
-            new NavPermission('vault.password_generator.use'),
-        ];
-    }
+    public function __construct(private StudioContext $studioContext) {}
 
     public function getNavSections(): array
     {
-        if (!$this->vaultContext->isBackendEnabled()) { return []; }
+        if (!$this->studioContext->isBackendEnabled()) {
+            return [];
+        }
 
         $items = [];
-        if ($this->vaultContext->isSafeEnabled()) {
-            $items[] = new NavItem('backend_vault', 'backend.nav.vault', 'vault',
-                requiredPrivilege: 'vault.use',
-                descriptionKey: 'backend.nav.vault_description');
-        }
-        if ($this->vaultContext->isPasswordGeneratorEnabled()) {
-            $items[] = new NavItem('backend_password_generator',
-                'backend.nav.password_generator', 'key-round',
-                requiredPrivilege: 'vault.password_generator.use',
-                descriptionKey: 'backend.nav.password_generator_description');
+
+        if ($this->studioContext->areSpacesEnabled()) {
+            $items[] = $this->spacesNavItem();
         }
 
-        return [] === $items ? [] : [new NavSection('vault', $items, priority: 20)];
+        return [] === $items ? [] : [new NavSection('studio', $items, priority: 30)];
     }
 
-    /** Retourne TOUS les items même si désactivés - pour le picker catalogue. */
+    /** TOUS les items, même désactivés - c'est le picker par utilisateur. */
     public function getCatalogNavSections(): array
     {
-        return [
-            new NavSection('vault', [
-                new NavItem('backend_vault', 'backend.nav.vault', 'vault',
-                    requiredPrivilege: 'vault.use',
-                    descriptionKey: 'backend.nav.vault_description'),
-                new NavItem('backend_password_generator',
-                    'backend.nav.password_generator', 'key-round',
-                    requiredPrivilege: 'vault.password_generator.use',
-                    descriptionKey: 'backend.nav.password_generator_description'),
-            ], priority: 20),
-        ];
+        return [new NavSection('studio', [$this->spacesNavItem()], priority: 30)];
     }
 
     public function getToggles(): array
     {
         return [
-            VaultModuleParameterEnum::Backend->toToggle(),
-            VaultModuleParameterEnum::Safe->toToggle(),
-            VaultModuleParameterEnum::PasswordGenerator->toToggle(),
+            ModuleParameterEnum::StudioBackend->toToggle(),
+            ModuleParameterEnum::StudioSpaces->toToggle(),
         ];
     }
 }
 ```
 
-**Points clés :**
-- `ModuleToggleProviderInterface::getToggles(): list<ModuleToggle>` - agrégé
-  par `ModuleToggleRegistry` et consommé par `ModuleAccessChecker` (global +
-  per-user + cascade) et `UsersViewBuilder` (picker UI).
-- Chaque toggle vient de `<Module>ModuleParameterEnum::<Case>->toToggle()` - le
-  `ModuleToggle` (`{key, labelKey, descriptionKey, parentKey, moduleId,
-  displayParentKey}`) est construit dans `toToggle()`, la cascade
-  (`parentKey`) sortant de `getCascadeRequires()`.
-- **Aurora-client peut implémenter `ModuleToggleProviderInterface` sans patch
-  sur core** pour brancher ses propres toggles.
+Extraire chaque `NavItem` dans sa propre méthode privée : le même objet est
+demandé deux fois, une fois filtré et une fois non, et dupliquer l'appel au
+constructeur est la façon dont les deux listes finissent par diverger.
 
-### 5.4 Précédent canonique
+**Ne pas filtrer `getCatalogNavSections()`.** Il alimente le sélecteur de
+modules par utilisateur, qui doit montrer ce qui existe pour pouvoir le
+proposer.
 
-Voir `src/Module/Tools/ToolsModule.php` (Vault + PasswordGenerator) + son
-`src/Module/Tools/Setting/ToolsModuleParameterEnum.php`. Avant la fusion
-PasswordGenerator → Vault (commit `dee99658`), le pattern était documenté via
-un module standalone PasswordGenerator (commit `167aafa`) - historiquement
-utile mais plus représentatif aujourd'hui : **Vault est l'exemple à jour**.
-
----
+Les bascules valent **activé** quand la ligne de réglage est absente, donc en
+ajouter une ne change rien à l'écran tant que personne ne l'éteint.
 
 ## 6. Cas 3 - module avec entités CRUD
 
@@ -534,28 +511,28 @@ Pour un module qui expose des pages publiques (pas que back-office), créer
 **`<Module>FrontendDescriptor.php`** à la racine du module :
 
 ```php
-// src/Module/Photo/PhotoFrontendDescriptor.php
-namespace Aurora\Module\Photo;
+// src/Module/Ged/GedFrontendDescriptor.php
+namespace Aurora\Module\Ged;
 
 use Aurora\Core\Frontend\Contract\FrontendInterface;
-use Aurora\Module\Photo\Setting\PhotoModuleParameterEnum;
+use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 
-final class PhotoFrontendDescriptor implements FrontendInterface
+final class GedFrontendDescriptor implements FrontendInterface
 {
-    public function getSlug(): string             { return 'photo'; }
-    public function getLabel(): string            { return 'Photo'; }
-    public function getHomeRoute(): string        { return 'frontend_gallery'; }
-    public function getPriority(): int            { return 3; }
-    public function getModuleSettingKey(): string { return PhotoModuleParameterEnum::Frontend->value; }
-    public function getRoutePrefixes(): array     { return ['frontend_gallery']; }
+    public function getSlug(): string             { return 'ged'; }
+    public function getLabel(): string            { return 'Ged'; }
+    public function getHomeRoute(): string        { return 'frontend_ged_index'; }
+    public function getPriority(): int            { return 2; }
+    public function getModuleSettingKey(): string { return ModuleParameterEnum::GedFrontend->value; }
+    public function getRoutePrefixes(): array     { return ['frontend_ged_']; }
 }
 ```
 
 **Règles :**
 - Convention nom : `<Module>FrontendDescriptor` à la racine `src/Module/<Module>/`
-  (symétrie avec les autres modules : Ged, Photo, Editorial, Ecommerce).
-- `getModuleSettingKey()` pointe vers `<Module>ModuleParameterEnum::Frontend->value`
-  (enum propre au module) - toggle dédié frontend, distinct du toggle backend.
+  (symétrie avec les deux modules qui en ont un : Ged et Editorial).
+- `getModuleSettingKey()` pointe vers la case `<Module>Frontend` de l'enum
+  **central** - une bascule dédiée au frontend, distincte de celle du backend.
 - `FrontendRouteGateSubscriber` 404 automatiquement les routes du frontend
   désactivé (matche par `getRoutePrefixes()`).
 

@@ -35,7 +35,7 @@ client-app/
 │   ├── Module/                 # App\Module\* - ALL client PHP code
 │   │   ├── Core/               #   Extensions of Aurora\Core\* entities
 │   │   │   └── DocumentCategory/         #     Entity/ Dto/ Manager/ Serializer/
-│   │   ├── Crm/                #   Extensions of Aurora\Module\Crm\* entities
+│   │   ├── Studio/             #   Extensions of Aurora\Module\Studio\* entities
 │   │   └── <Name>/             #   Client-owned feature modules
 │   ├── Service/                # App\Service\* - cross-module stateless helpers (rare)
 │   └── EventListener/          # App\EventListener\* - global listeners (rare)
@@ -124,11 +124,11 @@ Hook into Aurora's flow via `#[AsEventListener]`:
 ```php
 namespace App\EventListener;
 
-use Aurora\Module\Ecommerce\Event\OrderCreatedEvent;
+use Aurora\Core\Scheduling\Event\EntityScheduledEvent;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 
-#[AsEventListener(event: OrderCreatedEvent::class)]
-final class OrderSubscriber
+#[AsEventListener(event: EntityScheduledEvent::class)]
+final class ScheduledEntitySubscriber
 {
     public function __invoke(OrderCreatedEvent $event): void
     {
@@ -190,8 +190,8 @@ The scaffold registers a single `AuroraClient` Doctrine mapping covering all of
 `src/Module/`. Drop your entity under the matching module path:
 
 ```php
-// src/Module/Crm/Contract/Entity/Contract.php
-namespace App\Module\Crm\Contract\Entity;
+// src/Module/Studio/Contract/Entity/Contract.php
+namespace App\Module\Studio\Contract\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -229,17 +229,17 @@ proprement avec Doctrine (étendre la classe concrète exigerait un type
 d'héritage et un discriminator).
 
 ```php
-// src/Module/Crm/Deal/Entity/Deal.php
-namespace App\Module\Crm\Deal\Entity;
+// src/Module/Ged/DocumentCategory/Entity/DocumentCategory.php
+namespace App\Module\Ged\DocumentCategory\Entity;
 
-use Aurora\Module\Crm\Deal\Entity\AbstractDeal;
-use Aurora\Module\Crm\Deal\Entity\DealInterface;
-use Aurora\Module\Crm\Deal\Repository\DealRepository;
+use Aurora\Module\Ged\DocumentCategory\Entity\AbstractDocumentCategory;
+use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
+use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: DealRepository::class)]
+#[ORM\Entity(repositoryClass: DocumentCategoryRepository::class)]
 #[ORM\Table(name: 'app_deals')]
-class Deal extends AbstractDeal implements DealInterface
+class DocumentCategory extends AbstractDocumentCategory implements DocumentCategoryInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
@@ -262,7 +262,7 @@ class Deal extends AbstractDeal implements DealInterface
 doctrine:
     orm:
         resolve_target_entities:
-            Aurora\Module\Crm\Deal\Entity\DealInterface: App\Module\Crm\Deal\Entity\Deal
+            Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface: App\Module\Ged\DocumentCategory\Entity\DocumentCategory
 ```
 
 **Repository** - réutilisez `Aurora\...\Repository\<Name>Repository` directement
@@ -275,8 +275,8 @@ créer un repository client que si vous voulez ajouter vos propres méthodes
 (auquel cas étendez celui d'Aurora et déclarez-le dans le `repositoryClass`
 de votre entité).
 
-À partir de là, toutes les associations Aurora qui pointent `DealInterface`
-(ex: `Project::$crmDeal`) résolvent automatiquement vers `App\Module\Crm\Deal\Entity\Deal`.
+À partir de là, toutes les associations Aurora qui pointent `DocumentCategoryInterface`
+(ex: `Post::$thumbnail`) résolvent automatiquement vers `App\Module\Ged\DocumentCategory\Entity\DocumentCategory`.
 
 **Migration de données** - si la table Aurora `core_deals` contient déjà des
 lignes (fixtures, données de prod) et que les FK Aurora pointent vers son `id`,
@@ -284,9 +284,9 @@ ajoutez à la migration générée un `INSERT INTO app_deals … SELECT … FROM
 core_deals` avant de basculer la contrainte FK. Cf. la migration pilote
 `Version20260508123924` côté aurora-client pour un exemple complet.
 
-**Manager / création** - `DealManager::create()` instancie `new Deal()`
-(la classe Aurora) par défaut. Pour qu'il instancie votre `App\Module\Crm\Deal\Entity\Deal`,
-étendez `DealManager` ou décorez `DealManagerInterface` (cf. section 2).
+**Manager / création** - `DocumentCategoryManager::create()` instancie `new DocumentCategory()`
+(la classe Aurora) par défaut. Pour qu'il instancie votre `App\Module\Ged\DocumentCategory\Entity\DocumentCategory`,
+étendez `DocumentCategoryManager` ou décorez `DocumentCategoryManagerInterface` (cf. section 2).
 
 ### 6.ter Étendre toute la pile (DTO + Manager + Serializer + Vue)
 
@@ -401,49 +401,32 @@ prévention vaut mieux que la correction.
 
 #### Préfixes réservés - Aurora Core
 
-Ces valeurs sont définies dans `SequencePrefixEnum` et **ne doivent jamais être utilisées
-côté client.** La liste est mise à jour à chaque ajout dans le Core.
+Ces valeurs sont définies dans `SequencePrefixEnum` et **ne doivent jamais être
+utilisées côté client** - `SequencePrefixConflictListener` refuse une collision
+au démarrage. La table ci-dessous est recopiée de l'enum (état du 16/09/2026) ;
+en cas de doute, c'est l'enum qui fait foi.
+
+`MED` et `MFD` y figurent encore alors que le module Media est parti : un
+préfixe réservé protège aussi les références déjà écrites, donc le libérer
+laisserait un client réutiliser un préfixe que d'anciennes données portent.
 
 | Préfixe | Entité |
 |---|---|
-| `FAC` | Invoice |
-| `AV` | CreditNote |
-| `ORD` | Order |
-| `PROD` | Product |
-| `DEAL` | Deal |
-| `CTT` | Contact |
-| `CPY` | Company |
-| `LST` | Listing |
-| `GAL` | Gallery |
-| `ART` | Post |
-| `FRM` | Form |
-| `TRS` | Tiers |
-| `USR` | User |
-| `MED` | Media |
 | `ACR` | AccessRequest |
-| `SUB` | FormSubmission |
-| `PHO` | GalleryItem |
-| `GIV` | GalleryInvite |
+| `ART` | Post |
 | `CMT` | Comment |
+| `CTR` | Contract |
+| `DOC` | GedDocument |
+| `FLD` | FormField |
+| `FRM` | Form |
 | `LOG` | AuditLog |
-| `RPR` | ResetPasswordRequest |
+| `MED` | Media |
 | `MFD` | MediaFolder |
 | `MNI` | MenuItem |
-| `OCR` | OcrJob |
-| `CRT` | Cart |
-| `CRI` | CartItem |
-| `ORL` | OrderLine |
-| `FLD` | FormField |
+| `RPR` | ResetPasswordRequest |
+| `SUB` | FormSubmission |
 | `TRM` | TaxonomyTerm |
-| `GFN` | GalleryFinalization |
-| `GIC` | GalleryItemComment |
-| `GPK` | GalleryPick |
-| `DOC` | GedDocument |
-| `PRJ` | Project |
-| `TSK` | ProjectTask |
-| `PRJC` | ProjectColumn |
-| `PLN` | Planning |
-| `PEV` | PlanningEvent |
+| `USR` | User |
 
 #### Convention de nommage
 
