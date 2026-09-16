@@ -8,12 +8,12 @@ le projet client. Grâce à `_instanceof`, il est auto-taggé `aurora.module` sa
 ligne à ajouter dans `services.yaml`.
 
 ```php
-// src/Module/ClientCrm/ClientCrmPermissionsModule.php
-use Aurora\Core\Module\ModuleInterface;
-use Aurora\Core\Module\NavPermission;
-use Aurora\Core\Module\NavSection;
+// aurora-client : src/Module/Crm/CrmPermissionsModule.php (exemple, App\ et non Aurora\)
+use Aurora\Core\Module\Contract\ModuleInterface;
+use Aurora\Core\Module\Nav\NavPermission;
+use Aurora\Core\Module\Nav\NavSection;
 
-class ClientCrmPermissionsModule implements ModuleInterface
+class CrmPermissionsModule implements ModuleInterface
 {
     public function getId(): string
     {
@@ -74,7 +74,7 @@ Sans cette clé, le dashboard affiche la clé brute `crm.contacts.export`.
 (hérité par le client) :
 ```yaml
 _instanceof:
-    Aurora\Core\Module\ModuleInterface:
+    Aurora\Core\Module\Contract\ModuleInterface:
         tags: [aurora.module]
 ```
 

@@ -62,8 +62,8 @@ photo.galleries.view / .create / .edit / .delete
 correspondait plus à un module class réel.
 
 **Bénéfices du nommage uniforme** :
-- Un dev qui lit `media.folders.create` sait immédiatement que c'est
-  déclaré dans `MediaModule.php` (`src/Module/Media/MediaModule.php`).
+- Un dev qui lit `ged.documents.create` sait immédiatement que c'est
+  déclaré dans `GedModule.php` (`src/Module/Ged/GedModule.php`).
 - Le `PermissionRegistry::byModule()` indexe naturellement sous le bon
   groupe sans `$group:` override (cf
   [[convention_navpermission_group]] devenu quasi obsolète).
