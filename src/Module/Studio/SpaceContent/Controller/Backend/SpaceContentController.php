@@ -17,6 +17,7 @@ use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Ged\Document\Controller\Backend\GedFilesController;
 use Aurora\Module\Ged\Document\Entity\Document;
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInputFactoryInterface;
@@ -29,7 +30,9 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInter
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentCommentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
+use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
+use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentFinder;
 use Aurora\Module\Studio\SpaceContent\View\SpaceBoardViewBuilder;
 use RuntimeException;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
@@ -80,6 +83,8 @@ class SpaceContentController extends AbstractController
         protected readonly DocumentRepository $documents,
         protected readonly SpaceContentItemInputFactoryInterface $itemInputFactory,
         protected readonly SpaceContentColumnInputFactoryInterface $columnInputFactory,
+        protected readonly SpaceContentAttachmentRepository $attachmentRepository,
+        protected readonly SpaceOrphanedDocumentFinder $orphanedDocuments,
         protected readonly SpaceBoardViewBuilder $viewBuilder,
         protected readonly PayloadValidator $payloadValidator,
         protected readonly BinaryFileServer $binaryFileServer,
@@ -184,9 +189,18 @@ class SpaceContentController extends AbstractController
     ): JsonResponse {
         $this->assertOwned($space, $item->getSpace()->getId());
 
+        $documents = [];
+
+        foreach ($this->attachmentRepository->findForItem($item) as $attachment) {
+            $documents[] = $attachment->getDocument();
+        }
+
         $this->itemManager->delete($item);
 
-        return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
+        return $this->jsonSuccess(
+            $this->viewBuilder->boardPayload($space)
+            + $this->orphanedPayload($space, $documents),
+        );
     }
 
     #[Route('/content/reorder', name: '_item_reorder', methods: [HttpMethodEnum::Post->value])]
@@ -356,9 +370,15 @@ class SpaceContentController extends AbstractController
     ): JsonResponse {
         $this->assertOwned($space, $attachment->getItem()->getSpace()->getId());
 
+        // Read before the row goes: afterwards there is no way back to it.
+        $document = $attachment->getDocument();
+
         $this->attachments->detach($attachment);
 
-        return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
+        return $this->jsonSuccess(
+            $this->viewBuilder->boardPayload($space)
+            + $this->orphanedPayload($space, [$document]),
+        );
     }
 
     /**
@@ -525,6 +545,39 @@ class SpaceContentController extends AbstractController
      * says more than refusing to answer does. The screen cannot reach this
      * either way: it only ever sends ids it was given.
      */
+    /**
+     * The files that removal left used by nobody, offered rather than binned.
+     *
+     * **Offered only to somebody who may already bin documents.** Trashing one
+     * is `ged.documents.delete`, and a person who manages client spaces need
+     * not hold it. Handing them a button that answers 403 would be worse than
+     * handing them nothing, and granting the right implicitly because they
+     * deleted a card would be a privilege arriving through the side door.
+     *
+     * The front decides whether to say anything; the answer is the same either
+     * way, which keeps this endpoint honest about what it did.
+     *
+     * @param list<DocumentInterface> $documents
+     *
+     * @return array{orphanedDocuments: list<array{id: int, title: string, trashPath: string}>}
+     */
+    private function orphanedPayload(CustomerSpace $space, array $documents): array
+    {
+        if (!$this->isGranted('ged.documents.delete')) {
+            return ['orphanedDocuments' => []];
+        }
+
+        $offered = [];
+
+        foreach ($this->orphanedDocuments->among($space, $documents) as $document) {
+            $offered[] = $document + [
+                'trashPath' => $this->generateUrl('backend_ged_documents_delete', ['id' => $document['id']]),
+            ];
+        }
+
+        return ['orphanedDocuments' => $offered];
+    }
+
     private function assertOwned(CustomerSpace $space, ?int $ownerId): void
     {
         if ($ownerId !== $space->getId()) {

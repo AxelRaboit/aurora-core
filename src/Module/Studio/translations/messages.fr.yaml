@@ -841,6 +841,10 @@ backend:
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
             files_unknown_card: Contenu supprimé
             files_open: Ouvrir
+            orphaned_one: "« {title} » n'est plus utilisé nulle part."
+            orphaned_many: "{count} fichiers ne sont plus utilisés nulle part."
+            orphaned_trash: Mettre à la corbeille
+            orphaned_trashed: "Envoyé à la corbeille de la médiathèque. | {count} fichiers envoyés à la corbeille de la médiathèque."
             files_as_cards: Afficher en cartes
             files_as_rows: Afficher en liste
             board: Tableau

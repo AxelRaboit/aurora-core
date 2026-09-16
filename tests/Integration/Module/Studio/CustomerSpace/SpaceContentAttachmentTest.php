@@ -373,6 +373,85 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         self::assertNotNull($document->getFolder());
     }
 
+    /**
+     * Taking the last reference off a file offers to bin it.
+     *
+     * The removal happens either way; the offer arrives beside it and is
+     * ignored by doing nothing. A dialog in front of every detach would tax
+     * the common case to catch the rare one.
+     */
+    public function testDetachingTheLastReferenceOffersToBinTheFile(): void
+    {
+        $space = $this->givenSpace();
+        $item = $this->givenItem($space, 'Un contenu');
+
+        $this->upload($space, $item['id'], 'photo.jpg');
+        $attachmentId = $this->payload()['attachments'][$item['id']][0]['id'];
+
+        $this->client->request('POST', sprintf('/workspace/%d/attachments/%d/detach', $space->getId(), $attachmentId));
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $offered = $this->payload()['orphanedDocuments'];
+        self::assertCount(1, $offered);
+        self::assertSame('photo.jpg', $offered[0]['title']);
+        self::assertStringContainsString('/backend/ged/documents/', $offered[0]['trashPath']);
+    }
+
+    /**
+     * A document that already lived in the library is never offered.
+     *
+     * The folder is what says where a file came from, and a picked document
+     * keeps the one it had. Offering to bin somebody's existing asset because
+     * a card stopped pointing at it would be the side effect this whole shape
+     * exists to avoid.
+     */
+    public function testADocumentPickedFromTheLibraryIsNeverOffered(): void
+    {
+        $space = $this->givenSpace();
+        $item = $this->givenItem($space, 'Un contenu');
+        $document = $this->givenDocument('Une photo déjà classée');
+
+        $this->attach($space, $item['id'], (int) $document->getId());
+        $attachmentId = $this->payload()['attachments'][$item['id']][0]['id'];
+
+        $this->client->request('POST', sprintf('/workspace/%d/attachments/%d/detach', $space->getId(), $attachmentId));
+
+        self::assertSame([], $this->payload()['orphanedDocuments']);
+    }
+
+    /** Still on another card is still used, so nothing is offered. */
+    public function testAFileStillOnAnotherCardIsNotOffered(): void
+    {
+        $space = $this->givenSpace();
+        $first = $this->givenItem($space, 'Premier contenu');
+        $second = $this->givenItem($space, 'Second contenu');
+
+        $this->upload($space, $first['id'], 'photo.jpg');
+        $files = $this->payload()['attachments'][$first['id']];
+        $documentId = $files[0]['documentId'];
+        $attachmentId = $files[0]['id'];
+
+        $this->attach($space, $second['id'], $documentId);
+
+        $this->client->request('POST', sprintf('/workspace/%d/attachments/%d/detach', $space->getId(), $attachmentId));
+
+        self::assertSame([], $this->payload()['orphanedDocuments']);
+    }
+
+    /** Deleting the card offers the same thing, for the files it carried. */
+    public function testDeletingACardOffersToBinWhatItLeftBehind(): void
+    {
+        $space = $this->givenSpace();
+        $item = $this->givenItem($space, 'Un contenu à supprimer');
+
+        $this->upload($space, $item['id'], 'photo.jpg');
+
+        $this->client->request('POST', sprintf('/workspace/%d/content/%d/delete', $space->getId(), $item['id']));
+
+        self::assertCount(1, $this->payload()['orphanedDocuments']);
+    }
+
     private function upload(CustomerSpace $space, int $itemId, string $name): void
     {
         $path = sys_get_temp_dir().'/aurora-space-upload-'.bin2hex(random_bytes(4)).'-'.$name;

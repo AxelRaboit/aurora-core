@@ -4,6 +4,7 @@ import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { openDocumentPicker } from "@/shared/utils/documentPicker.js";
+import { useOrphanedDocumentOffer } from "./useOrphanedDocumentOffer.js";
 
 /**
  * The files of a space, and the writes on them.
@@ -23,6 +24,7 @@ import { openDocumentPicker } from "@/shared/utils/documentPicker.js";
 export function useSpaceAttachments(attachments, paths, applyBoard) {
     const { t } = useI18n();
     const { request } = useRequest();
+    const { offer } = useOrphanedDocumentOffer();
 
     const attachmentLoading = ref(false);
 
@@ -104,6 +106,7 @@ export function useSpaceAttachments(attachments, paths, applyBoard) {
 
             applyBoard(data);
             toast.success(t("backend.studio.space_content.attachment_removed"));
+            offer(data);
         } finally {
             attachmentLoading.value = false;
         }

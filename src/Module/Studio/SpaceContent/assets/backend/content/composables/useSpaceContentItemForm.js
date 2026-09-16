@@ -4,6 +4,7 @@ import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useFormAction } from "@/shared/composables/form/useFormAction.js";
 import { useDelete } from "@/shared/composables/form/useDelete.js";
+import { useOrphanedDocumentOffer } from "./useOrphanedDocumentOffer.js";
 import { required } from "@/shared/utils/validation/validators.js";
 
 /**
@@ -34,6 +35,8 @@ function formFrom(item) {
 }
 
 export function useSpaceContentItemForm(paths, applyBoard, removeLocally) {
+    const { offer } = useOrphanedDocumentOffer();
+
     const { t } = useI18n();
 
     const showItemForm = ref(false);
@@ -105,7 +108,13 @@ export function useSpaceContentItemForm(paths, applyBoard, removeLocally) {
         submit: deleteItem,
     } = useDelete(
         paths.itemDeletePath,
-        removeLocally,
+        // The answer as well as the id: a card taken off the board can leave
+        // files behind that nothing points at any more, and the offer to bin
+        // them only exists because the server said which ones.
+        (id, data) => {
+            removeLocally(id);
+            offer(data);
+        },
         "backend.studio.space_content.item_deleted",
     );
 
