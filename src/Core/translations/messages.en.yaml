@@ -5,6 +5,16 @@ shared:
     placeholder: Write a message…
     send: Send
     from_client: client
+  attachments:
+    title: Files
+    empty: No file yet.
+    add: Add a file
+    pick: Choose from GED
+    drop: Drop a file here
+    remove: Remove from the card
+    remove_confirm: Remove this file from the card? It stays in GED.
+    open: Open the file
+    count: 'No file | 1 file | {count} files'
   palette:
     no_colour: No colour
     colour_slot: 'Colour {slot}'

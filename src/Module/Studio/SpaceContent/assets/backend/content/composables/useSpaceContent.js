@@ -9,6 +9,7 @@ import { required } from "@/shared/utils/validation/validators.js";
 import { monthGrid } from "@/shared/composables/calendar/monthGrid.js";
 import { useSpaceContentItemForm } from "./useSpaceContentItemForm.js";
 import { useSpaceThread } from "./useSpaceThread.js";
+import { useSpaceAttachments } from "./useSpaceAttachments.js";
 
 /**
  * A space's content, and every write on it - once, for all three views.
@@ -55,11 +56,13 @@ export function useSpaceContent(initial, paths) {
     const columns = ref(initial.columns ?? []);
     const items = ref(initial.items ?? []);
     const comments = ref(initial.comments ?? {});
+    const attachments = ref(initial.attachments ?? {});
 
     function applyContent(data) {
         if (Array.isArray(data?.columns)) columns.value = data.columns;
         if (Array.isArray(data?.items)) items.value = data.items;
         if (data?.comments) comments.value = data.comments;
+        if (data?.attachments) attachments.value = data.attachments;
     }
 
     // --- what every view reads ------------------------------------------
@@ -132,6 +135,8 @@ export function useSpaceContent(initial, paths) {
     });
 
     const thread = useSpaceThread(comments, paths, applyContent);
+
+    const files = useSpaceAttachments(attachments, paths, applyContent);
 
     const defaultColumnId = computed(() => columns.value[0]?.id ?? "");
 
@@ -281,6 +286,7 @@ export function useSpaceContent(initial, paths) {
         columns,
         items,
         comments,
+        attachments,
         isEmpty,
         grouped,
         unscheduled,
@@ -307,5 +313,6 @@ export function useSpaceContent(initial, paths) {
         deleteColumn,
         ...form,
         ...thread,
+        ...files,
     };
 }

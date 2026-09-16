@@ -127,6 +127,8 @@ use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachmentInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
@@ -245,6 +247,7 @@ class AuroraBundle extends AbstractBundle
                     CustomerSpaceMemberInterface::class => CustomerSpaceMember::class,
                     SpaceContentColumnInterface::class => SpaceContentColumn::class,
                     SpaceContentItemInterface::class => SpaceContentItem::class,
+                    SpaceContentAttachmentInterface::class => SpaceContentAttachment::class,
                     SpaceContentCommentInterface::class => SpaceContentComment::class,
                     SpaceAccessLinkInterface::class => SpaceAccessLink::class,
                     DeckInterface::class => Deck::class,

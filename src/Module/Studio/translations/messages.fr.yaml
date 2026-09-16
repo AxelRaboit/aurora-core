@@ -39,6 +39,9 @@ backend:
                     revoked: Lien d'accès client révoqué
                     deleted: Lien d'accès client supprimé
                     opened: Espace ouvert par un client
+                space_content_attachment:
+                    attached: Fichier ajouté sur un contenu
+                    detached: Fichier retiré d'un contenu
                 space_content_comment:
                     posted: Message envoyé sur un contenu
                     deleted: Message supprimé
@@ -854,6 +857,8 @@ backend:
             thread_notice: Ce que vous écrivez ici est lu par le client.
             comment_posted: Message envoyé.
             comment_deleted: Message supprimé.
+            attachment_added: Fichier ajouté.
+            attachment_removed: Fichier retiré de la fiche.
             approval_reset_warning: 'Modifier le titre ou le texte efface cette réponse : elle portait sur ce qui a été montré.'
             approvals:
                 pending: En attente
@@ -904,6 +909,16 @@ backend:
                 comment_needs_account: Il faut être connecté pour écrire sur un échange.
                 comment_from_client: Un message du client ne se supprime pas. C'est ce qu'il vous a demandé.
                 not_in_space: Ce contenu n'appartient pas à cet espace.
+                attachment_required: Choisissez un fichier.
+                attachment_unknown: Ce document n'existe pas ou plus.
+                attachment_duplicate: Ce fichier est déjà sur cette fiche.
+                attachment_needs_account: Il faut être connecté pour ajouter un fichier.
+
+            attachments:
+                # Le nom de la catégorie GED sous laquelle sont classés les
+                # fichiers arrivés par un espace. Lu dans la GED, pas ici.
+                category: Espaces clients
+                category_description: Fichiers déposés sur les contenus d'un espace client, par le studio ou par le client lui-même.
 studio:
     contract:
         # Écrit dans le document lui-même, donc scellé avec lui : ces phrases

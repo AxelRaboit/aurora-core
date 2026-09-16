@@ -22,6 +22,7 @@ use Aurora\Module\Ged\Document\Manager\DocumentManagerInterface;
 use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory;
 use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
+use Aurora\Module\Ged\DocumentCategory\Service\DocumentCategoryResolver;
 use Aurora\Module\Ged\DocumentCategory\Service\InlineUploadCategoryProvider;
 use Aurora\Module\Ged\Pexels\Command\ImportPexelsPhotosCommand;
 use Aurora\Module\Ged\Pexels\Service\PexelsClient;
@@ -178,11 +179,14 @@ final class ImportPexelsPhotosCommandTest extends TestCase
         $categoryRepository = $this->createStub(DocumentCategoryRepository::class);
         $categoryRepository->method('findOneBy')->willReturn($category);
 
-        // `final readonly`, so built without its constructor and given only
-        // the repository `resolve()` reads - the same trick PexelsImporterTest
-        // uses, and for the same reason.
+        // Provider and resolver are both `final readonly`, so each is built
+        // without its constructor and given only what the read path touches -
+        // the same trick PexelsImporterTest uses, and for the same reason.
+        $resolver = new ReflectionClass(DocumentCategoryResolver::class)->newInstanceWithoutConstructor();
+        new ReflectionProperty($resolver, 'documentCategoryRepository')->setValue($resolver, $categoryRepository);
+
         $provider = new ReflectionClass(InlineUploadCategoryProvider::class)->newInstanceWithoutConstructor();
-        new ReflectionProperty($provider, 'documentCategoryRepository')->setValue($provider, $categoryRepository);
+        new ReflectionProperty($provider, 'documentCategoryResolver')->setValue($provider, $resolver);
 
         $manager = $this->createStub(DocumentManagerInterface::class);
         $manager->method('create')->willReturnCallback(function (DocumentInputInterface $input): DocumentInterface {

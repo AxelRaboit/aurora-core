@@ -14,6 +14,7 @@ import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import SpaceContentThread from "../../../shared/SpaceContentThread.vue";
+import SpaceContentAttachments from "../../../shared/SpaceContentAttachments.vue";
 
 const props = defineProps({
     modelValue: { type: Object, required: true },
@@ -26,9 +27,18 @@ const props = defineProps({
     commentLoading: { type: Boolean, default: false },
     /** False while creating: a card with no id has nothing to hang a thread on. */
     canDiscuss: { type: Boolean, default: false },
+    attachments: { type: Array, default: () => [] },
+    attachmentLoading: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["update:modelValue", "post-comment", "delete-comment"]);
+const emit = defineEmits([
+    "update:modelValue",
+    "post-comment",
+    "delete-comment",
+    "upload-attachment",
+    "pick-attachment",
+    "remove-attachment",
+]);
 
 const { t } = useI18n();
 
@@ -107,6 +117,22 @@ function set(field, value) {
                 {{ t("backend.studio.space_content.approval_reset_warning") }}
             </p>
         </section>
+
+        <!-- The files, above the conversation on purpose: the visual is what a
+             client is usually being asked to approve, and reading the thread
+             without it in view is answering half a question. Like the thread,
+             it needs a saved card to hang off. -->
+        <SpaceContentAttachments
+            v-if="canDiscuss"
+            :attachments="attachments"
+            :loading="attachmentLoading"
+            can-add
+            can-remove
+            can-pick
+            v-on:upload="emit('upload-attachment', $event)"
+            v-on:pick="emit('pick-attachment')"
+            v-on:remove="emit('remove-attachment', $event)"
+        />
 
         <!-- The conversation, which the verdict above does not carry: resetting
              an approval must not take the client's words with it, and it is

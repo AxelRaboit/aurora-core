@@ -39,6 +39,9 @@ backend:
                     revoked: Client access link revoked
                     deleted: Client access link deleted
                     opened: Space opened by a client
+                space_content_attachment:
+                    attached: File added to a content item
+                    detached: File removed from a content item
                 space_content_comment:
                     posted: Message posted on a content item
                     deleted: Message deleted
@@ -854,6 +857,8 @@ backend:
             thread_notice: What you write here is read by the client.
             comment_posted: Message sent.
             comment_deleted: Message deleted.
+            attachment_added: File added.
+            attachment_removed: File removed from the card.
             approval_reset_warning: 'Changing the title or the text clears this answer: it was about what was shown.'
             approvals:
                 pending: Pending
@@ -904,6 +909,16 @@ backend:
                 comment_needs_account: You have to be signed in to write on a thread.
                 comment_from_client: A client's message is not deleted. It is what they asked you for.
                 not_in_space: This content does not belong to this space.
+                attachment_required: Choose a file.
+                attachment_unknown: That document does not exist any more.
+                attachment_duplicate: That file is already on this card.
+                attachment_needs_account: You have to be signed in to add a file.
+
+            attachments:
+                # The name of the GED category the files that arrive through a
+                # space are filed under. Read in GED, not here.
+                category: Client spaces
+                category_description: Files dropped on the content of a client space, by the studio or by the client themselves.
 studio:
     contract:
         # Written into the document itself, and therefore sealed with it: these

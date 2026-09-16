@@ -5,6 +5,55 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.185] - 2026-09-16
+
+### Ajouté
+
+#### Des fichiers sur une fiche de contenu
+Une fiche d'espace client porte ses visuels. Glisser-déposer, choisir dans la
+GED, retirer. Les vignettes s'affichent dans le formulaire de la fiche, juste
+au-dessus du fil d'échanges.
+
+**Sur la fiche et pas sur l'espace**, parce que c'est le tour de validation qui
+en a besoin : un client à qui on demande d'approuver un texte sans voir l'image
+répond à la moitié de la question. Une étagère par espace pour la charte et les
+logos reste possible, et sera un autre lot.
+
+**Le fichier vit dans la GED, la ligne ne fait que le désigner.** Pas d'adresse,
+pas de vignette, pas de taille recopiées : tout est résolu au moment du rendu,
+parce que l'adresse d'un fichier change quand on remplace le fichier et qu'une
+copie deviendrait fausse en silence. Retirer un fichier d'une fiche ne supprime
+donc rien : le document reste dans la GED, classé sous une catégorie
+« Espaces clients » créée au premier dépôt.
+
+**Une table de liaison et pas une colonne**, parce que la moitié visuelle d'une
+publication est rarement un seul fichier. Un carrousel, une vidéo et sa
+couverture, un communiqué et sa photo : avec un seul `document_id` il aurait
+fallu en faire plusieurs publications.
+
+**L'auteur est stocké deux fois**, comme pour les messages. Les relations
+disent qui tant qu'elles durent et sont en `SET NULL` ; le libellé et le côté
+sont écrits une fois au dépôt. « Qui a envoyé cette photo » se demande longtemps
+après, et doit survivre à un compte supprimé ou un lien révoqué.
+
+Un aperçu seulement pour ce qui s'aperçoit : une image a sa vignette, un PDF ou
+une vidéo ont une icône tirée du type MIME. Pointer une balise image vers un PDF
+est la façon la plus sûre de faire passer un envoi réussi pour un échec.
+
+### Modifié
+
+#### La GED sait classer pour n'importe quel module
+« Trouver ou créer la catégorie », avec sa reprise sur collision quand deux
+premiers dépôts arrivent ensemble, vivait dans le fournisseur des médias
+éditoriaux. Un deuxième module en avait besoin. C'est maintenant
+`DocumentCategoryResolver`, que les deux partagent : la logique délicate est à
+un seul endroit, donc elle se corrige une fois.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`.
+
+---
+
 ## [0.9.184] - 2026-09-16
 
 ### Supprimé

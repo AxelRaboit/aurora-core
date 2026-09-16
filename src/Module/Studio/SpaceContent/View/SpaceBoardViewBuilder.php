@@ -7,9 +7,11 @@ namespace Aurora\Module\Studio\SpaceContent\View;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Serializer\CustomerSpaceSerializerInterface;
+use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentCommentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
+use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentAttachmentSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentColumnSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentCommentSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentItemSerializerInterface;
@@ -23,7 +25,9 @@ final readonly class SpaceBoardViewBuilder
         private SpaceContentColumnSerializerInterface $columnSerializer,
         private SpaceContentItemSerializerInterface $itemSerializer,
         private SpaceContentCommentRepository $commentRepository,
+        private SpaceContentAttachmentRepository $attachmentRepository,
         private SpaceContentCommentSerializerInterface $commentSerializer,
+        private SpaceContentAttachmentSerializerInterface $attachmentSerializer,
         private CustomerSpaceSerializerInterface $spaceSerializer,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
@@ -47,6 +51,7 @@ final readonly class SpaceBoardViewBuilder
             'columns' => $this->columns($space),
             'items' => $this->items($space),
             'comments' => $this->comments($space),
+            'attachments' => $this->attachments($space),
             'backPath' => $this->urlGenerator->generate('backend_studio_spaces'),
             'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
             'accessPath' => $this->urlGenerator->generate('workspace_space_access', ['id' => $space->getId()]),
@@ -57,6 +62,9 @@ final readonly class SpaceBoardViewBuilder
             'schedulePath' => $this->pathTemplates->generate('workspace_space_content_item_schedule', ['id' => $space->getId(), 'itemId' => '__id__']),
             'commentPostPath' => $this->pathTemplates->generate('workspace_space_content_comment_post', ['id' => $space->getId(), 'itemId' => '__id__']),
             'commentDeletePath' => $this->pathTemplates->generate('workspace_space_content_comment_delete', ['id' => $space->getId(), 'commentId' => '__id__']),
+            'attachmentUploadPath' => $this->pathTemplates->generate('workspace_space_content_attachment_upload', ['id' => $space->getId(), 'itemId' => '__id__']),
+            'attachmentAttachPath' => $this->pathTemplates->generate('workspace_space_content_attachment_attach', ['id' => $space->getId(), 'itemId' => '__id__']),
+            'attachmentDetachPath' => $this->pathTemplates->generate('workspace_space_content_attachment_detach', ['id' => $space->getId(), 'attachmentId' => '__id__']),
             'columnCreatePath' => $this->urlGenerator->generate('workspace_space_content_column_create', ['id' => $space->getId()]),
             'columnUpdatePath' => $this->pathTemplates->generate('workspace_space_content_column_update', ['id' => $space->getId(), 'columnId' => '__id__']),
             'columnDeletePath' => $this->pathTemplates->generate('workspace_space_content_column_delete', ['id' => $space->getId(), 'columnId' => '__id__']),
@@ -93,6 +101,26 @@ final readonly class SpaceBoardViewBuilder
         return $byItem;
     }
 
+    /**
+     * The files of the space, keyed by the card they sit on.
+     *
+     * The whole space at once, for the same reason as the threads: the three
+     * views draw every card, and a card shows its thumbnails without being
+     * opened.
+     *
+     * @return array<int, list<array<string, mixed>>>
+     */
+    public function attachments(CustomerSpaceInterface $space): array
+    {
+        $byItem = [];
+
+        foreach ($this->attachmentRepository->findForSpaceByItem($space) as $itemId => $attachments) {
+            $byItem[$itemId] = array_map($this->attachmentSerializer->serialize(...), $attachments);
+        }
+
+        return $byItem;
+    }
+
     /** @return list<array<string, mixed>> */
     public function items(CustomerSpaceInterface $space): array
     {
@@ -120,6 +148,7 @@ final readonly class SpaceBoardViewBuilder
             'columns' => $this->columns($space),
             'items' => $this->items($space),
             'comments' => $this->comments($space),
+            'attachments' => $this->attachments($space),
         ];
     }
 }

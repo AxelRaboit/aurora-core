@@ -10,24 +10,31 @@ use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Core\Validation\Service\PayloadValidator;
+use Aurora\Module\Ged\Document\Entity\Document;
+use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInputFactoryInterface;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInputFactoryInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentCommentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
+use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
 use Aurora\Module\Studio\SpaceContent\View\SpaceBoardViewBuilder;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+use function array_filter;
 use function array_map;
 use function array_values;
 use function is_array;
@@ -60,6 +67,8 @@ class SpaceContentController extends AbstractController
         protected readonly SpaceContentItemManagerInterface $itemManager,
         protected readonly SpaceContentColumnManagerInterface $columnManager,
         protected readonly SpaceContentCommentManagerInterface $comments,
+        protected readonly SpaceContentAttachmentManagerInterface $attachments,
+        protected readonly DocumentRepository $documents,
         protected readonly SpaceContentItemInputFactoryInterface $itemInputFactory,
         protected readonly SpaceContentColumnInputFactoryInterface $columnInputFactory,
         protected readonly SpaceBoardViewBuilder $viewBuilder,
@@ -241,6 +250,100 @@ class SpaceContentController extends AbstractController
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         }
+
+        return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
+    }
+
+    /**
+     * A file dropped on a card, filed in GED and shown on it.
+     *
+     * The destination category and the published status are decided by
+     * {@see SpaceAttachmentUploader},
+     * not by this request. A payload that could name its own category would let
+     * a card drop a file into the contracts category, and one that could leave
+     * it a draft would put a file on a card that is unfindable in GED ever
+     * after.
+     */
+    #[Route('/content/{itemId}/attachments/upload', name: '_attachment_upload', requirements: ['itemId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function uploadAttachment(
+        CustomerSpace $space,
+        #[MapEntity(id: 'itemId')]
+        SpaceContentItem $item,
+        Request $request,
+    ): JsonResponse {
+        $this->assertOwned($space, $item->getSpace()->getId());
+
+        $file = $request->files->get('file');
+
+        if (!$file instanceof UploadedFile) {
+            return $this->jsonInvalidInput(['file' => 'backend.studio.space_content.errors.attachment_required']);
+        }
+
+        try {
+            $this->attachments->uploadAsStudio($item, $file);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
+    }
+
+    /**
+     * A document that is already in GED, put on a card.
+     *
+     * The picker's half: a logo, a press kit, a photo filed last month. Nothing
+     * is uploaded and nothing is copied - two cards can show the same file, and
+     * a file shown on a card is the same row GED lists.
+     */
+    #[Route('/content/{itemId}/attachments/attach', name: '_attachment_attach', requirements: ['itemId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function attachDocument(
+        CustomerSpace $space,
+        #[MapEntity(id: 'itemId')]
+        SpaceContentItem $item,
+        Request $request,
+    ): JsonResponse {
+        $this->assertOwned($space, $item->getSpace()->getId());
+
+        $documentId = $this->decodeJson($request)['documentId'] ?? null;
+
+        if (!is_numeric($documentId)) {
+            return $this->jsonInvalidInput(['documentId' => 'backend.studio.space_content.errors.attachment_required']);
+        }
+
+        $document = $this->documents->find((int) $documentId);
+
+        if (!$document instanceof Document) {
+            return $this->jsonInvalidInput(['documentId' => 'backend.studio.space_content.errors.attachment_unknown']);
+        }
+
+        try {
+            $this->attachments->attachAsStudio($item, $document);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
+    }
+
+    /**
+     * Takes a file off a card.
+     *
+     * The document stays in GED. This route is about what a card shows, not
+     * about destroying an asset - deleting the file itself is GED's own screen,
+     * where the consequences are spelled out and a trash catches mistakes.
+     */
+    #[Route('/attachments/{attachmentId}/detach', name: '_attachment_detach', requirements: ['attachmentId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function detachAttachment(
+        CustomerSpace $space,
+        #[MapEntity(id: 'attachmentId')]
+        SpaceContentAttachment $attachment,
+    ): JsonResponse {
+        $this->assertOwned($space, $attachment->getItem()->getSpace()->getId());
+
+        $this->attachments->detach($attachment);
 
         return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
     }

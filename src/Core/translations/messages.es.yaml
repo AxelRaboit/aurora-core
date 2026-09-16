@@ -5,6 +5,16 @@ shared:
     placeholder: Escribir un mensaje…
     send: Enviar
     from_client: cliente
+  attachments:
+    title: Archivos
+    empty: Ningún archivo por ahora.
+    add: Añadir un archivo
+    pick: Elegir en la GED
+    drop: Suelta un archivo aquí
+    remove: Quitar de la ficha
+    remove_confirm: ¿Quitar este archivo de la ficha? Permanece en la GED.
+    open: Abrir el archivo
+    count: 'Ningún archivo | 1 archivo | {count} archivos'
   placeholders:
     name: Un nombre corto
     title: Un título corto

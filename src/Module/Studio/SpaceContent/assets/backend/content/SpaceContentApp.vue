@@ -50,6 +50,7 @@ const props = defineProps({
     columns: { type: Array, default: () => [] },
     items: { type: Array, default: () => [] },
     comments: { type: Object, default: () => ({}) },
+    attachments: { type: Object, default: () => ({}) },
     itemCreatePath: { type: String, required: true },
     itemUpdatePath: { type: String, required: true },
     itemDeletePath: { type: String, required: true },
@@ -57,6 +58,9 @@ const props = defineProps({
     schedulePath: { type: String, required: true },
     commentPostPath: { type: String, required: true },
     commentDeletePath: { type: String, required: true },
+    attachmentUploadPath: { type: String, required: true },
+    attachmentAttachPath: { type: String, required: true },
+    attachmentDetachPath: { type: String, required: true },
     columnCreatePath: { type: String, required: true },
     columnUpdatePath: { type: String, required: true },
     columnDeletePath: { type: String, required: true },
@@ -122,8 +126,18 @@ const {
     columnDeleteLoading,
     confirmColumnDelete,
     deleteColumn,
+    filesOf,
+    attachmentLoading,
+    upload,
+    pick,
+    remove,
 } = useSpaceContent(
-    { columns: props.columns, items: props.items, comments: props.comments },
+    {
+        columns: props.columns,
+        items: props.items,
+        comments: props.comments,
+        attachments: props.attachments,
+    },
     {
         itemCreatePath: props.itemCreatePath,
         itemUpdatePath: props.itemUpdatePath,
@@ -132,6 +146,9 @@ const {
         schedulePath: props.schedulePath,
         commentPostPath: props.commentPostPath,
         commentDeletePath: props.commentDeletePath,
+        attachmentUploadPath: props.attachmentUploadPath,
+        attachmentAttachPath: props.attachmentAttachPath,
+        attachmentDetachPath: props.attachmentDetachPath,
         columnCreatePath: props.columnCreatePath,
         columnUpdatePath: props.columnUpdatePath,
         columnDeletePath: props.columnDeletePath,
@@ -252,8 +269,13 @@ const actionsFor = useEditDeleteActions({
                     :comments="threadOf(editingItem)"
                     :comment-loading="commentLoading"
                     :can-discuss="!!editingItem"
+                    :attachments="filesOf(editingItem)"
+                    :attachment-loading="attachmentLoading"
                     v-on:post-comment="postComment(editingItem, $event)"
                     v-on:delete-comment="deleteComment"
+                    v-on:upload-attachment="upload(editingItem, $event)"
+                    v-on:pick-attachment="pick(editingItem)"
+                    v-on:remove-attachment="remove"
                 />
             </form>
             <template #footer>
