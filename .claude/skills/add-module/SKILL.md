@@ -30,8 +30,9 @@ drift (devs running it bare were skipping the package wiring, the
 > zero `composer.json`, zero bundles, zero module-local parameter enums and zero
 > per-module `services.php` under `src/Module/`; the central enum holds fifteen
 > business cases; and `make split-module` and `bin/split-modules.sh` are both
-> gone. The two modules this section used to name as references, `Notes/` and
-> `Tools/`, are not in core either.
+> gone. Of the two modules this section used to name as package references,
+> `Notes/` is now a plain core directory like every other, and `Tools/` is not
+> in core at all.
 
 The shape of every generated file lives in
 `.claude/skills/add-module/templates/*.tpl`. The skill reads each
@@ -60,8 +61,8 @@ sequence prefix, asset path, and which `Module.*.php.tpl` /
 | Namespace prefix | `Aurora\Module\<X>` | `App\Module\<X>` |
 | Sequence prefix (entity later) | `seq_core_<entity>_id` | `seq_app_<entity>_id` |
 | Asset path | `src/Module/<X>/assets/` | `src/Module/<X>/assets/` (same since 0.5) |
-| Toggle storage | own `<X>ModuleParameterEnum::Backend` case (package-local) | `<X>Context::BACKEND_KEY` const |
-| Package shape | full Composer package (composer.json + bundle + services.php + enum + provider) | lives in the client app - no package, no bundle |
+| Toggle storage | a `<X>Backend` case in the central `ModuleParameterEnum` | `<X>Context::BACKEND_KEY` const |
+| Package shape | a plain directory under `src/Module/` - no composer.json, no bundle, no services.php | lives in the client app - no package, no bundle |
 | Templates root for skill reads | `vendor/axelraboit/aurora/.claude/skills/add-module/templates/` (when running from a client) OR `.claude/skills/add-module/templates/` (core) | same |
 
 ## Required inputs (ask upfront if missing)
@@ -100,15 +101,15 @@ Compute these from the module name and the user's answers :
 | `{{ICON}}` | user input | `award` |
 | `{{PRIORITY}}` | user input as string | `'60'` |
 | `{{NAMESPACE}}` | `Aurora\Module\<X>` (core) or `App\Module\<X>` (client) | `Aurora\Module\Loyalty` |
-| `{{MODULE_TOGGLE_LITERAL}}` | `<X>ModuleParameterEnum::Backend->value` (core) / `<X>Context::BACKEND_KEY` (client) / `null` (no-toggle) | `LoyaltyModuleParameterEnum::Backend->value` |
-| `{{MODULE_TOGGLE_USE}}` | empty for CORE (the `ConfigurationTabProvider` lives in the SAME `…\Setting` namespace as the enum) / `use <NAMESPACE>\<X>Context;\n` for client | `` (empty, core) |
+| `{{MODULE_TOGGLE_LITERAL}}` | `ModuleParameterEnum::<X>Backend` (core) / `<X>Context::BACKEND_KEY` (client) / `null` (no-toggle) | `ModuleParameterEnum::LoyaltyBackend` |
+| `{{MODULE_TOGGLE_USE}}` | `use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;\n` for CORE / `use <NAMESPACE>\<X>Context;\n` for client | the central enum's `use` line |
 | `{{SERVICES_EXTRA_USE}}` | extra `use` lines for `config/services.php`, one per `--with-*` flag, else empty | see Step 2b |
 | `{{SERVICES_EXTRA_INSTANCEOF}}` | extra `instanceof()->tag()` lines for `config/services.php`, else empty | see Step 2b |
 
-> **Core toggle literal is now `->value` (a string).** The per-module enum
-> (`<X>ModuleParameterEnum`) does NOT satisfy the central `ModuleParameterEnum`
-> type-hint, so the `ConfigurationTab(moduleToggle: …)` arg takes the string
-> key, matching the real modules (`CrmModuleParameterEnum::Backend->value`).
+> **Pass the case, not `->value`.** `ConfigurationTab::$moduleToggle` is typed
+> `ModuleParameterEnum|string|null`, so both compile, but the case is what every
+> real module passes and what survives a rename. The string form is there for
+> client modules, whose keys have no case in the core enum.
 
 ## Step 2 - Pick the right template variants
 
@@ -193,28 +194,37 @@ Run afterwards:
 make sf CMD="aurora:application-parameter"
 ```
 
-…which seeds the new toggle row(s) in `core_settings` (default `'1'` = ON)
-via the generated `<Module>ModuleParameterProvider`.
+…which seeds the new toggle row(s) in `core_settings` (default `'1'` = ON).
+`CoreModuleParameterProvider` already yields every case of the central enum, so
+there is no provider to generate: adding the case is the whole wiring.
 
 ### 4b. Append to `aliases.js` (CORE only)
 
-File: `aliases.js` at the repo root. Add `@<module-kebab>` in
-alphabetical order :
+File: `aliases.js` at the repo root. Add the entry next to its neighbours:
 
 ```js
 "@<kebab>": moduleAlias("<Module>"),
 ```
 
+`moduleAlias()` resolves exactly `src/Module/<Module>/assets`, so **skip this
+step if the module co-locates its assets under sub-domain folders** - the alias
+would point at a directory that does not exist. Studio is the one module in
+that case, and it has no alias on purpose.
+
 ### 4c. Polish the FR/EN labels
 
 The template fills `messages.{fr,en}.yaml` with `{{MODULE_LABEL}}` plus
 short placeholders. Open both files and write proper sentences for :
-- `backend.modules.<module_id>` - module display name
-- `backend.modules.<module_id>_description` - one-line description shown
-  on `/dev/dashboard/modules` and `/backend/settings`
-- `backend.nav.<module_id>` - sidemenu label
-- `backend.nav.<module_id>_description` - sidemenu tooltip
+- `backend.modules.<module_id>_backend` - the toggle's name on
+  `/dev/dashboard/modules`, and `_backend_description` below it
+- `backend.modules.<module_id>` - the bare module name an audit row carries.
+  Not the toggle key, and the two differ on purpose: `planning` is
+  "Calendrier", `planning_backend` is the switch that turns it on
+- `backend.nav.sections.<module_id>` - the sidemenu section heading
+- `backend.nav.<module_id>` and `_description` - sidemenu label and tooltip
 - `<module_id>.title` - page H1 in the Vue entrypoint
+
+Both catalogues indent with **two spaces**, like every module but Studio.
 
 Action-oriented French, neutral English. Don't leave the literal
 `{{MODULE_LABEL}}` if the substitution missed something.

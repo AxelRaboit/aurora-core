@@ -109,11 +109,23 @@ src/Module/<Parent>/templates/backend/<sub-kebab>/index.html.twig
 src/Module/<Parent>/<Sub>/assets/backend/<sub-kebab>/<Sub>App.vue
 ```
 
-Assets are **co-located with the sub-domain** since 0.5, not under a module
-root `assets/`. The Vue glob picks them up from
-`src/Module/*/*/assets/**/*.vue`, and the component key drops the sub-domain
-folder: `src/Module/Studio/SpaceContent/assets/backend/content/X.vue` mounts as
-`studio/backend/content/X`.
+**Both asset layouts work.** The glob in `src/Core/assets/app.js` is
+`../../Module/**/assets/**/*.vue`, which accepts any number of feature folders
+between the module and `assets/`, and `MODULE_PATH_RE` flattens them away: the
+component key is the module name plus everything after `assets/`, whichever
+layout you picked.
+
+- **Module root** (`src/Module/<Parent>/assets/backend/<sub-kebab>/`) is what
+  nine of the ten modules do, and it is the default. It also gets a working
+  `@<parent>` alias, since `moduleAlias()` in `aliases.js` resolves exactly
+  `src/Module/<Name>/assets`.
+- **Co-located with the sub-domain** (`src/Module/<Parent>/<Sub>/assets/`) keeps
+  a large sub-domain's PHP and Vue in one folder. Studio does this. The cost is
+  that `@<parent>` cannot point at two places, so those files import by
+  relative path.
+
+Pick the module root unless the sub-domain is big enough that co-location
+earns the missing alias, and match whatever the parent already does.
 
 Controller skeleton:
 
