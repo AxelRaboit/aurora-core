@@ -16,6 +16,7 @@ defineProps({
     grouped: { type: Array, default: () => [] },
     editable: { type: Boolean, default: false },
     actionsFor: { type: Function, required: true },
+    filesOf: { type: Function, required: true },
     isEmpty: { type: Boolean, default: false },
 });
 
@@ -97,6 +98,7 @@ const { t } = useI18n();
                             :key="card.id"
                             :item="card"
                             :actions="actionsFor(card)"
+                            :files="filesOf(card)"
                         />
                     </VueDraggable>
 

@@ -5,6 +5,31 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.187] - 2026-09-16
+
+### Ajouté
+
+#### La vignette sur la carte, sans coûter une ligne
+Le tableau et la liste montrent maintenant le premier visuel d'une fiche : un
+carré à gauche du titre, avec un « +2 » quand il y en a d'autres.
+
+Pour un calendrier éditorial c'est le manque le plus visible qu'il restait.
+Quelqu'un qui planifie un mois de publications les reconnaît à leur image bien
+avant de lire un titre, et un tableau qui la cachait obligeait à ouvrir chaque
+fiche pour savoir ce qu'il y avait dedans.
+
+**Un carré et pas une bande de vignettes**, parce que la carte a une règle
+écrite dans son propre docblock : chaque ligne en plus coûte au lecteur une
+carte de tableau visible. Le carré tient à côté des deux lignes de texte et n'en
+ajoute aucune ; une bande en aurait montré plus et coûté deux cartes. Une fiche
+qui ne porte qu'un PDF ne dessine rien du tout et garde toute sa largeur pour son
+titre : il n'y a rien à reconnaître.
+
+Les deux vues lisent la même source, donc elles ne peuvent pas être en désaccord
+sur ce qu'il y a sur un contenu.
+
+---
+
 ## [0.9.186] - 2026-09-16
 
 ### Ajouté

@@ -6,6 +6,14 @@
  * a card is scanned in a column of eight, so every extra line costs the reader
  * one card of visible board.
  *
+ * The thumbnail is the one exception, and it obeys the same rule rather than
+ * bending it: a square beside the two lines of text, costing no line of its
+ * own. For a content calendar the picture *is* the content - somebody planning
+ * a month of posts recognises them by their visual long before they read a
+ * title - so a board that hid it would be asking the reader to open every card
+ * to see what is on it. A strip of thumbnails would have shown more and cost
+ * two cards of board, which is the trade this refuses.
+ *
  * A card with no date says so rather than staying silent. "Sans date" is a
  * state somebody acts on - it is the work that has not been scheduled yet - and
  * an empty space reads as a card that failed to load.
@@ -18,6 +26,7 @@ import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 const props = defineProps({
     item: { type: Object, required: true },
     actions: { type: Array, default: () => [] },
+    files: { type: Array, default: () => [] },
 });
 
 const { t, d } = useI18n();
@@ -28,6 +37,19 @@ const excerpt = computed(() => {
 
     return firstLine ?? "";
 });
+
+/**
+ * The first file that has a picture to show, and how many more there are.
+ *
+ * `preview` is null for anything that is not an image, so a card carrying only
+ * a PDF draws no square and keeps its full width for the title - which is the
+ * right answer: there is nothing to recognise it by.
+ */
+const thumbnail = computed(
+    () => props.files.find((file) => file.preview)?.preview ?? null,
+);
+
+const extraFiles = computed(() => Math.max(0, props.files.length - 1));
 
 const when = computed(() => {
     if (!props.item.scheduledAt) return t("backend.studio.space_content.unscheduled");
@@ -57,6 +79,18 @@ const answered = computed(() => "pending" !== props.item.approval);
                 class="card-drag-handle mt-0.5 h-3.5 w-3.5 shrink-0 cursor-grab text-muted opacity-0 transition-opacity group-hover:opacity-100"
                 :stroke-width="2"
             />
+            <div v-if="thumbnail" class="relative shrink-0">
+                <img
+                    :src="thumbnail"
+                    alt=""
+                    class="h-9 w-9 rounded object-cover"
+                    loading="lazy"
+                >
+                <span
+                    v-if="extraFiles"
+                    class="absolute -bottom-1 -right-1 rounded-full bg-surface-3 px-1 text-[10px] leading-4 text-muted"
+                >+{{ extraFiles }}</span>
+            </div>
             <div class="min-w-0 flex-1">
                 <p class="text-sm font-medium text-primary">{{ item.title }}</p>
                 <p v-if="excerpt" class="mt-0.5 truncate text-xs text-muted">

@@ -16,16 +16,28 @@ import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import { CalendarClock, Check, MessageSquare, Plus } from "lucide-vue-next";
 
-defineProps({
+const props = defineProps({
     grouped: { type: Array, default: () => [] },
     editable: { type: Boolean, default: false },
     actionsFor: { type: Function, required: true },
+    filesOf: { type: Function, required: true },
     isEmpty: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["add-item", "open-item"]);
 
 const { t, d } = useI18n();
+
+/**
+ * The first file on a card that has a picture to show, or nothing.
+ *
+ * A prop rather than a computed because the row is inside a `v-for`: the
+ * lookup has to be per card, and `filesOf` is the same one the board reads, so
+ * the two views cannot disagree about what is on a piece of content.
+ */
+function previewOf(card) {
+    return props.filesOf(card).find((file) => file.preview)?.preview ?? null;
+}
 
 function when(item) {
     if (!item.scheduledAt) return t("backend.studio.space_content.unscheduled");
@@ -75,16 +87,30 @@ function when(item) {
                     :key="card.id"
                     class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5"
                 >
+                    <!-- The same square the board draws, for the same reason:
+                         somebody planning a month recognises a post by its
+                         picture before they read its title. Inside the button
+                         so the whole row stays one target on a phone, which is
+                         the reader this view exists for. -->
                     <button
                         type="button"
-                        class="min-w-0 flex-1 text-left"
+                        class="flex min-w-0 flex-1 items-center gap-3 text-left"
                         v-on:click="emit('open-item', card)"
                     >
-                        <span class="block truncate text-sm font-medium text-primary">
-                            {{ card.title }}
-                        </span>
-                        <span v-if="card.body" class="block truncate text-xs text-muted">
-                            {{ card.body }}
+                        <img
+                            v-if="previewOf(card)"
+                            :src="previewOf(card)"
+                            alt=""
+                            class="h-8 w-8 shrink-0 rounded object-cover"
+                            loading="lazy"
+                        >
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-medium text-primary">
+                                {{ card.title }}
+                            </span>
+                            <span v-if="card.body" class="block truncate text-xs text-muted">
+                                {{ card.body }}
+                            </span>
                         </span>
                     </button>
 
