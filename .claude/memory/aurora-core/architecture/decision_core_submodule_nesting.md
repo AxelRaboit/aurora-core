@@ -1,11 +1,17 @@
 ---
 name: decision-core-submodule-nesting
-description: Décision (mai 2026) - les sous-modules Core (User, Agency, Service, Auth, Setting, Theme, Audit, Dashboard, Profile, Search, Media) vivent désormais sous le dossier de leur module parent (Aurora\Module\Platform\User, etc.) pour aligner avec la convention Vault-style déjà en place côté src/Module/.
+description: Regle - tout module avec un NavItem vit sous src/Module/ sous son parent (Aurora\Module\Platform\User, etc.), pas sous src/Core/. Compte rendu de la migration de mai 2026 ; son inventaire de modules est celui de l'epoque.
 metadata:
   type: project
 ---
 
 # Décision : nesting des sous-modules Core sous leur module parent
+
+> **Inventaire daté.** Ce qui suit liste les modules tels qu'ils étaient en
+> mai 2026, avec les SHA de la migration. Plusieurs ont été supprimés depuis
+> (Media fusionné dans la GED, Agency, Service, Ocr, Billing, Project,
+> Welding) : c'est de l'histoire, pas un état des lieux. **La règle, elle,
+> tient toujours.**
 
 ## Décision (mai 2026, finalisée dans 0.4.0)
 

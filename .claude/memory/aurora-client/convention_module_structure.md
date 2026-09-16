@@ -6,6 +6,13 @@ type: feedback
 
 ## Règle
 
+> **`Agency` n'existe plus.** Le module a été supprimé ; l'exemple filé
+> ci-dessous reste juste dans sa forme, mais on ne peut plus aller lire le
+> code auquel il renvoie. Le pilote vivant du même pattern est
+> `DocumentCategory`, déroulé en entier dans
+> `docs/aurora-core/dev/extending_category_pilot.md`.
+
+
 Tout le code client vit sous `src/Module/`, y compris les extensions
 d'entités Aurora. Il n'y a **pas** de dossiers plats `src/Entity/`,
 `src/Dto/`, `src/Manager/`, `src/Serializer/`.

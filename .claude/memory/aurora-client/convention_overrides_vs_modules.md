@@ -1,11 +1,18 @@
 ---
 name: convention-overrides-vs-modules
-description: Where to place client-side Vue files - co-location with the PHP extension under `src/Module/<Module>/<Feature>/assets/`. The path "Agency" (PascalCase PHP feature folder) + "agencies/" (kebab plural URL segment) are two mirrors of two different layers, not a duplication.
+description: Where to place client-side Vue files - co-location with the PHP extension under `src/Module/<Module>/<Feature>/assets/`. The PascalCase feature folder and the kebab-plural URL segment (`DocumentCategory` and `categories/`) mirror two different layers; that is not a duplication.
 metadata:
   type: project
 ---
 
 # Convention : co-localisation Vue + PHP sous `src/Module/<X>/<Feature>/`
+
+> **`Agency` n'existe plus.** Le module a été supprimé ; l'exemple filé
+> ci-dessous reste juste dans sa forme, mais on ne peut plus aller lire le
+> code auquel il renvoie. Le pilote vivant du même pattern est
+> `DocumentCategory`, déroulé en entier dans
+> `docs/aurora-core/dev/extending_category_pilot.md`.
+
 
 Aurora-client co-localise les **overrides Vue** d'une entité Aurora **dans
 le même dossier** que son extension PHP. Une seule convention, un seul
