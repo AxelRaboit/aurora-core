@@ -5,6 +5,54 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.193] - 2026-09-16
+
+### Sécurité
+
+#### Les 71 avis de sécurité ouverts sont traités
+Neuf côté composer, tous en runtime et tous corrigeables : `symfony/security-http`
+et `twig/twig` en gravité haute, `symfony/http-foundation`, `symfony/routing` et
+`symfony/polyfill-intl-idn` derrière. `composer update` suffisait, les contraintes
+les admettaient déjà.
+
+Soixante-deux côté npm, concentrés sur cinq paquets : `axios`, `form-data`,
+`nanoid`, `postcss` et `pdfjs-dist`. `pnpm update` en a réglé cinquante-neuf.
+
+Restaient trois cas qui demandaient chacun autre chose qu'une montée de version.
+
+**`pdfjs-dist` est retiré, pas mis à jour.** L'avis est sérieux, exécution de
+JavaScript arbitraire à l'ouverture d'un PDF piégé, et le correctif demandait un
+passage de la majeure 5 à la 6. Sauf que le paquet n'est **importé nulle part** :
+ni dans `src`, ni dans la configuration Vite, ni dans aucun bundle construit. Il
+était déclaré et pesait un avis de gravité haute sans rien rendre.
+
+**`ws` est forcé par un override**, à `>=8.21.0`. Il arrive sous
+`vitest > happy-dom`, donc de l'outillage de test, et rien dans l'arbre n'en
+proposait un plus récent de lui-même.
+
+**L'override vit dans `pnpm-workspace.yaml`**, pas dans `package.json` : pnpm 11
+ne lit plus la clé `pnpm` de `package.json` et l'ignore avec un avertissement.
+Un réglage ignoré est pire qu'un réglage absent.
+
+### Corrigé
+
+#### `bump-after-update` resserrait les contraintes d'une bibliothèque
+La configuration portait `"bump-after-update": true`, donc chaque `composer update`
+réécrivait `composer.json` en remontant les minimums : `doctrine/orm` de `^3.6.6`
+à `^3.7.1`, `symfony/ux-vue` de `^3.0` à `^3.4`, et huit autres. Composer le
+déconseille lui-même pour une bibliothèque, dans le message qu'il affiche en le
+faisant, parce que ça restreint sans raison ce qu'un projet consommateur peut
+installer.
+
+Le réglage part. Les contraintes larges reviennent ; seul `composer.lock` bouge,
+ce qui est exactement ce qu'on veut : il ne sert qu'à la CI d'aurora-core, un
+consommateur résolvant les siennes.
+
+### Dans aurora-client
+`make aurora-update`. Aucune migration.
+
+---
+
 ## [0.9.192] - 2026-09-16
 
 ### Corrigé

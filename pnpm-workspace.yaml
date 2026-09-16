@@ -1,2 +1,9 @@
 allowBuilds:
   vue-demi: true
+
+# happy-dom, sous vitest, epingle un `ws` que deux avis de securite visent
+# (epuisement memoire, et lecture de memoire non initialisee). Rien dans
+# l'arbre n'en propose un plus recent de lui-meme, et c'est de l'outillage de
+# test : l'override est moins couteux qu'attendre que happy-dom bouge.
+overrides:
+  ws: '>=8.21.0'
