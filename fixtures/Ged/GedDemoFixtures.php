@@ -114,7 +114,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['src' => 'images/portrait-placeholder.jpg',  'name' => 'portrait-team.jpg', 'original' => 'portrait-team.jpg', 'mime' => 'image/jpeg', 'w' => 800,  'h' => 1000],
             ['src' => 'images/workspace-placeholder.jpg', 'name' => 'office-setup.jpg',  'original' => 'office-setup.jpg',  'mime' => 'image/jpeg', 'w' => 1200, 'h' => 800],
             ['src' => 'videos/sample-30s-720p.mp4',  'name' => 'demo-video.mp4',   'original' => 'demo-video.mp4',   'mime' => 'video/mp4',  'w' => 1280, 'h' => 720],
-            ['src' => 'files/invoices/Commercial-Invoice-Sample.webp', 'name' => 'invoice-sample.webp', 'original' => 'invoice-sample.webp', 'mime' => 'image/webp', 'w' => 0, 'h' => 0],
+            ['src' => 'files/placeholders/document-placeholder.webp', 'name' => 'document-sample.webp', 'original' => 'document-sample.webp', 'mime' => 'image/webp', 'w' => 0, 'h' => 0],
         ];
 
         $media = [];
@@ -374,7 +374,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['title' => 'Architecture Technique Aurora - Whitepaper',  'cat' => 1, 'folder' => 0, 'tags' => [3],        'status' => DocumentStatusEnum::Archived,  'desc' => 'Document d\'architecture technique v1.x (archivé, remplacé par la version 2.x).', 'file' => $samplePdf],
             ['title' => 'Rapport Annuel 2024 - Aurora Tech',           'cat' => 4, 'folder' => 6, 'tags' => [0, 1],    'status' => DocumentStatusEnum::Draft,     'desc' => 'Bilan financier et opérationnel de l\'exercice 2024. En cours de validation.', 'file' => null],
             ['title' => 'Budget Prévisionnel 2025 - Aurora Tech',      'cat' => 4, 'folder' => 6, 'tags' => [0],        'status' => DocumentStatusEnum::Published, 'desc' => 'Budget prévisionnel approuvé par le comité de direction le 10 janvier 2025.', 'file' => $samplePdf],
-            ['title' => 'Facture Commerciale BTQ-2024-156',            'cat' => 4, 'folder' => 6, 'tags' => [0, 2],    'status' => DocumentStatusEnum::Published, 'desc' => 'Facture commerciale d\'exemple - Elegance Boutique → Canadian Fashion Hub. Numérisée pour audit douanier.', 'file' => 'files/invoices/Commercial-Invoice-Sample.webp'],
+            ['title' => 'Facture Commerciale 2025-156',                'cat' => 4, 'folder' => 6, 'tags' => [0, 2],    'status' => DocumentStatusEnum::Published, 'desc' => 'Facture numérisée, rattachée au dossier comptable de l\'exercice.', 'file' => 'files/placeholders/document-placeholder.webp'],
             ['title' => 'Charte Graphique Aurora - Brand Guidelines',  'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Couleurs, typographies, logos et règles d\'utilisation de la marque Aurora.', 'file' => $samplePdf],
             ['title' => 'Kit Presse Aurora Tech Day 2025',             'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Published, 'desc' => 'Communiqué de presse, visuels HD et biographies intervenants.', 'file' => $samplePdf],
             ['title' => 'Fiche de Poste - Développeur Full Stack',     'cat' => 3, 'folder' => 5, 'tags' => [4],        'status' => DocumentStatusEnum::Published, 'desc' => 'Description du poste, compétences requises et processus de recrutement.', 'file' => $samplePdf],

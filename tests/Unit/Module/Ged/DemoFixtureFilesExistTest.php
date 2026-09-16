@@ -6,6 +6,8 @@ namespace Aurora\Tests\Unit\Module\Ged;
 
 use PHPUnit\Framework\TestCase;
 
+use function in_array;
+
 /**
  * Every source file the GED demo fixture names has to be on disk.
  *
@@ -15,6 +17,22 @@ use PHPUnit\Framework\TestCase;
  */
 final class DemoFixtureFilesExistTest extends TestCase
 {
+    /**
+     * Sources the fixture names on purpose without shipping them.
+     *
+     * Only one, and it earns the exception. A thirty-second clip is eighteen
+     * megabytes in a public repository, and a video necessarily has a subject
+     * - the one that was there showed a park - which is precisely what the
+     * demo library is kept free of. Every other source is a flat gradient.
+     *
+     * The fixture's own fallback then files the row without bytes, and that
+     * is the case worth showing anyway: a document with nothing attached is
+     * what the upload flow is tested against.
+     */
+    private const array DELIBERATELY_ABSENT = [
+        'videos/sample-30s-720p.mp4',
+    ];
+
     public function testEveryDemoSourceFileIsPresent(): void
     {
         $root = dirname(__DIR__, 4);
@@ -27,6 +45,10 @@ final class DemoFixtureFilesExistTest extends TestCase
 
         $missing = [];
         foreach ($matches[1] as $relative) {
+            if (in_array($relative, self::DELIBERATELY_ABSENT, true)) {
+                continue;
+            }
+
             if (!is_file($root.'/test_files/'.$relative)) {
                 $missing[] = $relative;
             }
