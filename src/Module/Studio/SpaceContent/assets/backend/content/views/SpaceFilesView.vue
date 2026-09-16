@@ -24,9 +24,9 @@
  * It draws from the payload the other views already hold, so opening it costs
  * no request and it cannot disagree with the thumbnails on the board.
  */
-import { computed } from "vue";
+import { toRef } from "vue";
 import { useI18n } from "vue-i18n";
-import { useListViewMode } from "@/shared/composables/list/useListViewMode.js";
+import { useSpaceFiles } from "../composables/useSpaceFiles.js";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppImage from "@/shared/components/display/AppImage.vue";
@@ -39,34 +39,18 @@ const props = defineProps({
 
 const emit = defineEmits(["open-item"]);
 
-const { t, d, n } = useI18n();
+const { t, d } = useI18n();
 
-// Its own parameter rather than the shared `view`: the space's own switcher
-// already owns that word on this page, and `?files=grid` says which of the two
-// it describes.
-const { viewMode, storedViewMode, setViewMode, container } = useListViewMode(
-    ["grid", "list"],
-    "list",
-    "files",
-);
-
-const itemsById = computed(
-    () => new Map(props.items.map((item) => [item.id, item])),
-);
-
-/**
- * Every file of the space, flattened, newest first.
- *
- * The card id is carried on each row rather than looked up later: the payload
- * is keyed by card, so it is free here and it is what the click needs.
- */
-const files = computed(() =>
-    Object.entries(props.attachments)
-        .flatMap(([itemId, list]) =>
-            (list ?? []).map((file) => ({ ...file, itemId: Number(itemId) })),
-        )
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
-);
+const {
+    viewMode,
+    storedViewMode,
+    setViewMode,
+    container,
+    files,
+    itemOf,
+    titleOf,
+    weightOf,
+} = useSpaceFiles(toRef(props, "attachments"), toRef(props, "items"));
 
 /**
  * Opens the card the file is on.
@@ -76,23 +60,9 @@ const files = computed(() =>
  * subject to a number and blank every field, silently.
  */
 function open(itemId) {
-    const item = itemsById.value.get(itemId);
+    const item = itemOf(itemId);
 
     if (item) emit("open-item", item);
-}
-
-function titleOf(itemId) {
-    return (
-        itemsById.value.get(itemId)?.title
-        ?? t("backend.studio.space_content.files_unknown_card")
-    );
-}
-
-/** Bytes as the row shows them. Absent size is a file filed before the column existed. */
-function weight(file) {
-    if (!file.size) return null;
-
-    return `${n(Math.max(1, Math.round(file.size / 1024)))} ko`;
 }
 </script>
 
@@ -211,9 +181,9 @@ function weight(file) {
                         <span aria-hidden="true">·</span>
                         <span>{{ d(new Date(file.createdAt), "short") }}</span>
 
-                        <template v-if="weight(file)">
+                        <template v-if="weightOf(file)">
                             <span aria-hidden="true">·</span>
-                            <span>{{ weight(file) }}</span>
+                            <span>{{ weightOf(file) }}</span>
                         </template>
                     </p>
                 </div>

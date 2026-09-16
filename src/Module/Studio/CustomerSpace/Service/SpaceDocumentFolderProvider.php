@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\CustomerSpace\Service;
 
-use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolder;
+use Aurora\Module\Ged\DocumentFolder\Dto\DocumentFolderInputFactoryInterface;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
+use Aurora\Module\Ged\DocumentFolder\Manager\DocumentFolderManagerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityManagerInterface;
 
 use function mb_substr;
 
@@ -42,7 +43,11 @@ final readonly class SpaceDocumentFolderProvider
     /** `core_ged_document_folders.name` is 150. */
     private const int NAME_LIMIT = 150;
 
-    public function __construct(private ManagerRegistry $managerRegistry) {}
+    public function __construct(
+        private DocumentFolderManagerInterface $folders,
+        private DocumentFolderInputFactoryInterface $inputFactory,
+        private EntityManagerInterface $entityManager,
+    ) {}
 
     public function resolve(CustomerSpaceInterface $space): DocumentFolderInterface
     {
@@ -55,14 +60,12 @@ final readonly class SpaceDocumentFolderProvider
             return $existing;
         }
 
-        $entityManager = $this->managerRegistry->getManagerForClass(DocumentFolder::class);
+        $folder = $this->folders->create($this->inputFactory->fromArray([
+            'name' => mb_substr($space->getName(), 0, self::NAME_LIMIT),
+        ]));
 
-        $folder = new DocumentFolder();
-        $folder->setName(mb_substr($space->getName(), 0, self::NAME_LIMIT));
-
-        $entityManager->persist($folder);
         $space->setDocumentFolder($folder);
-        $entityManager->flush();
+        $this->entityManager->flush();
 
         return $folder;
     }
