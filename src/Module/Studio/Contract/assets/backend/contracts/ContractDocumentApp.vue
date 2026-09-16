@@ -23,6 +23,9 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+
+const { formatDateNumeric, formatDateTimeNumeric } = useDateFormat();
 import {
     ArrowLeft,
     CalendarX,
@@ -125,19 +128,19 @@ async function countersign() {
 const sealedAt = computed(() => {
     if (!seal.value.frozenAt) return null;
 
-    return new Date(seal.value.frozenAt).toLocaleString();
+    return formatDateTimeNumeric(seal.value.frozenAt);
 });
 
 /** Dates the server computed, formatted where the reader is. */
 const retainedUntil = computed(() =>
     contract.value.retainedUntil
-        ? new Date(contract.value.retainedUntil).toLocaleDateString()
+        ? formatDateNumeric(contract.value.retainedUntil)
         : null,
 );
 
 const lastReminderAt = computed(() =>
     contract.value.reminders?.lastAt
-        ? new Date(contract.value.reminders.lastAt).toLocaleDateString()
+        ? formatDateNumeric(contract.value.reminders.lastAt)
         : "-",
 );
 
@@ -210,14 +213,14 @@ const terminationDates = computed(() => {
     if (!record) return null;
 
     return {
-        noticedAt: new Date(record.noticedAt).toLocaleDateString(),
-        effectiveAt: new Date(record.effectiveAt).toLocaleDateString(),
+        noticedAt: formatDateNumeric(record.noticedAt),
+        effectiveAt: formatDateNumeric(record.effectiveAt),
     };
 });
 
 const refusedAt = computed(() =>
     contract.value.refusal?.refusedAt
-        ? new Date(contract.value.refusal.refusedAt).toLocaleString()
+        ? formatDateTimeNumeric(contract.value.refusal.refusedAt)
         : "-",
 );
 

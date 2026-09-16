@@ -4,6 +4,9 @@ import { useI18n } from "vue-i18n";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { useNotifications } from "./composables/useNotifications.js";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+
+const { formatDateNumeric } = useDateFormat();
 
 const props = defineProps({
     listPath: { type: String, required: true },
@@ -37,7 +40,7 @@ function formatDate(iso) {
     if (diffSeconds < 60) return t("backend.notifications.just_now");
     if (diffSeconds < 3600) return t("backend.notifications.minutes_ago", { n: Math.floor(diffSeconds / 60) });
     if (diffSeconds < 86400) return t("backend.notifications.hours_ago", { n: Math.floor(diffSeconds / 3600) });
-    return date.toLocaleDateString();
+    return formatDateNumeric(date.toISOString());
 }
 
 function onItemClick(entry) {

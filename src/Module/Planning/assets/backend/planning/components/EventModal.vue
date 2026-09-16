@@ -536,10 +536,9 @@ const when = computed(() => {
                             :label="t('backend.plannings.recurrence.ends')"
                             :options="endOptions"
                         />
-                        <AppInput
+                        <AppDatePicker
                             v-if="'until' === form.recurrence.end"
                             v-model="form.recurrence.until"
-                            type="date"
                             :placeholder="t('backend.plannings.recurrence.until_placeholder')"
                             class="flex-1"
                         />
