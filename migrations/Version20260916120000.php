@@ -16,9 +16,18 @@ use function sprintf;
  * Photo, Project, Erp, Hr, Vault, Assistant, PersonalFinance, Tools, PdfForm
  * and the old Notes in its `up()`, and drops them only in its `down()`. The
  * modules were extracted between July and August 2026; no migration since has
- * touched those tables. So every database built from this suite, a client's
- * production included, still carries 65 tables, 58 sequences and two columns
- * on `core_users` that no entity has mapped for months.
+ * touched those tables. So a database built from this suite *before* the
+ * extractions still carries 65 tables, 58 sequences and two columns on
+ * `core_users` that no entity has mapped for months.
+ *
+ * **A database built after them carries none**, which is worth saying because
+ * this docblock used to claim the opposite, "a client's production included",
+ * on the strength of having counted one machine. Measured on app.axelraboit.fr
+ * on 2026-09-16: none of the 65 tables, none of the 58 sequences, and neither
+ * column - its first applied migration is dated August 2026, after the last
+ * extraction, so the dead schema was never created there. This migration is a
+ * no-op on that install, which is the correct outcome and not a reason to
+ * narrow it: what it exists for is the databases that predate the split.
  *
  * The visible cost is `doctrine:migrations:diff`: it compares the mapping to
  * the schema, correctly finds 65 tables nothing maps, and proposes to drop
@@ -28,10 +37,10 @@ use function sprintf;
  * usable again.
  *
  * **`preUp()` refuses to run if any of those tables holds a row.** The check
- * is not ceremony. Locally every one of them is empty, and that is the only
- * database anyone has counted; a client who used a module before it was
- * extracted would have rows here, and a `DROP TABLE` would take them with no
- * way back. A deploy that stops with a list of table names is a problem
+ * is not ceremony. The two databases counted so far hold nothing - locally
+ * every one is empty, and on the production above they do not exist at all -
+ * but a client who used a module before it was extracted would have rows
+ * here, and a `DROP TABLE` would take them with no way back. A deploy that stops with a list of table names is a problem
  * somebody can solve. A deploy that succeeds and deletes their invoices is
  * not.
  *
