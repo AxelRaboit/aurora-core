@@ -6,6 +6,9 @@ on:
   push:
     branches: [master, develop]
   pull_request:
+  # Le job `lowest` ci-dessous ne tourne pas sur les pushes ; ceci permet de
+  # le lancer a la demande sans ouvrir une PR vers master.
+  workflow_dispatch:
 
 # A second push on the same ref cancels the previous in-flight run instead
 # of queueing a duplicate.
@@ -176,6 +179,110 @@ jobs:
       - name: Run frontend tests
         run: make test-frontend
 
+      - name: Run backend unit tests
+        run: make test-backend-unit
+
+      - name: Run backend integration tests
+        run: make test-backend-integration
+
+  lowest:
+    name: Minimums declares | PHP 8.4
+    # Une PR vers master est une release : c'est la que les contraintes de
+    # composer.json deviennent un contrat publie, et le seul moment ou il vaut
+    # la peine de payer un second run complet.
+    #
+    # **Ce que ce job repond, et que rien d'autre ne repondait.** La CI
+    # ci-dessus fait `composer install` depuis le lock commite, donc elle teste
+    # toujours une seule combinaison : celle qui a ete resolue le jour ou
+    # quelqu'un a lance `composer update`. Les minimums ecrits dans
+    # composer.json ne sont jamais exerces. Une contrainte qui dit `^3.0` alors
+    # que le code appelle une methode apparue en 3.4 passe donc au vert ici et
+    # casse chez le projet qui consomme la bibliotheque, puisque lui resout les
+    # contraintes et non le lock.
+    #
+    # Le reglage `bump-after-update` a longtemps masque ce trou en remontant
+    # mecaniquement les planchers a chaque update. Il enregistrait ce qui etait
+    # installe ce jour-la, pas ce dont le code a besoin, et il interdisait donc
+    # au consommateur des versions qui marchent. Mesure le 16/09/2026 : les
+    # 7496 tests passent aux minimums declares. Il est retire, et ce job est ce
+    # qui garde la question ouverte.
+    if: github.event_name == 'workflow_dispatch' || github.base_ref == 'master'
+    runs-on: ubuntu-latest
+    env:
+      extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_pgsql, dom, filter, json, tokenizer
+      APP_ENV: test
+      APP_SECRET: ci_secret_not_used_in_prod
+      DATABASE_URL: postgresql://app:!ChangeMe!@127.0.0.1:5432/aurora?serverVersion=18&charset=utf8
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: "!ChangeMe!"
+          POSTGRES_DB: aurora
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup PHP, extensions & composer with shivammathur/setup-php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          extensions: ${{ env.extensions }}
+          ini-values: post_max_size=256M, max_execution_time=180
+        env:
+          update: true
+
+      # Pas de cache composer : la resolution est justement ce qu'on veut
+      # refaire, et elle ne ramene pas les memes paquets que le job voisin.
+      - name: Install the declared minimums
+        run: composer update --prefer-lowest --prefer-stable --no-ansi --no-interaction --prefer-dist --no-scripts
+
+      - name: Show what was resolved
+        run: composer show --direct
+
+      - name: Create test database
+        env:
+          PGPASSWORD: "!ChangeMe!"
+        run: psql -h 127.0.0.1 -U app -d aurora -c "CREATE DATABASE aurora_test;"
+
+      - name: Run migrations
+        run: php bin/console doctrine:migrations:migrate --no-interaction
+
+      # Les assets sont construits parce que les tests d'integration rendent des
+      # pages, et le rendu d'un template passe par les tags Vite. Ils ne
+      # dependent pas de la resolution PHP, mais leur absence ferait echouer ce
+      # job pour une raison qui n'a rien a voir avec son sujet.
+      - name: Install Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Install pnpm
+        run: npm install -g pnpm@10
+
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build assets
+        run: pnpm build
+
+      - name: Create test database (dbname_suffix _test applied automatically by Doctrine in test env)
+        run: php bin/console doctrine:database:create --env=test --if-not-exists
+
+      - name: Run migrations on test database
+        run: php bin/console doctrine:migrations:migrate --env=test --no-interaction
+
+      # Ni lint ni analyse statique : ce job ne parle pas du style du code, il
+      # demande si le code tourne contre le plancher qu'on publie.
       - name: Run backend unit tests
         run: make test-backend-unit
 
