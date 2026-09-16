@@ -8,6 +8,7 @@ use Aurora\Core\Storage\BinaryFileServer;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 use function in_array;
+use function min;
 
 use const UPLOAD_ERR_FORM_SIZE;
 use const UPLOAD_ERR_INI_SIZE;
@@ -50,13 +51,21 @@ final readonly class UploadPolicy
      * picture, it is a document that can carry script.
      *
      * Twenty-five megabytes takes a phone photo, a short video and a press
-     * kit, which is what the surface is for. **It is only the second ceiling**:
-     * PHP's `upload_max_filesize` and `post_max_size` refuse first, and a
-     * default install caps them at 2M and 8M - below a photo from a phone. A
-     * deployment that wants this number to mean anything has to raise those to
-     * match.
+     * kit, which is what the surface is for. **It is a cap, not a setting**:
+     * `$ceilingBytes` is what the administrator allows for the install as a
+     * whole, and a guest gets the lower of the two. Raising the admin number
+     * never raises this one, because the person on the other end holds a
+     * secret address rather than an account, and how much of the disk they may
+     * fill is not a preference.
+     *
+     * **It is only the third ceiling** anyway: PHP's `upload_max_filesize` and
+     * `post_max_size` refuse first, and a default install caps them at 2M and
+     * 8M, below a photo from a phone. A deployment that wants any of these
+     * numbers to mean something has to raise those to match.
      */
-    public static function forSpaceGuests(): self
+    public const int GUEST_CAP_BYTES = 25 * 1024 * 1024;
+
+    public static function forSpaceGuests(int $ceilingBytes): self
     {
         return new self(
             [
@@ -70,7 +79,7 @@ final readonly class UploadPolicy
                 'video/mp4',
                 'video/quicktime',
             ],
-            25 * 1024 * 1024,
+            min($ceilingBytes, self::GUEST_CAP_BYTES),
         );
     }
 
@@ -82,10 +91,15 @@ final readonly class UploadPolicy
      * execution vector is closed when the file is served, and the thing left
      * to protect is the disk - which until 2026-09-16 nothing protected at
      * all: neither endpoint checked a size.
+     *
+     * The ceiling is the administrator's, read from `max_upload_size_mb`.
+     * Until 2026-09-16 it was 100MB hard-coded here while that setting sat in
+     * the panel being read by nobody, which meant the number somebody typed
+     * was not the number that applied.
      */
-    public static function forStaffDocuments(): self
+    public static function forStaffDocuments(int $ceilingBytes): self
     {
-        return new self(null, 100 * 1024 * 1024);
+        return new self(null, $ceilingBytes);
     }
 
     /**

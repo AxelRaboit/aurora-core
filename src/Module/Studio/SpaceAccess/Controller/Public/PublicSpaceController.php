@@ -9,6 +9,7 @@ use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Storage\Access\UploadPolicy;
+use Aurora\Core\Storage\Access\UploadPolicyProvider;
 use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Storage\Adapter\StorageAdapterInterface;
 use Aurora\Core\Storage\Adapter\StoredObject;
@@ -77,6 +78,7 @@ final class PublicSpaceController extends AbstractController
         // address is not the same offer as forty clicks.
         private readonly RateLimiterFactoryInterface $spaceGuestUploadLimiter,
         private readonly SpaceContentAttachmentRepository $attachmentRepository,
+        private readonly UploadPolicyProvider $uploadPolicies,
         private readonly BinaryFileServer $binaryFileServer,
         private readonly StoredFileLocator $locator,
         #[Autowire(param: 'app.upload_dir')]
@@ -265,7 +267,7 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonInvalidInput(['file' => 'studio.public.space.errors.upload_required']);
         }
 
-        $refusal = UploadPolicy::forSpaceGuests()->refusalFor($file);
+        $refusal = $this->uploadPolicies->forSpaceGuests()->refusalFor($file);
 
         if ($refusal instanceof UploadRefusalEnum) {
             // The reason is mapped to this surface's own words: the same rule

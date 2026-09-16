@@ -172,4 +172,6 @@ use Aurora\Core\Testing\Concern\CreatesStorageUrlGenerators;
 ## Voir aussi
 
 - [[pattern_core_submodules_split]] - chaque module owne son domaine
-- [[decision_4_hard_rules]] - pas d'import `Core → Module`
+- [[decision_4_hard_rules]] - les hooks de Manager (ce document ne parle pas
+  des imports : `Core` importe bien `SettingRepository` du module
+  Configuration, c'est le cas établi par `LocaleContext` et le contexte front)

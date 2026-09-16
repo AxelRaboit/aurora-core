@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Aurora\Module\Configuration\Setting\Enum;
 
 use Aurora\Core\Sequence\SequencePrefixEnum;
+use Aurora\Core\Storage\Access\UploadPolicy;
+use Aurora\Core\Storage\Access\UploadPolicyProvider;
 
 use const JSON_THROW_ON_ERROR;
 
@@ -17,8 +19,21 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
     case DefaultLocale = 'default_locale';
     case SingleLocaleMode = 'single_locale_mode';
     case PostsPerPage = 'posts_per_page';
+    /**
+     * The ceiling, in megabytes, on anything filed anywhere.
+     *
+     * Read by {@see UploadPolicyProvider}. It
+     * was read by nobody until 2026-09-16: the ceilings lived in
+     * `UploadPolicy` while this sat in the panel, so lowering it changed
+     * nothing.
+     *
+     * `allowed_upload_extensions` stood next to it and was removed rather than
+     * wired, because the library declines to keep a type allow-list on
+     * purpose - {@see UploadPolicy} argues it
+     * at length, and the wall is at the serving end. Making it real would have
+     * been a restriction nobody decided on; leaving it was a control that lied.
+     */
     case MaxUploadSizeMb = 'max_upload_size_mb';
-    case AllowedUploadExtensions = 'allowed_upload_extensions';
     case FileVersionsLimit = 'file_versions_limit';
     case MediaCreditVisible = 'media_credit_visible';
     case Timezone = 'timezone';
@@ -125,7 +140,6 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::SingleLocaleMode => 'backend.parameters.single_locale_mode.label',
             self::PostsPerPage => 'backend.parameters.posts_per_page.label',
             self::MaxUploadSizeMb => 'backend.parameters.max_upload_size_mb.label',
-            self::AllowedUploadExtensions => 'backend.parameters.allowed_upload_extensions.label',
             self::Timezone => 'backend.parameters.timezone.label',
             self::DateFormat => 'backend.parameters.date_format.label',
             self::CommentsEnabled => 'backend.parameters.comments_enabled.label',
@@ -192,7 +206,6 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::SingleLocaleMode => 'backend.parameters.single_locale_mode.description',
             self::PostsPerPage => 'backend.parameters.posts_per_page.description',
             self::MaxUploadSizeMb => 'backend.parameters.max_upload_size_mb.description',
-            self::AllowedUploadExtensions => 'backend.parameters.allowed_upload_extensions.description',
             self::Timezone => 'backend.parameters.timezone.description',
             self::DateFormat => 'backend.parameters.date_format.description',
             self::CommentsEnabled => 'backend.parameters.comments_enabled.description',
@@ -264,8 +277,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::DefaultLocale => 'fr',
             self::SingleLocaleMode => '0',
             self::PostsPerPage => '10',
-            self::MaxUploadSizeMb => '20',
-            self::AllowedUploadExtensions => 'jpg,jpeg,png,gif,webp,svg,pdf,doc,docx,xls,xlsx,zip',
+            self::MaxUploadSizeMb => '100',
             self::Timezone => 'Europe/Paris',
             self::DateFormat => 'd/m/Y',
             self::CommentsEnabled => '1',
@@ -351,7 +363,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::SiteName, self::SiteDescription, self::SiteUrl, self::AdminEmail => 'general',
             self::DefaultLocale, self::SingleLocaleMode, self::Timezone, self::DateFormat => 'localization',
             self::PostsPerPage, self::CommentsEnabled, self::CommentModerationEnabled, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays, self::HomepagePostId, self::DefaultFront => 'reading',
-            self::MaxUploadSizeMb, self::AllowedUploadExtensions, self::FileVersionsLimit, self::MediaCreditVisible => 'media',
+            self::MaxUploadSizeMb, self::FileVersionsLimit, self::MediaCreditVisible => 'media',
             self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled => 'system',
             self::LogoMediaId, self::FaviconMediaId => 'branding',
             self::SeoTitleTemplate, self::SeoDefaultDescription, self::SeoDefaultOgImage, self::SeoTwitterHandle => 'seo',
@@ -380,7 +392,6 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::SeoDefaultDescription => 'backend.parameters.seo_default_description.placeholder',
             self::SeoTwitterHandle => 'backend.parameters.seo_twitter_handle.placeholder',
             self::MaxUploadSizeMb => 'backend.parameters.max_upload_size_mb.placeholder',
-            self::AllowedUploadExtensions => 'backend.parameters.allowed_upload_extensions.placeholder',
             default => null,
         };
     }

@@ -188,12 +188,8 @@ backend:
       placeholder: 10
     max_upload_size_mb:
       label: Taille max d'upload (Mo)
-      description: 'Taille maximale autorisée pour un upload média, en mégaoctets'
-      placeholder: 8
-    allowed_upload_extensions:
-      label: Extensions autorisées
-      description: "Liste d'extensions autorisées séparées par virgule (jpg,png,pdf,…)"
-      placeholder: jpg,jpeg,png,gif,webp,pdf
+      description: "Plafond, en mégaoctets, de tout fichier déposé - bibliothèque comme espaces clients. Les invités d'un espace restent en plus limités à 25 Mo."
+      placeholder: 100
     timezone:
       label: Fuseau horaire
       description: 'Fuseau horaire PHP (ex: Europe/Paris)'

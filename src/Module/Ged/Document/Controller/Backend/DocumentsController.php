@@ -8,6 +8,7 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Storage\Access\UploadPolicy;
+use Aurora\Core\Storage\Access\UploadPolicyProvider;
 use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Storage\Enum\MimeGroupEnum;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
@@ -74,6 +75,7 @@ final class DocumentsController extends AbstractController
         private readonly MessageBusInterface $messageBus,
         private readonly StorageSettings $storageSettings,
         private readonly DocumentRepository $documentRepository,
+        private readonly UploadPolicyProvider $uploadPolicies,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -479,7 +481,7 @@ final class DocumentsController extends AbstractController
         // and what made the formats dangerous is closed where the file is
         // served rather than where it arrives. What it does now is cap the
         // disk, which nobody was doing.
-        if (($refusal = UploadPolicy::forStaffDocuments()->refusalFor($file)) instanceof UploadRefusalEnum) {
+        if (($refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file)) instanceof UploadRefusalEnum) {
             return $this->jsonFailure($this->uploadRefusalKey($refusal));
         }
 
@@ -558,7 +560,7 @@ final class DocumentsController extends AbstractController
             return $this->jsonFailure('backend.ged.documents.errors.image_required');
         }
 
-        if (($refusal = UploadPolicy::forStaffDocuments()->refusalFor($file)) instanceof UploadRefusalEnum) {
+        if (($refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file)) instanceof UploadRefusalEnum) {
             return $this->jsonFailure($this->uploadRefusalKey($refusal));
         }
 

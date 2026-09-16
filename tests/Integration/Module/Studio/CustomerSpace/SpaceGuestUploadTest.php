@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\CustomerSpace;
 
-use Aurora\Core\Storage\Access\UploadPolicy;
+use Aurora\Core\Storage\Access\UploadPolicyProvider;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
@@ -194,7 +194,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         $item = $this->givenItem($space);
 
         $big = $this->workDir.'/big.jpg';
-        file_put_contents($big, $this->jpegBytes().str_repeat("\0", UploadPolicy::forSpaceGuests()->maxBytes));
+        file_put_contents($big, $this->jpegBytes().str_repeat("\0", static::getContainer()->get(UploadPolicyProvider::class)->forSpaceGuests()->maxBytes));
 
         $this->upload($url, $item['id'], new UploadedFile($big, 'big.jpg', 'image/jpeg', null, true));
 

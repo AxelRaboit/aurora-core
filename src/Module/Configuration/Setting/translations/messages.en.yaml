@@ -188,12 +188,8 @@ backend:
       placeholder: 10
     max_upload_size_mb:
       label: Max upload size (MB)
-      description: 'Maximum allowed size for a media upload, in megabytes'
-      placeholder: 8
-    allowed_upload_extensions:
-      label: Allowed extensions
-      description: 'Comma-separated list of allowed extensions (jpg,png,pdf,…)'
-      placeholder: jpg,jpeg,png,gif,webp,pdf
+      description: 'Ceiling, in megabytes, on every file filed - library and client spaces alike. Space guests stay additionally capped at 25 MB.'
+      placeholder: 100
     timezone:
       label: Timezone
       description: PHP timezone (e.g. Europe/Paris)
