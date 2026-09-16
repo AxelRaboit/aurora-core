@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Notes\Markdown\Service;
 
+use Aurora\Core\Storage\BinaryFileServer;
 use Aurora\Core\Storage\Enum\MimeTypeEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use RuntimeException;
@@ -162,5 +163,18 @@ final readonly class MarkdownNoteImageService
     private function userDir(CoreUserInterface $user): string
     {
         return Path::join($this->storageDir, (string) $user->getId());
+    }
+
+    /**
+     * The directory every note image resolves under.
+     *
+     * Handed to {@see BinaryFileServer} as the allowed
+     * root so its `realpath` check has something to compare against. The
+     * per-user guard is still {@see Path()}'s job - this only says how far
+     * out of the tree a resolved path may not climb.
+     */
+    public function root(): string
+    {
+        return $this->storageDir;
     }
 }

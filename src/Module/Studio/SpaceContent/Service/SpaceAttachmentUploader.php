@@ -24,9 +24,20 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  * the contracts category; one that could leave it a draft would put a file on a
  * card that nobody can find again in GED.
  *
- * **Published, not draft**, so the file is reachable from GED's own screens
- * afterwards. A document on a client's card that is invisible in the document
- * library is the disorder this exists to avoid, not a safe default.
+ * **Draft, not published, and that is the security decision.** A published
+ * document is served by the public catch-all to anybody holding its address,
+ * with no session - so a photo a client sent for their February carousel would
+ * have stayed readable at a fixed URL after their link was revoked. Filed as a
+ * draft it is addressed through `backend_ged_files` for staff and through the
+ * space's own link route for the client, and revoking the link actually
+ * revokes the files.
+ *
+ * The cost is real and worth naming: GED's picker lists published documents
+ * only, so a file that arrived through a space is not offered as a banner
+ * image elsewhere. That reads as the right answer rather than a compromise - a
+ * customer's photo is not site furniture - and the studio can publish it in
+ * GED deliberately if it should be. It is still listed in GED's own screens,
+ * filed under the client-spaces category; only the picker skips it.
  *
  * Nothing here decides whether the caller is allowed to upload. The right lives
  * on the link and is checked before this is reached, which is the same division
@@ -51,7 +62,7 @@ final readonly class SpaceAttachmentUploader
             // which is the detour this exists to remove. It stays editable in
             // GED like any other document.
             'title' => $uploaded['originalName'],
-            'status' => DocumentStatusEnum::Published->value,
+            'status' => DocumentStatusEnum::Draft->value,
             'categoryId' => (int) $this->spaceAttachmentCategoryProvider->resolve()->getId(),
             'filePath' => $uploaded['filePath'],
             'fileName' => $uploaded['fileName'],

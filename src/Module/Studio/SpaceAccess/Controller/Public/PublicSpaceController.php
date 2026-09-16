@@ -8,8 +8,16 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Storage\Access\UploadPolicy;
+use Aurora\Core\Storage\Access\UploadRefusalEnum;
+use Aurora\Core\Storage\Adapter\StorageAdapterInterface;
+use Aurora\Core\Storage\Adapter\StoredObject;
+use Aurora\Core\Storage\BinaryFileServer;
+use Aurora\Core\Storage\StoredFileLocator;
+use Aurora\Core\Storage\Workspace\LocalPathAware;
 use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
+use Aurora\Module\Ged\Document\Controller\Backend\GedFilesController;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\View\PublicSpaceViewBuilder;
@@ -18,13 +26,16 @@ use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentCommentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
+use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
-use Aurora\Module\Studio\SpaceContent\Service\SpaceGuestUploadPolicy;
+use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -60,12 +71,16 @@ final class PublicSpaceController extends AbstractController
         // contract controller reaches its own.
         private readonly RateLimiterFactoryInterface $spaceGuestWriteLimiter,
         private readonly SpaceContentAttachmentManagerInterface $attachments,
-        private readonly SpaceGuestUploadPolicy $uploadPolicy,
         // A limiter of its own rather than the one above. A verdict is a row; a
         // file is megabytes through the whole pipeline - storage, thumbnailing,
         // a poster frame for a video - and forty of those an hour from one
         // address is not the same offer as forty clicks.
         private readonly RateLimiterFactoryInterface $spaceGuestUploadLimiter,
+        private readonly SpaceContentAttachmentRepository $attachmentRepository,
+        private readonly BinaryFileServer $binaryFileServer,
+        private readonly StoredFileLocator $locator,
+        #[Autowire(param: 'app.upload_dir')]
+        private readonly string $uploadRoot,
     ) {}
 
     /**
@@ -151,7 +166,7 @@ final class PublicSpaceController extends AbstractController
 
         $this->links->markOpened($link);
 
-        return $this->jsonSuccess($this->viewBuilder->threadPayload($link));
+        return $this->jsonSuccess($this->viewBuilder->threadPayload($link, $token));
     }
 
     /**
@@ -200,7 +215,7 @@ final class PublicSpaceController extends AbstractController
 
         $this->links->markOpened($link);
 
-        return $this->jsonSuccess($this->viewBuilder->threadPayload($link));
+        return $this->jsonSuccess($this->viewBuilder->threadPayload($link, $token));
     }
 
     /**
@@ -210,7 +225,7 @@ final class PublicSpaceController extends AbstractController
      * outer one and counts by address. The link's own `canUpload` is the
      * middle one, and a link without it gets the same 404 a stranger gets -
      * saying "you may read but not send" would tell somebody holding a leaked
-     * address exactly what they hold. {@see SpaceGuestUploadPolicy} is the
+     * address exactly what they hold. {@see UploadPolicy::forSpaceGuests()} is the
      * inner one and is the only one that looks at the file: what a browser
      * calls it is written by whoever is uploading, so the type is sniffed from
      * the bytes.
@@ -250,10 +265,16 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonInvalidInput(['file' => 'studio.public.space.errors.upload_required']);
         }
 
-        $refusal = $this->uploadPolicy->refusalFor($file);
+        $refusal = UploadPolicy::forSpaceGuests()->refusalFor($file);
 
-        if (null !== $refusal) {
-            return $this->jsonInvalidInput(['file' => $refusal]);
+        if ($refusal instanceof UploadRefusalEnum) {
+            // The reason is mapped to this surface's own words: the same rule
+            // speaks to a colleague in the back office and to a customer here.
+            return $this->jsonInvalidInput(['file' => match ($refusal) {
+                UploadRefusalEnum::TooLarge => 'studio.public.space.errors.upload_too_large',
+                UploadRefusalEnum::TypeRefused => 'studio.public.space.errors.upload_type_refused',
+                UploadRefusalEnum::Broken => 'studio.public.space.errors.upload_failed',
+            }]);
         }
 
         try {
@@ -265,7 +286,118 @@ final class PublicSpaceController extends AbstractController
 
         $this->links->markOpened($link);
 
-        return $this->jsonSuccess($this->viewBuilder->threadPayload($link));
+        return $this->jsonSuccess($this->viewBuilder->threadPayload($link, $token));
+    }
+
+    /**
+     * A file on one of this space's cards, read through the link that shows it.
+     *
+     * **This route exists so that revoking an access actually revokes it.**
+     * The files used to be published GED documents, which the public catch-all
+     * serves to anybody holding the address with no session at all: a client
+     * whose link had been revoked kept a working URL for every visual on their
+     * board, for ever. They are filed as drafts now, which closes the
+     * catch-all, and this is where the client reads them instead - behind the
+     * same `resolveUsable()` that gates the page itself, so expiry and
+     * revocation reach the files the moment they reach the page.
+     *
+     * No rate limiter: this is a read, and the page it serves already draws
+     * every thumbnail it holds. The wall is the link.
+     *
+     * A 404 for everything - a bad token, a revoked link, a file belonging to
+     * another space - for the reason the writes give: distinguishing them
+     * tells whoever holds a leaked address what they hold.
+     */
+    #[Route(
+        '/{selector}/{token}/attachments/{attachmentId}/{variant}',
+        name: '_attachment_file',
+        requirements: [
+            'selector' => '[a-f0-9]{32}',
+            'token' => '[a-f0-9]{64}',
+            'attachmentId' => '\d+',
+            'variant' => 'file|preview',
+        ],
+        defaults: ['variant' => 'file'],
+        methods: [HttpMethodEnum::Get->value],
+    )]
+    public function attachmentFile(string $selector, string $token, int $attachmentId, string $variant): Response
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        $attachment = $this->attachmentRepository->find($attachmentId);
+
+        // The card the file hangs on has to belong to the space this link
+        // opens. Without this line the id in the address reaches every file of
+        // every client.
+        if (null === $attachment
+            || $attachment->getItem()->getSpace()->getId() !== $link->getSpace()->getId()
+        ) {
+            throw $this->createNotFoundException();
+        }
+
+        $document = $attachment->getDocument();
+        $key = 'preview' === $variant
+            ? ($document->getVariants()['thumbnail'] ?? $document->getThumbnailPath())
+            : $document->getFilePath();
+
+        if (null === $key || '' === $key) {
+            throw $this->createNotFoundException();
+        }
+
+        $adapter = $this->locator->locate($key);
+
+        if (!$adapter instanceof StorageAdapterInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        if ($adapter instanceof LocalPathAware) {
+            try {
+                return $this->binaryFileServer->serve(
+                    $this->binaryFileServer->path($this->uploadRoot, $key),
+                    $this->uploadRoot,
+                );
+            } catch (RuntimeException) {
+                throw $this->createNotFoundException();
+            }
+        }
+
+        return $this->streamThrough($adapter, $key);
+    }
+
+    /**
+     * Streamed rather than redirected, for the reason
+     * {@see GedFilesController}
+     * gives: a signed link or a public hostname would outlive this
+     * authorisation, and a file anybody can re-fetch afterwards has not been
+     * withheld.
+     */
+    private function streamThrough(StorageAdapterInterface $adapter, string $key): Response
+    {
+        $stored = $adapter->stat($key);
+
+        $response = new StreamedResponse(static function () use ($adapter, $key): void {
+            foreach ($adapter->readStream($key) as $chunk) {
+                echo $chunk;
+                flush();
+            }
+        });
+
+        $response->setPrivate();
+        $response->setMaxAge(3600);
+
+        if ($stored instanceof StoredObject) {
+            $response->headers->set('Content-Length', (string) $stored->size);
+
+            if (null !== $stored->checksum) {
+                $response->setEtag($stored->checksum);
+            }
+        }
+
+        return $response;
     }
 
     /**

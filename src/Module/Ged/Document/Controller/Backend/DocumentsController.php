@@ -7,6 +7,8 @@ namespace Aurora\Module\Ged\Document\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Storage\Access\UploadPolicy;
+use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Storage\Enum\MimeGroupEnum;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Storage\Service\VideoCapture;
@@ -470,7 +472,35 @@ final class DocumentsController extends AbstractController
             return $this->jsonFailure('backend.ged.documents.errors.upload_required');
         }
 
+        // Until 2026-09-16 this endpoint checked nothing at all - not a type,
+        // not a size - and the only wall was the privilege above. The staff
+        // profile still accepts any type, deliberately: a document library
+        // that refuses formats is one people work around by renaming things,
+        // and what made the formats dangerous is closed where the file is
+        // served rather than where it arrives. What it does now is cap the
+        // disk, which nobody was doing.
+        if (($refusal = UploadPolicy::forStaffDocuments()->refusalFor($file)) instanceof UploadRefusalEnum) {
+            return $this->jsonFailure($this->uploadRefusalKey($refusal));
+        }
+
         return $this->jsonSuccess($this->uploader->upload($file, $this->videoCapture($request)));
+    }
+
+    /**
+     * This surface's words for a refusal.
+     *
+     * The rule lives in {@see UploadPolicy} and says nothing in any language;
+     * the same rule answers a customer on a client space, in that page's own
+     * namespace. Three keys and not one, because "the upload failed" covering
+     * all three is what makes somebody retry the identical file.
+     */
+    private function uploadRefusalKey(UploadRefusalEnum $refusal): string
+    {
+        return match ($refusal) {
+            UploadRefusalEnum::TooLarge => 'backend.ged.documents.errors.upload_too_large',
+            UploadRefusalEnum::TypeRefused => 'backend.ged.documents.errors.upload_type_refused',
+            UploadRefusalEnum::Broken => 'backend.ged.documents.errors.upload_failed',
+        };
     }
 
     /**
@@ -526,6 +556,10 @@ final class DocumentsController extends AbstractController
         // <img> - a PDF would file silently and render as a broken picture.
         if (!str_starts_with((string) $file->getMimeType(), 'image/')) {
             return $this->jsonFailure('backend.ged.documents.errors.image_required');
+        }
+
+        if (($refusal = UploadPolicy::forStaffDocuments()->refusalFor($file)) instanceof UploadRefusalEnum) {
+            return $this->jsonFailure($this->uploadRefusalKey($refusal));
         }
 
         return $this->jsonSuccess([

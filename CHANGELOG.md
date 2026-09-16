@@ -5,6 +5,96 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.188] - 2026-09-16
+
+### Sécurité
+
+Un audit des sept portes d'entrée de fichiers a remonté cinq défauts. Tous
+corrigés ici, et chacun avec le test qui l'aurait attrapé.
+
+#### Deux zones privées étaient lisibles par n'importe qui
+`UploadAccessDecider` laisse anonyme un préfixe que personne ne revendique.
+C'est délibéré et documenté : refuser l'inconnu casserait un client qui range
+ses fichiers sous un préfixe qu'aurora-core ne connaît pas. Le prix, c'est
+qu'une zone privée que personne ne revendique est publique en silence.
+
+Deux l'étaient. **Mesuré : un fichier sous `profile-photos/` comme sous
+`notes-markdown/` répondait 200 sans aucune session.** Pour les notes c'est
+l'inverse exact de ce que leur service revendique dans son propre docblock, où
+il explique ranger ses images hors de la racine publique justement pour forcer
+la lecture par un contrôleur qui vérifie à qui elles appartiennent : la route
+fourre-tout `/uploads/{path}` passait à côté de tout ça.
+
+Les deux zones ont maintenant leur garde. Les avatars se lisent par
+`/backend/platform/profile-photos/…`, sous le pare-feu, et un avatar ne peut
+donc plus être rendu sur une page publique. Rien n'en affiche aujourd'hui.
+
+#### Les noms de fichiers étaient devinables
+Toute cette sécurité repose sur « l'adresse est indevinable ». Elle l'était
+mal : les noms se composaient de `slug(nom d'origine) + uniqid()`, dont la
+première moitié est souvent devinable (`logo.png`, `cv.pdf`) et la seconde
+n'est pas aléatoire mais **dérivée de l'horloge à la microseconde**. Une photo
+de profil était pire : l'identifiant du compte suivi du même horodatage.
+
+`StoredFileName` produit désormais 16 octets du CSPRNG et rien d'autre. Le nom
+lisible n'est pas perdu, il est rangé : `originalName` le garde en base, où un
+téléchargement s'en sert. Sur le disque, il ne faisait que renseigner.
+
+#### Révoquer un accès client ne révoquait pas ses fichiers
+Un fichier déposé sur une fiche d'espace était un document GED **publié**, donc
+servi par la route fourre-tout à qui connaissait l'adresse. Le lien expirait,
+les adresses des visuels restaient valides indéfiniment.
+
+Ces fichiers sont classés en **brouillon**, ce qui ferme le fourre-tout, et
+chaque surface lit les siens par une route adossée à ce qui lui donne accès au
+tableau : le studio par `/workspace/{id}/attachments/…` sous son propre
+privilège, le client par `/spaces/{selector}/{token}/attachments/…` derrière la
+même résolution de lien que la page. Révoquer atteint les fichiers au moment où
+ça atteint la page.
+
+Le coût est réel : le sélecteur de la GED ne liste que les documents publiés,
+donc un fichier arrivé par un espace n'est plus proposé comme bannière
+ailleurs. Ça se lit comme la bonne réponse plutôt qu'un compromis — la photo
+d'un client n'est pas du mobilier de site — et le studio peut le publier
+délibérément. Il reste listé dans la GED, classé sous « Espaces clients ».
+
+#### La GED n'imposait aucune limite à ses propres dépôts
+Ni type ni taille sur les deux endpoints : le seul mur était le privilège. La
+politique écrite pour les invités est généralisée en `UploadPolicy`, avec deux
+profils. Celui d'équipe accepte **tous** les types et c'est voulu : une
+bibliothèque documentaire qui refuse des formats est une bibliothèque qu'on
+contourne en renommant, et ce qui rendait ces formats dangereux est fermé au
+moment où le fichier est servi. Ce qu'il fait, c'est plafonner le disque, ce
+que personne ne faisait.
+
+#### Le nettoyage des orphelins ne voyait qu'une zone sur quatre
+`aurora:ged:prune-orphans` balayait `ged/`. Une photo de profil remplacée, le
+PDF d'un contrat supprimé : rien ne les comptait. C'est maintenant
+`aurora:storage:prune-orphans` (l'ancien nom reste un alias), et chaque zone
+répond d'elle-même par un `ReferencedKeysProviderInterface`.
+
+**Une zone sans fournisseur est sautée, pas balayée**, et le sens compte : un
+balayage incapable de nommer ce qu'un module référence supprimerait les
+fichiers de ce module. `--verbose` dit laquelle et pourquoi. Les images de
+notes sont l'exemple : elles sont référencées depuis le corps des notes, qui
+est chiffré, donc les nommer voudrait dire déchiffrer toute la base. Le module
+nettoie derrière ses propres éditions à la place.
+
+### Dans aurora-client
+`make aurora-update`, puis `make cc`.
+
+**Les fichiers déjà en place ne bougent pas** et gardent leur ancien nom : la
+correction porte sur ce qui est écrit à partir de maintenant. Deux
+conséquences immédiates en revanche, à vérifier après mise à jour :
+
+- **les avatars changent d'adresse.** Toute surface publique qui en afficherait
+  un cesserait de fonctionner. Aucune ne le fait dans aurora-core ;
+- **les anciens fichiers d'espace client restent publiés**, donc encore
+  lisibles par leur adresse. Pour les fermer, il faut les repasser en brouillon
+  dans la GED. Les nouveaux dépôts sont corrects sans rien faire.
+
+---
+
 ## [0.9.187] - 2026-09-16
 
 ### Ajouté

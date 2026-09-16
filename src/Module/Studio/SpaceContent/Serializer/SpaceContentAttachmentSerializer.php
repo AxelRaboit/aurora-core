@@ -5,17 +5,23 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceContent\Serializer;
 
 use Aurora\Core\Storage\Enum\MimeGroupEnum;
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use Aurora\Module\Studio\Deck\Service\DeckPicture;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachmentInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use const DATE_ATOM;
 
 #[AsAlias(SpaceContentAttachmentSerializerInterface::class)]
 class SpaceContentAttachmentSerializer implements SpaceContentAttachmentSerializerInterface
 {
-    public function __construct(protected readonly DocumentUrlGenerator $documentUrls) {}
+    public function __construct(
+        protected readonly DocumentUrlGenerator $documentUrls,
+        protected readonly UrlGeneratorInterface $urlGenerator,
+    ) {}
 
     /**
      * The same shape on both sides, like the thread.
@@ -36,7 +42,53 @@ class SpaceContentAttachmentSerializer implements SpaceContentAttachmentSerializ
     public function serialize(SpaceContentAttachmentInterface $attachment): array
     {
         $document = $attachment->getDocument();
-        $isImage = MimeGroupEnum::Image->matches($document->getMimeType());
+
+        $parameters = [
+            'id' => $attachment->getItem()->getSpace()->getId(),
+            'attachmentId' => $attachment->getId(),
+        ];
+
+        return $this->shape($attachment) + [
+            // Through the space's own route, not GED's. A file uploaded here
+            // is a draft, which GED addresses through `backend_ged_files` and
+            // gates on `ged.documents.view` - a privilege somebody who manages
+            // client spaces need not hold, and without which the board would
+            // draw broken images and say nothing. Whatever grants the board
+            // grants what is on it, on both surfaces.
+            'url' => $this->urlGenerator->generate('workspace_space_content_attachment_file', $parameters + ['variant' => 'file']),
+            'preview' => $this->isImage($document)
+                ? $this->urlGenerator->generate('workspace_space_content_attachment_file', $parameters + ['variant' => 'preview'])
+                : null,
+        ];
+    }
+
+    public function serializeForGuest(
+        SpaceContentAttachmentInterface $attachment,
+        SpaceAccessLinkInterface $link,
+        string $token,
+    ): array {
+        $parameters = [
+            'selector' => $link->getSelector(),
+            'token' => $token,
+            'attachmentId' => $attachment->getId(),
+        ];
+
+        return $this->shape($attachment) + [
+            'url' => $this->urlGenerator->generate('public_space_attachment_file', $parameters + ['variant' => 'file']),
+            'preview' => $this->isImage($attachment->getDocument())
+                ? $this->urlGenerator->generate('public_space_attachment_file', $parameters + ['variant' => 'preview'])
+                : null,
+        ];
+    }
+
+    /**
+     * Everything that does not depend on who is reading.
+     *
+     * @return array<string, mixed>
+     */
+    protected function shape(SpaceContentAttachmentInterface $attachment): array
+    {
+        $document = $attachment->getDocument();
 
         return [
             'id' => $attachment->getId(),
@@ -46,13 +98,16 @@ class SpaceContentAttachmentSerializer implements SpaceContentAttachmentSerializ
             'originalName' => $document->getOriginalName(),
             'mimeType' => $document->getMimeType(),
             'size' => $document->getSize(),
-            'url' => $this->documentUrls->publicUrl($document),
-            'preview' => $isImage ? $this->documentUrls->thumbUrl($document) : null,
             // The durable name, not the relation: an account can be deleted and
             // a link revoked, and "who sent this photo" is asked long after.
             'author' => $attachment->getAuthorLabel(),
             'fromClient' => $attachment->isFromClient(),
             'createdAt' => $attachment->getCreatedAt()->format(DATE_ATOM),
         ];
+    }
+
+    protected function isImage(DocumentInterface $document): bool
+    {
+        return MimeGroupEnum::Image->matches($document->getMimeType());
     }
 }

@@ -7,9 +7,15 @@ namespace Aurora\Module\Studio\SpaceContent\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Storage\Adapter\StorageAdapterInterface;
+use Aurora\Core\Storage\Adapter\StoredObject;
+use Aurora\Core\Storage\BinaryFileServer;
+use Aurora\Core\Storage\StoredFileLocator;
+use Aurora\Core\Storage\Workspace\LocalPathAware;
 use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Core\Validation\Service\PayloadValidator;
+use Aurora\Module\Ged\Document\Controller\Backend\GedFilesController;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
@@ -25,12 +31,15 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentCommentManagerInterfac
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
 use Aurora\Module\Studio\SpaceContent\View\SpaceBoardViewBuilder;
+use RuntimeException;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -73,6 +82,10 @@ class SpaceContentController extends AbstractController
         protected readonly SpaceContentColumnInputFactoryInterface $columnInputFactory,
         protected readonly SpaceBoardViewBuilder $viewBuilder,
         protected readonly PayloadValidator $payloadValidator,
+        protected readonly BinaryFileServer $binaryFileServer,
+        protected readonly StoredFileLocator $locator,
+        #[Autowire(param: 'app.upload_dir')]
+        protected readonly string $uploadRoot,
     ) {}
 
     /**
@@ -346,6 +359,96 @@ class SpaceContentController extends AbstractController
         $this->attachments->detach($attachment);
 
         return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
+    }
+
+    /**
+     * A file on one of this space's cards, read through the space.
+     *
+     * **Why not GED's own route.** A file uploaded through a space is filed as
+     * a draft - which is what stops the public catch-all serving it to anybody
+     * holding the address - and `DocumentUrlGenerator` addresses anything
+     * unpublished through `backend_ged_files`, which asks for
+     * `ged.documents.view`. A studio member who manages client spaces need not
+     * hold that: gating the pictures on it would show them a board of broken
+     * images and no reason why.
+     *
+     * So the board reads its own files through its own privilege, exactly as
+     * the client reads theirs through their link. Same rule on both surfaces:
+     * whatever grants the board grants what is on it.
+     */
+    #[Route(
+        '/attachments/{attachmentId}/{variant}',
+        name: '_attachment_file',
+        requirements: ['attachmentId' => '\d+', 'variant' => 'file|preview'],
+        defaults: ['variant' => 'file'],
+        methods: [HttpMethodEnum::Get->value],
+    )]
+    public function attachmentFile(
+        CustomerSpace $space,
+        #[MapEntity(id: 'attachmentId')]
+        SpaceContentAttachment $attachment,
+        string $variant,
+    ): Response {
+        $this->assertOwned($space, $attachment->getItem()->getSpace()->getId());
+
+        $document = $attachment->getDocument();
+        $key = 'preview' === $variant
+            ? ($document->getVariants()['thumbnail'] ?? $document->getThumbnailPath())
+            : $document->getFilePath();
+
+        if (null === $key || '' === $key) {
+            throw $this->createNotFoundException();
+        }
+
+        $adapter = $this->locator->locate($key);
+
+        if (!$adapter instanceof StorageAdapterInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        if ($adapter instanceof LocalPathAware) {
+            try {
+                return $this->binaryFileServer->serve(
+                    $this->binaryFileServer->path($this->uploadRoot, $key),
+                    $this->uploadRoot,
+                );
+            } catch (RuntimeException) {
+                throw $this->createNotFoundException();
+            }
+        }
+
+        return $this->streamThrough($adapter, $key);
+    }
+
+    /**
+     * Streamed rather than redirected, for the reason
+     * {@see GedFilesController}
+     * gives: a signed link or a public hostname would outlive this
+     * authorisation.
+     */
+    private function streamThrough(StorageAdapterInterface $adapter, string $key): Response
+    {
+        $stored = $adapter->stat($key);
+
+        $response = new StreamedResponse(static function () use ($adapter, $key): void {
+            foreach ($adapter->readStream($key) as $chunk) {
+                echo $chunk;
+                flush();
+            }
+        });
+
+        $response->setPrivate();
+        $response->setMaxAge(3600);
+
+        if ($stored instanceof StoredObject) {
+            $response->headers->set('Content-Length', (string) $stored->size);
+
+            if (null !== $stored->checksum) {
+                $response->setEtag($stored->checksum);
+            }
+        }
+
+        return $response;
     }
 
     #[Route('/columns/create', name: '_column_create', methods: [HttpMethodEnum::Post->value])]

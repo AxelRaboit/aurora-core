@@ -23,10 +23,11 @@ final class StorageAreaEnumTest extends TestCase
         self::assertSame('ged', StorageAreaEnum::Ged->value);
         self::assertSame('profile-photos', StorageAreaEnum::ProfilePhotos->value);
         self::assertSame('contracts', StorageAreaEnum::Contracts->value);
+        self::assertSame('notes-markdown', StorageAreaEnum::NotesMarkdown->value);
     }
 
     public function testNoCaseWasAddedWithoutBeingConsidered(): void
     {
-        self::assertCount(3, StorageAreaEnum::cases());
+        self::assertCount(4, StorageAreaEnum::cases());
     }
 }

@@ -66,7 +66,7 @@ final readonly class PublicSpaceViewBuilder
             ),
             'items' => $this->items($link),
             'comments' => $this->comments($link),
-            'attachments' => $this->attachments($link),
+            'attachments' => $this->attachments($link, $token),
             'expiresAt' => $link->getExpiresAt(),
             'canApprove' => $link->canApprove(),
             'canComment' => $link->canComment(),
@@ -127,12 +127,18 @@ final readonly class PublicSpaceViewBuilder
      *
      * @return array<int, list<array<string, mixed>>>
      */
-    public function attachments(SpaceAccessLinkInterface $link): array
+    public function attachments(SpaceAccessLinkInterface $link, string $token): array
     {
         $byItem = [];
 
         foreach ($this->attachmentRepository->findForSpaceByItem($link->getSpace()) as $itemId => $attachments) {
-            $byItem[$itemId] = array_map($this->attachmentSerializer->serialize(...), $attachments);
+            $byItem[$itemId] = array_map(
+                // Addresses that go through the link rather than through GED's
+                // public catch-all, so that revoking an access revokes the
+                // pictures with it.
+                fn ($attachment): array => $this->attachmentSerializer->serializeForGuest($attachment, $link, $token),
+                $attachments,
+            );
         }
 
         return $byItem;
@@ -147,13 +153,13 @@ final readonly class PublicSpaceViewBuilder
      *
      * @return array<string, mixed>
      */
-    public function threadPayload(SpaceAccessLinkInterface $link): array
+    public function threadPayload(SpaceAccessLinkInterface $link, string $token): array
     {
         return [
             'success' => true,
             'items' => $this->items($link),
             'comments' => $this->comments($link),
-            'attachments' => $this->attachments($link),
+            'attachments' => $this->attachments($link, $token),
         ];
     }
 

@@ -38,7 +38,6 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
-use Symfony\Component\String\Slugger\AsciiSlugger;
 
 /**
  * The console door onto the Pexels module.
@@ -228,7 +227,6 @@ final class ImportPexelsPhotosCommandTest extends TestCase
         $workspace = new LocalWorkspace($filesystem);
 
         return new GedDocumentUploader(
-            new AsciiSlugger(),
             new PdfThumbnailGenerator($workspace),
             new VideoPosterGenerator($workspace),
             new ImageCropper($filesystem),

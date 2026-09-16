@@ -4,23 +4,33 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\CustomerSpace;
 
+use Aurora\Core\Storage\Access\UploadPolicy;
+use Aurora\Module\Ged\Document\Entity\Document;
+use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
+use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
+use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
-use Aurora\Module\Studio\SpaceContent\Service\SpaceGuestUploadPolicy;
+use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+use function basename;
+use function dirname;
+use function explode;
 use function json_decode;
+use function parse_url;
 use function sprintf;
 
 use const PHP_URL_PATH;
@@ -34,6 +44,8 @@ use const PHP_URL_PATH;
  */
 final class SpaceGuestUploadTest extends IntegrationTestCase
 {
+    use ResetsRateLimiters;
+
     private KernelBrowser $client;
 
     private EntityManagerInterface $entityManager;
@@ -42,7 +54,15 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
 
     private SpaceContentAttachmentRepository $attachments;
 
+    private SpaceAccessLinkRepository $links;
+
+    private SpaceAccessLinkManagerInterface $linkManager;
+
+    private DocumentRepository $documents;
+
     private string $workDir;
+
+    private User $admin;
 
     protected function setUp(): void
     {
@@ -55,11 +75,21 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         $admin = $container->get(UserRepository::class)
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
+        $this->admin = $admin;
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
         $this->columns = $container->get(SpaceContentColumnRepository::class);
         $this->attachments = $container->get(SpaceContentAttachmentRepository::class);
+        $this->links = $container->get(SpaceAccessLinkRepository::class);
+        $this->linkManager = $container->get(SpaceAccessLinkManagerInterface::class);
+        $this->documents = $container->get(DocumentRepository::class);
+
+        // The upload limiter allows twenty an hour per address and its
+        // counters outlive the process, so a class that uploads once per test
+        // goes red on its third run of the hour - a 429 answered by a route
+        // the test never meant to exercise.
+        $this->resetRateLimiter('space_guest_upload');
 
         $this->workDir = sys_get_temp_dir().'/aurora-guest-upload-'.bin2hex(random_bytes(4));
         mkdir($this->workDir);
@@ -164,7 +194,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         $item = $this->givenItem($space);
 
         $big = $this->workDir.'/big.jpg';
-        file_put_contents($big, $this->jpegBytes().str_repeat("\0", SpaceGuestUploadPolicy::MAX_BYTES));
+        file_put_contents($big, $this->jpegBytes().str_repeat("\0", UploadPolicy::forSpaceGuests()->maxBytes));
 
         $this->upload($url, $item['id'], new UploadedFile($big, 'big.jpg', 'image/jpeg', null, true));
 
@@ -190,6 +220,114 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
         self::assertSame(0, $this->attachments->count([]));
+    }
+
+    /**
+     * The test this whole change exists for.
+     *
+     * A file on a card used to be a *published* GED document, which the public
+     * catch-all serves to anybody holding its address with no session at all -
+     * so revoking a client's link left every visual on their board readable at
+     * a fixed URL, for ever. Files are drafts now, and the client reads them
+     * through a route that resolves the link first.
+     */
+    public function testRevokingTheLinkStopsItsFilesFromBeingReadable(): void
+    {
+        [$space, $url] = $this->givenLinkedSpace(canUpload: true);
+        $item = $this->givenItem($space);
+
+        $this->upload($url, $item['id'], $this->aFile('photo.jpg'));
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $fileUrl = $this->payload()['attachments'][$item['id']][0]['url'];
+
+        // The address the client's page is given goes through their link, not
+        // through GED's public catch-all.
+        self::assertStringContainsString('/spaces/', $fileUrl);
+        self::assertStringNotContainsString('/uploads/', $fileUrl);
+
+        $this->asGuest()->request('GET', $fileUrl);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $link = $this->links->findOneBy(['space' => $space]);
+        self::assertInstanceOf(SpaceAccessLink::class, $link);
+        $this->linkManager->revoke($link);
+
+        $this->asGuest()->request('GET', $fileUrl);
+        self::assertSame(404, $this->client->getResponse()->getStatusCode());
+    }
+
+    /**
+     * And the bytes are not reachable round the side either.
+     *
+     * The draft status is what closes `/uploads/`; without it the route above
+     * would be a formality anybody could step past by addressing the file
+     * directly.
+     */
+    public function testTheFileIsNotServedByThePublicCatchAll(): void
+    {
+        [$space, $url] = $this->givenLinkedSpace(canUpload: true);
+        $item = $this->givenItem($space);
+
+        $this->upload($url, $item['id'], $this->aFile('photo.jpg'));
+
+        $document = $this->documents->findOneBy([], ['id' => 'DESC']);
+        self::assertInstanceOf(Document::class, $document);
+        self::assertSame(DocumentStatusEnum::Draft, $document->getStatus());
+
+        $this->asGuest()->request('GET', '/uploads/'.$document->getFilePath());
+        self::assertSame(404, $this->client->getResponse()->getStatusCode());
+    }
+
+    /**
+     * One client's link cannot read another client's file.
+     */
+    public function testALinkCannotReadAnotherSpacesFile(): void
+    {
+        [$mine, $myUrl] = $this->givenLinkedSpace(canUpload: true);
+        $myItem = $this->givenItem($mine);
+        $this->upload($myUrl, $myItem['id'], $this->aFile('photo.jpg'));
+        $myFileUrl = $this->payload()['attachments'][$myItem['id']][0]['url'];
+
+        // Back to an account: the upload above emptied the cookie jar, which
+        // is how a guest request proves it needs no session.
+        $this->asStudio();
+
+        $theirs = $this->givenSpace('Autre client', '39860733300060');
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $theirs->getId()), [
+            'recipientEmail' => 'voisin@societe.test',
+            'canUpload' => true,
+        ]);
+        $theirToken = (string) parse_url($this->payload()['url'], PHP_URL_PATH);
+
+        // Their selector and token, my attachment id.
+        [, , $selector, $token] = explode('/', $theirToken);
+        $attachmentId = (int) basename(dirname($myFileUrl));
+
+        $this->asGuest()->request('GET', sprintf('/spaces/%s/%s/attachments/%d/file', $selector, $token, $attachmentId));
+
+        self::assertSame(404, $this->client->getResponse()->getStatusCode());
+    }
+
+    private function asGuest(): KernelBrowser
+    {
+        $this->client->getCookieJar()->clear();
+
+        return $this->client;
+    }
+
+    /**
+     * Back to the studio after a guest request.
+     *
+     * `asGuest()` and `upload()` both empty the cookie jar, which is the only
+     * honest way to prove a link works without a session - and it means the
+     * next call that needs an account has to say so.
+     */
+    private function asStudio(): KernelBrowser
+    {
+        $this->client->loginUser($this->admin, 'admin');
+
+        return $this->client;
     }
 
     private function upload(string $url, int $itemId, UploadedFile $file): void

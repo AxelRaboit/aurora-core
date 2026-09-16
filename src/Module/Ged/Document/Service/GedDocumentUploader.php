@@ -13,16 +13,24 @@ use Aurora\Core\Storage\Service\PdfThumbnailGenerator;
 use Aurora\Core\Storage\Service\VideoCapture;
 use Aurora\Core\Storage\Service\VideoPosterGenerator;
 use Aurora\Core\Storage\StorageManager;
+use Aurora\Core\Storage\StoredFileName;
 use Aurora\Core\Storage\Workspace\LocalWorkspace;
 use DateTimeImmutable;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\String\Slugger\SluggerInterface;
 
 /**
- * Owns the on-disk handling for GED documents - slugifies the upload name,
- * picks a `var/uploads/ged/Y/m/<slug>-<uniqid>.<ext>` destination, moves
- * the uploaded bytes, returns the metadata the form needs to persist on
- * the `Document` entity.
+ * Owns the on-disk handling for GED documents - picks a
+ * `var/uploads/ged/Y/m/<32 random hex>.<ext>` destination, moves the uploaded
+ * bytes, returns the metadata the form needs to persist on the `Document`
+ * entity.
+ *
+ * The stored name carries nothing of the original one. A published document is
+ * served to anybody who knows its address, so that address is its only lock,
+ * and a name built from `slug(original) + uniqid()` - which is what this did
+ * until 2026-09-16 - was derivable from a guessable filename and the moment of
+ * the upload. {@see StoredFileName} states the rule;
+ * the readable name lives in the document's `originalName` column, where a
+ * download can still use it.
  *
  * Kept as a thin standalone service (no entity coupling) so the controller's
  * `/upload` endpoint can call it without going through the manager. The
@@ -32,7 +40,6 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 final readonly class GedDocumentUploader
 {
     public function __construct(
-        private SluggerInterface $slugger,
         private PdfThumbnailGenerator $pdfThumbnailGenerator,
         private VideoPosterGenerator $videoPosterGenerator,
         private ImageCropper $imageCropper,
@@ -53,10 +60,14 @@ final readonly class GedDocumentUploader
         $size = (int) $file->getSize();
         $clientName = $file->getClientOriginalName();
 
-        $safeFilename = $this->slugger->slug(pathinfo($clientName, PATHINFO_FILENAME))->lower();
         $extension = $file->guessExtension() ?? $file->getClientOriginalExtension();
         $dateSlug = new DateTimeImmutable()->format('Y/m');
-        $newFilename = sprintf('%s-%s.%s', $safeFilename, uniqid(), $extension);
+        // Random, and carrying nothing of what the file was called: for a
+        // published document the address is the only lock, so the name it is
+        // stored under must not be derivable from its original name and the
+        // moment it arrived. See {@see StoredFileName}. `originalName` keeps
+        // the human-readable one, which is what a download needs.
+        $newFilename = StoredFileName::withExtension($extension);
         $relativeDir = sprintf('%s/%s', StorageAreaEnum::Ged->value, $dateSlug);
         $relativePath = sprintf('%s/%s', $relativeDir, $newFilename);
 
@@ -119,9 +130,11 @@ final readonly class GedDocumentUploader
     ): ?array {
         $extension = MimeTypeEnum::tryFrom($mimeType)?->extension()
             ?? pathinfo($sourceRelativePath, PATHINFO_EXTENSION);
-        $safeFilename = $this->slugger->slug(pathinfo($baseName, PATHINFO_FILENAME))->lower();
         $dateSlug = new DateTimeImmutable()->format('Y/m');
-        $newFilename = sprintf('%s-%s.%s', $safeFilename, uniqid(), $extension);
+        // Random like the upload above, and for the same reason: a crop is a
+        // new published file at a new address, so a name derived from the
+        // source's would hand out the source's address too.
+        $newFilename = StoredFileName::withExtension($extension);
         $relativePath = sprintf('%s/%s/%s', StorageAreaEnum::Ged->value, $dateSlug, $newFilename);
 
         $adapter = $this->storageManager->active();

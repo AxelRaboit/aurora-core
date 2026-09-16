@@ -31,7 +31,6 @@ use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
-use Symfony\Component\String\Slugger\AsciiSlugger;
 
 /**
  * The import is where a URL chosen in a browser becomes a file on our disk
@@ -236,7 +235,6 @@ final class PexelsImporterTest extends TestCase
         $workspace = new LocalWorkspace($filesystem);
 
         return new GedDocumentUploader(
-            new AsciiSlugger(),
             new PdfThumbnailGenerator($workspace),
             new VideoPosterGenerator($workspace),
             new ImageCropper($filesystem),
