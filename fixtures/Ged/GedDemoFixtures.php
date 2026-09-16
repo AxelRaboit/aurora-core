@@ -100,10 +100,17 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         // shipped with the repository. The test next door checks that the
         // files named here exist; it resolves the root correctly, so it
         // passed while the fixture read somewhere else entirely.
+        // **Les sources sont des aplats, pas des photographies, et c'est
+        // voulu.** Deux d'entre elles ne l'etaient pas : un chat genere en IA
+        // servait de `hero-banner.jpg` et un drapeau canadien de
+        // `landscape.jpg`. Une demo se montre a des prospects, et une image
+        // qui a un sujet raconte autre chose que le produit - on regarde le
+        // chat, pas la mediatheque. Remplacees le 2026-09-16 par des degrades
+        // du meme langage visuel que les deux placeholders deja presents.
         $sourceDir = dirname(__DIR__, 2).'/test_files';
         $defs = [
-            ['src' => 'images/ai-generated-8359510_1280-1816135935.jpg', 'name' => 'hero-banner.jpg',      'original' => 'hero-banner.jpg',    'mime' => 'image/jpeg', 'w' => 1280, 'h' => 853],
-            ['src' => 'images/canadian-flag-canada-maple-country-wallpaper-1506073439.jpg', 'name' => 'landscape.jpg', 'original' => 'landscape.jpg', 'mime' => 'image/jpeg', 'w' => 1280, 'h' => 720],
+            ['src' => 'images/hero-placeholder.jpg',      'name' => 'hero-banner.jpg',   'original' => 'hero-banner.jpg',   'mime' => 'image/jpeg', 'w' => 1280, 'h' => 853],
+            ['src' => 'images/landscape-placeholder.jpg', 'name' => 'landscape.jpg',     'original' => 'landscape.jpg',     'mime' => 'image/jpeg', 'w' => 1280, 'h' => 720],
             ['src' => 'images/portrait-placeholder.jpg',  'name' => 'portrait-team.jpg', 'original' => 'portrait-team.jpg', 'mime' => 'image/jpeg', 'w' => 800,  'h' => 1000],
             ['src' => 'images/workspace-placeholder.jpg', 'name' => 'office-setup.jpg',  'original' => 'office-setup.jpg',  'mime' => 'image/jpeg', 'w' => 1200, 'h' => 800],
             ['src' => 'videos/sample-30s-720p.mp4',  'name' => 'demo-video.mp4',   'original' => 'demo-video.mp4',   'mime' => 'video/mp4',  'w' => 1280, 'h' => 720],
