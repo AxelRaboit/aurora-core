@@ -16,6 +16,9 @@ use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 use function array_fill_keys;
+use function array_filter;
+use function array_map;
+use function array_values;
 use function count;
 use function is_array;
 use function sprintf;
@@ -724,5 +727,93 @@ class PostRepository extends ResolveTargetEntityRepository
                 ->getQuery()
                 ->getResult();
         }
+    }
+
+    /**
+     * The posts that point at one document, whichever of the three ways.
+     *
+     * A post reaches a GED document three times over: its own cover
+     * (`thumbnail`), the social image of each translation (`ogImage`), and
+     * the pictures of its gallery - the first two as typed FKs, the third as
+     * an id inside `galleryLayout`. All three are answered here so the
+     * library reports the post once, not three times, when several of them
+     * name the same file.
+     *
+     * The gallery is narrowed in SQL before it is verified in PHP, in two
+     * steps rather than one clause. Decks can be walked because a project
+     * holds dozens; posts run to thousands, and loading every one to look
+     * inside a JSON column is not a query to run on a click. It cannot be a
+     * `LIKE` in the DQL either: Postgres has no `~~` for `json`, so the cast
+     * is explicit and the narrowing is a native query - the same trade
+     * {@see self::fullTextPostIds()} already makes.
+     *
+     * The narrowing is deliberately loose - asked for 123 it also matches
+     * 1234 - and {@see self::postReallyUses()} is what makes the answer
+     * exact.
+     *
+     * @return list<PostInterface>
+     */
+    public function findUsingDocument(int $documentId): array
+    {
+        $metadata = $this->getClassMetadata();
+
+        $sql = sprintf(
+            'SELECT id FROM %s WHERE %s::text LIKE :pattern',
+            $metadata->getTableName(),
+            $metadata->getColumnName('galleryLayout'),
+        );
+
+        $rows = $this->getEntityManager()->getConnection()->fetchFirstColumn(
+            $sql,
+            ['pattern' => sprintf('%%"mediaId":%d%%', $documentId)],
+            ['pattern' => ParameterType::STRING],
+        );
+
+        $candidates = array_map(static fn (mixed $id): int => (int) $id, $rows);
+
+        $builder = $this->createQueryBuilder('p')
+            ->leftJoin('p.translations', 't')
+            ->where('p.thumbnail = :document')
+            ->orWhere('t.ogImage = :document')
+            ->setParameter('document', $documentId)
+            ->orderBy('p.id', Order::Ascending->value);
+
+        if ([] !== $candidates) {
+            $builder
+                ->orWhere('p.id IN (:candidates)')
+                ->setParameter('candidates', $candidates);
+        }
+
+        /** @var list<PostInterface> $posts */
+        $posts = $builder->getQuery()->getResult();
+
+        return array_values(array_filter(
+            $posts,
+            fn (PostInterface $post): bool => $this->postReallyUses($post, $documentId),
+        ));
+    }
+
+    /**
+     * Confirms a candidate, since only the gallery half of the query is loose.
+     */
+    private function postReallyUses(PostInterface $post, int $documentId): bool
+    {
+        if ($post->getThumbnail()?->getId() === $documentId) {
+            return true;
+        }
+
+        foreach ($post->getTranslations() as $translation) {
+            if ($translation->getOgImage()?->getId() === $documentId) {
+                return true;
+            }
+        }
+
+        $items = $post->getGalleryLayout()['items'] ?? null;
+
+        if (!is_array($items)) {
+            return false;
+        }
+
+        return array_any($items, fn ($item): bool => is_array($item) && ($item['mediaId'] ?? null) === $documentId);
     }
 }

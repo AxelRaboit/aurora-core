@@ -719,6 +719,7 @@ backend:
                 siret_taken: 'This registration number is already recorded for {name}.'
                 has_spaces: 'This client still has {count} open space(s). Delete or archive their work before deleting the record.'
         spaces:
+            usage_detail: 'Space {space}'
             title: Client spaces
             add: Add a space
             create: New space

@@ -95,4 +95,30 @@ class SpaceContentAttachmentRepository extends ResolveTargetEntityRepository
 
         return $attachments;
     }
+
+    /**
+     * The attachments that point at one document, card and space joined.
+     *
+     * Asked by the library when somebody is about to delete a file. Both
+     * relations are fetched because the answer names the card and the space
+     * it sits in, and a usage list is short by nature - there is no board of
+     * forty rows here to lazy-load one at a time.
+     *
+     * @return list<SpaceContentAttachmentInterface>
+     */
+    public function findUsingDocument(int $documentId): array
+    {
+        /** @var list<SpaceContentAttachmentInterface> $attachments */
+        $attachments = $this->createQueryBuilder('a')
+            ->addSelect('i', 's')
+            ->join('a.item', 'i')
+            ->join('i.space', 's')
+            ->where('a.document = :document')
+            ->setParameter('document', $documentId)
+            ->orderBy('a.id', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+
+        return $attachments;
+    }
 }

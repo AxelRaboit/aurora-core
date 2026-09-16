@@ -719,6 +719,7 @@ backend:
                 siret_taken: 'Ce SIRET est déjà enregistré pour {name}.'
                 has_spaces: 'Ce client a encore {count} espace(s) ouvert(s). Supprimez ou archivez son travail avant de supprimer la fiche.'
         spaces:
+            usage_detail: 'Espace {space}'
             title: Espaces clients
             add: Ajouter un espace
             create: Nouvel espace

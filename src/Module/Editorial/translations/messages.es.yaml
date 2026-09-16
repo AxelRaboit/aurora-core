@@ -1,5 +1,7 @@
 backend:
   posts:
+    usage_detail: Publicación
+    usage_untitled: Publicación sin título
     grid:
       zone_video_file: Elegir un vídeo
       item_display_hint_faq: "Cada entrada se pliega. Sirve para preguntas, y también para todo lo que se lee cuando hace falta: lo que se incluye, las garantías, el aviso legal."
