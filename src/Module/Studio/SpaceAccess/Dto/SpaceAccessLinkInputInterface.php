@@ -15,4 +15,6 @@ interface SpaceAccessLinkInputInterface
     public function canApprove(): bool;
 
     public function canComment(): bool;
+
+    public function canUpload(): bool;
 }

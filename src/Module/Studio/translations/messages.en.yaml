@@ -810,6 +810,9 @@ backend:
             can_approve: May approve
             can_approve_hint: Unchecked, the link shows the plan without letting anybody answer. For a reader who looks but does not decide.
             read_only: read-only
+            can_upload: May send files
+            can_upload_hint: "Off by default. Checked, the client can drop their own photos and documents onto the content. Images, PDF and common videos, 25 MB at most."
+            may_upload: may send files
 
             never_opened: Never opened
             opened_on: 'Opened on {date}'
@@ -1027,6 +1030,7 @@ studio:
             footer: This address is personal. Please do not pass it on.
             no_body: The text is not written yet.
             thread_notice: What you write here is read by your agency.
+            upload_notice: "Images, PDF and common videos, 25 MB at most. What you send here is visible to your agency."
             approve: Approved
             request_changes: Needs changes
             answer_hint: 'To ask for changes, say what is wrong in the discussion above.'
@@ -1037,6 +1041,10 @@ studio:
                 approval_invalid: Answer not recognised.
                 comment_required: The message cannot be empty.
                 too_many_requests: Too many answers in a row. Try again in a few minutes.
+                upload_required: Choose a file to send.
+                upload_failed: The upload did not complete. Try again.
+                upload_too_large: That file is over 25 MB. Send a lighter version.
+                upload_type_refused: That file type is not accepted. Images, PDF and common videos only.
         unavailable:
             title: This link is no longer valid
             message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a contract, ask your contact for a new link.

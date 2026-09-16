@@ -26,6 +26,7 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
         // agency - who is shown the plan and does not decide on it.
         public readonly bool $canApprove = true,
         public readonly bool $canComment = true,
+        public readonly bool $canUpload = false,
     ) {}
 
     public function getRecipientEmail(): string
@@ -51,5 +52,10 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
     public function canComment(): bool
     {
         return $this->canComment;
+    }
+
+    public function canUpload(): bool
+    {
+        return $this->canUpload;
     }
 }

@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceAccess\Entity;
 use Aurora\Module\Studio\Contract\Access\Entity\AbstractContractAccessLink;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
+use Aurora\Module\Studio\SpaceContent\Service\SpaceGuestUploadPolicy;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -110,6 +111,24 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
      */
     #[ORM\Column(options: ['default' => true])]
     protected bool $canComment = true;
+
+    /**
+     * Whether the holder may put a file on a card.
+     *
+     * **False by default, unlike the two above, and that is the whole point.**
+     * Answering and commenting are what a link is usually for, so they arrive
+     * on. Uploading writes bytes to the application's own storage from an
+     * address that has no account behind it: turning it on for every link that
+     * already exists, the day this ships, is not a default anybody chose. The
+     * studio switches it on for the client who has photos to send.
+     *
+     * What may actually be sent is not this column's business. The right says
+     * who; {@see SpaceGuestUploadPolicy}
+     * says what, and it refuses by sniffed type rather than by the name or the
+     * header the browser supplied.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $canUpload = false;
 
     /**
      * The first open, kept apart from the last.
@@ -246,6 +265,18 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     public function canComment(): bool
     {
         return $this->canComment;
+    }
+
+    public function canUpload(): bool
+    {
+        return $this->canUpload;
+    }
+
+    public function setCanUpload(bool $canUpload): static
+    {
+        $this->canUpload = $canUpload;
+
+        return $this;
     }
 
     public function setCanComment(bool $canComment): static

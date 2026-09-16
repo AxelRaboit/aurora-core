@@ -31,6 +31,7 @@ import AppButton from "@/shared/components/action/AppButton.vue";
 // The rule that forbids reaching across modules is about modules, and this
 // component is the one thing the two surfaces genuinely share.
 import SpaceContentThread from "../../../../SpaceContent/assets/shared/SpaceContentThread.vue";
+import SpaceContentAttachments from "../../../../SpaceContent/assets/shared/SpaceContentAttachments.vue";
 import {
     Check,
     ChevronLeft,
@@ -50,6 +51,9 @@ const props = defineProps({
     /** Null when this link may only read, so there is nothing to post to. */
     answerPath: { type: String, default: null },
     commentPath: { type: String, default: null },
+    canUpload: { type: Boolean, default: false },
+    attachments: { type: Object, default: () => ({}) },
+    uploadPath: { type: String, default: null },
 });
 
 const { t, d } = useI18n();
@@ -59,6 +63,7 @@ const { request } = useRequest();
 // page never has to work out what its own write did.
 const items = ref(props.items ?? []);
 const comments = ref(props.comments ?? {});
+const attachments = ref(props.attachments ?? {});
 
 const today = new Date();
 const year = ref(today.getFullYear());
@@ -124,6 +129,47 @@ const posting = ref(false);
 const thread = computed(() =>
     openItem.value ? (comments.value[openItem.value.id] ?? []) : [],
 );
+
+const files = computed(() =>
+    openItem.value ? (attachments.value[openItem.value.id] ?? []) : [],
+);
+
+const uploading = ref(false);
+
+/**
+ * Sends one file onto the open card.
+ *
+ * Multipart rather than JSON, and one request per file: a browser that gave up
+ * halfway through a batch would leave the reader unable to tell which of their
+ * photos arrived.
+ *
+ * Nothing is checked here beyond there being a path. What may be sent is
+ * decided on the server, by the sniffed type of the bytes, because anything
+ * this page enforced would be a suggestion.
+ */
+async function upload(file) {
+    if (!props.uploadPath || !openItem.value || uploading.value) return;
+
+    const form = new FormData();
+    form.append("file", file);
+
+    uploading.value = true;
+    try {
+        const data = await request(
+            buildPath(props.uploadPath, { id: openItem.value.id }),
+            null,
+            { rawBody: form },
+        );
+
+        if (!data?.success) return;
+
+        if (Array.isArray(data.items)) items.value = data.items;
+        if (data.comments) comments.value = data.comments;
+        if (data.attachments) attachments.value = data.attachments;
+    } finally {
+        uploading.value = false;
+    }
+}
 
 /** A message with no verdict attached: the reader is answering a rewrite. */
 async function postComment(body) {
@@ -274,6 +320,21 @@ function open(event) {
                     )
                 }}
             </p>
+
+            <!-- The files, above the thread and shown whatever the link may
+                 do: seeing the visual is the point of being asked to approve,
+                 and it has nothing to do with being allowed to add one.
+                 Removing is never offered here - taking a file off a card is
+                 the studio's call. -->
+            <div v-if="openItem" class="mt-4 border-t border-line/50 pt-4">
+                <SpaceContentAttachments
+                    :attachments="files"
+                    :can-add="canUpload"
+                    :loading="uploading"
+                    :notice="canUpload ? t('studio.public.space.upload_notice') : ''"
+                    v-on:upload="upload"
+                />
+            </div>
 
             <!-- The same thread the studio reads, in the same component:
                  one conversation, not two renderings of it. -->

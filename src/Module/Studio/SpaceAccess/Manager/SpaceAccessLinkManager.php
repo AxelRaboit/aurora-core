@@ -45,6 +45,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         int $validForDays,
         bool $canApprove,
         bool $canComment,
+        bool $canUpload = false,
     ): SpaceAccessLinkInterface {
         $days = max(1, min(static::MAX_VALID_DAYS, $validForDays));
 
@@ -56,6 +57,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
             ->setLabel($label)
             ->setCanApprove($canApprove)
             ->setCanComment($canComment)
+            ->setCanUpload($canUpload)
             ->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', $days)));
 
         $this->entityManager->persist($link);
@@ -180,6 +182,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
             'expiresAt' => $link->getExpiresAt()->format(DATE_ATOM),
             'canApprove' => $link->canApprove(),
             'canComment' => $link->canComment(),
+            'canUpload' => $link->canUpload(),
         ];
     }
 }

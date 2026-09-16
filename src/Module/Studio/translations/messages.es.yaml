@@ -111,6 +111,7 @@ studio:
             footer: Esta dirección es personal. No la transmita.
             no_body: El texto aún no está escrito.
             thread_notice: Lo que escriba aquí lo lee su proveedor.
+            upload_notice: "Imágenes, PDF y vídeos habituales, 25 MB como máximo. Lo que envíe aquí lo ve su proveedor."
             approve: Validado
             request_changes: Revisar
             answer_hint: 'Para pedir cambios, diga qué no funciona en los intercambios de arriba.'
@@ -121,6 +122,10 @@ studio:
                 approval_invalid: Respuesta no reconocida.
                 comment_required: El mensaje no puede estar vacío.
                 too_many_requests: Demasiadas respuestas seguidas. Vuelva a intentarlo en unos minutos.
+                upload_required: Elija un archivo para enviar.
+                upload_failed: El envío no se completó. Inténtelo de nuevo.
+                upload_too_large: Ese archivo supera los 25 MB. Envíe una versión más ligera.
+                upload_type_refused: Ese tipo de archivo no se acepta. Solo imágenes, PDF y vídeos habituales.
         unavailable:
             title: Este enlace ya no es válido
             message: La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba un contrato, pida un nuevo enlace a su interlocutor.

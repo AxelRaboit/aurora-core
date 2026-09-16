@@ -6,9 +6,11 @@ namespace Aurora\Module\Studio\SpaceAccess\View;
 
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentCommentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
+use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentAttachmentSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentColumnSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentCommentSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentItemSerializerInterface;
@@ -34,6 +36,8 @@ final readonly class PublicSpaceViewBuilder
         private SpaceContentColumnSerializerInterface $columnSerializer,
         private SpaceContentCommentRepository $commentRepository,
         private SpaceContentCommentSerializerInterface $commentSerializer,
+        private SpaceContentAttachmentRepository $attachmentRepository,
+        private SpaceContentAttachmentSerializerInterface $attachmentSerializer,
         private PathTemplateGenerator $pathTemplates,
     ) {}
 
@@ -62,9 +66,11 @@ final readonly class PublicSpaceViewBuilder
             ),
             'items' => $this->items($link),
             'comments' => $this->comments($link),
+            'attachments' => $this->attachments($link),
             'expiresAt' => $link->getExpiresAt(),
             'canApprove' => $link->canApprove(),
             'canComment' => $link->canComment(),
+            'canUpload' => $link->canUpload(),
             // The one address this page may post to, and only when it may.
             // A reader who cannot answer is handed no endpoint at all rather
             // than a button that would be refused.
@@ -77,6 +83,13 @@ final readonly class PublicSpaceViewBuilder
                 : null,
             'commentPath' => $link->canComment()
                 ? $this->pathTemplates->generate('public_space_comment', [
+                    'selector' => $link->getSelector(),
+                    'token' => $token,
+                    'itemId' => '__id__',
+                ])
+                : null,
+            'uploadPath' => $link->canUpload()
+                ? $this->pathTemplates->generate('public_space_attachment', [
                     'selector' => $link->getSelector(),
                     'token' => $token,
                     'itemId' => '__id__',
@@ -106,6 +119,26 @@ final readonly class PublicSpaceViewBuilder
     }
 
     /**
+     * The files of the space, keyed by the card they sit on.
+     *
+     * The same shape the studio reads, and shown to a reader who may not
+     * upload: seeing the visual is the point of being asked to approve, and it
+     * has nothing to do with being allowed to add one.
+     *
+     * @return array<int, list<array<string, mixed>>>
+     */
+    public function attachments(SpaceAccessLinkInterface $link): array
+    {
+        $byItem = [];
+
+        foreach ($this->attachmentRepository->findForSpaceByItem($link->getSpace()) as $itemId => $attachments) {
+            $byItem[$itemId] = array_map($this->attachmentSerializer->serialize(...), $attachments);
+        }
+
+        return $byItem;
+    }
+
+    /**
      * What a guest write answers with: the cards and the threads.
      *
      * Both, because a verdict carrying a message changes one of each, and a
@@ -120,6 +153,7 @@ final readonly class PublicSpaceViewBuilder
             'success' => true,
             'items' => $this->items($link),
             'comments' => $this->comments($link),
+            'attachments' => $this->attachments($link),
         ];
     }
 

@@ -6,9 +6,10 @@
    de contenu se regarde en grille, et une colonne de lecture de 3xl étrangle un
    mois.
 
-   Rien ici ne permet d'écrire. Les droits de commenter et de valider arrivent
-   avec les colonnes qui les portent et la limite de débit qu'une écriture
-   invitée réclame. #}
+   Rien ici ne permet d'écrire par défaut. Les trois droits - valider, commenter,
+   envoyer un fichier - arrivent chacun avec la colonne qui le porte et la limite
+   de débit qu'une écriture invitée réclame. Celui d'envoyer un fichier est le
+   seul à arriver éteint, parce qu'il écrit des octets dans notre stockage. #}
 <!DOCTYPE html>
 <html lang="{{ app.request.locale }}">
     <head>
@@ -38,6 +39,9 @@
             canComment: canComment,
             comments: comments,
             commentPath: commentPath,
+            canUpload: canUpload,
+            attachments: attachments,
+            uploadPath: uploadPath,
         }) }} class="min-h-screen"></div>
     </body>
 </html>

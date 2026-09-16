@@ -60,6 +60,10 @@ const issueForm = ref({
     label: "",
     validForDays: props.defaultValidDays,
     canApprove: true,
+    // Off, unlike the one above: sending a file writes bytes to our storage
+    // from an address with no account behind it, so it is granted per link
+    // rather than assumed.
+    canUpload: false,
 });
 
 /** The one and only moment the address exists in readable form. */
@@ -93,6 +97,7 @@ function openIssue() {
         label: "",
         validForDays: props.defaultValidDays,
         canApprove: true,
+        canUpload: false,
     };
     clearIssue();
     showIssue.value = true;
@@ -220,6 +225,9 @@ function openedLabel(link) {
                         <template v-if="!link.canApprove">
                             · {{ t("backend.studio.space_access.read_only") }}
                         </template>
+                        <template v-if="link.canUpload">
+                            · {{ t("backend.studio.space_access.may_upload") }}
+                        </template>
                     </p>
                 </div>
 
@@ -300,6 +308,12 @@ function openedLabel(link) {
                     :label="t('backend.studio.space_access.can_approve')"
                     :hint="t('backend.studio.space_access.can_approve_hint')"
                     v-on:update:model-value="issueForm.canApprove = $event"
+                />
+                <AppCheckbox
+                    :model-value="issueForm.canUpload"
+                    :label="t('backend.studio.space_access.can_upload')"
+                    :hint="t('backend.studio.space_access.can_upload_hint')"
+                    v-on:update:model-value="issueForm.canUpload = $event"
                 />
             </form>
             <template #footer>

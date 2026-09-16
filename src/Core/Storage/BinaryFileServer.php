@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Aurora\Core\Storage;
 
+use Aurora\Module\Studio\SpaceContent\Service\SpaceGuestUploadPolicy;
 use RuntimeException;
 use Symfony\Component\Filesystem\Path;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\EventListener\AbstractSessionListener;
 
+use function in_array;
 use function sprintf;
 
 use const DIRECTORY_SEPARATOR;
@@ -31,11 +33,44 @@ use const DIRECTORY_SEPARATOR;
  *     is enabled at boot, so this helper just sets the header. In dev
  *     (no `mod_xsendfile`) Symfony falls back to `readfile()` -
  *     transparent.
+ *  4. **Refusing to execute what was uploaded** - `nosniff` on every
+ *     response, and a forced download for the handful of types a browser
+ *     would run as a document. See {@see EXECUTABLE_INLINE_TYPES}.
  *
  * Stateless and `final readonly` - pure helper, no DI.
  */
 final readonly class BinaryFileServer
 {
+    /**
+     * Types a browser runs as a document, and therefore never serves inline.
+     *
+     * Uploaded files come back from the application's own origin, so a stored
+     * SVG or HTML opened in a tab is script running with the reader's session:
+     * it can read the page it is on, and act as them. Forcing a download turns
+     * the file back into a file.
+     *
+     * This costs nothing on the pages that show these assets. A
+     * `Content-Disposition` on a subresource is ignored by browsers, so an
+     * `<img src="logo.svg">` still draws; what changes is navigating to the
+     * address directly, which is the vector.
+     *
+     * It was already worth having when only staff could upload. It stops being
+     * optional now that a client holding a link can, which is what
+     * {@see SpaceGuestUploadPolicy}
+     * exists for at the other end - two walls, because the allow-list governs
+     * one door and this governs every file already stored.
+     *
+     * @var list<string>
+     */
+    public const array EXECUTABLE_INLINE_TYPES = [
+        'image/svg+xml',
+        'text/html',
+        'application/xhtml+xml',
+        'text/xml',
+        'application/xml',
+        'text/xsl',
+    ];
+
     /**
      * Build a response that serves `$absolutePath`, after checking it
      * resolves inside `$allowedRoot`. Caller is responsible for the
@@ -75,8 +110,23 @@ final readonly class BinaryFileServer
         $response = new BinaryFileResponse($real);
         $response->headers->set('Cache-Control', $cacheControl);
 
+        // Always. Without it a file stored with a harmless type but HTML-shaped
+        // content can still be sniffed into a document by some browsers, which
+        // makes the list below a guess rather than a rule.
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+
         if (null !== $downloadName) {
             $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $downloadName);
+        } elseif (in_array((string) $response->getFile()->getMimeType(), self::EXECUTABLE_INLINE_TYPES, true)) {
+            // Read off the file, not off the response: `BinaryFileResponse`
+            // only fills `Content-Type` in `prepare()`, so asking the headers
+            // here answers null and this branch would never be taken - a guard
+            // that silently does nothing, which is worse than no guard.
+            //
+            // No name to offer - the caller did not ask for a download, this is
+            // the type refusing to be shown - so the browser falls back to the
+            // one in the URL, which is the stored filename.
+            $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT);
         }
 
         return $response;

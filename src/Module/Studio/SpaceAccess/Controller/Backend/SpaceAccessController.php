@@ -74,6 +74,7 @@ class SpaceAccessController extends AbstractController
             $input->getValidForDays(),
             $input->canApprove(),
             $input->canComment(),
+            $input->canUpload(),
         );
 
         return $this->jsonSuccess($this->viewBuilder->issuedPayload($space, $link));

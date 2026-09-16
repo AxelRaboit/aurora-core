@@ -26,6 +26,10 @@ class SpaceAccessLinkInputFactory implements SpaceAccessLinkInputFactoryInterfac
             // is a form that did not offer the choice, not a refusal.
             canApprove: (bool) ($data['canApprove'] ?? true),
             canComment: (bool) ($data['canComment'] ?? true),
+            // False when the form says nothing, unlike the two above: a right
+            // that writes bytes to our storage is not one a missing field
+            // grants.
+            canUpload: (bool) ($data['canUpload'] ?? false),
         );
     }
 }

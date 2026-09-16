@@ -28,6 +28,9 @@ final class BinaryFileServerTest extends TestCase
         $this->filesystem->mkdir([$this->rootDir, $this->intruderDir]);
 
         file_put_contents($this->rootDir.'/sample.txt', 'hello');
+        file_put_contents($this->rootDir.'/logo.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>');
+        // A one-pixel GIF: small, and unambiguously an image to the guesser.
+        file_put_contents($this->rootDir.'/photo.gif', base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', true));
         file_put_contents($this->intruderDir.'/secret.txt', 'forbidden');
 
         $this->server = new BinaryFileServer();
@@ -132,5 +135,48 @@ final class BinaryFileServerTest extends TestCase
             $this->rootDir.DIRECTORY_SEPARATOR.'foo/bar.png',
             $this->server->path($this->rootDir, 'foo/bar.png'),
         );
+    }
+
+    /**
+     * Every response says not to sniff.
+     *
+     * The forced download below is a list, and a list is a guess about which
+     * types matter. This is the rule underneath it: a file stored with a
+     * harmless type but HTML-shaped content cannot be promoted to a document
+     * by a browser being helpful.
+     */
+    public function testEveryResponseRefusesContentSniffing(): void
+    {
+        $response = $this->server->serve($this->rootDir.'/sample.txt', $this->rootDir);
+
+        self::assertSame('nosniff', $response->headers->get('X-Content-Type-Options'));
+    }
+
+    /**
+     * An SVG is a document that can carry script, and it comes back from the
+     * application's own origin. Opened in a tab it would run with the reader's
+     * session, so it is handed over as a download instead.
+     *
+     * The assertion is on the header the caller never asked for: nothing here
+     * passed a download name, so this is the type refusing to be shown.
+     */
+    public function testAnExecutableTypeIsHandedOverAsADownload(): void
+    {
+        $response = $this->server->serve($this->rootDir.'/logo.svg', $this->rootDir);
+
+        self::assertStringStartsWith('attachment', (string) $response->headers->get('Content-Disposition'));
+    }
+
+    /**
+     * And a picture is still a picture.
+     *
+     * The guard has to be narrow: forcing every file to download would break
+     * every image on every public page, which is most of what this serves.
+     */
+    public function testAPictureIsStillShownInline(): void
+    {
+        $response = $this->server->serve($this->rootDir.'/photo.gif', $this->rootDir);
+
+        self::assertNull($response->headers->get('Content-Disposition'));
     }
 }

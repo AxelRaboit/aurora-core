@@ -81,6 +81,7 @@ final readonly class SpaceAccessViewBuilder
             'usable' => $link->isUsable($now),
             'canApprove' => $link->canApprove(),
             'canComment' => $link->canComment(),
+            'canUpload' => $link->canUpload(),
         ];
     }
 

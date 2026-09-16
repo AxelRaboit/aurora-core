@@ -47,6 +47,10 @@ interface SpaceAccessLinkInterface
 
     public function setCanComment(bool $canComment): static;
 
+    public function canUpload(): bool;
+
+    public function setCanUpload(bool $canUpload): static;
+
     public function getFirstOpenedAt(): ?DateTimeImmutable;
 
     public function getLastUsedAt(): ?DateTimeImmutable;

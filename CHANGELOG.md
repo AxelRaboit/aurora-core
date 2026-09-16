@@ -5,6 +5,63 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.186] - 2026-09-16
+
+### Ajouté
+
+#### Un client peut envoyer ses propres fichiers
+Troisième droit sur un lien d'espace, à côté de « peut valider » et « peut
+commenter » : **peut envoyer des fichiers**. Coché, le client dépose ses photos
+et documents directement sur les contenus, depuis sa page, sans compte.
+
+**Éteint par défaut, contrairement aux deux autres, et c'est le point.**
+Répondre et commenter sont ce à quoi sert un lien, donc ils arrivent allumés.
+Envoyer écrit des octets dans notre stockage depuis une adresse sans compte
+derrière : l'accorder à tous les liens déjà émis, le jour du déploiement, n'est
+pas un choix que quelqu'un a fait.
+
+**Trois murs, et ils ne sont pas interchangeables.** Un limiteur de débit
+`space_guest_upload` à part, plus bas que celui des avis parce qu'un fichier ne
+coûte pas ce que coûte un clic. Puis le droit du lien, qui répond comme à un
+inconnu : dire « vous pouvez lire mais pas envoyer » renseignerait celui qui
+détient une adresse fuitée. Puis `SpaceGuestUploadPolicy`, le seul à regarder le
+fichier : liste blanche de types inertes, vérifiée sur le type **sniffé dans les
+octets** et jamais sur celui annoncé par le navigateur.
+
+Le SVG est refusé nommément. Ce n'est pas une image, c'est un document qui peut
+porter du script.
+
+### Sécurité
+
+#### Un fichier déposé ne s'exécute plus sur notre domaine
+Vaut pour **tous** les fichiers de la GED, pas seulement les nouveaux dépôts.
+`BinaryFileServer` envoie désormais `X-Content-Type-Options: nosniff` sur chaque
+réponse, et force le téléchargement pour les types qu'un navigateur exécute
+comme un document : SVG, HTML, XHTML, XML, XSL.
+
+Le garde-fou est étroit exprès : une image reste affichée en ligne, sinon toutes
+les images de toutes les pages publiques se seraient mises à se télécharger. Et
+un `Content-Disposition` sur une sous-ressource est ignoré par les navigateurs,
+donc une balise image pointant vers un SVG s'affiche toujours. Ce qui change,
+c'est la navigation directe vers l'adresse, qui est le vecteur.
+
+Cela méritait déjà d'exister quand seule l'équipe pouvait déposer. Ça cesse
+d'être optionnel dès qu'un porteur de lien le peut.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`.
+
+**Déclarer `space_guest_upload` dans `config/packages/rate_limiter.yaml`** : le
+contrôleur public le câble par nom d'argument, donc sans cette entrée le
+conteneur ne se construit plus.
+
+**Vérifier `upload_max_filesize` et `post_max_size`.** Un PHP par défaut plafonne
+à 2 Mo et 8 Mo, soit moins qu'une photo de téléphone : le plafond applicatif de
+25 Mo ne veut rien dire tant que PHP refuse avant. Le message reste juste dans
+les deux cas, mais le client ne pourra rien envoyer.
+
+---
+
 ## [0.9.185] - 2026-09-16
 
 ### Ajouté
