@@ -5,6 +5,79 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.192] - 2026-09-16
+
+### Corrigé
+
+#### La bibliothèque annonçait « aucun usage » sur des documents utilisés
+Trois modules pointent vers un document GED, un seul répondait au registre
+`DocumentUsageProviderInterface`. L'écran de suppression, qui est le seul
+avertissement existant, déclarait donc le fichier libre.
+
+Ce que le silence coûtait dépendait du module. Une pièce jointe d'espace client
+tient son document en `onDelete: CASCADE` : supprimer le fichier n'effaçait pas
+une vignette, ça emportait la ligne, et le fichier quittait l'espace du client
+sans rien laisser. Un billet pointe vers un document trois fois, sa couverture
+et l'image sociale de chaque langue en `SET NULL`, plus les identifiants dans
+`galleryLayout` : couvertures vidées, emplacements de galerie dessinant du vide.
+
+Deux fournisseurs ajoutés, et un test unitaire qui fait échouer la porte si un
+module référence un `Document` sans répondre. Vérifié en retirant les trois
+fournisseurs : il nomme les deux modules fautifs.
+
+#### La taille max d'upload affichée n'était pas celle qui s'appliquait
+`max_upload_size_mb` était enregistré, étiqueté, décrit et modifiable depuis que
+l'écran des paramètres existe, et aucune ligne de code ne le lisait. Les
+plafonds étaient écrits en dur dans `UploadPolicy` : 100 Mo pour la
+bibliothèque, 25 Mo pour un invité d'espace. Descendre le réglage à 5 pour
+protéger un petit disque donnait un écran qui acceptait la modification et un
+serveur qui continuait à prendre des fichiers de 100 Mo.
+
+`UploadPolicyProvider` le lit et construit la politique ; les deux contrôleurs
+qui appelaient les fabriques statiques la reçoivent par injection.
+
+Les invités sont plafonnés dans les deux sens, mais pas symétriquement. Baisser
+le réglage les baisse avec tout le monde, c'est ce que veut dire un plafond.
+Le monter ne les fait pas dépasser 25 Mo : celui qui tient un lien d'espace
+tient une adresse secrète et non un compte, et la part de disque qu'il peut
+remplir n'est pas une préférence d'administrateur. Un champ vidé donnerait un
+plafond de zéro et refuserait tout, partout, sans rien dire : le plancher est
+à 1 Mo.
+
+**Le défaut passe de 20 à 100**, ce que faisait la bibliothèque avant que le
+réglage soit branché, donc une installation neuve se comporte comme avant.
+Une installation existante, non : sa valeur enregistrée s'applique enfin.
+
+### Supprimé
+
+#### Le réglage « Extensions autorisées », que rien ne lisait
+`allowed_upload_extensions` était déclaré, étiqueté, doté d'un défaut et d'un
+espace réservé, affiché dans le groupe media, modifié et enregistré, et lu par
+aucune ligne de code. Retirer `svg` de la liste ne changeait rien, ce qui est
+pire que ne pas avoir de réglage : le `file_versions_limit` voisin fonctionne,
+donc le groupe inspire confiance.
+
+Retiré plutôt que branché, contrairement à son voisin, parce que la
+bibliothèque refuse d'avoir une liste de types autorisés à dessein :
+`UploadPolicy` l'argumente, une liste se contourne en renommant les fichiers et
+le mur est à la lecture, où `BinaryFileServer` envoie `nosniff` et force le
+téléchargement des types qu'un navigateur exécuterait. Le brancher aurait
+imposé une restriction que personne n'a décidée, à partir d'une liste
+enregistrée avant que la décision existe.
+
+**La liste des invités reste dans le code**, et c'est le fond de l'affaire :
+une version modifiable serait un moyen de remettre `image/svg+xml` depuis un
+formulaire.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`.
+
+**Vérifier la valeur de « Taille max d'upload »** dans les paramètres : elle
+s'applique désormais pour de bon. Une installation qui porte encore l'ancien
+défaut de 20 verra la bibliothèque passer de 100 Mo à 20 Mo.
+
+---
+
 ## [0.9.191] - 2026-09-16
 
 ### Corrigé
