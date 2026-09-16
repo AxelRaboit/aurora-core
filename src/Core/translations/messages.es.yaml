@@ -5,6 +5,9 @@ shared:
     placeholder: Escribir un mensaje…
     send: Enviar
     from_client: cliente
+    verdict:
+      approved: '{who} ha validado'
+      changes_requested: '{who} ha pedido cambios'
   attachments:
     title: Archivos
     empty: Ningún archivo por ahora.

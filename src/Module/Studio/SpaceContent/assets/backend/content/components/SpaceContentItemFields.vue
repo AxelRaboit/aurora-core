@@ -23,6 +23,7 @@ const props = defineProps({
     timezone: { type: String, default: "Europe/Paris" },
     approval: { type: String, default: "pending" },
     approvalBy: { type: String, default: "" },
+    approvalAt: { type: String, default: null },
     comments: { type: Array, default: () => [] },
     commentLoading: { type: Boolean, default: false },
     /** False while creating: a card with no id has nothing to hang a thread on. */
@@ -115,24 +116,6 @@ function set(field, value) {
             {{ t("backend.studio.space_content.timezone_notice", { timezone }) }}
         </p>
 
-        <!-- The client's own words, shown and not editable. The warning under
-             it is the part nobody would guess: an approval is of a wording, so
-             changing the text here drops it. -->
-        <section
-            v-if="approval && approval !== 'pending'"
-            class="space-y-1 rounded-lg border border-line/60 bg-surface-2/40 px-3 py-2"
-        >
-            <p class="text-xs font-medium text-primary">
-                {{ t(`backend.studio.space_content.approvals.${approval}`) }}
-                <span v-if="approvalBy" class="font-normal text-muted">
-                    · {{ approvalBy }}
-                </span>
-            </p>
-            <p class="text-xs text-muted">
-                {{ t("backend.studio.space_content.approval_reset_warning") }}
-            </p>
-        </section>
-
         <!-- The files, above the conversation on purpose: the visual is what a
              client is usually being asked to approve, and reading the thread
              without it in view is answering half a question. Like the thread,
@@ -152,9 +135,19 @@ function set(field, value) {
         <!-- The conversation, which the verdict above does not carry: resetting
              an approval must not take the client's words with it, and it is
              those words the studio is acting on. -->
+        <!-- The verdict travels into the thread instead of sitting above it.
+             It used to be a panel of its own plus a sentence warning that
+             rewriting the text would drop it: three places for one
+             conversation. As a line in the stream it is met where somebody
+             reading the exchange expects to meet it, and it simply disappears
+             when the wording changes - which says the same thing as the
+             warning, at the moment it matters. -->
         <SpaceContentThread
             v-if="canDiscuss"
             :comments="comments"
+            :verdict="approval"
+            :verdict-by="approvalBy"
+            :verdict-at="approvalAt"
             :loading="commentLoading"
             :can-post="!readonly"
             :can-delete="!readonly"

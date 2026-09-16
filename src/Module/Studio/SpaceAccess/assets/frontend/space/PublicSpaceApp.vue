@@ -304,23 +304,6 @@ function open(event) {
                 {{ t("studio.public.space.no_body") }}
             </p>
 
-            <!-- What was already answered, shown before anything is asked: a
-                 reader coming back should see what they said rather than be
-                 asked again. -->
-            <p
-                v-if="openItem && openItem.approval !== 'pending'"
-                class="mt-4 rounded-lg bg-surface-2 px-3 py-2 text-xs text-secondary"
-            >
-                {{
-                    t(
-                        openItem.approval === "approved"
-                            ? "studio.public.space.already_approved"
-                            : "studio.public.space.already_changes_requested",
-                        { date: d(new Date(openItem.approvalAt), "short") },
-                    )
-                }}
-            </p>
-
             <!-- The files, above the thread and shown whatever the link may
                  do: seeing the visual is the point of being asked to approve,
                  and it has nothing to do with being allowed to add one.
@@ -341,6 +324,9 @@ function open(event) {
             <div v-if="openItem" class="mt-4 border-t border-line/50 pt-4">
                 <SpaceContentThread
                     :comments="thread"
+                    :verdict="openItem?.approval ?? 'pending'"
+                    :verdict-by="openItem?.approvalBy ?? ''"
+                    :verdict-at="openItem?.approvalAt ?? null"
                     :can-post="canComment"
                     :loading="posting"
                     :notice="t('studio.public.space.thread_notice')"

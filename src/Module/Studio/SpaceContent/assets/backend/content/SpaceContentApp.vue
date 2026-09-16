@@ -268,6 +268,7 @@ const actionsFor = useSpaceCardActions({
                     :timezone="space.timezone"
                     :approval="editingItem?.approval ?? 'pending'"
                     :approval-by="editingItem?.approvalBy ?? ''"
+                    :approval-at="editingItem?.approvalAt ?? null"
                     :comments="threadOf(editingItem)"
                     :comment-loading="commentLoading"
                     :can-discuss="!!editingItem"
