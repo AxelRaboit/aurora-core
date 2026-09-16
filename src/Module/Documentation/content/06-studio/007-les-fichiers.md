@@ -9,11 +9,15 @@ Un fichier ne se dépose pas sur un espace, il se dépose **sur un contenu**. C'
 
 Ouvrez une fiche. Sous le texte, une zone de dépôt accepte trois gestes :
 
-- **Glisser un fichier** dessus.
-- **Parcourir**, pour choisir sur votre disque.
-- **Choisir dans la médiathèque**, pour un document qui y est déjà.
+- **Glisser un fichier** sur la zone de dépôt.
+- **Ajouter un fichier**, pour choisir sur votre disque.
+- **Choisir dans la GED**, pour un document qui y est déjà.
+
+![La fiche d'un contenu, avec ses fichiers et la zone de dépôt](../../images/06-studio/les-fichiers-01-la-fiche-et-ses-fichiers.png)
 
 Les deux premiers déposent un nouveau fichier. Le troisième n'en déplace aucun : il pose une référence vers un document existant, qui reste où il est et peut servir à plusieurs endroits.
+
+![La zone de dépôt et ses deux boutons](../../images/06-studio/les-fichiers-02-la-zone-de-depot.png)
 
 ## 2. Ce que le client peut envoyer
 
@@ -27,7 +31,11 @@ Ce qu'il envoie est limité aux formats inertes, images, PDF et les deux formats
 
 Le sélecteur de l'onglet Contenu porte une quatrième entrée. Elle rassemble tout ce que l'espace a échangé, du plus récent au plus ancien, en nommant la fiche de chaque ligne. C'est la vue pour « ce fichier est arrivé la semaine dernière, mais pour quel post ».
 
+![La vue Fichiers, en liste](../../images/06-studio/les-fichiers-03-la-vue-fichiers.png)
+
 Deux formes au choix, en haut à droite : **liste** quand la question est quand et de qui, **cartes** quand la question est laquelle. Le choix voyage dans l'adresse, donc un lien vers cette vue l'emmène avec lui.
+
+![La même vue, en cartes](../../images/06-studio/les-fichiers-04-en-cartes.png)
 
 ## 4. Où ils atterrissent
 

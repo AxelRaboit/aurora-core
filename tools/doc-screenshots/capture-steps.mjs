@@ -422,6 +422,50 @@ const FLOWS = {
   /**
    * Le calendrier : le mois, et la colonne de ce qui n'a pas de date.
    */
+  /**
+   * Les fichiers d'un espace : où on les dépose, et les deux façons de les lire.
+   *
+   * Le dépôt se photographie sur une fiche ouverte parce que c'est là qu'il
+   * vit : un fichier se pose sur un contenu, jamais sur l'espace. La vue
+   * Fichiers vient ensuite, dans ses deux formes, puis le dossier que l'espace
+   * s'est ouvert dans la médiathèque - qui est la partie que personne ne pense
+   * à regarder et que la page existe pour montrer.
+   */
+  "les-fichiers": async () => {
+    await openFirstSpace();
+
+    // Une fiche qui porte déjà des pièces jointes : la zone de dépôt seule ne
+    // montre pas ce qu'elle produit.
+    await page.getByRole("button", { name: /Modifier/ }).first().click().catch(async () => {
+      await page.locator("article").first().click();
+    });
+    await wait(1500);
+
+    const panel = page.getByRole("dialog").first();
+    await shot("la-fiche-et-ses-fichiers");
+
+    const drop = panel.locator("text=/Glissez|Ajouter un fichier/i").first();
+    await shotOf(drop, "la-zone-de-depot", 24, 24).catch(() => {});
+
+    await closeDialog().catch(() => {});
+
+    await selectView("Fichiers");
+    await shot("la-vue-fichiers");
+
+    // Le bouton n'a pas de texte : deux icônes dans un même cadre, et c'est
+    // celle de gauche. Visée par son libellé accessible plutôt que par sa
+    // position, qui est ce qui casse quand une troisième forme arrive.
+    await page.getByRole("button", { name: "Afficher en cartes" }).first().click();
+    await wait(1500);
+    await shot("en-cartes");
+
+    // Pas de photo du dossier que l'espace s'ouvre dans la médiathèque, et
+    // c'est une absence choisie : la démo rattache des documents existants au
+    // lieu d'en déposer, donc aucun espace n'a de dossier et la photo
+    // montrerait une médiathèque qui contredit la page. Elle reviendra le jour
+    // où les fixtures déposent un fichier par un espace.
+  },
+
   "le-calendrier": async () => {
     await openFirstSpace();
     await selectView("Calendrier");
