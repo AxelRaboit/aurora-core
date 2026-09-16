@@ -11,6 +11,7 @@ use Aurora\Fixtures\Ged\GedDemoFixtures;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Ged\Document\Entity\Document;
+use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -45,6 +46,8 @@ use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInput;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInput;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
@@ -117,6 +120,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly CustomerSpaceRepository $spaceRepository,
         private readonly UserRepository $userRepository,
         private readonly SpaceContentItemManagerInterface $contentItems,
+        private readonly SpaceContentAttachmentManagerInterface $contentAttachments,
+        private readonly DocumentRepository $documents,
         private readonly SpaceContentColumnManagerInterface $contentColumnManager,
         private readonly SpaceContentColumnRepository $contentColumns,
         private readonly ContractTemplateManagerInterface $templates,
@@ -403,27 +408,37 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // Keyed by the step's place, not its name: the names are translated at
         // creation and a demo that matched on "Idées" would seed nothing the
         // day somebody creates a space in English.
+        // Fourth column: the pictures hung on the card, by document title.
+        //
+        // Most cards carry one, a couple carry several and one carries none,
+        // because those are the three things the board has to be able to draw.
+        // A demo where every card had a thumbnail would hide what a card with
+        // nothing to show looks like, which is the commonest state of all while
+        // a month is being planned.
         $cards = [
             0 => [
-                ['Portrait de l\'équipe', "Photo de groupe devant l'atelier, format carré.", null],
-                ['Les essences de bois', 'Un fil sur le chêne, le noyer et le frêne.', null],
-                ['Avant / après cuisine', 'La rénovation de septembre, en deux images.', null],
+                ['Portrait de l\'équipe', "Photo de groupe devant l'atelier, format carré.", null, ["Photo d'équipe - Séminaire 2025"]],
+                ['Les essences de bois', 'Un fil sur le chêne, le noyer et le frêne.', null, []],
+                ['Avant / après cuisine', 'La rénovation de septembre, en deux images.', null, ['Bureau - Illustration article', 'Capture - Tableau de bord client']],
             ],
             1 => [
-                ['Coulisses du chantier Morel', "Trois photos de l'escalier en cours.", '+3 days 09:00'],
+                ['Coulisses du chantier Morel', "Trois photos de l'escalier en cours.", '+3 days 09:00', ['Visuel de campagne - Automne 2025', 'Plan des locaux - Étage 2', 'Logo Aurora - Fond sombre']],
             ],
             2 => [
-                ['Offre de rentrée', 'Le devis gratuit jusqu\'au 30. À faire valider avant mardi.', '+5 days 18:00'],
+                ['Offre de rentrée', 'Le devis gratuit jusqu\'au 30. À faire valider avant mardi.', '+5 days 18:00', ['Affiche du salon 2026']],
             ],
             3 => [
-                ['Journée portes ouvertes', "Rappel de l'événement du 12, avec le plan d'accès.", '+8 days 10:00'],
-                ['Témoignage client', 'Le retour de Mme Lefèvre sur sa bibliothèque.', '+10 days 09:00'],
+                ['Journée portes ouvertes', "Rappel de l'événement du 12, avec le plan d'accès.", '+8 days 10:00', ['Plan des locaux - Étage 2']],
+                ['Témoignage client', 'Le retour de Mme Lefèvre sur sa bibliothèque.', '+10 days 09:00', []],
             ],
             4 => [
-                ['Le nouvel atelier', "L'annonce du déménagement, parue la semaine dernière.", '-4 days 09:00'],
+                ['Le nouvel atelier', "L'annonce du déménagement, parue la semaine dernière.", '-4 days 09:00', ['Visuel de campagne - Automne 2025']],
             ],
             5 => [
-                ['Conditions du jeu concours', 'Le règlement relu par le cabinet avant publication.', '+14 days 09:00'],
+                // A card whose only file is a PDF: no square on the board, an
+                // icon in the form. The one case the tile logic has to get
+                // right and that no image would exercise.
+                ['Conditions du jeu concours', 'Le règlement relu par le cabinet avant publication.', '+14 days 09:00', ['Certification ISO 27001 - Audit 2024']],
             ],
         ];
 
@@ -432,8 +447,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
                 continue;
             }
 
-            foreach ($rows as [$title, $body, $when]) {
-                $this->contentItems->create($space, new SpaceContentItemInput(
+            foreach ($rows as [$title, $body, $when, $pictures]) {
+                $item = $this->contentItems->create($space, new SpaceContentItemInput(
                     title: $title,
                     body: $body,
                     columnId: $columns[$at]->getId(),
@@ -441,6 +456,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
                         ? null
                         : new DateTimeImmutable($when)->format('Y-m-d\TH:i'),
                 ));
+
+                $this->hangPictures($item, $pictures);
             }
         }
     }
@@ -658,6 +675,46 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
                 'Ce qui est abandonné, et pourquoi',
             ],
         ], null);
+    }
+
+    /**
+     * Hangs demo pictures on a card, by document title.
+     *
+     * By title rather than by id, and looked up here rather than referenced,
+     * because these documents are created by GED's own seeding table and are
+     * not exposed as fixture references - only the two `mediaRef` ones are. A
+     * title that stops existing silently hangs nothing, which is the right
+     * failure for a demo: a missing thumbnail is visible, a fatal on
+     * `make demo` is not.
+     *
+     * Signed through `attachAs()` rather than `attachAsStudio()` because a
+     * fixture has no session to resolve an author from. The alternative was
+     * building the row by hand, which is how the signing rules drift out of
+     * step with the ones the product applies.
+     *
+     * @param list<string> $titles
+     */
+    private function hangPictures(SpaceContentItemInterface $item, array $titles): void
+    {
+        if ([] === $titles) {
+            return;
+        }
+
+        $author = $this->userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Backend->value]);
+
+        if (!$author instanceof User) {
+            return;
+        }
+
+        foreach ($titles as $title) {
+            $document = $this->documents->findOneBy(['title' => $title]);
+
+            if (!$document instanceof Document) {
+                continue;
+            }
+
+            $this->contentAttachments->attachAs($item, $document, $author, $author->getName());
+        }
     }
 
     /**

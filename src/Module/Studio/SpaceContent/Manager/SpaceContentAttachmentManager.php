@@ -41,6 +41,15 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
             throw new FieldException('document', $this->translator->trans('backend.studio.space_content.errors.attachment_needs_account'));
         }
 
+        return $this->attachAs($item, $document, $user, $this->labelOf($user));
+    }
+
+    public function attachAs(
+        SpaceContentItemInterface $item,
+        DocumentInterface $document,
+        CoreUserInterface $author,
+        string $authorLabel,
+    ): SpaceContentAttachmentInterface {
         $this->refuseDuplicate($item, $document);
 
         $attachment = $this->createAttachment();
@@ -48,7 +57,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
             ->setItem($item)
             ->setDocument($document)
             ->setPosition($this->attachments->nextPosition($item))
-            ->addedByStudio($user, $this->labelOf($user));
+            ->addedByStudio($author, $authorLabel);
 
         return $this->save($attachment);
     }

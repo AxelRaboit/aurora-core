@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceContent\Manager;
 
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachmentInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
@@ -19,6 +20,21 @@ interface SpaceContentAttachmentManagerInterface
      * month. Nothing is uploaded and nothing is copied.
      */
     public function attachAsStudio(SpaceContentItemInterface $item, DocumentInterface $document): SpaceContentAttachmentInterface;
+
+    /**
+     * The same, signed by an author the caller names.
+     *
+     * What `attachAsStudio()` does once it has resolved who is logged in.
+     * Exposed because there are callers with no session to resolve - fixtures,
+     * an import, a command - and the alternative is each of them building the
+     * entity by hand, which is how the signing rules drift.
+     */
+    public function attachAs(
+        SpaceContentItemInterface $item,
+        DocumentInterface $document,
+        CoreUserInterface $author,
+        string $authorLabel,
+    ): SpaceContentAttachmentInterface;
 
     /**
      * Files an uploaded file in GED and puts it on a card, in one gesture.
