@@ -34,7 +34,7 @@ client-app/
 ├── src/
 │   ├── Module/                 # App\Module\* - ALL client PHP code
 │   │   ├── Core/               #   Extensions of Aurora\Core\* entities
-│   │   │   └── Agency/         #     Entity/ Dto/ Manager/ Serializer/
+│   │   │   └── DocumentCategory/         #     Entity/ Dto/ Manager/ Serializer/
 │   │   ├── Crm/                #   Extensions of Aurora\Module\Crm\* entities
 │   │   └── <Name>/             #   Client-owned feature modules
 │   ├── Service/                # App\Service\* - cross-module stateless helpers (rare)
@@ -294,16 +294,16 @@ Pour ajouter un champ visible/éditable depuis le backoffice (formulaire +
 tableau), il faut intervenir sur 5 couches : Entity, DTO, Manager, Serializer
 et le composant Vue. Aurora expose des points d'extension pour chacune.
 
-Le module **Agency** sert de pilote complet - voir
-[`extending_agency_pilot.md`](./extending_agency_pilot.md) pour la recette
-end-to-end : factory `AgencyInputFactoryInterface` (`#[AsAlias]`),
-`AgencyManagerInterface` / `AgencySerializerInterface` (décoration),
+Le module **DocumentCategory** sert de pilote complet - voir
+[`extending_category_pilot.md`](./extending_category_pilot.md) pour la recette
+end-to-end : factory `DocumentCategoryInputFactoryInterface` (`#[AsAlias]`),
+`DocumentCategoryManagerInterface` / `DocumentCategorySerializerInterface` (décoration),
 slots Vue (`extra-headers` / `extra-cells` / `extra-form-fields`) et
 override Twig.
 
 **Toutes les entités Aurora avec page backend CRUD sont instrumentées** (26 entités
 au total - voir `entity_extensibility_convention.md` section 2.1). Le pattern
-Agency s'applique identiquement à chacune.
+DocumentCategory s'applique identiquement à chacune.
 
 ### 7. Bundle configuration
 

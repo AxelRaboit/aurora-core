@@ -9,8 +9,8 @@ un cas concret (« je veux X → voici le diff minimal côté client »).
 
 Pour la théorie complète du pattern Sylius en 5 couches, voir la doc
 canonique [`../../aurora-core/dev/entity_extensibility_convention.md`](../../aurora-core/dev/entity_extensibility_convention.md).
-Pour un tutoriel pas-à-pas qui ajoute un champ `code` à `Agency`, voir
-[`../../aurora-core/dev/extending_agency_pilot.md`](../../aurora-core/dev/extending_agency_pilot.md).
+Pour un tutoriel pas-à-pas qui ajoute un champ `code` à `DocumentCategory`, voir
+[`../../aurora-core/dev/extending_category_pilot.md`](../../aurora-core/dev/extending_category_pilot.md).
 
 > **Règle d'or** : on **n'édite jamais** un fichier sous
 > `vendor/axelraboit/aurora/`. Toute modification passe par les points
@@ -39,26 +39,26 @@ Hors des 5 couches :
 
 ## 1. Layer 1 - Entité Doctrine
 
-### Cas : je veux ajouter un champ à `Agency`.
+### Cas : je veux ajouter un champ à `DocumentCategory`.
 
 **Diff côté client** :
 
-`src/Module/Platform/Agency/Entity/Agency.php` :
+`src/Module/Ged/DocumentCategory/Entity/DocumentCategory.php` :
 
 ```php
-namespace App\Module\Platform\Agency\Entity;
+namespace App\Module\Ged\DocumentCategory\Entity;
 
-use Aurora\Module\Platform\Agency\Entity\{AbstractAgency, AgencyInterface};
-use Aurora\Module\Platform\Agency\Repository\AgencyRepository;
+use Aurora\Module\Ged\DocumentCategory\Entity\{AbstractDocumentCategory, DocumentCategoryInterface};
+use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: AgencyRepository::class)]
-#[ORM\Table(name: 'app_agencies')]
-class Agency extends AbstractAgency implements AgencyInterface
+#[ORM\Entity(repositoryClass: DocumentCategoryRepository::class)]
+#[ORM\Table(name: 'app_ged_document_categories')]
+class DocumentCategory extends AbstractDocumentCategory implements DocumentCategoryInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
-    #[ORM\SequenceGenerator(sequenceName: 'seq_app_agency_id', allocationSize: 1)]
+    #[ORM\SequenceGenerator(sequenceName: 'seq_app_ged_category_id', allocationSize: 1)]
     #[ORM\Column]
     private ?int $id = null;
 
@@ -77,13 +77,13 @@ class Agency extends AbstractAgency implements AgencyInterface
 doctrine:
     orm:
         resolve_target_entities:
-            Aurora\Module\Platform\Agency\Entity\AgencyInterface: App\Module\Platform\Agency\Entity\Agency
+            Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface: App\Module\Ged\DocumentCategory\Entity\DocumentCategory
 ```
 
 ### Règles dures à respecter
 
-- On étend **`AbstractAgency`** (le `MappedSuperclass`), pas la classe
-  concrète `Aurora\Module\Platform\Agency\Entity\Agency`. Sinon Doctrine exige une
+- On étend **`AbstractDocumentCategory`** (le `MappedSuperclass`), pas la classe
+  concrète `Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory`. Sinon Doctrine exige une
   inheritance type + discriminator - non voulu.
 - Table : préfixe **`app_*`** (jamais `core_*` qui est réservé à Aurora,
   jamais sans préfixe).
@@ -91,11 +91,11 @@ doctrine:
 - L'`id` + le `SequenceGenerator` sont **redéclarés côté client** parce que
   Doctrine ne propage pas un `SequenceGenerator` à travers un
   `MappedSuperclass`.
-- Pas besoin de redéclarer un repository client - `AgencyRepository` (qui
+- Pas besoin de redéclarer un repository client - `DocumentCategoryRepository` (qui
   étend `ResolveTargetEntityRepository`) querie automatiquement votre table
   dès que `resolve_target_entities` route l'interface.
 
-Cf. [`../../aurora-core/dev/extending_agency_pilot.md`](../../aurora-core/dev/extending_agency_pilot.md)
+Cf. [`../../aurora-core/dev/extending_category_pilot.md`](../../aurora-core/dev/extending_category_pilot.md)
 pour le pilote complet.
 
 ### Cas : je veux substituer une entité d'un module Aurora (`Crm\Deal`, `Billing\Invoice`…)
@@ -104,29 +104,29 @@ Le chemin client miroir le namespace Aurora :
 
 | Aurora | Client |
 |---|---|
-| `Aurora\Module\Platform\Agency\…` | `src/Module/Platform/Agency/…` |
+| `Aurora\Module\Ged\DocumentCategory\…` | `src/Module/Ged/DocumentCategory/…` |
 | `Aurora\Module\Crm\Deal\…` | `src/Module/Crm/Deal/…` |
 | `Aurora\Module\Billing\Invoice\…` | `src/Module/Billing/Invoice/…` |
 
-Le reste est identique au cas Agency.
+Le reste est identique au cas DocumentCategory.
 
 ---
 
 ## 2. Layer 2 - DTO d'entrée et Factory
 
-### Cas : j'ai ajouté `code` à `Agency`, le formulaire admin doit l'envoyer.
+### Cas : j'ai ajouté `code` à `DocumentCategory`, le formulaire admin doit l'envoyer.
 
 **Diff côté client** :
 
-`src/Module/Platform/Agency/Dto/AgencyInput.php` - étend le DTO Aurora :
+`src/Module/Ged/DocumentCategory/Dto/DocumentCategoryInput.php` - étend le DTO Aurora :
 
 ```php
-namespace App\Module\Platform\Agency\Dto;
+namespace App\Module\Ged\DocumentCategory\Dto;
 
-use Aurora\Module\Platform\Agency\Dto\AgencyInput as AuroraAgencyInput;
+use Aurora\Module\Ged\DocumentCategory\Dto\DocumentCategoryInput as AuroraDocumentCategoryInput;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class AgencyInput extends AuroraAgencyInput
+class DocumentCategoryInput extends AuroraDocumentCategoryInput
 {
     public function __construct(
         string $name,
@@ -143,24 +143,24 @@ class AgencyInput extends AuroraAgencyInput
 }
 ```
 
-`src/Module/Platform/Agency/Dto/AgencyInputFactory.php` - étend la factory et
+`src/Module/Ged/DocumentCategory/Dto/DocumentCategoryInputFactory.php` - étend la factory et
 écrase l'alias :
 
 ```php
-namespace App\Module\Platform\Agency\Dto;
+namespace App\Module\Ged\DocumentCategory\Dto;
 
-use Aurora\Module\Platform\Agency\Dto\AgencyInputFactory as AuroraAgencyInputFactory;
-use Aurora\Module\Platform\Agency\Dto\AgencyInputFactoryInterface;
-use Aurora\Module\Platform\Agency\Dto\AgencyInputInterface;
+use Aurora\Module\Ged\DocumentCategory\Dto\DocumentCategoryInputFactory as AuroraDocumentCategoryInputFactory;
+use Aurora\Module\Ged\DocumentCategory\Dto\DocumentCategoryInputFactoryInterface;
+use Aurora\Module\Ged\DocumentCategory\Dto\DocumentCategoryInputInterface;
 use Aurora\Core\Support\Str;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
-#[AsAlias(AgencyInputFactoryInterface::class)]
-class AgencyInputFactory extends AuroraAgencyInputFactory
+#[AsAlias(DocumentCategoryInputFactoryInterface::class)]
+class DocumentCategoryInputFactory extends AuroraDocumentCategoryInputFactory
 {
-    public function fromArray(array $data): AgencyInputInterface
+    public function fromArray(array $data): DocumentCategoryInputInterface
     {
-        return new AgencyInput(
+        return new DocumentCategoryInput(
             name: Str::trimFromArray($data, 'name'),
             code: Str::trimFromArray($data, 'code') ?: null,
         );
@@ -174,11 +174,11 @@ class AgencyInputFactory extends AuroraAgencyInputFactory
   `readonly class`** : un parent `readonly class` empêcherait l'enfant
   d'ajouter une propriété mutable.
 - **`#[AsAlias]` se met sur la Factory cliente**, qui prend la place de la
-  factory Aurora pour l'interface `AgencyInputFactoryInterface`. Le DTO
+  factory Aurora pour l'interface `DocumentCategoryInputFactoryInterface`. Le DTO
   lui-même n'a pas besoin d'alias - il est instancié par la factory.
 - Pas de méthode statique `fromArray()` dans le DTO - c'est la factory qui
   s'en charge (c'est elle qu'on peut décorer).
-- Le contrôleur Aurora type-hint déjà `AgencyInputFactoryInterface`, donc il
+- Le contrôleur Aurora type-hint déjà `DocumentCategoryInputFactoryInterface`, donc il
   reçoit votre factory cliente sans aucune autre modification.
 
 Sub-DTO (ex. `PostTranslationInput` inclus dans `PostInput`) : ils restent
@@ -191,41 +191,41 @@ le DTO racine et fournissez vos propres sub-DTO via la factory cliente.
 
 ### Cas : persister + auditer le champ `code` à la création / édition
 
-**Diff côté client** - `src/Module/Platform/Agency/Manager/AgencyManager.php` :
+**Diff côté client** - `src/Module/Ged/DocumentCategory/Manager/DocumentCategoryManager.php` :
 
 ```php
-namespace App\Module\Platform\Agency\Manager;
+namespace App\Module\Ged\DocumentCategory\Manager;
 
-use App\Module\Platform\Agency\Dto\AgencyInput;
-use App\Module\Platform\Agency\Entity\Agency;
-use Aurora\Module\Platform\Agency\Dto\AgencyInputInterface;
-use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
-use Aurora\Module\Platform\Agency\Manager\AgencyManager as AuroraAgencyManager;
-use Aurora\Module\Platform\Agency\Manager\AgencyManagerInterface;
+use App\Module\Ged\DocumentCategory\Dto\DocumentCategoryInput;
+use App\Module\Ged\DocumentCategory\Entity\DocumentCategory;
+use Aurora\Module\Ged\DocumentCategory\Dto\DocumentCategoryInputInterface;
+use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
+use Aurora\Module\Ged\DocumentCategory\Manager\DocumentCategoryManager as AuroraDocumentCategoryManager;
+use Aurora\Module\Ged\DocumentCategory\Manager\DocumentCategoryManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
-#[AsAlias(AgencyManagerInterface::class)]
-class AgencyManager extends AuroraAgencyManager
+#[AsAlias(DocumentCategoryManagerInterface::class)]
+class DocumentCategoryManager extends AuroraDocumentCategoryManager
 {
-    protected function createAgency(): AgencyInterface
+    protected function createDocumentCategory(): DocumentCategoryInterface
     {
-        return new Agency();
+        return new DocumentCategory();
     }
 
-    protected function applyInput(AgencyInterface $agency, AgencyInputInterface $input): void
+    protected function applyInput(DocumentCategoryInterface $category, DocumentCategoryInputInterface $input): void
     {
-        parent::applyInput($agency, $input);
+        parent::applyInput($category, $input);
 
-        if ($agency instanceof Agency && $input instanceof AgencyInput) {
-            $agency->setCode($input->getCode());
+        if ($category instanceof DocumentCategory && $input instanceof DocumentCategoryInput) {
+            $category->setCode($input->getCode());
         }
     }
 
-    protected function auditPayload(AgencyInterface $agency): array
+    protected function auditPayload(DocumentCategoryInterface $category): array
     {
         return [
-            ...parent::auditPayload($agency),
-            'code' => $agency instanceof Agency ? $agency->getCode() : null,
+            ...parent::auditPayload($category),
+            'code' => $category instanceof DocumentCategory ? $category->getCode() : null,
         ];
     }
 }
@@ -262,7 +262,7 @@ Cf. [`entity_extensibility_convention.md §4.bis.1`](../../aurora-core/dev/entit
   silencieuse des champs client (cf. memory `pitfall_create_hook_required.md`).
 - **Oublier `parent::applyInput()`** → tous les champs Aurora restent à null
   / valeur par défaut.
-- Les propriétés DI dans `AgencyManager` Aurora sont `protected readonly`
+- Les propriétés DI dans `DocumentCategoryManager` Aurora sont `protected readonly`
   (jamais `private`) - accessibles depuis votre sous-classe.
 
 ---
@@ -272,25 +272,25 @@ Cf. [`entity_extensibility_convention.md §4.bis.1`](../../aurora-core/dev/entit
 ### Cas : exposer `code` dans le JSON envoyé au front
 
 **Diff côté client** -
-`src/Module/Platform/Agency/Serializer/AgencySerializer.php` :
+`src/Module/Ged/DocumentCategory/Serializer/DocumentCategorySerializer.php` :
 
 ```php
-namespace App\Module\Platform\Agency\Serializer;
+namespace App\Module\Ged\DocumentCategory\Serializer;
 
-use App\Module\Platform\Agency\Entity\Agency;
-use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
-use Aurora\Module\Platform\Agency\Serializer\AgencySerializer as AuroraAgencySerializer;
-use Aurora\Module\Platform\Agency\Serializer\AgencySerializerInterface;
+use App\Module\Ged\DocumentCategory\Entity\DocumentCategory;
+use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
+use Aurora\Module\Ged\DocumentCategory\Serializer\DocumentCategorySerializer as AuroraDocumentCategorySerializer;
+use Aurora\Module\Ged\DocumentCategory\Serializer\DocumentCategorySerializerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
-#[AsAlias(AgencySerializerInterface::class)]
-class AgencySerializer extends AuroraAgencySerializer
+#[AsAlias(DocumentCategorySerializerInterface::class)]
+class DocumentCategorySerializer extends AuroraDocumentCategorySerializer
 {
-    public function serialize(AgencyInterface $agency): array
+    public function serialize(DocumentCategoryInterface $category): array
     {
         return [
-            ...parent::serialize($agency),
-            'code' => $agency instanceof Agency ? $agency->getCode() : null,
+            ...parent::serialize($category),
+            'code' => $category instanceof DocumentCategory ? $category->getCode() : null,
         ];
     }
 }
@@ -309,8 +309,8 @@ client, on ne réécrit pas le composant - on le **wrap**, **co-localisé
 avec l'extension PHP** sous `src/Module/<AuroraModule>/<Feature>/assets/`.
 
 > **Comment ça shadow ?** Le glob `src/Module/**/assets/**/*.vue` flatten
-> les feature folders (e.g. `Platform/Agency/assets/...`) → la clé exposée
-> est identique à celle d'Aurora (`platform/backend/agencies/AgenciesApp`).
+> les feature folders (e.g. `Platform/DocumentCategory/assets/...`) → la clé exposée
+> est identique à celle d'Aurora (`platform/backend/document-categories/DocumentCategoriesApp`).
 > Comme le bloc `clientModules` est spread APRÈS `auroraModules`, ton
 > fichier wins automatiquement - pas de Twig override à écrire. Détail
 > et règle des deux mirrors (PHP vs URL) :
@@ -321,25 +321,25 @@ Exemple détaillé (slots, composables, gotchas `editForm`) :
 [`pattern_extend_vue.md`](../../../.claude/memory/aurora-client/pattern_extend_vue.md).
 
 Squelette d'override Vue -
-`src/Module/Platform/Agency/assets/backend/agencies/AgenciesApp.vue` :
+`src/Module/Ged/DocumentCategory/assets/backend/document-categories/DocumentCategoriesApp.vue` :
 
 ```vue
 <script setup>
-import AuroraAgenciesApp from '@platform/backend/agencies/AgenciesApp.vue';
+import AuroraDocumentCategoriesApp from '@platform/backend/document-categories/DocumentCategoriesApp.vue';
 </script>
 
 <template>
-  <AuroraAgenciesApp :extra-fields="{ code: { default: '', fromEntity: (agency) => agency.code ?? '' } }">
+  <AuroraDocumentCategoriesApp :extra-fields="{ code: { default: '', fromEntity: (category) => category.code ?? '' } }">
     <template #extra-headers>
-      <th>{{ $t('core.agencies.code') }}</th>
+      <th>{{ $t('core.document-categories.code') }}</th>
     </template>
-    <template #extra-cells="{ agency }">
-      <td>{{ agency.code }}</td>
+    <template #extra-cells="{ category }">
+      <td>{{ category.code }}</td>
     </template>
     <template #extra-form-fields="{ editForm, errors }">
-      <AppInput v-model="editForm.code" :error="errors.code" :label="$t('core.agencies.code')" />
+      <AppInput v-model="editForm.code" :error="errors.code" :label="$t('core.document-categories.code')" />
     </template>
-  </AuroraAgenciesApp>
+  </AuroraDocumentCategoriesApp>
 </template>
 ```
 
@@ -361,7 +361,7 @@ l'original côté client. Deux conventions de chemin sont reconnues :
 
 | Namespace Twig | Override client (nouveau, recommandé) | Override client (legacy backward compat) |
 |---|---|---|
-| `@Core/backend/agencies/index.html.twig` | `src/Core/templates/Core/backend/agencies/index.html.twig` | `templates/Core/backend/agencies/index.html.twig` |
+| `@Core/backend/document-categories/index.html.twig` | `src/Core/templates/Core/backend/document-categories/index.html.twig` | `templates/Core/backend/document-categories/index.html.twig` |
 | `@Ecommerce/backend/listings/edit.html.twig` | `src/Module/Ecommerce/templates/backend/listings/edit.html.twig` | `templates/Module/Ecommerce/backend/listings/edit.html.twig` |
 | `Frontend/themes/default/editorial/home.html.twig` (null namespace, thèmes) | - | `templates/Frontend/themes/default/editorial/home.html.twig` |
 
@@ -384,14 +384,14 @@ non justifié - voir
 Le pattern côté client est simple : étendre le repo Aurora, déclarer le
 `repositoryClass` sur l'entité concrète.
 
-`src/Module/Platform/Agency/Repository/AppAgencyRepository.php` :
+`src/Module/Ged/DocumentCategory/Repository/AppDocumentCategoryRepository.php` :
 
 ```php
-namespace App\Module\Platform\Agency\Repository;
+namespace App\Module\Ged\DocumentCategory\Repository;
 
-use Aurora\Module\Platform\Agency\Repository\AgencyRepository;
+use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
 
-class AppAgencyRepository extends AgencyRepository
+class AppDocumentCategoryRepository extends DocumentCategoryRepository
 {
     public function findActiveExcludingArchived(): array
     {
@@ -405,13 +405,13 @@ class AppAgencyRepository extends AgencyRepository
 Puis dans l'entité cliente :
 
 ```php
-#[ORM\Entity(repositoryClass: AppAgencyRepository::class)]
-class Agency extends AbstractAgency implements AgencyInterface { … }
+#[ORM\Entity(repositoryClass: AppDocumentCategoryRepository::class)]
+class DocumentCategory extends AbstractDocumentCategory implements DocumentCategoryInterface { … }
 ```
 
-Aurora continue de type-hint `AgencyRepository` - la metadata résolue par
+Aurora continue de type-hint `DocumentCategoryRepository` - la metadata résolue par
 `ResolveTargetEntityRepository` route les queries vers la bonne table. Vous
-type-hint `AppAgencyRepository` dans votre propre code uniquement.
+type-hint `AppDocumentCategoryRepository` dans votre propre code uniquement.
 
 ---
 

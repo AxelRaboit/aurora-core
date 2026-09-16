@@ -218,7 +218,7 @@ Ensuite :
 
 > Le template démarre **propre** (aucun module métier livré). Cette checklist
 > sert quand tu retires un module que tu as scaffolté, un exemple que tu as
-> reconstruit en suivant la doc (`Tracking`, extension `Agency`…), ou un
+> reconstruit en suivant la doc (`Tracking`, extension `DocumentCategory`…), ou un
 > reliquat hérité d'un ancien template.
 
 Pour chaque module à retirer :

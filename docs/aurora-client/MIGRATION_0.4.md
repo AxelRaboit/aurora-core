@@ -9,7 +9,7 @@ du module. La convention est alignée sur celle déjà en place côté
 sous-modules à l'intérieur**.
 
 > **DB intacte** : aucune migration Doctrine n'est nécessaire. Les tables
-> (`core_user`, `core_agency`, `core_audit_log`, `core_media`,
+> (`core_user`, `core_category`, `core_audit_log`, `core_media`,
 > `core_setting`, etc.) gardent le même nom. Seules les classes PHP
 > bougent.
 
@@ -74,7 +74,7 @@ pnpm run build
 | `Aurora\Core\Theme\*` | `Aurora\Core\Configuration\Theme\*` |
 | `Aurora\Core\Media\*` | `Aurora\Core\Media\Library\*` |
 | `Aurora\Core\User\*` | `Aurora\Core\Platform\User\*` |
-| `Aurora\Core\Agency\*` | `Aurora\Core\Platform\Agency\*` |
+| `Aurora\Core\DocumentCategory\*` | `Aurora\Core\Platform\DocumentCategory\*` |
 | `Aurora\Core\Auth\*` | `Aurora\Core\Platform\Auth\*` |
 | `Aurora\Core\Service\Entity\*` | `Aurora\Core\Platform\Service\Entity\*` |
 | `Aurora\Core\Service\Dto\*` | `Aurora\Core\Platform\Service\Dto\*` |
@@ -101,7 +101,7 @@ aussi été déplacés vers les modules promus :
 
 | Avant | Après |
 |---|---|
-| `templates/Core/backend/{agencies,auth,services,users}/` | `templates/Module/Platform/backend/<X>/` |
+| `templates/Core/backend/{document-categories,auth,services,users}/` | `templates/Module/Platform/backend/<X>/` |
 | `templates/Core/backend/{settings,themes}/` | `templates/Module/Configuration/backend/<X>/` |
 | `templates/Core/backend/media/` | `templates/Module/Media/backend/media/` |
 | `templates/Core/backend/{dashboard,profile}/` | `templates/Module/General/backend/<X>/` |
@@ -121,7 +121,7 @@ Pour les overrides Vue/Twig qui réfèrent ces paths :
 
 | Avant (JS imports) | Après |
 |---|---|
-| `@core/backend/agencies/<X>` | `@platform/backend/agencies/<X>` |
+| `@core/backend/document-categories/<X>` | `@platform/backend/document-categories/<X>` |
 | `@core/backend/auth/<X>` | `@platform/backend/auth/<X>` |
 | `@core/backend/services/<X>` | `@platform/backend/services/<X>` |
 | `@core/backend/users/<X>` | `@platform/backend/users/<X>` |
@@ -137,16 +137,16 @@ Côté Twig (overrides templates) :
 
 | Avant | Après |
 |---|---|
-| `{% extends '@Core/backend/agencies/...' %}` | `{% extends '@Platform/backend/agencies/...' %}` |
+| `{% extends '@Core/backend/document-categories/...' %}` | `{% extends '@Platform/backend/document-categories/...' %}` |
 | `{{ vue_component('core/backend/<X>/...') }}` | `{{ vue_component('<lowercase>/backend/<X>/...') }}` |
 | `templates/Core/backend/<X>/` (overrides locaux) | `templates/Module/<NewModule>/backend/<X>/` |
 
 Snippet sed bulk côté client :
 
 ```bash
-grep -rl "@core/backend/\(agencies\|auth\|services\|users\)" assets src 2>/dev/null \
+grep -rl "@core/backend/\(document-categories\|auth\|services\|users\)" assets src 2>/dev/null \
   | xargs sed -i \
-    -e 's|@core/backend/agencies/|@platform/backend/agencies/|g' \
+    -e 's|@core/backend/document-categories/|@platform/backend/document-categories/|g' \
     -e 's|@core/backend/auth/|@platform/backend/auth/|g' \
     -e 's|@core/backend/services/|@platform/backend/services/|g' \
     -e 's|@core/backend/users/|@platform/backend/users/|g' \
@@ -183,12 +183,12 @@ composer update axelraboit/aurora
 
 ### 2. Renommer les dossiers d'extension (si présents)
 
-Si vous étendiez `Agency` côté client, votre dossier d'extension passe de
-`src/Module/Core/Agency/` à `src/Module/Core/Platform/Agency/` :
+Si vous étendiez `DocumentCategory` côté client, votre dossier d'extension passe de
+`src/Module/Core/DocumentCategory/` à `src/Module/Core/Platform/DocumentCategory/` :
 
 ```bash
 mkdir -p src/Module/Core/Platform
-git mv src/Module/Core/Agency src/Module/Core/Platform/Agency
+git mv src/Module/Core/DocumentCategory src/Module/Core/Platform/DocumentCategory
 
 # Pareil pour User si vous étendiez User :
 git mv src/Module/Core/User src/Module/Core/Platform/User
@@ -201,7 +201,7 @@ git mv src/Module/Core/User src/Module/Core/Platform/User
 
 ```bash
 # Trouver tous les fichiers PHP qui référencent les anciens namespaces
-grep -rl 'Aurora\\Core\\\(Dashboard\|Profile\|Search\|Audit\|Setting\|Theme\|User\|Agency\|Auth\)\\\|Aurora\\Core\\Media\\\|Aurora\\Core\\Service\\Entity' src tests config 2>/dev/null \
+grep -rl 'Aurora\\Core\\\(Dashboard\|Profile\|Search\|Audit\|Setting\|Theme\|User\|DocumentCategory\|Auth\)\\\|Aurora\\Core\\Media\\\|Aurora\\Core\\Service\\Entity' src tests config 2>/dev/null \
   | xargs sed -i \
     -e 's|Aurora\\Core\\Dashboard\\|Aurora\\Core\\General\\Dashboard\\|g' \
     -e 's|Aurora\\Core\\Profile\\|Aurora\\Core\\General\\Profile\\|g' \
@@ -211,7 +211,7 @@ grep -rl 'Aurora\\Core\\\(Dashboard\|Profile\|Search\|Audit\|Setting\|Theme\|Use
     -e 's|Aurora\\Core\\Theme\\|Aurora\\Core\\Configuration\\Theme\\|g' \
     -e 's|Aurora\\Core\\Media\\|Aurora\\Core\\Media\\Library\\|g' \
     -e 's|Aurora\\Core\\User\\|Aurora\\Core\\Platform\\User\\|g' \
-    -e 's|Aurora\\Core\\Agency\\|Aurora\\Core\\Platform\\Agency\\|g' \
+    -e 's|Aurora\\Core\\DocumentCategory\\|Aurora\\Core\\Platform\\DocumentCategory\\|g' \
     -e 's|Aurora\\Core\\Auth\\|Aurora\\Core\\Platform\\Auth\\|g' \
     -e 's|Aurora\\Core\\Service\\Entity\\|Aurora\\Core\\Platform\\Service\\Entity\\|g' \
     -e 's|Aurora\\Core\\Service\\Dto\\|Aurora\\Core\\Platform\\Service\\Dto\\|g' \
@@ -250,7 +250,7 @@ classes Aurora directement (rare), le sed les a déjà couverts. Vérifier
 par grep résiduel :
 
 ```bash
-grep -rn 'Aurora\\Core\\\(Dashboard\|Profile\|Search\|Audit\|Setting\|Theme\|User\|Agency\|Auth\|Media\|Service\\\(Entity\|Dto\|Manager\|Repository\|Serializer\|Controller\|View\)\)' config/
+grep -rn 'Aurora\\Core\\\(Dashboard\|Profile\|Search\|Audit\|Setting\|Theme\|User\|DocumentCategory\|Auth\|Media\|Service\\\(Entity\|Dto\|Manager\|Repository\|Serializer\|Controller\|View\)\)' config/
 # Doit être vide
 ```
 

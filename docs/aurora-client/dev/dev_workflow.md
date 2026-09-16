@@ -67,7 +67,7 @@ make translation && make dev   # ou make build si en prod
 ### Debug
 
 ```bash
-make sf CMD="debug:container AgencyManagerInterface"   # vérifier qu'un alias est bien câblé
+make sf CMD="debug:container DocumentCategoryManagerInterface"   # vérifier qu'un alias est bien câblé
 make sf CMD="debug:router --show-controllers"          # lister toutes les routes
 make sf CMD="debug:config framework"                   # inspecter une config bundle
 make routes                                             # alias pour debug:router

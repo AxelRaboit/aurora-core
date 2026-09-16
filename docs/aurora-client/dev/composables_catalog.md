@@ -78,7 +78,7 @@ Flow confirmer → supprimer pour les CRUD admin. `deletePath` et
 const { pendingDelete, loading, confirm, submit } = useDelete(
     deletePath,             // string avec __id__
     reload,                 // callback success
-    'agencies.deleted',     // i18n key
+    'document-categories.deleted',     // i18n key
 );
 
 // Vue :
@@ -89,7 +89,7 @@ submit();                   // POST + toast + onSuccess(id)
 Template type :
 
 ```vue
-<AppIconButton color="rose" v-on:click="confirm(agency)"><Trash2 /></AppIconButton>
+<AppIconButton color="rose" v-on:click="confirm(category)"><Trash2 /></AppIconButton>
 
 <AppModal :show="!!pendingDelete" max-width="sm" v-on:close="pendingDelete = null">
     <p>{{ $t('confirm', { name: pendingDelete?.name }) }}</p>
@@ -326,7 +326,7 @@ Check de permission côté Vue. Mirror exact du `ModulePermissionVoter` PHP.
 
 ```js
 const { can, isDev, isAdmin } = usePrivileges();
-if (can('agencies.delete')) { … }
+if (can('document-categories.delete')) { … }
 ```
 
 Règles :

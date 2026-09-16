@@ -60,22 +60,22 @@ d'extension précis.
 
 ### Couche 1 - Entité (`Interface + Abstract + Concrete`)
 
-Un client qui veut ajouter une colonne `code` à `Agency` ne peut pas modifier
+Un client qui veut ajouter une colonne `code` à `DocumentCategory` ne peut pas modifier
 la table Aurora. Il doit substituer l'entité par la sienne. Pour que ça
 fonctionne avec Doctrine (relations, repositories), Aurora expose :
 
-- `AgencyInterface` - le contrat public (getters/setters) utilisé partout dans Aurora
-- `AbstractAgency` - MappedSuperclass avec toutes les colonnes sauf l'id
-- `Agency` - entité concrète avec son id + sa séquence
+- `DocumentCategoryInterface` - le contrat public (getters/setters) utilisé partout dans Aurora
+- `AbstractDocumentCategory` - MappedSuperclass avec toutes les colonnes sauf l'id
+- `DocumentCategory` - entité concrète avec son id + sa séquence
 
-Le client étend `AbstractAgency`, déclare sa propre table, et déclare la
-substitution via `resolve_target_entities`. Aurora n'a aucun `new Agency()`
-direct - il passe par `$this->createAgency()`.
+Le client étend `AbstractDocumentCategory`, déclare sa propre table, et déclare la
+substitution via `resolve_target_entities`. Aurora n'a aucun `new DocumentCategory()`
+direct - il passe par `$this->createDocumentCategory()`.
 
 ### Couche 2 - DTO + Factory
 
-Le controller Aurora reçoit un `AgencyInputInterface` qu'il reconstruit via
-`AgencyInputFactoryInterface`. Le client décore la factory avec `#[AsAlias]`
+Le controller Aurora reçoit un `DocumentCategoryInputInterface` qu'il reconstruit via
+`DocumentCategoryInputFactoryInterface`. Le client décore la factory avec `#[AsAlias]`
 pour que sa propre factory soit injectée à la place. Le DTO client étend le DTO
 Aurora et ajoute ses champs.
 
@@ -87,7 +87,7 @@ forker le controller.
 Le Manager orchestre le cycle de vie de l'entité (persist, flush, audit). Il
 expose des hooks `protected` :
 
-- `createAgency()` - le client retourne sa propre classe
+- `createDocumentCategory()` - le client retourne sa propre classe
 - `applyInput()` - le client appelle `parent::applyInput()` puis hydrate ses champs
 - `auditPayload()` - le client splat-merge les champs supplémentaires dans le log
 

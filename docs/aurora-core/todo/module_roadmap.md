@@ -21,13 +21,13 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 >   `git diff pre-simplify-editorial-only..develop` pour voir le diff complet.
 > - Sur `split/core`, l'équivalent est un unique commit squashé `8d0c752a`
 >   (+ `4c57f0e2` pour le fix fixtures).
-> - **Suite (Ollama/Stripe + Agency/Service)** : `develop` `bc1c2f46` +
->   `bab23e68` ; `split/core` `07bd5fee`. Agency/Service (org-chart
+> - **Suite (Ollama/Stripe + DocumentCategory/Service)** : `develop` `bc1c2f46` +
+>   `bab23e68` ; `split/core` `07bd5fee`. DocumentCategory/Service (org-chart
 >   "qui travaille où" de Platform/User) n'avait plus d'utilité une fois
 >   Hr/Crm/etc. retirés - supprimé en totalité.
-> - **Reliquat trouvé après coup** (variable Twig `agencies`/`services`
+> - **Reliquat trouvé après coup** (variable Twig `document-categories`/`services`
 >   encore passée à `UsersApp`, + quelques commentaires d'exemple citant
->   encore `Module/Platform/Agency`) : `develop` `66f7491b` ; `split/core`
+>   encore `Module/Platform/DocumentCategory`) : `develop` `66f7491b` ; `split/core`
 >   `cea2bdeb`. Si un nouveau symptôme du même genre apparaît (route,
 >   traduction, colonne DB orpheline), il appartient à ce même reliquat -
 >   compléter cette liste plutôt qu'ouvrir une nouvelle note.
@@ -359,7 +359,7 @@ tiers). Disproportionnés à l'enjeu des contrats visés ; à rouvrir si un cont
 **Inspiré de :** Dolibarr - Module RH  
 **Pourquoi :** Gestion interne de l'équipe. Moins prioritaire pour les projets client.  
 **Fonctionnalités cibles :**
-- Fiches employés ✅ implémentées (entité `Employee` dans `src/Module/Hr/Employee/Entity/`, lien `User`, CRUD backend complet, synchronisation agence/service via `UserAgencyServiceUpdatingEvent`)
+- Fiches employés ✅ implémentées (entité `Employee` dans `src/Module/Hr/Employee/Entity/`, lien `User`, CRUD backend complet, synchronisation catégorie/service via `UserDocumentCategoryServiceUpdatingEvent`)
 - Gestion des congés / absences
 - Notes de frais
 - Organigramme (lien avec le système Manager existant dans Users)
