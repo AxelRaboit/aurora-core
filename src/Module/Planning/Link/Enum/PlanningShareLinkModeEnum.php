@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Module\Planning\Link\Entity;
+namespace Aurora\Module\Planning\Link\Enum;
 
 /**
  * What a share link serves.

@@ -8,7 +8,7 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Module\Planning\Event\Serializer\PlanningEventSerializer;
 use Aurora\Module\Planning\Link\Entity\PlanningShareLinkInterface;
-use Aurora\Module\Planning\Link\Entity\PlanningShareLinkModeEnum;
+use Aurora\Module\Planning\Link\Enum\PlanningShareLinkModeEnum;
 use Aurora\Module\Planning\Link\Manager\PlanningShareLinkManagerInterface;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\PlanningContext;

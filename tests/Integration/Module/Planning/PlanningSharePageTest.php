@@ -7,7 +7,7 @@ namespace Aurora\Tests\Integration\Module\Planning;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Link\Entity\PlanningShareLink;
 use Aurora\Module\Planning\Link\Entity\PlanningShareLinkInterface;
-use Aurora\Module\Planning\Link\Entity\PlanningShareLinkModeEnum;
+use Aurora\Module\Planning\Link\Enum\PlanningShareLinkModeEnum;
 use Aurora\Module\Planning\Link\Manager\PlanningShareLinkManagerInterface;
 use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;

@@ -50,48 +50,73 @@ avec un tableau ET un formulaire de création/édition dédié ?*
   admin) → seul le niveau 1 (entité substituable via `resolve_target_entities`)
   est requis
 
-### 2.1 Entités à instrumenter (43)
+### 2.1 Entités portant le pattern complet (35)
+
+Mesuré le 2026-09-16. Le marqueur est mécanique : une entité concrète dont le
+sous-domaine porte un `Dto/<X>Input.php`. Se recompte en une commande (§2.3)
+plutôt que de se maintenir à la main, ce qui est la raison pour laquelle
+l'ancienne version de cette table listait treize modules qui n'existent plus.
 
 | Module | Entités |
 |---|---|
-| Core | `Agency`, `Media`, `MediaFolder`, `Menu`, `MountPoint`, `Service`, `Theme`, `User` |
-| Editorial | `Comment`, `Form`, `Post`, `PostType`, `Taxonomy` |
-| Crm | `Company`, `Contact`, `ContactTag`, `Deal` |
-| Erp | `Product` |
-| Ecommerce | `Listing`, `ListingCategory`, `ListingTag`, `Order` |
-| Photo | `Gallery` |
-| Billing | `Invoice`, `Tiers`, `OcrJob` |
+| Configuration | `Theme` |
+| Dev | `MountPoint` |
+| Editorial | `Comment`, `Form`, `FormField`, `Menu`, `MenuItem`, `Post`, `PostTranslation`, `PostType`, `PostTypeField`, `Taxonomy`, `TaxonomyTerm` |
 | Ged | `Document`, `DocumentCategory`, `DocumentFolder`, `DocumentTag` |
-| Project | `Project`, `ProjectTask` |
-| Planning | `Planning`, `PlanningEvent` |
-| Hr | `Employee` |
-| Notes | `BlockNote`, `MarkdownNote`, `PostItNote` |
-| Vault | `VaultEntry`, `VaultFolder` |
-| PdfForm | `PdfDocument`, `PdfTemplate` |
-| Assistant | `AssistantMountPoint` |
+| Notes | `MarkdownNote` |
+| Planning | `Planning`, `PlanningEvent`, `PlanningReminder`, `PlanningShareLink` |
+| Platform | `AccessRequest`, `User` |
+| Studio | `Contract`, `ContractSignature`, `ContractTemplate`, `ContractTemplateVersion`, `Customer`, `CustomerSpace`, `Deck`, `DeckCategory`, `SpaceAccessLink`, `SpaceContentColumn`, `SpaceContentItem` |
 
-**Exclues du Core** (CRUD admin absent ou hors-scope) :
-- `Locale` : pas de page admin, géré via fixtures + `LocaleEnum`
-- `Notification` : pas de form admin, généré uniquement par `NotificationManager::notify()` depuis le code
-- `Setting` : éditeur clé-valeur sans CRUD (les clés sont définies par
-  `ApplicationParameterEnum`, seule la valeur change via le panel)
+Une nuance que le critère de la §2 laisse de côté : toutes n'ont pas leur propre
+page. `FormField`, `MenuItem`, `PostTypeField`, `TaxonomyTerm`,
+`ContractSignature` et les `*Translation` s'éditent dans le formulaire de leur
+parent, mais portent quand même un Input parce que la charge utile du parent les
+imbrique. Le pattern complet leur sert alors à valider et à substituer, pas à
+dessiner un écran.
 
-Pour ces 3 entités, **seule la couche 1 est requise** - déjà en place.
+### 2.2 Entités au niveau 1 seulement (30)
 
-### 2.2 Entités à exclure (≈ 40)
-
-| Catégorie | Entités |
+| Module | Entités |
 |---|---|
-| Translations (gérées via parent) | toutes les `*Translation` |
-| Items / lignes inline | `CartItem`, `OrderLine`, `InvoiceLine`, `FormField`, `PostTypeField`, `ProjectTaskItem`, `ProjectTaskComment`, `ProjectTaskTimeEntry`, `ProjectTaskAttachment`, `GalleryItem`, `GalleryItemComment`, `GalleryPick`, `GalleryFinalization`, `GalleryInvite`, `CommentReaction` |
-| Audit / historique auto-générés | `AuditLog`, `PostRevision`, `PostSlugHistory`, `FormSubmission`, `DocumentVersion`, `MediaVersion` |
-| Auth tunnel sans page admin | `AccessRequest`, `ResetPasswordRequest` |
-| Configs gérées inline dans le parent | `MenuItem`, `TaxonomyTerm`, `ProjectColumn`, `ProjectLabel`, `ProjectSprint`, `ProjectSavedView` |
-| Sessions runtime (pas de page admin) | `Cart`, `Conversation`, `Message`, `VaultUserConfig` |
+| Configuration | `Setting` |
+| Core | `Locale`, `Notification`, `SequenceCounter` |
+| Dev | `AuditLog` |
+| Editorial | `CommentReaction`, `FormFieldTranslation`, `FormSubmission`, `FormTranslation`, `MenuItemTranslation`, `PostPreviewToken`, `PostRevision`, `PostSlugHistory`, `TaxonomyTermTranslation`, `TaxonomyTranslation` |
+| Ged | `DocumentVersion` |
+| Notes | `MarkdownNoteShareLink` |
+| Planning | `PlanningEventAlert`, `PlanningEventAttendee`, `PlanningShare` |
+| Platform | `ResetPasswordRequest` |
+| Studio | `ContractAccessLink`, `ContractSignatureChallenge`, `ContractTemplateVersionTranslation`, `CustomerSpaceMember`, `DeckShareLink`, `Slide`, `SpaceContentAttachment`, `SpaceContentComment` |
 
-Pour ces entités, **seul le niveau 1 est requis** : pattern
-`Interface + AbstractX + concrete` + `resolve_target_entities`.
-Pas de DTO, pas de Manager extensible, pas de Vue slots.
+Elles se répartissent en cinq familles, et la famille explique l'exclusion mieux
+que la liste :
+
+| Famille | Exemples | Pourquoi pas de page |
+|---|---|---|
+| Traductions | toutes les `*Translation` | éditées dans le formulaire du parent, une langue par onglet |
+| Jetons et liens | `PostPreviewToken`, `DeckShareLink`, `ContractAccessLink`, `MarkdownNoteShareLink` | créés par une action, révoqués par une autre, jamais édités |
+| Historique auto-généré | `AuditLog`, `PostRevision`, `PostSlugHistory`, `DocumentVersion`, `FormSubmission` | écrits par le code, lus en liste, pas modifiables |
+| Lignes et membres inline | `CustomerSpaceMember`, `Slide`, `SpaceContentComment`, `SpaceContentAttachment`, `PlanningEventAttendee` | gérés depuis l'écran de leur parent |
+| Infrastructure | `Setting`, `Locale`, `Notification`, `SequenceCounter`, `ResetPasswordRequest` | pas de CRUD : un éditeur clé-valeur, des fixtures, ou un tunnel d'auth |
+
+Pour toutes, **seul le niveau 1 est requis** : `Interface + AbstractX + concrete`
+et la ligne dans `resolve_target_entities`. Pas de DTO, pas de Manager
+extensible, pas de slots Vue.
+
+### 2.3 Recompter
+
+Les deux tableaux ci-dessus sont une photo. Pour les refaire :
+
+```bash
+for f in $(find src -path '*/Entity/*.php' ! -name 'Abstract*' ! -name '*Interface.php'); do
+  n=$(basename "$f" .php)
+  [ -f "$(dirname "$f")/../Dto/${n}Input.php" ] && echo "5 couches  $f" || echo "niveau 1   $f"
+done | sort
+```
+
+Une entité qui apparaît au niveau 1 alors qu'elle a sa propre page est le signal
+qu'il manque un Input, pas que la table est fausse.
 
 ---
 
@@ -244,7 +269,7 @@ $entity, <Name>InputInterface $input): void`. Appelé par `create()` et
 3. Les opérations métier ont des règles de validation/sécurité distinctes
    (transitions de statut, autorisations, contextes différents)
 
-À ce jour, seul `User` qualifie. Pour Order, Project, Invoice, etc.,
+À ce jour, seul `User` qualifie. Pour `Post`, `Contract` ou `SpaceContentItem`,
 `applyInput()` reste obligatoire même s'ils exposent quelques méthodes
 spécialisées en plus du flow standard.
 
@@ -603,7 +628,7 @@ chacun, slots `extra-create-form-fields` (côté create modal) et
 
 Quand cette variante s'applique-t-elle ? **Quand les deux forms n'ont aucun
 champ commun au-delà de `name`/`description`**. Sinon, le pattern unifié
-`useXxxForm` (Agency, Deal, Service, Media, Menu, …) reste préférable.
+`useXxxForm` (`Customer`, `DocumentCategory`, `Menu`, `Taxonomy`, …) reste préférable.
 
 ### 4.bis.2 Editor full-page (pas un modal)
 
@@ -688,7 +713,8 @@ de l'auto-save.
 ## 6. Checklist - Retrofitter une entité existante
 
 Pour appliquer cette convention à une entité qui n'a pas encore le pattern
-complet (ex : Deal, Post, User, Project, Contact, Company, Order, etc.) :
+complet, c'est-à-dire l'une de celles listées en §2.2 dont le rôle vient de
+changer :
 
 ### Côté code
 

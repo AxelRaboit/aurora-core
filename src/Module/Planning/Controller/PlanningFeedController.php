@@ -7,7 +7,7 @@ namespace Aurora\Module\Planning\Controller;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Module\Planning\Feed\IcalWriter;
 use Aurora\Module\Planning\Link\Entity\PlanningShareLinkInterface;
-use Aurora\Module\Planning\Link\Entity\PlanningShareLinkModeEnum;
+use Aurora\Module\Planning\Link\Enum\PlanningShareLinkModeEnum;
 use Aurora\Module\Planning\Link\Manager\PlanningShareLinkManagerInterface;
 use Aurora\Module\Planning\PlanningContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

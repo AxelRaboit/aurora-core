@@ -7,7 +7,7 @@ namespace Aurora\Module\Planning\Link\Manager;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Planning\Link\Entity\PlanningShareLink;
 use Aurora\Module\Planning\Link\Entity\PlanningShareLinkInterface;
-use Aurora\Module\Planning\Link\Entity\PlanningShareLinkModeEnum;
+use Aurora\Module\Planning\Link\Enum\PlanningShareLinkModeEnum;
 use Aurora\Module\Planning\Link\Repository\PlanningShareLinkRepository;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;

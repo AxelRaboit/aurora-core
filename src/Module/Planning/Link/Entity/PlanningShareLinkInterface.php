@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Link\Entity;
 
+use Aurora\Module\Planning\Link\Enum\PlanningShareLinkModeEnum;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Collection;

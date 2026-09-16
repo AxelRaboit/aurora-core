@@ -13,7 +13,7 @@ use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
-use Aurora\Module\Planning\Link\Entity\PlanningShareLinkModeEnum;
+use Aurora\Module\Planning\Link\Enum\PlanningShareLinkModeEnum;
 use Aurora\Module\Planning\Link\Manager\PlanningShareLinkManagerInterface;
 use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
