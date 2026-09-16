@@ -14,6 +14,8 @@ parameters:
     # et UploadsServeController lisent encore ce paramètre.
     # Voir docs/aurora-core/dev/storage_backends.md.
     app.upload_dir: '%kernel.project_dir%/var/uploads'
+    # L'origine du serveur Vite en développement, admise par la CSP.
+    app.vite_dev_server: 'http://localhost:5173'
 
 services:
     # default configuration for services in *this* file
@@ -118,6 +120,14 @@ services:
     Aurora\Core\Twig\VersionExtension:
         arguments:
             $projectDir: '%kernel.project_dir%'
+
+    # La politique de sécurité du contenu. `devMode` ouvre le strict minimum
+    # pour le serveur Vite et son socket de rechargement, qui n'existent pas
+    # dans un build : la politique de production n'en sait rien.
+    Aurora\Core\Http\Csp\ContentSecurityPolicy:
+        arguments:
+            $devMode: '%kernel.debug%'
+            $viteDevServer: '%app.vite_dev_server%'
 
     Aurora\Module\Configuration\Theme\Service\ThemeResolver:
         arguments:

@@ -5,6 +5,68 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.189] - 2026-09-16
+
+### Sécurité
+
+#### La troisième couche : une Content-Security-Policy
+Il n'y en avait aucune, nulle part. Chaque page HTML en porte une désormais.
+
+Elle complète les deux autres plutôt qu'elle ne les répète : une liste blanche
+décide de ce qui peut être **stocké**, `BinaryFileServer` de ce qui peut être
+**rendu comme un document**, et celle-ci de ce qu'une page peut **exécuter**.
+Les deux premières ne disent rien d'un script injecté dans le corps d'un
+article ou d'un paramètre réfléchi.
+
+**Les scripts par nonce, les styles par `unsafe-inline`**, et l'asymétrie n'est
+pas de la paresse. Une poignée de scripts doivent tourner avant le premier
+rendu — le thème, pour que la page ne clignote pas en blanc, et les globales
+que lit chaque écran d'équipe — et ils portent le nonce. Les styles ne le
+peuvent pas : Vue injecte ceux d'un composant depuis JavaScript, et une balise
+injectée ne porte aucun nonce. Pire, un nonce présent dans `style-src` fait
+ignorer `unsafe-inline` aux navigateurs, donc en ajouter un — ce qui ressemble
+à un durcissement — casserait tous les composants stylés. L'exposition n'est
+pas la même non plus : un style injecté rhabille une page, un script injecté
+agit à la place de qui la lit.
+
+**`frame-src` lit la liste d'hôtes du sanitiseur** au lieu d'en tenir une
+seconde. Elle décide déjà quels `<iframe>` survivent à l'enregistrement ; deux
+listes auraient divergé, et la divergence se serait vue le jour où une
+intégration s'enregistre puis refuse de s'afficher.
+
+`script-src` ne contient ni `unsafe-inline` ni `unsafe-eval`, et un test le
+vérifie dans les deux environnements. C'est la façon dont une CSP se vide en
+silence : quelqu'un bute sur un script bloqué, ajoute le mot-clé, et l'en-tête
+reste en place sans plus rien dire.
+
+### Modifié
+
+#### Le champ montant n'évalue plus par `new Function`
+Un seul `new Function` dans toute la base de code, dans l'évaluateur du champ
+montant — celui qui accepte `12+3`. Il était sûr au sens étroit : la chaîne
+était déjà réduite aux chiffres et aux opérateurs, il n'y avait rien à
+injecter. Et fatal au sens large : **un seul suffit à imposer
+`script-src 'unsafe-eval'` sur toutes les pages**, ce qui rendrait la politique
+ci-dessus largement décorative.
+
+Remplacé par une descente récursive sur trois niveaux, qui fait les quatre
+opérations et les parenthèses et rien d'autre. Ce qu'elle ne sait pas lire
+revient intact, ce dont le champ a besoin : quelqu'un en train de taper ne doit
+pas voir sa saisie réécrite.
+
+### Dans aurora-client
+`make aurora-update` puis `make cc`.
+
+**Un thème ou un gabarit surchargé qui contient un `<script>` inline devra
+porter `nonce="{{ csp_nonce() }}"`**, sinon il cessera de s'exécuter. C'est le
+seul point de rupture. Les styles inline ne changent pas.
+
+Si un projet client charge des scripts depuis une autre origine, il faut lui
+donner sa propre politique : l'en-tête déjà posé n'est jamais écrasé, donc un
+souscripteur client qui s'exécute avant celui-ci a le dernier mot.
+
+---
+
 ## [0.9.188] - 2026-09-16
 
 ### Sécurité

@@ -20,7 +20,7 @@
         {{ vite_entry_script_tags('flash') }}
         {{ vite_entry_script_tags('theme') }}
         {{ vite_entry_script_tags('guest') }}
-        <script>window.__flash__ = {{ app.flashes|json_encode|raw }};</script>
+        <script nonce="{{ csp_nonce() }}">window.__flash__ = {{ app.flashes|json_encode|raw }};</script>
     </head>
     <body class="transition-colors duration-200">
 

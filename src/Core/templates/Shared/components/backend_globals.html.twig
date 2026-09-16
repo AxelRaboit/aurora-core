@@ -5,7 +5,7 @@
    unset `window.__isAdmin__` answers "no" to everything - so an administrator
    was shown a board with no buttons on it, silently and without an error
    anywhere. Whatever a layout for staff has to set, it sets here. #}
-<script>
+<script nonce="{{ csp_nonce() }}">
     window.__flash__ = {{ app.flashes|json_encode|raw }};
     window.__privileges__ = {{ app.user ? app.user.privileges|json_encode|raw : '[]' }};
     window.__isDev__ = {{ is_granted('ROLE_DEV') ? 'true' : 'false' }};

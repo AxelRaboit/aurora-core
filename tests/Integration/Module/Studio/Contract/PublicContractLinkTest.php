@@ -20,6 +20,7 @@ use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Tests\Integration\Concern\ComparesRefusalPages;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -41,6 +42,8 @@ use function str_repeat;
  */
 final class PublicContractLinkTest extends IntegrationTestCase
 {
+    use ComparesRefusalPages;
+
     private KernelBrowser $client;
 
     private ?CoreUserInterface $admin = null;
@@ -91,7 +94,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
         $guest->request('GET', $url);
 
         self::assertSame(200, $guest->getResponse()->getStatusCode());
-        $body = (string) $guest->getResponse()->getContent();
+        $body = $this->withoutPerRequestNoise((string) $guest->getResponse()->getContent());
 
         // The document is there, with the substitutions the seal covers.
         self::assertStringContainsString('ARTICLE 1', $body);
@@ -151,11 +154,11 @@ final class PublicContractLinkTest extends IntegrationTestCase
 
         $guest->request('GET', sprintf('/contracts/%s/%s', $selector, str_repeat('a', 64)));
         self::assertSame(Response::HTTP_NOT_FOUND, $guest->getResponse()->getStatusCode());
-        $wrongSecret = (string) $guest->getResponse()->getContent();
+        $wrongSecret = $this->withoutPerRequestNoise((string) $guest->getResponse()->getContent());
 
         $guest->request('GET', sprintf('/contracts/%s/%s', str_repeat('b', 32), str_repeat('c', 64)));
         self::assertSame(Response::HTTP_NOT_FOUND, $guest->getResponse()->getStatusCode());
-        $unknownSelector = (string) $guest->getResponse()->getContent();
+        $unknownSelector = $this->withoutPerRequestNoise((string) $guest->getResponse()->getContent());
 
         self::assertSame($wrongSecret, $unknownSelector);
 
@@ -170,7 +173,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
 
         $this->asGuest()->request('GET', $url);
         self::assertSame(Response::HTTP_NOT_FOUND, $guest->getResponse()->getStatusCode());
-        self::assertSame($wrongSecret, (string) $guest->getResponse()->getContent());
+        self::assertSame($wrongSecret, $this->withoutPerRequestNoise((string) $guest->getResponse()->getContent()));
     }
 
     public function testTheSecretIsNotStoredAndTheHashIs(): void

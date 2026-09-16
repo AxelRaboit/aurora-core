@@ -13,6 +13,7 @@ use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
+use Aurora\Tests\Integration\Concern\ComparesRefusalPages;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,6 +32,8 @@ use function str_repeat;
  */
 final class SpaceAccessLinkTest extends IntegrationTestCase
 {
+    use ComparesRefusalPages;
+
     private KernelBrowser $client;
 
     private EntityManagerInterface $entityManager;
@@ -133,11 +136,11 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
 
         $guest = $this->asGuest();
         $guest->request('GET', sprintf('/spaces/%s/%s', $selector, str_repeat('a', 64)));
-        $withWrongSecret = (string) $guest->getResponse()->getContent();
+        $withWrongSecret = $this->withoutPerRequestNoise((string) $guest->getResponse()->getContent());
         self::assertSame(200, $guest->getResponse()->getStatusCode());
 
         $guest->request('GET', sprintf('/spaces/%s/%s', str_repeat('b', 32), str_repeat('a', 64)));
-        $withUnknownSelector = (string) $guest->getResponse()->getContent();
+        $withUnknownSelector = $this->withoutPerRequestNoise((string) $guest->getResponse()->getContent());
 
         // The same page for both. Telling them apart would tell a stranger
         // which of their guesses landed, and confirm an address was once real.

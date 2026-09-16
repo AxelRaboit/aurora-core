@@ -95,8 +95,14 @@ final class RawHtmlSanitizer
      * Volontairement court. Un cadre charge une page entière avec ses propres
      * scripts : la liste doit rester celle des services qu'on a choisi de faire
      * confiance, pas une commodité qu'on élargit au fil des demandes.
+     *
+     * Publique depuis la 0.9.189 parce que la `Content-Security-Policy` la lit
+     * pour son `frame-src`. Une seule liste, deux applications : celle-ci
+     * retire le cadre du HTML enregistré, la politique empêche le navigateur
+     * d'en charger un autre. Deux listes auraient divergé, et la divergence se
+     * serait vue le jour où l'une aurait autorisé ce que l'autre refuse.
      */
-    private const array IFRAME_HOSTS = [
+    public const array IFRAME_HOSTS = [
         'www.youtube.com', 'www.youtube-nocookie.com', 'youtube.com',
         'player.vimeo.com',
         'www.dailymotion.com',
