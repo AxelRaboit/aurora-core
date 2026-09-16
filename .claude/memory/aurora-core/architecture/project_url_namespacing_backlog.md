@@ -57,7 +57,14 @@ Méthode rodée sur Editorial (commit `17890cb2`) :
 - **`backend_dashboard` = `/backend`** : c'est le home backend ; le namespacer
   (`/backend/general/dashboard`) laisserait la racine sans page. Laissé tel quel.
 
-### Module Tools (Outils) - Vault + PasswordGenerator
+### Module Tools (Outils) - Vault + PasswordGenerator - ⛔ sans objet
+
+> **Ce plan n'a plus de contenu (constaté le 2026-09-16).** `Vault` a été
+> supprimé, `src/Module/Tools/` n'a jamais existé et aucune route
+> `backend_tools_*` ni `backend_vault_*` n'est déclarée. Ce qui suit reste
+> lisible comme **gabarit de module conteneur** - Notes, qui l'a inspiré,
+> existe toujours - mais il n'y a rien à ranger dedans.
+
 
 "Outils" est un **module conteneur** (`src/Module/Tools/`, `Aurora\Module\Tools`)
 qui regroupe des outils utilitaires **indépendants**, exactement comme Notes

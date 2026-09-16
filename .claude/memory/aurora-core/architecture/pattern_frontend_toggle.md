@@ -1,6 +1,6 @@
 ---
 name: Per-front enable/disable via FrontendInterface + Registry
-description: Chaque front (Editorial, Tracking, EcommerceFrontend, etc.) peut être désactivé indépendamment ; cascade vers /backend si tous off
+description: Chaque front declare par un FrontendDescriptor peut etre desactive independamment ; cascade vers /backend si tous off. Deux implementations dans le core au 2026-09-16 : Editorial et Ged.
 type: project
 ---
 
@@ -105,16 +105,17 @@ avec `v-if="hasEnabledFronts"`.
 
 ## Lieux clés
 
-- Interface : `src/Core/assets/Contract/FrontendInterface.php`
-- Registry : `src/Core/assets/Service/Registry.php`
-- Route gate : `src/Core/assets/EventSubscriber/FrontendRouteGateSubscriber.php`
-- Root dispatch + redirect cascade : `src/Core/assets/Controller/RootDispatchController.php`
-- Twig helper : `src/Core/assets/Twig/FrontendExtension.php` (`has_enabled_fronts()`)
-- Implémentations actuelles : `Aurora\Module\Editorial\EditorialFrontendDescriptor`,
-  `Aurora\Module\Ecommerce\EcommerceFrontendDescriptor`,
-  `Aurora\Module\Photo\PhotoFrontendDescriptor`,
-  `Aurora\Module\Ged\GedFrontendDescriptor`,
-  `App\Module\Tracking\Frontend\TrackingFrontend` (aurora-client)
+- Interface : `src/Core/Frontend/Contract/FrontendInterface.php`
+- Registry : `src/Core/Frontend/Service/Registry.php`
+- Route gate : `src/Core/Frontend/EventSubscriber/FrontendRouteGateSubscriber.php`
+- Root dispatch + redirect cascade : `src/Core/Frontend/Controller/RootDispatchController.php`
+- Twig helper : `src/Core/Frontend/Twig/FrontendExtension.php` (`has_enabled_fronts()`)
+- Implémentations, mesurées le 2026-09-16 - il n'y en a que **deux**, et
+  aucune côté client (la liste tenue ici en annonçait cinq, dont deux modules
+  supprimés et un front client qui n'existe pas) :
+  `Aurora\Module\Editorial\EditorialFrontendDescriptor` et
+  `Aurora\Module\Ged\GedFrontendDescriptor`. Pour recompter :
+  `grep -rl 'implements FrontendInterface' src --include='*.php'`
 - Convention de nommage : suffixe **`FrontendDescriptor`** au niveau racine
   du module - voir [`pattern_frontend_descriptor.md`](pattern_frontend_descriptor.md).
 
