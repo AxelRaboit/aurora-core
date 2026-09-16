@@ -836,6 +836,11 @@ backend:
             view_board: Board
             view_list: List
             view_calendar: Calendar
+            view_files: Files
+            files_empty: No file on this space yet
+            files_empty_hint: Files put on the content, by you or by the client, appear here newest first.
+            files_unknown_card: Deleted content
+            files_open: Open
             board: Board
             calendar: Calendar
             today: Today

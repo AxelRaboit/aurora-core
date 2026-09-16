@@ -10,6 +10,8 @@ use Aurora\Module\Ged\Document\Manager\DocumentManagerInterface;
 use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
 use Aurora\Module\Ged\Document\Service\InlineImageUploader;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Service\SpaceDocumentFolderProvider;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -37,7 +39,15 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  * image elsewhere. That reads as the right answer rather than a compromise - a
  * customer's photo is not site furniture - and the studio can publish it in
  * GED deliberately if it should be. It is still listed in GED's own screens,
- * filed under the client-spaces category; only the picker skips it.
+ * filed under the client-spaces category and inside the space's own folder;
+ * only the picker skips it.
+ *
+ * **The folder is the arrangement, the category is only a label.** Until
+ * 2026-09-16 there was only the category, so every customer's files shared one
+ * heap and nothing on a document said which space it came from.
+ * {@see SpaceDocumentFolderProvider} opens one folder per space on its first
+ * upload. Attaching a document that already lives in the library does not come
+ * through here, and does not move it.
  *
  * Nothing here decides whether the caller is allowed to upload. The right lives
  * on the link and is checked before this is reached, which is the same division
@@ -50,9 +60,10 @@ final readonly class SpaceAttachmentUploader
         private DocumentManagerInterface $documentManager,
         private DocumentInputFactoryInterface $inputFactory,
         private SpaceAttachmentCategoryProvider $spaceAttachmentCategoryProvider,
+        private SpaceDocumentFolderProvider $spaceDocumentFolderProvider,
     ) {}
 
-    public function upload(UploadedFile $file): DocumentInterface
+    public function upload(UploadedFile $file, CustomerSpaceInterface $space): DocumentInterface
     {
         $uploaded = $this->uploader->upload($file);
 
@@ -64,6 +75,9 @@ final readonly class SpaceAttachmentUploader
             'title' => $uploaded['originalName'],
             'status' => DocumentStatusEnum::Draft->value,
             'categoryId' => (int) $this->spaceAttachmentCategoryProvider->resolve()->getId(),
+            // The space's own folder, so the library shows one customer per
+            // folder instead of every customer's files in one category.
+            'folderId' => (int) $this->spaceDocumentFolderProvider->resolve($space)->getId(),
             'filePath' => $uploaded['filePath'],
             'fileName' => $uploaded['fileName'],
             'originalName' => $uploaded['originalName'],

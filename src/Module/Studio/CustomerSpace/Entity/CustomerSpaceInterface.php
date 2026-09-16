@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\CustomerSpace\Entity;
 
+use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
@@ -57,4 +58,8 @@ interface CustomerSpaceInterface
     public function getCreatedAt(): DateTimeImmutable;
 
     public function getUpdatedAt(): ?DateTimeImmutable;
+
+    public function getDocumentFolder(): ?DocumentFolderInterface;
+
+    public function setDocumentFolder(?DocumentFolderInterface $documentFolder): static;
 }

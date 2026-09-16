@@ -1,12 +1,20 @@
 <script setup>
 /**
- * A space's content, in whichever of three views the reader prefers.
+ * A space's content, in whichever view the reader prefers.
  *
  * **The views are a preference, not a destination.** The board, the list and
  * the month show the same rows and differ only in how somebody likes to read
  * them, so the choice lives with the person and not in the address: it is
  * remembered, it costs no request, and it is the same in every space they open.
  * What is on screen - which space - stays in the URL.
+ *
+ * **The files view is the exception, and it is deliberate.** It is not a
+ * fourth way of reading the cards, it is a different subject: everything the
+ * space has exchanged, newest first, which none of the other three can answer
+ * because each shows only the files of the card it is drawing. It sits in the
+ * same switcher because the question it answers - what is in this space - is
+ * the same question, and because a reader looking for a file looks here first.
+ * It costs no request either: it reads the payload the others already hold.
  *
  * The list exists because a board is not everybody's way of thinking, and
  * because it is the only one of the three that fits on a phone without
@@ -25,6 +33,7 @@ import { useSpaceContent } from "./composables/useSpaceContent.js";
 import SpaceBoardView from "./views/SpaceBoardView.vue";
 import SpaceListView from "./views/SpaceListView.vue";
 import SpaceCalendarView from "./views/SpaceCalendarView.vue";
+import SpaceFilesView from "./views/SpaceFilesView.vue";
 import SpaceContentItemFields from "./components/SpaceContentItemFields.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -33,6 +42,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppColourSlotPicker from "@/shared/components/form/picker/AppColourSlotPicker.vue";
 import {
     CalendarDays,
+    Paperclip,
     Columns3,
     FileText,
     List,
@@ -71,6 +81,7 @@ const VIEWS = [
     { key: "board", labelKey: "backend.studio.space_content.view_board", icon: Columns3 },
     { key: "list", labelKey: "backend.studio.space_content.view_list", icon: List },
     { key: "calendar", labelKey: "backend.studio.space_content.view_calendar", icon: CalendarDays },
+    { key: "files", labelKey: "backend.studio.space_content.view_files", icon: Paperclip },
 ];
 
 /**
@@ -87,6 +98,11 @@ const { choice: view } = usePersistedChoice(
 );
 
 const {
+    // Named apart from the props of the same name: these are the refs the
+    // writes update, the props are only the first payload. The files view
+    // reading the props would go stale the moment somebody uploads.
+    items: liveItems,
+    attachments: liveAttachments,
     isEmpty,
     grouped,
     unscheduled,
@@ -230,6 +246,13 @@ const actionsFor = useSpaceCardActions({
             :files-of="filesOf"
             :is-empty="isEmpty"
             v-on:add-item="openItemCreate({ columnId: $event })"
+            v-on:open-item="openItemEdit"
+        />
+
+        <SpaceFilesView
+            v-else-if="view === 'files'"
+            :attachments="liveAttachments"
+            :items="liveItems"
             v-on:open-item="openItemEdit"
         />
 

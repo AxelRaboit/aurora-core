@@ -7,6 +7,7 @@ namespace Aurora\Tests\Integration\Module\Studio\CustomerSpace;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Service\DocumentUsageService;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory;
+use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolder;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
@@ -19,11 +20,21 @@ use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 use function array_column;
 use function array_merge;
+use function array_unique;
+use function array_values;
+use function base64_decode;
+use function bin2hex;
+use function file_put_contents;
+use function is_file;
 use function json_decode;
+use function random_bytes;
 use function sprintf;
+use function sys_get_temp_dir;
+use function unlink;
 
 /**
  * The files on a piece of content, end to end.
@@ -42,6 +53,9 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
     private SpaceContentColumnRepository $columns;
 
     private SpaceContentAttachmentRepository $attachments;
+
+    /** @var list<string> */
+    private array $tempFiles = [];
 
     protected function setUp(): void
     {
@@ -74,6 +88,14 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         ] as $class) {
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', $class))->execute();
         }
+
+        foreach ($this->tempFiles as $path) {
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
+
+        $this->tempFiles = [];
 
         parent::tearDown();
     }
@@ -237,6 +259,107 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
             ->findUsages((int) $document->getId());
 
         self::assertSame(0, $usages['total']);
+    }
+
+    /**
+     * An upload is filed in the space's own folder, opened on first use.
+     *
+     * Until 2026-09-16 every space upload landed in one shared category and
+     * nowhere else, so a studio with two customers had one undifferentiated
+     * heap and nothing on a document said which space it came from. The folder
+     * is the arrangement; the category only labels.
+     */
+    public function testAnUploadIsFiledInTheSpacesOwnFolder(): void
+    {
+        $space = $this->givenSpace();
+        $item = $this->givenItem($space, 'Un contenu à illustrer');
+
+        $this->upload($space, $item['id'], 'photo.jpg');
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->entityManager->clear();
+        $reloaded = $this->entityManager->getRepository(CustomerSpace::class)->find($space->getId());
+        self::assertInstanceOf(CustomerSpace::class, $reloaded);
+
+        $folder = $reloaded->getDocumentFolder();
+        self::assertInstanceOf(DocumentFolder::class, $folder);
+        self::assertSame($reloaded->getName(), $folder->getName());
+
+        $document = $this->attachments->findForSpaceByItem($reloaded)[$item['id']][0]->getDocument();
+        self::assertSame($folder->getId(), $document->getFolder()?->getId());
+    }
+
+    /** The folder is opened once, not per file. */
+    public function testASecondUploadReusesTheSameFolder(): void
+    {
+        $space = $this->givenSpace();
+        $item = $this->givenItem($space, 'Un contenu à illustrer');
+
+        $this->upload($space, $item['id'], 'une.jpg');
+        $this->upload($space, $item['id'], 'deux.jpg');
+
+        $this->entityManager->clear();
+        $reloaded = $this->entityManager->getRepository(CustomerSpace::class)->find($space->getId());
+        self::assertInstanceOf(CustomerSpace::class, $reloaded);
+
+        $folders = [];
+
+        foreach ($this->attachments->findForSpaceByItem($reloaded)[$item['id']] as $attachment) {
+            $folders[] = $attachment->getDocument()->getFolder()?->getId();
+        }
+
+        self::assertCount(2, $folders);
+        self::assertSame([$reloaded->getDocumentFolder()?->getId()], array_values(array_unique($folders)));
+    }
+
+    /**
+     * Attaching a document that already lives in the library does not move it.
+     *
+     * The distinction that makes the arrangement safe: filing is something an
+     * upload does on its way in. Relocating somebody's existing file because a
+     * card referenced it would be a side effect nobody asked for, and the same
+     * document can be attached to two spaces.
+     */
+    public function testAttachingAnExistingDocumentLeavesItWhereItIs(): void
+    {
+        $space = $this->givenSpace();
+        $item = $this->givenItem($space, 'Un contenu');
+        $document = $this->givenDocument('Une photo déjà classée');
+
+        self::assertNull($document->getFolder());
+
+        $this->attach($space, $item['id'], (int) $document->getId());
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->entityManager->clear();
+        $reloaded = $this->entityManager->getRepository(Document::class)->find($document->getId());
+        self::assertInstanceOf(Document::class, $reloaded);
+        self::assertNull($reloaded->getFolder());
+    }
+
+    private function upload(CustomerSpace $space, int $itemId, string $name): void
+    {
+        $path = sys_get_temp_dir().'/aurora-space-upload-'.bin2hex(random_bytes(4)).'-'.$name;
+        file_put_contents($path, $this->jpegBytes());
+        $this->tempFiles[] = $path;
+
+        $this->client->request(
+            'POST',
+            sprintf('/workspace/%d/content/%d/attachments/upload', $space->getId(), $itemId),
+            [],
+            ['file' => new UploadedFile($path, $name, 'image/jpeg', null, true)],
+        );
+    }
+
+    /** The smallest thing the mime guesser calls a JPEG. */
+    private function jpegBytes(): string
+    {
+        return (string) base64_decode(
+            '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a'
+            .'HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAA'
+            .'AAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==',
+            true,
+        );
     }
 
     private function attach(CustomerSpace $space, int $itemId, int $documentId): void

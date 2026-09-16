@@ -836,6 +836,11 @@ backend:
             view_board: Tableau
             view_list: Liste
             view_calendar: Calendrier
+            view_files: Fichiers
+            files_empty: Aucun fichier sur cet espace
+            files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
+            files_unknown_card: Contenu supprimé
+            files_open: Ouvrir
             board: Tableau
             calendar: Calendrier
             today: Aujourd'hui
