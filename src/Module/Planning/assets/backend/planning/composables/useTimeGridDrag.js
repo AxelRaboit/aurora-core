@@ -3,8 +3,8 @@ import {
     minutesFromPixels,
     resizedSpan,
     shiftedSpan,
-} from "./timeGrid.js";
-import { usePointerDrag } from "./usePointerDrag.js";
+} from "@/shared/composables/calendar/timeGrid.js";
+import { usePointerDrag } from "@/shared/composables/calendar/usePointerDrag.js";
 
 /**
  * Dragging and resizing in the hour grid.

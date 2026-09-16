@@ -6,11 +6,11 @@ namespace Aurora\Module\Notes\Markdown\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Storage\BinaryFileServer;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -28,6 +28,7 @@ final class MarkdownNotesImagesController extends AbstractController
 
     public function __construct(
         private readonly MarkdownNoteImageService $imageService,
+        private readonly BinaryFileServer $binaryFileServer,
         private readonly UrlGeneratorInterface $urlGenerator,
     ) {}
 
@@ -86,13 +87,17 @@ final class MarkdownNotesImagesController extends AbstractController
             return $this->jsonNotFound();
         }
 
-        $response = new BinaryFileResponse($path);
-        // Browser cache is fine: filenames are uuid-based so a different
-        // file is a different URL. Mark private so shared caches don't
-        // pick it up (image is auth-gated content).
-        $response->setPrivate();
-        $response->headers->set('Cache-Control', 'private, max-age=3600');
-
-        return $response;
+        try {
+            // Through the shared server rather than a `BinaryFileResponse` of
+            // its own: that is where `nosniff` is set and where the types a
+            // browser would run as a document are handed over as downloads.
+            // Building the response here meant this route quietly opted out of
+            // both. The default it applies - private, one hour - is the one
+            // this route wants anyway: filenames are uuids, so a different
+            // file is a different URL, and the content is auth-gated.
+            return $this->binaryFileServer->serve($path, $this->imageService->root());
+        } catch (RuntimeException) {
+            return $this->jsonNotFound();
+        }
     }
 }

@@ -111,6 +111,37 @@ async function pageAction(name) {
 }
 
 /**
+ * Ouvre le tableau du premier espace de la démo, sans photo.
+ *
+ * Par la liste plutôt que par une adresse : les identifiants changent à chaque
+ * rechargement des fixtures, et un parcours qui code un `/workspace/8` en dur
+ * photographie une page d'erreur le lendemain.
+ */
+/**
+ * Ferme la fenêtre ouverte par son bouton.
+ *
+ * Pas `Escape` : ces modales sont `closeable: false`, donc la touche ne fait
+ * rien et le parcours attendait vingt secondes un écran qui n'avait pas bougé.
+ * Le bouton est de toute façon le chemin qu'emprunte un lecteur.
+ */
+async function closeDialog() {
+  await page.getByRole("button", { name: "Annuler" }).first().click();
+  await wait(900);
+}
+
+async function selectView(label) {
+  await page.getByRole("button", { name: label, exact: true }).first().click();
+  await wait(2000);
+}
+
+async function openFirstSpace() {
+  await page.goto(`${BASE}/backend/studio/spaces`, { waitUntil: "domcontentloaded" });
+  await wait(2500);
+  await page.getByRole("link", { name: /Réseaux sociaux/ }).first().click();
+  await wait(3000);
+}
+
+/**
  * Un brouillon de contrat, sans photo, pour les parcours qui commencent après.
  *
  * Créé par l'écran plutôt que posé en base : un parcours qui part d'une
@@ -325,6 +356,150 @@ async function wideAncestor(locator, minWidth) {
 }
 
 const FLOWS = {
+  /**
+   * L'espace client : la liste, sa création, son équipe.
+   *
+   * Le premier espace de la démo sert de sujet plutôt qu'un espace créé ici :
+   * il a un tableau rempli et une équipe, donc les photos montrent un écran
+   * qui a vécu. La fenêtre de création, elle, se photographie vide - c'est
+   * l'état dans lequel le lecteur la rencontrera.
+   */
+  "un-espace-client": async () => {
+    await page.goto(`${BASE}/backend/studio/spaces`, { waitUntil: "domcontentloaded" });
+    await wait(3000);
+    await shot("la-liste");
+
+    await pageAction("Ajouter un espace");
+    await wait(600);
+    await shot("la-fenetre");
+
+    // Le bloc de l'équipe est en bas de la fenêtre, donc hors cadre tant que
+    // la modale n'a pas défilé.
+    const dialog = page.getByRole("dialog").first();
+    await dialog.getByRole("textbox").first().fill("Boulangerie Martin - Réseaux sociaux");
+    await wait(300);
+    await page.mouse.wheel(0, 400);
+    await wait(700);
+    await shot("l-equipe");
+
+    await closeDialog();
+
+    await page.getByRole("button", { name: /personnes?$/ }).first().click();
+    await wait(1200);
+    await shot("la-modale-d-equipe");
+  },
+
+  /**
+   * Le tableau : ses étapes, une carte, la poignée qui la déplace.
+   */
+  "le-tableau": async () => {
+    await openFirstSpace();
+    await shot("le-tableau");
+
+    // Visé par son libellé plutôt que par sa place : l'en-tête d'une étape porte
+    // deux boutons voisins, et « le premier » est le genre de repère qui
+    // photographie la corbeille le jour où l'ordre change.
+    await page.getByRole("button", { name: "Renommer l'étape" }).first().click();
+    await wait(1000);
+    await shot("une-etape");
+
+    await closeDialog();
+
+    await page.getByRole("button", { name: "Ajouter un contenu" }).first().click();
+    await wait(1000);
+    await shot("un-contenu");
+
+    await closeDialog();
+
+    // La poignée n'existe qu'au survol : une photo prise sans survoler montre
+    // une carte sans l'affordance dont la page parle.
+    const card = page.locator("article").first();
+    await card.hover();
+    await wait(500);
+    await shotOf(card, "la-poignee", 12, 8);
+  },
+
+  /**
+   * Le calendrier : le mois, et la colonne de ce qui n'a pas de date.
+   */
+  "le-calendrier": async () => {
+    await openFirstSpace();
+    await selectView("Calendrier");
+    await shot("le-mois");
+
+    await shotOf(page.locator("aside").first(), "sans-date", 16, 12);
+  },
+
+  /**
+   * L'accès client : créer un lien, l'adresse une seule fois, ce que le
+   * client voit, ce qu'il répond, et le fil.
+   *
+   * Le lien est créé par l'écran puis suivi pour de bon, dans un onglet sans
+   * session : c'est la seule façon de photographier ce que le client voit,
+   * et une capture prise en étant connecté ne prouverait rien.
+   */
+  "l-acces-client": async () => {
+    await openFirstSpace();
+    await page.getByRole("link", { name: "Accès client" }).first().click();
+    await wait(2500);
+    await shot("l-onglet");
+
+    await page.getByRole("button", { name: "Créer un lien" }).first().click();
+    await wait(900);
+
+    const dialog = page.getByRole("dialog").first();
+    await dialog.locator("input[type='email']").first().fill("camille@boulangerie-martin.fr");
+    await dialog.getByRole("textbox").nth(1).fill("Camille, gérante");
+    await wait(400);
+    await shot("la-fenetre");
+
+    await dialog.getByRole("button", { name: "Créer un lien" }).first().click();
+    await wait(2500);
+    await shot("l-adresse");
+
+    const url = (await page.locator("code").first().innerText()).trim();
+
+    // Un contexte neuf, sans cookie : le client n'a pas de compte, et c'est
+    // le sujet de la page.
+    const guest = await browser.newContext({
+      viewport: VIEWPORT, deviceScaleFactor: 1, locale: "fr-FR",
+      timezoneId: "Europe/Paris", colorScheme: "dark",
+    });
+    const studio = page;
+    page = await guest.newPage();
+
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+    await wait(3000);
+    await shot("la-page-client");
+
+    await page.locator("[data-day] >> text=/^\\d{2}:\\d{2}/").first().click().catch(async () => {
+      await page.locator("[data-day]").locator("button, [role='button']").first().click();
+    });
+    await wait(1500);
+    await shot("la-reponse");
+
+    await guest.close();
+    page = studio;
+
+    // Le fil, côté studio, une fois que le client a répondu : c'est l'écran que
+    // la page décrit, et il n'existe qu'après l'aller-retour.
+    await openFirstSpace();
+    // Par la vue liste : un titre s'y ouvre d'un clic, là où une carte du
+    // tableau demande de passer par son menu.
+    await selectView("Liste");
+    await page.getByRole("button", { name: "Offre de rentrée" }).first().click();
+    await wait(1400);
+    await page.mouse.wheel(0, 600);
+    await wait(800);
+    await shot("les-echanges");
+
+    await closeDialog();
+
+    await page.getByRole("link", { name: "Accès client" }).first().click();
+    await wait(2500);
+    await shot("la-liste-des-liens");
+  },
+
   /**
    * Les deux réglages du collage d'images dans une note.
    */

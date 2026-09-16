@@ -94,7 +94,7 @@
 {{ vite_entry_link_tags('flash') }}
 {{ vite_entry_script_tags('app') }}
 {{ vite_entry_script_tags('flash') }}
-<script>window.__flash__ = {{ app.flashes|json_encode|raw }};</script>
+<script nonce="{{ csp_nonce() }}">window.__flash__ = {{ app.flashes|json_encode|raw }};</script>
 
 {# Couleurs des surfaces publiques, déduites des couleurs choisies par surface.
    Rendues AVANT les overrides bruts ci-dessous, et c'est délibéré : l'écran de

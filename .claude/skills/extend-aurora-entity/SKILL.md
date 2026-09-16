@@ -1,6 +1,6 @@
 ---
 name: extend-aurora-entity
-description: From an aurora-client project (Symfony app consuming axelraboit/aurora via composer), scaffold the 5-layer extension of an aurora-core entity - add a custom field to an Aurora entity end-to-end without forking. Use when the user asks to "extend", "override", "étendre", "ajouter un champ à" an Aurora entity (Agency, Post, Order, etc.), or to "add `<field>` to <AuroraEntity>". Generates the client-side files: concrete entity extending AbstractX, DTO + Factory extensions, Manager extension with parent::applyInput, Serializer extension with spread merge, and Vue wrapper consuming the Aurora component via extraFields.
+description: From an aurora-client project (Symfony app consuming axelraboit/aurora via composer), scaffold the 5-layer extension of an aurora-core entity - add a custom field to an Aurora entity end-to-end without forking. Use when the user asks to "extend", "override", "étendre", "ajouter un champ à" an Aurora entity (DocumentCategory, Post, Customer, etc.), or to "add `<field>` to <AuroraEntity>". Generates the client-side files: concrete entity extending AbstractX, DTO + Factory extensions, Manager extension with parent::applyInput, Serializer extension with spread merge, and Vue wrapper consuming the Aurora component via extraFields.
 scope: shared
 ---
 
@@ -22,8 +22,8 @@ Do NOT invent - read these patterns and apply them literally.
 
 ## Required inputs
 
-1. **Aurora entity name** (PascalCase) - `Agency`, `Post`, `Order`,
-   `Invoice`, etc. The Aurora-side files must exist under
+1. **Aurora entity name** (PascalCase) - `DocumentCategory`, `Post`,
+   `Customer`, `Contract`, etc. The Aurora-side files must exist under
    `vendor/axelraboit/aurora/src/...` - verify by globbing
    `vendor/axelraboit/aurora/src/**/<Name>/Entity/<Name>.php`. If not
    found, stop and report.
@@ -31,44 +31,48 @@ Do NOT invent - read these patterns and apply them literally.
    default, validation constraints (`#[Assert\*]`). Ask explicitly; do not
    invent fields.
 3. **Module path mirror** - derive from the Aurora namespace. Aurora
-   `Aurora\Module\Platform\Agency` → client `App\Module\Platform\Agency\`. Aurora
+   `Aurora\Module\Platform\DocumentCategory` → client `App\Module\Ged\DocumentCategory\`. Aurora
    `Aurora\Module\Editorial\Post` → client `App\Module\Editorial\Post\`.
    Confirm with the user if the project uses a different convention (some
    clients put extensions directly under `App\Entity\` - ask once).
 4. **Variant detection** - read the Aurora Manager to detect:
-   - User-style variant (no `applyInput`, multiple specialized hooks):
-     User, Order, Invoice, Tiers, OcrJob, Comment. The skill must NOT
-     generate an `applyInput` override; instead, list the public methods
-     to override and ask which the user wants.
-   - Editor full-page variant (Post): the Vue scaffold differs - wrap
-     `PostEditor.vue` instead of a modal.
+   - User-style variant: no `applyInput`, several specialised hooks
+     instead. Measured on 2026-09-16, the managers in that shape are
+     `User`, `AccessRequest`, `Deck`, `SpaceAccessLink`,
+     `SpaceContentColumn` and `PlanningShareLink`. **Read the manager
+     rather than trust that list** - it was written from the code on a
+     date, and the code decides. The skill must NOT generate an
+     `applyInput` override for these; it lists the public methods to
+     override and asks which the user wants.
+   - Editor full-page variant (`Post`): the Vue scaffold differs - wrap
+     `PostEditorApp.vue` instead of a modal.
 
 ## What gets generated
 
-For `<Name>` (e.g., `Agency`) with field `code`, namespace mirror
-`App\Module\Platform\Agency`:
+For `<Name>` (e.g., `DocumentCategory`) with field `code`, namespace mirror
+`App\Module\Platform\DocumentCategory`:
 
 ### Layer 1 - Concrete entity
 
 ```
-src/Module/Platform/Agency/Entity/Agency.php
+src/Module/Ged/DocumentCategory/Entity/DocumentCategory.php
 ```
 
 ```php
-namespace App\Module\Platform\Agency\Entity;
+namespace App\Module\Ged\DocumentCategory\Entity;
 
-use Aurora\Module\Platform\Agency\Entity\AbstractAgency;
-use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
-use App\Module\Platform\Agency\Repository\AgencyRepository; // only if a custom repo
+use Aurora\Module\Ged\DocumentCategory\Entity\AbstractDocumentCategory;
+use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
+use App\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository; // only if a custom repo
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: AgencyRepository::class)]
-#[ORM\Table(name: 'app_agencies')] // client prefix
-class Agency extends AbstractAgency implements AgencyInterface
+#[ORM\Entity(repositoryClass: DocumentCategoryRepository::class)]
+#[ORM\Table(name: 'app_ged_document_categories')] // client prefix
+class DocumentCategory extends AbstractDocumentCategory implements DocumentCategoryInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
-    #[ORM\SequenceGenerator(sequenceName: 'seq_app_agency_id', allocationSize: 1)] // client prefix
+    #[ORM\SequenceGenerator(sequenceName: 'seq_app_ged_category_id', allocationSize: 1)] // client prefix
     #[ORM\Column]
     private ?int $id = null;
 
@@ -94,7 +98,7 @@ Edit `config/packages/doctrine.yaml`:
 doctrine:
     orm:
         resolve_target_entities:
-            Aurora\Module\Platform\Agency\Entity\AgencyInterface: App\Module\Platform\Agency\Entity\Agency
+            Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface: App\Module\Ged\DocumentCategory\Entity\DocumentCategory
 ```
 
 Read the file first to find the existing block; append, don't replace.
@@ -102,57 +106,57 @@ Read the file first to find the existing block; append, don't replace.
 ### Layer 1ter - Repository (optional, only if custom finders requested)
 
 **Default behaviour** : you do **NOT** need to create a client repository.
-Aurora's own `AgencyRepository` extends `ResolveTargetEntityRepository`, so once
+Aurora's own `DocumentCategoryRepository` extends `ResolveTargetEntityRepository`, so once
 `resolve_target_entities` routes the interface to your client class, all queries
-go to your `app_agencies` table automatically.
+go to your `app_ged_document_categories` table automatically.
 
 **Only create a custom client repo when the client needs custom finder methods.**
 In that case :
 
 ```
-src/Module/Platform/Agency/Repository/AgencyRepository.php
+src/Module/Ged/DocumentCategory/Repository/DocumentCategoryRepository.php
 ```
 
 ```php
-namespace App\Module\Platform\Agency\Repository;
+namespace App\Module\Ged\DocumentCategory\Repository;
 
-use App\Module\Platform\Agency\Entity\Agency;
-use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
-use Aurora\Module\Platform\Agency\Repository\AgencyRepository as AuroraAgencyRepository;
+use App\Module\Ged\DocumentCategory\Entity\DocumentCategory;
+use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
+use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository as AuroraDocumentCategoryRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-class AgencyRepository extends AuroraAgencyRepository
+class DocumentCategoryRepository extends AuroraDocumentCategoryRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Agency::class, AgencyInterface::class);
+        parent::__construct($registry, DocumentCategory::class, DocumentCategoryInterface::class);
     }
 
-    public function findByCode(string $code): ?AgencyInterface { /* ... */ }
+    public function findByCode(string $code): ?DocumentCategoryInterface { /* ... */ }
 }
 ```
 
 Then point the entity's `repositoryClass` to **your** repo :
-`#[ORM\Entity(repositoryClass: \App\Module\Platform\Agency\Repository\AgencyRepository::class)]`.
+`#[ORM\Entity(repositoryClass: \App\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository::class)]`.
 
-No interface to create (Aurora doesn't expose `AgencyRepositoryInterface` -
+No interface to create (Aurora doesn't expose `DocumentCategoryRepositoryInterface` -
 limite assumée).
 
 ### Layer 2 - DTO + Factory extension
 
 ```
-src/Module/Platform/Agency/Dto/AgencyInput.php
-src/Module/Platform/Agency/Dto/AgencyInputFactory.php
+src/Module/Ged/DocumentCategory/Dto/DocumentCategoryInput.php
+src/Module/Ged/DocumentCategory/Dto/DocumentCategoryInputFactory.php
 ```
 
 ```php
-// AgencyInput.php
-namespace App\Module\Platform\Agency\Dto;
+// DocumentCategoryInput.php
+namespace App\Module\Ged\DocumentCategory\Dto;
 
-use Aurora\Module\Platform\Agency\Dto\AgencyInput as AuroraAgencyInput;
+use Aurora\Module\Ged\DocumentCategory\Dto\DocumentCategoryInput as AuroraDocumentCategoryInput;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class AgencyInput extends AuroraAgencyInput
+class DocumentCategoryInput extends AuroraDocumentCategoryInput
 {
     public function __construct(
         string $name,
@@ -167,21 +171,21 @@ class AgencyInput extends AuroraAgencyInput
 ```
 
 ```php
-// AgencyInputFactory.php
-namespace App\Module\Platform\Agency\Dto;
+// DocumentCategoryInputFactory.php
+namespace App\Module\Ged\DocumentCategory\Dto;
 
-use Aurora\Module\Platform\Agency\Dto\AgencyInputFactory as AuroraAgencyInputFactory;
-use Aurora\Module\Platform\Agency\Dto\AgencyInputFactoryInterface;
-use Aurora\Module\Platform\Agency\Dto\AgencyInputInterface;
+use Aurora\Module\Ged\DocumentCategory\Dto\DocumentCategoryInputFactory as AuroraDocumentCategoryInputFactory;
+use Aurora\Module\Ged\DocumentCategory\Dto\DocumentCategoryInputFactoryInterface;
+use Aurora\Module\Ged\DocumentCategory\Dto\DocumentCategoryInputInterface;
 use Aurora\Core\Support\Str;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
-#[AsAlias(AgencyInputFactoryInterface::class)] // override the Aurora factory
-class AgencyInputFactory extends AuroraAgencyInputFactory
+#[AsAlias(DocumentCategoryInputFactoryInterface::class)] // override the Aurora factory
+class DocumentCategoryInputFactory extends AuroraDocumentCategoryInputFactory
 {
-    public function fromArray(array $data): AgencyInputInterface
+    public function fromArray(array $data): DocumentCategoryInputInterface
     {
-        return new AgencyInput(
+        return new DocumentCategoryInput(
             name: Str::trimFromArray($data, 'name'),
             code: Str::trimFromArray($data, 'code') ?: null,
         );
@@ -192,50 +196,50 @@ class AgencyInputFactory extends AuroraAgencyInputFactory
 ### Layer 3 - Manager extension
 
 ```
-src/Module/Platform/Agency/Manager/AgencyManager.php
+src/Module/Ged/DocumentCategory/Manager/DocumentCategoryManager.php
 ```
 
 ```php
-namespace App\Module\Platform\Agency\Manager;
+namespace App\Module\Ged\DocumentCategory\Manager;
 
-use App\Module\Platform\Agency\Entity\Agency;
-use Aurora\Module\Platform\Agency\Dto\AgencyInputInterface;
-use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
-use Aurora\Module\Platform\Agency\Manager\AgencyManager as AuroraAgencyManager;
-use Aurora\Module\Platform\Agency\Manager\AgencyManagerInterface;
+use App\Module\Ged\DocumentCategory\Entity\DocumentCategory;
+use Aurora\Module\Ged\DocumentCategory\Dto\DocumentCategoryInputInterface;
+use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
+use Aurora\Module\Ged\DocumentCategory\Manager\DocumentCategoryManager as AuroraDocumentCategoryManager;
+use Aurora\Module\Ged\DocumentCategory\Manager\DocumentCategoryManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
-#[AsAlias(AgencyManagerInterface::class)]
-class AgencyManager extends AuroraAgencyManager
+#[AsAlias(DocumentCategoryManagerInterface::class)]
+class DocumentCategoryManager extends AuroraDocumentCategoryManager
 {
-    // CRITICAL - without this, AbstractAgency is instantiated and the `code` column never gets saved.
-    protected function createAgency(): AgencyInterface
+    // CRITICAL - without this, AbstractDocumentCategory is instantiated and the `code` column never gets saved.
+    protected function createDocumentCategory(): DocumentCategoryInterface
     {
-        return new Agency();
+        return new DocumentCategory();
     }
 
-    protected function applyInput(AgencyInterface $agency, AgencyInputInterface $input): void
+    protected function applyInput(DocumentCategoryInterface $category, DocumentCategoryInputInterface $input): void
     {
-        parent::applyInput($agency, $input); // CRITICAL - call parent FIRST so Aurora fields are hydrated.
+        parent::applyInput($category, $input); // CRITICAL - call parent FIRST so Aurora fields are hydrated.
 
-        if ($agency instanceof Agency && $input instanceof \App\Module\Platform\Agency\Dto\AgencyInput) {
-            $agency->setCode($input->getCode());
+        if ($category instanceof DocumentCategory && $input instanceof \App\Module\Ged\DocumentCategory\Dto\DocumentCategoryInput) {
+            $category->setCode($input->getCode());
         }
     }
 
-    protected function auditPayload(AgencyInterface $agency): array
+    protected function auditPayload(DocumentCategoryInterface $category): array
     {
-        $payload = parent::auditPayload($agency);
-        if ($agency instanceof Agency) {
-            $payload['code'] = $agency->getCode();
+        $payload = parent::auditPayload($category);
+        if ($category instanceof DocumentCategory) {
+            $payload['code'] = $category->getCode();
         }
         return $payload;
     }
 }
 ```
 
-**User-style variant** (User, Order, Invoice, Tiers, OcrJob, Comment): do
-NOT generate `applyInput`. Instead, list the Aurora Manager's public methods
+**User-style variant** (see the list under *Required inputs*, and check the
+manager): do NOT generate `applyInput`. Instead, list the Aurora Manager's public methods
 to the user and ask which ones to override. Each override starts with
 `parent::xxx()`.
 
@@ -252,26 +256,26 @@ to the user and ask which ones to override. Each override starts with
 ### Layer 4 - Serializer extension
 
 ```
-src/Module/Platform/Agency/Serializer/AgencySerializer.php
+src/Module/Ged/DocumentCategory/Serializer/DocumentCategorySerializer.php
 ```
 
 ```php
-namespace App\Module\Platform\Agency\Serializer;
+namespace App\Module\Ged\DocumentCategory\Serializer;
 
-use App\Module\Platform\Agency\Entity\Agency;
-use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
-use Aurora\Module\Platform\Agency\Serializer\AgencySerializer as AuroraAgencySerializer;
-use Aurora\Module\Platform\Agency\Serializer\AgencySerializerInterface;
+use App\Module\Ged\DocumentCategory\Entity\DocumentCategory;
+use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
+use Aurora\Module\Ged\DocumentCategory\Serializer\DocumentCategorySerializer as AuroraDocumentCategorySerializer;
+use Aurora\Module\Ged\DocumentCategory\Serializer\DocumentCategorySerializerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
-#[AsAlias(AgencySerializerInterface::class)]
-class AgencySerializer extends AuroraAgencySerializer
+#[AsAlias(DocumentCategorySerializerInterface::class)]
+class DocumentCategorySerializer extends AuroraDocumentCategorySerializer
 {
-    public function serialize(AgencyInterface $agency): array
+    public function serialize(DocumentCategoryInterface $category): array
     {
         return [
-            ...parent::serialize($agency),
-            'code' => $agency instanceof Agency ? $agency->getCode() : null,
+            ...parent::serialize($category),
+            'code' => $category instanceof DocumentCategory ? $category->getCode() : null,
         ];
     }
 }
@@ -280,7 +284,7 @@ class AgencySerializer extends AuroraAgencySerializer
 ### Layer 5 - Vue wrapper
 
 ```
-src/Module/Platform/Agency/assets/backend/AppAgenciesApp.vue
+src/Module/Ged/DocumentCategory/assets/backend/AppDocumentCategoriesApp.vue
 ```
 
 > Convention 0.5+ : assets are **co-located** under
@@ -291,30 +295,30 @@ src/Module/Platform/Agency/assets/backend/AppAgenciesApp.vue
 
 ```vue
 <script setup>
-import AgenciesApp from "@platform/backend/agencies/AgenciesApp.vue";
+import DocumentCategoriesApp from "@platform/backend/document-categories/DocumentCategoriesApp.vue";
 
 const extraFields = {
     code: {
         default: "",
-        fromEntity: (agency) => agency.code ?? "",
+        fromEntity: (category) => category.code ?? "",
     },
 };
 </script>
 
 <template>
-    <AgenciesApp :extra-fields="extraFields">
+    <DocumentCategoriesApp :extra-fields="extraFields">
         <template #extra-headers>
-            <th>{{ $t("backend.agencies.code") }}</th>
+            <th>{{ $t("backend.document-categories.code") }}</th>
         </template>
-        <template #extra-cells="{ agency }">
-            <td>{{ agency.code }}</td>
+        <template #extra-cells="{ category }">
+            <td>{{ category.code }}</td>
         </template>
         <template #extra-form-fields="{ editForm, errors }">
-            <label>{{ $t("backend.agencies.code") }}</label>
+            <label>{{ $t("backend.document-categories.code") }}</label>
             <input v-model="editForm.code" type="text" />
             <span v-if="errors.code" class="error">{{ errors.code }}</span>
         </template>
-    </AgenciesApp>
+    </DocumentCategoriesApp>
 </template>
 ```
 
@@ -324,7 +328,7 @@ Note the alias chain - clients import via the per-module shorthand
 `vendor/axelraboit/aurora/src/Module/<Module>/assets/` since 0.5 (assets
 moved under each module's PHP folder; the legacy root `assets/` is gone).
 
-For the Post editor full-page variant: wrap `PostEditor.vue` and place the
+For the Post editor full-page variant: wrap `PostEditorApp.vue` and place the
 `extra-form-fields` slot near a semantically related panel (cf. convention
 §4.bis.2).
 
@@ -333,18 +337,18 @@ For the Post editor full-page variant: wrap `PostEditor.vue` and place the
 If the controller mounts the Aurora Vue component by name and the client
 needs to swap in its wrapper, mirror the Aurora template path under the
 client's source tree. Aurora's per-module Twig namespaces
-(`@Platform`, `@Crm`, `@Editorial`, …) prepend the client's path first,
+(`@Platform`, `@Ged`, `@Editorial`, …) prepend the client's path first,
 so the override is picked up automatically.
 
-Example - Agency lives under the Platform module in aurora-core
-(`src/Module/Platform/templates/backend/agencies/index.html.twig`).
+Example - DocumentCategory lives under the Platform module in aurora-core
+(`src/Module/Ged/templates/backend/categories/index.html.twig`).
 The client mirror:
 
 ```
-src/Module/Platform/templates/backend/agencies/index.html.twig
+src/Module/Ged/templates/backend/categories/index.html.twig
 ```
 
-Point the Vue mount to `AppAgenciesApp` instead of `AgenciesApp`.
+Point the Vue mount to `AppDocumentCategoriesApp` instead of `DocumentCategoriesApp`.
 
 ## Procedure
 

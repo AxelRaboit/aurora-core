@@ -2,8 +2,14 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useMediaQuery } from "@/shared/composables/useMediaQuery.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
-import { gridWindow, monthGrid } from "./monthGrid.js";
-import { timeGridWindow, visibleDays } from "./timeGrid.js";
+import {
+    gridWindow,
+    monthGrid,
+} from "@/shared/composables/calendar/monthGrid.js";
+import {
+    timeGridWindow,
+    visibleDays,
+} from "@/shared/composables/calendar/timeGrid.js";
 import { toDisplayRow, useDisplayZone } from "./displayZone.js";
 
 /**

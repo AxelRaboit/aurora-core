@@ -5,6 +5,1084 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.192] - 2026-09-16
+
+### Corrigé
+
+#### La bibliothèque annonçait « aucun usage » sur des documents utilisés
+Trois modules pointent vers un document GED, un seul répondait au registre
+`DocumentUsageProviderInterface`. L'écran de suppression, qui est le seul
+avertissement existant, déclarait donc le fichier libre.
+
+Ce que le silence coûtait dépendait du module. Une pièce jointe d'espace client
+tient son document en `onDelete: CASCADE` : supprimer le fichier n'effaçait pas
+une vignette, ça emportait la ligne, et le fichier quittait l'espace du client
+sans rien laisser. Un billet pointe vers un document trois fois, sa couverture
+et l'image sociale de chaque langue en `SET NULL`, plus les identifiants dans
+`galleryLayout` : couvertures vidées, emplacements de galerie dessinant du vide.
+
+Deux fournisseurs ajoutés, et un test unitaire qui fait échouer la porte si un
+module référence un `Document` sans répondre. Vérifié en retirant les trois
+fournisseurs : il nomme les deux modules fautifs.
+
+#### La taille max d'upload affichée n'était pas celle qui s'appliquait
+`max_upload_size_mb` était enregistré, étiqueté, décrit et modifiable depuis que
+l'écran des paramètres existe, et aucune ligne de code ne le lisait. Les
+plafonds étaient écrits en dur dans `UploadPolicy` : 100 Mo pour la
+bibliothèque, 25 Mo pour un invité d'espace. Descendre le réglage à 5 pour
+protéger un petit disque donnait un écran qui acceptait la modification et un
+serveur qui continuait à prendre des fichiers de 100 Mo.
+
+`UploadPolicyProvider` le lit et construit la politique ; les deux contrôleurs
+qui appelaient les fabriques statiques la reçoivent par injection.
+
+Les invités sont plafonnés dans les deux sens, mais pas symétriquement. Baisser
+le réglage les baisse avec tout le monde, c'est ce que veut dire un plafond.
+Le monter ne les fait pas dépasser 25 Mo : celui qui tient un lien d'espace
+tient une adresse secrète et non un compte, et la part de disque qu'il peut
+remplir n'est pas une préférence d'administrateur. Un champ vidé donnerait un
+plafond de zéro et refuserait tout, partout, sans rien dire : le plancher est
+à 1 Mo.
+
+**Le défaut passe de 20 à 100**, ce que faisait la bibliothèque avant que le
+réglage soit branché, donc une installation neuve se comporte comme avant.
+Une installation existante, non : sa valeur enregistrée s'applique enfin.
+
+### Supprimé
+
+#### Le réglage « Extensions autorisées », que rien ne lisait
+`allowed_upload_extensions` était déclaré, étiqueté, doté d'un défaut et d'un
+espace réservé, affiché dans le groupe media, modifié et enregistré, et lu par
+aucune ligne de code. Retirer `svg` de la liste ne changeait rien, ce qui est
+pire que ne pas avoir de réglage : le `file_versions_limit` voisin fonctionne,
+donc le groupe inspire confiance.
+
+Retiré plutôt que branché, contrairement à son voisin, parce que la
+bibliothèque refuse d'avoir une liste de types autorisés à dessein :
+`UploadPolicy` l'argumente, une liste se contourne en renommant les fichiers et
+le mur est à la lecture, où `BinaryFileServer` envoie `nosniff` et force le
+téléchargement des types qu'un navigateur exécuterait. Le brancher aurait
+imposé une restriction que personne n'a décidée, à partir d'une liste
+enregistrée avant que la décision existe.
+
+**La liste des invités reste dans le code**, et c'est le fond de l'affaire :
+une version modifiable serait un moyen de remettre `image/svg+xml` depuis un
+formulaire.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`.
+
+**Vérifier la valeur de « Taille max d'upload »** dans les paramètres : elle
+s'applique désormais pour de bon. Une installation qui porte encore l'ancien
+défaut de 20 verra la bibliothèque passer de 100 Mo à 20 Mo.
+
+---
+
+## [0.9.191] - 2026-09-16
+
+### Corrigé
+
+#### L'écran d'audit affichait une clé de traduction
+`AuditTab.vue` rendait le nom du module sans repli. Un module renommé laisse
+derrière lui des lignes qui portent son ancien nom, et celles-là s'affichaient
+littéralement `backend.modules.accounting`. **Mesuré : vingt-sept lignes**,
+toutes des actions Studio écrites avant que le module ne soit renommé.
+
+Le repli existait déjà quelques fichiers plus loin, dans l'écran des
+utilisateurs : `t(clé, nomBrut)`. C'est maintenant le cas ici et sur l'écran des
+permissions, donc un module renommé affiche son nom plutôt qu'une clé, quel que
+soit le renommage à venir.
+
+### Supprimé
+
+#### Les deux bascules d'un module qui n'existe plus
+`ModuleParameterEnum` gardait `MediaBackend` et `MediaLibrary` après le retrait
+du module Media en juillet 2026, et le fournisseur yield **tous** les cas — donc
+chaque installation depuis créait `modules_media_backend` et
+`modules_media_library` dans `core_settings`, et les gardait.
+
+L'une des deux était pire que morte : `MediaLibrary` pointait son libellé vers
+`backend.nav.media`, une clé inexistante — la vraie est
+`backend.nav.sections.media`. Ce qui l'affichait montrait une clé brute.
+
+Partent avec : sept branches de `match`, deux libellés de bascule, quatre
+assertions de test, et les deux lignes de `core_settings` par migration.
+
+**Les libellés `backend.modules.media`, `hr` et `project` restent.** Ils ne
+servent plus à aucune bascule, mais ils nomment encore d'éventuelles lignes
+d'audit historiques. Les supprimer aurait échangé « Médias » contre « media »
+sans rien gagner.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`.
+
+---
+
+## [0.9.190] - 2026-09-16
+
+### Corrigé
+
+#### Un lecteur ne pouvait pas ouvrir une fiche
+Le menu d'une carte offrait « Modifier » et « Supprimer », tous deux derrière
+`studio.spaces.edit`. Pour quelqu'un qui peut voir un espace sans le modifier,
+ce menu était donc **vide** — et la carte du tableau n'était pas cliquable. Il
+voyait un titre et une date, et n'atteignait jamais le texte, le fil d'échanges
+ni les fichiers, sur un écran qui existe pour être lu par les gens qu'un
+chantier client concerne.
+
+**« Voir » apparaît exactement quand « Modifier » ne peut pas.** Pas les deux :
+deux entrées qui ouvrent le même panneau, dont l'une désactive ses champs, est
+un menu qui fait deviner au lecteur laquelle il veut.
+
+#### Le tableau se comportait autrement que la liste
+La liste et le calendrier ouvraient une fiche au clic, le tableau non : même
+contenu, deux comportements. La carte du tableau est cliquable, et le clic
+ignore les boutons et la poignée de glisser — un glisser qui démarre sur le
+corps de la carte se disputait sinon avec le clic, et l'un des deux perdait au
+hasard.
+
+#### La modale proposait d'enregistrer ce que le serveur aurait refusé
+En lecture seule, les champs sont désactivés mais **restent lisibles** : ce que
+dit une fiche est justement ce que ce lecteur vient chercher, et cacher le
+texte pour signaler qu'il n'est pas modifiable répondrait à la mauvaise
+question. Ce qui disparaît, c'est tout ce qui écrit — le bouton Enregistrer, la
+zone de dépôt de fichier, la suppression d'un message. Proposer un bouton que
+le serveur refuse est la façon dont un écran apprend à ne plus être cru.
+
+Le titre dit « Voir » plutôt que « Modifier », et la sortie dit « Fermer »
+plutôt que « Annuler ».
+
+### Dans aurora-client
+`make aurora-update`. Rien d'autre.
+
+---
+
+## [0.9.189] - 2026-09-16
+
+### Sécurité
+
+#### La troisième couche : une Content-Security-Policy
+Il n'y en avait aucune, nulle part. Chaque page HTML en porte une désormais.
+
+Elle complète les deux autres plutôt qu'elle ne les répète : une liste blanche
+décide de ce qui peut être **stocké**, `BinaryFileServer` de ce qui peut être
+**rendu comme un document**, et celle-ci de ce qu'une page peut **exécuter**.
+Les deux premières ne disent rien d'un script injecté dans le corps d'un
+article ou d'un paramètre réfléchi.
+
+**Les scripts par nonce, les styles par `unsafe-inline`**, et l'asymétrie n'est
+pas de la paresse. Une poignée de scripts doivent tourner avant le premier
+rendu — le thème, pour que la page ne clignote pas en blanc, et les globales
+que lit chaque écran d'équipe — et ils portent le nonce. Les styles ne le
+peuvent pas : Vue injecte ceux d'un composant depuis JavaScript, et une balise
+injectée ne porte aucun nonce. Pire, un nonce présent dans `style-src` fait
+ignorer `unsafe-inline` aux navigateurs, donc en ajouter un — ce qui ressemble
+à un durcissement — casserait tous les composants stylés. L'exposition n'est
+pas la même non plus : un style injecté rhabille une page, un script injecté
+agit à la place de qui la lit.
+
+**`frame-src` lit la liste d'hôtes du sanitiseur** au lieu d'en tenir une
+seconde. Elle décide déjà quels `<iframe>` survivent à l'enregistrement ; deux
+listes auraient divergé, et la divergence se serait vue le jour où une
+intégration s'enregistre puis refuse de s'afficher.
+
+`script-src` ne contient ni `unsafe-inline` ni `unsafe-eval`, et un test le
+vérifie dans les deux environnements. C'est la façon dont une CSP se vide en
+silence : quelqu'un bute sur un script bloqué, ajoute le mot-clé, et l'en-tête
+reste en place sans plus rien dire.
+
+### Modifié
+
+#### Le champ montant n'évalue plus par `new Function`
+Un seul `new Function` dans toute la base de code, dans l'évaluateur du champ
+montant — celui qui accepte `12+3`. Il était sûr au sens étroit : la chaîne
+était déjà réduite aux chiffres et aux opérateurs, il n'y avait rien à
+injecter. Et fatal au sens large : **un seul suffit à imposer
+`script-src 'unsafe-eval'` sur toutes les pages**, ce qui rendrait la politique
+ci-dessus largement décorative.
+
+Remplacé par une descente récursive sur trois niveaux, qui fait les quatre
+opérations et les parenthèses et rien d'autre. Ce qu'elle ne sait pas lire
+revient intact, ce dont le champ a besoin : quelqu'un en train de taper ne doit
+pas voir sa saisie réécrite.
+
+### Dans aurora-client
+`make aurora-update` puis `make cc`.
+
+**Un thème ou un gabarit surchargé qui contient un `<script>` inline devra
+porter `nonce="{{ csp_nonce() }}"`**, sinon il cessera de s'exécuter. C'est le
+seul point de rupture. Les styles inline ne changent pas.
+
+Si un projet client charge des scripts depuis une autre origine, il faut lui
+donner sa propre politique : l'en-tête déjà posé n'est jamais écrasé, donc un
+souscripteur client qui s'exécute avant celui-ci a le dernier mot.
+
+---
+
+## [0.9.188] - 2026-09-16
+
+### Sécurité
+
+Un audit des sept portes d'entrée de fichiers a remonté cinq défauts. Tous
+corrigés ici, et chacun avec le test qui l'aurait attrapé.
+
+#### Deux zones privées étaient lisibles par n'importe qui
+`UploadAccessDecider` laisse anonyme un préfixe que personne ne revendique.
+C'est délibéré et documenté : refuser l'inconnu casserait un client qui range
+ses fichiers sous un préfixe qu'aurora-core ne connaît pas. Le prix, c'est
+qu'une zone privée que personne ne revendique est publique en silence.
+
+Deux l'étaient. **Mesuré : un fichier sous `profile-photos/` comme sous
+`notes-markdown/` répondait 200 sans aucune session.** Pour les notes c'est
+l'inverse exact de ce que leur service revendique dans son propre docblock, où
+il explique ranger ses images hors de la racine publique justement pour forcer
+la lecture par un contrôleur qui vérifie à qui elles appartiennent : la route
+fourre-tout `/uploads/{path}` passait à côté de tout ça.
+
+Les deux zones ont maintenant leur garde. Les avatars se lisent par
+`/backend/platform/profile-photos/…`, sous le pare-feu, et un avatar ne peut
+donc plus être rendu sur une page publique. Rien n'en affiche aujourd'hui.
+
+#### Les noms de fichiers étaient devinables
+Toute cette sécurité repose sur « l'adresse est indevinable ». Elle l'était
+mal : les noms se composaient de `slug(nom d'origine) + uniqid()`, dont la
+première moitié est souvent devinable (`logo.png`, `cv.pdf`) et la seconde
+n'est pas aléatoire mais **dérivée de l'horloge à la microseconde**. Une photo
+de profil était pire : l'identifiant du compte suivi du même horodatage.
+
+`StoredFileName` produit désormais 16 octets du CSPRNG et rien d'autre. Le nom
+lisible n'est pas perdu, il est rangé : `originalName` le garde en base, où un
+téléchargement s'en sert. Sur le disque, il ne faisait que renseigner.
+
+#### Révoquer un accès client ne révoquait pas ses fichiers
+Un fichier déposé sur une fiche d'espace était un document GED **publié**, donc
+servi par la route fourre-tout à qui connaissait l'adresse. Le lien expirait,
+les adresses des visuels restaient valides indéfiniment.
+
+Ces fichiers sont classés en **brouillon**, ce qui ferme le fourre-tout, et
+chaque surface lit les siens par une route adossée à ce qui lui donne accès au
+tableau : le studio par `/workspace/{id}/attachments/…` sous son propre
+privilège, le client par `/spaces/{selector}/{token}/attachments/…` derrière la
+même résolution de lien que la page. Révoquer atteint les fichiers au moment où
+ça atteint la page.
+
+Le coût est réel : le sélecteur de la GED ne liste que les documents publiés,
+donc un fichier arrivé par un espace n'est plus proposé comme bannière
+ailleurs. Ça se lit comme la bonne réponse plutôt qu'un compromis — la photo
+d'un client n'est pas du mobilier de site — et le studio peut le publier
+délibérément. Il reste listé dans la GED, classé sous « Espaces clients ».
+
+#### La GED n'imposait aucune limite à ses propres dépôts
+Ni type ni taille sur les deux endpoints : le seul mur était le privilège. La
+politique écrite pour les invités est généralisée en `UploadPolicy`, avec deux
+profils. Celui d'équipe accepte **tous** les types et c'est voulu : une
+bibliothèque documentaire qui refuse des formats est une bibliothèque qu'on
+contourne en renommant, et ce qui rendait ces formats dangereux est fermé au
+moment où le fichier est servi. Ce qu'il fait, c'est plafonner le disque, ce
+que personne ne faisait.
+
+#### Le nettoyage des orphelins ne voyait qu'une zone sur quatre
+`aurora:ged:prune-orphans` balayait `ged/`. Une photo de profil remplacée, le
+PDF d'un contrat supprimé : rien ne les comptait. C'est maintenant
+`aurora:storage:prune-orphans` (l'ancien nom reste un alias), et chaque zone
+répond d'elle-même par un `ReferencedKeysProviderInterface`.
+
+**Une zone sans fournisseur est sautée, pas balayée**, et le sens compte : un
+balayage incapable de nommer ce qu'un module référence supprimerait les
+fichiers de ce module. `--verbose` dit laquelle et pourquoi. Les images de
+notes sont l'exemple : elles sont référencées depuis le corps des notes, qui
+est chiffré, donc les nommer voudrait dire déchiffrer toute la base. Le module
+nettoie derrière ses propres éditions à la place.
+
+### Dans aurora-client
+`make aurora-update`, puis `make cc`.
+
+**Les fichiers déjà en place ne bougent pas** et gardent leur ancien nom : la
+correction porte sur ce qui est écrit à partir de maintenant. Deux
+conséquences immédiates en revanche, à vérifier après mise à jour :
+
+- **les avatars changent d'adresse.** Toute surface publique qui en afficherait
+  un cesserait de fonctionner. Aucune ne le fait dans aurora-core ;
+- **les anciens fichiers d'espace client restent publiés**, donc encore
+  lisibles par leur adresse. Pour les fermer, il faut les repasser en brouillon
+  dans la GED. Les nouveaux dépôts sont corrects sans rien faire.
+
+---
+
+## [0.9.187] - 2026-09-16
+
+### Ajouté
+
+#### La vignette sur la carte, sans coûter une ligne
+Le tableau et la liste montrent maintenant le premier visuel d'une fiche : un
+carré à gauche du titre, avec un « +2 » quand il y en a d'autres.
+
+Pour un calendrier éditorial c'est le manque le plus visible qu'il restait.
+Quelqu'un qui planifie un mois de publications les reconnaît à leur image bien
+avant de lire un titre, et un tableau qui la cachait obligeait à ouvrir chaque
+fiche pour savoir ce qu'il y avait dedans.
+
+**Un carré et pas une bande de vignettes**, parce que la carte a une règle
+écrite dans son propre docblock : chaque ligne en plus coûte au lecteur une
+carte de tableau visible. Le carré tient à côté des deux lignes de texte et n'en
+ajoute aucune ; une bande en aurait montré plus et coûté deux cartes. Une fiche
+qui ne porte qu'un PDF ne dessine rien du tout et garde toute sa largeur pour son
+titre : il n'y a rien à reconnaître.
+
+Les deux vues lisent la même source, donc elles ne peuvent pas être en désaccord
+sur ce qu'il y a sur un contenu.
+
+---
+
+## [0.9.186] - 2026-09-16
+
+### Ajouté
+
+#### Un client peut envoyer ses propres fichiers
+Troisième droit sur un lien d'espace, à côté de « peut valider » et « peut
+commenter » : **peut envoyer des fichiers**. Coché, le client dépose ses photos
+et documents directement sur les contenus, depuis sa page, sans compte.
+
+**Éteint par défaut, contrairement aux deux autres, et c'est le point.**
+Répondre et commenter sont ce à quoi sert un lien, donc ils arrivent allumés.
+Envoyer écrit des octets dans notre stockage depuis une adresse sans compte
+derrière : l'accorder à tous les liens déjà émis, le jour du déploiement, n'est
+pas un choix que quelqu'un a fait.
+
+**Trois murs, et ils ne sont pas interchangeables.** Un limiteur de débit
+`space_guest_upload` à part, plus bas que celui des avis parce qu'un fichier ne
+coûte pas ce que coûte un clic. Puis le droit du lien, qui répond comme à un
+inconnu : dire « vous pouvez lire mais pas envoyer » renseignerait celui qui
+détient une adresse fuitée. Puis `SpaceGuestUploadPolicy`, le seul à regarder le
+fichier : liste blanche de types inertes, vérifiée sur le type **sniffé dans les
+octets** et jamais sur celui annoncé par le navigateur.
+
+Le SVG est refusé nommément. Ce n'est pas une image, c'est un document qui peut
+porter du script.
+
+### Sécurité
+
+#### Un fichier déposé ne s'exécute plus sur notre domaine
+Vaut pour **tous** les fichiers de la GED, pas seulement les nouveaux dépôts.
+`BinaryFileServer` envoie désormais `X-Content-Type-Options: nosniff` sur chaque
+réponse, et force le téléchargement pour les types qu'un navigateur exécute
+comme un document : SVG, HTML, XHTML, XML, XSL.
+
+Le garde-fou est étroit exprès : une image reste affichée en ligne, sinon toutes
+les images de toutes les pages publiques se seraient mises à se télécharger. Et
+un `Content-Disposition` sur une sous-ressource est ignoré par les navigateurs,
+donc une balise image pointant vers un SVG s'affiche toujours. Ce qui change,
+c'est la navigation directe vers l'adresse, qui est le vecteur.
+
+Cela méritait déjà d'exister quand seule l'équipe pouvait déposer. Ça cesse
+d'être optionnel dès qu'un porteur de lien le peut.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`.
+
+**Déclarer `space_guest_upload` dans `config/packages/rate_limiter.yaml`** : le
+contrôleur public le câble par nom d'argument, donc sans cette entrée le
+conteneur ne se construit plus.
+
+**Vérifier `upload_max_filesize` et `post_max_size`.** Un PHP par défaut plafonne
+à 2 Mo et 8 Mo, soit moins qu'une photo de téléphone : le plafond applicatif de
+25 Mo ne veut rien dire tant que PHP refuse avant. Le message reste juste dans
+les deux cas, mais le client ne pourra rien envoyer.
+
+---
+
+## [0.9.185] - 2026-09-16
+
+### Ajouté
+
+#### Des fichiers sur une fiche de contenu
+Une fiche d'espace client porte ses visuels. Glisser-déposer, choisir dans la
+GED, retirer. Les vignettes s'affichent dans le formulaire de la fiche, juste
+au-dessus du fil d'échanges.
+
+**Sur la fiche et pas sur l'espace**, parce que c'est le tour de validation qui
+en a besoin : un client à qui on demande d'approuver un texte sans voir l'image
+répond à la moitié de la question. Une étagère par espace pour la charte et les
+logos reste possible, et sera un autre lot.
+
+**Le fichier vit dans la GED, la ligne ne fait que le désigner.** Pas d'adresse,
+pas de vignette, pas de taille recopiées : tout est résolu au moment du rendu,
+parce que l'adresse d'un fichier change quand on remplace le fichier et qu'une
+copie deviendrait fausse en silence. Retirer un fichier d'une fiche ne supprime
+donc rien : le document reste dans la GED, classé sous une catégorie
+« Espaces clients » créée au premier dépôt.
+
+**Une table de liaison et pas une colonne**, parce que la moitié visuelle d'une
+publication est rarement un seul fichier. Un carrousel, une vidéo et sa
+couverture, un communiqué et sa photo : avec un seul `document_id` il aurait
+fallu en faire plusieurs publications.
+
+**L'auteur est stocké deux fois**, comme pour les messages. Les relations
+disent qui tant qu'elles durent et sont en `SET NULL` ; le libellé et le côté
+sont écrits une fois au dépôt. « Qui a envoyé cette photo » se demande longtemps
+après, et doit survivre à un compte supprimé ou un lien révoqué.
+
+Un aperçu seulement pour ce qui s'aperçoit : une image a sa vignette, un PDF ou
+une vidéo ont une icône tirée du type MIME. Pointer une balise image vers un PDF
+est la façon la plus sûre de faire passer un envoi réussi pour un échec.
+
+### Modifié
+
+#### La GED sait classer pour n'importe quel module
+« Trouver ou créer la catégorie », avec sa reprise sur collision quand deux
+premiers dépôts arrivent ensemble, vivait dans le fournisseur des médias
+éditoriaux. Un deuxième module en avait besoin. C'est maintenant
+`DocumentCategoryResolver`, que les deux partagent : la logique délicate est à
+un seul endroit, donc elle se corrige une fois.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`.
+
+---
+
+## [0.9.184] - 2026-09-16
+
+### Supprimé
+
+#### Le schéma des treize modules partis
+La migration initiale créait les tables de Crm, Ecommerce, Billing, Photo,
+Project, Erp, Hr, Vault, Assistant, PersonalFinance, Tools, PdfForm et des
+anciennes notes, et ne les supprimait que dans son `down()`. Les modules sont
+sortis du dépôt entre juillet et août ; aucune migration depuis n'y avait
+touché. **Toute base construite depuis cette suite portait encore 65 tables, 58
+séquences et deux colonnes sur `core_users`** que plus aucune entité ne mappait.
+
+`Version20260916120000` les supprime. `core_users.agency_id` et `service_id`
+partent d'abord avec leurs contraintes : ce sont les deux seuls liens entre le
+schéma vivant et le mort, et c'est le geste que `Version20260823140000` avait
+déjà fait pour `core_plannings.agency_id`. `manager_id` reste, il est mappé.
+
+**La migration refuse de tourner si une de ces tables contient une ligne.** Ici
+elles étaient toutes vides, et c'est la seule base que quiconque ait comptée.
+Un client qui s'est servi d'un module avant son extraction a des lignes dedans,
+et un `DROP TABLE` les emporterait sans retour. Un déploiement qui s'arrête en
+nommant les tables est un problème qu'on résout ; un déploiement qui réussit et
+efface les factures d'un client, non.
+
+Le cas le plus probable est `core_markdown_notes` : les notes Markdown ont été
+refaites en août dans `core_notes_markdown_notes`, **créée vide**, sans reprise
+des anciennes. Si des notes d'avant août existent encore quelque part, elles
+sont dans l'ancienne table.
+
+Pas de `down()`. Recréer 65 tables vides dont le code est parti ne rendrait pas
+une seule ligne au seul cas où ça compterait.
+
+### Modifié
+
+#### `doctrine:migrations:diff` redevient lisible
+Il proposait de supprimer une centaine de tables à chaque appel, ce qui obligeait
+à écrire toutes les migrations à la main depuis la première extraction. Il ne
+reste qu'un bruit de fond d'une vingtaine d'instructions, d'une autre nature :
+des index nommés à la main dans les migrations que le mapping ne déclare pas, et
+deux index partiels que Doctrine ne sait pas exprimer. Le diff reste donc à
+relire, mais il est devenu un outil au lieu d'un mur.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`. **Avant de migrer la production**,
+compter les lignes des tables concernées : si la migration s'arrête, elle
+nomme celles qui ne sont pas vides, et rien n'est supprimé.
+
+---
+
+## [0.9.183] - 2026-09-15
+
+### Ajouté
+
+#### Trois vues du même contenu, au choix du lecteur
+L'onglet Contenu porte un sélecteur : **Tableau**, **Liste**, **Calendrier**.
+Ce ne sont pas trois fonctionnalités, ce sont trois lectures des mêmes fiches -
+le tableau dit où en est chaque chose, la liste dit ce qu'il y a, le calendrier
+dit quand ça sort.
+
+La **liste** est nouvelle. Elle groupe par étape, met une fiche par ligne avec sa
+date et l'avis du client, et c'est la seule des trois qui tient sur un téléphone
+sans défiler de côté. Elle existe parce qu'un tableau n'est pas la façon de
+penser de tout le monde.
+
+**Le choix est retenu, par personne et pour tous les espaces.** Quelqu'un qui ne
+pense pas en colonnes choisit la liste une fois et ne revoit plus le tableau. Une
+mémoire par espace l'aurait obligé à rechoisir à chaque nouveau client, ce qui
+est précisément ce que cette fonctionnalité sert à éviter.
+
+### Modifié
+
+#### Deux onglets au lieu de trois
+Le calendrier était un onglet à côté du tableau, la liste aurait été un sélecteur
+à l'intérieur : deux mécanismes pour choisir comment lire le même contenu, et un
+lecteur obligé de savoir lequel cache quoi. Il reste **Contenu** et **Accès
+client**, et les trois vues sont un sélecteur.
+
+Ce qui est à l'écran - quel espace - reste dans l'adresse. Comment il est dessiné
+appartient à la personne qui le dessine, donc ne s'y trouve pas. Une seule route
+sert le contenu, `/workspace/{id}`, et changer de vue ne coûte aucune requête :
+les trois reçoivent la même charge utile, envoyée une fois.
+
+#### Le tableau, la liste et le calendrier ne possèdent plus rien
+Les deux composables d'écran fusionnent en un seul, `useSpaceContent`. Les trois
+vues sont présentationnelles : elles reçoivent tout en propriétés et rendent tout
+en événements. C'est ce qui fait qu'une fiche modifiée dans l'une est juste dans
+les deux autres, sans que personne n'ait à les tenir en accord.
+
+### Ajouté
+
+#### Quatre pages de documentation pour les espaces clients
+« Un espace client », « Le tableau d'un espace », « Le calendrier d'un espace » et
+« L'accès d'un client à son espace », avec dix-sept captures produites par
+`tools/doc-screenshots`. Elles ouvrent la rubrique Studio, avant la fiche client.
+
+Le parcours de l'accès client suit vraiment le lien émis, dans un contexte sans
+session : une capture de ce que voit le client prise en étant connecté ne
+prouverait rien.
+
+### Dans aurora-client
+`make aurora-update`. Rien d'autre : la route du calendrier disparaît, mais elle
+n'est référencée que par le module.
+
+---
+
+## [0.9.182] - 2026-09-15
+
+### Ajouté
+
+#### Un fil d'échanges sur chaque contenu, partagé avec le client
+Ce que le studio écrit, le client le lit, et inversement. **Un seul fil et pas
+deux boîtes aux lettres** : un échange dont les moitiés ne se voient pas, ce sont
+deux personnes qui se parlent à côté avec des étapes en plus. Rien n'est interne
+ici, et l'écran le dit là où on tape, parce qu'une note destinée à un collègue
+écrite dans le mauvais champ est une note que le client lit.
+
+Le composant est le même des deux côtés, avec les mêmes messages dans le même
+ordre. Une conversation qui se rendrait différemment selon qui la regarde, c'est
+ainsi que deux personnes finissent par se disputer sur ce qui a été dit.
+
+#### Deux droits distincts sur un lien
+« Peut commenter » et « peut valider », cochés par défaut tous les deux. Ils
+répondent à deux questions différentes : une agence partenaire peut mériter d'être
+entendue sans être celle qui décide, et un plan montré à un prospect ne veut ni
+l'un ni l'autre. Chacun est appliqué, et un lien qui n'a ni l'un ni l'autre est
+le lien en lecture seule.
+
+#### Une seule zone de saisie sur l'écran du client
+Le fil remplace le champ « Commentaire » qui accompagnait les deux boutons. Il
+finissait de toute façon en message, donc c'était une seconde porte vers la même
+chose, posée à côté de celle que le lecteur venait d'utiliser. Il reste les deux
+verdicts et une phrase qui dit où écrire.
+
+L'endpoint de réponse perd du même coup son paramètre `note` : aucun écran ne
+l'envoyait plus, et un paramètre que personne ne poste est un interrupteur qui ne
+fait rien.
+
+### Corrigé
+
+#### Le commentaire du client disparaissait au moment où on s'en servait
+La 0.9.181 rangeait ses mots dans `approval_note`, sur le verdict. Or modifier le
+texte efface le verdict - ce qui est juste - et emportait donc la phrase avec lui.
+Le client écrivait « le ton est trop formel », le studio corrigeait le ton, et
+**l'instruction disparaissait exactement pendant qu'on l'appliquait.**
+
+Un verdict est un état et se réinitialise ; des mots sont des événements et se
+gardent. Les messages sont donc des lignes à part, et effacer une validation ne
+détruit plus rien. La migration recopie chaque note existante en premier message
+du fil, signée du lien qui avait répondu et datée de sa réponse.
+
+### Interne
+
+#### L'auteur d'un message est stocké deux fois, exprès
+Les relations disent qui tant qu'elles durent - un compte se supprime, une
+adresse se révoque puis se supprime - et les deux sont en `SET NULL`, parce que
+retirer une personne ne doit pas retirer ce qu'elle a dit. Mais un message dont
+l'auteur est devenu nul est un message que personne n'a écrit, ce qui est pire
+qu'inutile dans un fil qu'on relit pour trancher un désaccord. `author_label` et
+`from_client` sont donc écrits une fois, à la publication, et ne dépendent
+d'aucune ligne qui puisse partir.
+
+#### Un message du client ne se supprime pas
+Le studio peut retirer les siens. Ce qu'un client a écrit est ce qu'on lui a
+demandé d'appliquer, et un prestataire capable d'effacer une réclamation a une
+trace de la mission qui ne prouve rien.
+
+#### Le composant et ses mots ont quitté `backend`
+`SpaceContentThread.vue` vit dans `assets/shared/` du sous-domaine, parce que les
+deux surfaces le montent, et ses propres libellés sont passés en `shared.thread.*`
+dans Core, **espagnol compris** : une clé sous `backend.` rendue sur une page que
+lit un client est un namespace qui a cessé de vouloir dire quelque chose.
+
+### Dans aurora-client
+`make aurora-update` puis la migration.
+
+---
+
+## [0.9.181] - 2026-09-15
+
+### Ajouté
+
+#### Le client répond : « Validé » ou « À revoir »
+Depuis sa page, en ouvrant une publication. C'est la boucle que tout le reste
+préparait : le prestataire envoie un lien, le client parcourt son mois et répond,
+et le studio voit la réponse sur la carte.
+
+Le pourquoi s'écrit dans le fil d'échanges, juste au-dessus des deux boutons (voir
+0.9.182). La réponse n'a pas de champ à elle : deux zones de saisie sur un même
+écran, c'est le lecteur qui devine laquelle sera lue.
+
+**La réponse ne déplace jamais la carte.** C'est un avis, pas une machine à
+états : un client qui clique par erreur aurait sinon programmé ou déprogrammé une
+publication. Le tableau montre la réponse, un humain déplace.
+
+**Et « en attente » n'est pas « refusé ».** Le silence veut dire que personne n'a
+rien dit, ce qui n'est pas la même chose ; une carte sans réponse ne porte donc
+aucun badge, parce qu'un badge sur chacune serait une colonne de bruit qui
+cacherait les deux qui comptent.
+
+#### Modifier le texte efface la réponse
+Une validation porte sur une formulation. La réécrire rend la validation preuve
+de rien, et la garder dirait au tableau qu'un client a approuvé quelque chose
+qu'il n'a jamais lu. Déplacer la carte, la reprogrammer ou changer son étape ne
+touche à rien : seuls le titre et le texte comptent, parce que c'est ce qui a été
+montré.
+
+Le formulaire le dit sous la réponse, parce que personne ne le devinerait.
+
+#### Un lien peut être en lecture seule
+La case « Peut valider » est cochée par défaut, parce que c'est à ça qu'un lien
+sert. Décochée, elle est pour le second lecteur - un collègue du client, une
+agence partenaire - qui regarde le plan sans décider. Sa page ne reçoit alors
+**aucune adresse d'écriture** : ce n'est pas un bouton caché, c'est un point
+d'entrée qui n'arrive pas.
+
+Un lien sans le droit qui tente de répondre reçoit le 404 d'un inconnu. Répondre
+« vous pouvez lire mais pas valider » dirait à qui tient une adresse fuitée
+exactement ce qu'il a.
+
+### Interne
+
+#### Les deux prérequis à une écriture invitée, dans le même lot
+La colonne `can_approve` arrive **avec** l'écriture qu'elle gouverne, pas avant :
+une colonne qui représente une permission que personne n'applique est un
+interrupteur qui ne fait rien. Et la route est limitée en débit, parce qu'un
+jeton qui fuite n'a personne à bloquer. Ce sont les deux choses que les liens de
+partage du calendrier sont documentés comme n'ayant volontairement pas.
+
+La limite est calée sur l'IP, donc mur extérieur : les murs qui tiennent sont le
+droit porté par le lien et le fait qu'un lien révoqué ou expiré ne résout rien.
+Quarante réponses par heure, plus haut que les limiteurs de signature, parce que
+le geste est différent - on signe un contrat une fois, on valide six publications
+d'affilée.
+
+### Dans aurora-client
+`make aurora-update`, la migration, puis **ajouter le limiteur
+`space_guest_write`** à `config/packages/rate_limiter.yaml`. Le contrôleur public
+le câble par nom : sans l'entrée, le conteneur ne se construit pas. L'entrée est
+déjà écrite dans le dépôt client, avec son commentaire.
+
+```yaml
+space_guest_write:
+    policy: sliding_window
+    limit: 40
+    interval: '1 hour'
+```
+
+---
+
+## [0.9.180] - 2026-09-15
+
+### Ajouté
+
+#### Une étape de tableau peut porter une couleur
+Facultative, choisie dans la palette partagée, et **nulle est une vraie
+réponse** : un tableau où chaque étape est colorée est un tableau où la couleur
+ne veut plus rien dire. L'intérêt est que deux ou trois ressortent.
+
+Les cinq étapes d'un nouvel espace arrivent colorées, sauf « Idées ». Une étape
+qui contient tout ce qui n'est pas commencé est le fond du tableau plutôt qu'un
+état à signaler ; les quatre suivantes sont jaune pour ce qui attend quelqu'un,
+aqua pour ce qui est calé, vert pour ce qui est sorti.
+
+**Le gain est au calendrier.** Une carte y porte désormais la couleur de son
+étape, pas celle de l'espace : à l'intérieur d'un espace, toutes les cartes sont
+du même client, donc la couleur de l'espace n'y dit rien, alors qu'on parcourt un
+mois pour voir ce qui attend encore une validation. L'agenda de l'équipe garde
+la couleur de l'espace, parce que la question y est l'inverse - de quel client
+relève cette date. Deux surfaces, deux questions, les mêmes lignes.
+
+La page que lit le client suit la même règle.
+
+### Interne
+
+#### Données de démonstration
+Le tableau rempli reçoit une **sixième étape, « Relecture juridique »**, ajoutée
+après coup et colorée en rouge. Les cinq premières montrent les valeurs par
+défaut ; celle-ci montre la décision derrière elles - les étapes appartiennent à
+l'espace, donc un client dont les publications passent par un avocat en a une que
+personne d'autre n'a. Une démo qui n'aurait jamais montré que les cinq
+enseignerait qu'elles appartiennent au produit, ce qui est l'inverse de ce à
+quoi la table sert.
+
+#### Le plafond de la palette était écrit à quatre endroits
+`AbstractPlanning`, `AbstractCustomerSpace`, un composable Vue et bientôt les
+étapes portaient chacun leur `8`. C'est une propriété des huit jetons
+`--chart-cat-*` du thème, pas d'un module qui les lit. Un
+`Aurora\Core\Support\ChartPalette` le porte maintenant, avec son `clamp()`,
+et `@/shared/composables/chart/paletteSlots.js` côté navigateur.
+
+Les deux constantes d'entité restent, pointant sur la nouvelle : un projet
+client qui référençait `AbstractPlanning::MAX_COLOUR_SLOT` continue de marcher.
+
+#### Un sélecteur de couleur partagé
+`AppColourSlotPicker` remplace les pastilles recopiées dans le calendrier et
+dans les espaces, et ajoute ce qu'aucune des deux copies ne savait faire :
+proposer « aucune couleur » comme choix.
+
+### Dans aurora-client
+`make aurora-update` puis la migration. Les étapes déjà créées gardent l'absence
+de couleur, ce qui est le défaut honnête : personne n'en a choisi une pour elles.
+
+---
+
+## [0.9.179] - 2026-09-15
+
+### Ajouté
+
+#### Un client peut voir son plan de contenu, sans compte
+Un troisième onglet, **Accès client**, émet une adresse secrète qui ouvre
+l'espace en lecture seule. Elle est personnelle, elle expire (90 jours par
+défaut, un an au maximum) et elle se révoque. Le client y voit le mois, ses
+publications aux jours prévus, et le texte de chacune en cliquant.
+
+**C'est la même grille que celle de l'agence**, pas une seconde implémentation :
+le composant est partagé depuis la 0.9.178, donc ce que lit un client est ce que
+regarde son prestataire, et les deux ne peuvent pas diverger sur le mardi où un
+contenu tombe.
+
+**L'adresse n'est affichée qu'une fois.** Seule son empreinte SHA-256 est
+conservée, donc personne ne peut la retrouver, pas même celui qui l'a créée.
+L'écran le dit au lieu de proposer un bouton de copie qui n'aurait rien à
+copier. C'est le schéma des contrats, repris tel quel : un sélecteur identifie
+la ligne, un secret prouve le porteur, et une base volée donne le premier sans
+le second.
+
+Toutes les raisons d'un refus rendent la même page : adresse inconnue, secret
+faux, lien révoqué, lien expiré. Les distinguer dirait à un inconnu laquelle de
+ses tentatives a porté.
+
+**En lecture seule, et c'est une décision de périmètre plutôt qu'une étape.** Les
+droits de commenter et de valider arrivent avec les colonnes qui les portent et
+la limite de débit qu'une écriture invitée réclame - les deux choses que les
+liens de partage du calendrier sont documentés comme n'ayant volontairement pas.
+Livrer la moitié qui lit d'abord donne au client ce qu'il réclame chaque semaine
+sans que personne ne bâcle la moitié qui a un attaquant en face.
+
+La page ne transporte aucune adresse d'écriture. Un écran sans écriture n'a pas
+à porter les URL de six points d'entrée, et il n'y a donc rien qu'une erreur de
+gabarit puisse appeler.
+
+### Corrigé
+
+#### La coquille de l'espace n'armait pas `usePrivileges`
+Le layout du back-office pose `window.__isAdmin__`, `__isDev__` et
+`__privileges__` ; la coquille autonome introduite à la 0.9.177 ne les posait
+pas. `can()` répondait donc « non » à tout, et **un administrateur voyait un
+tableau sans aucun de ses boutons**, en silence et sans erreur nulle part.
+
+Les six lignes deviennent un `@Shared/components/backend_globals.html.twig`
+inclus par les deux gabarits. C'est la deuxième surface qui a prouvé qu'elles ne
+devaient pas être recopiées.
+
+#### La date de publication utilisait un champ natif
+Le formulaire d'un contenu posait un `<input type="datetime-local">` au lieu
+d'`AppDatePicker`. Le contrôle natif prend son format du système et non de
+l'application : sur une machine en anglais, un back-office en français affichait
+une date à l'américaine. Le composant du dépôt lit la locale de l'application,
+accepte plusieurs formats tapés, et rend exactement l'horaire mural que le champ
+transporte.
+
+#### `/workspace` n'avait pas son second mur
+Le contrôleur porte son `#[IsGranted]`, donc un anonyme était bien refusé. Mais
+`access_control` n'avait aucune règle pour ce préfixe, et le fourre-tout `^/`
+l'aurait rendu public le jour où une action y arrive sans attribut. `/backend` a
+cette ceinture depuis toujours ; `/workspace` en est sorti sans elle à la
+0.9.177. Un test le vérifie maintenant pour les trois préfixes réservés à
+l'équipe.
+
+### Dans aurora-client
+`make aurora-update`, la migration, puis **`make sync-security`** : une règle
+`access_control` s'ajoute pour `/workspace`.
+
+---
+
+## [0.9.178] - 2026-09-15
+
+### Ajouté
+
+#### L'espace client a son calendrier, et c'est le même contenu
+L'onglet Calendrier montre les mêmes cartes que le tableau, rangées par leur
+date. Glisser une carte d'un jour à l'autre la reprogramme ; cliquer un jour
+vide ouvre un contenu déjà daté ; cliquer une carte l'ouvre.
+
+**Aucune des deux vues ne possède quoi que ce soit.** C'est le pari annoncé à la
+0.9.177 et il tient : le tableau lit l'étape, le calendrier lit la date, et il
+n'y a qu'une ligne en base. Il n'y a donc rien à tenir en accord, et rien à
+saisir deux fois.
+
+La colonne de droite est la moitié qu'un calendrier cache d'habitude : **les
+contenus sans date**. C'est le travail qui attend d'être programmé, et un mois
+qui ne montrerait que la moitié programmée dirait qu'une semaine est vide alors
+qu'il y a six idées à y placer.
+
+#### Les dates d'un espace apparaissent dans le calendrier de l'équipe
+Sans double saisie et sans que les deux modules se connaissent : l'espace
+annonce ses dates à travers l'événement que Editorial utilise déjà, et si le
+module Calendrier est absent ou désactivé, personne n'écoute.
+
+**Un seul calendrier pour tous les espaces, pas un par espace.** Un par espace
+aurait créé un calendrier partagé et sans propriétaire par client, et
+`findVisibleTo` rend tout ce qui est partagé à tout le monde : quinze clients
+auraient mis quinze lignes dans la barre latérale de chaque membre de l'équipe.
+Ce qui les distingue, c'est la couleur, et la provenance nomme l'espace plutôt
+que le module - un lecteur qui regarde une semaine chargée a besoin de savoir de
+quel client une date relève, pas de lire huit fois « Espaces clients ».
+
+### Modifié
+
+#### `EntityScheduledEvent` transporte une couleur
+Facultative, et nulle pour un producteur qui n'a rien à dire là-dessus : l'entrée
+porte alors la couleur de son calendrier, comme avant. Elle existe pour le
+producteur qui annonce au nom de plusieurs choses à la fois, ce qu'un espace
+client est par construction. Sans elle, cinq clients arrivaient de la même
+couleur, c'est-à-dire que le calendrier disait « c'est la même chose » de cinq
+travaux différents.
+
+#### La grille du mois passe dans `@shared`
+`CalendarMonth.vue` et l'arithmétique qui la nourrit - `monthGrid.js`,
+`timeGrid.js`, `useMonthDrag.js`, `usePointerDrag.js` - quittent le module
+Calendrier pour `src/Core/assets/shared/`. Le composant était déjà purement
+présentationnel et `monthGrid.js` n'avait aucun import : il n'y avait rien à
+découpler, seulement un dossier à changer.
+
+C'était la condition pour que l'espace client dessine un mois sans réécrire un
+moteur ni importer depuis un autre module - il n'existe aujourd'hui **aucun**
+import Vue croisé entre modules, et Studio doit continuer à se construire sans
+le module Calendrier. Leurs tests suivent, et le module Calendrier consomme
+désormais la version partagée.
+
+### Interne
+
+#### Le formulaire d'un contenu est partagé par les deux vues
+Extrait au moment où le calendrier en a eu besoin, plutôt que copié : les deux
+vues modifient les mêmes lignes, et deux copies d'un formulaire divergent à la
+première modification faite d'un seul côté.
+
+#### Une heure ne fait jamais l'aller-retour
+Une carte glissée dans le mois envoie son propre horaire décalé du même nombre
+de jours, pas l'instant que la grille a calculé. Passer par l'instant voudrait
+dire convertir vers le fuseau de l'espace et en revenir à chaque glissement, et
+l'heure promise à un client n'est pas une valeur à convertir deux fois. Le
+décalage est calculé en UTC, sinon un changement d'heure transforme « +1 jour »
+en « +23 heures » et repose la carte sur le jour d'où elle vient.
+
+### Dans aurora-client
+`make aurora-update`. Un projet client qui importerait `CalendarMonth.vue` ou
+`monthGrid.js` depuis `@planning` doit pointer sur `@/shared/components/calendar/`
+et `@/shared/composables/calendar/`.
+
+---
+
+## [0.9.177] - 2026-09-15
+
+### Ajouté
+
+#### Un espace client a un tableau, et c'est là que son contenu vit
+Chaque espace arrive avec cinq étapes - Idées, En rédaction, À valider,
+Programmé, Publié - créées avec lui et renommables. **Les étapes appartiennent à
+l'espace, pas au produit** : un client dont les publications passent par une
+relecture juridique a une étape que personne d'autre n'a, et un client qui
+publie le jour où c'est écrit en a moins. Un jeu figé aurait été une table de
+moins et faux dès le deuxième client.
+
+Un contenu porte un titre, son texte, son étape et **une date facultative**.
+C'est cette nullité qui compte : une idée existe avant que quiconque sache
+quand elle sort, elle vit sur le tableau, et elle rejoindra le calendrier le
+jour où on la programme.
+
+**Le pari que tout le reste suivra** : le tableau et le calendrier à venir ne
+sont pas deux fonctionnalités, ce sont deux lectures des mêmes lignes. L'étape
+dit où en est un contenu, la date dit quand il sort, et aucune des deux vues ne
+possède quoi que ce soit. Un calendrier d'« événements » à côté d'un tableau de
+« tâches », ce sont deux endroits où saisir la même publication, et ils se
+désaccordent à la première semaine chargée.
+
+L'heure tapée est lue **dans le fuseau de l'espace**, pas dans celui du lecteur.
+« Mardi 9h » est une promesse faite à un client, et quelqu'un en déplacement à
+l'étranger ne doit pas la décaler en ouvrant la page.
+
+#### L'espace s'ouvre dans sa propre coquille, ni back-office ni site public
+Un espace n'est pas un écran qu'on traverse, c'est un endroit où l'on reste une
+heure. Il a donc son gabarit : un bandeau fin avec le retour, la couleur de
+l'espace, son nom et son client, une barre d'onglets. Pas de menu latéral, pas
+de fil d'Ariane d'administration.
+
+Le menu à lui seul coûtait 260 pixels sur des colonnes qui en font 288, soit une
+colonne entière donnée à une navigation dont personne ne se sert en train de
+glisser une carte. C'est le choix que le gabarit public des contrats avait déjà
+fait un écran plus tôt, pour la même raison.
+
+**L'adresse sort de `/backend` avec lui**, parce qu'une coquille autonome à une
+adresse d'administration reste une page d'administration pour qui lit la barre
+du navigateur. Un espace s'ouvre donc sur `/workspace/{id}`.
+
+Ce qu'il ne devait pas perdre en quittant ce préfixe, c'est l'identité : le
+pare-feu d'administration est un motif de chemin, et en dehors aucune session
+backend n'est restaurée - un membre de l'équipe serait arrivé en visiteur
+anonyme sur le tableau de son propre client, sans erreur ni message, juste une
+redirection vers le formulaire de connexion du site. Le motif devient donc
+`^/(backend|dev|workspace)`. Les deux questions sont séparées et se répondent
+séparément : ce qui est dessiné, et qui est reconnu.
+
+Un test échoue désormais si un chemin réservé à l'équipe sort de ce motif, parce
+que c'est le genre d'erreur qu'une suite verte ne remarque pas : le client de
+test s'authentifie lui-même.
+
+Ce que le client verra plus tard, c'est cette même coquille en lecture seule,
+atteinte par un lien signé sur une route publique. Deux adresses, deux façons de
+prouver qui on est, un seul écran : c'est pour ça qu'elle est construite
+maintenant plutôt qu'à l'arrivée du portail.
+
+### Modifié
+
+#### L'équipe d'un espace se lit en visages, plus en texte
+La colonne affichait trois noms et un « +2 », ce qui répond à « est-ce que
+quelqu'un est dessus » et à rien d'autre : la quatrième personne était invisible,
+les rôles n'étaient nulle part, et le libellé passait à la ligne dans la cellule.
+
+La cellule porte maintenant une pile d'avatars, trois au plus puis un `+n`, qui
+ouvre la liste complète avec les rôles et les adresses. Une initiale se
+reconnaît là où « 2 personnes » doit se lire, et c'est ce qu'on fait en
+descendant une colonne. Le libellé accessible est au passage passé au vrai
+pluriel plutôt qu'à « 1 personne(s) ».
+
+Le nom d'un espace est désormais un lien vers son tableau.
+
+### Interne
+
+#### Ce qu'une clé étrangère ne peut pas dire à la place du Manager
+Le lien d'une carte vers son étape est en `CASCADE`, là où `RESTRICT` semble le
+choix prudent. Supprimer un espace cascade vers ses étapes **et** ses cartes
+sans ordre garanti : une restriction aurait refusé une suppression légitime une
+fois sur deux. La règle « une étape qui contient des cartes ne se supprime pas »
+est donc énoncée dans le Manager, seul endroit qui sait distinguer les deux cas,
+et un test couvre la suppression d'un espace au tableau rempli.
+
+#### Le tableau répond toujours entier
+Chaque écriture renvoie les étapes et les cartes au complet plutôt que la ligne
+modifiée. Un glissement renumérote une colonne, la suppression d'une étape
+renumérote le reste, et une page qui réconcilierait elle-même dériverait du
+serveur en trois gestes.
+
+#### Données de démonstration
+Un seul des cinq espaces reçoit un tableau rempli, huit contenus répartis sur les
+cinq étapes dont trois sans date. Une démo où chaque espace porte les mêmes
+cartes enseigne que les cartes viennent avec le produit ; un tableau chargé à
+côté de quatre vides montre les deux états.
+
+### Dans aurora-client
+`make aurora-update`, puis la migration, puis **`make sync-security`** : le motif
+du pare-feu d'administration a changé pour couvrir `/workspace`. La cible écrase
+`config/packages/security.yaml` depuis le vendor, donc il n'y a rien à recopier
+à la main - mais sans elle, les espaces clients redirigent vers la connexion du
+site public.
+
+---
+
+## [0.9.176] - 2026-09-15
+
+### Ajouté
+
+#### Studio gagne les espaces clients
+Un **espace** est le contenant du travail mené pour un client : un nom lisible,
+le client à qui il appartient, une équipe, une couleur et un fuseau horaire.
+La liste s'ouvre sur « Espaces clients », au-dessus de la fiche client dans le
+menu, parce qu'un espace s'ouvre tous les jours et qu'une identité légale se
+remplit une fois.
+
+**Un client peut en avoir plusieurs**, et c'est la décision sur laquelle repose
+tout ce qui suivra. Un client avec deux marques fait tourner deux calendriers
+éditoriaux ; un client qui signe pour un site puis pour du social a deux
+chantiers de rythmes différents. La contrainte inverse aurait eu l'air plus
+propre et se serait payée à la première société qui en demande deux.
+
+L'équipe d'un espace n'est **pas un droit d'accès**. Qui peut ouvrir un espace
+est décidé par `studio.spaces.view` sur le compte, comme partout ailleurs dans
+le back-office ; la liste des membres dit qui travaille dessus, ce qui est le
+nom qu'on donne au client. Deux sources de vérité pour l'accès auraient
+divergé au premier cas limite.
+
+Un espace **archivé** sort de la liste sans rien perdre : le filtre qui les
+ramène n'apparaît que lorsqu'il y a quelque chose derrière, un interrupteur qui
+ne fait rien étant un interrupteur qu'on apprend à ne plus croire. Archiver
+n'est pas supprimer, et les deux colonnes répondent à deux questions.
+
+La bascule `studio_spaces` est en cascade **sous les clients**, pas sous le
+module : un espace est l'espace de quelqu'un, donc l'écran client en est un
+prérequis réel. C'est le même raisonnement que pour les contrats.
+
+#### Supprimer un client qui a encore un espace est refusé en toutes lettres
+La clé étrangère disait déjà non, mais elle le disait comme une erreur SQL au
+milieu d'une requête, qui arrivait à l'écran en 500. Le refus est maintenant
+une phrase sous le champ, qui dit combien d'espaces sont ouverts.
+
+Les contrats sont vérifiés en premier quand les deux refus sont vrais à la
+fois : un espace se supprime, un contrat signé non.
+
+### Modifié
+
+#### La règle du module Studio admet la surface de livraison
+Le docblock de `StudioModule` disait « ce qui est vendu et ce qui est livré, pas
+les outils avec lesquels on le fait ». Un espace client n'est ni vendu ni
+livré : c'est la surface sur laquelle on livre, et les premiers mots de la règle
+ne pouvaient pas l'accueillir. La règle devient : Studio tient ce qui est vendu,
+ce qui est livré, **et la surface sur laquelle on le livre**.
+
+La frontière qu'elle refuse ne bouge pas : un outil appartient à son module.
+C'est pour cette raison que la suite annoncera ses dates au Calendrier au lieu
+de dessiner son propre calendrier, et rangera ses fichiers dans la Médiathèque
+au lieu d'en tenir une seconde.
+
+Un module `Workspace` séparé a été écarté pour la raison exacte qui avait déjà
+coûté le renommage d'Accounting en Studio : un module ne peut pas porter de
+relation vers l'entité d'un autre module, et un espace sans relation vers un
+client n'est pas un espace client.
+
+### Interne
+
+#### Données de démonstration
+Cinq espaces sur les trois clients existants, choisis pour les états que
+l'écran sait dessiner : deux sur le même client, un sans personne dans
+l'équipe, un archivé dans un fuseau étranger. Ils passent par le Manager et non
+par un `persist()` direct, donc la démo emprunte le chemin d'un humain, couleur
+étalée sur la palette et journal d'audit compris.
+
+#### La mémoire projet décrivait des enums de modules qui n'existent plus
+`architecture_module_parameter_enum` affirmait que chaque module portait son
+propre `<Module>ModuleParameterEnum` et qu'ajouter un toggle métier dans l'enum
+central était « la régression #1 ». Il n'existe qu'un seul enum, et il contient
+tous les modules métier : la distribution est partie avec le split abandonné en
+août. La mémoire est corrigée.
+
+Les skills `/add-module`, `/add-submodule`, `/register-module-toggle` et
+`/audit-module-toggles` décrivent encore ce monde disparu. Ils restent à
+reprendre.
+
+### Dans aurora-client
+`make aurora-update` puis la migration. La bascule arrive activée : un projet
+qui ne veut pas des espaces la coupe depuis l'écran d'accès aux modules.
+
+---
+
 ## [0.9.175] - 2026-09-14
 
 ### Ajouté

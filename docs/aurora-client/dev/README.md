@@ -24,7 +24,7 @@ Selon ce que vous faites, lisez dans cet ordre :
 1. [Étendre un module Aurora](../extending/extend_module.md) - recettes concrètes pour chaque couche (entité, DTO, Manager, Serializer, Vue, Twig) + permissions + décorer un service.
 2. [Pattern `extraFields`](extra_fields_pattern.md) - ajouter des champs à un formulaire admin via slots Vue.
 3. [Doc canonique de la convention 5 couches](../../aurora-core/dev/entity_extensibility_convention.md) (côté core).
-4. [Tutoriel pas-à-pas Agency](../../aurora-core/dev/extending_agency_pilot.md) (côté core).
+4. [Tutoriel pas-à-pas DocumentCategory](../../aurora-core/dev/extending_category_pilot.md) (côté core).
 
 ### J'ai besoin de l'API d'un composant Vue ou d'un composable
 - [Catalogue des composants Vue partagés](shared_components_catalog.md) - `AppMultiselect`, `AppTab`, `AppBadge`, `AppModal`, etc.
@@ -73,7 +73,7 @@ ou consultez la version en ligne :
 | [`entity_extensibility_convention.md`](../../aurora-core/dev/entity_extensibility_convention.md) | **Doc canonique** de la convention 5 couches. À lire au moins une fois. |
 | [`extend_module.md`](../extending/extend_module.md) | Cheatsheet d'extension côté client (5 couches + Twig + finders + décorateurs + permissions). |
 | [`extending_aurora.md`](../../aurora-core/dev/extending_aurora.md) | Vue d'ensemble du modèle d'extensibilité. |
-| [`extending_agency_pilot.md`](../../aurora-core/dev/extending_agency_pilot.md) | Tutorial complet : étendre `Agency` avec `code`. |
+| [`extending_category_pilot.md`](../../aurora-core/dev/extending_category_pilot.md) | Tutorial complet : étendre `DocumentCategory` avec `code`. |
 | [`add_module.md`](../../aurora-core/dev/add_module.md) | Créer un nouveau module dans votre repo client. |
 | [`app_architecture.md`](../../aurora-core/dev/app_architecture.md) | Cartographie d'aurora-core (modules, namespaces). |
 | [`frontend_theme_override.md`](../../aurora-core/dev/frontend_theme_override.md) | Créer son thème frontend. |

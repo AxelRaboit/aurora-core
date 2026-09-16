@@ -85,7 +85,7 @@ mon-projet/
 ├── src/
 │   ├── Module/                 # App\Module\* - TOUT le code client
 │   │   ├── Core/               #   Extensions d'entités Aurora\Core\*
-│   │   │   └── Agency/         #     Entity/ Dto/ Manager/ Serializer/
+│   │   │   └── DocumentCategory/         #     Entity/ Dto/ Manager/ Serializer/
 │   │   ├── Tracking/           #   ex. module client autonome (illustratif - non fourni)
 │   │   └── …
 │   ├── Service/                # App\Service\* - helpers transverses (rare)
@@ -131,24 +131,24 @@ mon-projet/
 
 ## 5. Enregistrer un override d'entité Aurora
 
-Exemple minimal - ajouter un champ `code` à `Agency` :
+Exemple minimal - ajouter un champ `code` à `DocumentCategory` :
 
-### a) Entité - `src/Module/Platform/Agency/Entity/Agency.php`
+### a) Entité - `src/Module/Ged/DocumentCategory/Entity/DocumentCategory.php`
 
 ```php
-namespace App\Module\Platform\Agency\Entity;
+namespace App\Module\Ged\DocumentCategory\Entity;
 
-use Aurora\Module\Platform\Agency\Entity\{AbstractAgency, AgencyInterface};
-use Aurora\Module\Platform\Agency\Repository\AgencyRepository;
+use Aurora\Module\Ged\DocumentCategory\Entity\{AbstractDocumentCategory, DocumentCategoryInterface};
+use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: AgencyRepository::class)]
-#[ORM\Table(name: 'app_agencies')]
-class Agency extends AbstractAgency implements AgencyInterface
+#[ORM\Entity(repositoryClass: DocumentCategoryRepository::class)]
+#[ORM\Table(name: 'app_ged_document_categories')]
+class DocumentCategory extends AbstractDocumentCategory implements DocumentCategoryInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
-    #[ORM\SequenceGenerator(sequenceName: 'seq_app_agency_id', allocationSize: 1)]
+    #[ORM\SequenceGenerator(sequenceName: 'seq_app_ged_category_id', allocationSize: 1)]
     #[ORM\Column]
     private ?int $id = null;
 
@@ -167,7 +167,7 @@ class Agency extends AbstractAgency implements AgencyInterface
 doctrine:
     orm:
         resolve_target_entities:
-            Aurora\Module\Platform\Agency\Entity\AgencyInterface: App\Module\Platform\Agency\Entity\Agency
+            Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface: App\Module\Ged\DocumentCategory\Entity\DocumentCategory
         mappings:
             AuroraClient:
                 type: attribute
@@ -198,10 +198,10 @@ migrations Aurora vs client).
 L'entité seule ne suffit pas pour exposer le champ `code` dans le formulaire
 admin et le persister. Il faut **les 5 couches complètes** :
 
-1. **DTO** : étendre `AgencyInput` + décorer `AgencyInputFactory` avec `#[AsAlias]`
-2. **Manager** : étendre `AgencyManager` + override `createAgency()` (instancier la classe cliente) + `applyInput()` (mapper `$input->code` → `$agency->setCode()`)
-3. **Serializer** : étendre `AgencySerializer` + spread `parent::serialize()` avec `'code'`
-4. **Vue** : wrapper `AgenciesApp.vue` **co-localisé** avec l'extension PHP sous `src/Module/Platform/Agency/assets/backend/agencies/` avec `extraFields` + slots `extra-headers` / `extra-cells` / `extra-form-fields`
+1. **DTO** : étendre `DocumentCategoryInput` + décorer `DocumentCategoryInputFactory` avec `#[AsAlias]`
+2. **Manager** : étendre `DocumentCategoryManager` + override `createDocumentCategory()` (instancier la classe cliente) + `applyInput()` (mapper `$input->code` → `$category->setCode()`)
+3. **Serializer** : étendre `DocumentCategorySerializer` + spread `parent::serialize()` avec `'code'`
+4. **Vue** : wrapper `DocumentCategoriesApp.vue` **co-localisé** avec l'extension PHP sous `src/Module/Ged/DocumentCategory/assets/backend/document-categories/` avec `extraFields` + slots `extra-headers` / `extra-cells` / `extra-form-fields`
 
 Snippets complets et patterns d'extension dans
 [`../extending/extend_module.md`](../extending/extend_module.md) (sections §1-5).
@@ -249,7 +249,7 @@ pour assigner la permission.
 
 Le template `aurora-client` démarre **propre** : `src/Module/` ne contient
 aucun module métier, juste de quoi accrocher les tiens. Les exemples utilisés
-dans cette doc (module `Tracking`, extension `Agency` + champ `code`) sont des
+dans cette doc (module `Tracking`, extension `DocumentCategory` + champ `code`) sont des
 supports pédagogiques génériques - ils **ne sont pas livrés** dans le template ;
 suis les guides pour les reconstruire si tu veux les voir en action :
 

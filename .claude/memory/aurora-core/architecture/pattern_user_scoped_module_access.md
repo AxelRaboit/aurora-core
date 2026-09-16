@@ -52,9 +52,9 @@ l'existence du module (action plateforme).
 
 ## Lieux clés
 
-- Service : `src/Core/Module/ModuleAccessChecker.php`
-- Registry : `src/Core/Module/ModuleToggleRegistry.php`
-- VO + Interface : `src/Core/Module/ModuleToggle.php`, `ModuleToggleProviderInterface.php`
+- Service : `src/Core/Module/Service/ModuleAccessChecker.php`
+- Registry : `src/Core/Module/Toggle/ModuleToggleRegistry.php`
+- VO + Interface : `src/Core/Module/Toggle/ModuleToggle.php`, `ModuleToggleProviderInterface.php`
 - Helper enum → toggle : `ModuleParameterEnum::toToggle()`
 - Entité : `AbstractUser::$disabledModules` (JSON)
 - Privilege : `platform.users.module_access.manage` (déclaré dans `PlatformModule`)

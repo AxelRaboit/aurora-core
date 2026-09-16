@@ -22,14 +22,7 @@
     {% endblock %}
     {# Inject after Vite stylesheets so the runtime --th-accent-* override wins over the defaults baked into app.css. #}
     {{ include('@Shared/components/primary_color_style.html.twig') }}
-    <script>
-        window.__flash__ = {{ app.flashes|json_encode|raw }};
-        window.__privileges__ = {{ app.user.privileges|json_encode|raw }};
-        window.__isDev__ = {{ is_granted('ROLE_DEV') ? 'true' : 'false' }};
-        window.__isAdmin__ = {{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
-        window.__auroraConfig = window.__auroraConfig || {};
-        window.__auroraConfig.colorPickerPresets = {{ app_color_presets()|json_encode|raw }};
-    </script>
+    {{ include('@Shared/components/backend_globals.html.twig') }}
     {% block javascripts %}
         {{ vite_entry_script_tags('app') }}
         {{ vite_entry_script_tags('flash') }}

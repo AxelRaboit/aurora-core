@@ -13,6 +13,9 @@ import AppCheckbox from "@shared/components/form/toggle/AppCheckbox.vue";
 import { toast } from "vue-sonner";
 import { useClipboard } from "@shared/composables/useClipboard.js";
 import { useNoteShareApi } from "@notes/backend/markdown/composables/useNoteShareApi.js";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+
+const { formatDateNumeric } = useDateFormat();
 
 const props = defineProps({
     show: { type: Boolean, default: false },
@@ -134,7 +137,7 @@ function copy(url) {
 function openedLabel(link) {
     return link.lastUsedAt
         ? t("notes.markdown.share.last_opened", {
-            date: new Date(link.lastUsedAt).toLocaleDateString(),
+            date: formatDateNumeric(link.lastUsedAt),
         })
         : t("notes.markdown.share.never_opened");
 }
@@ -242,7 +245,7 @@ function openedLabel(link) {
                                 {{
                                     link.revokedAt
                                         ? t("notes.markdown.share.revoked_on", {
-                                            date: new Date(link.revokedAt).toLocaleDateString(),
+                                            date: formatDateNumeric(link.revokedAt),
                                         })
                                         : openedLabel(link)
                                 }}

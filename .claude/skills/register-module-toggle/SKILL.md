@@ -1,237 +1,134 @@
 ---
 name: register-module-toggle
-description: Register a module (and its sub-modules) in the `/dev/dashboard/modules` admin panel by wiring its OWN `<Module>ModuleParameterEnum` + `<Module>ModuleParameterProvider`, a `<Module>Context`, and the `ModuleToggleProviderInterface` on the module class. Use when the user asks "why does my module not show up in /dev/dashboard/modules", "the module is missing from the modules dashboard", "register Notes in the toggle dashboard", "expose toggles for <Module>", or when a fresh module/sub-module needs to become user-toggleable. Idempotent - re-running on an already-registered module is a no-op.
+description: Retro-fit an existing Aurora module so its toggle (and its sub-module toggles) appear on /dev/dashboard/modules and gate the nav at runtime. Use when the user asks "why does my module not show up in /dev/dashboard/modules", "the module is missing from the modules dashboard", "register Notes in the toggle dashboard", "expose toggles for <Module>", or when a module was scaffolded without ModuleToggleProviderInterface. Wires cases in the central ModuleParameterEnum, a <Module>Context, and the toggle provider on the module class. Idempotent.
 scope: shared
 ---
 
 # register-module-toggle
 
-Wire an existing Aurora module so its top-level toggle (and any
-sub-module toggles) appear on the **`/dev/dashboard/modules`** admin
-panel and gate the live nav at runtime.
+Wire an existing module so its toggles appear on **`/dev/dashboard/modules`**
+and gate the live nav.
 
-This skill targets a module that already exists in `src/Module/<Module>/`
-(or `src/Core/<Module>/` for core modules) but is **missing from the
-dashboard** - typically because it was scaffolded without
+This targets a module that already exists in `src/Module/<Module>/` but is
+**missing from the dashboard**, typically because it was scaffolded without
 `ModuleToggleProviderInterface` and without a `<Module>Context`.
 
-> **Monorepo-split convention (since 2026-05-30).** Each business module
-> owns its toggles in its **own** `<Module>ModuleParameterEnum` (under
-> `src/Module/<Module>/Setting/`) + a `<Module>ModuleParameterProvider` -
-> NOT the central `ModuleParameterEnum` (`src/Module/Configuration/Setting/Enum/`),
-> which is now core-infra only (General/Platform/Configuration/Media/Ged).
-> Mirror `src/Module/Notes/Setting/NotesModuleParameterEnum.php` (sub-toggles)
-> or `src/Module/Photo/Setting/PhotoModuleParameterEnum.php` (frontend case).
-> The provider is what keeps the toggle rows from being wiped by
-> `aurora:application-parameter`. If the module is a standalone package, its
-> `config/services.php` tags the provider; in the monorepo the central
-> `_instanceof` does. Either way `getParameters()` must `yield from` the cases.
+> **For a brand-new module**, use `/add-module` - it wires the toggles as part
+> of the scaffolding and this skill has nothing left to do.
+> **For one sub-module under an already-registered parent**, use
+> `/add-submodule`.
 
-> **For a brand-new module** that needs scaffolding from scratch with
-> toggles wired upfront, use `/add-module` instead. This skill is for
-> retro-fitting an existing one.
->
-> **For adding a single sub-module** under an already-registered parent,
-> use `/add-submodule`. This skill is for registering a module whose
-> parent toggle itself is missing.
+## The one thing to know before starting
 
-## When to use
+**There is exactly one toggle enum**, and every module's toggles live in it:
 
-Symptoms that should trigger this skill:
-- "Le module X n'apparaît pas dans `/dev/dashboard/modules`"
-- "Je vois que la section Notes manque sur la page des modules"
-- "On peut activer/désactiver Vault mais pas <Module>"
-- After `/add-module` if you skipped the toggle wiring step
-- After adding sub-modules to a module that never had a parent toggle
+```
+src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php
+```
+
+One provider exposes it, `CoreModuleParameterProvider`, which does nothing but
+`yield from ModuleParameterEnum::cases()`. There is no
+`<Module>ModuleParameterEnum`, no `<Module>ModuleParameterProvider`, and no
+`src/Module/<Module>/Setting/` folder holding either - check with
+`find src/Module -name '*ModuleParameterEnum.php'` before believing otherwise.
+
+Per-module enums belonged to the split into `aurora-*` packages, abandoned in
+August 2026. This skill described them until 2026-09-16 and was describing a
+world that no longer exists: following it produced a class nothing reads, and
+toggles that never reached the dashboard.
 
 ## Required inputs (ask upfront if missing)
 
-1. **Parent module** (PascalCase) - must exist. Verify by globbing
-   `src/Module/<Parent>/<Parent>Module.php` or `src/Core/<Parent>Module.php`.
-   If neither found, stop and report.
-2. **List of sub-modules** to register as nested toggles. Inspect the
-   parent's `getNavSections()` for the existing `NavItem`s - each one is
-   a candidate sub-module. Ask the user to confirm the list and labels.
-   If the parent has zero sub-modules, only the parent toggle is wired.
-3. **Trans key strategy** - by convention, the parent label/description
-   uses `backend.modules.<module_id>_backend` and `backend.modules.<module_id>_backend_description`
-   (in the module's `translations/messages.<locale>.yaml`). Sub-module
-   toggles reuse the existing `backend.nav.<route_id>` keys - they're
-   already defined for the NavItem.
+1. **Module** (PascalCase) - must exist: `src/Module/<Module>/<Module>Module.php`.
+   If absent, stop and point at `/add-module`.
+2. **The list of sub-modules to register.** Read the module's
+   `getNavSections()`: each `NavItem` is a candidate. Confirm the list and the
+   labels with the user, and ask which ones are worth a toggle - an item
+   nobody would ever turn off alone is noise on the dashboard.
+3. **Cascade dependencies between the sub-modules.** Not always the module's
+   own backend toggle: `StudioContracts` requires `StudioCustomers`, because a
+   contract screen without the client screen it hangs off is useless. Ask what
+   has to be on before each sub-module can be.
 
-## What gets generated/edited
+A module with no sub-modules is a perfectly normal case - `Planning` has only
+`PlanningBackend`. Wire the top-level toggle and stop.
 
-### 1. Create the module's own `<Module>ModuleParameterEnum` + provider
+## 1. The enum cases
 
-File: `src/Module/<Module>/Setting/<Module>ModuleParameterEnum.php`
-(create it - do **not** touch the central `ModuleParameterEnum`).
-
-Mirror `NotesModuleParameterEnum` exactly. Case names are **short**
-(`Backend`, `<Sub1>`, …) and the stored VALUE keeps the legacy key
-(`modules_<module_id>_backend`) so no settings migration is needed :
+In the central `ModuleParameterEnum`, under the comment block for the module
+(add one if the module has none):
 
 ```php
-<?php
+// Top-level modules - backend (admin UI)
+case <Module>Backend = 'modules_<module_id>_backend';
 
-declare(strict_types=1);
-
-namespace Aurora\Module\<Module>\Setting;
-
-use Aurora\Core\Module\Toggle\ModuleToggle;
-use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
-
-enum <Module>ModuleParameterEnum: string implements ApplicationParameterEnumInterface
-{
-    private const string GROUP = 'modules';
-
-    case Backend = 'modules_<module_id>_backend';
-    case <Sub1> = 'modules_<module_id>_<sub1_id>';
-    // ... one case per sub-module
-
-    public function getKey(): string { return $this->value; }
-
-    public function getLabel(): string
-    {
-        return match ($this) {
-            self::Backend => 'backend.modules.<module_id>_backend',
-            self::<Sub1> => 'backend.nav.<sub1_route_id>',   // reuse the NavItem key
-        };
-    }
-
-    public function getDescription(): string
-    {
-        return match ($this) {
-            self::Backend => 'backend.modules.<module_id>_backend_description',
-            self::<Sub1> => 'backend.nav.<sub1_route_id>_description',
-        };
-    }
-
-    public function getDefaultValue(): string { return '1'; }
-    public function getType(): string { return 'bool'; }
-    public function getGroup(): string { return self::GROUP; }
-    public function getPlaceholder(): ?string { return null; }
-
-    /** Module identifier for the top-level toggle, null for sub-toggles. */
-    private function getModuleId(): ?string
-    {
-        return self::Backend === $this ? '<module_id>' : null;
-    }
-
-    /** Cascade dependency (parent that must be ON), null for the top-level. */
-    private function getCascadeRequires(): ?string
-    {
-        return self::Backend === $this ? null : self::Backend->value;
-    }
-
-    /** Structural parent for dashboard grouping, null for the top-level. */
-    private function getDisplayParent(): ?string
-    {
-        return self::Backend === $this ? null : self::Backend->value;
-    }
-
-    public function toToggle(): ModuleToggle
-    {
-        return new ModuleToggle(
-            key: $this->value,
-            labelKey: $this->getLabel(),
-            descriptionKey: $this->getDescription(),
-            parentKey: $this->getCascadeRequires(),
-            moduleId: $this->getModuleId(),
-            displayParentKey: $this->getDisplayParent(),
-        );
-    }
-}
+// Sub-modules - <Module>
+case <Module><Sub1> = 'modules_<module_id>_<sub1_id>';
 ```
 
-> The match arms (`getLabel` / `getDescription`) must be **exhaustive** -
-> one arm per case, no `default`. That is the forcing function : adding a
-> sub-module case without its arms is a compile error.
+Two naming rules, both load-bearing:
 
-Then create the provider (so `aurora:application-parameter` doesn't flag
-the rows obsolete and wipe them) :
+- **Case names are prefixed by their module** (`NotesMarkdown`, `GedDocuments`),
+  never short. They share one namespace with every other module's cases.
+- **The top-level key keeps its `_backend` suffix.** `modules_notes` would
+  collide with the prefix of `modules_notes_markdown` in any key-prefix check.
 
-File: `src/Module/<Module>/Setting/<Module>ModuleParameterProvider.php`
+Then the `match` arms:
 
-```php
-<?php
+| Method | Top-level | Sub-module |
+| --- | --- | --- |
+| `getLabel()` | `'backend.modules.<module_id>_backend'` | `'backend.nav.<sub_route_id>'` |
+| `getDescription()` | the label key plus `_description` | the label key plus `_description` |
+| `getParentCase()` | omit (falls to `default => null`) | `self::<Module>Backend` |
+| `getCascadeRequires()` | omit | the key that must be on first, `->value` |
+| `getModuleId()` | `'<module_id>'` | omit |
 
-declare(strict_types=1);
+`getLabel()` and `getDescription()` are **exhaustive matches with no
+`default`**. That is deliberate: adding a case without labelling it stops the
+code from compiling, which is the only thing that reliably prevents a raw
+translation key reaching a screen. The other three do have `default => null`.
 
-namespace Aurora\Module\<Module>\Setting;
+`getCascadeDisableTargets()` derives itself from `getParentCase()` and
+`getCascadeRequires()`. Nothing to write there, and nothing to keep in sync.
 
-use Aurora\Module\Configuration\Setting\Provider\ApplicationParameterProviderInterface;
+## 2. `<Module>Context.php`
 
-final readonly class <Module>ModuleParameterProvider implements ApplicationParameterProviderInterface
-{
-    public function getParameters(): iterable
-    {
-        yield from <Module>ModuleParameterEnum::cases();
-    }
-}
-```
-
-> The `_backend` suffix on the top-level key is mandatory (`modules_notes`
-> would clash with the namespace of sub-module keys like
-> `modules_notes_post_it`).
-
-### 2. Create `<Module>Context.php`
-
-File: `src/Module/<Module>/<Module>Context.php` (or `src/Core/<Module>/<Module>Context.php`
-for core modules).
-
-Mirror the `VaultContext` pattern exactly :
+File: `src/Module/<Module>/<Module>Context.php`. Mirror `NotesContext`:
 
 ```php
-<?php
-
-declare(strict_types=1);
-
-namespace Aurora\Module\<Module>;
-
-use Aurora\Core\Module\Service\ModuleAccessChecker;
-use Aurora\Module\<Module>\Setting\<Module>ModuleParameterEnum;
-
 final readonly class <Module>Context
 {
     public function __construct(private ModuleAccessChecker $moduleAccessChecker) {}
 
     public function isBackendEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(<Module>ModuleParameterEnum::Backend->value);
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::<Module>Backend);
     }
 
     public function is<Sub1>Enabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(<Module>ModuleParameterEnum::<Sub1>->value);
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::<Module><Sub1>);
     }
-
-    // ... one method per sub-module
 }
 ```
 
-> Pass `->value` (a string). The per-module enum does not satisfy the
-> central `ModuleParameterEnum` type-hint, and `ModuleAccessChecker::isEnabled()`
-> accepts `ModuleParameterEnum|string`.
+Pass **the case**, not `->value`. `isEnabled()` accepts
+`ModuleParameterEnum|string`, and every existing context passes the case.
 
-### 3. Refactor `<Module>Module.php`
+## 3. `<Module>Module.php`
 
-The existing class needs three changes :
+Four edits:
 
-#### a) Add `ModuleToggleProviderInterface` to the `implements` list
+**a) Implement the interface.**
 
 ```php
-use Aurora\Core\Module\Contract\ModuleToggleProviderInterface;
-
 final readonly class <Module>Module implements ModuleInterface, ModuleToggleProviderInterface
 ```
 
-#### b) Inject `<Module>Context` via constructor
+**b) Inject the context.** `public function __construct(private <Module>Context $<module>Context) {}`
+Symfony autowires it; both classes are `final readonly` services.
 
-```php
-public function __construct(private <Module>Context $<module>Context) {}
-```
-
-#### c) Gate `getNavSections()` on the toggles
+**c) Gate `getNavSections()`.**
 
 ```php
 public function getNavSections(): array
@@ -243,9 +140,8 @@ public function getNavSections(): array
     $items = [];
 
     if ($this-><module>Context->is<Sub1>Enabled()) {
-        $items[] = new NavItem(/* existing args, unchanged */);
+        $items[] = $this-><sub1>NavItem();
     }
-    // ... one if per sub-module
 
     if ([] === $items) {
         return [];
@@ -255,116 +151,106 @@ public function getNavSections(): array
 }
 ```
 
-**Do not touch `getCatalogNavSections()`.** It must always return the
-full list (the catalog is the picker UI for module-by-module config -
-it shows *all* available items regardless of current toggle state).
+Extract each `NavItem` into its own private method while you are here. The
+same object is needed twice, once gated and once not, and duplicating the
+constructor call is how the two lists drift apart.
 
-#### d) Add `getToggles()` method
+**d) Add `getToggles()`**, one `->toToggle()` per case, top-level first. The
+cascade is already encoded in the enum; nothing to wire by hand.
 
-```php
-public function getToggles(): array
-{
-    return [
-        <Module>ModuleParameterEnum::Backend->toToggle(),
-        <Module>ModuleParameterEnum::<Sub1>->toToggle(),
-        // ... one per sub-module
-    ];
-}
-```
+**Do not touch `getCatalogNavSections()`.** It returns the full list
+unconditionally - it feeds the per-user module picker, which must show every
+item regardless of toggle state. If the module has no catalog method yet, add
+one that returns the ungated sections.
 
-(Add `use Aurora\Module\<Module>\Setting\<Module>ModuleParameterEnum;` to
-`<Module>Module.php`.)
+## 4. Translations
 
-### 4. Add translations
-
-Append to `src/Module/<Module>/translations/messages.fr.yaml` and `.en.yaml` :
+In the **module's own** `translations/messages.{fr,en}.yaml`, so a client
+removing the module gets a self-contained removal:
 
 ```yaml
 backend:
   modules:
     <module_id>_backend: <Display name>
-    <module_id>_backend_description: <One-line description of what this module enables>
+    <module_id>_backend_description: <One line on what the module enables>
+  nav:
+    <module_id>_<sub1_id>: <Label>
+    <module_id>_<sub1_id>_description: <Tooltip>
 ```
 
-Sub-module trans keys (`backend.nav.<route_id>` + `_description`) are
-**already present** - they were created when the NavItem was defined.
-Do not re-add them.
+Sub-module keys under `backend.nav.` are usually **already there** - they were
+written when the NavItem was. Check before adding; a duplicate key silently
+wins or loses depending on load order.
 
-### 5. Run post-generation commands
+Only the handful of core labels (`general_backend`, `platform_backend`, and
+friends) live in `src/Core/Module/translations/`. A business module's labels do
+not go there.
+
+**Spanish only for what a customer reads.** The back-office falls back to
+French and `CustomerFacingLocaleTest` enforces exactly that split, so module
+toggle labels stay fr/en.
+
+Two traps the suite will catch, cheaper to avoid:
+
+- **fr and en do not order their keys the same way.** Anchoring an insertion on
+  a line whose neighbours differ orphans a key into the wrong block, and
+  `TranslationConsistencyTest` fails on the parity.
+- **A key cannot be both a value and a block.** `status: Actif` plus `status:`
+  with children is invalid YAML; name the block `statuses`.
+
+## 5. After wiring
 
 ```bash
-# Seed the new settings in core_settings (creates rows with default '1')
-make sf CMD="aurora:application-parameter"
-
-# Mandatory after DI changes (new Context service)
-make cc
-
-# Validate everything compiles + tests pass
+php bin/console aurora:application-parameter   # seeds the toggle rows
+make cc                                        # new Context service
 make ft
 ```
 
-The `aurora:application-parameter` output should show:
+The command should report one created row per case you added. If the count
+differs, a case is missing from `getToggles()` or from the enum.
+
+## Runtime default
+
+`ModuleAccessChecker` reads `SettingRepository::getBoolean($key, true)`, which
+**defaults to true when the row is absent**. Nothing disappears from anyone's
+screen when this skill runs: the seeding surfaces the toggles in the dashboard,
+it does not change what is visible. Say so in the summary, or the user will go
+looking for a change that did not happen.
+
+## Verifying, and re-running
+
+The skill is idempotent - re-running on a wired module should change nothing.
+To check the wiring is real rather than present:
+
+```bash
+php bin/console debug:container --tag=aurora.module   # the module is a service
+grep -n "<Module>" src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php
 ```
-+ modules_<module_id>_backend (défaut : 1)
-+ modules_<module_id>_<sub1_id> (défaut : 1)
-…
-[OK] N créé(s), …
-```
 
-If `N` differs from the number of cases you added, something didn't
-wire - re-check the enum cases and `getToggles()` method.
+Then open `/dev/dashboard/modules` and turn the top-level toggle off: the whole
+section must leave the menu, and the sub-toggles must grey out with it.
 
-## Runtime gating - default behavior
-
-`ModuleAccessChecker::getGlobal()` calls `SettingRepository::getBoolean($key, true)`,
-which **defaults to `true`** when the row is missing. So users see no
-visible change until they actively toggle something OFF in the
-dashboard. The seed step is for surfacing the toggles in the UI, not
-for changing visibility.
-
-## Auto-discovery - what works without extra wiring
-
-- Symfony autowires the `<Module>Context` into the module
-  constructor (both are services, both `final readonly`).
-- `ModuleToggleRegistry` collects toggles from every service implementing
-  `ModuleToggleProviderInterface` (tagged automatically) - no manual
-  registration needed.
-- The dashboard reads the toggles returned by every `getToggles()`, so the
-  new `<Module>ModuleParameterEnum` cases show up immediately after
-  `aurora:application-parameter` seeds their rows.
-- `<Module>ModuleParameterProvider` is auto-tagged
-  `aurora.application_parameter_provider` - by the module's own
-  `config/services.php` if it's a package, else by the central `_instanceof`.
-  Without the provider, the sync command would flag the rows obsolete.
+`/audit-module-toggles` checks the same wiring across every module at once,
+and is the better tool when the question is "which modules are wrong" rather
+than "fix this one".
 
 ## Boundaries
 
-- **One module per invocation.** If the user has two modules to
-  register, run the skill twice - each module's enum + Context + Module
-  edits should be a separate atomic change.
-- **Never create the parent module from scratch.** If the parent doesn't
-  exist, point at `/add-module`.
-- **Never add sub-module entries that don't have a NavItem.** The
-  dashboard shows nav-item-backed toggles. Pure-data sub-modules (no
-  visible UI) shouldn't appear in the panel.
-- **Do not modify `getCatalogNavSections()`.** It's the picker UI - must
-  show everything regardless of toggle state.
-- **Always pair `getCascadeRequires()` and `getDisplayParent()`** for the
-  same sub-module - they encode the cascade rule and the visual hierarchy
-  respectively, and the dashboard cross-references both.
-- **Never touch the central `ModuleParameterEnum`.** Business-module
-  toggles live in the module's own `<Module>ModuleParameterEnum`. The
-  central enum is core-infra only.
+- **One module per invocation.** Two modules is two runs, two commits.
+- **Never create a `<Module>ModuleParameterEnum` or a per-module parameter
+  provider.** Neither has any equivalent in this repository.
+- **Never create the module from scratch** - point at `/add-module`.
+- **No toggle without a NavItem.** The dashboard lists nav-backed toggles; a
+  pure-data sub-domain with no screen has nothing to show and nothing to gate.
+- **Do not modify `getCatalogNavSections()`.**
+- **Apply the doc-audit convention**: grep `docs/` and `.claude/memory/` for the
+  module and correct what your change makes false, in the same commit.
 
 ## Output to the user
 
-End with a summary listing :
-- The new `<Module>ModuleParameterEnum` + `<Module>ModuleParameterProvider`
-  (with the enum case keys)
-- The new `<Module>Context.php` file
-- The `<Module>Module.php` edits (interface + constructor + gating + getToggles)
-- The trans keys added (label + description)
-- A confirmation that `aurora:application-parameter` created the
-  expected count of new settings
-- A reminder that the runtime gating defaults to enabled (`'1'`) so
-  visible behavior is unchanged until the user toggles something OFF
+- The enum cases added, with their keys.
+- The new `<Module>Context.php`.
+- The `<Module>Module.php` edits: interface, constructor, gating, `getToggles()`.
+- The translation keys added, and which ones were already there.
+- The row count reported by `aurora:application-parameter`.
+- The reminder that toggles default to on, so nothing changed on screen yet.

@@ -1,0 +1,15 @@
+{# What every staff screen's JavaScript needs before it draws anything.
+
+   An include rather than two copies, because the second surface proved it: the
+   client space opens in a shell of its own, and a `usePrivileges()` reading an
+   unset `window.__isAdmin__` answers "no" to everything - so an administrator
+   was shown a board with no buttons on it, silently and without an error
+   anywhere. Whatever a layout for staff has to set, it sets here. #}
+<script nonce="{{ csp_nonce() }}">
+    window.__flash__ = {{ app.flashes|json_encode|raw }};
+    window.__privileges__ = {{ app.user ? app.user.privileges|json_encode|raw : '[]' }};
+    window.__isDev__ = {{ is_granted('ROLE_DEV') ? 'true' : 'false' }};
+    window.__isAdmin__ = {{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
+    window.__auroraConfig = window.__auroraConfig || {};
+    window.__auroraConfig.colorPickerPresets = {{ app_color_presets()|json_encode|raw }};
+</script>

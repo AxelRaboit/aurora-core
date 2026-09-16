@@ -24,7 +24,15 @@ security:
         # ── Admin / CMS backend ───────────────────────────────────────────────
         admin:
             context: admin
-            pattern: ^/(backend|dev)
+            # `workspace` is staff-only like the other two, and it is not
+            # under `/backend` on purpose: a client space is opened in its own
+            # shell, without the admin chrome, and the address says so. What it
+            # must not lose by leaving that prefix is the identity - outside
+            # this pattern no backend session is restored, and a member of the
+            # team would arrive on their own client's board as an anonymous
+            # visitor. Adding the prefix here is what keeps the two apart:
+            # what is drawn, and who is recognised.
+            pattern: ^/(backend|dev|workspace)
             provider: admin_user_provider
             user_checker: Aurora\Module\Platform\Auth\Security\Backend\UserChecker
             form_login:
@@ -86,6 +94,13 @@ security:
         - { path: '^/[a-z]{2}/verify-email', roles: PUBLIC_ACCESS }
         - { path: ^/backend, roles: ROLE_USER }
         - { path: ^/dev, roles: ROLE_DEV }
+        # Le second mur des espaces clients. Le contrôleur porte déjà son
+        # `#[IsGranted]`, donc un anonyme est refusé sans cette ligne - mais le
+        # jour où une action arrive sous ce préfixe sans attribut, le fourre-tout
+        # `^/` plus bas la rendrait publique en silence. `/backend` a cette
+        # ceinture depuis toujours ; `/workspace` est sorti de `/backend` sans
+        # elle, et c'est tout ce que cette ligne répare.
+        - { path: ^/workspace, roles: ROLE_USER }
         - { path: '^/[a-z]{2}/account', roles: ROLE_USER }
         - { path: ^/, roles: PUBLIC_ACCESS }
 

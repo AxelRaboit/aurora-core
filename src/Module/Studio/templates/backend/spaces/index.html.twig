@@ -1,0 +1,27 @@
+{% extends '@Core/backend/layout.html.twig' %}
+
+{% block title %}{{ 'backend.nav.studio_spaces'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'backend.nav.sections.studio'|trans},
+            {label: 'backend.nav.studio_spaces'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/backend/spaces/CustomerSpacesApp', {
+    spaces: spaces,
+    customers: customers,
+    users: users,
+    statuses: statuses,
+    roles: roles,
+    timezones: timezones,
+    boardPath: boardPath,
+    createPath: createPath,
+    updatePath: updatePath,
+    deletePath: deletePath,
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

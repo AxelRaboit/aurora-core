@@ -9,6 +9,9 @@ import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+
+const { formatDateTimeNumeric } = useDateFormat();
 
 /**
  * The Pexels tab of the settings screen.
@@ -50,7 +53,7 @@ const acceptedOn = computed(() => {
     if (!acceptedAt.value) return "";
     const date = new Date(acceptedAt.value);
 
-    return Number.isNaN(date.getTime()) ? acceptedAt.value : date.toLocaleString();
+    return Number.isNaN(date.getTime()) ? acceptedAt.value : formatDateTimeNumeric(date.toISOString());
 });
 
 /**

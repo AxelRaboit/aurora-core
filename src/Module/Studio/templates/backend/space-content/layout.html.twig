@@ -1,0 +1,115 @@
+{# The shell a client space is worked in.
+
+   **Neither the back-office nor the public site, and that is deliberate.** A
+   space is not a screen somebody passes through on the way to another one: it
+   is a place they stay in for an hour, and the admin chrome around it costs
+   what the work needs. The side menu alone is 260 pixels of a board whose
+   columns are 288 - a whole column, given to a menu nobody uses while dragging
+   a card.
+
+   It is modelled on `@Studio/public/layout.html.twig`, which made the same
+   choice for the same reason one screen earlier: a page addressed to one
+   customer has no side menu to put a customer in.
+
+   **The route stays under `/backend` even so, and that is not a detail.** The
+   admin firewall is `^/(backend|dev)`: outside it no backend identity is
+   restored, so a staff member would arrive as an anonymous visitor on their own
+   client's board. This layout changes what is drawn, never where it lives - the
+   trap that `backend_ged_files` exists to work around, met head-on.
+
+   What the client will eventually see is this same shell in a read-only mode,
+   reached by a signed link on a public route. Two addresses, two ways of
+   proving who you are, one screen - which is the whole reason for building the
+   shell now rather than when the portal arrives. #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {# A client's content plan is nobody's business but theirs, and the page
+           is behind a login either way; saying so costs nothing. #}
+        <meta name="robots" content="noindex, nofollow">
+        <title>{% block title %}{{ space.name }}{% endblock %}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        {{ include('@Shared/components/theme_script.html.twig', {colorScheme: true}) }}
+        {{ vite_entry_link_tags('app') }}
+        {{ include('@Shared/components/primary_color_style.html.twig') }}
+        {# Privileges, flash messages and the colour presets. Without them a
+           `usePrivileges()` call answers "no" to everything and the screen
+           draws itself with every button missing. #}
+        {{ include('@Shared/components/backend_globals.html.twig') }}
+        {{ vite_entry_script_tags('app') }}
+        {{ vite_entry_script_tags('theme') }}
+        {# Every write on this screen reports through a toast, so the
+           entry that mounts one has to be here as well as on the pages
+           that inherit the admin layout. #}
+        {{ vite_entry_script_tags('flash') }}
+    </head>
+    <body class="min-h-screen bg-body transition-colors duration-200">
+        {# The exit is explicit because the menu is gone. A page that removes
+           the way back and offers none is a page people reach for the browser
+           button on, which loses whatever they had open. #}
+        <header class="sticky top-0 z-20 border-b border-line/60 bg-surface/95 backdrop-blur">
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
+                <a
+                    href="{{ backPath }}"
+                    class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 -ml-2 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+                >
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m15 18-6-6 6-6"/>
+                    </svg>
+                    {{ 'backend.studio.space_content.back_to_spaces'|trans }}
+                </a>
+
+                <div class="flex min-w-0 flex-1 items-center gap-2.5">
+                    {# The same palette slot the space wears everywhere else, so
+                       arriving here confirms which space was opened. #}
+                    <span
+                        class="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style="background-color: var(--chart-cat-{{ space.colourSlot }})"
+                    ></span>
+                    <div class="min-w-0">
+                        <h1 class="truncate text-sm font-medium text-primary">{{ space.name }}</h1>
+                        <p class="truncate text-xs text-muted">{{ space.customerName }}</p>
+                    </div>
+                    {% if space.archived %}
+                        <span class="shrink-0 rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">
+                            {{ 'backend.studio.spaces.archived_badge'|trans }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                {# Real links rather than a client-side switch: each view is a
+                   place somebody sends a colleague to, and a URL that says
+                   which one is open is what makes that possible. The back
+                   button works for free. #}
+                <nav class="flex shrink-0 items-center gap-1" aria-label="{{ space.name }}">
+                    {# Two tabs, not four. The board, the list and the month are
+                       three ways of reading the same rows, so they are a
+                       selector inside Contenu rather than destinations beside
+                       it: a reader should not have to know that one alternative
+                       lives in a tab and another in a switch. #}
+                    {% set tabs = [
+                        {label: 'backend.studio.space_content.tab'|trans, url: boardPath, key: 'content'},
+                        {label: 'backend.studio.space_access.tab'|trans, url: accessPath, key: 'access'},
+                    ] %}
+                    {% for tab in tabs %}
+                        {% if tab.key == activeTab|default('board') %}
+                            <span class="rounded-md bg-surface-2 px-2.5 py-1 text-sm font-medium text-primary" aria-current="page">
+                                {{ tab.label }}
+                            </span>
+                        {% else %}
+                            <a href="{{ tab.url }}" class="rounded-md px-2.5 py-1 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary">
+                                {{ tab.label }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </nav>
+            </div>
+        </header>
+
+        <main class="px-4 py-4 sm:px-6">
+            {% block body %}{% endblock %}
+        </main>
+    </body>
+</html>

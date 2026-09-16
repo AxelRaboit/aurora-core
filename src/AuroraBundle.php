@@ -113,6 +113,10 @@ use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignatureChallengeInt
 use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignatureInterface;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMemberInterface;
 use Aurora\Module\Studio\Deck\Entity\Deck;
 use Aurora\Module\Studio\Deck\Entity\DeckCategory;
 use Aurora\Module\Studio\Deck\Entity\DeckCategoryInterface;
@@ -121,6 +125,16 @@ use Aurora\Module\Studio\Deck\Entity\Slide;
 use Aurora\Module\Studio\Deck\Entity\SlideInterface;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachmentInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentCommentInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Override;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -229,6 +243,13 @@ class AuroraBundle extends AbstractBundle
                     TaxonomyTermInterface::class => TaxonomyTerm::class,
                     TaxonomyTermTranslationInterface::class => TaxonomyTermTranslation::class,
                     CustomerInterface::class => Customer::class,
+                    CustomerSpaceInterface::class => CustomerSpace::class,
+                    CustomerSpaceMemberInterface::class => CustomerSpaceMember::class,
+                    SpaceContentColumnInterface::class => SpaceContentColumn::class,
+                    SpaceContentItemInterface::class => SpaceContentItem::class,
+                    SpaceContentAttachmentInterface::class => SpaceContentAttachment::class,
+                    SpaceContentCommentInterface::class => SpaceContentComment::class,
+                    SpaceAccessLinkInterface::class => SpaceAccessLink::class,
                     DeckInterface::class => Deck::class,
                     DeckCategoryInterface::class => DeckCategory::class,
                     SlideInterface::class => Slide::class,

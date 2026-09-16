@@ -33,6 +33,7 @@ import { usePostGrid, ZONE_ICONS } from "../composables/usePostGrid.js";
 import { useGridSelection } from "../composables/useGridSelection.js";
 import PostGridCanvas from "./PostGridCanvas.vue";
 import PostGridZoneContent from "./PostGridZoneContent.vue";
+import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 
 const props = defineProps({
     /** The arrangement, shared by every language. */
@@ -402,15 +403,13 @@ function resizeZone(index, columns) {
                     <div class="mt-3 space-y-3">
                         <p class="text-xs text-muted">{{ t("backend.posts.grid.visibility_hint") }}</p>
                         <div class="grid grid-cols-2 gap-3">
-                            <AppInput
+                            <AppDatePicker
                                 v-model="zoneFields(index).visibleFrom.value"
-                                type="date"
                                 :label="t('backend.posts.grid.visible_from')"
                                 :placeholder="t('backend.posts.grid.visible_any')"
                             />
-                            <AppInput
+                            <AppDatePicker
                                 v-model="zoneFields(index).visibleUntil.value"
-                                type="date"
                                 :label="t('backend.posts.grid.visible_until')"
                                 :placeholder="t('backend.posts.grid.visible_any')"
                             />

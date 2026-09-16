@@ -19,6 +19,9 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppMessage from "@/shared/components/feedback/AppMessage.vue";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+
+const { formatDateNumeric } = useDateFormat();
 import {
     AlertTriangle,
     Ban,
@@ -431,7 +434,7 @@ const pageActions = computed(() => {
                             <td class="px-6 py-3 text-muted text-xs hidden xl:table-cell whitespace-nowrap">
                                 {{
                                     contract.effectiveDate
-                                        ? new Date(contract.effectiveDate).toLocaleDateString()
+                                        ? formatDateNumeric(contract.effectiveDate)
                                         : "-"
                                 }}
                             </td>
@@ -499,7 +502,7 @@ const pageActions = computed(() => {
                                 <span v-if="contract.termination" class="block text-2xs text-amber-500">
                                     {{
                                         t("backend.studio.contracts.terminated_short", {
-                                            date: new Date(contract.termination.effectiveAt).toLocaleDateString(),
+                                            date: formatDateNumeric(contract.termination.effectiveAt),
                                         })
                                     }}
                                 </span>
@@ -513,7 +516,7 @@ const pageActions = computed(() => {
                             <td class="px-6 py-3 text-muted text-xs hidden lg:table-cell whitespace-nowrap">
                                 {{
                                     contract.frozenAt
-                                        ? new Date(contract.frozenAt).toLocaleDateString()
+                                        ? formatDateNumeric(contract.frozenAt)
                                         : "-"
                                 }}
                             </td>
@@ -540,9 +543,9 @@ const pageActions = computed(() => {
                                         {{
                                             contract.link.firstOpenedAt
                                                 ? t("backend.studio.contracts.link_opened_at", {
-                                                    date: new Date(
+                                                    date: formatDateNumeric(
                                                         contract.link.firstOpenedAt,
-                                                    ).toLocaleDateString(),
+                                                    ),
                                                 })
                                                 : t("backend.studio.contracts.link_never_opened")
                                         }}
@@ -578,7 +581,7 @@ const pageActions = computed(() => {
                             </p>
                             <p v-if="contract.termination" class="text-2xs text-amber-500">
                                 {{ t("backend.studio.contracts.terminated_short", {
-                                    date: new Date(contract.termination.effectiveAt).toLocaleDateString(),
+                                    date: formatDateNumeric(contract.termination.effectiveAt),
                                 }) }}
                             </p>
                         </div>
@@ -586,7 +589,7 @@ const pageActions = computed(() => {
                     </div>
 
                     <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
-                        <span v-if="contract.frozenAt">{{ new Date(contract.frozenAt).toLocaleDateString() }}</span>
+                        <span v-if="contract.frozenAt">{{ formatDateNumeric(contract.frozenAt) }}</span>
                         <span v-if="contract.link">{{ contract.link.recipientEmail }}</span>
                     </p>
 

@@ -1,7 +1,7 @@
 # Pattern `extraFields` + slots scoped
 
 > À lire quand vous voulez **ajouter un ou plusieurs champs personnalisés** à
-> une page admin Aurora (un nouveau champ `code` sur Agency, une `priority` sur
+> une page admin Aurora (un nouveau champ `code` sur DocumentCategory, une `priority` sur
 > Project, etc.) sans forker le composant `<Plural>App.vue`. Ce doc décrit
 > uniquement la couche Vue 5 du pattern Sylius-style d'Aurora ; pour le
 > remplacement complet d'un composant, voir [extend_module.md](../extending/extend_module.md). Pour
@@ -149,9 +149,9 @@ spread qui transporte les valeurs.
 
 ---
 
-## 4. Walkthrough - ajouter `code: string` sur `Agency`
+## 4. Walkthrough - ajouter `code: string` sur `DocumentCategory`
 
-Pré-requis côté PHP (cf. doc `extending_agency_pilot.md` côté core) : entité,
+Pré-requis côté PHP (cf. doc `extending_category_pilot.md` côté core) : entité,
 DTO, Manager et Serializer ont été étendus pour persister/sérialiser `code`.
 On part du principe que `entity.code` revient bien dans le JSON de la liste.
 
@@ -166,16 +166,16 @@ invoque le composant Aurora.
 
 ### 4.2 Variante courante - wrapper Vue côté client
 
-1. Créez `assets/client/Module/Crm/admin/AgenciesAppExtended.vue` (ou tout autre
+1. Créez `assets/client/Module/Crm/admin/DocumentCategoriesAppExtended.vue` (ou tout autre
    nom - le path déclenche l'identifiant `vue_component`).
 
 ```vue
 <script setup>
-import AgenciesApp from "@core/backend/agencies/AgenciesApp.vue";
+import DocumentCategoriesApp from "@core/backend/document-categories/DocumentCategoriesApp.vue";
 import AppInput from "@shared/components/form/AppInput.vue";
 
 defineProps({
-    agencies:   { type: Array, default: () => [] },
+    document-categories:   { type: Array, default: () => [] },
     listPath:   { type: String, required: true },
     createPath: { type: String, required: true },
     updatePath: { type: String, required: true },
@@ -185,14 +185,14 @@ defineProps({
 const extraFields = {
     code: {
         default: "",
-        fromEntity: (agency) => agency.code ?? "",
+        fromEntity: (category) => category.code ?? "",
     },
 };
 </script>
 
 <template>
-    <AgenciesApp
-        :agencies="agencies"
+    <DocumentCategoriesApp
+        :document-categories="document-categories"
         :list-path="listPath"
         :create-path="createPath"
         :update-path="updatePath"
@@ -202,13 +202,13 @@ const extraFields = {
         <!-- Colonne supplémentaire dans la table -->
         <template #extra-headers>
             <th class="px-3 py-2 text-left text-xs uppercase text-secondary">
-                {{ $t('client.agencies.code') }}
+                {{ $t('client.document-categories.code') }}
             </th>
         </template>
 
-        <!-- Cellule supplémentaire par ligne (scope : `agency`) -->
-        <template #extra-cells="{ agency }">
-            <td class="px-3 py-2 text-sm text-primary">{{ agency.code }}</td>
+        <!-- Cellule supplémentaire par ligne (scope : `category`) -->
+        <template #extra-cells="{ category }">
+            <td class="px-3 py-2 text-sm text-primary">{{ category.code }}</td>
         </template>
 
         <!-- Champ supplémentaire dans la modale create/edit
@@ -216,11 +216,11 @@ const extraFields = {
         <template #extra-form-fields="{ editForm, errors }">
             <AppInput
                 v-model="editForm.code"
-                :label="$t('client.agencies.code')"
+                :label="$t('client.document-categories.code')"
                 :error="errors.code"
             />
         </template>
-    </AgenciesApp>
+    </DocumentCategoriesApp>
 </template>
 ```
 
@@ -228,16 +228,16 @@ const extraFields = {
    place du composant Aurora :
 
 ```twig
-{# templates/Core/backend/agencies/index.html.twig (override client) #}
+{# templates/Core/backend/document-categories/index.html.twig (override client) #}
 {% extends '@CoreBackend/layout.html.twig' %}
 
 {% block body %}
-    {{ vue_component('crm/admin/AgenciesAppExtended', {
-        agencies: agencies,
-        listPath: path('core_backend_agency_list_json'),
-        createPath: path('core_backend_agency_create'),
-        updatePath: path('core_backend_agency_update', {id: '__id__'}),
-        deletePath: path('core_backend_agency_delete', {id: '__id__'}),
+    {{ vue_component('crm/admin/DocumentCategoriesAppExtended', {
+        document-categories: document-categories,
+        listPath: path('core_backend_category_list_json'),
+        createPath: path('core_backend_category_create'),
+        updatePath: path('core_backend_category_update', {id: '__id__'}),
+        deletePath: path('core_backend_category_delete', {id: '__id__'}),
     }) }}
 {% endblock %}
 ```
@@ -248,11 +248,11 @@ const extraFields = {
 ### 4.3 Vérifier en 30 s
 
 1. `make dev` (Vite watch).
-2. Recharger la page admin agences.
-3. Créer une agence : le champ `code` apparaît dans la modale, il part bien
+2. Recharger la page admin catégories.
+3. Créer une catégorie : le champ `code` apparaît dans la modale, il part bien
    dans le POST (network tab → JSON body avec `code`).
 4. La colonne `code` s'affiche dans la table sans avoir touché à aurora-core.
-5. Éditer une agence : `code` est pré-rempli via `fromEntity`.
+5. Éditer une catégorie : `code` est pré-rempli via `fromEntity`.
 
 ---
 
@@ -264,7 +264,7 @@ const extraFields = {
 | Le slot `extra-form-fields` reçoit `editForm` et `errors` - utilisez le scope, ne réimportez pas votre propre form. | Le composable owner gère le reset/load/clearErrors. Si vous créez un `reactive()` parallèle, vous perdez ces synchronisations. |
 | Les `errors` exposés sont déjà traduits côté composable (via `translateServerErrors`). Affichez-les bruts : `:error="errors.code"`. | Pas besoin de `t(errors.code)` côté client. |
 | Une seule clé `extra-form-fields` par champ supplémentaire - utilisez `<template>` group si besoin de plusieurs inputs côte-à-côte. | Le slot n'a pas de wrapper imposé : vous gérez la mise en page. |
-| `<template #extra-cells="{ agency }">` - toujours destructurer le scope. Le nom de la variable suit l'entité (`agency`, `project`, `post`, etc.). | C'est ce qu'expose le composant Aurora : voir la définition dans son template. |
+| `<template #extra-cells="{ category }">` - toujours destructurer le scope. Le nom de la variable suit l'entité (`category`, `project`, `post`, etc.). | C'est ce qu'expose le composant Aurora : voir la définition dans son template. |
 
 ---
 
@@ -319,13 +319,13 @@ besoin d'`extraFields` : vous gérez `editForm` vous-même.
 ```text
 Côté client :
   1. extraFields = { code: { default: "", fromEntity: e => e.code } }
-  2. <AgenciesApp :extra-fields="extraFields">
+  2. <DocumentCategoriesApp :extra-fields="extraFields">
        <template #extra-headers>…</template>
-       <template #extra-cells="{ agency }">…</template>
+       <template #extra-cells="{ category }">…</template>
        <template #extra-form-fields="{ editForm, errors }">
          <AppInput v-model="editForm.code" :error="errors.code" />
        </template>
-     </AgenciesApp>
+     </DocumentCategoriesApp>
 
 Côté Aurora (déjà fait) :
   - Composable spread les extraFields dans editForm

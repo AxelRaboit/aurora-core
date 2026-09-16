@@ -1,12 +1,12 @@
 ---
 name: pattern-folder-sidebar
-description: Pattern Media-style pour ajouter une sidebar arborescence de dossiers sur la page d'index d'une entité, sans casser la page d'admin /folders existante.
+description: Sidebar arborescence de dossiers sur la page d'index d'une entite, sans casser la page d'admin /folders existante - implementation de reference : GED documents.
 metadata:
   type: feedback
 ---
 
 Quand une entité d'aurora-core a (a) une liste paginée d'items et (b) une notion
-de dossier (Media, Ged/Document, etc.), la convention est d'offrir **deux points
+de dossier (Ged/Document, etc.), la convention est d'offrir **deux points
 d'accès** :
 
 1. **Page d'admin dédiée** `/backend/<module>/folders` - gestion lourde
@@ -18,8 +18,7 @@ d'accès** :
 **Why** : utilisateur peut naviguer par dossier sans quitter la liste (filtrage
 visuel rapide via clic), tout en gardant la page d'admin pour la maintenance.
 La duplication apparente est en fait un trade-off ergonomique validé (cf. choix
-explicite de l'utilisateur en 2026-05-30 sur GED documents, option « complète
-façon Media »).
+explicite de l'utilisateur en 2026-05-30 sur GED documents, option « complète »).
 
 **How to apply** :
 
@@ -33,7 +32,7 @@ façon Media »).
 - Sur le `Repository::findPaginated()` : flag `bool $rootOnly = false` pour
   filtrer `folder IS NULL` (la sidebar « Home » s'en sert).
 - Sur le `FolderSerializer` : méthode `withDocumentCounts(array): static` qui
-  retourne un clone avec le map de counts (mirror de `MediaFolderSerializer::withMediaCounts`).
+  retourne un clone avec le map de counts (cf `DocumentFolderSerializer::withDocumentCounts`).
   **Mettre à jour le test** `array_keys()` car la clé `documentCount` (ou
   `<entity>Count`) est ajoutée à la signature serializer.
 - Sur le `ViewBuilder` : passer counts dans `indexView()` ET dans `buildListPayload()`
@@ -92,9 +91,10 @@ en pleine largeur en dessous de `sm:`, retrouve le layout horizontal
 `folders_section`, `favourites`, `favourite`, `unfavourite`, `new_folder`,
 `edit_folder`, `delete_folder_confirm`, `folder_name`, `folder_name_placeholder`,
 `parent_folder`, `expand`, `collapse`, `move`. Cf
-`src/Module/Ged/translations/messages.{fr,en}.yaml` pour la liste canonique.
+`src/Module/Ged/translations/messages.{fr,en,es}.yaml` pour la liste canonique.
 
-**Précédents** :
-- `src/Module/Media/Library/` + `src/Module/Media/assets/backend/media/` - source du pattern.
-- `src/Module/Ged/Document/` + `src/Module/Ged/assets/backend/documents/` -
-  application du pattern en 2026-05-30 (gardant `/backend/ged/folders` intact).
+**Implémentation de référence** : `src/Module/Ged/Document/` +
+`src/Module/Ged/assets/backend/documents/` (2026-05-30, `/backend/ged/folders`
+gardé intact). C'est la seule qui reste : le pattern vient du module `Media`,
+supprimé lors de la fusion Media → GED, donc il n'y a plus rien à comparer -
+lire la GED.

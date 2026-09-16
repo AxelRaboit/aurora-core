@@ -55,16 +55,43 @@ l'interface - pas besoin de déclaration explicite par service.
 
 ## Quand ajouter une autre marker interface
 
-À chaque fois que tu utilises une interface aurora-core qui est tagué via
-`_instanceof` côté core, dupliquer la ligne ici. Liste actuelle des
-candidates :
+À chaque fois que tu utilises une interface aurora-core taguée via
+`_instanceof` côté core, dupliquer la ligne ici.
+
+**Ne pas recopier une liste de mémoire : la mesurer.** Celle qui figurait ici
+en comptait 5 dont une supprimée (`MediaUsageProviderInterface`), alors que le
+core en expose 19 - un client qui s'y fiait perdait quinze points d'extension
+sans rien voir. Pour l'état du jour :
+
+```bash
+sed -n '/_instanceof:/,/^    [A-Za-z]/p' vendor/axelraboit/aurora/config/services.yaml
+```
+
+Au 2026-09-16, les plus souvent utiles côté client :
 
 - `Aurora\Core\Module\Contract\ModuleInterface` → `aurora.module`
 - `Aurora\Core\Frontend\Contract\FrontendInterface` → `aurora.front`
-- `Aurora\Core\Media\Contract\MediaUsageProviderInterface` → `aurora.media_usage_provider`
-- `Aurora\Module\Editorial\Menu\Contract\MenuLocationProviderInterface` → `aurora.menu_location_provider`
-  (réservé en pratique à `EditorialFrontendDescriptor` côté aurora-core ; rarement utile côté client)
+- `Aurora\Module\Ged\Document\Contract\DocumentUsageProviderInterface` → `aurora.document_usage_provider`
+  (**obligatoire** dès qu'une entité client FK'e un `Document` : sans lui,
+  l'écran de suppression de la GED annonce « aucun usage » et la suppression
+  casse en silence)
+- `Aurora\Core\Storage\Access\UploadAccessGuardInterface` → `aurora.upload_access_guard`
+  (**obligatoire** pour toute area de stockage privée : un préfixe non
+  revendiqué est servi anonymement)
+- `Aurora\Core\Storage\Orphan\ReferencedKeysProviderInterface` → `aurora.referenced_keys_provider`
+  (sans lui, `aurora:storage:prune-orphans --force` voit les fichiers de
+  l'area comme orphelins)
 - `Aurora\Core\Sequence\SequencePrefixProviderInterface` → `aurora.sequence_prefix`
+- `Aurora\Core\Trash\TrashSourceInterface` → `aurora.trash_source`
+- `Aurora\Core\Search\SearchProviderInterface` / `BackendSearchProviderInterface`
+- `Aurora\Core\Dashboard\DashboardStatsProviderInterface` → `aurora.dashboard_stats_provider`
+- `Aurora\Module\Configuration\Setting\Provider\ApplicationParameterProviderInterface`
+  et ses voisins `ConfigurationTabProviderInterface` / `OwnedSettingProviderInterface`
+
+Les autres (`BootstrapProviderInterface`, `BlockRendererInterface`,
+`EntityReferenceProviderInterface`, `RecurringMessageProviderInterface`,
+`StorageAdapterInterface`, `MenuLocationProviderInterface`) existent aussi et
+se déclarent de la même façon.
 
 Source de vérité : `vendor/axelraboit/aurora/config/services.yaml`,
 section `_instanceof`.

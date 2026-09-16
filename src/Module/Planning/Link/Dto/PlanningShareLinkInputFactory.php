@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Link\Dto;
 
-use Aurora\Module\Planning\Link\Entity\PlanningShareLinkModeEnum;
+use Aurora\Module\Planning\Link\Enum\PlanningShareLinkModeEnum;
 use Aurora\Module\Planning\Time\PlanningClock;
 
 use function is_array;

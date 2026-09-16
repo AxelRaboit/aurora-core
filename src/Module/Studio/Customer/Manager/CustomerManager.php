@@ -13,6 +13,7 @@ use Aurora\Module\Studio\Customer\Dto\CustomerInputInterface;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
+use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -25,6 +26,7 @@ class CustomerManager implements CustomerManagerInterface
         protected readonly AuditLogger $auditLogger,
         protected readonly CustomerRepository $customerRepository,
         protected readonly ContractRepository $contractRepository,
+        protected readonly CustomerSpaceRepository $spaceRepository,
         protected readonly UserRepository $userRepository,
         protected readonly TranslatorInterface $translator,
     ) {}
@@ -51,19 +53,29 @@ class CustomerManager implements CustomerManagerInterface
     }
 
     /**
-     * Deleting a customer is refused as soon as a contract names them.
+     * Deleting a customer is refused as soon as a contract or a space names them.
      *
-     * The database said the same thing already - the foreign key is
+     * The database said the same thing already - both foreign keys are
      * `RESTRICT` - but it said it as an SQL error in the middle of a request,
-     * which reached the screen as a 500. The rule is an accounting rule, so it
-     * is stated here, in the language of the person who clicked: a client with
-     * contracts is not a record anybody deletes by hand.
+     * which reached the screen as a 500. The rules are business rules, so they
+     * are stated here, in the language of the person who clicked: a client with
+     * contracts is not a record anybody deletes by hand, and a client whose
+     * work is still open somewhere is not one either.
+     *
+     * Contracts are checked first on purpose. Both refusals are true at once
+     * often enough, and the contract is the one that cannot be undone by
+     * tidying up: a space can be deleted, a signed contract cannot.
      */
     public function delete(CustomerInterface $customer): void
     {
         $contracts = $this->contractRepository->countForCustomer($customer);
         if ($contracts > 0) {
             throw new FieldException('customer', $this->translator->trans('backend.studio.customers.errors.has_contracts', ['{count}' => (string) $contracts]));
+        }
+
+        $spaces = $this->spaceRepository->countForCustomer($customer);
+        if ($spaces > 0) {
+            throw new FieldException('customer', $this->translator->trans('backend.studio.customers.errors.has_spaces', ['{count}' => (string) $spaces]));
         }
 
         $this->auditDeleted($customer);

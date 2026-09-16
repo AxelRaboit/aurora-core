@@ -210,6 +210,9 @@ backend:
         title_required: Le titre est obligatoire
         upload_required: Aucun fichier reçu
         image_required: Ce champ n'accepte que des images.
+        upload_too_large: "Ce fichier dépasse 100 Mo. Réduisez-le ou déposez-le autrement."
+        upload_type_refused: Ce type de fichier n'est pas accepté ici.
+        upload_failed: "L'envoi n'est pas arrivé complet. Réessayez."
     categories:
       row_actions:
         edit_description: Renommer la catégorie et changer sa description.

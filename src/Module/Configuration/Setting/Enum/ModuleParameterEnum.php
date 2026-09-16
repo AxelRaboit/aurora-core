@@ -14,7 +14,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     case GeneralBackend = 'modules_general_backend';
     case PlatformBackend = 'modules_platform_backend';
     case ConfigurationBackend = 'modules_configuration_backend';
-    case MediaBackend = 'modules_media_backend';
     case EditorialBackend = 'modules_editorial_backend';
     case GedBackend = 'modules_ged_backend';
     case PlanningBackend = 'modules_planning_backend';
@@ -32,9 +31,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     // Sub-modules - Configuration
     case ConfigurationSettings = 'modules_configuration_settings';
     case ConfigurationThemes = 'modules_configuration_themes';
-
-    // Sub-modules - Media
-    case MediaLibrary = 'modules_media_library';
 
     // Sub-modules - Editorial
     case EditorialFrontend = 'modules_editorial_frontend';
@@ -56,6 +52,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
 
     // Sub-modules - Studio
     case StudioCustomers = 'modules_studio_customers';
+    case StudioSpaces = 'modules_studio_spaces';
     case StudioContracts = 'modules_studio_contracts';
     case StudioDecks = 'modules_studio_decks';
 
@@ -74,8 +71,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::ConfigurationBackend => 'backend.modules.configuration',
             self::ConfigurationSettings => 'backend.nav.settings',
             self::ConfigurationThemes => 'backend.nav.themes',
-            self::MediaBackend => 'backend.modules.media_backend',
-            self::MediaLibrary => 'backend.nav.media',
             self::EditorialBackend => 'backend.modules.editorial_backend',
             self::EditorialFrontend => 'backend.modules.editorial_frontend',
             self::EditorialPosts => 'backend.nav.posts',
@@ -97,6 +92,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::NotesMarkdown => 'backend.nav.notes_markdown',
             self::StudioBackend => 'backend.modules.studio_backend',
             self::StudioCustomers => 'backend.nav.studio_customers',
+            self::StudioSpaces => 'backend.nav.studio_spaces',
             self::StudioContracts => 'backend.nav.studio_contract_templates',
             self::StudioDecks => 'backend.nav.studio_decks',
         };
@@ -112,8 +108,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::ConfigurationBackend => 'backend.modules.configuration_description',
             self::ConfigurationSettings => 'backend.nav.settings_description',
             self::ConfigurationThemes => 'backend.nav.themes_description',
-            self::MediaBackend => 'backend.modules.media_backend_description',
-            self::MediaLibrary => 'backend.nav.media_description',
             self::EditorialBackend => 'backend.modules.editorial_backend_description',
             self::EditorialFrontend => 'backend.modules.editorial_frontend_description',
             self::EditorialPosts => 'backend.nav.posts_description',
@@ -135,6 +129,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::NotesMarkdown => 'backend.nav.notes_markdown_description',
             self::StudioBackend => 'backend.modules.studio_backend_description',
             self::StudioCustomers => 'backend.nav.studio_customers_description',
+            self::StudioSpaces => 'backend.nav.studio_spaces_description',
             self::StudioContracts => 'backend.nav.studio_contract_templates_description',
             self::StudioDecks => 'backend.nav.studio_decks_description',
         };
@@ -164,11 +159,10 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GeneralDashboard => self::GeneralBackend,
             self::PlatformUsers => self::PlatformBackend,
             self::ConfigurationSettings, self::ConfigurationThemes => self::ConfigurationBackend,
-            self::MediaLibrary => self::MediaBackend,
             self::EditorialFrontend, self::EditorialPosts, self::EditorialPostTypes, self::EditorialTaxonomies, self::EditorialMenus, self::EditorialSeo, self::EditorialComments, self::EditorialForms => self::EditorialBackend,
             self::GedDocuments, self::GedCategories, self::GedTags, self::GedFolders, self::GedFrontend => self::GedBackend,
             self::NotesMarkdown => self::NotesBackend,
-            self::StudioCustomers, self::StudioContracts, self::StudioDecks => self::StudioBackend,
+            self::StudioCustomers, self::StudioContracts, self::StudioDecks, self::StudioSpaces => self::StudioBackend,
             default => null,
         };
     }
@@ -188,8 +182,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             // Configuration sub-modules
             self::ConfigurationSettings,
             self::ConfigurationThemes => self::ConfigurationBackend->value,
-            // Media sub-modules
-            self::MediaLibrary => self::MediaBackend->value,
             // Editorial sub-modules
             // A post needs a type to be, so posts follow post types.
             self::EditorialPosts => self::EditorialPostTypes->value,
@@ -226,6 +218,11 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             // purpose: a strategy deck written for oneself has no client, and
             // requiring the customer screen would make that case impossible.
             self::StudioDecks => self::StudioBackend->value,
+            // A space is the space of a customer: it is created from the
+            // customer list and its every screen names the company it belongs
+            // to. Without that screen a space would have nobody to be for,
+            // which is the same reason contracts follow customers.
+            self::StudioSpaces => self::StudioCustomers->value,
             default => null,
         };
     }
@@ -277,7 +274,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GeneralBackend => 'general',
             self::PlatformBackend => 'platform',
             self::ConfigurationBackend => 'configuration',
-            self::MediaBackend => 'media',
             self::EditorialBackend => 'editorial',
             self::GedBackend => 'ged',
             self::PlanningBackend => 'planning',

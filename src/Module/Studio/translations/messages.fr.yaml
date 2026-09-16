@@ -12,6 +12,8 @@ backend:
         studio_contract_templates_description: Les documents types dont partent les contrats, et leurs versions.
         studio_customers: Clients
         studio_customers_description: Les sociétés avec qui vous contractez, et leur bloc d'identité légale.
+        studio_spaces: Espaces clients
+        studio_spaces_description: Un espace par chantier client, avec son équipe et, bientôt, son calendrier.
         studio_contracts: Contrats
         studio_contracts_description: Les contrats préparés, scellés et signés.
         studio_decks: Présentations
@@ -23,6 +25,30 @@ backend:
                     created: Client créé
                     updated: Client mis à jour
                     deleted: Client supprimé
+                customer_space:
+                    created: Espace client créé
+                    updated: Espace client modifié
+                    deleted: Espace client supprimé
+                space_content_item:
+                    created: Contenu créé
+                    answered: Contenu validé ou renvoyé par le client
+                    updated: Contenu modifié
+                    deleted: Contenu supprimé
+                space_access_link:
+                    issued: Lien d'accès client créé
+                    revoked: Lien d'accès client révoqué
+                    deleted: Lien d'accès client supprimé
+                    opened: Espace ouvert par un client
+                space_content_attachment:
+                    attached: Fichier ajouté sur un contenu
+                    detached: Fichier retiré d'un contenu
+                space_content_comment:
+                    posted: Message envoyé sur un contenu
+                    deleted: Message supprimé
+                space_content_column:
+                    created: Étape de tableau créée
+                    updated: Étape de tableau renommée
+                    deleted: Étape de tableau supprimée
                 contract_template:
                     created: Trame de contrat créée
                     updated: Trame de contrat mise à jour
@@ -54,6 +80,12 @@ backend:
                     create: Créer un client
                     edit: Modifier un client
                     delete: Supprimer un client
+                spaces:
+                    view: Consulter les espaces clients
+                    create: Créer un espace client
+                    edit: Modifier un espace client
+                    delete: Supprimer un espace client
+                    share: Donner un accès client à un espace
                 contract_templates:
                     view: Consulter les trames de contrat
                     create: Créer une trame de contrat
@@ -685,6 +717,214 @@ backend:
                 siret_invalid: 'Ce SIRET est invalide : quatorze chiffres et une clé de contrôle correcte sont attendus.'
                 has_contracts: 'Ce client est nommé par {count} contrat(s). Un client lié à un contrat ne se supprime pas : ce sont eux qui prouvent ce qui a été convenu, et avec qui.'
                 siret_taken: 'Ce SIRET est déjà enregistré pour {name}.'
+                has_spaces: 'Ce client a encore {count} espace(s) ouvert(s). Supprimez ou archivez son travail avant de supprimer la fiche.'
+        spaces:
+            usage_detail: 'Espace {space}'
+            title: Espaces clients
+            add: Ajouter un espace
+            create: Nouvel espace
+            edit: 'Modifier {name}'
+            empty: Aucun espace pour le moment.
+            empty_hint: Un espace regroupe le travail mené pour un client. Créez-en un par chantier, pas un par société.
+            search_placeholder: Rechercher par nom d'espace ou par société…
+            created: Espace créé.
+            updated: Espace mis à jour.
+            deleted: Espace supprimé.
+            delete_confirm: 'Supprimer {name} ?'
+            delete_warning: L'espace et la liste de son équipe disparaissent. Le client, ses contrats et ses documents ne bougent pas.
+            show_archived: Afficher les espaces archivés
+            archived_badge: Archivé
+            no_members: Aucun membre
+            team_button: '1 personne | {count} personnes'
+            team_modal_title: 'Équipe de {name}'
+            team_modal_empty: Personne n'est rattaché à cet espace.
+            team_modal_hint: Ce n'est pas un droit d'accès. C'est qui, chez vous, travaille sur cet espace.
+
+            col_space: Espace
+            col_customer: Client
+            col_team: Équipe
+            col_status: Statut
+
+            group_identity: L'espace
+            group_team: L'équipe
+
+            name: Nom de l'espace
+            name_placeholder: 'Boulangerie Martin - Réseaux sociaux'
+            name_hint: Ce que vous lisez dans la liste. Pas la raison sociale, elle est déjà sur la fiche client.
+            description: Description
+            description_placeholder: Ce que couvre cet espace, en une ou deux phrases.
+            customer: Client
+            customer_none: Choisir un client
+            customer_hint: La société pour qui ce travail est mené. Un même client peut avoir plusieurs espaces.
+            status: Statut
+            status_hint: Un espace archivé sort de la liste sans rien perdre de son contenu.
+            colour: Couleur
+            colour_hint: Elle distingue cet espace des autres partout où ses dates apparaissent.
+            colour_auto: Choisie automatiquement
+            timezone: Fuseau horaire
+            timezone_hint: 'Le fuseau dans lequel les journées de cet espace sont découpées. À changer pour un client à l''étranger.'
+            members: Membres
+            members_hint: Qui, chez vous, travaille sur cet espace. Ce n'est pas un droit d'accès, c'est un nom à donner au client.
+            member_add: Ajouter une personne
+            member_remove: Retirer
+            member_none_left: Tout le monde est déjà sur cet espace.
+
+            statuses:
+                active: Actif
+                archived: Archivé
+
+            roles:
+                lead: Référent
+                member: Membre
+
+            row_actions:
+                edit_description: Modifier cet espace
+                delete_description: Supprimer cet espace
+
+            errors:
+                name_required: Le nom de l'espace est obligatoire.
+                name_too_long: Le nom ne peut pas dépasser 150 caractères.
+                customer_required: Choisissez le client à qui cet espace appartient.
+                timezone_invalid: Ce fuseau horaire n'est pas reconnu.
+        space_access:
+            tab: Accès client
+            intro: Un lien ouvre cet espace en lecture seule, sans compte. Il est personnel, il expire, et il se révoque.
+            issue: Créer un lien
+            issued: Lien créé.
+            revoke: Révoquer
+            revoked: Lien révoqué.
+            deleted: Lien supprimé.
+            empty: Aucun lien pour le moment.
+            empty_hint: Créez-en un pour montrer ce plan de contenu à votre client.
+
+            minted_title: Voici l'adresse
+            minted_hint: 'Copiez-la maintenant : elle ne sera plus jamais affichée. Seule son empreinte est conservée, donc personne ne peut la retrouver, pas même vous.'
+
+            recipient_email: Email du destinataire
+            recipient_email_placeholder: camille@societe.fr
+            recipient_email_hint: L'adresse à qui vous allez envoyer le lien. Elle sert aussi à savoir qui a ouvert quoi.
+            label: Intitulé
+            label_placeholder: 'Camille, responsable marketing'
+            label_hint: Facultatif. Utile quand un même client a plusieurs liens.
+            valid_for_days: Validité
+            valid_for_days_hint: 'En jours, {max} au maximum. Un accès qui survit à la mission est un accès que personne ne pense à fermer.'
+            can_approve: Peut valider
+            can_approve_hint: Décoché, le lien montre le plan sans permettre de répondre. Pour un lecteur qui regarde mais ne décide pas.
+            read_only: lecture seule
+            can_upload: Peut envoyer des fichiers
+            can_upload_hint: "Décoché par défaut. Coché, le client peut déposer ses propres photos et documents sur les contenus. Images, PDF et vidéos courantes, 25 Mo maximum."
+            may_upload: peut envoyer des fichiers
+
+            never_opened: Jamais ouvert
+            opened_on: 'Ouvert le {date}'
+            expires_on: 'Expire le {date}'
+
+            states:
+                active: Actif
+                revoked: Révoqué
+                expired: Expiré
+
+            delete_confirm: 'Supprimer le lien de {name} ?'
+            delete_warning: 'Le lien cesse de fonctionner et sa trace disparaît. Pour garder la trace, révoquez-le plutôt.'
+
+            errors:
+                email_required: L'email du destinataire est obligatoire.
+                email_invalid: Cet email n'est pas valide.
+        space_content:
+            tab: Contenu
+            view_label: Vue
+            view_board: Tableau
+            view_list: Liste
+            view_calendar: Calendrier
+            board: Tableau
+            calendar: Calendrier
+            today: Aujourd'hui
+            unscheduled_rail: Sans date
+            unscheduled_rail_empty: Tout est programmé.
+
+            row_actions:
+                edit_description: Modifier ce contenu
+                view_description: Lire ce contenu, ses fichiers et ses échanges
+                delete_description: Supprimer ce contenu
+            calendar_name: Contenus clients
+            back_to_spaces: Retour aux espaces
+            add_item: Ajouter un contenu
+            create_item: Nouveau contenu
+            edit_item: 'Modifier {title}'
+            view_item: 'Voir {title}'
+            item_created: Contenu créé.
+            item_updated: Contenu mis à jour.
+            item_deleted: Contenu supprimé.
+            delete_item_confirm: 'Supprimer {title} ?'
+            delete_item_warning: Le contenu et son texte disparaissent. Les autres cartes ne bougent pas.
+            empty_column: Rien ici pour le moment.
+            empty_board: Aucun contenu dans cet espace. Ajoutez-en un pour commencer.
+            unscheduled: Sans date
+            thread_notice: Ce que vous écrivez ici est lu par le client.
+            comment_posted: Message envoyé.
+            comment_deleted: Message supprimé.
+            attachment_added: Fichier ajouté.
+            attachment_removed: Fichier retiré de la fiche.
+            approval_reset_warning: 'Modifier le titre ou le texte efface cette réponse : elle portait sur ce qui a été montré.'
+            approvals:
+                pending: En attente
+                approved: Validé
+                changes_requested: À revoir
+            scheduled_for: 'Le {date}'
+
+            title: Titre
+            title_placeholder: 'Ce que dit la publication, en une ligne'
+            body: Texte
+            body_placeholder: Le contenu tel qu'il partira.
+            column: Étape
+            scheduled_at: Date de publication
+            scheduled_at_hint: 'Facultative. Une idée sans date vit sur le tableau et rejoint le calendrier quand vous la programmez.'
+            scheduled_at_placeholder: '22/09/2026 09:00'
+            timezone_notice: 'Les heures sont celles du fuseau de l''espace, {timezone}.'
+
+            add_column: Ajouter une étape
+            create_column: Nouvelle étape
+            edit_column: Renommer l'étape
+            column_name: Nom de l'étape
+            column_name_placeholder: 'À relire, En ligne…'
+            column_colour: Couleur
+            column_colour_hint: Facultative. Elle distingue l'étape sur le tableau, et colore ses contenus au calendrier.
+            column_created: Étape ajoutée.
+            column_updated: Étape renommée.
+            column_deleted: Étape supprimée.
+            delete_column_confirm: 'Supprimer l''étape {name} ?'
+            delete_column_warning: Une étape ne se supprime que si elle est vide.
+
+            default_columns:
+                idea: Idées
+                writing: En rédaction
+                review: À valider
+                scheduled: Programmé
+                published: Publié
+
+            errors:
+                title_required: Le titre est obligatoire.
+                title_too_long: Le titre ne peut pas dépasser 255 caractères.
+                column_required: Choisissez une étape de cet espace.
+                scheduled_at_invalid: Cette date n'est pas valide.
+                column_name_required: Le nom de l'étape est obligatoire.
+                column_name_too_long: Le nom ne peut pas dépasser 100 caractères.
+                column_not_empty: 'Cette étape contient {count} contenu(s). Déplacez-les avant de la supprimer.'
+                column_last: Un tableau garde au moins une étape.
+                comment_required: Le message ne peut pas être vide.
+                comment_needs_account: Il faut être connecté pour écrire sur un échange.
+                comment_from_client: Un message du client ne se supprime pas. C'est ce qu'il vous a demandé.
+                not_in_space: Ce contenu n'appartient pas à cet espace.
+                attachment_required: Choisissez un fichier.
+                attachment_unknown: Ce document n'existe pas ou plus.
+                attachment_duplicate: Ce fichier est déjà sur cette fiche.
+                attachment_needs_account: Il faut être connecté pour ajouter un fichier.
+
+            attachments:
+                # Le nom de la catégorie GED sous laquelle sont classés les
+                # fichiers arrivés par un espace. Lu dans la GED, pas ici.
+                category: Espaces clients
+                category_description: Fichiers déposés sur les contenus d'un espace client, par le studio ou par le client lui-même.
 studio:
     contract:
         # Écrit dans le document lui-même, donc scellé avec lui : ces phrases
@@ -786,6 +1026,28 @@ studio:
                 too_many_codes: 'Trop de codes demandés pour ce contrat. Réessayez dans une heure.'
                 too_many_requests: 'Trop de tentatives. Patientez quelques minutes.'
                 code_not_sent: "Le code n'a pas pu être envoyé. Réessayez dans un instant, ou prévenez votre interlocuteur."
+        space:
+            unavailable_message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez le plan de contenu d'un espace, demandez un nouveau lien à votre interlocuteur.
+            timezone_notice: 'Heures en {timezone}'
+            valid_until: 'Cette adresse est valide jusqu''au {date}.'
+            footer: Cette adresse est personnelle. Ne la transmettez pas.
+            no_body: Le texte n'est pas encore écrit.
+            thread_notice: Ce que vous écrivez ici est lu par votre prestataire.
+            upload_notice: "Images, PDF et vidéos courantes, 25 Mo maximum. Ce que vous envoyez ici est visible par votre prestataire."
+            approve: Validé
+            request_changes: À revoir
+            answer_hint: 'Pour demander une reprise, dites ce qui ne va pas dans les échanges ci-dessus.'
+            answer_recorded: Votre réponse est enregistrée.
+            already_approved: 'Vous avez validé ce contenu le {date}.'
+            already_changes_requested: 'Vous avez demandé une reprise le {date}.'
+            errors:
+                approval_invalid: Réponse non reconnue.
+                comment_required: Le message ne peut pas être vide.
+                too_many_requests: Trop de réponses envoyées coup sur coup. Réessayez dans quelques minutes.
+                upload_required: Choisissez un fichier à envoyer.
+                upload_failed: L'envoi n'a pas abouti. Réessayez.
+                upload_too_large: Ce fichier dépasse 25 Mo. Envoyez une version plus légère.
+                upload_type_refused: Ce type de fichier n'est pas accepté. Images, PDF et vidéos courantes uniquement.
         unavailable:
             title: Ce lien n'est plus valide
             message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez un contrat, demandez un nouveau lien à votre interlocuteur.

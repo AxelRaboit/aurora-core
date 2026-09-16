@@ -48,8 +48,33 @@ const TEXT_FORMATS = ["dd/MM/yyyy", "yyyy-MM-dd", "ddMMyyyy", "dd-MM-yyyy", "dd.
 const TIME_FORMATS = ["dd/MM/yyyy HH:mm", "yyyy-MM-dd HH:mm"];
 const MONTH_FORMATS = ["MM/yyyy", "yyyy-MM"];
 
+/**
+ * Les formats que ce champ accepte, dans l'ordre.
+ *
+ * Un seul endroit pour les deux usages : ce qui est affiché est le premier de
+ * la liste, ce qui est accepté au clavier est la liste entière.
+ */
+const acceptedFormats = computed(
+    () => props.monthOnly ? MONTH_FORMATS : (props.enableTime ? TIME_FORMATS : TEXT_FORMATS),
+);
+
+/**
+ * Ce que le champ affiche, et non ce que le navigateur préfère.
+ *
+ * Sans cette ligne, `VueDatePicker` rend la date avec son format par défaut,
+ * qui suit la machine plutôt que l'application : un back-office français
+ * affichait `09/20/2026, 20:00` pour le 20 septembre. Le docblock au-dessus
+ * annonçait déjà que « le premier format est celui que rend le composant » -
+ * c'était une intention, pas une implémentation.
+ *
+ * C'est le même défaut que celui qui avait fait remplacer les `datetime-local`
+ * natifs par ce composant : une date lue de travers n'est pas une date
+ * illisible, c'est une date comprise à l'envers.
+ */
+const displayFormat = computed(() => acceptedFormats.value[0]);
+
 const textInput = computed(() => ({
-    format: props.monthOnly ? MONTH_FORMATS : (props.enableTime ? TIME_FORMATS : TEXT_FORMATS),
+    format: acceptedFormats.value,
     // Entrée valide la saisie, et une saisie que le composant ne sait pas
     // lire laisse la valeur précédente plutôt que de vider le champ.
     enterSubmit: true,
@@ -96,6 +121,7 @@ const internalValue = computed(() => {
             :model-value="internalValue"
             :dark="isDark"
             :locale="dateFnsLocale"
+            :format="displayFormat"
             :enable-time-picker="enableTime"
             :month-picker="monthOnly"
             :placeholder="placeholder"

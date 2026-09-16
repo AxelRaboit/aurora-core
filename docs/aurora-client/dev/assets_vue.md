@@ -28,13 +28,13 @@ Les composants sont enregistrés automatiquement par Aurora selon leur chemin :
 | Fichier | Identifiant vue_component |
 |---|---|
 | `src/Module/Tracking/assets/admin/ProjectsApp.vue` | `tracking/admin/ProjectsApp` |
-| `src/Module/Platform/Agency/assets/backend/agencies/AgenciesApp.vue` | `platform/backend/agencies/AgenciesApp` *(co-localisé avec l'extension PHP - shadow direct via clientModules)* |
+| `src/Module/Ged/DocumentCategory/assets/backend/document-categories/DocumentCategoriesApp.vue` | `platform/backend/document-categories/DocumentCategoriesApp` *(co-localisé avec l'extension PHP - shadow direct via clientModules)* |
 
 Dans Twig :
 
 ```twig
 {{ vue_component('tracking/admin/ProjectsApp') }}
-{{ vue_component('platform/backend/agencies/AgenciesApp') }}
+{{ vue_component('platform/backend/document-categories/DocumentCategoriesApp') }}
 ```
 
 > Convention complète des 3 buckets sous `src/` :
@@ -203,14 +203,14 @@ Pour remplacer un composant Aurora existant, créer un fichier
 
 ```
 # Composant Aurora
-vendor/axelraboit/aurora/src/Module/Platform/assets/backend/agencies/AgenciesApp.vue
+vendor/axelraboit/aurora/src/Module/Ged/assets/backend/document-categories/DocumentCategoriesApp.vue
                                  ↓
-# Override client (co-localisé avec src/Module/Platform/Agency/ qui contient
+# Override client (co-localisé avec src/Module/Ged/DocumentCategory/ qui contient
 # Entity/, Dto/, Manager/, Serializer/ de l'extension)
-src/Module/Platform/Agency/assets/backend/agencies/AgenciesApp.vue
+src/Module/Ged/DocumentCategory/assets/backend/document-categories/DocumentCategoriesApp.vue
 ```
 
-Le chemin `vue_component('platform/backend/agencies/AgenciesApp')` reste
+Le chemin `vue_component('platform/backend/document-categories/DocumentCategoriesApp')` reste
 identique - le glob `@client/src/Module/**/assets/**/*.vue` flatten les
 feature folders, donc la clé exposée est la même que celle d'Aurora.
 Comme `clientModules` est spread APRÈS `auroraModules`, ton fichier wins

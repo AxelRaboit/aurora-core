@@ -1,5 +1,12 @@
 # Pattern : étendre un Manager
 
+> **`Agency` n'existe plus.** Le module a été supprimé ; l'exemple filé
+> ci-dessous reste juste dans sa forme, mais on ne peut plus aller lire le
+> code auquel il renvoie. Le pilote vivant du même pattern est
+> `DocumentCategory`, déroulé en entier dans
+> `docs/aurora-core/dev/extending_category_pilot.md`.
+
+
 ## Règle
 
 Override **uniquement** les hooks `protected` du Manager. Ne pas toucher

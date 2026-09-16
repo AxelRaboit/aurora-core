@@ -39,7 +39,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\String\Slugger\AsciiSlugger;
 
 use function dirname;
 
@@ -94,7 +93,6 @@ final class DocumentManagerTest extends TestCase
             $this->versionRepository,
             $this->documentRepository,
             new GedDocumentUploader(
-                new AsciiSlugger(),
                 new PdfThumbnailGenerator($workspace),
                 new VideoPosterGenerator($workspace),
                 new ImageCropper($filesystem),

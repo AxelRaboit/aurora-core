@@ -12,6 +12,8 @@ backend:
         studio_contract_templates_description: The model documents contracts are built from, and their versions.
         studio_customers: Customers
         studio_customers_description: The companies you contract with, and their legal identity block.
+        studio_spaces: Client spaces
+        studio_spaces_description: One space per client engagement, with its team and, soon, its calendar.
         studio_contracts: Contracts
         studio_contracts_description: Contracts prepared, sealed and signed.
         studio_decks: Presentations
@@ -23,6 +25,30 @@ backend:
                     created: Customer created
                     updated: Customer updated
                     deleted: Customer deleted
+                customer_space:
+                    created: Client space created
+                    updated: Client space updated
+                    deleted: Client space deleted
+                space_content_item:
+                    created: Content created
+                    answered: Content answered by the client
+                    updated: Content updated
+                    deleted: Content deleted
+                space_access_link:
+                    issued: Client access link created
+                    revoked: Client access link revoked
+                    deleted: Client access link deleted
+                    opened: Space opened by a client
+                space_content_attachment:
+                    attached: File added to a content item
+                    detached: File removed from a content item
+                space_content_comment:
+                    posted: Message posted on a content item
+                    deleted: Message deleted
+                space_content_column:
+                    created: Board step created
+                    updated: Board step renamed
+                    deleted: Board step deleted
                 contract_template:
                     created: Contract template created
                     updated: Contract template updated
@@ -54,6 +80,12 @@ backend:
                     create: Create a customer
                     edit: Edit a customer
                     delete: Delete a customer
+                spaces:
+                    view: View client spaces
+                    create: Create a client space
+                    edit: Edit a client space
+                    delete: Delete a client space
+                    share: Give a client access to a space
                 contract_templates:
                     view: View contract templates
                     create: Create a contract template
@@ -683,8 +715,216 @@ backend:
                 contractual_email_invalid: This email is not valid.
                 share_capital_invalid: Share capital cannot be negative.
                 siret_invalid: 'This registration number is invalid: fourteen digits with a correct checksum are expected.'
-                siret_taken: 'This registration number is already recorded for {name}.'
                 has_contracts: '{count} contract(s) name this customer. A customer a contract points at is not deleted: those contracts are what proves what was agreed, and with whom.'
+                siret_taken: 'This registration number is already recorded for {name}.'
+                has_spaces: 'This client still has {count} open space(s). Delete or archive their work before deleting the record.'
+        spaces:
+            usage_detail: 'Space {space}'
+            title: Client spaces
+            add: Add a space
+            create: New space
+            edit: 'Edit {name}'
+            empty: No space yet.
+            empty_hint: A space holds the work done for one client. Create one per engagement, not one per company.
+            search_placeholder: Search by space name or company…
+            created: Space created.
+            updated: Space updated.
+            deleted: Space deleted.
+            delete_confirm: 'Delete {name}?'
+            delete_warning: The space and its team list go. The customer, their contracts and their documents stay where they are.
+            show_archived: Show archived spaces
+            archived_badge: Archived
+            no_members: Nobody assigned
+            team_button: '1 person | {count} people'
+            team_modal_title: 'Team of {name}'
+            team_modal_empty: Nobody is assigned to this space.
+            team_modal_hint: This is not an access right. It is who on your side works on this space.
+
+            col_space: Space
+            col_customer: Client
+            col_team: Team
+            col_status: Status
+
+            group_identity: The space
+            group_team: The team
+
+            name: Space name
+            name_placeholder: 'Martin Bakery - Social media'
+            name_hint: What you read in the list. Not the legal name, which is already on the customer record.
+            description: Description
+            description_placeholder: What this space covers, in a sentence or two.
+            customer: Client
+            customer_none: Choose a client
+            customer_hint: The company this work is for. One client can have several spaces.
+            status: Status
+            status_hint: An archived space leaves the list without losing any of its content.
+            colour: Colour
+            colour_hint: It tells this space from the others everywhere its dates appear.
+            colour_auto: Chosen automatically
+            timezone: Time zone
+            timezone_hint: The zone this space's days are cut in. Change it for a client abroad.
+            members: Members
+            members_hint: Who on your side works on this space. It is not an access right, it is a name to give the client.
+            member_add: Add someone
+            member_remove: Remove
+            member_none_left: Everybody is already on this space.
+
+            statuses:
+                active: Active
+                archived: Archived
+
+            roles:
+                lead: Lead
+                member: Member
+
+            row_actions:
+                edit_description: Edit this space
+                delete_description: Delete this space
+
+            errors:
+                name_required: The space name is required.
+                name_too_long: The name cannot be longer than 150 characters.
+                customer_required: Choose the client this space belongs to.
+                timezone_invalid: That time zone is not recognised.
+        space_access:
+            tab: Client access
+            intro: A link opens this space read-only, with no account. It is personal, it expires, and it can be revoked.
+            issue: Create a link
+            issued: Link created.
+            revoke: Revoke
+            revoked: Link revoked.
+            deleted: Link deleted.
+            empty: No link yet.
+            empty_hint: Create one to show this content plan to your client.
+
+            minted_title: Here is the address
+            minted_hint: 'Copy it now: it will never be shown again. Only its fingerprint is kept, so nobody can recover it, you included.'
+
+            recipient_email: Recipient email
+            recipient_email_placeholder: camille@company.com
+            recipient_email_hint: The address you will send the link to. It is also how you know who opened what.
+            label: Name
+            label_placeholder: 'Camille, marketing lead'
+            label_hint: Optional. Useful when one client has several links.
+            valid_for_days: Validity
+            valid_for_days_hint: 'In days, {max} at most. An access that outlives the engagement is one nobody remembers to close.'
+            can_approve: May approve
+            can_approve_hint: Unchecked, the link shows the plan without letting anybody answer. For a reader who looks but does not decide.
+            read_only: read-only
+            can_upload: May send files
+            can_upload_hint: "Off by default. Checked, the client can drop their own photos and documents onto the content. Images, PDF and common videos, 25 MB at most."
+            may_upload: may send files
+
+            never_opened: Never opened
+            opened_on: 'Opened on {date}'
+            expires_on: 'Expires on {date}'
+
+            states:
+                active: Active
+                revoked: Revoked
+                expired: Expired
+
+            delete_confirm: 'Delete the link for {name}?'
+            delete_warning: 'The link stops working and its record goes with it. To keep the record, revoke it instead.'
+
+            errors:
+                email_required: The recipient email is required.
+                email_invalid: This email is not valid.
+        space_content:
+            tab: Content
+            view_label: View
+            view_board: Board
+            view_list: List
+            view_calendar: Calendar
+            board: Board
+            calendar: Calendar
+            today: Today
+            unscheduled_rail: No date
+            unscheduled_rail_empty: Everything is scheduled.
+
+            row_actions:
+                edit_description: Edit this content
+                view_description: Read this content, its files and its thread
+                delete_description: Delete this content
+            calendar_name: Client content
+            back_to_spaces: Back to spaces
+            add_item: Add content
+            create_item: New content
+            edit_item: 'Edit {title}'
+            view_item: 'View {title}'
+            item_created: Content created.
+            item_updated: Content updated.
+            item_deleted: Content deleted.
+            delete_item_confirm: 'Delete {title}?'
+            delete_item_warning: The content and its text go. The other cards stay where they are.
+            empty_column: Nothing here yet.
+            empty_board: No content in this space. Add one to get started.
+            unscheduled: No date
+            thread_notice: What you write here is read by the client.
+            comment_posted: Message sent.
+            comment_deleted: Message deleted.
+            attachment_added: File added.
+            attachment_removed: File removed from the card.
+            approval_reset_warning: 'Changing the title or the text clears this answer: it was about what was shown.'
+            approvals:
+                pending: Pending
+                approved: Approved
+                changes_requested: Needs changes
+            scheduled_for: 'On {date}'
+
+            title: Title
+            title_placeholder: 'What the post says, in one line'
+            body: Text
+            body_placeholder: The content as it will go out.
+            column: Step
+            scheduled_at: Publication date
+            scheduled_at_hint: 'Optional. An idea with no date lives on the board and joins the calendar when you schedule it.'
+            scheduled_at_placeholder: '22/09/2026 09:00'
+            timezone_notice: 'Times are in the space''s zone, {timezone}.'
+
+            add_column: Add a step
+            create_column: New step
+            edit_column: Rename the step
+            column_name: Step name
+            column_name_placeholder: 'To review, Live…'
+            column_colour: Colour
+            column_colour_hint: Optional. It marks the step on the board, and colours its content on the calendar.
+            column_created: Step added.
+            column_updated: Step renamed.
+            column_deleted: Step deleted.
+            delete_column_confirm: 'Delete the step {name}?'
+            delete_column_warning: A step is only deleted when it is empty.
+
+            default_columns:
+                idea: Ideas
+                writing: Writing
+                review: To approve
+                scheduled: Scheduled
+                published: Published
+
+            errors:
+                title_required: The title is required.
+                title_too_long: The title cannot be longer than 255 characters.
+                column_required: Choose a step of this space.
+                scheduled_at_invalid: That date is not valid.
+                column_name_required: The step name is required.
+                column_name_too_long: The name cannot be longer than 100 characters.
+                column_not_empty: 'This step holds {count} items. Move them before deleting it.'
+                column_last: A board keeps at least one step.
+                comment_required: The message cannot be empty.
+                comment_needs_account: You have to be signed in to write on a thread.
+                comment_from_client: A client's message is not deleted. It is what they asked you for.
+                not_in_space: This content does not belong to this space.
+                attachment_required: Choose a file.
+                attachment_unknown: That document does not exist any more.
+                attachment_duplicate: That file is already on this card.
+                attachment_needs_account: You have to be signed in to add a file.
+
+            attachments:
+                # The name of the GED category the files that arrive through a
+                # space are filed under. Read in GED, not here.
+                category: Client spaces
+                category_description: Files dropped on the content of a client space, by the studio or by the client themselves.
 studio:
     contract:
         # Written into the document itself, and therefore sealed with it: these
@@ -786,6 +1026,28 @@ studio:
                 too_many_codes: 'Too many codes requested for this contract. Try again in an hour.'
                 too_many_requests: 'Too many attempts. Wait a few minutes.'
                 code_not_sent: "The code could not be sent. Try again in a moment, or tell your contact."
+        space:
+            unavailable_message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a space's content plan, ask your contact for a new link.
+            timezone_notice: 'Times in {timezone}'
+            valid_until: 'This address is valid until {date}.'
+            footer: This address is personal. Please do not pass it on.
+            no_body: The text is not written yet.
+            thread_notice: What you write here is read by your agency.
+            upload_notice: "Images, PDF and common videos, 25 MB at most. What you send here is visible to your agency."
+            approve: Approved
+            request_changes: Needs changes
+            answer_hint: 'To ask for changes, say what is wrong in the discussion above.'
+            answer_recorded: Your answer has been recorded.
+            already_approved: 'You approved this content on {date}.'
+            already_changes_requested: 'You asked for changes on {date}.'
+            errors:
+                approval_invalid: Answer not recognised.
+                comment_required: The message cannot be empty.
+                too_many_requests: Too many answers in a row. Try again in a few minutes.
+                upload_required: Choose a file to send.
+                upload_failed: The upload did not complete. Try again.
+                upload_too_large: That file is over 25 MB. Send a lighter version.
+                upload_type_refused: That file type is not accepted. Images, PDF and common videos only.
         unavailable:
             title: This link is no longer valid
             message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a contract, ask your contact for a new link.

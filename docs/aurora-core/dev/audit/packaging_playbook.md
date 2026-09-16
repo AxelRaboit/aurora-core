@@ -6,12 +6,17 @@
 > `decoupling_strategy.md` (le découplage) et, côté client,
 > `../../../aurora-client/getting-started/installing_modules.md` (l'adoption).
 >
-> **Archive.** Ce document décrit l'état de la cible au moment du split ; il
-> n'est pas mis à jour au fil de l'eau. Deux choses ont bougé depuis :
-> le recentrage de juillet 2026 a retiré 11 des 13 modules du monorepo, et
-> **Editorial est revenu dans le core en août 2026** (donc plus de package
-> `axelraboit/aurora-editorial` - voir `todo/module_roadmap.md`). La table
-> ci-dessous reste telle qu'elle était : c'est le plan qui a été exécuté, pas
+> ⚠️ **Archive - plus aucun module n'est un package.** Ce document décrit
+> l'état de la cible au moment du split, et le split a été inversé : le
+> recentrage de juillet 2026 a retiré 11 des 13 modules du monorepo, puis
+> **Editorial est revenu dans le core en août 2026** et le multi-dépôt a été
+> abandonné. Un module est aujourd'hui un dossier sous `src/Module/`, sans
+> `composer.json` ni bundle ni `config/services.php` - voir
+> `../app_architecture.md`.
+>
+> **Ne pas suivre ce playbook pour packager quoi que ce soit.** Il reste pour
+> ses findings, notamment sur le câblage des services, qui ont servi à autre
+> chose depuis. La table ci-dessous est le plan qui a été exécuté, pas
 > l'inventaire d'aujourd'hui.
 
 ## 0. Câblage services per-package : testable DANS le monorepo (corrigé 2026-05-30)

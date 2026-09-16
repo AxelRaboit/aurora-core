@@ -20,6 +20,7 @@ use Aurora\Module\Ged\Document\Manager\DocumentManagerInterface;
 use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory;
 use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
+use Aurora\Module\Ged\DocumentCategory\Service\DocumentCategoryResolver;
 use Aurora\Module\Ged\DocumentCategory\Service\InlineUploadCategoryProvider;
 use Aurora\Module\Ged\Pexels\Service\PexelsImporter;
 use InvalidArgumentException;
@@ -30,7 +31,6 @@ use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
-use Symfony\Component\String\Slugger\AsciiSlugger;
 
 /**
  * The import is where a URL chosen in a browser becomes a file on our disk
@@ -71,16 +71,20 @@ final class PexelsImporterTest extends TestCase
         $id = new ReflectionProperty($category, 'id');
         $id->setValue($category, 1);
 
-        // The provider is `final readonly`, so it cannot be doubled. Built
-        // without its constructor and given only the repository it reads:
-        // `resolve()` finds the category and never reaches the two
-        // collaborators that would have needed a database.
+        // Both the provider and the resolver behind it are `final readonly`,
+        // so neither can be doubled. Each is built without its constructor and
+        // given only what the read path touches: the resolver finds the
+        // category through the repository and never reaches the two
+        // collaborators that would have needed a database, and the provider
+        // only ever calls the resolver.
         $categoryRepository = $this->createStub(DocumentCategoryRepository::class);
         $categoryRepository->method('findOneBy')->willReturn($category);
 
+        $categoryResolver = (new ReflectionClass(DocumentCategoryResolver::class))->newInstanceWithoutConstructor();
+        new ReflectionProperty($categoryResolver, 'documentCategoryRepository')->setValue($categoryResolver, $categoryRepository);
+
         $categoryProvider = (new ReflectionClass(InlineUploadCategoryProvider::class))->newInstanceWithoutConstructor();
-        $repositoryProperty = new ReflectionProperty($categoryProvider, 'documentCategoryRepository');
-        $repositoryProperty->setValue($categoryProvider, $categoryRepository);
+        new ReflectionProperty($categoryProvider, 'documentCategoryResolver')->setValue($categoryProvider, $categoryResolver);
 
         $manager = $this->createStub(DocumentManagerInterface::class);
         $manager->method('create')->willReturnCallback(function (DocumentInputInterface $input): DocumentInterface {
@@ -231,7 +235,6 @@ final class PexelsImporterTest extends TestCase
         $workspace = new LocalWorkspace($filesystem);
 
         return new GedDocumentUploader(
-            new AsciiSlugger(),
             new PdfThumbnailGenerator($workspace),
             new VideoPosterGenerator($workspace),
             new ImageCropper($filesystem),

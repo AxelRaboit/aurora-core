@@ -1,0 +1,29 @@
+{% extends '@Studio/backend/space-content/layout.html.twig' %}
+
+{% set activeTab = 'content' %}
+
+{% block title %}{{ space.name }}{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/backend/content/SpaceContentApp', {
+    space: space,
+    columns: columns,
+    items: items,
+    comments: comments,
+    attachments: attachments,
+    itemCreatePath: itemCreatePath,
+    itemUpdatePath: itemUpdatePath,
+    itemDeletePath: itemDeletePath,
+    itemReorderPath: itemReorderPath,
+    schedulePath: schedulePath,
+    commentPostPath: commentPostPath,
+    commentDeletePath: commentDeletePath,
+    attachmentUploadPath: attachmentUploadPath,
+    attachmentAttachPath: attachmentAttachPath,
+    attachmentDetachPath: attachmentDetachPath,
+    columnCreatePath: columnCreatePath,
+    columnUpdatePath: columnUpdatePath,
+    columnDeletePath: columnDeletePath,
+    columnReorderPath: columnReorderPath,
+}) }}></div>
+{% endblock %}

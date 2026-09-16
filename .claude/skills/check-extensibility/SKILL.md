@@ -12,7 +12,7 @@ skill operationalizes its hard rules into a mechanical checklist.
 
 ## Inputs
 
-- **Entity name** (e.g., `Agency`, `Post`, `Order`) - required. If the user
+- **Entity name** (e.g., `DocumentCategory`, `Post`, `Customer`) - required. If the user
   did not provide one, ask before proceeding.
 - **Module** - inferred by globbing `src/**/<Name>/Entity/<Name>.php`. If
   ambiguous (multiple matches), ask.
@@ -125,7 +125,7 @@ In `src/Module/<Module>/assets/backend/<plural>/`
     - Via `useFormAction`: the abstraction handles
       the spread internally. In that case, verify that `empty()` and
       `fromEntity()` both merge `Object.fromEntries(Object.entries(extraFields)...)`
-      so client extras land in the form. This is the canonical Agency
+      so client extras land in the form. This is the canonical DocumentCategory
       pattern - accept it as ✅.
 
 ### Controller wiring
@@ -142,12 +142,13 @@ In `src/<Module>/<Name>/Controller/Backend/`:
 
 26. **Out of scope for entity audit, but worth a quick look** : if the entity
     is part of a sub-feature that has its own enable/disable toggle (e.g.,
-    Vault.Safe, Vault.PasswordGenerator), the parent `<Module>Module.php`
+    `Studio.Spaces`, `Ged.Documents`), the parent `<Module>Module.php`
     should implement `Aurora\Core\Module\Contract\ModuleToggleProviderInterface`
     and the Controller / Nav should gate via `<Module>Context`. This is a
     module-level concern - flag it as a note ("toggle present ✅" / "toggle
     missing, consider adding ⚠️"), don't ❌ if missing.
-    Cf. `pattern_user_scoped_module_access.md` and the Vault example.
+    Cf. `pattern_user_scoped_module_access.md`, and `/audit-module-toggles`
+    which checks the same wiring across every module at once.
 
 ## Output format
 
@@ -159,7 +160,7 @@ single line. End with a "Verdict" summary line.
 
 ## Layer 1 - Entity
 ✅ Interface, Abstract, concrete present
-✅ Sequence `seq_core_agency_id` correct
+✅ Sequence `seq_core_ged_category_id` correct
 ❌ Not registered in AuroraBundle::$resolve_target_entities
 
 ## Layer 2 - DTO
@@ -173,7 +174,7 @@ single line. End with a "Verdict" summary line.
 
 Group the ❌ items into an actionable fix list at the bottom, each line
 quoting the file + the exact change needed (e.g., "Remove `final` keyword
-from `src/Core/Agency/Manager/AgencyManager.php:14`").
+from `src/Module/Ged/DocumentCategory/Manager/DocumentCategoryManager.php:14`").
 
 ## Boundaries
 

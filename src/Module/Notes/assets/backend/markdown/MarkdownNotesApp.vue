@@ -20,6 +20,9 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import { onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
 import { Plus, Trash2, FileText, PanelRightOpen, PanelRightClose, X, Settings2, Network, Share2} from 'lucide-vue-next';
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+
+const { formatDateTimeNumeric } = useDateFormat();
 
 const props = defineProps({
     notes: { type: Array, default: () => [] },
@@ -257,7 +260,7 @@ onUnmounted(() => {
                             <span
                                 v-if="lastSavedAt"
                                 class="text-xs text-muted"
-                                :title="lastSavedAt.toLocaleString()"
+                                :title="formatDateTimeNumeric(lastSavedAt.toISOString())"
                             >
                                 {{ t('shared.common.autosave.last_saved', { time: lastSavedRelative }) }}
                             </span>

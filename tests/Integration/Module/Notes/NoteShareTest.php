@@ -11,6 +11,7 @@ use Aurora\Module\Notes\Share\Service\SharedNoteScope;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use Aurora\Tests\Integration\Concern\ComparesRefusalPages;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,6 +27,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 final class NoteShareTest extends IntegrationTestCase
 {
+    use ComparesRefusalPages;
+
     private KernelBrowser $client;
 
     private EntityManagerInterface $entityManager;
@@ -120,7 +123,9 @@ final class NoteShareTest extends IntegrationTestCase
         foreach ([$revoked->getToken(), $expired->getToken(), str_repeat('f', 64)] as $token) {
             $this->client->request('GET', $this->urlGenerator->generate('notes_share', ['token' => $token]));
             self::assertResponseStatusCodeSame(404);
-            $bodies[] = (string) $this->client->getResponse()->getContent();
+            // Without the per-request nonce, which differs between any two
+            // responses and so says nothing about which refusal happened.
+            $bodies[] = $this->withoutPerRequestNoise((string) $this->client->getResponse()->getContent());
         }
 
         self::assertSame([$bodies[0]], array_unique($bodies), 'The three failures render differently.');

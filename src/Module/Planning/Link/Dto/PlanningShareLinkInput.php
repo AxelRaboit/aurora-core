@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Planning\Link\Dto;
 
-use Aurora\Module\Planning\Link\Entity\PlanningShareLinkModeEnum;
+use Aurora\Module\Planning\Link\Enum\PlanningShareLinkModeEnum;
 use DateTimeImmutable;
 use Symfony\Component\Validator\Constraints as Assert;
 

@@ -225,6 +225,8 @@ backend:
     description_placeholder: "À quoi sert ce type de contenu, en une phrase."
     icon_placeholder: "file-text"
   posts:
+    usage_detail: Publication
+    usage_untitled: Publication sans titre
     banner:
       title: En-tête personnalisé
       enabled: Afficher un en-tête personnalisé

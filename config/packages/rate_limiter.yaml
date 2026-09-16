@@ -26,3 +26,30 @@ framework:
             policy: sliding_window
             limit: 20
             interval: '1 hour'
+
+        # L'écriture qu'un client tenant un lien d'espace peut atteindre : dire
+        # qu'il valide, ou qu'il veut revoir. Calée sur l'IP, donc mur extérieur
+        # comme les précédentes - le mur intérieur est que le lien porte ses
+        # propres droits, et qu'un lien révoqué ou expiré ne mène nulle part.
+        #
+        # Plus haut que les limiteurs de signature parce que le geste est
+        # différent : on signe un contrat une fois, on parcourt un mois et on
+        # valide six publications d'affilée.
+        space_guest_write:
+            policy: sliding_window
+            limit: 40
+            interval: '1 hour'
+
+        # Le dépôt de fichier qu'un client tenant un lien peut atteindre.
+        # Séparé de `space_guest_write` parce que le geste ne coûte pas la
+        # même chose : un avis est une ligne, un fichier traverse le stockage,
+        # la vignette et, pour une vidéo, la capture d'une image de couverture.
+        #
+        # Plus bas en nombre, et c'est voulu : un client envoie les photos
+        # d'un mois, pas une bibliothèque. Ce qui filtre *quoi* est
+        # `SpaceGuestUploadPolicy`, côté application ; ceci ne filtre que le
+        # rythme, par adresse.
+        space_guest_upload:
+            policy: sliding_window
+            limit: 20
+            interval: '1 hour'

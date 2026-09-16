@@ -38,7 +38,7 @@ couvert par aurora-core. Cinq cas types qui se cumulent :
 | **5. Avec settings** | Onglet dans la page admin Settings | §7 |
 
 Si la feature **étend une entité Aurora existante** (ex : ajouter un champ à
-`Agency`), ce n'est PAS un module client mais une **extension** - voir
+`DocumentCategory`), ce n'est PAS un module client mais une **extension** - voir
 [`extending_aurora.md`](../../aurora-core/dev/extending_aurora.md) et
 les patterns `pattern_extend_*` dans `.claude/memory/aurora-client/`.
 

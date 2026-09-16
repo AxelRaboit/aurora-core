@@ -13,7 +13,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Check } from "lucide-vue-next";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
-import { agendaDays, sameDay } from "../composables/monthGrid.js";
+import { agendaDays, sameDay } from "@/shared/composables/calendar/monthGrid.js";
 
 const props = defineProps({
     /** The range's cells, from `monthGrid`. */

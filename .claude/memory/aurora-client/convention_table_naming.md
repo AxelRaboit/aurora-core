@@ -6,6 +6,13 @@ type: feedback
 
 ## Règle
 
+> **`Agency` n'existe plus.** Le module a été supprimé ; l'exemple filé
+> ci-dessous reste juste dans sa forme, mais on ne peut plus aller lire le
+> code auquel il renvoie. Le pilote vivant du même pattern est
+> `DocumentCategory`, déroulé en entier dans
+> `docs/aurora-core/dev/extending_category_pilot.md`.
+
+
 Toute table créée côté aurora-client (nouvelle entité ou substitution d'une
 entité Aurora) doit être préfixée `app_`. Les séquences PK correspondantes
 suivent le même préfixe : `seq_app_<entity>_id`.

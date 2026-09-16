@@ -1,17 +1,18 @@
 backend:
-    modules:
-        {{MODULE_ID}}: {{MODULE_LABEL}}
-        {{MODULE_ID}}_description: {{MODULE_LABEL}} - short description (settings page).
-    nav:
-        sections:
-            {{MODULE_ID}}: {{MODULE_LABEL}}
-        {{MODULE_ID}}: {{MODULE_LABEL}}
-        {{MODULE_ID}}_description: Short description for the sidemenu tooltip.
-    permissions:
-        names:
-            {{MODULE_ID}}:
-                use: Access {{MODULE_LABEL}}
+  modules:
+    {{MODULE_ID}}: {{MODULE_LABEL}}
+    {{MODULE_ID}}_backend: {{MODULE_LABEL}}
+    {{MODULE_ID}}_backend_description: "TODO - ce que le module active, en une phrase."
+  nav:
+    sections:
+      {{MODULE_ID}}: {{MODULE_LABEL}}
+    {{MODULE_ID}}: {{MODULE_LABEL}}
+    {{MODULE_ID}}_description: "TODO - infobulle du menu latéral."
+  permissions:
+    names:
+      {{MODULE_ID}}:
+        use: Accéder à {{MODULE_LABEL}}
 
 {{MODULE_ID}}:
-    title: {{MODULE_LABEL}}
-    subtitle: TODO - edit {{MODULE}}App.vue
+  title: {{MODULE_LABEL}}
+  subtitle: "TODO - éditer {{MODULE}}App.vue"

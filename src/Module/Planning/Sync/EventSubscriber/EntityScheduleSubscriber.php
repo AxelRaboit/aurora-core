@@ -64,6 +64,10 @@ final readonly class EntityScheduleSubscriber implements EventSubscriberInterfac
             '' !== $event->getSourceLabel() ? $event->getSourceLabel() : null,
         );
         $entry->setSourceUrl($event->getUrl());
+        // Null leaves the event on its calendar's colour, which is what a
+        // producer that said nothing about colour means. `setColourSlot`
+        // clamps, so a slot out of range is a colour rather than a failure.
+        $entry->setColourSlot($event->getColourSlot());
         // A date with no end is a moment, and a moment with no duration cannot be
         // drawn: `setSpan` refuses an end before a start and accepts one equal to
         // it, so the fallback is the start itself.

@@ -7,6 +7,7 @@ namespace Aurora\Module\Platform\User\Manager;
 use Aurora\Core\Storage\Enum\StorageAreaEnum;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Storage\StorageManager;
+use Aurora\Core\Storage\StoredFileName;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Service\UserProfilePhotoUrlGenerator;
@@ -14,7 +15,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[AsAlias(UserProfilePhotoManagerInterface::class)]
 class UserProfilePhotoManager implements UserProfilePhotoManagerInterface
@@ -30,7 +30,6 @@ class UserProfilePhotoManager implements UserProfilePhotoManagerInterface
 
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
-        protected readonly SluggerInterface $slugger,
         protected readonly AuditLogger $auditLogger,
         protected readonly StorageManager $storageManager,
     ) {}
@@ -63,8 +62,12 @@ class UserProfilePhotoManager implements UserProfilePhotoManagerInterface
         $this->removeFile($user->getProfilePhotoPath());
 
         $extension = $file->guessExtension() ?? $file->getClientOriginalExtension();
-        $base = $this->slugger->slug((string) $user->getId())->lower();
-        $newFilename = sprintf('%s-%s.%s', $base, uniqid(), $extension);
+        // Random, and carrying no account id. `profile-photos/` is served
+        // anonymously - no guard claims it - so the address is the only lock,
+        // and `<user id>-<uniqid>.jpg` locked nothing: the first half is an
+        // integer that counts up and the second is the microsecond of the
+        // upload. See {@see StoredFileName}.
+        $newFilename = StoredFileName::withExtension($extension);
 
         // PHP already put the upload somewhere on this machine; handing that
         // path over rather than moving it first means one copy instead of two.

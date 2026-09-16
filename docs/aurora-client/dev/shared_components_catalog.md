@@ -173,7 +173,7 @@ Champ texte. Gère password toggle, focus/select expose, error message sous le c
 ```vue
 <AppInput
     v-model="form.name"
-    :label="$t('agencies.name')"
+    :label="$t('document-categories.name')"
     :error="errors.name"
     required
 />
@@ -525,7 +525,7 @@ focus-trap.
 <AppModal
     :show="modal.open"
     max-width="lg"
-    :title="$t('agencies.create')"
+    :title="$t('document-categories.create')"
     :icon="Building"
     v-on:close="close"
 >

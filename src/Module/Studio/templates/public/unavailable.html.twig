@@ -4,14 +4,20 @@
 
 {# One page for every failure: unknown address, wrong secret, revoked, expired.
    Telling them apart would tell a stranger which of their guesses landed, and
-   would confirm that an address they tried was once real. #}
+   would confirm that an address they tried was once real.
+
+   Shared by every secret address, with one sentence of its own: the closing
+   line tells the reader what to ask for, and "demandez un nouveau lien" is only
+   actionable when they know which thing they were expecting. Everything above
+   it is deliberately identical. #}
+{% set messageKey = messageKey|default('studio.public.unavailable.message') %}
 {% block body %}
     <div class="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-center">
         <h1 class="text-lg font-semibold text-primary">
             {{ 'studio.public.unavailable.title'|trans }}
         </h1>
         <p class="max-w-md text-sm text-secondary">
-            {{ 'studio.public.unavailable.message'|trans }}
+            {{ messageKey|trans }}
         </p>
     </div>
 {% endblock %}

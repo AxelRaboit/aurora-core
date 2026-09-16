@@ -12,7 +12,7 @@ aurora-client/
 ├── src/                    # Code PHP client
 │   ├── Module/             # TOUT le code client (extensions + modules propres)
 │   │   ├── Platform/       #   ex. extensions d'entités Aurora\Module\Platform\*
-│   │   │   └── Agency/     #     ex. {Entity,Dto,Manager,Serializer} (illustratif)
+│   │   │   └── DocumentCategory/     #     ex. {Entity,Dto,Manager,Serializer} (illustratif)
 │   │   ├── Crm/            #   ex. extensions d'entités Aurora\Module\Crm\*
 │   │   └── Tracking/       #   ex. module métier propre au client (illustratif)
 │   ├── Service/            # Services cross-modules stateless (rare)
@@ -69,7 +69,7 @@ doctrine:
                 prefix: 'App\Module'
                 alias: AuroraClient
         resolve_target_entities:
-            Aurora\Module\Platform\Agency\Entity\AgencyInterface: App\Module\Platform\Agency\Entity\Agency
+            Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface: App\Module\Ged\DocumentCategory\Entity\DocumentCategory
 ```
 
 - **AuroraClient** - couvre tout `src/Module/` : extensions Aurora ET modules propres au client
@@ -113,8 +113,8 @@ Les overrides de composants Aurora sont **co-localisés** avec l'extension
 PHP sous `src/Module/<AuroraModule>/<Feature>/assets/` :
 
 ```
-src/Module/Platform/Agency/assets/backend/agencies/AgenciesApp.vue
-→ remplace le composant Aurora 'platform/backend/agencies/AgenciesApp'
+src/Module/Ged/DocumentCategory/assets/backend/document-categories/DocumentCategoriesApp.vue
+→ remplace le composant Aurora 'platform/backend/document-categories/DocumentCategoriesApp'
   (le glob clientModules wins sur auroraModules → shadow direct)
 ```
 
@@ -132,13 +132,13 @@ propres paths pour chaque namespace Twig (`@Core`, `@Shared`, `@Editorial`,
 `@Crm`, etc.). Deux paths d'override sont reconnus :
 
 - **Nouveau** (recommandé, aligné sur la convention core) :
-  `src/Core/templates/Core/backend/agencies/index.html.twig`,
+  `src/Core/templates/Core/backend/document-categories/index.html.twig`,
   `src/Module/<X>/templates/...`, etc.
-- **Legacy** (backward compat) : `templates/Core/backend/agencies/index.html.twig`,
+- **Legacy** (backward compat) : `templates/Core/backend/document-categories/index.html.twig`,
   `templates/Module/<X>/...`, etc.
 
 L'un ou l'autre surcharge automatiquement
-`vendor/axelraboit/aurora/src/Core/templates/Core/backend/agencies/index.html.twig`
+`vendor/axelraboit/aurora/src/Core/templates/Core/backend/document-categories/index.html.twig`
 sans configuration Twig supplémentaire.
 
 ---

@@ -44,14 +44,33 @@ final readonly class DocumentCategoryFactory
 
     public function createInlineUploadCategory(): DocumentCategoryInterface
     {
+        return $this->createCategory(
+            InlineUploadCategoryProvider::SLUG,
+            InlineUploadCategoryProvider::NAME_KEY,
+            InlineUploadCategoryProvider::DESCRIPTION_KEY,
+        );
+    }
+
+    /**
+     * Any module's own filing category, built on the currently mapped class.
+     *
+     * Generic because the inline uploader is no longer the only caller: a
+     * client space files the documents that arrive through it, and every such
+     * destination needs the same substitution-aware class resolution. Passing
+     * the three strings is cheaper than a method per module here, and it keeps
+     * the slug and its labels together at the call site, where the decision
+     * about what the category *is* actually lives.
+     */
+    public function createCategory(string $slug, string $nameKey, string $descriptionKey): DocumentCategoryInterface
+    {
         $class = $this->entityClass();
 
         $category = new $class();
 
         return $category
-            ->setSlug(InlineUploadCategoryProvider::SLUG)
-            ->setName($this->translator->trans(InlineUploadCategoryProvider::NAME_KEY))
-            ->setDescription($this->translator->trans(InlineUploadCategoryProvider::DESCRIPTION_KEY));
+            ->setSlug($slug)
+            ->setName($this->translator->trans($nameKey))
+            ->setDescription($this->translator->trans($descriptionKey));
     }
 
     /**

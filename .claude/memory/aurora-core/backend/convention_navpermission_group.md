@@ -49,7 +49,7 @@ voulue dans une autre section).
 - VO : `src/Core/Module/Nav/NavPermission.php` (paramètre `$group`)
 - Indexing : `src/Core/Module/Service/PermissionRegistry.php`
   (utilise `permission->group ?? module->getId()`)
-- Ordre d'affichage : `src/Core/User/View/UsersViewBuilder.php`
+- Ordre d'affichage : `src/Module/Platform/User/View/UsersViewBuilder.php`
   (`MODULE_PRIORITY` const)
 
 Voir [[convention_privilege_naming]] pour la règle de nommage uniforme

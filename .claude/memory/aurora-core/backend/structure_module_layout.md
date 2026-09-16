@@ -6,7 +6,7 @@ Chaque entité Aurora est rangée dans un **dossier dédié** sous `src/Core/`
 ou `src/Module/<Module>/<Feature>/`, avec une structure standard :
 
 ```
-src/Core/<Feature>/                            ← ex: src/Core/Agency/
+src/Core/<Feature>/                            ← ex: src/Core/Notification/
 src/Module/<Module>/<Feature>/                  ← ex: src/Module/Editorial/Post/
 ├── Controller/
 │   ├── Backend/                                ← endpoints admin (/backend/...)
@@ -26,10 +26,15 @@ src/Module/<Module>/<Feature>/                  ← ex: src/Module/Editorial/Pos
 └── Security/                                   ← Voters, AccessChecker, si applicable
 ```
 
+**Lequel des deux emplacements** : un module qui a un NavItem dans le menu
+vit sous `src/Module/`, jamais sous `src/Core/` - c'est
+[[decision_core_submodule_nesting]]. `src/Core/<Feature>/` est réservé à
+l'infra transverse ; il n'en reste qu'un de cette forme, `src/Core/Notification/`.
+
 ## Pourquoi cette séparation
 
-- **Cohésion verticale** : tout ce qui concerne `Agency` est sous
-  `src/Core/Agency/`. Pas de répartition horizontale par type
+- **Cohésion verticale** : tout ce qui concerne `Post` est sous
+  `src/Module/Editorial/Post/`. Pas de répartition horizontale par type
   (`src/Controller/`, `src/Manager/`, …).
 - **Module isolé** : on peut ajouter / supprimer un module entier en
   ajoutant / supprimant un dossier `src/Module/<Module>/`.
@@ -41,13 +46,14 @@ src/Module/<Module>/<Feature>/                  ← ex: src/Module/Editorial/Pos
 ### Choisir Core ou Module ?
 
 - **Core** : infrastructure transversale, indépendante d'un domaine métier
-  (Agency, Service, User, Media, Menu, Theme, Setting, Locale, Audit,
-  Notification, Sequence, Validation).
-- **Module** : domaine métier (Editorial, Crm, Erp, Ecommerce, Photo,
-  Billing, Ged, Project).
+  (Notification, Sequence, Validation, Storage, Locale, Trash, Search…).
+- **Module** : domaine métier (Editorial, Crm, Ged, Studio, Notes,
+  Platform, Configuration…).
 
 Si une entité touche du métier, c'est `src/Module/<Module>/<Entité>/`.
-Sinon `src/Core/<Entité>/`.
+Sinon `src/Core/<Entité>/`. En pratique le second cas est devenu rare :
+un module qui a un NavItem vit sous `src/Module/`, cf
+[[decision_core_submodule_nesting]].
 
 ### Sous-dossiers obligatoires vs optionnels
 
@@ -63,26 +69,31 @@ Sinon `src/Core/<Entité>/`.
 
 ### Naming des fichiers
 
-- Singulier pour les entités : `Agency.php`, `Post.php`.
+- Singulier pour les entités : `DocumentCategory.php`, `Post.php`.
 - Singulier pour les `<Name>Manager.php`, `<Name>Repository.php`,
   `<Name>Serializer.php`, `<Name>Input.php`.
-- Pluriel pour les Controllers + ViewBuilders : `AgenciesController.php`,
-  `AgenciesViewBuilder.php` (cohérent avec le pluriel des routes
-  `/backend/platform/agencies`).
+- Pluriel pour les Controllers + ViewBuilders :
+  `DocumentCategoriesController.php`, `DocumentCategoriesViewBuilder.php`
+  (cohérent avec le pluriel des routes `/backend/ged/categories`).
 
 ## Exemples
 
-### Standard simple (Agency)
+### Standard simple (DocumentCategory)
+
+C'est le pilote des 5 couches, déroulé en entier dans
+`docs/aurora-core/dev/extending_category_pilot.md`.
 
 ```
-src/Core/Agency/
-├── Controller/Backend/AgenciesController.php
-├── Dto/{Agency,AgencyInputFactory}{,Interface}.php   (4 fichiers)
-├── Entity/{Agency,AbstractAgency,AgencyInterface}.php
-├── Manager/{AgencyManager,AgencyManagerInterface}.php
-├── Repository/AgencyRepository.php
-├── Serializer/{AgencySerializer,AgencySerializerInterface}.php
-└── View/AgenciesViewBuilder.php
+src/Module/Ged/DocumentCategory/
+├── Controller/Backend/DocumentCategoriesController.php
+├── Dto/{DocumentCategoryInput,DocumentCategoryInputFactory}{,Interface}.php
+├── Entity/{DocumentCategory,AbstractDocumentCategory,DocumentCategoryInterface}.php
+├── Manager/{DocumentCategoryManager,DocumentCategoryManagerInterface}.php
+├── Repository/DocumentCategoryRepository.php
+├── Serializer/{DocumentCategorySerializer,DocumentCategorySerializerInterface}.php
+├── Service/{DocumentCategoryFactory,DocumentCategoryResolver,InlineUploadCategoryProvider}.php
+├── Message/PurgeTrashedCategoriesMessage.php + MessageHandler/
+└── View/DocumentCategoriesViewBuilder.php
 ```
 
 ### Module avec Frontend + Backend (Post)

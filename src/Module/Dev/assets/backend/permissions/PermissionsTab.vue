@@ -27,7 +27,7 @@ const { searchInput, filteredModules } = usePermissionsFilter(data);
         <AppNoData v-if="!filteredModules.length" :message="t('backend.permissions.empty')" />
         <div v-for="moduleEntry in filteredModules" :key="moduleEntry.id" class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
             <div class="bg-surface-2 border-b border-line px-4 py-2.5">
-                <h3 class="text-sm font-semibold text-primary">{{ t(`backend.modules.${moduleEntry.id}`) }}</h3>
+                <h3 class="text-sm font-semibold text-primary">{{ t(`backend.modules.${moduleEntry.id}`, moduleEntry.id) }}</h3>
             </div>
             <p v-if="!moduleEntry.permissions.length" class="px-4 py-3 text-xs text-muted flex items-center gap-1.5">
                 <Inbox class="w-3.5 h-3.5 opacity-40" :stroke-width="1.5" />

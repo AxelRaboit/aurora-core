@@ -9,10 +9,10 @@ modules et extensions par-dessus, sans toucher à `vendor/`.
 
 > **Modules d'exemple dans cette doc.** Les guides ci-dessous s'appuient sur
 > deux exemples génériques pour illustrer les patterns : un **module client
-> from scratch** (`Tracking`) et une **extension d'entité Aurora** (`Agency`
+> from scratch** (`Tracking`) et une **extension d'entité Aurora** (`DocumentCategory`
 > + champ `code`). Ce sont des supports pédagogiques - ils **ne sont pas
 > forcément présents** dans le template ; les chemins `src/Module/Tracking/…`
-> ou `src/Module/Platform/Agency/…` montrent simplement *où* ce code irait si
+> ou `src/Module/Ged/DocumentCategory/…` montrent simplement *où* ce code irait si
 > tu suivais l'exemple.
 
 ---
@@ -40,7 +40,7 @@ d'enrichir l'application. Le bon choix dépend du contexte.
 ### Mode 1 - Étendre un module Aurora existant
 
 **Quand l'utiliser** : tu veux personnaliser quelque chose qu'Aurora fournit
-déjà - ajouter un champ à `Agency`, changer le comportement du `DealManager`,
+déjà - ajouter un champ à `DocumentCategory`, changer le comportement du `DealManager`,
 ajouter une colonne dans la liste des factures.
 
 **Le principe** : Aurora expose des points d'extension typés à chaque couche.
@@ -49,12 +49,12 @@ slot Vue. Tu ne copies rien, tu n'overrides que ce qui diffère.
 
 ```
 Aurora fournit :        Tu écris :
-AgencyInterface    →    Agency (+ champ code)
-AgencyInput        →    AgencyInput (+ propriété code)
-AgencyInputFactory →    AgencyInputFactory (+ parsing code)
-AgencyManager      →    AgencyManager (+ createAgency() + applyInput())
-AgencySerializer   →    AgencySerializer (+ serialize() avec code)
-AgenciesApp.vue    →    slot extra-form-fields (+ <AppInput> pour code)
+DocumentCategoryInterface    →    DocumentCategory (+ champ code)
+DocumentCategoryInput        →    DocumentCategoryInput (+ propriété code)
+DocumentCategoryInputFactory →    DocumentCategoryInputFactory (+ parsing code)
+DocumentCategoryManager      →    DocumentCategoryManager (+ createDocumentCategory() + applyInput())
+DocumentCategorySerializer   →    DocumentCategorySerializer (+ serialize() avec code)
+DocumentCategoriesApp.vue    →    slot extra-form-fields (+ <AppInput> pour code)
 ```
 
 Le contrat est simple : **ne jamais modifier `vendor/`**. Tout ce que tu écris
@@ -100,7 +100,7 @@ Pour le guide technique pas-à-pas : [add_module.md](add_module.md).
 
 Les deux modes ne sont pas exclusifs. Un projet mature fait typiquement :
 
-- **Quelques extensions d'entités Aurora** (Agency avec code client, Deal avec
+- **Quelques extensions d'entités Aurora** (DocumentCategory avec code client, Deal avec
   champs métier spécifiques, Invoice avec un numéro interne)
 - **Un ou plusieurs modules client** pour les fonctionnalités propres au domaine
   (suivi de projets, gestion de chantiers, planning de ressources)

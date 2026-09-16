@@ -6,10 +6,15 @@ namespace Aurora\Fixtures\Studio;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Fixtures\Core\AppFixtures;
+use Aurora\Fixtures\Core\CoreDemoFixtures;
 use Aurora\Fixtures\Ged\GedDemoFixtures;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Ged\Document\Entity\Document;
+use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
+use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Contract\Dto\ContractInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateVersionInput;
@@ -29,21 +34,36 @@ use Aurora\Module\Studio\Customer\Dto\CustomerInput;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Manager\CustomerManagerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
+use Aurora\Module\Studio\CustomerSpace\Dto\CustomerSpaceInput;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
+use Aurora\Module\Studio\CustomerSpace\Manager\CustomerSpaceManagerInterface;
+use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\Deck\Entity\DeckCategory;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInput;
+use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInput;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInterface;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
+use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
+use RuntimeException;
+
+use function sprintf;
 
 /**
- * Demo content for the Studio module: three customers, three trames and a
- * contract in each state the list can draw.
+ * Demo content for the Studio module: three customers, five client spaces,
+ * three trames and a contract in each state the list can draw.
  *
  * Written because the module had none, and because a module with no demo data
  * has no screenshot of itself - the three screens could be opened locally and
@@ -96,6 +116,14 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     public function __construct(
         private readonly CustomerManagerInterface $customers,
         private readonly CustomerRepository $customerRepository,
+        private readonly CustomerSpaceManagerInterface $spaces,
+        private readonly CustomerSpaceRepository $spaceRepository,
+        private readonly UserRepository $userRepository,
+        private readonly SpaceContentItemManagerInterface $contentItems,
+        private readonly SpaceContentAttachmentManagerInterface $contentAttachments,
+        private readonly DocumentRepository $documents,
+        private readonly SpaceContentColumnManagerInterface $contentColumnManager,
+        private readonly SpaceContentColumnRepository $contentColumns,
         private readonly ContractTemplateManagerInterface $templates,
         private readonly ContractTemplateRepository $templateRepository,
         private readonly ContractManagerInterface $contracts,
@@ -115,8 +143,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     {
         // The GED fixtures, for the two slides that carry a picture: a
         // full-page image points at a document in the library rather than
-        // carrying a file of its own.
-        return [AppFixtures::class, GedDemoFixtures::class];
+        // carrying a file of its own. `CoreDemoFixtures` for the two demo
+        // accounts the spaces put on their teams.
+        return [AppFixtures::class, CoreDemoFixtures::class, GedDemoFixtures::class];
     }
 
     public function load(ObjectManager $manager): void
@@ -187,6 +216,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // on an instance that already had contracts, which is every instance
         // where `make demo` had been run once.
         $this->seedDecks($marie);
+        $this->seedSpaces($marie, $jean, $sophie);
 
         // Nothing below is built if the instance already has contracts. The
         // seal mints a reference from a yearly sequence, so a second run would
@@ -265,6 +295,223 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         );
 
         $this->entityManager->flush();
+    }
+
+    /**
+     * Five client spaces, chosen for the states a reader needs to recognise.
+     *
+     * Atelier Dupont gets two, which is the decision the whole design turns on:
+     * a space belongs to a customer and a customer may have several, so a
+     * client with two engagements running at once is the normal case rather
+     * than a workaround. A single space per company would have looked tidier
+     * here and taught the wrong thing.
+     *
+     * One is archived, and it has to be: the "show archived" switch only
+     * appears once there is something behind it, so a demo with none hides a
+     * feature nobody would then think to look for. It is also the space in a
+     * foreign zone, which is where the timezone field stops being decoration.
+     *
+     * One has nobody on it, so the empty team reads as a state rather than as
+     * a loading failure.
+     */
+    private function seedSpaces(
+        CustomerInterface $marie,
+        CustomerInterface $jean,
+        CustomerInterface $sophie,
+    ): void {
+        // Built once, like the decks and the contracts. A space has no natural
+        // key to look one up by, so a second `make demo` would quietly double
+        // a list that is meant to be read.
+        if (0 !== $this->spaceRepository->count([])) {
+            return;
+        }
+
+        $admin = $this->backendUser('dev@aurora.app');
+        $marieAccount = $this->backendUser('marie.dupont@aurora.app');
+        $jeanAccount = $this->backendUser('jean.martin@aurora.app');
+
+        $social = $this->space(
+            name: 'Atelier Dupont - Réseaux sociaux',
+            description: 'Deux publications par semaine, Instagram et Facebook. Validation le jeudi.',
+            customer: $marie,
+            members: [$marieAccount => 'lead', $jeanAccount => 'member'],
+        );
+
+        // One board filled, and only one. A demo where every space holds the
+        // same five cards teaches that the cards come with the product; a
+        // single busy board beside four empty ones shows both states, which is
+        // what the screens have to be able to draw.
+        $this->seedBoard($social);
+
+        $this->space(
+            name: 'Atelier Dupont - Refonte du site',
+            description: 'Reprise des textes et des photos de chantier, livraison au printemps.',
+            customer: $marie,
+            members: [$admin => 'lead'],
+        );
+
+        $this->space(
+            name: 'Martin Documents - Contenus LinkedIn',
+            description: 'Une publication hebdomadaire sur l\'archivage réglementaire.',
+            customer: $jean,
+            members: [$jeanAccount => 'lead', $admin => 'member'],
+        );
+
+        $this->space(
+            name: 'Roux Photographie - Portfolio 2026',
+            description: "Sélection des séries de l'année et mise à jour des pages du site.",
+            customer: $sophie,
+            members: [],
+        );
+
+        $this->space(
+            name: 'Martin Documents - Marché espagnol',
+            description: 'Campagne de lancement en Espagne. Chantier terminé, gardé pour ses contenus.',
+            customer: $jean,
+            members: [$jeanAccount => 'lead'],
+            status: CustomerSpaceStatusEnum::Archived,
+            timezone: 'Europe/Madrid',
+        );
+    }
+
+    /**
+     * A week of content on one board, spread across its steps.
+     *
+     * Dates are relative to today, like the contracts above: a calendar seeded
+     * with dates written into the file reads as abandoned within a month, and
+     * this is the data the calendar view will be photographed against.
+     *
+     * Three of the eight carry no date on purpose. An idea with no date is the
+     * state the board exists for - it is the work that has not been scheduled
+     * yet - and a demo where everything is scheduled hides half of what the
+     * nullable column is for.
+     */
+    private function seedBoard(CustomerSpaceInterface $space): void
+    {
+        if ([] === $this->contentColumns->findForSpace($space)) {
+            return;
+        }
+
+        // A sixth step, added after the fact and given a colour of its own.
+        // The five a space is born with show the defaults; this one shows the
+        // decision behind them - the steps belong to the space, so a client
+        // whose posts go past a lawyer has one nobody else has. A demo that
+        // only ever showed the default five would teach that they are the
+        // product's, which is the opposite of what the table is for.
+        $this->contentColumnManager->create($space, new SpaceContentColumnInput(
+            name: 'Relecture juridique',
+            colourSlot: 8,
+        ));
+
+        $columns = $this->contentColumns->findForSpace($space);
+
+        // Keyed by the step's place, not its name: the names are translated at
+        // creation and a demo that matched on "Idées" would seed nothing the
+        // day somebody creates a space in English.
+        // Fourth column: the pictures hung on the card, by document title.
+        //
+        // Most cards carry one, a couple carry several and one carries none,
+        // because those are the three things the board has to be able to draw.
+        // A demo where every card had a thumbnail would hide what a card with
+        // nothing to show looks like, which is the commonest state of all while
+        // a month is being planned.
+        $cards = [
+            0 => [
+                ['Portrait de l\'équipe', "Photo de groupe devant l'atelier, format carré.", null, ["Photo d'équipe - Séminaire 2025"]],
+                ['Les essences de bois', 'Un fil sur le chêne, le noyer et le frêne.', null, []],
+                ['Avant / après cuisine', 'La rénovation de septembre, en deux images.', null, ['Bureau - Illustration article', 'Capture - Tableau de bord client']],
+            ],
+            1 => [
+                ['Coulisses du chantier Morel', "Trois photos de l'escalier en cours.", '+3 days 09:00', ['Visuel de campagne - Automne 2025', 'Plan des locaux - Étage 2', 'Logo Aurora - Fond sombre']],
+            ],
+            2 => [
+                ['Offre de rentrée', 'Le devis gratuit jusqu\'au 30. À faire valider avant mardi.', '+5 days 18:00', ['Affiche du salon 2026']],
+            ],
+            3 => [
+                ['Journée portes ouvertes', "Rappel de l'événement du 12, avec le plan d'accès.", '+8 days 10:00', ['Plan des locaux - Étage 2']],
+                ['Témoignage client', 'Le retour de Mme Lefèvre sur sa bibliothèque.', '+10 days 09:00', []],
+            ],
+            4 => [
+                ['Le nouvel atelier', "L'annonce du déménagement, parue la semaine dernière.", '-4 days 09:00', ['Visuel de campagne - Automne 2025']],
+            ],
+            5 => [
+                // A card whose only file is a PDF: no square on the board, an
+                // icon in the form. The one case the tile logic has to get
+                // right and that no image would exercise.
+                ['Conditions du jeu concours', 'Le règlement relu par le cabinet avant publication.', '+14 days 09:00', ['Certification ISO 27001 - Audit 2024']],
+            ],
+        ];
+
+        foreach ($cards as $at => $rows) {
+            if (!isset($columns[$at])) {
+                continue;
+            }
+
+            foreach ($rows as [$title, $body, $when, $pictures]) {
+                $item = $this->contentItems->create($space, new SpaceContentItemInput(
+                    title: $title,
+                    body: $body,
+                    columnId: $columns[$at]->getId(),
+                    scheduledAt: null === $when
+                        ? null
+                        : new DateTimeImmutable($when)->format('Y-m-d\TH:i'),
+                ));
+
+                $this->hangPictures($item, $pictures);
+            }
+        }
+    }
+
+    /**
+     * One space, through the Manager rather than around it.
+     *
+     * So the demo exercises the same path a person does: the colour is spread
+     * across the palette by the same rule, and the audit log carries the same
+     * rows. Fixtures that persist entities directly produce data no code ever
+     * produced, which is how a demo stops resembling the product.
+     *
+     * @param array<int, string> $members account id => role value
+     */
+    private function space(
+        string $name,
+        string $description,
+        CustomerInterface $customer,
+        array $members,
+        CustomerSpaceStatusEnum $status = CustomerSpaceStatusEnum::Active,
+        string $timezone = 'Europe/Paris',
+    ): CustomerSpaceInterface {
+        $rows = [];
+        foreach ($members as $userId => $role) {
+            $rows[] = ['userId' => $userId, 'role' => $role];
+        }
+
+        return $this->spaces->create(new CustomerSpaceInput(
+            name: $name,
+            description: $description,
+            customerId: $customer->getId(),
+            status: $status,
+            // Left null so the Manager spreads the palette itself. Naming a
+            // slot here would have hard-coded five colours that stop being
+            // free the moment somebody adds a space of their own.
+            colourSlot: null,
+            timezone: $timezone,
+            members: $rows,
+        ));
+    }
+
+    /** The demo account behind an address, which the core fixtures put there. */
+    private function backendUser(string $email): int
+    {
+        $user = $this->userRepository->findOneBy([
+            'email' => $email,
+            'type' => UserTypeEnum::Backend->value,
+        ]);
+
+        if (!$user instanceof User) {
+            throw new RuntimeException(sprintf('The demo account %s is missing - run the core fixtures first.', $email));
+        }
+
+        return (int) $user->getId();
     }
 
     /**
@@ -428,6 +675,46 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
                 'Ce qui est abandonné, et pourquoi',
             ],
         ], null);
+    }
+
+    /**
+     * Hangs demo pictures on a card, by document title.
+     *
+     * By title rather than by id, and looked up here rather than referenced,
+     * because these documents are created by GED's own seeding table and are
+     * not exposed as fixture references - only the two `mediaRef` ones are. A
+     * title that stops existing silently hangs nothing, which is the right
+     * failure for a demo: a missing thumbnail is visible, a fatal on
+     * `make demo` is not.
+     *
+     * Signed through `attachAs()` rather than `attachAsStudio()` because a
+     * fixture has no session to resolve an author from. The alternative was
+     * building the row by hand, which is how the signing rules drift out of
+     * step with the ones the product applies.
+     *
+     * @param list<string> $titles
+     */
+    private function hangPictures(SpaceContentItemInterface $item, array $titles): void
+    {
+        if ([] === $titles) {
+            return;
+        }
+
+        $author = $this->userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Backend->value]);
+
+        if (!$author instanceof User) {
+            return;
+        }
+
+        foreach ($titles as $title) {
+            $document = $this->documents->findOneBy(['title' => $title]);
+
+            if (!$document instanceof Document) {
+                continue;
+            }
+
+            $this->contentAttachments->attachAs($item, $document, $author, $author->getName());
+        }
     }
 
     /**

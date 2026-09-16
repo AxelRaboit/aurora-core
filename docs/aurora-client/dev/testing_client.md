@@ -49,7 +49,7 @@ Mirror rule (idem `src/`) :
 
 | Code testé | Test |
 |---|---|
-| `src/Module/Platform/Agency/Manager/AgencyManager.php` | `tests/Unit/Module/Core/Agency/Manager/AgencyManagerTest.php` |
+| `src/Module/Ged/DocumentCategory/Manager/DocumentCategoryManager.php` | `tests/Unit/Module/Core/DocumentCategory/Manager/DocumentCategoryManagerTest.php` |
 | `src/Module/Tracking/Project/Manager/ProjectManager.php` | `tests/Integration/Module/Tracking/Project/Manager/ProjectManagerTest.php` |
 
 Règle simple :
@@ -79,23 +79,23 @@ directement.
 
 ## 4. Tester un override d'entité
 
-Cas typique : vous avez étendu `Agency` avec un champ `code`. Vous voulez
+Cas typique : vous avez étendu `DocumentCategory` avec un champ `code`. Vous voulez
 valider que le flow controller → factory → manager → entité persiste bien
 ce champ.
 
 ### Test Unit du Manager (sans DB)
 
 ```php
-namespace App\Tests\Unit\Module\Core\Agency\Manager;
+namespace App\Tests\Unit\Module\Core\DocumentCategory\Manager;
 
-use App\Module\Platform\Agency\Dto\AgencyInput;
-use App\Module\Platform\Agency\Entity\Agency;
-use App\Module\Platform\Agency\Manager\AgencyManager;
+use App\Module\Ged\DocumentCategory\Dto\DocumentCategoryInput;
+use App\Module\Ged\DocumentCategory\Entity\DocumentCategory;
+use App\Module\Ged\DocumentCategory\Manager\DocumentCategoryManager;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
-final class AgencyManagerTest extends TestCase
+final class DocumentCategoryManagerTest extends TestCase
 {
     public function testCreateAppliesCodeAndAuditsIt(): void
     {
@@ -104,20 +104,20 @@ final class AgencyManagerTest extends TestCase
 
         $auditLogger->expects(self::once())
             ->method('log')
-            ->with('core', 'agency.created', self::anything(), self::anything(),
+            ->with('core', 'category.created', self::anything(), self::anything(),
                 self::callback(fn (array $payload) => 'X-42' === $payload['code']));
 
-        $manager = new AgencyManager($entityManager, $auditLogger);
-        $agency = $manager->create(new AgencyInput('Foo', 'X-42'));
+        $manager = new DocumentCategoryManager($entityManager, $auditLogger);
+        $category = $manager->create(new DocumentCategoryInput('Foo', 'X-42'));
 
-        self::assertInstanceOf(Agency::class, $agency);
-        self::assertSame('X-42', $agency->getCode());
+        self::assertInstanceOf(DocumentCategory::class, $category);
+        self::assertSame('X-42', $category->getCode());
     }
 }
 ```
 
 Points utiles :
-- On instancie `App\…\AgencyManager` directement - pas besoin du conteneur,
+- On instancie `App\…\DocumentCategoryManager` directement - pas besoin du conteneur,
   les hooks `protected` sont scellés par le test du `extends`.
 - On vérifie que `parent::auditPayload()` a bien splat-mergé (clé `name`
   conservée) en plus de `code`.
@@ -125,21 +125,21 @@ Points utiles :
 ### Test Integration (avec DB)
 
 ```php
-namespace App\Tests\Integration\Module\Core\Agency;
+namespace App\Tests\Integration\Module\Core\DocumentCategory;
 
-use Aurora\Module\Platform\Agency\Manager\AgencyManagerInterface;
+use Aurora\Module\Ged\DocumentCategory\Manager\DocumentCategoryManagerInterface;
 // … hérite de la classe IntegrationTestCase d'Aurora
-final class AgencyExtensionTest extends \Aurora\Tests\Integration\IntegrationTestCase
+final class DocumentCategoryExtensionTest extends \Aurora\Tests\Integration\IntegrationTestCase
 {
     public function testManagerInterfaceResolvesToClientManager(): void
     {
-        $manager = self::getContainer()->get(AgencyManagerInterface::class);
-        self::assertInstanceOf(\App\Module\Platform\Agency\Manager\AgencyManager::class, $manager);
+        $manager = self::getContainer()->get(DocumentCategoryManagerInterface::class);
+        self::assertInstanceOf(\App\Module\Ged\DocumentCategory\Manager\DocumentCategoryManager::class, $manager);
     }
 }
 ```
 
-Ce test vérifie que `#[AsAlias]` est bien câblé : `AgencyManagerInterface`
+Ce test vérifie que `#[AsAlias]` est bien câblé : `DocumentCategoryManagerInterface`
 résout vers votre classe, pas vers celle d'Aurora.
 
 ---

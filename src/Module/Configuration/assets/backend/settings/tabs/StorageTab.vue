@@ -13,6 +13,9 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+
+const { formatDateTimeNumeric } = useDateFormat();
 
 /**
  * The storage tab of the settings screen.
@@ -95,7 +98,7 @@ const verifiedOn = computed(() => {
     if (!verifiedAt.value) return "";
     const date = new Date(verifiedAt.value);
 
-    return Number.isNaN(date.getTime()) ? verifiedAt.value : date.toLocaleString();
+    return Number.isNaN(date.getTime()) ? verifiedAt.value : formatDateTimeNumeric(date.toISOString());
 });
 /**
  * The one line that answers "is this thing on?" without reading the form.

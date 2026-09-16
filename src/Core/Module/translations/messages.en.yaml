@@ -43,5 +43,3 @@ backend:
     platform_backend_description: Technical backend section.
     configuration: Configuration
     configuration_description: Global application parameters and visual customization.
-    media_backend: Media library
-    media_backend_description: Centralized library of images, videos and files used across all modules.

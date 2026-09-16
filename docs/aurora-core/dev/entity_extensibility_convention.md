@@ -7,19 +7,19 @@ puisse être étendue de bout en bout par un client** (ajout d'un champ
 persistable, validable, sérialisé, et éditable depuis le backoffice) **sans
 qu'aucun fichier de `vendor/aurora/` soit modifié côté client**.
 
-L'entité de référence est **Agency** - toute nouvelle entité Aurora doit
+L'entité de référence est **DocumentCategory** - toute nouvelle entité Aurora doit
 suivre ce pattern, et toute entité existante doit y être migrée si elle a
 vocation à être étendue par un client.
 
 > Pour le côté client (comment *consommer* cette extensibilité), voir
-> [`extending_agency_pilot.md`](./extending_agency_pilot.md). Ce document-ci
+> [`extending_category_pilot.md`](./extending_category_pilot.md). Ce document-ci
 > ne traite que de **comment l'exposer** depuis aurora-core.
 
 ---
 
 ## 1. Rationale
 
-Sans cette convention, un client qui veut ajouter un champ `code` à `Agency`
+Sans cette convention, un client qui veut ajouter un champ `code` à `DocumentCategory`
 doit dupliquer (forker) :
 
 - L'entité concrète (avec tous les setters/getters)
@@ -50,48 +50,73 @@ avec un tableau ET un formulaire de création/édition dédié ?*
   admin) → seul le niveau 1 (entité substituable via `resolve_target_entities`)
   est requis
 
-### 2.1 Entités à instrumenter (43)
+### 2.1 Entités portant le pattern complet (35)
+
+Mesuré le 2026-09-16. Le marqueur est mécanique : une entité concrète dont le
+sous-domaine porte un `Dto/<X>Input.php`. Se recompte en une commande (§2.3)
+plutôt que de se maintenir à la main, ce qui est la raison pour laquelle
+l'ancienne version de cette table listait treize modules qui n'existent plus.
 
 | Module | Entités |
 |---|---|
-| Core | `Agency`, `Media`, `MediaFolder`, `Menu`, `MountPoint`, `Service`, `Theme`, `User` |
-| Editorial | `Comment`, `Form`, `Post`, `PostType`, `Taxonomy` |
-| Crm | `Company`, `Contact`, `ContactTag`, `Deal` |
-| Erp | `Product` |
-| Ecommerce | `Listing`, `ListingCategory`, `ListingTag`, `Order` |
-| Photo | `Gallery` |
-| Billing | `Invoice`, `Tiers`, `OcrJob` |
+| Configuration | `Theme` |
+| Dev | `MountPoint` |
+| Editorial | `Comment`, `Form`, `FormField`, `Menu`, `MenuItem`, `Post`, `PostTranslation`, `PostType`, `PostTypeField`, `Taxonomy`, `TaxonomyTerm` |
 | Ged | `Document`, `DocumentCategory`, `DocumentFolder`, `DocumentTag` |
-| Project | `Project`, `ProjectTask` |
-| Planning | `Planning`, `PlanningEvent` |
-| Hr | `Employee` |
-| Notes | `BlockNote`, `MarkdownNote`, `PostItNote` |
-| Vault | `VaultEntry`, `VaultFolder` |
-| PdfForm | `PdfDocument`, `PdfTemplate` |
-| Assistant | `AssistantMountPoint` |
+| Notes | `MarkdownNote` |
+| Planning | `Planning`, `PlanningEvent`, `PlanningReminder`, `PlanningShareLink` |
+| Platform | `AccessRequest`, `User` |
+| Studio | `Contract`, `ContractSignature`, `ContractTemplate`, `ContractTemplateVersion`, `Customer`, `CustomerSpace`, `Deck`, `DeckCategory`, `SpaceAccessLink`, `SpaceContentColumn`, `SpaceContentItem` |
 
-**Exclues du Core** (CRUD admin absent ou hors-scope) :
-- `Locale` : pas de page admin, géré via fixtures + `LocaleEnum`
-- `Notification` : pas de form admin, généré uniquement par `NotificationManager::notify()` depuis le code
-- `Setting` : éditeur clé-valeur sans CRUD (les clés sont définies par
-  `ApplicationParameterEnum`, seule la valeur change via le panel)
+Une nuance que le critère de la §2 laisse de côté : toutes n'ont pas leur propre
+page. `FormField`, `MenuItem`, `PostTypeField`, `TaxonomyTerm`,
+`ContractSignature` et les `*Translation` s'éditent dans le formulaire de leur
+parent, mais portent quand même un Input parce que la charge utile du parent les
+imbrique. Le pattern complet leur sert alors à valider et à substituer, pas à
+dessiner un écran.
 
-Pour ces 3 entités, **seule la couche 1 est requise** - déjà en place.
+### 2.2 Entités au niveau 1 seulement (30)
 
-### 2.2 Entités à exclure (≈ 40)
-
-| Catégorie | Entités |
+| Module | Entités |
 |---|---|
-| Translations (gérées via parent) | toutes les `*Translation` |
-| Items / lignes inline | `CartItem`, `OrderLine`, `InvoiceLine`, `FormField`, `PostTypeField`, `ProjectTaskItem`, `ProjectTaskComment`, `ProjectTaskTimeEntry`, `ProjectTaskAttachment`, `GalleryItem`, `GalleryItemComment`, `GalleryPick`, `GalleryFinalization`, `GalleryInvite`, `CommentReaction` |
-| Audit / historique auto-générés | `AuditLog`, `PostRevision`, `PostSlugHistory`, `FormSubmission`, `DocumentVersion`, `MediaVersion` |
-| Auth tunnel sans page admin | `AccessRequest`, `ResetPasswordRequest` |
-| Configs gérées inline dans le parent | `MenuItem`, `TaxonomyTerm`, `ProjectColumn`, `ProjectLabel`, `ProjectSprint`, `ProjectSavedView` |
-| Sessions runtime (pas de page admin) | `Cart`, `Conversation`, `Message`, `VaultUserConfig` |
+| Configuration | `Setting` |
+| Core | `Locale`, `Notification`, `SequenceCounter` |
+| Dev | `AuditLog` |
+| Editorial | `CommentReaction`, `FormFieldTranslation`, `FormSubmission`, `FormTranslation`, `MenuItemTranslation`, `PostPreviewToken`, `PostRevision`, `PostSlugHistory`, `TaxonomyTermTranslation`, `TaxonomyTranslation` |
+| Ged | `DocumentVersion` |
+| Notes | `MarkdownNoteShareLink` |
+| Planning | `PlanningEventAlert`, `PlanningEventAttendee`, `PlanningShare` |
+| Platform | `ResetPasswordRequest` |
+| Studio | `ContractAccessLink`, `ContractSignatureChallenge`, `ContractTemplateVersionTranslation`, `CustomerSpaceMember`, `DeckShareLink`, `Slide`, `SpaceContentAttachment`, `SpaceContentComment` |
 
-Pour ces entités, **seul le niveau 1 est requis** : pattern
-`Interface + AbstractX + concrete` + `resolve_target_entities`.
-Pas de DTO, pas de Manager extensible, pas de Vue slots.
+Elles se répartissent en cinq familles, et la famille explique l'exclusion mieux
+que la liste :
+
+| Famille | Exemples | Pourquoi pas de page |
+|---|---|---|
+| Traductions | toutes les `*Translation` | éditées dans le formulaire du parent, une langue par onglet |
+| Jetons et liens | `PostPreviewToken`, `DeckShareLink`, `ContractAccessLink`, `MarkdownNoteShareLink` | créés par une action, révoqués par une autre, jamais édités |
+| Historique auto-généré | `AuditLog`, `PostRevision`, `PostSlugHistory`, `DocumentVersion`, `FormSubmission` | écrits par le code, lus en liste, pas modifiables |
+| Lignes et membres inline | `CustomerSpaceMember`, `Slide`, `SpaceContentComment`, `SpaceContentAttachment`, `PlanningEventAttendee` | gérés depuis l'écran de leur parent |
+| Infrastructure | `Setting`, `Locale`, `Notification`, `SequenceCounter`, `ResetPasswordRequest` | pas de CRUD : un éditeur clé-valeur, des fixtures, ou un tunnel d'auth |
+
+Pour toutes, **seul le niveau 1 est requis** : `Interface + AbstractX + concrete`
+et la ligne dans `resolve_target_entities`. Pas de DTO, pas de Manager
+extensible, pas de slots Vue.
+
+### 2.3 Recompter
+
+Les deux tableaux ci-dessus sont une photo. Pour les refaire :
+
+```bash
+for f in $(find src -path '*/Entity/*.php' ! -name 'Abstract*' ! -name '*Interface.php'); do
+  n=$(basename "$f" .php)
+  [ -f "$(dirname "$f")/../Dto/${n}Input.php" ] && echo "5 couches  $f" || echo "niveau 1   $f"
+done | sort
+```
+
+Une entité qui apparaît au niveau 1 alors qu'elle a sa propre page est le signal
+qu'il manque un Input, pas que la table est fausse.
 
 ---
 
@@ -169,7 +194,7 @@ immutable.
 Squelette :
 
 ```php
-class AgencyInput implements AgencyInputInterface
+class DocumentCategoryInput implements DocumentCategoryInputInterface
 {
     public function __construct(
         #[Assert\NotBlank]
@@ -221,7 +246,7 @@ d'extension distinct :
 Manager instancie**, qu'elle ait ou non sa propre page admin. C'est le seul
 moyen pour un client de substituer sa classe enfant.
 
-Exemples : `AgencyManager` → `createAgency()` seul. `OrderManager` →
+Exemples : `DocumentCategoryManager` → `createDocumentCategory()` seul. `OrderManager` →
 `createOrder()` + `createOrderLine()`. `FormManager` → `createForm()` +
 `createFormField()`. `ProjectManager` → `createProject()` +
 `createProjectColumn()` + `createProjectLabel()` + `createProjectSprint()`.
@@ -244,7 +269,7 @@ $entity, <Name>InputInterface $input): void`. Appelé par `create()` et
 3. Les opérations métier ont des règles de validation/sécurité distinctes
    (transitions de statut, autorisations, contextes différents)
 
-À ce jour, seul `User` qualifie. Pour Order, Project, Invoice, etc.,
+À ce jour, seul `User` qualifie. Pour `Post`, `Contract` ou `SpaceContentItem`,
 `applyInput()` reste obligatoire même s'ils exposent quelques méthodes
 spécialisées en plus du flow standard.
 
@@ -270,74 +295,74 @@ protected function auditPayload(<Name>Interface $entity): array
 
 Le client qui ajoute `code` override **uniquement** `auditPayload()` :
 ```php
-protected function auditPayload(AgencyInterface $agency): array
+protected function auditPayload(DocumentCategoryInterface $category): array
 {
-    return [...parent::auditPayload($agency), 'code' => $agency->getCode()];
+    return [...parent::auditPayload($category), 'code' => $category->getCode()];
 }
 ```
 
 #### 3.4 Squelette de référence
 
 ```php
-class AgencyManager implements AgencyManagerInterface
+class DocumentCategoryManager implements DocumentCategoryManagerInterface
 {
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
     ) {}
 
-    public function create(AgencyInputInterface $input): AgencyInterface
+    public function create(DocumentCategoryInputInterface $input): DocumentCategoryInterface
     {
-        $agency = $this->createAgency();
-        $this->applyInput($agency, $input);
-        $this->entityManager->persist($agency);
+        $category = $this->createDocumentCategory();
+        $this->applyInput($category, $input);
+        $this->entityManager->persist($category);
         $this->entityManager->flush();
-        $this->auditCreated($agency);
-        return $agency;
+        $this->auditCreated($category);
+        return $category;
     }
 
-    public function update(AgencyInterface $agency, AgencyInputInterface $input): void
+    public function update(DocumentCategoryInterface $category, DocumentCategoryInputInterface $input): void
     {
-        $this->applyInput($agency, $input);
+        $this->applyInput($category, $input);
         $this->entityManager->flush();
-        $this->auditUpdated($agency);
+        $this->auditUpdated($category);
     }
 
-    public function delete(AgencyInterface $agency): void
+    public function delete(DocumentCategoryInterface $category): void
     {
-        $this->entityManager->remove($agency);
+        $this->entityManager->remove($category);
         $this->entityManager->flush();
-        $this->auditDeleted($agency);
+        $this->auditDeleted($category);
     }
 
-    protected function createAgency(): AgencyInterface
+    protected function createDocumentCategory(): DocumentCategoryInterface
     {
-        return new Agency();
+        return new DocumentCategory();
     }
 
-    protected function applyInput(AgencyInterface $agency, AgencyInputInterface $input): void
+    protected function applyInput(DocumentCategoryInterface $category, DocumentCategoryInputInterface $input): void
     {
-        $agency->setName($input->getName());
+        $category->setName($input->getName());
     }
 
-    protected function auditCreated(AgencyInterface $agency): void
+    protected function auditCreated(DocumentCategoryInterface $category): void
     {
-        $this->auditLogger->log('core', 'agency.created', 'Agency', $agency->getId(), $this->auditPayload($agency));
+        $this->auditLogger->log('ged', 'category.created', 'DocumentCategory', $category->getId(), $this->auditPayload($category));
     }
 
-    protected function auditUpdated(AgencyInterface $agency): void
+    protected function auditUpdated(DocumentCategoryInterface $category): void
     {
-        $this->auditLogger->log('core', 'agency.updated', 'Agency', $agency->getId(), $this->auditPayload($agency));
+        $this->auditLogger->log('ged', 'category.updated', 'DocumentCategory', $category->getId(), $this->auditPayload($category));
     }
 
-    protected function auditDeleted(AgencyInterface $agency): void
+    protected function auditDeleted(DocumentCategoryInterface $category): void
     {
-        $this->auditLogger->log('core', 'agency.deleted', 'Agency', $agency->getId(), $this->auditPayload($agency));
+        $this->auditLogger->log('ged', 'category.deleted', 'DocumentCategory', $category->getId(), $this->auditPayload($category));
     }
 
-    protected function auditPayload(AgencyInterface $agency): array
+    protected function auditPayload(DocumentCategoryInterface $category): array
     {
-        return ['name' => $agency->getName()];
+        return ['name' => $category->getName()];
     }
 }
 ```
@@ -371,7 +396,7 @@ propres champs au tableau retourné par `parent::serialize($entity)`.
 
 - **Slots scoped** :
   - `extra-headers` (sans scope) - `<th>` additionnels pour la table
-  - `extra-cells` (scoped sur `agency` - ou nom équivalent) - `<td>` par ligne
+  - `extra-cells` (scoped sur `category` - ou nom équivalent) - `<td>` par ligne
   - `extra-form-fields` (scoped sur `editForm` + `errors`) - inputs additionnels
     dans le modal de création/édition
 
@@ -466,11 +491,11 @@ Le `<Name>Repository` doit étendre
 `ServiceEntityRepository`) :
 
 ```php
-class AgencyRepository extends ResolveTargetEntityRepository
+class DocumentCategoryRepository extends ResolveTargetEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Agency::class, AgencyInterface::class);
+        parent::__construct($registry, DocumentCategory::class, DocumentCategoryInterface::class);
     }
 }
 ```
@@ -493,10 +518,10 @@ aurora-core.
 // 1. Le client étend le repo Aurora
 namespace App\Repository;
 
-use Aurora\Module\Platform\Agency\Repository\AgencyRepository;
+use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-class AppAgencyRepository extends AgencyRepository
+class AppDocumentCategoryRepository extends DocumentCategoryRepository
 {
     public function findActiveExcludingArchived(): array
     {
@@ -507,8 +532,8 @@ class AppAgencyRepository extends AgencyRepository
 }
 
 // 2. Et le déclare dans son entité concrète
-#[ORM\Entity(repositoryClass: AppAgencyRepository::class)]
-class Agency extends \Aurora\Module\Platform\Agency\Entity\AbstractAgency implements AgencyInterface
+#[ORM\Entity(repositoryClass: AppDocumentCategoryRepository::class)]
+class DocumentCategory extends \Aurora\Module\Ged\DocumentCategory\Entity\AbstractDocumentCategory implements DocumentCategoryInterface
 {
     // …
 }
@@ -516,34 +541,34 @@ class Agency extends \Aurora\Module\Platform\Agency\Entity\AbstractAgency implem
 
 `ResolveTargetEntityRepository` route déjà la query via metadata, donc
 les finders Aurora **et** custom client cohabitent sans conflit. Le client
-type-hint `AppAgencyRepository` dans son propre code ; Aurora continue de
-type-hint `AgencyRepository`.
+type-hint `AppDocumentCategoryRepository` dans son propre code ; Aurora continue de
+type-hint `DocumentCategoryRepository`.
 
 ---
 
 ## 4. Conventions de nommage
 
-Pour `<Name> = Agency` :
+Pour `<Name> = DocumentCategory` :
 
 | Élément | Nom |
 |---|---|
-| Entité concrète | `Agency` (`Aurora\Module\Platform\Agency\Entity\Agency`) |
-| Mapped superclass | `AbstractAgency` |
-| Interface entité | `AgencyInterface` |
-| Table | `core_agencies` |
-| Sequence | `seq_core_agency_id` |
-| DTO d'entrée | `AgencyInput` |
-| Interface DTO | `AgencyInputInterface` |
-| Factory | `AgencyInputFactory` |
-| Interface factory | `AgencyInputFactoryInterface` |
-| Manager | `AgencyManager` |
-| Interface Manager | `AgencyManagerInterface` |
-| Serializer | `AgencySerializer` |
-| Interface Serializer | `AgencySerializerInterface` |
-| Repository | `AgencyRepository` |
-| Vue main app | `AgenciesApp.vue` |
-| Composable form | `useAgenciesForm.js` (unifié create+edit, option `extraFields`) |
-| Hooks Manager - instanciation | `createAgency()` (1 par classe instanciée, sans exception) |
+| Entité concrète | `DocumentCategory` (`Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory`) |
+| Mapped superclass | `AbstractDocumentCategory` |
+| Interface entité | `DocumentCategoryInterface` |
+| Table | `core_ged_document_categories` |
+| Sequence | `seq_core_ged_category_id` |
+| DTO d'entrée | `DocumentCategoryInput` |
+| Interface DTO | `DocumentCategoryInputInterface` |
+| Factory | `DocumentCategoryInputFactory` |
+| Interface factory | `DocumentCategoryInputFactoryInterface` |
+| Manager | `DocumentCategoryManager` |
+| Interface Manager | `DocumentCategoryManagerInterface` |
+| Serializer | `DocumentCategorySerializer` |
+| Interface Serializer | `DocumentCategorySerializerInterface` |
+| Repository | `DocumentCategoryRepository` |
+| Vue main app | `DocumentCategoriesApp.vue` |
+| Composable form | `useDocumentCategoriesForm.js` (unifié create+edit, option `extraFields`) |
+| Hooks Manager - instanciation | `createDocumentCategory()` (1 par classe instanciée, sans exception) |
 | Hook Manager - hydratation | `applyInput()` (sauf variante User) |
 | Hooks Manager - audit | `auditCreated()` + `auditUpdated()` + `auditDeleted()` + `auditPayload()` |
 | Vue slots | `extra-headers`, `extra-cells`, `extra-form-fields` |
@@ -556,7 +581,7 @@ namespace `Symfony\Component\Security\Core\User\UserInterface`.
 
 ## 4.bis Variantes structurelles
 
-Le pattern Agency est la **référence canonique**. Les autres règles de la
+Le pattern DocumentCategory est la **référence canonique**. Les autres règles de la
 convention (scope du DTO, hooks par classe instanciée, `applyInput()` quand
 applicable, composables `useXxxForm` unifiés) sont décrites directement dans
 les couches 2/3/5 et ne constituent pas des variantes - juste des
@@ -574,7 +599,7 @@ de la sous-section 3.2 :
 3. Règles de validation/sécurité distinctes par opération
 
 `User` qualifie : `changePassword`, `consumeInvitation`, `toggleDevRole`,
-`updateProfile`, `updateAgencyAndService`, `requestPasswordReset`, … chacune
+`updateProfile`, `updateDocumentCategoryAndService`, `requestPasswordReset`, … chacune
 avec son contexte de sécurité. On n'expose **pas** de `applyInput()` ; les
 méthodes publiques sont customisables une par une. Les hooks d'instanciation
 (`create<X>()`) et d'audit (`audit*` + `auditPayload()`) restent
@@ -603,7 +628,7 @@ chacun, slots `extra-create-form-fields` (côté create modal) et
 
 Quand cette variante s'applique-t-elle ? **Quand les deux forms n'ont aucun
 champ commun au-delà de `name`/`description`**. Sinon, le pattern unifié
-`useXxxForm` (Agency, Deal, Service, Media, Menu, …) reste préférable.
+`useXxxForm` (`Customer`, `DocumentCategory`, `Menu`, `Taxonomy`, …) reste préférable.
 
 ### 4.bis.2 Editor full-page (pas un modal)
 
@@ -619,7 +644,7 @@ SeoPanel). L'hydratation des extras se fait dans `onMounted` après le
 chargement initial des données.
 
 Pour la liste (`PostsApp.vue`), les slots `extra-headers` / `extra-cells`
-restent identiques au pattern Agency - la complexité de l'editor ne change
+restent identiques au pattern DocumentCategory - la complexité de l'editor ne change
 pas la liste.
 
 ### 4.bis.3 Tree-based editor (pas une table)
@@ -628,7 +653,7 @@ pas la liste.
 
 Quand l'interface est un **arbre** (sidebar récursive de nœuds parent/enfant)
 + éditeur central, pas de table tabulaire, le mapping des slots
-`extra-headers` / `extra-cells` à la convention Agency demande une
+`extra-headers` / `extra-cells` à la convention DocumentCategory demande une
 adaptation :
 
 - **`extra-headers`** : surface du panneau sidebar au-dessus de l'arbre
@@ -688,7 +713,8 @@ de l'auto-save.
 ## 6. Checklist - Retrofitter une entité existante
 
 Pour appliquer cette convention à une entité qui n'a pas encore le pattern
-complet (ex : Deal, Post, User, Project, Contact, Company, Order, etc.) :
+complet, c'est-à-dire l'une de celles listées en §2.2 dont le rôle vient de
+changer :
 
 ### Côté code
 
@@ -775,19 +801,19 @@ Pour une nouvelle entité créée from-scratch dans aurora-core :
 
 ## 8. Référence canonique
 
-Pour copier-coller un exemple en bon état, partir de **`Agency`** :
+Pour copier-coller un exemple en bon état, partir de **`DocumentCategory`** :
 
 | Couche | Fichiers de référence |
 |---|---|
-| Entity | `src/Module/Platform/Agency/Entity/{AgencyInterface,AbstractAgency,Agency}.php` |
-| DTO | `src/Module/Platform/Agency/Dto/{AgencyInputInterface,AgencyInput,AgencyInputFactoryInterface,AgencyInputFactory}.php` |
-| Manager | `src/Module/Platform/Agency/Manager/{AgencyManagerInterface,AgencyManager}.php` |
-| Serializer | `src/Module/Platform/Agency/Serializer/{AgencySerializerInterface,AgencySerializer}.php` |
-| Repository | `src/Module/Platform/Agency/Repository/AgencyRepository.php` |
-| Controller | `src/Module/Platform/Agency/Controller/Backend/AgenciesController.php` |
-| Vue main | `src/Module/Platform/assets/backend/agencies/AgenciesApp.vue` |
-| Vue composables | `src/Module/Platform/assets/backend/agencies/composables/useAgenciesForm.js` |
-| Twig | `src/Module/Platform/templates/backend/agencies/index.html.twig` (namespace `@Platform`) |
+| Entity | `src/Module/Ged/DocumentCategory/Entity/{DocumentCategoryInterface,AbstractDocumentCategory,DocumentCategory}.php` |
+| DTO | `src/Module/Ged/DocumentCategory/Dto/{DocumentCategoryInputInterface,DocumentCategoryInput,DocumentCategoryInputFactoryInterface,DocumentCategoryInputFactory}.php` |
+| Manager | `src/Module/Ged/DocumentCategory/Manager/{DocumentCategoryManagerInterface,DocumentCategoryManager}.php` |
+| Serializer | `src/Module/Ged/DocumentCategory/Serializer/{DocumentCategorySerializerInterface,DocumentCategorySerializer}.php` |
+| Repository | `src/Module/Ged/DocumentCategory/Repository/DocumentCategoryRepository.php` |
+| Controller | `src/Module/Ged/DocumentCategory/Controller/Backend/DocumentCategoriesController.php` |
+| Vue main | `src/Module/Ged/assets/backend/document-categories/DocumentCategoriesApp.vue` |
+| Vue composables | `src/Module/Ged/assets/backend/document-categories/composables/useDocumentCategoriesForm.js` |
+| Twig | `src/Module/Ged/templates/backend/categories/index.html.twig` (namespace `@Ged`) |
 
 Toute déviation de ce pattern doit être justifiée (cas spécifique au domaine
 de l'entité) et documentée dans cette même convention.

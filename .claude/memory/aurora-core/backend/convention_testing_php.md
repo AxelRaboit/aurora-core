@@ -10,8 +10,8 @@ metadata:
 **Tests PHP → dossier centralisé `tests/` qui miroir `src/`** (convention Symfony/PHPUnit).
 
 ```
-src/Module/Billing/Service/InvoiceExtractor.php
-tests/Unit/Module/Billing/Service/InvoiceExtractorTest.php   ← miroir
+src/Core/Storage/StoredFileName.php
+tests/Unit/Core/Storage/StoredFileNameTest.php   ← miroir
 ```
 
 C'est intentionnellement différent des tests Vue/JS (co-localisés) - deux écosystèmes, deux conventions établies. Ne pas mélanger : pas de `.test.php` co-localisé dans `src/`.
@@ -80,7 +80,7 @@ final class MyControllerTest extends IntegrationTestCase
 
 - Classe : `{Sujet}Test` (final)
 - Méthode : `test{ActionBehavior}`
-- Namespace : miroir de `src/` → `Aurora\Tests\Unit\Module\Billing\Service\InvoiceExtractorTest`
+- Namespace : miroir de `src/` → `Aurora\Tests\Unit\Core\Storage\StoredFileNameTest`
 - Fichier : `tests/{Unit|Integration}/{miroir de src/}`
 
 ## Fixtures

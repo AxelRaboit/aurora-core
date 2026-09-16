@@ -5,14 +5,22 @@ declare(strict_types=1);
 namespace Aurora\Module\Ged\Document\Contract;
 
 /**
- * Implemented by modules that reference a GED Document (Billing invoices &
- * OCR jobs, Project task attachments, client modules like Welding…). The
- * aggregator service iterates all tagged providers to surface where a
- * document is used - before deletion or just for traceability.
+ * Implemented by every module that points at a GED document, so the library
+ * can answer "who is using this" before somebody deletes it.
  *
- * Unlike the Media library (referenced by id embedded in free-form content),
- * documents are referenced through explicit Doctrine FK relations, so each
- * provider is an exact, refactor-safe query - no content scanning.
+ * **A module that references a document and provides nothing here makes the
+ * deletion screen lie**, and the screen is the only warning there is. What
+ * follows the deletion depends on how the pointer was declared, and neither
+ * outcome is visible: a `CASCADE` relation takes its own row with it - a
+ * space attachment simply vanishes from the client's space - while a
+ * `SET NULL` one, or an id buried in a JSON column, leaves a post or a slide
+ * quietly drawing nothing.
+ *
+ * Two shapes, because there are two ways to hold a document. Where the
+ * pointer is a Doctrine relation the query is exact and survives a rename
+ * ({@see SpaceAttachmentDocumentUsageProvider}); where the id lives inside a
+ * JSON column it has to be scanned for, which is looser and wants a
+ * narrowing clause first on anything that grows ({@see PostDocumentUsageProvider}).
  *
  * Tag implementing classes with `aurora.document_usage_provider`
  * (autoconfigured via the interface alias).

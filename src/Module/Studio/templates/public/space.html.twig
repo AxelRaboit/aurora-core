@@ -1,0 +1,47 @@
+{# Un espace client ouvert par une adresse secrète.
+
+   Sa propre page, sans menu ni compte : celui qui l'ouvre n'en a pas, et c'est
+   la raison d'être de l'adresse. Modelée sur la page publique d'une
+   présentation plutôt que sur celle d'un contrat, avec la même raison : un plan
+   de contenu se regarde en grille, et une colonne de lecture de 3xl étrangle un
+   mois.
+
+   Rien ici ne permet d'écrire par défaut. Les trois droits - valider, commenter,
+   envoyer un fichier - arrivent chacun avec la colonne qui le porte et la limite
+   de débit qu'une écriture invitée réclame. Celui d'envoyer un fichier est le
+   seul à arriver éteint, parce qu'il écrit des octets dans notre stockage. #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {# Rien ici n'est destiné à être trouvé. L'adresse est un secret remis à
+           quelqu'un, et un moteur qui l'indexerait la remettrait à tout le
+           monde, définitivement et hors de portée de toute révocation. #}
+        <meta name="robots" content="noindex, nofollow, noarchive">
+        <meta name="referrer" content="no-referrer">
+        <title>{{ space.name }}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        {{ include('@Shared/components/theme_script.html.twig', {colorScheme: true}) }}
+        {{ vite_entry_link_tags('app') }}
+        {{ include('@Shared/components/primary_color_style.html.twig') }}
+        {{ vite_entry_script_tags('app') }}
+        {{ vite_entry_script_tags('theme') }}
+    </head>
+    <body class="min-h-screen bg-body transition-colors duration-200">
+        <div {{ vue_component('studio/frontend/space/PublicSpaceApp', {
+            space: space,
+            columns: columns,
+            items: items,
+            expiresAt: expiresAt ? expiresAt|date('c') : null,
+            canApprove: canApprove,
+            answerPath: answerPath,
+            canComment: canComment,
+            comments: comments,
+            commentPath: commentPath,
+            canUpload: canUpload,
+            attachments: attachments,
+            uploadPath: uploadPath,
+        }) }} class="min-h-screen"></div>
+    </body>
+</html>

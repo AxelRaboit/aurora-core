@@ -1,5 +1,12 @@
 # Controllers - où va quoi
 
+> **`Agency` n'existe plus.** Le module a été supprimé ; l'exemple filé
+> ci-dessous reste juste dans sa forme, mais on ne peut plus aller lire le
+> code auquel il renvoie. Le pilote vivant du même pattern est
+> `DocumentCategory` (`src/Module/Ged/DocumentCategory/`), déroulé en
+> entier dans `docs/aurora-core/dev/extending_category_pilot.md`.
+
+
 ## Règle
 
 ### Localisation
