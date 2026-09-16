@@ -27,7 +27,7 @@ the template, substitute, write.
 1. **Entity name** in PascalCase (`Workspace`, `Refund`, `AuditLog`).
 2. **Module path** relative to `src/` :
    - `Core` (a core/global entity living directly under `src/Core/<Feature>/`)
-   - `Module/<Module>` (e.g. `Module/Billing`, `Module/Editorial`)
+   - `Module/<Module>` (e.g. `Module/Ged`, `Module/Editorial`)
    - The path must already exist. If not, stop and point at
      `/add-module` first.
 3. **Plural** - defaults to `<Name>s`. Ask only if irregular
@@ -203,7 +203,7 @@ fields). After fleshing out the backend :
 - **ViewBuilder** : `src/<ModulePath>/<Name>/View/<Plural>ViewBuilder.php`.
   Pattern : `<Plural>Repository` → `['<plural_snake>' => [serialized
   rows], <other index-page payload>]`. Reference :
-  `AgenciesViewBuilder` in `src/Module/Platform/Agency/View/`.
+  `DocumentCategoriesViewBuilder` in `src/Module/Ged/DocumentCategory/View/`.
 - **Twig template** : `src/<ModulePath>/templates/backend/<plural_snake>/index.html.twig`,
   extending the standard layout, mounting the Vue component.
 - **Vue list page** : chain to `/add-crud-list-ui` to scaffold
