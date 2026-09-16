@@ -65,7 +65,6 @@ final class ModuleParameterEnumTest extends TestCase
         self::assertNull(ModuleParameterEnum::GeneralBackend->getCascadeRequires());
         self::assertNull(ModuleParameterEnum::PlatformBackend->getCascadeRequires());
         self::assertNull(ModuleParameterEnum::ConfigurationBackend->getCascadeRequires());
-        self::assertNull(ModuleParameterEnum::MediaBackend->getCascadeRequires());
         self::assertNull(ModuleParameterEnum::GedBackend->getCascadeRequires());
     }
 
@@ -101,7 +100,6 @@ final class ModuleParameterEnumTest extends TestCase
         self::assertSame(ModuleParameterEnum::GedBackend, ModuleParameterEnum::GedFrontend->getParentCase());
         self::assertSame(ModuleParameterEnum::PlatformBackend, ModuleParameterEnum::PlatformUsers->getParentCase());
         self::assertSame(ModuleParameterEnum::ConfigurationBackend, ModuleParameterEnum::ConfigurationThemes->getParentCase());
-        self::assertSame(ModuleParameterEnum::MediaBackend, ModuleParameterEnum::MediaLibrary->getParentCase());
     }
 
     public function testGetModuleIdForTopLevelEnabledCases(): void
@@ -109,7 +107,6 @@ final class ModuleParameterEnumTest extends TestCase
         self::assertSame('general', ModuleParameterEnum::GeneralBackend->getModuleId());
         self::assertSame('platform', ModuleParameterEnum::PlatformBackend->getModuleId());
         self::assertSame('configuration', ModuleParameterEnum::ConfigurationBackend->getModuleId());
-        self::assertSame('media', ModuleParameterEnum::MediaBackend->getModuleId());
         self::assertSame('ged', ModuleParameterEnum::GedBackend->getModuleId());
     }
 
@@ -119,7 +116,6 @@ final class ModuleParameterEnumTest extends TestCase
         self::assertNull(ModuleParameterEnum::GedFrontend->getModuleId());
         self::assertNull(ModuleParameterEnum::PlatformUsers->getModuleId());
         self::assertNull(ModuleParameterEnum::ConfigurationThemes->getModuleId());
-        self::assertNull(ModuleParameterEnum::MediaLibrary->getModuleId());
         self::assertNull(ModuleParameterEnum::GeneralDashboard->getModuleId());
     }
 }

@@ -14,7 +14,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     case GeneralBackend = 'modules_general_backend';
     case PlatformBackend = 'modules_platform_backend';
     case ConfigurationBackend = 'modules_configuration_backend';
-    case MediaBackend = 'modules_media_backend';
     case EditorialBackend = 'modules_editorial_backend';
     case GedBackend = 'modules_ged_backend';
     case PlanningBackend = 'modules_planning_backend';
@@ -32,9 +31,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     // Sub-modules - Configuration
     case ConfigurationSettings = 'modules_configuration_settings';
     case ConfigurationThemes = 'modules_configuration_themes';
-
-    // Sub-modules - Media
-    case MediaLibrary = 'modules_media_library';
 
     // Sub-modules - Editorial
     case EditorialFrontend = 'modules_editorial_frontend';
@@ -75,8 +71,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::ConfigurationBackend => 'backend.modules.configuration',
             self::ConfigurationSettings => 'backend.nav.settings',
             self::ConfigurationThemes => 'backend.nav.themes',
-            self::MediaBackend => 'backend.modules.media_backend',
-            self::MediaLibrary => 'backend.nav.media',
             self::EditorialBackend => 'backend.modules.editorial_backend',
             self::EditorialFrontend => 'backend.modules.editorial_frontend',
             self::EditorialPosts => 'backend.nav.posts',
@@ -114,8 +108,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::ConfigurationBackend => 'backend.modules.configuration_description',
             self::ConfigurationSettings => 'backend.nav.settings_description',
             self::ConfigurationThemes => 'backend.nav.themes_description',
-            self::MediaBackend => 'backend.modules.media_backend_description',
-            self::MediaLibrary => 'backend.nav.media_description',
             self::EditorialBackend => 'backend.modules.editorial_backend_description',
             self::EditorialFrontend => 'backend.modules.editorial_frontend_description',
             self::EditorialPosts => 'backend.nav.posts_description',
@@ -167,7 +159,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GeneralDashboard => self::GeneralBackend,
             self::PlatformUsers => self::PlatformBackend,
             self::ConfigurationSettings, self::ConfigurationThemes => self::ConfigurationBackend,
-            self::MediaLibrary => self::MediaBackend,
             self::EditorialFrontend, self::EditorialPosts, self::EditorialPostTypes, self::EditorialTaxonomies, self::EditorialMenus, self::EditorialSeo, self::EditorialComments, self::EditorialForms => self::EditorialBackend,
             self::GedDocuments, self::GedCategories, self::GedTags, self::GedFolders, self::GedFrontend => self::GedBackend,
             self::NotesMarkdown => self::NotesBackend,
@@ -191,8 +182,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             // Configuration sub-modules
             self::ConfigurationSettings,
             self::ConfigurationThemes => self::ConfigurationBackend->value,
-            // Media sub-modules
-            self::MediaLibrary => self::MediaBackend->value,
             // Editorial sub-modules
             // A post needs a type to be, so posts follow post types.
             self::EditorialPosts => self::EditorialPostTypes->value,
@@ -285,7 +274,6 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::GeneralBackend => 'general',
             self::PlatformBackend => 'platform',
             self::ConfigurationBackend => 'configuration',
-            self::MediaBackend => 'media',
             self::EditorialBackend => 'editorial',
             self::GedBackend => 'ged',
             self::PlanningBackend => 'planning',

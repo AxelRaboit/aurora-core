@@ -43,5 +43,3 @@ backend:
     platform_backend_description: Section technique du back-office.
     configuration: Configuration
     configuration_description: Paramétrage global de l'application et personnalisation visuelle.
-    media_backend: Médiathèque
-    media_backend_description: Bibliothèque centralisée des images, vidéos et fichiers utilisée par tous les modules.

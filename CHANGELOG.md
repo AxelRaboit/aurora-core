@@ -5,6 +5,46 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.191] - 2026-09-16
+
+### Corrigé
+
+#### L'écran d'audit affichait une clé de traduction
+`AuditTab.vue` rendait le nom du module sans repli. Un module renommé laisse
+derrière lui des lignes qui portent son ancien nom, et celles-là s'affichaient
+littéralement `backend.modules.accounting`. **Mesuré : vingt-sept lignes**,
+toutes des actions Studio écrites avant que le module ne soit renommé.
+
+Le repli existait déjà quelques fichiers plus loin, dans l'écran des
+utilisateurs : `t(clé, nomBrut)`. C'est maintenant le cas ici et sur l'écran des
+permissions, donc un module renommé affiche son nom plutôt qu'une clé, quel que
+soit le renommage à venir.
+
+### Supprimé
+
+#### Les deux bascules d'un module qui n'existe plus
+`ModuleParameterEnum` gardait `MediaBackend` et `MediaLibrary` après le retrait
+du module Media en juillet 2026, et le fournisseur yield **tous** les cas — donc
+chaque installation depuis créait `modules_media_backend` et
+`modules_media_library` dans `core_settings`, et les gardait.
+
+L'une des deux était pire que morte : `MediaLibrary` pointait son libellé vers
+`backend.nav.media`, une clé inexistante — la vraie est
+`backend.nav.sections.media`. Ce qui l'affichait montrait une clé brute.
+
+Partent avec : sept branches de `match`, deux libellés de bascule, quatre
+assertions de test, et les deux lignes de `core_settings` par migration.
+
+**Les libellés `backend.modules.media`, `hr` et `project` restent.** Ils ne
+servent plus à aucune bascule, mais ils nomment encore d'éventuelles lignes
+d'audit historiques. Les supprimer aurait échangé « Médias » contre « media »
+sans rien gagner.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`.
+
+---
+
 ## [0.9.190] - 2026-09-16
 
 ### Corrigé

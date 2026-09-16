@@ -18,7 +18,12 @@ const { data, load, module, setModule } = useAudit(props.auditPath, props.initia
 const moduleOptions = computed(() =>
     (data.value?.modules ?? []).map((name) => ({
         value: name,
-        label: t(`backend.modules.${name}`),
+        // Le nom brut en repli : un module renommé laisse derrière lui des
+        // lignes qui portent son ancien nom, et une clé de traduction affichée
+        // telle quelle est plus déroutante que le nom lui-même. Mesuré le
+        // 16/09/2026 : vingt-sept lignes écrites sous « accounting », que
+        // Studio a remplacé.
+        label: t(`backend.modules.${name}`, name),
     })),
 );
 
@@ -59,7 +64,7 @@ onMounted(() => {
                             <span v-if="log.data?.name" class="ml-2 text-secondary text-xs truncate">· {{ log.data.name }}</span>
                         </td>
                         <td class="px-4 py-3 hidden sm:table-cell">
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-surface-2 text-secondary">{{ t(`backend.modules.${log.module}`) }}</span>
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-surface-2 text-secondary">{{ t(`backend.modules.${log.module}`, log.module) }}</span>
                         </td>
                         <td class="px-4 py-3 text-secondary text-xs hidden md:table-cell">
                             <template v-if="log.userName">{{ log.userName }}</template>
