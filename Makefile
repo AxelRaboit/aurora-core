@@ -395,6 +395,20 @@ fd: ## Fix code and build dev assets
 # `ManyToMany` whose join column was declared on a MappedSuperclass produced valid
 # tables, a clean `--dump-sql`, and an invalid mapping - so everything here passed
 # and aurora-client's CI went red on the bump.
+audit: ## Report every security advisory, then fail on high or critical ones
+	@# Deliberately absent from `ft`. An advisory published upstream would turn
+	@# the local gate red on a morning nobody touched the code, which teaches
+	@# people to push past it. The CI runs the same two commands on every push,
+	@# which is where blocking belongs; this target is for looking on purpose.
+	@echo "── PHP ──"
+	@composer audit --locked || true
+	@echo "── JS ──"
+	@pnpm audit || true
+	@echo "── verdict (high et critical seulement) ──"
+	composer audit --locked --ignore-severity=low --ignore-severity=medium
+	pnpm audit --audit-level high
+	@echo "✅ aucun avis haut ou critique"
+
 ft: ## Fix, test, build assets, validate the mapping, then migrate-check
 	make fix && make test && make build && make schema-validate && make migrate-check
 

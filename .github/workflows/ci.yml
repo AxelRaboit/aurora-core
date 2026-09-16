@@ -82,8 +82,25 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --no-ansi --no-interaction --prefer-dist --no-scripts
 
-      - name: Check if any dependencies are compromised
-        run: composer audit || true
+      # -- Avis de securite 🔒 -------------------------------------------------
+      # Deux etapes, et la premiere n'echoue jamais : elle imprime tout, pour
+      # que les avis moderes et bas restent visibles dans le journal.
+      #
+      # La seconde tranche. Jusqu'au 16/09/2026 il n'y avait que la premiere,
+      # avec `|| true`, donc l'audit tournait et son resultat partait a la
+      # poubelle : soixante-et-onze avis se sont accumules sans qu'aucun run ne
+      # rougisse, et c'est l'avertissement de GitHub au moment d'un `git push`
+      # qui les a fait remonter.
+      #
+      # Le seuil est `high`. Un avis bas ou modere publie en amont ferait
+      # rougir un build un matin ou personne n'a touche au code, ce qui apprend
+      # a ignorer la couleur. Un avis haut bloque la livraison, ce qui est le
+      # but.
+      - name: Report every advisory (never fails)
+        run: composer audit --locked || true
+
+      - name: Fail on high or critical advisories
+        run: composer audit --locked --ignore-severity=low --ignore-severity=medium
 
       - name: Install PHP code quality tools
         run: |
@@ -130,6 +147,21 @@ jobs:
 
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile
+
+      # Le pendant JS, qui n'existait pas du tout : soixante-deux des
+      # soixante-et-onze avis etaient npm, et rien dans la CI ne les regardait.
+      #
+      # Le lock fait davantage autorite ici que cote PHP : un projet qui
+      # consomme aurora-core installe ses dependances JS avec
+      # `pnpm --dir=vendor/axelraboit/aurora install --frozen-lockfile`, donc
+      # depuis **ce** lock. Les plages de `package.json` ne sont jamais
+      # resolues par personne, et auditer le lock est exactement auditer ce qui
+      # sera livre.
+      - name: Report every JS advisory (never fails)
+        run: pnpm audit || true
+
+      - name: Fail on high or critical JS advisories
+        run: pnpm audit --audit-level high
 
       - name: Build assets
         run: pnpm build
