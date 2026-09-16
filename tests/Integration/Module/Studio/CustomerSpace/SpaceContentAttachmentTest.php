@@ -337,6 +337,42 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         self::assertNull($reloaded->getFolder());
     }
 
+    /**
+     * Deleting a card takes its attachments and leaves the documents.
+     *
+     * The row is a join, and the join is what the card owns: `onDelete:
+     * CASCADE` on the item side removes it with the card. The document is not
+     * the card's to destroy - the same file may hang on another card, and a
+     * client who sent a photo did not send it to be erased when somebody
+     * tidies the board.
+     *
+     * Pinned rather than assumed, because the two relations read alike in the
+     * mapping and only one of them destroys anything.
+     */
+    public function testDeletingACardKeepsTheFilesItCarried(): void
+    {
+        $space = $this->givenSpace();
+        $item = $this->givenItem($space, 'Un contenu à supprimer');
+
+        $this->upload($space, $item['id'], 'photo.jpg');
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $documentId = $this->attachments->findForSpaceByItem($space)[$item['id']][0]->getDocument()->getId();
+
+        $this->client->request('POST', sprintf('/workspace/%d/content/%d/delete', $space->getId(), $item['id']));
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->entityManager->clear();
+
+        // The join is gone with the card.
+        self::assertSame(0, $this->attachments->count([]));
+
+        // The file is not: it is still in the library, in the space's folder.
+        $document = $this->entityManager->getRepository(Document::class)->find($documentId);
+        self::assertInstanceOf(Document::class, $document);
+        self::assertNotNull($document->getFolder());
+    }
+
     private function upload(CustomerSpace $space, int $itemId, string $name): void
     {
         $path = sys_get_temp_dir().'/aurora-space-upload-'.bin2hex(random_bytes(4)).'-'.$name;
