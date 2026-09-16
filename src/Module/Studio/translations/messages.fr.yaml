@@ -843,12 +843,14 @@ backend:
 
             row_actions:
                 edit_description: Modifier ce contenu
+                view_description: Lire ce contenu, ses fichiers et ses échanges
                 delete_description: Supprimer ce contenu
             calendar_name: Contenus clients
             back_to_spaces: Retour aux espaces
             add_item: Ajouter un contenu
             create_item: Nouveau contenu
             edit_item: 'Modifier {title}'
+            view_item: 'Voir {title}'
             item_created: Contenu créé.
             item_updated: Contenu mis à jour.
             item_deleted: Contenu supprimé.

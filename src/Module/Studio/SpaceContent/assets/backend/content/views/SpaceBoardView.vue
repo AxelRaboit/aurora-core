@@ -21,6 +21,7 @@ defineProps({
 });
 
 const emit = defineEmits([
+    "open-item",
     "reorder",
     "add-item",
     "edit-column",
@@ -99,6 +100,7 @@ const { t } = useI18n();
                             :item="card"
                             :actions="actionsFor(card)"
                             :files="filesOf(card)"
+                            v-on:open="emit('open-item', $event)"
                         />
                     </VueDraggable>
 

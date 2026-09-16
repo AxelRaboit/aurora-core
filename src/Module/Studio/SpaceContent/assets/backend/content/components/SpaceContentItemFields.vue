@@ -29,6 +29,17 @@ const props = defineProps({
     canDiscuss: { type: Boolean, default: false },
     attachments: { type: Array, default: () => [] },
     attachmentLoading: { type: Boolean, default: false },
+    /**
+     * A reader who may see the space but not edit it.
+     *
+     * The fields go flat rather than disappearing: what a card says is what
+     * such a reader came for, and a panel that hid the text to signal it was
+     * uneditable would have answered the wrong question. What does disappear is
+     * every way to write - the save button, the drop zone, the delete on a
+     * message - because offering one the server would refuse is how a screen
+     * teaches somebody to distrust it.
+     */
+    readonly: { type: Boolean, default: false },
 });
 
 const emit = defineEmits([
@@ -56,6 +67,7 @@ function set(field, value) {
             :label="t('backend.studio.space_content.title')"
             :placeholder="t('backend.studio.space_content.title_placeholder')"
             :error="errors.title"
+            :disabled="readonly"
             required
             v-on:update:model-value="set('title', $event)"
         />
@@ -66,6 +78,7 @@ function set(field, value) {
             :placeholder="t('backend.studio.space_content.body_placeholder')"
             :error="errors.body"
             :rows="6"
+            :disabled="readonly"
             v-on:update:model-value="set('body', $event)"
         />
 
@@ -75,6 +88,7 @@ function set(field, value) {
                 :label="t('backend.studio.space_content.column')"
                 :options="columnOptions"
                 :error="errors.columnId"
+                :disabled="readonly"
                 required
                 v-on:update:model-value="set('columnId', $event)"
             />
@@ -92,6 +106,7 @@ function set(field, value) {
                 :placeholder="t('backend.studio.space_content.scheduled_at_placeholder')"
                 :hint="t('backend.studio.space_content.scheduled_at_hint')"
                 :error="errors.scheduledAt"
+                :disabled="readonly"
                 v-on:update:model-value="set('scheduledAt', $event)"
             />
         </div>
@@ -126,9 +141,9 @@ function set(field, value) {
             v-if="canDiscuss"
             :attachments="attachments"
             :loading="attachmentLoading"
-            can-add
-            can-remove
-            can-pick
+            :can-add="!readonly"
+            :can-remove="!readonly"
+            :can-pick="!readonly"
             v-on:upload="emit('upload-attachment', $event)"
             v-on:pick="emit('pick-attachment')"
             v-on:remove="emit('remove-attachment', $event)"
@@ -141,7 +156,8 @@ function set(field, value) {
             v-if="canDiscuss"
             :comments="comments"
             :loading="commentLoading"
-            can-delete
+            :can-post="!readonly"
+            :can-delete="!readonly"
             :notice="t('backend.studio.space_content.thread_notice')"
             v-on:post="emit('post-comment', $event)"
             v-on:delete="emit('delete-comment', $event)"

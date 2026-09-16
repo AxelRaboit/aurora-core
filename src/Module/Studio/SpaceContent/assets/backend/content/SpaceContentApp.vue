@@ -20,7 +20,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
-import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
+import { useSpaceCardActions } from "./composables/useSpaceCardActions.js";
 import { useSpaceContent } from "./composables/useSpaceContent.js";
 import SpaceBoardView from "./views/SpaceBoardView.vue";
 import SpaceListView from "./views/SpaceListView.vue";
@@ -159,14 +159,12 @@ const {
 
 const editable = computed(() => can("studio.spaces.edit"));
 
-const actionsFor = useEditDeleteActions({
+// Its own rather than the shared edit/delete pair, because a reader who may
+// not edit has to be offered something: see `useSpaceCardActions`.
+const actionsFor = useSpaceCardActions({
     can,
-    editPermission: "studio.spaces.edit",
-    deletePermission: "studio.spaces.edit",
-    openEdit: openItemEdit,
+    open: openItemEdit,
     confirmDelete: confirmItemDelete,
-    editDescription: "backend.studio.space_content.row_actions.edit_description",
-    deleteDescription: "backend.studio.space_content.row_actions.delete_description",
 });
 </script>
 
@@ -217,6 +215,7 @@ const actionsFor = useEditDeleteActions({
             :actions-for="actionsFor"
             :files-of="filesOf"
             :is-empty="isEmpty"
+            v-on:open-item="openItemEdit"
             v-on:reorder="reorderItems"
             v-on:add-item="openItemCreate({ columnId: $event })"
             v-on:edit-column="openColumnEdit"
@@ -251,7 +250,7 @@ const actionsFor = useEditDeleteActions({
             max-width="2xl"
             :title="
                 editingItem
-                    ? t('backend.studio.space_content.edit_item', {
+                    ? t(editable ? 'backend.studio.space_content.edit_item' : 'backend.studio.space_content.view_item', {
                         title: editingItem.title,
                     })
                     : t('backend.studio.space_content.create_item')
@@ -263,6 +262,7 @@ const actionsFor = useEditDeleteActions({
             <form v-on:submit.prevent="submitItem">
                 <SpaceContentItemFields
                     v-model="itemForm"
+                    :readonly="!editable"
                     :errors="itemErrors"
                     :column-options="columnOptions"
                     :timezone="space.timezone"
@@ -282,11 +282,15 @@ const actionsFor = useEditDeleteActions({
             </form>
             <template #footer>
                 <AppModalFooter>
+                    <!-- One button and no Save for a reader who may not edit.
+                         Offering one the server would refuse is how a screen
+                         teaches somebody to distrust it. -->
                     <AppButton variant="ghost" size="md" v-on:click="showItemForm = false">
                         <X class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
+                        {{ t(editable ? "shared.common.cancel" : "shared.common.close") }}
                     </AppButton>
                     <AppButton
+                        v-if="editable"
                         variant="primary"
                         size="md"
                         :loading="itemLoading"

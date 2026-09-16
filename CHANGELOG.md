@@ -5,6 +5,45 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.190] - 2026-09-16
+
+### Corrigé
+
+#### Un lecteur ne pouvait pas ouvrir une fiche
+Le menu d'une carte offrait « Modifier » et « Supprimer », tous deux derrière
+`studio.spaces.edit`. Pour quelqu'un qui peut voir un espace sans le modifier,
+ce menu était donc **vide** — et la carte du tableau n'était pas cliquable. Il
+voyait un titre et une date, et n'atteignait jamais le texte, le fil d'échanges
+ni les fichiers, sur un écran qui existe pour être lu par les gens qu'un
+chantier client concerne.
+
+**« Voir » apparaît exactement quand « Modifier » ne peut pas.** Pas les deux :
+deux entrées qui ouvrent le même panneau, dont l'une désactive ses champs, est
+un menu qui fait deviner au lecteur laquelle il veut.
+
+#### Le tableau se comportait autrement que la liste
+La liste et le calendrier ouvraient une fiche au clic, le tableau non : même
+contenu, deux comportements. La carte du tableau est cliquable, et le clic
+ignore les boutons et la poignée de glisser — un glisser qui démarre sur le
+corps de la carte se disputait sinon avec le clic, et l'un des deux perdait au
+hasard.
+
+#### La modale proposait d'enregistrer ce que le serveur aurait refusé
+En lecture seule, les champs sont désactivés mais **restent lisibles** : ce que
+dit une fiche est justement ce que ce lecteur vient chercher, et cacher le
+texte pour signaler qu'il n'est pas modifiable répondrait à la mauvaise
+question. Ce qui disparaît, c'est tout ce qui écrit — le bouton Enregistrer, la
+zone de dépôt de fichier, la suppression d'un message. Proposer un bouton que
+le serveur refuse est la façon dont un écran apprend à ne plus être cru.
+
+Le titre dit « Voir » plutôt que « Modifier », et la sortie dit « Fermer »
+plutôt que « Annuler ».
+
+### Dans aurora-client
+`make aurora-update`. Rien d'autre.
+
+---
+
 ## [0.9.189] - 2026-09-16
 
 ### Sécurité

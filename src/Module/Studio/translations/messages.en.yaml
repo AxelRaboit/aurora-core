@@ -843,12 +843,14 @@ backend:
 
             row_actions:
                 edit_description: Edit this content
+                view_description: Read this content, its files and its thread
                 delete_description: Delete this content
             calendar_name: Client content
             back_to_spaces: Back to spaces
             add_item: Add content
             create_item: New content
             edit_item: 'Edit {title}'
+            view_item: 'View {title}'
             item_created: Content created.
             item_updated: Content updated.
             item_deleted: Content deleted.

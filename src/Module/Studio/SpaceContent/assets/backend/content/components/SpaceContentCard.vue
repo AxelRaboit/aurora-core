@@ -29,6 +29,23 @@ const props = defineProps({
     files: { type: Array, default: () => [] },
 });
 
+const emit = defineEmits(["open"]);
+
+/**
+ * Opens the card, from anywhere on it that is not a control.
+ *
+ * The board used to be the one view a card could not be opened from: the list
+ * and the month made their rows clickable, and here the only way in was the
+ * menu - which is empty for somebody who may read a space but not edit it. They
+ * saw a title and a date and could never reach the text, the thread or the
+ * files, on a screen that exists to be read.
+ */
+function open(event) {
+    if (event.target.closest("button, a")) return;
+
+    emit("open", props.item);
+}
+
 const { t, d } = useI18n();
 
 const excerpt = computed(() => {
@@ -69,7 +86,8 @@ const answered = computed(() => "pending" !== props.item.approval);
 
 <template>
     <article
-        class="group rounded-lg border border-line/60 bg-surface px-3 py-2.5 shadow-sm transition-colors hover:border-line"
+        class="group cursor-pointer rounded-lg border border-line/60 bg-surface px-3 py-2.5 shadow-sm transition-colors hover:border-line"
+        v-on:click="open"
     >
         <div class="flex items-start gap-2">
             <!-- The handle is its own target: a drag that starts on the card
