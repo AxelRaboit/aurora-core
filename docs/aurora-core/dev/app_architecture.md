@@ -1,15 +1,16 @@
 # Aurora Architecture
 
-Aurora is a platform built on Symfony 7 / PHP 8.3 / Vue 3 / Vite, designed to host
-multiple independent business modules (Editorial CMS, CRM, ERP, Billing, Ecommerce, Photo, …)
-on top of a shared Core infrastructure.
+Aurora is a platform built on **Symfony 7 / PHP 8.4 / Vue 3 / Vite**. It ships as
+the Composer package `axelraboit/aurora` and is consumed by client projects
+(`aurora-client` and friends), which extend it without forking it.
 
-> ⚠️ **Read the module names here as illustrations, not as an inventory.**
-> This document describes the *patterns* a module follows. Most of the
-> modules it names (Editorial, Crm, Erp, Billing, Ecommerce, Photo, …) were
-> extracted from this monorepo in July 2026 and no longer live under
-> `src/Module/`. For what is actually installed today, read that directory
-> and `docs/aurora-core/todo/module_roadmap.md`.
+> **This document describes the repository as it stands on 2026-09-16.**
+> It was rewritten from scratch on that date: the previous version described
+> ten business modules (Crm, Erp, Billing, Ecommerce, Photo, Project, Hr, …)
+> extracted from this monorepo in July 2026, an `App\` namespace that has since
+> become `Aurora\`, an `admin/` asset folder that is now `backend/`, and a dozen
+> manual registration steps that are all auto-discovery today. Read
+> `src/Module/` for the live inventory; module names below are the real ones.
 
 ---
 
@@ -17,587 +18,329 @@ on top of a shared Core infrastructure.
 
 ```
 src/
-  Core/         -- reusable infrastructure, independent of any business module
+  AuroraBundle.php   -- the bundle: auto-discovers modules, prepends their config
+  Core/              -- reusable infrastructure, knows nothing about any module
   Module/
-    Billing/    -- invoices, suppliers (Tiers), OCR pipeline
-    Crm/        -- CRM (contacts, companies, deals, …)
-    Ecommerce/  -- shop (listings, cart, orders, payments)
-    Editorial/  -- editorial CMS (posts, taxonomies, comments, forms, SEO)
-    Erp/        -- ERP (products, inventory)
-    Ged/        -- document management (documents, categories)
-    Photo/      -- client gallery delivery (galleries, items, invites)
-    Hr/         -- human resources (employee records)
-    Planning/   -- planning & agenda (plannings, events)
-    Project/    -- project management (projects, tasks, sprints, kanban)
+    Configuration/   -- settings, storage backends, themes
+    Dev/             -- /dev tooling: audit log, mount points, prerequisites
+    Documentation/   -- the manual, shipped as Markdown in the package
+    Editorial/       -- CMS: posts, post types, taxonomies, menus, comments, forms, SEO
+    Ged/             -- documents: files, folders, categories, tags, Pexels import
+    General/         -- dashboard, profile, cross-module search and trash
+    Notes/           -- Markdown notes, wiki-links, sharing
+    Planning/        -- calendars, events, reminders, recurrence, feeds, sync
+    Platform/        -- auth, users, privileges
+    Studio/          -- what is sold and what is delivered: customers, contracts,
+                       decks, client spaces and their content
 
-templates/
-  Core/         -- admin templates for Core domains
-  Module/
-    Editorial/  -- admin templates for the Editorial module   (@Editorial)
-    Crm/        -- admin templates for the CRM module         (@Crm)
-    Erp/        -- admin templates for the ERP module         (@Erp)
-    Ged/        -- admin templates for the GED module         (@Ged)
-    Hr/         -- admin templates for the Hr module           (@Hr)
-    Planning/   -- admin templates for the Planning module    (@Planning)
-    Project/    -- admin templates for the Project module     (@Project)
-  front/        -- front-end theme templates (kept flat, see §5.3)
-  shared/       -- base layout, shared components, emails     (@Shared)
-
-src/Core/assets/
-  backend/      -- Vue controllers and sub-components for Core backend areas
-  frontend/    -- Vue controllers and sub-components for the public frontend
-  shared/       -- cross-cutting Vue components, composables, utils, enums
-  utils/        -- generic JS utilities (enums, helpers)
-  locales/      -- generated translation JSON
-  stimulus/     -- Stimulus controllers (renamed from controllers/)
-  (root)        -- entrypoints: app.js, flash.js, theme.js, admin/guest/i18n.js
-
-src/Module/<Module>/assets/
-  backend/      -- Vue controllers and sub-components for the module backend
-  frontend/    -- Vue controllers for the public frontend (if any)
+migrations/          -- hand-written, one per change (see §6.3)
+config/              -- the app's own config; modules prepend theirs from the bundle
+templates/bundles/   -- Twig bundle overrides only; module templates are co-located
 ```
+
+Every module is a **plain directory**. No `composer.json`, no bundle class, no
+`config/services.php` of its own. This reverses the May 2026 convention that
+made each module a self-contained Composer package: Editorial was rebuilt into
+core in August 2026 because the multi-repo cost more than it gave (manual
+Composer bumps, a dev loop through a GitHub zip, and a presentation layer
+already split, since the default theme's templates lived in core anyway).
 
 ---
 
 ## 2. Core (`src/Core/`)
 
-Core contains every concern that is reusable across any business module. It must not
-import anything from `App\Module\*`.
+Core holds every concern reusable across modules. It must not import from
+`Aurora\Module\*`; where it needs a module's behaviour, it declares an
+interface the module implements.
 
-| Domain     | What it contains |
-|------------|-----------------|
-| User       | Entity, Managers (UserManager, FrontUserManager), Repository, DTO, Serializer, Enum (UserRole, UserStatus, UserType), Command |
-| Auth       | Entities (AccessRequest, ResetPasswordRequest), Managers (AccessRequest, Invitation, PasswordReset, EmailVerification), Security (providers, checkers, authenticator, entry point), EventListeners, Validator, Controllers, DTO |
-| Setting    | Entity (Setting), Repository, Enum (ApplicationParameter - includes Sequences group), Command, Controller |
-| Sequence   | `SequenceGenerator` (PostgreSQL NEXTVAL wrapper), `SequencePrefixEnum` (canonical prefix per entity), `ResyncSequencesCommand` (`aurora:sequences:resync`) - see §6.8 |
-| Theme      | Entity, Manager, Repository, Services (ThemeContext, ThemeResolver), DTO, Serializer, Controller |
-| Locale     | Entity, Repository, Enum (LocaleEnum), EventSubscriber |
-| Menu       | Entities (Menu, MenuItem, MenuItemTranslation), Manager, Repository, Services, DTO, Serializer, Twig extension, Command, Controller |
-| Module     | ModuleInterface, ModuleRegistry, PermissionRegistry, ModulePermissionVoter, NavItem, NavSection, NavPermission - see §3 |
-| Profile    | Controller |
-| Search     | Service (SearchSnippetBuilder), Command, Controller |
-| Dashboard  | Service (AdminStatsService), Controllers |
-| Audit      | Entity (AuditLog), Service (AuditLogger) - records cross-module actions |
-| Frontend   | Services (FrontContext, HttpCacheService) |
-| Validation | Service (PayloadValidator), ArgumentResolver, DTO (PaginationRequest) |
-| (misc)     | Twig extensions, Enums (HttpMethod), Support (Str), Trait (Timestampable, TimestampableTrait), Scheduler |
+| Domain | What it contains |
+|---|---|
+| `Bootstrap` | `BootstrapRunner` and its providers - what a fresh install needs before anyone logs in |
+| `Bundle` | `AbstractAuroraModuleBundle`, `AuroraModuleBundles` - the extension point a client bundle uses |
+| `Contact` | `ContactSignalEvent` - how a form submission reaches whoever cares |
+| `Content` | Block rendering and sanitising, embed resolution, value normalisation |
+| `Dashboard` | `DashboardStatsProviderInterface` - what each module contributes to the home screen |
+| `Encryption` | Doctrine types and subscribers for encrypted columns |
+| `Enum` | `HttpMethodEnum`, `HttpStatusEnum`, `AppVersionEnum` |
+| `EventSubscriber` | Maintenance mode, `X-Sendfile`, and the route gates that enforce module toggles |
+| `Frontend` | `FrontendInterface`, the public-site controllers, theme resolution, view builders |
+| `Http` | `JsonRequestTrait`, `JsonResponseTrait`, `JsonErrorCode` - the JSON contract every controller shares |
+| `Locale` | `Locale` entity, `LocaleEnum`, the request subscriber that picks one |
+| `Mail` | Mailer service and its templates |
+| `Migration` | Migration status service, surfaced in the dev panel |
+| `Module` | `ModuleInterface`, the registry, nav objects, toggles, `ModulePermissionVoter` - see §3 |
+| `Money` | The currency enum, so amounts are not bare integers |
+| `Notification` | In-app notifications: entity, manager, controller |
+| `Reference` | `EntityReferenceResolver` - turns an entity into a label and a link, across modules |
+| `Repository` | `ResolveTargetEntityRepository` and traits - the base every module repository extends |
+| `Routing` | `AuroraModuleRouteLoader` (§5.4), `PathTemplateGenerator` |
+| `Scheduler` | Symfony Scheduler wiring, `RecurringMessageProviderInterface` |
+| `Scheduling` | `EntityScheduledEvent` / `EntityUnscheduledEvent` - how any module announces a date without knowing who listens |
+| `Search` | The provider interfaces, relevance sorting, snippet building |
+| `Sequence` | `SequenceGenerator`, `SequencePrefixEnum`, the resync command - see §6.1 |
+| `Storage` | `StorageAdapterInterface`, `StorageDiskEnum` (local, r2), the file server, access rules |
+| `Support` | `Arr`, `Num`, `Str`, `ChartPalette`, `TreeReorderParser` |
+| `Testing` | Concerns shared by the test suite |
+| `Timestampable` | The interface and trait every entity uses for `createdAt` / `updatedAt` |
+| `Trash` | `TrashSourceInterface`, `TrashItem` - the shared bin every module contributes to |
+| `Twig` | The extensions: appearance, file size, locale, path templates, migration status |
+| `Validation` | The DTO argument resolver and its exception handling |
 
 ### Rule
 
-A class belongs in Core if it could be extracted into a standalone Symfony bundle and
-would still make sense without any specific business module installed.
+Core defines contracts; modules implement them. `Trash`, `Search`,
+`Dashboard`, `Reference` and `Scheduling` are all the same shape: an interface
+in Core, an implementation per module, a tagged iterator in between. That is
+how a module contributes to a cross-cutting surface without Core knowing it
+exists, and how removing a module removes its contribution with it.
 
 ---
 
 ## 3. Module system
 
-### 3.1 ModuleInterface
-
-Every module must implement `App\Core\Module\ModuleInterface`:
+### 3.1 `ModuleInterface`
 
 ```php
-interface ModuleInterface {
-    public function getId(): string;          // 'crm', 'editorial', …
-    public function getNavSections(): array;  // NavSection[]
-    public function getPermissions(): array;  // NavPermission[]
+interface ModuleInterface
+{
+    public function getId(): string;                 // 'studio', 'editorial', …
+    public function getNavSections(): array;         // NavSection[], toggle-filtered
+    public function getCatalogNavSections(): array;  // NavSection[], unfiltered
+    public function getPermissions(): array;         // NavPermission[]
 }
 ```
 
-Modules are registered in `config/services.yaml` with the tag `aurora.module`:
+`getNavSections()` is what the sidemenu renders, gated on the module's toggles.
+`getCatalogNavSections()` returns the same items **ungated**, because the
+per-user module picker has to show what exists in order to offer it.
+
+Modules are tagged automatically. `config/services.yaml` carries
 
 ```yaml
-App\Module\Crm\CrmModule:
-    tags: [aurora.module]
+_instanceof:
+    Aurora\Core\Module\Contract\ModuleInterface:
+        tags: [aurora.module]
 ```
 
-### 3.2 ModuleRegistry
+so there is nothing to register by hand.
 
-`App\Core\Module\ModuleRegistry` collects all tagged modules and:
-- Filters nav items by required role (via AuthorizationCheckerInterface)
-- Generates Symfony route paths (via UrlGeneratorInterface)
-- Aggregates permissions from all modules
+### 3.2 Optional contracts
 
-The Twig function `sidemenu_nav_sections()` calls the registry and returns the resolved
-nav sections to the admin layout template.
-
-### 3.3 Role & privilege system
-
-Aurora uses **three flat roles** instead of a hierarchy:
-
-| Role | Priority | Description |
-|---|---|---|
-| `ROLE_DEV` | 100 | Developer - bypasses **all** privilege checks |
-| `ROLE_ADMIN` | 80 | Administrator - full access to all module features |
-| `ROLE_USER` | 0 | Regular user - access limited to explicitly granted privileges |
-
-Role hierarchy in `security.yaml`: `ROLE_DEV → ROLE_ADMIN → ROLE_USER`.
-
-**Privileges** are fine-grained permission strings (e.g. `crm.contacts.view`) stored as a JSON
-array on each `User` entity. Each module declares the privileges it owns via `NavPermission`:
-
-```php
-// In CrmModule::getPermissions()
-new NavPermission('crm.contacts.view'),
-new NavPermission('crm.contacts.create'),
-new NavPermission('crm.contacts.delete'),
-```
-
-The custom `ModulePermissionVoter` resolves `#[IsGranted('crm.contacts.view')]` as:
-
-1. `ROLE_DEV` → **always granted** (bypass)
-2. `ROLE_ADMIN` → **always granted** (full access)
-3. `ROLE_USER` → granted only if `user.privileges` contains the string
-
-Assigning privileges to users is done via the Dev-only section in the user detail modal
-(`/admin/users`) or programmatically.
-
-**Sync command** - run after adding/removing module privileges to purge obsolete entries
-and report new ones:
-
-```bash
-make sync-privileges    # php bin/console aurora:privileges:sync
-```
-
-This command is automatically called by `make install-dev`, `make deploy-prod`, and
-`make aurora-update`.
-
----
-
-## 4. Modules (`src/Module/<Name>/`)
-
-Modules are organized **by domain first, by layer second**:
-
-```
-Module/<Name>/<Domain>/{Entity,Manager,Repository,Dto,Service,Serializer,Enum,Controller,…}
-```
-
-### 4.1 Module/Editorial
-
-| Domain   | What it contains |
-|----------|-----------------|
-| Post     | Entities (Post, PostRevision, PostSlugHistory, PostTranslation, PostType, PostTypeField), Managers, Repository, DTO, Serializer, Enum, Services (BlocksRenderer, PostPageRenderer, PostTextExtractor), Voter, Messages + Handlers, Controllers |
-| Comment  | Entities (Comment, CommentReaction), Manager + Decorator, Repository, Serializer, Enum, Service, Controllers, Contract |
-| Form     | Entities (Form, FormField, FormFieldTranslation, FormSubmission, FormTranslation), Manager + Decorator, Repository, DTO, Serializer, Enum, Services, Controllers, Contract |
-| Taxonomy | Entities (Taxonomy, TaxonomyTerm, translations), Manager, Repository, DTO, Serializer, Controller, Contract |
-| Seo      | Services (AlternatesBuilder, RssFeedBuilder, SitemapBuilder) |
-| Frontend | Controllers (HomeController, SitemapController) |
-
-### 4.2 Module/Crm
-
-| Domain  | What it contains |
-|---------|-----------------|
-| Contact | Entity, Repository, DTO (ContactInput), Serializer, Controller (backend CRUD + detail + activity timeline) |
-| Company | Entity, Repository, DTO, Serializer, Controller (backend CRUD + detail) |
-| Deal    | Entity, Repository, DTO, Serializer, Enum (DealStageEnum), Controller (backend CRUD + Kanban) |
-
-### 4.3 Module/Erp
-
-| Domain  | What it contains |
-|---------|-----------------|
-| Product | Entity (`reference` auto-generated via `SequenceGenerator`), Repository, DTO (ProductInput), Serializer, Enum (ProductStatusEnum, CurrencyEnum), Controller (backend CRUD) |
-
-### 4.4 Module/Ecommerce
-
-| Domain  | What it contains |
-|---------|-----------------|
-| Listing | Entity (FK to `Erp\Product`, `reference` auto-generated), Repository, DTO, Serializer, Manager, Controllers (backend CRUD + public Frontend) |
-| Cart    | Entities (Cart, CartItem - `reference` auto-generated), Manager + Contract, Repository, Serializer, Controller |
-| Order   | Entities (Order - `number` sequential via `SequenceGenerator`, OrderLine - `reference` auto-generated), Manager + Contract, Repository, Serializer, Enum (OrderStatusEnum), Services (OrderNotificationService, OrderRefundService), Payment (StripeService), Controllers (admin + front) |
-
-### 4.5 Module/Billing
-
-| Domain     | What it contains |
-|------------|-----------------|
-| Invoice    | Entity (internal `number` sequential, `supplierNumber` from OCR), InvoiceLine (`productCode` = OCR line code, `reference` = article ref), Tiers (supplier/client/partner/…), Manager + Contract, Repository, Serializer, Enum (InvoiceStatusEnum, TiersTypeEnum), Controller |
-| Ocr        | Entity (OcrJob), Manager, Repository, Serializer, DTO (InvoiceDraft, InvoiceLineDraft), Service (OcrPipeline, InvoiceExtractor, DocTrClient, OllamaVisionClient, OcrDocumentRenderer), Message + Handler |
-| Compliance | Service (SequenceChecker, ArchiveChecker, AuditChecker), Controller |
-
-### 4.6 Module/Photo
-
-| Domain  | What it contains |
-|---------|-----------------|
-| Gallery | Entities (Gallery, GalleryItem, GalleryInvite, GalleryFinalization, GalleryPick, GalleryItemComment - all with `reference`), Manager, Repository, Serializer, Enum, Services (GalleryWatermarkService, GalleryDownloadService, GalleryAccessService, GalleryNotificationService, GalleryPickService), Controllers (admin + front) |
-
-### 4.7 Module/Ged
-
-| Domain           | What it contains |
-|------------------|-----------------|
-| Document         | Entity, Manager, Repository, DTO, Serializer, Enum, Controller (backend CRUD) |
-| DocumentCategory | Entity, Manager, Repository, DTO, Serializer, Controller (backend CRUD) |
-
-### 4.8 Module/Hr
-
-| Domain     | What it contains |
-|------------|-----------------|
-| Employee   | Entity (HrEmployee - employee record linked to a User), Manager, Repository, DTO, Serializer, Controller (backend CRUD). Syncs agency/service from User via `UserAgencyServiceUpdatingEvent`. |
-
-### 4.9 Module/Planning
-
-| Domain     | What it contains |
-|------------|-----------------|
-| Planning   | Entity (Planning - a calendar: name, colour, timezone, visibility, `feedToken`), Manager, Repository, DTO, Serializer, Enum (PlanningVisibilityEnum) |
-| Event      | Entity (PlanningEvent + PlanningEventAlert), Manager, Repository, DTO, Serializer, Enum (PlanningEventStatusEnum, PlanningAlertChannelEnum), Service (PlanningNotifier), Message + Handler |
-| Reminder   | Entity (PlanningReminder - a due date with no span), Manager, Repository, DTO, Serializer |
-| Attendee   | Entity (PlanningEventAttendee), Manager (respond), Repository, Enum (PlanningAttendeeStatusEnum) |
-| Share      | Entity (PlanningShare - read or write, per user), Manager, Repository |
-| Recurrence | RRULE expansion (OccurrenceExpander over `simshaun/recurr`), RecurrenceScopeEnum, Manager (RecurrenceEditor - detach / split / end-before) |
-| Feed       | IcalWriter (RFC 5545 VEVENT/VTODO) + an unauthenticated `GET /planning/feed/{token}.ics` |
-| Sync       | Manager (ModuleCalendarProvider - the shared calendar other modules' dates land in), EventSubscriber |
-| Time       | PlanningClock - the module's single UTC/zone rule |
-| View       | PlanningViewBuilder - the calendar screen's payload |
-| Scheduler  | RecurringMessageProvider driving the alert worker |
-| Search     | BackendSearchProvider |
-| Dashboard  | DashboardStatsProvider |
-
-**Three rules worth knowing before touching it.**
-
-Every instant in every one of these tables is UTC; a wall clock exists only on a
-screen. `PlanningClock::utc()` normalises at the edge and
-`PlanningClock::zone()` resolves a calendar's own zone for anything with no
-browser to convert for it (mail, notifications, the `.ics` feed). Do not add a
-fourth copy of either.
-
-A recurring event is one row plus a rule, and its occurrences are generated on
-read. Writing to one of them therefore has to say what it means -
-`RecurrenceScopeEnum`: this occurrence, this and the following, or all - and
-`RecurrenceEditor` is the only thing allowed to answer.
-
-The Vue side keeps three lists the server owns: alert channels
-(`alertOffsets.js`), recurrence scopes (`RecurrenceScopeModal.vue`) and
-attendee answers (`EventModal.vue`). Each is held by a test that reads the file
-(`PlanningContractMirrorTest`, `PlanningEventAlertTest`) - see
-`convention_mirrored_contract_php_js`.
-
-### 4.10 Module/Project
-
-| Domain      | What it contains |
-|-------------|-----------------|
-| Project     | Entities (Project, ProjectColumn, ProjectLabel, ProjectSprint, ProjectSavedView), Manager, Repository, DTO, Serializer, Enum, Controller (backend CRUD + Kanban) |
-| ProjectTask | Entities (ProjectTask, ProjectTaskComment, ProjectTaskItem, ProjectTaskTimeEntry), Manager, Repository, DTO, Serializer, Enum, Controller |
-
----
-
-## 5. Conventions
-
-### 5.1 PHP namespaces
-
-```
-App\Core\<Domain>\<Layer>\<ClassName>               -- e.g. App\Core\User\Entity\User
-App\Module\<Name>\<Domain>\<Layer>\<ClassName>      -- e.g. App\Module\Crm\Contact\Entity\Contact
-```
-
-### 5.2 Templates
-
-| Location | Twig namespace | Example |
-|---|---|---|
-| `src/Core/templates/Core/admin/` | `@Core` | `extends '@Core/admin/layout.html.twig'` |
-| `src/Module/Editorial/templates/admin/` | `@Editorial` | `include '@Editorial/admin/posts/index.html.twig'` |
-| `src/Module/Crm/templates/admin/` | `@Crm` | `include '@Crm/admin/contacts/index.html.twig'` |
-| `templates/shared/` | `@Shared` | `include '@Shared/components/icon.html.twig'` |
-
-Configured in `config/packages/twig.yaml`. Add one entry per module.
-
-### 5.3 Assets / Vue components
-
-```
-src/Core/assets/admin/<C>.vue                → vue_component('core/admin/<C>')
-src/Module/Editorial/assets/admin/<C>.vue    → vue_component('editorial/admin/<C>')
-src/Module/Crm/assets/admin/<C>.vue          → vue_component('crm/admin/<C>')
-```
-
-Il n'y a pas de dossier `vue/` dans aurora-core - les controllers vivent directement sous
-`admin/`, `front/` etc. Le dossier `vue/` existe uniquement dans campus (projet legacy/V2).
-
-`src/Core/assets/app.js` merges one glob per module. Add a new glob + key-replace when adding a module.
-
-Vite aliases:
-
-| Alias        | Path                         |
-|--------------|------------------------------|
-| `@`          | `src/Core/assets/`         |
-| `@core`      | `src/Core/assets/`               |
-| `@editorial` | `src/Module/Editorial/assets/`   |
-| `@crm`       | `src/Module/Crm/assets/`         |
-| `@erp`       | `src/Module/Erp/assets/`         |
-| `@ged`       | `src/Module/Ged/assets/`         |
-| `@hr`        | `src/Module/Hr/assets/`          |
-| `@planning`  | `src/Module/Planning/assets/`    |
-| `@shared`    | `src/Core/assets/shared/`             |
-
-### 5.4 Routes
-
-Declared via `#[Route]` attributes. Auto-discovered via `services.yaml` resource `'../src/'`.
-
-### 5.5 Doctrine
-
-One mapping per module in `config/packages/doctrine.yaml`:
-
-```yaml
-mappings:
-    AppCore:      { dir: src/Core,               prefix: 'App\Core' }
-    AppEditorial: { dir: src/Module/Editorial,   prefix: 'App\Module\Editorial' }
-    AppCrm:       { dir: src/Module/Crm,         prefix: 'App\Module\Crm' }
-    AppErp:       { dir: src/Module/Erp,         prefix: 'App\Module\Erp' }
-```
-
-Add one mapping block per new module.
-
-### 5.6 Client extensions (`AURORA_CLIENT_DIR`)
-
-Aurora can be installed as a Composer package in a **client project** (`aurora-client`).
-Client projects can add their own Vue components without modifying vendor code:
-
-```
-CLIENT_DIR/
-  assets/
-    client/
-      Module/
-        Tracking/
-          admin/
-            ProjectsApp.vue
-```
-
-Set the environment variable before running Vite:
-
-```bash
-AURORA_CLIENT_DIR=./assets/client pnpm --dir=vendor/aurora run dev
-```
-
-In `vite.config.js` (aurora-core), `AURORA_CLIENT_DIR` is mapped to the `@client` alias.
-`src/Core/assets/app.js` scans `@client/Module/**/*.vue` and registers the components with the same
-naming convention as first-party modules:
-
-```
-@client/Module/Tracking/admin/ProjectsApp.vue  →  vue_component('tracking/admin/ProjectsApp')
-```
-
-The client's `services.yaml` must also register its module class with `aurora.module` and
-configure the `DumpJsTranslationsCommand` to include the client's translation dirs.
-
-See the client `Makefile` variables `CLIENT_ASSETS` and `AURORA_ENV` for how this is wired.
-
----
-
-### 5.7 Adding a new module (checklist)
-
-1. Create `src/Module/<Name>/` with domain subfolders
-2. Implement `<Name>Module.php` (ModuleInterface) - declare nav + permissions
-3. Tag it `aurora.module` in `config/services.yaml`
-4. Add Doctrine mapping to `config/packages/doctrine.yaml`
-5. Add Twig namespace to `config/packages/twig.yaml`
-6. Add Vue glob + alias to `src/Core/assets/app.js` + `vite.config.js` + `vitest.config.js`
-7. Create templates under `src/Module/<Name>/templates/admin/` (co-located with the module's PHP code, like `assets/` and `translations/`)
-8. Create Vue controllers under `src/Module/<Name>/assets/admin/` (or `front/`), co-localisés avec leurs composables dans `admin/{feature}/composables/`
-9. Create `src/Module/<Name>/translations/messages.{fr,en,es,de}.yaml` and register the path in `config/packages/translation.yaml` (`framework.translator.paths`); add to `SOURCE_DIRS` in `DumpJsTranslationsCommand` so the keys also flow to vue-i18n
-10. Add Vue-only labels (form fields, editor blocks…) under `src/Core/assets/locales/source/{locale}.js`
-11. Add validator messages to `src/Core/translations/validators.*.yaml` if needed (or to the module's own file)
-12. Generate + run Doctrine migration
-13. **Sequences**: for each new entity, add `#[ORM\GeneratedValue(strategy: 'SEQUENCE')]` + `#[ORM\SequenceGenerator(sequenceName: 'seq_core_{entity}_id')]`; for business sequential references (human-readable `reference` field), add a `SequencePrefixEnum` case + `ApplicationParameterEnum` case (group `sequences`) - `SequenceGenerator` stores counters in `app_sequence_counters` table (rows created automatically on first use, no extra setup); run `make sync-params`
-
----
-
-## 6. Deferred decisions
-
-### 6.1 Shared primitives extraction
-
-`Contact` lives in `Module/Crm/`. If a future module (e.g. Editorial's "author as CRM
-contact") needs the same entity, extract it to `src/Shared/<Domain>/` at that point.
-Do not create a Shared primitive speculatively.
-
-### 6.2 Translation key split (`admin.editorial.*`)
-
-Existing Editorial keys stay flat (`admin.posts.*`, `admin.taxonomies.*`, `admin.postTypes.*`).
-New modules name their keys `admin.<module>.*` from the start (already the case for CRM:
-`admin.crm.deals.*`, ERP: `admin.erp.products.*`, Ecommerce: `admin.ecommerce.listings.*`).
-Front keys are namespaced by feature, not module: `front.shop.*`, `front.cart.*`, etc.
-
-### 6.3 Front-end theming per module
-
-`templates/front/themes/<slug>/` is kept flat. ThemeResolver expects a single path per
-theme. Splitting requires making ThemeResolver multi-path aware - do this when a module
-needs its own front-end templates.
-
-### 6.4 Backend-only vs front-facing modules
-
-Each module is **backend-only by default**. A module opts into a public front by adding
-a `Module/<Name>/Frontend/Controller/` directory with public routes (typically prefixed
-`/{locale}/<resource>`). Conventions:
-
-| Module     | Front? | Why |
-|------------|--------|-----|
-| Editorial  | ✅ Yes | A CMS exists to serve public pages |
-| Ecommerce  | ✅ Yes | Catalog (`/shop`), cart, checkout, order confirmation |
-| Photo      | ✅ Yes | Client gallery pages (`/g/{slug}`) - password-protected |
-| Ged        | ✅ Yes | Published documents exposed at `/{locale}/ged` |
-| CRM        | ❌ Never | Contacts/companies/deals are private business data |
-| ERP        | ❌ Internal-only | Inventory stays backend; the public catalog lives in Ecommerce |
-| Billing    | ❌ Internal-only | Invoice management, suppliers, OCR - admin only |
-| Hr         | ❌ Internal-only | Employee records - admin only |
-| Planning   | ❌ Internal-only | Internal planning/agenda - admin only |
-| Project    | ❌ Internal-only | Project & task management - admin only |
-| Core       | n/a | Infrastructure |
-
-**Frontend controller conventions:**
-
-Every frontend controller must call `ViewBuilder::baseView(string $locale)` and merge
-its own variables into the result. This injects `locale`, `context`, `themeContext`,
-`pageDescription` and `alternates` - required by the default layout.
-
-```php
-return $this->render($this->themeResolver->resolve('...'), $this->viewBuilder->baseView($locale) + [
-    'myVar' => $myVar,
-]);
-```
-
-The `showFrontMenus` parameter (default `false`) controls whether the header and footer
-load the Editorial nav menus (`primary`, `account`, `footer`). Pass `true` only for
-modules that are part of the main site navigation (Editorial, Ecommerce). Standalone
-modules like GED or Photo keep it `false` - they have their own layout or simply no
-global nav.
-
-### 6.5 Module dependencies & shared entities
-
-Allowed direction of dependencies (import only downward):
-
-```
-Ecommerce  →  Erp          (catalog reads inventory)
-Ecommerce  →  CRM          (Customer ↔ Contact link)
-Billing    →  CRM          (Tiers can be linked to Company)
-Editorial  →  (none)       - independent
-CRM        →  (none)       - independent
-ERP        →  (none)       - independent of business modules
-Photo      →  (none)       - independent
-All        →  Core
-```
-
-Modules **must not** depend upward (e.g. ERP must not import Ecommerce). When two
-modules need the same concept, the lower module owns the canonical entity:
-
-- `Erp\Product` is the source of truth for inventory (reference, cost, stock, suppliers).
-- `Ecommerce\Listing` (planned) references an `Erp\Product` and adds shop-only fields:
-  slug, marketing description, gallery, `isVisibleOnShop`, public price, SEO. ERP
-  products that aren't sold online simply have no `Listing`.
-
-### 6.7 Translations: YAML is the source of truth, split per module
-
-Each module owns its translations:
-
-| Owner | Path |
+| Interface | What it adds |
 |---|---|
-| Core | `src/Core/translations/{messages,validators,security}.{locale}.yaml` |
-| Billing | `src/Module/Billing/translations/messages.{locale}.yaml` |
-| CRM | `src/Module/Crm/translations/messages.{locale}.yaml` |
-| Ecommerce | `src/Module/Ecommerce/translations/messages.{locale}.yaml` |
-| Editorial | `src/Module/Editorial/translations/messages.{locale}.yaml` |
-| ERP | `src/Module/Erp/translations/messages.{locale}.yaml` |
-| Ged | `src/Module/Ged/translations/messages.{locale}.yaml` |
-| Photo | `src/Module/Photo/translations/messages.{locale}.yaml` |
-| Hr | `src/Module/Hr/translations/messages.{locale}.yaml` |
-| Planning | `src/Module/Planning/translations/messages.{locale}.yaml` |
-| Project | `src/Module/Project/translations/messages.{locale}.yaml` |
+| `ModuleToggleProviderInterface` | `getToggles()` - the module appears on `/dev/dashboard/modules` and can be switched off |
+| `ModuleNavViewProviderInterface` | A module-level nav view, optionally with a Vue side panel (`Notes` uses it for its note tree) |
+| `FrontendInterface` | The module has a public site (`Editorial`, `Ged`) |
 
-Symfony's translator merges all paths automatically - keys can share top-level prefixes
-(e.g. `admin.nav.*` is partially defined by every module that contributes a sidemenu entry).
-Paths are registered in `config/packages/translation.yaml` (`framework.translator.paths`).
+### 3.3 Toggles
 
-**Two consumers**: Twig/PHP (Symfony's translator) and vue-i18n (Vue components). To avoid
-duplicating shared keys, vue-i18n receives a deep-merge of two sources (`src/Core/assets/i18n.js`):
+**There is exactly one toggle enum**:
+`src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php`. Every module's
+cases live in it, prefixed by their module (`StudioSpaces`, `NotesMarkdown`),
+and one provider, `CoreModuleParameterProvider`, yields them all to
+`aurora:application-parameter`. There is no `<Module>ModuleParameterEnum`; that
+belonged to the abandoned package split.
 
-1. `src/Core/assets/locales/source/{locale}.js` - manual content for **Vue-only** keys (admin form labels,
-   editor block labels, client-side validation messages…). Edit by hand.
-2. `src/Core/assets/locales/generated/{locale}.json` - generated from the per-module YAMLs via
-   `php bin/console app:translations:dump-js`. **Gitignored.** Auto-rebuilt by `pnpm dev` /
-   `pnpm build` (npm `predev` / `prebuild` hooks). YAML wins on conflict.
+Each module wraps its cases in a `<Module>Context` with one `is<X>Enabled()`
+per case, and gates its nav on it. Toggles default to **on** when the settings
+row is absent, so adding one changes nothing until somebody turns it off.
 
-The dump command iterates `SOURCE_DIRS` (the same list as `framework.translator.paths`),
-deep-merges each module's YAML, then converts Symfony's `%var%` placeholders to vue-i18n's
-`{var}` syntax automatically - write naturally in YAML.
+`Dev` and `Documentation` have no toggle, and each says why in its class
+docblock: the dev panel is gated by `ROLE_DEV` and no client should be able to
+switch it off, and whoever may open the back office may read the manual.
 
-**Convention**: a key used in **both** Twig and Vue lives in YAML. A key used **only** in Vue
-stays in the JS source. Never duplicate the same key in both files.
+### 3.4 Roles and privileges
 
-### 6.8 Sequences and business references
+Three flat roles, no hierarchy of features:
 
-Two distinct mechanisms coexist - never confuse them:
+| Role | Description |
+|---|---|
+| `ROLE_DEV` | Bypasses every privilege check |
+| `ROLE_ADMIN` | Full access to module features |
+| `ROLE_USER` | Only what has been granted explicitly |
 
-| Family | Mechanism | Example | Owner |
-|---|---|---|---|
-| Entity PKs | PostgreSQL sequence `seq_core_<entity>_id` | `seq_core_invoice_id` | Doctrine migrations |
-| Business references | Table `app_sequence_counters` | row `(prefix='FAC', year=2026)` | `SequenceGenerator` |
-
-All entity PKs use Doctrine's `SEQUENCE` strategy with explicit named sequences (`seq_core_<entity>_id`).
-This makes sequences visible and manageable in PostgreSQL - no silent `IDENTITY` columns.
-
-All business entities also carry a human-readable `reference` field (e.g. `FAC-2026-0001`,
-`ORD-000001`) generated atomically via `Core\Sequence\SequenceGenerator::next()` or
-`nextYearly()`. Prefixes are configurable in **Settings → Séquences** (`ApplicationParameterEnum`
-cases with group `sequences`). Canonical defaults live in `SequencePrefixEnum`.
-
-Business references are backed by the **`app_sequence_counters`** table, fully managed by
-Doctrine migrations - no PostgreSQL sequences, no `schema_filter` needed.
-
-```
-Schema: app_sequence_counters(prefix VARCHAR(30), year INT, last_value INT)
-Primary key: (prefix, year)
-
-year = 0    → global sequence   → next('LOG')          → LOG-000032
-year = YYYY → yearly sequence   → nextYearly('FAC', 2026) → FAC-2026-0001
-```
-
-Increment is atomic via PostgreSQL upsert: `INSERT … ON CONFLICT DO UPDATE RETURNING`.
-A new prefix row is created automatically on first use - no manual setup required.
-To inspect current values: `SELECT * FROM app_sequence_counters ORDER BY prefix, year;`
-
-After data imports or fixture loads, run:
+**Privileges** are strings (`studio.spaces.view`) stored as a JSON array on the
+user. Each module declares the ones it owns through `NavPermission`, and
+`ModulePermissionVoter` resolves `#[IsGranted('studio.spaces.view')]`: dev and
+admin always pass, a plain user passes when the string is in their list.
 
 ```bash
-make sync-sequences   # resets all seq_core_*_id to MAX(id)+1 (entity PKs only)
-```
-
-### 6.6 Entity naming: no module prefix on class names
-
-PHP namespaces are the prefix. Keep entity class names clean:
-
-```
-App\Module\Ecommerce\Order\Entity\Order        ✅
-App\Module\Ecommerce\Order\Entity\EcommerceOrder ❌  (verbose, redundant)
-```
-
-**Doctrine table names**, however, are always module-prefixed to avoid SQL collisions
-and clarify queries in logs:
-
-```
-crm_contacts, crm_companies, crm_deals
-erp_products
-ecommerce_listings, ecommerce_orders, ecommerce_carts, ecommerce_customers
+make sync-privileges   # aurora:privileges:sync - purges strings no module claims
 ```
 
 ---
 
-## 7. Roadmap
+## 4. Conventions
 
-> Historical record. A `[x]` means the work was done - not that the module
-> still lives in this repository; most were extracted in July 2026, and
-> Editorial is being rebuilt here as a native module.
+### 4.1 Namespaces
 
-- [x] Module manifest + ModuleRegistry + dynamic admin sidemenu
-- [x] Module/Editorial - full editorial CMS (posts, taxonomies, comments, forms, SEO, sitemap)
-- [x] Module/Crm - Contact, Company, Deal (CRUD + Kanban)
-- [x] Permission registry (ModulePermissionVoter + per-module `#[IsGranted]`)
-- [x] Audit log / Activity timeline (Core - cross-module action logging, dev viewer)
-- [x] Module/Erp - Product entity (inventory backend, backend CRUD)
-- [x] Module/Ecommerce - Listing, Cart, Order, Payment (Stripe), public Frontend
-- [x] Module/Billing - Invoice management, Tiers (supplier/client/…), OCR pipeline (docTR + Ollama VLM), compliance
-- [x] Module/Photo - Client gallery delivery (galleries, items, invites, picks, watermarking)
-- [x] Module/Ged - Document management (documents, categories)
-- [x] Module/Hr - Human resources, employee records (HrEmployee + User link, agency/service sync via domain events)
-- [x] Module/Planning - Planning & agenda (plannings, events)
-- [x] Module/Project - Project & task management (projects, tasks, sprints, kanban, time tracking)
-- [x] Core/Sequence - Named PostgreSQL sequences for all PKs + configurable business reference numbers
-- [x] Core/Media - Module-scoped upload dirs (`media/`, `ocr/`, `users/`, `photo/`) with `%app.upload_dir%`
-- [x] Auth: simplified 3-role system (User/Admin/Dev) + per-user fine-grained privileges
-- [x] Privileges UI - Dev can assign module privileges to users from the user detail modal
-- [x] `aurora:privileges:sync` - purges obsolete privilege strings after module changes
-- [x] Client extension system - `AURORA_CLIENT_DIR` + `@client` alias for custom Vue modules in client projects
-- [ ] Editor.js block: ProductGrid (Editorial → Ecommerce, embed listings in posts/pages)
-- [ ] ThemeResolver multi-path (per-module front templates)
+```
+Aurora\Core\<Domain>\<Layer>\<ClassName>
+Aurora\Module\<Name>\<Domain>\<Layer>\<ClassName>
+```
+
+A client project mirrors the second with `App\Module\<Name>\…`.
+
+### 4.2 What is auto-discovered, and the one thing that is not
+
+`AuroraBundle::prependExtension()` globs `src/Module/*` and registers, for every
+module it finds: its Doctrine mapping (`Aurora\Module\<Name>` → its directory),
+its Twig namespace (`@<Name>` → `src/Module/<Name>/templates`), its translation
+paths, and its routes. `config/packages/doctrine.yaml` and `twig.yaml` carry no
+per-module block, and adding one would be a mistake.
+
+**The exception is `resolve_target_entities`.** Every entity interface has to be
+mapped to its concrete class in `src/AuroraBundle.php` by hand. That single list
+is what lets a client swap any Aurora entity for its own subclass, and it is the
+only wiring a new entity costs.
+
+### 4.3 Templates
+
+Co-located: `src/Module/<Name>/templates/backend/<feature>/index.html.twig`,
+addressed as `@<Name>/backend/<feature>/index.html.twig`. Core's own live in
+`src/Core/templates/` under `@Core`, `@Shared` and `@AuroraTheme`. The root
+`templates/` directory holds Twig bundle overrides and nothing else.
+
+### 4.4 Assets and Vue components
+
+One glob in `src/Core/assets/app.js`:
+
+```js
+import.meta.glob("../../Module/**/assets/**/*.vue")
+```
+
+`**/assets/` accepts any number of feature folders between the module and
+`assets/`, and `MODULE_PATH_RE` flattens them away. The component key is always
+the module name plus whatever follows `assets/`:
+
+```
+src/Module/Ged/assets/backend/documents/App.vue            → ged/backend/documents/App
+src/Module/Studio/SpaceContent/assets/backend/content/X.vue → studio/backend/content/X
+```
+
+Both layouts are valid. Nine modules keep their assets at the module root;
+Studio co-locates them with each sub-domain. The trade-off is the alias:
+`moduleAlias()` in `aliases.js` resolves exactly `src/Module/<Name>/assets`, so
+a co-locating module has no `@<name>` alias and imports by relative path.
+
+Mount from Twig with `vue_component('<key>')`. There is no glob or alias to add
+per module - only the optional `aliases.js` line.
+
+### 4.5 Routes
+
+`#[Route]` attributes, loaded per module by `AuroraModuleRouteLoader`. A client
+adds one `type: aurora_modules` routing entry and gets every module's routes.
+
+Prefixes carry meaning and the firewalls depend on them: `^/(backend|dev|workspace)`
+is the `admin` firewall, everything else is the front. `/workspace` is the client
+space's own prefix, deliberately outside `/backend` because the surface is
+delivered to clients rather than operated by staff.
+
+### 4.6 Client extensions
+
+A client project sets `AURORA_CLIENT_DIR`, which Vite maps to `@client`.
+`app.js` scans `@client/src/Module/**/assets/**/*.vue` with the same key
+convention, and a client component that lands on an existing key **wins**, since
+the client map is spread after Aurora's. That is the override mechanism: put a
+`.vue` at the same key to replace one, co-located with whatever PHP extension
+goes with it.
+
+For entities, the five-layer convention (`docs/aurora-core/dev/entity_extensibility_convention.md`)
+is what makes the swap possible; `resolve_target_entities` is where it is
+declared.
+
+### 4.7 Adding a module
+
+Use `/add-module`, which does the scaffolding and the edits below. By hand, in
+order:
+
+1. `src/Module/<Name>/` with its domain subfolders.
+2. `<Name>Module.php` implementing `ModuleInterface`, plus a `<Name>Context`.
+3. A `<Name>Backend` case in the central `ModuleParameterEnum`, with its
+   `getLabel()` / `getDescription()` arms and `getModuleId()`.
+4. `translations/messages.{fr,en}.yaml` in the module. Spanish only for what a
+   customer reads - the back office falls back to French by design, and
+   `CustomerFacingLocaleTest` enforces the split.
+5. Optionally `aliases.js` (§4.4).
+6. Entities through `/add-entity`, which handles the five layers and the
+   `resolve_target_entities` line.
+
+```bash
+make module-sync   # privileges + install + parameters + translations + build
+make ft
+```
+
+---
+
+## 5. The modules
+
+The list changes; read `src/Module/`. What is worth knowing here is the shape
+they share: every one of them is a folder of sub-domains, each sub-domain a
+five-layer slice (Entity / Dto / Manager / Repository / Serializer) plus its
+`Controller`, `View`, `templates` and `assets`.
+
+`Studio` is the best current example of a module that is more than CRUD: it
+holds what is sold (`Customer`, `Contract`, `Deck`) and what is delivered
+(`CustomerSpace`, `SpaceContent`, `SpaceAccess`), with the delivery surface
+served under `/workspace` to people who are not staff.
+
+---
+
+## 6. Two pairs that are easy to confuse
+
+### 6.1 Entity ids and business references
+
+| Family | Mechanism | Owner |
+|---|---|---|
+| Entity primary keys | PostgreSQL sequence `seq_core_<entity>_id` | Doctrine migrations |
+| Business references | Table `app_sequence_counters` | `SequenceGenerator` |
+
+Every primary key uses Doctrine's `SEQUENCE` strategy with an explicit named
+sequence, so the sequences are visible and manageable in PostgreSQL rather than
+being silent `IDENTITY` columns. A client's entities use `seq_app_<entity>_id`.
+
+Entities that carry a human-readable `reference` (`ART-000032`, `USR-000004`)
+get it from `SequenceGenerator::next()` or `nextYearly()`. Prefixes are
+configurable under **Réglages → Séquences**; the defaults live in
+`SequencePrefixEnum`. The counters table is plain Doctrine, keyed
+`(prefix, year)` with `year = 0` for a global sequence, incremented atomically
+through `INSERT … ON CONFLICT DO UPDATE RETURNING`. A prefix row appears on
+first use; there is nothing to seed.
+
+```bash
+make sync-sequences   # resets seq_core_*_id to MAX(id)+1, after imports or fixtures
+```
+
+### 6.2 Class names and table names
+
+The namespace is the prefix, so class names stay clean:
+
+```
+Aurora\Module\Studio\Customer\Entity\Customer          ✅
+Aurora\Module\Studio\Customer\Entity\StudioCustomer    ❌
+```
+
+Table names, on the other hand, are always prefixed - `core_studio_customers`,
+`core_space_content_items` - so a query in a log says which module it came from
+and two modules cannot collide on a common noun.
+
+### 6.3 Migrations are written by hand
+
+`doctrine:migrations:diff` is **not usable in this repository today**. The
+initial migration creates the tables of the thirteen removed modules and nothing
+has ever dropped them, so the diff proposes deleting sixty-five tables on every
+run. Generate it if you like, keep only the statements naming your own tables,
+and write the migration by hand with a docblock saying why each foreign key has
+the `onDelete` rule it has.
+
+This is a known debt with a known fix (one migration dropping the orphan tables,
+columns and sequences), not a convention.
+
+---
+
+## 7. Related documents
+
+- `docs/aurora-core/dev/entity_extensibility_convention.md` - the five layers, in detail
+- `docs/aurora-core/dev/add_module.md` - the module checklist, long form
+- `docs/aurora-core/dev/extending_aurora.md` - what a client project can change
+- `src/Module/Documentation/content/` - the end-user manual, shipped in the package
