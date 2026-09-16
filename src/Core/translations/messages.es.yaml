@@ -69,23 +69,18 @@ shared:
     search: Buscar
     selected: seleccionados
     pagination: 'Página {page} de {totalPages}'
-    'yes': Sí
-    'no': 'No'
     built_with: '© {year} {siteName}'
     save: Guardar
     cancel: Cancelar
     delete: Eliminar
     edit: Editar
-    rename: Renombrar
     create: Crear
     add: Añadir
     loading: Cargando…
-    saving: Guardando…
     confirm: Confirmar
     error: Se ha producido un error.
     saved: Guardado.
     deleted: Eliminado.
-    refresh: Actualizar
     previous: Anterior
     autosave:
       pending: Cambios sin guardar
@@ -107,7 +102,6 @@ shared:
     no_options: Ningún elemento disponible
     add_tag_hint: Añadir una etiqueta…
     no_result: Ningún resultado
-    select_to_pick: Pulse Intro para seleccionar
     select_selected: Seleccionado
     download: Descargar
     qr_code: Código QR
@@ -122,7 +116,6 @@ shared:
     remove: Quitar
     all: Todos
     load_more: Cargar más
-    send: Enviar
     next: Siguiente
   reveal:
     more: '1 más | {count} más'
