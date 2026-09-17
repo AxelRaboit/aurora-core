@@ -367,15 +367,25 @@ const actionsFor = useSpaceCardActions({
              chatting on holds no connection open. The cost is that a message
              arriving while somebody is looking at the calendar is not
              announced - that is a notification's job, not a panel's. -->
-        <SpaceChatPanel
+        <!-- La hauteur de l'écran moins ce qui est au-dessus : l'en-tête de
+             l'espace, le sélecteur de vues et les marges. La discussion est le
+             seul écran d'un espace qu'on lit de haut en bas sans rien d'autre
+             autour, et une boîte de 32rem au milieu d'un écran vide donnait
+             trois messages visibles sur une conversation qui en compte trente. -->
+        <div
             v-else-if="view === 'chat'"
-            :messages="chatMessages"
-            :stream-url="chatStreamUrl"
-            :post-path="editable ? chatPostPath : null"
-            :reload-path="chatReloadPath"
-            :delete-path="editable ? chatDeletePath : null"
-            :notice="t('backend.studio.space_chat.notice')"
-        />
+            class="h-[calc(100dvh-8.5rem)] min-h-[24rem]"
+        >
+            <SpaceChatPanel
+                fill
+                :messages="chatMessages"
+                :stream-url="chatStreamUrl"
+                :post-path="editable ? chatPostPath : null"
+                :reload-path="chatReloadPath"
+                :delete-path="editable ? chatDeletePath : null"
+                :notice="t('backend.studio.space_chat.notice')"
+            />
+        </div>
 
         <!-- Le mur de notes, monté sur son propre conteneur : c'est lui qui
              décide de la forme, pas la fenêtre. -->

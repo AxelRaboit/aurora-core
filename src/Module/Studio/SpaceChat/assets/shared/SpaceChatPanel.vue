@@ -35,6 +35,15 @@ const props = defineProps({
     /** Shown above the box: who reads what is typed here. */
     notice: { type: String, default: "" },
     /**
+     * Prend toute la hauteur de son conteneur, au lieu de sa hauteur fixe.
+     *
+     * C'est le conteneur qui décide, pas le panneau : dans un espace, la
+     * discussion occupe l'écran parce qu'elle est l'écran, et sur la page du
+     * client elle est un bloc parmi d'autres sous le calendrier. Le même
+     * composant, deux places, et la place qui tranche.
+     */
+    fill: { type: Boolean, default: false },
+    /**
      * Which side of the conversation is reading.
      *
      * **The same stream, drawn from each reader's point of view.** A message is
@@ -189,7 +198,10 @@ function onKeydown(event) {
 </script>
 
 <template>
-    <section class="flex h-[32rem] flex-col rounded-lg border border-line/60 bg-surface-2/20">
+    <section
+        class="flex flex-col rounded-lg border border-line/60 bg-surface-2/20"
+        :class="fill ? 'h-full' : 'h-[32rem]'"
+    >
         <header class="flex items-center gap-2 border-b border-line/60 px-4 py-2.5">
             <h2 class="text-sm font-medium text-primary">
                 {{ t("shared.space_chat.title") }}
@@ -212,15 +224,19 @@ function onKeydown(event) {
             </span>
         </header>
 
+        <!-- `flex flex-col` sur le défilement, `mt-auto` sur les entrées : une
+             conversation courte se pose en bas de la boîte plutôt que de
+             flotter en haut d'un grand vide. Quand elle déborde, la marge
+             automatique vaut zéro et le défilement redevient ordinaire. -->
         <div
             ref="scroller"
-            class="flex-1 overflow-y-auto px-4 py-3"
+            class="flex flex-1 flex-col overflow-y-auto px-4 py-3"
             v-on:scroll="onScroll"
         >
             <!-- Un conteneur pour les entrées, et c'est lui qu'on observe : sa
                  hauteur est celle du contenu, la seule mesure qui dise qu'il y
                  a du nouveau sous le pli. -->
-            <div ref="content" class="space-y-2">
+            <div ref="content" class="mt-auto space-y-2">
                 <p v-if="!entries.length" class="text-sm text-muted">
                     {{ t("shared.space_chat.empty") }}
                 </p>

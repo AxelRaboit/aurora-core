@@ -5,6 +5,30 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.201] - 2026-09-17
+
+### Modifié
+
+#### La discussion d'un espace prend l'écran
+Elle tenait dans une boîte de hauteur fixe, posée au milieu d'un écran vide :
+une conversation de trente messages en montrait trois, et il fallait faire
+défiler dans une fenêtre grande comme une carte pendant que le reste de la page
+ne servait à rien. C'est le seul onglet d'un espace qu'on lit de haut en bas
+sans rien d'autre autour, donc il prend la hauteur disponible.
+
+**Et une conversation courte se pose en bas**, au-dessus de la zone de saisie,
+comme dans une messagerie - plutôt que de flotter en haut d'un grand vide. Dès
+qu'elle déborde, le défilement redevient ordinaire.
+
+C'est le conteneur qui décide, pas le panneau : sur la page du client, la
+discussion reste un bloc parmi d'autres sous son calendrier, et elle garde sa
+taille. Le même composant, deux places, et la place qui tranche.
+
+### Dans aurora-client
+`make aurora-update`. Aucune migration.
+
+---
+
 ## [0.9.200] - 2026-09-17
 
 ### Ajouté

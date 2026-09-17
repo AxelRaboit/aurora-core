@@ -619,7 +619,15 @@ const FLOWS = {
   "la-discussion": async () => {
     await openFirstSpace();
     await selectView("Discussion");
-    await wait(1500);
+
+    // Attendue en direct, pas photographiée en cours de connexion : le panneau
+    // s'ouvre en « reconnexion… » le temps que le flux s'établisse, et une
+    // documentation qui montre cet instant-là décrit une panne. Si le hub
+    // n'est pas démarré (make hub-start), la prise doit échouer ici plutôt que
+    // de livrer une image qui ment.
+    await page.getByText("en direct", { exact: true }).first()
+      .waitFor({ state: "visible", timeout: 20000 });
+    await wait(1200);
     await shot("la-discussion");
 
     // La zone de saisie et sa phrase d'avertissement : c'est elle qui dit que

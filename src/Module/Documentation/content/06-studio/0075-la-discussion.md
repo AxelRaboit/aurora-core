@@ -11,6 +11,8 @@ Dans le sélecteur de vues, à côté de Contenus, Calendrier et Fichiers : **Di
 
 ![La discussion d'un espace, côté studio](../../images/06-studio/la-discussion-01-la-discussion.png)
 
+Elle prend **toute la hauteur de l'écran** : c'est le seul onglet d'un espace qu'on lit de haut en bas sans rien d'autre autour, et une conversation de trente messages dans une boîte de la taille d'une carte n'en montre que trois. Quand il y en a peu, ils se posent en bas, au-dessus de la zone de saisie, comme dans une messagerie.
+
 **Vos messages sont à droite, ceux du client à gauche** — et sur sa page, c'est l'inverse : chacun se voit à droite. C'est le même fil, regardé de deux endroits.
 
 **Un seul fil, lu des deux côtés.** Ce que vous écrivez là, le client le lit ; la phrase sous la zone de saisie le dit.
