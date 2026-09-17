@@ -40,6 +40,11 @@ backend:
                     revoked: Lien d'accès client révoqué
                     deleted: Lien d'accès client supprimé
                     opened: Espace ouvert par un client
+                space_note:
+                    created: Note d'espace créée
+                    updated: Note d'espace modifiée
+                    pinned: Note d'espace épinglée ou dépinglée
+                    deleted: Note d'espace supprimée
                 space_chat_message:
                     posted: Message envoyé dans la discussion d'un espace
                     deleted: Message de discussion supprimé
@@ -854,6 +859,35 @@ backend:
             errors:
                 email_required: L'email du destinataire est obligatoire.
                 email_invalid: Cet email n'est pas valide.
+        space_notes:
+            # Les notes d'un espace : la seule surface qu'un client ne voit pas.
+            # Le fil d'une fiche et la discussion sont partagés ; une note est
+            # ce qu'on écrit pour soi.
+            add: Nouvelle note
+            create: Nouvelle note
+            edit: Modifier la note
+            title: Titre
+            title_placeholder: "Brief du 12 mars"
+            body_placeholder: "Ce qui a été dit, ce qu'il reste à faire…"
+            colour: Couleur
+            colour_hint: "Pour repérer une note sur le mur. Laissée vide, elle n'en porte pas - un mur où tout est coloré ne distingue plus rien."
+            pinned: Épingler en haut
+            pin: Épingler
+            unpin: Ne plus épingler
+            view_label: Vue
+            view_grid: Mur
+            view_list: Liste
+            empty: Aucune note sur cet espace
+            empty_hint: "Le brief pris au téléphone, une idée pas encore présentable, ce qui a mal tourné le mois dernier. Le client ne les voit pas."
+            created: Note créée.
+            updated: Note enregistrée.
+            deleted: Note supprimée.
+            delete_confirm: "Supprimer « {title} » ?"
+            delete_warning: "Les images qu'elle contient restent dans la médiathèque. Celles que plus rien n'utilise vous seront proposées."
+            errors:
+                title_required: Le titre est obligatoire.
+                title_too_long: Le titre ne peut pas dépasser 180 caractères.
+                needs_account: Il faut être connecté pour prendre une note.
         space_notifications:
             # Ce que le studio apprend sans avoir à ouvrir l'espace. Seulement
             # le côté client : le studio sait déjà ce que le studio a fait.
@@ -880,6 +914,7 @@ backend:
             view_calendar: Calendrier
             view_files: Fichiers
             view_chat: Discussion
+            view_notes: Notes
             files_empty: Aucun fichier sur cet espace
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
             files_unknown_card: Contenu supprimé

@@ -36,6 +36,7 @@ use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepositor
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentFinder;
 use Aurora\Module\Studio\SpaceContent\View\SpaceBoardViewBuilder;
+use Aurora\Module\Studio\SpaceNote\View\SpaceNotesViewBuilder;
 use RuntimeException;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -91,6 +92,7 @@ class SpaceContentController extends AbstractController
         protected readonly SpaceBoardViewBuilder $viewBuilder,
         protected readonly SpaceChatViewBuilder $chatViewBuilder,
         protected readonly SpaceChatHub $chatHub,
+        protected readonly SpaceNotesViewBuilder $notesViewBuilder,
         protected readonly PayloadValidator $payloadValidator,
         protected readonly BinaryFileServer $binaryFileServer,
         protected readonly StoredFileLocator $locator,
@@ -118,6 +120,7 @@ class SpaceContentController extends AbstractController
         $response = $this->render('@Studio/backend/space-content/content.html.twig', [
             ...$this->viewBuilder->contentView($space),
             ...$this->chatViewBuilder->view($space),
+            ...$this->notesViewBuilder->view($space),
         ]);
 
         // **Being signed in is not being authorised at the hub.** The hub has

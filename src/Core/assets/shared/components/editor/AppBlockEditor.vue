@@ -217,8 +217,21 @@ onMounted(async () => {
                         uploadByFile: async (file) => {
                             const uploaded = await uploadImageFile(file, props.uploadUrl);
 
+                            // `documentId` travels with the address, and the
+                            // block keeps whatever else `file` carries. Without
+                            // it the library has only a URL to recognise its own
+                            // picture by, so nothing can answer "which notes use
+                            // this image" - and deleting one would empty a note
+                            // in silence. Blocks written before this have no id
+                            // and still render: the address is unchanged.
                             return uploaded
-                                ? { success: 1, file: { url: uploaded.url } }
+                                ? {
+                                    success: 1,
+                                    file: {
+                                        url: uploaded.url,
+                                        documentId: uploaded.id,
+                                    },
+                                }
                                 : { success: 0 };
                         },
                     },
