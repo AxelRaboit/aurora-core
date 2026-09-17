@@ -5,6 +5,120 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.200] - 2026-09-17
+
+### Ajouté
+
+#### Des notes sur un espace, la seule surface que le client ne voit pas
+Le fil d'une fiche et la discussion sont partagés avec le client, et les écrans
+le disent là où l'on tape. Il manquait l'autre moitié : le brief pris au
+téléphone, l'idée pas encore présentable, ce qui a mal tourné le mois dernier.
+L'onglet **Notes** arrive après Discussion.
+
+Le client ne les voit pas, et pas seulement à l'affichage : le module n'expose
+aucune adresse publique qui les servirait. C'est cette absence qui permet d'y
+écrire ce qu'on n'écrirait pas ailleurs.
+
+**Deux lectures de la même chose.** Le mur répond à « qu'est-ce qu'il y a sur
+cet espace », la liste à « où est celle que je cherche ». Même ordre de part et
+d'autre - épinglées devant, puis les plus récemment modifiées - et le choix
+reste dans l'adresse de la page, donc un lien partagé ouvre la vue qu'on
+regardait.
+
+**Le même éditeur que les publications**, avec ses titres, ses listes, ses
+tableaux et ses images. Un second éditeur aurait été un second jeu d'habitudes
+pour la même geste.
+
+#### Une note est partagée avec l'équipe, ou personnelle
+Deux onglets sur le mur, et ils ne parlent pas du client : aucune note ne lui
+est montrée, dans un onglet comme dans l'autre. Ce qui se sépare là, c'est
+l'équipe et la personne. Une note partagée est la mémoire de l'espace ; une
+note personnelle est celle de son auteur, et elle existe parce qu'on écrit des
+choses avant d'être prêt à les dire.
+
+**« Personnelle » n'est pas un affichage.** Elle ne sort pas du serveur pour
+quelqu'un d'autre que son auteur : le filtre est dans la requête qui lit le
+mur, et les routes qui reçoivent une note par son identifiant reposent la même
+question. Trier dans la page aurait fait d'une confidence une préférence
+d'affichage.
+
+Partagée par défaut, parce qu'une note prise sur l'espace d'un client parle en
+général du travail, et qu'un mur que personne d'autre ne lit cesse d'être la
+mémoire de l'espace. L'onglet ouvert décide de ce que sera la prochaine note :
+on écrit là où on regarde.
+
+La médiathèque continue de compter les notes personnelles des autres quand elle
+dit ce qui utilise une image - sinon supprimer l'image viderait la note de
+quelqu'un sans que rien ne s'y oppose - mais elle ne les nomme plus : « la note
+personnelle de quelqu'un » suffit à refuser.
+
+#### Les images d'une note sont rangées avec l'espace, pas dans le tas d'édition
+Une image collée dans une note va dans le dossier de son espace, à côté des
+fichiers échangés sur ses fiches, et elle est enregistrée **en brouillon**.
+Trois conséquences, toutes voulues : aucune adresse publique devinable ; une
+place dans la médiathèque sous la catégorie des espaces clients ; et une absence
+du sélecteur d'images d'une publication, qui ne liste que les documents publiés.
+La capture d'un chantier n'est pas du mobilier de site.
+
+**La médiathèque sait quelles notes utilisent une image**, comme elle le sait
+déjà pour les publications et les pages. Sans ça, supprimer une image viderait
+une note en silence, et une note vidée a toujours l'air entière - ce qui est
+pire que cassée. Supprimer une note, à l'inverse, ne supprime aucune image :
+celles que plus rien n'utilise sont proposées à la corbeille, avec le même
+écran que partout ailleurs.
+
+Les images des **publications** sont enregistrées au passage : l'éditeur ne
+renvoyait qu'une URL, donc rien ne pouvait répondre « qui utilise cette
+image ». Il renvoie maintenant aussi l'identifiant du document.
+
+### Modifié
+
+#### Le tableau et la liste sont une seule entrée, avec deux formes
+Le sélecteur d'un espace offrait Tableau et Liste côte à côte, à côté de
+Calendrier, Fichiers, Discussion et Notes. Les quatre derniers sont quatre
+questions différentes ; les deux premiers étaient deux orthographes du même
+endroit. Ils deviennent **Contenus**, avec deux boutons de forme en haut à
+droite - le kanban et la liste - comme la vue Fichiers choisit déjà entre ses
+cartes et ses lignes.
+
+La forme voyage dans l'adresse de la page, donc un lien l'emmène avec lui ; ce
+qui reste retenu d'une visite à l'autre, c'est l'onglet, c'est-à-dire le sujet
+qu'on était en train de lire. Et un écran étroit affiche la liste quoi qu'en
+dise le lien, sans effacer le choix : un kanban sur un téléphone demande de
+défiler de côté pour voir sa deuxième colonne.
+
+#### Un fichier s'ouvre sur place
+Dans la vue Fichiers, **Ouvrir** posait le fichier dans un nouvel onglet.
+Parcourir ce qu'un espace a échangé est un balayage - laquelle était-ce, quand
+est-elle arrivée - et un onglet par fichier en fait une pile d'onglets à
+refermer. Le fichier s'affiche maintenant dans un panneau par-dessus la liste :
+une image s'affiche, un PDF se feuillette, le reste annonce ce qu'il est.
+
+L'adresse réelle est offerte en bas du panneau, pour le télécharger ou le garder
+ouvert à côté, et le nom de la fiche y reste cliquable.
+
+#### Les cartes de notes se tiennent
+La signature d'une note - qui l'a prise, quand - était collée sous son texte,
+donc à une hauteur différente sur chaque carte d'une même ligne. Elle est
+maintenant en bas de la carte, où elle s'aligne avec ses voisines.
+
+La couleur, elle, ne cerne plus les quatre côtés : un filet sur la tranche et
+un voile qui se dissout vers le bas. Elle sert à repérer une note d'un coup
+d'œil, pas à encadrer son texte.
+
+#### L'espace de démonstration montre tout ce qu'un espace sait faire
+Le jeu de données d'exemple ouvrait un espace à moitié rempli, ce qui est le
+plus mauvais moment pour découvrir un produit. Il porte désormais son tableau
+complet, son calendrier, ses fichiers, sa discussion, ses notes et son lien
+d'accès, dont une note personnelle qui montre à quoi sert le second onglet - et
+un **espace prospect** à côté, avec ce qu'on a vraiment à ce stade : un nom,
+trois cartes, quelques notes, et rien d'autre.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`.
+
+---
+
 ## [0.9.199] - 2026-09-17
 
 ### Ajouté
