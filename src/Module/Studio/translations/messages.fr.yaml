@@ -781,6 +781,7 @@ backend:
                 member: Membre
 
             row_actions:
+                view_description: Ouvrir le tableau de cet espace
                 edit_description: Modifier cet espace
                 delete_description: Supprimer cet espace
 

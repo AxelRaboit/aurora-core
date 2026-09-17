@@ -5,6 +5,36 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.198] - 2026-09-17
+
+### Ajouté
+
+#### Ouvrir un espace depuis le menu Actions
+Le nom de l'espace a toujours été le chemin pour y entrer, et il le reste. Mais
+un menu appelé Actions qui liste tout ce qu'on peut faire à une ligne, sauf
+justement ce qu'on lui fait tous les jours, répond à côté de la question. Et
+pour quelqu'un qui peut consulter les espaces sans les modifier, il ne
+contenait rien du tout.
+
+**Voir** arrive en premier, avant Modifier et Supprimer. C'est un lien et pas un
+gestionnaire, donc l'espace s'ouvre aussi dans un autre onglet - ce qu'on fait
+quand on en compare deux.
+
+### Corrigé
+
+#### Les avatars d'équipe ne se traversent plus
+Un avatar est peint dans un accent translucide, ce qui est juste tout seul et
+faux en pile : posé sur son voisin, il laissait passer le rond du dessous et
+deux paires d'initiales se chevauchaient dans la place d'une.
+
+Chaque rond est désormais posé sur un disque opaque de la couleur de la ligne :
+il rend exactement ce qu'il rend seul, et celui du dessus masque la part qu'il
+recouvre. Le visuel est inchangé. La transparence du variant `soft` de
+`AppAvatar` n'est pas touchée, elle sert dans tout le back-office ailleurs
+qu'en pile.
+
+---
+
 ## [0.9.197] - 2026-09-17
 
 ### Modifié
