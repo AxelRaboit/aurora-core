@@ -129,6 +129,18 @@ async function closeDialog() {
   await wait(900);
 }
 
+/**
+ * Ferme la fenêtre ouverte, quel que soit le mot sur son bouton.
+ *
+ * `closeDialog` vise « Annuler », qui n'existe que sur les fenêtres où l'on
+ * saisit quelque chose ; une fenêtre qui ne fait que montrer porte « Fermer ».
+ * Échap les ferme toutes.
+ */
+async function dismissDialog() {
+  await page.keyboard.press("Escape");
+  await wait(900);
+}
+
 async function selectView(label) {
   await page.getByRole("button", { name: label, exact: true }).first().click();
   await wait(2000);
@@ -406,6 +418,30 @@ const FLOWS = {
     await page.getByRole("button", { name: /personnes?$/ }).first().click();
     await wait(1200);
     await shot("la-modale-d-equipe");
+
+    await dismissDialog();
+
+    // L'onglet des prospects, et la fenêtre qui les convertit. Le choix
+    // d'onglet est retenu d'une visite à l'autre : il faut revenir sur
+    // Clients, sinon tous les flux suivants photographient les prospects.
+    await page.getByRole("button", { name: /^Prospects/ }).first().click();
+    await wait(1500);
+    await shot("les-prospects");
+
+    // Le menu de la ligne, pas celui de la page : les deux s'appellent
+    // « Actions », et celui d'en haut ne sait rien de ce prospect.
+    await page.locator("tbody tr").first().getByRole("button").last().click();
+    await wait(600);
+    await page.getByText(/Convertir en client/).first().click();
+    await wait(1200);
+    await shot("convertir-en-client");
+
+    // Celle-ci se ferme par son bouton : une fenêtre de saisie ne s'abandonne
+    // pas sur Échap, ce qui est voulu et ce qu'Échap ne peut pas contourner.
+    await closeDialog();
+
+    await page.getByRole("button", { name: /^Clients/ }).first().click();
+    await wait(1000);
   },
 
   /**
