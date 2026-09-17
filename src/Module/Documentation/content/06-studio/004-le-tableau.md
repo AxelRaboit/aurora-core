@@ -5,15 +5,15 @@ rubric: "Studio"
 ---
 Cliquer sur le nom d'un espace ouvre son contenu. L'écran change : plus de menu latéral, un bandeau fin avec le retour, le nom de l'espace et deux onglets. C'est voulu, un espace est un endroit où l'on reste.
 
-## Quatre façons de regarder un espace
+## Cinq façons de regarder un espace
 
-L'onglet Contenu porte un sélecteur : **Tableau**, **Liste**, **Calendrier**, **Fichiers**. Les trois premiers ne sont pas trois fonctionnalités, ce sont trois façons de lire les mêmes fiches : le tableau dit où en est chaque chose, la liste dit ce qu'il y a, le calendrier dit quand ça sort.
+L'onglet Contenu porte un sélecteur : **Tableau**, **Liste**, **Calendrier**, **Fichiers**, **Discussion**. Les trois premiers ne sont pas trois fonctionnalités, ce sont trois façons de lire les mêmes fiches : le tableau dit où en est chaque chose, la liste dit ce qu'il y a, le calendrier dit quand ça sort.
 
-**Fichiers est d'une autre nature.** Les trois autres montrent les fichiers d'une fiche sur la fiche ; celui-ci rassemble tout ce que l'espace a échangé, du plus récent au plus ancien. C'est la vue qui répond « qu'est-ce que ce client nous a envoyé », et elle a sa page.
+**Les deux derniers sont d'une autre nature.** Fichiers rassemble tout ce que l'espace a échangé, du plus récent au plus ancien, là où les trois premiers montrent les fichiers d'une fiche sur la fiche. Discussion est le fil de l'espace lui-même, pour ce qui ne tient sur aucune fiche. Chacun a sa page.
 
 **Votre choix est retenu.** Quelqu'un qui ne pense pas en colonnes choisit la liste une fois et la retrouve dans tous ses espaces. Rien n'est perdu en changeant de vue : c'est le même contenu, et une fiche modifiée dans l'une est à jour dans les autres.
 
-Cette page décrit le tableau ; le calendrier et les fichiers ont les leurs.
+Cette page décrit le tableau ; le calendrier, les fichiers et la discussion ont les leurs.
 
 ![Le tableau d'un espace, avec ses étapes](../../images/06-studio/le-tableau-01-le-tableau.png)
 

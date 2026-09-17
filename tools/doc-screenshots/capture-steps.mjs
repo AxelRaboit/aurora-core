@@ -466,6 +466,25 @@ const FLOWS = {
     // où les fixtures déposent un fichier par un espace.
   },
 
+  /**
+   * La discussion d'un espace, côté studio.
+   *
+   * Le jeu de démonstration porte un échange sur deux jours, ce qui est la
+   * seule façon de photographier la ligne de séparation : une conversation
+   * écrite dans la même après-midi n'en montre aucune.
+   */
+  "la-discussion": async () => {
+    await openFirstSpace();
+    await selectView("Discussion");
+    await wait(1500);
+    await shot("la-discussion");
+
+    // La zone de saisie et sa phrase d'avertissement : c'est elle qui dit que
+    // le client lit ce qui est écrit là, et c'est le seul endroit où elle
+    // apparaît.
+    await shotOf(page.locator("textarea").first(), "ce-que-le-client-lit", 20, 40).catch(() => {});
+  },
+
   "le-calendrier": async () => {
     await openFirstSpace();
     await selectView("Calendrier");
