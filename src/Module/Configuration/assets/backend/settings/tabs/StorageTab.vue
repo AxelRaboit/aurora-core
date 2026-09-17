@@ -44,6 +44,25 @@ const saving = ref(false);
 const testing = ref(false);
 
 const activeDisk = ref("local");
+
+/**
+ * Ce que pèse chaque emplacement.
+ *
+ * Les deux sont toujours montrés, même à zéro : ce qu'on vient vérifier après
+ * une bascule, c'est justement qu'il ne reste plus rien de l'autre côté, et un
+ * écran qui masque l'emplacement vide ne sait pas le dire.
+ */
+const usage = ref({ local: { count: 0, bytes: 0 }, r2: { count: 0, bytes: 0 } });
+
+/** Des unités qu'on lit, pas des octets qu'on compte. */
+function weigh(bytes) {
+    if (!bytes) return "0 ko";
+
+    if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} Go`;
+    if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} Mo`;
+
+    return `${Math.max(1, Math.round(bytes / 1024))} ko`;
+}
 const deliveryMode = ref("proxy");
 const endpoint = ref("");
 const bucket = ref("");
@@ -158,6 +177,7 @@ function apply(state) {
     isComplete.value = true === state.isComplete;
     fromEnvironment.value = true === state.fromEnvironment;
     verifiedAt.value = state.verifiedAt ?? null;
+    usage.value = state.usage ?? usage.value;
     accessKeyId.value = "";
     secretAccessKey.value = "";
 }
@@ -306,6 +326,35 @@ defineExpose({ save, apply, canSwitchToR2 });
         <section class="space-y-2">
             <p class="text-sm text-secondary">{{ t("backend.settings.storage.intro") }}</p>
             <p class="text-sm text-muted">{{ t("backend.settings.storage.when_useful") }}</p>
+        </section>
+
+        <!-- Ce que ça pèse, et de quel côté. L'écran disait où les fichiers
+             vont ; il ne disait pas où ils sont, ce qui est la seule chose
+             qu'on vient vérifier après une bascule. -->
+        <section v-if="!loading" class="space-y-2">
+            <h3 class="text-sm font-medium text-primary">{{ t("backend.settings.storage.usage_title") }}</h3>
+            <div class="grid gap-2 sm:grid-cols-2">
+                <div
+                    v-for="disk in ['local', 'r2']"
+                    :key="disk"
+                    class="rounded-lg border border-line/60 bg-surface-2/40 px-3 py-2"
+                    :class="activeDisk === disk ? 'border-accent/60' : ''"
+                >
+                    <p class="flex items-center gap-2 text-xs uppercase tracking-wide text-muted">
+                        {{ t(`backend.settings.storage.disk_${disk}`) }}
+                        <span v-if="activeDisk === disk" class="rounded-full bg-accent/15 px-1.5 py-0.5 text-[0.65rem] normal-case text-accent">
+                            {{ t("backend.settings.storage.usage_active") }}
+                        </span>
+                    </p>
+                    <p class="mt-0.5 text-sm text-primary tabular-nums">
+                        {{ weigh(usage[disk]?.bytes ?? 0) }}
+                    </p>
+                    <p class="text-xs text-muted">
+                        {{ t("backend.settings.storage.usage_files", { count: usage[disk]?.count ?? 0 }) }}
+                    </p>
+                </div>
+            </div>
+            <p class="text-xs text-muted">{{ t("backend.settings.storage.usage_hint") }}</p>
         </section>
 
         <section class="space-y-2">

@@ -55,6 +55,22 @@ C'est le conteneur qui décide, pas le panneau : sur la page du client, la
 discussion reste un bloc parmi d'autres sous son calendrier, et elle garde sa
 taille. Le même composant, deux places, et la place qui tranche.
 
+#### On voit enfin ce que le stockage pèse
+L'écran Stockage disait où les nouveaux fichiers vont ; il ne disait pas où ils
+sont. Il porte maintenant **ce qui est stocké de chaque côté**, le poids et le
+nombre, le disque du serveur et le bucket, les deux toujours affichés même à
+zéro : ce qu'on vient vérifier après une bascule, c'est justement qu'il ne
+reste plus rien de l'autre côté.
+
+Et la liste des espaces clients porte une colonne **Poids** : ce que chaque
+espace a fait déposer, mesuré sur son dossier dans la médiathèque. Un document
+choisi dans la bibliothèque n'y compte pas, il était déjà là. Le jour où le
+disque se remplit, c'est cette colonne qui dit chez quel client.
+
+Mesuré sur la table des documents plutôt que sur le disque : ce qui compte est
+ce dont l'application répond, pas les restes d'un import raté qu'une purge n'a
+pas encore ramassés.
+
 #### Ajouter une étape n'est proposé que sur les contenus
 Le bouton suivait la barre de vues et se retrouvait au-dessus des fichiers,
 où il voisinait avec leurs propres actions sans rien avoir à voir avec elles.

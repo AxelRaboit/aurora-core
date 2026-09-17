@@ -768,6 +768,7 @@ backend:
             col_space: Space
             col_customer: Client
             col_team: Team
+            col_storage: Weight
             col_status: Status
 
             group_identity: The space

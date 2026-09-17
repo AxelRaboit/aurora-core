@@ -75,6 +75,10 @@ backend:
       test_never: "Jamais testée. Le test est nécessaire avant de pouvoir basculer le stockage."
       active_disk_label: Écrire les nouveaux fichiers sur
       disk_local: Le disque du serveur
+      usage_title: Ce qui est stocké
+      usage_active: en écriture
+      usage_files: "Aucun fichier | 1 fichier | {count} fichiers"
+      usage_hint: "Le poids des documents de la médiathèque, corbeille exclue. Les restes d'un import raté ou les variantes qu'une purge n'a pas ramassées n'y sont pas."
       disk_r2: Cloudflare R2
       switch_blocked: Testez la connexion avant de pouvoir basculer.
       switch_hint: "Ne concerne que les fichiers à venir. Ceux déjà en place ne bougent pas."
