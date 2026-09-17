@@ -40,6 +40,9 @@ backend:
                     revoked: Lien d'accès client révoqué
                     deleted: Lien d'accès client supprimé
                     opened: Espace ouvert par un client
+                space_file:
+                    added: Fichier ajouté à un espace
+                    removed: Fichier retiré d'un espace
                 space_note:
                     created: Note d'espace créée
                     updated: Note d'espace modifiée
@@ -859,6 +862,28 @@ backend:
             errors:
                 email_required: L'email du destinataire est obligatoire.
                 email_invalid: Cet email n'est pas valide.
+        space_files:
+            # Les fichiers de l'espace lui-même, sur aucune fiche : la charte,
+            # les logos, le brief. Le client les voit, comme le reste de
+            # l'espace ; ce que le studio garde pour lui, ce sont les notes.
+            label: Rattachement
+            tabs:
+                linked: Sur les fiches
+                space: De l'espace
+            upload: Déposer un fichier
+            pick: Choisir dans la médiathèque
+            remove: Retirer de l'espace
+            added: Fichier ajouté à l'espace.
+            removed: "Fichier retiré de l'espace. Il reste dans la médiathèque."
+            empty_linked: Aucun fichier sur les fiches de cet espace
+            empty_linked_hint: "Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien."
+            empty_space: Aucun fichier sur cet espace
+            empty_space_hint: "La charte, les logos, le brief, un contrat signé : ce qui appartient à la mission sans illustrer une publication. Le client les voit."
+            errors:
+                required: Choisissez un fichier.
+                unknown: Ce document est introuvable.
+                duplicate: Ce fichier est déjà sur cet espace.
+                needs_account: Il faut être connecté pour ajouter un fichier.
         space_notes:
             # Les notes d'un espace : la seule surface qu'un client ne voit pas.
             # Le fil d'une fiche et la discussion sont partagés ; une note est
@@ -1136,6 +1161,8 @@ studio:
             no_body: Le texte n'est pas encore écrit.
             thread_notice: Ce que vous écrivez ici est lu par votre prestataire.
             chat_notice: Ce que vous écrivez ici est lu par votre prestataire.
+            files_title: Les fichiers de cet espace
+            files_open: Ouvrir
             upload_notice: "Images, PDF et vidéos courantes, 25 Mo maximum. Ce que vous envoyez ici est visible par votre prestataire."
             approve: Validé
             request_changes: À revoir

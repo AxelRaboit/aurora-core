@@ -585,6 +585,18 @@ const FLOWS = {
     await selectView("Fichiers");
     await shot("la-vue-fichiers");
 
+    // L'autre onglet : les fichiers de l'espace, ceux qui ne sont sur aucune
+    // fiche, avec leurs deux actions. Photographié juste après le premier,
+    // pour que les images se suivent dans l'ordre où la page les cite.
+    await page.getByRole("button", { name: /^De l'espace/ }).first().click();
+    await wait(1500);
+    await shot("de-l-espace");
+
+    // Et retour : le choix d'onglet est retenu d'une visite à l'autre, donc un
+    // flux qui le laisse ici décide de ce que photographieront les suivants.
+    await page.getByRole("button", { name: /^Sur les fiches/ }).first().click();
+    await wait(1200);
+
     // Le bouton n'a pas de texte : deux icônes dans un même cadre, et c'est
     // celle de gauche. Visée par son libellé accessible plutôt que par sa
     // position, qui est ce qui casse quand une troisième forme arrive.

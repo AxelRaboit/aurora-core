@@ -30,9 +30,10 @@
  * from, closes on Escape, and still offers the real address for whoever wants
  * the tab or the download.
  */
-import { ref, toRef } from "vue";
+import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useSpaceFiles } from "../composables/useSpaceFiles.js";
+import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppImage from "@/shared/components/display/AppImage.vue";
@@ -40,14 +41,18 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppFilePreview from "@/shared/components/display/AppFilePreview.vue";
-import { ExternalLink, FileText, LayoutGrid, List, UserRound, X } from "lucide-vue-next";
+import { ExternalLink, FileText, FolderOpen, LayoutGrid, List, Trash2, Upload, UserRound, X } from "lucide-vue-next";
 
 const props = defineProps({
     attachments: { type: Object, default: () => ({}) },
     items: { type: Array, default: () => [] },
+    /** Les fichiers de l'espace lui-même, sur aucune fiche. */
+    spaceFiles: { type: Array, default: () => [] },
+    editable: { type: Boolean, default: false },
+    loading: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["open-item"]);
+const emit = defineEmits(["open-item", "upload", "pick", "remove"]);
 
 const { t, d } = useI18n();
 
@@ -82,37 +87,113 @@ function open(itemId) {
  * a rien de propre aux espaces dans « à quoi ressemble ce fichier ».
  */
 const previewed = ref(null);
+
+/**
+ * Deux rattachements, une seule liste dessinée.
+ *
+ * « Sur les fiches » répond à « ce fichier est arrivé la semaine dernière, mais
+ * pour quel post » ; « De l'espace » porte ce qui n'illustre rien - la charte,
+ * les logos, le brief, un PDF signé. Retenu d'une visite à l'autre, comme les
+ * onglets des notes : celui qui range ses chartes à part le fait sur tous ses
+ * espaces.
+ */
+const { choice: tab } = usePersistedChoice("studio.space_files.tab", "linked", [
+    "linked",
+    "space",
+]);
+
+const visible = computed(() => ("space" === tab.value ? props.spaceFiles : files.value));
+
+const tabs = computed(() => [
+    { key: "linked", count: files.value.length },
+    { key: "space", count: props.spaceFiles.length },
+]);
+
+/** Le champ de fichier caché : un bouton se dessine, un `input[type=file]` non. */
+const fileInput = ref(null);
+
+function chooseFile(event) {
+    const file = event.target.files?.[0];
+
+    if (file) emit("upload", file);
+
+    // Remis à zéro : sans ça, redéposer deux fois le même fichier n'émet rien,
+    // le champ n'ayant pas changé de valeur.
+    event.target.value = "";
+}
 </script>
 
 <template>
     <div ref="container">
-        <div v-if="files.length > 0" class="mb-3 flex justify-end">
-            <div class="flex rounded-lg border border-line/60 p-0.5">
-                <AppIconButton
-                    size="sm"
-                    variant="ghost"
-                    :title="t('backend.studio.space_content.files_as_cards')"
-                    :class="storedViewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
-                    v-on:click="setViewMode('grid')"
+        <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <!-- Deux rattachements, deux onglets, et le compte sur l'étiquette :
+                 c'est lui qui rend l'autre visible. -->
+            <div
+                class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+                role="group"
+                :aria-label="t('backend.studio.space_files.label')"
+            >
+                <button
+                    v-for="entry in tabs"
+                    :key="entry.key"
+                    type="button"
+                    class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                    :class="
+                        tab === entry.key
+                            ? 'bg-surface font-medium text-primary shadow-sm'
+                            : 'text-muted hover:text-primary'
+                    "
+                    :aria-pressed="tab === entry.key"
+                    v-on:click="tab = entry.key"
                 >
-                    <LayoutGrid class="h-4 w-4" :stroke-width="2" />
-                </AppIconButton>
-                <AppIconButton
-                    size="sm"
-                    variant="ghost"
-                    :title="t('backend.studio.space_content.files_as_rows')"
-                    :class="storedViewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
-                    v-on:click="setViewMode('list')"
-                >
-                    <List class="h-4 w-4" :stroke-width="2" />
-                </AppIconButton>
+                    {{ t(`backend.studio.space_files.tabs.${entry.key}`) }}
+                    <span class="text-xs tabular-nums text-muted">{{ entry.count }}</span>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Déposer et choisir ne valent que pour les fichiers de
+                     l'espace : sur une fiche, c'est la fiche qui les porte, et
+                     c'est là qu'on les y met. -->
+                <template v-if="'space' === tab && editable">
+                    <input ref="fileInput" type="file" class="hidden" v-on:change="chooseFile">
+                    <AppButton variant="primary" size="sm" :loading="loading" v-on:click="fileInput?.click()">
+                        <Upload class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("backend.studio.space_files.upload") }}
+                    </AppButton>
+                    <AppButton variant="ghost" size="sm" :loading="loading" v-on:click="emit('pick')">
+                        <FolderOpen class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("backend.studio.space_files.pick") }}
+                    </AppButton>
+                </template>
+
+                <div v-if="visible.length > 0" class="flex rounded-lg border border-line/60 p-0.5">
+                    <AppIconButton
+                        size="sm"
+                        variant="ghost"
+                        :title="t('backend.studio.space_content.files_as_cards')"
+                        :class="storedViewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                        v-on:click="setViewMode('grid')"
+                    >
+                        <LayoutGrid class="h-4 w-4" :stroke-width="2" />
+                    </AppIconButton>
+                    <AppIconButton
+                        size="sm"
+                        variant="ghost"
+                        :title="t('backend.studio.space_content.files_as_rows')"
+                        :class="storedViewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                        v-on:click="setViewMode('list')"
+                    >
+                        <List class="h-4 w-4" :stroke-width="2" />
+                    </AppIconButton>
+                </div>
             </div>
         </div>
 
         <AppNoData
-            v-if="files.length === 0"
-            :title="t('backend.studio.space_content.files_empty')"
-            :description="t('backend.studio.space_content.files_empty_hint')"
+            v-if="visible.length === 0"
+            :title="t(`backend.studio.space_files.empty_${tab}`)"
+            :description="t(`backend.studio.space_files.empty_${tab}_hint`)"
         />
 
         <div
@@ -120,7 +201,7 @@ const previewed = ref(null);
             class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         >
             <article
-                v-for="file in files"
+                v-for="file in visible"
                 :key="file.id"
                 class="overflow-hidden rounded-lg border border-line/60 bg-surface transition-colors hover:border-accent-400"
             >
@@ -145,6 +226,7 @@ const previewed = ref(null);
                     </p>
 
                     <button
+                        v-if="file.itemId"
                         type="button"
                         class="mt-0.5 block max-w-full truncate text-xs text-muted underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
                         v-on:click="open(file.itemId)"
@@ -162,7 +244,7 @@ const previewed = ref(null);
 
         <ul v-else class="divide-y divide-line/60 rounded-lg border border-line/60">
             <li
-                v-for="file in files"
+                v-for="file in visible"
                 :key="file.id"
                 class="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-surface-2"
             >
@@ -184,15 +266,17 @@ const previewed = ref(null);
                     <p class="truncate text-sm text-primary">{{ file.title }}</p>
 
                     <p class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
-                        <button
-                            type="button"
-                            class="truncate underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
-                            v-on:click="open(file.itemId)"
-                        >
-                            {{ titleOf(file.itemId) }}
-                        </button>
+                        <template v-if="file.itemId">
+                            <button
+                                type="button"
+                                class="truncate underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
+                                v-on:click="open(file.itemId)"
+                            >
+                                {{ titleOf(file.itemId) }}
+                            </button>
 
-                        <span aria-hidden="true">·</span>
+                            <span aria-hidden="true">·</span>
+                        </template>
                         <span class="inline-flex items-center gap-1">
                             <UserRound v-if="file.fromClient" class="h-3 w-3" :stroke-width="2" />
                             {{ file.author }}
@@ -215,6 +299,19 @@ const previewed = ref(null);
                 >
                     {{ t("backend.studio.space_content.files_open") }}
                 </button>
+
+                <!-- Retirer n'est offert que sur les fichiers de l'espace : sur
+                     une fiche, le fichier se retire depuis la fiche, là où on
+                     voit ce qu'on défait. -->
+                <AppIconButton
+                    v-if="'space' === tab && editable"
+                    size="sm"
+                    variant="ghost"
+                    :title="t('backend.studio.space_files.remove')"
+                    v-on:click="emit('remove', file)"
+                >
+                    <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
+                </AppIconButton>
             </li>
         </ul>
 

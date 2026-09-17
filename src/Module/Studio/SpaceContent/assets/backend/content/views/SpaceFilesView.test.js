@@ -49,6 +49,11 @@ function entries(view) {
     return rows.length > 0 ? rows : view.findAll("article");
 }
 
+/** Les deux boutons de forme : les seuls sans texte, cadre et icône. */
+function shapeToggle(view) {
+    return view.findAll("button").filter((b) => b.text() === "");
+}
+
 /** The button that opens a card, found by its label rather than its position. */
 function cardLink(view, title) {
     return view.findAll("button").find((b) => b.text() === title);
@@ -90,7 +95,10 @@ describe("SpaceFilesView", () => {
         const view = render({ attachments: {} });
 
         expect(entries(view)).toHaveLength(0);
-        expect(view.findAll("button")).toHaveLength(0);
+        // Les deux onglets restent, eux : ils disent où chercher l'autre
+        // moitié. Ce qui disparaît, c'est le choix de forme, qui n'a rien à
+        // mettre en forme.
+        expect(shapeToggle(view)).toHaveLength(0);
     });
 
     /** A card deleted after its file was filed still leaves the file listed. */
@@ -108,7 +116,7 @@ describe("SpaceFilesView", () => {
      */
     it("offers the two shapes, and neither on an empty space", async () => {
         const view = render();
-        const toggle = view.findAll("button").filter((b) => b.text() === "");
+        const toggle = shapeToggle(view);
 
         expect(toggle).toHaveLength(2);
 

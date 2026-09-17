@@ -33,13 +33,29 @@ Le sélecteur de l'onglet Contenu porte **Fichiers**. Elle rassemble tout ce que
 
 ![La vue Fichiers, en liste](../../images/06-studio/les-fichiers-03-la-vue-fichiers.png)
 
+### Deux rattachements, deux onglets
+
+**Sur les fiches** est ce que vous venez de lire : tout ce qui a été déposé sur un contenu, par vous ou par le client, avec le nom de la fiche sur chaque ligne.
+
+**De l'espace** porte ce qui n'illustre rien : la charte, les logos, le brief, un contrat signé. Ce sont des documents de la mission, et avant cet onglet ils finissaient épinglés à la fiche qui se trouvait ouverte, exactement comme les messages avant la discussion.
+
+C'est là, et seulement là, que se trouvent **Déposer un fichier** et **Choisir dans la médiathèque** : sur une fiche, un fichier s'ajoute depuis la fiche, là où l'on voit ce qu'il illustre.
+
+**Le client les voit.** Un espace est partagé : ses fiches, ses fichiers et sa discussion se lisent des deux côtés. Ils apparaissent sur sa page, sous la discussion. Ce que vous gardez pour vous, ce sont les notes, qui n'ont aucune adresse publique.
+
+**Retirer** enlève le fichier de l'espace, pas de la médiathèque, et si plus rien ne l'utilisait, la corbeille vous est proposée. La même règle que partout.
+
+![L'onglet « De l'espace » et ses deux actions](../../images/06-studio/les-fichiers-04-de-l-espace.png)
+
+### Deux formes pour lire
+
 Deux formes au choix, en haut à droite : **liste** quand la question est quand et de qui, **cartes** quand la question est laquelle. Le choix voyage dans l'adresse, donc un lien vers cette vue l'emmène avec lui.
 
-![La même vue, en cartes](../../images/06-studio/les-fichiers-04-en-cartes.png)
+![La même vue, en cartes](../../images/06-studio/les-fichiers-05-en-cartes.png)
 
 **Ouvrir montre le fichier sur place**, dans un panneau posé sur la liste : une image s'affiche, un PDF se feuillette, le reste annonce ce qu'il est. Parcourir des fichiers est un balayage, et un onglet par fichier en fait une pile d'onglets à refermer. L'adresse réelle reste offerte en bas du panneau, pour le télécharger ou le garder ouvert à côté.
 
-![Un fichier ouvert dans son panneau](../../images/06-studio/les-fichiers-05-le-panneau.png)
+![Un fichier ouvert dans son panneau](../../images/06-studio/les-fichiers-06-le-panneau.png)
 
 ## 4. Où ils atterrissent
 

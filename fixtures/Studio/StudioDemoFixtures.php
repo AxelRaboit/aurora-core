@@ -54,6 +54,7 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInter
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
+use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
 use Aurora\Module\Studio\SpaceNote\Enum\SpaceNoteVisibilityEnum;
 use DateTimeImmutable;
@@ -350,6 +351,13 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->seedBoard($social);
         $this->seedChat($social);
         $this->seedNotes($social);
+        // Des fichiers qui n'illustrent rien : ce qu'on tend au client sans
+        // l'épingler à une publication.
+        $this->fileOnSpace($social, [
+            'Logo Aurora - Fond sombre',
+            'Plan des locaux - Étage 2',
+            'Charte Graphique Aurora - Brand Guidelines',
+        ]);
 
         $this->space(
             name: 'Atelier Dupont - Refonte du site',
@@ -926,6 +934,39 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
                 'Ce qui est abandonné, et pourquoi',
             ],
         ], null);
+    }
+
+    /**
+     * Les fichiers de l'espace lui-même, sur aucune fiche.
+     *
+     * Le pendant de `hangPictures` pour l'autre rattachement : la charte, le
+     * logo, le plan des locaux. Pris dans la médiathèque par leur titre, pour
+     * la même raison, et signés par le même compte.
+     *
+     * @param list<string> $titles
+     */
+    private function fileOnSpace(CustomerSpaceInterface $space, array $titles): void
+    {
+        $author = $this->userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Backend->value]);
+
+        if (!$author instanceof User) {
+            return;
+        }
+
+        foreach ($titles as $title) {
+            $document = $this->documents->findOneBy(['title' => $title]);
+
+            if (!$document instanceof Document) {
+                continue;
+            }
+
+            $file = new SpaceFile();
+            $file->setSpace($space)->setDocument($document)->addedByStudio($author, $author->getName());
+
+            $this->entityManager->persist($file);
+        }
+
+        $this->entityManager->flush();
     }
 
     /**

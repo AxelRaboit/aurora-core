@@ -32,6 +32,10 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentCommentManagerInterfac
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
+use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
+use Aurora\Module\Studio\SpaceFile\Repository\SpaceFileRepository;
+use Aurora\Module\Studio\SpaceFile\Service\SpaceStoredFileResponder;
+use Aurora\Module\Studio\SpaceFile\View\SpaceFilesViewBuilder;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -76,6 +80,9 @@ final class PublicSpaceController extends AbstractController
         // contract controller reaches its own.
         private readonly RateLimiterFactoryInterface $spaceGuestWriteLimiter,
         private readonly SpaceContentAttachmentManagerInterface $attachments,
+        private readonly SpaceFilesViewBuilder $filesViewBuilder,
+        private readonly SpaceFileRepository $spaceFiles,
+        private readonly SpaceStoredFileResponder $fileResponder,
         // A limiter of its own rather than the one above. A verdict is a row; a
         // file is megabytes through the whole pipeline - storage, thumbnailing,
         // a poster frame for a video - and forty of those an hour from one
@@ -119,6 +126,7 @@ final class PublicSpaceController extends AbstractController
         $response = $this->privately($this->render('@Studio/public/space.html.twig', [
             ...$this->viewBuilder->view($link, $token),
             ...$this->chatViewBuilder->publicView($link, $token),
+            ...$this->filesViewBuilder->publicView($link, $token),
         ]));
 
         // **The one place a guest is authorised at the hub.** Everything else
@@ -413,6 +421,41 @@ final class PublicSpaceController extends AbstractController
      * another space - for the reason the writes give: distinguishing them
      * tells whoever holds a leaked address what they hold.
      */
+    /**
+     * Un fichier de l'espace lui-même, lu par le lien.
+     *
+     * Le même 404 pour tout - jeton faux, lien révoqué, fichier d'un autre
+     * espace - que la route voisine, et pour la même raison.
+     */
+    #[Route(
+        '/{selector}/{token}/files/{fileId}/{variant}',
+        name: '_file_file',
+        requirements: [
+            'selector' => '[a-f0-9]{32}',
+            'token' => '[a-f0-9]{64}',
+            'fileId' => '\d+',
+            'variant' => 'file|preview',
+        ],
+        defaults: ['variant' => 'file'],
+        methods: [HttpMethodEnum::Get->value],
+    )]
+    public function spaceFile(string $selector, string $token, int $fileId, string $variant): Response
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        $file = $this->spaceFiles->find($fileId);
+
+        if (!$file instanceof SpaceFileInterface || $file->getSpace()->getId() !== $link->getSpace()->getId()) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->fileResponder->respond($file->getDocument(), $variant);
+    }
+
     #[Route(
         '/{selector}/{token}/attachments/{attachmentId}/{variant}',
         name: '_attachment_file',

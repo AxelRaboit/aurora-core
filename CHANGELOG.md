@@ -7,6 +7,37 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.201] - 2026-09-17
 
+### Ajouté
+
+#### Les fichiers d'un espace, ceux qui ne sont sur aucune fiche
+La vue Fichiers rassemblait ce qui avait été déposé sur les contenus. Restait
+sans place ce qui n'illustre rien : la charte, les logos, le brief, un contrat
+signé. Ça finissait épinglé à la fiche qui se trouvait ouverte, exactement
+comme les messages avant que la discussion existe.
+
+Deux onglets, donc : **Sur les fiches** et **De l'espace**. Le second porte
+« Déposer un fichier » et « Choisir dans la médiathèque » ; sur une fiche, un
+fichier s'ajoute depuis la fiche, là où l'on voit ce qu'il illustre.
+
+**Le client les voit**, sur sa page, sous la discussion. Un espace est partagé :
+ses fiches, ses fichiers et sa conversation se lisent des deux côtés. Ce que le
+studio garde pour lui, ce sont les notes, qui n'ont aucune adresse publique.
+
+**Sa propre table, pas une fiche facultative.** Une ligne de pièce jointe dit
+« ce document est sur cette fiche » et casse des deux côtés ; un `null` lui
+aurait fait dire deux choses, et chaque lecteur aurait dû demander laquelle.
+
+**Le fichier, lui, reste dans la médiathèque**, en brouillon et dans le dossier
+de l'espace, comme tout ce qu'un espace reçoit. C'est ce qui lui garde ses
+vignettes, sa corbeille, son registre d'usages et l'absence d'adresse publique
+devinable. Un second stockage aurait voulu dire deux téléversements, deux
+corbeilles et deux réponses à « qui utilise ce fichier ». La médiathèque sait
+donc dire qu'un espace porte une image avant qu'on ne la supprime.
+
+Retirer un fichier de l'espace ne le supprime pas, et ce que plus rien
+n'utilise vous est proposé à la corbeille - la même règle que les pièces
+jointes d'une fiche et les images d'une note.
+
 ### Modifié
 
 #### La discussion d'un espace prend l'écran
@@ -24,8 +55,13 @@ C'est le conteneur qui décide, pas le panneau : sur la page du client, la
 discussion reste un bloc parmi d'autres sous son calendrier, et elle garde sa
 taille. Le même composant, deux places, et la place qui tranche.
 
+#### Ajouter une étape n'est proposé que sur les contenus
+Le bouton suivait la barre de vues et se retrouvait au-dessus des fichiers,
+où il voisinait avec leurs propres actions sans rien avoir à voir avec elles.
+Une étape est une colonne du kanban.
+
 ### Dans aurora-client
-`make aurora-update`. Aucune migration.
+`make aurora-update` puis `make migrate`.
 
 ---
 

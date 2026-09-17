@@ -59,6 +59,8 @@ const props = defineProps({
     canUpload: { type: Boolean, default: false },
     attachments: { type: Object, default: () => ({}) },
     uploadPath: { type: String, default: null },
+    /** Les fichiers de l'espace, ceux qui ne sont sur aucune fiche. */
+    spaceFiles: { type: Array, default: () => [] },
     chatMessages: { type: Array, default: () => [] },
     /** Null when no hub is running, and then the panel never connects. */
     chatStreamUrl: { type: String, default: null },
@@ -300,6 +302,53 @@ function open(event) {
             own-side="client"
             :notice="chatPostPath ? t('studio.public.space.chat_notice') : ''"
         />
+
+        <!-- Les fichiers de l'espace, s'il y en a. Sous la discussion parce
+             qu'on ne vient pas ici pour eux : ce sont des documents qu'on
+             retrouve, pas des nouvelles qu'on lit. Rien n'est affiché quand
+             l'espace n'en porte aucun - une section vide sur la page d'un
+             client donne l'impression d'un écran inachevé. -->
+        <section v-if="spaceFiles.length" class="space-y-3">
+            <h2 class="text-sm font-medium text-primary">
+                {{ t("studio.public.space.files_title") }}
+            </h2>
+
+            <ul class="divide-y divide-line/60 rounded-lg border border-line/60">
+                <li
+                    v-for="file in spaceFiles"
+                    :key="file.id"
+                    class="flex items-center gap-3 px-3 py-2.5"
+                >
+                    <img
+                        v-if="file.preview"
+                        :src="file.preview"
+                        :alt="file.title"
+                        class="h-10 w-10 shrink-0 rounded object-cover"
+                        loading="lazy"
+                    >
+                    <span
+                        v-else
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-surface-2 text-muted"
+                    >
+                        <FileText class="h-4 w-4" :stroke-width="2" />
+                    </span>
+
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm text-primary">{{ file.title }}</p>
+                        <p class="text-xs text-muted">{{ d(new Date(file.createdAt), "short") }}</p>
+                    </div>
+
+                    <a
+                        :href="file.url"
+                        target="_blank"
+                        rel="noopener"
+                        class="shrink-0 rounded-md border border-line/60 px-2.5 py-1 text-xs text-primary transition-colors hover:bg-surface-2"
+                    >
+                        {{ t("studio.public.space.files_open") }}
+                    </a>
+                </li>
+            </ul>
+        </section>
 
         <!-- One sentence, not two stacked lines. The expiry and the "do not
              forward" were separate paragraphs saying one thing between them:

@@ -112,6 +112,8 @@ studio:
             no_body: El texto aún no está escrito.
             thread_notice: Lo que escriba aquí lo lee su proveedor.
             chat_notice: Lo que escriba aquí lo lee su proveedor.
+            files_title: Los archivos de este espacio
+            files_open: Abrir
             upload_notice: "Imágenes, PDF y vídeos habituales, 25 MB como máximo. Lo que envíe aquí lo ve su proveedor."
             approve: Validado
             request_changes: Revisar
