@@ -284,7 +284,11 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
     protected function sendConcludedMail(ContractInterface $contract, array $attachments): void
     {
         $this->mail->send(
-            to: $contract->getCustomer()->getContractualEmail(),
+            // Une signature s'enregistre meme si le mail ne part pas :
+            // `MailService` renvoie sans rien faire sur une adresse vide, et
+            // refuser d'enregistrer un engagement parce qu'on ne peut pas en
+            // accuser reception serait perdre le fait pour l'annonce.
+            to: $contract->getCustomer()->getContractualEmail() ?? '',
             subjectKey: 'studio.email.concluded.subject',
             template: '@Studio/email/concluded.html.twig',
             context: ['contract' => $contract],

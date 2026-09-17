@@ -208,6 +208,141 @@ final class CustomersControllerTest extends IntegrationTestCase
         self::assertNotNull($this->customers->find($customer->getId()), 'the row is still there');
     }
 
+    /**
+     * **La seule chose que le statut impose.**.
+     *
+     * Un prospect peut n'etre qu'un nom : on le rencontre, on ouvre un espace,
+     * et on n'a rien d'autre. Un client est quelqu'un a qui on envoie un
+     * contrat, et un contrat part a une adresse.
+     */
+    public function testAProspectNeedsNothingButItsName(): void
+    {
+        $this->client->jsonRequest('POST', '/backend/studio/customers/create', [
+            'legalName' => 'Verrerie Lemoine',
+            'status' => 'prospect',
+        ]);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $customer = $this->customers->findOneBy(['legalName' => 'Verrerie Lemoine']);
+        self::assertInstanceOf(Customer::class, $customer);
+        self::assertTrue($customer->isProspect());
+        self::assertNull($customer->getContractualEmail());
+    }
+
+    public function testAClientIsRefusedWithoutAnAddress(): void
+    {
+        $this->client->jsonRequest('POST', '/backend/studio/customers/create', [
+            'legalName' => 'Sans adresse',
+            'status' => 'client',
+        ]);
+
+        // Signale sous l'adresse et pas sous le statut : c'est l'adresse qui
+        // manque, et c'est elle que le lecteur doit remplir.
+        self::assertSame(422, $this->client->getResponse()->getStatusCode());
+
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
+        self::assertArrayHasKey('contractualEmail', $payload['errors']);
+    }
+
+    /**
+     * Convertir, c'est saisir ce qui manquait.
+     *
+     * Le formulaire de conversion ouvre la fiche avec le statut deja bascule ;
+     * l'enregistrer sans adresse doit echouer, sinon la conversion produirait
+     * un client vide de ce qui fait un client.
+     */
+    public function testConvertingAProspectWithoutAnAddressIsRefused(): void
+    {
+        $prospect = new Customer();
+        $prospect->setLegalName('Verrerie Lemoine');
+        $this->entityManager->persist($prospect);
+        $this->entityManager->flush();
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/backend/studio/customers/%d/update', $prospect->getId()),
+            ['legalName' => 'Verrerie Lemoine', 'status' => 'client'],
+        );
+
+        self::assertSame(422, $this->client->getResponse()->getStatusCode());
+
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
+        self::assertArrayHasKey('contractualEmail', $payload['errors']);
+    }
+
+    /**
+     * Le geste que la fonctionnalite existe pour permettre.
+     *
+     * Un espace ouvert pour un prospect, la societe signe, un clic. L'adresse
+     * est le seul champ demande parce que c'est le seul que le statut impose.
+     */
+    public function testAProspectIsConvertedWithItsAddress(): void
+    {
+        $prospect = new Customer();
+        $prospect->setLegalName('Verrerie Lemoine');
+        $this->entityManager->persist($prospect);
+        $this->entityManager->flush();
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/backend/studio/customers/%d/convert', $prospect->getId()),
+            ['contractualEmail' => 'Direction@Verrerie-Lemoine.TEST'],
+        );
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->entityManager->refresh($prospect);
+        self::assertFalse($prospect->isProspect());
+        // Normalisee comme partout ailleurs.
+        self::assertSame('direction@verrerie-lemoine.test', $prospect->getContractualEmail());
+    }
+
+    public function testConvertingWithoutAnAddressIsRefused(): void
+    {
+        $prospect = new Customer();
+        $prospect->setLegalName('Sans adresse');
+        $this->entityManager->persist($prospect);
+        $this->entityManager->flush();
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/backend/studio/customers/%d/convert', $prospect->getId()),
+            ['contractualEmail' => ''],
+        );
+
+        self::assertSame(422, $this->client->getResponse()->getStatusCode());
+
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
+        self::assertArrayHasKey('contractualEmail', $payload['errors']);
+
+        $this->entityManager->refresh($prospect);
+        self::assertTrue($prospect->isProspect(), 'rien ne bascule tant que l\'adresse manque');
+    }
+
+    /**
+     * Une fiche qui porte deja une adresse se convertit sans rien saisir.
+     */
+    public function testAProspectThatAlreadyHasAnAddressConvertsWithNothingTyped(): void
+    {
+        $prospect = new Customer();
+        $prospect->setLegalName('Deja joignable')->setContractualEmail('deja@joignable.test');
+        $this->entityManager->persist($prospect);
+        $this->entityManager->flush();
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/backend/studio/customers/%d/convert', $prospect->getId()),
+            [],
+        );
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->entityManager->refresh($prospect);
+        self::assertFalse($prospect->isProspect());
+        self::assertSame('deja@joignable.test', $prospect->getContractualEmail());
+    }
+
     public function testACustomerWithNoContractIsDeleted(): void
     {
         $customer = new Customer();

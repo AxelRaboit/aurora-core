@@ -6,6 +6,7 @@ namespace Aurora\Module\Studio\Customer\Dto;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Support\Str;
+use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 use function is_numeric;
@@ -39,9 +40,13 @@ class CustomerInputFactory implements CustomerInputFactoryInterface
             representativeFirstName: Str::trimOrNullFromArray($data, 'representativeFirstName'),
             representativeLastName: Str::trimOrNullFromArray($data, 'representativeLastName'),
             representativeRole: Str::trimOrNullFromArray($data, 'representativeRole'),
-            contractualEmail: Str::emailFromArray($data, 'contractualEmail'),
+            contractualEmail: Str::emailOrNullFromArray($data, 'contractualEmail'),
             phone: Str::trimOrNullFromArray($data, 'phone'),
             userId: $this->idOrNull($data, 'userId'),
+            // Prospect par defaut : une valeur inconnue ou absente decrit une
+            // fiche dont personne n'a encore dit qu'elle s'etait engagee.
+            status: CustomerStatusEnum::tryFrom(Str::trimFromArray($data, 'status'))
+                ?? CustomerStatusEnum::Prospect,
         );
     }
 

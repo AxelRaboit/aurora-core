@@ -28,6 +28,22 @@ Studio → Espaces clients. Elle est au-dessus des Clients dans le menu, parce q
 - La **couleur** distingue cet espace partout où ses dates apparaissent, y compris dans le calendrier de l'équipe. Laissée vide, elle est choisie pour vous, en évitant celles déjà prises.
 - Le **fuseau horaire** découpe les journées de cet espace. À changer pour un client à l'étranger : « mardi 9h » est une promesse faite à quelqu'un, et elle ne doit pas bouger selon qui ouvre la page.
 
+## Pour un prospect, sans attendre d'en savoir plus
+
+On travaille avec une société bien avant d'avoir son SIRET. Plutôt que d'aller inventer une identité légale sur la fiche client pour pouvoir ouvrir l'espace, choisissez **« + Nouveau prospect »** dans la liste des clients : deux champs apparaissent, le nom de la société et, si vous l'avez, une adresse de contact.
+
+**Un nom suffit.** Tout le reste — l'adresse, la forme juridique, le siège, le représentant, le SIRET — attend. Les liens d'accès que vous créerez portent chacun leur propre destinataire, donc l'espace fonctionne entièrement sans que la fiche ait une adresse.
+
+L'espace s'ouvre avec une vraie fiche derrière lui. **Les deux listes se séparent en deux onglets**, Clients et Prospects : celle des espaces, parce que « ce sur quoi je travaille » et « ce que j'essaie de décrocher » ne se lisent pas dans la même minute, et celle des clients pour la même raison. Le compte porté par chaque onglet est ce qui rend l'autre visible.
+
+Quand il signe, **« Convertir en client » est dans le menu Actions de l'espace** — pas besoin d'aller chercher sa fiche, c'est ici qu'on voit le chantier avancer. Une fenêtre demande **une seule chose, l'adresse contractuelle**, parce que c'est le seul champ que le statut impose : c'est là que part son contrat. Le SIRET, la forme juridique et le siège se remplissent ensuite sur sa fiche, quand on les a.
+
+L'espace bascule aussitôt dans l'onglet Clients. Rien ne déménage : son tableau, ses fichiers et ses échanges étaient déjà les siens.
+
+Le même bouton existe sur la fiche du client, pour qui part de là.
+
+Rien n'est interdit à un prospect, pas même un contrat — signer, c'est justement ce qui le convertit.
+
 ## 3. L'équipe
 
 Qui, chez vous, travaille sur cet espace. **Ce n'est pas un droit d'accès** : qui peut ouvrir un espace est décidé par les privilèges du compte, comme partout ailleurs. C'est un nom à donner au client.

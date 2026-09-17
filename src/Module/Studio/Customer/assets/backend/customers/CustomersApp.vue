@@ -1,9 +1,12 @@
 <script setup>
 import { computed } from "vue";
+import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
 import { useI18n } from "vue-i18n";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
-import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
+import { useCustomerRowActions } from "./composables/useCustomerRowActions.js";
+import { useProspectConversion } from "./composables/useProspectConversion.js";
+import ConvertProspectModal from "./components/ConvertProspectModal.vue";
 import { useCustomersForm } from "./composables/useCustomersForm.js";
 import CustomerFormFields from "./components/CustomerFormFields.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -26,12 +29,14 @@ const props = defineProps({
     currencies: { type: Array, default: () => [] },
     createPath: { type: String, required: true },
     updatePath: { type: String, required: true },
+    convertPath: { type: String, required: true },
     deletePath: { type: String, required: true },
 });
 
 const {
     search,
     filteredItems,
+    applyUpdatedList,
     userOptions,
     showCreate,
     newCustomer,
@@ -58,15 +63,54 @@ const {
     props.deletePath,
 );
 
-const actionsFor = useEditDeleteActions({
+// Its own rather than the shared edit/delete pair: a prospect has a third
+// thing to offer. See the composable.
+const {
+    pending: converting,
+    email: convertEmail,
+    error: convertError,
+    loading: convertLoading,
+    open: openConversion,
+    close: closeConversion,
+    submit: submitConversion,
+} = useProspectConversion(props.convertPath, (data) => applyUpdatedList(data));
+
+const actionsFor = useCustomerRowActions({
     can,
-    editPermission: "studio.customers.edit",
-    deletePermission: "studio.customers.delete",
     openEdit,
+    convertToClient: (customer) =>
+        openConversion(customer, {
+            id: customer.id,
+            name: customer.legalName,
+            email: customer.contractualEmail,
+        }),
     confirmDelete,
-    editDescription: "backend.studio.customers.row_actions.edit_description",
-    deleteDescription: "backend.studio.customers.row_actions.delete_description",
 });
+
+/**
+ * Clients ou prospects, jamais les deux.
+ *
+ * Retenu d'un ecran a l'autre, comme les vues d'un espace : quelqu'un qui
+ * travaille ses pistes une matiniere entiere ne veut pas rechoisir a chaque
+ * retour sur la liste.
+ */
+const { choice: tab } = usePersistedChoice("studio.customers.tab", "client", [
+    "client",
+    "prospect",
+]);
+
+const visibleItems = computed(() =>
+    filteredItems.value.filter((customer) => customer.status === tab.value),
+);
+
+const tabs = computed(() =>
+    ["client", "prospect"].map((key) => ({
+        key,
+        label: t(`backend.studio.customers.statuses.${key}_plural`),
+        count: filteredItems.value.filter((customer) => customer.status === key)
+            .length,
+    })),
+);
 
 /**
  * A SIRET is read back in the groups it is printed in, not as fourteen run-on
@@ -134,14 +178,45 @@ const pageActions = computed(() => {
             </template>
         </AppListToolbar>
 
+        <!-- Deux onglets plutot qu'une colonne : un statut a deux valeurs sur
+             lequel on veut filtrer est un filtre, pas une colonne - et une
+             pastille repetee sur chaque ligne d'un onglet qui porte deja le mot
+             ne distingue plus rien.
+
+             Le compte est sur l'etiquette parce que c'est lui qui rend l'autre
+             onglet visible : un prospect cree depuis un espace serait sinon
+             range quelque part que personne ne pense a ouvrir. -->
+        <div
+            class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+            role="group"
+            :aria-label="t('backend.studio.customers.status')"
+        >
+            <button
+                v-for="entry in tabs"
+                :key="entry.key"
+                type="button"
+                class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                :class="
+                    tab === entry.key
+                        ? 'bg-surface font-medium text-primary shadow-sm'
+                        : 'text-muted hover:text-primary'
+                "
+                :aria-pressed="tab === entry.key"
+                v-on:click="tab = entry.key"
+            >
+                {{ entry.label }}
+                <span class="text-xs tabular-nums text-muted">{{ entry.count }}</span>
+            </button>
+        </div>
+
         <!-- Mobile cards -->
         <div v-if="isNarrow" class="space-y-2">
             <AppNoData
-                v-if="!filteredItems.length"
+                v-if="!visibleItems.length"
                 :message="t('backend.studio.customers.empty')"
             />
             <div
-                v-for="customer in filteredItems"
+                v-for="customer in visibleItems"
                 :key="customer.id"
                 class="bg-surface border border-line/60 rounded-xl overflow-hidden shadow-sm"
             >
@@ -211,7 +286,7 @@ const pageActions = computed(() => {
                 </thead>
                 <tbody class="divide-y divide-line/40">
                     <tr
-                        v-for="customer in filteredItems"
+                        v-for="customer in visibleItems"
                         :key="customer.id"
                         class="group hover:bg-surface-2/40 transition-colors"
                     >
@@ -264,7 +339,7 @@ const pageActions = computed(() => {
                             </div>
                         </td>
                     </tr>
-                    <tr v-if="!filteredItems.length">
+                    <tr v-if="!visibleItems.length">
                         <td :colspan="5">
                             <AppNoData
                                 :message="t('backend.studio.customers.empty')"
@@ -385,5 +460,16 @@ const pageActions = computed(() => {
                 </AppModalFooter>
             </template>
         </AppModal>
+
+        <ConvertProspectModal
+            :show="!!converting"
+            :name="converting?.customer.name ?? ''"
+            :model-value="convertEmail"
+            :error="convertError"
+            :loading="convertLoading"
+            v-on:update:model-value="convertEmail = $event"
+            v-on:close="closeConversion"
+            v-on:submit="submitConversion"
+        />
     </div>
 </template>

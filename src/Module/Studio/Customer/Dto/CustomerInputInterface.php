@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Customer\Dto;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
+use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 
 interface CustomerInputInterface
 {
     public function getLegalName(): string;
+
+    public function getStatus(): CustomerStatusEnum;
 
     public function getLegalForm(): ?string;
 
@@ -32,7 +35,7 @@ interface CustomerInputInterface
 
     public function getRepresentativeRole(): ?string;
 
-    public function getContractualEmail(): string;
+    public function getContractualEmail(): ?string;
 
     public function getPhone(): ?string;
 

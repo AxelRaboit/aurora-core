@@ -12,6 +12,9 @@ import { useI18n } from "vue-i18n";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useSpaceRowActions } from "./composables/useSpaceRowActions.js";
+// Meme module, un autre sous-domaine : chemin relatif, comme ailleurs.
+import { useProspectConversion } from "../../../../Customer/assets/backend/customers/composables/useProspectConversion.js";
+import ConvertProspectModal from "../../../../Customer/assets/backend/customers/components/ConvertProspectModal.vue";
 import { useCustomerSpacesForm } from "./composables/useCustomerSpacesForm.js";
 import CustomerSpaceFormFields from "./components/CustomerSpaceFormFields.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -42,12 +45,16 @@ const props = defineProps({
     boardPath: { type: String, required: true },
     createPath: { type: String, required: true },
     updatePath: { type: String, required: true },
+    convertPath: { type: String, required: true },
     deletePath: { type: String, required: true },
 });
 
 const {
     search,
+    items,
     visibleItems,
+    tab,
+    tabs,
     showArchived,
     archivedCount,
     customerOptions,
@@ -79,10 +86,36 @@ const {
 
 // Its own rather than the shared edit/delete pair: the menu also opens the
 // space, which is the thing one actually does to a row. See the composable.
+/**
+ * La conversion ne renvoie pas des espaces mais des clients, donc la liste
+ * n'est pas remplacee : on marque sur place les lignes de la societe qui vient
+ * de signer. Elles changent d'onglet aussitot, ce qui est exactement ce que la
+ * conversion veut dire.
+ */
+const {
+    pending: converting,
+    email: convertEmail,
+    error: convertError,
+    loading: convertLoading,
+    open: openConversion,
+    close: closeConversion,
+    submit: submitConversion,
+} = useProspectConversion(props.convertPath, (_data, space) => {
+    for (const row of items.value) {
+        if (row.customerId === space.customerId) row.customerStatus = "client";
+    }
+});
+
 const actionsFor = useSpaceRowActions({
     can,
     boardHref,
     openEdit,
+    convertToClient: (space) =>
+        openConversion(space, {
+            id: space.customerId,
+            name: space.customerName,
+            email: "",
+        }),
     confirmDelete,
 });
 
@@ -133,6 +166,37 @@ const pageActions = computed(() => {
                 />
             </template>
         </AppListToolbar>
+
+        <!-- Deux onglets plutot qu'une colonne : « ce sur quoi je travaille »
+             et « ce que j'essaie de decrocher » ne se lisent pas dans la meme
+             minute, et un statut a deux valeurs sur lequel on veut filtrer est
+             un filtre.
+
+             Le compte est sur l'etiquette parce que c'est lui qui rend l'autre
+             onglet visible : un espace ouvert pour un prospect serait sinon
+             range quelque part que personne ne pense a ouvrir. -->
+        <div
+            class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+            role="group"
+            :aria-label="t('backend.studio.customers.status')"
+        >
+            <button
+                v-for="entry in tabs"
+                :key="entry.key"
+                type="button"
+                class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                :class="
+                    tab === entry.key
+                        ? 'bg-surface font-medium text-primary shadow-sm'
+                        : 'text-muted hover:text-primary'
+                "
+                :aria-pressed="tab === entry.key"
+                v-on:click="tab = entry.key"
+            >
+                {{ t(`backend.studio.customers.statuses.${entry.key}_plural`) }}
+                <span class="text-xs tabular-nums text-muted">{{ entry.count }}</span>
+            </button>
+        </div>
 
         <!-- Only offered when there is something to reveal: a switch that does
              nothing is a switch people learn to distrust. -->
@@ -414,5 +478,16 @@ const pageActions = computed(() => {
                 </AppModalFooter>
             </template>
         </AppModal>
+
+        <ConvertProspectModal
+            :show="!!converting"
+            :name="converting?.customer.name ?? ''"
+            :model-value="convertEmail"
+            :error="convertError"
+            :loading="convertLoading"
+            v-on:update:model-value="convertEmail = $event"
+            v-on:close="closeConversion"
+            v-on:submit="submitConversion"
+        />
     </div>
 </template>

@@ -270,6 +270,103 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
 
+    /**
+     * **Ouvrir un espace pour quelqu'un dont on n'a pas de fiche.**.
+     *
+     * C'est la raison d'etre du prospect : on travaille avec une societe bien
+     * avant d'avoir son SIRET, et aller inventer une identite legale pour
+     * pouvoir creer l'espace est exactement ce que personne ne fait.
+     */
+    public function testASpaceOpensAProspectWhenNoCustomerIsNamed(): void
+    {
+        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+            'name' => 'Verrerie Lemoine - Lancement',
+            'prospectName' => 'Verrerie Lemoine',
+            'prospectEmail' => 'contact@verrerie-lemoine.test',
+            'timezone' => 'Europe/Paris',
+        ]);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $customer = $this->entityManager->getRepository(Customer::class)
+            ->findOneBy(['legalName' => 'Verrerie Lemoine']);
+
+        self::assertInstanceOf(Customer::class, $customer);
+        self::assertTrue($customer->isProspect());
+        self::assertSame('contact@verrerie-lemoine.test', $customer->getContractualEmail());
+
+        // Rien de ce qui fait un client n'est invente au passage : c'est ce
+        // qu'on saisira le jour de la conversion.
+        self::assertNull($customer->getSiret());
+
+        // Et l'espace pointe bien dessus : rien en aval n'a a composer avec un
+        // espace qui n'appartient a personne.
+        self::assertSame($customer->getId(), $this->payload()['space']['customerId']);
+    }
+
+    /**
+     * **Un nom suffit, et c'est tout l'interet.**.
+     *
+     * On rencontre quelqu'un, on ouvre un espace pour structurer le travail, et
+     * on n'a rien d'autre. Les liens d'acces de l'espace portent leur propre
+     * destinataire, donc rien sur cet ecran ne depend de l'adresse du client.
+     */
+    public function testAProspectNeedsNothingButItsName(): void
+    {
+        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+            'name' => 'Rien que le nom',
+            'prospectName' => 'Verrerie Lemoine',
+            'timezone' => 'Europe/Paris',
+        ]);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $customer = $this->entityManager->getRepository(Customer::class)
+            ->findOneBy(['legalName' => 'Verrerie Lemoine']);
+
+        self::assertInstanceOf(Customer::class, $customer);
+        self::assertTrue($customer->isProspect());
+        self::assertNull($customer->getContractualEmail());
+    }
+
+    public function testASpaceStillNeedsSomebodyToBelongTo(): void
+    {
+        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+            'name' => 'Pour personne',
+            'timezone' => 'Europe/Paris',
+        ]);
+
+        self::assertSame(422, $this->client->getResponse()->getStatusCode());
+        self::assertArrayHasKey('customerId', $this->payload()['errors']);
+    }
+
+    /**
+     * Une societe deja connue reste une societe deja connue.
+     *
+     * Le formulaire efface le nom de prospect quand on choisit dans la liste,
+     * mais une requete fabriquee peut porter les deux : l'identifiant gagne, et
+     * aucune fiche en double n'est creee.
+     */
+    public function testANamedCustomerWinsOverAProspectName(): void
+    {
+        $customer = $this->givenCustomer('Atelier Dupont', '73282932000074');
+
+        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+            'name' => 'Les deux a la fois',
+            'customerId' => $customer->getId(),
+            'prospectName' => 'Verrerie Lemoine',
+            'prospectEmail' => 'contact@verrerie-lemoine.test',
+            'timezone' => 'Europe/Paris',
+        ]);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertSame($customer->getId(), $this->payload()['space']['customerId']);
+        self::assertNull(
+            $this->entityManager->getRepository(Customer::class)
+                ->findOneBy(['legalName' => 'Verrerie Lemoine']),
+        );
+    }
+
     private function givenCustomer(string $legalName, string $siret): Customer
     {
         $customer = new Customer();

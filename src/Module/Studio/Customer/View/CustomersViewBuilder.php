@@ -43,6 +43,7 @@ final readonly class CustomersViewBuilder
             'currencies' => $this->currencyOptions(),
             'createPath' => $this->urlGenerator->generate('backend_studio_customers_create'),
             'updatePath' => $this->pathTemplates->generate('backend_studio_customers_update', ['id' => '__id__']),
+            'convertPath' => $this->pathTemplates->generate('backend_studio_customers_convert', ['id' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('backend_studio_customers_delete', ['id' => '__id__']),
         ];
     }

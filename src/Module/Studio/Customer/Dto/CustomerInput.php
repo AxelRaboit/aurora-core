@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Customer\Dto;
 
 use Aurora\Core\Money\Enum\CurrencyEnum;
+use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 use Aurora\Module\Studio\Customer\Validator\Siret;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -37,18 +38,25 @@ class CustomerInput implements CustomerInputInterface
         public readonly ?string $representativeLastName = null,
         #[Assert\Length(max: 120)]
         public readonly ?string $representativeRole = null,
-        #[Assert\NotBlank(message: 'backend.studio.customers.errors.contractual_email_required')]
+        // Requis d'un client et pas d'un prospect, donc la regle porte sur la
+        // paire : le Manager la tient, c'est lui qui voit le statut.
         #[Assert\Email(message: 'backend.studio.customers.errors.contractual_email_invalid')]
         #[Assert\Length(max: 180)]
-        public readonly string $contractualEmail = '',
+        public readonly ?string $contractualEmail = null,
         #[Assert\Length(max: 30)]
         public readonly ?string $phone = null,
         public readonly ?int $userId = null,
+        public readonly CustomerStatusEnum $status = CustomerStatusEnum::Prospect,
     ) {}
 
     public function getLegalName(): string
     {
         return $this->legalName;
+    }
+
+    public function getStatus(): CustomerStatusEnum
+    {
+        return $this->status;
     }
 
     public function getLegalForm(): ?string
@@ -106,7 +114,7 @@ class CustomerInput implements CustomerInputInterface
         return $this->representativeRole;
     }
 
-    public function getContractualEmail(): string
+    public function getContractualEmail(): ?string
     {
         return $this->contractualEmail;
     }

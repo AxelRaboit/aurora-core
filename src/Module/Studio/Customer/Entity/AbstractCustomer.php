@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\Customer\Entity;
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 use Doctrine\ORM\Mapping as ORM;
 
 use function implode;
@@ -39,6 +40,17 @@ abstract class AbstractCustomer implements CustomerInterface
     /** Raison sociale. The name every list, picker and contract shows. */
     #[ORM\Column(length: 180)]
     protected string $legalName;
+
+    /**
+     * Whether this company has engaged yet.
+     *
+     * Defaults to a prospect, because that is what a record is at the moment it
+     * is created: somebody you have opened a space for. Everything that makes a
+     * client - the SIRET, the legal form, the registered office - is filled in
+     * later, and flipping this is what says it has been.
+     */
+    #[ORM\Column(length: 20, enumType: CustomerStatusEnum::class, options: ['default' => 'prospect'])]
+    protected CustomerStatusEnum $status = CustomerStatusEnum::Prospect;
 
     /**
      * Free text rather than an enum: SARL, SAS and EI cover most of it, but
@@ -104,12 +116,23 @@ abstract class AbstractCustomer implements CustomerInterface
     /**
      * The contractual address, and the one a signing link is mailed to.
      *
-     * Required, and deliberately not the representative's personal mailbox by
-     * default: the contracts name it as the channel that counts, so it has to
-     * be the address the company agreed to be reached at.
+     * Deliberately not the representative's personal mailbox: the contracts
+     * name it as the channel that counts, so it has to be the address the
+     * company agreed to be reached at.
+     *
+     * **Nullable since prospects exist.** It was required, on the reasoning
+     * that a company you work with is a company you can write to - which is
+     * true of a client and not of a prospect: you can meet somebody, open a
+     * space to start structuring the work, and have nothing but a name. A
+     * space's access links carry their own recipient, so nothing about that
+     * screen needs this column.
+     *
+     * A client is another matter, and the Manager enforces it: this is where
+     * their contract is sent, so it is required the moment the status says
+     * they have engaged.
      */
-    #[ORM\Column(length: 180)]
-    protected string $contractualEmail;
+    #[ORM\Column(length: 180, nullable: true)]
+    protected ?string $contractualEmail = null;
 
     #[ORM\Column(length: 30, nullable: true)]
     protected ?string $phone = null;
@@ -276,12 +299,29 @@ abstract class AbstractCustomer implements CustomerInterface
         return $this;
     }
 
-    public function getContractualEmail(): string
+    public function getStatus(): CustomerStatusEnum
+    {
+        return $this->status;
+    }
+
+    public function setStatus(CustomerStatusEnum $status): static
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function isProspect(): bool
+    {
+        return $this->status->isProspect();
+    }
+
+    public function getContractualEmail(): ?string
     {
         return $this->contractualEmail;
     }
 
-    public function setContractualEmail(string $contractualEmail): static
+    public function setContractualEmail(?string $contractualEmail): static
     {
         $this->contractualEmail = $contractualEmail;
 

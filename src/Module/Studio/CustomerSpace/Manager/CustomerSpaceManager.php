@@ -7,7 +7,10 @@ namespace Aurora\Module\Studio\CustomerSpace\Manager;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use Aurora\Module\Studio\Customer\Dto\CustomerInputFactoryInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
+use Aurora\Module\Studio\Customer\Manager\CustomerManagerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Dto\CustomerSpaceInputInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
@@ -29,6 +32,8 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         protected readonly AuditLogger $auditLogger,
         protected readonly CustomerSpaceRepository $spaceRepository,
         protected readonly CustomerRepository $customerRepository,
+        protected readonly CustomerManagerInterface $customerManager,
+        protected readonly CustomerInputFactoryInterface $customerInputFactory,
         protected readonly UserRepository $userRepository,
         protected readonly SpaceContentColumnManagerInterface $columnManager,
         protected readonly TranslatorInterface $translator,
@@ -133,22 +138,71 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
     }
 
     /**
-     * The company this space is for.
+     * The company this space is for, named or opened on the spot.
      *
-     * Reported as a field rejection rather than resolved to null: the relation
-     * is required, so an id that does not resolve has to stop the save, and it
-     * has to stop it under the picker that produced it.
+     * **A space always belongs to a real customer, and that is what this
+     * protects.** Somebody you are only starting to work with has no record
+     * yet, and waiting until they do meant going to the customers screen,
+     * inventing a legal identity you do not have, and coming back. So the form
+     * may hand a name instead of an id, and a prospect is created here - a
+     * customer like any other, with one column saying it has not engaged yet.
+     *
+     * Nothing downstream is made optional by this: the space's serialiser, the
+     * page the client opens and the contracts all keep a company to point at.
+     *
+     * Reported as a field rejection rather than resolved to null, and under the
+     * field that produced it: an unknown id is reported on the picker, a
+     * missing prospect name on the name.
      */
     protected function resolveCustomer(CustomerSpaceInputInterface $input): CustomerInterface
     {
         $customerId = $input->getCustomerId();
-        $customer = null === $customerId ? null : $this->customerRepository->find($customerId);
 
-        if (!$customer instanceof CustomerInterface) {
+        if (null !== $customerId) {
+            $customer = $this->customerRepository->find($customerId);
+
+            if (!$customer instanceof CustomerInterface) {
+                throw new FieldException('customerId', $this->translator->trans('backend.studio.spaces.errors.customer_required'));
+            }
+
+            return $customer;
+        }
+
+        return $this->openProspect($input);
+    }
+
+    /**
+     * Opens a company for somebody there is no record of yet.
+     *
+     * Through the customer Manager rather than around it: the audit log then
+     * carries the creation the way it carries every other, and a prospect is a
+     * customer created by the same path as the rest. A fixture that persisted
+     * the entity directly would produce a row no code ever produced.
+     *
+     * **A name is all this needs.** The address is optional here and required
+     * of a client, which is the one thing the status enforces: a prospect can
+     * be somebody you have just met, and a space's access links carry their own
+     * recipient, so nothing on that screen depends on it. Everything that makes
+     * a client - the address, the registration number, the legal form, the
+     * registered office - is filled in when they become one.
+     */
+    protected function openProspect(CustomerSpaceInputInterface $input): CustomerInterface
+    {
+        $name = $input->getProspectName();
+
+        if (null === $name || '' === $name) {
             throw new FieldException('customerId', $this->translator->trans('backend.studio.spaces.errors.customer_required'));
         }
 
-        return $customer;
+        return $this->customerManager->create($this->customerInputFactory->fromArray([
+            'legalName' => $name,
+            // Facultative, et c'est tout l'interet : on rencontre quelqu'un, on
+            // ouvre un espace pour structurer le travail, et on n'a que son
+            // nom. Les liens d'acces de l'espace portent leur propre
+            // destinataire, donc rien ici n'en depend.
+            'contractualEmail' => $input->getProspectEmail(),
+            'status' => CustomerStatusEnum::Prospect->value,
+        ]));
     }
 
     /**

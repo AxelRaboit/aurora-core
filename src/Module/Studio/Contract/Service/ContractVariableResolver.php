@@ -87,7 +87,7 @@ final readonly class ContractVariableResolver
             'customer.activity_sector' => $customer->getActivitySector() ?? '',
             'customer.representative_full_name' => $customer->getRepresentativeFullName() ?? '',
             'customer.representative_role' => $customer->getRepresentativeRole() ?? '',
-            'customer.contractual_email' => $customer->getContractualEmail(),
+            'customer.contractual_email' => $customer->getContractualEmail() ?? '',
             'customer.phone' => $customer->getPhone() ?? '',
             'contract.reference' => $contract->getReference() ?? '',
             'contract.amount' => $this->amount($contract, $locale),

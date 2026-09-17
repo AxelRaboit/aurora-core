@@ -5,6 +5,70 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.199] - 2026-09-17
+
+### Ajouté
+
+#### Un espace pour un prospect, converti en un clic quand il signe
+On travaille avec une société bien avant d'avoir son SIRET, et ouvrir un espace
+pour elle demandait d'aller d'abord lui inventer une identité légale sur une
+fiche client. Le formulaire d'un espace accepte désormais **« + Nouveau
+prospect »** : un nom, et l'espace s'ouvre avec une vraie fiche derrière lui.
+
+**Un nom suffit.** L'adresse, la forme juridique, le siège, le représentant, le
+SIRET : tout attend. Les liens d'accès d'un espace portent chacun leur propre
+destinataire, donc rien sur cet écran ne dépend de l'adresse de la fiche.
+
+**Un prospect est une fiche client avec une colonne de plus**, pas un second
+type d'enregistrement. Tout ce qui pend en dessous — l'espace, son tableau, ses
+fichiers, plus tard un contrat — pointe sur le client : deux tables auraient
+voulu dire tout déménager le jour de la signature, c'est-à-dire le pire jour
+pour déplacer des lignes.
+
+#### Convertir depuis l'espace, pas seulement depuis la fiche
+« Convertir en client » est dans le menu Actions de l'**espace** autant que de
+la fiche. C'est dans la liste des espaces qu'on voit le chantier avancer, donc
+c'est là qu'on apprend que la société a dit oui ; aller la chercher ailleurs
+pour changer une colonne est le détour que ce bouton supprime.
+
+La fenêtre ne demande **qu'une chose, l'adresse contractuelle**, parce que
+c'est le seul champ que le statut impose : c'est là que part le contrat.
+Réclamer le SIRET et le siège au même moment reviendrait à redemander la fiche
+entière pour changer une colonne, alors qu'on convertit quand la personne dit
+oui, pas quand on a fini de la classer. Une fiche qui porte déjà une adresse se
+convertit sans rien saisir.
+
+Rien n'est interdit à un prospect, contrat compris : une règle qui le refuserait
+n'apprendrait qu'à basculer le statut d'abord, et ne voudrait alors plus rien
+dire. Le seul mur est à l'envoi — on n'envoie pas un contrat à personne.
+
+#### Deux onglets sur les deux listes
+Espaces et clients se séparent en **Clients** et **Prospects**. « Ce sur quoi je
+travaille » et « ce que j'essaie de décrocher » ne se lisent pas dans la même
+minute, et un statut à deux valeurs sur lequel on veut filtrer est un filtre
+plutôt qu'une colonne. Le compte porté par chaque onglet est ce qui rend l'autre
+visible.
+
+#### Ouvrir un espace depuis son menu
+La liste des espaces offre **Voir** dans le menu Actions, en plus du nom
+cliquable. Un menu qui liste tout ce qu'on peut faire à une ligne sauf ce qu'on
+lui fait tous les jours répond à côté, et pour un lecteur qui consulte sans
+modifier il ne contenait rien.
+
+### Corrigé
+
+#### Les avatars d'équipe ne se traversent plus
+Posé sur son voisin, un avatar laissait passer le rond du dessous et deux paires
+d'initiales se chevauchaient dans la place d'une. Chaque rond est maintenant sur
+un disque opaque de la couleur de la ligne.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`. Les clients existants sont migrés en
+« client » : ils ont été saisis pour être contractualisés, les appeler prospects
+serait dire quelque chose de faux sur le fichier.
+
+---
+
 ## [0.9.198] - 2026-09-17
 
 ### Ajouté
