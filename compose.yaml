@@ -1,7 +1,14 @@
 services:
 ###> symfony/mercure-bundle ###
-    # Le hub temps reel, pour developper. En production il tourne en service
-    # systemd derriere Apache : voir la documentation du module.
+    # Le hub temps reel, pour developper : `make start` le monte, `make
+    # hub-start` le remonte seul. En production il tourne en service systemd
+    # derriere Apache, ou le navigateur l'atteint par la meme origine que
+    # l'application et ou rien de tout ceci n'est necessaire.
+    #
+    # Quatre origines autorisees parce que le serveur de dev se sert aussi bien
+    # en http qu'en https et sous les deux noms de la boucle locale : une seule
+    # d'entre elles laisse la connexion echouer sous les trois autres, et ca
+    # ressemble a un hub en panne.
     #
     # Protocole 1.0, comme l'application : l'emetteur de confiance est le
     # serveur Symfony, et `resource_identifier` epingle l'audience des jetons
@@ -17,7 +24,7 @@ services:
             MERCURE_TRUSTED_ISSUERS: 'http://localhost:8000'
             MERCURE_EXTRA_DIRECTIVES: |
                 resource_identifier http://localhost:3000/.well-known/mercure
-                cors_origins http://localhost:8000
+                cors_origins http://localhost:8000 https://localhost:8000 http://127.0.0.1:8000 https://127.0.0.1:8000
         ports:
             - "3000:80"
         volumes:
