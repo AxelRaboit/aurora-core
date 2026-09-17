@@ -13,11 +13,15 @@ Au scellement, ce bloc d'identité est **recopié dans le contrat**. C'est la co
 
 Studio → Clients. La recherche porte sur la raison sociale, le SIRET et le représentant. « Ajouter un client » est dans le menu « Actions », en haut à droite.
 
+La liste se sépare en deux onglets, **Clients** et **Prospects**. Un prospect est une société pour laquelle on travaille déjà sans avoir encore son identité légale ; la page des espaces dit comment en ouvrir un et comment le convertir. Le compte porté par chaque onglet est ce qui rend l'autre visible.
+
 ![La liste des clients, avec son menu Actions](../../images/06-studio/fiche-client-01-la-liste.png)
 
 ## 2. La fenêtre s'ouvre en trois blocs
 
-L'identité de la société, le représentant légal, puis le contact et l'accès. Un seul champ est obligatoire dans le premier bloc, la raison sociale, et un seul dans le troisième, l'e-mail contractuel.
+L'identité de la société, le représentant légal, puis le contact et l'accès. Un seul champ est vraiment obligatoire, la **raison sociale**.
+
+L'**e-mail contractuel** l'est pour un client, parce que c'est là que part son contrat, mais pas pour un prospect : on ouvre souvent un espace avant d'avoir une adresse, et elle est demandée au moment de la conversion.
 
 ![La fenêtre Nouveau client, vide](../../images/06-studio/fiche-client-02-la-fenetre-vide.png)
 
