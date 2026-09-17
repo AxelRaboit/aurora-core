@@ -16,6 +16,15 @@
  * the same question, and because a reader looking for a file looks here first.
  * It costs no request either: it reads the payload the others already hold.
  *
+ * **The conversation is the second exception**, and a bigger one: it is not a
+ * reading of the cards at all. What is about one post belongs on that post's
+ * thread, where somebody reopening it finds the objection next to what was
+ * objected to; the conversation is for everything that is about the work and
+ * not about one card, which used to land on whichever card happened to be
+ * open. It sits in the switcher for the reason the files do - a reader looking
+ * for it looks here - and it is the one view that costs a request, because a
+ * chat that showed what was true when the page loaded is not a chat.
+ *
  * The list exists because a board is not everybody's way of thinking, and
  * because it is the only one of the three that fits on a phone without
  * scrolling sideways.
@@ -35,6 +44,9 @@ import SpaceListView from "./views/SpaceListView.vue";
 import SpaceCalendarView from "./views/SpaceCalendarView.vue";
 import SpaceFilesView from "./views/SpaceFilesView.vue";
 import SpaceContentItemFields from "./components/SpaceContentItemFields.vue";
+// Same module, another sub-domain: a relative path rather than an alias,
+// the way the public page already reaches the shared thread.
+import SpaceChatPanel from "../../../../SpaceChat/assets/shared/SpaceChatPanel.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -42,6 +54,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppColourSlotPicker from "@/shared/components/form/picker/AppColourSlotPicker.vue";
 import {
     CalendarDays,
+    MessagesSquare,
     Paperclip,
     Columns3,
     FileText,
@@ -75,6 +88,12 @@ const props = defineProps({
     columnUpdatePath: { type: String, required: true },
     columnDeletePath: { type: String, required: true },
     columnReorderPath: { type: String, required: true },
+    chatMessages: { type: Array, default: () => [] },
+    /** Null when no hub is running, and then the panel never connects. */
+    chatStreamUrl: { type: String, default: null },
+    chatPostPath: { type: String, required: true },
+    chatReloadPath: { type: String, required: true },
+    chatDeletePath: { type: String, required: true },
 });
 
 const VIEWS = [
@@ -82,6 +101,7 @@ const VIEWS = [
     { key: "list", labelKey: "backend.studio.space_content.view_list", icon: List },
     { key: "calendar", labelKey: "backend.studio.space_content.view_calendar", icon: CalendarDays },
     { key: "files", labelKey: "backend.studio.space_content.view_files", icon: Paperclip },
+    { key: "chat", labelKey: "backend.studio.space_content.view_chat", icon: MessagesSquare },
 ];
 
 /**
@@ -214,7 +234,7 @@ const actionsFor = useSpaceCardActions({
             </div>
 
             <AppButton
-                v-if="editable && view !== 'calendar'"
+                v-if="editable && 'calendar' !== view && 'chat' !== view"
                 variant="ghost"
                 size="sm"
                 v-on:click="openColumnCreate"
@@ -254,6 +274,20 @@ const actionsFor = useSpaceCardActions({
             :attachments="liveAttachments"
             :items="liveItems"
             v-on:open-item="openItemEdit"
+        />
+
+        <!-- Mounted only while it is the view on screen, so a board nobody is
+             chatting on holds no connection open. The cost is that a message
+             arriving while somebody is looking at the calendar is not
+             announced - that is a notification's job, not a panel's. -->
+        <SpaceChatPanel
+            v-else-if="view === 'chat'"
+            :messages="chatMessages"
+            :stream-url="chatStreamUrl"
+            :post-path="editable ? chatPostPath : null"
+            :reload-path="chatReloadPath"
+            :delete-path="editable ? chatDeletePath : null"
+            :notice="t('backend.studio.space_chat.notice')"
         />
 
         <SpaceCalendarView

@@ -1,0 +1,19 @@
+{# Ce qui s'est passé dans un espace client pendant que personne ne regardait.
+
+   Un seul mail pour l'espace, pas un par événement : un client qui valide trois
+   fiches puis écrit un message a fait une seule chose qui mérite d'interrompre
+   quelqu'un, et c'est « il s'est passé quelque chose chez ce client ».
+
+   Le lien mène à l'espace, pas à l'un des événements : c'est là qu'on répond,
+   et c'est aussi ce qui marque le reste comme lu. #}
+<p>{{ 'studio.email.space_activity.body'|trans({'{space}': space.name}) }}</p>
+
+<ul>
+    {% for line in lines %}
+        <li>{{ line }}</li>
+    {% endfor %}
+</ul>
+
+<p><a href="{{ url }}">{{ 'studio.email.space_activity.cta'|trans }}</a></p>
+
+<p>{{ 'studio.email.space_activity.quiet'|trans }}</p>

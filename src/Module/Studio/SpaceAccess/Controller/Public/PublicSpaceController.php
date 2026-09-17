@@ -22,6 +22,9 @@ use Aurora\Module\Ged\Document\Controller\Backend\GedFilesController;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\View\PublicSpaceViewBuilder;
+use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatMessageManagerInterface;
+use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
+use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInterface;
@@ -32,6 +35,7 @@ use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -83,6 +87,9 @@ final class PublicSpaceController extends AbstractController
         private readonly StoredFileLocator $locator,
         #[Autowire(param: 'app.upload_dir')]
         private readonly string $uploadRoot,
+        private readonly SpaceChatMessageManagerInterface $chat,
+        private readonly SpaceChatViewBuilder $chatViewBuilder,
+        private readonly SpaceChatHub $chatHub,
     ) {}
 
     /**
@@ -95,7 +102,7 @@ final class PublicSpaceController extends AbstractController
         requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
         methods: [HttpMethodEnum::Get->value],
     )]
-    public function show(string $selector, string $token): Response
+    public function show(string $selector, string $token, Request $request): Response
     {
         $link = $this->links->resolveUsable($selector, $token);
 
@@ -109,7 +116,25 @@ final class PublicSpaceController extends AbstractController
 
         $this->links->markOpened($link);
 
-        return $this->privately($this->render('@Studio/public/space.html.twig', $this->viewBuilder->view($link, $token)));
+        $response = $this->privately($this->render('@Studio/public/space.html.twig', [
+            ...$this->viewBuilder->view($link, $token),
+            ...$this->chatViewBuilder->publicView($link, $token),
+        ]));
+
+        // **The one place a guest is authorised at the hub.** Everything else
+        // on this page is authorised by the address; a push connection cannot
+        // be, because the hub has never heard of this link. So whoever just
+        // proved they hold a usable one leaves with a short-lived JWT, scoped
+        // to this space's topic and to subscribing only, in a cookie the
+        // browser sends nowhere but the hub. Revoking the link stops this page
+        // being served, and the cookie runs out on its own.
+        $cookie = $this->chatHub->subscriptionCookie($request, $link->getSpace());
+
+        if ($cookie instanceof Cookie) {
+            $response->headers->setCookie($cookie);
+        }
+
+        return $response;
     }
 
     /**
@@ -289,6 +314,84 @@ final class PublicSpaceController extends AbstractController
         $this->links->markOpened($link);
 
         return $this->jsonSuccess($this->viewBuilder->threadPayload($link, $token));
+    }
+
+    /**
+     * The space's own conversation, as it stands.
+     *
+     * **A read, and the reason the live layer is allowed to be absent.** A page
+     * with no push connection - no hub configured, or a browser that dropped
+     * the one it had - asks here instead. No rate limiter, deliberately and
+     * unlike every write on this controller: a page that reconnects by polling
+     * would be throttled for behaving exactly as designed, and the wall that
+     * holds here is the same one that holds on the page itself, which is the
+     * link.
+     */
+    #[Route(
+        '/{selector}/{token}/chat/messages',
+        name: '_chat_messages',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        methods: [HttpMethodEnum::Get->value],
+    )]
+    public function chatMessages(string $selector, string $token): JsonResponse
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->jsonSuccess($this->chatViewBuilder->payload($link->getSpace()));
+    }
+
+    /**
+     * A message from the client in the space's conversation.
+     *
+     * **The right to write here is the right to comment**, and not a fourth
+     * column of its own: a client who may answer their agency on a post is a
+     * client who may answer their agency. A link without it gets the same 404 a
+     * stranger gets, for the reason the other writes give - saying "you may
+     * read but not write" tells somebody holding a leaked address what they
+     * hold.
+     *
+     * Same limiter as the other guest writes. A message is a row, like a
+     * verdict and unlike a file.
+     */
+    #[Route(
+        '/{selector}/{token}/chat',
+        name: '_chat_post',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function chatPost(string $selector, string $token, Request $request): JsonResponse
+    {
+        if (!$this->spaceGuestWriteLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
+        }
+
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface || !$link->canComment()) {
+            throw $this->createNotFoundException();
+        }
+
+        $body = Str::trimFromArray($this->decodeJson($request), 'body');
+
+        if ('' === $body) {
+            return $this->jsonInvalidInput(['body' => 'studio.public.space.errors.comment_required']);
+        }
+
+        try {
+            $this->chat->postAsClient($link->getSpace(), $link, $body);
+        } catch (FieldException) {
+            // The link opens another space. Answered like a stranger, for the
+            // reason the other writes give.
+            throw $this->createNotFoundException();
+        }
+
+        $this->links->markOpened($link);
+
+        return $this->jsonSuccess($this->chatViewBuilder->payload($link->getSpace()));
     }
 
     /**

@@ -8,6 +8,7 @@ use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentCommentInterface;
@@ -25,6 +26,7 @@ class SpaceContentCommentManager implements SpaceContentCommentManagerInterface
         protected readonly AuditLogger $auditLogger,
         protected readonly Security $security,
         protected readonly TranslatorInterface $translator,
+        protected readonly SpaceActivityNotifier $notifier,
     ) {}
 
     public function postAsStudio(SpaceContentItemInterface $item, string $body): SpaceContentCommentInterface
@@ -68,6 +70,12 @@ class SpaceContentCommentManager implements SpaceContentCommentManagerInterface
         $this->entityManager->flush();
 
         $this->auditPosted($comment);
+
+        $this->notifier->clientCommented(
+            $item->getSpace(),
+            $comment->getAuthorLabel(),
+            $item->getTitle(),
+        );
 
         return $comment;
     }

@@ -107,10 +107,11 @@ studio:
         space:
             unavailable_message: La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba el plan de contenidos de un espacio, pida un nuevo enlace a su contacto.
             timezone_notice: 'Horas en {timezone}'
-            valid_until: 'Esta dirección es válida hasta el {date}.'
-            footer: Esta dirección es personal. No la transmita.
+            footer: Esta dirección es personal, no la transmita.
+            footer_until: 'Esta dirección es personal y válida hasta el {date}: no la transmita.'
             no_body: El texto aún no está escrito.
             thread_notice: Lo que escriba aquí lo lee su proveedor.
+            chat_notice: Lo que escriba aquí lo lee su proveedor.
             upload_notice: "Imágenes, PDF y vídeos habituales, 25 MB como máximo. Lo que envíe aquí lo ve su proveedor."
             approve: Validado
             request_changes: Revisar
@@ -154,6 +155,11 @@ studio:
             authenticated: 'Firmado desde una cuenta autenticada del back-office'
             notice: 'Esta huella identifica el texto firmado. Cualquier modificación del documento produciría una huella diferente.'
     email:
+        space_activity:
+            subject: 'Novedades en {space}'
+            body: 'Su cliente ha hecho algo en el espacio {space}:'
+            cta: Abrir el espacio
+            quiet: 'No volverá a recibir un mensaje sobre esto hasta que abra el espacio.'
         customer_refused:
             subject: 'Contrato {reference}: rechazo del cliente'
             body: 'El cliente {customer} ha indicado que no firma el contrato {reference}.'

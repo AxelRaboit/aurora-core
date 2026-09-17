@@ -44,6 +44,8 @@ use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInput;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInput;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
@@ -132,6 +134,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly DeckRepository $deckRepository,
         private readonly SettingRepository $settings,
         private readonly EntityManagerInterface $entityManager,
+        private readonly SpaceAccessLinkManagerInterface $accessLinks,
     ) {}
 
     public static function getGroups(): array
@@ -342,6 +345,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // single busy board beside four empty ones shows both states, which is
         // what the screens have to be able to draw.
         $this->seedBoard($social);
+        $this->seedChat($social);
 
         $this->space(
             name: 'Atelier Dupont - Refonte du site',
@@ -459,6 +463,72 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
 
                 $this->hangPictures($item, $pictures);
             }
+        }
+    }
+
+    /**
+     * A conversation on the space, spread over two days.
+     *
+     * **Two days on purpose**: the panel draws a line whenever the day changes,
+     * and a demo written inside one afternoon would photograph a feature that
+     * never appears. The constructor stamps every row with now, so the dates
+     * are moved afterwards in one statement - the entity has no setter for it
+     * and should not grow one, because a conversation is a sequence of events
+     * and events do not get re-dated.
+     *
+     * **The client's side is signed by a real access link**, issued here like
+     * the studio would: a message signed any other way would be data no code
+     * ever produces, which is how a demo stops resembling the product. The link
+     * is also what the access screen needs to have something to show.
+     */
+    private function seedChat(CustomerSpaceInterface $space): void
+    {
+        $marie = $this->userRepository->find($this->backendUser('marie.dupont@aurora.app'));
+
+        if (!$marie instanceof User) {
+            return;
+        }
+
+        $link = $this->accessLinks->issue(
+            $space,
+            'camille@atelier-dupont.fr',
+            'Camille, gérante',
+            90,
+            canApprove: true,
+            canComment: true,
+        );
+
+        // Studio, client, studio, client: a thread that only ever shows one
+        // side does not show that the two are one stream.
+        $exchange = [
+            ['-2 days 09:12', false, "Bonjour Camille. Le brief d'octobre est prêt, je vous le partage dans la journée."],
+            ['-2 days 14:40', true, "Parfait. On peut décaler la campagne portes ouvertes d'une semaine ? Le chantier a pris du retard."],
+            ['-1 day 08:55', false, 'Aucun souci, je repousse les deux publications concernées et je vous remets le calendrier à jour.'],
+            ['-1 day 09:30', true, "Merci. Je vous envoie le nouveau logo en fin de semaine, l'agence nous le livre jeudi."],
+        ];
+
+        $dates = [];
+
+        foreach ($exchange as [$when, $fromClient, $body]) {
+            $message = new SpaceChatMessage();
+            $message->setSpace($space)->setBody($body);
+
+            if ($fromClient) {
+                $message->writtenByClient($link);
+            } else {
+                $message->writtenByStudio($marie, $marie->getName());
+            }
+
+            $this->entityManager->persist($message);
+            $this->entityManager->flush();
+
+            $dates[(int) $message->getId()] = new DateTimeImmutable($when);
+        }
+
+        foreach ($dates as $id => $at) {
+            $this->entityManager->createQuery(
+                'UPDATE '.SpaceChatMessage::class.' m SET m.createdAt = :at WHERE m.id = :id'
+            )->setParameter('at', $at)->setParameter('id', $id)->execute();
         }
     }
 

@@ -7,10 +7,14 @@
  * looking at, and the two cannot drift into disagreeing about which Tuesday a
  * post lands on.
  *
- * Read-only, with nothing on the page that could write. It carries no
- * endpoint addresses at all - a screen with no writes has no business holding
- * the URLs of six of them - so there is nothing here for a template mistake to
- * call.
+ * **It holds exactly the addresses this link may post to, and nulls for the
+ * rest.** It was read-only and carried none at all; four writes have been
+ * opened since - a verdict, a message on a card, a file, and now the space's
+ * conversation - and the rule that replaced "no addresses" is the one that
+ * still keeps a template mistake from calling something: a right the link does
+ * not have arrives as `null`, so the box is not drawn and there is nothing to
+ * call. Which of the four a link has is decided when it is created, and every
+ * one of them is checked again by the server.
  *
  * What is deliberately not shown: the steps as columns. A client does not need
  * to see that a post moved from "en rédaction" to "à valider", they need to see
@@ -32,6 +36,7 @@ import AppButton from "@/shared/components/action/AppButton.vue";
 // component is the one thing the two surfaces genuinely share.
 import SpaceContentThread from "../../../../SpaceContent/assets/shared/SpaceContentThread.vue";
 import SpaceContentAttachments from "../../../../SpaceContent/assets/shared/SpaceContentAttachments.vue";
+import SpaceChatPanel from "../../../../SpaceChat/assets/shared/SpaceChatPanel.vue";
 import {
     Check,
     ChevronLeft,
@@ -54,6 +59,12 @@ const props = defineProps({
     canUpload: { type: Boolean, default: false },
     attachments: { type: Object, default: () => ({}) },
     uploadPath: { type: String, default: null },
+    chatMessages: { type: Array, default: () => [] },
+    /** Null when no hub is running, and then the panel never connects. */
+    chatStreamUrl: { type: String, default: null },
+    /** Null when this link may only read, so there is no box to type in. */
+    chatPostPath: { type: String, default: null },
+    chatReloadPath: { type: String, required: true },
 });
 
 const { t, d } = useI18n();
@@ -276,11 +287,33 @@ function open(event) {
 
         <CalendarMonth :cells="cells" :events="events" v-on:open-event="open" />
 
+        <!-- Under the month rather than beside it, and never a floating
+             bubble: this page is read on a phone as often as on a desk, and a
+             widget pinned over a calendar covers the thing the client came
+             for. The conversation is the second reason they open the page, so
+             it sits second. -->
+        <SpaceChatPanel
+            :messages="chatMessages"
+            :stream-url="chatStreamUrl"
+            :post-path="chatPostPath"
+            :reload-path="chatReloadPath"
+            :notice="chatPostPath ? t('studio.public.space.chat_notice') : ''"
+        />
+
+        <!-- One sentence, not two stacked lines. The expiry and the "do not
+             forward" were separate paragraphs saying one thing between them:
+             this address is yours, it does not last for ever, keep it. The
+             date-less variant is what a link with no expiry gets. -->
         <footer class="mt-auto border-t border-line/50 pt-3 text-xs text-muted">
-            <p v-if="expiresAt">
-                {{ t("studio.public.space.valid_until", { date: d(new Date(expiresAt), "long") }) }}
+            <p>
+                {{
+                    expiresAt
+                        ? t("studio.public.space.footer_until", {
+                            date: d(new Date(expiresAt), "long"),
+                        })
+                        : t("studio.public.space.footer")
+                }}
             </p>
-            <p>{{ t("studio.public.space.footer") }}</p>
         </footer>
 
         <AppModal

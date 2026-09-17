@@ -1,1 +1,30 @@
-services: {}
+services:
+###> symfony/mercure-bundle ###
+    # Le hub temps reel, pour developper. En production il tourne en service
+    # systemd derriere Apache : voir la documentation du module.
+    #
+    # Protocole 1.0, comme l'application : l'emetteur de confiance est le
+    # serveur Symfony, et `resource_identifier` epingle l'audience des jetons
+    # pour que PHP puisse publier par la boucle locale pendant que le
+    # navigateur se connecte par l'hote public.
+    mercure:
+        image: dunglas/mercure
+        restart: unless-stopped
+        environment:
+            SERVER_NAME: ':80'
+            MERCURE_PUBLISHER_JWT_KEY: '!ChangeThisMercureHubJWTSecretKey!'
+            MERCURE_SUBSCRIBER_JWT_KEY: '!ChangeThisMercureHubJWTSecretKey!'
+            MERCURE_TRUSTED_ISSUERS: 'http://localhost:8000'
+            MERCURE_EXTRA_DIRECTIVES: |
+                resource_identifier http://localhost:3000/.well-known/mercure
+                cors_origins http://localhost:8000
+        ports:
+            - "3000:80"
+        volumes:
+            - mercure_data:/data
+            - mercure_config:/config
+
+volumes:
+    mercure_data:
+    mercure_config:
+###< symfony/mercure-bundle ###

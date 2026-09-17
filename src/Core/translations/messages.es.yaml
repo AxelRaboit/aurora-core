@@ -8,6 +8,15 @@ shared:
     verdict:
       approved: '{who} ha validado'
       changes_requested: '{who} ha pedido cambios'
+  space_chat:
+    title: Conversación
+    empty: "Aún no hay mensajes. Aquí se dice todo lo que no cabe en una ficha: el brief del mes, una campaña que se mueve, una pregunta rápida."
+    placeholder: "Escribir un mensaje… (Intro para enviar, Mayús+Intro para salto de línea)"
+    send: Enviar
+    from_client: cliente
+    deleted: Mensaje eliminado
+    live: en directo
+    reconnecting: reconectando…
   attachments:
     title: Archivos
     empty: Ningún archivo por ahora.

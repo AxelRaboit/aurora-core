@@ -117,6 +117,7 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMemberInterface;
+use Aurora\Module\Studio\CustomerSpace\Message\SpaceActivityDigestMessage;
 use Aurora\Module\Studio\Deck\Entity\Deck;
 use Aurora\Module\Studio\Deck\Entity\DeckCategory;
 use Aurora\Module\Studio\Deck\Entity\DeckCategoryInterface;
@@ -127,6 +128,8 @@ use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessageInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachmentInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
@@ -140,6 +143,7 @@ use Override;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
+use Symfony\Component\Mercure\ProtocolVersion;
 
 class AuroraBundle extends AbstractBundle
 {
@@ -250,6 +254,7 @@ class AuroraBundle extends AbstractBundle
                     SpaceContentAttachmentInterface::class => SpaceContentAttachment::class,
                     SpaceContentCommentInterface::class => SpaceContentComment::class,
                     SpaceAccessLinkInterface::class => SpaceAccessLink::class,
+                    SpaceChatMessageInterface::class => SpaceChatMessage::class,
                     DeckInterface::class => Deck::class,
                     DeckCategoryInterface::class => DeckCategory::class,
                     SlideInterface::class => Slide::class,
@@ -405,6 +410,50 @@ class AuroraBundle extends AbstractBundle
             'paths' => $twigPaths,
         ]);
 
+        // **The live hub, and the fact that most installations will not have
+        // one.** A space's chat is built on stored messages and a plain POST;
+        // the hub only makes them arrive without a refresh. So every variable
+        // below defaults to empty, the bundle is configured all the same, and
+        // `SpaceChatHub` treats an empty URL as "no hub" - it publishes nothing
+        // and hands the pages no address to connect to. Setting MERCURE_URL is
+        // the whole of switching it on, which is why there is no separate flag
+        // to get out of step with it.
+        //
+        // **Protocol 1.0, not the component's default.** The component still
+        // defaults to the pre-1.0 protocol; a 1.0 hub rejects those tokens
+        // outright, which is measured rather than assumed. The tokens are
+        // therefore RFC 9068 access tokens, and the two services below carry
+        // the claims and the publish grant that a yaml node cannot express.
+        $builder->setParameter('env(MERCURE_URL)', '');
+        $builder->setParameter('env(MERCURE_PUBLIC_URL)', '');
+        $builder->setParameter('env(MERCURE_JWT_SECRET)', '');
+        $builder->setParameter('env(MERCURE_ISSUER)', '');
+
+        $builder->prependExtensionConfig('mercure', [
+            'hubs' => [
+                'default' => [
+                    'url' => '%env(MERCURE_URL)%',
+                    // What the browser is told to connect to, which is not what
+                    // PHP posts to: the hub is reached over the loopback from
+                    // the server and through the public host from a client's
+                    // machine. A 1.0 hub works out its own audience from the
+                    // request, so the two only agree if the hub pins its
+                    // `resource_identifier` to this same address.
+                    'public_url' => '%env(MERCURE_PUBLIC_URL)%',
+                    'protocol_version' => ProtocolVersion::V1->value,
+                    'jwt' => [
+                        // Publishing, with the grant the pattern needs; and the
+                        // factory `Authorization` reaches for when it mints a
+                        // subscriber's cookie. Both are declared in
+                        // config/services.yaml, where the reason they exist is
+                        // written out.
+                        'provider' => 'aurora.mercure.publisher',
+                        'factory' => 'aurora.mercure.token_factory',
+                    ],
+                ],
+            ],
+        ]);
+
         $builder->prependExtensionConfig('doctrine_migrations', [
             'migrations_paths' => [
                 'DoctrineMigrations' => $dir.'/migrations',
@@ -427,6 +476,11 @@ class AuroraBundle extends AbstractBundle
                 'routing' => [
                     RelocateDocumentMessage::class => 'async',
                     DeliverFormSubmissionMessage::class => 'async',
+                    // The only one of the three that is routed for its delay
+                    // rather than its cost: it is dispatched with a five minute
+                    // stamp, and handled inline it would be sent immediately -
+                    // which is precisely the mail it exists to avoid.
+                    SpaceActivityDigestMessage::class => 'async',
                 ],
             ],
         ]);

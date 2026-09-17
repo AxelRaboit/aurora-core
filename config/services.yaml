@@ -128,6 +128,10 @@ services:
         arguments:
             $devMode: '%kernel.debug%'
             $viteDevServer: '%app.vite_dev_server%'
+            # L'origine du hub Mercure, vide quand il n'y en a pas. Derrière le
+            # même hôte en production, `'self'` suffirait ; ailleurs non, et une
+            # connexion bloquée par la CSP ressemble à un hub en panne.
+            $mercurePublicUrl: '%env(MERCURE_PUBLIC_URL)%'
 
     Aurora\Module\Configuration\Theme\Service\ThemeResolver:
         arguments:
@@ -175,6 +179,54 @@ services:
         arguments:
             $mailerFrom: '%app.mailer_from%'
             $adminEmail: '%app.admin_email%'
+
+    # --- The Mercure hub ----------------------------------------------------
+    #
+    # Three services where a line of configuration would do, and the protocol
+    # is what forces it. Mercure 1.0 expects an RFC 9068 access token - an
+    # issuer, an audience, a subject - and the right to publish is a URL
+    # pattern, `https://aurora.invalid/studio/spaces/*/chat`, because a space
+    # that does not exist yet cannot be listed. The bundle's own `jwt.publish`
+    # node only accepts a flat list of exact topics, which cannot express that.
+    #
+    # Checked against a 1.0.0 hub: a token in the older protocol is refused
+    # outright ("untrusted issuer"), and pinning the audience on the hub side
+    # (`resource_identifier`) is what lets PHP publish over the loopback while
+    # a browser connects through the public host.
+    aurora.mercure.signer:
+        class: Symfony\Component\Mercure\Jwt\LcobucciFactory
+        # Lazy because an empty secret is a supported state. This class rejects
+        # one in its constructor, and with no hub configured there is no secret
+        # to give it and nothing will ever ask it to sign. Behind a proxy, that
+        # constructor runs the first time a token is actually minted - which
+        # only happens once a hub URL is set.
+        lazy: true
+        arguments:
+            $secret: '%env(MERCURE_JWT_SECRET)%'
+            $protocolVersion: !php/enum Symfony\Component\Mercure\ProtocolVersion::V1
+
+    # The claims `Authorization` cannot pass itself: it reaches for the hub's
+    # factory directly when it mints a subscriber's cookie.
+    aurora.mercure.token_factory:
+        class: Symfony\Component\Mercure\Jwt\DefaultClaimsTokenFactory
+        arguments:
+            $decorated: '@aurora.mercure.signer'
+            $defaultClaims:
+                iss: '%env(MERCURE_ISSUER)%'
+                aud: '%env(MERCURE_PUBLIC_URL)%'
+                sub: aurora
+                client_id: aurora
+
+    aurora.mercure.publisher:
+        class: Symfony\Component\Mercure\Jwt\FactoryTokenProvider
+        arguments:
+            $factory: '@aurora.mercure.token_factory'
+            $grants:
+                - !service
+                    class: Symfony\Component\Mercure\Jwt\Grant
+                    arguments:
+                        - ['publish']
+                        - urlpattern: ['https://aurora.invalid/studio/spaces/*/chat']
 
 # Fixtures live in fixtures/, outside src/, precisely so that nothing scanning
 # src/ can reach them: the Doctrine attribute driver and the attribute route
