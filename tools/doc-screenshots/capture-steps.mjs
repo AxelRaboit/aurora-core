@@ -141,6 +141,18 @@ async function dismissDialog() {
   await wait(900);
 }
 
+/**
+ * Ouvre le menu « Actions » de la page d'un contrat.
+ *
+ * Avenant, résiliation et PDF y vivent, et n'existent nulle part ailleurs sur
+ * la page : les viser directement ne trouvait rien, ce qui est le symptome
+ * d'une prise ecrite du temps ou c'etaient des boutons poses a cote du titre.
+ */
+async function openDocumentActions() {
+  await page.getByRole("button", { name: /^Actions$/ }).first().click();
+  await wait(1200);
+}
+
 async function selectView(label) {
   await page.getByRole("button", { name: label, exact: true }).first().click();
   await wait(2000);
@@ -216,6 +228,72 @@ async function createDraft() {
  * le vrai : le code n'est ni deviné ni réécrit en base, il est lu là où le
  * client le lirait.
  */
+/**
+ * L'adresse du contrat envoye, relevee dans la boite aux lettres.
+ *
+ * Le jeton n'existe en clair que dans l'e-mail : la base n'en garde qu'une
+ * empreinte, et c'est voulu. Le relever ici plutot que de le refrapper avec un
+ * outil a part, c'est lire ce que le client lit, par le chemin qu'il emprunte.
+ *
+ * Renseignee par `le-parcours-de-signature`, lue par `signature-cote-client`.
+ * `DOC_CONTRACT_PATH` reste prioritaire, pour rejouer une prise seule.
+ */
+let contractPath = null;
+
+/**
+ * L'identifiant du contrat conclu, releve dans l'adresse du back-office.
+ *
+ * Renseigne par `contresigner`, qui ouvre la page du document, et lu par
+ * `apres-la-conclusion`. Meme principe : `DOC_CONTRACT_ID` passe devant.
+ */
+let contractId = null;
+
+/**
+ * Attend qu'un message arrive dans la boite locale.
+ *
+ * Les e-mails partent par la file : ils n'existent pas a la seconde ou l'on
+ * clique, ils existent quand le worker les a pris. Attendre ici plutot que de
+ * poser une pause au hasard, et dire quoi faire quand rien ne vient - un
+ * worker arrete est la seule cause serieuse.
+ */
+async function waitForMail(pattern, seconds = 30) {
+  for (let i = 0; i < seconds; i += 1) {
+    const inbox = await fetch("http://127.0.0.1:8025/api/v1/messages?limit=20").then((r) => r.json());
+
+    if ((inbox?.messages ?? []).some((m) => pattern.test(m.Subject ?? ""))) {
+      return;
+    }
+
+    await wait(1000);
+  }
+
+  throw new Error(
+    `aucun message « ${pattern} » apres ${seconds}s : le worker tourne-t-il ? (make start-dev-worker)`,
+  );
+}
+
+/** Le chemin public du dernier contrat envoye, lu dans le dernier message. */
+async function lastContractPathFromMailbox() {
+  const inbox = await fetch("http://127.0.0.1:8025/api/v1/messages?limit=1").then((r) => r.json());
+  const id = inbox?.messages?.[0]?.ID;
+
+  if (!id) {
+    throw new Error("aucun message dans Mailpit");
+  }
+
+  const mail = await fetch(`http://127.0.0.1:8025/api/v1/message/${id}`).then((r) => r.json());
+  const body = `${mail.Text ?? ""} ${mail.HTML ?? ""}`;
+  // Le selecteur et le jeton sont du base64 url-safe : les deux alphabets, le
+  // tiret et le souligne compris, sinon une adresse sur deux est coupee.
+  const link = body.match(/\/contracts\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+/);
+
+  if (!link) {
+    throw new Error("aucune adresse de contrat dans le dernier message");
+  }
+
+  return link[0];
+}
+
 async function lastCodeFromMailbox() {
   const inbox = await fetch("http://127.0.0.1:8025/api/v1/messages?limit=1").then((r) => r.json());
   const id = inbox?.messages?.[0]?.ID;
@@ -747,12 +825,17 @@ const FLOWS = {
       .catch(async () => { await page.getByRole("button", { name: /^Contenu$/ }).first().click(); });
     await wait(2500);
 
-    // Sur la vignette de la zone : le sélecteur générique ne visait rien, et
-    // le panneau restait sur « Cliquez une zone ci-dessus ».
-    await page.getByText("Vidéo", { exact: true }).first().click();
+    // La vignette du canevas, visée par son intitulé : c'est elle qui
+    // sélectionne la zone. Viser le texte « Vidéo » tombait sur l'en-tête du
+    // panneau, qui n'est pas un sélecteur.
+    await page.locator('[data-zone] button[title^="Vidéo"]').first().click();
     await wait(2000);
 
-    const control = page.getByText("Fond", { exact: true }).first()
+    // Le panneau garde la carte de chaque zone dans la page et n'affiche que
+    // celle de la zone choisie. Sans exiger la visibilité, « Fond » se
+    // résolvait sur la carte d'une autre zone, cachée - et on ne fait pas
+    // défiler jusqu'à ce qui n'est pas affiché.
+    const control = page.getByText("Fond", { exact: true }).locator("visible=true").first()
       .locator('xpath=ancestor::div[contains(@class,"space-y-1.5")][1]');
     await control.scrollIntoViewIfNeeded();
     await wait(900);
@@ -898,6 +981,48 @@ const FLOWS = {
   },
 
   /**
+   * Envoyer, signer, contresigner : une seule séquence, trois pages.
+   *
+   * Les trois se suivent sur le même contrat et ne se rejouent pas séparément
+   * - on ne signe pas un contrat qu'on n'a pas envoyé. Les photos portent le
+   * nom de la page à laquelle elles vont.
+   */
+  "le-parcours-de-signature": async () => {
+    await createDraft();
+    await page.getByRole("button", { name: /^Actions pour/ }).first().click();
+    await wait(1200);
+    await page.getByText("Sceller", { exact: true }).first().click();
+    await wait(1500);
+    await page.getByRole("button", { name: /^(Sceller|Confirmer)/ }).last().click();
+    await wait(3500);
+
+    // envoyer-le-lien
+    await page.goto(`${BASE}/backend/studio/contracts`, { waitUntil: "domcontentloaded" });
+    await wait(2500);
+    const reference = await page.locator("text=/CTR-\\d{4}-\\d{4}/").first().innerText();
+    flowName = "envoyer-le-lien";
+    step = 0;
+    await page.getByRole("button", { name: new RegExp(`^Actions pour ${reference}`) }).first().click();
+    await wait(1200);
+    await shot("le-menu-d-un-contrat-scelle");
+
+    await page.getByText("Envoyer au client", { exact: true }).first().click();
+    await wait(1800);
+    await shot("la-confirmation-d-envoi");
+
+    await page.getByRole("button", { name: /^(Envoyer|Confirmer)/ }).last().click();
+    await wait(3500);
+    await shot("le-lien-actif-dans-la-liste");
+
+    // L'adresse part dans l'e-mail et nulle part ailleurs. Relevee ici, elle
+    // dispense la prise suivante d'un outil a part et d'une variable a poser
+    // a la main.
+    contractPath = await lastContractPathFromMailbox();
+
+    console.log(`  (contrat ${reference}, lien ${contractPath})`);
+  },
+
+  /**
    * La page que reçoit le client, sans compte.
    *
    * L'adresse est passée en paramètre : le jeton n'existe en clair que dans
@@ -905,10 +1030,12 @@ const FLOWS = {
    * refrappe un en local pour cette prise.
    */
   "signature-cote-client": async () => {
-    const path = process.env.DOC_CONTRACT_PATH;
+    const path = process.env.DOC_CONTRACT_PATH ?? contractPath;
 
     if (!path) {
-      throw new Error("DOC_CONTRACT_PATH manquant : refrapper un lien avec mint-link.php");
+      throw new Error(
+        "aucune adresse de contrat : jouer « le-parcours-de-signature » avant, ou poser DOC_CONTRACT_PATH",
+      );
     }
 
     // Un contexte neuf, sans session : c'est tout l'intérêt de la page.
@@ -980,87 +1107,6 @@ const FLOWS = {
 
     page = held;
     await guest.close();
-  },
-
-  /**
-   * Envoyer, signer, contresigner : une seule séquence, trois pages.
-   *
-   * Les trois se suivent sur le même contrat et ne se rejouent pas séparément
-   * - on ne signe pas un contrat qu'on n'a pas envoyé. Les photos portent le
-   * nom de la page à laquelle elles vont.
-   */
-  "le-parcours-de-signature": async () => {
-    await createDraft();
-    await page.getByRole("button", { name: /^Actions pour/ }).first().click();
-    await wait(1200);
-    await page.getByText("Sceller", { exact: true }).first().click();
-    await wait(1500);
-    await page.getByRole("button", { name: /^(Sceller|Confirmer)/ }).last().click();
-    await wait(3500);
-
-    // envoyer-le-lien
-    await page.goto(`${BASE}/backend/studio/contracts`, { waitUntil: "domcontentloaded" });
-    await wait(2500);
-    const reference = await page.locator("text=/CTR-\\d{4}-\\d{4}/").first().innerText();
-    flowName = "envoyer-le-lien";
-    step = 0;
-    await page.getByRole("button", { name: new RegExp(`^Actions pour ${reference}`) }).first().click();
-    await wait(1200);
-    await shot("le-menu-d-un-contrat-scelle");
-
-    await page.getByText("Envoyer au client", { exact: true }).first().click();
-    await wait(1800);
-    await shot("la-confirmation-d-envoi");
-
-    await page.getByRole("button", { name: /^(Envoyer|Confirmer)/ }).last().click();
-    await wait(3500);
-    await shot("le-lien-actif-dans-la-liste");
-
-    console.log(`  (contrat ${reference})`);
-  },
-
-  /**
-   * Avenant, résiliation, PDF : ce qui reste possible sur un contrat conclu.
-   *
-   * Les trois boutons n'apparaissent que là, et seulement sur un contrat qui
-   * n'est pas lui-même un avenant et qui n'est pas déjà résilié : ce sont les
-   * deux seules choses qui peuvent encore lui arriver.
-   */
-  "apres-la-conclusion": async () => {
-    const id = process.env.DOC_CONTRACT_ID;
-
-    if (!id) {
-      throw new Error("DOC_CONTRACT_ID manquant");
-    }
-
-    await page.goto(`${BASE}/backend/studio/contracts/${id}`, { waitUntil: "domcontentloaded" });
-    await wait(3000);
-
-    flowName = "pdf-signe";
-    step = 0;
-    await shot("le-bloc-de-preuve-d-un-contrat-conclu");
-
-    flowName = "avenants";
-    step = 0;
-    await shot("les-deux-actions-d-un-contrat-conclu");
-
-    await page.getByRole("link", { name: /Créer un avenant|Avenant/ }).first().click();
-    await page.waitForURL(/amends=/, { timeout: 20000 });
-    await wait(3000);
-    await shot("la-preparation-d-un-avenant");
-
-    flowName = "resiliation";
-    step = 0;
-    await page.goto(`${BASE}/backend/studio/contracts/${id}`, { waitUntil: "domcontentloaded" });
-    await wait(3000);
-    await shot("les-actions-d-un-contrat-conclu");
-
-    await page.getByRole("button", { name: /^Résilier$/ }).first().click();
-    // La fenêtre s'ouvre en fondu : photographiée trop tôt, la page paraît
-    // n'avoir rien fait.
-    await page.getByRole("heading", { name: /Résilier/ }).last().waitFor({ state: "visible", timeout: 15000 });
-    await wait(1500);
-    await shot("la-fenetre-de-resiliation");
   },
 
   /** Les écrans de structure : types de contenu, taxonomies, menus. */
@@ -1171,17 +1217,11 @@ const FLOWS = {
     await wait(1000);
     await shot("les-actions-en-masse");
 
-    // Attendue détachée, pas seulement demandée : la modale garde le défilement
-    // de la page le temps de sa transition, et le clic suivant visait le menu
-    // latéral pendant que le verrou courait encore.
+    // La prise s'arrête ici. Elle poursuivait jusqu'à la corbeille, que plus
+    // aucune page ne cite : une capture que personne ne réclame est une prise
+    // qui peut casser sans que rien ne s'en aperçoive, et celle-ci cassait.
     await page.keyboard.press("Escape");
     await page.locator("[role='dialog']").first().waitFor({ state: "detached" }).catch(() => {});
-    await wait(800);
-    await page.getByRole("row").nth(1).getByRole("checkbox").first().uncheck();
-    await wait(800);
-    await page.getByRole("button", { name: /^Corbeille$/ }).first().click();
-    await wait(1800);
-    await shot("la-corbeille");
   },
 
   /** L'onglet Contenu : la grille, une zone choisie, la palette de zones. */
@@ -1307,6 +1347,10 @@ const FLOWS = {
     await wait(2500);
     await shot("la-page-du-document");
 
+    // L'adresse porte l'identifiant, et c'est le seul endroit ou la prise
+    // suivante peut le lire sans le demander a quelqu'un.
+    contractId = page.url().match(/\/contracts\/(\d+)$/)?.[1] ?? null;
+
     await page.getByRole("button", { name: /^Contresigner/ }).first().click();
     await wait(1800);
     await shot("la-fenetre-de-contresignature");
@@ -1336,6 +1380,57 @@ const FLOWS = {
     await page.getByRole("button", { name: /^Contresigner$/ }).last().click();
     await wait(4500);
     await shot("le-contrat-conclu");
+  },
+
+  /**
+   * Avenant, résiliation, PDF : ce qui reste possible sur un contrat conclu.
+   *
+   * Les trois boutons n'apparaissent que là, et seulement sur un contrat qui
+   * n'est pas lui-même un avenant et qui n'est pas déjà résilié : ce sont les
+   * deux seules choses qui peuvent encore lui arriver.
+   */
+  "apres-la-conclusion": async () => {
+    const id = process.env.DOC_CONTRACT_ID ?? contractId;
+
+    if (!id) {
+      throw new Error(
+        "aucun identifiant de contrat : jouer « contresigner » avant, ou poser DOC_CONTRACT_ID",
+      );
+    }
+
+    await page.goto(`${BASE}/backend/studio/contracts/${id}`, { waitUntil: "domcontentloaded" });
+    await wait(3000);
+
+    flowName = "pdf-signe";
+    step = 0;
+    await shot("le-bloc-de-preuve-d-un-contrat-conclu");
+
+    flowName = "avenants";
+    step = 0;
+    // Les deux actions sont dans le menu « Actions » de la page du document,
+    // pas posées sur la page : la photo doit donc montrer le menu ouvert, qui
+    // est aussi ce que le lecteur aura sous les yeux.
+    await openDocumentActions();
+    await shot("les-deux-actions-d-un-contrat-conclu");
+
+    await page.getByText("Créer un avenant", { exact: true }).first().click();
+    await page.waitForURL(/amends=/, { timeout: 20000 });
+    await wait(3000);
+    await shot("la-preparation-d-un-avenant");
+
+    flowName = "resiliation";
+    step = 0;
+    await page.goto(`${BASE}/backend/studio/contracts/${id}`, { waitUntil: "domcontentloaded" });
+    await wait(3000);
+    await openDocumentActions();
+    await shot("les-actions-d-un-contrat-conclu");
+
+    await page.getByText("Résilier", { exact: true }).first().click();
+    // La fenêtre s'ouvre en fondu : photographiée trop tôt, la page paraît
+    // n'avoir rien fait.
+    await page.getByRole("heading", { name: /Résilier/ }).last().waitFor({ state: "visible", timeout: 15000 });
+    await wait(1500);
+    await shot("la-fenetre-de-resiliation");
   },
 
   /** Sceller : le menu d'actions, la confirmation, la référence frappée. */
@@ -1802,6 +1897,58 @@ const FLOWS = {
    * confirme, la liste des soumissions, et l'e-mail reçu.
    */
   "demandes-recues": async () => {
+    // La demande est envoyée pour de vrai, d'abord. Les deux e-mails que cette
+    // page montre n'existent que si quelqu'un a posté le formulaire : le jeu de
+    // démonstration pose bien une soumission en base, mais une soumission
+    // semée n'a envoyé aucun message. C'est ce qui manquait ici, et ce que
+    // deux variables d'environnement masquaient autrefois.
+    await page.goto(`${BASE}/fr/forms/demande-de-devis`, { waitUntil: "domcontentloaded" });
+    await wait(2500);
+    await page.getByPlaceholder("Camille Durand").first().fill("Camille Durand");
+    await page.getByPlaceholder("camille@exemple.fr").first().fill("camille.durand@exemple.fr");
+    // Les champs facultatifs aussi : la page montre « une demande et ses
+    // réponses », et une demande où la moitié des lignes sont vides montre
+    // surtout les trous.
+    await page.getByPlaceholder("06 12 34 56 78").first().fill("06 24 55 18 90").catch(() => {});
+    await page.getByRole("radio", { name: "Recommandation" }).first().check().catch(() => {});
+    await page.getByRole("button", { name: "Suivant" }).first().click();
+    await wait(1800);
+
+    await page.locator("form select").first()
+      .selectOption({ label: "Boutique en ligne" }).catch(() => {});
+    await wait(900);
+
+    // Ce qui reste est rempli sans le nommer : la deuxième étape porte un champ
+    // conditionnel qui n'apparaît qu'après le choix ci-dessus, et le viser par
+    // son libellé ferait dépendre la prise du texte d'un champ de démonstration.
+    for (const field of await page.locator("form input[type='number']:visible").all()) {
+      await field.fill("30");
+    }
+
+    for (const field of await page.locator("form input[type='date']:visible").all()) {
+      await field.fill("2026-11-02");
+    }
+
+    for (const box of await page.locator("form textarea:visible").all()) {
+      await box.fill("Un site de cinq pages et une boutique d'une trentaine de références.");
+    }
+
+    // L'accord est obligatoire, et c'est le seul champ que rien ne remplit par
+    // défaut : sans lui la demande ne part pas, et les deux e-mails n'existent
+    // jamais.
+    for (const box of await page.locator("form input[type='checkbox']:visible").all()) {
+      await box.check();
+    }
+
+    await page.getByRole("button", { name: "Envoyer", exact: true }).first().click();
+    await wait(2000);
+
+    // Les deux e-mails partent par la file. Sans le worker, la demande est bien
+    // enregistree et la boite reste vide : c'est exactement ce qui faisait
+    // echouer cette prise, et la suite n'a rien a photographier sans eux.
+    await waitForMail(/Nouvelle soumission/);
+    await waitForMail(/Votre message/);
+
     await page.goto(`${BASE}/backend/editorial/forms/1`, { waitUntil: "domcontentloaded" });
     await wait(3000);
 
@@ -1810,9 +1957,14 @@ const FLOWS = {
     await shot("les-demandes-recues");
 
     // Cadré sur une demande : c'est la forme d'une réponse reçue, pas la
-    // page qui la contient.
-    await shotOf(page.getByText("SUB-000001").first()
-      .locator("xpath=ancestor::article[1]"), "le-detail-d-une-demande", 20, 2);
+    // page qui la contient. La plus récente, donc celle que la prise vient
+    // d'envoyer : viser un numéro fixe photographiait la plus ancienne, qui
+    // descend d'un cran à chaque passage et finit hors de la page.
+    const submission = page.getByText(/^SUB-\d+/).first()
+      .locator("xpath=ancestor::*[self::article or self::li or self::div][1]");
+    await submission.scrollIntoViewIfNeeded();
+    await wait(600);
+    await shotOf(submission, "le-detail-d-une-demande", 20, 2);
 
     // Les deux e-mails que le produit a réellement envoyés, lus dans la
     // boîte locale et cadrés sur le message : ce que reçoit le lecteur de la
@@ -2416,22 +2568,6 @@ const FLOWS = {
     await add.click();
     await wait(1200);
     await shotOf(add.locator('xpath=ancestor::div[contains(@class,"flex-col")][1]'), "une-alerte-ajoutee", 16, 10);
-  },
-
-  /**
-   * Les dates que les autres modules posent dans le calendrier.
-   */
-  "dates-des-autres-modules": async () => {
-    await openCalendar();
-
-    const entry = page.getByText(/Échéance facture/).first();
-    await entry.scrollIntoViewIfNeeded();
-    await wait(700);
-    await shotOf(entry, "une-echeance-venue-du-studio", 24, 14);
-
-    await entry.click();
-    await wait(2000);
-    await shot("ce-qu-elle-dit");
   },
 
   /**

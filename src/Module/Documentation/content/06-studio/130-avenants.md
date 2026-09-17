@@ -7,7 +7,7 @@ Un avenant modifie un contrat conclu. C'est un document à part, scellé et sign
 
 ## D'où ça part
 
-De la page d'un contrat conclu. Deux actions y apparaissent, et seulement là : créer un avenant, ou résilier. Ce sont les deux seules choses qui peuvent encore arriver à un contrat signé.
+De la page d'un contrat conclu, dans son menu **Actions**. Deux entrées y apparaissent, et seulement là : créer un avenant, ou résilier. Ce sont les deux seules choses qui peuvent encore arriver à un contrat signé.
 
 Elles disparaissent si le contrat est lui-même un avenant, ou s'il est déjà résilié.
 
