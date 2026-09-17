@@ -5,6 +5,70 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.195] - 2026-09-17
+
+### Ajouté
+
+#### Une discussion sur l'espace, en direct
+Chaque fiche portait déjà ses échanges, et c'est là que doit rester ce qui
+concerne un contenu précis : une objection écrite à côté du texte qu'elle vise
+se retrouve un mois plus tard. Ce qui n'avait nulle part où aller, c'est tout
+le reste - le brief du mois, une campagne qui se décale, « qui m'envoie le
+logo » - et ça atterrissait sur la fiche qui se trouvait ouverte, où ça
+devenait introuvable.
+
+Une cinquième vue dans l'espace, et un panneau sous le calendrier sur la page
+du client. **Un seul fil, lu des deux côtés**, comme les échanges de fiche : ce
+que le studio écrit, le client le lit, et la phrase sous la zone de saisie le
+dit. Le droit d'écrire est celui de commenter porté par le lien d'accès, pas
+une quatrième case : un client qui peut vous répondre sur une publication peut
+vous répondre tout court.
+
+**En direct avec un hub Mercure, juste avec un peu de retard sans.** Les
+messages sont enregistrés et postés en HTTP ordinaire ; le hub ne fait que les
+faire arriver sans rafraîchir. Sans `MERCURE_URL`, rien n'est publié, les pages
+ne reçoivent aucune adresse à laquelle se connecter, et le panneau interroge le
+serveur toutes les vingt secondes. Un test le verrouille, parce que la plupart
+des projets qui consomment cette librairie n'auront jamais de hub.
+
+Le protocole 1.0, qui n'est pas le défaut du composant Symfony et n'était pas
+un choix : un hub 1.0 refuse les jetons de l'ancien protocole, mesuré et pas
+supposé.
+
+#### On vous prévient quand le client fait quelque chose
+Un client pouvait valider, demander une reprise, envoyer un fichier et
+désormais écrire un message, et personne n'était prévenu : on l'apprenait en
+ouvrant l'espace. Tout était construit autour de la boucle de validation, et la
+boucle ne se fermait que si quelqu'un pensait à aller voir.
+
+Les quatre écritures du client notifient **les membres de l'espace**. Un espace
+sans membre ne prévient personne : s'ajouter à un espace, c'est s'y abonner.
+
+**Une notification, pas une par message.** Trois messages d'affilée font une
+seule ligne tant qu'elle n'est pas lue. Un avis fait exception et n'est jamais
+replié : répondre deux fois, c'est changer d'avis.
+
+**Et un email quand personne n'est devant l'écran**, sur la forme qu'emploient
+les grosses messageries : attendre cinq minutes, regarder à nouveau, et n'écrire
+qu'à quelqu'un qui n'est pas là. Si la notification a été lue entre-temps, rien
+ne part. Sinon un seul mail, qui liste ce qui s'est passé, puis le silence
+jusqu'à ce que la personne revienne et lise.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`.
+
+**Enregistrer le bundle Mercure** dans `config/bundles.php` :
+`Symfony\Bundle\MercureBundle\MercureBundle::class => ['all' => true]`. Il
+arrive en dépendance transitive et Flex ne l'inscrit pas tout seul chez le
+consommateur.
+
+**Le chat fonctionne sans rien d'autre.** Pour le temps réel, installer un hub
+Mercure et renseigner `MERCURE_URL`, `MERCURE_PUBLIC_URL`, `MERCURE_JWT_SECRET`
+et `MERCURE_ISSUER`. Le hub doit épingler son `resource_identifier` sur
+`MERCURE_PUBLIC_URL` et déclarer l'application comme émetteur de confiance.
+
+---
+
 ## [0.9.194] - 2026-09-16
 
 ### Ajouté
