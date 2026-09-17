@@ -50,14 +50,28 @@ const label = computed(() =>
         v-on:click="$emit('open')"
     >
         <span class="flex -space-x-2">
-            <AppAvatar
+            <!-- Un fond opaque sous chaque rond, et c'est tout ce que fait ce
+                 conteneur. L'avatar est peint en `bg-accent-600/20` : posé
+                 directement sur son voisin, il le laissait transparaître et
+                 les deux initiales se chevauchaient. Sur un fond de la couleur
+                 de la ligne, il rend exactement ce qu'il rend seul, et celui du
+                 dessus masque la part qu'il recouvre - ce que font les piles
+                 d'avatars partout ailleurs.
+
+                 La couleur suit le survol comme l'anneau le faisait déjà :
+                 les deux disent la même chose, « ce qu'il y a derrière ». -->
+            <span
                 v-for="member in shown"
                 :key="member.userId"
-                :name="member.name"
-                :email="member.email"
-                size="sm"
-                class="ring-2 ring-surface transition-transform group-hover/team:ring-surface-2"
-            />
+                class="rounded-full bg-surface ring-2 ring-surface transition-colors group-hover/team:bg-surface-2 group-hover/team:ring-surface-2"
+            >
+                <AppAvatar
+                    :name="member.name"
+                    :email="member.email"
+                    size="sm"
+                    class="block"
+                />
+            </span>
             <span
                 v-if="overflow"
                 class="flex h-7 w-7 items-center justify-center rounded-full bg-surface-2 text-xs font-medium tabular-nums text-secondary ring-2 ring-surface"
