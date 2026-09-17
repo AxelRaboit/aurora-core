@@ -9,6 +9,7 @@ use Aurora\Core\Scheduling\Event\EntityUnscheduledEvent;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInputInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
@@ -40,6 +41,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         protected readonly TranslatorInterface $translator,
         protected readonly EventDispatcherInterface $eventDispatcher,
         protected readonly UrlGeneratorInterface $urlGenerator,
+        protected readonly SpaceActivityNotifier $notifier,
     ) {}
 
     public function create(CustomerSpaceInterface $space, SpaceContentItemInputInterface $input): SpaceContentItemInterface
@@ -159,6 +161,15 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $this->entityManager->flush();
 
         $this->auditAnswered($item);
+
+        // Never folded into an earlier one: answering twice is changing one's
+        // mind, and the second answer is the one that counts.
+        $this->notifier->clientAnswered(
+            $item->getSpace(),
+            $link->getRecipientEmail(),
+            $item->getTitle(),
+            SpaceContentApprovalEnum::Approved === $approval,
+        );
     }
 
     /**

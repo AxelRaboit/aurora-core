@@ -9,6 +9,7 @@ use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachmentInterface;
@@ -31,6 +32,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
         protected readonly AuditLogger $auditLogger,
         protected readonly Security $security,
         protected readonly TranslatorInterface $translator,
+        protected readonly SpaceActivityNotifier $notifier,
     ) {}
 
     public function attachAsStudio(SpaceContentItemInterface $item, DocumentInterface $document): SpaceContentAttachmentInterface
@@ -83,7 +85,15 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
             ->setPosition($this->attachments->nextPosition($item))
             ->addedByClient($link);
 
-        return $this->save($attachment);
+        $saved = $this->save($attachment);
+
+        $this->notifier->clientUploaded(
+            $item->getSpace(),
+            $link->getRecipientEmail(),
+            $item->getTitle(),
+        );
+
+        return $saved;
     }
 
     /**
