@@ -5,6 +5,41 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.196] - 2026-09-17
+
+### Modifié
+
+#### Le hub local se monte avec le serveur de dev
+`make start` monte le hub Mercure en même temps que le reste, et `make
+hub-start`, `make hub-stop`, `make hub-logs` le pilotent seul - on le redémarre
+plus souvent qu'on ne redémarre tout. Ses valeurs vivent dans un `.env.dev`
+suivi en git : la discussion arrive en direct sans que personne ait rien à
+recopier, et un `.env.local` garde la main dessus.
+
+**Sans Docker, rien ne casse et la commande le dit** plutôt que de laisser
+quelqu'un chercher pourquoi le voyant est orange : les messages sont
+enregistrés et postés normalement, la page les redemande toutes les vingt
+secondes.
+
+Le service déclare aussi les quatre origines locales - `localhost` et
+`127.0.0.1`, en http et en https - parce que le serveur de développement se
+sert sous les quatre et qu'une seule d'entre elles fait échouer la connexion
+sous les trois autres, ce qui ressemble à un hub en panne.
+
+#### Les variables du hub atteignent les projets consommateurs
+`sync-client-env` ne recopie que les blocs marqués `aurora/<nom>`, donc le bloc
+nommé d'après le paquet Flex était une documentation que personne en aval
+n'aurait jamais vue - alors que c'est le seul endroit qui dit à quoi servent
+les quatre variables, dont trois doivent s'accorder avec la configuration du
+hub.
+
+### Dans aurora-client
+`make aurora-update`. Le bloc `aurora/mercure` apparaît dans le `.env` au
+prochain `make sync-env` ; le renseigner n'est nécessaire que pour le temps
+réel.
+
+---
+
 ## [0.9.195] - 2026-09-17
 
 ### Ajouté

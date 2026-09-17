@@ -153,7 +153,31 @@ mailpit-logs: ## Tail mailpit logs
 # === Symfony ===
 start: ## Start dev server
 	@docker compose up -d mailer 2>/dev/null || true
+	@$(MAKE) --no-print-directory hub-start
 	symfony server:start -d
+
+# Le hub temps reel des discussions d'espace client. Sa propre cible parce
+# qu'on le redemarre seul plus souvent qu'on ne redemarre tout, et appele par
+# `start` parce que personne ne devrait avoir a y penser pour voir la
+# fonctionnalite telle qu'elle est en production.
+#
+# Son absence n'est pas une panne : sans hub les messages sont enregistres et
+# postes normalement, la page les demande toutes les vingt secondes au lieu de
+# les recevoir. C'est ce que dit la ligne ci-dessous plutot que de laisser
+# quelqu'un chercher pourquoi le voyant est orange.
+hub-start: ## Start the local Mercure hub (live chat on client spaces)
+	@if docker compose up -d mercure >/dev/null 2>&1; then \
+		echo "✅ Hub Mercure sur http://localhost:3000 - les discussions arrivent en direct"; \
+	else \
+		echo "ℹ️  Pas de hub (Docker indisponible) - les discussions marchent, elles s'actualisent toutes les 20 s"; \
+	fi
+
+hub-stop: ## Stop the local Mercure hub
+	@docker compose stop mercure 2>/dev/null || true
+	@echo "🛑 Hub Mercure arrete"
+
+hub-logs: ## Follow the local Mercure hub's log
+	docker compose logs -f mercure
 
 watch: ## Start Vite dev server (asset watcher)
 	$(PNPM) --dir=$(AURORA) run dev
@@ -167,6 +191,7 @@ start-d: ## Start dev server in background
 stop: ## Stop dev server
 	symfony server:stop
 	@docker compose stop database 2>/dev/null || true
+	@docker compose stop mercure 2>/dev/null || true
 
 # PostgreSQL refuses to drop a database anything is connected to, and the dev
 # worker holds a connection permanently: it sits in LISTEN on the messenger
