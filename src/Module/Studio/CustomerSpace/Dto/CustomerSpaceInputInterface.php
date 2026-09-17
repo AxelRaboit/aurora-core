@@ -14,6 +14,10 @@ interface CustomerSpaceInputInterface
 
     public function getCustomerId(): ?int;
 
+    public function getProspectName(): ?string;
+
+    public function getProspectEmail(): ?string;
+
     public function getStatus(): CustomerSpaceStatusEnum;
 
     /** Null means "choose one for me", which is what the create form sends. */

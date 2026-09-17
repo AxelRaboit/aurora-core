@@ -651,6 +651,12 @@ backend:
                     color_invalid: La couleur doit être au format hexadécimal, par exemple #6366f1.
         customers:
             title: Clients
+            status: Statut
+            status_hint: "Un prospect est une société pour laquelle on travaille déjà, sans avoir encore son identité légale. La convertir en client, c'est saisir le SIRET, la forme juridique et le siège."
+            statuses:
+                prospect: Prospect
+                client: Client
+            convert: Convertir en client
             add: Ajouter un client
             create: Nouveau client
             edit: 'Modifier {name}'
@@ -709,6 +715,7 @@ backend:
 
             row_actions:
                 edit_description: Modifier la fiche de ce client
+                convert_description: Ouvrir la fiche pour saisir son identité légale
                 delete_description: Supprimer ce client
 
             errors:
@@ -758,6 +765,11 @@ backend:
             description_placeholder: Ce que couvre cet espace, en une ou deux phrases.
             customer: Client
             customer_none: Choisir un client
+            customer_new_prospect: "+ Nouveau prospect"
+            prospect_name: Nom de la société
+            prospect_name_placeholder: Atelier Dupont
+            prospect_email: Email de contact
+            prospect_email_hint: "C'est à cette adresse que partira son lien d'accès."
             customer_hint: La société pour qui ce travail est mené. Un même client peut avoir plusieurs espaces.
             status: Statut
             status_hint: Un espace archivé sort de la liste sans rien perdre de son contenu.

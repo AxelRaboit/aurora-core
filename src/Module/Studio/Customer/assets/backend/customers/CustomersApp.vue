@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
-import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
+import { useCustomerRowActions } from "./composables/useCustomerRowActions.js";
 import { useCustomersForm } from "./composables/useCustomersForm.js";
 import CustomerFormFields from "./components/CustomerFormFields.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -45,6 +45,7 @@ const {
     editErrors,
     editLoading,
     openEdit,
+    convertToClient,
     submitEdit,
     pendingDelete,
     deleteLoading,
@@ -58,14 +59,13 @@ const {
     props.deletePath,
 );
 
-const actionsFor = useEditDeleteActions({
+// Its own rather than the shared edit/delete pair: a prospect has a third
+// thing to offer. See the composable.
+const actionsFor = useCustomerRowActions({
     can,
-    editPermission: "studio.customers.edit",
-    deletePermission: "studio.customers.delete",
     openEdit,
+    convertToClient,
     confirmDelete,
-    editDescription: "backend.studio.customers.row_actions.edit_description",
-    deleteDescription: "backend.studio.customers.row_actions.delete_description",
 });
 
 /**
@@ -151,6 +151,15 @@ const pageActions = computed(() => {
                         <span v-if="customer.legalForm" class="text-muted font-normal">
                             · {{ customer.legalForm }}
                         </span>
+                        <!-- Seulement sur un prospect : « client » est l'etat
+                             ordinaire d'une fiche, et une pastille posee sur
+                             chaque ligne ne distingue plus rien. -->
+                        <span
+                            v-if="'prospect' === customer.status"
+                            class="rounded-full border border-accent-500/30 bg-accent-500/10 px-1.5 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide text-accent-500"
+                        >
+                            {{ t("backend.studio.customers.statuses.prospect") }}
+                        </span>
                     </p>
                     <p v-if="customer.representativeFullName" class="text-xs text-secondary">
                         {{ customer.representativeFullName }}
@@ -216,8 +225,14 @@ const pageActions = computed(() => {
                         class="group hover:bg-surface-2/40 transition-colors"
                     >
                         <td class="px-6 py-3">
-                            <div class="font-medium text-primary">
+                            <div class="flex items-center gap-2 font-medium text-primary">
                                 {{ customer.legalName }}
+                                <span
+                                    v-if="'prospect' === customer.status"
+                                    class="rounded-full border border-accent-500/30 bg-accent-500/10 px-1.5 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide text-accent-500"
+                                >
+                                    {{ t("backend.studio.customers.statuses.prospect") }}
+                                </span>
                             </div>
                             <div class="text-xs text-muted">
                                 <span v-if="customer.legalForm">{{ customer.legalForm }}</span>

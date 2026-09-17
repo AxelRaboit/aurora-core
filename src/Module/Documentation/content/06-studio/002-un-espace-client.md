@@ -28,6 +28,18 @@ Studio → Espaces clients. Elle est au-dessus des Clients dans le menu, parce q
 - La **couleur** distingue cet espace partout où ses dates apparaissent, y compris dans le calendrier de l'équipe. Laissée vide, elle est choisie pour vous, en évitant celles déjà prises.
 - Le **fuseau horaire** découpe les journées de cet espace. À changer pour un client à l'étranger : « mardi 9h » est une promesse faite à quelqu'un, et elle ne doit pas bouger selon qui ouvre la page.
 
+## Pour un prospect, sans attendre d'en savoir plus
+
+On travaille avec une société bien avant d'avoir son SIRET. Plutôt que d'aller inventer une identité légale sur la fiche client pour pouvoir ouvrir l'espace, choisissez **« + Nouveau prospect »** dans la liste des clients : deux champs apparaissent, le nom de la société et une adresse de contact.
+
+L'espace s'ouvre avec une vraie fiche derrière lui, marquée **Prospect** dans la liste des clients. Tout le reste — forme juridique, siège, représentant, SIRET — attend.
+
+**L'adresse est la seule chose qu'un prospect ne peut pas ne pas avoir** : c'est là que partira son lien d'accès.
+
+Quand il signe, « Convertir en client » dans le menu Actions de sa fiche ouvre le formulaire avec le statut déjà basculé. C'est le moment de saisir ce qui manquait. Rien ne déménage : l'espace, son tableau, ses fichiers et ses échanges étaient déjà les siens.
+
+Rien n'est interdit à un prospect, pas même un contrat — signer, c'est justement ce qui le convertit.
+
 ## 3. L'équipe
 
 Qui, chez vous, travaille sur cet espace. **Ce n'est pas un droit d'accès** : qui peut ouvrir un espace est décidé par les privilèges du compte, comme partout ailleurs. C'est un nom à donner au client.

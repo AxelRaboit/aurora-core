@@ -21,6 +21,8 @@ class CustomerSerializer implements CustomerSerializerInterface
         return [
             'id' => $customer->getId(),
             'legalName' => $customer->getLegalName(),
+            'status' => $customer->getStatus()->value,
+            'statusLabel' => $customer->getStatus()->getLabelKey(),
             'legalForm' => $customer->getLegalForm(),
             // Sent as cents, formatted by the page: a number formatted server
             // side arrives as a string the form then has to parse back, and

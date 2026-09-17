@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\Customer\Entity;
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Timestampable\TimestampableInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 
 interface CustomerInterface extends TimestampableInterface
 {
@@ -59,6 +60,12 @@ interface CustomerInterface extends TimestampableInterface
     public function getRepresentativeRole(): ?string;
 
     public function setRepresentativeRole(?string $representativeRole): static;
+
+    public function getStatus(): CustomerStatusEnum;
+
+    public function setStatus(CustomerStatusEnum $status): static;
+
+    public function isProspect(): bool;
 
     public function getContractualEmail(): string;
 

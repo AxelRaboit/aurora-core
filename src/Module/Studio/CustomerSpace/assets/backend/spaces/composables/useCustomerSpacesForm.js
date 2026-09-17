@@ -19,6 +19,10 @@ function emptyForm() {
         name: "",
         description: "",
         customerId: "",
+        // Remplis a la place de customerId quand on ouvre un espace pour
+        // quelqu'un dont on n'a pas encore de fiche.
+        prospectName: "",
+        prospectEmail: "",
         status: "active",
         colourSlot: "",
         timezone: "Europe/Paris",
@@ -31,6 +35,8 @@ function formFrom(space) {
         name: space.name ?? "",
         description: space.description ?? "",
         customerId: space.customerId ?? "",
+        prospectName: "",
+        prospectEmail: "",
         status: space.status ?? "active",
         colourSlot: space.colourSlot ?? "",
         timezone: space.timezone ?? "Europe/Paris",
@@ -111,10 +117,20 @@ export function useCustomerSpacesForm(
                 required(t("backend.studio.spaces.errors.name_required"))(
                     form.value.name,
                 ),
+            // L'un ou l'autre : une societe deja connue, ou le nom d'un
+            // prospect qu'on ouvre en meme temps que l'espace. La regle porte
+            // sur la paire, donc elle est signalee sous le selecteur - c'est
+            // la que le lecteur choisit entre les deux.
             customerId: () =>
-                required(t("backend.studio.spaces.errors.customer_required"))(
-                    form.value.customerId,
-                ),
+                form.value.customerId || form.value.prospectName
+                    ? null
+                    : t("backend.studio.spaces.errors.customer_required"),
+            prospectEmail: () =>
+                form.value.prospectName && !form.value.prospectEmail
+                    ? t(
+                          "backend.studio.customers.errors.contractual_email_required",
+                      )
+                    : null,
         };
     }
 

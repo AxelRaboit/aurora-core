@@ -22,6 +22,8 @@ class CustomerSpaceInputFactory implements CustomerSpaceInputFactoryInterface
             name: Str::trimFromArray($data, 'name'),
             description: Str::trimOrNullFromArray($data, 'description'),
             customerId: $this->idOrNull($data, 'customerId'),
+            prospectName: Str::trimOrNullFromArray($data, 'prospectName'),
+            prospectEmail: Str::trimOrNullFromArray($data, 'prospectEmail'),
             // An unknown status reads as active rather than as an error: the
             // field is a select fed from this same enum, so the only way to
             // send something else is to have edited the payload, and refusing

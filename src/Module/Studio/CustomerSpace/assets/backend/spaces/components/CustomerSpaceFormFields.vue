@@ -11,7 +11,7 @@
  * record, and asking for it twice is how two screens end up disagreeing about
  * the same company.
  */
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { X } from "lucide-vue-next";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -38,6 +38,68 @@ const form = computed(() => props.modelValue);
 
 function set(field, value) {
     emit("update:modelValue", { ...props.modelValue, [field]: value });
+}
+
+/**
+ * La valeur du selecteur qui ne designe personne mais ouvre quelqu'un.
+ *
+ * Une sentinelle plutot qu'une case a cocher a cote : le champ repond a une
+ * seule question - pour qui est cet espace - et deux commandes pour un seul
+ * creneau font hesiter sur celle qui compte.
+ */
+const NEW_PROSPECT = "__prospect__";
+
+/**
+ * Le mode choisi, tenu ici et pas deduit du formulaire.
+ *
+ * Le deduire d'un `prospectName` non vide obligerait a y ecrire quelque chose
+ * pour que les champs restent ouverts - et ce quelque chose partirait au
+ * serveur. L'ouverture du panneau est un etat de l'ecran, il reste dans
+ * l'ecran.
+ */
+const prospectMode = ref(false);
+
+const pickingProspect = computed(
+    () => prospectMode.value || "" !== (form.value.prospectName ?? ""),
+);
+
+// La fenetre reste montee entre deux ouvertures : sans ca, ouvrir un prospect
+// puis modifier un espace existant rouvrirait les deux champs sur une fiche
+// qui a deja sa societe.
+watch(
+    () => form.value.customerId,
+    (customerId) => {
+        if (customerId) prospectMode.value = false;
+    },
+);
+
+const customerChoices = computed(() => [
+    { value: NEW_PROSPECT, label: t("backend.studio.spaces.customer_new_prospect") },
+    ...props.customerOptions,
+]);
+
+/**
+ * Choisir l'un efface l'autre.
+ *
+ * Sans ca, un formulaire ou l'on a tape un nom de prospect puis choisi une
+ * societe existante partirait avec les deux, et le serveur devrait deviner
+ * lequel l'emporte.
+ */
+function chooseCustomer(value) {
+    if (NEW_PROSPECT === value) {
+        prospectMode.value = true;
+        emit("update:modelValue", { ...props.modelValue, customerId: "" });
+
+        return;
+    }
+
+    prospectMode.value = false;
+    emit("update:modelValue", {
+        ...props.modelValue,
+        customerId: value,
+        prospectName: "",
+        prospectEmail: "",
+    });
 }
 
 const statusOptions = computed(() =>
@@ -135,16 +197,41 @@ function removeMember(userId) {
                 v-on:update:model-value="set('name', $event)"
             />
 
+            <!-- Une societe connue, ou un prospect ouvert dans la foulee.
+                 L'option est dans la meme liste plutot qu'a cote, parce que
+                 c'est une seule question - pour qui est cet espace - et que
+                 deux champs pour un seul creneau font hesiter. -->
             <AppSelect
-                :model-value="String(form.customerId ?? '')"
+                :model-value="pickingProspect ? NEW_PROSPECT : String(form.customerId ?? '')"
                 :label="t('backend.studio.spaces.customer')"
                 :placeholder="t('backend.studio.spaces.customer_none')"
-                :options="customerOptions"
+                :options="customerChoices"
                 :hint="t('backend.studio.spaces.customer_hint')"
                 :error="errors.customerId"
                 required
-                v-on:update:model-value="set('customerId', $event)"
+                v-on:update:model-value="chooseCustomer"
             />
+
+            <div v-if="pickingProspect" class="grid gap-4 sm:grid-cols-2">
+                <AppInput
+                    :model-value="form.prospectName"
+                    :label="t('backend.studio.spaces.prospect_name')"
+                    :placeholder="t('backend.studio.spaces.prospect_name_placeholder')"
+                    :error="errors.prospectName"
+                    required
+                    v-on:update:model-value="set('prospectName', $event)"
+                />
+                <AppInput
+                    :model-value="form.prospectEmail"
+                    type="email"
+                    :label="t('backend.studio.spaces.prospect_email')"
+                    :placeholder="t('shared.placeholders.email')"
+                    :hint="t('backend.studio.spaces.prospect_email_hint')"
+                    :error="errors.prospectEmail"
+                    required
+                    v-on:update:model-value="set('prospectEmail', $event)"
+                />
+            </div>
 
             <AppTextarea
                 :model-value="form.description"

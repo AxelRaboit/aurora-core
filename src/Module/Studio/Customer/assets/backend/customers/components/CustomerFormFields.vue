@@ -27,6 +27,18 @@ const emit = defineEmits(["update:modelValue"]);
 
 const { t } = useI18n();
 
+/**
+ * Prospect ou client.
+ *
+ * Ecrit ici et pas recu en props : l'enum a deux cas, il ne bougera pas, et le
+ * faire traverser le controleur, la vue et le composant parent pour lister deux
+ * valeurs coute plus que ce que ca rapporte.
+ */
+const statusOptions = computed(() => [
+    { value: "prospect", label: t("backend.studio.customers.statuses.prospect") },
+    { value: "client", label: t("backend.studio.customers.statuses.client") },
+]);
+
 const form = computed(() => props.modelValue);
 
 function set(field, value) {
@@ -47,6 +59,19 @@ const currencyOptions = computed(() =>
             <h3 class="text-xs font-medium uppercase tracking-wider text-muted">
                 {{ t("backend.studio.customers.group_identity") }}
             </h3>
+
+            <!-- En tete de la fiche, parce que c'est ce qui dit au lecteur
+                 pourquoi la moitie des champs plus bas sont vides : un
+                 prospect n'a pas encore de SIRET, ni de forme juridique, ni
+                 de siege. -->
+            <AppSelect
+                :model-value="form.status"
+                :label="t('backend.studio.customers.status')"
+                :options="statusOptions"
+                :hint="t('backend.studio.customers.status_hint')"
+                :error="errors.status"
+                v-on:update:model-value="set('status', $event)"
+            />
 
             <AppInput
                 :model-value="form.legalName"

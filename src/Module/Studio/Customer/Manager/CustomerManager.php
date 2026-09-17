@@ -105,6 +105,7 @@ class CustomerManager implements CustomerManagerInterface
 
         $customer
             ->setLegalName($input->getLegalName())
+            ->setStatus($input->getStatus())
             ->setLegalForm($input->getLegalForm())
             ->setShareCapitalCents($input->getShareCapitalCents())
             ->setShareCapitalCurrency($input->getShareCapitalCurrency())
