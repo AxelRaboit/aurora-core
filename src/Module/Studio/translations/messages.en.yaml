@@ -781,6 +781,7 @@ backend:
                 member: Member
 
             row_actions:
+                view_description: Open this space's board
                 edit_description: Edit this space
                 delete_description: Delete this space
 

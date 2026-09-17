@@ -11,7 +11,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
-import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
+import { useSpaceRowActions } from "./composables/useSpaceRowActions.js";
 import { useCustomerSpacesForm } from "./composables/useCustomerSpacesForm.js";
 import CustomerSpaceFormFields from "./components/CustomerSpaceFormFields.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -77,14 +77,13 @@ const {
     props.deletePath,
 );
 
-const actionsFor = useEditDeleteActions({
+// Its own rather than the shared edit/delete pair: the menu also opens the
+// space, which is the thing one actually does to a row. See the composable.
+const actionsFor = useSpaceRowActions({
     can,
-    editPermission: "studio.spaces.edit",
-    deletePermission: "studio.spaces.delete",
+    boardHref,
     openEdit,
     confirmDelete,
-    editDescription: "backend.studio.spaces.row_actions.edit_description",
-    deleteDescription: "backend.studio.spaces.row_actions.delete_description",
 });
 
 /** Where a row leads: the space's board. */
