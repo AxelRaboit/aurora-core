@@ -6,6 +6,11 @@
  * - rien de propre aux notes, parce qu'une note est du texte riche comme le
  * reste et qu'un second éditeur aurait été un second jeu d'habitudes.
  *
+ * **Partagée ou personnelle** est le premier choix après le titre, pas une
+ * case perdue en bas : c'est ce qui décide de qui lira, et s'en apercevoir
+ * après avoir écrit est trop tard. Aucune des deux n'est montrée au client -
+ * ce qui se sépare ici, c'est l'équipe et la personne.
+ *
  * **L'adresse d'envoi des images est celle de l'espace**, pas celle des images
  * d'édition en général : une capture collée ici parle d'un client, elle se
  * range dans le dossier de cet espace et reste hors du catch-all public. C'est
@@ -17,6 +22,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
+import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppColourSlotPicker from "@/shared/components/form/picker/AppColourSlotPicker.vue";
 import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
@@ -57,6 +63,17 @@ function set(field, value) {
                 :error="errors.title"
                 required
                 v-on:update:model-value="set('title', $event)"
+            />
+
+            <AppSelect
+                :model-value="modelValue.visibility"
+                :label="t('backend.studio.space_notes.visibility')"
+                :hint="t(`backend.studio.space_notes.visibility_hint_${modelValue.visibility}`)"
+                :options="[
+                    { value: 'shared', label: t('backend.studio.space_notes.visibilities.shared') },
+                    { value: 'personal', label: t('backend.studio.space_notes.visibilities.personal') },
+                ]"
+                v-on:update:model-value="set('visibility', $event)"
             />
 
             <div class="grid gap-4 sm:grid-cols-2">

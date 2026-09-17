@@ -32,6 +32,7 @@ use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignature;
 use Aurora\Module\Studio\Contract\Signature\Enum\ContractSignatureRoleEnum;
 use Aurora\Module\Studio\Customer\Dto\CustomerInput;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 use Aurora\Module\Studio\Customer\Manager\CustomerManagerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Dto\CustomerSpaceInput;
@@ -53,6 +54,8 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInter
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
+use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
+use Aurora\Module\Studio\SpaceNote\Enum\SpaceNoteVisibilityEnum;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -346,6 +349,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // what the screens have to be able to draw.
         $this->seedBoard($social);
         $this->seedChat($social);
+        $this->seedNotes($social);
 
         $this->space(
             name: 'Atelier Dupont - Refonte du site',
@@ -366,6 +370,33 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             description: "Sélection des séries de l'année et mise à jour des pages du site.",
             customer: $sophie,
             members: [],
+        );
+
+        // Un espace ouvert pour un prospect, et c'est la seule chose qui le
+        // distingue : même tableau, mêmes fiches, mêmes notes. On travaille
+        // avec quelqu'un avant qu'il signe, et l'écran doit le montrer - une
+        // démonstration où les prospects sont des coquilles vides enseignerait
+        // le contraire.
+        $fabre = $this->prospect('Menuiserie Fabre');
+
+        $launch = $this->space(
+            name: 'Menuiserie Fabre - Identité visuelle',
+            description: 'Refonte du logo et de la charte. En discussion, rien de signé.',
+            customer: $fabre,
+            members: [$marieAccount => 'lead'],
+        );
+
+        $this->seedProspectBoard($launch);
+        $this->seedNotes($launch);
+        $this->seedChat(
+            $launch,
+            'contact@menuiserie-fabre.fr',
+            'Thomas Fabre',
+            [
+                ['-3 days 11:05', false, "Bonjour, voici l'espace pour suivre le chantier. Vous y verrez les pistes au fur et à mesure."],
+                ['-3 days 16:22', true, "Merci. Je regarde ça ce week-end avec mon fils, c'est lui qui gère le site."],
+                ['-1 day 09:40', false, 'Trois directions de logo sont posées sur le tableau. Rien de définitif, dites-moi ce qui vous parle.'],
+            ],
         );
 
         $this->space(
@@ -476,13 +507,21 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * and should not grow one, because a conversation is a sequence of events
      * and events do not get re-dated.
      *
+     * Paramétrée parce que deux espaces en ont une : celui d'un client et celui
+     * d'un prospect, et faire parler le second avec les mots du premier serait
+     * une démonstration qui se contredit.
+     *
      * **The client's side is signed by a real access link**, issued here like
      * the studio would: a message signed any other way would be data no code
      * ever produces, which is how a demo stops resembling the product. The link
      * is also what the access screen needs to have something to show.
      */
-    private function seedChat(CustomerSpaceInterface $space): void
-    {
+    private function seedChat(
+        CustomerSpaceInterface $space,
+        string $recipient = 'camille@atelier-dupont.fr',
+        string $label = 'Camille, gérante',
+        ?array $exchange = null,
+    ): void {
         $marie = $this->userRepository->find($this->backendUser('marie.dupont@aurora.app'));
 
         if (!$marie instanceof User) {
@@ -491,8 +530,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
 
         $link = $this->accessLinks->issue(
             $space,
-            'camille@atelier-dupont.fr',
-            'Camille, gérante',
+            $recipient,
+            $label,
             90,
             canApprove: true,
             canComment: true,
@@ -500,7 +539,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
 
         // Studio, client, studio, client: a thread that only ever shows one
         // side does not show that the two are one stream.
-        $exchange = [
+        $exchange ??= [
             ['-2 days 09:12', false, "Bonjour Camille. Le brief d'octobre est prêt, je vous le partage dans la journée."],
             ['-2 days 14:40', true, "Parfait. On peut décaler la campagne portes ouvertes d'une semaine ? Le chantier a pris du retard."],
             ['-1 day 08:55', false, 'Aucun souci, je repousse les deux publications concernées et je vous remets le calendrier à jour.'],
@@ -530,6 +569,148 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
                 'UPDATE '.SpaceChatMessage::class.' m SET m.createdAt = :at WHERE m.id = :id'
             )->setParameter('at', $at)->setParameter('id', $id)->execute();
         }
+    }
+
+    /**
+     * Une fiche ouverte pour quelqu'un dont on n'a rien d'autre que le nom.
+     *
+     * Sans adresse ni SIRET, parce que c'est l'état qu'un prospect décrit : on
+     * rencontre quelqu'un, on ouvre un espace pour structurer le travail, et
+     * tout le reste attend. Une démonstration où les prospects arrivent avec
+     * leur identité légale complète montrerait un client déguisé.
+     */
+    private function prospect(string $legalName): CustomerInterface
+    {
+        return $this->customers->create(new CustomerInput(
+            legalName: $legalName,
+            status: CustomerStatusEnum::Prospect,
+        ));
+    }
+
+    /**
+     * Le tableau d'un prospect : moins avancé, et c'est tout.
+     *
+     * Trois fiches au lieu de huit, rien de publié, aucun avis rendu. Un
+     * chantier qui n'a pas encore commencé ressemble à ça, et le mettre à côté
+     * du tableau plein de l'autre espace est ce qui montre les deux états.
+     */
+    private function seedProspectBoard(CustomerSpaceInterface $space): void
+    {
+        $columns = $this->contentColumns->findForSpace($space);
+
+        if ([] === $columns) {
+            return;
+        }
+
+        $cards = [
+            0 => [
+                ['Pistes de logo', "Trois directions : menuisier d'art, atelier familial, bois brut.", null, ['Logo Aurora - Fond sombre', 'Visuel de campagne - Automne 2025']],
+                ['Palette et typographie', 'À caler une fois la direction choisie.', null, []],
+            ],
+            1 => [
+                ["Photos de l'atelier", 'Prévoir une demi-journée sur place, lumière du matin.', '+6 days 10:00', ["Photo d'équipe - Séminaire 2025"]],
+            ],
+        ];
+
+        foreach ($cards as $at => $rows) {
+            if (!isset($columns[$at])) {
+                continue;
+            }
+
+            foreach ($rows as [$title, $body, $when, $pictures]) {
+                $item = $this->contentItems->create($space, new SpaceContentItemInput(
+                    title: $title,
+                    body: $body,
+                    columnId: $columns[$at]->getId(),
+                    scheduledAt: null === $when
+                        ? null
+                        : new DateTimeImmutable($when)->format('Y-m-d\TH:i'),
+                ));
+
+                $this->hangPictures($item, $pictures);
+            }
+        }
+    }
+
+    /**
+     * Des notes sur un espace : la seule surface que le client ne voit pas.
+     *
+     * Écrites comme on les écrit - le brief pris au téléphone, ce qu'il reste à
+     * décider, ce qui a coincé - parce qu'une démonstration où les notes sont
+     * des paragraphes de remplissage n'apprend pas à quoi elles servent.
+     *
+     * Persistées directement, comme la discussion : le Manager signe avec le
+     * compte connecté, et une fixture n'en a pas.
+     */
+    private function seedNotes(CustomerSpaceInterface $space): void
+    {
+        $marie = $this->userRepository->find($this->backendUser('marie.dupont@aurora.app'));
+        // Les notes personnelles sont prises par le compte de développement,
+        // et c'est le seul choix qui montre quelque chose : une note
+        // personnelle ne remonte qu'à son auteur, donc signée par quelqu'un
+        // d'autre elle laisserait l'onglet vide pour celui qui regarde.
+        $admin = $this->userRepository->find($this->backendUser('dev@aurora.app'));
+
+        if (!$marie instanceof User || !$admin instanceof User) {
+            return;
+        }
+
+        foreach ($this->noteContents() as [$title, $colour, $pinned, $visibility, $paragraphs]) {
+            $author = $visibility->isPersonal() ? $admin : $marie;
+
+            $note = new SpaceNote();
+            $note
+                ->setSpace($space)
+                ->setTitle($title)
+                ->setColourSlot($colour)
+                ->setPinned($pinned)
+                ->setVisibility($visibility)
+                ->setBody(array_map(
+                    static fn (string $text): array => ['type' => 'paragraph', 'data' => ['text' => $text]],
+                    $paragraphs,
+                ))
+                ->takenBy($author, $author->getName());
+
+            $this->entityManager->persist($note);
+        }
+
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Trois notes partagées et une personnelle.
+     *
+     * La personnelle n'est pas un quatrième exemple du même objet : c'est la
+     * seule qui montre pourquoi les deux onglets existent, et elle dit ce qu'on
+     * n'écrit pas sur un mur que l'équipe lit.
+     *
+     * @return list<array{0: string, 1: ?int, 2: bool, 3: SpaceNoteVisibilityEnum, 4: list<string>}>
+     */
+    private function noteContents(): array
+    {
+        return [
+            ['Brief téléphonique', 4, true, SpaceNoteVisibilityEnum::Shared, [
+                'Le client veut <b>éviter le vert</b> : trop proche de son concurrent de la zone.',
+                'Livraison souhaitée avant les portes ouvertes. Marge réelle : trois semaines.',
+                'Contact technique : son neveu, qui gère le site. Passer par lui pour les accès.',
+            ]],
+            ['À décider', null, false, SpaceNoteVisibilityEnum::Shared, [
+                'Format des visuels : carré pour Instagram, ou 4:5 partout ?',
+                "Est-ce qu'on reprend les photos existantes ou on refait une séance ?",
+            ]],
+            ['Ce qui a coincé en mars', 9, false, SpaceNoteVisibilityEnum::Shared, [
+                "Les validations partaient par mail et se perdaient. D'où l'espace.",
+                'Deux allers-retours sur un texte déjà validé, faute de trace écrite.',
+            ]],
+            ['À relancer', 2, true, SpaceNoteVisibilityEnum::Personal, [
+                "Le devis photo avant la fin du mois : c'est passé deux fois à la trappe.",
+                'Ne pas proposer le mardi pour les points, je suis en formation.',
+            ]],
+            ['Ce que je ne dirai pas comme ça', 6, false, SpaceNoteVisibilityEnum::Personal, [
+                'La direction « artisanale » ne prend pas. Trouver comment le dire sans dire « ça ne marche pas ».',
+                'Préparer deux planches avant le point, pas une seule à défendre.',
+            ]],
+        ];
     }
 
     /**
@@ -858,6 +1039,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             representativeLastName: $lastName,
             representativeRole: $role,
             contractualEmail: $email,
+            // Des sociétés sous contrat : elles ont leur SIRET, leur siège et
+            // leur représentant, donc elles ne sont pas des prospects - le
+            // défaut du DTO décrit une fiche qu'on vient d'ouvrir, pas
+            // celles-ci.
+            status: CustomerStatusEnum::Client,
         ));
     }
 

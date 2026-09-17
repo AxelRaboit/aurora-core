@@ -89,7 +89,8 @@ class SpaceNoteManager implements SpaceNoteManagerInterface
             ->setTitle($input->getTitle())
             ->setBody($input->getBody())
             ->setColourSlot($input->getColourSlot())
-            ->setPinned($input->isPinned());
+            ->setPinned($input->isPinned())
+            ->setVisibility($input->getVisibility());
     }
 
     /**
@@ -127,6 +128,9 @@ class SpaceNoteManager implements SpaceNoteManagerInterface
             'spaceId' => $note->getSpace()->getId(),
             'spaceName' => $note->getSpace()->getName(),
             'title' => $note->getTitle(),
+            // Passer une note personnelle en partagee est le geste qu'on
+            // voudra pouvoir retrouver, et il ne se voit pas dans le titre.
+            'visibility' => $note->getVisibility()->value,
         ];
     }
 }

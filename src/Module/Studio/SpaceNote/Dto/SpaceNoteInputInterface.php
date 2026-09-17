@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceNote\Dto;
 
+use Aurora\Module\Studio\SpaceNote\Enum\SpaceNoteVisibilityEnum;
+
 interface SpaceNoteInputInterface
 {
     public function getTitle(): string;
@@ -14,4 +16,6 @@ interface SpaceNoteInputInterface
     public function getColourSlot(): ?int;
 
     public function isPinned(): bool;
+
+    public function getVisibility(): SpaceNoteVisibilityEnum;
 }

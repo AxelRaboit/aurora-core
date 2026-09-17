@@ -4,6 +4,7 @@ import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useListViewMode } from "@/shared/composables/list/useListViewMode.js";
+import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
 
 /**
  * Le mur de notes d'un espace, et les quatre écritures dessus.
@@ -14,6 +15,12 @@ import { useListViewMode } from "@/shared/composables/list/useListViewMode.js";
  * liste doit être troisième sur le mur. Le choix vit dans l'adresse, comme
  * celui de la vue Fichiers, sous son propre paramètre pour qu'ouvrir l'une ne
  * décide pas de l'autre.
+ *
+ * **Deux murs, et le second n'est qu'à vous.** Partagées ou personnelles : les
+ * notes personnelles de quelqu'un d'autre ne sont pas filtrées ici, elles ne
+ * sont jamais arrivées. Les onglets trient ce que le serveur a bien voulu
+ * rendre, et l'onglet ouvert décide de ce qu'une nouvelle note sera - on écrit
+ * là où on regarde.
  *
  * **Chaque écriture répond par le mur entier.** Épingler réordonne tout, et une
  * page qui rafistolerait sa copie s'écarterait du serveur en trois gestes. Un
@@ -33,7 +40,34 @@ export function useSpaceNotes(initial, paths, offerOrphaned) {
     const { viewMode, storedViewMode, setViewMode, container } =
         useListViewMode(["grid", "list"], "grid", "notes");
 
-    const isEmpty = computed(() => 0 === notes.value.length);
+    /**
+     * Partagées ou personnelles, retenu d'une visite à l'autre.
+     *
+     * Comme l'onglet des espaces, et pour la même raison : quelqu'un qui tient
+     * son carnet à part le tient à part sur tous ses espaces.
+     */
+    const { choice: tab } = usePersistedChoice(
+        "studio.space_notes.tab",
+        "shared",
+        ["shared", "personal"],
+    );
+
+    const visibleNotes = computed(() =>
+        notes.value.filter(
+            (note) => (note.visibility ?? "shared") === tab.value,
+        ),
+    );
+
+    const tabs = computed(() =>
+        ["shared", "personal"].map((key) => ({
+            key,
+            count: notes.value.filter(
+                (note) => (note.visibility ?? "shared") === key,
+            ).length,
+        })),
+    );
+
+    const isEmpty = computed(() => 0 === visibleNotes.value.length);
 
     /** La note ouverte dans l'éditeur, ou null. */
     const editing = ref(null);
@@ -42,7 +76,15 @@ export function useSpaceNotes(initial, paths, offerOrphaned) {
     const errors = ref({});
 
     function emptyNote() {
-        return { title: "", body: [], colourSlot: "", pinned: false };
+        // La visibilité de l'onglet ouvert : on écrit là où on regarde, et
+        // basculer sans le vouloir est la seule erreur qui compte ici.
+        return {
+            title: "",
+            body: [],
+            colourSlot: "",
+            pinned: false,
+            visibility: tab.value,
+        };
     }
 
     function openCreate() {
@@ -61,6 +103,7 @@ export function useSpaceNotes(initial, paths, offerOrphaned) {
             body: JSON.parse(JSON.stringify(note.body ?? [])),
             colourSlot: note.colourSlot ?? "",
             pinned: !!note.pinned,
+            visibility: note.visibility ?? "shared",
         };
         errors.value = {};
         showForm.value = true;
@@ -106,6 +149,10 @@ export function useSpaceNotes(initial, paths, offerOrphaned) {
             }
 
             apply(data);
+            // Suivre la note là où elle est partie : une note passée en
+            // personnelle depuis l'onglet partagé disparaîtrait sinon sous les
+            // yeux de celui qui vient de l'écrire.
+            tab.value = body.visibility ?? "shared";
             showForm.value = false;
             toast.success(
                 t(
@@ -166,7 +213,9 @@ export function useSpaceNotes(initial, paths, offerOrphaned) {
     }
 
     return {
-        notes,
+        notes: visibleNotes,
+        tab,
+        tabs,
         isEmpty,
         loading,
         viewMode,

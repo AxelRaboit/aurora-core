@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceNote\Dto;
 
 use Aurora\Module\Studio\CustomerSpace\Entity\AbstractCustomerSpace;
+use Aurora\Module\Studio\SpaceNote\Enum\SpaceNoteVisibilityEnum;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class SpaceNoteInput implements SpaceNoteInputInterface
@@ -20,6 +21,10 @@ class SpaceNoteInput implements SpaceNoteInputInterface
         #[Assert\Range(min: 1, max: AbstractCustomerSpace::MAX_COLOUR_SLOT)]
         public readonly ?int $colourSlot = null,
         public readonly bool $pinned = false,
+        // Partagee par defaut : une note prise sur l'espace d'un client parle
+        // en general du travail, et un mur que personne d'autre ne peut lire
+        // cesse d'etre la memoire de l'espace.
+        public readonly SpaceNoteVisibilityEnum $visibility = SpaceNoteVisibilityEnum::Shared,
     ) {}
 
     public function getTitle(): string
@@ -41,5 +46,10 @@ class SpaceNoteInput implements SpaceNoteInputInterface
     public function isPinned(): bool
     {
         return $this->pinned;
+    }
+
+    public function getVisibility(): SpaceNoteVisibilityEnum
+    {
+        return $this->visibility;
     }
 }

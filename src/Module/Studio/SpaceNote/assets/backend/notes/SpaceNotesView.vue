@@ -7,6 +7,11 @@
  * tape ; une note est ce qu'on écrit pour soi - le brief pris au téléphone,
  * l'idée pas encore présentable, ce qui a mal tourné le mois dernier.
  *
+ * **Deux murs, et le second n'est qu'à vous.** Partagées avec l'équipe, ou
+ * personnelles : ni l'une ni l'autre n'est jamais montrée au client, ce qui se
+ * sépare ici c'est l'équipe et la personne. Les notes personnelles des autres
+ * ne sont pas cachées par ces onglets, elles ne sont jamais arrivées.
+ *
  * **Deux vues et une seule liste.** Le mur et la liste lisent les mêmes notes
  * dans le même ordre, parce que ce sont deux lectures de la même chose. Le mur
  * répond à « qu'est-ce qu'il y a sur cet espace », la liste à « où est celle
@@ -15,7 +20,7 @@
  */
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
-import { LayoutGrid, List, Pencil, Pin, PinOff, Plus, StickyNote, Trash2 } from "lucide-vue-next";
+import { LayoutGrid, List, Lock, Pencil, Pin, PinOff, Plus, StickyNote, Trash2, Users } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
@@ -26,9 +31,13 @@ const props = defineProps({
     viewMode: { type: String, default: "grid" },
     storedViewMode: { type: String, default: "grid" },
     editable: { type: Boolean, default: true },
+    /** L'onglet ouvert : "shared" ou "personal". */
+    tab: { type: String, default: "shared" },
+    /** Les deux onglets et ce qu'il y a derrière chacun. */
+    tabs: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(["create", "open", "pin", "delete", "set-view"]);
+const emit = defineEmits(["create", "open", "pin", "delete", "set-view", "set-tab"]);
 
 const { t, d } = useI18n();
 
@@ -39,22 +48,70 @@ const rows = computed(() =>
     })),
 );
 
-/** La couleur du post-it, ou rien - « aucune » est une réponse. */
+/**
+ * La couleur du post-it, ou rien - « aucune » est une réponse.
+ *
+ * Un filet sur la tranche et un voile qui se dissout vers le bas, plutôt qu'un
+ * contour entier : la couleur sert à repérer une note d'un coup d'œil sur le
+ * mur, pas à entourer son texte. Cerner les quatre côtés donnait autant de
+ * poids à la couleur qu'au contenu, et un mur de cadres colorés se lit moins
+ * bien qu'un mur de cartes.
+ *
+ * `backgroundImage` et non `background` : le fond de la carte reste celui de
+ * sa classe, le voile se pose dessus et suit donc le thème.
+ */
 function tint(note) {
-    return note.colourSlot
-        ? { borderColor: `var(--chart-cat-${note.colourSlot})` }
-        : {};
+    if (!note.colourSlot) return {};
+
+    const colour = `var(--chart-cat-${note.colourSlot})`;
+
+    return {
+        borderLeftColor: colour,
+        backgroundImage: `linear-gradient(160deg, color-mix(in srgb, ${colour} 12%, transparent), transparent 60%)`,
+    };
 }
 </script>
 
 <template>
     <div class="space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <AppButton v-if="editable" variant="primary" size="sm" v-on:click="emit('create')">
-                <Plus class="h-3.5 w-3.5" :stroke-width="2" />
-                {{ t("backend.studio.space_notes.add") }}
-            </AppButton>
-            <span v-else />
+            <div class="flex flex-wrap items-center gap-3">
+                <AppButton v-if="editable" variant="primary" size="sm" v-on:click="emit('create')">
+                    <Plus class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("backend.studio.space_notes.add") }}
+                </AppButton>
+
+                <!-- Deux onglets, et le compte sur l'étiquette : c'est lui qui
+                     rend l'autre visible. Une note écrite pour soi et rangée
+                     derrière un onglet que rien n'annonce est une note perdue. -->
+                <div
+                    class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+                    role="group"
+                    :aria-label="t('backend.studio.space_notes.visibility')"
+                >
+                    <button
+                        v-for="entry in tabs"
+                        :key="entry.key"
+                        type="button"
+                        class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                        :class="
+                            tab === entry.key
+                                ? 'bg-surface font-medium text-primary shadow-sm'
+                                : 'text-muted hover:text-primary'
+                        "
+                        :aria-pressed="tab === entry.key"
+                        v-on:click="emit('set-tab', entry.key)"
+                    >
+                        <component
+                            :is="'personal' === entry.key ? Lock : Users"
+                            class="h-3.5 w-3.5"
+                            :stroke-width="2"
+                        />
+                        {{ t(`backend.studio.space_notes.visibilities.${entry.key}_plural`) }}
+                        <span class="text-xs tabular-nums text-muted">{{ entry.count }}</span>
+                    </button>
+                </div>
+            </div>
 
             <!-- Le même sélecteur que la vue Fichiers, et au même endroit :
                  deux listes de la même page qui se lisent en carte ou en ligne
@@ -83,8 +140,8 @@ function tint(note) {
 
         <AppNoData
             v-if="!rows.length"
-            :message="t('backend.studio.space_notes.empty')"
-            :hint="t('backend.studio.space_notes.empty_hint')"
+            :message="t(`backend.studio.space_notes.empty_${tab}`)"
+            :hint="t(`backend.studio.space_notes.empty_${tab}_hint`)"
         />
 
         <!-- Le mur -->
@@ -95,7 +152,7 @@ function tint(note) {
             <article
                 v-for="note in rows"
                 :key="note.id"
-                class="group flex flex-col rounded-lg border-l-4 border border-line/60 bg-surface-2/40 p-3 transition-colors hover:bg-surface-2/70"
+                class="group flex flex-col rounded-lg border border-l-[3px] border-line/60 bg-surface-2/40 p-3 transition-colors hover:bg-surface-2/70"
                 :style="tint(note)"
             >
                 <header class="flex items-start gap-2">
@@ -111,7 +168,10 @@ function tint(note) {
                     {{ note.excerpt }}
                 </p>
 
-                <footer class="mt-3 flex items-center gap-2 text-xs text-muted">
+                <!-- Poussé en bas de la carte plutôt que collé au texte : les cartes
+                     d'une ligne ont la hauteur de la plus haute, et une signature
+                     qui flotte à mi-hauteur donne une grille qui n'aligne rien. -->
+                <footer class="mt-auto flex items-center gap-2 pt-3 text-xs text-muted">
                     <span>{{ note.author }}</span>
                     <span>·</span>
                     <span>{{ d(new Date(note.updatedAt), "short") }}</span>

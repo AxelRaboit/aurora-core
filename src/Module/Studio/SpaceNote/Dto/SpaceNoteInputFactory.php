@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceNote\Dto;
 
 use Aurora\Core\Support\Str;
+use Aurora\Module\Studio\SpaceNote\Enum\SpaceNoteVisibilityEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 use function is_array;
@@ -28,6 +29,9 @@ class SpaceNoteInputFactory implements SpaceNoteInputFactoryInterface
                 ? (int) $data['colourSlot']
                 : null,
             pinned: (bool) ($data['pinned'] ?? false),
+            // Une valeur inconnue retombe sur « partagee » plutot que de faire
+            // une erreur : c'est le defaut, et il ne divulgue rien.
+            visibility: SpaceNoteVisibilityEnum::tryFrom((string) ($data['visibility'] ?? '')) ?? SpaceNoteVisibilityEnum::Shared,
         );
     }
 }

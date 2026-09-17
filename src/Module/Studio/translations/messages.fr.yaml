@@ -877,8 +877,19 @@ backend:
             view_label: Vue
             view_grid: Mur
             view_list: Liste
-            empty: Aucune note sur cet espace
-            empty_hint: "Le brief pris au téléphone, une idée pas encore présentable, ce qui a mal tourné le mois dernier. Le client ne les voit pas."
+            visibility: Qui la lit
+            visibility_hint_shared: "Toute l'équipe de l'espace. Le client, lui, ne voit aucune note."
+            visibility_hint_personal: "Vous seul. Elle ne remonte à personne d'autre, pas même à l'équipe de l'espace."
+            visibilities:
+                shared: Partagée avec l'équipe
+                personal: Personnelle
+                shared_plural: Partagées
+                personal_plural: Personnelles
+            someone_elses: La note personnelle de quelqu'un
+            empty_shared: Aucune note partagée sur cet espace
+            empty_shared_hint: "Ce que l'équipe doit savoir sur ce client et qu'aucune fiche ne porte. Le client ne voit pas les notes."
+            empty_personal: Aucune note personnelle sur cet espace
+            empty_personal_hint: "Le brief pris au téléphone, une idée pas encore présentable, ce qui a mal tourné le mois dernier. Personne d'autre ne les lit."
             created: Note créée.
             updated: Note enregistrée.
             deleted: Note supprimée.
@@ -909,8 +920,9 @@ backend:
         space_content:
             tab: Contenu
             view_label: Vue
-            view_board: Tableau
-            view_list: Liste
+            view_content: Contenus
+            shape_board: Kanban
+            shape_list: Liste
             view_calendar: Calendrier
             view_files: Fichiers
             view_chat: Discussion
@@ -919,6 +931,7 @@ backend:
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
             files_unknown_card: Contenu supprimé
             files_open: Ouvrir
+            files_open_in_tab: Ouvrir dans un onglet
             orphaned_one: "« {title} » n'est plus utilisé nulle part."
             orphaned_many: "{count} fichiers ne sont plus utilisés nulle part."
             orphaned_trash: Mettre à la corbeille

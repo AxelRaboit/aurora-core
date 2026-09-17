@@ -6,9 +6,11 @@ namespace Aurora\Module\Studio\SpaceNote\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNoteInterface;
+use Aurora\Module\Studio\SpaceNote\Enum\SpaceNoteVisibilityEnum;
 use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\Persistence\ManagerRegistry;
@@ -24,7 +26,8 @@ class SpaceNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Every note of a space: pinned first, then the most recently touched.
+     * The notes of a space this reader may see: pinned first, then the most
+     * recently touched.
      *
      * One order for both views, because they are two readings of the same wall
      * and a note that is third in the list should be third on the wall. Sorted
@@ -34,13 +37,34 @@ class SpaceNoteRepository extends ResolveTargetEntityRepository
      * The whole space at once, like its threads and its files - a space's notes
      * are a wall somebody reads, not an archive somebody pages through.
      *
+     * **The personal ones are filtered here and nowhere else.** A note somebody
+     * marked as theirs never leaves the server for anybody else; the two tabs
+     * on the wall sort what came back. Filtering in the page would have made a
+     * confidence into a display preference.
+     *
+     * No reader at all - a command line, a fixture - sees the shared wall and
+     * nothing else. Nobody's personal notes belong to nobody.
+     *
      * @return list<SpaceNoteInterface>
      */
-    public function findForSpace(CustomerSpaceInterface $space): array
+    public function findForSpace(CustomerSpaceInterface $space, ?CoreUserInterface $reader = null): array
     {
-        return $this->createQueryBuilder('n')
+        $builder = $this->createQueryBuilder('n')
             ->where('n.space = :space')
-            ->setParameter('space', $space)
+            ->setParameter('space', $space);
+
+        if (!$reader instanceof CoreUserInterface) {
+            $builder
+                ->andWhere('n.visibility = :shared')
+                ->setParameter('shared', SpaceNoteVisibilityEnum::Shared->value);
+        } else {
+            $builder
+                ->andWhere('n.visibility = :shared OR n.author = :reader')
+                ->setParameter('shared', SpaceNoteVisibilityEnum::Shared->value)
+                ->setParameter('reader', $reader);
+        }
+
+        return $builder
             ->orderBy('n.pinned', Order::Descending->value)
             ->addOrderBy('n.updatedAt', Order::Descending->value)
             ->addOrderBy('n.id', Order::Descending->value)

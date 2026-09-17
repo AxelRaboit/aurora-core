@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceNote\Entity;
 use Aurora\Core\Timestampable\TimestampableInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\SpaceNote\Enum\SpaceNoteVisibilityEnum;
 
 interface SpaceNoteInterface extends TimestampableInterface
 {
@@ -34,9 +35,15 @@ interface SpaceNoteInterface extends TimestampableInterface
 
     public function setPinned(bool $pinned): static;
 
+    public function getVisibility(): SpaceNoteVisibilityEnum;
+
+    public function setVisibility(SpaceNoteVisibilityEnum $visibility): static;
+
     public function getAuthorLabel(): string;
 
     public function getAuthor(): ?CoreUserInterface;
+
+    public function isVisibleTo(?CoreUserInterface $reader): bool;
 
     public function takenBy(CoreUserInterface $author, string $label): static;
 }

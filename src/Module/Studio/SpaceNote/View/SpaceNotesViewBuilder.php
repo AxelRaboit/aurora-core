@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceNote\View;
 
 use Aurora\Core\Routing\PathTemplateGenerator;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceNote\Repository\SpaceNoteRepository;
 use Aurora\Module\Studio\SpaceNote\Serializer\SpaceNoteSerializerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final readonly class SpaceNotesViewBuilder
@@ -17,6 +19,7 @@ final readonly class SpaceNotesViewBuilder
         private SpaceNoteSerializerInterface $serializer,
         private UrlGeneratorInterface $urlGenerator,
         private PathTemplateGenerator $pathTemplates,
+        private Security $security,
     ) {}
 
     /**
@@ -53,9 +56,22 @@ final readonly class SpaceNotesViewBuilder
         return ['success' => true, 'notes' => $this->notes($space)];
     }
 
-    /** @return list<array<string, mixed>> */
+    /**
+     * Le mur tel que celui qui regarde a le droit de le voir.
+     *
+     * Les notes personnelles des autres ne sont pas filtrees ici : elles ne
+     * sont jamais remontees. C'est la meme requete pour la premiere page et
+     * pour chaque ecriture, donc il n'y a pas deux endroits ou se tromper.
+     *
+     * @return list<array<string, mixed>>
+     */
     public function notes(CustomerSpaceInterface $space): array
     {
-        return array_map($this->serializer->serialize(...), $this->notes->findForSpace($space));
+        $reader = $this->security->getUser();
+
+        return array_map(
+            $this->serializer->serialize(...),
+            $this->notes->findForSpace($space, $reader instanceof CoreUserInterface ? $reader : null),
+        );
     }
 }

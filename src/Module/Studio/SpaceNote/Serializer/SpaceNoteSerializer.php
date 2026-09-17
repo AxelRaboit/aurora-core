@@ -30,6 +30,10 @@ class SpaceNoteSerializer implements SpaceNoteSerializerInterface
             'body' => $note->getBody(),
             'colourSlot' => $note->getColourSlot(),
             'pinned' => $note->isPinned(),
+            // Ce qui separe l'onglet « partagees » de l'onglet « personnelles ».
+            // Les notes personnelles des autres ne sont pas ici : elles ne sont
+            // jamais sorties du serveur.
+            'visibility' => $note->getVisibility()->value,
             // Le nom durable, pas la relation : un compte supprimé ne doit pas
             // transformer une note en note que personne n'a prise.
             'author' => $note->getAuthorLabel(),

@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceNote\Service;
 
 use Aurora\Module\Ged\Document\Contract\DocumentUsageProviderInterface;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\SpaceNote\Entity\SpaceNoteInterface;
 use Aurora\Module\Studio\SpaceNote\Repository\SpaceNoteRepository;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -25,6 +28,12 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  *
  * C'est aussi ce qui rend utile l'identifiant que l'éditeur range désormais à
  * côté de l'adresse : sans lui, il n'y aurait qu'une URL à reconnaître.
+ *
+ * **Les notes personnelles comptent, mais ne se nomment pas.** Le balayage les
+ * traverse toutes, sinon supprimer une image viderait la note de quelqu'un
+ * d'autre sans que rien ne s'y oppose ; leur titre, lui, est remplacé pour qui
+ * n'en est pas l'auteur. Ce que l'écran a besoin de dire, c'est « quelque
+ * chose s'en sert », pas quoi.
  */
 final readonly class SpaceNoteDocumentUsageProvider implements DocumentUsageProviderInterface
 {
@@ -32,6 +41,7 @@ final readonly class SpaceNoteDocumentUsageProvider implements DocumentUsageProv
         private SpaceNoteRepository $notes,
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
+        private Security $security,
     ) {}
 
     /** @return list<array{type: string, label: string, detail?: ?string, href?: ?string}> */
@@ -42,7 +52,7 @@ final readonly class SpaceNoteDocumentUsageProvider implements DocumentUsageProv
         foreach ($this->notes->findUsingDocument($documentId) as $note) {
             $usages[] = [
                 'type' => 'studio.space_note',
-                'label' => $note->getTitle(),
+                'label' => $this->labelOf($note),
                 // Le titre d'une note ne suffit pas à la situer : « Brief » et
                 // « Compte rendu » se répètent d'un espace à l'autre, et ce
                 // qu'il faut savoir avant de supprimer, c'est chez quel client.
@@ -58,5 +68,17 @@ final readonly class SpaceNoteDocumentUsageProvider implements DocumentUsageProv
         }
 
         return $usages;
+    }
+
+    /** Le titre, sauf si la note appartient a quelqu'un d'autre. */
+    private function labelOf(SpaceNoteInterface $note): string
+    {
+        $reader = $this->security->getUser();
+
+        if ($note->isVisibleTo($reader instanceof CoreUserInterface ? $reader : null)) {
+            return $note->getTitle();
+        }
+
+        return $this->translator->trans('backend.studio.space_notes.someone_elses');
     }
 }

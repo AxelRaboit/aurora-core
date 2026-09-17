@@ -14,6 +14,7 @@ use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentFinder;
@@ -46,6 +47,12 @@ use function str_starts_with;
  * donné lui appartient : la note arrive comme sa propre entité par l'URL, donc
  * rien n'empêche une requête fabriquée de désigner la note d'un client sous
  * l'espace d'un autre. `assertOwned` est ce qui l'empêche.
+ *
+ * **Et `assertVisible` empêche l'autre.** Une note personnelle n'est jamais
+ * remontée à quelqu'un d'autre que son auteur, mais rien n'oblige une requête
+ * à passer par ce qu'on lui a montré : une route qui reçoit une note par son
+ * identifiant doit reposer la question. Elle répond 404 plutôt que 403, comme
+ * partout où l'existence est déjà l'information.
  */
 #[Route('/workspace/{id}/notes', name: 'workspace_space_notes', requirements: ['id' => '\d+'])]
 #[IsGranted('studio.spaces.view')]
@@ -96,6 +103,7 @@ class SpaceNotesController extends AbstractController
         Request $request,
     ): JsonResponse {
         $this->assertOwned($space, $note->getSpace()->getId());
+        $this->assertVisible($note);
 
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
 
@@ -124,6 +132,7 @@ class SpaceNotesController extends AbstractController
         SpaceNote $note,
     ): JsonResponse {
         $this->assertOwned($space, $note->getSpace()->getId());
+        $this->assertVisible($note);
 
         $this->notes->togglePinned($note);
 
@@ -146,6 +155,7 @@ class SpaceNotesController extends AbstractController
         SpaceNote $note,
     ): JsonResponse {
         $this->assertOwned($space, $note->getSpace()->getId());
+        $this->assertVisible($note);
 
         $documents = $this->documentsOf($note);
 
@@ -218,6 +228,7 @@ class SpaceNotesController extends AbstractController
             if (!is_int($id)) {
                 continue;
             }
+
             if (isset($documents[$id])) {
                 continue;
             }
@@ -265,6 +276,21 @@ class SpaceNotesController extends AbstractController
     private function assertOwned(CustomerSpace $space, ?int $ownerId): void
     {
         if ($ownerId !== $space->getId()) {
+            throw $this->createNotFoundException();
+        }
+    }
+
+    /**
+     * La note personnelle de quelqu'un d'autre n'existe pas.
+     *
+     * Le dépôt ne la remonte jamais ; ceci est la même règle posée à l'entrée
+     * des routes qui reçoivent une note par son identifiant.
+     */
+    private function assertVisible(SpaceNote $note): void
+    {
+        $reader = $this->getUser();
+
+        if (!$note->isVisibleTo($reader instanceof CoreUserInterface ? $reader : null)) {
             throw $this->createNotFoundException();
         }
     }

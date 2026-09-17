@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceNote\Entity;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\SpaceNote\Enum\SpaceNoteVisibilityEnum;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -22,7 +23,9 @@ use Doctrine\ORM\Mapping as ORM;
  * concern.
  *
  * Nothing here is ever serialised to the public page, and the module has no
- * public controller to serve it from.
+ * public controller to serve it from. The second axis - shared with the team,
+ * or the author's own - divides that private surface again, and never lets the
+ * client in: see {@see SpaceNoteVisibilityEnum}.
  *
  * **The body is Editor.js blocks**, like a publication's zones: the same editor,
  * the same tools, and images that go through the same upload path - filed in
@@ -78,6 +81,16 @@ abstract class AbstractSpaceNote implements SpaceNoteInterface
      */
     #[ORM\Column(options: ['default' => false])]
     protected bool $pinned = false;
+
+    /**
+     * Shared with the team, or the author's own.
+     *
+     * Enforced where the notes are read rather than where they are drawn: a
+     * personal note never leaves the server for anybody but its author. The
+     * two tabs on the wall are a filter over what came back, not the rule.
+     */
+    #[ORM\Column(length: 20, enumType: SpaceNoteVisibilityEnum::class, options: ['default' => 'shared'])]
+    protected SpaceNoteVisibilityEnum $visibility = SpaceNoteVisibilityEnum::Shared;
 
     /** Who took it, as it will always be shown. */
     #[ORM\Column(length: 180)]
@@ -151,6 +164,18 @@ abstract class AbstractSpaceNote implements SpaceNoteInterface
         return $this;
     }
 
+    public function getVisibility(): SpaceNoteVisibilityEnum
+    {
+        return $this->visibility;
+    }
+
+    public function setVisibility(SpaceNoteVisibilityEnum $visibility): static
+    {
+        $this->visibility = $visibility;
+
+        return $this;
+    }
+
     public function getAuthorLabel(): string
     {
         return $this->authorLabel;
@@ -159,6 +184,23 @@ abstract class AbstractSpaceNote implements SpaceNoteInterface
     public function getAuthor(): ?CoreUserInterface
     {
         return $this->author;
+    }
+
+    /**
+     * Whether this reader may see the note at all.
+     *
+     * The rule the repository applies, said once so a route that receives a
+     * note by its id applies the same one. A personal note whose author's
+     * account is gone is nobody's: it stays out of everybody's wall rather
+     * than falling back into the shared one.
+     */
+    public function isVisibleTo(?CoreUserInterface $reader): bool
+    {
+        if (!$this->visibility->isPersonal()) {
+            return true;
+        }
+
+        return $reader instanceof CoreUserInterface && $this->author instanceof CoreUserInterface && $this->author->getUserIdentifier() === $reader->getUserIdentifier();
     }
 
     /**

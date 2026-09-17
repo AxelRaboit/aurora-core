@@ -875,8 +875,19 @@ backend:
             view_label: View
             view_grid: Wall
             view_list: List
-            empty: No notes on this space
-            empty_hint: "The brief taken over the phone, an idea not ready to show, what went wrong last month. The client does not see them."
+            visibility: Who reads it
+            visibility_hint_shared: "Everybody on the space's team. The client sees no note at all."
+            visibility_hint_personal: "You alone. It reaches nobody else, not even the space's team."
+            visibilities:
+                shared: Shared with the team
+                personal: Personal
+                shared_plural: Shared
+                personal_plural: Personal
+            someone_elses: Somebody's personal note
+            empty_shared: No shared note on this space
+            empty_shared_hint: "What the team needs to know about this client and no form carries. The client does not see notes."
+            empty_personal: No personal note on this space
+            empty_personal_hint: "The brief taken over the phone, an idea not ready to show, what went wrong last month. Nobody else reads them."
             created: Note created.
             updated: Note saved.
             deleted: Note deleted.
@@ -907,8 +918,9 @@ backend:
         space_content:
             tab: Content
             view_label: View
-            view_board: Board
-            view_list: List
+            view_content: Content
+            shape_board: Kanban
+            shape_list: List
             view_calendar: Calendar
             view_files: Files
             view_chat: Chat
@@ -917,6 +929,7 @@ backend:
             files_empty_hint: Files put on the content, by you or by the client, appear here newest first.
             files_unknown_card: Deleted content
             files_open: Open
+            files_open_in_tab: Open in a tab
             orphaned_one: "“{title}” is no longer used anywhere."
             orphaned_many: "{count} files are no longer used anywhere."
             orphaned_trash: Move to the trash

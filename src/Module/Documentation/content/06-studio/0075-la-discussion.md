@@ -7,7 +7,7 @@ Chaque fiche a déjà ses échanges, et c'est là que doit rester ce qui porte s
 
 ## 1. Où elle se trouve
 
-Dans le sélecteur de vues, à côté de Tableau, Liste, Calendrier et Fichiers : **Discussion**. Côté client, elle est sous le calendrier de sa page, sans compte à créer.
+Dans le sélecteur de vues, à côté de Contenus, Calendrier et Fichiers : **Discussion**. Côté client, elle est sous le calendrier de sa page, sans compte à créer.
 
 ![La discussion d'un espace, côté studio](../../images/06-studio/la-discussion-01-la-discussion.png)
 
