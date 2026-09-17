@@ -258,6 +258,7 @@ backend:
                 template_not_found: This template does not exist, or is not of the expected kind.
                 template_never_published: '"{template}" has no published version.'
                 already_frozen: 'This contract is sealed: it can no longer be changed.'
+                customer_has_no_address: "This customer has no contractual address. Fill it in on their record before sending."
                 seal_before_sending: Seal the contract before sending it.
                 already_engaged: This contract is already signed. It cannot be sent again.
                 no_active_link: No active link to revoke.
@@ -655,6 +656,8 @@ backend:
             status_hint: "A prospect is a company you are already working for, without knowing its legal identity yet. Converting one to a customer is filling in the registration number, the legal form and the registered office."
             statuses:
                 prospect: Prospect
+                prospect_plural: Prospects
+                client_plural: Customers
                 client: Customer
             convert: Convert to a customer
             add: Add a customer

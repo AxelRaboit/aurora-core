@@ -116,12 +116,23 @@ abstract class AbstractCustomer implements CustomerInterface
     /**
      * The contractual address, and the one a signing link is mailed to.
      *
-     * Required, and deliberately not the representative's personal mailbox by
-     * default: the contracts name it as the channel that counts, so it has to
-     * be the address the company agreed to be reached at.
+     * Deliberately not the representative's personal mailbox: the contracts
+     * name it as the channel that counts, so it has to be the address the
+     * company agreed to be reached at.
+     *
+     * **Nullable since prospects exist.** It was required, on the reasoning
+     * that a company you work with is a company you can write to - which is
+     * true of a client and not of a prospect: you can meet somebody, open a
+     * space to start structuring the work, and have nothing but a name. A
+     * space's access links carry their own recipient, so nothing about that
+     * screen needs this column.
+     *
+     * A client is another matter, and the Manager enforces it: this is where
+     * their contract is sent, so it is required the moment the status says
+     * they have engaged.
      */
-    #[ORM\Column(length: 180)]
-    protected string $contractualEmail;
+    #[ORM\Column(length: 180, nullable: true)]
+    protected ?string $contractualEmail = null;
 
     #[ORM\Column(length: 30, nullable: true)]
     protected ?string $phone = null;
@@ -305,12 +316,12 @@ abstract class AbstractCustomer implements CustomerInterface
         return $this->status->isProspect();
     }
 
-    public function getContractualEmail(): string
+    public function getContractualEmail(): ?string
     {
         return $this->contractualEmail;
     }
 
-    public function setContractualEmail(string $contractualEmail): static
+    public function setContractualEmail(?string $contractualEmail): static
     {
         $this->contractualEmail = $contractualEmail;
 

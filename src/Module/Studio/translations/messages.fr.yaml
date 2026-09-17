@@ -258,6 +258,7 @@ backend:
                 template_not_found: Cette trame n'existe pas, ou n'est pas du type attendu.
                 template_never_published: '« {template} » n''a aucune version publiée.'
                 already_frozen: 'Ce contrat est scellé : il ne peut plus être modifié.'
+                customer_has_no_address: "Ce client n'a pas d'adresse contractuelle. Renseignez-la sur sa fiche avant d'envoyer."
                 seal_before_sending: Scellez le contrat avant de l'envoyer.
                 already_engaged: Ce contrat est déjà signé. Il ne peut plus être renvoyé.
                 no_active_link: Aucun lien actif à révoquer.
@@ -655,6 +656,8 @@ backend:
             status_hint: "Un prospect est une société pour laquelle on travaille déjà, sans avoir encore son identité légale. La convertir en client, c'est saisir le SIRET, la forme juridique et le siège."
             statuses:
                 prospect: Prospect
+                prospect_plural: Prospects
+                client_plural: Clients
                 client: Client
             convert: Convertir en client
             add: Ajouter un client

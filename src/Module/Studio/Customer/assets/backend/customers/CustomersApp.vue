@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from "vue";
+import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
 import { useI18n } from "vue-i18n";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -69,6 +70,31 @@ const actionsFor = useCustomerRowActions({
 });
 
 /**
+ * Clients ou prospects, jamais les deux.
+ *
+ * Retenu d'un ecran a l'autre, comme les vues d'un espace : quelqu'un qui
+ * travaille ses pistes une matiniere entiere ne veut pas rechoisir a chaque
+ * retour sur la liste.
+ */
+const { choice: tab } = usePersistedChoice("studio.customers.tab", "client", [
+    "client",
+    "prospect",
+]);
+
+const visibleItems = computed(() =>
+    filteredItems.value.filter((customer) => customer.status === tab.value),
+);
+
+const tabs = computed(() =>
+    ["client", "prospect"].map((key) => ({
+        key,
+        label: t(`backend.studio.customers.statuses.${key}_plural`),
+        count: filteredItems.value.filter((customer) => customer.status === key)
+            .length,
+    })),
+);
+
+/**
  * A SIRET is read back in the groups it is printed in, not as fourteen run-on
  * digits: 3 + 3 + 3 + 5, the way it appears on every document it comes from.
  */
@@ -134,14 +160,45 @@ const pageActions = computed(() => {
             </template>
         </AppListToolbar>
 
+        <!-- Deux onglets plutot qu'une colonne : un statut a deux valeurs sur
+             lequel on veut filtrer est un filtre, pas une colonne - et une
+             pastille repetee sur chaque ligne d'un onglet qui porte deja le mot
+             ne distingue plus rien.
+
+             Le compte est sur l'etiquette parce que c'est lui qui rend l'autre
+             onglet visible : un prospect cree depuis un espace serait sinon
+             range quelque part que personne ne pense a ouvrir. -->
+        <div
+            class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+            role="group"
+            :aria-label="t('backend.studio.customers.status')"
+        >
+            <button
+                v-for="entry in tabs"
+                :key="entry.key"
+                type="button"
+                class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                :class="
+                    tab === entry.key
+                        ? 'bg-surface font-medium text-primary shadow-sm'
+                        : 'text-muted hover:text-primary'
+                "
+                :aria-pressed="tab === entry.key"
+                v-on:click="tab = entry.key"
+            >
+                {{ entry.label }}
+                <span class="text-xs tabular-nums text-muted">{{ entry.count }}</span>
+            </button>
+        </div>
+
         <!-- Mobile cards -->
         <div v-if="isNarrow" class="space-y-2">
             <AppNoData
-                v-if="!filteredItems.length"
+                v-if="!visibleItems.length"
                 :message="t('backend.studio.customers.empty')"
             />
             <div
-                v-for="customer in filteredItems"
+                v-for="customer in visibleItems"
                 :key="customer.id"
                 class="bg-surface border border-line/60 rounded-xl overflow-hidden shadow-sm"
             >
@@ -150,15 +207,6 @@ const pageActions = computed(() => {
                         {{ customer.legalName }}
                         <span v-if="customer.legalForm" class="text-muted font-normal">
                             · {{ customer.legalForm }}
-                        </span>
-                        <!-- Seulement sur un prospect : « client » est l'etat
-                             ordinaire d'une fiche, et une pastille posee sur
-                             chaque ligne ne distingue plus rien. -->
-                        <span
-                            v-if="'prospect' === customer.status"
-                            class="rounded-full border border-accent-500/30 bg-accent-500/10 px-1.5 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide text-accent-500"
-                        >
-                            {{ t("backend.studio.customers.statuses.prospect") }}
                         </span>
                     </p>
                     <p v-if="customer.representativeFullName" class="text-xs text-secondary">
@@ -220,19 +268,13 @@ const pageActions = computed(() => {
                 </thead>
                 <tbody class="divide-y divide-line/40">
                     <tr
-                        v-for="customer in filteredItems"
+                        v-for="customer in visibleItems"
                         :key="customer.id"
                         class="group hover:bg-surface-2/40 transition-colors"
                     >
                         <td class="px-6 py-3">
-                            <div class="flex items-center gap-2 font-medium text-primary">
+                            <div class="font-medium text-primary">
                                 {{ customer.legalName }}
-                                <span
-                                    v-if="'prospect' === customer.status"
-                                    class="rounded-full border border-accent-500/30 bg-accent-500/10 px-1.5 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide text-accent-500"
-                                >
-                                    {{ t("backend.studio.customers.statuses.prospect") }}
-                                </span>
                             </div>
                             <div class="text-xs text-muted">
                                 <span v-if="customer.legalForm">{{ customer.legalForm }}</span>
@@ -279,7 +321,7 @@ const pageActions = computed(() => {
                             </div>
                         </td>
                     </tr>
-                    <tr v-if="!filteredItems.length">
+                    <tr v-if="!visibleItems.length">
                         <td :colspan="5">
                             <AppNoData
                                 :message="t('backend.studio.customers.empty')"

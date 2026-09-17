@@ -67,9 +67,9 @@ interface CustomerInterface extends TimestampableInterface
 
     public function isProspect(): bool;
 
-    public function getContractualEmail(): string;
+    public function getContractualEmail(): ?string;
 
-    public function setContractualEmail(string $contractualEmail): static;
+    public function setContractualEmail(?string $contractualEmail): static;
 
     public function getPhone(): ?string;
 

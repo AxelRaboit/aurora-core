@@ -197,7 +197,7 @@ const currencyOptions = computed(() =>
                     :error="errors.contractualEmail"
                     :hint="t('backend.studio.customers.contractual_email_hint')"
                     type="email"
-                    required
+                    :required="'prospect' !== form.status"
                     v-on:update:model-value="set('contractualEmail', $event)"
                 />
                 <AppInput

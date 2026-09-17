@@ -179,27 +179,28 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
      * customer created by the same path as the rest. A fixture that persisted
      * the entity directly would produce a row no code ever produced.
      *
-     * The address is required, and it is the one thing a prospect cannot be
-     * missing: it is where their access link is sent. Everything that makes a
-     * client - the registration number, the legal form, the registered office -
-     * is filled in when they become one.
+     * **A name is all this needs.** The address is optional here and required
+     * of a client, which is the one thing the status enforces: a prospect can
+     * be somebody you have just met, and a space's access links carry their own
+     * recipient, so nothing on that screen depends on it. Everything that makes
+     * a client - the address, the registration number, the legal form, the
+     * registered office - is filled in when they become one.
      */
     protected function openProspect(CustomerSpaceInputInterface $input): CustomerInterface
     {
         $name = $input->getProspectName();
-        $email = $input->getProspectEmail();
 
         if (null === $name || '' === $name) {
             throw new FieldException('customerId', $this->translator->trans('backend.studio.spaces.errors.customer_required'));
         }
 
-        if (null === $email || '' === $email) {
-            throw new FieldException('prospectEmail', $this->translator->trans('backend.studio.customers.errors.contractual_email_required'));
-        }
-
         return $this->customerManager->create($this->customerInputFactory->fromArray([
             'legalName' => $name,
-            'contractualEmail' => $email,
+            // Facultative, et c'est tout l'interet : on rencontre quelqu'un, on
+            // ouvre un espace pour structurer le travail, et on n'a que son
+            // nom. Les liens d'acces de l'espace portent leur propre
+            // destinataire, donc rien ici n'en depend.
+            'contractualEmail' => $input->getProspectEmail(),
             'status' => CustomerStatusEnum::Prospect->value,
         ]));
     }

@@ -85,6 +85,31 @@ class CustomerManager implements CustomerManagerInterface
     }
 
     /**
+     * Un client a une adresse, un prospect pas forcement.
+     *
+     * **C'est la seule chose que le statut impose**, et elle porte sur la paire
+     * plutot que sur le champ, donc elle est ici et pas dans le DTO : c'est le
+     * Manager qui voit les deux. Un prospect peut n'etre qu'un nom - on le
+     * rencontre, on ouvre un espace, on structure le travail, et on n'a rien
+     * d'autre. Un client, lui, est quelqu'un a qui on envoie un contrat.
+     *
+     * Signale sous le champ de l'adresse et pas sous le statut : c'est
+     * l'adresse qui manque, et c'est elle que le lecteur doit remplir.
+     */
+    protected function assertClientHasAnAddress(CustomerInputInterface $input): void
+    {
+        if ($input->getStatus()->isProspect()) {
+            return;
+        }
+
+        $email = $input->getContractualEmail();
+
+        if (null === $email || '' === $email) {
+            throw new FieldException('contractualEmail', $this->translator->trans('backend.studio.customers.errors.contractual_email_required'));
+        }
+    }
+
+    /**
      * Instantiates the concrete entity. Override in a subclass to return a
      * client-substituted class - `resolve_target_entities` only affects
      * Doctrine relation resolution, not direct `new` calls.
@@ -102,6 +127,7 @@ class CustomerManager implements CustomerManagerInterface
     protected function applyInput(CustomerInterface $customer, CustomerInputInterface $input): void
     {
         $this->assertSiretIsFree($input->getSiret(), $customer->getId());
+        $this->assertClientHasAnAddress($input);
 
         $customer
             ->setLegalName($input->getLegalName())

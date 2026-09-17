@@ -30,13 +30,13 @@ Studio → Espaces clients. Elle est au-dessus des Clients dans le menu, parce q
 
 ## Pour un prospect, sans attendre d'en savoir plus
 
-On travaille avec une société bien avant d'avoir son SIRET. Plutôt que d'aller inventer une identité légale sur la fiche client pour pouvoir ouvrir l'espace, choisissez **« + Nouveau prospect »** dans la liste des clients : deux champs apparaissent, le nom de la société et une adresse de contact.
+On travaille avec une société bien avant d'avoir son SIRET. Plutôt que d'aller inventer une identité légale sur la fiche client pour pouvoir ouvrir l'espace, choisissez **« + Nouveau prospect »** dans la liste des clients : deux champs apparaissent, le nom de la société et, si vous l'avez, une adresse de contact.
 
-L'espace s'ouvre avec une vraie fiche derrière lui, marquée **Prospect** dans la liste des clients. Tout le reste — forme juridique, siège, représentant, SIRET — attend.
+**Un nom suffit.** Tout le reste — l'adresse, la forme juridique, le siège, le représentant, le SIRET — attend. Les liens d'accès que vous créerez portent chacun leur propre destinataire, donc l'espace fonctionne entièrement sans que la fiche ait une adresse.
 
-**L'adresse est la seule chose qu'un prospect ne peut pas ne pas avoir** : c'est là que partira son lien d'accès.
+L'espace s'ouvre avec une vraie fiche derrière lui, rangée dans l'onglet **Prospects** de la liste des clients.
 
-Quand il signe, « Convertir en client » dans le menu Actions de sa fiche ouvre le formulaire avec le statut déjà basculé. C'est le moment de saisir ce qui manquait. Rien ne déménage : l'espace, son tableau, ses fichiers et ses échanges étaient déjà les siens.
+Quand il signe, « Convertir en client » dans le menu Actions de sa fiche ouvre le formulaire avec le statut déjà basculé. C'est le moment de saisir ce qui manquait — et **l'adresse contractuelle devient obligatoire**, parce que c'est là que part son contrat. Rien ne déménage : l'espace, son tableau, ses fichiers et ses échanges étaient déjà les siens.
 
 Rien n'est interdit à un prospect, pas même un contrat — signer, c'est justement ce qui le convertit.
 

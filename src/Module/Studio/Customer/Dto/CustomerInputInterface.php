@@ -35,7 +35,7 @@ interface CustomerInputInterface
 
     public function getRepresentativeRole(): ?string;
 
-    public function getContractualEmail(): string;
+    public function getContractualEmail(): ?string;
 
     public function getPhone(): ?string;
 

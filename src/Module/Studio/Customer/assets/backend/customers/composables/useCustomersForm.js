@@ -113,12 +113,16 @@ export function useCustomersForm(
                 required(
                     t("backend.studio.customers.errors.legal_name_required"),
                 )(form.value.legalName),
+            // Exigee d'un client, facultative d'un prospect : c'est la seule
+            // chose que le statut impose, et le serveur la tient aussi.
             contractualEmail: () =>
-                required(
-                    t(
-                        "backend.studio.customers.errors.contractual_email_required",
-                    ),
-                )(form.value.contractualEmail),
+                "prospect" === form.value.status
+                    ? null
+                    : required(
+                          t(
+                              "backend.studio.customers.errors.contractual_email_required",
+                          ),
+                      )(form.value.contractualEmail),
         };
     }
 

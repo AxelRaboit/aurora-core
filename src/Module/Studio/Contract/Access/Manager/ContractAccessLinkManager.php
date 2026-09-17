@@ -145,12 +145,22 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
             throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_engaged'));
         }
 
+        $recipient = $contract->getCustomer()->getContractualEmail();
+
+        if (null === $recipient || '' === $recipient) {
+            // Un prospect peut n'avoir qu'un nom, et c'est voulu. Mais on
+            // n'envoie pas un contrat a personne : c'est ici, au moment de
+            // l'envoi, que l'adresse devient indispensable - pas a la creation
+            // de la fiche.
+            throw new FieldException('customer', $this->translator->trans('backend.studio.contracts.errors.customer_has_no_address'));
+        }
+
         $link = $this->createLink();
         $token = $link->mint();
 
         $link
             ->setContract($contract)
-            ->setRecipientEmail($contract->getCustomer()->getContractualEmail())
+            ->setRecipientEmail($recipient)
             ->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', self::DEFAULT_LIFETIME_DAYS)));
 
         // Any address handed out before is revoked. A resend replaces, it does

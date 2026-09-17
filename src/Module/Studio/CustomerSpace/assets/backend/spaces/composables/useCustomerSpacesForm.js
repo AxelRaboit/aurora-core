@@ -125,12 +125,6 @@ export function useCustomerSpacesForm(
                 form.value.customerId || form.value.prospectName
                     ? null
                     : t("backend.studio.spaces.errors.customer_required"),
-            prospectEmail: () =>
-                form.value.prospectName && !form.value.prospectEmail
-                    ? t(
-                          "backend.studio.customers.errors.contractual_email_required",
-                      )
-                    : null,
         };
     }
 

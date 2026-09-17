@@ -228,7 +228,6 @@ function removeMember(userId) {
                     :placeholder="t('shared.placeholders.email')"
                     :hint="t('backend.studio.spaces.prospect_email_hint')"
                     :error="errors.prospectEmail"
-                    required
                     v-on:update:model-value="set('prospectEmail', $event)"
                 />
             </div>

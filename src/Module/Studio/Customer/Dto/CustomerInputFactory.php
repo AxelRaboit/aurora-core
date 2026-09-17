@@ -40,7 +40,7 @@ class CustomerInputFactory implements CustomerInputFactoryInterface
             representativeFirstName: Str::trimOrNullFromArray($data, 'representativeFirstName'),
             representativeLastName: Str::trimOrNullFromArray($data, 'representativeLastName'),
             representativeRole: Str::trimOrNullFromArray($data, 'representativeRole'),
-            contractualEmail: Str::emailFromArray($data, 'contractualEmail'),
+            contractualEmail: Str::emailOrNullFromArray($data, 'contractualEmail'),
             phone: Str::trimOrNullFromArray($data, 'phone'),
             userId: $this->idOrNull($data, 'userId'),
             // Prospect par defaut : une valeur inconnue ou absente decrit une

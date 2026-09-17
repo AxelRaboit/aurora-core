@@ -293,6 +293,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
 
         self::assertInstanceOf(Customer::class, $customer);
         self::assertTrue($customer->isProspect());
+        self::assertSame('contact@verrerie-lemoine.test', $customer->getContractualEmail());
 
         // Rien de ce qui fait un client n'est invente au passage : c'est ce
         // qu'on saisira le jour de la conversion.
@@ -303,23 +304,29 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
         self::assertSame($customer->getId(), $this->payload()['space']['customerId']);
     }
 
-    public function testAProspectWithoutAnAddressIsRefusedUnderItsOwnField(): void
+    /**
+     * **Un nom suffit, et c'est tout l'interet.**.
+     *
+     * On rencontre quelqu'un, on ouvre un espace pour structurer le travail, et
+     * on n'a rien d'autre. Les liens d'acces de l'espace portent leur propre
+     * destinataire, donc rien sur cet ecran ne depend de l'adresse du client.
+     */
+    public function testAProspectNeedsNothingButItsName(): void
     {
         $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
-            'name' => 'Sans adresse',
+            'name' => 'Rien que le nom',
             'prospectName' => 'Verrerie Lemoine',
             'timezone' => 'Europe/Paris',
         ]);
 
-        // L'adresse est la seule chose qu'un prospect ne peut pas ne pas avoir :
-        // c'est la que part son lien d'acces.
-        self::assertSame(422, $this->client->getResponse()->getStatusCode());
-        self::assertArrayHasKey('prospectEmail', $this->payload()['errors']);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        self::assertNull(
-            $this->entityManager->getRepository(Customer::class)
-                ->findOneBy(['legalName' => 'Verrerie Lemoine']),
-        );
+        $customer = $this->entityManager->getRepository(Customer::class)
+            ->findOneBy(['legalName' => 'Verrerie Lemoine']);
+
+        self::assertInstanceOf(Customer::class, $customer);
+        self::assertTrue($customer->isProspect());
+        self::assertNull($customer->getContractualEmail());
     }
 
     public function testASpaceStillNeedsSomebodyToBelongTo(): void
