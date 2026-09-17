@@ -39,6 +39,9 @@ backend:
                     revoked: Client access link revoked
                     deleted: Client access link deleted
                     opened: Space opened by a client
+                space_chat_message:
+                    posted: Message posted in a space's conversation
+                    deleted: Conversation message deleted
                 space_content_attachment:
                     attached: File added to a content item
                     detached: File removed from a content item
@@ -830,6 +833,24 @@ backend:
             errors:
                 email_required: The recipient email is required.
                 email_invalid: This email is not valid.
+        space_notifications:
+            # What the studio learns without opening the space. The client's
+            # side only: the studio already knows what the studio did.
+            chat: '%who% wrote to you'
+            comment: '%who% commented on "%item%"'
+            upload: '%who% sent a file on "%item%"'
+            approved: '%who% approved "%item%"'
+            changes_requested: '%who% asked for a rewrite of "%item%"'
+        space_chat:
+            # A space's conversation, the one that fits on no card. Anything
+            # about one piece of content stays on that card's thread, where it
+            # is found next to what it is about.
+            notice: What you write here is read by the client.
+            errors:
+                body_required: The message cannot be empty.
+                needs_account: You have to be signed in to write in a conversation.
+                from_client: A client's message is not deleted. It is what they told you.
+                not_in_space: This link does not open this space.
         space_content:
             tab: Content
             view_label: View
@@ -837,6 +858,7 @@ backend:
             view_list: List
             view_calendar: Calendar
             view_files: Files
+            view_chat: Chat
             files_empty: No file on this space yet
             files_empty_hint: Files put on the content, by you or by the client, appear here newest first.
             files_unknown_card: Deleted content
@@ -1040,10 +1062,11 @@ studio:
         space:
             unavailable_message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a space's content plan, ask your contact for a new link.
             timezone_notice: 'Times in {timezone}'
-            valid_until: 'This address is valid until {date}.'
-            footer: This address is personal. Please do not pass it on.
+            footer: This address is personal to you, please do not pass it on.
+            footer_until: 'This address is personal to you and valid until {date}: please do not pass it on.'
             no_body: The text is not written yet.
             thread_notice: What you write here is read by your agency.
+            chat_notice: What you write here is read by your agency.
             upload_notice: "Images, PDF and common videos, 25 MB at most. What you send here is visible to your agency."
             approve: Approved
             request_changes: Needs changes
@@ -1087,6 +1110,11 @@ studio:
             authenticated: 'Signed from an authenticated back office account'
             notice: 'This hash identifies the signed wording. Any change to the document would produce a different one.'
     email:
+        space_activity:
+            subject: 'Something new in {space}'
+            body: 'Your client did something in the {space} space:'
+            cta: Open the space
+            quiet: "You will not hear from us about this again until you have opened the space."
         customer_refused:
             subject: 'Contract {reference}: the customer declined'
             body: 'Customer {customer} has declined to sign contract {reference}.'

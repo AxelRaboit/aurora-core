@@ -39,6 +39,9 @@ backend:
                     revoked: Lien d'accès client révoqué
                     deleted: Lien d'accès client supprimé
                     opened: Espace ouvert par un client
+                space_chat_message:
+                    posted: Message envoyé dans la discussion d'un espace
+                    deleted: Message de discussion supprimé
                 space_content_attachment:
                     attached: Fichier ajouté sur un contenu
                     detached: Fichier retiré d'un contenu
@@ -830,6 +833,24 @@ backend:
             errors:
                 email_required: L'email du destinataire est obligatoire.
                 email_invalid: Cet email n'est pas valide.
+        space_notifications:
+            # Ce que le studio apprend sans avoir à ouvrir l'espace. Seulement
+            # le côté client : le studio sait déjà ce que le studio a fait.
+            chat: '%who% vous a écrit'
+            comment: '%who% a commenté « %item% »'
+            upload: '%who% a envoyé un fichier sur « %item% »'
+            approved: '%who% a validé « %item% »'
+            changes_requested: '%who% demande une reprise sur « %item% »'
+        space_chat:
+            # La conversation d'un espace, celle qui ne tient sur aucune fiche.
+            # Ce qui porte sur un contenu précis reste dans les échanges de sa
+            # fiche : on le retrouve à côté de ce dont il parle.
+            notice: Ce que vous écrivez ici est lu par le client.
+            errors:
+                body_required: Le message ne peut pas être vide.
+                needs_account: Il faut être connecté pour écrire dans une discussion.
+                from_client: Un message du client ne se supprime pas. C'est ce qu'il vous a dit.
+                not_in_space: Ce lien n'ouvre pas cet espace.
         space_content:
             tab: Contenu
             view_label: Vue
@@ -837,6 +858,7 @@ backend:
             view_list: Liste
             view_calendar: Calendrier
             view_files: Fichiers
+            view_chat: Discussion
             files_empty: Aucun fichier sur cet espace
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
             files_unknown_card: Contenu supprimé
@@ -1040,10 +1062,11 @@ studio:
         space:
             unavailable_message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez le plan de contenu d'un espace, demandez un nouveau lien à votre interlocuteur.
             timezone_notice: 'Heures en {timezone}'
-            valid_until: 'Cette adresse est valide jusqu''au {date}.'
-            footer: Cette adresse est personnelle. Ne la transmettez pas.
+            footer: Cette adresse vous est personnelle, ne la transmettez pas.
+            footer_until: 'Cette adresse vous est personnelle et valide jusqu''au {date} : ne la transmettez pas.'
             no_body: Le texte n'est pas encore écrit.
             thread_notice: Ce que vous écrivez ici est lu par votre prestataire.
+            chat_notice: Ce que vous écrivez ici est lu par votre prestataire.
             upload_notice: "Images, PDF et vidéos courantes, 25 Mo maximum. Ce que vous envoyez ici est visible par votre prestataire."
             approve: Validé
             request_changes: À revoir
@@ -1087,6 +1110,11 @@ studio:
             authenticated: 'Signé depuis un compte authentifié du back-office'
             notice: 'Cette empreinte identifie le texte signé. Toute modification du document produirait une empreinte différente.'
     email:
+        space_activity:
+            subject: 'Du nouveau dans {space}'
+            body: "Votre client a fait quelque chose dans l'espace {space} :"
+            cta: Ouvrir l'espace
+            quiet: "Vous ne recevrez pas d'autre message à ce sujet tant que vous n'aurez pas ouvert l'espace."
         customer_refused:
             subject: 'Contrat {reference} : refus du client'
             body: 'Le client {customer} a indiqué ne pas signer le contrat {reference}.'

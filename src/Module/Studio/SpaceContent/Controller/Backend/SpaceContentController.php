@@ -20,6 +20,8 @@ use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
+use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInputFactoryInterface;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInputFactoryInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
@@ -38,6 +40,7 @@ use RuntimeException;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -86,6 +89,8 @@ class SpaceContentController extends AbstractController
         protected readonly SpaceContentAttachmentRepository $attachmentRepository,
         protected readonly SpaceOrphanedDocumentFinder $orphanedDocuments,
         protected readonly SpaceBoardViewBuilder $viewBuilder,
+        protected readonly SpaceChatViewBuilder $chatViewBuilder,
+        protected readonly SpaceChatHub $chatHub,
         protected readonly PayloadValidator $payloadValidator,
         protected readonly BinaryFileServer $binaryFileServer,
         protected readonly StoredFileLocator $locator,
@@ -104,9 +109,31 @@ class SpaceContentController extends AbstractController
      * belongs to the person drawing it.
      */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
-    public function content(CustomerSpace $space): Response
+    public function content(CustomerSpace $space, Request $request): Response
     {
-        return $this->render('@Studio/backend/space-content/content.html.twig', $this->viewBuilder->contentView($space));
+        // Merged here rather than folded into the board's builder: the
+        // conversation is a fifth thing the reader can be looking at, not a
+        // fifth reading of the cards, and a builder named for the board has no
+        // business knowing the chat exists.
+        $response = $this->render('@Studio/backend/space-content/content.html.twig', [
+            ...$this->viewBuilder->contentView($space),
+            ...$this->chatViewBuilder->view($space),
+        ]);
+
+        // **Being signed in is not being authorised at the hub.** The hub has
+        // no session and no idea who this is; the only thing it reads is a
+        // short-lived JWT scoped to one topic, and this is where a reader who
+        // may see the space is handed one. Without it the connection is
+        // refused, and a refused connection looks exactly like a hub that is
+        // down - which is how this line came to be missing long enough to be
+        // noticed on screen rather than in a test.
+        $cookie = $this->chatHub->subscriptionCookie($request, $space);
+
+        if ($cookie instanceof Cookie) {
+            $response->headers->setCookie($cookie);
+        }
+
+        return $response;
     }
 
     /**

@@ -8,6 +8,15 @@ shared:
     verdict:
       approved: '{who} a validé'
       changes_requested: '{who} a demandé une reprise'
+  space_chat:
+    title: Discussion
+    empty: "Aucun message. C'est ici que se dit ce qui ne tient pas sur une fiche : le brief du mois, une campagne qui bouge, une question rapide."
+    placeholder: "Écrire un message… (Entrée pour envoyer, Maj+Entrée pour aller à la ligne)"
+    send: Envoyer
+    from_client: client
+    deleted: Message supprimé
+    live: en direct
+    reconnecting: reconnexion…
   attachments:
     title: Fichiers
     empty: Aucun fichier pour le moment.

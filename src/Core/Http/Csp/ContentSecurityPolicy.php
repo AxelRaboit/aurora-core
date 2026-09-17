@@ -8,6 +8,9 @@ use Aurora\Core\Content\RawHtmlSanitizer;
 
 use function array_map;
 use function implode;
+use function is_array;
+use function mb_trim;
+use function parse_url;
 use function sprintf;
 
 /**
@@ -46,6 +49,13 @@ final readonly class ContentSecurityPolicy
     public function __construct(
         private bool $devMode = false,
         private string $viteDevServer = 'http://localhost:5173',
+        /**
+         * The Mercure hub a page may open a connection to, if there is one.
+         *
+         * Empty on every installation without a hub, and then nothing is added
+         * - the pages are handed no address to connect to either.
+         */
+        private string $mercurePublicUrl = '',
     ) {}
 
     public function header(?string $nonce): string
@@ -64,6 +74,19 @@ final readonly class ContentSecurityPolicy
             $script[] = $this->viteDevServer;
             $connect[] = $this->viteDevServer;
             $connect[] = str_replace('http', 'ws', $this->viteDevServer);
+        }
+
+        // **Behind the same host in production, and not necessarily
+        // anywhere else.** A hub proxied under `/.well-known/mercure` is
+        // already covered by `'self'`; one on its own port or subdomain is not,
+        // and a blocked `EventSource` fails the way a hub that is down fails -
+        // silently, with a console line nobody is reading. Added from the
+        // configured address rather than assumed, so it is right in both
+        // layouts and absent when there is no hub.
+        $hub = $this->origin($this->mercurePublicUrl);
+
+        if (null !== $hub) {
+            $connect[] = $hub;
         }
 
         $directives = [
@@ -85,6 +108,28 @@ final readonly class ContentSecurityPolicy
         ];
 
         return implode('; ', $directives);
+    }
+
+    /**
+     * The scheme-and-host of a URL, which is what a directive takes.
+     *
+     * A full path in `connect-src` is not a syntax error, it is a source
+     * expression that matches a path prefix - which would work here by
+     * accident and stop working the day the hub moves under another path.
+     */
+    private function origin(string $url): ?string
+    {
+        if ('' === mb_trim($url)) {
+            return null;
+        }
+
+        $parts = parse_url($url);
+
+        if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])) {
+            return null;
+        }
+
+        return $parts['scheme'].'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
     }
 
     /**

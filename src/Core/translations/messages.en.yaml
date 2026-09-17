@@ -8,6 +8,15 @@ shared:
     verdict:
       approved: '{who} approved'
       changes_requested: '{who} asked for changes'
+  space_chat:
+    title: Chat
+    empty: "No messages yet. This is where everything that does not belong on one card gets said: the month's brief, a campaign moving, a quick question."
+    placeholder: "Write a message… (Enter to send, Shift+Enter for a new line)"
+    send: Send
+    from_client: client
+    deleted: Message deleted
+    live: live
+    reconnecting: reconnecting…
   attachments:
     title: Files
     empty: No file yet.
