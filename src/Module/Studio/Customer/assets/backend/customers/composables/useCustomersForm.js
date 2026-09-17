@@ -178,21 +178,6 @@ export function useCustomersForm(
         showEdit.value = true;
     }
 
-    /**
-     * Convertir un prospect en client.
-     *
-     * Ouvre sa fiche avec le statut deja bascule plutot que de le basculer en
-     * silence : convertir, c'est le moment ou l'on saisit le SIRET, la forme
-     * juridique et le siege - tout ce qu'on n'avait pas quand on a ouvert
-     * l'espace. Un bouton qui aurait retourne la pastille sans ouvrir le
-     * formulaire aurait laisse une fiche « client » vide de tout ce qui fait
-     * un client.
-     */
-    function convertToClient(customer) {
-        openEdit(customer);
-        editForm.value = { ...editForm.value, status: "client" };
-    }
-
     const {
         pendingDelete,
         loading: deleteLoading,
@@ -208,6 +193,7 @@ export function useCustomersForm(
 
     return {
         items,
+        applyUpdatedList,
         search,
         filteredItems,
         userOptions,
@@ -223,7 +209,6 @@ export function useCustomersForm(
         editErrors,
         editLoading,
         openEdit,
-        convertToClient,
         submitEdit,
         pendingDelete,
         deleteLoading,

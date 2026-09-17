@@ -271,6 +271,78 @@ final class CustomersControllerTest extends IntegrationTestCase
         self::assertArrayHasKey('contractualEmail', $payload['errors']);
     }
 
+    /**
+     * Le geste que la fonctionnalite existe pour permettre.
+     *
+     * Un espace ouvert pour un prospect, la societe signe, un clic. L'adresse
+     * est le seul champ demande parce que c'est le seul que le statut impose.
+     */
+    public function testAProspectIsConvertedWithItsAddress(): void
+    {
+        $prospect = new Customer();
+        $prospect->setLegalName('Verrerie Lemoine');
+        $this->entityManager->persist($prospect);
+        $this->entityManager->flush();
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/backend/studio/customers/%d/convert', $prospect->getId()),
+            ['contractualEmail' => 'Direction@Verrerie-Lemoine.TEST'],
+        );
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->entityManager->refresh($prospect);
+        self::assertFalse($prospect->isProspect());
+        // Normalisee comme partout ailleurs.
+        self::assertSame('direction@verrerie-lemoine.test', $prospect->getContractualEmail());
+    }
+
+    public function testConvertingWithoutAnAddressIsRefused(): void
+    {
+        $prospect = new Customer();
+        $prospect->setLegalName('Sans adresse');
+        $this->entityManager->persist($prospect);
+        $this->entityManager->flush();
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/backend/studio/customers/%d/convert', $prospect->getId()),
+            ['contractualEmail' => ''],
+        );
+
+        self::assertSame(422, $this->client->getResponse()->getStatusCode());
+
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
+        self::assertArrayHasKey('contractualEmail', $payload['errors']);
+
+        $this->entityManager->refresh($prospect);
+        self::assertTrue($prospect->isProspect(), 'rien ne bascule tant que l\'adresse manque');
+    }
+
+    /**
+     * Une fiche qui porte deja une adresse se convertit sans rien saisir.
+     */
+    public function testAProspectThatAlreadyHasAnAddressConvertsWithNothingTyped(): void
+    {
+        $prospect = new Customer();
+        $prospect->setLegalName('Deja joignable')->setContractualEmail('deja@joignable.test');
+        $this->entityManager->persist($prospect);
+        $this->entityManager->flush();
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/backend/studio/customers/%d/convert', $prospect->getId()),
+            [],
+        );
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->entityManager->refresh($prospect);
+        self::assertFalse($prospect->isProspect());
+        self::assertSame('deja@joignable.test', $prospect->getContractualEmail());
+    }
+
     public function testACustomerWithNoContractIsDeleted(): void
     {
         $customer = new Customer();

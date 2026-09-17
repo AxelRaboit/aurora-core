@@ -1,5 +1,5 @@
 import { useI18n } from "vue-i18n";
-import { Eye, Pencil, Trash2 } from "lucide-vue-next";
+import { BadgeCheck, Eye, Pencil, Trash2 } from "lucide-vue-next";
 
 /**
  * What the menu on a space row offers.
@@ -22,12 +22,14 @@ import { Eye, Pencil, Trash2 } from "lucide-vue-next";
  * @param {(permission: string) => boolean} deps.can
  * @param {(record: object) => string} deps.boardHref where the space opens
  * @param {(record: object) => void} deps.openEdit
+ * @param {(record: object) => void} deps.convertToClient
  * @param {(record: object) => void} deps.confirmDelete
  */
 export function useSpaceRowActions({
     can,
     boardHref,
     openEdit,
+    convertToClient,
     confirmDelete,
 }) {
     const { t } = useI18n();
@@ -46,6 +48,27 @@ export function useSpaceRowActions({
                 href: boardHref(record),
             },
         ];
+
+        // **Convertir depuis ici et pas seulement depuis la fiche client.**
+        // C'est dans cette liste qu'on voit l'espace avancer, donc c'est ici
+        // qu'on apprend que la societe a dit oui - aller la chercher dans un
+        // autre ecran pour changer une colonne est le detour que ce bouton
+        // existe pour supprimer.
+        if (
+            can("studio.customers.edit") &&
+            "prospect" === record.customerStatus
+        ) {
+            actions.push({
+                key: "convert",
+                color: "emerald",
+                icon: BadgeCheck,
+                title: t("backend.studio.customers.convert"),
+                description: t(
+                    "backend.studio.spaces.row_actions.convert_description",
+                ),
+                onSelect: () => convertToClient(record),
+            });
+        }
 
         if (can("studio.spaces.edit")) {
             actions.push({

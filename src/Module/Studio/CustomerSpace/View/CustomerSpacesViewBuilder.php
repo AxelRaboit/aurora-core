@@ -53,6 +53,7 @@ final readonly class CustomerSpacesViewBuilder
             'boardPath' => $this->pathTemplates->generate('workspace_space_content', ['id' => '__id__']),
             'createPath' => $this->urlGenerator->generate('backend_studio_spaces_create'),
             'updatePath' => $this->pathTemplates->generate('backend_studio_spaces_update', ['id' => '__id__']),
+            'convertPath' => $this->pathTemplates->generate('backend_studio_customers_convert', ['id' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('backend_studio_spaces_delete', ['id' => '__id__']),
         ];
     }

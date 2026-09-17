@@ -22,6 +22,7 @@ backend:
         actions:
             studio:
                 customer:
+                    converted: Prospect converti en client
                     created: Client créé
                     updated: Client mis à jour
                     deleted: Client supprimé
@@ -660,6 +661,9 @@ backend:
                 client_plural: Clients
                 client: Client
             convert: Convertir en client
+            convert_title: 'Convertir {name} en client'
+            convert_hint: "C'est là que partira son contrat. Le SIRET, la forme juridique et le siège se remplissent ensuite sur sa fiche."
+            converted: Prospect converti en client.
             add: Ajouter un client
             create: Nouveau client
             edit: 'Modifier {name}'
@@ -797,6 +801,7 @@ backend:
 
             row_actions:
                 view_description: Ouvrir le tableau de cet espace
+                convert_description: Le client de cet espace a signé
                 edit_description: Modifier cet espace
                 delete_description: Supprimer cet espace
 

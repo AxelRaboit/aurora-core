@@ -5,6 +5,8 @@ import { useI18n } from "vue-i18n";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useCustomerRowActions } from "./composables/useCustomerRowActions.js";
+import { useProspectConversion } from "./composables/useProspectConversion.js";
+import ConvertProspectModal from "./components/ConvertProspectModal.vue";
 import { useCustomersForm } from "./composables/useCustomersForm.js";
 import CustomerFormFields from "./components/CustomerFormFields.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -27,12 +29,14 @@ const props = defineProps({
     currencies: { type: Array, default: () => [] },
     createPath: { type: String, required: true },
     updatePath: { type: String, required: true },
+    convertPath: { type: String, required: true },
     deletePath: { type: String, required: true },
 });
 
 const {
     search,
     filteredItems,
+    applyUpdatedList,
     userOptions,
     showCreate,
     newCustomer,
@@ -46,7 +50,6 @@ const {
     editErrors,
     editLoading,
     openEdit,
-    convertToClient,
     submitEdit,
     pendingDelete,
     deleteLoading,
@@ -62,10 +65,25 @@ const {
 
 // Its own rather than the shared edit/delete pair: a prospect has a third
 // thing to offer. See the composable.
+const {
+    pending: converting,
+    email: convertEmail,
+    error: convertError,
+    loading: convertLoading,
+    open: openConversion,
+    close: closeConversion,
+    submit: submitConversion,
+} = useProspectConversion(props.convertPath, (data) => applyUpdatedList(data));
+
 const actionsFor = useCustomerRowActions({
     can,
     openEdit,
-    convertToClient,
+    convertToClient: (customer) =>
+        openConversion(customer, {
+            id: customer.id,
+            name: customer.legalName,
+            email: customer.contractualEmail,
+        }),
     confirmDelete,
 });
 
@@ -442,5 +460,16 @@ const pageActions = computed(() => {
                 </AppModalFooter>
             </template>
         </AppModal>
+
+        <ConvertProspectModal
+            :show="!!converting"
+            :name="converting?.customer.name ?? ''"
+            :model-value="convertEmail"
+            :error="convertError"
+            :loading="convertLoading"
+            v-on:update:model-value="convertEmail = $event"
+            v-on:close="closeConversion"
+            v-on:submit="submitConversion"
+        />
     </div>
 </template>

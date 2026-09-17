@@ -22,6 +22,7 @@ backend:
         actions:
             studio:
                 customer:
+                    converted: Prospect converted to a customer
                     created: Customer created
                     updated: Customer updated
                     deleted: Customer deleted
@@ -660,6 +661,9 @@ backend:
                 client_plural: Customers
                 client: Customer
             convert: Convert to a customer
+            convert_title: 'Convert {name} to a customer'
+            convert_hint: This is where their contract will be sent. The registration number, the legal form and the registered office are filled in afterwards on their record.
+            converted: Prospect converted to a customer.
             add: Add a customer
             create: New customer
             edit: 'Edit {name}'
@@ -797,6 +801,7 @@ backend:
 
             row_actions:
                 view_description: Open this space's board
+                convert_description: This space's customer has signed
                 edit_description: Edit this space
                 delete_description: Delete this space
 

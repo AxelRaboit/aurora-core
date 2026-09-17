@@ -5,6 +5,7 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useFormAction } from "@/shared/composables/form/useFormAction.js";
 import { useDelete } from "@/shared/composables/form/useDelete.js";
 import { useClientFilteredList } from "@/shared/composables/list/useClientFilteredList.js";
+import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
 import { required } from "@/shared/utils/validation/validators.js";
 import { COLOUR_SLOTS } from "@/shared/composables/chart/paletteSlots.js";
 
@@ -97,14 +98,45 @@ export function useCustomerSpacesForm(
      */
     const showArchived = ref(false);
 
+    /**
+     * Clients ou prospects, jamais les deux.
+     *
+     * Retenu d'une visite a l'autre, comme les vues d'un espace : « ce sur quoi
+     * je travaille » et « ce que j'essaie de decrocher » ne se lisent pas dans
+     * la meme minute, et personne ne veut rechoisir a chaque retour.
+     */
+    const { choice: tab } = usePersistedChoice("studio.spaces.tab", "client", [
+        "client",
+        "prospect",
+    ]);
+
+    /** Les deux filtres se composent : l'onglet, puis les archives. */
+    const ofTab = computed(() =>
+        filteredItems.value.filter(
+            (space) => (space.customerStatus ?? "client") === tab.value,
+        ),
+    );
+
     const visibleItems = computed(() =>
         showArchived.value
-            ? filteredItems.value
-            : filteredItems.value.filter((space) => !space.archived),
+            ? ofTab.value
+            : ofTab.value.filter((space) => !space.archived),
+    );
+
+    const tabs = computed(() =>
+        ["client", "prospect"].map((key) => ({
+            key,
+            // Le compte ignore les archives, comme l'etiquette qu'il porte :
+            // il dit combien il y a de choses derriere cet onglet, pas combien
+            // on en montre.
+            count: filteredItems.value.filter(
+                (space) => (space.customerStatus ?? "client") === key,
+            ).length,
+        })),
     );
 
     const archivedCount = computed(
-        () => items.value.filter((space) => space.archived).length,
+        () => ofTab.value.filter((space) => space.archived).length,
     );
 
     function applyUpdatedList(data) {
@@ -197,6 +229,8 @@ export function useCustomerSpacesForm(
         items,
         search,
         visibleItems,
+        tab,
+        tabs,
         showArchived,
         archivedCount,
         customerOptions,

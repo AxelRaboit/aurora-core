@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\Customer\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Studio\Customer\Dto\CustomerInputFactoryInterface;
@@ -59,6 +60,32 @@ class CustomersController extends AbstractController
 
             return $this->jsonSuccess($this->viewBuilder->customerPayload($customer));
         });
+    }
+
+    /**
+     * Un prospect devient client.
+     *
+     * Sa propre route plutot qu'un `update` : le formulaire de conversion ne
+     * connait qu'un champ, et passer par la mise a jour aurait demande de
+     * renvoyer la raison sociale et le reste pour changer une colonne.
+     *
+     * Repond avec la liste entiere : le rang change d'onglet, et les deux
+     * ecrans qui offrent ce bouton comptent les leurs.
+     */
+    #[Route('/{id}/convert', name: '_convert', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.customers.edit')]
+    public function convert(Customer $customer, Request $request): JsonResponse
+    {
+        try {
+            $this->customerManager->convertToClient(
+                $customer,
+                Str::emailOrNullFromArray($this->decodeJson($request), 'contractualEmail'),
+            );
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess($this->viewBuilder->listPayload());
     }
 
     #[Route('/{id}/delete', name: '_delete', methods: [HttpMethodEnum::Post->value])]

@@ -34,9 +34,13 @@ On travaille avec une société bien avant d'avoir son SIRET. Plutôt que d'alle
 
 **Un nom suffit.** Tout le reste — l'adresse, la forme juridique, le siège, le représentant, le SIRET — attend. Les liens d'accès que vous créerez portent chacun leur propre destinataire, donc l'espace fonctionne entièrement sans que la fiche ait une adresse.
 
-L'espace s'ouvre avec une vraie fiche derrière lui, rangée dans l'onglet **Prospects** de la liste des clients.
+L'espace s'ouvre avec une vraie fiche derrière lui. **Les deux listes se séparent en deux onglets**, Clients et Prospects : celle des espaces, parce que « ce sur quoi je travaille » et « ce que j'essaie de décrocher » ne se lisent pas dans la même minute, et celle des clients pour la même raison. Le compte porté par chaque onglet est ce qui rend l'autre visible.
 
-Quand il signe, « Convertir en client » dans le menu Actions de sa fiche ouvre le formulaire avec le statut déjà basculé. C'est le moment de saisir ce qui manquait — et **l'adresse contractuelle devient obligatoire**, parce que c'est là que part son contrat. Rien ne déménage : l'espace, son tableau, ses fichiers et ses échanges étaient déjà les siens.
+Quand il signe, **« Convertir en client » est dans le menu Actions de l'espace** — pas besoin d'aller chercher sa fiche, c'est ici qu'on voit le chantier avancer. Une fenêtre demande **une seule chose, l'adresse contractuelle**, parce que c'est le seul champ que le statut impose : c'est là que part son contrat. Le SIRET, la forme juridique et le siège se remplissent ensuite sur sa fiche, quand on les a.
+
+L'espace bascule aussitôt dans l'onglet Clients. Rien ne déménage : son tableau, ses fichiers et ses échanges étaient déjà les siens.
+
+Le même bouton existe sur la fiche du client, pour qui part de là.
 
 Rien n'est interdit à un prospect, pas même un contrat — signer, c'est justement ce qui le convertit.
 

@@ -12,11 +12,15 @@ use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Customer\Dto\CustomerInputInterface;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
+use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
+
+use function mb_strtolower;
+use function mb_trim;
 
 #[AsAlias(CustomerManagerInterface::class)]
 class CustomerManager implements CustomerManagerInterface
@@ -82,6 +86,38 @@ class CustomerManager implements CustomerManagerInterface
 
         $this->entityManager->remove($customer);
         $this->entityManager->flush();
+    }
+
+    /**
+     * Un prospect devient client, en un geste.
+     *
+     * **Une operation a elle seule plutot qu'une mise a jour ordinaire**, parce
+     * que c'est ce qu'elle est : on ne modifie pas une fiche, on dit qu'une
+     * societe s'est engagee. Passer par `update` aurait demande de renvoyer la
+     * raison sociale et tout le reste pour changer une colonne, et aurait ecrit
+     * dans l'audit une modification la ou il s'est passe quelque chose.
+     *
+     * L'adresse est le seul champ accepte : c'est le seul que le statut impose.
+     * Une fiche qui en a deja une peut donc etre convertie sans rien saisir.
+     */
+    public function convertToClient(CustomerInterface $customer, ?string $contractualEmail): void
+    {
+        if (null !== $contractualEmail && '' !== $contractualEmail) {
+            $customer->setContractualEmail(mb_strtolower(mb_trim($contractualEmail)));
+        }
+
+        $email = $customer->getContractualEmail();
+
+        if (null === $email || '' === $email) {
+            throw new FieldException('contractualEmail', $this->translator->trans('backend.studio.customers.errors.contractual_email_required'));
+        }
+
+        $customer->setStatus(CustomerStatusEnum::Client);
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('studio', 'customer.converted', 'Customer', $customer->getId(), [
+            'legalName' => $customer->getLegalName(),
+        ]);
     }
 
     /**
