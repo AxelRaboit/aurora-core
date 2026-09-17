@@ -118,4 +118,28 @@ describe("SpaceFilesView", () => {
         await toggle[1].trigger("click");
         expect(view.findAll("li")).toHaveLength(2);
     });
+
+    /**
+     * Ouvrir un fichier montre le fichier, ici, sans quitter la liste.
+     *
+     * L'assertion porte sur l'adresse rendue et pas sur le composant de
+     * prévisualisation : ce qui casserait en silence, c'est un panneau ouvert
+     * sur le mauvais fichier - deux lignes, un seul `previewed`.
+     */
+    it("previews a file in a panel rather than navigating to it", async () => {
+        const view = render();
+
+        expect(document.body.innerHTML).not.toContain("/f/11");
+
+        await view
+            .findAll("button")
+            .find((b) => b.text() === "backend.studio.space_content.files_open")
+            .trigger("click");
+
+        // Le panneau est téléporté sur le body, comme toutes les fenêtres de
+        // l'application : le chercher dans le composant ne trouverait rien.
+        expect(document.body.innerHTML).toContain("/f/11");
+
+        view.unmount();
+    });
 });

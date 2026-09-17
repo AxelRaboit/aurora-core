@@ -40,6 +40,11 @@ backend:
                     revoked: Client access link revoked
                     deleted: Client access link deleted
                     opened: Space opened by a client
+                space_note:
+                    created: Space note created
+                    updated: Space note edited
+                    pinned: Space note pinned or unpinned
+                    deleted: Space note deleted
                 space_chat_message:
                     posted: Message posted in a space's conversation
                     deleted: Conversation message deleted
@@ -854,6 +859,44 @@ backend:
             errors:
                 email_required: The recipient email is required.
                 email_invalid: This email is not valid.
+        space_notes:
+            # A space's notes: the one surface a client never sees.
+            add: New note
+            create: New note
+            edit: Edit the note
+            title: Title
+            title_placeholder: "Brief of 12 March"
+            body_placeholder: "What was said, what is left to do…"
+            colour: Colour
+            colour_hint: "To pick a note out on the wall. Left empty it carries none - a wall where everything is coloured distinguishes nothing."
+            pinned: Pin to the top
+            pin: Pin
+            unpin: Unpin
+            view_label: View
+            view_grid: Wall
+            view_list: List
+            visibility: Who reads it
+            visibility_hint_shared: "Everybody on the space's team. The client sees no note at all."
+            visibility_hint_personal: "You alone. It reaches nobody else, not even the space's team."
+            visibilities:
+                shared: Shared with the team
+                personal: Personal
+                shared_plural: Shared
+                personal_plural: Personal
+            someone_elses: Somebody's personal note
+            empty_shared: No shared note on this space
+            empty_shared_hint: "What the team needs to know about this client and no form carries. The client does not see notes."
+            empty_personal: No personal note on this space
+            empty_personal_hint: "The brief taken over the phone, an idea not ready to show, what went wrong last month. Nobody else reads them."
+            created: Note created.
+            updated: Note saved.
+            deleted: Note deleted.
+            delete_confirm: 'Delete "{title}"?'
+            delete_warning: "The images it holds stay in the library. Those nothing uses any more will be offered to you."
+            errors:
+                title_required: The title is required.
+                title_too_long: The title cannot be longer than 180 characters.
+                needs_account: You have to be signed in to take a note.
         space_notifications:
             # What the studio learns without opening the space. The client's
             # side only: the studio already knows what the studio did.
@@ -875,15 +918,18 @@ backend:
         space_content:
             tab: Content
             view_label: View
-            view_board: Board
-            view_list: List
+            view_content: Content
+            shape_board: Kanban
+            shape_list: List
             view_calendar: Calendar
             view_files: Files
             view_chat: Chat
+            view_notes: Notes
             files_empty: No file on this space yet
             files_empty_hint: Files put on the content, by you or by the client, appear here newest first.
             files_unknown_card: Deleted content
             files_open: Open
+            files_open_in_tab: Open in a tab
             orphaned_one: "“{title}” is no longer used anywhere."
             orphaned_many: "{count} files are no longer used anywhere."
             orphaned_trash: Move to the trash

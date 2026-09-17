@@ -23,14 +23,24 @@
  *
  * It draws from the payload the other views already hold, so opening it costs
  * no request and it cannot disagree with the thumbnails on the board.
+ *
+ * **A file opens in a panel, not in a tab.** Reading this view is a sweep -
+ * which photo was it, when did it arrive - and a tab per file turns that sweep
+ * into a pile of tabs to close. The panel shows the file over the list it came
+ * from, closes on Escape, and still offers the real address for whoever wants
+ * the tab or the download.
  */
-import { toRef } from "vue";
+import { ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useSpaceFiles } from "../composables/useSpaceFiles.js";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppImage from "@/shared/components/display/AppImage.vue";
-import { FileText, LayoutGrid, List, UserRound } from "lucide-vue-next";
+import AppModal from "@/shared/components/overlay/AppModal.vue";
+import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
+import AppButton from "@/shared/components/action/AppButton.vue";
+import AppFilePreview from "@/shared/components/display/AppFilePreview.vue";
+import { ExternalLink, FileText, LayoutGrid, List, UserRound, X } from "lucide-vue-next";
 
 const props = defineProps({
     attachments: { type: Object, default: () => ({}) },
@@ -64,6 +74,14 @@ function open(itemId) {
 
     if (item) emit("open-item", item);
 }
+
+/**
+ * Le fichier montré dans le panneau, ou null.
+ *
+ * Le composant partagé sait déjà rendre une image, un PDF et le reste ; il n'y
+ * a rien de propre aux espaces dans « à quoi ressemble ce fichier ».
+ */
+const previewed = ref(null);
 </script>
 
 <template>
@@ -106,9 +124,11 @@ function open(itemId) {
                 :key="file.id"
                 class="overflow-hidden rounded-lg border border-line/60 bg-surface transition-colors hover:border-accent-400"
             >
-                <a
-                    :href="file.url"
-                    class="relative flex aspect-square items-center justify-center overflow-hidden bg-surface-2"
+                <button
+                    type="button"
+                    class="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-surface-2"
+                    :title="t('backend.studio.space_content.files_open')"
+                    v-on:click="previewed = file"
                 >
                     <AppImage
                         v-if="file.preview"
@@ -117,7 +137,7 @@ function open(itemId) {
                         object-fit="cover"
                     />
                     <FileText v-else class="h-10 w-10 text-muted" :stroke-width="1.5" />
-                </a>
+                </button>
 
                 <div class="px-2.5 py-2">
                     <p class="truncate text-xs text-primary" :title="file.title">
@@ -188,13 +208,71 @@ function open(itemId) {
                     </p>
                 </div>
 
-                <a
-                    :href="file.url"
+                <button
+                    type="button"
                     class="shrink-0 rounded-md border border-line/60 px-2.5 py-1 text-xs text-primary transition-colors hover:bg-surface-2"
+                    v-on:click="previewed = file"
                 >
                     {{ t("backend.studio.space_content.files_open") }}
-                </a>
+                </button>
             </li>
         </ul>
+
+        <AppModal
+            :show="!!previewed"
+            max-width="3xl"
+            :title="previewed?.title ?? ''"
+            :icon="FileText"
+            v-on:close="previewed = null"
+        >
+            <div class="space-y-3">
+                <AppFilePreview
+                    :url="previewed?.url ?? ''"
+                    :mime="previewed?.mimeType ?? ''"
+                    :name="previewed?.title ?? ''"
+                    max-height="60vh"
+                />
+
+                <p class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
+                    <button
+                        type="button"
+                        class="truncate underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
+                        v-on:click="open(previewed.itemId)"
+                    >
+                        {{ titleOf(previewed?.itemId) }}
+                    </button>
+
+                    <span aria-hidden="true">·</span>
+                    <span class="inline-flex items-center gap-1">
+                        <UserRound v-if="previewed?.fromClient" class="h-3 w-3" :stroke-width="2" />
+                        {{ previewed?.author }}
+                    </span>
+
+                    <span aria-hidden="true">·</span>
+                    <span>{{ previewed ? d(new Date(previewed.createdAt), "short") : "" }}</span>
+
+                    <template v-if="previewed && weightOf(previewed)">
+                        <span aria-hidden="true">·</span>
+                        <span>{{ weightOf(previewed) }}</span>
+                    </template>
+                </p>
+            </div>
+
+            <template #footer>
+                <AppModalFooter>
+                    <!-- L'adresse réelle reste offerte : le panneau sert à
+                         regarder, le lien sert à télécharger ou à garder le
+                         fichier ouvert à côté. -->
+                    <AppButton variant="ghost" size="md" :href="previewed?.url" target="_blank">
+                        <ExternalLink class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("backend.studio.space_content.files_open_in_tab") }}
+                    </AppButton>
+                    <AppButton variant="primary" size="md" v-on:click="previewed = null">
+                        <X class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.close") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
     </div>
 </template>

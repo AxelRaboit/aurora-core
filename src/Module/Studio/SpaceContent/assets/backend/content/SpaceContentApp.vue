@@ -2,11 +2,16 @@
 /**
  * A space's content, in whichever view the reader prefers.
  *
- * **The views are a preference, not a destination.** The board, the list and
- * the month show the same rows and differ only in how somebody likes to read
- * them, so the choice lives with the person and not in the address: it is
- * remembered, it costs no request, and it is the same in every space they open.
+ * **The switcher lists subjects, not drawings.** Contenus, Calendrier,
+ * Fichiers, Discussion, Notes: five different questions about one space. Which
+ * of them somebody reads is a preference, so it lives with the person and not
+ * in the address - remembered, free, and the same in every space they open.
  * What is on screen - which space - stays in the URL.
+ *
+ * **The kanban and the list are one entry, with two shapes.** They show the
+ * same cards in the same order and differ only in the drawing, which is the
+ * distinction the files view already draws between rows and cards. See
+ * {@see useSpaceContentShape}.
  *
  * **The files view is the exception, and it is deliberate.** It is not a
  * fourth way of reading the cards, it is a different subject: everything the
@@ -25,13 +30,9 @@
  * for it looks here - and it is the one view that costs a request, because a
  * chat that showed what was true when the page loaded is not a chat.
  *
- * The list exists because a board is not everybody's way of thinking, and
- * because it is the only one of the three that fits on a phone without
- * scrolling sideways.
- *
- * This component owns the state and the writes; the three views own nothing
- * and hand everything back as events. That is what lets a card edited in one
- * of them be right in the other two.
+ * This component owns the state and the writes; the views own nothing and
+ * hand everything back as events. That is what lets a card edited in one of
+ * them be right in the others.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -39,6 +40,8 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
 import { useSpaceCardActions } from "./composables/useSpaceCardActions.js";
 import { useSpaceContent } from "./composables/useSpaceContent.js";
+import { useSpaceContentShape } from "./composables/useSpaceContentShape.js";
+import { useOrphanedDocumentOffer } from "./composables/useOrphanedDocumentOffer.js";
 import SpaceBoardView from "./views/SpaceBoardView.vue";
 import SpaceListView from "./views/SpaceListView.vue";
 import SpaceCalendarView from "./views/SpaceCalendarView.vue";
@@ -47,7 +50,11 @@ import SpaceContentItemFields from "./components/SpaceContentItemFields.vue";
 // Same module, another sub-domain: a relative path rather than an alias,
 // the way the public page already reaches the shared thread.
 import SpaceChatPanel from "../../../../SpaceChat/assets/shared/SpaceChatPanel.vue";
+import SpaceNotesView from "../../../../SpaceNote/assets/backend/notes/SpaceNotesView.vue";
+import SpaceNoteFormModal from "../../../../SpaceNote/assets/backend/notes/SpaceNoteFormModal.vue";
+import { useSpaceNotes } from "../../../../SpaceNote/assets/backend/notes/composables/useSpaceNotes.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
@@ -55,8 +62,10 @@ import AppColourSlotPicker from "@/shared/components/form/picker/AppColourSlotPi
 import {
     CalendarDays,
     MessagesSquare,
+    StickyNote,
     Paperclip,
     Columns3,
+    FileStack,
     FileText,
     List,
     Pencil,
@@ -94,28 +103,36 @@ const props = defineProps({
     chatPostPath: { type: String, required: true },
     chatReloadPath: { type: String, required: true },
     chatDeletePath: { type: String, required: true },
+    notes: { type: Array, default: () => [] },
+    noteCreatePath: { type: String, required: true },
+    noteUpdatePath: { type: String, required: true },
+    noteDeletePath: { type: String, required: true },
+    notePinPath: { type: String, required: true },
+    noteImagePath: { type: String, required: true },
 });
 
 const VIEWS = [
-    { key: "board", labelKey: "backend.studio.space_content.view_board", icon: Columns3 },
-    { key: "list", labelKey: "backend.studio.space_content.view_list", icon: List },
+    { key: "content", labelKey: "backend.studio.space_content.view_content", icon: FileStack },
     { key: "calendar", labelKey: "backend.studio.space_content.view_calendar", icon: CalendarDays },
     { key: "files", labelKey: "backend.studio.space_content.view_files", icon: Paperclip },
     { key: "chat", labelKey: "backend.studio.space_content.view_chat", icon: MessagesSquare },
+    { key: "notes", labelKey: "backend.studio.space_content.view_notes", icon: StickyNote },
 ];
 
 /**
  * One key for every space, deliberately.
  *
- * Somebody who does not think in columns does not think in columns for one
- * client and in columns for the next. A per-space key would make them choose
- * again on every space they open, which is the thing this exists to stop.
+ * Somebody who opens a space to read its conversation does that for one client
+ * and for the next. A per-space key would make them choose again on every
+ * space they open, which is the thing this exists to stop.
  */
 const { choice: view } = usePersistedChoice(
     "studio.space_content.view",
-    "board",
+    "content",
     VIEWS.map((entry) => entry.key),
 );
+
+const { shape, storedShape, setShape, container: shapeContainer } = useSpaceContentShape();
 
 const {
     // Named apart from the props of the same name: these are the refs the
@@ -195,6 +212,46 @@ const {
 
 const editable = computed(() => can("studio.spaces.edit"));
 
+/**
+ * Les notes de l'espace, la seule surface que le client ne voit pas.
+ *
+ * Elles réutilisent l'offre de nettoyage des fiches : supprimer une note ne
+ * supprime pas ses images, et ce qui n'est plus utilisé nulle part est proposé
+ * plutôt que jeté.
+ */
+const {
+    notes: spaceNotes,
+    tab: notesTab,
+    tabs: notesTabs,
+    viewMode: notesViewMode,
+    storedViewMode: notesStoredViewMode,
+    setViewMode: setNotesViewMode,
+    container: notesContainer,
+    showForm: showNoteForm,
+    editing: editingNote,
+    form: noteForm,
+    errors: noteErrors,
+    loading: noteLoading,
+    openCreate: openNoteCreate,
+    openEdit: openNoteEdit,
+    submit: submitNote,
+    togglePin: toggleNotePin,
+    pendingDelete: pendingNoteDelete,
+    confirmDelete: confirmNoteDelete,
+    doDelete: deleteNote,
+} = useSpaceNotes(
+    props.notes,
+    {
+        createPath: props.noteCreatePath,
+        updatePath: props.noteUpdatePath,
+        deletePath: props.noteDeletePath,
+        pinPath: props.notePinPath,
+    },
+    // La même offre que les fichiers d'une fiche : un seul contrat, un seul
+    // composable pour le lire.
+    useOrphanedDocumentOffer().offer,
+);
+
 // Its own rather than the shared edit/delete pair, because a reader who may
 // not edit has to be offered something: see `useSpaceCardActions`.
 const actionsFor = useSpaceCardActions({
@@ -207,7 +264,7 @@ const actionsFor = useSpaceCardActions({
 <template>
     <div class="space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <!-- Segmented rather than a select: three choices are worth showing
+            <!-- Segmented rather than a select: five choices are worth showing
                  at once, and the one in use is the answer to "why does this
                  look different from yesterday". -->
             <div
@@ -233,41 +290,71 @@ const actionsFor = useSpaceCardActions({
                 </button>
             </div>
 
-            <AppButton
-                v-if="editable && 'calendar' !== view && 'chat' !== view"
-                variant="ghost"
-                size="sm"
-                v-on:click="openColumnCreate"
-            >
-                <Columns3 class="h-3.5 w-3.5" :stroke-width="2" />
-                {{ t("backend.studio.space_content.add_column") }}
-            </AppButton>
+            <div class="flex items-center gap-2">
+                <!-- The shape of one entry, so it sits with the actions rather
+                     than inside the switcher: two segmented groups side by side
+                     would read as one control with seven choices. -->
+                <div v-if="view === 'content'" class="flex rounded-lg border border-line/60 p-0.5">
+                    <AppIconButton
+                        size="sm"
+                        variant="ghost"
+                        :title="t('backend.studio.space_content.shape_board')"
+                        :class="storedShape === 'board' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                        v-on:click="setShape('board')"
+                    >
+                        <Columns3 class="h-4 w-4" :stroke-width="2" />
+                    </AppIconButton>
+                    <AppIconButton
+                        size="sm"
+                        variant="ghost"
+                        :title="t('backend.studio.space_content.shape_list')"
+                        :class="storedShape === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                        v-on:click="setShape('list')"
+                    >
+                        <List class="h-4 w-4" :stroke-width="2" />
+                    </AppIconButton>
+                </div>
+
+                <AppButton
+                    v-if="editable && !['calendar', 'chat', 'notes'].includes(view)"
+                    variant="ghost"
+                    size="sm"
+                    v-on:click="openColumnCreate"
+                >
+                    <Columns3 class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("backend.studio.space_content.add_column") }}
+                </AppButton>
+            </div>
         </div>
 
-        <SpaceBoardView
-            v-if="view === 'board'"
-            :grouped="grouped"
-            :editable="editable"
-            :actions-for="actionsFor"
-            :files-of="filesOf"
-            :is-empty="isEmpty"
-            v-on:open-item="openItemEdit"
-            v-on:reorder="reorderItems"
-            v-on:add-item="openItemCreate({ columnId: $event })"
-            v-on:edit-column="openColumnEdit"
-            v-on:delete-column="confirmColumnDelete"
-        />
+        <!-- The container and not the window decides the shape: bound here,
+             around both drawings, so a narrow panel gets the list. -->
+        <div v-if="view === 'content'" ref="shapeContainer">
+            <SpaceBoardView
+                v-if="shape === 'board'"
+                :grouped="grouped"
+                :editable="editable"
+                :actions-for="actionsFor"
+                :files-of="filesOf"
+                :is-empty="isEmpty"
+                v-on:open-item="openItemEdit"
+                v-on:reorder="reorderItems"
+                v-on:add-item="openItemCreate({ columnId: $event })"
+                v-on:edit-column="openColumnEdit"
+                v-on:delete-column="confirmColumnDelete"
+            />
 
-        <SpaceListView
-            v-else-if="view === 'list'"
-            :grouped="grouped"
-            :editable="editable"
-            :actions-for="actionsFor"
-            :files-of="filesOf"
-            :is-empty="isEmpty"
-            v-on:add-item="openItemCreate({ columnId: $event })"
-            v-on:open-item="openItemEdit"
-        />
+            <SpaceListView
+                v-else
+                :grouped="grouped"
+                :editable="editable"
+                :actions-for="actionsFor"
+                :files-of="filesOf"
+                :is-empty="isEmpty"
+                v-on:add-item="openItemCreate({ columnId: $event })"
+                v-on:open-item="openItemEdit"
+            />
+        </div>
 
         <SpaceFilesView
             v-else-if="view === 'files'"
@@ -289,6 +376,25 @@ const actionsFor = useSpaceCardActions({
             :delete-path="editable ? chatDeletePath : null"
             :notice="t('backend.studio.space_chat.notice')"
         />
+
+        <!-- Le mur de notes, monté sur son propre conteneur : c'est lui qui
+             décide de la forme, pas la fenêtre. -->
+        <div v-else-if="view === 'notes'" ref="notesContainer">
+            <SpaceNotesView
+                :notes="spaceNotes"
+                :tab="notesTab"
+                :tabs="notesTabs"
+                :view-mode="notesViewMode"
+                :stored-view-mode="notesStoredViewMode"
+                :editable="editable"
+                v-on:create="openNoteCreate"
+                v-on:open="openNoteEdit"
+                v-on:pin="toggleNotePin"
+                v-on:delete="confirmNoteDelete"
+                v-on:set-view="setNotesViewMode"
+                v-on:set-tab="notesTab = $event"
+            />
+        </div>
 
         <SpaceCalendarView
             v-else
@@ -477,6 +583,46 @@ const actionsFor = useSpaceCardActions({
                         :loading="columnDeleteLoading"
                         v-on:click="deleteColumn"
                     >
+                        <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.delete") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
+
+        <SpaceNoteFormModal
+            :show="showNoteForm"
+            :model-value="noteForm"
+            :errors="noteErrors"
+            :loading="noteLoading"
+            :editing="!!editingNote"
+            :upload-url="noteImagePath"
+            v-on:update:model-value="noteForm = $event"
+            v-on:close="showNoteForm = false"
+            v-on:submit="submitNote"
+        />
+
+        <AppModal
+            :show="!!pendingNoteDelete"
+            max-width="sm"
+            :closeable="false"
+            :title="t('shared.common.delete')"
+            :icon="Trash2"
+            v-on:close="pendingNoteDelete = null"
+        >
+            <p class="text-sm text-primary">
+                {{ t("backend.studio.space_notes.delete_confirm", { title: pendingNoteDelete?.title ?? "" }) }}
+            </p>
+            <p class="text-sm text-secondary">
+                {{ t("backend.studio.space_notes.delete_warning") }}
+            </p>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="pendingNoteDelete = null">
+                        <X class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.cancel") }}
+                    </AppButton>
+                    <AppButton variant="danger" size="md" :loading="noteLoading" v-on:click="deleteNote">
                         <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
                         {{ t("shared.common.delete") }}
                     </AppButton>

@@ -5,15 +5,19 @@ rubric: "Studio"
 ---
 Cliquer sur le nom d'un espace ouvre son contenu. L'écran change : plus de menu latéral, un bandeau fin avec le retour, le nom de l'espace et deux onglets. C'est voulu, un espace est un endroit où l'on reste.
 
-## Cinq façons de regarder un espace
+## Cinq questions sur un espace
 
-L'onglet Contenu porte un sélecteur : **Tableau**, **Liste**, **Calendrier**, **Fichiers**, **Discussion**. Les trois premiers ne sont pas trois fonctionnalités, ce sont trois façons de lire les mêmes fiches : le tableau dit où en est chaque chose, la liste dit ce qu'il y a, le calendrier dit quand ça sort.
+L'onglet Contenu porte un sélecteur : **Contenus**, **Calendrier**, **Fichiers**, **Discussion**, **Notes**. Ce ne sont pas cinq écrans qui se ressemblent, ce sont cinq questions différentes sur le même espace. Contenus et Calendrier lisent les mêmes fiches, l'un pour dire où en est chaque chose, l'autre pour dire quand ça sort. Fichiers rassemble tout ce que l'espace a échangé, du plus récent au plus ancien, là où une fiche ne montre que les siens. Discussion est le fil de l'espace lui-même, pour ce qui ne tient sur aucune fiche. Notes est votre surface de travail, la seule que le client ne voit pas. Chacun a sa page.
 
-**Les deux derniers sont d'une autre nature.** Fichiers rassemble tout ce que l'espace a échangé, du plus récent au plus ancien, là où les trois premiers montrent les fichiers d'une fiche sur la fiche. Discussion est le fil de l'espace lui-même, pour ce qui ne tient sur aucune fiche. Chacun a sa page.
+**Votre choix est retenu.** Celui qui ouvre un espace pour sa discussion la retrouve en ouvrant le suivant.
 
-**Votre choix est retenu.** Quelqu'un qui ne pense pas en colonnes choisit la liste une fois et la retrouve dans tous ses espaces. Rien n'est perdu en changeant de vue : c'est le même contenu, et une fiche modifiée dans l'une est à jour dans les autres.
+## Deux formes pour les mêmes fiches
 
-Cette page décrit le tableau ; le calendrier, les fichiers et la discussion ont les leurs.
+En haut à droite de l'onglet Contenus, deux boutons : le **kanban** et la **liste**. Ce ne sont pas deux vues, c'est le même contenu dessiné autrement - mêmes fiches, même ordre, mêmes actions. Le kanban range par étape, la liste se lit de haut en bas et tient sur un téléphone, où des colonnes demanderaient de défiler de côté.
+
+Le choix voyage dans l'adresse de la page, comme celui des fichiers : un lien vers cet écran emmène la forme avec lui. Sur un écran étroit, c'est la liste qui s'affiche quoi qu'en dise le lien, sans effacer ce que vous aviez choisi.
+
+Cette page décrit l'onglet Contenus ; le calendrier, les fichiers, la discussion et les notes ont les leurs.
 
 ![Le tableau d'un espace, avec ses étapes](../../images/06-studio/le-tableau-01-le-tableau.png)
 

@@ -29,13 +29,17 @@ Ce qu'il envoie est limité aux formats inertes, images, PDF et les deux formats
 
 ## 3. La vue Fichiers
 
-Le sélecteur de l'onglet Contenu porte une quatrième entrée. Elle rassemble tout ce que l'espace a échangé, du plus récent au plus ancien, en nommant la fiche de chaque ligne. C'est la vue pour « ce fichier est arrivé la semaine dernière, mais pour quel post ».
+Le sélecteur de l'onglet Contenu porte **Fichiers**. Elle rassemble tout ce que l'espace a échangé, du plus récent au plus ancien, en nommant la fiche de chaque ligne. C'est la vue pour « ce fichier est arrivé la semaine dernière, mais pour quel post ».
 
 ![La vue Fichiers, en liste](../../images/06-studio/les-fichiers-03-la-vue-fichiers.png)
 
 Deux formes au choix, en haut à droite : **liste** quand la question est quand et de qui, **cartes** quand la question est laquelle. Le choix voyage dans l'adresse, donc un lien vers cette vue l'emmène avec lui.
 
 ![La même vue, en cartes](../../images/06-studio/les-fichiers-04-en-cartes.png)
+
+**Ouvrir montre le fichier sur place**, dans un panneau posé sur la liste : une image s'affiche, un PDF se feuillette, le reste annonce ce qu'il est. Parcourir des fichiers est un balayage, et un onglet par fichier en fait une pile d'onglets à refermer. L'adresse réelle reste offerte en bas du panneau, pour le télécharger ou le garder ouvert à côté.
+
+![Un fichier ouvert dans son panneau](../../images/06-studio/les-fichiers-05-le-panneau.png)
 
 ## 4. Où ils atterrissent
 

@@ -129,9 +129,33 @@ async function closeDialog() {
   await wait(900);
 }
 
+/**
+ * Ferme la fenêtre ouverte, quel que soit le mot sur son bouton.
+ *
+ * `closeDialog` vise « Annuler », qui n'existe que sur les fenêtres où l'on
+ * saisit quelque chose ; une fenêtre qui ne fait que montrer porte « Fermer ».
+ * Échap les ferme toutes.
+ */
+async function dismissDialog() {
+  await page.keyboard.press("Escape");
+  await wait(900);
+}
+
 async function selectView(label) {
   await page.getByRole("button", { name: label, exact: true }).first().click();
   await wait(2000);
+}
+
+/**
+ * La forme de l'onglet Contenus : kanban ou liste.
+ *
+ * Deux boutons d'icône titrés, à droite du sélecteur de vues. Il faut être sur
+ * l'onglet Contenus pour qu'ils existent, d'où le passage par selectView.
+ */
+async function selectShape(label) {
+  await selectView("Contenus");
+  await page.getByRole("button", { name: label, exact: true }).first().click();
+  await wait(1500);
 }
 
 async function openFirstSpace() {
@@ -139,6 +163,13 @@ async function openFirstSpace() {
   await wait(2500);
   await page.getByRole("link", { name: /Réseaux sociaux/ }).first().click();
   await wait(3000);
+
+  // Toujours sur Contenus, quel que soit le flux précédent : l'onglet ouvert
+  // est retenu d'une visite à l'autre, donc un flux qui finit sur Calendrier
+  // décide de ce que le suivant trouve en arrivant. Un clic de plus vaut mieux
+  // qu'un ordre de flux à ne pas casser.
+  await page.getByRole("button", { name: "Contenus", exact: true }).first().click();
+  await wait(1500);
 }
 
 /**
@@ -387,6 +418,30 @@ const FLOWS = {
     await page.getByRole("button", { name: /personnes?$/ }).first().click();
     await wait(1200);
     await shot("la-modale-d-equipe");
+
+    await dismissDialog();
+
+    // L'onglet des prospects, et la fenêtre qui les convertit. Le choix
+    // d'onglet est retenu d'une visite à l'autre : il faut revenir sur
+    // Clients, sinon tous les flux suivants photographient les prospects.
+    await page.getByRole("button", { name: /^Prospects/ }).first().click();
+    await wait(1500);
+    await shot("les-prospects");
+
+    // Le menu de la ligne, pas celui de la page : les deux s'appellent
+    // « Actions », et celui d'en haut ne sait rien de ce prospect.
+    await page.locator("tbody tr").first().getByRole("button").last().click();
+    await wait(600);
+    await page.getByText(/Convertir en client/).first().click();
+    await wait(1200);
+    await shot("convertir-en-client");
+
+    // Celle-ci se ferme par son bouton : une fenêtre de saisie ne s'abandonne
+    // pas sur Échap, ce qui est voulu et ce qu'Échap ne peut pas contourner.
+    await closeDialog();
+
+    await page.getByRole("button", { name: /^Clients/ }).first().click();
+    await wait(1000);
   },
 
   /**
@@ -459,6 +514,16 @@ const FLOWS = {
     await wait(1500);
     await shot("en-cartes");
 
+    // Le panneau : ouvrir un fichier le montre sur place. Repassé en liste
+    // d'abord, parce que c'est là que le bouton porte le mot « Ouvrir » - en
+    // cartes, c'est la vignette qu'on clique.
+    await page.getByRole("button", { name: "Afficher en liste" }).first().click();
+    await wait(1200);
+    await page.getByRole("button", { name: "Ouvrir", exact: true }).first().click();
+    await wait(1500);
+    await shot("le-panneau");
+    await closeDialog().catch(() => {});
+
     // Pas de photo du dossier que l'espace s'ouvre dans la médiathèque, et
     // c'est une absence choisie : la démo rattache des documents existants au
     // lieu d'en déposer, donc aucun espace n'a de dossier et la photo
@@ -483,6 +548,41 @@ const FLOWS = {
     // le client lit ce qui est écrit là, et c'est le seul endroit où elle
     // apparaît.
     await shotOf(page.locator("textarea").first(), "ce-que-le-client-lit", 20, 40).catch(() => {});
+  },
+
+  /**
+   * Les notes d'un espace : le mur, la liste, l'éditeur.
+   *
+   * Le jeu de démonstration en pose trois, dont une épinglée et deux colorées,
+   * parce qu'un mur d'une seule note ne montre ni l'ordre ni la couleur.
+   */
+  "les-notes": async () => {
+    await openFirstSpace();
+    await selectView("Notes");
+    await wait(1500);
+    await shot("le-mur");
+
+    // L'autre onglet, et le retour : le choix est retenu d'une visite à
+    // l'autre, donc une prise de vue qui le laisse sur « Personnelles »
+    // décide de ce que photographieront les flux suivants.
+    await page.getByRole("button", { name: /^Personnelles/ }).first().click();
+    await wait(1200);
+    await shot("les-personnelles");
+    await page.getByRole("button", { name: /^Partagées/ }).first().click();
+    await wait(1000);
+
+    await page.getByRole("button", { name: "Liste", exact: true }).last().click();
+    await wait(1200);
+    await shot("en-liste");
+
+    await page.getByRole("button", { name: "Mur", exact: true }).first().click();
+    await wait(800);
+
+    await page.getByRole("button", { name: "Nouvelle note" }).first().click();
+    await wait(1500);
+    await shot("l-editeur");
+    await page.getByRole("button", { name: "Annuler" }).first().click().catch(() => {});
+    await wait(600);
   },
 
   "le-calendrier": async () => {
@@ -547,9 +647,9 @@ const FLOWS = {
     // Le fil, côté studio, une fois que le client a répondu : c'est l'écran que
     // la page décrit, et il n'existe qu'après l'aller-retour.
     await openFirstSpace();
-    // Par la vue liste : un titre s'y ouvre d'un clic, là où une carte du
-    // tableau demande de passer par son menu.
-    await selectView("Liste");
+    // Par la forme liste : un titre s'y ouvre d'un clic, là où une carte du
+    // kanban demande de passer par son menu.
+    await selectShape("Liste");
     await page.getByRole("button", { name: "Offre de rentrée" }).first().click();
     await wait(1400);
     await page.mouse.wheel(0, 600);

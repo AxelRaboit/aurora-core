@@ -10,6 +10,11 @@ import { FileText } from "lucide-vue-next";
  *
  * Media's edit modal keeps its own image branch (it overlays a focal-point
  * picker), but any plain preview (GED, future modules) should use this.
+ *
+ * The image is capped, never stretched: `max-width` rather than `width`, so a
+ * small file is shown at the size it is instead of being blown up to the width
+ * of whatever holds it. `maxHeight` caps the other axis, and `object-contain`
+ * keeps the proportions when both bite.
  */
 const props = defineProps({
     url: { type: String, default: "" },
@@ -30,7 +35,7 @@ const isPdf = computed(() => props.mime === "application/pdf");
             v-if="isImage"
             :src="url"
             :alt="alt || name"
-            class="w-full h-auto object-contain block mx-auto"
+            class="mx-auto block h-auto max-w-full object-contain"
             :style="{ maxHeight }"
         >
         <iframe
