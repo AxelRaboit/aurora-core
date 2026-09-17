@@ -297,6 +297,7 @@ function open(event) {
             :stream-url="chatStreamUrl"
             :post-path="chatPostPath"
             :reload-path="chatReloadPath"
+            own-side="client"
             :notice="chatPostPath ? t('studio.public.space.chat_notice') : ''"
         />
 

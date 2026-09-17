@@ -17,7 +17,7 @@
  * surfaces mount it: a key under `backend.` rendered on a page a customer reads
  * is a namespace that has stopped meaning anything.
  */
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { Radio, Send, Trash2, WifiOff } from "lucide-vue-next";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
@@ -34,6 +34,20 @@ const props = defineProps({
     streamUrl: { type: String, default: null },
     /** Shown above the box: who reads what is typed here. */
     notice: { type: String, default: "" },
+    /**
+     * Which side of the conversation is reading.
+     *
+     * **The same stream, drawn from each reader's point of view.** A message is
+     * on the right when the person looking at it wrote it, so the studio sees
+     * its own on the right and the client sees theirs on the right - and the
+     * two are looking at one conversation, not two. Without this the component
+     * would have to guess, and it would guess wrong on one of the two surfaces.
+     */
+    ownSide: {
+        type: String,
+        default: "studio",
+        validator: (value) => ["studio", "client"].includes(value),
+    },
 });
 
 const { t, d } = useI18n();
@@ -50,8 +64,14 @@ const { messages, loading, live, expectsLive, post, remove } = useSpaceChat(
 
 const draft = ref("");
 const scroller = ref(null);
+const content = ref(null);
 
 const canPost = computed(() => !!props.postPath);
+
+/** Whether this message was written by whoever is reading. */
+function mine(message) {
+    return message.fromClient === ("client" === props.ownSide);
+}
 
 /**
  * The stream, with a line whenever the day changes.
@@ -78,22 +98,6 @@ const entries = computed(() => {
     return stream;
 });
 
-/**
- * Whether the reader is at the bottom, asked before the list grows.
- *
- * A chat that jumps to the newest message while somebody is reading last
- * week's is a chat they cannot read. So it only follows when they were already
- * following.
- */
-function atBottom() {
-    const element = scroller.value;
-    if (!element) return true;
-
-    return (
-        element.scrollHeight - element.scrollTop - element.clientHeight < 80
-    );
-}
-
 function toBottom() {
     if (scroller.value) {
         scroller.value.scrollTop = scroller.value.scrollHeight;
@@ -101,41 +105,58 @@ function toBottom() {
 }
 
 /**
- * Opened at the bottom, like every conversation ever written.
+ * Whether the reader is following the end of the conversation.
  *
- * The watcher below only follows the list as it grows, which says nothing
- * about the first paint: a space with two days of history opened on its
- * oldest message, with the newest hidden under the fold. What somebody wants
- * on arriving is the last thing that was said.
- *
- * **Three attempts, and each one is for a different reason the first can
- * fail.** At `nextTick` the rows exist but the box around them may not have
- * its height yet, and scrolling a box that is not yet scrollable does nothing.
- * A frame later it does. And a web font landing after that rewraps the text,
- * which lengthens the list under a reader who was already at the bottom.
+ * True until they scroll up to read something older, and true again the moment
+ * they come back down. A chat that jumps to the newest message while somebody
+ * is reading last week's is a chat they cannot read.
  */
-onMounted(async () => {
-    await nextTick();
-    toBottom();
+const following = ref(true);
 
-    requestAnimationFrame(toBottom);
+function onScroll() {
+    const element = scroller.value;
+    if (!element) return;
 
-    document.fonts?.ready.then(toBottom).catch(() => {});
+    following.value =
+        element.scrollHeight - element.scrollTop - element.clientHeight < 80;
+}
+
+/**
+ * **Observed rather than timed, and that is the whole lesson here.**
+ *
+ * Opening at the bottom looks like a line to run after mount, and it is not: at
+ * that point the box may still have no height, and scrolling something that is
+ * not yet scrollable does nothing at all. Waiting a frame fixed it on the
+ * studio's page, where the panel mounts when somebody switches to it, and left
+ * the client's page opening on its oldest message - there it mounts with the
+ * rest of a long document. Waiting for the web fonts fixed a third case. Each
+ * of those is a guess about when the layout settles, and there is always
+ * another one.
+ *
+ * So the content is watched instead. The box gaining its height, a font
+ * rewrapping the text, a message arriving: one event here, one answer - if the
+ * reader was at the end, keep them there.
+ */
+let observer = null;
+
+onMounted(() => {
+    if (typeof ResizeObserver === "undefined") {
+        void nextTick().then(toBottom);
+
+        return;
+    }
+
+    observer = new ResizeObserver(() => {
+        if (following.value) toBottom();
+    });
+
+    if (content.value) observer.observe(content.value);
 });
 
-watch(
-    () => messages.value.length,
-    async (now, before) => {
-        if (now <= before) return;
-
-        const follow = atBottom();
-        await nextTick();
-
-        if (follow) {
-            toBottom();
-        }
-    },
-);
+onBeforeUnmount(() => {
+    observer?.disconnect();
+    observer = null;
+});
 
 async function send() {
     const body = draft.value.trim();
@@ -191,63 +212,88 @@ function onKeydown(event) {
             </span>
         </header>
 
-        <div ref="scroller" class="flex-1 space-y-2 overflow-y-auto px-4 py-3">
-            <p v-if="!entries.length" class="text-sm text-muted">
-                {{ t("shared.space_chat.empty") }}
-            </p>
+        <div
+            ref="scroller"
+            class="flex-1 overflow-y-auto px-4 py-3"
+            v-on:scroll="onScroll"
+        >
+            <!-- Un conteneur pour les entrées, et c'est lui qu'on observe : sa
+                 hauteur est celle du contenu, la seule mesure qui dise qu'il y
+                 a du nouveau sous le pli. -->
+            <div ref="content" class="space-y-2">
+                <p v-if="!entries.length" class="text-sm text-muted">
+                    {{ t("shared.space_chat.empty") }}
+                </p>
 
-            <template v-for="entry in entries" :key="entry.key">
-                <div
-                    v-if="'day' === entry.kind"
-                    class="flex items-center gap-3 py-1"
-                >
-                    <span class="h-px flex-1 bg-line/60" />
-                    <!-- The day, without a clock: `short` would print
-                         "17/09/2026 00:48" on a line whose whole job is to
-                         say which day the messages under it belong to. -->
-                    <span class="text-xs text-muted">
-                        {{ d(entry.at, "long") }}
-                    </span>
-                    <span class="h-px flex-1 bg-line/60" />
-                </div>
-
-                <div
-                    v-else
-                    class="group max-w-[42rem] rounded-lg px-3 py-2"
-                    :class="
-                        entry.message.fromClient
-                            ? 'border border-accent-500/20 bg-accent-500/5'
-                            : 'bg-surface-2/60'
-                    "
-                >
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-xs font-medium text-primary">
-                            {{ entry.message.author }}
-                        </span>
+                <template v-for="entry in entries" :key="entry.key">
+                    <div
+                        v-if="'day' === entry.kind"
+                        class="flex items-center gap-3 py-1"
+                    >
+                        <span class="h-px flex-1 bg-line/60" />
+                        <!-- The day, without a clock: `short` would print
+                             "17/09/2026 00:48" on a line whose whole job is to
+                             say which day the messages under it belong to. -->
                         <span class="text-xs text-muted">
-                            {{ d(new Date(entry.message.createdAt), "short") }}
+                            {{ d(entry.at, "long") }}
                         </span>
-                        <span
-                            v-if="entry.message.fromClient"
-                            class="text-xs text-accent-500"
-                        >
-                            {{ t("shared.space_chat.from_client") }}
-                        </span>
-                        <button
-                            v-if="deletePath && !entry.message.fromClient"
-                            type="button"
-                            class="ml-auto rounded p-1 text-muted opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
-                            :aria-label="t('shared.common.delete')"
-                            v-on:click="remove(entry.message)"
-                        >
-                            <Trash2 class="h-3 w-3" :stroke-width="2" />
-                        </button>
+                        <span class="h-px flex-1 bg-line/60" />
                     </div>
-                    <p class="mt-1 whitespace-pre-line text-sm text-primary">
-                        {{ entry.message.body }}
-                    </p>
-                </div>
-            </template>
+
+                    <!-- Le cote decide l'alignement, la couleur le suit. Deux
+                         signaux pour la meme chose plutot qu'un, parce que
+                         l'alignement seul se perd sur un message d'une ligne et
+                         que la couleur seule se perd pour qui la distingue mal. -->
+                    <div
+                        v-else
+                        class="flex"
+                        :class="mine(entry.message) ? 'justify-end' : 'justify-start'"
+                    >
+                        <div
+                            class="group max-w-[min(42rem,80%)] rounded-lg px-3 py-2"
+                            :class="
+                                mine(entry.message)
+                                    ? 'border border-accent-500/20 bg-accent-500/5'
+                                    : 'bg-surface-2/60'
+                            "
+                        >
+                            <div class="flex items-baseline gap-2">
+                                <!-- Le nom reste des deux cotes : un studio a
+                                     plusieurs personnes, et « qui a repondu » est
+                                     une question qu'on se pose de son propre cote
+                                     aussi. -->
+                                <span class="text-xs font-medium text-primary">
+                                    {{ entry.message.author }}
+                                </span>
+                                <span class="text-xs text-muted">
+                                    {{ d(new Date(entry.message.createdAt), "short") }}
+                                </span>
+                                <!-- Seulement quand ca apprend quelque chose : sur
+                                     sa propre page, le client n'a pas besoin qu'on
+                                     lui dise qu'il est le client. -->
+                                <span
+                                    v-if="entry.message.fromClient && 'studio' === ownSide"
+                                    class="text-xs text-accent-500"
+                                >
+                                    {{ t("shared.space_chat.from_client") }}
+                                </span>
+                                <button
+                                    v-if="deletePath && !entry.message.fromClient"
+                                    type="button"
+                                    class="ml-auto rounded p-1 text-muted opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
+                                    :aria-label="t('shared.common.delete')"
+                                    v-on:click="remove(entry.message)"
+                                >
+                                    <Trash2 class="h-3 w-3" :stroke-width="2" />
+                                </button>
+                            </div>
+                            <p class="mt-1 whitespace-pre-line text-sm text-primary">
+                                {{ entry.message.body }}
+                            </p>
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
 
         <div v-if="canPost" class="space-y-2 border-t border-line/60 px-4 py-3">

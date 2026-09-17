@@ -72,6 +72,33 @@ describe("SpaceChatPanel", () => {
         expect(separators.length).toBe(4); // two rules per separator
     });
 
+    it("puts the reader's own messages on their side, whichever side that is", () => {
+        // One stream, two points of view. The studio wrote message 1 and the
+        // client message 2, so the alignment has to swap between the two
+        // surfaces - a component that picked a side by "fromClient" alone
+        // would put the client's own words on the far side of their own page.
+        const studio = render();
+        const rows = studio.findAll(".flex.justify-end, .flex.justify-start");
+
+        expect(rows[0].classes()).toContain("justify-end"); // du studio
+        expect(rows[1].classes()).toContain("justify-start"); // du client
+
+        const client = render({ ownSide: "client" });
+        const flipped = client.findAll(
+            ".flex.justify-end, .flex.justify-start",
+        );
+
+        expect(flipped[0].classes()).toContain("justify-start");
+        expect(flipped[1].classes()).toContain("justify-end");
+    });
+
+    it("only tags a message as the client's when that says something", () => {
+        // On their own page the client does not need telling they are the
+        // client.
+        expect(render().text()).toContain("client");
+        expect(render({ ownSide: "client" }).text()).not.toContain("client");
+    });
+
     it("opens no connection when no hub is configured", () => {
         const source = vi.fn();
         vi.stubGlobal("EventSource", source);

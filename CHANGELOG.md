@@ -5,6 +5,36 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.197] - 2026-09-17
+
+### Modifié
+
+#### La discussion se lit comme une conversation
+Tout était collé à gauche, ce qui donne une liste de messages plutôt qu'un
+échange. Vos messages sont maintenant à droite et ceux d'en face à gauche -
+et sur la page du client, c'est l'inverse : chacun se voit à droite. C'est le
+même fil, regardé de deux endroits, et le composant reçoit désormais de quel
+côté on le regarde plutôt que de le deviner.
+
+La mention « client » ne s'affiche plus que là où elle apprend quelque chose :
+sur sa propre page, le client n'a pas besoin qu'on lui dise qu'il est le
+client.
+
+#### Le panneau s'ouvre sur le dernier message, partout
+Il s'ouvrait en haut de la conversation sur la page du client, avec le message
+le plus récent sous le pli. Le défilement était déclenché après le montage, à
+un instant où la boîte n'a pas encore sa hauteur : faire défiler ce qui n'est
+pas encore défilable ne fait rien. Attendre une image réglait le cas du
+back-office, attendre les polices un troisième cas, et chacune de ces attentes
+est une supposition sur le moment où la mise en page se stabilise.
+
+Le contenu est observé à la place. La boîte qui prend sa hauteur, une police
+qui recompose le texte, un message qui arrive : un seul événement, une seule
+réponse - si le lecteur était à la fin, l'y garder. Remonter dans l'historique
+suspend le suivi, redescendre le reprend.
+
+---
+
 ## [0.9.196] - 2026-09-17
 
 ### Modifié

@@ -11,6 +11,8 @@ Dans le sélecteur de vues, à côté de Tableau, Liste, Calendrier et Fichiers 
 
 ![La discussion d'un espace, côté studio](../../images/06-studio/la-discussion-01-la-discussion.png)
 
+**Vos messages sont à droite, ceux du client à gauche** — et sur sa page, c'est l'inverse : chacun se voit à droite. C'est le même fil, regardé de deux endroits.
+
 **Un seul fil, lu des deux côtés.** Ce que vous écrivez là, le client le lit ; la phrase sous la zone de saisie le dit.
 
 ![La zone de saisie et sa phrase d'avertissement](../../images/06-studio/la-discussion-02-ce-que-le-client-lit.png)
