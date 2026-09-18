@@ -7,9 +7,12 @@ namespace Aurora\Fixtures\Notes;
 use Aurora\Fixtures\Core\AppFixtures;
 use Aurora\Fixtures\Core\CoreDemoFixtures;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
+use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
+use Aurora\Module\Notes\Share\Repository\MarkdownNoteShareLinkRepository;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -37,7 +40,11 @@ use function assert;
  */
 class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
-    public function __construct(private readonly UserRepository $userRepository) {}
+    public function __construct(
+        private readonly UserRepository $userRepository,
+        private readonly MarkdownNoteShareLinkManagerInterface $shareLinks,
+        private readonly MarkdownNoteShareLinkRepository $shareLinkRepository,
+    ) {}
 
     public static function getGroups(): array
     {
@@ -105,6 +112,35 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         }
 
         $manager->flush();
+
+        $this->shareBranch($notes['clients'] ?? null);
+    }
+
+    /**
+     * Une branche partagée, pour que l'écran des partages ait quelque chose.
+     *
+     * Il s'ouvrait toujours sur une liste vide, si bien que la fonctionnalité
+     * la plus visible du module - une note lisible sans compte - ne se voyait
+     * nulle part. La branche des clients avec ses filles, parce que c'est le
+     * cas que l'option « inclure les sous-notes » existe pour : partager une
+     * note d'index seule donne au destinataire un sommaire et rien dessous.
+     */
+    private function shareBranch(?MarkdownNote $note): void
+    {
+        // Rejoué à chaque `make demo` sinon : la note est retrouvée, le lien
+        // non, et l'écran se remplirait d'un partage de plus par exécution.
+        if (!$note instanceof MarkdownNote || [] !== $this->shareLinkRepository->findForNote($note)) {
+            return;
+        }
+
+        $this->shareLinks->create(
+            $note,
+            includeDescendants: true,
+            includeLinked: false,
+            recipientEmail: 'camille@studio-lumen.fr',
+            label: 'Carnet clients - lecture seule',
+            expiresAt: new DateTimeImmutable('+30 days'),
+        );
     }
 
     /**

@@ -31,6 +31,31 @@ les enfants.
 L'aller-retour est tenu par un test, parce que c'est la seule preuve qu'une
 exportation vaut quelque chose.
 
+#### Une démonstration qui a la forme d'un site
+La démo s'ouvrait sur deux types de contenu, sept publications et un menu de
+trois entrées : de quoi montrer l'éditeur, pas de quoi montrer un site. Elle a
+maintenant la forme de la production. **Deux types de contenu maison**,
+Services et Projets, créés par la démo et non par l'installation, ce qui est le
+seul moyen de voir à quoi ressemble un type qu'on a fait soi-même. **Trois
+pages de service** sur un gabarit image/texte alterné, **deux réalisations**
+avec une image large et des chiffres, et **trois pages institutionnelles** :
+à propos, contact et mentions légales. Le menu mène aux deux archives et aux
+nouvelles pages, la page à propos liste ses services toute seule, et la page de
+contact pose le formulaire de devis au lieu d'un lien vers lui.
+
+**Les titres sont vrais, les textes sont du faux latin.** Un menu qui dit
+« Lorem ipsum » n'apprend rien sur un menu ; un paragraphe de démonstration qui
+raconte quelque chose finit cité comme s'il le pensait. Les images de la
+médiathèque sont désormais des **aplats de couleur**, sans dégradé ni motif :
+il s'agit de distinguer les vignettes, pas d'imiter une photographie.
+
+Les écrans qui s'ouvraient vides se remplissent aussi. **Des publications
+liées** entre elles, **un partage de notes** avec ses sous-notes, **un lien de
+partage** sur le deck d'audit, et **deux fiches commentées** sur le tableau
+d'un espace client, studio et client mêlés. Deux fiches sur huit seulement :
+une fiche sans discussion est l'état le plus courant du tableau, et il faut
+qu'il se voie aussi.
+
 ### Corrigé
 
 #### La fin d'une note Markdown se lisait hors de l'écran

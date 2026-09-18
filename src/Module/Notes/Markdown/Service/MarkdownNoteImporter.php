@@ -92,9 +92,11 @@ final readonly class MarkdownNoteImporter
             if (str_ends_with($entry, '/')) {
                 continue;
             }
+
             if (str_starts_with($entry, '__MACOSX/')) {
                 continue;
             }
+
             if (!str_ends_with(mb_strtolower($entry), '.md')) {
                 continue;
             }
