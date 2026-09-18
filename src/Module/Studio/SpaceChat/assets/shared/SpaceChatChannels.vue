@@ -8,9 +8,15 @@
  * same line as the room's own name, so nothing says which of the two is the
  * list and which is the place you are. A column says it by position alone.
  *
- * It folds to a row above the conversation under `md`, because a phone has no
- * left to give. Same component, two arrangements: two components would be two
- * lists to keep in step.
+ * **Under `md` it becomes a drawer rather than a row.** A strip above the
+ * conversation was the second shape and it was wrong too: it takes height from
+ * the one thing a phone screen has too little of, and the list is not something
+ * you read - it is something you open, pick from, and close. So it slides in
+ * over the conversation, from the side it lives on everywhere else, and shuts
+ * as soon as a room is chosen.
+ *
+ * Same component, two arrangements: two components would be two lists to keep
+ * in step.
  *
  * **Drawn on both sides, controllable on one.** The client sees the rooms that
  * were opened to them and switches between them; the button that opens a room
@@ -26,9 +32,23 @@ const props = defineProps({
     current: { type: [Number, null], default: null },
     /** Null on the client's page: only the studio opens rooms. */
     createPath: { type: String, default: null },
+    /** Whether the drawer is out. Ignored from `md` up, where the rail is always there. */
+    open: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["select", "create"]);
+const emit = defineEmits(["select", "create", "close"]);
+
+/**
+ * Choosing a room closes the drawer.
+ *
+ * On a phone the list covers what it is choosing for, so leaving it open after
+ * a pick would hide the answer behind the question. From `md` up nothing
+ * listens to this, because nothing was covered.
+ */
+function choose(id) {
+    emit("select", id);
+    emit("close");
+}
 
 const { t } = useI18n();
 
@@ -48,35 +68,41 @@ function confirmName() {
 </script>
 
 <template>
+    <!-- Le voile ne prend la souris que lorsque le tiroir est sorti, et il
+         disparaît complètement à partir de `md` : sans ça il couvrirait une
+         conversation qu'aucun tiroir ne cache. -->
+    <div
+        v-if="open"
+        class="absolute inset-0 z-10 bg-black/50 md:hidden"
+        v-on:click="emit('close')"
+    />
+
     <aside
-        class="flex shrink-0 flex-col gap-2 border-b border-line/60 px-3 py-2 md:w-52 md:border-b-0 md:border-r md:p-3"
+        class="absolute inset-y-0 left-0 z-20 flex w-56 shrink-0 flex-col gap-2 border-r border-line/60 bg-surface p-3 shadow-xl transition-transform duration-200 md:static md:w-52 md:translate-x-0 md:bg-transparent md:shadow-none"
+        :class="open ? 'translate-x-0' : '-translate-x-full'"
     >
         <!-- L'intitulé disparaît sur téléphone : une colonne de gauche a besoin
              qu'on dise ce qu'elle est, une ligne de pastilles au-dessus de la
              conversation se lit sans. -->
-        <span
-            class="hidden px-1 text-[0.65rem] font-medium uppercase tracking-wider text-muted md:block"
-        >
+        <span class="px-1 text-[0.65rem] font-medium uppercase tracking-wider text-muted">
             {{ t("shared.space_chat.channels.label") }}
         </span>
 
         <!-- Une seule ligne qui défile plutôt qu'un pavé qui passe à la ligne :
              sur un écran de 812 pixels de haut, trois canaux repliés prenaient
              107 pixels à la conversation, qui est ce qu'on est venu lire. -->
-        <div
-            class="flex flex-row flex-nowrap gap-0.5 overflow-x-auto md:flex-col md:overflow-x-visible"
-        >
+        <div class="flex flex-col gap-0.5 overflow-y-auto">
             <button
                 v-for="channel in channels"
                 :key="channel.id"
                 type="button"
-                class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors md:w-full md:shrink"
+                class="flex w-full shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors"
                 :class="
                     channel.id === current
                         ? 'bg-accent/15 text-accent'
                         : 'text-secondary hover:bg-surface-2/60 hover:text-primary'
                 "
-                v-on:click="emit('select', channel.id)"
+                v-on:click="choose(channel.id)"
             >
                 <Hash class="h-3 w-3 shrink-0" :stroke-width="2" />
                 <span class="truncate">{{ channel.name }}</span>
@@ -95,7 +121,7 @@ function confirmName() {
             <button
                 v-if="canArrange && !naming"
                 type="button"
-                class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs text-muted transition-colors hover:bg-surface-2/60 hover:text-primary md:w-full md:shrink"
+                class="flex w-full shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs text-muted transition-colors hover:bg-surface-2/60 hover:text-primary"
                 v-on:click="naming = true"
             >
                 <Plus class="h-3 w-3 shrink-0" :stroke-width="2" />

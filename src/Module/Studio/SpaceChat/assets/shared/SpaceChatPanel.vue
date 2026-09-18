@@ -19,7 +19,7 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Radio, Send, Trash2, WifiOff } from "lucide-vue-next";
+import { PanelLeft, Radio, Send, Trash2, WifiOff } from "lucide-vue-next";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import SpaceChatChannels from "./SpaceChatChannels.vue";
@@ -97,6 +97,17 @@ const { channels, create, rename, setAudience, drop, invite } = useSpaceChatChan
         invitePath: props.channelInvitePath,
     },
 );
+
+/**
+ * Whether there is a list to show at all.
+ *
+ * One room and no right to open another is a conversation, not a set of them:
+ * drawing a rail for it would be a control with one choice in it.
+ */
+const hasRail = computed(() => channels.value.length > 1 || !!props.channelCreatePath);
+
+/** Out only on a phone, where the rail is a drawer over the conversation. */
+const railOpen = ref(false);
 
 /** The room on screen, which is what the header names. */
 const openChannel = computed(
@@ -260,16 +271,18 @@ function onKeydown(event) {
 
 <template>
     <section
-        class="flex flex-col overflow-hidden rounded-lg border border-line/60 bg-surface-2/20 md:flex-row"
+        class="relative flex flex-col overflow-hidden rounded-lg border border-line/60 bg-surface-2/20 md:flex-row"
         :class="fill ? 'h-full' : 'h-[32rem]'"
     >
         <SpaceChatChannels
-            v-if="channels.length > 1 || channelCreatePath"
+            v-if="hasRail"
             :channels="channels"
             :current="currentChannel"
             :create-path="channelCreatePath"
+            :open="railOpen"
             v-on:select="select"
             v-on:create="create"
+            v-on:close="railOpen = false"
         />
 
         <!-- `min-w-0` sur la colonne : sans lui un message d'un seul mot très
@@ -277,7 +290,22 @@ function onKeydown(event) {
              qui se fait écraser. -->
         <div class="flex min-h-0 min-w-0 flex-1 flex-col">
             <header class="flex items-center gap-2 border-b border-line/60 px-4 py-2.5">
-                <h2 class="text-sm font-medium text-primary">
+                <!-- Sur téléphone le titre est la poignée du tiroir : c'est le
+                     nom du salon qu'on touche pour en changer, ce qui économise
+                     un bouton et dit où mène le geste. À partir de `md` il
+                     redevient un titre, la liste étant déjà à côté. -->
+                <button
+                    v-if="hasRail"
+                    type="button"
+                    class="flex items-center gap-1.5 text-sm font-medium text-primary md:pointer-events-none"
+                    :aria-expanded="railOpen"
+                    v-on:click="railOpen = !railOpen"
+                >
+                    <PanelLeft class="h-3.5 w-3.5 md:hidden" :stroke-width="2" />
+                    {{ openChannel?.name ?? t("shared.space_chat.title") }}
+                </button>
+
+                <h2 v-else class="text-sm font-medium text-primary">
                     {{ openChannel?.name ?? t("shared.space_chat.title") }}
                 </h2>
 

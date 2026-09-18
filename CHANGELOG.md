@@ -17,9 +17,13 @@ leur icône, et leur libellé reste lisible par un lecteur d'écran, où il n'a
 jamais coûté de place. La barre passe de 523 à 245 pixels et la page ne défile
 plus latéralement.
 
-Le rail des canaux se replie de la même façon : une ligne qui défile plutôt
-qu'un pavé, parce que trois canaux repliés prenaient 107 pixels de haut à la
-conversation, qui est ce qu'on est venu lire.
+**Le rail des canaux devient un tiroir** sous 768 pixels, au lieu d'une bande
+au-dessus de la conversation : la bande prenait 107 pixels de haut à ce qu'on
+était venu lire, et une liste de salons n'est pas quelque chose qu'on lit, c'est
+quelque chose qu'on ouvre, où l'on choisit, et qui se referme. Le nom du salon
+sert de poignée, le tiroir glisse depuis la gauche, un voile couvre la
+conversation derrière, et choisir un salon referme le tout. La conversation
+passe de 629 à 674 pixels sur un écran de 812.
 
 ### Ajouté
 
