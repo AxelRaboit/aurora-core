@@ -94,7 +94,7 @@ function when(item) {
                          the reader this view exists for. -->
                     <button
                         type="button"
-                        class="flex min-w-0 flex-1 items-center gap-3 text-left"
+                        class="order-1 flex min-w-0 flex-1 items-center gap-3 text-left"
                         v-on:click="emit('open-item', card)"
                     >
                         <img
@@ -114,33 +114,48 @@ function when(item) {
                         </span>
                     </button>
 
-                    <span
-                        v-if="card.approval !== 'pending'"
-                        class="flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-xs"
-                        :class="
-                            card.approval === 'approved'
-                                ? 'bg-emerald-500/10 text-emerald-500'
-                                : 'bg-amber-500/10 text-amber-500'
-                        "
+                    <!-- **Sous le titre sur téléphone, à côté ailleurs.** La date
+                         et la pastille tiennent leur largeur quoi qu'il arrive,
+                         donc sur un écran étroit c'est le titre qui payait : « Le
+                         témoignage de Mme Lefèvre » devenait « Témoignag… ».
+                         Descendues sur leur propre ligne, alignées sous le titre
+                         et non sous la vignette, elles rendent au titre toute la
+                         largeur de la carte. -->
+                    <div
+                        class="order-3 flex w-full items-center gap-3 pl-11 sm:order-3 sm:w-auto sm:pl-0"
                     >
-                        <Check
-                            v-if="card.approval === 'approved'"
-                            class="h-3 w-3 shrink-0"
-                            :stroke-width="2"
-                        />
-                        <MessageSquare v-else class="h-3 w-3 shrink-0" :stroke-width="2" />
-                        {{ t(`backend.studio.space_content.approvals.${card.approval}`) }}
-                    </span>
+                        <span
+                            v-if="card.approval !== 'pending'"
+                            class="flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-xs"
+                            :class="
+                                card.approval === 'approved'
+                                    ? 'bg-emerald-500/10 text-emerald-500'
+                                    : 'bg-amber-500/10 text-amber-500'
+                            "
+                        >
+                            <Check
+                                v-if="card.approval === 'approved'"
+                                class="h-3 w-3 shrink-0"
+                                :stroke-width="2"
+                            />
+                            <MessageSquare v-else class="h-3 w-3 shrink-0" :stroke-width="2" />
+                            {{ t(`backend.studio.space_content.approvals.${card.approval}`) }}
+                        </span>
 
-                    <span
-                        class="flex shrink-0 items-center gap-1 text-xs tabular-nums"
-                        :class="card.scheduledAt ? 'text-secondary' : 'text-muted'"
-                    >
-                        <CalendarClock class="h-3 w-3 shrink-0" :stroke-width="2" />
-                        {{ when(card) }}
-                    </span>
+                        <span
+                            class="flex shrink-0 items-center gap-1 text-xs tabular-nums"
+                            :class="card.scheduledAt ? 'text-secondary' : 'text-muted'"
+                        >
+                            <CalendarClock class="h-3 w-3 shrink-0" :stroke-width="2" />
+                            {{ when(card) }}
+                        </span>
+                    </div>
 
-                    <AppRowActions :actions="actionsFor(card)" :label="card.title ?? ''" />
+                    <AppRowActions
+                        class="order-2 sm:order-4"
+                        :actions="actionsFor(card)"
+                        :label="card.title ?? ''"
+                    />
                 </li>
             </ul>
         </section>

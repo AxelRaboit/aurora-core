@@ -19,6 +19,13 @@ posés, et elles récupèrent seize pixels de contenu au passage.
 La règle vaut pour le reste de l'application : sur téléphone, la gouttière se
 réduit, elle ne disparaît pas, et rien ne change au dessin des blocs.
 
+**La liste des contenus met sa date sous le titre** sur téléphone. La date et
+la pastille d'approbation tiennent leur largeur quoi qu'il arrive, donc sur un
+écran étroit c'était le titre qui payait : « Témoignage client » s'affichait
+« Témoignag… ». Descendues sur leur propre ligne, alignées sous le titre et non
+sous la vignette, elles rendent au titre la largeur de la carte : de cent dix
+pixels à deux cent trente-sept. À partir de `sm`, la ligne reste une ligne.
+
 **La barre du haut suit.** « Retour aux espaces » prenait cent soixante-treize
 pixels sur trois cent soixante-quinze, près de la moitié de la barre pour un mot
 que le chevron dit déjà, et le nom de l'espace se retrouvait dans les cent
