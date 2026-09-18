@@ -18,7 +18,15 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outDir = resolve(here, "../../var/doc-screenshots/out");
-const BASE = process.env.DOC_BASE_URL ?? "http://127.0.0.1:8000";
+/**
+ * `localhost` et pas `127.0.0.1`, et ce n'est pas indifferent : le jeton
+ * d'abonnement au hub Mercure voyage dans un cookie, un cookie appartient a
+ * un hote, et MERCURE_PUBLIC_URL pointe `localhost:3000`. Servie depuis
+ * 127.0.0.1, la page recoit un cookie que le hub ne verra jamais, repond 401
+ * a l'abonnement, et le panneau de discussion reste sur « reconnexion… » -
+ * c'est-a-dire la seule image que ce flux a pour consigne de ne pas prendre.
+ */
+const BASE = process.env.DOC_BASE_URL ?? "http://localhost:8000";
 const VIEWPORT = { width: 1600, height: 1000 };
 
 let page;
