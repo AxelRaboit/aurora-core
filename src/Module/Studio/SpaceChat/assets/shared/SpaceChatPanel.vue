@@ -19,9 +19,11 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { MoreHorizontal, PanelLeft, Radio, Send, Trash2, WifiOff } from "lucide-vue-next";
+import { MoreHorizontal, PanelLeft, Radio, Send, Trash2, WifiOff, X } from "lucide-vue-next";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppModal from "@/shared/components/overlay/AppModal.vue";
+import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import SpaceChatChannels from "./SpaceChatChannels.vue";
 import SpaceChatNewChannelModal from "./SpaceChatNewChannelModal.vue";
 import SpaceChatPeopleModal from "./SpaceChatPeopleModal.vue";
@@ -121,6 +123,15 @@ const roomModal = ref(false);
 const peopleFor = ref(null);
 /** Le formulaire d'un nouveau canal, ouvert depuis le rail. */
 const newChannel = ref(false);
+/**
+ * Le canal dont la suppression attend une réponse.
+ *
+ * **Demandé, parce que ça n'est pas un rangement.** Retirer une conversation la
+ * garde, retirer quelqu'un garde ce qu'il a écrit ; supprimer un canal emporte
+ * ses messages, et c'est le seul geste de ce panneau qui ne se rattrape pas. Un
+ * bouton rouge dans une liste de réglages n'est pas une question posée.
+ */
+const pendingDrop = ref(null);
 
 const { channels, create, rename, setAudience, drop, invite, removeMember, openDirect, hide } =
     useSpaceChatChannels(props.channels, {
@@ -272,6 +283,7 @@ const arrangeable = computed(
  * has nothing behind it.
  */
 async function onDrop(channel) {
+    pendingDrop.value = null;
     await drop(channel);
 
     if (channel?.id === currentChannel.value) {
@@ -686,10 +698,36 @@ function onKeydown(event) {
             v-on:remove-member="removeMember"
             v-on:delete="
                 roomModal = false;
-                onDrop($event);
+                pendingDrop = $event;
             "
             v-on:hide="onHide"
         />
+
+        <AppModal
+            :show="!!pendingDrop"
+            max-width="sm"
+            :closeable="false"
+            :title="pendingDrop?.name ?? ''"
+            :icon="Trash2"
+            v-on:close="pendingDrop = null"
+        >
+            <p class="text-sm text-primary">
+                {{ t("shared.space_chat.channels.delete_confirm") }}
+            </p>
+
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="pendingDrop = null">
+                        <X class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.cancel") }}
+                    </AppButton>
+                    <AppButton variant="danger" size="md" v-on:click="onDrop(pendingDrop)">
+                        <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.space_chat.channels.delete") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
 
         <SpaceChatNewChannelModal
             :show="newChannel"

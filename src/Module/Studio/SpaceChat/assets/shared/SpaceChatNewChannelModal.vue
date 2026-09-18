@@ -56,10 +56,15 @@ function submit() {
         v-on:close="emit('close')"
     >
         <div class="space-y-4">
+            <!-- Un exemple dans le champ plutôt qu'un vide : « Nom du canal »
+                 est déjà écrit au-dessus, le répéter dedans n'aurait rien
+                 appris, tandis qu'un nom plausible dit quelle sorte de nom on
+                 attend. -->
             <AppInput
                 id="space-chat-new-channel"
                 v-model="name"
                 :label="t('shared.space_chat.channels.name_placeholder')"
+                :placeholder="t('shared.space_chat.channels.name_example')"
                 v-on:keydown.enter.prevent="submit"
             />
 

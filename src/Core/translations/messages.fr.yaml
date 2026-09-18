@@ -23,6 +23,7 @@ shared:
       new: Nouveau canal
       new_hint: "Un canal s'ouvre entre vous. Vous pourrez l'ouvrir au client ensuite, depuis ses réglages."
       name_placeholder: Nom du canal
+      name_example: "ex. : Le mois prochain"
       create: Ouvrir
       cancel: Annuler
       rename: Renommer

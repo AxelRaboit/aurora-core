@@ -23,6 +23,7 @@ shared:
       new: Nuevo canal
       new_hint: "Un canal empieza entre ustedes. Podrá abrirlo al cliente después, desde sus ajustes."
       name_placeholder: Nombre del canal
+      name_example: "p. ej.: El mes que viene"
       create: Abrir
       cancel: Cancelar
       rename: Renombrar

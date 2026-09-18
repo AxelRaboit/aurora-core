@@ -23,6 +23,7 @@ shared:
       new: New channel
       new_hint: "A channel starts between you. You can open it to the client later, from its settings."
       name_placeholder: Channel name
+      name_example: "e.g. Next month"
       create: Open
       cancel: Cancel
       rename: Rename
