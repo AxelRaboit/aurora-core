@@ -6,6 +6,7 @@ backend:
   users:
     intro: Gérez les utilisateurs de l'administration et leurs rôles.
     name: Nom
+    user_label: Utilisateur
     email: Email
     created: Créé le
     actions: Actions

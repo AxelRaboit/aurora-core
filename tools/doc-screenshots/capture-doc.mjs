@@ -13,7 +13,13 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outDir = resolve(here, "../../var/doc-screenshots/out");
-const BASE = process.env.DOC_BASE_URL ?? "http://127.0.0.1:8000";
+/**
+ * Le meme hote que `capture-steps.mjs`, qui lui en depend : le jeton
+ * d'abonnement au hub Mercure voyage dans un cookie, et un cookie appartient
+ * a un hote. Deux bases differentes pour deux outils qui photographient la
+ * meme application seraient une difference a redecouvrir.
+ */
+const BASE = process.env.DOC_BASE_URL ?? "http://localhost:8000";
 const VIEWPORT = { width: 1600, height: 1000 };
 
 const settle = async (page, ms = 1200) => page.waitForTimeout(ms);

@@ -101,6 +101,14 @@ notes:
     drag_handle: Glisser pour réordonner
     content_placeholder: "# Écrivez du markdown ici\n\nReliez vos notes avec [[Titre]]"
     create_root: Nouvelle note
+    export:
+      all: Exporter le carnet
+      one: Exporter cette note
+    import:
+      button: Importer des notes
+      done: "Aucune note importée | 1 note importée | {count} notes importées"
+      errors:
+        required: Choisissez au moins un fichier.
     tree_empty: Aucune note pour l'instant.
     create_child: Ajouter une sous-note
     confirm_delete: 'Supprimer définitivement « {title} » ?'

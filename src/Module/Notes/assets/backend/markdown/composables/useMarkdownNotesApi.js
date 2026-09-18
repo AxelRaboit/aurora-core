@@ -85,5 +85,26 @@ export function useMarkdownNotesApi(props) {
 
             return { ok: payload.success !== false, reported: false, payload };
         },
+
+        /**
+         * Des fichiers Markdown, ou un zip, remis en notes.
+         *
+         * Le `FormData` est construit par l'appelant : c'est lui qui sait s'il
+         * y a un parent, et le composer ici demanderait de lui passer les deux
+         * moitiés séparément pour les recoller aussitôt.
+         */
+        import: async (formData) => {
+            const payload = await request(props.importPath, null, {
+                method: HttpMethod.Post,
+                rawBody: formData,
+                noGuard: true,
+            });
+
+            if (payload === null) {
+                return { ok: false, reported: true, payload: {} };
+            }
+
+            return { ok: payload.success !== false, reported: false, payload };
+        },
     };
 }

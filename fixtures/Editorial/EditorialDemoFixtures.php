@@ -38,6 +38,7 @@ use Aurora\Module\Editorial\Post\Gallery\GalleryNormalizer;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Service\EditorBlocks;
 use Aurora\Module\Editorial\Post\Service\PostTextExtractor;
+use Aurora\Module\Editorial\PostType\Entity\PostType;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeField;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
@@ -111,8 +112,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $this->createCustomFields($manager, $article);
         $this->bindTaxonomies($manager, $article);
 
+        $types = $this->createDemoPostTypes($manager, ['article' => $article, 'page' => $page]);
         $terms = $this->createTerms($manager);
-        $posts = $this->createPosts($manager, $article, $page, $terms);
+        $posts = $this->createPosts($manager, $types, $terms);
 
         $manager->flush();
 
@@ -120,11 +122,18 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         // document by *id*, and neither has one before it is written.
         $this->layOutWelcomePage($posts);
         $this->layOutFirstStepsArticle($posts);
+        $this->layOutAboutPage($posts, $types);
+        $this->layOutServicePages($posts);
+        $this->layOutProjectPages($posts);
         $this->addGalleries($posts);
+        $this->relatePosts($posts);
 
-        $this->fillPrimaryMenu($manager, $posts);
+        $this->fillPrimaryMenu($manager, $posts, $types);
 
-        $this->createQuoteForm();
+        // La page de contact pose le formulaire, donc elle attend qu'il
+        // existe : une zone de formulaire nomme un identifiant, et un
+        // formulaire qui n'est pas encore écrit n'en a pas.
+        $this->layOutContactPage($posts, $this->createQuoteForm());
 
         $this->createComments($manager, $posts);
         $manager->flush();
@@ -292,14 +301,14 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * One post per status, so every filter on the list has something to
      * show and the dashboard bars are not a single full-width block.
      *
+     * @param array<string, PostTypeInterface>     $types keyed by slug
      * @param array<string, TaxonomyTermInterface> $terms
      *
      * @return array<string, PostInterface>
      */
     private function createPosts(
         EntityManagerInterface $em,
-        PostTypeInterface $article,
-        PostTypeInterface $page,
+        array $types,
         array $terms,
     ): array {
         // Doctrine keys references by concrete class, so this asks for what
@@ -309,7 +318,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
         $defs = [
             'welcome' => [
-                'type' => $page,
+                'type' => $types['page'],
                 'media' => 0,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-30 days'),
@@ -319,7 +328,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'es' => ['Bienvenida', 'bienvenida', 'La página de inicio de este sitio de demostración.'],
             ],
             'first-steps' => [
-                'type' => $article,
+                'type' => $types['article'],
                 'media' => 3,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-12 days'),
@@ -329,7 +338,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'es' => ['Escribir su primer artículo', 'escribir-primer-articulo', 'Del borrador a la publicación, en cinco minutos.'],
             ],
             'blocks' => [
-                'type' => $article,
+                'type' => $types['article'],
                 'media' => 2,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-3 days'),
@@ -339,7 +348,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'es' => ['Componer con bloques', 'componer-con-bloques', 'Títulos, listas, destacados: lo que sabe hacer el editor.'],
             ],
             'roadmap' => [
-                'type' => $article,
+                'type' => $types['article'],
                 'media' => 1,
                 'status' => PostStatusEnum::Draft,
                 'publishedAt' => null,
@@ -352,7 +361,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // sur le cycle de vie en annonce cinq, et la liste n'en montrait
             // que trois : une capture qui contredit son propre texte.
             'review' => [
-                'type' => $article,
+                'type' => $types['article'],
                 'media' => 1,
                 'status' => PostStatusEnum::PendingReview,
                 'publishedAt' => null,
@@ -362,7 +371,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'es' => ['Revisar antes de publicar', 'revisar-antes-de-publicar', 'Enviada a revisión: espera una opinión.'],
             ],
             'retired' => [
-                'type' => $article,
+                'type' => $types['article'],
                 'media' => 0,
                 'status' => PostStatusEnum::Archived,
                 'publishedAt' => $now->modify('-120 days'),
@@ -372,7 +381,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'es' => ['Las tarifas del año pasado', 'las-tarifas-del-ano-pasado', 'Archivada: fuera del sitio, guardada en base.'],
             ],
             'announcement' => [
-                'type' => $article,
+                'type' => $types['article'],
                 'media' => 0,
                 'status' => PostStatusEnum::Scheduled,
                 'publishedAt' => null,
@@ -381,6 +390,93 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'fr' => ['Annonce à venir', 'annonce-a-venir', 'Programmée : elle se publiera toute seule.'],
                 'en' => ['Upcoming announcement', 'upcoming-announcement', 'Scheduled: it will publish itself.'],
                 'es' => ['Anuncio previsto', 'anuncio-previsto', 'Programado: se publicará solo.'],
+            ],
+            // Ce que la production a et que la démo n'avait pas : des pages
+            // institutionnelles, deux types de contenu maison et des
+            // réalisations - c'est-à-dire la forme d'un vrai site plutôt que
+            // celle d'un bac à sable. Les titres sont vrais, parce qu'un menu
+            // qui dit « Lorem ipsum » n'apprend rien ; tout ce qui se lit
+            // dessous est du faux latin, pour que personne ne prenne une page
+            // de démonstration pour une page de client.
+            'about' => [
+                'type' => $types['page'],
+                'media' => 1,
+                'status' => PostStatusEnum::Published,
+                'publishedAt' => $now->modify('-28 days'),
+                'terms' => [],
+                'fr' => ['À propos', 'a-propos', $this->lorem(1)],
+                'en' => ['About', 'about', $this->lorem(1)],
+                'es' => ['Acerca de', 'acerca-de', $this->lorem(1)],
+            ],
+            'contact' => [
+                'type' => $types['page'],
+                'media' => 3,
+                'status' => PostStatusEnum::Published,
+                'publishedAt' => $now->modify('-28 days'),
+                'terms' => [],
+                'fr' => ['Contact', 'contact', $this->lorem(1, 1)],
+                'en' => ['Contact', 'contact', $this->lorem(1, 1)],
+                'es' => ['Contacto', 'contacto', $this->lorem(1, 1)],
+            ],
+            'legal' => [
+                'type' => $types['page'],
+                'media' => 2,
+                'status' => PostStatusEnum::Published,
+                'publishedAt' => $now->modify('-28 days'),
+                'terms' => [],
+                'fr' => ['Mentions légales', 'mentions-legales', $this->lorem(1, 2)],
+                'en' => ['Legal notice', 'legal-notice', $this->lorem(1, 2)],
+                'es' => ['Aviso legal', 'aviso-legal', $this->lorem(1, 2)],
+            ],
+            'service-web' => [
+                'type' => $types['services'],
+                'media' => 0,
+                'status' => PostStatusEnum::Published,
+                'publishedAt' => $now->modify('-25 days'),
+                'terms' => [],
+                'fr' => ['Développement web', 'developpement-web', $this->lorem(1, 3)],
+                'en' => ['Web development', 'web-development', $this->lorem(1, 3)],
+                'es' => ['Desarrollo web', 'desarrollo-web', $this->lorem(1, 3)],
+            ],
+            'service-photo' => [
+                'type' => $types['services'],
+                'media' => 1,
+                'status' => PostStatusEnum::Published,
+                'publishedAt' => $now->modify('-24 days'),
+                'terms' => [],
+                'fr' => ['Photographie', 'photographie', $this->lorem(1, 4)],
+                'en' => ['Photography', 'photography', $this->lorem(1, 4)],
+                'es' => ['Fotografía', 'fotografia', $this->lorem(1, 4)],
+            ],
+            'service-social' => [
+                'type' => $types['services'],
+                'media' => 2,
+                'status' => PostStatusEnum::Published,
+                'publishedAt' => $now->modify('-23 days'),
+                'terms' => [],
+                'fr' => ['Réseaux sociaux', 'reseaux-sociaux', $this->lorem(1, 5)],
+                'en' => ['Social media', 'social-media', $this->lorem(1, 5)],
+                'es' => ['Redes sociales', 'redes-sociales', $this->lorem(1, 5)],
+            ],
+            'project-lumen' => [
+                'type' => $types['projets'],
+                'media' => 3,
+                'status' => PostStatusEnum::Published,
+                'publishedAt' => $now->modify('-18 days'),
+                'terms' => [],
+                'fr' => ['Projet Lumen', 'projet-lumen', $this->lorem(1, 6)],
+                'en' => ['Lumen project', 'lumen-project', $this->lorem(1, 6)],
+                'es' => ['Proyecto Lumen', 'proyecto-lumen', $this->lorem(1, 6)],
+            ],
+            'project-atlas' => [
+                'type' => $types['projets'],
+                'media' => 0,
+                'status' => PostStatusEnum::Published,
+                'publishedAt' => $now->modify('-9 days'),
+                'terms' => [],
+                'fr' => ['Projet Atlas', 'projet-atlas', $this->lorem(1, 7)],
+                'en' => ['Atlas project', 'atlas-project', $this->lorem(1, 7)],
+                'es' => ['Proyecto Atlas', 'proyecto-atlas', $this->lorem(1, 7)],
             ],
         ];
 
@@ -845,6 +941,409 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
+     * Deux types de contenu à la démo, en plus des deux de l'installation.
+     *
+     * Les types livrés sont le plancher du produit, pas un exemple : un site
+     * réel se fait de pages, d'articles, de services et de réalisations, et
+     * une démo qui n'a que les deux premiers ne montre jamais à quoi
+     * ressemble un type créé à la main - l'écran qui sert à en créer un se
+     * lisait sur une liste où tout était coché « intégré ».
+     *
+     * Chacun a son archive, parce que c'est l'adresse que le menu vise :
+     * `/fr/services` et `/fr/projets` n'existent pas autrement.
+     *
+     * @param array<string, PostTypeInterface> $builtIn les types de l'installation, keyed by slug
+     *
+     * @return array<string, PostTypeInterface> keyed by slug
+     */
+    private function createDemoPostTypes(EntityManagerInterface $em, array $builtIn): array
+    {
+        $definitions = [
+            ['services', 'Services', 'briefcase'],
+            ['projets', 'Projets', 'layout-grid'],
+        ];
+
+        $types = $builtIn;
+
+        foreach ($definitions as [$slug, $label, $icon]) {
+            // Réutilisé quand il est déjà là, comme les publications plus
+            // bas : un second `make demo` rafraîchit la démo, il ne la double
+            // pas - et le slug est unique.
+            $type = $this->postTypeRepository->findOneBySlug($slug) ?? new PostType();
+
+            $type
+                ->setSlug($slug)
+                ->setLabel($label)
+                ->setIcon($icon)
+                ->setHasArchive(true)
+                ->setIsBuiltIn(false);
+
+            $em->persist($type);
+            $types[$slug] = $type;
+        }
+
+        return $types;
+    }
+
+    /**
+     * Du faux latin, par phrases entières.
+     *
+     * Les pages ajoutées à la démo ont la forme de la production et le
+     * contenu de rien du tout, ce qui est voulu : une démo qui porte de vrais
+     * textes finit citée comme si elle disait quelque chose, et une démo dont
+     * les titres sont du latin ne montre pas à quoi sert un menu. Les titres
+     * sont donc vrais et tout le reste vient d'ici.
+     *
+     * Le décalage sert à ce que deux paragraphes voisins ne sortent pas
+     * identiques : une page où le même bloc est recopié quatre fois se lit
+     * comme un gabarit non rempli.
+     */
+    private function lorem(int $sentences, int $from = 0): string
+    {
+        $pool = [
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+            'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
+            'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+            'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.',
+            'Totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.',
+            'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores.',
+            'Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.',
+            'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti.',
+            'Et harum quidem rerum facilis est et expedita distinctio, nam libero tempore cum soluta nobis est eligendi optio.',
+        ];
+
+        $sentences = max(1, $sentences);
+        $out = [];
+
+        for ($i = 0; $i < $sentences; ++$i) {
+            $out[] = $pool[($from + $i) % count($pool)];
+        }
+
+        return implode(' ', $out);
+    }
+
+    /**
+     * La page « À propos » : du texte, une liste d'étapes, puis les services.
+     *
+     * La zone d'étapes et la liste automatique sont les deux qu'une page
+     * institutionnelle porte toujours et que la démo n'avait nulle part - la
+     * seconde surtout, qui est la différence entre une page à retoucher à
+     * chaque publication et une page qui se tient à jour toute seule.
+     *
+     * @param array<string, PostInterface>     $posts
+     * @param array<string, PostTypeInterface> $types
+     */
+    private function layOutAboutPage(array $posts, array $types): void
+    {
+        $about = $posts['about'] ?? null;
+        if (!$about instanceof PostInterface) {
+            return;
+        }
+
+        $steps = ['step-1', 'step-2', 'step-3'];
+
+        $about->setGridLayout($this->gridNormalizer->normalizeLayout([
+            'enabled' => true,
+            'snap' => 4,
+            'zones' => [
+                ['id' => 'intro', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48]],
+                [
+                    'id' => 'steps',
+                    'type' => GridNormalizer::ZONE_ITEMS,
+                    'span' => ['base' => 48, 'md' => null, 'lg' => 48],
+                    'display' => 'steps',
+                    'columns' => 3,
+                    'items' => array_map(static fn (string $id): array => ['id' => $id], $steps),
+                ],
+                ['id' => 'listing', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48]],
+                [
+                    'id' => 'services',
+                    'type' => GridNormalizer::ZONE_POST_LIST,
+                    'span' => ['base' => 48, 'md' => null, 'lg' => 48],
+                    'postTypeId' => $types['services']->getId(),
+                    'limit' => 3,
+                    'columns' => 3,
+                    'cardVariant' => 'full',
+                ],
+            ],
+        ]));
+
+        $headings = [
+            'fr' => ['Qui nous sommes', 'Nos services'],
+            'en' => ['Who we are', 'Our services'],
+            'es' => ['Quiénes somos', 'Nuestros servicios'],
+        ];
+
+        foreach (LocaleEnum::values() as $locale) {
+            $translation = $about->translate($locale);
+            [$heading, $listing] = $headings[$locale];
+
+            $translation->setGrid($this->gridNormalizer->normalizeContent([
+                'zones' => [
+                    'intro' => ['blocks' => [
+                        EditorBlocks::header($heading),
+                        EditorBlocks::paragraph($this->lorem(3)),
+                    ]],
+                    'steps' => ['items' => [
+                        'step-1' => ['title' => 'Lorem ipsum', 'description' => $this->lorem(1, 1)],
+                        'step-2' => ['title' => 'Dolor sit amet', 'description' => $this->lorem(1, 2)],
+                        'step-3' => ['title' => 'Consectetur elit', 'description' => $this->lorem(1, 3)],
+                    ]],
+                    'listing' => ['blocks' => [EditorBlocks::header($listing)]],
+                ],
+            ], $about->getGridLayout()));
+
+            $this->indexForSearch($translation);
+        }
+    }
+
+    /**
+     * Les trois services, sur un gabarit image/texte alterné.
+     *
+     * Un gabarit, justement : les trois pages partagent la même disposition
+     * et seul leur contenu change, ce qui est la façon dont un site range ses
+     * offres - trois compositions différentes pour trois services se lisent
+     * comme trois essais plutôt que comme une rubrique.
+     *
+     * L'image passe de gauche à droite d'une ligne à l'autre, ce qu'on obtient
+     * ici sans réglage : les zones se suivent dans l'ordre écrit.
+     *
+     * @param array<string, PostInterface> $posts
+     */
+    private function layOutServicePages(array $posts): void
+    {
+        $pages = [
+            'service-web' => [0, 2],
+            'service-photo' => [1, 3],
+            'service-social' => [2, 0],
+        ];
+
+        $words = [
+            'fr' => ['Ce que nous faisons', 'Comment nous travaillons', ['Lorem ipsum dolor', 'Consectetur adipiscing', 'Sed do eiusmod tempor']],
+            'en' => ['What we do', 'How we work', ['Lorem ipsum dolor', 'Consectetur adipiscing', 'Sed do eiusmod tempor']],
+            'es' => ['Lo que hacemos', 'Cómo trabajamos', ['Lorem ipsum dolor', 'Consectetur adipiscing', 'Sed do eiusmod tempor']],
+        ];
+
+        $offset = 0;
+
+        foreach ($pages as $key => [$first, $second]) {
+            $post = $posts[$key] ?? null;
+            if (!$post instanceof PostInterface) {
+                continue;
+            }
+
+            $top = $this->getReference(GedDemoFixtures::mediaRef($first), Document::class);
+            $bottom = $this->getReference(GedDemoFixtures::mediaRef($second), Document::class);
+
+            $post->setGridLayout($this->gridNormalizer->normalizeLayout([
+                'enabled' => true,
+                'snap' => 4,
+                'zones' => [
+                    ['id' => 'lede', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48], 'textSize' => 'lead'],
+                    ['id' => 'shot-one', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => '4x3', 'mediaId' => $top->getId()],
+                    ['id' => 'pitch', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 24]],
+                    ['id' => 'method', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 24]],
+                    ['id' => 'shot-two', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => '4x3', 'mediaId' => $bottom->getId()],
+                ],
+            ]));
+
+            foreach (LocaleEnum::values() as $locale) {
+                $translation = $post->translate($locale);
+                [$doing, $working, $points] = $words[$locale];
+                $title = $translation->getTitle();
+
+                $translation->setGrid($this->gridNormalizer->normalizeContent([
+                    'zones' => [
+                        // Pas de titre ici : le gabarit imprime déjà celui
+                        // de la publication, et un `h2` qui le répète se lit
+                        // comme une erreur de saisie.
+                        'lede' => ['blocks' => [EditorBlocks::paragraph($this->lorem(2, $offset))]],
+                        'shot-one' => ['alt' => $title, 'caption' => ''],
+                        'pitch' => ['blocks' => [
+                            EditorBlocks::header($doing, 3),
+                            EditorBlocks::paragraph($this->lorem(2, $offset + 2)),
+                            EditorBlocks::list($points),
+                        ]],
+                        'method' => ['blocks' => [
+                            EditorBlocks::header($working, 3),
+                            EditorBlocks::paragraph($this->lorem(3, $offset + 4)),
+                        ]],
+                        'shot-two' => ['alt' => $title, 'caption' => ''],
+                    ],
+                ], $post->getGridLayout()));
+
+                $this->indexForSearch($translation);
+            }
+
+            ++$offset;
+        }
+    }
+
+    /**
+     * Les deux réalisations : une image large, un récit, des chiffres.
+     *
+     * Les chiffres sont une liste d'entrées en costume « stats », qui est la
+     * même zone que les étapes de la page « À propos » portée autrement -
+     * deux démonstrations d'un seul mécanisme, ce qui est exactement ce que la
+     * zone existe pour montrer.
+     *
+     * @param array<string, PostInterface> $posts
+     */
+    private function layOutProjectPages(array $posts): void
+    {
+        $pages = ['project-lumen' => 3, 'project-atlas' => 0];
+
+        $words = [
+            'fr' => ['Le projet', ['Projets livrés', 'Semaines', 'Personnes']],
+            'en' => ['The project', ['Projects shipped', 'Weeks', 'People']],
+            'es' => ['El proyecto', ['Proyectos entregados', 'Semanas', 'Personas']],
+        ];
+
+        $offset = 2;
+
+        foreach ($pages as $key => $mediaIndex) {
+            $post = $posts[$key] ?? null;
+            if (!$post instanceof PostInterface) {
+                continue;
+            }
+
+            $cover = $this->getReference(GedDemoFixtures::mediaRef($mediaIndex), Document::class);
+
+            $post->setGridLayout($this->gridNormalizer->normalizeLayout([
+                'enabled' => true,
+                'snap' => 4,
+                'zones' => [
+                    ['id' => 'cover', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 48], 'ratio' => '16x9', 'mediaId' => $cover->getId()],
+                    ['id' => 'story', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 28]],
+                    [
+                        'id' => 'facts',
+                        'type' => GridNormalizer::ZONE_ITEMS,
+                        'span' => ['base' => 48, 'md' => null, 'lg' => 20],
+                        'display' => 'stats',
+                        'columns' => 3,
+                        'items' => [['id' => 'fact-1'], ['id' => 'fact-2'], ['id' => 'fact-3']],
+                    ],
+                ],
+            ]));
+
+            foreach (LocaleEnum::values() as $locale) {
+                $translation = $post->translate($locale);
+                [$heading, $labels] = $words[$locale];
+                $title = $translation->getTitle();
+
+                $translation->setGrid($this->gridNormalizer->normalizeContent([
+                    'zones' => [
+                        'cover' => ['alt' => $title, 'caption' => ''],
+                        'story' => ['blocks' => [
+                            EditorBlocks::header($heading),
+                            EditorBlocks::paragraph($this->lorem(3, $offset)),
+                            EditorBlocks::quote($this->lorem(1, $offset + 3), 'Lorem Ipsum'),
+                        ]],
+                        'facts' => ['items' => [
+                            'fact-1' => ['title' => '24', 'description' => $labels[0]],
+                            'fact-2' => ['title' => '12', 'description' => $labels[1]],
+                            'fact-3' => ['title' => '4', 'description' => $labels[2]],
+                        ]],
+                    ],
+                ], $post->getGridLayout()));
+
+                $this->indexForSearch($translation);
+            }
+
+            $offset += 4;
+        }
+    }
+
+    /**
+     * La page de contact : deux mots, puis le formulaire lui-même.
+     *
+     * Le formulaire a déjà une page à lui, et c'est justement ce que cette
+     * zone évite - quelqu'un qui vient de lire ce que vous faites remplit un
+     * formulaire posé là, pas un lien qui lui demande d'aller ailleurs.
+     *
+     * @param array<string, PostInterface> $posts
+     */
+    private function layOutContactPage(array $posts, FormInterface $form): void
+    {
+        $contact = $posts['contact'] ?? null;
+        if (!$contact instanceof PostInterface) {
+            return;
+        }
+
+        $contact->setGridLayout($this->gridNormalizer->normalizeLayout([
+            'enabled' => true,
+            'snap' => 4,
+            'zones' => [
+                ['id' => 'intro', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 32]],
+                ['id' => 'reach', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 16]],
+                ['id' => 'form', 'type' => GridNormalizer::ZONE_FORM, 'span' => ['base' => 48, 'md' => null, 'lg' => 48], 'formId' => $form->getId()],
+            ],
+        ]));
+
+        $headings = [
+            'fr' => ['Nous écrire', 'Nous joindre'],
+            'en' => ['Write to us', 'Reach us'],
+            'es' => ['Escríbanos', 'Cómo localizarnos'],
+        ];
+
+        foreach (LocaleEnum::values() as $locale) {
+            $translation = $contact->translate($locale);
+            [$heading, $aside] = $headings[$locale];
+
+            $translation->setGrid($this->gridNormalizer->normalizeContent([
+                'zones' => [
+                    'intro' => ['blocks' => [
+                        EditorBlocks::header($heading),
+                        EditorBlocks::paragraph($this->lorem(2, 5)),
+                    ]],
+                    'reach' => ['blocks' => [
+                        EditorBlocks::header($aside, 3),
+                        EditorBlocks::list(['contact@example.com', '+33 1 23 45 67 89', 'Lorem ipsum 75001']),
+                    ]],
+                ],
+            ], $contact->getGridLayout()));
+
+            $this->indexForSearch($translation);
+        }
+    }
+
+    /**
+     * Des publications liées entre elles.
+     *
+     * Le champ existait et n'était rempli nulle part, si bien que l'écran qui
+     * le règle et le bandeau « à lire ensuite » se lisaient tous les deux
+     * comme des fonctionnalités mortes. Par paires, et dans les deux sens :
+     * la relation n'est pas dirigée pour un lecteur, alors que la table, elle,
+     * l'est.
+     *
+     * @param array<string, PostInterface> $posts
+     */
+    private function relatePosts(array $posts): void
+    {
+        $pairs = [
+            ['project-lumen', 'project-atlas'],
+            ['service-web', 'service-social'],
+            ['first-steps', 'blocks'],
+        ];
+
+        foreach ($pairs as [$left, $right]) {
+            $one = $posts[$left] ?? null;
+            $other = $posts[$right] ?? null;
+            if (!$one instanceof PostInterface) {
+                continue;
+            }
+
+            if (!$other instanceof PostInterface) {
+                continue;
+            }
+
+            $one->addRelatedPost($other);
+            $other->addRelatedPost($one);
+        }
+    }
+
+    /**
      * A body in the shape the *editor* expects - which is stricter than what
      * the renderer accepts, and the reason these go through EditorBlocks
      * rather than being written out by hand.
@@ -888,9 +1387,10 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * than making a second menu: a location holds one menu, and a demo that
      * needed its own would be demonstrating something the product cannot do.
      *
-     * @param array<string, PostInterface> $posts
+     * @param array<string, PostInterface>     $posts
+     * @param array<string, PostTypeInterface> $types
      */
-    private function fillPrimaryMenu(EntityManagerInterface $em, array $posts): void
+    private function fillPrimaryMenu(EntityManagerInterface $em, array $posts, array $types): void
     {
         $menu = $this->menuRepository->findOneByLocation('primary');
         if (!$menu instanceof MenuInterface) {
@@ -899,7 +1399,17 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
         $entries = [
             ['post' => 'welcome', 'fr' => 'Bienvenue', 'en' => 'Welcome', 'es' => 'Bienvenida'],
+            ['post' => 'about', 'fr' => 'À propos', 'en' => 'About', 'es' => 'Acerca de'],
             ['post' => 'first-steps', 'fr' => 'Premiers pas', 'en' => 'Getting started', 'es' => 'Primeros pasos'],
+            ['post' => 'contact', 'fr' => 'Contact', 'en' => 'Contact', 'es' => 'Contacto'],
+        ];
+
+        // Les deux archives, qui sont l'autre chose qu'un menu vise : une
+        // entrée qui pointe un type suit ses publications sans qu'on y
+        // retouche, là où une entrée par service serait à refaire au suivant.
+        $archives = [
+            ['type' => 'services', 'fr' => 'Services', 'en' => 'Services', 'es' => 'Servicios'],
+            ['type' => 'projets', 'fr' => 'Projets', 'en' => 'Projects', 'es' => 'Proyectos'],
         ];
 
         // The seeded "Home" entry sits at position 0; these follow it.
@@ -933,6 +1443,31 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             $menu->addItem($item);
             $em->persist($item);
         }
+
+        foreach ($archives as $entry) {
+            $type = $types[$entry['type']] ?? null;
+            if (!$type instanceof PostTypeInterface) {
+                continue;
+            }
+
+            $item = $this->menuItemRepository->findOneBy([
+                'menu' => $menu,
+                'targetType' => MenuItemTargetTypeEnum::PostTypeArchive,
+                'targetId' => $type->getId(),
+            ]) ?? new MenuItem();
+
+            $item
+                ->setTargetType(MenuItemTargetTypeEnum::PostTypeArchive)
+                ->setTargetId($type->getId())
+                ->setPosition($position++);
+
+            foreach (LocaleEnum::values() as $locale) {
+                $item->translate($locale)->setLabel($entry[$locale] ?? $entry['fr']);
+            }
+
+            $menu->addItem($item);
+            $em->persist($item);
+        }
     }
 
     /**
@@ -946,10 +1481,14 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      *
      * Idempotent on its French slug: `make demo` twice must not leave two.
      */
-    private function createQuoteForm(): void
+    private function createQuoteForm(): FormInterface
     {
-        if ($this->formTranslationRepository->findOneByLocaleAndSlug('fr', 'demande-de-devis') instanceof FormTranslationInterface) {
-            return;
+        // Rendu plutôt que tu : la page de contact pose ce formulaire-là, et
+        // au second passage il existe déjà - lui répondre `null` lui ferait
+        // perdre sa zone à chaque `make demo`.
+        $existing = $this->formTranslationRepository->findOneByLocaleAndSlug('fr', 'demande-de-devis');
+        if ($existing instanceof FormTranslationInterface) {
+            return $existing->getForm();
         }
 
         $form = $this->forms->create(new FormInput(
@@ -986,6 +1525,8 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         }
 
         $this->submitQuoteForm($form, $fields);
+
+        return $form;
     }
 
     /**

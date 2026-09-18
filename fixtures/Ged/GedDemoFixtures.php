@@ -199,11 +199,12 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
     /**
      * Draws the stand-in for a demo picture whose source file is absent.
      *
-     * A flat rectangle would make every tile of the library identical, and a
-     * library where the thumbnails cannot be told apart teaches nothing about
-     * the library. So each one gets a vertical wash seeded by its own name:
-     * stable between runs, different between files, and obviously not a
-     * photograph.
+     * **Une couleur unie, une par fichier.** Ce qu'il faut, c'est distinguer
+     * les vignettes les unes des autres, pas imiter une photo : la teinte est
+     * tirée du nom du fichier, donc stable d'une regénération à l'autre et
+     * différente d'un voisin à l'autre. Un dégradé faisait le même travail en
+     * suggérant une image là où il n'y en a pas, et une capture d'écran de
+     * démonstration montre mieux un aplat.
      *
      * Only the image formats GD writes. A missing video or PDF is left to the
      * caller, which keeps the row and drops the file.
@@ -232,11 +233,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         // every time it is regenerated and never the colour of its neighbour.
         $hue = crc32($def['name']) % 360;
 
-        for ($y = 0; $y < $height; ++$y) {
-            [$r, $g, $b] = $this->hueToRgb($hue, 0.45, 0.30 + 0.35 * ($y / max(1, $height - 1)));
-            $line = imagecolorallocate($image, $r, $g, $b);
-            imageline($image, 0, $y, $width, $y, $line);
-        }
+        [$r, $g, $b] = $this->hueToRgb($hue, 0.45, 0.42);
+        imagefilledrectangle($image, 0, 0, $width, $height, imagecolorallocate($image, $r, $g, $b));
 
         $label = imagecolorallocate($image, 255, 255, 255);
         imagestring($image, 5, 24, $height - 40, $def['name'], $label);

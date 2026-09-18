@@ -6,13 +6,18 @@ namespace Aurora\Tests\Integration\Module\Notes;
 
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
+use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use ZipArchive;
 
 /**
  * Markdown notes, brought back into core from the archived Notes package.
@@ -254,11 +259,152 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * @param array<string, mixed> $payload
-     * @param array<string, mixed> $params
-     *
      * @return array<string, mixed>
      */
+
+    /**
+     * **L'aller-retour, qui est la seule preuve qu'une exportation vaut.**.
+     *
+     * Un carnet exporté puis réimporté doit redonner la même arborescence, les
+     * mêmes titres et les mêmes étiquettes. Sans ça, l'export est un tas de
+     * fichiers, pas une porte de sortie.
+     */
+    public function testTheNotebookSurvivesAnExportAndAnImport(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+
+        $parent = $this->post('backend_notes_markdown_create', [
+            'title' => 'Clients',
+            'content' => 'La porte du carnet.',
+            'tags' => ['index'],
+        ]);
+        $parentId = $parent['note']['id'];
+        $this->created[] = [MarkdownNote::class, (int) $parentId];
+
+        $child = $this->post('backend_notes_markdown_create', [
+            'title' => 'Studio Lumen',
+            'content' => 'Photo, en cours.',
+            'parentId' => $parentId,
+        ]);
+        $this->created[] = [MarkdownNote::class, (int) $child['note']['id']];
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_export'));
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        // La route rend un fichier, pas un corps : `getContent()` y répond faux.
+        // Et celui-ci s'efface une fois envoyé, ce qui est voulu. L'archive
+        // examinée est donc celle que le service refabrique, et la route est
+        // pesée sur ce qu'elle promet - un fichier, et deux cents.
+        self::assertInstanceOf(BinaryFileResponse::class, $this->client->getResponse());
+
+        $path = static::getContainer()->get(MarkdownNoteArchive::class)->zipFor($this->owner);
+
+        $archive = new ZipArchive();
+        self::assertTrue($archive->open($path));
+
+        // L'arborescence est dans les chemins : une note fille est un fichier
+        // dans le dossier du nom de sa mère.
+        $entries = [];
+        for ($i = 0; $i < $archive->numFiles; ++$i) {
+            $entries[] = (string) $archive->getNameIndex($i);
+        }
+        $archive->close();
+
+        self::assertContains('Clients.md', $entries);
+        self::assertContains('Clients/Studio Lumen.md', $entries);
+
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('backend_notes_markdown_import'),
+            files: ['files' => [new UploadedFile($path, 'notes.zip', 'application/zip', null, true)]],
+        );
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true);
+
+        // Deux notes, pas trois : le dossier traversé compte pour la note
+        // qu'il est, une seule fois.
+        self::assertSame(2, $body['created']);
+
+        $titles = [];
+        foreach ($this->notes() as $note) {
+            $titles[] = $note->getTitle();
+            $this->created[] = [MarkdownNote::class, (int) $note->getId()];
+        }
+
+        // Rien n'est écrasé : les originales et les importées cohabitent.
+        self::assertSame(2, count(array_filter($titles, static fn (?string $title): bool => 'Clients' === $title)));
+
+        $imported = null;
+        foreach ($this->notes() as $note) {
+            if ('Studio Lumen' === $note->getTitle() && $note->getId() !== $child['note']['id']) {
+                $imported = $note;
+            }
+        }
+
+        self::assertInstanceOf(MarkdownNoteInterface::class, $imported, 'la note fille est revenue');
+        self::assertSame('Clients', $imported->getParent()?->getTitle(), 'et sous sa mère');
+    }
+
+    /** Les étiquettes voyagent en préambule, et reviennent comme étiquettes. */
+    public function testTagsSurviveTheRoundTrip(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+
+        $note = $this->post('backend_notes_markdown_create', [
+            'title' => 'Avec étiquettes',
+            'content' => 'Du texte.',
+            'tags' => ['photo', 'méthode'],
+        ]);
+        $this->created[] = [MarkdownNote::class, (int) $note['note']['id']];
+
+        $this->client->request(
+            'GET',
+            $this->urlGenerator->generate('backend_notes_markdown_export_one', ['id' => $note['note']['id']]),
+        );
+
+        $body = (string) $this->client->getResponse()->getContent();
+
+        self::assertStringStartsWith("---\ntags: [photo, méthode]\n---", $body);
+
+        $path = (string) tempnam(sys_get_temp_dir(), 'aurora-note-test-');
+        file_put_contents($path, $body);
+
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('backend_notes_markdown_import'),
+            files: ['files' => [new UploadedFile($path, 'Avec étiquettes.md', 'text/markdown', null, true)]],
+        );
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $imported = null;
+        foreach ($this->notes() as $candidate) {
+            $this->created[] = [MarkdownNote::class, (int) $candidate->getId()];
+
+            if ('Avec étiquettes' === $candidate->getTitle() && $candidate->getId() !== $note['note']['id']) {
+                $imported = $candidate;
+            }
+        }
+
+        self::assertInstanceOf(MarkdownNoteInterface::class, $imported);
+        self::assertSame(['photo', 'méthode'], $imported->getTags());
+        // Le préambule n'est pas resté dans le texte.
+        self::assertSame('Du texte.', mb_trim((string) $imported->getContent()));
+    }
+
+    /** @return list<MarkdownNoteInterface> */
+    private function notes(): array
+    {
+        $this->entityManager->clear();
+
+        return static::getContainer()
+            ->get(MarkdownNoteRepository::class)
+            ->findAllWithContentForUser($this->owner);
+    }
+
     private function post(string $route, array $payload = [], array $params = []): array
     {
         $this->client->request(

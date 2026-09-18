@@ -45,10 +45,14 @@ use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInput;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInput;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
@@ -349,7 +353,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // single busy board beside four empty ones shows both states, which is
         // what the screens have to be able to draw.
         $this->seedBoard($social);
-        $this->seedChat($social);
+        $this->seedCardComments($social, $this->seedChat($social));
         $this->seedNotes($social);
         // Des fichiers qui n'illustrent rien : ce qu'on tend au client sans
         // l'épingler à une publication.
@@ -529,11 +533,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         string $recipient = 'camille@atelier-dupont.fr',
         string $label = 'Camille, gérante',
         ?array $exchange = null,
-    ): void {
+    ): ?SpaceAccessLinkInterface {
         $marie = $this->userRepository->find($this->backendUser('marie.dupont@aurora.app'));
 
         if (!$marie instanceof User) {
-            return;
+            return null;
         }
 
         $link = $this->accessLinks->issue(
@@ -575,6 +579,78 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         foreach ($dates as $id => $at) {
             $this->entityManager->createQuery(
                 'UPDATE '.SpaceChatMessage::class.' m SET m.createdAt = :at WHERE m.id = :id'
+            )->setParameter('at', $at)->setParameter('id', $id)->execute();
+        }
+
+        return $link;
+    }
+
+    /**
+     * Deux fiches commentées, studio et client mêlés.
+     *
+     * La table était vide, donc le fil d'une fiche s'ouvrait toujours sur
+     * « aucun commentaire » : la fonctionnalité existait et ne se voyait
+     * nulle part. Deux fiches sur huit, pas huit sur huit - une fiche sans
+     * discussion est l'état le plus courant du tableau et il faut qu'il se
+     * voie aussi.
+     *
+     * Le client signe avec le lien d'accès de la conversation, pas avec un
+     * autre : deux liens pour un même interlocuteur donneraient deux
+     * personnes à l'écran.
+     */
+    private function seedCardComments(CustomerSpaceInterface $space, ?SpaceAccessLinkInterface $link): void
+    {
+        $marie = $this->userRepository->find($this->backendUser('marie.dupont@aurora.app'));
+
+        if (!$marie instanceof User || !$link instanceof SpaceAccessLinkInterface) {
+            return;
+        }
+
+        $items = $this->entityManager->getRepository(SpaceContentItem::class)
+            ->findBy(['space' => $space], ['id' => 'ASC']);
+
+        $threads = [
+            0 => [
+                ['-2 days 10:15', false, "J'ai posé la photo de groupe, dites-moi si le cadrage vous va."],
+                ['-2 days 15:02', true, 'Le cadrage est bon. On peut juste éclaircir un peu le fond ?'],
+                ['-1 day 09:20', false, 'Repris, la nouvelle version est sur la fiche.'],
+            ],
+            2 => [
+                ['-1 day 17:45', true, 'Les deux images avant / après sont parfaites, on garde cet ordre.'],
+            ],
+        ];
+
+        $dates = [];
+
+        foreach ($threads as $at => $thread) {
+            $item = $items[$at] ?? null;
+            if (!$item instanceof SpaceContentItemInterface) {
+                continue;
+            }
+
+            foreach ($thread as [$when, $fromClient, $body]) {
+                $comment = new SpaceContentComment();
+                $comment->setItem($item)->setBody($body);
+
+                if ($fromClient) {
+                    $comment->writtenByClient($link);
+                } else {
+                    $comment->writtenByStudio($marie, $marie->getName());
+                }
+
+                $this->entityManager->persist($comment);
+                $this->entityManager->flush();
+
+                $dates[(int) $comment->getId()] = new DateTimeImmutable($when);
+            }
+        }
+
+        // Comme la conversation : l'entité horodate à la création et n'a pas
+        // de setter pour ça, ce qui est juste - un commentaire ne se
+        // rédate pas.
+        foreach ($dates as $id => $at) {
+            $this->entityManager->createQuery(
+                'UPDATE '.SpaceContentComment::class.' c SET c.createdAt = :at WHERE c.id = :id'
             )->setParameter('at', $at)->setParameter('id', $id)->execute();
         }
     }
@@ -895,6 +971,19 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             'quote' => "Trois semaines pour passer de 3,4 secondes à moins d'une. Le reste du site n'y touche pas.",
             'attribution' => "Ce qu'il faut retenir",
         ], 'Fin. Laisser venir les questions sans enchaîner.');
+
+        // Un lien de partage, parce que l'écran qui les liste n'en montrait
+        // aucun : un deck envoyé, ouvert une fois et qui expire dans deux
+        // mois est l'état ordinaire d'un partage, pas un cas limite. La
+        // lecture est posée à la main, aucune fixture n'ouvrant réellement
+        // le lien.
+        $link = new DeckShareLink($deck);
+        $link
+            ->setLabel('Atelier Dupont - envoi du 12')
+            ->setExpiresAt(new DateTimeImmutable('+60 days'))
+            ->touch(new DateTimeImmutable('-2 days 14:05'));
+
+        $this->entityManager->persist($link);
     }
 
     /**

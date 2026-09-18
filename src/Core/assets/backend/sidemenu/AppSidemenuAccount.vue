@@ -63,9 +63,13 @@ const { t } = useI18n();
                 <span class="truncate text-sm font-medium text-primary">{{ userName }}</span>
                 <span class="truncate text-xs text-muted">{{ userEmail }}</span>
             </span>
+            <!-- Vers le haut quand c'est fermé, vers le bas quand c'est
+                 ouvert : ce bloc est en bas de la colonne et son contenu monte.
+                 Une flèche vers la droite disait « ça va s'ouvrir sur le côté »,
+                 ce qui n'arrive pas. -->
             <ChevronDown
                 class="w-3.5 h-3.5 shrink-0 text-muted transition-transform"
-                :class="{ '-rotate-90': !expanded }"
+                :class="{ 'rotate-180': !expanded }"
                 :stroke-width="2.5"
             />
         </button>
@@ -76,14 +80,12 @@ const { t } = useI18n();
                 :href="mailpitUrl"
                 target="_blank"
                 hover-color="amber"
-                tooltip-title="Mailpit"
             >
                 <Mail class="w-5 h-5 shrink-0 text-muted group-hover:text-amber-400 transition-colors" :stroke-width="2" />
                 <span>Mailpit</span>
             </AppNavLink>
 
             <AppNavButton
-                :tooltip-title="theme === 'dark' ? t('backend.nav.light_mode') : t('backend.nav.dark_mode')"
                 v-on:click="emit('toggle-theme')"
             >
                 <Moon v-if="theme !== 'dark'" class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
@@ -91,19 +93,19 @@ const { t } = useI18n();
                 <span>{{ theme === "dark" ? t("backend.nav.light_mode") : t("backend.nav.dark_mode") }}</span>
             </AppNavButton>
 
-            <AppNavLink :href="profilePath" :active="profileActive" :tooltip-title="t('backend.nav.profile')">
+            <AppNavLink :href="profilePath" :active="profileActive">
                 <User class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
                 <span class="truncate">{{ t("backend.nav.profile") }}</span>
             </AppNavLink>
 
-            <AppNavLink :href="preferencesPath" :active="preferencesActive" :tooltip-title="t('backend.profile.preferences.title')">
+            <AppNavLink :href="preferencesPath" :active="preferencesActive">
                 <SlidersHorizontal class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
                 <span class="truncate">{{ t("backend.profile.preferences.title") }}</span>
             </AppNavLink>
 
             <form :action="logoutPath" method="POST">
                 <input type="hidden" name="_token" :value="logoutCsrf">
-                <AppNavButton type="submit" hover-color="rose" :tooltip-title="t('backend.nav.logout')">
+                <AppNavButton type="submit" hover-color="rose">
                     <LogOut class="w-5 h-5 shrink-0 text-muted group-hover:text-rose-400 transition-colors" :stroke-width="2" />
                     <span>{{ t("backend.nav.logout") }}</span>
                 </AppNavButton>

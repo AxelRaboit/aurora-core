@@ -222,7 +222,6 @@ function openSearchFromMobile() {
                 :href="frontPath"
                 target="_blank"
                 hover-color="emerald"
-                :tooltip-title="t('backend.nav.view_site')"
             >
                 <Globe class="w-5 h-5 shrink-0 text-muted group-hover:text-emerald-400 transition-colors" :stroke-width="2" />
                 <span class="si-label truncate">{{ t("backend.nav.view_site") }}</span>

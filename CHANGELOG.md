@@ -5,6 +5,112 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.202] - 2026-09-18
+
+### Ajouté
+
+#### Emporter son carnet de notes, et le rendre
+Un carnet rangé dans une base est un enfermement tant qu'on ne peut pas le
+reprendre. **Exporter le carnet** rend un zip de fichiers `.md` dans
+l'arborescence des notes : un éditeur de texte les ouvre, Obsidian les lit, et
+rien là-dedans n'est propre à Aurora. Les étiquettes voyagent en préambule,
+dans la forme que les mêmes outils connaissent. Une note seule s'exporte aussi,
+depuis son en-tête.
+
+**Importer** relit des `.md` ou un zip entier, sous la note ouverte ou à la
+racine, et reconstruit l'arborescence à partir des dossiers.
+
+Deux décisions valent d'être dites. **Rien n'est écrasé** : une note du même
+nom donne une seconde note, parce que fusionner demanderait de décider ce qui
+gagne et que personne ne l'a demandé à ce moment-là. Et **un chemin désigne une
+note, pas deux** : l'export d'une note qui a des enfants écrit un fichier pour
+elle et un dossier pour eux, et l'import les recolle - sans quoi un
+aller-retour rendait deux notes du même nom, l'une avec le texte, l'autre avec
+les enfants.
+
+L'aller-retour est tenu par un test, parce que c'est la seule preuve qu'une
+exportation vaut quelque chose.
+
+#### Une démonstration qui a la forme d'un site
+La démo s'ouvrait sur deux types de contenu, sept publications et un menu de
+trois entrées : de quoi montrer l'éditeur, pas de quoi montrer un site. Elle a
+maintenant la forme de la production. **Deux types de contenu maison**,
+Services et Projets, créés par la démo et non par l'installation, ce qui est le
+seul moyen de voir à quoi ressemble un type qu'on a fait soi-même. **Trois
+pages de service** sur un gabarit image/texte alterné, **deux réalisations**
+avec une image large et des chiffres, et **trois pages institutionnelles** :
+à propos, contact et mentions légales. Le menu mène aux deux archives et aux
+nouvelles pages, la page à propos liste ses services toute seule, et la page de
+contact pose le formulaire de devis au lieu d'un lien vers lui.
+
+**Les titres sont vrais, les textes sont du faux latin.** Un menu qui dit
+« Lorem ipsum » n'apprend rien sur un menu ; un paragraphe de démonstration qui
+raconte quelque chose finit cité comme s'il le pensait. Les images de la
+médiathèque sont désormais des **aplats de couleur**, sans dégradé ni motif :
+il s'agit de distinguer les vignettes, pas d'imiter une photographie.
+
+Les écrans qui s'ouvraient vides se remplissent aussi. **Des publications
+liées** entre elles, **un partage de notes** avec ses sous-notes, **un lien de
+partage** sur le deck d'audit, et **deux fiches commentées** sur le tableau
+d'un espace client, studio et client mêlés. Deux fiches sur huit seulement :
+une fiche sans discussion est l'état le plus courant du tableau, et il faut
+qu'il se voie aussi.
+
+### Corrigé
+
+#### La fin d'une note Markdown se lisait hors de l'écran
+La carte qui tient l'éditeur avait une hauteur devinée, `100vh - 8rem`, fausse
+d'une trentaine de pixels : elle dépassait le bas de la fenêtre. Et la colonne
+qui la remplit ne pouvait pas rétrécir, un enfant de flex refusant de descendre
+sous la hauteur de son contenu, donc une note longue poussait le volet au lieu
+de le faire défiler. Les deux ensemble donnaient une note dont on ne voyait pas
+le bout, côté éditeur comme côté aperçu.
+
+La hauteur se dit maintenant avec les valeurs qui la font, la barre du haut et
+les marges de la zone de contenu, et chaque volet défile chez lui.
+
+#### Le titre d'une note prend sa ligne
+Il partageait une ligne avec six boutons et deux mentions d'état, et n'avait
+donc que ce qui restait. Il est seul sur la sienne, pleine largeur ; le reste
+descend d'un cran.
+
+#### Le champ de recherche de l'arborescence est aussi large que l'arborescence
+Il était rentré de douze pixels de chaque côté, donc plus étroit que ce qu'il
+sert à filtrer.
+
+#### La flèche du bloc du bas de la colonne pointe vers le haut
+Fermé, ce bloc annonçait une ouverture vers la droite, qui n'arrive pas : il
+est en bas de la colonne et son contenu monte.
+
+#### Une seule colonne pour une personne, dans la liste des comptes
+L'adresse avait sa colonne, qui disparaissait sous 1024 pixels : l'écran où
+l'on cherche quelqu'un par son mail était justement celui qui ne le montrait
+pas. Elle est sous le nom, avec la phrase d'accroche, dans une colonne
+« Utilisateur ».
+
+#### Plus d'info-bulle au survol dans la colonne de menu
+Les lignes de navigation avaient perdu la leur le jour où l'interrupteur
+« afficher les descriptions » est arrivé. Le bloc du compte et le lien vers le
+site gardaient la leur, qui répétait leur propre libellé.
+
+#### La date d'un formulaire public se saisit comme partout ailleurs
+Un champ de type date rendait le `<input type="date">` du navigateur, avec son
+petit calendrier système et son format à lui. Sur une machine réglée en
+anglais, un formulaire français demandait une date en `mm/dd/yyyy` : ce n'est
+pas une date illisible, c'est une date comprise à l'envers. C'est exactement le
+raisonnement qui avait déjà sorti les `datetime-local` natifs du back-office.
+
+Le formulaire public utilise maintenant le même sélecteur que le reste
+d'Aurora : le format du site, le thème du site, et la saisie au clavier dans
+les cinq formats qu'il tolère déjà.
+
+**Chargé à la demande.** Ce composant pèse deux cents kilo-octets avec son
+calendrier et ses langues ; un formulaire de contact qui ne demande aucune date
+ne les télécharge pas. Ce qui est stocké ne change pas d'un caractère, le
+composant rend la même chaîne `AAAA-MM-JJ` que le champ natif.
+
+---
+
 ## [0.9.201] - 2026-09-18
 
 ### Ajouté
