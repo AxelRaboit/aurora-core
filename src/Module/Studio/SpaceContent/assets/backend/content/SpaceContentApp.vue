@@ -311,8 +311,13 @@ const actionsFor = useSpaceCardActions({
                  suis-je », les autres répondent « où puis-je aller » et une
                  icône suffit pour ça. Le libellé est gardé pour les lecteurs
                  d'écran, où il n'a jamais coûté de place. -->
+            <!-- Une bande qui défile plutôt qu'une bande qui pousse : même
+                 réduits à leurs icônes, cinq onglets ne tiennent plus sous 260
+                 pixels, et ce qui dépassait emportait la page entière avec lui.
+                 `max-w-full` borne le groupe à la largeur disponible ; les
+                 onglets, eux, gardent leur taille et défilent. -->
             <div
-                class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+                class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
                 role="group"
                 :aria-label="t('backend.studio.space_content.view_label')"
             >
@@ -320,7 +325,7 @@ const actionsFor = useSpaceCardActions({
                     v-for="entry in VIEWS"
                     :key="entry.key"
                     type="button"
-                    class="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors sm:px-2.5"
+                    class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors sm:px-2.5"
                     :class="
                         view === entry.key
                             ? 'bg-surface font-medium text-primary shadow-sm'

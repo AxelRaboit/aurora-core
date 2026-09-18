@@ -75,7 +75,7 @@ function tint(note) {
 <template>
     <div class="space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex min-w-0 max-w-full flex-wrap items-center gap-3">
                 <AppButton v-if="editable" variant="primary" size="sm" v-on:click="emit('create')">
                     <Plus class="h-3.5 w-3.5" :stroke-width="2" />
                     {{ t("backend.studio.space_notes.add") }}
@@ -84,8 +84,11 @@ function tint(note) {
                 <!-- Deux onglets, et le compte sur l'étiquette : c'est lui qui
                      rend l'autre visible. Une note écrite pour soi et rangée
                      derrière un onglet que rien n'annonce est une note perdue. -->
+                <!-- Borné à la largeur disponible et défilant : « Partagées 3 »
+                     et « Personnelles 2 » font 274 pixels, et dans une fenêtre
+                     de 250 c'est la page entière qui partait à droite. -->
                 <div
-                    class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+                    class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
                     role="group"
                     :aria-label="t('backend.studio.space_notes.visibility')"
                 >
@@ -93,7 +96,7 @@ function tint(note) {
                         v-for="entry in tabs"
                         :key="entry.key"
                         type="button"
-                        class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                        class="flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
                         :class="
                             tab === entry.key
                                 ? 'bg-surface font-medium text-primary shadow-sm'
@@ -152,7 +155,7 @@ function tint(note) {
             <article
                 v-for="note in rows"
                 :key="note.id"
-                class="group flex flex-col rounded-lg border border-l-[3px] border-line/60 bg-surface-2/40 p-3 transition-colors hover:bg-surface-2/70"
+                class="group flex min-w-0 flex-col rounded-lg border border-l-[3px] border-line/60 bg-surface-2/40 p-3 transition-colors hover:bg-surface-2/70"
                 :style="tint(note)"
             >
                 <header class="flex items-start gap-2">
@@ -161,10 +164,12 @@ function tint(note) {
                         class="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-500"
                         :stroke-width="2"
                     />
-                    <h3 class="flex-1 text-sm font-medium text-primary">{{ note.title }}</h3>
+                    <h3 class="min-w-0 flex-1 break-words text-sm font-medium text-primary">
+                        {{ note.title }}
+                    </h3>
                 </header>
 
-                <p class="mt-2 line-clamp-6 whitespace-pre-line text-sm text-secondary">
+                <p class="mt-2 line-clamp-6 whitespace-pre-line break-words text-sm text-secondary">
                     {{ note.excerpt }}
                 </p>
 

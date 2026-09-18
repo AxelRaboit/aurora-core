@@ -396,12 +396,18 @@ function onKeydown(event) {
                                         : 'bg-surface-2/60'
                                 "
                             >
-                                <div class="flex items-baseline gap-2">
+                                <!-- `flex-wrap` et pas une ligne : un nom, une
+                                     date et la pastille « client » font 130
+                                     pixels, et une fenêtre de 250 les poussait
+                                     hors de la bulle - la pastille sortait de
+                                     l'écran par la droite. Ils se replient
+                                     plutôt que de déborder. -->
+                                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                                     <!-- Le nom reste des deux cotes : un studio a
                                      plusieurs personnes, et « qui a repondu » est
                                      une question qu'on se pose de son propre cote
                                      aussi. -->
-                                    <span class="text-xs font-medium text-primary">
+                                    <span class="min-w-0 break-all text-xs font-medium text-primary">
                                         {{ entry.message.author }}
                                     </span>
                                     <span class="text-xs text-muted">

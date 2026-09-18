@@ -9,13 +9,30 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Corrigé
 
-#### La barre d'onglets d'un espace débordait sur téléphone
+#### L'espace débordait sur les écrans étroits
+Trois causes, trouvées en mesurant chaque élément de chaque vue plutôt qu'à
+l'œil, à 250 puis à 375 pixels.
+
+**La barre d'onglets**
 Cinq libellés côte à côte font 520 pixels : sur un écran de 375, la barre
 poussait **toute la page** à défiler de côté, pas seulement elle-même. Seul
 l'onglet ouvert porte désormais son nom sous 640 pixels ; les autres gardent
 leur icône, et leur libellé reste lisible par un lecteur d'écran, où il n'a
 jamais coûté de place. La barre passe de 523 à 245 pixels et la page ne défile
 plus latéralement.
+
+**La ligne de signature d'un message** - le nom, l'heure et la pastille
+« client » - faisait 130 pixels sur une seule ligne : dans une fenêtre de 250,
+la pastille sortait par la droite. Elle se replie maintenant.
+
+**La barre des notes** et **les cartes du mur** poussaient la page de 40
+pixels : un enfant de flex ne descend pas sous la largeur de son contenu tant
+qu'on ne l'y autorise pas, donc `max-w-full` seul n'y changeait rien. Les
+onglets « Partagées / Personnelles » défilent, les cartes suivent leur colonne,
+et un mot trop long se coupe au lieu d'élargir la carte.
+
+Résultat mesuré : plus aucune page plus large que la fenêtre, à 375 comme à
+250, côté back-office comme sur la page que lit le client.
 
 **Le rail des canaux devient un tiroir** sous 768 pixels, au lieu d'une bande
 au-dessus de la conversation : la bande prenait 107 pixels de haut à ce qu'on
