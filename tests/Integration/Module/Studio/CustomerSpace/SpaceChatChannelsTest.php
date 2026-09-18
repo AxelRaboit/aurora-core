@@ -55,6 +55,10 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
+        $this->entityManager->createQuery(
+            sprintf('DELETE FROM %s u WHERE u.email LIKE :suffix', User::class)
+        )->setParameter('suffix', '%@aurora.test')->execute();
+
         foreach ([
             SpaceChatMessage::class,
             SpaceChatChannel::class,
@@ -234,6 +238,82 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
         self::assertArrayHasKey('errors', $this->payload());
     }
 
+    public function testAConversationPutAwayLeavesOneListAndKeepsEverything(): void
+    {
+        $space = $this->givenSpace();
+        $mate = $this->givenTeammate($space);
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/direct', $space->getId()),
+            ['userId' => $mate->getId()],
+        );
+        $channelId = $this->payload()['chatChannelId'];
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/%d', $space->getId(), $channelId),
+            ['body' => 'Je te redis demain.'],
+        );
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        // Rangée : elle quitte ma liste.
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat/%d/hide', $space->getId(), $channelId));
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $names = array_column($this->payload()['chatChannels'], 'name');
+        self::assertNotContains('Camille Martin', $names);
+
+        // Rien n'a été effacé : le salon et son message sont toujours là.
+        $this->entityManager->clear();
+        $channel = $this->entityManager->find(SpaceChatChannel::class, $channelId);
+        self::assertInstanceOf(SpaceChatChannel::class, $channel);
+
+        // Rouvrir avec la même personne rend la conversation, et son historique.
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/direct', $space->getId()),
+            ['userId' => $mate->getId()],
+        );
+
+        self::assertSame($channelId, $this->payload()['chatChannelId'], 'Reopening finds the conversation, it does not start a second one.');
+
+        $this->client->request('GET', sprintf('/workspace/%d/chat/%d/messages', $space->getId(), $channelId));
+        self::assertSame('Je te redis demain.', $this->payload()['chatMessages'][0]['body']);
+    }
+
+    public function testTheHistoryComesBackFromTheMessageItIsAskedFrom(): void
+    {
+        $space = $this->givenSpace();
+        $main = $this->mainChannel($space);
+
+        for ($index = 1; $index <= 12; ++$index) {
+            $this->client->jsonRequest(
+                'POST',
+                sprintf('/workspace/%d/chat/%d', $space->getId(), $main->getId()),
+                ['body' => sprintf('Message %d', $index)],
+            );
+        }
+
+        $this->client->request('GET', sprintf('/workspace/%d/chat/%d/messages', $space->getId(), $main->getId()));
+        $window = $this->payload()['chatMessages'];
+
+        self::assertCount(12, $window, 'A dozen messages fit in the opening window, which is what makes the next assertion about the cursor and not about the window.');
+
+        // Le repère est un message, pas un numéro de page : ce qui précède le
+        // sixième, ce sont les cinq premiers, et rien d'autre.
+        $this->client->request(
+            'GET',
+            sprintf('/workspace/%d/chat/%d/older/%d', $space->getId(), $main->getId(), $window[5]['id']),
+        );
+
+        $page = $this->payload();
+        $bodies = array_column($page['chatOlderMessages'], 'body');
+
+        self::assertSame(['Message 1', 'Message 2', 'Message 3', 'Message 4', 'Message 5'], $bodies);
+        self::assertFalse($page['chatHasMore'], 'Nothing precedes the first message.');
+    }
+
     /** Somebody on the space's team, which is who a conversation can be opened with. */
     private function givenTeammate(CustomerSpace $space): User
     {
@@ -251,10 +331,18 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
         return $user;
     }
 
+    /**
+     * Un compte de test, dont l'adresse est unique.
+     *
+     * Deux méthodes de ce fichier demandent « Camille Martin » : le nom est ce
+     * que les assertions lisent, l'adresse est ce que la base contraint, et
+     * réutiliser la seconde faisait échouer la deuxième méthode sur une
+     * violation d'unicité plutôt que sur son sujet.
+     */
     private function givenAccount(string $email, string $name): User
     {
         $user = new User();
-        $user->setEmail($email);
+        $user->setEmail(bin2hex(random_bytes(4)).'-'.$email);
         $user->setName($name);
         $user->setType(UserTypeEnum::Backend);
         $user->setPassword('x');

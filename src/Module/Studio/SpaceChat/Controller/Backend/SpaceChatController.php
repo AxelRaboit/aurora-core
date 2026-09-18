@@ -82,6 +82,50 @@ class SpaceChatController extends AbstractController
         return $this->jsonSuccess($this->viewBuilder->payload($channel));
     }
 
+    /**
+     * Ce qui précède ce que la page tient déjà.
+     *
+     * Le repère est le plus vieux message affiché, pas un numéro de page : une
+     * conversation où quelqu'un écrit pendant qu'on remonte décalerait tout, et
+     * le lecteur verrait deux fois la même ligne.
+     */
+    #[Route('/{channelId}/older/{beforeId}', name: '_older', requirements: ['channelId' => '\d+', 'beforeId' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    public function older(
+        CustomerSpace $space,
+        #[MapEntity(id: 'channelId')]
+        SpaceChatChannel $channel,
+        int $beforeId,
+    ): JsonResponse {
+        $this->assertOwned($space, $channel->getSpace()->getId());
+
+        return $this->jsonSuccess($this->viewBuilder->olderPayload($channel, $beforeId));
+    }
+
+    /** Retire une conversation privée de sa propre liste, sans rien effacer. */
+    #[Route('/{channelId}/hide', name: '_hide', requirements: ['channelId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function hide(
+        CustomerSpace $space,
+        #[MapEntity(id: 'channelId')]
+        SpaceChatChannel $channel,
+    ): JsonResponse {
+        $this->assertOwned($space, $channel->getSpace()->getId());
+
+        $me = $this->security->getUser();
+
+        if (!$me instanceof CoreUserInterface) {
+            return $this->jsonInvalidInput(['channel' => 'backend.studio.space_chat.errors.needs_account']);
+        }
+
+        try {
+            $this->channels->hideDirect($channel, $me, null);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess($this->channelsPayload($space));
+    }
+
     #[Route('/{channelId}', name: '_post', requirements: ['channelId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
     public function post(

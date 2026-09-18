@@ -113,6 +113,8 @@ const props = defineProps({
     chatChannelDeletePath: { type: String, default: null },
     chatChannelInvitePath: { type: String, default: null },
     chatDirectPath: { type: String, default: null },
+    chatOlderPath: { type: String, default: null },
+    chatHidePath: { type: String, default: null },
     chatPeople: { type: Array, default: () => [] },
     notes: { type: Array, default: () => [] },
     noteCreatePath: { type: String, required: true },
@@ -455,6 +457,8 @@ const actionsFor = useSpaceCardActions({
                 :channel-delete-path="editable ? chatChannelDeletePath : null"
                 :channel-invite-path="editable ? chatChannelInvitePath : null"
                 :chat-direct-path="editable ? chatDirectPath : null"
+                :older-path="chatOlderPath"
+                :hide-path="editable ? chatHidePath : null"
                 :people="chatPeople"
                 :notice="t('backend.studio.space_chat.notice')"
             />

@@ -45,6 +45,17 @@ export function useSpaceChat(initial, paths, channelId = null) {
     const currentChannel = ref(channelId);
 
     /**
+     * Whether anything older than what is on screen is still on the server.
+     *
+     * Starts optimistic: a full first window usually means there is more behind
+     * it, and the first request up settles the question. A conversation shorter
+     * than the window answers "no" on that first request and the reader never
+     * sees a control that does nothing.
+     */
+    const hasOlder = ref((initial ?? []).length > 0);
+    const loadingOlder = ref(false);
+
+    /**
      * An address with its room filled in.
      *
      * The paths arrive with `__channel__` where the id goes, so switching rooms
@@ -135,6 +146,52 @@ export function useSpaceChat(initial, paths, channelId = null) {
         // Replaced rather than merged: this is the authoritative window, and a
         // merge would resurrect a message deleted while the page was away.
         messages.value = sorted(data.chatMessages ?? []);
+        hasOlder.value = messages.value.length > 0;
+    }
+
+    /**
+     * Fetches the page before the oldest message held.
+     *
+     * **Keyed on that message, not on a page number.** Somebody writing while
+     * a reader scrolls up shifts every offset, and the reader then sees a line
+     * twice or misses one. The oldest message on screen does not move.
+     *
+     * Returns the height the list had before, so the caller can put the reader
+     * back where they were: prepending rows without that makes the screen jump
+     * to somewhere nobody asked for.
+     */
+    async function loadOlder() {
+        if (!paths.olderPath || loadingOlder.value || !hasOlder.value)
+            return false;
+
+        const oldest = messages.value[0];
+        if (!oldest) return false;
+
+        loadingOlder.value = true;
+        try {
+            const path = forChannel(paths.olderPath).replace(
+                "__before__",
+                String(oldest.id),
+            );
+            const data = await request(path, null, {
+                method: HttpMethod.Get,
+                silent: true,
+                noGuard: true,
+            });
+
+            if (!data?.success) return false;
+
+            const older = data.chatOlderMessages ?? [];
+            hasOlder.value = !!data.chatHasMore;
+
+            if (!older.length) return false;
+
+            messages.value = sorted([...older, ...messages.value]);
+
+            return true;
+        } finally {
+            loadingOlder.value = false;
+        }
     }
 
     async function post(body) {
@@ -245,6 +302,9 @@ export function useSpaceChat(initial, paths, channelId = null) {
 
         currentChannel.value = id;
         messages.value = [];
+        // Une autre conversation, une autre histoire : ce qu'on savait du
+        // précédent fil ne dit rien de celui-ci.
+        hasOlder.value = true;
 
         await reload();
     }
@@ -256,6 +316,9 @@ export function useSpaceChat(initial, paths, channelId = null) {
         expectsLive,
         currentChannel,
         select,
+        hasOlder,
+        loadingOlder,
+        loadOlder,
         post,
         remove,
         reload,

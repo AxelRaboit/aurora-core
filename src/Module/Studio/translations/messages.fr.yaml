@@ -54,6 +54,7 @@ backend:
                     updated: Canal de discussion modifié
                     deleted: Canal de discussion supprimé
                     opened: Conversation privée ouverte
+                    hidden: Conversation privée retirée
                     invited: Membre ajouté à un canal
                     uninvited: Membre retiré d'un canal
                 space_chat_message:

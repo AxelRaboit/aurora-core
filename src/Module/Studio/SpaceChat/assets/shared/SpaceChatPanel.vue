@@ -19,11 +19,12 @@
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { PanelLeft, Radio, Send, Trash2, WifiOff } from "lucide-vue-next";
+import { MoreHorizontal, PanelLeft, Radio, Send, Trash2, WifiOff } from "lucide-vue-next";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import SpaceChatChannels from "./SpaceChatChannels.vue";
-import SpaceChatRoomBar from "./SpaceChatRoomBar.vue";
+import SpaceChatPeopleModal from "./SpaceChatPeopleModal.vue";
+import SpaceChatRoomModal from "./SpaceChatRoomModal.vue";
 import { useSpaceChat } from "./composables/useSpaceChat.js";
 import { useSpaceChatChannels } from "./composables/useSpaceChatChannels.js";
 
@@ -33,6 +34,10 @@ const props = defineProps({
     reloadPath: { type: String, required: true },
     /** Null on the client's page: only the studio removes its own messages. */
     deletePath: { type: String, default: null },
+    /** Where the page before this one is fetched from. */
+    olderPath: { type: String, default: null },
+    /** Null when this reader may not put a conversation away. */
+    hidePath: { type: String, default: null },
     /** Null when no hub is running, and then nothing tries to connect. */
     streamUrl: { type: String, default: null },
     /** The rooms this reader may hear, and which one is open. */
@@ -84,19 +89,35 @@ const props = defineProps({
 
 const { t, d } = useI18n();
 
-const { messages, loading, live, expectsLive, currentChannel, select, post, remove } =
-    useSpaceChat(
-        props.messages,
-        {
-            postPath: props.postPath,
-            reloadPath: props.reloadPath,
-            deletePath: props.deletePath,
-            streamUrl: props.streamUrl,
-        },
-        props.channelId,
-    );
+const {
+    messages,
+    loading,
+    live,
+    expectsLive,
+    currentChannel,
+    select,
+    hasOlder,
+    loadingOlder,
+    loadOlder,
+    post,
+    remove,
+} = useSpaceChat(
+    props.messages,
+    {
+        postPath: props.postPath,
+        reloadPath: props.reloadPath,
+        deletePath: props.deletePath,
+        olderPath: props.olderPath,
+        streamUrl: props.streamUrl,
+    },
+    props.channelId,
+);
 
-const { channels, create, rename, setAudience, drop, invite, openDirect } =
+/** Ce que les trois points ouvrent, et la question que pose la liste de gens. */
+const roomModal = ref(false);
+const peopleFor = ref(null);
+
+const { channels, create, rename, setAudience, drop, invite, openDirect, hide } =
     useSpaceChatChannels(props.channels, {
         createPath: props.channelCreatePath,
         renamePath: props.channelRenamePath,
@@ -104,6 +125,7 @@ const { channels, create, rename, setAudience, drop, invite, openDirect } =
         deletePath: props.channelDeletePath,
         invitePath: props.channelInvitePath,
         directPath: props.chatDirectPath,
+        hidePath: props.hidePath,
     });
 
 /**
@@ -154,6 +176,63 @@ const roomNotice = computed(() => {
 
     return props.notice;
 });
+
+/**
+ * Qui la liste propose, selon la question posée.
+ *
+ * Parler à quelqu'un : ceux avec qui il n'y a pas déjà une conversation.
+ * Ajouter au canal : ceux qui n'y sont pas encore. Deux questions, une liste,
+ * calculée là où l'on sait laquelle est posée.
+ */
+const peopleChoices = computed(() => {
+    if ("invite" === peopleFor.value) {
+        const inside = new Set((openChannel.value?.members ?? []).map((m) => m.label));
+
+        return props.team.filter((person) => !inside.has(person.label));
+    }
+
+    const already = new Set(
+        channels.value.filter((channel) => channel.isDirect).map((channel) => channel.name),
+    );
+
+    return props.people.filter((person) => !already.has(person.label));
+});
+
+/**
+ * Le titre de la modale, calculé ici plutôt que dans le gabarit.
+ *
+ * `t(condition ? 'a' : 'b')` se lit mal pour l'outil qui vérifie que chaque clé
+ * existe : il prend le premier littéral pour la clé, et « invite » n'en est pas
+ * une. Deux appels séparés disent la même chose et restent vérifiables.
+ */
+const pickTitle = computed(() =>
+    "invite" === peopleFor.value
+        ? t("shared.space_chat.channels.pick_invite")
+        : t("shared.space_chat.channels.pick_direct"),
+);
+
+/** Ce qu'on fait du nom choisi dépend de la question qui l'a posé. */
+async function onPick({ id, purpose }) {
+    peopleFor.value = null;
+
+    if ("invite" === purpose) {
+        await invite({ channel: openChannel.value, userId: id });
+
+        return;
+    }
+
+    await startDirect(id);
+}
+
+/** Range la conversation ouverte, et se replie sur la première de la liste. */
+async function onHide(channel) {
+    roomModal.value = false;
+    await hide(channel);
+
+    if (channel?.id === currentChannel.value) {
+        await select(channels.value[0]?.id ?? null);
+    }
+}
 
 /**
  * Whether this reader may arrange the room they are in.
@@ -241,6 +320,31 @@ function onScroll() {
 
     following.value =
         element.scrollHeight - element.scrollTop - element.clientHeight < 80;
+
+    // Le haut approche : on va chercher ce qui précède avant d'y arriver, pour
+    // que la remontée ne s'arrête pas net sur un mur blanc.
+    if (element.scrollTop < 120) void fetchOlder();
+}
+
+/**
+ * Remonte d'une page, en rendant au lecteur sa place.
+ *
+ * Ajouter des lignes au-dessus de ce qu'on regarde pousse la vue vers le bas
+ * d'autant : sans correction, le pouce arrive en haut et l'écran saute
+ * ailleurs. On mesure la hauteur avant, on la remesure après, et on redonne la
+ * différence au défilement - ce que fait toute application de discussion.
+ */
+async function fetchOlder() {
+    const element = scroller.value;
+    if (!element || loadingOlder.value || !hasOlder.value) return;
+
+    const before = element.scrollHeight;
+    const gained = await loadOlder();
+
+    if (!gained) return;
+
+    await nextTick();
+    element.scrollTop += element.scrollHeight - before;
 }
 
 /**
@@ -378,18 +482,21 @@ function onKeydown(event) {
                     />
                     {{ t(live ? "shared.space_chat.live" : "shared.space_chat.reconnecting") }}
                 </span>
-            </header>
 
-            <SpaceChatRoomBar
-                v-if="arrangeable"
-                :channel="openChannel"
-                :team="team"
-                :invite-path="channelInvitePath"
-                v-on:rename="rename"
-                v-on:audience="setAudience"
-                v-on:delete="onDrop"
-                v-on:invite="invite"
-            />
+                <!-- Trois points plutôt que quatre boutons sous le titre : ce
+                     sont des gestes rares, ils n'ont pas à occuper une ligne
+                     au-dessus de ce qu'on est venu lire. -->
+                <button
+                    v-if="openChannel"
+                    type="button"
+                    class="shrink-0 rounded-md p-1 text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+                    :class="expectsLive ? '' : 'ml-auto'"
+                    :aria-label="t('shared.space_chat.channels.room_settings')"
+                    v-on:click="roomModal = true"
+                >
+                    <MoreHorizontal class="h-4 w-4" :stroke-width="2" />
+                </button>
+            </header>
 
             <!-- `flex flex-col` sur le défilement, `mt-auto` sur les entrées : une
              conversation courte se pose en bas de la boîte plutôt que de
@@ -404,6 +511,13 @@ function onKeydown(event) {
                  hauteur est celle du contenu, la seule mesure qui dise qu'il y
                  a du nouveau sous le pli. -->
                 <div ref="content" class="mt-auto space-y-2">
+                    <!-- Le seul signe que la remontée travaille. Pas de bouton :
+                         le défilement le déclenche lui-même, et un bouton qui
+                         double un geste automatique fait douter des deux. -->
+                    <p v-if="loadingOlder" class="py-1 text-center text-xs text-muted">
+                        {{ t("shared.space_chat.channels.older") }}
+                    </p>
+
                     <p v-if="!entries.length" class="text-sm text-muted">
                         {{ t("shared.space_chat.empty") }}
                     </p>
@@ -513,5 +627,31 @@ function onKeydown(event) {
                 </div>
             </div>
         </div>
+
+        <SpaceChatRoomModal
+            :show="roomModal"
+            :channel="openChannel"
+            :can-arrange="!!channelCreatePath"
+            :can-invite="!!channelInvitePath"
+            :can-hide="!!hidePath"
+            v-on:close="roomModal = false"
+            v-on:rename="rename"
+            v-on:audience="setAudience"
+            v-on:invite="peopleFor = 'invite'"
+            v-on:delete="
+                roomModal = false;
+                onDrop($event);
+            "
+            v-on:hide="onHide"
+        />
+
+        <SpaceChatPeopleModal
+            :show="!!peopleFor"
+            :title="pickTitle"
+            :people="peopleChoices"
+            :purpose="peopleFor"
+            v-on:close="peopleFor = null"
+            v-on:pick="onPick"
+        />
     </section>
 </template>

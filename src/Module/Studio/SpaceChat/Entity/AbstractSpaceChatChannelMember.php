@@ -48,6 +48,21 @@ abstract class AbstractSpaceChatChannelMember implements SpaceChatChannelMemberI
     #[ORM\Column(options: ['default' => false])]
     protected bool $fromClient = false;
 
+    /**
+     * Quand cette personne a retiré la conversation de sa liste.
+     *
+     * **Retirée, pas supprimée, et c'est la différence qui compte.** Ce que
+     * deux personnes se sont dit ne disparaît pas parce que l'une d'elles fait
+     * de la place dans sa liste : les messages restent, l'autre continue de
+     * voir le fil, et rouvrir la conversation avec la même personne la fait
+     * revenir avec tout son historique. C'est ce que fait Messenger, et c'est
+     * ce que les gens attendent du geste.
+     *
+     * Par personne et non par salon : l'un range, l'autre pas.
+     */
+    #[ORM\Column(nullable: true)]
+    protected ?DateTimeImmutable $hiddenAt = null;
+
     #[ORM\Column(type: 'datetime_immutable')]
     protected DateTimeImmutable $createdAt;
 
@@ -111,6 +126,26 @@ abstract class AbstractSpaceChatChannelMember implements SpaceChatChannelMemberI
     public function isFromClient(): bool
     {
         return $this->fromClient;
+    }
+
+    public function getHiddenAt(): ?DateTimeImmutable
+    {
+        return $this->hiddenAt;
+    }
+
+    public function hide(DateTimeImmutable $at): static
+    {
+        $this->hiddenAt = $at;
+
+        return $this;
+    }
+
+    /** Remise dans la liste, avec ce qui s'y était dit. */
+    public function reveal(): static
+    {
+        $this->hiddenAt = null;
+
+        return $this;
     }
 
     public function getCreatedAt(): DateTimeImmutable

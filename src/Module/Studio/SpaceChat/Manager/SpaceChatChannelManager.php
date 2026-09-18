@@ -16,6 +16,7 @@ use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelMember;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelMemberInterface;
 use Aurora\Module\Studio\SpaceChat\Enum\SpaceChatChannelKindEnum;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -149,6 +150,36 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
         return $member;
     }
 
+    /**
+     * Retire une conversation de la liste de quelqu'un, sans la supprimer.
+     *
+     * Refusée sur un canal : une pièce se quitte ou se supprime, et les deux
+     * gestes existent déjà. Ce rangement-là n'a de sens que pour une
+     * conversation à deux, où « supprimer » voudrait dire effacer la moitié de
+     * ce que l'autre a écrit.
+     */
+    public function hideDirect(SpaceChatChannelInterface $channel, ?CoreUserInterface $user, ?SpaceAccessLinkInterface $link): void
+    {
+        if (SpaceChatChannelKindEnum::Direct !== $channel->getKind()) {
+            throw new FieldException('channel', $this->translator->trans('backend.studio.space_chat.errors.only_a_direct_hides'));
+        }
+
+        $now = new DateTimeImmutable();
+
+        foreach ($channel->getMembers() as $member) {
+            $isViewer = ($user instanceof CoreUserInterface && $member->getUser()?->getId() === $user->getId())
+                || ($link instanceof SpaceAccessLinkInterface && $member->getLink()?->getId() === $link->getId());
+
+            if ($isViewer) {
+                $member->hide($now);
+            }
+        }
+
+        $this->entityManager->flush();
+
+        $this->auditHidden($channel);
+    }
+
     public function removeMember(SpaceChatChannelMemberInterface $member): void
     {
         $channel = $member->getChannel();
@@ -191,6 +222,15 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
         $existing = $this->channelRepository->findDirectBetween($space, $from, $with);
 
         if ($existing instanceof SpaceChatChannelInterface) {
+            // Rouvrir, c'est remettre dans sa liste ce qu'on en avait retiré :
+            // la conversation revient avec tout ce qui s'y est dit, ce qui est
+            // exactement ce qu'on attend en rappelant quelqu'un.
+            foreach ($existing->getMembers() as $member) {
+                $member->reveal();
+            }
+
+            $this->entityManager->flush();
+
             return $existing;
         }
 
@@ -259,6 +299,11 @@ class SpaceChatChannelManager implements SpaceChatChannelManagerInterface
     protected function auditOpened(SpaceChatChannelInterface $channel): void
     {
         $this->auditLogger->log('studio', 'space_chat_channel.opened', 'SpaceChatChannel', $channel->getId(), $this->auditPayload($channel));
+    }
+
+    protected function auditHidden(SpaceChatChannelInterface $channel): void
+    {
+        $this->auditLogger->log('studio', 'space_chat_channel.hidden', 'SpaceChatChannel', $channel->getId(), $this->auditPayload($channel));
     }
 
     protected function auditInvited(SpaceChatChannelInterface $channel, SpaceChatChannelMemberInterface $member): void

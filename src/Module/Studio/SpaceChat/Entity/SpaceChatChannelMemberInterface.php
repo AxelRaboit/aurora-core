@@ -30,5 +30,11 @@ interface SpaceChatChannelMemberInterface
 
     public function isFromClient(): bool;
 
+    public function getHiddenAt(): ?DateTimeImmutable;
+
+    public function hide(DateTimeImmutable $at): static;
+
+    public function reveal(): static;
+
     public function getCreatedAt(): DateTimeImmutable;
 }

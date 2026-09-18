@@ -32,6 +32,18 @@ shared:
       invite: Add somebody
       notice_internal: "An internal channel: the client does not read it."
       notice_direct: "A private conversation: nobody else reads it."
+      participants: "Participants"
+      everybody: "Everybody, the client included."
+      audience: "Who reads it"
+      audience_open: "The client reads this channel."
+      audience_internal: "This channel stays between you."
+      hide: "Put the conversation away"
+      hide_hint: "It leaves your list. Nothing is deleted, the other person still sees it, and reopening it gives you the whole history back."
+      nobody_left: "There is nobody else to add."
+      pick_direct: "Talk to somebody"
+      pick_invite: "Add to the channel"
+      older: "Load earlier messages"
+      room_settings: "Room settings"
       directs: Direct messages
       new_direct: New conversation
       invited: Added to the channel

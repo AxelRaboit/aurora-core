@@ -71,7 +71,9 @@ class SpaceChatChannelRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('c')
             ->leftJoin('c.members', 'm')
             ->where('c.space = :space')
-            ->andWhere('c.kind = :main OR m.user = :user')
+            // Une conversation rangée sort de la liste de celui qui l'a rangée,
+            // et d'aucune autre : `m.hiddenAt` est porté par la personne.
+            ->andWhere('c.kind = :main OR (m.user = :user AND m.hiddenAt IS NULL)')
             ->setParameter('space', $space)
             ->setParameter('main', SpaceChatChannelKindEnum::Main)
             ->setParameter('user', $user)
@@ -97,7 +99,7 @@ class SpaceChatChannelRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('c')
             ->leftJoin('c.members', 'm')
             ->where('c.space = :space')
-            ->andWhere('(c.openToClient = true AND c.kind != :direct) OR m.link = :link')
+            ->andWhere('(c.openToClient = true AND c.kind != :direct) OR (m.link = :link AND m.hiddenAt IS NULL)')
             ->setParameter('space', $space)
             ->setParameter('direct', SpaceChatChannelKindEnum::Direct)
             ->setParameter('link', $link)

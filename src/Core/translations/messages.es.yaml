@@ -32,6 +32,18 @@ shared:
       invite: Añadir a alguien
       notice_internal: "Canal interno: el cliente no lo lee."
       notice_direct: "Conversación privada: nadie más la lee."
+      participants: "Participantes"
+      everybody: "Todo el mundo, incluido el cliente."
+      audience: "Quién lo lee"
+      audience_open: "El cliente lee este canal."
+      audience_internal: "Este canal queda entre ustedes."
+      hide: "Retirar la conversación"
+      hide_hint: "Desaparece de su lista. No se borra nada, la otra persona sigue viéndola, y al reabrirla recupera todo el historial."
+      nobody_left: "No hay nadie más que añadir."
+      pick_direct: "Hablar con alguien"
+      pick_invite: "Añadir al canal"
+      older: "Cargar los mensajes anteriores"
+      room_settings: "Ajustes de la sala"
       directs: Mensajes privados
       new_direct: Nueva conversación
       invited: Añadido al canal

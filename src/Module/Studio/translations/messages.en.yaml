@@ -54,6 +54,7 @@ backend:
                     updated: Chat channel updated
                     deleted: Chat channel deleted
                     opened: Private conversation opened
+                    hidden: Private conversation put away
                     invited: Member added to a channel
                     uninvited: Member removed from a channel
                 space_chat_message:

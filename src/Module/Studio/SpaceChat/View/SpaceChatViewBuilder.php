@@ -67,6 +67,15 @@ final readonly class SpaceChatViewBuilder
             'chatChannelId' => $open?->getId(),
             'chatMessages' => $open instanceof SpaceChatChannelInterface ? $this->messages($open) : [],
             'chatStreamUrl' => $this->hub->subscribeUrl($rooms),
+            // Deux trous dans la même adresse : le salon, et le message d'où
+            // l'on repart. La route exige les deux, et une génération à laquelle
+            // il en manque un lève une exception au rendu de la page.
+            'chatOlderPath' => $this->pathTemplates->generate('workspace_space_chat_older', [
+                'id' => $space->getId(),
+                'channelId' => '__channel__',
+                'beforeId' => '__before__',
+            ]),
+            'chatHidePath' => $this->channelTemplate('workspace_space_chat_hide', $space),
             'chatPostPath' => $this->channelTemplate('workspace_space_chat_post', $space),
             'chatReloadPath' => $this->channelTemplate('workspace_space_chat_messages', $space),
             'chatDeletePath' => $this->pathTemplates->generate('workspace_space_chat_delete', [
@@ -138,6 +147,19 @@ final readonly class SpaceChatViewBuilder
                 'token' => $token,
                 'channelId' => '__channel__',
             ]),
+            'chatOlderPath' => $this->pathTemplates->generate('public_space_chat_older', [
+                'selector' => $link->getSelector(),
+                'token' => $token,
+                'channelId' => '__channel__',
+                'beforeId' => '__before__',
+            ]),
+            'chatHidePath' => $link->canComment()
+                ? $this->pathTemplates->generate('public_space_chat_hide', [
+                    'selector' => $link->getSelector(),
+                    'token' => $token,
+                    'channelId' => '__channel__',
+                ])
+                : null,
         ];
     }
 
@@ -163,6 +185,33 @@ final readonly class SpaceChatViewBuilder
             $this->serializer->serialize(...),
             $this->messages->findRecentForChannel($channel),
         );
+    }
+
+    /**
+     * Une page d'historique, plus vieille que le message donné.
+     *
+     * `hasMore` dit s'il reste quelque chose derrière, et il est calculé en
+     * demandant une ligne de plus que ce qu'on rend : c'est la seule façon de
+     * répondre sans compter toute la conversation à chaque remontée.
+     *
+     * @return array<string, mixed>
+     */
+    public function olderPayload(SpaceChatChannelInterface $channel, int $beforeId): array
+    {
+        $page = $this->messages->findBeforeInChannel($channel, $beforeId, SpaceChatMessageRepository::PAGE + 1);
+        $hasMore = count($page) > SpaceChatMessageRepository::PAGE;
+
+        if ($hasMore) {
+            // La ligne en trop servait à savoir, pas à être lue.
+            array_shift($page);
+        }
+
+        return [
+            'success' => true,
+            'chatChannelId' => $channel->getId(),
+            'chatOlderMessages' => array_map($this->serializer->serialize(...), $page),
+            'chatHasMore' => $hasMore,
+        ];
     }
 
     /**

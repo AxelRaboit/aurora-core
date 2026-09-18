@@ -30,6 +30,16 @@ class SpaceChatMessageRepository extends ResolveTargetEntityRepository
      */
     public const int WINDOW = 200;
 
+    /**
+     * Ce qu'une remontée dans l'historique rapporte d'un coup.
+     *
+     * Plus petit que la fenêtre d'ouverture, et volontairement : la première
+     * charge doit remplir l'écran, les suivantes doivent arriver avant que le
+     * pouce ait fini son geste. Cinquante messages tiennent dans une réponse
+     * qu'on ne voit pas passer.
+     */
+    public const int PAGE = 50;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, SpaceChatMessage::class, SpaceChatMessageInterface::class);
@@ -51,6 +61,35 @@ class SpaceChatMessageRepository extends ResolveTargetEntityRepository
         $newestFirst = $this->createQueryBuilder('m')
             ->where('m.space = :space')
             ->setParameter('space', $space)
+            ->orderBy('m.createdAt', Order::Descending->value)
+            ->addOrderBy('m.id', Order::Descending->value)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return array_reverse($newestFirst);
+    }
+
+    /**
+     * Ce qui précède un message, du plus récent au plus ancien puis remis à
+     * l'endroit.
+     *
+     * **La page suivante se demande par un identifiant, jamais par un
+     * décalage.** Un `OFFSET` compte des lignes depuis le début : une
+     * conversation où quelqu'un écrit pendant qu'on remonte décale tout ce qui
+     * suit, et le lecteur voit deux fois le même message ou en saute un. Le
+     * repère est donc la ligne d'où l'on part, qui ne bouge pas.
+     *
+     * @return list<SpaceChatMessageInterface>
+     */
+    public function findBeforeInChannel(SpaceChatChannelInterface $channel, int $beforeId, int $limit = self::PAGE): array
+    {
+        /** @var list<SpaceChatMessageInterface> $newestFirst */
+        $newestFirst = $this->createQueryBuilder('m')
+            ->where('m.channel = :channel')
+            ->andWhere('m.id < :before')
+            ->setParameter('channel', $channel)
+            ->setParameter('before', $beforeId)
             ->orderBy('m.createdAt', Order::Descending->value)
             ->addOrderBy('m.id', Order::Descending->value)
             ->setMaxResults($limit)

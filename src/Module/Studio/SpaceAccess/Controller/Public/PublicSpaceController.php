@@ -349,6 +349,56 @@ final class PublicSpaceController extends AbstractController
         return $this->jsonSuccess($this->chatViewBuilder->payload($channel));
     }
 
+    /** Ce qui précède ce que la page du client tient déjà. */
+    #[Route(
+        '/{selector}/{token}/chat/{channelId}/older/{beforeId}',
+        name: '_chat_older',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}', 'channelId' => '\d+', 'beforeId' => '\d+'],
+        methods: [HttpMethodEnum::Get->value],
+    )]
+    public function chatOlder(string $selector, string $token, int $channelId, int $beforeId): JsonResponse
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->jsonSuccess(
+            $this->chatViewBuilder->olderPayload($this->readableChannel($link, $channelId), $beforeId),
+        );
+    }
+
+    /** Le client range une conversation privée, sans que rien ne s'efface. */
+    #[Route(
+        '/{selector}/{token}/chat/{channelId}/hide',
+        name: '_chat_hide',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}', 'channelId' => '\d+'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function chatHide(string $selector, string $token, int $channelId): JsonResponse
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface || !$link->canComment()) {
+            throw $this->createNotFoundException();
+        }
+
+        $channel = $this->readableChannel($link, $channelId);
+
+        try {
+            $this->chatChannelManager->hideDirect($channel, null, $link);
+        } catch (FieldException) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->jsonSuccess($this->chatViewBuilder->channelsPayload(
+            $this->chatChannels->findForLink($link->getSpace(), $link),
+            null,
+            $link,
+        ));
+    }
+
     /**
      * The client opens a private conversation with somebody of the space.
      *

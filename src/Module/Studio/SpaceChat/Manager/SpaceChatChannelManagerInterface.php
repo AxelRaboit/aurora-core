@@ -35,6 +35,19 @@ interface SpaceChatChannelManagerInterface
     public function removeMember(SpaceChatChannelMemberInterface $member): void;
 
     /**
+     * Takes a private conversation out of somebody's list, keeping every word.
+     *
+     * The other side still sees it, and reopening it with the same person
+     * brings it back with its history. Refused on a channel: a room is left or
+     * deleted, and both already exist.
+     */
+    public function hideDirect(
+        SpaceChatChannelInterface $channel,
+        ?CoreUserInterface $user,
+        ?SpaceAccessLinkInterface $link,
+    ): void;
+
+    /**
      * The private conversation between two people, opened if it is their first.
      *
      * Each side is an account or an address, and the pair is looked up before

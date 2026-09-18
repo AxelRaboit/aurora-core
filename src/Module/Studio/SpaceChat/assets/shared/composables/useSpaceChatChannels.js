@@ -87,6 +87,11 @@ export function useSpaceChatChannels(initial, paths) {
         }
     }
 
+    /** Range une conversation : elle quitte la liste, rien ne s'efface. */
+    async function hide(channel) {
+        await send(forChannel(paths.hidePath, channel));
+    }
+
     async function invite({ channel, userId }) {
         if (await send(forChannel(paths.invitePath, channel), { userId })) {
             toast.success(t("shared.space_chat.channels.invited"));
@@ -102,5 +107,6 @@ export function useSpaceChatChannels(initial, paths) {
         drop,
         invite,
         openDirect,
+        hide,
     };
 }

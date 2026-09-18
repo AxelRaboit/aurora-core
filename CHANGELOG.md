@@ -111,6 +111,36 @@ pixels elle repasse au-dessus, faute de gauche disponible.
 Un espace naît avec son canal principal, et les conversations existantes y ont
 été versées par la migration.
 
+#### Les gestes d'un salon passent par une modale
+Quatre boutons vivaient sous le titre - renommer, ouvrir au client, ajouter
+quelqu'un, supprimer - pour des gestes qu'on fait une fois par mois, et sur
+téléphone ils passaient à la ligne. Ils sont maintenant derrière **trois
+points**, dans une modale qui a la place de dire ce que chacun fait.
+
+La même modale montre **qui est dans le salon**. « 2 personnes » était un
+chiffre sans réponse à la seule question qu'il pose.
+
+Choisir quelqu'un - pour l'ajouter à un canal ou pour lui parler en privé -
+passe aussi par une modale, avec les noms lisibles au milieu de l'écran, au lieu
+d'une liste qui se dépliait dans un rail de deux cents pixels.
+
+#### Retirer une conversation sans rien effacer
+Comme dans Messenger : la conversation quitte **votre** liste, l'autre continue
+de la voir, rien n'est supprimé, et la rouvrir avec la même personne la rend
+entière, historique compris. Le rangement est porté par la personne et non par
+le salon - l'un range, l'autre pas.
+
+#### L'historique d'une discussion arrive par tranches
+Une conversation de deux ans ne se charge plus d'un bloc. La page s'ouvre sur sa
+fenêtre, et remonter en fait venir cinquante de plus, avant que le pouce ait
+fini son geste. **Le repère est un message, jamais un numéro de page** : dans
+une conversation où quelqu'un écrit pendant qu'on remonte, un décalage compté
+depuis le début ferait voir deux fois la même ligne ou en sauterait une.
+
+La position du lecteur est rendue au pixel : on mesure la hauteur avant, on la
+remesure après, et on redonne la différence au défilement. Sans ça, l'écran
+saute au moment précis où l'on cherchait quelque chose.
+
 #### Des conversations privées dans un espace
 La seconde moitié de la discussion. **Deux personnes, et personne d'autre.** Le
 studio en ouvre une avec quelqu'un de l'équipe de l'espace ; le client en ouvre
