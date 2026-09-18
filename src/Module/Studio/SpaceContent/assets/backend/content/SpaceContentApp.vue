@@ -486,7 +486,6 @@ const actionsFor = useSpaceCardActions({
                 :older-path="chatOlderPath"
                 :hide-path="editable ? chatHidePath : null"
                 :people="chatPeople"
-                :notice="t('backend.studio.space_chat.notice')"
             />
         </div>
 

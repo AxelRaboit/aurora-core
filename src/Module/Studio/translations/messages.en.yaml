@@ -940,10 +940,6 @@ backend:
             approved: '%who% approved "%item%"'
             changes_requested: '%who% asked for a rewrite of "%item%"'
         space_chat:
-            # A space's conversation, the one that fits on no card. Anything
-            # about one piece of content stays on that card's thread, where it
-            # is found next to what it is about.
-            notice: What you write here is read by the client.
             channels:
                 main_name: General
                 notice_internal: "This channel is internal: the client does not read it."

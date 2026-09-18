@@ -944,10 +944,6 @@ backend:
             approved: '%who% a validé « %item% »'
             changes_requested: '%who% demande une reprise sur « %item% »'
         space_chat:
-            # La conversation d'un espace, celle qui ne tient sur aucune fiche.
-            # Ce qui porte sur un contenu précis reste dans les échanges de sa
-            # fiche : on le retrouve à côté de ce dont il parle.
-            notice: Ce que vous écrivez ici est lu par le client.
             channels:
                 main_name: Général
                 notice_internal: "Ce canal est interne : le client ne le lit pas."

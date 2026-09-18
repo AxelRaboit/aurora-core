@@ -12,6 +12,7 @@ shared:
     title: Conversación
     empty: "Aún no hay mensajes. Aquí se dice todo lo que no cabe en una ficha: el brief del mes, una campaña que se mueve, una pregunta rápida."
     placeholder: Escribir un mensaje…
+    shortcut_hint: "Intro para enviar, Mayús+Intro para salto de línea"
     send: Enviar
     from_client: cliente
     deleted: Mensaje eliminado

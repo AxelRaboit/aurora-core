@@ -12,6 +12,7 @@ shared:
     title: Discussion
     empty: "Aucun message. C'est ici que se dit ce qui ne tient pas sur une fiche : le brief du mois, une campagne qui bouge, une question rapide."
     placeholder: Écrire un message…
+    shortcut_hint: "Entrée pour envoyer, Maj+Entrée pour aller à la ligne"
     send: Envoyer
     from_client: client
     deleted: Message supprimé

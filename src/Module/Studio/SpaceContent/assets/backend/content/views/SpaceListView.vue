@@ -128,12 +128,14 @@ function when(item) {
                          et la pastille tiennent leur largeur quoi qu'il arrive,
                          donc sur un écran étroit c'est le titre qui payait : « Le
                          témoignage de Mme Lefèvre » devenait « Témoignag… ».
-                         Descendues sur leur propre ligne, alignées sous le titre
-                         et non sous la vignette, elles rendent au titre toute la
-                         largeur de la carte. -->
-                    <div
-                        class="order-3 flex w-full items-center gap-3 pl-11 sm:order-3 sm:w-auto sm:pl-0"
-                    >
+                         Descendues sur leur propre ligne, elles rendent au titre
+                         toute la largeur de la carte.
+
+                         Au bord gauche et non sous le titre : un décalage calé
+                         sur la vignette ne vaut que pour les fiches qui en ont
+                         une, et celles qui n'en ont pas voyaient leur date
+                         partir seule vers le milieu. -->
+                    <div class="order-3 flex w-full items-center gap-3 sm:w-auto">
                         <span
                             v-if="card.approval !== 'pending'"
                             class="flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-xs"

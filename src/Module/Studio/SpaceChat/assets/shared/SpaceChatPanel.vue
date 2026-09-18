@@ -643,7 +643,17 @@ function onKeydown(event) {
                      place : sur téléphone le seul geste de la zone mérite toute
                      la ligne plutôt qu'un bouton de quatre-vingt-dix pixels
                      collé dans un coin. -->
-                <div class="flex justify-end">
+                <div class="flex items-center justify-end gap-3">
+                    <!-- Le raccourci, là où il existe. Il vivait entre
+                         parenthèses dans le champ lui-même, où il allongeait de
+                         soixante caractères la phrase qu'on lit avant
+                         d'écrire ; il occupe maintenant le vide à gauche du
+                         bouton, qui ne servait à rien, et il se tait sur les
+                         écrans sans clavier. -->
+                    <p class="mr-auto hidden text-xs text-muted md:block">
+                        {{ t("shared.space_chat.shortcut_hint") }}
+                    </p>
+
                     <AppButton
                         class="w-full sm:w-auto"
                         variant="primary"

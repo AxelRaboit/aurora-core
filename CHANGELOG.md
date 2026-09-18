@@ -26,8 +26,10 @@ vraiment bas, la page redéfile plutôt que de couper le champ d'écriture.
   pixels au nom du salon, qui passait à la ligne pour un mot qu'on lit une fois
   par heure ; l'antenne barrée et sa couleur disent la même chose, et le mot
   reste à l'infobulle et au lecteur d'écran.
-- **Le champ d'écriture** dit « Écrire un message… », sans le rappel des
-  raccourcis entre parenthèses.
+- **Le champ d'écriture** dit « Écrire un message… ». Le rappel des raccourcis
+  quittait soixante caractères de la phrase qu'on lit avant d'écrire ; il
+  occupe maintenant le vide à gauche du bouton Envoyer, à partir de `md` et
+  donc sur les écrans qui ont un clavier.
 - **« Ajouter un contenu »** se réduit à son plus en tête de colonne, où le
   libellé se repliait sur trois lignes en face du nom de la colonne.
 - **Le choix kanban / liste** disparaît là où il est déjà refusé : un conteneur
@@ -36,6 +38,13 @@ vraiment bas, la page redéfile plutôt que de couper le champ d'écriture.
   revient avec la place.
 - **La pastille « interne »** ne s'affiche plus sur une conversation privée, où
   elle répondait à une question que personne ne se pose.
+- **« Ce que vous écrivez ici est lu par le client »** ne s'affiche plus sous la
+  zone de saisie du salon principal. Les deux phrases qui disent l'inverse - un
+  canal interne, une conversation privée - restent : ce sont celles où se
+  tromper coûte quelque chose.
+- **La date d'un contenu** repart du bord gauche de sa carte. Elle était calée
+  sous le titre, donc décalée de la largeur d'une vignette, y compris sur les
+  fiches qui n'en ont pas : la date partait seule vers le milieu.
 
 #### Les gestes se prennent la ligne entière sur téléphone
 Envoyer un message, créer un lien d'accès, ouvrir un canal au client, ajouter
