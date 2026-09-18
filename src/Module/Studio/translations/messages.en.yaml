@@ -966,6 +966,7 @@ backend:
             view_content: Content
             shape_board: Kanban
             shape_list: List
+            calendar_day_empty: Nothing scheduled that day.
             view_calendar: Calendar
             view_files: Files
             view_chat: Chat

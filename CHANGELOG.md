@@ -7,6 +7,33 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.204] - 2026-09-18
 
+### Modifié
+
+#### L'espace prend tout l'écran sur un téléphone
+Seize pixels de gouttière de chaque côté sur trois cent soixante-quinze, c'est
+près d'un dixième de la largeur donné à du vide, sur le seul appareil qui n'en
+a pas à donner. La coquille d'un espace ne met donc plus de marge latérale sous
+`sm` : les blocs vont d'un bord à l'autre et gardent leur rembourrage
+intérieur. On perd la marge, jamais l'air autour du texte.
+
+La règle vaut pour le reste de l'application et tient en deux gestes : la
+coquille ne pose pas de marge latérale sur téléphone, et un bloc encadré y perd
+ses bords latéraux et ses coins arrondis plutôt que de dessiner une carte de
+343 pixels dans un écran de 375.
+
+#### Le calendrier d'un espace se lit comme celui d'un téléphone
+Sept colonnes dans 375 pixels font des cases de cinquante : la place d'un
+numéro de jour, pas celle d'un titre. Sous 560 pixels de conteneur, la grille
+devient donc un index à pastilles et les publications passent dans une liste
+sous elle, celle du jour choisi - ce que font Google et Apple, pour la même
+raison arithmétique.
+
+La grille compacte existait déjà, écrite pour le module Calendrier ; elle sert
+ici telle quelle, avec un mode « collé aux bords » en plus. La liste du jour,
+elle, est écrite dans la vue de l'espace plutôt qu'empruntée au calendrier :
+trente lignes valent mieux qu'un couplage qui casserait l'espace le jour où le
+module Calendrier n'est pas installé.
+
 ### Corrigé
 
 #### L'espace débordait sur les écrans étroits

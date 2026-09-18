@@ -298,7 +298,10 @@ const actionsFor = useSpaceCardActions({
 
 <template>
     <div class="space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+        <!-- `px-3 sm:px-0` : la coquille ne met plus de gouttière sur téléphone,
+             donc chaque bloc qui n'est pas une carte pleine largeur pose la
+             sienne. -->
+        <div class="flex flex-wrap items-center justify-between gap-3 px-3 sm:px-0">
             <!-- Segmented rather than a select: five choices are worth showing
                  at once, and the one in use is the answer to "why does this
                  look different from yesterday".
@@ -384,7 +387,7 @@ const actionsFor = useSpaceCardActions({
 
         <!-- The container and not the window decides the shape: bound here,
              around both drawings, so a narrow panel gets the list. -->
-        <div v-if="view === 'content'" ref="shapeContainer">
+        <div v-if="view === 'content'" ref="shapeContainer" class="px-3 sm:px-0">
             <SpaceBoardView
                 v-if="shape === 'board'"
                 :grouped="grouped"
@@ -413,6 +416,7 @@ const actionsFor = useSpaceCardActions({
 
         <SpaceFilesView
             v-else-if="view === 'files'"
+            class="block px-3 sm:px-0"
             :attachments="liveAttachments"
             :items="liveItems"
             :space-files="ownFiles"
@@ -458,7 +462,7 @@ const actionsFor = useSpaceCardActions({
 
         <!-- Le mur de notes, monté sur son propre conteneur : c'est lui qui
              décide de la forme, pas la fenêtre. -->
-        <div v-else-if="view === 'notes'" ref="notesContainer">
+        <div v-else-if="view === 'notes'" ref="notesContainer" class="px-3 sm:px-0">
             <SpaceNotesView
                 :notes="spaceNotes"
                 :tab="notesTab"

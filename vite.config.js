@@ -85,6 +85,16 @@ export default defineConfig({
         dedupe: sharedDeps,
     },
     server: {
+        // **`localhost` et pas la valeur par defaut, sinon la page sort nue.**
+        // Sans hote fixe, Vite s'annonce en `http://[::1]:5173` dans
+        // `entrypoints.json`, et la CSP de l'application n'autorise que
+        // `http://localhost:5173` : chaque script et chaque feuille de style du
+        // serveur de developpement est bloque, sans erreur ailleurs que dans la
+        // console. Le port est fixe pour la meme raison - la CSP nomme un port,
+        // donc un repli sur 5174 casserait autant.
+        host: 'localhost',
+        port: 5173,
+        strictPort: true,
         fs: {
             // `..` lets the dev server read sibling module packages
             // (vendor/axelraboit/aurora-*) discovered by auroraVendorModules.
