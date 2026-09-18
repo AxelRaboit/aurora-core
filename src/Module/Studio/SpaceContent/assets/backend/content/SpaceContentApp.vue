@@ -301,7 +301,16 @@ const actionsFor = useSpaceCardActions({
         <div class="flex flex-wrap items-center justify-between gap-3">
             <!-- Segmented rather than a select: five choices are worth showing
                  at once, and the one in use is the answer to "why does this
-                 look different from yesterday". -->
+                 look different from yesterday".
+
+                 **Sur téléphone, seul l'onglet ouvert porte son nom.** Cinq
+                 libellés font 520 pixels de large : la barre poussait la page
+                 à défiler de côté, et c'est toute la page qui partait, pas
+                 seulement les onglets. Les icônes restent, le nom de celui
+                 qu'on regarde aussi - c'est le seul qui réponde à « où
+                 suis-je », les autres répondent « où puis-je aller » et une
+                 icône suffit pour ça. Le libellé est gardé pour les lecteurs
+                 d'écran, où il n'a jamais coûté de place. -->
             <div
                 class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
                 role="group"
@@ -311,17 +320,20 @@ const actionsFor = useSpaceCardActions({
                     v-for="entry in VIEWS"
                     :key="entry.key"
                     type="button"
-                    class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                    class="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors sm:px-2.5"
                     :class="
                         view === entry.key
                             ? 'bg-surface font-medium text-primary shadow-sm'
                             : 'text-muted hover:text-primary'
                     "
                     :aria-pressed="view === entry.key"
+                    :title="t(entry.labelKey)"
                     v-on:click="view = entry.key"
                 >
-                    <component :is="entry.icon" class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t(entry.labelKey) }}
+                    <component :is="entry.icon" class="h-3.5 w-3.5 shrink-0" :stroke-width="2" />
+                    <span :class="view === entry.key ? '' : 'sr-only sm:not-sr-only'">
+                        {{ t(entry.labelKey) }}
+                    </span>
                 </button>
             </div>
 

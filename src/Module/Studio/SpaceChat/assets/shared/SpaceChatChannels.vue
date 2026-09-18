@@ -49,20 +49,28 @@ function confirmName() {
 
 <template>
     <aside
-        class="flex shrink-0 flex-col gap-2 border-b border-line/60 p-3 md:w-52 md:border-b-0 md:border-r"
+        class="flex shrink-0 flex-col gap-2 border-b border-line/60 px-3 py-2 md:w-52 md:border-b-0 md:border-r md:p-3"
     >
+        <!-- L'intitulé disparaît sur téléphone : une colonne de gauche a besoin
+             qu'on dise ce qu'elle est, une ligne de pastilles au-dessus de la
+             conversation se lit sans. -->
         <span
-            class="px-1 text-[0.65rem] font-medium uppercase tracking-wider text-muted"
+            class="hidden px-1 text-[0.65rem] font-medium uppercase tracking-wider text-muted md:block"
         >
             {{ t("shared.space_chat.channels.label") }}
         </span>
 
-        <div class="flex flex-row flex-wrap gap-0.5 md:flex-col md:flex-nowrap">
+        <!-- Une seule ligne qui défile plutôt qu'un pavé qui passe à la ligne :
+             sur un écran de 812 pixels de haut, trois canaux repliés prenaient
+             107 pixels à la conversation, qui est ce qu'on est venu lire. -->
+        <div
+            class="flex flex-row flex-nowrap gap-0.5 overflow-x-auto md:flex-col md:overflow-x-visible"
+        >
             <button
                 v-for="channel in channels"
                 :key="channel.id"
                 type="button"
-                class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors md:w-full"
+                class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors md:w-full md:shrink"
                 :class="
                     channel.id === current
                         ? 'bg-accent/15 text-accent'
@@ -87,7 +95,7 @@ function confirmName() {
             <button
                 v-if="canArrange && !naming"
                 type="button"
-                class="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs text-muted transition-colors hover:bg-surface-2/60 hover:text-primary md:w-full"
+                class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs text-muted transition-colors hover:bg-surface-2/60 hover:text-primary md:w-full md:shrink"
                 v-on:click="naming = true"
             >
                 <Plus class="h-3 w-3 shrink-0" :stroke-width="2" />

@@ -7,6 +7,20 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.204] - 2026-09-18
 
+### Corrigé
+
+#### La barre d'onglets d'un espace débordait sur téléphone
+Cinq libellés côte à côte font 520 pixels : sur un écran de 375, la barre
+poussait **toute la page** à défiler de côté, pas seulement elle-même. Seul
+l'onglet ouvert porte désormais son nom sous 640 pixels ; les autres gardent
+leur icône, et leur libellé reste lisible par un lecteur d'écran, où il n'a
+jamais coûté de place. La barre passe de 523 à 245 pixels et la page ne défile
+plus latéralement.
+
+Le rail des canaux se replie de la même façon : une ligne qui défile plutôt
+qu'un pavé, parce que trois canaux repliés prenaient 107 pixels de haut à la
+conversation, qui est ce qu'on est venu lire.
+
 ### Ajouté
 
 #### Des canaux dans la discussion d'un espace
