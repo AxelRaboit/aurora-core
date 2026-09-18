@@ -33,5 +33,14 @@ export function useSpaceContentShape() {
         storedShape: storedViewMode,
         setShape: setViewMode,
         container,
+        /**
+         * Whether the choice is currently being overruled.
+         *
+         * Rendu à l'appelant pour qu'il cesse de dessiner le bouton : un
+         * interrupteur qu'on actionne et qui ne change rien à l'écran laisse
+         * croire à une panne. Ce qui est choisi reste gardé, et le bouton
+         * revient avec la place de dessiner un kanban.
+         */
+        overruled: isNarrow,
     };
 }

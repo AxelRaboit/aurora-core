@@ -22,10 +22,9 @@
  * were opened to them and switches between them; the button that opens a room
  * is bound to a path the client's page is never handed.
  */
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { Check, EyeOff, Hash, MessageCircle, Plus, X } from "lucide-vue-next";
-import AppButton from "@/shared/components/action/AppButton.vue";
+import { EyeOff, Hash, MessageCircle, Plus } from "lucide-vue-next";
 
 const props = defineProps({
     channels: { type: Array, default: () => [] },
@@ -40,7 +39,7 @@ const props = defineProps({
     open: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["select", "create", "close", "open-direct"]);
+const emit = defineEmits(["select", "close", "ask-create", "ask-direct"]);
 
 /**
  * Choosing a room closes the drawer.
@@ -55,10 +54,6 @@ function choose(id) {
 }
 
 const { t } = useI18n();
-
-const naming = ref(false);
-const draft = ref("");
-const picking = ref(false);
 
 const canArrange = computed(() => !!props.createPath);
 
@@ -80,14 +75,6 @@ const reachable = computed(() => {
     return props.people.filter((person) => !already.has(person.label));
 });
 
-function confirmName() {
-    const name = draft.value.trim();
-    if ("" === name) return;
-
-    emit("create", name);
-    draft.value = "";
-    naming.value = false;
-}
 </script>
 
 <template>
@@ -141,11 +128,17 @@ function confirmName() {
                 />
             </button>
 
+            <!-- Demande, n'ouvre pas : le nom se donne dans une modale, pour
+                 les mêmes raisons que le choix d'une personne juste en
+                 dessous. -->
             <button
-                v-if="canArrange && !naming"
+                v-if="canArrange"
                 type="button"
                 class="flex w-full shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs text-muted transition-colors hover:bg-surface-2/60 hover:text-primary"
-                v-on:click="naming = true"
+                v-on:click="
+                    emit('ask-create');
+                    emit('close');
+                "
             >
                 <Plus class="h-3 w-3 shrink-0" :stroke-width="2" />
                 {{ t("shared.space_chat.channels.new") }}
@@ -176,54 +169,26 @@ function confirmName() {
                     <span class="truncate">{{ channel.name }}</span>
                 </button>
 
+                <!-- La question est posée par une modale, pas par le rail.
+                     Une liste de noms qui se dépliait ici poussait les salons
+                     vers le bas, dans deux cents pixels de large, au moment
+                     précis où l'on cherche un nom ; et sur téléphone elle
+                     s'ouvrait dans un tiroir qui couvre déjà la conversation.
+                     Le rail demande, le panneau ouvre, et le tiroir se
+                     referme. -->
                 <button
-                    v-if="reachable.length && !picking"
+                    v-if="reachable.length"
                     type="button"
                     class="flex w-full shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs text-muted transition-colors hover:bg-surface-2/60 hover:text-primary"
-                    v-on:click="picking = true"
+                    v-on:click="
+                        emit('ask-direct');
+                        emit('close');
+                    "
                 >
                     <Plus class="h-3 w-3 shrink-0" :stroke-width="2" />
                     {{ t("shared.space_chat.channels.new_direct") }}
                 </button>
-
-                <!-- La liste des gens plutôt qu'un champ : un espace a trois
-                     personnes, pas trois cents, et choisir dans une liste ne
-                     demande pas de savoir comment quelqu'un s'écrit. -->
-                <button
-                    v-for="person in picking ? reachable : []"
-                    :key="`person-${person.id}`"
-                    type="button"
-                    class="flex w-full shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs text-secondary transition-colors hover:bg-surface-2/60 hover:text-primary"
-                    v-on:click="
-                        emit('open-direct', person.id);
-                        picking = false;
-                        emit('close');
-                    "
-                >
-                    <MessageCircle class="h-3 w-3 shrink-0 opacity-60" :stroke-width="2" />
-                    <span class="truncate">{{ person.label }}</span>
-                </button>
             </div>
         </template>
-
-        <div v-if="naming" class="flex flex-col gap-1.5">
-            <input
-                id="space-chat-channel-name"
-                v-model="draft"
-                type="text"
-                class="w-full rounded-md border border-line/60 bg-surface px-2 py-1 text-xs text-primary"
-                :placeholder="t('shared.space_chat.channels.name_placeholder')"
-                v-on:keydown.enter.prevent="confirmName"
-                v-on:keydown.esc.prevent="naming = false"
-            >
-            <div class="flex items-center gap-1.5">
-                <AppButton size="xs" variant="primary" :icon="Check" v-on:click="confirmName">
-                    {{ t("shared.space_chat.channels.create") }}
-                </AppButton>
-                <AppButton size="xs" variant="ghost" :icon="X" v-on:click="naming = false">
-                    {{ t("shared.space_chat.channels.cancel") }}
-                </AppButton>
-            </div>
-        </div>
     </aside>
 </template>

@@ -11,7 +11,7 @@ shared:
   space_chat:
     title: Conversación
     empty: "Aún no hay mensajes. Aquí se dice todo lo que no cabe en una ficha: el brief del mes, una campaña que se mueve, una pregunta rápida."
-    placeholder: "Escribir un mensaje… (Intro para enviar, Mayús+Intro para salto de línea)"
+    placeholder: Escribir un mensaje…
     send: Enviar
     from_client: cliente
     deleted: Mensaje eliminado
@@ -20,6 +20,7 @@ shared:
     channels:
       label: Canales
       new: Nuevo canal
+      new_hint: "Un canal empieza entre ustedes. Podrá abrirlo al cliente después, desde sus ajustes."
       name_placeholder: Nombre del canal
       create: Abrir
       cancel: Cancelar

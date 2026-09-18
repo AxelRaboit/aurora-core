@@ -23,6 +23,7 @@ import { MoreHorizontal, PanelLeft, Radio, Send, Trash2, WifiOff } from "lucide-
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import SpaceChatChannels from "./SpaceChatChannels.vue";
+import SpaceChatNewChannelModal from "./SpaceChatNewChannelModal.vue";
 import SpaceChatPeopleModal from "./SpaceChatPeopleModal.vue";
 import SpaceChatRoomModal from "./SpaceChatRoomModal.vue";
 import { useSpaceChat } from "./composables/useSpaceChat.js";
@@ -116,6 +117,8 @@ const {
 /** Ce que les trois points ouvrent, et la question que pose la liste de gens. */
 const roomModal = ref(false);
 const peopleFor = ref(null);
+/** Le formulaire d'un nouveau canal, ouvert depuis le rail. */
+const newChannel = ref(false);
 
 const { channels, create, rename, setAudience, drop, invite, openDirect, hide } =
     useSpaceChatChannels(props.channels, {
@@ -209,6 +212,16 @@ const pickTitle = computed(() =>
     "invite" === peopleFor.value
         ? t("shared.space_chat.channels.pick_invite")
         : t("shared.space_chat.channels.pick_direct"),
+);
+
+/**
+ * L'état du direct en toutes lettres, pour l'infobulle et le lecteur d'écran.
+ *
+ * Deux appels séparés plutôt qu'un ternaire dans `t()`, pour la même raison que
+ * {@link pickTitle} : l'outil qui vérifie les clés ne lit pas les conditions.
+ */
+const liveLabel = computed(() =>
+    live.value ? t("shared.space_chat.live") : t("shared.space_chat.reconnecting"),
 );
 
 /** Ce qu'on fait du nom choisi dépend de la question qui l'a posé. */
@@ -428,8 +441,8 @@ function onKeydown(event) {
             :direct-path="chatDirectPath"
             :open="railOpen"
             v-on:select="select"
-            v-on:create="create"
-            v-on:open-direct="startDirect"
+            v-on:ask-create="newChannel = true"
+            v-on:ask-direct="peopleFor = 'direct'"
             v-on:close="railOpen = false"
         />
 
@@ -459,28 +472,41 @@ function onKeydown(event) {
 
                 <!-- Dit dans l'en-tête et pas seulement sur la pastille : c'est la
                  phrase à lire avant d'écrire, et l'en-tête est là où le regard
-                 revient entre deux messages. -->
+                 revient entre deux messages.
+
+                 Pas sur une conversation privée : « interne » y répondrait à
+                 une question que personne ne se pose, et la phrase sous la
+                 boîte dit déjà qui la lit. -->
                 <span
-                    v-if="channelCreatePath && openChannel && !openChannel.openToClient"
+                    v-if="channelCreatePath && openChannel && !openChannel.openToClient && !openChannel.isDirect"
                     class="rounded bg-surface-2/60 px-1.5 py-0.5 text-[0.65rem] uppercase tracking-wide text-muted"
                 >
                     {{ t("shared.space_chat.channels.internal") }}
                 </span>
 
-                <!-- Said out loud, because the difference is invisible otherwise:
-                 somebody typing into a chat that has stopped being live
-                 deserves to know the other side will not see it appear. -->
+                <!-- Dit, parce que la différence est invisible sinon : celui
+                     qui écrit dans une discussion qui a perdu le direct mérite
+                     de savoir que l'autre ne le verra pas apparaître.
+
+                     **L'icône seule.** « reconnexion… » prend cent trente
+                     pixels sur trois cent soixante, et les prend au nom du
+                     salon, qui passait à la ligne pour un mot qu'on lit une
+                     fois par heure. L'antenne barrée et la couleur disent la
+                     même chose ; le mot reste à l'infobulle et au lecteur
+                     d'écran, où il n'a jamais coûté de place. -->
                 <span
                     v-if="expectsLive"
-                    class="ml-auto flex items-center gap-1.5 text-xs"
+                    class="ml-auto shrink-0"
                     :class="live ? 'text-emerald-500' : 'text-amber-500'"
+                    :title="liveLabel"
                 >
                     <component
                         :is="live ? Radio : WifiOff"
                         class="h-3.5 w-3.5"
                         :stroke-width="2"
+                        aria-hidden="true"
                     />
-                    {{ t(live ? "shared.space_chat.live" : "shared.space_chat.reconnecting") }}
+                    <span class="sr-only">{{ liveLabel }}</span>
                 </span>
 
                 <!-- Trois points plutôt que quatre boutons sous le titre : ce
@@ -613,8 +639,13 @@ function onKeydown(event) {
                         v-on:update:model-value="draft = $event"
                     />
                 </div>
+                <!-- Pleine largeur sous le pouce, à sa taille dès qu'il y a la
+                     place : sur téléphone le seul geste de la zone mérite toute
+                     la ligne plutôt qu'un bouton de quatre-vingt-dix pixels
+                     collé dans un coin. -->
                 <div class="flex justify-end">
                     <AppButton
+                        class="w-full sm:w-auto"
                         variant="primary"
                         size="sm"
                         :loading="loading"
@@ -643,6 +674,12 @@ function onKeydown(event) {
                 onDrop($event);
             "
             v-on:hide="onHide"
+        />
+
+        <SpaceChatNewChannelModal
+            :show="newChannel"
+            v-on:close="newChannel = false"
+            v-on:create="create"
         />
 
         <SpaceChatPeopleModal

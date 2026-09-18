@@ -11,7 +11,7 @@ shared:
   space_chat:
     title: Chat
     empty: "No messages yet. This is where everything that does not belong on one card gets said: the month's brief, a campaign moving, a quick question."
-    placeholder: "Write a message… (Enter to send, Shift+Enter for a new line)"
+    placeholder: Write a message…
     send: Send
     from_client: client
     deleted: Message deleted
@@ -20,6 +20,7 @@ shared:
     channels:
       label: Channels
       new: New channel
+      new_hint: "A channel starts between you. You can open it to the client later, from its settings."
       name_placeholder: Channel name
       create: Open
       cancel: Cancel

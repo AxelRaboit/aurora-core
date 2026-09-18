@@ -9,6 +9,58 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### La discussion tient dans l'écran, sans faire défiler la page
+Sur téléphone, la conversation dépassait de soixante pixels : assez pour que la
+page bouge, pas assez pour que ça serve. Elle prend maintenant **exactement** la
+place laissée par l'en-tête, quelle que soit la hauteur de celui-ci, et c'est le
+fil qui défile en dedans pendant que le champ d'écriture reste sous le pouce.
+
+La coquille ne devine plus : une soustraction en dur - la fenêtre moins huit rem
+et demie - valait pour un en-tête sur une ligne, et sur téléphone il en prend
+deux. L'écran qui veut tenir dedans le demande, et la page lui donne la hauteur
+ferme sans laquelle une colonne flex n'a rien à distribuer. Sur un écran
+vraiment bas, la page redéfile plutôt que de couper le champ d'écriture.
+
+#### Ce qui prenait de la place pour ne rien dire
+- **L'état du direct** est une icône. « reconnexion… » prenait cent trente
+  pixels au nom du salon, qui passait à la ligne pour un mot qu'on lit une fois
+  par heure ; l'antenne barrée et sa couleur disent la même chose, et le mot
+  reste à l'infobulle et au lecteur d'écran.
+- **Le champ d'écriture** dit « Écrire un message… », sans le rappel des
+  raccourcis entre parenthèses.
+- **« Ajouter un contenu »** se réduit à son plus en tête de colonne, où le
+  libellé se repliait sur trois lignes en face du nom de la colonne.
+- **Le choix kanban / liste** disparaît là où il est déjà refusé : un conteneur
+  étroit impose la liste, et un interrupteur qui ne change rien à l'écran se lit
+  comme un interrupteur cassé. Ce qui a été choisi est gardé, et le bouton
+  revient avec la place.
+- **La pastille « interne »** ne s'affiche plus sur une conversation privée, où
+  elle répondait à une question que personne ne se pose.
+
+#### Les gestes se prennent la ligne entière sur téléphone
+Envoyer un message, créer un lien d'accès, ouvrir un canal au client, ajouter
+quelqu'un, supprimer : chacun prend toute la largeur sous `sm`, et retrouve sa
+taille naturelle dès qu'il y a la place. Trois boutons côte à côte dans trois
+cents pixels tenaient chacun sur deux lignes sans offrir de cible franche.
+
+L'accès client s'empile pour la même raison : le nom, l'adresse, l'échéance et
+l'état avaient une ligne à se partager, et « Camille, g… » était tout ce qu'on
+en lisait.
+
+#### Ouvrir un canal, parler à quelqu'un : deux modales
+Le rail dépliait ses formulaires en dessous de lui, dans deux cents pixels de
+large, et sur téléphone dans un tiroir qui couvre déjà la conversation. Le nom
+d'un nouveau canal et le choix d'une personne se demandent maintenant au milieu
+de l'écran, et le tiroir se referme derrière.
+
+#### Un fichier par ligne sur téléphone
+Deux colonnes donnaient des vignettes de cent soixante-treize pixels : une image
+qu'on devine plutôt qu'on ne la reconnaît, alors que c'est tout ce qu'on demande
+à cette vue. Celle qui reste prend la largeur, en quatre tiers plutôt qu'en
+carré pour qu'il en tienne deux et demie par écran, et le nom sous elle cesse
+d'être coupé au troisième mot. Qui veut voir beaucoup de fichiers d'un coup a la
+liste, juste à côté.
+
 #### L'espace respire mieux sur un téléphone
 Seize pixels de gouttière de chaque côté sur trois cent soixante-quinze, c'est
 près d'un dixième de la largeur donné à du vide, sur le seul appareil qui n'en

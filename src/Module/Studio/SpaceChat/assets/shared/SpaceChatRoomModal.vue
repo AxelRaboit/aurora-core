@@ -80,6 +80,7 @@ function rename() {
                 <AppButton
                     size="sm"
                     variant="secondary"
+                    class="w-full sm:w-auto"
                     :disabled="!name.trim() || name.trim() === channel.name"
                     v-on:click="rename"
                 >
@@ -135,6 +136,7 @@ function rename() {
                 <AppButton
                     size="sm"
                     variant="secondary"
+                    class="w-full sm:w-auto"
                     :icon="EyeOff"
                     v-on:click="emit('audience', { channel, openToClient: !channel.openToClient })"
                 >
@@ -148,11 +150,16 @@ function rename() {
                 </AppButton>
             </div>
 
-            <div class="flex flex-wrap gap-2 border-t border-line/60 pt-4">
+            <!-- Empilés et pleine largeur sur téléphone : côte à côte, trois
+                 boutons se partageaient trois cents pixels, donc chacun tenait
+                 sur deux lignes et aucun n'offrait une cible franche. Ils
+                 reprennent leur largeur naturelle dès qu'il y a la place. -->
+            <div class="flex flex-col gap-2 border-t border-line/60 pt-4 sm:flex-row sm:flex-wrap">
                 <AppButton
                     v-if="canInvite && !isDirect && !isMain"
                     size="sm"
                     variant="secondary"
+                    class="w-full sm:w-auto"
                     :icon="UserPlus"
                     v-on:click="emit('invite')"
                 >
@@ -163,6 +170,7 @@ function rename() {
                     v-if="canHide && isDirect"
                     size="sm"
                     variant="secondary"
+                    class="w-full sm:w-auto"
                     v-on:click="emit('hide', channel)"
                 >
                     {{ t("shared.space_chat.channels.hide") }}
@@ -172,6 +180,7 @@ function rename() {
                     v-if="canArrange && !isDirect && !isMain"
                     size="sm"
                     variant="danger"
+                    class="w-full sm:w-auto"
                     :icon="Trash2"
                     v-on:click="emit('delete', channel)"
                 >

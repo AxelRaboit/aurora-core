@@ -149,7 +149,13 @@ const { choice: view } = usePersistedChoice(
     VIEWS.map((entry) => entry.key),
 );
 
-const { shape, storedShape, setShape, container: shapeContainer } = useSpaceContentShape();
+const {
+    shape,
+    storedShape,
+    setShape,
+    container: shapeContainer,
+    overruled: shapeOverruled,
+} = useSpaceContentShape();
 
 const {
     // Named apart from the props of the same name: these are the refs the
@@ -301,7 +307,10 @@ const actionsFor = useSpaceCardActions({
 </script>
 
 <template>
-    <div class="space-y-4">
+    <!-- Une colonne, parce que la discussion veut la hauteur qui reste et que
+         `space-y` ne la transmet pas. Les autres écrans gardent leur taille :
+         un flex item ne descend pas sous son contenu. -->
+    <div class="flex flex-1 flex-col gap-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <!-- Segmented rather than a select: five choices are worth showing
                  at once, and the one in use is the answer to "why does this
@@ -349,8 +358,16 @@ const actionsFor = useSpaceCardActions({
             <div class="flex items-center gap-2">
                 <!-- The shape of one entry, so it sits with the actions rather
                      than inside the switcher: two segmented groups side by side
-                     would read as one control with seven choices. -->
-                <div v-if="view === 'content'" class="flex rounded-lg border border-line/60 p-0.5">
+                     would read as one control with seven choices.
+
+                     Absent quand le conteneur est étroit : là, le kanban est
+                     refusé de toute façon et l'interrupteur ne changeait rien
+                     à l'écran. Un bouton qui ne fait rien se lit comme un
+                     bouton cassé ; celui-ci revient avec la place. -->
+                <div
+                    v-if="view === 'content' && !shapeOverruled"
+                    class="flex rounded-lg border border-line/60 p-0.5"
+                >
                     <AppIconButton
                         size="sm"
                         variant="ghost"
@@ -432,14 +449,23 @@ const actionsFor = useSpaceCardActions({
              chatting on holds no connection open. The cost is that a message
              arriving while somebody is looking at the calendar is not
              announced - that is a notification's job, not a panel's. -->
-        <!-- La hauteur de l'écran moins ce qui est au-dessus : l'en-tête de
-             l'espace, le sélecteur de vues et les marges. La discussion est le
-             seul écran d'un espace qu'on lit de haut en bas sans rien d'autre
-             autour, et une boîte de 32rem au milieu d'un écran vide donnait
-             trois messages visibles sur une conversation qui en compte trente. -->
+        <!-- Toute la place qui reste, mesurée et non calculée : la colonne
+             part du corps de la page, donc l'en-tête peut prendre une ligne ou
+             deux sans que rien ne dépasse. Une boîte de 32rem au milieu d'un
+             écran vide donnait trois messages visibles sur une conversation qui
+             en compte trente, et une soustraction en dur laissait le bas de la
+             page sous le bord de l'écran.
+
+             `data-fills-viewport` est ce qui le demande : la coquille y répond
+             en donnant à la fenêtre une hauteur ferme, sans quoi la colonne
+             n'aurait rien à distribuer (voir le commentaire du gabarit).
+
+             Le plancher reste : sur un écran très bas, mieux vaut une page qui
+             défile qu'un fil de deux lignes. -->
         <div
             v-else-if="view === 'chat'"
-            class="h-[calc(100dvh-8.5rem)] min-h-[24rem]"
+            data-fills-viewport
+            class="flex min-h-[20rem] flex-1 flex-col"
         >
             <SpaceChatPanel
                 fill

@@ -66,14 +66,24 @@ function when(item) {
                 <span class="text-xs tabular-nums text-muted">
                     {{ group.cards.length }}
                 </span>
+                <!-- **Le plus seul sur téléphone.** « Ajouter un contenu »
+                     fait cent quarante pixels en face d'un nom de colonne qui
+                     peut en faire autant : les deux se repliaient sur trois
+                     lignes pour un bouton dont le signe dit déjà tout, à
+                     l'endroit où l'on s'y attend. Le libellé revient dès qu'il
+                     y a la place, et reste lisible par un lecteur d'écran
+                     entre-temps. -->
                 <button
                     v-if="editable"
                     type="button"
-                    class="ml-auto flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+                    class="ml-auto flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+                    :title="t('backend.studio.space_content.add_item')"
                     v-on:click="emit('add-item', group.column.id)"
                 >
                     <Plus class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t("backend.studio.space_content.add_item") }}
+                    <span class="sr-only sm:not-sr-only">
+                        {{ t("backend.studio.space_content.add_item") }}
+                    </span>
                 </button>
             </header>
 

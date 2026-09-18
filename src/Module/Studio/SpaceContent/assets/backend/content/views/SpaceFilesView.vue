@@ -196,18 +196,29 @@ function chooseFile(event) {
             :description="t(`backend.studio.space_files.empty_${tab}_hint`)"
         />
 
+        <!-- **Un fichier par ligne sur téléphone.** Deux colonnes sur trois
+             cent soixante-quinze pixels donnaient des vignettes de cent
+             soixante-treize : une image qu'on devine plutôt qu'on ne la
+             reconnaît, ce qui est tout ce qu'on demande à cette vue. Celle qui
+             reste prend la largeur, et le nom sous elle cesse d'être coupé au
+             troisième mot. Qui veut voir beaucoup de fichiers d'un coup a la
+             liste, juste à côté. -->
         <div
             v-else-if="viewMode === 'grid'"
-            class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+            class="grid grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         >
             <article
                 v-for="file in visible"
                 :key="file.id"
                 class="overflow-hidden rounded-lg border border-line/60 bg-surface transition-colors hover:border-accent-400"
             >
+                <!-- Un carré de trois cent soixante pixels mangerait l'écran
+                     pour une seule vignette ; quatre tiers en laissent voir
+                     deux et demie, et le cadrage est de toute façon décidé par
+                     `object-fit: cover`. -->
                 <button
                     type="button"
-                    class="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-surface-2"
+                    class="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-surface-2 sm:aspect-square"
                     :title="t('backend.studio.space_content.files_open')"
                     v-on:click="previewed = file"
                 >
