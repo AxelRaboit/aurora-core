@@ -49,6 +49,8 @@ shared:
       directs: Messages privés
       new_direct: Nouvelle conversation
       invited: Ajouté au canal
+      uninvite: Retirer du canal
+      uninvited: Retiré du canal
       members: 'Personne | 1 personne | {count} personnes'
   attachments:
     title: Fichiers

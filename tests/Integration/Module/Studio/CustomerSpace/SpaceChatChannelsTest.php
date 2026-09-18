@@ -282,6 +282,108 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
         self::assertSame('Je te redis demain.', $this->payload()['chatMessages'][0]['body']);
     }
 
+    public function testSomebodyInvitedIntoARoomCanBeTakenOutOfItAgain(): void
+    {
+        $space = $this->givenSpace();
+        $mate = $this->givenTeammate($space);
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/channels/create', $space->getId()),
+            ['name' => 'Le mois prochain'],
+        );
+        $room = $this->named($this->payload()['chatChannels'], 'Le mois prochain');
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/channels/%d/invite', $space->getId(), $room['id']),
+            ['userId' => $mate->getId()],
+        );
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $invited = $this->named($this->payload()['chatChannels'], 'Le mois prochain');
+        $labels = array_column($invited['members'], 'label');
+        self::assertContains('Camille Martin', $labels);
+
+        $member = $this->memberNamed($invited, 'Camille Martin');
+
+        // Ce qu'elle a écrit reste : retirer quelqu'un range une liste, ça
+        // n'efface pas une conversation.
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/%d', $space->getId(), $room['id']),
+            ['body' => 'Je prends le sujet de septembre.'],
+        );
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/channels/%d/members/%d/remove', $space->getId(), $room['id'], $member['id']),
+        );
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $after = $this->named($this->payload()['chatChannels'], 'Le mois prochain');
+        self::assertNotContains('Camille Martin', array_column($after['members'], 'label'));
+
+        $this->client->request('GET', sprintf('/workspace/%d/chat/%d/messages', $space->getId(), $room['id']));
+        self::assertSame('Je prends le sujet de septembre.', $this->payload()['chatMessages'][0]['body']);
+    }
+
+    public function testAPrivateConversationKeepsBothOfItsPeople(): void
+    {
+        $space = $this->givenSpace();
+        $mate = $this->givenTeammate($space);
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/direct', $space->getId()),
+            ['userId' => $mate->getId()],
+        );
+        $channelId = $this->payload()['chatChannelId'];
+        $direct = $this->named($this->payload()['chatChannels'], 'Camille Martin');
+        $member = $this->memberNamed($direct, 'Camille Martin');
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/channels/%d/members/%d/remove', $space->getId(), $channelId, $member['id']),
+        );
+
+        self::assertSame(422, $this->client->getResponse()->getStatusCode(), 'A conversation with one person in it is not a conversation.');
+    }
+
+    public function testAMemberOfAnotherRoomIsNotRemovableUnderThisOne(): void
+    {
+        $space = $this->givenSpace();
+        $mate = $this->givenTeammate($space);
+
+        foreach (['Un', 'Deux'] as $name) {
+            $this->client->jsonRequest(
+                'POST',
+                sprintf('/workspace/%d/chat/channels/create', $space->getId()),
+                ['name' => $name],
+            );
+        }
+
+        $rooms = $this->payload()['chatChannels'];
+        $first = $this->named($rooms, 'Un');
+        $second = $this->named($rooms, 'Deux');
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/channels/%d/invite', $space->getId(), $first['id']),
+            ['userId' => $mate->getId()],
+        );
+
+        $member = $this->memberNamed($this->named($this->payload()['chatChannels'], 'Un'), 'Camille Martin');
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/channels/%d/members/%d/remove', $space->getId(), $second['id'], $member['id']),
+        );
+
+        self::assertSame(404, $this->client->getResponse()->getStatusCode());
+    }
+
     public function testTheHistoryComesBackFromTheMessageItIsAskedFrom(): void
     {
         $space = $this->givenSpace();
@@ -312,6 +414,24 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
 
         self::assertSame(['Message 1', 'Message 2', 'Message 3', 'Message 4', 'Message 5'], $bodies);
         self::assertFalse($page['chatHasMore'], 'Nothing precedes the first message.');
+    }
+
+    /**
+     * The membership row of somebody in a room, as the payload prints it.
+     *
+     * @param array<string, mixed> $room
+     *
+     * @return array<string, mixed>
+     */
+    private function memberNamed(array $room, string $label): array
+    {
+        foreach ($room['members'] as $member) {
+            if ($label === $member['label']) {
+                return $member;
+            }
+        }
+
+        self::fail(sprintf('No member named "%s" in this room.', $label));
     }
 
     /** Somebody on the space's team, which is who a conversation can be opened with. */

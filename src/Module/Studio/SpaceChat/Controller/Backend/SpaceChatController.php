@@ -14,6 +14,7 @@ use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannel;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelMember;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatMessageManagerInterface;
@@ -287,6 +288,47 @@ class SpaceChatController extends AbstractController
 
         try {
             $this->channels->invite($channel, $user);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess($this->channelsPayload($space));
+    }
+
+    /**
+     * Retire quelqu'un d'un canal.
+     *
+     * Le pendant d'inviter, qui manquait : une équipe change, et un canal dont
+     * on ne peut que grossir la liste finit par n'en être plus un.
+     *
+     * **Rien ne s'efface.** Ce que la personne a écrit reste dans le canal, avec
+     * son nom : un message est un fait daté, pas une propriété qu'on emporte en
+     * partant. Elle cesse simplement de le voir et d'y écrire, et la
+     * réinviter la remet où elle était.
+     *
+     * Le membre arrive par son identifiant et non par son compte, parce que
+     * c'est la ligne qu'on retire et non la personne : elle peut être dans
+     * d'autres canaux du même espace, et y rester.
+     */
+    #[Route('/channels/{channelId}/members/{memberId}/remove', name: '_channel_uninvite', requirements: ['channelId' => '\\d+', 'memberId' => '\\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function removeFromChannel(
+        CustomerSpace $space,
+        #[MapEntity(id: 'channelId')]
+        SpaceChatChannel $channel,
+        #[MapEntity(id: 'memberId')]
+        SpaceChatChannelMember $member,
+    ): JsonResponse {
+        $this->assertOwned($space, $channel->getSpace()->getId());
+
+        // Le membre d'un autre salon nommé sous celui-ci : deux entités que
+        // l'URL apporte séparément, donc deux vérifications.
+        if ($member->getChannel()->getId() !== $channel->getId()) {
+            throw $this->createNotFoundException();
+        }
+
+        try {
+            $this->channels->removeMember($member);
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         }

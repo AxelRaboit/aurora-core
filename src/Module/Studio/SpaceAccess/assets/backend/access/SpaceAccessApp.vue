@@ -29,7 +29,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
-import { Copy, Link2, Trash2, X } from "lucide-vue-next";
+import { Ban, Copy, Link2, Trash2, X } from "lucide-vue-next";
 
 const { t, d } = useI18n();
 const { can } = usePrivileges();
@@ -251,25 +251,33 @@ function openedLabel(link) {
                     {{ t(`backend.studio.space_access.states.${stateOf(link)}`) }}
                 </span>
 
-                <div v-if="canShare" class="flex w-full shrink-0 items-center gap-1 sm:w-auto">
+                <!-- **Deux gestes, une même forme.** L'un était un mot sans
+                 contour, l'autre une corbeille sans mot : côte à côte ils ne
+                 se ressemblaient pas assez pour se lire comme le couple qu'ils
+                 sont, et sur téléphone le second n'offrait qu'une cible de
+                 vingt-six pixels. Chacun porte maintenant son icône, son nom
+                 et son cadre, et ils se partagent la ligne. -->
+                <div v-if="canShare" class="flex w-full shrink-0 items-center gap-2 sm:w-auto">
                     <AppButton
                         v-if="link.usable"
                         class="flex-1 sm:flex-none"
-                        variant="ghost"
+                        variant="secondary"
                         size="sm"
                         :loading="revoking === link.id"
                         v-on:click="revoke(link)"
                     >
+                        <Ban class="h-3.5 w-3.5" :stroke-width="2" />
                         {{ t("backend.studio.space_access.revoke") }}
                     </AppButton>
-                    <button
-                        type="button"
-                        class="rounded p-1.5 text-muted transition-colors hover:text-red-500"
-                        :aria-label="t('shared.common.delete')"
+                    <AppButton
+                        class="flex-1 sm:flex-none"
+                        variant="danger-outline"
+                        size="sm"
                         v-on:click="confirmDelete(link)"
                     >
                         <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                    </button>
+                        {{ t("shared.common.delete") }}
+                    </AppButton>
                 </div>
             </li>
         </ul>

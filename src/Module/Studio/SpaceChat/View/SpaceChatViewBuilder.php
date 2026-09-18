@@ -88,6 +88,14 @@ final readonly class SpaceChatViewBuilder
             'chatChannelAudiencePath' => $this->channelTemplate('workspace_space_chat_channel_audience', $space),
             'chatChannelDeletePath' => $this->channelTemplate('workspace_space_chat_channel_delete', $space),
             'chatChannelInvitePath' => $this->channelTemplate('workspace_space_chat_channel_invite', $space),
+            // Deux trous encore : le salon, et la ligne qu'on retire. C'est le
+            // membre qu'on nomme et non le compte, parce qu'une même personne
+            // peut être dans plusieurs canaux du même espace.
+            'chatChannelUninvitePath' => $this->pathTemplates->generate('workspace_space_chat_channel_uninvite', [
+                'id' => $space->getId(),
+                'channelId' => '__channel__',
+                'memberId' => '__id__',
+            ]),
             'chatDirectPath' => $this->urlGenerator->generate('workspace_space_chat_direct', ['id' => $space->getId()]),
             'chatTeam' => $this->team($space),
             // Soi-même en moins : une conversation privée avec soi n'existe pas,

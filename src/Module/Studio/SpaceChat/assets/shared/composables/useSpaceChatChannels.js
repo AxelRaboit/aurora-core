@@ -17,7 +17,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
  * two components drawing one rail.
  *
  * @param {Array}  initial the rooms the page was rendered with
- * @param {object} paths   createPath, renamePath, audiencePath, deletePath, invitePath
+ * @param {object} paths   createPath, renamePath, audiencePath, deletePath, invitePath, uninvitePath
  */
 export function useSpaceChatChannels(initial, paths) {
     const { t } = useI18n();
@@ -98,6 +98,23 @@ export function useSpaceChatChannels(initial, paths) {
         }
     }
 
+    /**
+     * Retire quelqu'un d'un canal, sans toucher à ce qu'il y a écrit.
+     *
+     * L'adresse porte deux trous, le salon et la ligne : c'est le membre qu'on
+     * retire, pas le compte, qui peut être dans d'autres canaux du même espace.
+     */
+    async function removeMember({ channel, memberId }) {
+        const path = forChannel(paths.uninvitePath, channel)?.replace(
+            "__id__",
+            String(memberId),
+        );
+
+        if (await send(path)) {
+            toast.success(t("shared.space_chat.channels.uninvited"));
+        }
+    }
+
     return {
         channels,
         working,
@@ -106,6 +123,7 @@ export function useSpaceChatChannels(initial, paths) {
         setAudience,
         drop,
         invite,
+        removeMember,
         openDirect,
         hide,
     };

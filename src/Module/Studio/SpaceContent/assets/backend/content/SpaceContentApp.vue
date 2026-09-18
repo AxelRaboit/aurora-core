@@ -112,6 +112,7 @@ const props = defineProps({
     chatChannelAudiencePath: { type: String, default: null },
     chatChannelDeletePath: { type: String, default: null },
     chatChannelInvitePath: { type: String, default: null },
+    chatChannelUninvitePath: { type: String, default: null },
     chatDirectPath: { type: String, default: null },
     chatOlderPath: { type: String, default: null },
     chatHidePath: { type: String, default: null },
@@ -482,6 +483,7 @@ const actionsFor = useSpaceCardActions({
                 :channel-audience-path="editable ? chatChannelAudiencePath : null"
                 :channel-delete-path="editable ? chatChannelDeletePath : null"
                 :channel-invite-path="editable ? chatChannelInvitePath : null"
+                :channel-uninvite-path="editable ? chatChannelUninvitePath : null"
                 :chat-direct-path="editable ? chatDirectPath : null"
                 :older-path="chatOlderPath"
                 :hide-path="editable ? chatHidePath : null"

@@ -19,7 +19,7 @@
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { EyeOff, Hash, MessageCircle, Trash2, UserPlus, Users } from "lucide-vue-next";
+import { EyeOff, Hash, MessageCircle, Trash2, UserMinus, UserPlus, Users } from "lucide-vue-next";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -30,10 +30,19 @@ const props = defineProps({
     /** Null when this reader only looks: the client, or a read-only member. */
     canArrange: { type: Boolean, default: false },
     canInvite: { type: Boolean, default: false },
+    canUninvite: { type: Boolean, default: false },
     canHide: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["close", "rename", "audience", "invite", "delete", "hide"]);
+const emit = defineEmits([
+    "close",
+    "rename",
+    "audience",
+    "invite",
+    "remove-member",
+    "delete",
+    "hide",
+]);
 
 const { t } = useI18n();
 
@@ -116,6 +125,21 @@ function rename() {
                         <span v-if="member.fromClient" class="shrink-0 text-xs text-accent-500">
                             {{ t("shared.space_chat.from_client") }}
                         </span>
+
+                        <!-- Le pendant d'« Ajouter quelqu'un », sur la ligne de
+                             la personne : c'est là qu'on la cherche, et une
+                             seconde liste ailleurs dirait la même chose deux
+                             fois. Rien ne s'efface de ce qu'elle a écrit. -->
+                        <button
+                            v-if="canUninvite && !isMain && !isDirect"
+                            type="button"
+                            class="shrink-0 rounded p-1 text-muted transition-colors hover:bg-surface hover:text-rose-400"
+                            :title="t('shared.space_chat.channels.uninvite')"
+                            :aria-label="t('shared.space_chat.channels.uninvite')"
+                            v-on:click="emit('remove-member', { channel, memberId: member.id })"
+                        >
+                            <UserMinus class="h-3.5 w-3.5" :stroke-width="2" />
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -137,9 +161,9 @@ function rename() {
                     size="sm"
                     variant="secondary"
                     class="w-full sm:w-auto"
-                    :icon="EyeOff"
                     v-on:click="emit('audience', { channel, openToClient: !channel.openToClient })"
                 >
+                    <EyeOff class="h-3.5 w-3.5" :stroke-width="2" />
                     {{
                         t(
                             channel.openToClient
@@ -160,9 +184,9 @@ function rename() {
                     size="sm"
                     variant="secondary"
                     class="w-full sm:w-auto"
-                    :icon="UserPlus"
                     v-on:click="emit('invite')"
                 >
+                    <UserPlus class="h-3.5 w-3.5" :stroke-width="2" />
                     {{ t("shared.space_chat.channels.invite") }}
                 </AppButton>
 
@@ -181,9 +205,9 @@ function rename() {
                     size="sm"
                     variant="danger"
                     class="w-full sm:w-auto"
-                    :icon="Trash2"
                     v-on:click="emit('delete', channel)"
                 >
+                    <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
                     {{ t("shared.space_chat.channels.delete") }}
                 </AppButton>
             </div>

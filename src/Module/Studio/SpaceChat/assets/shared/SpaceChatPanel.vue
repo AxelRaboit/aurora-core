@@ -52,6 +52,8 @@ const props = defineProps({
     channelAudiencePath: { type: String, default: null },
     channelDeletePath: { type: String, default: null },
     channelInvitePath: { type: String, default: null },
+    /** Null on the client's page, and on a reader who may not arrange rooms. */
+    channelUninvitePath: { type: String, default: null },
     /** Null when this reader may not start a private conversation. */
     chatDirectPath: { type: String, default: null },
     /** Who one can be started with. */
@@ -120,13 +122,14 @@ const peopleFor = ref(null);
 /** Le formulaire d'un nouveau canal, ouvert depuis le rail. */
 const newChannel = ref(false);
 
-const { channels, create, rename, setAudience, drop, invite, openDirect, hide } =
+const { channels, create, rename, setAudience, drop, invite, removeMember, openDirect, hide } =
     useSpaceChatChannels(props.channels, {
         createPath: props.channelCreatePath,
         renamePath: props.channelRenamePath,
         audiencePath: props.channelAudiencePath,
         deletePath: props.channelDeletePath,
         invitePath: props.channelInvitePath,
+        uninvitePath: props.channelUninvitePath,
         directPath: props.chatDirectPath,
         hidePath: props.hidePath,
     });
@@ -674,11 +677,13 @@ function onKeydown(event) {
             :channel="openChannel"
             :can-arrange="!!channelCreatePath"
             :can-invite="!!channelInvitePath"
+            :can-uninvite="!!channelUninvitePath"
             :can-hide="!!hidePath"
             v-on:close="roomModal = false"
             v-on:rename="rename"
             v-on:audience="setAudience"
             v-on:invite="peopleFor = 'invite'"
+            v-on:remove-member="removeMember"
             v-on:delete="
                 roomModal = false;
                 onDrop($event);
