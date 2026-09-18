@@ -9,6 +9,7 @@ use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
+use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatMessageManagerInterface;
@@ -42,6 +43,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('studio.spaces.view')]
 class SpaceChatController extends AbstractController
 {
+    use SpaceOwnershipTrait;
     use JsonRequestTrait;
     use JsonResponseTrait;
 
@@ -106,12 +108,5 @@ class SpaceChatController extends AbstractController
         }
 
         return $this->jsonSuccess($this->viewBuilder->payload($space));
-    }
-
-    private function assertOwned(CustomerSpace $space, ?int $ownerId): void
-    {
-        if ($ownerId !== $space->getId()) {
-            throw $this->createNotFoundException();
-        }
     }
 }

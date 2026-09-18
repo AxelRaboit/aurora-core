@@ -7,6 +7,8 @@ namespace Aurora\Module\Studio\SpaceContent\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Storage\Access\UploadPolicyProvider;
+use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
@@ -14,6 +16,7 @@ use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
@@ -29,7 +32,7 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentCommentManagerInterfac
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
-use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentFinder;
+use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
 use Aurora\Module\Studio\SpaceContent\View\SpaceBoardViewBuilder;
 use Aurora\Module\Studio\SpaceFile\View\SpaceFilesViewBuilder;
 use Aurora\Module\Studio\SpaceNote\View\SpaceNotesViewBuilder;
@@ -69,6 +72,7 @@ use function is_string;
 #[IsGranted('studio.spaces.view')]
 class SpaceContentController extends AbstractController
 {
+    use SpaceOwnershipTrait;
     use JsonRequestTrait;
     use JsonResponseTrait;
 
@@ -81,7 +85,7 @@ class SpaceContentController extends AbstractController
         protected readonly SpaceContentItemInputFactoryInterface $itemInputFactory,
         protected readonly SpaceContentColumnInputFactoryInterface $columnInputFactory,
         protected readonly SpaceContentAttachmentRepository $attachmentRepository,
-        protected readonly SpaceOrphanedDocumentFinder $orphanedDocuments,
+        protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
         protected readonly SpaceBoardViewBuilder $viewBuilder,
         protected readonly SpaceChatViewBuilder $chatViewBuilder,
         protected readonly SpaceChatHub $chatHub,
@@ -89,6 +93,7 @@ class SpaceContentController extends AbstractController
         protected readonly SpaceFilesViewBuilder $filesViewBuilder,
         protected readonly PayloadValidator $payloadValidator,
         protected readonly StoredFileResponder $responder,
+        protected readonly UploadPolicyProvider $uploadPolicies,
     ) {}
 
     /**
@@ -221,7 +226,7 @@ class SpaceContentController extends AbstractController
 
         return $this->jsonSuccess(
             $this->viewBuilder->boardPayload($space)
-            + $this->orphanedPayload($space, $documents),
+            + $this->orphanedOffer->payload($space, $documents, $this->isGranted('ged.documents.delete')),
         );
     }
 
@@ -329,6 +334,20 @@ class SpaceContentController extends AbstractController
             return $this->jsonInvalidInput(['file' => 'backend.studio.space_content.errors.attachment_required']);
         }
 
+        // La même règle que sur une note et que sur un dépôt d'invité : ce qui
+        // monte passe par la politique de l'administrateur. Sans elle, le seul
+        // plafond était celui de PHP, et un type refusé partout ailleurs
+        // entrait ici.
+        $refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file);
+
+        if ($refusal instanceof UploadRefusalEnum) {
+            return $this->jsonInvalidInput(['file' => match ($refusal) {
+                UploadRefusalEnum::TooLarge => 'backend.ged.documents.errors.upload_too_large',
+                UploadRefusalEnum::TypeRefused => 'backend.ged.documents.errors.upload_type_refused',
+                UploadRefusalEnum::Broken => 'backend.ged.documents.errors.upload_failed',
+            }]);
+        }
+
         try {
             $this->attachments->uploadAsStudio($item, $file);
         } catch (FieldException $fieldException) {
@@ -399,7 +418,7 @@ class SpaceContentController extends AbstractController
 
         return $this->jsonSuccess(
             $this->viewBuilder->boardPayload($space)
-            + $this->orphanedPayload($space, [$document]),
+            + $this->orphanedOffer->payload($space, [$document], $this->isGranted('ged.documents.delete')),
         );
     }
 
@@ -512,45 +531,6 @@ class SpaceContentController extends AbstractController
      * says more than refusing to answer does. The screen cannot reach this
      * either way: it only ever sends ids it was given.
      */
-    /**
-     * The files that removal left used by nobody, offered rather than binned.
-     *
-     * **Offered only to somebody who may already bin documents.** Trashing one
-     * is `ged.documents.delete`, and a person who manages client spaces need
-     * not hold it. Handing them a button that answers 403 would be worse than
-     * handing them nothing, and granting the right implicitly because they
-     * deleted a card would be a privilege arriving through the side door.
-     *
-     * The front decides whether to say anything; the answer is the same either
-     * way, which keeps this endpoint honest about what it did.
-     *
-     * @param list<DocumentInterface> $documents
-     *
-     * @return array{orphanedDocuments: list<array{id: int, title: string, trashPath: string}>}
-     */
-    private function orphanedPayload(CustomerSpace $space, array $documents): array
-    {
-        if (!$this->isGranted('ged.documents.delete')) {
-            return ['orphanedDocuments' => []];
-        }
-
-        $offered = [];
-
-        foreach ($this->orphanedDocuments->among($space, $documents) as $document) {
-            $offered[] = $document + [
-                'trashPath' => $this->generateUrl('backend_ged_documents_delete', ['id' => $document['id']]),
-            ];
-        }
-
-        return ['orphanedDocuments' => $offered];
-    }
-
-    private function assertOwned(CustomerSpace $space, ?int $ownerId): void
-    {
-        if ($ownerId !== $space->getId()) {
-            throw $this->createNotFoundException();
-        }
-    }
 
     /**
      * The numeric ids of a payload list, and nothing else.

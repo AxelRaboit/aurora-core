@@ -391,25 +391,6 @@ final class PublicSpaceController extends AbstractController
     }
 
     /**
-     * A file on one of this space's cards, read through the link that shows it.
-     *
-     * **This route exists so that revoking an access actually revokes it.**
-     * The files used to be published GED documents, which the public catch-all
-     * serves to anybody holding the address with no session at all: a client
-     * whose link had been revoked kept a working URL for every visual on their
-     * board, for ever. They are filed as drafts now, which closes the
-     * catch-all, and this is where the client reads them instead - behind the
-     * same `resolveUsable()` that gates the page itself, so expiry and
-     * revocation reach the files the moment they reach the page.
-     *
-     * No rate limiter: this is a read, and the page it serves already draws
-     * every thumbnail it holds. The wall is the link.
-     *
-     * A 404 for everything - a bad token, a revoked link, a file belonging to
-     * another space - for the reason the writes give: distinguishing them
-     * tells whoever holds a leaked address what they hold.
-     */
-    /**
      * Un fichier de l'espace lui-même, lu par le lien.
      *
      * Le même 404 pour tout - jeton faux, lien révoqué, fichier d'un autre
@@ -444,6 +425,25 @@ final class PublicSpaceController extends AbstractController
         return $this->responder->respond($this->keyOf($file->getDocument(), $variant));
     }
 
+    /**
+     * A file on one of this space's cards, read through the link that shows it.
+     *
+     * **This route exists so that revoking an access actually revokes it.**
+     * The files used to be published GED documents, which the public catch-all
+     * serves to anybody holding the address with no session at all: a client
+     * whose link had been revoked kept a working URL for every visual on their
+     * board, for ever. They are filed as drafts now, which closes the
+     * catch-all, and this is where the client reads them instead - behind the
+     * same `resolveUsable()` that gates the page itself, so expiry and
+     * revocation reach the files the moment they reach the page.
+     *
+     * No rate limiter: this is a read, and the page it serves already draws
+     * every thumbnail it holds. The wall is the link.
+     *
+     * A 404 for everything - a bad token, a revoked link, a file belonging to
+     * another space - for the reason the writes give: distinguishing them
+     * tells whoever holds a leaked address what they hold.
+     */
     #[Route(
         '/{selector}/{token}/attachments/{attachmentId}/{variant}',
         name: '_attachment_file',

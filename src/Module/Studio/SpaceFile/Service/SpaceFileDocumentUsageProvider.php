@@ -36,11 +36,11 @@ final readonly class SpaceFileDocumentUsageProvider implements DocumentUsageProv
 
             $usages[] = [
                 'type' => 'studio.space_file',
-                'label' => $file->getDocument()->getTitle(),
-                'detail' => $this->translator->trans(
-                    'backend.studio.spaces.usage_detail',
-                    ['{space}' => $space->getName()],
-                ),
+                // Le nom de l'espace, pas celui du document : l'écran de
+                // suppression dit déjà quel fichier part, et ce qu'il faut
+                // savoir avant de valider, c'est chez qui il sert.
+                'label' => $space->getName(),
+                'detail' => $this->translator->trans('backend.studio.space_files.usage_detail'),
                 'href' => $this->urlGenerator->generate(
                     'workspace_space_content',
                     ['id' => $space->getId()],

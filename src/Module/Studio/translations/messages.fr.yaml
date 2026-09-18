@@ -867,6 +867,7 @@ backend:
             # Les fichiers de l'espace lui-même, sur aucune fiche : la charte,
             # les logos, le brief. Le client les voit, comme le reste de
             # l'espace ; ce que le studio garde pour lui, ce sont les notes.
+            usage_detail: Fichier de l'espace
             label: Rattachement
             tabs:
                 linked: Sur les fiches

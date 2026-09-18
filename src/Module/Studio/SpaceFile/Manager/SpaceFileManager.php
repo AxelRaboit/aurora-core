@@ -10,8 +10,6 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
-use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
-use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
@@ -39,7 +37,6 @@ class SpaceFileManager implements SpaceFileManagerInterface
         protected readonly AuditLogger $auditLogger,
         protected readonly Security $security,
         protected readonly TranslatorInterface $translator,
-        protected readonly SpaceActivityNotifier $notifier,
     ) {}
 
     public function attachAsStudio(CustomerSpaceInterface $space, DocumentInterface $document): SpaceFileInterface
@@ -63,31 +60,6 @@ class SpaceFileManager implements SpaceFileManagerInterface
         return $this->attachAsStudio($space, $this->uploader->upload($file, $space));
     }
 
-    public function uploadAsClient(
-        CustomerSpaceInterface $space,
-        SpaceAccessLinkInterface $link,
-        UploadedFile $file,
-    ): SpaceFileInterface {
-        if ($space->getId() !== $link->getSpace()->getId()) {
-            throw new FieldException('file', $this->translator->trans('backend.studio.space_content.errors.not_in_space'));
-        }
-
-        $row = $this->createFile();
-        $row->setSpace($space)->setDocument($this->uploader->upload($file, $space))->addedByClient($link);
-
-        $saved = $this->save($row);
-
-        // La même notification qu'un dépôt sur une fiche : ce qui compte pour
-        // celui qui la reçoit, c'est que le client a envoyé quelque chose.
-        $this->notifier->clientUploaded(
-            $space,
-            $link->getRecipientEmail(),
-            $row->getDocument()->getTitle(),
-        );
-
-        return $saved;
-    }
-
     /**
      * Retire le fichier de l'espace, et laisse le document tranquille.
      *
@@ -97,7 +69,7 @@ class SpaceFileManager implements SpaceFileManagerInterface
      */
     public function remove(SpaceFileInterface $file): void
     {
-        $this->auditLogger->log('studio', 'space_file.removed', 'SpaceFile', $file->getId(), $this->auditPayload($file));
+        $this->auditRemoved($file);
 
         $this->entityManager->remove($file);
         $this->entityManager->flush();
@@ -122,7 +94,7 @@ class SpaceFileManager implements SpaceFileManagerInterface
         $this->entityManager->persist($file);
         $this->entityManager->flush();
 
-        $this->auditLogger->log('studio', 'space_file.added', 'SpaceFile', $file->getId(), $this->auditPayload($file));
+        $this->auditAdded($file);
 
         return $file;
     }
@@ -142,7 +114,26 @@ class SpaceFileManager implements SpaceFileManagerInterface
         return $user instanceof User ? $user->getName() : $user->getUserIdentifier();
     }
 
-    /** @return array<string, mixed> */
+    protected function auditAdded(SpaceFileInterface $file): void
+    {
+        $this->auditLogger->log('studio', 'space_file.added', 'SpaceFile', $file->getId(), $this->auditPayload($file));
+    }
+
+    protected function auditRemoved(SpaceFileInterface $file): void
+    {
+        $this->auditLogger->log('studio', 'space_file.removed', 'SpaceFile', $file->getId(), $this->auditPayload($file));
+    }
+
+    /**
+     * Ce que porte chaque entrée du journal.
+     *
+     * L'action, elle, est écrite en toutes lettres dans chaque hook plutôt que
+     * passée en paramètre : le contrôle de dérive des libellés lit le code à la
+     * recherche de `log('module', 'action')`, et une action passée en variable
+     * est un angle mort qu'il refuse d'avoir.
+     *
+     * @return array<string, mixed>
+     */
     protected function auditPayload(SpaceFileInterface $file): array
     {
         return [

@@ -865,6 +865,7 @@ backend:
                 email_invalid: This email is not valid.
         space_files:
             # A space's own files, on no card.
+            usage_detail: A file of the space
             label: Attachment
             tabs:
                 linked: On the cards

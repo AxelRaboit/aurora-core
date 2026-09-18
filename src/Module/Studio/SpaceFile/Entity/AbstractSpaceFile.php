@@ -133,7 +133,16 @@ abstract class AbstractSpaceFile implements SpaceFileInterface
         return $this;
     }
 
-    /** L'adresse a laquelle le lien a ete emis est le seul nom qui existe. */
+    /**
+     * Signe le dépôt comme le client, l'adresse du lien pour seul nom.
+     *
+     * **Aucune route publique n'y mène aujourd'hui** : le client lit les
+     * fichiers de l'espace, il n'en dépose pas. Ce qui est gardé ici est la
+     * capacité, avec sa colonne et sa relation, parce que le jour où un lien
+     * pourra déposer, ce sera une route à écrire et pas une migration à
+     * passer. Les pièces jointes d'une fiche, elles, empruntent déjà ce
+     * chemin.
+     */
     public function addedByClient(SpaceAccessLinkInterface $link): static
     {
         $this->authorLink = $link;

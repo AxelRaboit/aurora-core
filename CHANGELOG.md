@@ -91,6 +91,24 @@ Le bouton suivait la barre de vues et se retrouvait au-dessus des fichiers,
 où il voisinait avec leurs propres actions sans rien avoir à voir avec elles.
 Une étape est une colonne du kanban.
 
+#### Ce qu'une passe de relecture a rendu
+Le dépôt d'un fichier par le studio, sur une fiche comme sur un espace, ne
+passait par **aucune politique de téléversement** : le seul mur était celui de
+PHP, dont le refus ressort sans phrase. Les deux routes consultent maintenant
+celle de l'administrateur, comme le faisaient déjà l'image d'une note et le
+dépôt d'un invité.
+
+**La garde qui sépare deux clients ne s'écrit plus qu'une fois.** Elle vivait
+recopiée dans cinq contrôleurs d'espace ; c'est un trait maintenant. Et l'offre
+de corbeille, recopiée trois fois, est un service - celui des trois où le
+contrôle de privilège avait déjà été oublié une fois.
+
+Les notes d'audit d'un fichier d'espace passent par des hooks surchargeables,
+comme la convention d'extensibilité le demande. Une méthode publique du
+gestionnaire qu'aucune route n'atteignait est partie. Et la médiathèque nomme
+l'espace plutôt que le document dans la liste de ce qui utilise un fichier :
+l'écran de suppression dit déjà lequel part.
+
 ### Dans aurora-client
 `make aurora-update` puis `make migrate`.
 

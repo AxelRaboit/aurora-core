@@ -15,9 +15,10 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
-use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentFinder;
+use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
 use Aurora\Module\Studio\SpaceNote\Dto\SpaceNoteInputFactoryInterface;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
 use Aurora\Module\Studio\SpaceNote\Manager\SpaceNoteManagerInterface;
@@ -58,6 +59,7 @@ use function str_starts_with;
 #[IsGranted('studio.spaces.view')]
 class SpaceNotesController extends AbstractController
 {
+    use SpaceOwnershipTrait;
     use JsonRequestTrait;
     use JsonResponseTrait;
 
@@ -70,7 +72,7 @@ class SpaceNotesController extends AbstractController
         protected readonly DocumentSerializerInterface $documents,
         protected readonly UploadPolicyProvider $uploadPolicies,
         protected readonly DocumentRepository $documentRepository,
-        protected readonly SpaceOrphanedDocumentFinder $orphanedDocuments,
+        protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
     ) {}
 
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
@@ -163,7 +165,7 @@ class SpaceNotesController extends AbstractController
 
         return $this->jsonSuccess([
             ...$this->viewBuilder->payload($space),
-            ...$this->orphanedPayload($space, $documents),
+            ...$this->orphanedOffer->payload($space, $documents, $this->isGranted('ged.documents.delete')),
         ]);
     }
 
@@ -241,43 +243,6 @@ class SpaceNotesController extends AbstractController
         }
 
         return array_values($documents);
-    }
-
-    /**
-     * Ce que plus personne n'utilise, proposé plutôt que jeté.
-     *
-     * Le même corps que la suppression d'une fiche, et les mêmes deux règles :
-     * le registre d'usages décide de ce qui est orphelin, et l'offre n'est
-     * faite qu'à quelqu'un qui peut déjà mettre un document à la corbeille -
-     * un bouton qui répondrait 403 serait pire que pas de bouton, et accorder
-     * le droit au passage serait un privilège entré par la porte de service.
-     *
-     * @param list<DocumentInterface> $documents
-     *
-     * @return array{orphanedDocuments: list<array{id: int, title: string, trashPath: string}>}
-     */
-    private function orphanedPayload(CustomerSpace $space, array $documents): array
-    {
-        if (!$this->isGranted('ged.documents.delete')) {
-            return ['orphanedDocuments' => []];
-        }
-
-        $offered = [];
-
-        foreach ($this->orphanedDocuments->among($space, $documents) as $document) {
-            $offered[] = $document + [
-                'trashPath' => $this->generateUrl('backend_ged_documents_delete', ['id' => $document['id']]),
-            ];
-        }
-
-        return ['orphanedDocuments' => $offered];
-    }
-
-    private function assertOwned(CustomerSpace $space, ?int $ownerId): void
-    {
-        if ($ownerId !== $space->getId()) {
-            throw $this->createNotFoundException();
-        }
     }
 
     /**

@@ -7,12 +7,15 @@ namespace Aurora\Module\Studio\SpaceFile\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Storage\Access\UploadPolicyProvider;
+use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
-use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentFinder;
+use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceFile\Manager\SpaceFileManagerInterface;
 use Aurora\Module\Studio\SpaceFile\View\SpaceFilesViewBuilder;
@@ -43,6 +46,7 @@ use function is_numeric;
 #[IsGranted('studio.spaces.view')]
 class SpaceFilesController extends AbstractController
 {
+    use SpaceOwnershipTrait;
     use JsonRequestTrait;
     use JsonResponseTrait;
 
@@ -50,8 +54,9 @@ class SpaceFilesController extends AbstractController
         protected readonly SpaceFileManagerInterface $files,
         protected readonly SpaceFilesViewBuilder $viewBuilder,
         protected readonly DocumentRepository $documents,
-        protected readonly SpaceOrphanedDocumentFinder $orphanedDocuments,
+        protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
         protected readonly StoredFileResponder $responder,
+        protected readonly UploadPolicyProvider $uploadPolicies,
     ) {}
 
     /**
@@ -70,6 +75,20 @@ class SpaceFilesController extends AbstractController
 
         if (!$file instanceof UploadedFile) {
             return $this->jsonInvalidInput(['file' => 'backend.studio.space_files.errors.required']);
+        }
+
+        // La même règle que sur une note et que sur un dépôt d'invité : ce qui
+        // monte passe par la politique de l'administrateur. Sans elle, le seul
+        // plafond était celui de PHP, et un type refusé partout ailleurs
+        // entrait ici.
+        $refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file);
+
+        if ($refusal instanceof UploadRefusalEnum) {
+            return $this->jsonInvalidInput(['file' => match ($refusal) {
+                UploadRefusalEnum::TooLarge => 'backend.ged.documents.errors.upload_too_large',
+                UploadRefusalEnum::TypeRefused => 'backend.ged.documents.errors.upload_type_refused',
+                UploadRefusalEnum::Broken => 'backend.ged.documents.errors.upload_failed',
+            }]);
         }
 
         try {
@@ -136,7 +155,7 @@ class SpaceFilesController extends AbstractController
 
         return $this->jsonSuccess([
             ...$this->viewBuilder->payload($space),
-            ...$this->orphanedPayload($space, [$document]),
+            ...$this->orphanedOffer->payload($space, [$document], $this->isGranted('ged.documents.delete')),
         ]);
     }
 
@@ -185,34 +204,5 @@ class SpaceFilesController extends AbstractController
         }
 
         return $key;
-    }
-
-    /**
-     * @param list<DocumentInterface> $documents
-     *
-     * @return array{orphanedDocuments: list<array{id: int, title: string, trashPath: string}>}
-     */
-    private function orphanedPayload(CustomerSpace $space, array $documents): array
-    {
-        if (!$this->isGranted('ged.documents.delete')) {
-            return ['orphanedDocuments' => []];
-        }
-
-        $offered = [];
-
-        foreach ($this->orphanedDocuments->among($space, $documents) as $document) {
-            $offered[] = $document + [
-                'trashPath' => $this->generateUrl('backend_ged_documents_delete', ['id' => $document['id']]),
-            ];
-        }
-
-        return ['orphanedDocuments' => $offered];
-    }
-
-    private function assertOwned(CustomerSpace $space, ?int $ownerId): void
-    {
-        if ($ownerId !== $space->getId()) {
-            throw $this->createNotFoundException();
-        }
     }
 }
