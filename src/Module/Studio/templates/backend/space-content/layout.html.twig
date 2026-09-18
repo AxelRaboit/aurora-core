@@ -50,15 +50,24 @@
            the way back and offers none is a page people reach for the browser
            button on, which loses whatever they had open. #}
         <header class="sticky top-0 z-20 border-b border-line/60 bg-surface/95 backdrop-blur">
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2.5 sm:px-6">
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-2 px-3 py-2 sm:gap-x-4 sm:px-6 sm:py-2.5">
+                {# **Une flèche seule sur téléphone.** Le libellé fait cent
+                   soixante-treize pixels sur trois cent soixante-quinze, soit
+                   près de la moitié de la barre pour un mot que le chevron dit
+                   déjà ; le nom de l'espace, lui, se retrouvait dans cent
+                   soixante-dix. Le texte revient dès qu'il y a la place, et il
+                   reste lisible par un lecteur d'écran dans les deux cas. #}
                 <a
                     href="{{ backPath }}"
                     class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 -ml-2 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+                    aria-label="{{ 'backend.studio.space_content.back_to_spaces'|trans }}"
                 >
                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="m15 18-6-6 6-6"/>
                     </svg>
-                    {{ 'backend.studio.space_content.back_to_spaces'|trans }}
+                    <span class="hidden sm:inline">
+                        {{ 'backend.studio.space_content.back_to_spaces'|trans }}
+                    </span>
                 </a>
 
                 <div class="flex min-w-0 flex-1 items-center gap-2.5">
@@ -83,7 +92,13 @@
                    place somebody sends a colleague to, and a URL that says
                    which one is open is what makes that possible. The back
                    button works for free. #}
-                <nav class="flex shrink-0 items-center gap-1" aria-label="{{ space.name }}">
+                {# Pleine largeur sur téléphone, où elle occupe sa propre ligne
+                   de toute façon : deux cibles de doigt valent mieux que deux
+                   mots serrés à gauche d'un vide. #}
+                <nav
+                    class="flex w-full shrink-0 items-center gap-1 sm:w-auto"
+                    aria-label="{{ space.name }}"
+                >
                     {# Two tabs, not four. The board, the list and the month are
                        three ways of reading the same rows, so they are a
                        selector inside Contenu rather than destinations beside
@@ -95,11 +110,14 @@
                     ] %}
                     {% for tab in tabs %}
                         {% if tab.key == activeTab|default('board') %}
-                            <span class="rounded-md bg-surface-2 px-2.5 py-1 text-sm font-medium text-primary" aria-current="page">
+                            <span class="flex-1 rounded-md bg-surface-2 px-2.5 py-1 text-center text-sm font-medium text-primary sm:flex-none sm:text-left" aria-current="page">
                                 {{ tab.label }}
                             </span>
                         {% else %}
-                            <a href="{{ tab.url }}" class="rounded-md px-2.5 py-1 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary">
+                            <a
+                                href="{{ tab.url }}"
+                                class="flex-1 rounded-md px-2.5 py-1 text-center text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary sm:flex-none sm:text-left"
+                            >
                                 {{ tab.label }}
                             </a>
                         {% endif %}
@@ -108,19 +126,17 @@
             </div>
         </header>
 
-        {# **Sur téléphone, l'écran n'a pas de gouttière, et c'est voulu.**
+        {# **Sur téléphone, une gouttière juste assez large pour se voir.**
            Seize pixels de chaque côté sur trois cent soixante-quinze, c'est
            près d'un dixième de la largeur donné à du vide, sur le seul appareil
-           qui n'en a pas à donner. Les blocs prennent donc toute la largeur et
-           gardent leur rembourrage intérieur : on perd la marge, jamais l'air
-           autour du texte.
+           qui n'en a pas à donner. Huit suffisent : les cartes gardent leurs
+           coins arrondis, donc elles se lisent comme des blocs posés, et elles
+           récupèrent seize pixels de contenu au passage.
 
-           La règle vaut pour le reste de l'application, et elle tient en deux
-           gestes : la coquille ne met pas de marge latérale sous `sm`, et un
-           bloc encadré y perd ses bords latéraux et ses coins arrondis plutôt
-           que de dessiner une carte de trois cent quarante-trois pixels dans un
-           écran de trois cent soixante-quinze. #}
-        <main class="px-0 py-3 sm:px-6 sm:py-4">
+           La règle vaut pour le reste de l'application : la gouttière se réduit
+           sur téléphone, elle ne disparaît pas, et rien ne change au dessin des
+           blocs. #}
+        <main class="px-2 py-3 sm:px-6 sm:py-4">
             {% block body %}{% endblock %}
         </main>
     </body>

@@ -132,7 +132,6 @@ function goToToday() {
                     :cells="cells"
                     :events="events"
                     :compact="isNarrow"
-                    :flush="isNarrow"
                     :selected="isNarrow ? selectedDay : null"
                     v-on:open-event="emit('open-event', $event)"
                     v-on:move-event="emit('move-event', $event)"
@@ -143,7 +142,7 @@ function goToToday() {
                 <!-- La grille dit quels jours portent quelque chose ; celle-ci
                      dit quoi. L'une sans l'autre est illisible sur un
                      téléphone. -->
-                <section v-if="isNarrow" class="border-y border-line/60 bg-surface">
+                <section v-if="isNarrow" class="rounded-xl border border-line/60 bg-surface">
                     <header class="flex items-baseline gap-2 border-b border-line/40 px-3 py-2">
                         <h3 class="text-sm font-medium capitalize text-primary">
                             {{ dayTitle }}
@@ -178,12 +177,7 @@ function goToToday() {
 
             <!-- Beside the grid and not under it: the two are read together,
                  one card at a time being taken out of the list into a week. -->
-            <!-- Collé aux bords comme la grille tant que l'écran est étroit :
-                 deux cartes arrondies l'une sous l'autre sur un téléphone
-                 donnent quatre marges et aucune information de plus. -->
-            <aside
-                class="w-full shrink-0 border-y border-line/60 bg-surface-2/40 sm:rounded-xl sm:border-x lg:w-72"
-            >
+            <aside class="w-full shrink-0 rounded-xl border border-line/60 bg-surface-2/40 lg:w-72">
                 <header class="flex items-center gap-2 border-b border-line/40 px-3 py-2">
                     <h3 class="min-w-0 flex-1 truncate text-sm font-medium text-primary">
                         {{ t("backend.studio.space_content.unscheduled_rail") }}

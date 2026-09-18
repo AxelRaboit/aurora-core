@@ -9,17 +9,23 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
-#### L'espace prend tout l'écran sur un téléphone
+#### L'espace respire mieux sur un téléphone
 Seize pixels de gouttière de chaque côté sur trois cent soixante-quinze, c'est
 près d'un dixième de la largeur donné à du vide, sur le seul appareil qui n'en
-a pas à donner. La coquille d'un espace ne met donc plus de marge latérale sous
-`sm` : les blocs vont d'un bord à l'autre et gardent leur rembourrage
-intérieur. On perd la marge, jamais l'air autour du texte.
+a pas à donner. La coquille d'un espace en met **huit** sous `sm` : les cartes
+gardent leurs coins arrondis, donc elles se lisent toujours comme des blocs
+posés, et elles récupèrent seize pixels de contenu au passage.
 
-La règle vaut pour le reste de l'application et tient en deux gestes : la
-coquille ne pose pas de marge latérale sur téléphone, et un bloc encadré y perd
-ses bords latéraux et ses coins arrondis plutôt que de dessiner une carte de
-343 pixels dans un écran de 375.
+La règle vaut pour le reste de l'application : sur téléphone, la gouttière se
+réduit, elle ne disparaît pas, et rien ne change au dessin des blocs.
+
+**La barre du haut suit.** « Retour aux espaces » prenait cent soixante-treize
+pixels sur trois cent soixante-quinze, près de la moitié de la barre pour un mot
+que le chevron dit déjà, et le nom de l'espace se retrouvait dans les cent
+soixante-dix qui restaient. Le libellé disparaît sous `sm`, le nom récupère
+trois cent vingt et un pixels et tient en entier, et les deux onglets passent en
+pleine largeur sur leur ligne : deux cibles de doigt plutôt que deux mots serrés
+à gauche d'un vide.
 
 #### Le calendrier d'un espace se lit comme celui d'un téléphone
 Sept colonnes dans 375 pixels font des cases de cinquante : la place d'un

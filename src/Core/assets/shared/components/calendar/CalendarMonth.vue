@@ -36,16 +36,6 @@ const props = defineProps({
     compact: { type: Boolean, default: false },
     /** The day the list below is showing, so the grid can mark it. */
     selected: { type: Date, default: null },
-    /**
-     * Collé aux bords de l'écran plutôt que posé dessus.
-     *
-     * Sur téléphone, une carte arrondie de trois cent quarante-trois pixels
-     * dans un écran de trois cent soixante-quinze donne deux marges qu'on ne
-     * peut pas s'offrir et deux coins qui disent « ceci flotte » alors que
-     * plus rien ne flotte. Les bords latéraux et les arrondis tombent, le haut
-     * et le bas restent : ils séparent la grille de ce qui l'entoure.
-     */
-    flush: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add-on", "select-day", "move-event"]);
@@ -151,10 +141,7 @@ function addOn(date) {
 </script>
 
 <template>
-    <div
-        class="overflow-hidden border-y border-line bg-surface"
-        :class="flush ? '' : 'rounded-xl border-x'"
-    >
+    <div class="overflow-hidden rounded-xl border border-line bg-surface">
         <div class="grid grid-cols-7 border-b border-line">
             <span
                 v-for="day in weekdays"

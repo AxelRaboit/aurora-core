@@ -271,7 +271,7 @@ function onKeydown(event) {
 
 <template>
     <section
-        class="relative flex flex-col overflow-hidden border-y border-line/60 bg-surface-2/20 sm:rounded-lg sm:border-x md:flex-row"
+        class="relative flex flex-col overflow-hidden rounded-lg border border-line/60 bg-surface-2/20 md:flex-row"
         :class="fill ? 'h-full' : 'h-[32rem]'"
     >
         <SpaceChatChannels
