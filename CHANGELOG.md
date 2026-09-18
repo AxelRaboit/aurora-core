@@ -9,6 +9,41 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Corrigé
 
+#### La fin d'une note Markdown se lisait hors de l'écran
+La carte qui tient l'éditeur avait une hauteur devinée, `100vh - 8rem`, fausse
+d'une trentaine de pixels : elle dépassait le bas de la fenêtre. Et la colonne
+qui la remplit ne pouvait pas rétrécir, un enfant de flex refusant de descendre
+sous la hauteur de son contenu, donc une note longue poussait le volet au lieu
+de le faire défiler. Les deux ensemble donnaient une note dont on ne voyait pas
+le bout, côté éditeur comme côté aperçu.
+
+La hauteur se dit maintenant avec les valeurs qui la font, la barre du haut et
+les marges de la zone de contenu, et chaque volet défile chez lui.
+
+#### Le titre d'une note prend sa ligne
+Il partageait une ligne avec six boutons et deux mentions d'état, et n'avait
+donc que ce qui restait. Il est seul sur la sienne, pleine largeur ; le reste
+descend d'un cran.
+
+#### Le champ de recherche de l'arborescence est aussi large que l'arborescence
+Il était rentré de douze pixels de chaque côté, donc plus étroit que ce qu'il
+sert à filtrer.
+
+#### La flèche du bloc du bas de la colonne pointe vers le haut
+Fermé, ce bloc annonçait une ouverture vers la droite, qui n'arrive pas : il
+est en bas de la colonne et son contenu monte.
+
+#### Une seule colonne pour une personne, dans la liste des comptes
+L'adresse avait sa colonne, qui disparaissait sous 1024 pixels : l'écran où
+l'on cherche quelqu'un par son mail était justement celui qui ne le montrait
+pas. Elle est sous le nom, avec la phrase d'accroche, dans une colonne
+« Utilisateur ».
+
+#### Plus d'info-bulle au survol dans la colonne de menu
+Les lignes de navigation avaient perdu la leur le jour où l'interrupteur
+« afficher les descriptions » est arrivé. Le bloc du compte et le lien vers le
+site gardaient la leur, qui répétait leur propre libellé.
+
 #### La date d'un formulaire public se saisit comme partout ailleurs
 Un champ de type date rendait le `<input type="date">` du navigateur, avec son
 petit calendrier système et son format à lui. Sur une machine réglée en

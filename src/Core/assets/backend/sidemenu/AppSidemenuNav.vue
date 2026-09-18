@@ -26,12 +26,14 @@
  * `#sidemenu`: while its rules reached the whole document, hiding the desktop
  * menu hid the drawer with it.
  *
- * **No hover tooltip on the rows.** It repeated the label the row already shows,
- * and its only other job - carrying the description - was taken over by the
- * "show descriptions" switch, which puts the text in the row itself where it can
- * be read without hunting for it. Two ways to see the same thing meant the
- * tooltip had to be silenced whenever the switch was on, which is the shape of a
- * feature that has been replaced.
+ * **No hover tooltip anywhere in the column.** It repeated the label the row
+ * already shows, and its only other job - carrying the description - was taken
+ * over by the "show descriptions" switch, which puts the text in the row itself
+ * where it can be read without hunting for it. Two ways to see the same thing
+ * meant the tooltip had to be silenced whenever the switch was on, which is the
+ * shape of a feature that has been replaced. The rows lost theirs first; the
+ * account block and the "view site" link kept theirs a while longer, repeating
+ * their own label to nobody's benefit.
  *
  * The helpers arrive as two bags rather than ten function props - `nav` from
  * `useSidemenuNav`, `theme` from `useSidemenuSectionTheme`. Ten props would

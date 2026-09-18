@@ -6,6 +6,7 @@ backend:
   users:
     intro: Manage administration users and their roles.
     name: Name
+    user_label: User
     email: Email
     created: Created
     actions: Actions

@@ -154,7 +154,11 @@ onUnmounted(() => {
             </AppIconButton>
         </template>
 
-        <div class="px-3 pb-1">
+        <!-- Pas de retrait horizontal : les lignes de l'arborescence portent
+             le leur à l'intérieur et occupent toute la largeur du panneau. Le
+             champ, lui, était rentré de douze pixels de chaque côté, donc plus
+             étroit que ce qu'il sert à filtrer. -->
+        <div class="pb-1">
             <AppSearchInput
                 v-model="treeQuery"
                 :placeholder="t('notes.markdown.search_placeholder')"

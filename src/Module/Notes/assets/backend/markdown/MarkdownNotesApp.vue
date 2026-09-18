@@ -174,23 +174,41 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="relative flex h-[calc(100vh-8rem)] bg-surface rounded-xl border border-line overflow-hidden">
+    <!-- La hauteur est ce qui reste, dite avec les valeurs qui la font : la
+         barre du haut porte déjà la sienne dans `--aurora-topbar`, et les
+         quatre rem sont les marges hautes et basses de la zone de contenu. Le
+         `8rem` écrit ici avant était une estimation, fausse de trois douzaines
+         de pixels : la carte dépassait le bas de l'écran, donc la fin d'une
+         note longue se lisait en faisant défiler la page entière. `dvh` plutôt
+         que `vh` pour que la barre d'un navigateur mobile compte. -->
+    <div class="relative flex h-[calc(100dvh-var(--aurora-topbar)-4rem)] bg-surface rounded-xl border border-line overflow-hidden">
         <!-- No tree column and no drawer of its own: the notes are in the
              side menu's panel now, on every page of the module rather than
              this one, and the menu already has a drawer on small screens.
              Two drawers was two gestures to learn for the same thing. -->
 
         <!-- Editor pane -->
-        <section class="flex-1 flex flex-col min-w-0">
-            <div v-if="selectedNote" class="flex-1 flex flex-col">
+        <!-- `min-h-0` sur toute la colonne, et pas seulement `overflow-auto` en
+             bas : un enfant de flex vaut `min-height: auto`, donc il refuse de
+             descendre sous la hauteur de son contenu. Une note longue poussait
+             la colonne au-delà de la carte au lieu de faire défiler le volet,
+             et la fin du texte sortait de l'écran. C'est le pendant vertical de
+             ce que le commentaire des deux volets dit déjà pour la largeur. -->
+        <section class="flex-1 flex flex-col min-w-0 min-h-0">
+            <div v-if="selectedNote" class="flex-1 flex flex-col min-h-0">
                 <header class="p-4 border-b border-line flex flex-col gap-2">
-                    <div class="flex flex-wrap items-center gap-2 md:gap-3">
-                        <AppInput
-                            v-model="form.title"
-                            :placeholder="t('notes.markdown.title_placeholder')"
-                            class="flex-1 min-w-0 text-lg font-medium"
-                        />
+                    <!-- Le titre prend la ligne. Partagée avec les six boutons
+                         et les deux mentions d'état, elle laissait au nom de la
+                         note ce qui restait, c'est-à-dire peu : sur un écran
+                         moyen, un titre un peu long était tronqué à la saisie.
+                         Ce qui l'accompagne descend d'un cran. -->
+                    <AppInput
+                        v-model="form.title"
+                        :placeholder="t('notes.markdown.title_placeholder')"
+                        class="w-full text-lg font-medium"
+                    />
 
+                    <div class="flex flex-wrap items-center gap-2 md:gap-3">
                         <!-- Disabled until a note is selected: there is nothing to
                              share from an empty editor, and a modal that opens on
                              null would ask the server for share links of no note. -->
@@ -295,7 +313,7 @@ onUnmounted(() => {
                      columns would be unusable even when they fit. `min-w-0` on
                      both panes lets them actually shrink: a flex item defaults
                      to `min-width: auto` and refuses to go below its content. -->
-                <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+                <div class="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
                     <div
                         v-if="viewMode !== 'preview'"
                         ref="editorPaneRef"

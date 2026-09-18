@@ -223,8 +223,13 @@ const pageActions = computed(() => {
                 <table v-else class="w-full text-sm">
                     <thead>
                         <tr class="bg-surface-2/50 border-b border-line/40">
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.name') }}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t('backend.users.email') }}</th>
+                            <!-- Une seule colonne pour la personne : son nom,
+                                 ce qu'elle a mis en phrase d'accroche, et son
+                                 adresse. L'adresse avait sa colonne, qui
+                                 disparaissait sous 1024 pixels - donc l'écran
+                                 où l'on cherche quelqu'un par son mail était
+                                 justement celui qui ne le montrait pas. -->
+                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.user_label') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t('backend.users.role_label') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t('backend.users.type_label') }}</th>
                             <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.status_label') }}</th>
@@ -244,10 +249,10 @@ const pageActions = computed(() => {
                                             <AppBadge v-if="isCurrent(user)" color="accent">{{ t('backend.users.you') }}</AppBadge>
                                         </div>
                                         <p v-if="user.moodMessage" class="text-xs text-muted italic truncate" :title="user.moodMessage">“{{ user.moodMessage }}”</p>
+                                        <p class="truncate text-xs text-muted" :title="user.email">{{ user.email }}</p>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-secondary hidden lg:table-cell">{{ user.email }}</td>
                             <td class="px-4 py-3 hidden md:table-cell">
                                 <div class="flex items-center gap-1 flex-wrap">
                                     <AppBadge v-if="user.isDev" :color="user.devColor">Dev</AppBadge>
