@@ -5,6 +5,28 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.202] - 2026-09-18
+
+### Corrigé
+
+#### La date d'un formulaire public se saisit comme partout ailleurs
+Un champ de type date rendait le `<input type="date">` du navigateur, avec son
+petit calendrier système et son format à lui. Sur une machine réglée en
+anglais, un formulaire français demandait une date en `mm/dd/yyyy` : ce n'est
+pas une date illisible, c'est une date comprise à l'envers. C'est exactement le
+raisonnement qui avait déjà sorti les `datetime-local` natifs du back-office.
+
+Le formulaire public utilise maintenant le même sélecteur que le reste
+d'Aurora : le format du site, le thème du site, et la saisie au clavier dans
+les cinq formats qu'il tolère déjà.
+
+**Chargé à la demande.** Ce composant pèse deux cents kilo-octets avec son
+calendrier et ses langues ; un formulaire de contact qui ne demande aucune date
+ne les télécharge pas. Ce qui est stocké ne change pas d'un caractère, le
+composant rend la même chaîne `AAAA-MM-JJ` que le champ natif.
+
+---
+
 ## [0.9.201] - 2026-09-18
 
 ### Ajouté

@@ -1,5 +1,5 @@
 <script setup>
-import { useTemplateRef, watch } from "vue";
+import { defineAsyncComponent, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useFormRender } from "./composables/useFormRender.js";
 
@@ -38,8 +38,28 @@ watch(captchaBox, (element) => {
 const inputClass =
     "w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary";
 
+/**
+ * Le même sélecteur de date que le back-office, chargé à la demande.
+ *
+ * **Le champ natif lisait la date de travers.** Un champ de type date rendu
+ * par le navigateur suit la machine du visiteur, pas la langue du site : un
+ * formulaire français demandait `mm/dd/yyyy` sur une machine américaine, et
+ * une date comprise à l'envers n'est pas une date illisible, c'est une date
+ * fausse. C'est déjà le raisonnement qui avait sorti les champs natifs du
+ * back-office, et une règle le vérifie - que ce fichier contournait sans le
+ * vouloir, en construisant l'attribut au vol plutôt qu'en l'écrivant.
+ *
+ * **Chargé dynamiquement** parce qu'il pèse deux cents kilos-octets à lui seul,
+ * son calendrier et ses locales comprises : un formulaire de contact sans date
+ * n'a pas à les télécharger. Vite en fait un morceau à part, demandé le jour
+ * où un champ date existe.
+ */
+const AppDatePicker = defineAsyncComponent(
+    () => import("@/shared/components/form/picker/AppDatePicker.vue"),
+);
+
 function inputType(type) {
-    return { number: "number", date: "date", tel: "tel", email: "email" }[type] ?? "text";
+    return { number: "number", tel: "tel", email: "email" }[type] ?? "text";
 }
 </script>
 
@@ -110,6 +130,13 @@ function inputType(type) {
                     {{ option }}
                 </label>
             </span>
+
+            <AppDatePicker
+                v-else-if="field.type === 'date'"
+                v-model="answers[String(field.id)]"
+                :placeholder="field.placeholder ?? ''"
+                :required="field.required"
+            />
 
             <input
                 v-else
