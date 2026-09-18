@@ -217,6 +217,31 @@ final class PostForceDeleteTest extends IntegrationTestCase
         );
     }
 
+    /**
+     * Emptying a trash that holds more than one publication.
+     *
+     * Written while chasing the médiathèque's broken "Vider", where the audit
+     * of the second row flushes while the first is already scheduled for
+     * removal and anything still pointing at it breaks the closing flush.
+     * Publications survive that, because a translation is removed with its
+     * publication through the mapping rather than left behind - so this passes
+     * as it stands, and it is here to say so: emptying this trash had no test
+     * of any kind, and it is one of the two irreversible buttons in the
+     * application.
+     */
+    public function testEmptyingTheTrashDestroysEveryPublicationInIt(): void
+    {
+        $first = $this->trashed();
+        $second = $this->trashed();
+        $firstId = (int) $first->getId();
+        $secondId = (int) $second->getId();
+
+        self::assertSame(2, static::getContainer()->get(PostManagerInterface::class)->emptyTrash());
+
+        self::assertNull($this->entityManager->find(Post::class, $firstId));
+        self::assertNull($this->entityManager->find(Post::class, $secondId));
+    }
+
     private function post(string $route, ?int $id): void
     {
         $this->client->request('POST', $this->urlGenerator->generate($route, ['id' => $id]));

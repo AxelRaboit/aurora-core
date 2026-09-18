@@ -276,11 +276,29 @@ class DocumentManager implements DocumentManagerInterface
 
         $variantsByDisk = [];
         $pathsByDisk = [];
+
+        // Deux passes, et c'est tout l'objet de la correction. `auditDeleted()`
+        // écrit une ligne et flush ; en une seule boucle, ce flush tombait
+        // alors qu'un document précédent était déjà marqué pour suppression.
+        // Le document quittait l'unité de travail, ses lignes de version -
+        // chargées une ligne plus haut pour lire leurs chemins - y restaient
+        // en pointant sur lui, et le flush final s'arrêtait sur « a new entity
+        // was found through the relationship DocumentVersion#document ».
+        //
+        // D'où une panne qui ne ressemblait à rien : vider une corbeille
+        // marchait, sauf si elle contenait un document ayant des versions, et
+        // alors elle ne marchait plus jamais. Rien ne partait, l'écran
+        // affichait « une erreur est survenue », et la suppression unitaire -
+        // un seul document, donc pas de second audit au milieu - continuait
+        // de passer.
         foreach ($documents as $document) {
             $this->auditDeleted($document);
             $disk = $document->getStorageDisk()->value;
             $variantsByDisk[$disk] = array_merge($variantsByDisk[$disk] ?? [], $document->getVariants());
             $pathsByDisk[$disk] = array_merge($pathsByDisk[$disk] ?? [], $this->collectOwnedFiles([$document]));
+        }
+
+        foreach ($documents as $document) {
             $this->entityManager->remove($document);
         }
 

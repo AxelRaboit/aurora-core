@@ -5,6 +5,50 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.203] - 2026-09-18
+
+### Ajouté
+
+#### Remplacer le fichier d'un document depuis la console
+`aurora:ged:replace <id> <fichier>` échange les octets d'un document de la
+médiathèque sans toucher à sa ligne. C'est ce qui manquait pour reprendre une
+capture publiée : l'import crée un *nouveau* document, donc il fallait ensuite
+rouvrir chaque page qui pointait sur l'ancien, retaper le texte alternatif et
+la légende, puis jeter l'ancienne ligne - quatre occasions de laisser le site
+sur une image qui ne montre plus ce qu'elle annonce.
+
+Là, la ligne survit : les pages continuent de pointer dessus, les mots écrits
+sur l'image restent écrits, et le fichier précédent devient une version. La
+commande prend la même route que le formulaire du navigateur - l'upload écrit
+sur le disque actif, le manager supprime les anciennes variantes, reconstruit
+les nouvelles, enregistre la version et écrit la ligne d'audit.
+
+Un `--dry-run` dit ce qui serait remplacé et s'arrête.
+
+### Corrigé
+
+#### Vider la corbeille de la médiathèque échouait sur un toast
+Une corbeille qui contenait un document ayant des versions ne se vidait
+jamais : le bouton répondait « une erreur est survenue », rien n'était
+supprimé, et la suppression d'un document seul continuait de marcher - ce qui
+rendait la panne difficile à lire.
+
+La cause est un flush au mauvais moment. `AuditLogger::log()` écrit sa ligne et
+flush ; la boucle qui vide la corbeille auditait et supprimait dans le même
+passage, donc l'audit du deuxième document flushait alors que le premier était
+déjà marqué pour suppression. Le premier document quittait l'unité de travail,
+ses lignes de version - chargées juste avant pour lire les chemins de leurs
+fichiers - y restaient en pointant sur lui, et le flush final s'arrêtait sur
+« a new entity was found through the relationship `DocumentVersion#document` ».
+
+La boucle est maintenant en deux passages : on audite et on relève les fichiers,
+puis on supprime, puis on flush une fois. Un test d'intégration reproduit la
+forme exacte qui échouait, deux documents dont le premier versionné, parce que
+c'est la seule qui échoue.
+
+Au passage, un test pour la corbeille des publications, qui n'en avait aucun :
+elle résiste déjà, une traduction partant avec sa publication par le mapping.
+
 ## [0.9.202] - 2026-09-18
 
 ### Ajouté

@@ -73,6 +73,64 @@ final class DocumentDeletionErasesFilesTest extends IntegrationTestCase
         self::assertFileDoesNotExist($previousFile);
     }
 
+    /**
+     * Emptying a trash that holds several documents, one of them versioned.
+     *
+     * The shape production failed on, and the one the single-document test
+     * above cannot show: `destroy()` audits inside its loop, the audit writes
+     * a row and flushes, and that flush lands while an earlier document is
+     * already scheduled for removal. The earlier document leaves the unit of
+     * work; its version rows, loaded a line before to read their paths, stay
+     * behind pointing at it - and the closing flush stops on "a new entity was
+     * found through the relationship DocumentVersion#document".
+     *
+     * Two documents at least, and the versioned one first: with one document
+     * there is no second audit to flush in the middle, and with no version
+     * there is nothing left holding the reference.
+     */
+    public function testEmptyingATrashHoldingAVersionedDocumentErasesEverything(): void
+    {
+        static::createClient();
+        $container = static::getContainer();
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $manager = $container->get(DocumentManagerInterface::class);
+        $uploadDir = (string) $container->getParameter('app.upload_dir');
+
+        $versionedPath = 'ged/9999/01/versioned-'.uniqid().'.png';
+        $previousPath = 'ged/9999/01/previous-'.uniqid().'.png';
+        $plainPath = 'ged/9999/01/plain-'.uniqid().'.png';
+
+        $versionedFile = $this->writePng($uploadDir, $versionedPath);
+        $previousFile = $this->writePng($uploadDir, $previousPath);
+        $plainFile = $this->writePng($uploadDir, $plainPath);
+
+        $versioned = $this->document('Versioned probe', $versionedPath);
+        $entityManager->persist($versioned);
+
+        $version = new DocumentVersion();
+        $version->setDocument($versioned)
+            ->setFilePath($previousPath)
+            ->setFileName(basename($previousPath))
+            ->setOriginalName('probe.png')
+            ->setMimeType('image/png')
+            ->setSize(1)
+            ->setVersionNumber(1);
+        $entityManager->persist($version);
+
+        $plain = $this->document('Plain probe', $plainPath);
+        $entityManager->persist($plain);
+        $entityManager->flush();
+
+        $manager->delete($versioned);
+        $manager->delete($plain);
+
+        self::assertSame(2, $manager->emptyTrash());
+
+        self::assertFileDoesNotExist($versionedFile);
+        self::assertFileDoesNotExist($previousFile);
+        self::assertFileDoesNotExist($plainFile);
+    }
+
     public function testRestoringATrashedDocumentBringsItBackWithItsFile(): void
     {
         static::createClient();
@@ -100,6 +158,18 @@ final class DocumentDeletionErasesFilesTest extends IntegrationTestCase
 
         self::assertFalse($document->isTrashed());
         self::assertFileExists($liveFile);
+    }
+
+    private function document(string $title, string $path): Document
+    {
+        return new Document()
+            ->setTitle($title)
+            ->setStatus(DocumentStatusEnum::Draft)
+            ->setFilePath($path)
+            ->setFileName(basename($path))
+            ->setOriginalName('probe.png')
+            ->setMimeType('image/png')
+            ->setSize(1);
     }
 
     private function writePng(string $uploadDir, string $relativePath): string
