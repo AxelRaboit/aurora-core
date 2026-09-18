@@ -11,14 +11,10 @@ use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Storage\Access\UploadPolicy;
 use Aurora\Core\Storage\Access\UploadPolicyProvider;
 use Aurora\Core\Storage\Access\UploadRefusalEnum;
-use Aurora\Core\Storage\Adapter\StorageAdapterInterface;
-use Aurora\Core\Storage\Adapter\StoredObject;
-use Aurora\Core\Storage\BinaryFileServer;
-use Aurora\Core\Storage\StoredFileLocator;
-use Aurora\Core\Storage\Workspace\LocalPathAware;
+use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
-use Aurora\Module\Ged\Document\Controller\Backend\GedFilesController;
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\View\PublicSpaceViewBuilder;
@@ -34,17 +30,13 @@ use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepositor
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
 use Aurora\Module\Studio\SpaceFile\Repository\SpaceFileRepository;
-use Aurora\Module\Studio\SpaceFile\Service\SpaceStoredFileResponder;
 use Aurora\Module\Studio\SpaceFile\View\SpaceFilesViewBuilder;
-use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -82,7 +74,6 @@ final class PublicSpaceController extends AbstractController
         private readonly SpaceContentAttachmentManagerInterface $attachments,
         private readonly SpaceFilesViewBuilder $filesViewBuilder,
         private readonly SpaceFileRepository $spaceFiles,
-        private readonly SpaceStoredFileResponder $fileResponder,
         // A limiter of its own rather than the one above. A verdict is a row; a
         // file is megabytes through the whole pipeline - storage, thumbnailing,
         // a poster frame for a video - and forty of those an hour from one
@@ -90,10 +81,7 @@ final class PublicSpaceController extends AbstractController
         private readonly RateLimiterFactoryInterface $spaceGuestUploadLimiter,
         private readonly SpaceContentAttachmentRepository $attachmentRepository,
         private readonly UploadPolicyProvider $uploadPolicies,
-        private readonly BinaryFileServer $binaryFileServer,
-        private readonly StoredFileLocator $locator,
-        #[Autowire(param: 'app.upload_dir')]
-        private readonly string $uploadRoot,
+        private readonly StoredFileResponder $responder,
         private readonly SpaceChatMessageManagerInterface $chat,
         private readonly SpaceChatViewBuilder $chatViewBuilder,
         private readonly SpaceChatHub $chatHub,
@@ -453,7 +441,7 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        return $this->fileResponder->respond($file->getDocument(), $variant);
+        return $this->responder->respond($this->keyOf($file->getDocument(), $variant));
     }
 
     #[Route(
@@ -487,65 +475,9 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $document = $attachment->getDocument();
-        $key = 'preview' === $variant
-            ? ($document->getVariants()['thumbnail'] ?? $document->getThumbnailPath())
-            : $document->getFilePath();
-
-        if (null === $key || '' === $key) {
-            throw $this->createNotFoundException();
-        }
-
-        $adapter = $this->locator->locate($key);
-
-        if (!$adapter instanceof StorageAdapterInterface) {
-            throw $this->createNotFoundException();
-        }
-
-        if ($adapter instanceof LocalPathAware) {
-            try {
-                return $this->binaryFileServer->serve(
-                    $this->binaryFileServer->path($this->uploadRoot, $key),
-                    $this->uploadRoot,
-                );
-            } catch (RuntimeException) {
-                throw $this->createNotFoundException();
-            }
-        }
-
-        return $this->streamThrough($adapter, $key);
-    }
-
-    /**
-     * Streamed rather than redirected, for the reason
-     * {@see GedFilesController}
-     * gives: a signed link or a public hostname would outlive this
-     * authorisation, and a file anybody can re-fetch afterwards has not been
-     * withheld.
-     */
-    private function streamThrough(StorageAdapterInterface $adapter, string $key): Response
-    {
-        $stored = $adapter->stat($key);
-
-        $response = new StreamedResponse(static function () use ($adapter, $key): void {
-            foreach ($adapter->readStream($key) as $chunk) {
-                echo $chunk;
-                flush();
-            }
-        });
-
-        $response->setPrivate();
-        $response->setMaxAge(3600);
-
-        if ($stored instanceof StoredObject) {
-            $response->headers->set('Content-Length', (string) $stored->size);
-
-            if (null !== $stored->checksum) {
-                $response->setEtag($stored->checksum);
-            }
-        }
-
-        return $response;
+        // Servi par le service commun : local déchargé par le serveur
+        // web, distant diffusé par morceaux, privé une heure.
+        return $this->responder->respond($this->keyOf($attachment->getDocument(), $variant));
     }
 
     /**
@@ -566,5 +498,24 @@ final class PublicSpaceController extends AbstractController
         $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
 
         return $response;
+    }
+
+    /**
+     * La clé du fichier ou de sa vignette.
+     *
+     * Le service ne connaît pas les documents, et c'est voulu : il sert une
+     * clé de stockage, quelle que soit la chose qui l'a produite.
+     */
+    private function keyOf(DocumentInterface $document, string $variant): string
+    {
+        $key = 'preview' === $variant
+            ? ($document->getVariants()['thumbnail'] ?? $document->getThumbnailPath())
+            : $document->getFilePath();
+
+        if (null === $key || '' === $key) {
+            throw $this->createNotFoundException();
+        }
+
+        return $key;
     }
 }

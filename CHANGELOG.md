@@ -71,6 +71,21 @@ Mesuré sur la table des documents plutôt que sur le disque : ce qui compte est
 ce dont l'application répond, pas les restes d'un import raté qu'une purge n'a
 pas encore ramassés.
 
+#### Servir un fichier stocké ne s'écrit plus qu'une fois
+Quatre contrôleurs portaient la même quarantaine de lignes, au caractère près :
+trouver l'adaptateur qui détient la clé, servir le fichier local tel quel,
+diffuser le distant par morceaux, privé une heure. La médiathèque, les photos
+de profil, le tableau d'un espace et la page du client.
+
+C'est un service maintenant, et les quatre s'y raccrochent. Ce qui n'y est pas
+entré, volontairement : **qui a le droit de lire**. La médiathèque autorise par
+son privilège, un espace par le sien, un client par son lien, et un service qui
+trancherait à leur place ferait de ces trois règles une seule.
+
+`UploadsServeController` reste à part, lui aussi volontairement : il sert ce qui
+est public, avec un cache partagé et une durée longue, et c'est le contraire
+exact de ce que fait ce service.
+
 #### Ajouter une étape n'est proposé que sur les contenus
 Le bouton suivait la barre de vues et se retrouvait au-dessus des fichiers,
 où il voisinait avec leurs propres actions sans rien avoir à voir avec elles.

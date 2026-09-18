@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceFile\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
@@ -14,7 +15,6 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentFinder;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceFile\Manager\SpaceFileManagerInterface;
-use Aurora\Module\Studio\SpaceFile\Service\SpaceStoredFileResponder;
 use Aurora\Module\Studio\SpaceFile\View\SpaceFilesViewBuilder;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -51,7 +51,7 @@ class SpaceFilesController extends AbstractController
         protected readonly SpaceFilesViewBuilder $viewBuilder,
         protected readonly DocumentRepository $documents,
         protected readonly SpaceOrphanedDocumentFinder $orphanedDocuments,
-        protected readonly SpaceStoredFileResponder $responder,
+        protected readonly StoredFileResponder $responder,
     ) {}
 
     /**
@@ -165,7 +165,26 @@ class SpaceFilesController extends AbstractController
     ): Response {
         $this->assertOwned($space, $file->getSpace()->getId());
 
-        return $this->responder->respond($file->getDocument(), $variant);
+        return $this->responder->respond($this->keyOf($file->getDocument(), $variant));
+    }
+
+    /**
+     * La clé du fichier ou de sa vignette.
+     *
+     * Le service ne connaît pas les documents, et c'est voulu : il sert une
+     * clé de stockage, quelle que soit la chose qui l'a produite.
+     */
+    private function keyOf(DocumentInterface $document, string $variant): string
+    {
+        $key = 'preview' === $variant
+            ? ($document->getVariants()['thumbnail'] ?? $document->getThumbnailPath())
+            : $document->getFilePath();
+
+        if (null === $key || '' === $key) {
+            throw $this->createNotFoundException();
+        }
+
+        return $key;
     }
 
     /**
