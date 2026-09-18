@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceChat\Serializer;
 
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
 use Aurora\Module\Studio\SpaceChat\Enum\SpaceChatChannelKindEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -46,5 +48,33 @@ class SpaceChatChannelSerializer implements SpaceChatChannelSerializerInterface
             'openToClient' => $channel->isOpenToClient(),
             'members' => $members,
         ];
+    }
+
+    public function serializeFor(
+        SpaceChatChannelInterface $channel,
+        ?CoreUserInterface $viewerUser,
+        ?SpaceAccessLinkInterface $viewerLink,
+    ): array {
+        $view = $this->serialize($channel);
+
+        if (SpaceChatChannelKindEnum::Direct !== $channel->getKind()) {
+            return $view;
+        }
+
+        // Le nom de l'autre, jamais le sien. Une conversation privée s'appelle
+        // « Marie Dupont » pour le client et du nom du client pour Marie : une
+        // liste où chacun se voit soi-même n'aide personne à retrouver un fil.
+        foreach ($channel->getMembers() as $member) {
+            $isViewer = ($viewerUser instanceof CoreUserInterface && $member->getUser()?->getId() === $viewerUser->getId())
+                || ($viewerLink instanceof SpaceAccessLinkInterface && $member->getLink()?->getId() === $viewerLink->getId());
+
+            if (!$isViewer) {
+                $view['name'] = $member->getLabel();
+
+                break;
+            }
+        }
+
+        return $view;
     }
 }

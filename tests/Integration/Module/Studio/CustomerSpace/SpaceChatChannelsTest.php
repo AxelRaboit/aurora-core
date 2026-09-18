@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Studio\CustomerSpace;
 
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
+use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannel;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
@@ -184,6 +186,84 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
         );
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
+    }
+
+    public function testAPrivateConversationIsOpenedOnceAndNamedByTheOtherPerson(): void
+    {
+        $space = $this->givenSpace();
+        $mate = $this->givenTeammate($space);
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/direct', $space->getId()),
+            ['userId' => $mate->getId()],
+        );
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $first = $this->payload();
+        $direct = $this->named($first['chatChannels'], 'Camille Martin');
+
+        self::assertTrue($direct['isDirect']);
+        self::assertFalse($direct['openToClient'], 'A private conversation is not something the client reads.');
+        self::assertCount(2, $direct['members']);
+        // Nommée par l'autre personne, jamais par soi-même.
+        self::assertSame('Camille Martin', $direct['name']);
+
+        // Deux personnes n'ont qu'une conversation : redemander rouvre la même.
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/direct', $space->getId()),
+            ['userId' => $mate->getId()],
+        );
+
+        self::assertSame($first['chatChannelId'], $this->payload()['chatChannelId']);
+    }
+
+    public function testAPrivateConversationIsRefusedWithSomebodyOutsideTheSpace(): void
+    {
+        $space = $this->givenSpace();
+        $stranger = $this->givenAccount('etranger@aurora.test', 'Étranger');
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/chat/direct', $space->getId()),
+            ['userId' => $stranger->getId()],
+        );
+
+        self::assertArrayHasKey('errors', $this->payload());
+    }
+
+    /** Somebody on the space's team, which is who a conversation can be opened with. */
+    private function givenTeammate(CustomerSpace $space): User
+    {
+        $user = $this->givenAccount('camille@aurora.test', 'Camille Martin');
+
+        $member = new CustomerSpaceMember();
+        $member
+            ->setSpace($this->entityManager->getReference(CustomerSpace::class, $space->getId()))
+            ->setUser($user)
+            ->setRole(CustomerSpaceMemberRoleEnum::Member);
+
+        $this->entityManager->persist($member);
+        $this->entityManager->flush();
+
+        return $user;
+    }
+
+    private function givenAccount(string $email, string $name): User
+    {
+        $user = new User();
+        $user->setEmail($email);
+        $user->setName($name);
+        $user->setType(UserTypeEnum::Backend);
+        $user->setPassword('x');
+        $user->setRoles(['ROLE_USER']);
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        return $user;
     }
 
     /**

@@ -24,7 +24,7 @@
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Check, EyeOff, Hash, Plus, X } from "lucide-vue-next";
+import { Check, EyeOff, Hash, MessageCircle, Plus, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 
 const props = defineProps({
@@ -32,11 +32,15 @@ const props = defineProps({
     current: { type: [Number, null], default: null },
     /** Null on the client's page: only the studio opens rooms. */
     createPath: { type: String, default: null },
+    /** Who a private conversation can be opened with. Empty when nobody. */
+    people: { type: Array, default: () => [] },
+    /** Null when this reader may not start one. */
+    directPath: { type: String, default: null },
     /** Whether the drawer is out. Ignored from `md` up, where the rail is always there. */
     open: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["select", "create", "close"]);
+const emit = defineEmits(["select", "create", "close", "open-direct"]);
 
 /**
  * Choosing a room closes the drawer.
@@ -54,8 +58,27 @@ const { t } = useI18n();
 
 const naming = ref(false);
 const draft = ref("");
+const picking = ref(false);
 
 const canArrange = computed(() => !!props.createPath);
+
+/**
+ * Deux listes, parce que ce sont deux choses.
+ *
+ * Un canal est une pièce où l'on entre, une conversation privée est quelqu'un à
+ * qui l'on parle. Le mécanisme est le même dessous - un salon à deux - et c'est
+ * volontairement invisible ici : personne ne pense « le salon à deux avec
+ * Marie ».
+ */
+const rooms = computed(() => props.channels.filter((channel) => !channel.isDirect));
+const directs = computed(() => props.channels.filter((channel) => channel.isDirect));
+
+/** Ceux avec qui il n'y a pas déjà une conversation ouverte. */
+const reachable = computed(() => {
+    const already = new Set(directs.value.map((channel) => channel.name));
+
+    return props.people.filter((person) => !already.has(person.label));
+});
 
 function confirmName() {
     const name = draft.value.trim();
@@ -93,7 +116,7 @@ function confirmName() {
              107 pixels à la conversation, qui est ce qu'on est venu lire. -->
         <div class="flex flex-col gap-0.5 overflow-y-auto">
             <button
-                v-for="channel in channels"
+                v-for="channel in rooms"
                 :key="channel.id"
                 type="button"
                 class="flex w-full shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors"
@@ -128,6 +151,60 @@ function confirmName() {
                 {{ t("shared.space_chat.channels.new") }}
             </button>
         </div>
+
+        <template v-if="directPath && (directs.length || reachable.length)">
+            <span
+                class="mt-2 px-1 text-[0.65rem] font-medium uppercase tracking-wider text-muted"
+            >
+                {{ t("shared.space_chat.channels.directs") }}
+            </span>
+
+            <div class="flex flex-col gap-0.5 overflow-y-auto">
+                <button
+                    v-for="channel in directs"
+                    :key="channel.id"
+                    type="button"
+                    class="flex w-full shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors"
+                    :class="
+                        channel.id === current
+                            ? 'bg-accent/15 text-accent'
+                            : 'text-secondary hover:bg-surface-2/60 hover:text-primary'
+                    "
+                    v-on:click="choose(channel.id)"
+                >
+                    <MessageCircle class="h-3 w-3 shrink-0" :stroke-width="2" />
+                    <span class="truncate">{{ channel.name }}</span>
+                </button>
+
+                <button
+                    v-if="reachable.length && !picking"
+                    type="button"
+                    class="flex w-full shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs text-muted transition-colors hover:bg-surface-2/60 hover:text-primary"
+                    v-on:click="picking = true"
+                >
+                    <Plus class="h-3 w-3 shrink-0" :stroke-width="2" />
+                    {{ t("shared.space_chat.channels.new_direct") }}
+                </button>
+
+                <!-- La liste des gens plutôt qu'un champ : un espace a trois
+                     personnes, pas trois cents, et choisir dans une liste ne
+                     demande pas de savoir comment quelqu'un s'écrit. -->
+                <button
+                    v-for="person in picking ? reachable : []"
+                    :key="`person-${person.id}`"
+                    type="button"
+                    class="flex w-full shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs text-secondary transition-colors hover:bg-surface-2/60 hover:text-primary"
+                    v-on:click="
+                        emit('open-direct', person.id);
+                        picking = false;
+                        emit('close');
+                    "
+                >
+                    <MessageCircle class="h-3 w-3 shrink-0 opacity-60" :stroke-width="2" />
+                    <span class="truncate">{{ person.label }}</span>
+                </button>
+            </div>
+        </template>
 
         <div v-if="naming" class="flex flex-col gap-1.5">
             <input

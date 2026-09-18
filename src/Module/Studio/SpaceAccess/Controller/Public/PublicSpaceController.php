@@ -15,10 +15,13 @@ use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\View\PublicSpaceViewBuilder;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
+use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatMessageManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
@@ -86,6 +89,7 @@ final class PublicSpaceController extends AbstractController
         private readonly StoredFileResponder $responder,
         private readonly SpaceChatMessageManagerInterface $chat,
         private readonly SpaceChatChannelRepository $chatChannels,
+        private readonly SpaceChatChannelManagerInterface $chatChannelManager,
         private readonly SpaceChatViewBuilder $chatViewBuilder,
         private readonly SpaceChatHub $chatHub,
     ) {}
@@ -343,6 +347,75 @@ final class PublicSpaceController extends AbstractController
         $channel = $this->readableChannel($link, $channelId);
 
         return $this->jsonSuccess($this->chatViewBuilder->payload($channel));
+    }
+
+    /**
+     * The client opens a private conversation with somebody of the space.
+     *
+     * **The same right as writing**, exercised with a person rather than with
+     * the space: a client who may answer their agency may ask one of them
+     * something without the whole team reading it. A link that may not comment
+     * gets the 404 a stranger gets, for the reason the other writes give.
+     *
+     * Only an account on the other side. The client talks to the studio, not to
+     * another address of their own company: two links on one space are two
+     * copies of the same door, and a conversation between two doors belongs to
+     * nobody.
+     */
+    #[Route(
+        '/{selector}/{token}/chat/direct',
+        name: '_chat_direct',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function chatDirect(string $selector, string $token, Request $request): JsonResponse
+    {
+        if (!$this->spaceGuestWriteLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
+        }
+
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface || !$link->canComment()) {
+            throw $this->createNotFoundException();
+        }
+
+        $space = $link->getSpace();
+        $userId = (int) ($this->decodeJson($request)['userId'] ?? 0);
+        $member = $userId > 0 ? $this->spaceMemberOf($space, $userId) : null;
+
+        if (!$member instanceof CoreUserInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        try {
+            $channel = $this->chatChannelManager->openDirect($space, null, $link, $member, null);
+        } catch (FieldException) {
+            throw $this->createNotFoundException();
+        }
+
+        $this->links->markOpened($link);
+
+        return $this->jsonSuccess([
+            ...$this->chatViewBuilder->channelsPayload(
+                $this->chatChannels->findForLink($space, $link),
+                null,
+                $link,
+            ),
+            'chatChannelId' => $channel->getId(),
+        ]);
+    }
+
+    /** Somebody of this space's own team, or nothing. */
+    private function spaceMemberOf(CustomerSpaceInterface $space, int $userId): ?CoreUserInterface
+    {
+        foreach ($space->getMembers() as $member) {
+            if ($member->getUser()->getId() === $userId) {
+                return $member->getUser();
+            }
+        }
+
+        return null;
     }
 
     /**

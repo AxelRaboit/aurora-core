@@ -68,6 +68,8 @@ const props = defineProps({
     chatPostPath: { type: String, default: null },
     chatReloadPath: { type: String, required: true },
     chatChannels: { type: Array, default: () => [] },
+    chatDirectPath: { type: String, default: null },
+    chatPeople: { type: Array, default: () => [] },
     chatChannelId: { type: [Number, null], default: null },
 });
 
@@ -303,6 +305,8 @@ function open(event) {
             :reload-path="chatReloadPath"
             :channels="chatChannels"
             :channel-id="chatChannelId"
+            :chat-direct-path="chatDirectPath"
+            :people="chatPeople"
             own-side="client"
             :notice="chatPostPath ? t('studio.public.space.chat_notice') : ''"
         />

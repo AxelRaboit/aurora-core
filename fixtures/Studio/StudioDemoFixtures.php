@@ -622,6 +622,14 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             $this->chatChannels->invite($internal, $account);
             $this->chatChannels->invite($upcoming, $account);
         }
+
+        // Et une conversation privée entre les deux comptes : c'est la seconde
+        // moitié de la discussion, et une démonstration où la section est vide
+        // laisse croire qu'elle ne sert à rien.
+        if (2 === count($accounts)) {
+            [$first, $second] = array_values($accounts);
+            $this->chatChannels->openDirect($space, $first, null, $second, null);
+        }
     }
 
     /**

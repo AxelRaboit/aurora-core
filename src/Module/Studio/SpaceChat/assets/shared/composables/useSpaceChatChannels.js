@@ -63,11 +63,44 @@ export function useSpaceChatChannels(initial, paths) {
         await send(forChannel(paths.deletePath, channel));
     }
 
+    /**
+     * Ouvre une conversation privée, ou rouvre celle qui existe.
+     *
+     * Le serveur répond la liste **et** l'identifiant du salon : deux personnes
+     * n'ont qu'une conversation entre elles, donc le second appel renvoie le
+     * premier salon, et l'appelant doit pouvoir s'y rendre dans les deux cas.
+     */
+    async function openDirect(userId) {
+        if (!paths.directPath || working.value) return null;
+
+        working.value = true;
+        try {
+            const data = await request(paths.directPath, { userId });
+
+            if (!data?.success) return null;
+
+            channels.value = data.chatChannels ?? [];
+
+            return data.chatChannelId ?? null;
+        } finally {
+            working.value = false;
+        }
+    }
+
     async function invite({ channel, userId }) {
         if (await send(forChannel(paths.invitePath, channel), { userId })) {
             toast.success(t("shared.space_chat.channels.invited"));
         }
     }
 
-    return { channels, working, create, rename, setAudience, drop, invite };
+    return {
+        channels,
+        working,
+        create,
+        rename,
+        setAudience,
+        drop,
+        invite,
+        openDirect,
+    };
 }

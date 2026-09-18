@@ -250,6 +250,40 @@ class SpaceChatController extends AbstractController
         return $this->jsonSuccess($this->channelsPayload($space));
     }
 
+    /**
+     * Opens the private conversation with somebody, or reopens it.
+     *
+     * The second press lands in the first conversation: two people have one
+     * between them, and the manager looks the pair up before writing anything.
+     */
+    #[Route('/direct', name: '_direct', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function openDirect(CustomerSpace $space, Request $request): JsonResponse
+    {
+        $me = $this->security->getUser();
+        $userId = (int) ($this->decodeJson($request)['userId'] ?? 0);
+        $other = $userId > 0 ? $this->users->find($userId) : null;
+
+        if (!$me instanceof CoreUserInterface) {
+            return $this->jsonInvalidInput(['participant' => 'backend.studio.space_chat.errors.needs_account']);
+        }
+
+        if (!$other instanceof CoreUserInterface || !$this->isOnTheTeam($space, $other)) {
+            return $this->jsonInvalidInput(['userId' => 'backend.studio.space_chat.errors.not_on_the_team']);
+        }
+
+        try {
+            $channel = $this->channels->openDirect($space, $me, null, $other, null);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess([
+            ...$this->channelsPayload($space),
+            'chatChannelId' => $channel->getId(),
+        ]);
+    }
+
     /** @return array<string, mixed> */
     private function channelsPayload(CustomerSpace $space): array
     {
@@ -259,6 +293,7 @@ class SpaceChatController extends AbstractController
             $user instanceof CoreUserInterface
                 ? $this->channelRepository->findForUser($space, $user)
                 : $this->channelRepository->findForSpace($space),
+            $user instanceof CoreUserInterface ? $user : null,
         );
     }
 

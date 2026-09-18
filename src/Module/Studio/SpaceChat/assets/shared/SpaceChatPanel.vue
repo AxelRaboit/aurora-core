@@ -46,7 +46,16 @@ const props = defineProps({
     channelAudiencePath: { type: String, default: null },
     channelDeletePath: { type: String, default: null },
     channelInvitePath: { type: String, default: null },
-    /** Shown above the box: who reads what is typed here. */
+    /** Null when this reader may not start a private conversation. */
+    chatDirectPath: { type: String, default: null },
+    /** Who one can be started with. */
+    people: { type: Array, default: () => [] },
+    /**
+     * Shown above the box: who reads what is typed here.
+     *
+     * The page's answer, used for the room everybody is in. A room that is not
+     * that one answers for itself, below.
+     */
     notice: { type: String, default: "" },
     /**
      * Prend toute la hauteur de son conteneur, au lieu de sa hauteur fixe.
@@ -87,16 +96,27 @@ const { messages, loading, live, expectsLive, currentChannel, select, post, remo
         props.channelId,
     );
 
-const { channels, create, rename, setAudience, drop, invite } = useSpaceChatChannels(
-    props.channels,
-    {
+const { channels, create, rename, setAudience, drop, invite, openDirect } =
+    useSpaceChatChannels(props.channels, {
         createPath: props.channelCreatePath,
         renamePath: props.channelRenamePath,
         audiencePath: props.channelAudiencePath,
         deletePath: props.channelDeletePath,
         invitePath: props.channelInvitePath,
-    },
-);
+        directPath: props.chatDirectPath,
+    });
+
+/**
+ * Ouvre la conversation privée et s'y rend.
+ *
+ * Ouvrir sans y aller demanderait un second geste pour voir ce qu'on vient de
+ * créer, ce qu'aucune application de discussion ne fait.
+ */
+async function startDirect(userId) {
+    const id = await openDirect(userId);
+
+    if (id) await select(id);
+}
 
 /**
  * Whether there is a list to show at all.
@@ -109,10 +129,31 @@ const hasRail = computed(() => channels.value.length > 1 || !!props.channelCreat
 /** Out only on a phone, where the rail is a drawer over the conversation. */
 const railOpen = ref(false);
 
+
 /** The room on screen, which is what the header names. */
 const openChannel = computed(
     () => channels.value.find((channel) => channel.id === currentChannel.value) ?? null,
 );
+
+/**
+ * Qui lit ce qui s'écrit ici, dit au-dessus de la boîte.
+ *
+ * **Par salon et non par page.** « Ce que vous écrivez ici est lu par le
+ * client » est vrai du salon principal et faux des deux autres sortes : un
+ * canal interne ne sort pas de l'agence, une conversation privée ne sort pas
+ * des deux personnes qui l'ont. Une phrase fausse sous une zone de saisie est
+ * pire que pas de phrase du tout - elle fait taire ceux qui la croient, et
+ * délie la langue de ceux qui ne la lisent plus.
+ */
+const roomNotice = computed(() => {
+    const room = openChannel.value;
+
+    if (!room) return props.notice;
+    if (room.isDirect) return t("shared.space_chat.channels.notice_direct");
+    if (!room.openToClient) return t("shared.space_chat.channels.notice_internal");
+
+    return props.notice;
+});
 
 /**
  * Whether this reader may arrange the room they are in.
@@ -279,9 +320,12 @@ function onKeydown(event) {
             :channels="channels"
             :current="currentChannel"
             :create-path="channelCreatePath"
+            :people="people"
+            :direct-path="chatDirectPath"
             :open="railOpen"
             v-on:select="select"
             v-on:create="create"
+            v-on:open-direct="startDirect"
             v-on:close="railOpen = false"
         />
 
@@ -450,7 +494,7 @@ function onKeydown(event) {
                     <AppTextarea
                         :model-value="draft"
                         :placeholder="t('shared.space_chat.placeholder')"
-                        :hint="notice"
+                        :hint="roomNotice"
                         :rows="2"
                         v-on:update:model-value="draft = $event"
                     />

@@ -63,7 +63,7 @@ final readonly class SpaceChatViewBuilder
         $open = $rooms[0] ?? null;
 
         return [
-            'chatChannels' => array_map($this->channelSerializer->serialize(...), $rooms),
+            'chatChannels' => $this->channels($rooms, $user, null),
             'chatChannelId' => $open?->getId(),
             'chatMessages' => $open instanceof SpaceChatChannelInterface ? $this->messages($open) : [],
             'chatStreamUrl' => $this->hub->subscribeUrl($rooms),
@@ -79,7 +79,14 @@ final readonly class SpaceChatViewBuilder
             'chatChannelAudiencePath' => $this->channelTemplate('workspace_space_chat_channel_audience', $space),
             'chatChannelDeletePath' => $this->channelTemplate('workspace_space_chat_channel_delete', $space),
             'chatChannelInvitePath' => $this->channelTemplate('workspace_space_chat_channel_invite', $space),
+            'chatDirectPath' => $this->urlGenerator->generate('workspace_space_chat_direct', ['id' => $space->getId()]),
             'chatTeam' => $this->team($space),
+            // Soi-même en moins : une conversation privée avec soi n'existe pas,
+            // et l'offrir dans la liste serait offrir une erreur.
+            'chatPeople' => array_values(array_filter(
+                $this->team($space),
+                static fn (array $person): bool => $person['id'] !== $user->getId(),
+            )),
         ];
     }
 
@@ -106,10 +113,19 @@ final readonly class SpaceChatViewBuilder
         $open = $rooms[0] ?? null;
 
         return [
-            'chatChannels' => array_map($this->channelSerializer->serialize(...), $rooms),
+            'chatChannels' => $this->channels($rooms, null, $link),
             'chatChannelId' => $open?->getId(),
             'chatMessages' => $open instanceof SpaceChatChannelInterface ? $this->messages($open) : [],
             'chatStreamUrl' => $this->hub->subscribeUrl($rooms),
+            // Le client ouvre une conversation privée s'il peut écrire : c'est
+            // le même droit, exercé avec une personne plutôt qu'avec l'espace.
+            'chatDirectPath' => $link->canComment()
+                ? $this->urlGenerator->generate('public_space_chat_direct', [
+                    'selector' => $link->getSelector(),
+                    'token' => $token,
+                ])
+                : null,
+            'chatPeople' => $link->canComment() ? $this->team($space) : [],
             'chatPostPath' => $link->canComment()
                 ? $this->pathTemplates->generate('public_space_chat_post', [
                     'selector' => $link->getSelector(),
@@ -123,6 +139,21 @@ final readonly class SpaceChatViewBuilder
                 'channelId' => '__channel__',
             ]),
         ];
+    }
+
+    /**
+     * Les salons d'un lecteur, nommés de son point de vue.
+     *
+     * @param list<SpaceChatChannelInterface> $rooms
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function channels(array $rooms, ?CoreUserInterface $user, ?SpaceAccessLinkInterface $link): array
+    {
+        return array_map(
+            fn (SpaceChatChannelInterface $room): array => $this->channelSerializer->serializeFor($room, $user, $link),
+            $rooms,
+        );
     }
 
     /** @return list<array<string, mixed>> */
@@ -161,11 +192,11 @@ final readonly class SpaceChatViewBuilder
      *
      * @return array<string, mixed>
      */
-    public function channelsPayload(array $rooms): array
+    public function channelsPayload(array $rooms, ?CoreUserInterface $user = null, ?SpaceAccessLinkInterface $link = null): array
     {
         return [
             'success' => true,
-            'chatChannels' => array_map($this->channelSerializer->serialize(...), $rooms),
+            'chatChannels' => $this->channels($rooms, $user, $link),
             'chatStreamUrl' => $this->hub->subscribeUrl($rooms),
         ];
     }

@@ -30,6 +30,10 @@ shared:
       open_to_client: Abrir al cliente
       close_to_client: Cerrar al cliente
       invite: Añadir a alguien
+      notice_internal: "Canal interno: el cliente no lo lee."
+      notice_direct: "Conversación privada: nadie más la lee."
+      directs: Mensajes privados
+      new_direct: Nueva conversación
       invited: Añadido al canal
       members: 'Nadie | 1 persona | {count} personas'
   attachments:

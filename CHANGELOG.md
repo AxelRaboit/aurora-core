@@ -109,9 +109,26 @@ ouvert, si bien que rien ne dit laquelle des deux est la liste. Sous 768
 pixels elle repasse au-dessus, faute de gauche disponible.
 
 Un espace naît avec son canal principal, et les conversations existantes y ont
-été versées par la migration. Les conversations privées sont dans le modèle
-- un canal à deux, comme dans les applications qui en font - mais elles n'ont
-pas encore d'écran : c'est la suite.
+été versées par la migration.
+
+#### Des conversations privées dans un espace
+La seconde moitié de la discussion. **Deux personnes, et personne d'autre.** Le
+studio en ouvre une avec quelqu'un de l'équipe de l'espace ; le client en ouvre
+une avec quelqu'un du studio, au titre du même droit qui lui permet de répondre
+dans la discussion - il parle à une personne plutôt qu'à l'espace. Le rail les
+range dans leur propre section, sous les canaux : un canal est une pièce où
+l'on entre, une conversation privée est quelqu'un à qui l'on parle.
+
+Sous le capot c'est un salon à deux, comme chez Slack, et c'est volontairement
+invisible : personne ne pense « le salon à deux avec Marie ». Une conversation
+porte le nom de **l'autre**, donc pas le même des deux côtés, et il n'y en a
+jamais qu'une entre deux personnes : redemander rouvre la première.
+
+**L'avertissement sous la zone de saisie suit le salon.** « Ce que vous écrivez
+ici est lu par le client » est vrai du canal principal et faux des deux autres
+sortes ; un canal interne et une conversation privée le disent maintenant
+chacun à sa façon. Une phrase fausse sous une zone de saisie fait taire ceux
+qui la croient et délie la langue de ceux qui ne la lisent plus.
 
 ## [0.9.203] - 2026-09-18
 
