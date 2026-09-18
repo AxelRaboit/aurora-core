@@ -23,6 +23,7 @@ import { Radio, Send, Trash2, WifiOff } from "lucide-vue-next";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import SpaceChatChannels from "./SpaceChatChannels.vue";
+import SpaceChatRoomBar from "./SpaceChatRoomBar.vue";
 import { useSpaceChat } from "./composables/useSpaceChat.js";
 import { useSpaceChatChannels } from "./composables/useSpaceChatChannels.js";
 
@@ -100,6 +101,20 @@ const { channels, create, rename, setAudience, drop, invite } = useSpaceChatChan
 /** The room on screen, which is what the header names. */
 const openChannel = computed(
     () => channels.value.find((channel) => channel.id === currentChannel.value) ?? null,
+);
+
+/**
+ * Whether this reader may arrange the room they are in.
+ *
+ * The main room and a private conversation are nobody's to rename or close, and
+ * the client's page is handed none of the paths at all.
+ */
+const arrangeable = computed(
+    () =>
+        !!props.channelCreatePath &&
+        !!openChannel.value &&
+        !openChannel.value.isMain &&
+        !openChannel.value.isDirect,
 );
 
 /**
@@ -245,172 +260,179 @@ function onKeydown(event) {
 
 <template>
     <section
-        class="flex flex-col rounded-lg border border-line/60 bg-surface-2/20"
+        class="flex flex-col overflow-hidden rounded-lg border border-line/60 bg-surface-2/20 md:flex-row"
         :class="fill ? 'h-full' : 'h-[32rem]'"
     >
-        <header class="flex items-center gap-2 border-b border-line/60 px-4 py-2.5">
-            <h2 class="text-sm font-medium text-primary">
-                {{ openChannel?.name ?? t("shared.space_chat.title") }}
-            </h2>
-
-            <!-- Dit dans l'en-tête et pas seulement sur la pastille : c'est la
-                 phrase à lire avant d'écrire, et l'en-tête est là où le regard
-                 revient entre deux messages. -->
-            <span
-                v-if="channelCreatePath && openChannel && !openChannel.openToClient"
-                class="rounded bg-surface-2/60 px-1.5 py-0.5 text-[0.65rem] uppercase tracking-wide text-muted"
-            >
-                {{ t("shared.space_chat.channels.internal") }}
-            </span>
-
-            <!-- Said out loud, because the difference is invisible otherwise:
-                 somebody typing into a chat that has stopped being live
-                 deserves to know the other side will not see it appear. -->
-            <span
-                v-if="expectsLive"
-                class="ml-auto flex items-center gap-1.5 text-xs"
-                :class="live ? 'text-emerald-500' : 'text-amber-500'"
-            >
-                <component
-                    :is="live ? Radio : WifiOff"
-                    class="h-3.5 w-3.5"
-                    :stroke-width="2"
-                />
-                {{ t(live ? "shared.space_chat.live" : "shared.space_chat.reconnecting") }}
-            </span>
-        </header>
-
         <SpaceChatChannels
             v-if="channels.length > 1 || channelCreatePath"
             :channels="channels"
             :current="currentChannel"
-            :team="team"
             :create-path="channelCreatePath"
-            :rename-path="channelRenamePath"
-            :audience-path="channelAudiencePath"
-            :delete-path="channelDeletePath"
-            :invite-path="channelInvitePath"
             v-on:select="select"
             v-on:create="create"
-            v-on:rename="rename"
-            v-on:audience="setAudience"
-            v-on:delete="onDrop"
-            v-on:invite="invite"
         />
 
-        <!-- `flex flex-col` sur le défilement, `mt-auto` sur les entrées : une
+        <!-- `min-w-0` sur la colonne : sans lui un message d'un seul mot très
+             long pousse la conversation au-delà de la boîte et c'est le rail
+             qui se fait écraser. -->
+        <div class="flex min-h-0 min-w-0 flex-1 flex-col">
+            <header class="flex items-center gap-2 border-b border-line/60 px-4 py-2.5">
+                <h2 class="text-sm font-medium text-primary">
+                    {{ openChannel?.name ?? t("shared.space_chat.title") }}
+                </h2>
+
+                <!-- Dit dans l'en-tête et pas seulement sur la pastille : c'est la
+                 phrase à lire avant d'écrire, et l'en-tête est là où le regard
+                 revient entre deux messages. -->
+                <span
+                    v-if="channelCreatePath && openChannel && !openChannel.openToClient"
+                    class="rounded bg-surface-2/60 px-1.5 py-0.5 text-[0.65rem] uppercase tracking-wide text-muted"
+                >
+                    {{ t("shared.space_chat.channels.internal") }}
+                </span>
+
+                <!-- Said out loud, because the difference is invisible otherwise:
+                 somebody typing into a chat that has stopped being live
+                 deserves to know the other side will not see it appear. -->
+                <span
+                    v-if="expectsLive"
+                    class="ml-auto flex items-center gap-1.5 text-xs"
+                    :class="live ? 'text-emerald-500' : 'text-amber-500'"
+                >
+                    <component
+                        :is="live ? Radio : WifiOff"
+                        class="h-3.5 w-3.5"
+                        :stroke-width="2"
+                    />
+                    {{ t(live ? "shared.space_chat.live" : "shared.space_chat.reconnecting") }}
+                </span>
+            </header>
+
+            <SpaceChatRoomBar
+                v-if="arrangeable"
+                :channel="openChannel"
+                :team="team"
+                :invite-path="channelInvitePath"
+                v-on:rename="rename"
+                v-on:audience="setAudience"
+                v-on:delete="onDrop"
+                v-on:invite="invite"
+            />
+
+            <!-- `flex flex-col` sur le défilement, `mt-auto` sur les entrées : une
              conversation courte se pose en bas de la boîte plutôt que de
              flotter en haut d'un grand vide. Quand elle déborde, la marge
              automatique vaut zéro et le défilement redevient ordinaire. -->
-        <div
-            ref="scroller"
-            class="flex flex-1 flex-col overflow-y-auto px-4 py-3"
-            v-on:scroll="onScroll"
-        >
-            <!-- Un conteneur pour les entrées, et c'est lui qu'on observe : sa
+            <div
+                ref="scroller"
+                class="flex flex-1 flex-col overflow-y-auto px-4 py-3"
+                v-on:scroll="onScroll"
+            >
+                <!-- Un conteneur pour les entrées, et c'est lui qu'on observe : sa
                  hauteur est celle du contenu, la seule mesure qui dise qu'il y
                  a du nouveau sous le pli. -->
-            <div ref="content" class="mt-auto space-y-2">
-                <p v-if="!entries.length" class="text-sm text-muted">
-                    {{ t("shared.space_chat.empty") }}
-                </p>
+                <div ref="content" class="mt-auto space-y-2">
+                    <p v-if="!entries.length" class="text-sm text-muted">
+                        {{ t("shared.space_chat.empty") }}
+                    </p>
 
-                <template v-for="entry in entries" :key="entry.key">
-                    <div
-                        v-if="'day' === entry.kind"
-                        class="flex items-center gap-3 py-1"
-                    >
-                        <span class="h-px flex-1 bg-line/60" />
-                        <!-- The day, without a clock: `short` would print
+                    <template v-for="entry in entries" :key="entry.key">
+                        <div
+                            v-if="'day' === entry.kind"
+                            class="flex items-center gap-3 py-1"
+                        >
+                            <span class="h-px flex-1 bg-line/60" />
+                            <!-- The day, without a clock: `short` would print
                              "17/09/2026 00:48" on a line whose whole job is to
                              say which day the messages under it belong to. -->
-                        <span class="text-xs text-muted">
-                            {{ d(entry.at, "long") }}
-                        </span>
-                        <span class="h-px flex-1 bg-line/60" />
-                    </div>
+                            <span class="text-xs text-muted">
+                                {{ d(entry.at, "long") }}
+                            </span>
+                            <span class="h-px flex-1 bg-line/60" />
+                        </div>
 
-                    <!-- Le cote decide l'alignement, la couleur le suit. Deux
+                        <!-- Le cote decide l'alignement, la couleur le suit. Deux
                          signaux pour la meme chose plutot qu'un, parce que
                          l'alignement seul se perd sur un message d'une ligne et
                          que la couleur seule se perd pour qui la distingue mal. -->
-                    <div
-                        v-else
-                        class="flex"
-                        :class="mine(entry.message) ? 'justify-end' : 'justify-start'"
-                    >
                         <div
-                            class="group max-w-[min(42rem,80%)] rounded-lg px-3 py-2"
-                            :class="
-                                mine(entry.message)
-                                    ? 'border border-accent-500/20 bg-accent-500/5'
-                                    : 'bg-surface-2/60'
-                            "
+                            v-else
+                            class="flex"
+                            :class="mine(entry.message) ? 'justify-end' : 'justify-start'"
                         >
-                            <div class="flex items-baseline gap-2">
-                                <!-- Le nom reste des deux cotes : un studio a
+                            <div
+                                class="group max-w-[min(42rem,80%)] rounded-lg px-3 py-2"
+                                :class="
+                                    mine(entry.message)
+                                        ? 'border border-accent-500/20 bg-accent-500/5'
+                                        : 'bg-surface-2/60'
+                                "
+                            >
+                                <div class="flex items-baseline gap-2">
+                                    <!-- Le nom reste des deux cotes : un studio a
                                      plusieurs personnes, et « qui a repondu » est
                                      une question qu'on se pose de son propre cote
                                      aussi. -->
-                                <span class="text-xs font-medium text-primary">
-                                    {{ entry.message.author }}
-                                </span>
-                                <span class="text-xs text-muted">
-                                    {{ d(new Date(entry.message.createdAt), "short") }}
-                                </span>
-                                <!-- Seulement quand ca apprend quelque chose : sur
+                                    <span class="text-xs font-medium text-primary">
+                                        {{ entry.message.author }}
+                                    </span>
+                                    <span class="text-xs text-muted">
+                                        {{ d(new Date(entry.message.createdAt), "short") }}
+                                    </span>
+                                    <!-- Seulement quand ca apprend quelque chose : sur
                                      sa propre page, le client n'a pas besoin qu'on
                                      lui dise qu'il est le client. -->
-                                <span
-                                    v-if="entry.message.fromClient && 'studio' === ownSide"
-                                    class="text-xs text-accent-500"
-                                >
-                                    {{ t("shared.space_chat.from_client") }}
-                                </span>
-                                <button
-                                    v-if="deletePath && !entry.message.fromClient"
-                                    type="button"
-                                    class="ml-auto rounded p-1 text-muted opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
-                                    :aria-label="t('shared.common.delete')"
-                                    v-on:click="remove(entry.message)"
-                                >
-                                    <Trash2 class="h-3 w-3" :stroke-width="2" />
-                                </button>
+                                    <span
+                                        v-if="entry.message.fromClient && 'studio' === ownSide"
+                                        class="text-xs text-accent-500"
+                                    >
+                                        {{ t("shared.space_chat.from_client") }}
+                                    </span>
+                                    <button
+                                        v-if="deletePath && !entry.message.fromClient"
+                                        type="button"
+                                        class="ml-auto rounded p-1 text-muted opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
+                                        :aria-label="t('shared.common.delete')"
+                                        v-on:click="remove(entry.message)"
+                                    >
+                                        <Trash2 class="h-3 w-3" :stroke-width="2" />
+                                    </button>
+                                </div>
+                                <p class="mt-1 whitespace-pre-line text-sm text-primary">
+                                    {{ entry.message.body }}
+                                </p>
                             </div>
-                            <p class="mt-1 whitespace-pre-line text-sm text-primary">
-                                {{ entry.message.body }}
-                            </p>
                         </div>
-                    </div>
-                </template>
+                    </template>
+                </div>
             </div>
-        </div>
 
-        <div v-if="canPost" class="space-y-2 border-t border-line/60 px-4 py-3">
-            <!-- On the wrapper rather than on the field: `AppTextarea` is a
+            <div v-if="canPost" class="space-y-2 border-t border-line/60 px-4 py-3">
+                <!-- On the wrapper rather than on the field: `AppTextarea` is a
                  label, a control and a hint under one element, and hanging a
                  key handler on the component would rely on which of them
                  Vue happens to pass it to. Keystrokes bubble. -->
-            <div v-on:keydown="onKeydown">
-                <AppTextarea
-                    :model-value="draft"
-                    :placeholder="t('shared.space_chat.placeholder')"
-                    :hint="notice"
-                    :rows="2"
-                    v-on:update:model-value="draft = $event"
-                />
-            </div>
-            <div class="flex justify-end">
-                <AppButton
-                    variant="primary"
-                    size="sm"
-                    :loading="loading"
-                    :disabled="!draft.trim()"
-                    v-on:click="send"
-                >
-                    <Send class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t("shared.space_chat.send") }}
-                </AppButton>
+                <div v-on:keydown="onKeydown">
+                    <AppTextarea
+                        :model-value="draft"
+                        :placeholder="t('shared.space_chat.placeholder')"
+                        :hint="notice"
+                        :rows="2"
+                        v-on:update:model-value="draft = $event"
+                    />
+                </div>
+                <div class="flex justify-end">
+                    <AppButton
+                        variant="primary"
+                        size="sm"
+                        :loading="loading"
+                        :disabled="!draft.trim()"
+                        v-on:click="send"
+                    >
+                        <Send class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.space_chat.send") }}
+                    </AppButton>
+                </div>
             </div>
         </div>
     </section>

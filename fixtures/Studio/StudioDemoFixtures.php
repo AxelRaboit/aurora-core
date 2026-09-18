@@ -606,15 +606,22 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      */
     private function seedChannels(CustomerSpaceInterface $space): void
     {
-        $marie = $this->userRepository->find($this->backendUser('marie.dupont@aurora.app'));
+        // Les deux comptes, et le compte de démonstration d'abord : un canal
+        // n'est vu que par ceux qui y sont, donc un canal créé sans personne
+        // dedans est un canal que le studio ne retrouve jamais - y compris
+        // celui qui vient de le créer.
+        $accounts = array_filter([
+            $this->userRepository->find($this->backendUser('dev@aurora.app')),
+            $this->userRepository->find($this->backendUser('marie.dupont@aurora.app')),
+        ], static fn (?User $user): bool => $user instanceof User);
 
         $internal = $this->chatChannels->create($space, 'Entre nous');
+        $upcoming = $this->chatChannels->create($space, 'Le mois prochain', openToClient: true);
 
-        if ($marie instanceof User) {
-            $this->chatChannels->invite($internal, $marie);
+        foreach ($accounts as $account) {
+            $this->chatChannels->invite($internal, $account);
+            $this->chatChannels->invite($upcoming, $account);
         }
-
-        $this->chatChannels->create($space, 'Le mois prochain', openToClient: true);
     }
 
     /**

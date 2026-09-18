@@ -27,6 +27,12 @@ jeton d'abonnement nomme ses canaux un par un, et demander un canal interne par
 son identifiant répond 404 comme pour un inconnu - dire « ce canal existe mais
 pas pour vous » renseigne déjà celui qui a récupéré une adresse.
 
+**La liste est à gauche**, en colonne, comme dans les applications faites pour
+ça : une barre horizontale grandit jusqu'à passer à la ligne dans la
+conversation, et elle met les canaux sur la même ligne que le nom du canal
+ouvert, si bien que rien ne dit laquelle des deux est la liste. Sous 768
+pixels elle repasse au-dessus, faute de gauche disponible.
+
 Un espace naît avec son canal principal, et les conversations existantes y ont
 été versées par la migration. Les conversations privées sont dans le modèle
 - un canal à deux, comme dans les applications qui en font - mais elles n'ont
