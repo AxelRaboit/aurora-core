@@ -6,19 +6,11 @@ namespace Aurora\Module\Platform\User\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Storage\Access\UploadAccessDecider;
-use Aurora\Core\Storage\Adapter\StorageAdapterInterface;
-use Aurora\Core\Storage\Adapter\StoredObject;
-use Aurora\Core\Storage\BinaryFileServer;
 use Aurora\Core\Storage\Enum\StorageAreaEnum;
-use Aurora\Core\Storage\StoredFileLocator;
 use Aurora\Core\Storage\StoredFileName;
-use Aurora\Core\Storage\Workspace\LocalPathAware;
-use Aurora\Module\Ged\Document\Controller\Backend\GedFilesController;
-use RuntimeException;
+use Aurora\Core\Storage\StoredFileResponder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -59,10 +51,7 @@ use function sprintf;
 final class ProfilePhotoFilesController extends AbstractController
 {
     public function __construct(
-        private readonly BinaryFileServer $binaryFileServer,
-        private readonly StoredFileLocator $locator,
-        #[Autowire(param: 'app.upload_dir')]
-        private readonly string $uploadRoot,
+        private readonly StoredFileResponder $responder,
     ) {}
 
     #[Route(
@@ -75,55 +64,8 @@ final class ProfilePhotoFilesController extends AbstractController
     {
         $key = sprintf('%s/%s', StorageAreaEnum::ProfilePhotos->value, $filename);
 
-        $adapter = $this->locator->locate($key);
-
-        if (!$adapter instanceof StorageAdapterInterface) {
-            throw $this->createNotFoundException();
-        }
-
-        if ($adapter instanceof LocalPathAware) {
-            try {
-                return $this->binaryFileServer->serve(
-                    $this->binaryFileServer->path($this->uploadRoot, $key),
-                    $this->uploadRoot,
-                );
-            } catch (RuntimeException) {
-                throw $this->createNotFoundException();
-            }
-        }
-
-        return $this->streamThrough($adapter, $key);
-    }
-
-    /**
-     * Streamed rather than redirected, for the reason
-     * {@see GedFilesController}
-     * gives: a signed link or a public hostname would outlive this
-     * authorisation, and a withheld file anybody can re-fetch later has not
-     * been withheld.
-     */
-    private function streamThrough(StorageAdapterInterface $adapter, string $key): Response
-    {
-        $stored = $adapter->stat($key);
-
-        $response = new StreamedResponse(static function () use ($adapter, $key): void {
-            foreach ($adapter->readStream($key) as $chunk) {
-                echo $chunk;
-                flush();
-            }
-        });
-
-        $response->setPrivate();
-        $response->setMaxAge(3600);
-
-        if ($stored instanceof StoredObject) {
-            $response->headers->set('Content-Length', (string) $stored->size);
-
-            if (null !== $stored->checksum) {
-                $response->setEtag($stored->checksum);
-            }
-        }
-
-        return $response;
+        // Servi par le service commun : local déchargé par le serveur
+        // web, distant diffusé par morceaux, privé une heure.
+        return $this->responder->respond($key);
     }
 }

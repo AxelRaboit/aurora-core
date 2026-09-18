@@ -138,6 +138,8 @@ use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentCommentInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
+use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
+use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNoteInterface;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
@@ -258,6 +260,7 @@ class AuroraBundle extends AbstractBundle
                     SpaceAccessLinkInterface::class => SpaceAccessLink::class,
                     SpaceChatMessageInterface::class => SpaceChatMessage::class,
                     SpaceNoteInterface::class => SpaceNote::class,
+                    SpaceFileInterface::class => SpaceFile::class,
                     DeckInterface::class => Deck::class,
                     DeckCategoryInterface::class => DeckCategory::class,
                     SlideInterface::class => Slide::class,

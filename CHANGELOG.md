@@ -5,6 +5,115 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.201] - 2026-09-18
+
+### Ajouté
+
+#### Les fichiers d'un espace, ceux qui ne sont sur aucune fiche
+La vue Fichiers rassemblait ce qui avait été déposé sur les contenus. Restait
+sans place ce qui n'illustre rien : la charte, les logos, le brief, un contrat
+signé. Ça finissait épinglé à la fiche qui se trouvait ouverte, exactement
+comme les messages avant que la discussion existe.
+
+Deux onglets, donc : **Sur les fiches** et **De l'espace**. Le second porte
+« Déposer un fichier » et « Choisir dans la médiathèque » ; sur une fiche, un
+fichier s'ajoute depuis la fiche, là où l'on voit ce qu'il illustre.
+
+**Le client les voit**, sur sa page, sous la discussion. Un espace est partagé :
+ses fiches, ses fichiers et sa conversation se lisent des deux côtés. Ce que le
+studio garde pour lui, ce sont les notes, qui n'ont aucune adresse publique.
+
+**Sa propre table, pas une fiche facultative.** Une ligne de pièce jointe dit
+« ce document est sur cette fiche » et casse des deux côtés ; un `null` lui
+aurait fait dire deux choses, et chaque lecteur aurait dû demander laquelle.
+
+**Le fichier, lui, reste dans la médiathèque**, en brouillon et dans le dossier
+de l'espace, comme tout ce qu'un espace reçoit. C'est ce qui lui garde ses
+vignettes, sa corbeille, son registre d'usages et l'absence d'adresse publique
+devinable. Un second stockage aurait voulu dire deux téléversements, deux
+corbeilles et deux réponses à « qui utilise ce fichier ». La médiathèque sait
+donc dire qu'un espace porte une image avant qu'on ne la supprime.
+
+Retirer un fichier de l'espace ne le supprime pas, et ce que plus rien
+n'utilise vous est proposé à la corbeille - la même règle que les pièces
+jointes d'une fiche et les images d'une note.
+
+### Modifié
+
+#### La discussion d'un espace prend l'écran
+Elle tenait dans une boîte de hauteur fixe, posée au milieu d'un écran vide :
+une conversation de trente messages en montrait trois, et il fallait faire
+défiler dans une fenêtre grande comme une carte pendant que le reste de la page
+ne servait à rien. C'est le seul onglet d'un espace qu'on lit de haut en bas
+sans rien d'autre autour, donc il prend la hauteur disponible.
+
+**Et une conversation courte se pose en bas**, au-dessus de la zone de saisie,
+comme dans une messagerie - plutôt que de flotter en haut d'un grand vide. Dès
+qu'elle déborde, le défilement redevient ordinaire.
+
+C'est le conteneur qui décide, pas le panneau : sur la page du client, la
+discussion reste un bloc parmi d'autres sous son calendrier, et elle garde sa
+taille. Le même composant, deux places, et la place qui tranche.
+
+#### On voit enfin ce que le stockage pèse
+L'écran Stockage disait où les nouveaux fichiers vont ; il ne disait pas où ils
+sont. Il porte maintenant **ce qui est stocké de chaque côté**, le poids et le
+nombre, le disque du serveur et le bucket, les deux toujours affichés même à
+zéro : ce qu'on vient vérifier après une bascule, c'est justement qu'il ne
+reste plus rien de l'autre côté.
+
+Et la liste des espaces clients porte une colonne **Poids** : ce que chaque
+espace a fait déposer, mesuré sur son dossier dans la médiathèque. Un document
+choisi dans la bibliothèque n'y compte pas, il était déjà là. Le jour où le
+disque se remplit, c'est cette colonne qui dit chez quel client.
+
+Mesuré sur la table des documents plutôt que sur le disque : ce qui compte est
+ce dont l'application répond, pas les restes d'un import raté qu'une purge n'a
+pas encore ramassés.
+
+#### Servir un fichier stocké ne s'écrit plus qu'une fois
+Quatre contrôleurs portaient la même quarantaine de lignes, au caractère près :
+trouver l'adaptateur qui détient la clé, servir le fichier local tel quel,
+diffuser le distant par morceaux, privé une heure. La médiathèque, les photos
+de profil, le tableau d'un espace et la page du client.
+
+C'est un service maintenant, et les quatre s'y raccrochent. Ce qui n'y est pas
+entré, volontairement : **qui a le droit de lire**. La médiathèque autorise par
+son privilège, un espace par le sien, un client par son lien, et un service qui
+trancherait à leur place ferait de ces trois règles une seule.
+
+`UploadsServeController` reste à part, lui aussi volontairement : il sert ce qui
+est public, avec un cache partagé et une durée longue, et c'est le contraire
+exact de ce que fait ce service.
+
+#### Ajouter une étape n'est proposé que sur les contenus
+Le bouton suivait la barre de vues et se retrouvait au-dessus des fichiers,
+où il voisinait avec leurs propres actions sans rien avoir à voir avec elles.
+Une étape est une colonne du kanban.
+
+#### Ce qu'une passe de relecture a rendu
+Le dépôt d'un fichier par le studio, sur une fiche comme sur un espace, ne
+passait par **aucune politique de téléversement** : le seul mur était celui de
+PHP, dont le refus ressort sans phrase. Les deux routes consultent maintenant
+celle de l'administrateur, comme le faisaient déjà l'image d'une note et le
+dépôt d'un invité.
+
+**La garde qui sépare deux clients ne s'écrit plus qu'une fois.** Elle vivait
+recopiée dans cinq contrôleurs d'espace ; c'est un trait maintenant. Et l'offre
+de corbeille, recopiée trois fois, est un service - celui des trois où le
+contrôle de privilège avait déjà été oublié une fois.
+
+Les notes d'audit d'un fichier d'espace passent par des hooks surchargeables,
+comme la convention d'extensibilité le demande. Une méthode publique du
+gestionnaire qu'aucune route n'atteignait est partie. Et la médiathèque nomme
+l'espace plutôt que le document dans la liste de ce qui utilise un fichier :
+l'écran de suppression dit déjà lequel part.
+
+### Dans aurora-client
+`make aurora-update` puis `make migrate`.
+
+---
+
 ## [0.9.200] - 2026-09-17
 
 ### Ajouté

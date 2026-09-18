@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\CustomerSpace\View;
 
 use Aurora\Core\Routing\PathTemplateGenerator;
+use Aurora\Core\Storage\Probe\StorageUsageProbe;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -27,6 +28,7 @@ final readonly class CustomerSpacesViewBuilder
         private UserRepository $userRepository,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
+        private StorageUsageProbe $storageUsage,
     ) {}
 
     /**
@@ -43,6 +45,10 @@ final readonly class CustomerSpacesViewBuilder
     {
         return [
             'spaces' => $this->spaces(),
+            // Ce que chaque espace a fait déposer, en une requête. Sans ce
+            // chiffre, « quel client remplit mon disque » se répond en ouvrant
+            // les espaces un par un, donc ne se répond pas.
+            'storage' => $this->storageUsage->bySpace(),
             'customers' => $this->customerOptions(),
             'users' => $this->userOptions(),
             'statuses' => $this->statusOptions(),

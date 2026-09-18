@@ -11,6 +11,7 @@ use Aurora\Core\Storage\Enum\StorageDeliveryModeEnum;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Storage\Exception\StorageException;
 use Aurora\Core\Storage\Probe\StorageProbe;
+use Aurora\Core\Storage\Probe\StorageUsageProbe;
 use Aurora\Core\Storage\R2\R2Configuration;
 use Aurora\Core\Storage\StorageManager;
 use Aurora\Module\Configuration\Storage\Setting\StorageSettings;
@@ -42,12 +43,15 @@ final class StorageSettingsController extends AbstractController
         private readonly StorageManager $storageManager,
         private readonly StorageProbe $probe,
         private readonly DocumentRepository $documentRepository,
+        private readonly StorageUsageProbe $usage,
     ) {}
 
     #[Route('', name: '_show', methods: [HttpMethodEnum::Get->value])]
     public function show(): JsonResponse
     {
-        return $this->jsonSuccess($this->settings->state());
+        // L'occupation est mesurée, pas réglée : elle est jointe ici plutôt que
+        // portée par les réglages, qui n'ont pas à savoir compter des octets.
+        return $this->jsonSuccess($this->settings->state() + ['usage' => $this->usage->byDisk()]);
     }
 
     #[Route('', name: '_save', methods: [HttpMethodEnum::Post->value])]

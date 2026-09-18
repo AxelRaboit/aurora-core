@@ -7,7 +7,7 @@ La résiliation est un fait, pas un document. Elle s'enregistre, et le contrat s
 
 ## D'où ça part
 
-De la page d'un contrat conclu, à côté de la création d'avenant.
+De la page d'un contrat conclu, dans son menu **Actions**, sous la création d'avenant.
 
 ![Les actions d'un contrat conclu](../../images/06-studio/resiliation-01-les-actions-d-un-contrat-conclu.png)
 

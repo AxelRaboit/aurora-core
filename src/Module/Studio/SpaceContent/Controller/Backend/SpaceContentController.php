@@ -7,18 +7,16 @@ namespace Aurora\Module\Studio\SpaceContent\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
-use Aurora\Core\Storage\Adapter\StorageAdapterInterface;
-use Aurora\Core\Storage\Adapter\StoredObject;
-use Aurora\Core\Storage\BinaryFileServer;
-use Aurora\Core\Storage\StoredFileLocator;
-use Aurora\Core\Storage\Workspace\LocalPathAware;
+use Aurora\Core\Storage\Access\UploadPolicyProvider;
+use Aurora\Core\Storage\Access\UploadRefusalEnum;
+use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Core\Validation\Service\PayloadValidator;
-use Aurora\Module\Ged\Document\Controller\Backend\GedFilesController;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
@@ -34,19 +32,17 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentCommentManagerInterfac
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
-use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentFinder;
+use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
 use Aurora\Module\Studio\SpaceContent\View\SpaceBoardViewBuilder;
+use Aurora\Module\Studio\SpaceFile\View\SpaceFilesViewBuilder;
 use Aurora\Module\Studio\SpaceNote\View\SpaceNotesViewBuilder;
-use RuntimeException;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -76,6 +72,7 @@ use function is_string;
 #[IsGranted('studio.spaces.view')]
 class SpaceContentController extends AbstractController
 {
+    use SpaceOwnershipTrait;
     use JsonRequestTrait;
     use JsonResponseTrait;
 
@@ -88,16 +85,15 @@ class SpaceContentController extends AbstractController
         protected readonly SpaceContentItemInputFactoryInterface $itemInputFactory,
         protected readonly SpaceContentColumnInputFactoryInterface $columnInputFactory,
         protected readonly SpaceContentAttachmentRepository $attachmentRepository,
-        protected readonly SpaceOrphanedDocumentFinder $orphanedDocuments,
+        protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
         protected readonly SpaceBoardViewBuilder $viewBuilder,
         protected readonly SpaceChatViewBuilder $chatViewBuilder,
         protected readonly SpaceChatHub $chatHub,
         protected readonly SpaceNotesViewBuilder $notesViewBuilder,
+        protected readonly SpaceFilesViewBuilder $filesViewBuilder,
         protected readonly PayloadValidator $payloadValidator,
-        protected readonly BinaryFileServer $binaryFileServer,
-        protected readonly StoredFileLocator $locator,
-        #[Autowire(param: 'app.upload_dir')]
-        protected readonly string $uploadRoot,
+        protected readonly StoredFileResponder $responder,
+        protected readonly UploadPolicyProvider $uploadPolicies,
     ) {}
 
     /**
@@ -121,6 +117,7 @@ class SpaceContentController extends AbstractController
             ...$this->viewBuilder->contentView($space),
             ...$this->chatViewBuilder->view($space),
             ...$this->notesViewBuilder->view($space),
+            ...$this->filesViewBuilder->view($space),
         ]);
 
         // **Being signed in is not being authorised at the hub.** The hub has
@@ -229,7 +226,7 @@ class SpaceContentController extends AbstractController
 
         return $this->jsonSuccess(
             $this->viewBuilder->boardPayload($space)
-            + $this->orphanedPayload($space, $documents),
+            + $this->orphanedOffer->payload($space, $documents, $this->isGranted('ged.documents.delete')),
         );
     }
 
@@ -337,6 +334,20 @@ class SpaceContentController extends AbstractController
             return $this->jsonInvalidInput(['file' => 'backend.studio.space_content.errors.attachment_required']);
         }
 
+        // La même règle que sur une note et que sur un dépôt d'invité : ce qui
+        // monte passe par la politique de l'administrateur. Sans elle, le seul
+        // plafond était celui de PHP, et un type refusé partout ailleurs
+        // entrait ici.
+        $refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file);
+
+        if ($refusal instanceof UploadRefusalEnum) {
+            return $this->jsonInvalidInput(['file' => match ($refusal) {
+                UploadRefusalEnum::TooLarge => 'backend.ged.documents.errors.upload_too_large',
+                UploadRefusalEnum::TypeRefused => 'backend.ged.documents.errors.upload_type_refused',
+                UploadRefusalEnum::Broken => 'backend.ged.documents.errors.upload_failed',
+            }]);
+        }
+
         try {
             $this->attachments->uploadAsStudio($item, $file);
         } catch (FieldException $fieldException) {
@@ -407,7 +418,7 @@ class SpaceContentController extends AbstractController
 
         return $this->jsonSuccess(
             $this->viewBuilder->boardPayload($space)
-            + $this->orphanedPayload($space, [$document]),
+            + $this->orphanedOffer->payload($space, [$document], $this->isGranted('ged.documents.delete')),
         );
     }
 
@@ -441,64 +452,9 @@ class SpaceContentController extends AbstractController
     ): Response {
         $this->assertOwned($space, $attachment->getItem()->getSpace()->getId());
 
-        $document = $attachment->getDocument();
-        $key = 'preview' === $variant
-            ? ($document->getVariants()['thumbnail'] ?? $document->getThumbnailPath())
-            : $document->getFilePath();
-
-        if (null === $key || '' === $key) {
-            throw $this->createNotFoundException();
-        }
-
-        $adapter = $this->locator->locate($key);
-
-        if (!$adapter instanceof StorageAdapterInterface) {
-            throw $this->createNotFoundException();
-        }
-
-        if ($adapter instanceof LocalPathAware) {
-            try {
-                return $this->binaryFileServer->serve(
-                    $this->binaryFileServer->path($this->uploadRoot, $key),
-                    $this->uploadRoot,
-                );
-            } catch (RuntimeException) {
-                throw $this->createNotFoundException();
-            }
-        }
-
-        return $this->streamThrough($adapter, $key);
-    }
-
-    /**
-     * Streamed rather than redirected, for the reason
-     * {@see GedFilesController}
-     * gives: a signed link or a public hostname would outlive this
-     * authorisation.
-     */
-    private function streamThrough(StorageAdapterInterface $adapter, string $key): Response
-    {
-        $stored = $adapter->stat($key);
-
-        $response = new StreamedResponse(static function () use ($adapter, $key): void {
-            foreach ($adapter->readStream($key) as $chunk) {
-                echo $chunk;
-                flush();
-            }
-        });
-
-        $response->setPrivate();
-        $response->setMaxAge(3600);
-
-        if ($stored instanceof StoredObject) {
-            $response->headers->set('Content-Length', (string) $stored->size);
-
-            if (null !== $stored->checksum) {
-                $response->setEtag($stored->checksum);
-            }
-        }
-
-        return $response;
+        // Servi par le service commun : local déchargé par le serveur
+        // web, distant diffusé par morceaux, privé une heure.
+        return $this->responder->respond($this->keyOf($attachment->getDocument(), $variant));
     }
 
     #[Route('/columns/create', name: '_column_create', methods: [HttpMethodEnum::Post->value])]
@@ -575,45 +531,6 @@ class SpaceContentController extends AbstractController
      * says more than refusing to answer does. The screen cannot reach this
      * either way: it only ever sends ids it was given.
      */
-    /**
-     * The files that removal left used by nobody, offered rather than binned.
-     *
-     * **Offered only to somebody who may already bin documents.** Trashing one
-     * is `ged.documents.delete`, and a person who manages client spaces need
-     * not hold it. Handing them a button that answers 403 would be worse than
-     * handing them nothing, and granting the right implicitly because they
-     * deleted a card would be a privilege arriving through the side door.
-     *
-     * The front decides whether to say anything; the answer is the same either
-     * way, which keeps this endpoint honest about what it did.
-     *
-     * @param list<DocumentInterface> $documents
-     *
-     * @return array{orphanedDocuments: list<array{id: int, title: string, trashPath: string}>}
-     */
-    private function orphanedPayload(CustomerSpace $space, array $documents): array
-    {
-        if (!$this->isGranted('ged.documents.delete')) {
-            return ['orphanedDocuments' => []];
-        }
-
-        $offered = [];
-
-        foreach ($this->orphanedDocuments->among($space, $documents) as $document) {
-            $offered[] = $document + [
-                'trashPath' => $this->generateUrl('backend_ged_documents_delete', ['id' => $document['id']]),
-            ];
-        }
-
-        return ['orphanedDocuments' => $offered];
-    }
-
-    private function assertOwned(CustomerSpace $space, ?int $ownerId): void
-    {
-        if ($ownerId !== $space->getId()) {
-            throw $this->createNotFoundException();
-        }
-    }
 
     /**
      * The numeric ids of a payload list, and nothing else.
@@ -630,5 +547,24 @@ class SpaceContentController extends AbstractController
             static fn (mixed $id): int => (int) $id,
             array_filter($raw, is_numeric(...)),
         ));
+    }
+
+    /**
+     * La clé du fichier ou de sa vignette.
+     *
+     * Le service ne connaît pas les documents, et c'est voulu : il sert une
+     * clé de stockage, quelle que soit la chose qui l'a produite.
+     */
+    private function keyOf(DocumentInterface $document, string $variant): string
+    {
+        $key = 'preview' === $variant
+            ? ($document->getVariants()['thumbnail'] ?? $document->getThumbnailPath())
+            : $document->getFilePath();
+
+        if (null === $key || '' === $key) {
+            throw $this->createNotFoundException();
+        }
+
+        return $key;
     }
 }

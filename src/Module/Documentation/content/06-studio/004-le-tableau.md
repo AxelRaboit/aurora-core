@@ -1,6 +1,6 @@
 ---
-title: "Le tableau d'un espace"
-description: "Les étapes, les contenus, et le glisser-déposer entre les deux."
+title: "Les contenus d'un espace"
+description: "Les étapes, les contenus, le kanban et la liste, et le glisser-déposer."
 rubric: "Studio"
 ---
 Cliquer sur le nom d'un espace ouvre son contenu. L'écran change : plus de menu latéral, un bandeau fin avec le retour, le nom de l'espace et deux onglets. C'est voulu, un espace est un endroit où l'on reste.

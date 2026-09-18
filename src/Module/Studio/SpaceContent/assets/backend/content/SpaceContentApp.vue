@@ -53,6 +53,7 @@ import SpaceChatPanel from "../../../../SpaceChat/assets/shared/SpaceChatPanel.v
 import SpaceNotesView from "../../../../SpaceNote/assets/backend/notes/SpaceNotesView.vue";
 import SpaceNoteFormModal from "../../../../SpaceNote/assets/backend/notes/SpaceNoteFormModal.vue";
 import { useSpaceNotes } from "../../../../SpaceNote/assets/backend/notes/composables/useSpaceNotes.js";
+import { useSpaceOwnFiles } from "../../../../SpaceFile/assets/backend/files/composables/useSpaceOwnFiles.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -109,6 +110,10 @@ const props = defineProps({
     noteDeletePath: { type: String, required: true },
     notePinPath: { type: String, required: true },
     noteImagePath: { type: String, required: true },
+    spaceFiles: { type: Array, default: () => [] },
+    spaceFileUploadPath: { type: String, required: true },
+    spaceFileAttachPath: { type: String, required: true },
+    spaceFileRemovePath: { type: String, required: true },
 });
 
 const VIEWS = [
@@ -252,6 +257,28 @@ const {
     useOrphanedDocumentOffer().offer,
 );
 
+/**
+ * Les fichiers de l'espace, ceux qui ne sont sur aucune fiche.
+ *
+ * La même offre de nettoyage que partout ailleurs : retirer un fichier ne le
+ * supprime pas, et ce que plus rien n'utilise est proposé plutôt que jeté.
+ */
+const {
+    files: ownFiles,
+    loading: ownFilesLoading,
+    upload: uploadOwnFile,
+    pick: pickOwnFile,
+    remove: removeOwnFile,
+} = useSpaceOwnFiles(
+    props.spaceFiles,
+    {
+        uploadPath: props.spaceFileUploadPath,
+        attachPath: props.spaceFileAttachPath,
+        removePath: props.spaceFileRemovePath,
+    },
+    useOrphanedDocumentOffer().offer,
+);
+
 // Its own rather than the shared edit/delete pair, because a reader who may
 // not edit has to be offered something: see `useSpaceCardActions`.
 const actionsFor = useSpaceCardActions({
@@ -315,8 +342,11 @@ const actionsFor = useSpaceCardActions({
                     </AppIconButton>
                 </div>
 
+                <!-- Une étape est une colonne du kanban : elle n'a rien à faire
+                     au-dessus des fichiers, où elle voisinait avec leurs
+                     propres actions sans rien avoir à voir avec elles. -->
                 <AppButton
-                    v-if="editable && !['calendar', 'chat', 'notes'].includes(view)"
+                    v-if="editable && 'content' === view"
                     variant="ghost"
                     size="sm"
                     v-on:click="openColumnCreate"
@@ -360,22 +390,38 @@ const actionsFor = useSpaceCardActions({
             v-else-if="view === 'files'"
             :attachments="liveAttachments"
             :items="liveItems"
+            :space-files="ownFiles"
+            :editable="editable"
+            :loading="ownFilesLoading"
             v-on:open-item="openItemEdit"
+            v-on:upload="uploadOwnFile"
+            v-on:pick="pickOwnFile"
+            v-on:remove="removeOwnFile"
         />
 
         <!-- Mounted only while it is the view on screen, so a board nobody is
              chatting on holds no connection open. The cost is that a message
              arriving while somebody is looking at the calendar is not
              announced - that is a notification's job, not a panel's. -->
-        <SpaceChatPanel
+        <!-- La hauteur de l'écran moins ce qui est au-dessus : l'en-tête de
+             l'espace, le sélecteur de vues et les marges. La discussion est le
+             seul écran d'un espace qu'on lit de haut en bas sans rien d'autre
+             autour, et une boîte de 32rem au milieu d'un écran vide donnait
+             trois messages visibles sur une conversation qui en compte trente. -->
+        <div
             v-else-if="view === 'chat'"
-            :messages="chatMessages"
-            :stream-url="chatStreamUrl"
-            :post-path="editable ? chatPostPath : null"
-            :reload-path="chatReloadPath"
-            :delete-path="editable ? chatDeletePath : null"
-            :notice="t('backend.studio.space_chat.notice')"
-        />
+            class="h-[calc(100dvh-8.5rem)] min-h-[24rem]"
+        >
+            <SpaceChatPanel
+                fill
+                :messages="chatMessages"
+                :stream-url="chatStreamUrl"
+                :post-path="editable ? chatPostPath : null"
+                :reload-path="chatReloadPath"
+                :delete-path="editable ? chatDeletePath : null"
+                :notice="t('backend.studio.space_chat.notice')"
+            />
+        </div>
 
         <!-- Le mur de notes, monté sur son propre conteneur : c'est lui qui
              décide de la forme, pas la fenêtre. -->

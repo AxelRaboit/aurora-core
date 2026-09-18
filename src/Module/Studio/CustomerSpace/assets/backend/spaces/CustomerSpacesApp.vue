@@ -33,6 +33,16 @@ import { PanelsTopLeft, Pencil, Plus, Save, Trash2, X } from "lucide-vue-next";
 
 const { t } = useI18n();
 const { container, isNarrow } = useNarrowContainer();
+
+/** Des unités qu'on lit, pas des octets qu'on compte. */
+function weigh(bytes) {
+    if (!bytes) return "—";
+
+    if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} Go`;
+    if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} Mo`;
+
+    return `${Math.max(1, Math.round(bytes / 1024))} ko`;
+}
 const { can } = usePrivileges();
 
 const props = defineProps({
@@ -40,6 +50,14 @@ const props = defineProps({
     customers: { type: Array, default: () => [] },
     users: { type: Array, default: () => [] },
     statuses: { type: Array, default: () => [] },
+    /**
+     * Ce que chaque espace a fait déposer, en octets, par identifiant.
+     *
+     * Le poids du dossier de l'espace dans la médiathèque, c'est-à-dire ce qui
+     * est arrivé *par* lui : un document choisi dans la médiathèque était déjà
+     * là et le serait resté sans lui.
+     */
+    storage: { type: Object, default: () => ({}) },
     roles: { type: Array, default: () => [] },
     timezones: { type: Array, default: () => [] },
     boardPath: { type: String, required: true },
@@ -282,6 +300,11 @@ const pageActions = computed(() => {
                             {{ t("backend.studio.spaces.col_status") }}
                         </th>
                         <th
+                            class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell"
+                        >
+                            {{ t("backend.studio.spaces.col_storage") }}
+                        </th>
+                        <th
                             class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40"
                         >
                             {{ t("shared.common.actions") }}
@@ -336,6 +359,14 @@ const pageActions = computed(() => {
                             <span v-else class="text-xs text-primary">
                                 {{ t("backend.studio.spaces.statuses.active") }}
                             </span>
+                        </td>
+                        <!-- Le poids de ce que cet espace a fait déposer. Une
+                             colonne discrète, à droite et masquée sur les
+                             écrans étroits : on ne la lit pas tous les jours,
+                             mais le jour où le disque se remplit, c'est elle
+                             qui dit chez qui. -->
+                        <td class="px-6 py-3 text-right text-xs text-muted tabular-nums hidden xl:table-cell">
+                            {{ weigh(storage[space.id] ?? 0) }}
                         </td>
                         <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
                             <div class="flex items-center justify-end gap-0.5">

@@ -75,6 +75,10 @@ backend:
       test_never: "Never tested. The test is required before the storage can be switched."
       active_disk_label: Write new files to
       disk_local: The server's disk
+      usage_title: What is stored
+      usage_active: receiving
+      usage_files: "No file | 1 file | {count} files"
+      usage_hint: "The weight of the library's documents, trash excluded. Leftovers from a failed import and variants a purge has not swept are not counted."
       disk_r2: Cloudflare R2
       switch_blocked: Test the connection before switching.
       switch_hint: "Only affects files from now on. The ones already stored do not move."

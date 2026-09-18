@@ -40,6 +40,9 @@ backend:
                     revoked: Client access link revoked
                     deleted: Client access link deleted
                     opened: Space opened by a client
+                space_file:
+                    added: File added to a space
+                    removed: File removed from a space
                 space_note:
                     created: Space note created
                     updated: Space note edited
@@ -765,6 +768,7 @@ backend:
             col_space: Space
             col_customer: Client
             col_team: Team
+            col_storage: Weight
             col_status: Status
 
             group_identity: The space
@@ -859,6 +863,27 @@ backend:
             errors:
                 email_required: The recipient email is required.
                 email_invalid: This email is not valid.
+        space_files:
+            # A space's own files, on no card.
+            usage_detail: A file of the space
+            label: Attachment
+            tabs:
+                linked: On the cards
+                space: Of the space
+            upload: Upload a file
+            pick: Pick from the library
+            remove: Remove from the space
+            added: File added to the space.
+            removed: "File removed from the space. It stays in the library."
+            empty_linked: No file on this space's cards
+            empty_linked_hint: "Files dropped on the content, by you or by the client, appear here newest first."
+            empty_space: No file on this space
+            empty_space_hint: "The brand guide, the logos, the brief, a signed contract: what belongs to the mission without illustrating a post. The client sees them."
+            errors:
+                required: Choose a file.
+                unknown: This document cannot be found.
+                duplicate: This file is already on this space.
+                needs_account: You have to be signed in to add a file.
         space_notes:
             # A space's notes: the one surface a client never sees.
             add: New note
@@ -1134,6 +1159,8 @@ studio:
             no_body: The text is not written yet.
             thread_notice: What you write here is read by your agency.
             chat_notice: What you write here is read by your agency.
+            files_title: This space's files
+            files_open: Open
             upload_notice: "Images, PDF and common videos, 25 MB at most. What you send here is visible to your agency."
             approve: Approved
             request_changes: Needs changes
