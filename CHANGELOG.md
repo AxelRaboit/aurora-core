@@ -7,6 +7,24 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.203] - 2026-09-18
 
+### Ajouté
+
+#### Remplacer le fichier d'un document depuis la console
+`aurora:ged:replace <id> <fichier>` échange les octets d'un document de la
+médiathèque sans toucher à sa ligne. C'est ce qui manquait pour reprendre une
+capture publiée : l'import crée un *nouveau* document, donc il fallait ensuite
+rouvrir chaque page qui pointait sur l'ancien, retaper le texte alternatif et
+la légende, puis jeter l'ancienne ligne - quatre occasions de laisser le site
+sur une image qui ne montre plus ce qu'elle annonce.
+
+Là, la ligne survit : les pages continuent de pointer dessus, les mots écrits
+sur l'image restent écrits, et le fichier précédent devient une version. La
+commande prend la même route que le formulaire du navigateur - l'upload écrit
+sur le disque actif, le manager supprime les anciennes variantes, reconstruit
+les nouvelles, enregistre la version et écrit la ligne d'audit.
+
+Un `--dry-run` dit ce qui serait remplacé et s'arrête.
+
 ### Corrigé
 
 #### Vider la corbeille de la médiathèque échouait sur un toast
