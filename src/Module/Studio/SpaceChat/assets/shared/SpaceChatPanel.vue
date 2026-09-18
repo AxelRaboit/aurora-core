@@ -22,7 +22,9 @@ import { useI18n } from "vue-i18n";
 import { Radio, Send, Trash2, WifiOff } from "lucide-vue-next";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import SpaceChatChannels from "./SpaceChatChannels.vue";
 import { useSpaceChat } from "./composables/useSpaceChat.js";
+import { useSpaceChatChannels } from "./composables/useSpaceChatChannels.js";
 
 const props = defineProps({
     messages: { type: Array, default: () => [] },
@@ -32,6 +34,17 @@ const props = defineProps({
     deletePath: { type: String, default: null },
     /** Null when no hub is running, and then nothing tries to connect. */
     streamUrl: { type: String, default: null },
+    /** The rooms this reader may hear, and which one is open. */
+    channels: { type: Array, default: () => [] },
+    channelId: { type: [Number, null], default: null },
+    /** The space's team, for invitations. Empty on the client's page. */
+    team: { type: Array, default: () => [] },
+    /** Null on the client's page: the rooms are the studio's to arrange. */
+    channelCreatePath: { type: String, default: null },
+    channelRenamePath: { type: String, default: null },
+    channelAudiencePath: { type: String, default: null },
+    channelDeletePath: { type: String, default: null },
+    channelInvitePath: { type: String, default: null },
     /** Shown above the box: who reads what is typed here. */
     notice: { type: String, default: "" },
     /**
@@ -61,15 +74,48 @@ const props = defineProps({
 
 const { t, d } = useI18n();
 
-const { messages, loading, live, expectsLive, post, remove } = useSpaceChat(
-    props.messages,
+const { messages, loading, live, expectsLive, currentChannel, select, post, remove } =
+    useSpaceChat(
+        props.messages,
+        {
+            postPath: props.postPath,
+            reloadPath: props.reloadPath,
+            deletePath: props.deletePath,
+            streamUrl: props.streamUrl,
+        },
+        props.channelId,
+    );
+
+const { channels, create, rename, setAudience, drop, invite } = useSpaceChatChannels(
+    props.channels,
     {
-        postPath: props.postPath,
-        reloadPath: props.reloadPath,
-        deletePath: props.deletePath,
-        streamUrl: props.streamUrl,
+        createPath: props.channelCreatePath,
+        renamePath: props.channelRenamePath,
+        audiencePath: props.channelAudiencePath,
+        deletePath: props.channelDeletePath,
+        invitePath: props.channelInvitePath,
     },
 );
+
+/** The room on screen, which is what the header names. */
+const openChannel = computed(
+    () => channels.value.find((channel) => channel.id === currentChannel.value) ?? null,
+);
+
+/**
+ * Leaving a room that no longer exists.
+ *
+ * Deleting the open room is the one case where the list changes under the
+ * reader: they land back in the first room rather than on a conversation that
+ * has nothing behind it.
+ */
+async function onDrop(channel) {
+    await drop(channel);
+
+    if (channel?.id === currentChannel.value) {
+        await select(channels.value[0]?.id ?? null);
+    }
+}
 
 const draft = ref("");
 const scroller = ref(null);
@@ -204,8 +250,18 @@ function onKeydown(event) {
     >
         <header class="flex items-center gap-2 border-b border-line/60 px-4 py-2.5">
             <h2 class="text-sm font-medium text-primary">
-                {{ t("shared.space_chat.title") }}
+                {{ openChannel?.name ?? t("shared.space_chat.title") }}
             </h2>
+
+            <!-- Dit dans l'en-tête et pas seulement sur la pastille : c'est la
+                 phrase à lire avant d'écrire, et l'en-tête est là où le regard
+                 revient entre deux messages. -->
+            <span
+                v-if="channelCreatePath && openChannel && !openChannel.openToClient"
+                class="rounded bg-surface-2/60 px-1.5 py-0.5 text-[0.65rem] uppercase tracking-wide text-muted"
+            >
+                {{ t("shared.space_chat.channels.internal") }}
+            </span>
 
             <!-- Said out loud, because the difference is invisible otherwise:
                  somebody typing into a chat that has stopped being live
@@ -223,6 +279,24 @@ function onKeydown(event) {
                 {{ t(live ? "shared.space_chat.live" : "shared.space_chat.reconnecting") }}
             </span>
         </header>
+
+        <SpaceChatChannels
+            v-if="channels.length > 1 || channelCreatePath"
+            :channels="channels"
+            :current="currentChannel"
+            :team="team"
+            :create-path="channelCreatePath"
+            :rename-path="channelRenamePath"
+            :audience-path="channelAudiencePath"
+            :delete-path="channelDeletePath"
+            :invite-path="channelInvitePath"
+            v-on:select="select"
+            v-on:create="create"
+            v-on:rename="rename"
+            v-on:audience="setAudience"
+            v-on:delete="onDrop"
+            v-on:invite="invite"
+        />
 
         <!-- `flex flex-col` sur le défilement, `mt-auto` sur les entrées : une
              conversation courte se pose en bas de la boîte plutôt que de

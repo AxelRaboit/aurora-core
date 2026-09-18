@@ -17,6 +17,21 @@ shared:
     deleted: Message supprimé
     live: en direct
     reconnecting: reconnexion…
+    channels:
+      label: Canaux
+      new: Nouveau canal
+      name_placeholder: Nom du canal
+      create: Ouvrir
+      cancel: Annuler
+      rename: Renommer
+      delete: Supprimer le canal
+      delete_confirm: "Supprimer ce canal ? Ses messages partent avec lui."
+      internal: interne
+      open_to_client: Ouvrir au client
+      close_to_client: Fermer au client
+      invite: Ajouter quelqu'un
+      invited: Ajouté au canal
+      members: 'Personne | 1 personne | {count} personnes'
   attachments:
     title: Fichiers
     empty: Aucun fichier pour le moment.

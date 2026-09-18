@@ -48,6 +48,14 @@ backend:
                     updated: Note d'espace modifiée
                     pinned: Note d'espace épinglée ou dépinglée
                     deleted: Note d'espace supprimée
+                space_chat_channel:
+                    created: Canal de discussion ouvert
+                    renamed: Canal de discussion renommé
+                    updated: Canal de discussion modifié
+                    deleted: Canal de discussion supprimé
+                    opened: Conversation privée ouverte
+                    invited: Membre ajouté à un canal
+                    uninvited: Membre retiré d'un canal
                 space_chat_message:
                     posted: Message envoyé dans la discussion d'un espace
                     deleted: Message de discussion supprimé
@@ -939,7 +947,19 @@ backend:
             # Ce qui porte sur un contenu précis reste dans les échanges de sa
             # fiche : on le retrouve à côté de ce dont il parle.
             notice: Ce que vous écrivez ici est lu par le client.
+            channels:
+                main_name: Général
+                notice_internal: "Ce canal est interne : le client ne le lit pas."
             errors:
+                main_stays_open: "Le canal principal reste ouvert au client : c'est la conversation de l'espace."
+                direct_has_no_audience: Une conversation privée n'a pas de public à régler.
+                channel_not_deletable: Seuls les canaux ouverts ici se suppriment.
+                direct_keeps_both: Une conversation privée garde ses deux personnes.
+                direct_needs_two: Une conversation privée se tient à deux.
+                channel_name_required: Il faut un nom au canal.
+                channel_not_in_space: Ce canal n'appartient pas à cet espace.
+                not_on_the_team: Cette personne n'est pas sur l'équipe de cet espace.
+                channel_closed: Ce canal ne vous est pas ouvert.
                 body_required: Le message ne peut pas être vide.
                 needs_account: Il faut être connecté pour écrire dans une discussion.
                 from_client: Un message du client ne se supprime pas. C'est ce qu'il vous a dit.

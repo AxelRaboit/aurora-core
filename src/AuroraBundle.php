@@ -128,6 +128,10 @@ use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannel;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelMember;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelMemberInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessageInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
@@ -259,6 +263,8 @@ class AuroraBundle extends AbstractBundle
                     SpaceContentCommentInterface::class => SpaceContentComment::class,
                     SpaceAccessLinkInterface::class => SpaceAccessLink::class,
                     SpaceChatMessageInterface::class => SpaceChatMessage::class,
+                    SpaceChatChannelInterface::class => SpaceChatChannel::class,
+                    SpaceChatChannelMemberInterface::class => SpaceChatChannelMember::class,
                     SpaceNoteInterface::class => SpaceNote::class,
                     SpaceFileInterface::class => SpaceFile::class,
                     DeckInterface::class => Deck::class,

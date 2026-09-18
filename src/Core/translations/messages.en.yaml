@@ -17,6 +17,21 @@ shared:
     deleted: Message deleted
     live: live
     reconnecting: reconnecting…
+    channels:
+      label: Channels
+      new: New channel
+      name_placeholder: Channel name
+      create: Open
+      cancel: Cancel
+      rename: Rename
+      delete: Delete channel
+      delete_confirm: "Delete this channel? Its messages go with it."
+      internal: internal
+      open_to_client: Open to the client
+      close_to_client: Close to the client
+      invite: Add somebody
+      invited: Added to the channel
+      members: 'Nobody | 1 person | {count} people'
   attachments:
     title: Files
     empty: No file yet.

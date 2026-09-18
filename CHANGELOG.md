@@ -5,6 +5,33 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.204] - 2026-09-18
+
+### Ajouté
+
+#### Des canaux dans la discussion d'un espace
+Un espace n'avait qu'un seul fil, et tout ce qui n'appartenait à aucune fiche y
+tombait : le brief du mois, une campagne qui bouge, la logistique. Le brief
+défilait sous le reste.
+
+La discussion a maintenant des **canaux**. Le studio les ouvre, les renomme et
+les supprime ; le client, lui, n'en crée pas : les canaux servent à ranger le
+travail de l'agence, et un canal ouvert par le client rangerait celui de
+quelqu'un d'autre. Chaque canal porte la liste des gens qui y sont, et un
+réglage décide si le client le lit. **Un canal est fermé au client tant que
+personne ne l'ouvre**, et le canal principal, lui, ne se ferme pas : c'est la
+conversation que l'espace avait avant.
+
+Ce que le client ne lit pas, il ne le voit pas : ni le nom, ni le nombre. Son
+jeton d'abonnement nomme ses canaux un par un, et demander un canal interne par
+son identifiant répond 404 comme pour un inconnu - dire « ce canal existe mais
+pas pour vous » renseigne déjà celui qui a récupéré une adresse.
+
+Un espace naît avec son canal principal, et les conversations existantes y ont
+été versées par la migration. Les conversations privées sont dans le modèle
+- un canal à deux, comme dans les applications qui en font - mais elles n'ont
+pas encore d'écran : c'est la suite.
+
 ## [0.9.203] - 2026-09-18
 
 ### Ajouté

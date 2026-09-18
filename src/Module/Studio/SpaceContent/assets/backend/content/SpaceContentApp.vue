@@ -104,6 +104,14 @@ const props = defineProps({
     chatPostPath: { type: String, required: true },
     chatReloadPath: { type: String, required: true },
     chatDeletePath: { type: String, required: true },
+    chatChannels: { type: Array, default: () => [] },
+    chatChannelId: { type: [Number, null], default: null },
+    chatTeam: { type: Array, default: () => [] },
+    chatChannelCreatePath: { type: String, default: null },
+    chatChannelRenamePath: { type: String, default: null },
+    chatChannelAudiencePath: { type: String, default: null },
+    chatChannelDeletePath: { type: String, default: null },
+    chatChannelInvitePath: { type: String, default: null },
     notes: { type: Array, default: () => [] },
     noteCreatePath: { type: String, required: true },
     noteUpdatePath: { type: String, required: true },
@@ -419,6 +427,14 @@ const actionsFor = useSpaceCardActions({
                 :post-path="editable ? chatPostPath : null"
                 :reload-path="chatReloadPath"
                 :delete-path="editable ? chatDeletePath : null"
+                :channels="chatChannels"
+                :channel-id="chatChannelId"
+                :team="chatTeam"
+                :channel-create-path="editable ? chatChannelCreatePath : null"
+                :channel-rename-path="editable ? chatChannelRenamePath : null"
+                :channel-audience-path="editable ? chatChannelAudiencePath : null"
+                :channel-delete-path="editable ? chatChannelDeletePath : null"
+                :channel-invite-path="editable ? chatChannelInvitePath : null"
                 :notice="t('backend.studio.space_chat.notice')"
             />
         </div>

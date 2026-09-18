@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceChat\Service;
 
-use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
 use DateTimeImmutable;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -62,7 +62,7 @@ final readonly class SpaceChatHub
      * name survives the site being moved to another domain, which would
      * otherwise orphan every subscription at once.
      */
-    private const string TOPIC_TEMPLATE = 'https://aurora.invalid/studio/spaces/%d/chat';
+    private const string TOPIC_TEMPLATE = 'https://aurora.invalid/studio/spaces/%d/chat/%d';
 
     /**
      * How long a browser may keep listening before the page has to be reopened.
@@ -93,9 +93,9 @@ final readonly class SpaceChatHub
         return '' !== mb_trim($this->hubUrl);
     }
 
-    public function topicFor(CustomerSpaceInterface $space): string
+    public function topicFor(SpaceChatChannelInterface $channel): string
     {
-        return sprintf(self::TOPIC_TEMPLATE, $space->getId());
+        return sprintf(self::TOPIC_TEMPLATE, $channel->getSpace()->getId(), $channel->getId());
     }
 
     /**
@@ -105,9 +105,9 @@ final readonly class SpaceChatHub
      * than to open one and retry for ever against a port nobody is listening
      * on.
      */
-    public function subscribeUrl(CustomerSpaceInterface $space): ?string
+    public function subscribeUrl(array $channels): ?string
     {
-        if (!$this->isEnabled()) {
+        if (!$this->isEnabled() || [] === $channels) {
             return null;
         }
 
@@ -117,7 +117,16 @@ final readonly class SpaceChatHub
         // understands.
         $parameter = ProtocolVersion::Legacy === $this->hub->getProtocolVersion() ? 'topic' : 'match';
 
-        return $this->hub->getPublicUrl().'?'.$parameter.'='.rawurlencode($this->topicFor($space));
+        // One address listing every room this reader may hear, rather than one
+        // connection per room: a browser holds six of those per host, and a
+        // studio with seven rooms open would have stopped receiving the
+        // seventh without any error to show for it.
+        $query = implode('&', array_map(
+            fn (SpaceChatChannelInterface $channel): string => $parameter.'='.rawurlencode($this->topicFor($channel)),
+            $channels,
+        ));
+
+        return $this->hub->getPublicUrl().'?'.$query;
     }
 
     /**
@@ -137,17 +146,21 @@ final readonly class SpaceChatHub
      * run. Subscribe only: a browser that could publish could put words in the
      * studio's mouth without any of them being stored.
      */
-    public function subscriptionCookie(Request $request, CustomerSpaceInterface $space): ?Cookie
+    public function subscriptionCookie(Request $request, array $channels): ?Cookie
     {
-        if (!$this->isEnabled()) {
+        if (!$this->isEnabled() || [] === $channels) {
             return null;
         }
 
         try {
             $expiresAt = new DateTimeImmutable('+'.self::COOKIE_LIFETIME.' seconds');
 
+            // The rooms this reader may hear, named one by one. A pattern
+            // covering the space would hand a client the internal rooms of
+            // their own space, which is the one thing rooms were added to
+            // prevent.
             $token = $this->tokens->create(
-                [new Grant([Grant::ACTION_SUBSCRIBE], [$this->topicFor($space)])],
+                [new Grant([Grant::ACTION_SUBSCRIBE], array_map($this->topicFor(...), $channels))],
                 ['exp' => $expiresAt],
             );
 
@@ -181,7 +194,7 @@ final readonly class SpaceChatHub
             );
         } catch (Throwable $throwable) {
             $this->logger->warning('Could not mint a Mercure subscription cookie.', [
-                'space' => $space->getId(),
+                'channels' => array_map(static fn (SpaceChatChannelInterface $channel): ?int => $channel->getId(), $channels),
                 'exception' => $throwable,
             ]);
 
@@ -204,7 +217,7 @@ final readonly class SpaceChatHub
      *
      * @param array<string, mixed> $message
      */
-    public function publish(CustomerSpaceInterface $space, array $message): void
+    public function publish(SpaceChatChannelInterface $channel, array $message): void
     {
         if (!$this->isEnabled()) {
             return;
@@ -212,7 +225,7 @@ final readonly class SpaceChatHub
 
         try {
             $this->hub->publish(new Update(
-                $this->topicFor($space),
+                $this->topicFor($channel),
                 json_encode($message, JSON_THROW_ON_ERROR),
                 private: true,
             ));
@@ -221,7 +234,7 @@ final readonly class SpaceChatHub
             // already stored, and a hub that is down is a page that needs
             // refreshing, not a write that failed.
             $this->logger->warning('Could not publish a space chat message to the hub.', [
-                'space' => $space->getId(),
+                'channel' => $channel->getId(),
                 'exception' => $throwable,
             ]);
         }

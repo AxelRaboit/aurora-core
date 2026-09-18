@@ -67,6 +67,8 @@ const props = defineProps({
     /** Null when this link may only read, so there is no box to type in. */
     chatPostPath: { type: String, default: null },
     chatReloadPath: { type: String, required: true },
+    chatChannels: { type: Array, default: () => [] },
+    chatChannelId: { type: [Number, null], default: null },
 });
 
 const { t, d } = useI18n();
@@ -299,6 +301,8 @@ function open(event) {
             :stream-url="chatStreamUrl"
             :post-path="chatPostPath"
             :reload-path="chatReloadPath"
+            :channels="chatChannels"
+            :channel-id="chatChannelId"
             own-side="client"
             :notice="chatPostPath ? t('studio.public.space.chat_notice') : ''"
         />

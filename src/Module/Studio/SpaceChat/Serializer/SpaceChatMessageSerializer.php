@@ -27,6 +27,10 @@ class SpaceChatMessageSerializer implements SpaceChatMessageSerializerInterface
     {
         return [
             'id' => $message->getId(),
+            // The room it belongs to, because one connection carries every
+            // room a reader may hear: without this the panel could not tell
+            // which list a message that arrived live belongs in.
+            'channel' => $message->getChannel()->getId(),
             'body' => $message->getBody(),
             // The durable name, not the relation: an account can be deleted and
             // an address revoked, and a message whose author became null is a

@@ -48,6 +48,14 @@ backend:
                     updated: Space note edited
                     pinned: Space note pinned or unpinned
                     deleted: Space note deleted
+                space_chat_channel:
+                    created: Chat channel opened
+                    renamed: Chat channel renamed
+                    updated: Chat channel updated
+                    deleted: Chat channel deleted
+                    opened: Private conversation opened
+                    invited: Member added to a channel
+                    uninvited: Member removed from a channel
                 space_chat_message:
                     posted: Message posted in a space's conversation
                     deleted: Conversation message deleted
@@ -935,7 +943,19 @@ backend:
             # about one piece of content stays on that card's thread, where it
             # is found next to what it is about.
             notice: What you write here is read by the client.
+            channels:
+                main_name: General
+                notice_internal: "This channel is internal: the client does not read it."
             errors:
+                main_stays_open: "The main channel stays open to the client: it is the space's conversation."
+                direct_has_no_audience: A private conversation has no audience to set.
+                channel_not_deletable: Only channels opened here can be deleted.
+                direct_keeps_both: A private conversation keeps both of its people.
+                direct_needs_two: A private conversation is held between two people.
+                channel_name_required: A channel needs a name.
+                channel_not_in_space: That channel does not belong to this space.
+                not_on_the_team: That person is not on this space's team.
+                channel_closed: That channel is not open to you.
                 body_required: The message cannot be empty.
                 needs_account: You have to be signed in to write in a conversation.
                 from_client: A client's message is not deleted. It is what they told you.

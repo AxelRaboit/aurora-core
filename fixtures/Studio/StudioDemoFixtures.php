@@ -49,6 +49,7 @@ use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
+use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInput;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInput;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
@@ -143,6 +144,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly SettingRepository $settings,
         private readonly EntityManagerInterface $entityManager,
         private readonly SpaceAccessLinkManagerInterface $accessLinks,
+        private readonly SpaceChatChannelManagerInterface $chatChannels,
     ) {}
 
     public static function getGroups(): array
@@ -354,6 +356,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // what the screens have to be able to draw.
         $this->seedBoard($social);
         $this->seedCardComments($social, $this->seedChat($social));
+        $this->seedChannels($social);
         $this->seedNotes($social);
         // Des fichiers qui n'illustrent rien : ce qu'on tend au client sans
         // l'épingler à une publication.
@@ -560,9 +563,14 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
 
         $dates = [];
 
+        // Le canal principal de l'espace : un message appartient à un canal
+        // depuis que la discussion en a plusieurs, et l'espace est né avec
+        // celui-là.
+        $channel = $this->chatChannels->ensureMain($space);
+
         foreach ($exchange as [$when, $fromClient, $body]) {
             $message = new SpaceChatMessage();
-            $message->setSpace($space)->setBody($body);
+            $message->setSpace($space)->setChannel($channel)->setBody($body);
 
             if ($fromClient) {
                 $message->writtenByClient($link);
@@ -583,6 +591,30 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         }
 
         return $link;
+    }
+
+    /**
+     * Deux canaux de plus sur l'espace le mieux rempli.
+     *
+     * Un interne et un ouvert, parce que c'est la distinction que la
+     * fonctionnalité existe pour porter : une démonstration qui n'aurait que
+     * des canaux ouverts ne montrerait pas où l'agence parle entre elle, et une
+     * qui n'aurait que des canaux fermés ferait croire que le client n'en voit
+     * jamais.
+     *
+     * Le canal principal n'est pas créé ici : un espace naît avec.
+     */
+    private function seedChannels(CustomerSpaceInterface $space): void
+    {
+        $marie = $this->userRepository->find($this->backendUser('marie.dupont@aurora.app'));
+
+        $internal = $this->chatChannels->create($space, 'Entre nous');
+
+        if ($marie instanceof User) {
+            $this->chatChannels->invite($internal, $marie);
+        }
+
+        $this->chatChannels->create($space, 'Le mois prochain', openToClient: true);
     }
 
     /**

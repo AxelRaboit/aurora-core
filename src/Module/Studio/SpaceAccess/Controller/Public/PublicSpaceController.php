@@ -18,7 +18,9 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\View\PublicSpaceViewBuilder;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatMessageManagerInterface;
+use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
@@ -83,6 +85,7 @@ final class PublicSpaceController extends AbstractController
         private readonly UploadPolicyProvider $uploadPolicies,
         private readonly StoredFileResponder $responder,
         private readonly SpaceChatMessageManagerInterface $chat,
+        private readonly SpaceChatChannelRepository $chatChannels,
         private readonly SpaceChatViewBuilder $chatViewBuilder,
         private readonly SpaceChatHub $chatHub,
     ) {}
@@ -124,7 +127,7 @@ final class PublicSpaceController extends AbstractController
         // to this space's topic and to subscribing only, in a cookie the
         // browser sends nowhere but the hub. Revoking the link stops this page
         // being served, and the cookie runs out on its own.
-        $cookie = $this->chatHub->subscriptionCookie($request, $link->getSpace());
+        $cookie = $this->chatHub->subscriptionCookie($request, $this->chatChannels->findForLink($link->getSpace(), $link));
 
         if ($cookie instanceof Cookie) {
             $response->headers->setCookie($cookie);
@@ -324,12 +327,12 @@ final class PublicSpaceController extends AbstractController
      * link.
      */
     #[Route(
-        '/{selector}/{token}/chat/messages',
+        '/{selector}/{token}/chat/{channelId}/messages',
         name: '_chat_messages',
-        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}', 'channelId' => '\d+'],
         methods: [HttpMethodEnum::Get->value],
     )]
-    public function chatMessages(string $selector, string $token): JsonResponse
+    public function chatMessages(string $selector, string $token, int $channelId): JsonResponse
     {
         $link = $this->links->resolveUsable($selector, $token);
 
@@ -337,7 +340,28 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        return $this->jsonSuccess($this->chatViewBuilder->payload($link->getSpace()));
+        $channel = $this->readableChannel($link, $channelId);
+
+        return $this->jsonSuccess($this->chatViewBuilder->payload($channel));
+    }
+
+    /**
+     * The room behind an id, or a 404.
+     *
+     * **Not found rather than forbidden, like everything else a link reaches.**
+     * Answering "this room exists but is not yours" would tell whoever holds a
+     * leaked address how many rooms the studio keeps and roughly what they are
+     * for. A room the client does not read is a room that does not exist.
+     */
+    private function readableChannel(SpaceAccessLinkInterface $link, int $channelId): SpaceChatChannelInterface
+    {
+        foreach ($this->chatChannels->findForLink($link->getSpace(), $link) as $channel) {
+            if ($channel->getId() === $channelId) {
+                return $channel;
+            }
+        }
+
+        throw $this->createNotFoundException();
     }
 
     /**
@@ -354,12 +378,12 @@ final class PublicSpaceController extends AbstractController
      * verdict and unlike a file.
      */
     #[Route(
-        '/{selector}/{token}/chat',
+        '/{selector}/{token}/chat/{channelId}',
         name: '_chat_post',
-        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}', 'channelId' => '\d+'],
         methods: [HttpMethodEnum::Post->value],
     )]
-    public function chatPost(string $selector, string $token, Request $request): JsonResponse
+    public function chatPost(string $selector, string $token, int $channelId, Request $request): JsonResponse
     {
         if (!$this->spaceGuestWriteLimiter->create($request->getClientIp())->consume()->isAccepted()) {
             return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
@@ -377,17 +401,19 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonInvalidInput(['body' => 'studio.public.space.errors.comment_required']);
         }
 
+        $channel = $this->readableChannel($link, $channelId);
+
         try {
-            $this->chat->postAsClient($link->getSpace(), $link, $body);
+            $this->chat->postAsClient($channel, $link, $body);
         } catch (FieldException) {
-            // The link opens another space. Answered like a stranger, for the
-            // reason the other writes give.
+            // The link opens another space, or a room it does not read.
+            // Answered like a stranger, for the reason the other writes give.
             throw $this->createNotFoundException();
         }
 
         $this->links->markOpened($link);
 
-        return $this->jsonSuccess($this->chatViewBuilder->payload($link->getSpace()));
+        return $this->jsonSuccess($this->chatViewBuilder->payload($channel));
     }
 
     /**
