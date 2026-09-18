@@ -21,7 +21,7 @@
  */
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Plus, X } from "lucide-vue-next";
+import { Download, Plus, Upload, X } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
@@ -144,6 +144,24 @@ onUnmounted(() => {
         :failed="failed"
     >
         <template #action>
+            <!-- Emporter et rendre, à côté de « nouvelle note » : ce sont des
+                 gestes sur le carnet entier, pas sur une note. -->
+            <AppIconButton
+                size="sm"
+                variant="ghost"
+                :title="t('notes.markdown.import.button')"
+                v-on:click="forward('import')"
+            >
+                <Upload class="h-3.5 w-3.5" :stroke-width="2" />
+            </AppIconButton>
+            <AppIconButton
+                size="sm"
+                variant="ghost"
+                :title="t('notes.markdown.export.all')"
+                v-on:click="forward('export')"
+            >
+                <Download class="h-3.5 w-3.5" :stroke-width="2" />
+            </AppIconButton>
             <AppIconButton
                 size="sm"
                 variant="ghost"

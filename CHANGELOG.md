@@ -7,6 +7,30 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.202] - 2026-09-18
 
+### Ajouté
+
+#### Emporter son carnet de notes, et le rendre
+Un carnet rangé dans une base est un enfermement tant qu'on ne peut pas le
+reprendre. **Exporter le carnet** rend un zip de fichiers `.md` dans
+l'arborescence des notes : un éditeur de texte les ouvre, Obsidian les lit, et
+rien là-dedans n'est propre à Aurora. Les étiquettes voyagent en préambule,
+dans la forme que les mêmes outils connaissent. Une note seule s'exporte aussi,
+depuis son en-tête.
+
+**Importer** relit des `.md` ou un zip entier, sous la note ouverte ou à la
+racine, et reconstruit l'arborescence à partir des dossiers.
+
+Deux décisions valent d'être dites. **Rien n'est écrasé** : une note du même
+nom donne une seconde note, parce que fusionner demanderait de décider ce qui
+gagne et que personne ne l'a demandé à ce moment-là. Et **un chemin désigne une
+note, pas deux** : l'export d'une note qui a des enfants écrit un fichier pour
+elle et un dossier pour eux, et l'import les recolle - sans quoi un
+aller-retour rendait deux notes du même nom, l'une avec le texte, l'autre avec
+les enfants.
+
+L'aller-retour est tenu par un test, parce que c'est la seule preuve qu'une
+exportation vaut quelque chose.
+
 ### Corrigé
 
 #### La fin d'une note Markdown se lisait hors de l'écran

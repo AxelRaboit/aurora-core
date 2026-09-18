@@ -7,6 +7,8 @@ namespace Aurora\Module\Notes\Markdown\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Storage\Access\UploadPolicyProvider;
+use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteReorderInputFactoryInterface;
@@ -14,16 +16,29 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Serializer\MarkdownNoteSerializerInterface;
+use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHierarchyService;
+use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
 use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+use function array_filter;
+use function array_values;
+use function date;
+use function iconv;
+use function is_array;
+use function is_numeric;
+use function preg_replace;
+use function sprintf;
 
 use const DATE_ATOM;
 
@@ -43,6 +58,9 @@ final class MarkdownNotesController extends AbstractController
         private readonly PayloadValidator $payloadValidator,
         private readonly MarkdownNotesViewBuilder $viewBuilder,
         private readonly MarkdownNoteHierarchyService $hierarchy,
+        private readonly MarkdownNoteArchive $archive,
+        private readonly MarkdownNoteImporter $importer,
+        private readonly UploadPolicyProvider $uploadPolicies,
     ) {}
 
     /**
@@ -162,6 +180,134 @@ final class MarkdownNotesController extends AbstractController
         }
 
         return $this->jsonSuccess(['deleted' => $deleted]);
+    }
+
+    /**
+     * Le carnet entier, en Markdown, dans un zip.
+     *
+     * **La porte de sortie.** Un carnet en base est un enfermement tant qu'on
+     * ne peut pas le reprendre : ceci rend des fichiers `.md` qu'un éditeur de
+     * texte ouvre et qu'Obsidian lit, dans l'arborescence des notes, avec les
+     * étiquettes en préambule. Rien n'y est propre à Aurora.
+     *
+     * Le fichier temporaire est supprimé après l'envoi : `deleteFileAfterSend`
+     * le fait une fois la réponse écrite, pas avant, sinon un gros carnet part
+     * dans le vide.
+     */
+    #[Route('/export', name: '_export', methods: [HttpMethodEnum::Get->value])]
+    public function export(): Response
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $path = $this->archive->zipFor($user);
+
+        return $this->file($path, sprintf('notes-%s.zip', date('Y-m-d')))->deleteFileAfterSend(true);
+    }
+
+    /** Une note seule, pour l'emporter sans emporter le reste. */
+    // `__id__` accepté comme sur `_show` : la vue reçoit un gabarit d'adresse
+    // dans lequel elle substitue l'identifiant, donc le générateur doit savoir
+    // produire l'adresse avec le marqueur dedans.
+    #[Route('/{id}/export', name: '_export_one', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
+    public function exportOne(int $id): Response
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $note = $this->repository->findOneByUserAndId($user, $id);
+
+        if (!$note instanceof MarkdownNoteInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        $response = new Response($this->archive->fileFor($note));
+        $response->headers->set('Content-Type', 'text/markdown; charset=UTF-8');
+        // Un repli ASCII est obligatoire : le titre d'une note est écrit par
+        // quelqu'un, donc il a des accents, et `makeDisposition` refuse d'en
+        // deviner un tout seul. Le nom accentué reste, dans le paramètre que
+        // les navigateurs lisent depuis quinze ans.
+        $name = $this->archive->nameOf($note).'.md';
+
+        $response->headers->set(
+            'Content-Disposition',
+            $response->headers->makeDisposition(
+                ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                $name,
+                $this->asciiName($name),
+            ),
+        );
+
+        return $response;
+    }
+
+    /**
+     * Des fichiers Markdown, ou un zip, remis en notes.
+     *
+     * Sous le parent nommé, ou à la racine. Rien n'est écrasé : une note du
+     * même nom donne une seconde note, parce que fusionner demanderait de
+     * décider ce qui gagne et que personne ne l'a demandé ici.
+     */
+    #[Route('/import', name: '_import', methods: [HttpMethodEnum::Post->value])]
+    public function import(Request $request): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $files = $request->files->all()['files'] ?? [];
+        $files = is_array($files) ? $files : [$files];
+        $files = array_values(array_filter($files, static fn (mixed $file): bool => $file instanceof UploadedFile));
+
+        if ([] === $files) {
+            return $this->jsonInvalidInput(['files' => 'notes.markdown.import.errors.required']);
+        }
+
+        $parentId = $request->request->get('parentId');
+        $parent = null;
+
+        if (is_numeric($parentId)) {
+            $parent = $this->repository->findOneByUserAndId($user, (int) $parentId);
+
+            if (!$parent instanceof MarkdownNoteInterface) {
+                return $this->jsonNotFound();
+            }
+        }
+
+        $created = 0;
+
+        foreach ($files as $file) {
+            $refusal = $this->uploadPolicies->forStaffDocuments()->refusalFor($file);
+
+            if ($refusal instanceof UploadRefusalEnum) {
+                return $this->jsonInvalidInput(['files' => match ($refusal) {
+                    UploadRefusalEnum::TooLarge => 'backend.ged.documents.errors.upload_too_large',
+                    UploadRefusalEnum::TypeRefused => 'backend.ged.documents.errors.upload_type_refused',
+                    UploadRefusalEnum::Broken => 'backend.ged.documents.errors.upload_failed',
+                }]);
+            }
+
+            $created += $this->importer->import($user, $file, $parent);
+        }
+
+        return $this->jsonSuccess(['created' => $created]);
+    }
+
+    /**
+     * Le même nom, réduit à ce qu'un vieux client sait lire.
+     *
+     * Translittéré plutôt que tronqué : « Séance en extérieur » devient
+     * « Seance en exterieur » et reste reconnaissable, là où un filtre brutal
+     * rendrait « S ance en ext rieur ».
+     */
+    private function asciiName(string $name): string
+    {
+        $ascii = @iconv('UTF-8', 'ASCII//TRANSLIT', $name);
+
+        if (false === $ascii) {
+            $ascii = $name;
+        }
+
+        return (string) preg_replace('/[^\x20-\x7E]+/', '-', $ascii);
     }
 
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]

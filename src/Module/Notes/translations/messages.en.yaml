@@ -101,6 +101,14 @@ notes:
     drag_handle: Drag to reorder
     content_placeholder: "# Write markdown here\n\nLink to other notes with [[Title]]"
     create_root: New note
+    export:
+      all: Export the notebook
+      one: Export this note
+    import:
+      button: Import notes
+      done: "No note imported | 1 note imported | {count} notes imported"
+      errors:
+        required: Choose at least one file.
     tree_empty: No note yet.
     create_child: Add a child note
     confirm_delete: 'Permanently delete "{title}"?'

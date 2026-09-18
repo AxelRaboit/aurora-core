@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 import { useMarkdownNotesPage } from '@notes/backend/markdown/composables/useMarkdownNotesPage.js';
 import NotePreview from '@notes/backend/markdown/components/NotePreview.vue';
 import NoteSidePanel from '@notes/backend/markdown/components/NoteSidePanel.vue';
@@ -19,7 +20,7 @@ import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
 import { onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { Plus, Trash2, FileText, PanelRightOpen, PanelRightClose, X, Settings2, Network, Share2} from 'lucide-vue-next';
+import { Plus, Trash2, FileDown, FileText, PanelRightOpen, PanelRightClose, X, Settings2, Network, Share2} from 'lucide-vue-next';
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 
 const { formatDateTimeNumeric } = useDateFormat();
@@ -36,6 +37,10 @@ const props = defineProps({
     backlinksPath: { type: String, required: true },
     unlinkedMentionsPath: { type: String, required: true },
     graphPath: { type: String, required: true },
+    /** Le carnet entier en zip, une note seule en .md, et le chemin du retour. */
+    exportPath: { type: String, required: true },
+    exportOnePath: { type: String, required: true },
+    importPath: { type: String, required: true },
     searchPath: { type: String, required: true },
     tagsListPath: { type: String, required: true },
     tagsRenamePath: { type: String, required: true },
@@ -133,8 +138,57 @@ const shareModalOpen = ref(false);
  * editor reaches the tree. Without it the panel showed the list it fetched on
  * arrival until the reader reloaded the page.
  */
+/**
+ * Emporter le carnet, et le rendre.
+ *
+ * L'export est une navigation, pas une requête : le navigateur sait recevoir
+ * un fichier et le ranger, et passer par `fetch` obligerait à garder un zip
+ * entier en mémoire pour le redonner à un lien fabriqué.
+ */
+function exportAll() {
+    window.location.assign(props.exportPath);
+}
+
+function exportOne(id) {
+    window.location.assign(props.exportOnePath.replace("__id__", String(id)));
+}
+
+const importInput = ref(null);
+
+function askForFiles() {
+    importInput.value?.click();
+}
+
+async function onImportFiles(event) {
+    const files = [...(event.target.files ?? [])];
+    // Remis à zéro tout de suite : sans ça, réimporter le même fichier
+    // n'émettrait rien, le champ n'ayant pas changé de valeur.
+    event.target.value = "";
+
+    if (!files.length) return;
+
+    const form = new FormData();
+    files.forEach((file) => form.append("files[]", file));
+
+    // Sous la note ouverte quand il y en a une : on importe là où on regarde.
+    if (selectedId.value) form.append("parentId", String(selectedId.value));
+
+    const { ok, payload } = await api.import(form);
+
+    if (!ok) {
+        if (payload?.errors) toast.error(Object.values(payload.errors)[0]);
+
+        return;
+    }
+
+    await refreshList();
+    toast.success(t("notes.markdown.import.done", { count: payload.created ?? 0 }));
+}
+
 const PANEL_INTENTS = {
     select: (id) => selectNote(id),
+    export: () => exportAll(),
+    import: () => askForFiles(),
     create: (parentId) => createNote(parentId ?? null),
     delete: (note) => requestDelete(note),
     'drag-start': (note, event) => onDragStart(note, event),
@@ -181,6 +235,17 @@ onUnmounted(() => {
          de pixels : la carte dépassait le bas de l'écran, donc la fin d'une
          note longue se lisait en faisant défiler la page entière. `dvh` plutôt
          que `vh` pour que la barre d'un navigateur mobile compte. -->
+    <!-- Le champ qui reçoit les fichiers importés : invisible, déclenché par
+         le bouton du panneau. Un `input[type=file]` ne se dessine pas. -->
+    <input
+        ref="importInput"
+        type="file"
+        class="hidden"
+        multiple
+        accept=".md,.markdown,.zip,text/markdown,application/zip"
+        v-on:change="onImportFiles"
+    >
+
     <div class="relative flex h-[calc(100dvh-var(--aurora-topbar)-4rem)] bg-surface rounded-xl border border-line overflow-hidden">
         <!-- No tree column and no drawer of its own: the notes are in the
              side menu's panel now, on every page of the module rather than
@@ -212,6 +277,19 @@ onUnmounted(() => {
                         <!-- Disabled until a note is selected: there is nothing to
                              share from an empty editor, and a modal that opens on
                              null would ask the server for share links of no note. -->
+                        <!-- Cette note seule, en Markdown. À côté du partage
+                             parce que les deux répondent à « je veux la donner
+                             à quelqu'un », par un lien ou par un fichier. -->
+                        <AppIconButton
+                            :title="t('notes.markdown.export.one')"
+                            size="md"
+                            variant="ghost"
+                            :disabled="!selectedId"
+                            v-on:click="exportOne(selectedId)"
+                        >
+                            <FileDown class="w-4 h-4" :stroke-width="2" />
+                        </AppIconButton>
+
                         <AppIconButton
                             :title="t('notes.markdown.share.button')"
                             size="md"
