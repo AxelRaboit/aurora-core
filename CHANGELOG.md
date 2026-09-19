@@ -475,6 +475,21 @@ module Calendrier n'est pas installé.
 
 ### Corrigé
 
+#### Quatre-vingt-dix-sept boutons d'icône passent à trente pixels sur téléphone
+Six pixels de rembourrage autour d'une icône de quatorze font une cible de
+vingt-six : très bien pour un curseur, mal pour un doigt. C'est la mesure qui a
+fait passer les onglets d'un espace à trente ; `AppIconButton` y échappait
+encore, et avec lui quatre-vingt-dix-sept boutons dans trente-sept fichiers.
+
+Un minimum et non une taille fixe, pour qu'une icône de seize pixels garde son
+air autour d'elle. Et seulement sous `sm` : grossir toutes les barres d'outils
+du back-office pour une précision que la souris a déjà serait payer un problème
+que personne n'a. Mesuré : trente sur trente à trois cent soixante-quinze
+pixels, vingt-six sur vingt-six à mille deux cent quatre-vingts.
+
+Repasse complète après coup sur quarante-huit écrans, parce qu'un composant
+partagé qui grossit peut faire déborder ailleurs : rien ne déborde.
+
 #### Onze blocs de commandes n'existaient qu'au survol
 Un survol n'existe pas au doigt. Ces commandes n'étaient pas seulement
 invisibles sur téléphone : elles restaient cliquables, donc on appuyait à
