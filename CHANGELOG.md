@@ -5,6 +5,74 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.205] - 2026-09-19
+
+### Ajouté
+
+#### Brancher un dossier Google Drive sur un espace client
+Le dernier chantier du backlog. Un espace peut désigner un dossier Drive que
+son client a partagé, et les fichiers apparaissent dans son onglet Fichiers -
+côté studio, et côté client dans la page qu'il ouvre par son lien d'accès.
+
+**Rien n'est recopié.** Le fichier reste chez le client : il est lu chez Google
+au moment où quelqu'un le regarde, et servi sous une adresse d'ici. Retirer un
+fichier du dossier partagé le retire de l'espace, ce qu'on attend d'un dossier
+partagé et non d'une copie qui vieillit. C'est aussi ce qui fait que le client,
+qui n'a pas de compte Google, voit les fichiers : une adresse Drive lui
+donnerait un mur d'authentification.
+
+**Un compte de service plutôt qu'OAuth**, et ça change la forme de tout. Le
+chemin habituel demande à une personne d'autoriser l'application dans son
+navigateur : un écran de consentement, une route de retour, un jeton de
+rafraîchissement à garder vivant, et une réautorisation le jour où il expire.
+Un compte de service a une adresse, et le client partage un dossier avec elle
+comme il le ferait avec un collègue. La portée se décide donc chez Google, pas
+ici : ce qui n'est pas partagé n'existe pas pour ce compte, et retirer le
+partage referme la porte sans toucher à un réglage.
+
+La clé est posée une fois pour l'installation ; chaque espace ne désigne
+ensuite que son dossier. Le partage se transmettant aux sous-dossiers, un
+dossier parent partagé une fois suffit pour tous les clients.
+
+**La descente est récursive, et coûte un appel par étage.** Google accepte
+plusieurs parents dans la même requête : une arborescence de trois niveaux
+coûte trois appels quel que soit le nombre de dossiers qu'elle porte, là où
+descendre dossier par dossier en aurait fait un chacun. Le chemin voyage avec
+le fichier - « Contrats/2026 » devant son nom - parce qu'une liste à plat qui
+ne dit pas d'où vient chaque ligne est moins lisible que l'arbre qu'elle
+remplace. Deux bornes : cinq étages, parce qu'un raccourci circulaire dans un
+Drive ferait tourner la descente sans fin, et deux cents fichiers, parce
+qu'au-delà le dossier partagé était trop large.
+
+**Rien n'a été emprunté pour signer.** `google/apiclient` aurait amené des
+centaines de définitions de services dans un dépôt public livré à des clients,
+pour une assertion de trois champs ; `openssl` la signe en trente lignes, et
+les tests vérifient la signature contre une vraie clé RSA plutôt que de la
+comparer à un littéral - ce qui n'aurait prouvé que son immuabilité.
+
+Lecture seule, demandée à Google dans la portée du jeton : une requête
+d'écriture écrite par erreur plus tard serait refusée par Google lui-même. Les
+deux routes publiques sont derrière le même contrôle que la page d'un lien
+d'accès, donc révoquer un lien referme le dossier à l'instant où il referme la
+page. Et rien n'est gardé par un intermédiaire, puisque le client peut
+départager à tout moment.
+
+Trois pièges que les tests ont attrapés avant le premier appel réel : un
+dossier partagé depuis un Drive partagé rend une liste vide et muette sans deux
+drapeaux, la corbeille d'un Drive ressortirait comme un fichier vivant, et un
+jeton refusé ne doit pas être mis en cache - le contrat du cache garde aussi
+les `null`, donc une clé fausse aurait fait taire l'intégration cinquante
+minutes au lieu de marcher au rechargement suivant.
+
+### Dans aurora-client
+`make aurora-update`, puis `make migrate` : la 0.9.205 ajoute une colonne aux
+espaces.
+
+L'intégration reste éteinte tant que personne ne colle une clé de compte de
+service dans les réglages, onglet Google Drive.
+
+---
+
 ## [0.9.204] - 2026-09-19
 
 ### Modifié

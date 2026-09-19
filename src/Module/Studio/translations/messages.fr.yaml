@@ -942,6 +942,41 @@ backend:
                 document_required: Choisissez un document à importer.
                 unreachable: "Craft n'a rien renvoyé pour ce document."
                 not_imported: Cette note ne vient pas de Craft.
+        drive:
+            # Le compte de service appartient à l'installation ; le dossier
+            # appartient à un client, et c'est lui qui le partage. La portée se
+            # décide donc dans Drive, jamais ici.
+            settings:
+                what_title: Ce que fait cette connexion
+                what_body: "Elle affiche dans un espace les fichiers d'un dossier Drive que le client a partagé. Rien n'est recopié : le fichier est lu chez Google au moment où quelqu'un le regarde, et servi à un client qui n'a pas de compte Google."
+                how_title: Comment l'ouvrir
+                how_step_project: "Dans la console Google Cloud, créez un projet et activez l'API Google Drive."
+                how_step_account: "Créez un compte de service. Ne lui donnez aucun rôle : son accès viendra uniquement des dossiers qu'on partagera avec lui."
+                how_step_key: "Créez-lui une clé JSON, ouvrez le fichier et collez son contenu ci-dessous. Google ne le redonne pas."
+                how_link: Activer l'API Drive dans la console
+                share_title: "L'adresse à partager"
+                share_body: "Dans Drive, le client partage son dossier avec cette adresse, en Lecteur. Ce qui n'est pas partagé reste invisible."
+                key_label: Clé du compte de service
+                key_hint: "Le fichier JSON en entier. Il contient une clé privée : il est chiffré en base et ne sera plus jamais affiché."
+                key_stored: Une clé est enregistrée. Laissez vide pour la garder.
+                enabled_label: Activer la lecture des dossiers Drive
+                enabled_hint: Chaque espace peut alors désigner le dossier que son client a partagé.
+                enabled_blocked: Collez une clé de compte de service pour pouvoir activer.
+            space:
+                title: Dossier Google Drive
+                intro: "Les fichiers restent chez le client : rien n'est recopié, et ils s'affichent dans son espace sans qu'il ait besoin d'un compte Google."
+                folder_label: Dossier partagé
+                folder_hint: "Collez l'adresse du dossier, ou videz le champ pour le débrancher. Le client doit l'avoir partagé avec l'adresse du compte de service."
+                link: Brancher
+                unlink: Débrancher
+                linked: Dossier branché.
+                unlinked: Dossier débranché.
+                empty: "Le dossier ne contient rien, ou n'a pas été partagé avec le compte de service."
+                no_size: "—"
+            errors:
+                key_invalid: "Ce n'est pas une clé de compte de service. Vérifiez d'avoir copié le fichier JSON en entier."
+                key_required: Collez une clé de compte de service avant d'activer.
+                folder_invalid: "Ce n'est pas un dossier Drive. Collez son adresse, ou l'identifiant qui suit /folders/."
         space_notes:
             # Les notes d'un espace : la seule surface qu'un client ne voit pas.
             # Le fil d'une fiche et la discussion sont partagés ; une note est
@@ -1016,6 +1051,7 @@ backend:
             shape_list: Liste
             calendar_day_empty: Rien de prévu ce jour-là.
             view_calendar: Calendrier
+            view_drive: Drive
             view_files: Fichiers
             view_chat: Discussion
             view_notes: Notes
@@ -1224,6 +1260,7 @@ studio:
             unavailable_message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez le plan de contenu d'un espace, demandez un nouveau lien à votre interlocuteur.
             timezone_notice: 'Heures en {timezone}'
             calendar_day_empty: Rien de prévu ce jour-là.
+            drive_title: Documents partagés
             footer: Cette adresse vous est personnelle, ne la transmettez pas.
             footer_until: 'Cette adresse vous est personnelle et valide jusqu''au {date} : ne la transmettez pas.'
             no_body: Le texte n'est pas encore écrit.

@@ -8,6 +8,7 @@ use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
+use Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting\DriveSettings;
 use Aurora\Module\Studio\SpaceFile\Repository\SpaceFileRepository;
 use Aurora\Module\Studio\SpaceFile\Serializer\SpaceFileSerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -19,6 +20,7 @@ final readonly class SpaceFilesViewBuilder
         private SpaceFileSerializerInterface $serializer,
         private UrlGeneratorInterface $urlGenerator,
         private PathTemplateGenerator $pathTemplates,
+        private DriveSettings $drive,
     ) {}
 
     /**
@@ -33,6 +35,15 @@ final readonly class SpaceFilesViewBuilder
             'spaceFileUploadPath' => $this->urlGenerator->generate('workspace_space_files_upload', ['id' => $space->getId()]),
             'spaceFileAttachPath' => $this->urlGenerator->generate('workspace_space_files_attach', ['id' => $space->getId()]),
             'spaceFileRemovePath' => $this->pathTemplates->generate('workspace_space_files_remove', ['id' => $space->getId(), 'fileId' => '__id__']),
+            // Le dossier Drive de cet espace. `driveEnabled` dit que
+            // l'installation a une clé ; `driveFolderId` dit que cet espace-ci
+            // a désigné un dossier. Les deux, sinon l'écran propose un champ
+            // qui ne mènerait nulle part.
+            'driveEnabled' => $this->drive->isEnabled(),
+            'driveFolderId' => $space->getDriveFolderId(),
+            'driveListPath' => $this->urlGenerator->generate('workspace_space_drive_list', ['id' => $space->getId()]),
+            'driveFolderPath' => $this->urlGenerator->generate('workspace_space_drive_folder', ['id' => $space->getId()]),
+            'driveFilePath' => $this->pathTemplates->generate('workspace_space_drive_file', ['id' => $space->getId(), 'fileId' => '__id__']),
         ];
     }
 

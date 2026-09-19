@@ -122,6 +122,20 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     #[ORM\Column(length: 64, options: ['default' => 'Europe/Paris'])]
     protected string $timezone = 'Europe/Paris';
 
+    /**
+     * Le dossier Drive que le client a partagé pour cet espace.
+     *
+     * **L'identifiant, pas l'adresse.** C'est ce que Google attend, et c'est
+     * la fin de l'adresse d'un dossier - ce qui suit `/folders/`. Le stocker
+     * entier obligerait à le découper à chaque appel, et à redécouper le jour
+     * où Google change la forme de ses adresses.
+     *
+     * Nul par défaut : un espace n'a pas de Drive tant que personne n'en
+     * branche un, et la plupart n'en auront jamais.
+     */
+    #[ORM\Column(length: 128, nullable: true)]
+    protected ?string $driveFolderId = null;
+
     /** @var Collection<int, CustomerSpaceMemberInterface> */
     #[ORM\OneToMany(targetEntity: CustomerSpaceMemberInterface::class, mappedBy: 'space', cascade: ['persist', 'remove'], orphanRemoval: true)]
     protected Collection $members;
@@ -221,6 +235,18 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     public function getTimezone(): string
     {
         return $this->timezone;
+    }
+
+    public function getDriveFolderId(): ?string
+    {
+        return $this->driveFolderId;
+    }
+
+    public function setDriveFolderId(?string $driveFolderId): static
+    {
+        $this->driveFolderId = $driveFolderId;
+
+        return $this;
     }
 
     public function setTimezone(string $timezone): static
