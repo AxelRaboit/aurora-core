@@ -5,6 +5,71 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.206] - 2026-09-19
+
+### Ajouté
+
+#### Emporter ce qui est partagé dans le Drive
+Un dossier Drive branché sur un espace se regardait ; il s'emporte
+maintenant. Chaque fichier a son téléchargement, et le dossier entier tient
+dans une archive.
+
+**Le nom du fichier vient de Google, jamais du navigateur.** Sa réponse au
+contenu porte bien un `Content-Disposition: attachment`, mais sans `filename` :
+relayée telle quelle, elle faisait atterrir « 1BxY_…Kp3 » dans le dossier de
+téléchargement du client. Le nom se redemande donc à part, et seulement quand
+il sert - un aperçu ne paie pas cet appel. Le laisser voyager dans l'adresse
+aurait été écrire un en-tête de réponse à partir de ce qu'un visiteur envoie.
+
+**Le lot répond à la seule question que se pose un client** à qui on partage
+trente visuels : je prends tout. L'archive garde l'arborescence, descend
+chaque fichier par morceaux dans un temporaire plutôt que de le tenir en
+mémoire, et ne recompresse rien - ce sont des photos et des vidéos, déjà
+compressées. Deux cas qu'un lot ne peut pas emporter sont nommés au lieu de
+disparaître : ce qui dépasse cinq cents mégaoctets, refusé avant de commencer,
+et les documents Google, qui n'ont pas d'octets à télécharger et sont listés
+dans un fichier posé à la racine de l'archive. Drive accepte deux fichiers du
+même nom dans un dossier ; le second prend un suffixe, faute de quoi
+l'extraction en écrasait un.
+
+**Les deux écrans relaient par le même service.** Le studio et la page qu'un
+client ouvre par son lien d'accès servaient le même flux, écrit deux fois ; ce
+qui les distingue est le contrôle qui précède l'appel, pas la façon de servir.
+Écrit à deux endroits, l'en-tête de sécurité aurait fini par n'exister que
+d'un côté.
+
+Et cet en-tête manquait. Un fichier du Drive sort sous le domaine de
+l'application : un HTML ou un SVG posé dans un dossier partagé, ouvert dans un
+onglet, aurait exécuté son script sur la page d'un espace avec la session de
+celui qui regarde. Ces types redeviennent des fichiers, qu'on ait demandé le
+téléchargement ou non, et `nosniff` accompagne tout le reste.
+
+#### Deux pages de documentation sur les connexions
+La rubrique Configuration explique maintenant comment brancher Craft et
+comment brancher un dossier Google Drive : ce que chaque connexion fait, ce
+qu'elle ne fait pas, la marche à suivre chez le fournisseur, et ce qu'on
+regarde quand rien n'apparaît.
+
+La page sur Craft insiste sur un point mesuré plutôt que supposé : une
+connexion en mode « Publique » répond à qui connaît son adresse, sans
+authentification, et annonce elle-même les opérations d'écriture et de
+suppression qu'elle accepte. Le mode « Clé API » est le seul qui referme ça.
+
+### Modifié
+
+#### Les captures de la documentation suivent la barre d'un espace
+Vingt-cinq captures dataient d'avant la vue Drive, et montraient une barre à
+cinq onglets là où un lecteur en voit six. Refaites.
+
+Les deux parcours ajoutés prennent la même précaution que celui du stockage :
+l'adresse du compte de service, celle de la connexion Craft, l'identifiant du
+dossier et la liste des fichiers sont remplacés par des valeurs de
+démonstration avant la prise. Ces images partent dans un dépôt public et sur
+une page que n'importe qui peut ouvrir ; sans cela, elles auraient emporté le
+contenu d'un Drive personnel.
+
+---
+
 ## [0.9.205] - 2026-09-19
 
 ### Ajouté

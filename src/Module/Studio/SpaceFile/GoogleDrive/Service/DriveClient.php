@@ -264,6 +264,38 @@ final readonly class DriveClient
      * Null quand Google refuse - le fichier a été retiré du partage, ou
      * supprimé. L'appelant en fait un message, pas une erreur.
      */
+    /**
+     * Le nom du fichier, et rien d'autre.
+     *
+     * **Google ne le donne pas avec le contenu.** Sa réponse à `alt=media`
+     * porte bien un `Content-Disposition: attachment`, mais sans `filename` :
+     * relayée telle quelle, elle ferait atterrir « 1BxY_…Kp3 » dans le dossier
+     * de téléchargement du client. Le nom se demande donc à part.
+     *
+     * **Et il se demande à Google, jamais au navigateur.** Le laisser voyager
+     * dans l'adresse reviendrait à écrire un en-tête à partir de ce qu'un
+     * visiteur envoie ; ici le seul nom possible est celui que porte vraiment
+     * le fichier partagé.
+     *
+     * @return array{name: string, mimeType: string}|null
+     */
+    public function metadata(GoogleServiceAccount $account, string $fileId): ?array
+    {
+        $payload = $this->get($account, self::FILES_URI.'/'.$fileId, [
+            'fields' => 'name,mimeType',
+            'supportsAllDrives' => 'true',
+        ]);
+
+        if (null === $payload || !is_string($payload['name'] ?? null)) {
+            return null;
+        }
+
+        return [
+            'name' => $payload['name'],
+            'mimeType' => is_string($payload['mimeType'] ?? null) ? $payload['mimeType'] : '',
+        ];
+    }
+
     public function download(GoogleServiceAccount $account, string $fileId): ?ResponseInterface
     {
         $token = $this->token($account);

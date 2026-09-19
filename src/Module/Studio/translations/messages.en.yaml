@@ -965,6 +965,7 @@ backend:
                 empty: "The folder is empty, or it was not shared with the service account."
                 no_size: "—"
                 view_label: How the files are shown
+                archive: Download everything (.zip)
                 path_label: Path inside the folder
                 root: Shared folder
                 items: "1 file | {count} files"
@@ -973,6 +974,7 @@ backend:
                 key_invalid: "That is not a service account key. Check that you copied the whole JSON file."
                 key_required: Paste a service account key before enabling.
                 folder_invalid: "That is not a Drive folder. Paste its address, or the identifier that follows /folders/."
+                archive_too_large: "The folder is over 500 MB: download the files one by one."
         space_notes:
             # A space's notes: the one surface a client never sees.
             add: New note
@@ -1255,6 +1257,8 @@ studio:
             timezone_notice: 'Times in {timezone}'
             calendar_day_empty: Nothing planned that day.
             drive_title: Shared documents
+            drive_download: Download the file
+            drive_archive: Download everything (.zip)
             footer: This address is personal to you, please do not pass it on.
             footer_until: 'This address is personal to you and valid until {date}: please do not pass it on.'
             no_body: The text is not written yet.

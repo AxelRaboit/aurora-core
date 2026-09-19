@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { ChevronRight, ExternalLink, FileText, Folder, FolderOpen, LayoutGrid, Link2Off, List, RefreshCw, X } from "lucide-vue-next";
+import { ChevronRight, Download, ExternalLink, FileText, Folder, FolderOpen, LayoutGrid, Link2Off, List, Package, RefreshCw, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -31,6 +31,7 @@ const props = defineProps({
     listPath: { type: String, required: true },
     folderPath: { type: String, required: true },
     filePath: { type: String, required: true },
+    archivePath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -133,6 +134,11 @@ function addressOf(file) {
     return props.filePath.replace("__id__", file.id);
 }
 
+/** La même adresse, mais pour emporter le fichier plutôt que le regarder. */
+function downloadOf(file) {
+    return addressOf(file) + "?download=1";
+}
+
 /** Google omet la taille de ses propres formats : un document n'a pas d'octets. */
 function weightOf(file) {
     if (null === file.size || undefined === file.size) return "";
@@ -184,6 +190,20 @@ function weightOf(file) {
                         <List class="h-3.5 w-3.5" :stroke-width="2" />
                     </AppIconButton>
                 </div>
+
+                <!-- Tout le dossier en une fois. Caché tant qu'il n'y a rien
+                     à emporter : un bouton qui produirait une archive vide se
+                     lit comme cassé. -->
+                <AppButton
+                    v-if="files.length && archivePath"
+                    class="shrink-0"
+                    variant="ghost"
+                    size="sm"
+                    :href="archivePath"
+                >
+                    <Package class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("backend.studio.drive.space.archive") }}
+                </AppButton>
 
                 <AppButton
                     class="shrink-0"
@@ -386,6 +406,15 @@ function weightOf(file) {
 
             <template #footer>
                 <AppModalFooter>
+                    <AppButton
+                        class="w-full sm:w-auto"
+                        variant="ghost"
+                        size="md"
+                        :href="previewed ? downloadOf(previewed) : ''"
+                    >
+                        <Download class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.download") }}
+                    </AppButton>
                     <AppButton
                         class="w-full sm:w-auto"
                         variant="ghost"

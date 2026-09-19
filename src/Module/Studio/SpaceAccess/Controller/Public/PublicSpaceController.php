@@ -34,7 +34,9 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
+use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveArchive;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveClient;
+use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveFileServer;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\GoogleServiceAccount;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting\DriveSettings;
 use Aurora\Module\Studio\SpaceFile\Repository\SpaceFileRepository;
@@ -45,10 +47,10 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Contracts\HttpClient\ResponseInterface as HttpResponseInterface;
+
+use function date;
 
 /**
  * A client's own view of their space, opened by a secret address.
@@ -99,6 +101,8 @@ final class PublicSpaceController extends AbstractController
         private readonly SpaceChatHub $chatHub,
         private readonly DriveSettings $driveSettings,
         private readonly DriveClient $drive,
+        private readonly DriveFileServer $driveRelay,
+        private readonly DriveArchive $driveArchives,
     ) {}
 
     /**
@@ -617,12 +621,61 @@ final class PublicSpaceController extends AbstractController
     }
 
     /**
+     * Tout le dossier partagé, en un seul fichier.
+     *
+     * **C'est le geste que le client vient faire.** Trente visuels partagés se
+     * récupéraient en trente clics ; le lot répond à « je prends tout ».
+     *
+     * `priority` et non l'ordre d'écriture : sans elle, la route du fichier
+     * accepterait « archive » comme identifiant.
+     */
+    #[Route(
+        '/{selector}/{token}/drive/archive',
+        name: '_drive_archive',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        methods: [HttpMethodEnum::Get->value],
+        priority: 10,
+    )]
+    public function driveArchive(string $selector, string $token): Response
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        $account = $this->driveSettings->isEnabled() ? $this->driveSettings->account() : null;
+        $folderId = $link->getSpace()->getDriveFolderId();
+
+        if (!$account instanceof GoogleServiceAccount || null === $folderId) {
+            throw $this->createNotFoundException();
+        }
+
+        $files = $this->drive->files($account, $folderId);
+
+        if ([] === $files || $this->driveArchives->weightOf($files) > DriveArchive::MAX_BYTES) {
+            // Trop lourd n'est pas une erreur à expliquer ici : l'écran ne
+            // propose pas le bouton dans ce cas, et une adresse tapée à la
+            // main n'a pas à recevoir un message.
+            throw $this->createNotFoundException();
+        }
+
+        $path = $this->driveArchives->zipFor($account, $files);
+
+        return $this->file($path, 'documents-'.date('Y-m-d').'.zip')->deleteFileAfterSend(true);
+    }
+
+    /**
      * Un fichier du dossier Drive, relayé au client.
      *
      * Le serveur le lit avec le compte de service et le renvoie sous une
      * adresse d'ici : une adresse Drive donnerait à ce lecteur un mur
      * d'authentification, puisque le dossier n'est partagé qu'avec le compte
      * de service et pas avec lui.
+     *
+     * `?download=1` pour l'emporter plutôt que le regarder : le nom du
+     * fichier est alors redemandé à Google, parce que sa réponse au contenu
+     * ne le porte pas.
      */
     #[Route(
         '/{selector}/{token}/drive/{fileId}',
@@ -634,7 +687,7 @@ final class PublicSpaceController extends AbstractController
         ],
         methods: [HttpMethodEnum::Get->value],
     )]
-    public function driveFile(string $selector, string $token, string $fileId): Response
+    public function driveFile(string $selector, string $token, string $fileId, Request $request): Response
     {
         $link = $this->links->resolveUsable($selector, $token);
 
@@ -648,30 +701,11 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $upstream = $this->drive->download($account, $fileId);
+        $response = $this->driveRelay->serve($account, $fileId, $request->query->getBoolean('download'));
 
-        if (!$upstream instanceof HttpResponseInterface) {
+        if (!$response instanceof Response) {
             throw $this->createNotFoundException();
         }
-
-        $headers = $upstream->getHeaders(false);
-
-        $response = new StreamedResponse(function () use ($upstream): void {
-            foreach ($this->drive->stream($upstream) as $chunk) {
-                echo $chunk;
-                flush();
-            }
-        });
-
-        $response->headers->set('Content-Type', $headers['content-type'][0] ?? 'application/octet-stream');
-
-        if (isset($headers['content-length'][0])) {
-            $response->headers->set('Content-Length', $headers['content-length'][0]);
-        }
-
-        // Jamais gardé par un intermédiaire : le lien se révoque, et un cache
-        // partagé servirait encore le fichier après.
-        $response->headers->set('Cache-Control', 'private, no-store');
 
         return $response;
     }

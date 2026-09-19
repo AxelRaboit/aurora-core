@@ -142,6 +142,7 @@ const props = defineProps({
     driveListPath: { type: String, default: "" },
     driveFolderPath: { type: String, default: "" },
     driveFilePath: { type: String, default: "" },
+    driveArchivePath: { type: String, default: "" },
 });
 
 const VIEWS = [
@@ -527,6 +528,7 @@ const actionsFor = useSpaceCardActions({
             :list-path="driveListPath"
             :folder-path="driveFolderPath"
             :file-path="driveFilePath"
+            :archive-path="driveArchivePath"
         />
 
         <!-- Mounted only while it is the view on screen, so a board nobody is

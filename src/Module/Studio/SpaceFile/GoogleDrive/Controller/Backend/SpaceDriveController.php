@@ -8,7 +8,9 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveArchive;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveClient;
+use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveFileServer;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\GoogleServiceAccount;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting\DriveSettings;
 use Doctrine\ORM\EntityManagerInterface;
@@ -16,13 +18,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Contracts\HttpClient\ResponseInterface;
 
+use function date;
 use function mb_trim;
 use function preg_match;
+use function preg_replace;
+use function sprintf;
 
 /**
  * Le dossier Drive d'un espace.
@@ -48,6 +51,8 @@ final class SpaceDriveController extends AbstractController
     public function __construct(
         private readonly DriveSettings $settings,
         private readonly DriveClient $drive,
+        private readonly DriveFileServer $files,
+        private readonly DriveArchive $archives,
         private readonly EntityManagerInterface $entityManager,
     ) {}
 
@@ -121,6 +126,39 @@ final class SpaceDriveController extends AbstractController
     }
 
     /**
+     * Tout le dossier, en une fois.
+     *
+     * **`priority` et non l'ordre d'écriture.** Sans elle, `/{fileId}` accepte
+     * « archive » comme identifiant et répond 404 : la route la plus générale
+     * gagnerait selon la position des méthodes dans ce fichier, ce qui est une
+     * dépendance qu'une relecture ne voit pas.
+     */
+    #[Route('/archive', name: '_archive', methods: [HttpMethodEnum::Get->value], priority: 10)]
+    public function archive(CustomerSpace $space): Response
+    {
+        $account = $this->settings->isEnabled() ? $this->settings->account() : null;
+        $folderId = $space->getDriveFolderId();
+
+        if (!$account instanceof GoogleServiceAccount || null === $folderId) {
+            throw $this->createNotFoundException();
+        }
+
+        $files = $this->drive->files($account, $folderId);
+
+        if ([] === $files) {
+            throw $this->createNotFoundException();
+        }
+
+        if ($this->archives->weightOf($files) > DriveArchive::MAX_BYTES) {
+            return $this->jsonFailure('backend.studio.drive.errors.archive_too_large');
+        }
+
+        $path = $this->archives->zipFor($account, $files);
+
+        return $this->file($path, $this->archiveName($space))->deleteFileAfterSend(true);
+    }
+
+    /**
      * Le fichier lui-même, relayé.
      *
      * **C'est la raison d'être de cette route.** Le client d'un espace n'a pas
@@ -128,12 +166,12 @@ final class SpaceDriveController extends AbstractController
      * d'authentification. Le serveur lit donc le fichier avec le compte de
      * service et le renvoie sous une adresse d'Aurora.
      *
-     * En flux et non en mémoire : un dossier partagé contient des vidéos, et
-     * charger cinquante mégaoctets dans une chaîne PHP pour les recracher
-     * ferait tomber le serveur sur le premier gros fichier.
+     * `?download=1` pour l'emporter plutôt que le regarder. Le relais est
+     * partagé avec la page du client : ce qui change d'un écran à l'autre est
+     * le contrôle qui précède, jamais la façon de servir.
      */
     #[Route('/{fileId}', name: '_file', requirements: ['fileId' => '[A-Za-z0-9_-]+'], methods: [HttpMethodEnum::Get->value])]
-    public function serve(CustomerSpace $space, string $fileId): Response
+    public function serve(CustomerSpace $space, string $fileId, Request $request): Response
     {
         $account = $this->settings->isEnabled() ? $this->settings->account() : null;
 
@@ -141,35 +179,28 @@ final class SpaceDriveController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $upstream = $this->drive->download($account, $fileId);
+        $response = $this->files->serve($account, $fileId, $request->query->getBoolean('download'));
 
-        if (!$upstream instanceof ResponseInterface) {
+        if (!$response instanceof Response) {
             // Retiré du partage, ou supprimé. Un 404 plutôt qu'une erreur : du
             // point de vue de cet espace, le fichier n'est plus là.
             throw $this->createNotFoundException();
         }
 
-        $headers = $upstream->getHeaders(false);
-
-        $response = new StreamedResponse(function () use ($upstream): void {
-            foreach ($this->drive->stream($upstream) as $chunk) {
-                echo $chunk;
-                flush();
-            }
-        });
-
-        $response->headers->set('Content-Type', $headers['content-type'][0] ?? 'application/octet-stream');
-
-        if (isset($headers['content-length'][0])) {
-            $response->headers->set('Content-Length', $headers['content-length'][0]);
-        }
-
-        // Jamais mis en cache par un intermédiaire : le fichier vit chez le
-        // client, qui peut le retirer du partage à tout moment, et un cache
-        // partagé le servirait encore après.
-        $response->headers->set('Cache-Control', 'private, no-store');
-
         return $response;
+    }
+
+    /**
+     * Le nom du lot, qui porte celui de l'espace.
+     *
+     * « fichiers.zip » dans un dossier de téléchargements ne dit rien de qui
+     * l'a envoyé, et deux clients en enverraient deux.
+     */
+    private function archiveName(CustomerSpace $space): string
+    {
+        $name = (string) preg_replace('#[^\w\-]+#u', '-', $space->getName());
+
+        return sprintf('%s-%s.zip', mb_trim($name, '-') ?: 'drive', date('Y-m-d'));
     }
 
     /**

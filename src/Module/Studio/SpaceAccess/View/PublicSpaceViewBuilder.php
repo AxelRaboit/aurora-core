@@ -113,6 +113,12 @@ final readonly class PublicSpaceViewBuilder
                     'token' => $token,
                     'fileId' => '__id__',
                 ]),
+            'driveArchivePath' => null === $link->getSpace()->getDriveFolderId()
+                ? null
+                : $this->urlGenerator->generate('public_space_drive_archive', [
+                    'selector' => $link->getSelector(),
+                    'token' => $token,
+                ]),
         ];
     }
 
