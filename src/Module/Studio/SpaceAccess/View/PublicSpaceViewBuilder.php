@@ -14,6 +14,7 @@ use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentAttachmentSerialize
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentColumnSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentCommentSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentItemSerializerInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * What a client is shown, which is less than what the studio sees.
@@ -39,6 +40,7 @@ final readonly class PublicSpaceViewBuilder
         private SpaceContentAttachmentRepository $attachmentRepository,
         private SpaceContentAttachmentSerializerInterface $attachmentSerializer,
         private PathTemplateGenerator $pathTemplates,
+        private UrlGeneratorInterface $urlGenerator,
     ) {}
 
     /**
@@ -95,6 +97,22 @@ final readonly class PublicSpaceViewBuilder
                     'itemId' => '__id__',
                 ])
                 : null,
+            // Le dossier Drive, s'il y en a un. Les adresses sont posées même
+            // quand le dossier est vide : l'écran décide de se montrer sur ce
+            // que la liste rend, et non sur ce que le serveur suppose.
+            'drivePath' => null === $link->getSpace()->getDriveFolderId()
+                ? null
+                : $this->urlGenerator->generate('public_space_drive', [
+                    'selector' => $link->getSelector(),
+                    'token' => $token,
+                ]),
+            'driveFilePath' => null === $link->getSpace()->getDriveFolderId()
+                ? null
+                : $this->pathTemplates->generate('public_space_drive_file', [
+                    'selector' => $link->getSelector(),
+                    'token' => $token,
+                    'fileId' => '__id__',
+                ]),
         ];
     }
 

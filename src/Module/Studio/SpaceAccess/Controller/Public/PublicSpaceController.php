@@ -34,6 +34,9 @@ use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
+use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveClient;
+use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\GoogleServiceAccount;
+use Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting\DriveSettings;
 use Aurora\Module\Studio\SpaceFile\Repository\SpaceFileRepository;
 use Aurora\Module\Studio\SpaceFile\View\SpaceFilesViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -42,8 +45,10 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\HttpClient\ResponseInterface as HttpResponseInterface;
 
 /**
  * A client's own view of their space, opened by a secret address.
@@ -92,6 +97,8 @@ final class PublicSpaceController extends AbstractController
         private readonly SpaceChatChannelManagerInterface $chatChannelManager,
         private readonly SpaceChatViewBuilder $chatViewBuilder,
         private readonly SpaceChatHub $chatHub,
+        private readonly DriveSettings $driveSettings,
+        private readonly DriveClient $drive,
     ) {}
 
     /**
@@ -572,6 +579,101 @@ final class PublicSpaceController extends AbstractController
         }
 
         return $this->responder->respond($this->keyOf($file->getDocument(), $variant));
+    }
+
+    /**
+     * Le dossier Drive de l'espace, lu par le lien.
+     *
+     * **C'est ici que tout ce chantier prend son sens.** Le client n'a pas de
+     * compte Google : sans cette route, les fichiers que son prestataire a
+     * branchés ne seraient visibles que du studio.
+     *
+     * Le même 404 pour tout, et derrière le même `resolveUsable()` que la
+     * page : révoquer un lien referme le dossier à l'instant où il referme la
+     * page.
+     */
+    #[Route(
+        '/{selector}/{token}/drive',
+        name: '_drive',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        methods: [HttpMethodEnum::Get->value],
+    )]
+    public function driveFiles(string $selector, string $token): JsonResponse
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        $account = $this->driveSettings->isEnabled() ? $this->driveSettings->account() : null;
+        $folderId = $link->getSpace()->getDriveFolderId();
+
+        if (!$account instanceof GoogleServiceAccount || null === $folderId) {
+            return $this->jsonSuccess(['files' => []]);
+        }
+
+        return $this->jsonSuccess(['files' => $this->drive->files($account, $folderId)]);
+    }
+
+    /**
+     * Un fichier du dossier Drive, relayé au client.
+     *
+     * Le serveur le lit avec le compte de service et le renvoie sous une
+     * adresse d'ici : une adresse Drive donnerait à ce lecteur un mur
+     * d'authentification, puisque le dossier n'est partagé qu'avec le compte
+     * de service et pas avec lui.
+     */
+    #[Route(
+        '/{selector}/{token}/drive/{fileId}',
+        name: '_drive_file',
+        requirements: [
+            'selector' => '[a-f0-9]{32}',
+            'token' => '[a-f0-9]{64}',
+            'fileId' => '[A-Za-z0-9_-]+',
+        ],
+        methods: [HttpMethodEnum::Get->value],
+    )]
+    public function driveFile(string $selector, string $token, string $fileId): Response
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        $account = $this->driveSettings->isEnabled() ? $this->driveSettings->account() : null;
+
+        if (!$account instanceof GoogleServiceAccount || null === $link->getSpace()->getDriveFolderId()) {
+            throw $this->createNotFoundException();
+        }
+
+        $upstream = $this->drive->download($account, $fileId);
+
+        if (!$upstream instanceof HttpResponseInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        $headers = $upstream->getHeaders(false);
+
+        $response = new StreamedResponse(function () use ($upstream): void {
+            foreach ($this->drive->stream($upstream) as $chunk) {
+                echo $chunk;
+                flush();
+            }
+        });
+
+        $response->headers->set('Content-Type', $headers['content-type'][0] ?? 'application/octet-stream');
+
+        if (isset($headers['content-length'][0])) {
+            $response->headers->set('Content-Length', $headers['content-length'][0]);
+        }
+
+        // Jamais gardé par un intermédiaire : le lien se révoque, et un cache
+        // partagé servirait encore le fichier après.
+        $response->headers->set('Cache-Control', 'private, no-store');
+
+        return $response;
     }
 
     /**
