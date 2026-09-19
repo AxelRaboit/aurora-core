@@ -670,6 +670,8 @@ backend:
                     color_invalid: La couleur doit être au format hexadécimal, par exemple #6366f1.
         customers:
             title: Clients
+            spaces: Ses espaces
+            spaces_description: Ouvre la liste des espaces de cette société.
             status: Statut
             status_hint: "Un prospect est une société pour laquelle on travaille déjà, sans avoir encore son identité légale. La convertir en client, c'est saisir le SIRET, la forme juridique et le siège."
             statuses:

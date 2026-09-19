@@ -32,6 +32,8 @@ const props = defineProps({
     updatePath: { type: String, required: true },
     convertPath: { type: String, required: true },
     deletePath: { type: String, required: true },
+    /** La liste des espaces, où l'on va depuis un client. */
+    spacesPath: { type: String, default: "" },
 });
 
 const {
@@ -77,6 +79,7 @@ const {
 } = useProspectConversion(props.convertPath, (data) => applyUpdatedList(data));
 
 const actionsFor = useCustomerRowActions({
+    spacesPath: props.spacesPath,
     can,
     openEdit,
     convertToClient: (customer) =>

@@ -12,6 +12,11 @@
 {% endblock %}
 
 {% block body %}
+{# `spacesPath` : l'adresse de la liste des espaces, pour y aller depuis un
+   client. Le nom de la société part en recherche, c'est ce que cette liste
+   cherche. Le commentaire est ici et non dans l'appel : à l'intérieur d'une
+   expression Twig, `{#` n'est pas un commentaire et l'apostrophe casse le
+   gabarit. #}
 <div {{ vue_component('studio/backend/customers/CustomersApp', {
     customers: customers,
     users: users,
@@ -20,5 +25,6 @@
     updatePath: updatePath,
     convertPath: convertPath,
     deletePath: deletePath,
+    spacesPath: path('backend_studio_spaces'),
 }) }} class="flex-1 min-w-0"></div>
 {% endblock %}

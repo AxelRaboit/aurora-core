@@ -1,5 +1,5 @@
 import { useI18n } from "vue-i18n";
-import { BadgeCheck, Pencil, Trash2 } from "lucide-vue-next";
+import { BadgeCheck, LayoutDashboard, Pencil, Trash2 } from "lucide-vue-next";
 
 /**
  * What the menu on a customer row offers.
@@ -13,13 +13,21 @@ import { BadgeCheck, Pencil, Trash2 } from "lucide-vue-next";
  * and an entry that would be greyed out on two rows in three is noise in a menu
  * that has to be read quickly.
  *
+ * **Et une porte vers ses espaces.** Un client existe pour ce qu'on fait avec
+ * lui, et ce qu'on fait avec lui vit dans ses espaces ; depuis cette liste,
+ * aucun chemin n'y menait - il fallait passer par le menu, ouvrir la liste des
+ * espaces et retaper le nom. L'entrée le tape pour vous : elle ouvre la liste
+ * filtrée sur la société.
+ *
  * @param {object} deps
+ * @param {string} [deps.spacesPath] L'adresse de la liste des espaces.
  * @param {(permission: string) => boolean} deps.can
  * @param {(record: object) => void} deps.openEdit
  * @param {(record: object) => void} deps.convertToClient
  * @param {(record: object) => void} deps.confirmDelete
  */
 export function useCustomerRowActions({
+    spacesPath = "",
     can,
     openEdit,
     convertToClient,
@@ -30,6 +38,18 @@ export function useCustomerRowActions({
     return function actionsFor(record) {
         const actions = [];
         const editable = can("studio.customers.edit");
+
+        if (spacesPath && can("studio.spaces.view")) {
+            actions.push({
+                key: "spaces",
+                icon: LayoutDashboard,
+                title: t("backend.studio.customers.spaces"),
+                description: t("backend.studio.customers.spaces_description"),
+                // Un lien et non un geste : c'est une navigation, elle doit
+                // pouvoir s'ouvrir dans un autre onglet.
+                href: `${spacesPath}?search=${encodeURIComponent(record.legalName ?? "")}`,
+            });
+        }
 
         if (editable) {
             actions.push({

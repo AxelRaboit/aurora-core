@@ -9,6 +9,25 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### D'un client à ses espaces, en une entrée
+Un client existe pour ce qu'on fait avec lui, et ce qu'on fait avec lui vit
+dans ses espaces : depuis la liste des clients, aucun chemin n'y menait, ni sur
+téléphone ni sur un écran large. Il fallait passer par le menu, ouvrir la liste
+des espaces et retaper le nom. **Ses espaces** le tape pour vous.
+
+Ce qui rend le lien possible : une liste filtrée lit maintenant `?search=` dans
+son adresse au premier rendu. `useUrlSearchSync` écrivait ce paramètre pour
+qu'une liste filtrée se partage, mais personne ne le relisait - le lien arrivait
+sur la liste entière et le mot tapé ne servait qu'à celui qui l'avait tapé.
+Toutes les listes filtrées de l'application deviennent adressables du même coup.
+
+#### Contrats et présentations passent au dessin commun des cartes
+Leurs gestes étaient repliés à leur taille naturelle, deux par ligne, avec une
+colonne ragoteuse au milieu. Ils prennent le dessin décidé pour les autres
+cartes - à deux ils partagent la ligne, à trois et plus ils s'empilent - et
+sceller un contrat garde son ambre, que la liste reprend de la feuille
+d'actions.
+
 #### L'éditeur de publication faisait défiler la page de côté
 Ses sept onglets - paramétrage, apparence, en-tête, contenu, galerie, SEO,
 traductions - font sept cents pixels. Sans boîte pour les tenir, c'est la page

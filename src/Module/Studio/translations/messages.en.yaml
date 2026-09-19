@@ -670,6 +670,8 @@ backend:
                     color_invalid: The colour must be a hex value, for example #6366f1.
         customers:
             title: Customers
+            spaces: Their spaces
+            spaces_description: Opens this company's spaces in the list.
             status: Status
             status_hint: "A prospect is a company you are already working for, without knowing its legal identity yet. Converting one to a customer is filling in the registration number, the legal form and the registered office."
             statuses:
