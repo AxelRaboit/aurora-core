@@ -563,6 +563,21 @@ une vraie connexion : `GET /documents` répondait 200 sans le moindre en-tête.
 Le mode « Clé API » et la lecture seule sont donc demandés dès la marche à
 suivre, avant même les deux champs.
 
+Deux défauts que seul un vrai document pouvait montrer. Craft indente le corps
+d'un document dans son `<content>`, et deux espaces valent chez lui un niveau
+d'imbrication : une liste à plat arrivait empilée sous sa première entrée. Le
+retrait commun est retiré à l'intérieur du `<content>` seulement, donc
+l'imbrication voulue survit. Et l'adresse publique d'un document se lit sous
+`fileUrl`, pas sous `url` : l'image partait bien dans l'espace pendant que la
+note continuait de pointer vers Craft, et le repli prévu pour un vrai échec
+masquait l'erreur de clé. Un test monte maintenant le déposeur réel plutôt
+qu'un double, puisqu'un double aurait rendu la clé qu'on lui aurait apprise.
+
+Rien n'est compressé au passage, et c'est voulu : `ImageVariantGenerator`
+traite déjà tout document déposé. Mesuré sur un import réel, une image de
+1 532 467 octets servie par Craft est stockée à 213 901, avec trois variantes
+WebP par-dessus.
+
 Le titre d'un document n'est écrit qu'une fois. Craft enveloppe un document
 dans une page dont la balise de titre porte son nom, et la conversion en
 faisait un titre de section - juste pour une page imbriquée, doublon pour le

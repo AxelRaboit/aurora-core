@@ -320,6 +320,35 @@ final class MarkdownToBlocksTest extends TestCase
         self::assertStringNotContainsString('Statut', $text);
     }
 
+    /**
+     * Craft indente le corps d'un document dans son `<content>`, et deux
+     * espaces valent chez lui un niveau d'imbrication : sans le retrait, une
+     * liste à plat arrivait empilée sous sa première entrée.
+     */
+    public function testTheIndentationOfContentIsNotReadAsNesting(): void
+    {
+        $blocks = $this->convert->convert(
+            "<page><pageTitle>T</pageTitle><content>\n    - un\n    - deux\n    - trois\n</content></page>",
+        );
+
+        $items = $blocks[1]['data']['items'];
+
+        self::assertCount(3, $items);
+        self::assertSame([], $items[0]['items']);
+    }
+
+    /** Le retrait commun seulement : l'imbrication voulue survit. */
+    public function testRealNestingSurvivesTheDedent(): void
+    {
+        $blocks = $this->convert->convert("<content>\n    - parent\n      - enfant\n</content>");
+
+        $items = $blocks[0]['data']['items'];
+
+        self::assertCount(1, $items);
+        self::assertCount(1, $items[0]['items']);
+        self::assertSame('enfant', $items[0]['items'][0]['content']);
+    }
+
     public function testAnEmptyDocumentGivesNoBlocks(): void
     {
         self::assertSame([], $this->convert->convert("\n\n   \n"));

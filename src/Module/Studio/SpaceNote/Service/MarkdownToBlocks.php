@@ -175,6 +175,18 @@ final readonly class MarkdownToBlocks
      */
     private function craftTags(string $markdown): string
     {
+        // **Le retrait, d'abord, et à l'intérieur du `<content>` seulement.**
+        // Craft y indente le corps du document, et deux espaces valent chez
+        // lui un niveau d'imbrication : une liste à plat arrivait empilée
+        // sous sa première entrée. Ici plutôt que sur le document entier,
+        // parce que le `<page>` et le `<pageTitle>` restent en colonne zéro -
+        // un retrait calculé sur eux vaudrait toujours zéro.
+        $markdown = preg_replace_callback(
+            '#<content>(.*?)</content>#su',
+            fn (array $match): string => "\n".$this->dedent($match[1])."\n",
+            $markdown,
+        ) ?? $markdown;
+
         // Le titre d'une page imbriquée, en titre de niveau trois : il est
         // sous le titre de la note, qui est le document lui-même.
         $markdown = preg_replace('#<pageTitle>(.*?)</pageTitle>#su', "\n### $1\n", $markdown) ?? $markdown;
@@ -200,6 +212,37 @@ final readonly class MarkdownToBlocks
 
         return preg_replace('#\[([^\]]*)\]\((?:block|date)://[^)]*\)|\[([^\]]*)\]\(invalid:[^)]*\)#u', '$1$2', $markdown)
             ?? $markdown;
+    }
+
+    /**
+     * Le retrait commun d'un bloc de lignes, et rien de plus.
+     *
+     * L'imbrication *voulue* survit, puisqu'elle est relative, et un bloc de
+     * code garde sa mise en forme, puisque toutes les lignes perdent la même
+     * chose.
+     */
+    private function dedent(string $markdown): string
+    {
+        $lines = explode("\n", $markdown);
+        $common = null;
+
+        foreach ($lines as $line) {
+            if ('' === mb_trim($line)) {
+                continue;
+            }
+
+            $indent = mb_strlen($line) - mb_strlen(mb_ltrim($line, ' '));
+            $common = null === $common ? $indent : min($common, $indent);
+        }
+
+        if (null === $common || 0 === $common) {
+            return $markdown;
+        }
+
+        return implode("\n", array_map(
+            static fn (string $line): string => mb_substr($line, $common),
+            $lines,
+        ));
     }
 
     /**

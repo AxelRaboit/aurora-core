@@ -183,7 +183,13 @@ final readonly class CraftNoteImporter
             $upload = new UploadedFile($path, '' !== $name ? $name : 'image', null, null, true);
             $document = $this->documents->serialize($this->uploader->upload($upload, $space));
 
-            $address = $document['url'] ?? null;
+            // `fileUrl`, le nom que le sérialiseur donne à l'adresse publique
+            // d'un document - et non `url`, qui n'existe pas. Écrit d'après
+            // une lecture trop rapide, le dépôt fonctionnait et le bloc
+            // gardait quand même l'adresse de Craft : l'image partait bien
+            // dans l'espace, et la note pointait toujours ailleurs. Le repli
+            // prévu pour un échec masquait une erreur de clé.
+            $address = $document['fileUrl'] ?? null;
 
             return is_string($address)
                 ? ['url' => $address, 'documentId' => isset($document['id']) ? (int) $document['id'] : null]
