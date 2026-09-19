@@ -19,6 +19,17 @@ quarante-trois pixels de la ligne sous `sm`.
 Le formulaire à étapes suit la même règle que les cartes : seul, le bouton prend
 la ligne ; à deux, « Précédent » et « Envoyer » s'en partagent les moitiés.
 
+Les quatre boutons passent au composant commun plutôt qu'à des classes recopiées
+à la main : ils gagnent l'anneau de focus au clavier, le survol, et le sablier
+pendant l'envoi, qui n'existaient sur aucun des deux formulaires publics. Au
+passage, « Précédent » portait un filet et son voisin non : deux pixels d'écart,
+et les deux boutons d'une rangée se décalaient. Ils s'étirent maintenant à la
+même hauteur.
+
+Ce qui reste écrit à la main : les pastilles de réaction sous un commentaire et
+les deux mots soulignés qui répondent ou annulent. Ce ne sont pas des boutons du
+jeu commun, et les y forcer demanderait plus de classes que d'en garder aucune.
+
 #### Huit pixels aussi entre les blocs
 La marge autour était à huit, le rythme entre les blocs restait à seize : sur la
 liste des publications, la barre de recherche, le bouton d'actions, le panneau

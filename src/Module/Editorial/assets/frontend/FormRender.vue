@@ -1,6 +1,7 @@
 <script setup>
 import { defineAsyncComponent, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import AppButton from "@/shared/components/action/AppButton.vue";
 import { useFormRender } from "./composables/useFormRender.js";
 
 /**
@@ -158,34 +159,35 @@ function inputType(type) {
 
         <!-- `flex-1` sous `sm`, taille naturelle au-dessus : à une étape il n'y
              a qu'un bouton et il prend la ligne, à deux ils se la partagent en
-             deux moitiés. La règle suit ce qui est là plutôt qu'un cas fixe. -->
-        <div class="flex items-center gap-2">
-            <button
+             deux moitiés. La règle suit ce qui est là plutôt qu'un cas fixe.
+             `items-stretch` parce que « Précédent » porte un filet et son
+             voisin non : centrés, les deux se décalaient d'un pixel. -->
+        <div class="flex items-stretch gap-2">
+            <AppButton
                 v-if="steps?.length && stepIndex > 0"
-                type="button"
-                class="flex-1 sm:flex-none px-4 py-2 rounded-lg border border-line text-sm text-secondary"
+                variant="secondary"
+                class="flex-1 sm:flex-none"
                 v-on:click="goToStep(stepIndex - 1)"
             >
                 {{ t("frontend.editorial.forms.previous") }}
-            </button>
+            </AppButton>
 
-            <button
+            <AppButton
                 v-if="!isLastStep"
-                type="button"
-                class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-medium"
+                class="flex-1 sm:flex-none"
                 v-on:click="goToStep(stepIndex + 1)"
             >
                 {{ t("frontend.editorial.forms.next") }}
-            </button>
+            </AppButton>
 
-            <button
+            <AppButton
                 v-else
                 type="submit"
-                class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-medium disabled:opacity-60"
-                :disabled="sending"
+                class="flex-1 sm:flex-none"
+                :loading="sending"
             >
                 {{ t("frontend.editorial.forms.submit") }}
-            </button>
+            </AppButton>
         </div>
     </form>
 </template>

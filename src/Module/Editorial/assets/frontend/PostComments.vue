@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
+import AppButton from "@/shared/components/action/AppButton.vue";
 import { usePostComments } from "./composables/usePostComments.js";
 
 /**
@@ -192,13 +193,9 @@ function reactionCount(comment, type) {
             <!-- Pleine largeur sous `sm` : c'est la seule chose à faire au
                  bout du formulaire, et un bouton de quatre-vingts pixels collé
                  au bord gauche se cherche plus qu'il ne s'atteint. -->
-            <button
-                type="submit"
-                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-medium disabled:opacity-60"
-                :disabled="sending"
-            >
+            <AppButton type="submit" class="w-full sm:w-auto" :loading="sending">
                 {{ t("frontend.editorial.comments.submit") }}
-            </button>
+            </AppButton>
         </form>
     </div>
 </template>
