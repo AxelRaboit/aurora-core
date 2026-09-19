@@ -15,6 +15,7 @@ import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
+import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { Building2, Pencil, Plus, Save, Trash2, X } from "lucide-vue-next";
@@ -238,13 +239,10 @@ const pageActions = computed(() => {
                         {{ formatSiret(customer.siret) }}
                     </p>
                 </div>
-                <div
-                    class="flex justify-end px-3 py-2 border-t border-line/40 bg-surface-2/40"
-                >
-                    <AppRowActions
-                        :actions="actionsFor(customer)"
-                        :label="customer.legalName ?? ''"
-                    />
+                <!-- Les gestes en toutes lettres plutôt que derrière trois
+                     points : la carte a la largeur de les nommer. -->
+                <div class="px-2 pb-2 pt-1 border-t border-line/40 bg-surface-2/40">
+                    <AppCardActions :actions="actionsFor(customer)" />
                 </div>
             </div>
         </div>

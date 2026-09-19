@@ -441,7 +441,12 @@ const pageActions = computed(() => {
                             <SortDesc v-else-if="sortBy === s.key" class="w-3 h-3" :stroke-width="2" />
                         </AppTab>
                     </div>
-                    <div class="flex border border-line/60 rounded-lg p-0.5">
+                    <!-- Absent là où il est déjà refusé : un conteneur étroit
+                         impose les vignettes, donc l'interrupteur ne changeait
+                         rien à l'écran, et un bouton qui ne fait rien se lit
+                         comme un bouton cassé. Le choix est gardé et revient
+                         avec la place. -->
+                    <div v-if="!isNarrow" class="flex border border-line/60 rounded-lg p-0.5">
                         <AppIconButton
                             size="sm"
                             variant="ghost"
@@ -501,7 +506,24 @@ const pageActions = computed(() => {
                                 <Paperclip v-else-if="doc.fileUrl" class="w-10 h-10 text-muted" :stroke-width="1.5" />
                                 <FileText v-else class="w-10 h-10 text-muted" :stroke-width="1.5" />
                                 <AppBadge v-if="doc.status" :color="DOCUMENT_STATUS_BADGE[doc.status]" class="absolute top-1 right-1">{{ doc.statusLabel }}</AppBadge>
-                                <div v-if="!isSelecting" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5">
+                                <!-- **Au doigt, un bouton ; à la souris, le
+                                     survol.** Les trois gestes de cette
+                                     vignette vivaient dans un voile qui
+                                     n'apparaît qu'au survol : sur un téléphone,
+                                     où le survol n'existe pas, modifier un
+                                     document depuis la médiathèque était
+                                     impossible. Sous `sm`, les six gestes
+                                     s'ouvrent donc dans la feuille, par un
+                                     bouton qu'on voit. -->
+                                <div
+                                    v-if="!isSelecting"
+                                    class="absolute bottom-1 right-1 sm:hidden"
+                                    v-on:click.stop
+                                >
+                                    <AppRowActions :actions="documentActions(doc)" :label="doc.title ?? ''" />
+                                </div>
+
+                                <div v-if="!isSelecting" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex items-center justify-center gap-1.5">
                                     <AppOverlayIconButton size="sm" variant="light" :title="t('shared.common.view')" v-on:click.stop="viewDoc(doc)">
                                         <Eye class="w-4 h-4" :stroke-width="2" />
                                     </AppOverlayIconButton>
@@ -550,67 +572,12 @@ const pageActions = computed(() => {
                     </div>
 
                     <!-- Mobile cards (list view fallback on mobile) -->
-                    <div v-else-if="viewMode === 'list' && isNarrow && displayedItems?.length" class="space-y-2">
-                        <div
-                            v-for="doc in displayedItems"
-                            :key="doc.id"
-                            class="bg-surface border border-line/60 rounded-xl overflow-hidden shadow-sm relative"
-                            :class="{ 'ring-2 ring-accent-400': isSelecting && selectedIds.has(doc.id), 'cursor-pointer': isSelecting }"
-                            draggable="true"
-                            v-on:click="isSelecting ? toggleSelect(doc.id) : null"
-                            v-on:dragstart="onDocumentDragStart($event, doc)"
-                        >
-                            <div v-if="isSelecting" class="absolute top-1.5 left-1.5 z-10 bg-surface/90 rounded p-0.5" v-on:click.stop="toggleSelect(doc.id)">
-                                <CheckSquare v-if="selectedIds.has(doc.id)" class="w-4 h-4 text-accent-400" :stroke-width="2" />
-                                <Square v-else class="w-4 h-4 text-muted" :stroke-width="2" />
-                            </div>
-                            <div class="flex items-start gap-3 p-4">
-                                <div class="shrink-0 mt-0.5">
-                                    <AppThumbnail
-                                        v-if="doc.thumbnailUrl"
-                                        :src="doc.thumbnailUrl"
-                                        :alt="doc.fileName"
-                                        size="sm"
-                                    />
-                                    <div v-else-if="doc.fileMime === 'application/pdf'" class="w-8 h-8 flex items-center justify-center rounded border border-line/60 bg-surface-2">
-                                        <FileText class="w-4 h-4 text-rose-400" :stroke-width="1.5" />
-                                    </div>
-                                    <div v-else-if="doc.fileUrl" class="w-8 h-8 flex items-center justify-center rounded border border-line/60 bg-surface-2">
-                                        <Paperclip class="w-4 h-4 text-muted" :stroke-width="1.5" />
-                                    </div>
-                                    <div v-else class="w-8 h-8 flex items-center justify-center rounded border border-line/60 bg-surface-2">
-                                        <FileText class="w-4 h-4 text-muted" :stroke-width="1.5" />
-                                    </div>
-                                </div>
-                                <div class="min-w-0 flex-1">
-                                    <p class="font-medium text-primary text-sm truncate">{{ doc.title }}</p>
-                                    <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
-                                        <span v-if="doc.reference" class="text-xs text-muted font-mono">{{ doc.reference }}</span>
-                                        <span v-if="doc.folderName" class="text-xs text-muted flex items-center gap-0.5">
-                                            <Folder class="w-3 h-3" :stroke-width="2" /> {{ doc.folderName }}
-                                        </span>
-                                    </div>
-                                    <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
-                                        <AppBadge :color="DOCUMENT_STATUS_BADGE[doc.status]">{{ doc.statusLabel }}</AppBadge>
-                                        <span v-if="doc.categoryName" class="text-xs text-muted">{{ doc.categoryName }}</span>
-                                        <span v-if="doc.fileSize" class="text-xs text-muted tabular-nums">{{ formatSize(doc.fileSize) }}</span>
-                                    </div>
-                                    <div v-if="doc.tags?.length || storageRelocationAvailable" class="flex flex-wrap items-center gap-1 mt-1.5">
-                                        <DocumentStorageChip
-                                            v-if="storageRelocationAvailable"
-                                            :disk="doc.storageDisk"
-                                            :state="doc.storageTransferState"
-                                            :error="doc.storageTransferError"
-                                        />
-                                        <DocumentTagChip v-for="tag in doc.tags" :key="tag.id" :tag="tag" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex justify-end px-3 py-2 border-t border-line/40 bg-surface-2/40">
-                                <AppRowActions :actions="documentActions(doc)" :label="doc.title ?? ''" />
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Pas de liste en cartes ici : `useListViewMode` impose
+                         les vignettes dès que le conteneur est étroit, donc
+                         « liste » et « étroit » ne sont jamais vrais ensemble.
+                         Le bloc qui vivait là ne s'est jamais affiché ; c'est
+                         la vignette, une par ligne sur téléphone, qui tient ce
+                         rôle. -->
 
                     <!-- Desktop table (list view) -->
                     <div v-show="viewMode === 'list' && !isNarrow" class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">

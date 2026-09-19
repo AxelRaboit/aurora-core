@@ -9,6 +9,23 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### La médiathèque se laissait regarder, pas manipuler, au doigt
+Les trois gestes d'une vignette - voir, modifier, QR code - vivaient dans un
+voile qui n'apparaît qu'au survol. Sur un téléphone, où le survol n'existe pas,
+modifier un document depuis la médiathèque était **impossible** : la carte
+entière ouvrait l'aperçu, et rien d'autre n'était atteignable. Sous `sm`, un
+bouton visible ouvre donc la feuille des six gestes ; au-dessus, le survol
+reste.
+
+Dans la foulée, deux choses qui mentaient sur cet écran. L'interrupteur
+vignettes / liste disparaît là où le conteneur impose déjà les vignettes. Et le
+bloc de cartes qui attendait « liste **et** étroit » a été retiré : les deux ne
+sont jamais vrais ensemble, il ne s'est donc jamais affiché - soixante-cinq
+lignes qui décrivaient un écran que personne n'a vu.
+
+Les cartes des clients, des espaces et de la médiathèque écrivent maintenant
+leurs gestes comme celles des publications.
+
 #### Sur une carte, les gestes sont écrits
 Une carte de téléphone est déjà la feuille d'actions ouverte : elle occupe
 toute la ligne, la place de nommer ce qu'on peut faire ne manque pas. Les
