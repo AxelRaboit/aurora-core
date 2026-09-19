@@ -4,6 +4,7 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useCommentRowActions } from "./composables/useCommentRowActions.js";
 import { useComments } from "./composables/useComments.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
@@ -98,12 +99,20 @@ function badgeColor(value) {
                 :key="comment.id"
                 class="bg-surface border border-line rounded-xl p-4 space-y-2"
             >
-                <header class="flex flex-wrap items-start justify-between gap-3">
+                <header class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
+                        <!-- **L'adresse sous le nom sur téléphone.** Les deux
+                             sur une ligne, c'est « Best SEO Offer <contact@e… »
+                             pour trois cent vingt-cinq pixels : le nom perd sa
+                             fin et l'adresse n'a jamais commencé. Chacun sa
+                             ligne, et les deux se lisent. -->
                         <p class="text-sm font-medium text-primary truncate">
                             {{ comment.authorName }}
-                            <span class="text-muted font-normal">&lt;{{ comment.authorEmail }}&gt;</span>
+                            <span class="hidden text-muted font-normal sm:inline">
+                                &lt;{{ comment.authorEmail }}&gt;
+                            </span>
                         </p>
+                        <p class="truncate text-xs text-muted sm:hidden">{{ comment.authorEmail }}</p>
                         <p class="text-xs text-muted mt-0.5 truncate">
                             {{ t("backend.comments.on_post") }} {{ comment.postTitle }}
                             · {{ formatDate(comment.createdAt) }}
@@ -118,7 +127,14 @@ function badgeColor(value) {
                             {{ t(`backend.comments.status.${comment.status}`) }}
                         </AppBadge>
 
-                        <AppRowActions :actions="actionsFor(comment)" :label="comment.authorName ?? ''" />
+                        <!-- Les trois points restent là où il y a une souris :
+                             sur un grand écran, trois rangées pleine largeur
+                             sous chaque commentaire pèseraient plus que le
+                             commentaire. Sur téléphone, ils sont écrits en bas
+                             de la carte. -->
+                        <div class="hidden sm:block">
+                            <AppRowActions :actions="actionsFor(comment)" :label="comment.authorName ?? ''" />
+                        </div>
                     </div>
                 </header>
 
@@ -128,6 +144,10 @@ function badgeColor(value) {
                     <span v-if="comment.replyCount">{{ t("backend.comments.replies", { count: comment.replyCount }) }}</span>
                     <span v-for="(count, type) in comment.reactions" :key="type">{{ type }} · {{ count }}</span>
                 </footer>
+
+                <div class="border-t border-line/40 pt-2 sm:hidden">
+                    <AppCardActions :actions="actionsFor(comment)" />
+                </div>
             </article>
         </div>
 

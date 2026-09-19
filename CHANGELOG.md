@@ -9,6 +9,33 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Éditorial passe au gabarit mobile
+Six écrans relus à trois cent soixante-quinze pixels, et ce qui s'y repliait
+corrigé :
+
+- **Les commentaires** écrivent leurs gestes sous la carte - approuver,
+  indésirable, supprimer - et l'adresse passe sous le nom : les deux sur une
+  ligne donnaient « Best SEO Offer <contact@e… », où le nom perd sa fin et
+  l'adresse n'a jamais commencé. Les trois points restent là où il y a une
+  souris.
+- **Les galeries** empilent leur ligne : le titre tombait à cent trente-deux
+  pixels pour laisser la place à « Aucune photo » et au bouton. Il prend la
+  ligne, ils prennent la suivante.
+- **Taxonomies, types de contenu et formulaires** donnent la ligne entière à
+  leur bouton d'actions. La largeur est posée sur l'enfant rendu et non sur le
+  composant : une feuille d'actions a deux racines, le déclencheur et sa
+  modale, et Vue laisse alors tomber les attributs qu'on lui passe - ce qui
+  explique pourquoi la même classe fonctionnait ailleurs, dans une barre de
+  liste qui visait déjà l'enfant.
+- **« Ajouter un champ »** se réduit à son plus en face du titre de son bloc.
+- **Le tableau de bord** ne fait plus défiler sa bande d'onglets : cinq
+  libellés font quatre cent quarante-neuf pixels pour trois cent cinquante-neuf
+  de bande, sur l'écran d'arrivée. Seul l'onglet ouvert garde son nom, les
+  autres leur icône - deux cent quarante-sept pixels, et plus rien à faire
+  glisser.
+
+Rien à corriger sur les menus, qui tenaient déjà.
+
 #### La médiathèque se laissait regarder, pas manipuler, au doigt
 Les trois gestes d'une vignette - voir, modifier, QR code - vivaient dans un
 voile qui n'apparaît qu'au survol. Sur un téléphone, où le survol n'existe pas,

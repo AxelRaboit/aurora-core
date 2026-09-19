@@ -55,10 +55,16 @@ function editPath(post) {
         <AppNoData v-if="!items.length" :message="t('backend.post_galleries.empty')" />
 
         <div v-else class="space-y-2">
+            <!-- **Empilé sur téléphone.** Le titre, le nombre de photos et le
+                 bouton se partageaient la ligne : le titre tombait à cent
+                 trente-deux pixels sur trois cent cinquante-neuf, et « Ce qui
+                 arrive ensuite » devenait « Ce qui arrive ens… » pour laisser
+                 la place à « Aucune photo ». Le titre prend la ligne, le
+                 compte et le bouton la suivante. -->
             <div
                 v-for="post in items"
                 :key="post.id"
-                class="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface p-3"
+                class="flex flex-col gap-2 rounded-xl border border-line bg-surface p-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3"
             >
                 <div class="min-w-0 flex-1">
                     <p class="truncate text-sm font-medium text-primary">
@@ -84,7 +90,12 @@ function editPath(post) {
                         : t("backend.post_galleries.no_photos") }}
                 </span>
 
-                <AppButton variant="secondary" size="sm" :href="editPath(post)" class="shrink-0">
+                <AppButton
+                    variant="secondary"
+                    size="sm"
+                    :href="editPath(post)"
+                    class="w-full shrink-0 sm:w-auto"
+                >
                     <Images class="h-4 w-4" :stroke-width="2" />
                     {{ t("backend.post_galleries.edit") }}
                 </AppButton>

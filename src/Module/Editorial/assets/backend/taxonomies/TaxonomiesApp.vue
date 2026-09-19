@@ -142,7 +142,14 @@ const pageActions = computed(() => {
         <!-- No picker column: the side menu lists the taxonomies, one entry per
              record and one address each. The create button stays - a group
              header in the menu has nowhere to put one. -->
-        <div v-if="pageActions.length" class="flex justify-end">
+        <!-- Pleine largeur sous `sm` : seul geste de la page, il prend la
+             ligne plutôt que de se serrer dans un coin.
+
+             La largeur est posée sur l'enfant rendu et non sur le composant :
+             {@see AppActionSheet} a deux racines - le déclencheur et sa modale
+             - et Vue laisse alors tomber les attributs qu'on lui passe. C'est
+             la même réponse que dans {@see AppListToolbar}. -->
+        <div v-if="pageActions.length" class="flex justify-end *:w-full sm:*:w-auto">
             <AppPageActions :actions="pageActions" />
         </div>
 
