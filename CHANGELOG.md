@@ -9,6 +9,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Se connecter sans faire défiler une page de vente
+Sur téléphone, les huit écrans d'entrée montraient d'abord l'argumentaire - le
+titre, la phrase et les quatre atouts, près de cinq cents pixels - et le champ
+e-mail arrivait après. Quelqu'un qui vient se connecter fait maintenant face au
+formulaire : le logo, la carte, puis l'argumentaire en dessous. À partir de
+`lg`, les deux colonnes reprennent leur place et l'ordre écrit redevient l'ordre
+lu.
+
+Les trois pages publiques - planning partagé, note partagée, espace client -
+resserrent leur gouttière comme le reste, et signent au centre : « Aurora » était
+collé au bord gauche là où la page de connexion le centrait depuis toujours.
+
 #### Éditorial passe au gabarit mobile
 Six écrans relus à trois cent soixante-quinze pixels, et ce qui s'y repliait
 corrigé :
