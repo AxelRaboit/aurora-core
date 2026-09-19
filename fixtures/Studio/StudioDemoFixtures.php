@@ -48,6 +48,7 @@ use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
+use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInput;
@@ -144,6 +145,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly SettingRepository $settings,
         private readonly EntityManagerInterface $entityManager,
         private readonly SpaceAccessLinkManagerInterface $accessLinks,
+        private readonly SpaceAccessLinkRepository $accessLinkRepository,
         private readonly SpaceChatChannelManagerInterface $chatChannels,
     ) {}
 
@@ -473,6 +475,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             ],
             1 => [
                 ['Coulisses du chantier Morel', "Trois photos de l'escalier en cours.", '+3 days 09:00', ['Visuel de campagne - Automne 2025', 'Plan des locaux - Étage 2', 'Logo Aurora - Fond sombre']],
+                // La seule carte datée qui ne paraît pas dans le mois : une
+                // échéance de studio, pas une publication. Sans elle, la
+                // démonstration n'aurait aucun exemple de la case décochée, et
+                // le cas qu'elle existe pour porter resterait invisible.
+                ['Relancer le photographe', 'Confirmer la date de la séance avant de programmer le reste.', '+2 days 10:00', [], false],
             ],
             2 => [
                 ['Offre de rentrée', 'Le devis gratuit jusqu\'au 30. À faire valider avant mardi.', '+5 days 18:00', ['Affiche du salon 2026']],
@@ -497,7 +504,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
                 continue;
             }
 
-            foreach ($rows as [$title, $body, $when, $pictures]) {
+            foreach ($rows as $row) {
+                [$title, $body, $when, $pictures] = $row;
+
                 $item = $this->contentItems->create($space, new SpaceContentItemInput(
                     title: $title,
                     body: $body,
@@ -505,6 +514,10 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
                     scheduledAt: null === $when
                         ? null
                         : new DateTimeImmutable($when)->format('Y-m-d\TH:i'),
+                    // Le cinquième élément, absent partout sauf sur la carte
+                    // interne : une liste de cartes reste lisible quand le cas
+                    // courant ne l'écrit pas.
+                    showOnCalendar: $row[4] ?? true,
                 ));
 
                 $this->hangPictures($item, $pictures);
@@ -543,7 +556,13 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return null;
         }
 
-        $link = $this->accessLinks->issue(
+        // **Un lien par personne, quel que soit le nombre de passages.**
+        // `issue()` en crée un à chaque appel, donc trois `make demo` donnaient
+        // trois fois Camille dans l'écran d'accès client : une liste qui dit
+        // qu'on a envoyé trois adresses à la même personne, ce qui n'est pas
+        // ce que la démonstration décrit et ce qu'un lecteur prend pour un
+        // défaut du produit.
+        $link = $this->existingLinkFor($space, $recipient) ?? $this->accessLinks->issue(
             $space,
             $recipient,
             $label,
@@ -591,6 +610,24 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         }
 
         return $link;
+    }
+
+    /**
+     * Le lien déjà émis pour cette adresse, s'il y en a un.
+     *
+     * Cherché dans les liens de l'espace plutôt que par une requête à part :
+     * la démonstration en pose deux ou trois par espace, et le dépôt sait déjà
+     * les rendre.
+     */
+    private function existingLinkFor(CustomerSpaceInterface $space, string $recipient): ?SpaceAccessLinkInterface
+    {
+        foreach ($this->accessLinkRepository->findForSpace($space) as $link) {
+            if ($link->getRecipientEmail() === $recipient) {
+                return $link;
+            }
+        }
+
+        return null;
     }
 
     /**

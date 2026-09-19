@@ -12,6 +12,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { FileText, FolderTree, Tag, Tags } from "lucide-vue-next";
+import AppStatTile from "@/shared/components/display/AppStatTile.vue";
 import AppShareBar from "@/shared/components/chart/AppShareBar.vue";
 import { hasAnyShare } from "@/shared/utils/data/hasAnyShare.js";
 
@@ -44,17 +45,13 @@ const byType = computed(() =>
 <template>
     <div class="space-y-6">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div
+            <AppStatTile
                 v-for="total in totals"
                 :key="total.key"
-                class="bg-surface border border-line rounded-xl p-4"
-            >
-                <div class="flex items-center gap-2 text-secondary text-xs uppercase tracking-wide">
-                    <component :is="total.icon" class="w-4 h-4 shrink-0" :stroke-width="2" />
-                    {{ t(`backend.stats.ged.${total.key}`) }}
-                </div>
-                <p class="text-2xl font-semibold text-primary mt-2">{{ total.value }}</p>
-            </div>
+                :icon="total.icon"
+                :label="t(`backend.stats.ged.${total.key}`)"
+                :value="total.value"
+            />
         </div>
 
         <div v-if="hasAnyShare(byType)" class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">

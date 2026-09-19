@@ -8,6 +8,7 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -55,6 +56,33 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
      * spaces stand in the way instead of letting the foreign key answer with a
      * driver exception.
      */
+    /**
+     * Combien d'espaces par état.
+     *
+     * Groupé plutôt qu'un compte par état : le tableau de bord les affiche
+     * tous, et trois requêtes pour trois nombres qui sortent de la même table
+     * seraient trois allers-retours pour rien.
+     *
+     * @return array<string, int>
+     */
+    public function countGroupedByStatus(): array
+    {
+        $rows = $this->createQueryBuilder('s')
+            ->select('s.status AS status, COUNT(s.id) AS total')
+            ->groupBy('s.status')
+            ->getQuery()
+            ->getScalarResult();
+
+        $counts = [];
+
+        foreach ($rows as $row) {
+            $status = $row['status'];
+            $counts[$status instanceof CustomerSpaceStatusEnum ? $status->value : (string) $status] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
     public function countForCustomer(CustomerInterface $customer): int
     {
         return (int) $this->createQueryBuilder('s')

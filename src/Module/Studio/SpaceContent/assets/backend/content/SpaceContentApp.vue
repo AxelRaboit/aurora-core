@@ -61,6 +61,10 @@ import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
+// Même module, autre sous-domaine : un chemin relatif plutôt qu'un alias,
+// comme le fait déjà la page publique. La règle qui interdit de traverser les
+// modules parle des modules, et le Drive d'un espace est le même Studio.
+import SpaceDrivePicker from "../../../../SpaceFile/GoogleDrive/assets/backend/drive/SpaceDrivePicker.vue";
 import AppColourSlotPicker from "@/shared/components/form/picker/AppColourSlotPicker.vue";
 import {
     CalendarDays,
@@ -142,6 +146,8 @@ const props = defineProps({
     driveListPath: { type: String, default: "" },
     driveFolderPath: { type: String, default: "" },
     driveFilePath: { type: String, default: "" },
+    driveArchivePath: { type: String, default: "" },
+    driveImportPath: { type: String, default: "" },
 });
 
 const VIEWS = [
@@ -234,6 +240,7 @@ const {
     attachmentLoading,
     upload,
     pick,
+    pickFromDrive,
     remove,
 } = useSpaceContent(
     {
@@ -253,6 +260,7 @@ const {
         attachmentUploadPath: props.attachmentUploadPath,
         attachmentAttachPath: props.attachmentAttachPath,
         attachmentDetachPath: props.attachmentDetachPath,
+        driveImportPath: props.driveImportPath,
         columnCreatePath: props.columnCreatePath,
         columnUpdatePath: props.columnUpdatePath,
         columnDeletePath: props.columnDeletePath,
@@ -260,6 +268,21 @@ const {
         colourSlot: props.space.colourSlot,
     },
 );
+
+const showDrivePicker = ref(false);
+
+/**
+ * Le fichier choisi entre dans la médiathèque, puis sur la fiche.
+ *
+ * La fenêtre ne se referme que si les deux ont abouti : refermée d'office,
+ * elle aurait fait croire à un ajout qui n'a pas eu lieu, sur un écran où la
+ * liste des pièces jointes est juste derrière.
+ */
+async function attachFromDrive(file) {
+    if (await pickFromDrive(editingItem.value, file)) {
+        showDrivePicker.value = false;
+    }
+}
 
 const editable = computed(() => can("studio.spaces.edit"));
 
@@ -527,6 +550,8 @@ const actionsFor = useSpaceCardActions({
             :list-path="driveListPath"
             :folder-path="driveFolderPath"
             :file-path="driveFilePath"
+            :archive-path="driveArchivePath"
+            :import-path="driveImportPath"
         />
 
         <!-- Mounted only while it is the view on screen, so a board nobody is
@@ -637,13 +662,27 @@ const actionsFor = useSpaceCardActions({
                     :can-discuss="!!editingItem"
                     :attachments="filesOf(editingItem)"
                     :attachment-loading="attachmentLoading"
+                    :can-pick-drive="driveEnabled && !!driveImportPath"
                     v-on:post-comment="postComment(editingItem, $event)"
                     v-on:delete-comment="deleteComment"
                     v-on:upload-attachment="upload(editingItem, $event)"
                     v-on:pick-attachment="pick(editingItem)"
+                    v-on:pick-drive-attachment="showDrivePicker = true"
                     v-on:remove-attachment="remove"
                 />
             </form>
+
+            <!-- Posé dans le formulaire de la fiche : c'est là qu'on décide
+                 d'accrocher un fichier, et la fenêtre se referme sur la fiche
+                 plutôt que sur le tableau. -->
+            <SpaceDrivePicker
+                :show="showDrivePicker"
+                :list-path="driveListPath"
+                :importing="attachmentLoading"
+                v-on:close="showDrivePicker = false"
+                v-on:choose="attachFromDrive"
+            />
+
             <template #footer>
                 <AppModalFooter>
                     <!-- One button and no Save for a reader who may not edit.

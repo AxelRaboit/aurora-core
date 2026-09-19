@@ -5,6 +5,158 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.206] - 2026-09-19
+
+### Ajouté
+
+#### Emporter ce qui est partagé dans le Drive
+Un dossier Drive branché sur un espace se regardait ; il s'emporte
+maintenant. Chaque fichier a son téléchargement, et le dossier entier tient
+dans une archive.
+
+**Le nom du fichier vient de Google, jamais du navigateur.** Sa réponse au
+contenu porte bien un `Content-Disposition: attachment`, mais sans `filename` :
+relayée telle quelle, elle faisait atterrir « 1BxY_…Kp3 » dans le dossier de
+téléchargement du client. Le nom se redemande donc à part, et seulement quand
+il sert - un aperçu ne paie pas cet appel. Le laisser voyager dans l'adresse
+aurait été écrire un en-tête de réponse à partir de ce qu'un visiteur envoie.
+
+**Le lot répond à la seule question que se pose un client** à qui on partage
+trente visuels : je prends tout. L'archive garde l'arborescence, descend
+chaque fichier par morceaux dans un temporaire plutôt que de le tenir en
+mémoire, et ne recompresse rien - ce sont des photos et des vidéos, déjà
+compressées. Deux cas qu'un lot ne peut pas emporter sont nommés au lieu de
+disparaître : ce qui dépasse cinq cents mégaoctets, refusé avant de commencer,
+et les documents Google, qui n'ont pas d'octets à télécharger et sont listés
+dans un fichier posé à la racine de l'archive. Drive accepte deux fichiers du
+même nom dans un dossier ; le second prend un suffixe, faute de quoi
+l'extraction en écrasait un.
+
+**Les deux écrans relaient par le même service.** Le studio et la page qu'un
+client ouvre par son lien d'accès servaient le même flux, écrit deux fois ; ce
+qui les distingue est le contrôle qui précède l'appel, pas la façon de servir.
+Écrit à deux endroits, l'en-tête de sécurité aurait fini par n'exister que
+d'un côté.
+
+Et cet en-tête manquait. Un fichier du Drive sort sous le domaine de
+l'application : un HTML ou un SVG posé dans un dossier partagé, ouvert dans un
+onglet, aurait exécuté son script sur la page d'un espace avec la session de
+celui qui regarde. Ces types redeviennent des fichiers, qu'on ait demandé le
+téléchargement ou non, et `nosniff` accompagne tout le reste.
+
+#### Accrocher un fichier du Drive à une fiche, et le ranger dans la médiathèque
+Un fichier partagé par le client se met maintenant sur une fiche, depuis le
+formulaire de la fiche, par un sélecteur qui montre la même arborescence que
+la vue Drive. Le calendrier suit sans rien faire : il affiche les mêmes
+fiches.
+
+**C'est le seul endroit de cette intégration qui recopie, et c'est voulu.** Le
+reste ne recopie rien, parce qu'un dossier partagé est une étagère vivante et
+que ce qu'on y retire disparaît de l'espace. Une pièce jointe sur une fiche
+est l'inverse : une décision prise à un moment. Le brief qu'on épingle doit
+rester celui dont on a parlé, pas un lien qui se vide le jour où le client
+fait le ménage dans son Drive.
+
+**Et c'est ce qui le rend utilisable partout sans rien inventer.** Une fois
+dans la médiathèque, le fichier est un document comme un autre : les notes
+savent déjà en afficher, les galeries en puiser, les fiches en accrocher. Un
+troisième genre de pièce jointe, qui aurait pointé vers Google, aurait demandé
+à chacun de ces écrans de connaître l'intégration. D'où le bouton « Ranger
+dans la médiathèque » dans l'aperçu d'un fichier du Drive : c'est le passage
+vers tout le reste, et c'est par là qu'une note prend une image du Drive.
+
+L'accrochage tient en deux appels et non un : le premier recopie, le second
+accroche par la route qui accroche déjà n'importe quel document. Une route qui
+aurait fait les deux aurait ajouté un chemin de plus vers une pièce jointe,
+alors que la moitié intéressante est qu'il n'y en ait pas.
+
+Le nom vient de Google, comme pour un téléchargement, et le vrai déposeur est
+monté dans le test pour cette raison : un double aurait rendu le nom qu'on lui
+aurait appris.
+
+#### Deux pages de documentation sur les connexions
+La rubrique Configuration explique maintenant comment brancher Craft et
+comment brancher un dossier Google Drive : ce que chaque connexion fait, ce
+qu'elle ne fait pas, la marche à suivre chez le fournisseur, et ce qu'on
+regarde quand rien n'apparaît.
+
+La page sur Craft insiste sur un point mesuré plutôt que supposé : une
+connexion en mode « Publique » répond à qui connaît son adresse, sans
+authentification, et annonce elle-même les opérations d'écriture et de
+suppression qu'elle accepte. Le mode « Clé API » est le seul qui referme ça.
+
+### Modifié
+
+#### Le Studio entre sur le tableau de bord
+L'écran d'arrivée montrait l'éditorial, la médiathèque, le calendrier et les
+comptes. Les espaces clients, les contrats et les présentations, c'est-à-dire
+ce qu'on ouvre tous les jours, n'avaient aucun panneau. Chaque module apporte
+le sien, et celui-là manquait : ça ne se voit pas, un tableau de bord
+incomplet ressemblant à un tableau de bord.
+
+Deux chiffres sont mis en avant plutôt que tous, parce que ce sont les seuls
+sur lesquels on agit en arrivant : ce qui attend une réponse du client, et où
+en sont les contrats. Le reste situe, une carte en attente sur trois n'étant
+pas la même nouvelle qu'une sur quarante.
+
+#### Le panneau Calendrier annonçait zéro partout
+Il fournissait ses chiffres depuis le début sans être inscrit dans la table
+qui décide à qui on les demande. Un panneau absent de cette table s'affiche
+quand même - elle ne masque que ce qu'elle dit faux - mais ses chiffres ne
+sont jamais calculés. Il annonçait donc zéro calendrier et zéro retard, ce qui
+ressemble à une installation vide plutôt qu'à un panneau débranché. Sept
+calendriers et quatre retards après correction.
+
+#### Les chiffres d'une rangée s'alignent
+Chaque panneau redessinait sa tuile, et le détail perdu en route était
+l'alignement : un libellé qui passe sur deux lignes poussait son nombre d'une
+ligne vers le bas, et deux tuiles côte à côte affichaient leurs chiffres à
+deux hauteurs. Une rangée de tuiles est un objet répété, donc une seule tuile
+partagée, où le libellé prend la place qu'il lui faut et le nombre se pose au
+bas de la carte.
+
+Un lien du panneau Calendrier faisait seize pixels de haut. Il ne s'était
+jamais montré : le panneau était vide.
+
+#### Une carte peut porter une date sans paraître dans le calendrier
+Une date et une parution ne sont pas la même chose. Une carte peut porter une
+échéance qui regarde le studio et personne d'autre : une relance à préparer, un
+tournage à caler, un envoi à vérifier. Datées, elles s'invitaient toutes dans
+le mois et noyaient ce que le calendrier existe pour montrer.
+
+Une case sous le champ de date, cochée par défaut. Décochée, la carte garde sa
+date, reste sur le tableau, et disparaît du mois.
+
+**Des deux calendriers, et c'est le second qui se serait oublié.** Une carte
+datée n'alimente pas seulement le mois de son espace : elle est annoncée à
+l'agenda partagé du studio, celui qui rassemble tous les clients. Retirée d'un
+seul des deux, la case aurait menti. La règle est donc dite à l'endroit où
+l'annonce est faite, une fois pour les deux.
+
+Vrai par défaut y compris pour un appel qui ne porte pas le champ. C'est le
+défaut qu'un booléen ajouté à une entrée existante produit : absent du corps,
+il vaudrait faux, et toutes les cartes enregistrées par un écran plus ancien
+auraient quitté le calendrier en silence.
+
+#### La démonstration n'envoie plus deux fois le même lien d'accès
+Chaque `make demo` émettait un nouveau lien pour un destinataire qu'il avait
+déjà. Trois passages listaient Camille trois fois dans l'écran d'accès client,
+ce qui se lit comme un défaut du produit plutôt que comme une fixture jouée
+deux fois.
+
+#### Les captures de la documentation suivent la barre d'un espace
+Vingt-cinq captures dataient d'avant la vue Drive, et montraient une barre à
+cinq onglets là où un lecteur en voit six. Refaites.
+
+Les deux parcours ajoutés prennent la même précaution que celui du stockage :
+l'adresse du compte de service, celle de la connexion Craft, l'identifiant du
+dossier et la liste des fichiers sont remplacés par des valeurs de
+démonstration avant la prise. Ces images partent dans un dépôt public et sur
+une page que n'importe qui peut ouvrir ; sans cela, elles auraient emporté le
+contenu d'un Drive personnel.
+
+---
+
 ## [0.9.205] - 2026-09-19
 
 ### Ajouté

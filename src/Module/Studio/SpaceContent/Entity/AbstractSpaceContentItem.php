@@ -86,6 +86,23 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $scheduledAt = null;
 
+    /**
+     * Si la date se lit aussi dans le calendrier.
+     *
+     * **Une date et une parution ne sont pas la même chose.** Une carte peut
+     * porter une échéance qui regarde le studio et personne d'autre : une
+     * relance à préparer, un tournage à caler, un envoi à vérifier. Datées,
+     * elles s'invitaient toutes dans le mois et noyaient ce que le calendrier
+     * existe pour montrer, ce qui sort et quand.
+     *
+     * Vrai par défaut, parce que c'est le cas courant et que l'inverse
+     * obligerait à cocher chaque carte pour retrouver le comportement d'avant.
+     * Décochée, la carte garde sa date, la montre sur le tableau, et ne
+     * s'affiche plus dans le mois - ni au studio, ni chez le client.
+     */
+    #[ORM\Column(options: ['default' => true])]
+    protected bool $showOnCalendar = true;
+
     /** Order inside its column. Rewritten by a move, never read across columns. */
     #[ORM\Column(options: ['default' => 0])]
     protected int $position = 0;
@@ -186,6 +203,30 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
     public function isScheduled(): bool
     {
         return $this->scheduledAt instanceof DateTimeImmutable;
+    }
+
+    public function isShownOnCalendar(): bool
+    {
+        return $this->showOnCalendar;
+    }
+
+    public function setShowOnCalendar(bool $showOnCalendar): static
+    {
+        $this->showOnCalendar = $showOnCalendar;
+
+        return $this;
+    }
+
+    /**
+     * Ce que le calendrier prend, et lui seul.
+     *
+     * Les deux conditions ensemble, parce que les confondre est l'erreur
+     * qu'on ferait : une carte sans date n'a rien à y faire, et une carte
+     * datée qu'on a décochée non plus.
+     */
+    public function appearsOnCalendar(): bool
+    {
+        return $this->showOnCalendar && $this->isScheduled();
     }
 
     public function getPosition(): int

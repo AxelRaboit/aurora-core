@@ -92,6 +92,46 @@ export function useSpaceAttachments(attachments, paths, applyBoard) {
         }
     }
 
+    /**
+     * Range un fichier du Drive dans la médiathèque, puis le met sur la fiche.
+     *
+     * **Deux appels et pas un, délibérément.** Le premier recopie le fichier
+     * et rend un document ; le second l'accroche par la route qui accroche
+     * déjà n'importe quel document. Une route qui aurait fait les deux aurait
+     * ajouté un troisième chemin vers une pièce jointe, alors que la moitié
+     * intéressante est justement qu'il n'y en ait pas : une fois dans la
+     * médiathèque, un fichier du Drive n'est plus un cas particulier.
+     */
+    async function pickFromDrive(item, file) {
+        if (!item || !file?.id || attachmentLoading.value) return false;
+
+        attachmentLoading.value = true;
+        try {
+            const imported = await request(
+                buildPath(paths.driveImportPath, { fileId: file.id }),
+                {},
+            );
+
+            const documentId = imported?.document?.id;
+
+            if (!documentId) return false;
+
+            const data = await request(
+                buildPath(paths.attachmentAttachPath, { id: item.id }),
+                { documentId },
+            );
+
+            if (!data?.success) return false;
+
+            applyBoard(data);
+            toast.success(t("backend.studio.space_content.attachment_added"));
+
+            return true;
+        } finally {
+            attachmentLoading.value = false;
+        }
+    }
+
     /** Takes a file off the card. The document stays in GED. */
     async function remove(attachment) {
         if (!attachment || attachmentLoading.value) return;
@@ -112,5 +152,5 @@ export function useSpaceAttachments(attachments, paths, applyBoard) {
         }
     }
 
-    return { attachmentLoading, filesOf, upload, pick, remove };
+    return { attachmentLoading, filesOf, upload, pick, pickFromDrive, remove };
 }

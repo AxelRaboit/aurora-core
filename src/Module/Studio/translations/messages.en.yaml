@@ -1,4 +1,12 @@
 backend:
+    stats:
+        studio:
+            spaces: Active spaces
+            awaiting_client: Waiting on the client
+            upcoming: "Going out within 7 days"
+            decks: Decks
+            by_approval: Where the content stands
+            by_contract_status: Where the contracts stand
     modules:
         studio: Studio
         studio_backend: Studio
@@ -965,14 +973,24 @@ backend:
                 empty: "The folder is empty, or it was not shared with the service account."
                 no_size: "—"
                 view_label: How the files are shown
+                archive: Download everything (.zip)
+                import: File in the library
+                imported: "Filed in the library. It is now available in notes, cards and galleries."
                 path_label: Path inside the folder
                 root: Shared folder
                 items: "1 file | {count} files"
                 open: Open the file
+            picker:
+                title: Pick a file from the Drive
+                intro: "The file is copied into this space's library, then attached to the card."
+                copy_notice: "A copy: it no longer follows changes in the client's Drive, and it survives being unshared."
+                submit: Attach to the card
             errors:
                 key_invalid: "That is not a service account key. Check that you copied the whole JSON file."
                 key_required: Paste a service account key before enabling.
                 folder_invalid: "That is not a Drive folder. Paste its address, or the identifier that follows /folders/."
+                import_failed: "That file could not be copied. Google documents have no file to download."
+                archive_too_large: "The folder is over 500 MB: download the files one by one."
         space_notes:
             # A space's notes: the one surface a client never sees.
             add: New note
@@ -1103,6 +1121,8 @@ backend:
             column: Step
             scheduled_at: Publication date
             scheduled_at_hint: 'Optional. An idea with no date lives on the board and joins the calendar when you schedule it.'
+            show_on_calendar: Show on the calendar
+            show_on_calendar_hint: "Unchecked, the card keeps its date and stays on the board, but appears neither on your calendar nor on the client's."
             scheduled_at_placeholder: '22/09/2026 09:00'
             timezone_notice: 'Times are in the space''s zone, {timezone}.'
 
@@ -1255,6 +1275,8 @@ studio:
             timezone_notice: 'Times in {timezone}'
             calendar_day_empty: Nothing planned that day.
             drive_title: Shared documents
+            drive_download: Download the file
+            drive_archive: Download everything (.zip)
             footer: This address is personal to you, please do not pass it on.
             footer_until: 'This address is personal to you and valid until {date}: please do not pass it on.'
             no_body: The text is not written yet.
