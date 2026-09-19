@@ -953,6 +953,17 @@ backend:
                 enabled_label: Enable reading Drive folders
                 enabled_hint: Each space can then name the folder its client shared.
                 enabled_blocked: Paste a service account key before enabling.
+            space:
+                title: Google Drive folder
+                intro: "The files stay with the client: nothing is copied, and they show in their space without them needing a Google account."
+                folder_label: Shared folder
+                folder_hint: "Paste the folder's address, or empty the field to unlink it. The client must have shared it with the service account's address."
+                link: Link
+                unlink: Unlink
+                linked: Folder linked.
+                unlinked: Folder unlinked.
+                empty: "The folder is empty, or it was not shared with the service account."
+                no_size: "—"
             errors:
                 key_invalid: "That is not a service account key. Check that you copied the whole JSON file."
                 key_required: Paste a service account key before enabling.

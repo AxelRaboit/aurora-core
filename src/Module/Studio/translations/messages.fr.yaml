@@ -962,6 +962,17 @@ backend:
                 enabled_label: Activer la lecture des dossiers Drive
                 enabled_hint: Chaque espace peut alors désigner le dossier que son client a partagé.
                 enabled_blocked: Collez une clé de compte de service pour pouvoir activer.
+            space:
+                title: Dossier Google Drive
+                intro: "Les fichiers restent chez le client : rien n'est recopié, et ils s'affichent dans son espace sans qu'il ait besoin d'un compte Google."
+                folder_label: Dossier partagé
+                folder_hint: "Collez l'adresse du dossier, ou videz le champ pour le débrancher. Le client doit l'avoir partagé avec l'adresse du compte de service."
+                link: Brancher
+                unlink: Débrancher
+                linked: Dossier branché.
+                unlinked: Dossier débranché.
+                empty: "Le dossier ne contient rien, ou n'a pas été partagé avec le compte de service."
+                no_size: "—"
             errors:
                 key_invalid: "Ce n'est pas une clé de compte de service. Vérifiez d'avoir copié le fichier JSON en entier."
                 key_required: Collez une clé de compte de service avant d'activer.

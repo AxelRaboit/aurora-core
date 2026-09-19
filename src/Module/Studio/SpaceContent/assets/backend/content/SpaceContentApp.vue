@@ -46,6 +46,7 @@ import SpaceBoardView from "./views/SpaceBoardView.vue";
 import SpaceListView from "./views/SpaceListView.vue";
 import SpaceCalendarView from "./views/SpaceCalendarView.vue";
 import SpaceFilesView from "./views/SpaceFilesView.vue";
+import SpaceDrivePanel from "../../../../SpaceFile/GoogleDrive/assets/backend/SpaceDrivePanel.vue";
 import SpaceContentItemFields from "./components/SpaceContentItemFields.vue";
 // Same module, another sub-domain: a relative path rather than an alias,
 // the way the public page already reaches the shared thread.
@@ -135,6 +136,11 @@ const props = defineProps({
     spaceFileUploadPath: { type: String, required: true },
     spaceFileAttachPath: { type: String, required: true },
     spaceFileRemovePath: { type: String, required: true },
+    driveEnabled: { type: Boolean, default: false },
+    driveFolderId: { type: String, default: null },
+    driveListPath: { type: String, default: "" },
+    driveFolderPath: { type: String, default: "" },
+    driveFilePath: { type: String, default: "" },
 });
 
 const VIEWS = [
@@ -496,7 +502,19 @@ const actionsFor = useSpaceCardActions({
             v-on:upload="uploadOwnFile"
             v-on:pick="pickOwnFile"
             v-on:remove="removeOwnFile"
-        />
+        >
+            <!-- Sous les fichiers de l'espace, et dans le même onglet : ce
+                 sont des fichiers, ils vont avec les autres. Absent tant que
+                 l'installation n'a pas de compte de service. -->
+            <template v-if="driveEnabled" #after>
+                <SpaceDrivePanel
+                    :folder-id="driveFolderId"
+                    :list-path="driveListPath"
+                    :folder-path="driveFolderPath"
+                    :file-path="driveFilePath"
+                />
+            </template>
+        </SpaceFilesView>
 
         <!-- Mounted only while it is the view on screen, so a board nobody is
              chatting on holds no connection open. The cost is that a message
