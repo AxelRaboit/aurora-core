@@ -40,6 +40,10 @@ interface CustomerSpaceInterface
 
     public function getTimezone(): string;
 
+    public function getDriveFolderId(): ?string;
+
+    public function setDriveFolderId(?string $driveFolderId): static;
+
     public function setTimezone(string $timezone): static;
 
     /** @return Collection<int, CustomerSpaceMemberInterface> */
