@@ -107,7 +107,7 @@ final class CraftClientTest extends TestCase
     {
         $client = $this->client(
             $this->settings('https://connect.example/c/1/', 'jeton-secret'),
-            [new MockResponse((string) json_encode(['documents' => [
+            [new MockResponse((string) json_encode(['items' => [
                 ['rootBlockId' => 'b', 'title' => 'Zèbre'],
                 ['rootBlockId' => 'a', 'title' => 'Atelier'],
             ]]), ['response_headers' => ['content-type' => 'application/json']])],
@@ -129,14 +129,15 @@ final class CraftClientTest extends TestCase
      * `rootBlockId` et non `id` : c'est celui que `/blocks` attend, et
      * l'identifiant qu'une adresse de document affiche en est un autre.
      */
-    public function testARowWithoutARootBlockIdIsSkipped(): void
+    public function testARowWithoutAnIdOrAliveDocumentIsSkipped(): void
     {
         $client = $this->client(
             $this->settings('https://connect.example/c/1', 'jeton'),
-            [new MockResponse((string) json_encode(['documents' => [
+            [new MockResponse((string) json_encode(['items' => [
                 ['title' => 'Sans identifiant'],
-                ['rootBlockId' => '', 'title' => 'Vide'],
-                ['rootBlockId' => 'ok', 'title' => 'Bon'],
+                ['id' => '', 'title' => 'Vide'],
+                ['id' => 'jete', 'title' => 'Document supprimé', 'isDeleted' => true],
+                ['id' => 'ok', 'title' => 'Bon'],
             ]]), ['response_headers' => ['content-type' => 'application/json']])],
         );
 
@@ -148,7 +149,7 @@ final class CraftClientTest extends TestCase
     {
         $client = $this->client(
             $this->settings('https://connect.example/c/1', 'jeton'),
-            [new MockResponse((string) json_encode([['rootBlockId' => 'xyz', 'title' => '  ']]), [
+            [new MockResponse((string) json_encode(['items' => [['id' => 'xyz', 'title' => '  ']]]), [
                 'response_headers' => ['content-type' => 'application/json'],
             ])],
         );

@@ -907,18 +907,18 @@ backend:
                 what_title: Ce que fait cette connexion
                 what_body: "Elle permet d'importer un document Craft dans les notes d'un espace client. C'est une copie : le document reste chez Craft, et la note ne change plus toute seule ensuite."
                 how_title: Comment l'ouvrir
-                how_step_connection: "Dans Craft, ouvrez l'onglet Connexions et créez une connexion API."
-                how_step_select: "Choisissez les documents que cette connexion laissera lire. Ne donnez pas accès à tout l'espace : le jeton dort sur ce serveur."
-                how_step_paste: "Copiez l'adresse et le jeton que Craft affiche, et collez-les ci-dessous. Ils ne seront plus affichés."
+                how_step_connection: "Dans Craft, barre latérale, onglet Connexions : « Ajoutez votre première connexion API », puis « API pour les documents sélectionnés »."
+                how_step_select: "Choisissez les documents, puis réglez la connexion en lecture seule et en mode « Clé API ». Publique, l'adresse seule suffit à écrire et à supprimer chez vous."
+                how_step_paste: "Copiez l'adresse et la clé, et collez-les ci-dessous. La clé ne sera plus affichée."
                 how_link: La marche à suivre chez Craft
                 endpoint_label: Adresse de la connexion
-                endpoint_hint: "Celle que Craft affiche à la création de la connexion. En https, sans quoi le jeton voyagerait en clair."
-                token_label: Jeton
-                token_hint: Les identifiants affichés à côté de l'adresse.
-                token_stored: Un jeton est enregistré. Laissez le champ vide pour le garder.
+                endpoint_hint: "Celle que Craft affiche à la création de la connexion. En https, sans quoi la clé voyagerait en clair."
+                token_label: Clé API
+                token_hint: "Celle que Craft affiche une fois la connexion passée en mode « Clé API »."
+                token_stored: Une clé est enregistrée. Laissez le champ vide pour la garder.
                 enabled_label: Activer l'import depuis Craft
                 enabled_hint: Le bouton apparaît dans les notes de chaque espace.
-                enabled_blocked: Renseignez une adresse et un jeton pour pouvoir activer.
+                enabled_blocked: Renseignez une adresse et une clé pour pouvoir activer.
             import:
                 action: Importer depuis Craft
                 title: Importer une note Craft
@@ -931,7 +931,7 @@ backend:
                 submit: Importer
             errors:
                 endpoint_https: "L'adresse de la connexion doit commencer par https://."
-                connection_required: Renseignez une adresse et un jeton avant d'activer.
+                connection_required: Renseignez une adresse et une clé avant d'activer.
                 document_required: Choisissez un document à importer.
                 unreachable: "Craft n'a rien renvoyé pour ce document."
         space_notes:

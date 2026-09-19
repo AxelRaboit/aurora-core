@@ -95,7 +95,7 @@ final class SpaceNoteCraftImportTest extends IntegrationTestCase
     {
         $space = $this->givenSpace();
         $this->givenCraft(enabled: true, responses: [
-            new MockResponse((string) json_encode(['documents' => [
+            new MockResponse((string) json_encode(['items' => [
                 ['rootBlockId' => 'doc-2', 'title' => 'Brief septembre'],
                 ['rootBlockId' => 'doc-1', 'title' => 'Atelier'],
             ]]), ['response_headers' => ['content-type' => 'application/json']]),

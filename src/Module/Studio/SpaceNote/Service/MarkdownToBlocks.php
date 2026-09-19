@@ -70,7 +70,7 @@ final readonly class MarkdownToBlocks
      */
     public function convert(string $markdown): array
     {
-        $lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $markdown));
+        $lines = explode("\n", $this->craftTags(str_replace(["\r\n", "\r"], "\n", $markdown)));
         $blocks = [];
         $paragraph = [];
 
@@ -152,6 +152,57 @@ final readonly class MarkdownToBlocks
     }
 
     /**
+     * Les balises que Craft ajoute au Markdown, traduites ou dépliées.
+     *
+     * La liste vient de la spécification que la connexion publie elle-même
+     * (`GET /openapi.json`, section « Craft Markdown Extensions »), et non
+     * d'une devinette : une page imbriquée, un encadré, un surlignage et un
+     * fil de commentaire ont chacun leur balise, et elles arrivent dans le
+     * Markdown rendu.
+     *
+     * **Déplier plutôt que jeter.** Aucune n'a d'équivalent dans l'éditeur
+     * d'Aurora ; laissées telles quelles, elles ressortiraient en
+     * `&lt;page&gt;` au milieu de la note, ce qui est la pire des sorties.
+     * Le titre d'une page imbriquée devient donc un titre, un surlignage
+     * devient la forme courte que la conversion sait déjà lire, et le reste
+     * rend son contenu et disparaît.
+     *
+     * Les renvois internes de Craft - `block://`, `date://`, et le
+     * `invalid:out_of_scope` que rend un lien hors de la connexion - perdent
+     * leur adresse et gardent leur texte : ce sont des liens qui ne mènent
+     * nulle part hors de Craft, et un lien mort dans la note d'un client est
+     * pire qu'un mot.
+     */
+    private function craftTags(string $markdown): string
+    {
+        // Le titre d'une page imbriquée, en titre de niveau trois : il est
+        // sous le titre de la note, qui est le document lui-même.
+        $markdown = preg_replace('#<pageTitle>(.*?)</pageTitle>#su', "\n### $1\n", $markdown) ?? $markdown;
+
+        // Surlignage : ramené à la forme courte que Craft documente comme son
+        // équivalent, et que la conversion en ligne sait déjà lire.
+        $markdown = preg_replace('#<highlight[^>]*>(.*?)</highlight>#su', '==$1==', $markdown) ?? $markdown;
+
+        // Un fil de commentaire est une conversation interne à Craft. Le mot
+        // reste, le fil ne suit pas.
+        $markdown = preg_replace('#<comment[^>]*>(.*?)</comment>#su', '$1', $markdown) ?? $markdown;
+
+        // La liste des colonnes d'une collection n'est pas du texte : c'est
+        // un en-tête de tableau sans son tableau.
+        $markdown = preg_replace('#<properties>.*?</properties>#su', '', $markdown) ?? $markdown;
+
+        // Le reste rend son contenu et s'efface.
+        $markdown = preg_replace(
+            '#</?(?:page|card|content|caption|collection|collectionItem|itemsPreview|property|title)(?:\s[^>]*)?>#u',
+            '',
+            $markdown,
+        ) ?? $markdown;
+
+        return preg_replace('#\[([^\]]*)\]\((?:block|date)://[^)]*\)|\[([^\]]*)\]\(invalid:[^)]*\)#u', '$1$2', $markdown)
+            ?? $markdown;
+    }
+
+    /**
      * Les lignes en attente deviennent un paragraphe, et la réserve se vide.
      *
      * Une méthode et non une fermeture sur des références : Rector lisait
@@ -227,28 +278,70 @@ final readonly class MarkdownToBlocks
     {
         $parts = [];
         $counter = count($lines);
+        $closesAt = $this->calloutEnd($lines, $i);
+        $last = $i;
 
         for (; $i < $counter; ++$i) {
             $line = mb_trim($lines[$i]);
 
-            if ('' === $line) {
-                break;
-            }
+            if (null === $closesAt) {
+                // Une citation se reconnaît ligne à ligne et s'arrête à la
+                // première qui ne commence pas par un chevron - la ligne vide
+                // comprise, qui sépare deux blocs.
+                if (!str_starts_with($line, '>') && !$this->isCallout($line)) {
+                    break;
+                }
 
-            if ($this->isCallout($line)) {
-                $line = mb_trim(str_replace(['<callout>', '</callout>'], '', $line));
-            } elseif (str_starts_with($line, '>')) {
-                $line = mb_ltrim(mb_substr($line, 1));
+                $line = $this->isCallout($line)
+                    ? mb_trim(str_replace(['<callout>', '</callout>'], '', $line))
+                    : mb_ltrim(mb_substr($line, 1));
             } else {
-                break;
+                $line = mb_trim(str_replace(['<callout>', '</callout>'], '', $line));
             }
 
-            $parts[] = $line;
+            if ('' !== $line) {
+                $parts[] = $line;
+            }
+
+            $last = $i;
+
+            if (null !== $closesAt && $i >= $closesAt) {
+                break;
+            }
         }
 
-        --$i;
+        // Sur la dernière ligne consommée : la boucle appelante reprend après.
+        $i = $last;
 
         return EditorBlocks::quote($this->inline(mb_trim(implode(' ', $parts))));
+    }
+
+    /**
+     * Où se referme l'encadré ouvert à cette ligne, s'il se referme.
+     *
+     * Un encadré de Craft enveloppe des blocs : il peut porter des lignes
+     * vides, que la règle d'une citation prendrait pour une fin. On cherche
+     * donc sa fermeture d'abord. **Sans fermeture, il n'est pas traité comme
+     * un encadré multiligne** : un document mal formé mangerait tout ce qui
+     * le suit, et une note amputée est pire qu'un encadré rendu à plat.
+     *
+     * @param list<string> $lines
+     */
+    private function calloutEnd(array $lines, int $from): ?int
+    {
+        if (!$this->isCallout(mb_trim($lines[$from]))) {
+            return null;
+        }
+
+        $counter = count($lines);
+
+        for ($line = $from; $line < $counter; ++$line) {
+            if (str_contains($lines[$line], '</callout>')) {
+                return $line;
+            }
+        }
+
+        return null;
     }
 
     private function isListItem(string $line): bool

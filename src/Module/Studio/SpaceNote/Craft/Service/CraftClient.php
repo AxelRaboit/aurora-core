@@ -72,7 +72,10 @@ final readonly class CraftClient
             return [];
         }
 
-        $rows = is_array($payload['documents'] ?? null) ? $payload['documents'] : $payload;
+        // `items`, le nom que donne la spécification publiée par la connexion
+        // elle-même (`GET /openapi.json`). Le repli sur la racine couvre une
+        // réponse qui serait un tableau nu.
+        $rows = is_array($payload['items'] ?? null) ? $payload['items'] : $payload;
         $documents = [];
 
         foreach ($rows as $row) {
@@ -89,6 +92,12 @@ final readonly class CraftClient
             }
 
             if ('' === $id) {
+                continue;
+            }
+
+            // Craft garde la ligne d'un document supprimé, avec son titre.
+            // Le proposer à l'import serait proposer une note vide.
+            if (true === ($row['isDeleted'] ?? false)) {
                 continue;
             }
 
@@ -169,10 +178,13 @@ final readonly class CraftClient
     /**
      * Les options communes, dont l'en-tête d'authentification.
      *
-     * **Le seul endroit où la forme du jeton est écrite.** Craft montre
-     * l'adresse et les identifiants dans l'onglet Connexions au moment où on
-     * crée la connexion, et ne les publie pas ailleurs : si cette forme est la
-     * mauvaise, c'est cette méthode qu'on corrige, et rien d'autre.
+     * **Le seul endroit où la forme de la clé est écrite.** Craft montre
+     * une connexion en « Publique » ou en « Clé API ». Publique, l'adresse
+     * seule ouvre tout - et la spécification que la connexion publie déclare
+     * dix-neuf opérations d'écriture. En mode clé, l'API répond
+     * `401 MISSING_AUTH_HEADER` sans en-tête `Authorization` : c'est mesuré,
+     * pas supposé, et c'est cette méthode seule qu'on corrige si la forme
+     * change.
      *
      * @param array<string, mixed> $extra
      *

@@ -225,6 +225,101 @@ final class MarkdownToBlocksTest extends TestCase
         self::assertStringContainsString('"meta":{}', (string) json_encode($blocks));
     }
 
+    /**
+     * Les balises de Craft, telles que sa spécification les documente.
+     *
+     * Laissées telles quelles, elles ressortiraient en `&lt;page&gt;` au
+     * milieu de la note d'un client, ce qui est la pire des sorties : ni le
+     * contenu, ni rien.
+     */
+    public function testANestedPageBecomesAHeadingAndItsContent(): void
+    {
+        $blocks = $this->convert->convert(
+            "<page><pageTitle>Le brief</pageTitle><content>\n\nLe texte.\n\n</content></page>",
+        );
+
+        self::assertSame(['header', 'paragraph'], array_column($blocks, 'type'));
+        self::assertSame('Le brief', $blocks[0]['data']['text']);
+        self::assertSame(3, $blocks[0]['data']['level']);
+        self::assertSame('Le texte.', $blocks[1]['data']['text']);
+    }
+
+    public function testAHighlightBecomesAMark(): void
+    {
+        $blocks = $this->convert->convert('une <highlight color="yellow">date</highlight> à tenir');
+
+        self::assertSame('une <mark>date</mark> à tenir', $blocks[0]['data']['text']);
+    }
+
+    /** Un fil de commentaire est une conversation interne à Craft. */
+    public function testACommentThreadLeavesItsWordBehind(): void
+    {
+        $blocks = $this->convert->convert('la <comment id="c-1">phrase</comment> commentée');
+
+        self::assertSame('la phrase commentée', $blocks[0]['data']['text']);
+    }
+
+    /**
+     * Ces renvois ne mènent nulle part hors de Craft, et le client n'y a pas
+     * de compte : un lien mort dans sa note est pire qu'un mot.
+     */
+    public function testCraftInternalLinksKeepTheirWordAndLoseTheirAddress(): void
+    {
+        $blocks = $this->convert->convert(
+            'voir [le plan](block://abc), [hier](date://2026-09-18) et [ailleurs](invalid:out_of_scope)',
+        );
+
+        self::assertSame('voir le plan, hier et ailleurs', $blocks[0]['data']['text']);
+    }
+
+    /** Un encadré enveloppe des blocs : il tient sur plusieurs lignes. */
+    public function testAMultiLineCalloutBecomesOneQuote(): void
+    {
+        $blocks = $this->convert->convert(
+            "<callout>\nAttention à la date.\n\nElle bouge.\n</callout>\n\nLa suite.",
+        );
+
+        self::assertSame(['quote', 'paragraph'], array_column($blocks, 'type'));
+        self::assertSame('Attention à la date. Elle bouge.', $blocks[0]['data']['text']);
+        self::assertSame('La suite.', $blocks[1]['data']['text']);
+    }
+
+    /**
+     * Sans fermeture, l'encadré ne mange pas la fin du document : une note
+     * amputée est pire qu'un encadré rendu à plat.
+     */
+    public function testAnUnclosedCalloutDoesNotSwallowTheRest(): void
+    {
+        $blocks = $this->convert->convert("<callout>Un mot\n\nUn paragraphe.");
+
+        self::assertSame(['quote', 'paragraph'], array_column($blocks, 'type'));
+        self::assertSame('Un paragraphe.', $blocks[1]['data']['text']);
+    }
+
+    /** Une citation suivie d'un paragraphe sans ligne vide entre les deux. */
+    public function testAQuoteDoesNotEatTheLineThatEndsIt(): void
+    {
+        $blocks = $this->convert->convert("> une citation\nun paragraphe");
+
+        self::assertSame(['quote', 'paragraph'], array_column($blocks, 'type'));
+        self::assertSame('un paragraphe', $blocks[1]['data']['text']);
+    }
+
+    public function testCollectionTagsRenderTheirContentWithoutTheirBoxes(): void
+    {
+        $blocks = $this->convert->convert(
+            '<collection><title>Clients</title><properties>Nom,Statut</properties>'
+            .'<content><collectionItem><title>Camille</title></collectionItem></content></collection>',
+        );
+
+        $text = $blocks[0]['data']['text'];
+
+        self::assertStringNotContainsString('collection', $text);
+        self::assertStringContainsString('Clients', $text);
+        self::assertStringContainsString('Camille', $text);
+        self::assertStringNotContainsString('Statut', $text);
+    }
+
     public function testAnEmptyDocumentGivesNoBlocks(): void
     {
         self::assertSame([], $this->convert->convert("\n\n   \n"));

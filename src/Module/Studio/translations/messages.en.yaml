@@ -901,18 +901,18 @@ backend:
                 what_title: What this connection does
                 what_body: "It imports a Craft document into a client space's notes. It is a copy: the document stays in Craft, and the note does not change on its own afterwards."
                 how_title: How to open it
-                how_step_connection: "In Craft, open the Connections tab and create an API connection."
-                how_step_select: "Pick the documents this connection will let through. Do not give it the whole space: the token sleeps on this server."
-                how_step_paste: "Copy the address and the token Craft shows, and paste them below. They will not be shown again."
+                how_step_connection: "In Craft, sidebar, Connections tab: \"Add Your First API Connection\", then the selected-documents kind."
+                how_step_select: "Pick the documents, then set the connection to read-only and to API key mode. Public, the address alone is enough to write and to delete in your space."
+                how_step_paste: "Copy the address and the key, and paste them below. The key will not be shown again."
                 how_link: Craft's own instructions
                 endpoint_label: Connection address
-                endpoint_hint: "The one Craft shows when the connection is created. Over https, otherwise the token travels in the clear."
-                token_label: Token
-                token_hint: The credentials shown next to the address.
-                token_stored: A token is saved. Leave the field empty to keep it.
+                endpoint_hint: "The one Craft shows when the connection is created. Over https, otherwise the key travels in the clear."
+                token_label: API key
+                token_hint: "The one Craft shows once the connection is in API key mode."
+                token_stored: A key is saved. Leave the field empty to keep it.
                 enabled_label: Enable importing from Craft
                 enabled_hint: The button appears in every space's notes.
-                enabled_blocked: Enter an address and a token before enabling.
+                enabled_blocked: Enter an address and a key before enabling.
             import:
                 action: Import from Craft
                 title: Import a Craft note
@@ -925,7 +925,7 @@ backend:
                 submit: Import
             errors:
                 endpoint_https: "The connection address must start with https://."
-                connection_required: Enter an address and a token before enabling.
+                connection_required: Enter an address and a key before enabling.
                 document_required: Pick a document to import.
                 unreachable: "Craft returned nothing for that document."
         space_notes:

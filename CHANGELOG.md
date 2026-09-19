@@ -546,6 +546,23 @@ Les images sont recopiées dans le dossier de l'espace. Ce n'est pas du confort 
 une image servie depuis un espace Craft privé ne s'afficherait pas chez le
 client.
 
+**Réglé sur la vraie API, pas sur sa documentation.** La connexion publie sa
+propre spécification OpenAPI : la liste arrive sous `items` et non `documents`,
+un document supprimé garde sa ligne avec un `isDeleted` qu'il faut filtrer, et
+la clé voyage en `Authorization: Bearer`. Les balises que Craft ajoute au
+Markdown y sont aussi documentées, et l'écran d'import les traduit plutôt que
+de les laisser ressortir en `&lt;page&gt;` au milieu d'une note : le titre
+d'une page imbriquée devient un titre, un surlignage devient un surlignage, un
+fil de commentaire rend son mot, et les renvois `block://` et `date://`
+gardent leur texte et perdent une adresse qui ne mène nulle part hors de Craft.
+
+Un avertissement, écrit dans l'écran de réglages : une connexion Craft laissée
+en mode « Publique » n'est protégée par rien d'autre que le secret de son
+adresse, et sa spécification déclare dix-neuf opérations d'écriture. Mesuré sur
+une vraie connexion : `GET /documents` répondait 200 sans le moindre en-tête.
+Le mode « Clé API » et la lecture seule sont donc demandés dès la marche à
+suivre, avant même les deux champs.
+
 #### Un tiroir de navigation sur le site public
 Sept entrées faisaient mille vingt-huit pixels de liens pour une ligne qui en
 offre trois cent cinquante-neuf : la barre du site se repliait sur deux lignes
