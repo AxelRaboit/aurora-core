@@ -151,23 +151,40 @@ function chooseFile(event) {
                 </button>
             </div>
 
-            <div class="flex items-center gap-2">
+            <!-- **Les deux gestes prennent la ligne sur téléphone.** Serrés à
+                 côté du sélecteur de vue, « Déposer un fichier » tombait à cent
+                 dix-sept pixels et « Choisir dans la médiathèque » se repliait
+                 sur deux lignes : les gestes de l'écran avaient l'air de la
+                 garniture du sélecteur. -->
+            <div class="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
                 <!-- Déposer et choisir ne valent que pour les fichiers de
                      l'espace : sur une fiche, c'est la fiche qui les porte, et
                      c'est là qu'on les y met. -->
                 <template v-if="'space' === tab && editable">
                     <input ref="fileInput" type="file" class="hidden" v-on:change="chooseFile">
-                    <AppButton variant="primary" size="sm" :loading="loading" v-on:click="fileInput?.click()">
+                    <AppButton
+                        class="w-full sm:w-auto"
+                        variant="primary"
+                        size="sm"
+                        :loading="loading"
+                        v-on:click="fileInput?.click()"
+                    >
                         <Upload class="h-3.5 w-3.5" :stroke-width="2" />
                         {{ t("backend.studio.space_files.upload") }}
                     </AppButton>
-                    <AppButton variant="ghost" size="sm" :loading="loading" v-on:click="emit('pick')">
+                    <AppButton
+                        class="w-full sm:w-auto"
+                        variant="ghost"
+                        size="sm"
+                        :loading="loading"
+                        v-on:click="emit('pick')"
+                    >
                         <FolderOpen class="h-3.5 w-3.5" :stroke-width="2" />
                         {{ t("backend.studio.space_files.pick") }}
                     </AppButton>
                 </template>
 
-                <div v-if="visible.length > 0" class="flex rounded-lg border border-line/60 p-0.5">
+                <div v-if="visible.length > 0" class="flex self-start rounded-lg border border-line/60 p-0.5 sm:self-auto">
                     <AppIconButton
                         size="sm"
                         variant="ghost"

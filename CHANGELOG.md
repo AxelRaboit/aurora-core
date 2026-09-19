@@ -9,6 +9,23 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Le même défaut cherché partout où il pouvait vivre
+Un geste principal coincé à côté d'un sélecteur de vue ou d'une feuille
+d'actions. Vingt-cinq lignes de ce genre relues dans le back-office ; trois
+portaient le défaut :
+
+- **Les fichiers d'un espace** : « Déposer un fichier » tombait à cent
+  dix-sept pixels et « Choisir dans la médiathèque » se repliait sur deux
+  lignes. Les deux prennent la ligne, le sélecteur passe dessous.
+- **Le document d'un contrat** : « Contresigner », le geste de la page, se
+  retrouvait entre un retour et une feuille d'actions. Les trois s'empilent.
+- **La présentation qu'un client ouvre** : « Présenter » prend la ligne, et la
+  page resserre sa gouttière comme les autres pages publiques.
+
+Les vingt-deux autres sont des en-têtes de carte où un titre partage la ligne
+avec une petite action, ou des paires qui tiennent déjà : « Présenter » et
+« Actions » font deux cent trente pixels sur trois cent cinquante-neuf.
+
 #### « Nouvelle note » prend la ligne
 Cent vingt-huit pixels à côté d'une bande d'onglets qui en fait deux cent
 soixante-quatorze : le seul geste de l'écran passait pour un détail de la bande.
