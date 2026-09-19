@@ -8,11 +8,12 @@ use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
-use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Service\SpaceActivityNotifier;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessageInterface;
+use Aurora\Module\Studio\SpaceChat\Enum\SpaceChatChannelKindEnum;
 use Aurora\Module\Studio\SpaceChat\Serializer\SpaceChatMessageSerializerInterface;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,7 +42,7 @@ class SpaceChatMessageManager implements SpaceChatMessageManagerInterface
         protected readonly SpaceActivityNotifier $notifier,
     ) {}
 
-    public function postAsStudio(CustomerSpaceInterface $space, string $body): SpaceChatMessageInterface
+    public function postAsStudio(SpaceChatChannelInterface $channel, string $body): SpaceChatMessageInterface
     {
         $user = $this->security->getUser();
 
@@ -51,7 +52,10 @@ class SpaceChatMessageManager implements SpaceChatMessageManagerInterface
 
         $message = $this->createMessage();
         $message
-            ->setSpace($space)
+            // The space comes from the room rather than from the caller: two
+            // arguments that must agree are two arguments that can disagree.
+            ->setSpace($channel->getSpace())
+            ->setChannel($channel)
             ->setBody($body)
             ->writtenByStudio($user, $this->labelOf($user));
 
@@ -59,17 +63,27 @@ class SpaceChatMessageManager implements SpaceChatMessageManagerInterface
     }
 
     public function postAsClient(
-        CustomerSpaceInterface $space,
+        SpaceChatChannelInterface $channel,
         SpaceAccessLinkInterface $link,
         string $body,
     ): SpaceChatMessageInterface {
+        $space = $channel->getSpace();
+
         if ($space->getId() !== $link->getSpace()->getId()) {
             throw new FieldException('space', $this->translator->trans('backend.studio.space_chat.errors.not_in_space'));
+        }
+
+        // A room the client does not read is a room the client cannot write
+        // in. Checked here rather than only at the controller, because this is
+        // the door every surface goes through.
+        if (!$this->reachableByClient($channel, $link)) {
+            throw new FieldException('channel', $this->translator->trans('backend.studio.space_chat.errors.channel_closed'));
         }
 
         $message = $this->createMessage();
         $message
             ->setSpace($space)
+            ->setChannel($channel)
             ->setBody($body)
             ->writtenByClient($link);
 
@@ -80,6 +94,16 @@ class SpaceChatMessageManager implements SpaceChatMessageManagerInterface
         $this->notifier->clientWroteInChat($space, $message->getAuthorLabel());
 
         return $message;
+    }
+
+    /** Whether this address may read, and therefore answer in, this room. */
+    private function reachableByClient(SpaceChatChannelInterface $channel, SpaceAccessLinkInterface $link): bool
+    {
+        if (SpaceChatChannelKindEnum::Direct === $channel->getKind()) {
+            return $channel->holdsLink($link);
+        }
+
+        return $channel->isOpenToClient();
     }
 
     /**
@@ -97,7 +121,7 @@ class SpaceChatMessageManager implements SpaceChatMessageManagerInterface
             throw new FieldException('message', $this->translator->trans('backend.studio.space_chat.errors.from_client'));
         }
 
-        $space = $message->getSpace();
+        $channel = $message->getChannel();
         $id = $message->getId();
 
         $this->auditDeleted($message);
@@ -108,7 +132,7 @@ class SpaceChatMessageManager implements SpaceChatMessageManagerInterface
         // Pushed as well as stored: a page that kept drawing a message the
         // server no longer has would show it until somebody reloaded, which is
         // exactly the moment a deleted message is most confusing.
-        $this->hub->publish($space, ['id' => $id, 'deleted' => true]);
+        $this->hub->publish($channel, ['id' => $id, 'deleted' => true]);
     }
 
     protected function save(SpaceChatMessageInterface $message): SpaceChatMessageInterface
@@ -118,7 +142,7 @@ class SpaceChatMessageManager implements SpaceChatMessageManagerInterface
 
         $this->auditPosted($message);
 
-        $this->hub->publish($message->getSpace(), $this->serializer->serialize($message));
+        $this->hub->publish($message->getChannel(), $this->serializer->serialize($message));
 
         return $message;
     }

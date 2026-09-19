@@ -30,23 +30,33 @@
        back for. `supports-[backdrop-filter]` is what keeps the fallback
        honest - without the test, a browser that cannot blur would render the
        header at 80% opacity over the moving content underneath. #}
-    <header class="aurora-surface aurora-surface-header sticky top-0 z-40 border-b border-line supports-[backdrop-filter]:bg-surface/80 supports-[backdrop-filter]:backdrop-blur">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+    <header class="sticky top-0 z-40 border-b border-line">
+        {# Le flou est posé sur une couche à lui plutôt que sur l'en-tête.
+           `backdrop-filter` fait de son élément le bloc conteneur de ses
+           descendants `fixed` : le panneau du tiroir, en `inset-y-0`, s'arrêtait
+           aux cent trente-sept pixels de la barre au lieu de tenir la hauteur de
+           l'écran. La couche rend exactement la même chose sans rien contenir. #}
+        <div class="aurora-surface aurora-surface-header absolute inset-0 -z-10 supports-[backdrop-filter]:bg-surface/80 supports-[backdrop-filter]:backdrop-blur" aria-hidden="true"></div>
+
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
             <a href="{{ default_front_home_path(locale) }}" class="flex items-center gap-2 text-lg font-semibold text-primary hover:opacity-80 transition-opacity">
                 {% set headerLogoUrl = themeContext.headerLogoUrl() %}
                 {% if headerLogoUrl %}<img src="{{ headerLogoUrl }}" alt="" class="h-8 w-8 object-cover rounded-lg shrink-0">{% endif %}
                 {{ themeContext.headerCustomText() ?: context.siteName }}
             </a>
 
+            {# Le menu déplié ne vit qu'à partir de `md`. En dessous il passe
+               dans le tiroir, en bas de ce bloc, et la barre garde une rangée
+               quel que soit le nombre de rubriques. #}
             {% if primaryMenu is not empty %}
-                <nav class="flex flex-wrap items-center gap-5 text-sm order-last w-full md:order-none md:w-auto">
+                <nav class="hidden md:flex flex-wrap items-center gap-5 text-sm">
                     {{ include('Frontend/themes/default/partials/menu.html.twig', {items: primaryMenu}) }}
                 </nav>
             {% endif %}
 
-            <div class="flex items-center gap-4 text-sm">
+            <div class="flex items-center gap-2 text-sm sm:gap-4">
                 {% if accountMenu is not empty %}
-                    <nav class="flex items-center gap-3">
+                    <nav class="{{ primaryMenu is empty ? 'flex' : 'hidden md:flex' }} items-center gap-3">
                         {{ include('Frontend/themes/default/partials/menu.html.twig', {items: accountMenu}) }}
                     </nav>
                 {% endif %}
@@ -61,6 +71,16 @@
                         locales: context.activeLocales,
                         current: locale,
                         urls: localeUrls,
+                    }) }}
+                {% endif %}
+
+                {# La langue reste dans la barre, visible : un visiteur qui ne
+                   lit pas la langue de la page ne va pas la chercher derrière
+                   un bouton. Le tiroir arrive après elle, contre le bord. #}
+                {% if primaryMenu is not empty %}
+                    {{ include('Frontend/themes/default/partials/nav_drawer.html.twig', {
+                        primaryMenu: primaryMenu,
+                        accountMenu: accountMenu,
                     }) }}
                 {% endif %}
             </div>

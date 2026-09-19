@@ -294,7 +294,7 @@ const contractActions = computed(() => {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="space-y-1">
                 <h1 class="text-lg font-semibold text-primary">
@@ -304,19 +304,24 @@ const contractActions = computed(() => {
                     {{ contract.customerName }} · {{ t(contract.statusLabel) }}
                 </p>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <AppButton variant="ghost" size="md" :href="indexPath">
+            <!-- Les trois gestes prennent la ligne sous `sm` : « Contresigner »
+                 est le geste de la page, et il se retrouvait à cent quarante
+                 pixels entre un retour et une feuille d'actions. -->
+            <div class="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+                <AppButton class="w-full sm:w-auto" variant="ghost" size="md" :href="indexPath">
                     <ArrowLeft class="w-3.5 h-3.5" :stroke-width="2" />
                     {{ t("shared.common.back") }}
                 </AppButton>
                 <AppPageActions
                     v-if="contractActions.length"
+                    class="w-full sm:w-auto"
                     :actions="contractActions"
                     :label="contract.reference ?? ''"
                     variant="ghost"
                 />
                 <AppButton
                     v-if="canCountersign"
+                    class="w-full sm:w-auto"
                     variant="primary"
                     size="md"
                     v-on:click="showCountersign = true"
@@ -533,7 +538,7 @@ const contractActions = computed(() => {
                  today's code produces rather than what was signed. Cleaned
                  once more on the way into the DOM, see documentHtml. -->
             <article
-                class="bg-surface border border-line rounded-lg p-6 prose-contract"
+                class="bg-surface border border-line rounded-lg p-4 sm:p-6 prose-contract"
                 v-html="documentHtml"
             />
 

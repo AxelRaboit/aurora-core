@@ -27,6 +27,8 @@ backend:
       studio_description: "The provider identity printed into every contract: trading name, SIRET, bank details."
       navigation_description: Customize sidemenu section and item names.
       pexels: Pexels
+      craft: Craft
+      craft_description: "Importing a note written in Craft: connection address, token, activation."
       pexels_description: 'Free stock photo library: enabling, API key and acceptance of the terms.'
       captcha: Anti-robot
       captcha_description: "Checking comments and forms: service, keys and activation."

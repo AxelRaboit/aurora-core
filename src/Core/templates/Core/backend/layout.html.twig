@@ -117,7 +117,18 @@
             {% endembed %}
         {% endif %}
 
-        <main class="flex-1 px-4 sm:px-6 lg:px-8 py-8">
+        {# **Sur téléphone, une gouttière juste assez large pour se voir.**
+           Seize pixels de chaque côté et trente-deux en haut, c'est près d'un
+           dixième de la largeur et un quart de la hauteur utile donnés à du
+           vide, sur le seul appareil qui n'en a pas à donner. Huit et seize
+           suffisent : les cartes gardent leurs coins arrondis, donc elles se
+           lisent toujours comme des blocs posés, et chaque écran du
+           back-office récupère seize pixels de contenu au passage.
+
+           Décidé sur l'espace client, qui a servi de terrain d'essai, et
+           remonté ici parce que c'est la seule marge que les quarante-six
+           écrans partagent. Rien ne change à partir de `sm`. #}
+        <main class="flex-1 px-2 py-2 sm:px-6 sm:py-8 lg:px-8">
             {% block body %}{% endblock %}
         </main>
     </div>

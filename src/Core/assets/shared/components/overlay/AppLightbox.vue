@@ -125,7 +125,7 @@ onBeforeUnmount(() => {
                 role="dialog"
                 aria-modal="true"
                 tabindex="-1"
-                class="fixed inset-0 z-100 flex flex-col bg-black/90 p-4 outline-none"
+                class="fixed inset-0 z-100 flex flex-col bg-black/90 p-2 outline-none sm:p-4"
                 v-on:click.self="close"
             >
                 <div class="flex items-center justify-between gap-4 text-white/70">

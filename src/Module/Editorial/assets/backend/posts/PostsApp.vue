@@ -9,6 +9,7 @@ import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer
 import { usePostRowActions } from "./composables/usePostRowActions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
+import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
@@ -270,7 +271,7 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <div ref="container" class="space-y-4">
+    <div ref="container" class="space-y-2 sm:space-y-4">
         <AppListToolbar>
             <AppSearchInput v-model="search" :placeholder="t('backend.posts.search_placeholder')" />
             <template #actions>
@@ -496,18 +497,14 @@ const pageActions = computed(() => {
                     <span>{{ formatDateTime(post.updatedAt) }}</span>
                 </p>
 
-                <div class="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-line/40 pt-2">
-                    <AppButton
-                        v-for="action in actionsFor(post)"
-                        :key="action.key"
-                        variant="ghost"
-                        size="sm"
-                        :href="action.href"
-                        v-on:click="action.onSelect?.()"
-                    >
-                        <component :is="action.icon" v-if="action.icon" class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ action.title }}
-                    </AppButton>
+                <!-- Une action par ligne, sur toute la largeur : quatre
+                     boutons repliés deux par deux laissaient une colonne
+                     ragoteuse au milieu de la carte et des cibles de cent
+                     pixels sur les trois cent soixante disponibles. Le dessin
+                     est celui de la feuille d'actions, parce que c'est la même
+                     chose montrée sans être ouverte. -->
+                <div class="border-t border-line/40 pt-2">
+                    <AppCardActions :actions="actionsFor(post)" />
                 </div>
             </article>
 

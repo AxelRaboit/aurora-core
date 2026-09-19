@@ -20,7 +20,7 @@ defineProps({
                 </div>
             </div>
 
-            <div class="px-6 pb-6" :class="$slots.icon ? 'pt-10' : 'pt-6'">
+            <div class="px-4 pb-6 sm:px-6" :class="$slots.icon ? 'pt-10' : 'pt-6'">
                 <div v-if="heading || subtitle" class="text-center mb-5">
                     <h1 v-if="heading" class="text-primary text-xl leading-tight">{{ heading }}</h1>
                     <p v-if="subtitle" class="text-muted text-sm mt-1">{{ subtitle }}</p>

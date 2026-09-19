@@ -63,7 +63,7 @@ describe("AppPageActions", () => {
     it("sits at the weight the header asks for", () => {
         const wrapper = mountActions([PRINT], { variant: "ghost", size: "sm" });
 
-        expect(trigger(wrapper).classes()).toContain("bg-transparent");
+        expect(trigger(wrapper).classes()).toContain("sm:bg-transparent");
         expect(trigger(wrapper).classes()).toContain("text-xs");
     });
 });

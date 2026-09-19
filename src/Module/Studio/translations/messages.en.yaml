@@ -48,6 +48,16 @@ backend:
                     updated: Space note edited
                     pinned: Space note pinned or unpinned
                     deleted: Space note deleted
+                    imported_from_craft: Space note imported from Craft
+                space_chat_channel:
+                    created: Chat channel opened
+                    renamed: Chat channel renamed
+                    updated: Chat channel updated
+                    deleted: Chat channel deleted
+                    opened: Private conversation opened
+                    hidden: Private conversation put away
+                    invited: Member added to a channel
+                    uninvited: Member removed from a channel
                 space_chat_message:
                     posted: Message posted in a space's conversation
                     deleted: Conversation message deleted
@@ -661,6 +671,8 @@ backend:
                     color_invalid: The colour must be a hex value, for example #6366f1.
         customers:
             title: Customers
+            spaces: Their spaces
+            spaces_description: Opens this company's spaces in the list.
             status: Status
             status_hint: "A prospect is a company you are already working for, without knowing its legal identity yet. Converting one to a customer is filling in the registration number, the legal form and the registered office."
             statuses:
@@ -884,6 +896,46 @@ backend:
                 unknown: This document cannot be found.
                 duplicate: This file is already on this space.
                 needs_account: You have to be signed in to add a file.
+        craft:
+            settings:
+                what_title: What this connection does
+                what_body: "It imports a Craft document into a client space's notes. It is a copy: the document stays in Craft, and the note does not change on its own afterwards."
+                how_title: How to open it
+                how_step_connection: "In Craft, sidebar, Connections tab: \"Add Your First API Connection\", then the selected-documents kind."
+                how_step_select: "Pick the documents, then set the connection to read-only and to API key mode. Public, the address alone is enough to write and to delete in your space."
+                how_step_paste: "Copy the address and the key, and paste them below. The key will not be shown again."
+                how_link: Craft's own instructions
+                endpoint_label: Connection address
+                endpoint_hint: "The one Craft shows when the connection is created. Over https, otherwise the key travels in the clear."
+                token_label: API key
+                token_hint: "The one Craft shows once the connection is in API key mode."
+                token_stored: A key is saved. Leave the field empty to keep it.
+                enabled_label: Enable importing from Craft
+                enabled_hint: The button appears in every space's notes.
+                enabled_blocked: Enter an address and a key before enabling.
+            import:
+                action: Import from Craft
+                title: Import a Craft note
+                intro: "The document is copied into this space. It stays in Craft, and the note will not follow its changes."
+                empty: No document in this connection.
+                unreachable: "Craft did not answer."
+                unreachable_hint: "Check the address and the key in the settings, Craft tab."
+                empty_hint: "Go back to Craft to add documents to the connection."
+                disabled: "Importing from Craft is not enabled."
+                disabled_hint: "It is switched on in the settings, Craft tab."
+                imported: Note imported.
+                refresh: Update from Craft
+                refresh_confirm: "Put \"{title}\" back on the current version of the Craft document?"
+                refresh_warning: "The note's body is replaced. What you edited here will be lost; the colour, the pin and the visibility are kept."
+                refresh_submit: Update
+                refreshed: Note updated.
+                submit: Import
+            errors:
+                endpoint_https: "The connection address must start with https://."
+                connection_required: Enter an address and a key before enabling.
+                document_required: Pick a document to import.
+                unreachable: "Craft returned nothing for that document."
+                not_imported: This note does not come from Craft.
         space_notes:
             # A space's notes: the one surface a client never sees.
             add: New note
@@ -931,11 +983,19 @@ backend:
             approved: '%who% approved "%item%"'
             changes_requested: '%who% asked for a rewrite of "%item%"'
         space_chat:
-            # A space's conversation, the one that fits on no card. Anything
-            # about one piece of content stays on that card's thread, where it
-            # is found next to what it is about.
-            notice: What you write here is read by the client.
+            channels:
+                main_name: General
+                notice_internal: "This channel is internal: the client does not read it."
             errors:
+                main_stays_open: "The main channel stays open to the client: it is the space's conversation."
+                direct_has_no_audience: A private conversation has no audience to set.
+                channel_not_deletable: Only channels opened here can be deleted.
+                direct_keeps_both: A private conversation keeps both of its people.
+                direct_needs_two: A private conversation is held between two people.
+                channel_name_required: A channel needs a name.
+                channel_not_in_space: That channel does not belong to this space.
+                not_on_the_team: That person is not on this space's team.
+                channel_closed: That channel is not open to you.
                 body_required: The message cannot be empty.
                 needs_account: You have to be signed in to write in a conversation.
                 from_client: A client's message is not deleted. It is what they told you.
@@ -946,6 +1006,7 @@ backend:
             view_content: Content
             shape_board: Kanban
             shape_list: List
+            calendar_day_empty: Nothing scheduled that day.
             view_calendar: Calendar
             view_files: Files
             view_chat: Chat
@@ -1154,6 +1215,7 @@ studio:
         space:
             unavailable_message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a space's content plan, ask your contact for a new link.
             timezone_notice: 'Times in {timezone}'
+            calendar_day_empty: Nothing planned that day.
             footer: This address is personal to you, please do not pass it on.
             footer_until: 'This address is personal to you and valid until {date}: please do not pass it on.'
             no_body: The text is not written yet.

@@ -16,8 +16,10 @@ use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInputFactoryInterface;
@@ -88,6 +90,7 @@ class SpaceContentController extends AbstractController
         protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
         protected readonly SpaceBoardViewBuilder $viewBuilder,
         protected readonly SpaceChatViewBuilder $chatViewBuilder,
+        protected readonly SpaceChatChannelRepository $chatChannels,
         protected readonly SpaceChatHub $chatHub,
         protected readonly SpaceNotesViewBuilder $notesViewBuilder,
         protected readonly SpaceFilesViewBuilder $filesViewBuilder,
@@ -109,13 +112,19 @@ class SpaceContentController extends AbstractController
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function content(CustomerSpace $space, Request $request): Response
     {
+        $reader = $this->getUser();
+
+        if (!$reader instanceof CoreUserInterface) {
+            throw $this->createAccessDeniedException();
+        }
+
         // Merged here rather than folded into the board's builder: the
         // conversation is a fifth thing the reader can be looking at, not a
         // fifth reading of the cards, and a builder named for the board has no
         // business knowing the chat exists.
         $response = $this->render('@Studio/backend/space-content/content.html.twig', [
             ...$this->viewBuilder->contentView($space),
-            ...$this->chatViewBuilder->view($space),
+            ...$this->chatViewBuilder->view($space, $reader),
             ...$this->notesViewBuilder->view($space),
             ...$this->filesViewBuilder->view($space),
         ]);
@@ -127,7 +136,10 @@ class SpaceContentController extends AbstractController
         // refused, and a refused connection looks exactly like a hub that is
         // down - which is how this line came to be missing long enough to be
         // noticed on screen rather than in a test.
-        $cookie = $this->chatHub->subscriptionCookie($request, $space);
+        // Les canaux que ce lecteur entend, pas ceux de l'espace : le jeton
+        // nomme ses sujets un par un, et un canal interne dont il n'est pas
+        // n'y figure pas.
+        $cookie = $this->chatHub->subscriptionCookie($request, $this->chatChannels->findForUser($space, $reader));
 
         if ($cookie instanceof Cookie) {
             $response->headers->setCookie($cookie);

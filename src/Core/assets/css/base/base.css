@@ -36,3 +36,24 @@ body {
 body.aurora-front {
     --aurora-topbar: 6rem;
 }
+
+/**
+ * La pile de notifications déborde à droite sur un téléphone, et c'est la
+ * bibliothèque qui le fait.
+ *
+ * `vue-sonner` pose sur son conteneur, sous 600 pixels, une largeur de 100 %
+ * **et** un décalage à gauche : 375 + 16 font 391, donc la pile sort de
+ * l'écran par la droite de la largeur de son propre décalage. Rien ne défile,
+ * parce qu'elle est en `fixed`, mais un message d'information arrive
+ * partiellement hors champ - sur la conversation d'un espace comme partout
+ * ailleurs.
+ *
+ * `width: auto` rend l'arbitrage aux deux décalages, qui sont déjà posés des
+ * deux côtés. Écrit ici plutôt que dans un composant : la pile est montée une
+ * fois pour toute l'application.
+ */
+@media (max-width: 600px) {
+    ol[data-sonner-toaster] {
+        width: auto;
+    }
+}

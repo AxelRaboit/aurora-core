@@ -15,10 +15,15 @@ use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\View\PublicSpaceViewBuilder;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
+use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatMessageManagerInterface;
+use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
@@ -83,6 +88,8 @@ final class PublicSpaceController extends AbstractController
         private readonly UploadPolicyProvider $uploadPolicies,
         private readonly StoredFileResponder $responder,
         private readonly SpaceChatMessageManagerInterface $chat,
+        private readonly SpaceChatChannelRepository $chatChannels,
+        private readonly SpaceChatChannelManagerInterface $chatChannelManager,
         private readonly SpaceChatViewBuilder $chatViewBuilder,
         private readonly SpaceChatHub $chatHub,
     ) {}
@@ -124,7 +131,7 @@ final class PublicSpaceController extends AbstractController
         // to this space's topic and to subscribing only, in a cookie the
         // browser sends nowhere but the hub. Revoking the link stops this page
         // being served, and the cookie runs out on its own.
-        $cookie = $this->chatHub->subscriptionCookie($request, $link->getSpace());
+        $cookie = $this->chatHub->subscriptionCookie($request, $this->chatChannels->findForLink($link->getSpace(), $link));
 
         if ($cookie instanceof Cookie) {
             $response->headers->setCookie($cookie);
@@ -324,12 +331,12 @@ final class PublicSpaceController extends AbstractController
      * link.
      */
     #[Route(
-        '/{selector}/{token}/chat/messages',
+        '/{selector}/{token}/chat/{channelId}/messages',
         name: '_chat_messages',
-        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}', 'channelId' => '\d+'],
         methods: [HttpMethodEnum::Get->value],
     )]
-    public function chatMessages(string $selector, string $token): JsonResponse
+    public function chatMessages(string $selector, string $token, int $channelId): JsonResponse
     {
         $link = $this->links->resolveUsable($selector, $token);
 
@@ -337,7 +344,147 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        return $this->jsonSuccess($this->chatViewBuilder->payload($link->getSpace()));
+        $channel = $this->readableChannel($link, $channelId);
+
+        return $this->jsonSuccess($this->chatViewBuilder->payload($channel));
+    }
+
+    /** Ce qui précède ce que la page du client tient déjà. */
+    #[Route(
+        '/{selector}/{token}/chat/{channelId}/older/{beforeId}',
+        name: '_chat_older',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}', 'channelId' => '\d+', 'beforeId' => '\d+'],
+        methods: [HttpMethodEnum::Get->value],
+    )]
+    public function chatOlder(string $selector, string $token, int $channelId, int $beforeId): JsonResponse
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->jsonSuccess(
+            $this->chatViewBuilder->olderPayload($this->readableChannel($link, $channelId), $beforeId),
+        );
+    }
+
+    /** Le client range une conversation privée, sans que rien ne s'efface. */
+    #[Route(
+        '/{selector}/{token}/chat/{channelId}/hide',
+        name: '_chat_hide',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}', 'channelId' => '\d+'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function chatHide(string $selector, string $token, int $channelId): JsonResponse
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface || !$link->canComment()) {
+            throw $this->createNotFoundException();
+        }
+
+        $channel = $this->readableChannel($link, $channelId);
+
+        try {
+            $this->chatChannelManager->hideDirect($channel, null, $link);
+        } catch (FieldException) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->jsonSuccess($this->chatViewBuilder->channelsPayload(
+            $this->chatChannels->findForLink($link->getSpace(), $link),
+            null,
+            $link,
+        ));
+    }
+
+    /**
+     * The client opens a private conversation with somebody of the space.
+     *
+     * **The same right as writing**, exercised with a person rather than with
+     * the space: a client who may answer their agency may ask one of them
+     * something without the whole team reading it. A link that may not comment
+     * gets the 404 a stranger gets, for the reason the other writes give.
+     *
+     * Only an account on the other side. The client talks to the studio, not to
+     * another address of their own company: two links on one space are two
+     * copies of the same door, and a conversation between two doors belongs to
+     * nobody.
+     */
+    #[Route(
+        '/{selector}/{token}/chat/direct',
+        name: '_chat_direct',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function chatDirect(string $selector, string $token, Request $request): JsonResponse
+    {
+        if (!$this->spaceGuestWriteLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
+        }
+
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface || !$link->canComment()) {
+            throw $this->createNotFoundException();
+        }
+
+        $space = $link->getSpace();
+        $userId = (int) ($this->decodeJson($request)['userId'] ?? 0);
+        $member = $userId > 0 ? $this->spaceMemberOf($space, $userId) : null;
+
+        if (!$member instanceof CoreUserInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        try {
+            $channel = $this->chatChannelManager->openDirect($space, null, $link, $member, null);
+        } catch (FieldException) {
+            throw $this->createNotFoundException();
+        }
+
+        $this->links->markOpened($link);
+
+        return $this->jsonSuccess([
+            ...$this->chatViewBuilder->channelsPayload(
+                $this->chatChannels->findForLink($space, $link),
+                null,
+                $link,
+            ),
+            'chatChannelId' => $channel->getId(),
+        ]);
+    }
+
+    /** Somebody of this space's own team, or nothing. */
+    private function spaceMemberOf(CustomerSpaceInterface $space, int $userId): ?CoreUserInterface
+    {
+        foreach ($space->getMembers() as $member) {
+            if ($member->getUser()->getId() === $userId) {
+                return $member->getUser();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * The room behind an id, or a 404.
+     *
+     * **Not found rather than forbidden, like everything else a link reaches.**
+     * Answering "this room exists but is not yours" would tell whoever holds a
+     * leaked address how many rooms the studio keeps and roughly what they are
+     * for. A room the client does not read is a room that does not exist.
+     */
+    private function readableChannel(SpaceAccessLinkInterface $link, int $channelId): SpaceChatChannelInterface
+    {
+        foreach ($this->chatChannels->findForLink($link->getSpace(), $link) as $channel) {
+            if ($channel->getId() === $channelId) {
+                return $channel;
+            }
+        }
+
+        throw $this->createNotFoundException();
     }
 
     /**
@@ -354,12 +501,12 @@ final class PublicSpaceController extends AbstractController
      * verdict and unlike a file.
      */
     #[Route(
-        '/{selector}/{token}/chat',
+        '/{selector}/{token}/chat/{channelId}',
         name: '_chat_post',
-        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}', 'channelId' => '\d+'],
         methods: [HttpMethodEnum::Post->value],
     )]
-    public function chatPost(string $selector, string $token, Request $request): JsonResponse
+    public function chatPost(string $selector, string $token, int $channelId, Request $request): JsonResponse
     {
         if (!$this->spaceGuestWriteLimiter->create($request->getClientIp())->consume()->isAccepted()) {
             return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
@@ -377,17 +524,19 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonInvalidInput(['body' => 'studio.public.space.errors.comment_required']);
         }
 
+        $channel = $this->readableChannel($link, $channelId);
+
         try {
-            $this->chat->postAsClient($link->getSpace(), $link, $body);
+            $this->chat->postAsClient($channel, $link, $body);
         } catch (FieldException) {
-            // The link opens another space. Answered like a stranger, for the
-            // reason the other writes give.
+            // The link opens another space, or a room it does not read.
+            // Answered like a stranger, for the reason the other writes give.
             throw $this->createNotFoundException();
         }
 
         $this->links->markOpened($link);
 
-        return $this->jsonSuccess($this->chatViewBuilder->payload($link->getSpace()));
+        return $this->jsonSuccess($this->chatViewBuilder->payload($channel));
     }
 
     /**

@@ -17,11 +17,14 @@ describe("AppButton", () => {
         expect(wrapper.find("button").classes()).toContain("bg-accent-600");
     });
 
+    // Le fantôme porte une surface sous `sm` et la rend au-dessus : au doigt,
+    // un bouton pleine largeur sans fond se lit comme une ligne de texte.
     it("applies ghost variant classes", () => {
         const wrapper = mount(AppButton, {
             props: { variant: "ghost" },
         });
-        expect(wrapper.find("button").classes()).toContain("bg-transparent");
+        expect(wrapper.find("button").classes()).toContain("bg-surface-2");
+        expect(wrapper.find("button").classes()).toContain("sm:bg-transparent");
         expect(wrapper.find("button").classes()).toContain("text-secondary");
     });
 

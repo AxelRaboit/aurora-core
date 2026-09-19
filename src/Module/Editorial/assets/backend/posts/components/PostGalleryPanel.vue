@@ -154,7 +154,7 @@ async function onFiles(files) {
 
 <template>
     <div class="space-y-4">
-        <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+        <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
             <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                     <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.gallery.title") }}</h3>
@@ -187,7 +187,7 @@ async function onFiles(files) {
             </div>
         </div>
 
-        <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+        <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
             <div class="flex items-center justify-between gap-3">
                 <h3 class="text-sm font-semibold text-primary">
                     {{ t("backend.posts.gallery.pictures") }}
@@ -283,7 +283,7 @@ async function onFiles(files) {
                         order is changed without one.
                     -->
                     <div
-                        class="absolute inset-x-0 top-0 flex justify-end gap-0.5 bg-gradient-to-b from-black/70 to-transparent p-1.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                        class="absolute inset-x-0 top-0 flex justify-end gap-0.5 bg-gradient-to-b from-black/70 to-transparent p-1.5 transition-opacity group-focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                     >
                         <button
                             type="button"

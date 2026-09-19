@@ -82,7 +82,7 @@ async function save() {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <div class="flex flex-wrap items-center gap-3">
             <AppButton variant="ghost" size="sm" :href="listPath" class="shrink-0">
                 <ArrowLeft class="h-4 w-4" :stroke-width="2" />

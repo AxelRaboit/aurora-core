@@ -26,15 +26,46 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
  * arrived with it - is the difference between a chat that recovers from a lost
  * connection and one that quietly stops being right.
  *
- * @param {Array}  initial  the window the page was rendered with
- * @param {object} paths    postPath, reloadPath, deletePath?, streamUrl?
+ * **One connection, several rooms.** The stream carries every room this reader
+ * may hear, so each message names its own: what is not the room on screen is
+ * dropped rather than drawn in the wrong list. Switching rooms asks the server
+ * for that room's window instead of filtering what is already here, because
+ * what is already here is one room's tail and not a cache of the space.
+ *
+ * @param {Array}  initial   the window the page was rendered with
+ * @param {object} paths     postPath, reloadPath, deletePath?, streamUrl?
+ * @param {number} channelId the room the page opened on
  */
-export function useSpaceChat(initial, paths) {
+export function useSpaceChat(initial, paths, channelId = null) {
     const { t } = useI18n();
     const { request } = useRequest();
 
     const messages = ref(sorted(initial ?? []));
     const loading = ref(false);
+    const currentChannel = ref(channelId);
+
+    /**
+     * Whether anything older than what is on screen is still on the server.
+     *
+     * Starts optimistic: a full first window usually means there is more behind
+     * it, and the first request up settles the question. A conversation shorter
+     * than the window answers "no" on that first request and the reader never
+     * sees a control that does nothing.
+     */
+    const hasOlder = ref((initial ?? []).length > 0);
+    const loadingOlder = ref(false);
+
+    /**
+     * An address with its room filled in.
+     *
+     * The paths arrive with `__channel__` where the id goes, so switching rooms
+     * costs no round trip to fetch new addresses.
+     */
+    function forChannel(path) {
+        return path
+            ? path.replace("__channel__", String(currentChannel.value))
+            : path;
+    }
 
     /**
      * Whether a hub is pushing to this page right now.
@@ -77,6 +108,16 @@ export function useSpaceChat(initial, paths) {
         for (const message of list) {
             if (!message || undefined === message.id) continue;
 
+            // A message from another room rode the same connection. Dropping it
+            // is the whole reason the server stamps each one.
+            if (
+                undefined !== message.channel &&
+                null !== currentChannel.value &&
+                message.channel !== currentChannel.value
+            ) {
+                continue;
+            }
+
             if (message.deleted) {
                 byId.delete(message.id);
                 continue;
@@ -89,7 +130,7 @@ export function useSpaceChat(initial, paths) {
     }
 
     async function reload() {
-        const data = await request(paths.reloadPath, null, {
+        const data = await request(forChannel(paths.reloadPath), null, {
             method: HttpMethod.Get,
             // Nobody asked for this one: it is a reconnection or a poll tick,
             // and a red toast for each is louder than the thing it reports.
@@ -105,6 +146,52 @@ export function useSpaceChat(initial, paths) {
         // Replaced rather than merged: this is the authoritative window, and a
         // merge would resurrect a message deleted while the page was away.
         messages.value = sorted(data.chatMessages ?? []);
+        hasOlder.value = messages.value.length > 0;
+    }
+
+    /**
+     * Fetches the page before the oldest message held.
+     *
+     * **Keyed on that message, not on a page number.** Somebody writing while
+     * a reader scrolls up shifts every offset, and the reader then sees a line
+     * twice or misses one. The oldest message on screen does not move.
+     *
+     * Returns the height the list had before, so the caller can put the reader
+     * back where they were: prepending rows without that makes the screen jump
+     * to somewhere nobody asked for.
+     */
+    async function loadOlder() {
+        if (!paths.olderPath || loadingOlder.value || !hasOlder.value)
+            return false;
+
+        const oldest = messages.value[0];
+        if (!oldest) return false;
+
+        loadingOlder.value = true;
+        try {
+            const path = forChannel(paths.olderPath).replace(
+                "__before__",
+                String(oldest.id),
+            );
+            const data = await request(path, null, {
+                method: HttpMethod.Get,
+                silent: true,
+                noGuard: true,
+            });
+
+            if (!data?.success) return false;
+
+            const older = data.chatOlderMessages ?? [];
+            hasOlder.value = !!data.chatHasMore;
+
+            if (!older.length) return false;
+
+            messages.value = sorted([...older, ...messages.value]);
+
+            return true;
+        } finally {
+            loadingOlder.value = false;
+        }
     }
 
     async function post(body) {
@@ -113,7 +200,9 @@ export function useSpaceChat(initial, paths) {
 
         loading.value = true;
         try {
-            const data = await request(paths.postPath, { body: text });
+            const data = await request(forChannel(paths.postPath), {
+                body: text,
+            });
 
             if (!data?.success) return false;
 
@@ -131,7 +220,7 @@ export function useSpaceChat(initial, paths) {
         loading.value = true;
         try {
             const data = await request(
-                paths.deletePath.replace("__id__", message.id),
+                forChannel(paths.deletePath).replace("__id__", message.id),
             );
 
             if (!data?.success) return;
@@ -201,11 +290,35 @@ export function useSpaceChat(initial, paths) {
         poller = null;
     });
 
+    /**
+     * Opens another room.
+     *
+     * The list is emptied before the window arrives, deliberately: leaving the
+     * previous room's messages on screen under the new room's name is how
+     * somebody answers the wrong person.
+     */
+    async function select(id) {
+        if (id === currentChannel.value) return;
+
+        currentChannel.value = id;
+        messages.value = [];
+        // Une autre conversation, une autre histoire : ce qu'on savait du
+        // précédent fil ne dit rien de celui-ci.
+        hasOlder.value = true;
+
+        await reload();
+    }
+
     return {
         messages,
         loading,
         live,
         expectsLive,
+        currentChannel,
+        select,
+        hasOlder,
+        loadingOlder,
+        loadOlder,
         post,
         remove,
         reload,

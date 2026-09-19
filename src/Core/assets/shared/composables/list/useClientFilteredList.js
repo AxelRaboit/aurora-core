@@ -15,6 +15,13 @@ import { ref, computed } from "vue";
  * @param {string|null} listPath     JSON endpoint returning `{ items: T[] }`,
  *                                   or null when items are updated externally
  * @param {(item: T, lowerQuery: string) => boolean} matcher  filter predicate
+ *
+ * **Le filtre se lit dans l'adresse au premier rendu.** `useUrlSearchSync`
+ * écrit `?search=` dans l'URL pour qu'une liste filtrée se partage ; sans cette
+ * lecture au démarrage, le lien arrivait sur une liste entière et le mot tapé
+ * ne servait qu'à celui qui l'avait tapé. C'est aussi ce qui permet d'envoyer
+ * quelqu'un d'un écran à un autre déjà filtré - d'un client vers ses espaces,
+ * par exemple.
  * @returns {{
  *   items: import('vue').Ref<T[]>,
  *   searchInput: import('vue').Ref<string>,
@@ -22,9 +29,22 @@ import { ref, computed } from "vue";
  *   reload: () => Promise<void>,
  * }}
  */
+/**
+ * Ce que l'adresse demande de chercher, s'il y a quelque chose.
+ *
+ * Enveloppé : une URL exotique ne doit pas empêcher une liste de s'afficher.
+ */
+function initialSearch() {
+    try {
+        return new URL(window.location.href).searchParams.get("search") ?? "";
+    } catch {
+        return "";
+    }
+}
+
 export function useClientFilteredList(initialItems, listPath, matcher) {
     const items = ref([...(initialItems ?? [])]);
-    const searchInput = ref("");
+    const searchInput = ref(initialSearch());
 
     const filteredItems = computed(() => {
         const query = searchInput.value.toLowerCase().trim();

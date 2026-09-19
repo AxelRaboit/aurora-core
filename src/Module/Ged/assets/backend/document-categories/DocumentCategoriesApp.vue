@@ -13,6 +13,7 @@ import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
+import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -82,7 +83,7 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <AppListToolbar>
             <AppSearchInput v-model="searchInput" :placeholder="t('backend.ged.categories.search_placeholder')" v-on:search="onSearch" />
             <template #actions>
@@ -103,8 +104,12 @@ const pageActions = computed(() => {
                         <p class="font-medium text-primary text-sm">{{ cat.name }}</p>
                         <p class="text-xs text-muted font-mono mt-0.5">{{ cat.slug }}</p>
                     </div>
-                    <div class="flex justify-end px-3 py-2 border-t border-line/40 bg-surface-2/40">
-                        <AppRowActions :actions="actionsFor(cat)" :label="cat.name ?? cat.label ?? ''" />
+                    <!-- Les gestes en toutes lettres plutôt que derrière trois
+                         points : la carte a la largeur de les nommer, et la
+                         ligne qui ne portait que le bouton est rendue au
+                         contenu. -->
+                    <div class="px-2 pb-2 pt-1 border-t border-line/40 bg-surface-2/40">
+                        <AppCardActions :actions="actionsFor(cat)" />
                     </div>
                 </div>
             </div>

@@ -19,8 +19,11 @@ use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
+use Aurora\Module\Studio\SpaceNote\Craft\Service\CraftClient;
+use Aurora\Module\Studio\SpaceNote\Craft\Service\CraftNoteImporter;
 use Aurora\Module\Studio\SpaceNote\Dto\SpaceNoteInputFactoryInterface;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
+use Aurora\Module\Studio\SpaceNote\Entity\SpaceNoteInterface;
 use Aurora\Module\Studio\SpaceNote\Manager\SpaceNoteManagerInterface;
 use Aurora\Module\Studio\SpaceNote\View\SpaceNotesViewBuilder;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
@@ -33,6 +36,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 use function is_array;
 use function is_int;
+use function mb_trim;
 use function str_starts_with;
 
 /**
@@ -73,7 +77,67 @@ class SpaceNotesController extends AbstractController
         protected readonly UploadPolicyProvider $uploadPolicies,
         protected readonly DocumentRepository $documentRepository,
         protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
+        protected readonly CraftClient $craft,
+        protected readonly CraftNoteImporter $craftImporter,
     ) {}
+
+    /**
+     * Ce que la connexion Craft laisse voir.
+     *
+     * Une liste courte, et c'est voulu : la connexion ne porte que les
+     * documents désignés dans Craft, ce qui est la seule façon d'éviter qu'un
+     * jeton posé sur un serveur loué ouvre tout un savoir personnel pour
+     * qu'un brief atterrisse dans un espace.
+     *
+     * `configured` plutôt qu'une liste vide muette : un écran qui ne propose
+     * rien doit pouvoir dire si c'est parce que l'intégration est éteinte ou
+     * parce que la connexion est vide.
+     */
+    #[Route('/craft', name: '_craft', methods: [HttpMethodEnum::Get->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function craftDocuments(CustomerSpace $space): JsonResponse
+    {
+        $documents = $this->craft->documents();
+
+        return $this->jsonSuccess([
+            'configured' => $this->craft->isConfigured(),
+            // Trois états, pas deux : éteinte, injoignable, et ouverte mais
+            // vide. Chacun se répare à un endroit différent.
+            'reachable' => null !== $documents,
+            'documents' => $documents ?? [],
+        ]);
+    }
+
+    /**
+     * Un document Craft, déposé dans l'espace.
+     *
+     * Le titre vient de la liste et non du corps : c'est celui que Craft
+     * affiche, et le Markdown rendu commence rarement par lui.
+     */
+    #[Route('/craft/import', name: '_craft_import', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function importFromCraft(CustomerSpace $space, Request $request): JsonResponse
+    {
+        $payload = $this->decodeJson($request);
+        $documentId = mb_trim((string) ($payload['documentId'] ?? ''));
+        $title = mb_trim((string) ($payload['title'] ?? ''));
+
+        if ('' === $documentId || '' === $title) {
+            return $this->jsonFailure('backend.studio.craft.errors.document_required');
+        }
+
+        try {
+            $note = $this->craftImporter->import($space, $documentId, $title);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        if (!$note instanceof SpaceNoteInterface) {
+            return $this->jsonFailure('backend.studio.craft.errors.unreachable');
+        }
+
+        return $this->jsonSuccess($this->viewBuilder->payload($space));
+    }
 
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
@@ -139,6 +203,44 @@ class SpaceNotesController extends AbstractController
         $this->notes->togglePinned($note);
 
         return $this->jsonSuccess($this->viewBuilder->payload($space));
+    }
+
+    /**
+     * La note, remise sur la version actuelle de son document Craft.
+     *
+     * **Elle remplace.** L'écran demande confirmation avant, parce que ce qui
+     * a été modifié ici disparaît - une note est une copie, la rafraîchir
+     * refait la copie.
+     *
+     * Les images d'avant restent dans la médiathèque, et la réponse porte la
+     * liste de celles que plus personne n'utilise : sans quoi rafraîchir cinq
+     * fois laisserait cinq exemplaires de chaque image derrière. La même
+     * règle que la suppression d'une note, et le même écran pour en décider.
+     */
+    #[Route('/{noteId}/craft/refresh', name: '_craft_refresh', requirements: ['noteId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function refreshFromCraft(
+        CustomerSpace $space,
+        #[MapEntity(id: 'noteId')]
+        SpaceNote $note,
+    ): JsonResponse {
+        $this->assertOwned($space, $note->getSpace()->getId());
+        $this->assertVisible($note);
+
+        if (null === $note->getCraftDocumentId()) {
+            return $this->jsonFailure('backend.studio.craft.errors.not_imported');
+        }
+
+        $documents = $this->documentsOf($note);
+
+        if (!$this->craftImporter->refresh($note, $space)) {
+            return $this->jsonFailure('backend.studio.craft.errors.unreachable');
+        }
+
+        return $this->jsonSuccess([
+            ...$this->viewBuilder->payload($space),
+            ...$this->orphanedOffer->payload($space, $documents, $this->isGranted('ged.documents.delete')),
+        ]);
     }
 
     /**

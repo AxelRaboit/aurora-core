@@ -34,9 +34,19 @@ describe("AppIconButton", () => {
         expect(wrapper.classes().some((c) => c.includes("rose"))).toBe(true);
     });
 
-    it("applies compact size classes when size='compact'", () => {
+    /**
+     * Trente pixels sous le pouce, l'ancien serrage à la souris : c'est la
+     * seule taille, et une valeur inconnue retombe dessus plutôt que de rendre
+     * un bouton sans dimensions.
+     */
+    it("gives every button a thumb-sized box below sm", () => {
+        const wrapper = mount(AppIconButton);
+        expect(wrapper.classes()).toContain("min-h-7.5");
+        expect(wrapper.classes()).toContain("sm:min-h-0");
+    });
+
+    it("falls back to that size when asked for one that no longer exists", () => {
         const wrapper = mount(AppIconButton, { props: { size: "compact" } });
-        expect(wrapper.classes()).toContain("w-6");
-        expect(wrapper.classes()).toContain("h-6");
+        expect(wrapper.classes()).toContain("min-h-7.5");
     });
 });

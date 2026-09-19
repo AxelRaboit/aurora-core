@@ -19,6 +19,7 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMemberInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -36,6 +37,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         protected readonly CustomerInputFactoryInterface $customerInputFactory,
         protected readonly UserRepository $userRepository,
         protected readonly SpaceContentColumnManagerInterface $columnManager,
+        protected readonly SpaceChatChannelManagerInterface $chatChannels,
         protected readonly TranslatorInterface $translator,
     ) {}
 
@@ -54,6 +56,11 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         $this->entityManager->persist($space);
         $this->seedBoard($space);
         $this->entityManager->flush();
+
+        // After the flush, because the room names the space by id. A space is
+        // born with its conversation open: the client's first visit must not
+        // depend on somebody from the studio having opened the tab once.
+        $this->chatChannels->ensureMain($space);
 
         $this->auditCreated($space);
 

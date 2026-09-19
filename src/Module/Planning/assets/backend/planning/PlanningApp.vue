@@ -118,10 +118,16 @@ const rangeLabel = computed(() => {
 });
 
 const viewOptions = computed(() =>
-    ["day", "week", "month", "agenda"].map((value) => ({
-        value,
-        label: t(`backend.plannings.views.${value}`),
-    })),
+    // La semaine est refusée sous `md`, où elle retombe sur le jour : sept
+    // colonnes ne tiennent pas dans trois cent soixante pixels. L'onglet
+    // restait allumé en montrant un seul jour ; il s'efface là et revient avec
+    // la place, le choix gardé.
+    ["day", "week", "month", "agenda"]
+        .filter((value) => !(narrow.value && "week" === value))
+        .map((value) => ({
+            value,
+            label: t(`backend.plannings.views.${value}`),
+        })),
 );
 
 /**
@@ -346,7 +352,7 @@ onUnmounted(() => {
                             v-for="option in viewOptions"
                             :key="option.value"
                             type="button"
-                            class="flex-1 cursor-pointer border-r border-line px-2.5 py-1 text-xs transition-colors last:border-r-0 sm:flex-none"
+                            class="flex-1 cursor-pointer border-r border-line px-2.5 py-1 text-xs transition-colors last:border-r-0 min-h-7.5 sm:min-h-0 sm:flex-none"
                             :class="view === option.value
                                 ? 'bg-accent-600 text-white font-medium'
                                 : 'text-secondary hover:bg-surface-2'"

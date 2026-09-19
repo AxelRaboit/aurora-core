@@ -15,7 +15,7 @@
  * named on screen: a reader in another country seeing 04:00 for a 10:00 shoot needs
  * to be told which clock that is.
  */
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -23,6 +23,7 @@ import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import CalendarAgenda from "../planning/components/CalendarAgenda.vue";
+import CalendarDayList from "../planning/components/CalendarDayList.vue";
 import CalendarMonth from "@/shared/components/calendar/CalendarMonth.vue";
 import CalendarTimeGrid from "../planning/components/CalendarTimeGrid.vue";
 import { usePlanningCalendar } from "../planning/composables/usePlanningCalendar.js";
@@ -55,6 +56,23 @@ const {
     zone,
 } = usePlanningCalendar(props, { fixedZone: props.zone });
 
+/**
+ * Le jour dont la liste est ouverte sous la grille du mois, sur téléphone.
+ *
+ * Même comportement que côté studio : aujourd'hui par défaut, et le premier du
+ * mois quand on page vers un mois où l'on n'est pas - « le 23 » d'un mois qu'on
+ * vient d'ouvrir ne veut rien dire.
+ */
+const selectedDay = ref(new Date());
+
+watch([year, month], () => {
+    const today = new Date();
+    selectedDay.value =
+        today.getFullYear() === year.value && today.getMonth() === month.value
+            ? today
+            : new Date(year.value, month.value, 1);
+});
+
 /** The same three shapes the backend's toolbar uses, for the same reasons. */
 const rangeLabel = computed(() => {
     if (usesMonthRange.value) {
@@ -79,10 +97,16 @@ const rangeLabel = computed(() => {
 });
 
 const viewOptions = computed(() =>
-    ["day", "week", "month", "agenda"].map((value) => ({
-        value,
-        label: t(`backend.plannings.views.${value}`),
-    })),
+    // La semaine est refusée sous `md` : `usePlanningCalendar` la ramène au
+    // jour, faute de place pour sept colonnes. L'onglet restait allumé en
+    // montrant autre chose, ce qui est la définition d'un bouton cassé. Il
+    // revient dès qu'il y a la largeur, et le choix gardé avec lui.
+    ["day", "week", "month", "agenda"]
+        .filter((value) => !(narrow.value && "week" === value))
+        .map((value) => ({
+            value,
+            label: t(`backend.plannings.views.${value}`),
+        })),
 );
 
 /**
@@ -159,6 +183,21 @@ const legend = computed(() => props.calendars);
             :events="visibleEvents"
             :reminders="visibleReminders"
             :compact="narrow"
+            :selected="narrow ? selectedDay : null"
+            v-on:select-day="selectedDay = $event"
+        />
+
+        <!-- **Ce que la case compacte ne peut pas dire.** Sur téléphone, une
+             case de la grille tient trois pastilles et un nombre : on voit
+             qu'il se passe quelque chose, jamais quoi. Sans cette liste, le
+             client tape sur un jour chargé et rien ne répond. Rien à créer ici,
+             il lit. -->
+        <CalendarDayList
+            v-if="'month' === effectiveView && narrow"
+            :date="selectedDay"
+            :events="visibleEvents"
+            :reminders="visibleReminders"
+            :can-complete="false"
         />
         <CalendarAgenda
             v-else-if="'agenda' === effectiveView"

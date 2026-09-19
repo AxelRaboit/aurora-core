@@ -135,18 +135,25 @@ const pageActions = computed(() => {
         </template>
     </AppNoData>
 
-    <div v-else class="space-y-4">
+    <div v-else class="space-y-2 sm:space-y-4">
         <!-- No picker column: the side menu lists the post types, one entry
              per record and one address each. The create button stays, because
              a group header in the menu has nowhere to put one - and it is the
              only way to make the next type. -->
-        <div v-if="pageActions.length" class="flex justify-end">
+        <!-- Pleine largeur sous `sm` : seul geste de la page, il prend la
+             ligne plutôt que de se serrer dans un coin.
+
+             La largeur est posée sur l'enfant rendu et non sur le composant :
+             {@see AppActionSheet} a deux racines - le déclencheur et sa modale
+             - et Vue laisse alors tomber les attributs qu'on lui passe. C'est
+             la même réponse que dans {@see AppListToolbar}. -->
+        <div v-if="pageActions.length" class="flex justify-end *:w-full sm:*:w-auto">
             <AppPageActions :actions="pageActions" />
         </div>
 
         <!-- Selected type -->
         <section v-if="selected" class="space-y-4">
-            <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+            <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                         <h2 class="text-lg font-semibold text-primary truncate">{{ selected.label }}</h2>
@@ -171,16 +178,25 @@ const pageActions = computed(() => {
             </div>
 
             <!-- Custom fields -->
-            <div class="bg-surface border border-line rounded-xl p-5 space-y-3">
+            <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
                 <div class="flex items-center justify-between gap-3">
                     <h3 class="text-sm font-semibold text-primary">{{ t("backend.post_types.fields.title") }}</h3>
+                    <!-- Le plus seul sur téléphone : « Ajouter un champ » en
+                         face du titre du bloc, c'est deux lignes pour trois
+                         mots que le signe dit déjà, à l'endroit où on les
+                         cherche. Le libellé revient avec la place. -->
                     <AppButton
                         v-if="can('editorial.post_types.edit')"
+                        class="shrink-0"
                         variant="ghost"
                         size="sm"
+                        :title="t('backend.post_types.fields.create')"
                         v-on:click="openFieldCreate"
                     >
-                        <Plus class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.post_types.fields.create") }}
+                        <Plus class="w-3.5 h-3.5" :stroke-width="2" />
+                        <span class="sr-only sm:not-sr-only">
+                            {{ t("backend.post_types.fields.create") }}
+                        </span>
                     </AppButton>
                 </div>
 

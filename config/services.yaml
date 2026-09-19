@@ -226,7 +226,9 @@ services:
                     class: Symfony\Component\Mercure\Jwt\Grant
                     arguments:
                         - ['publish']
-                        - urlpattern: ['https://aurora.invalid/studio/spaces/*/chat']
+                        # Un sujet par canal depuis que la discussion en a
+                        # plusieurs : le motif couvre l'espace et le canal.
+                        - urlpattern: ['https://aurora.invalid/studio/spaces/*/chat/*']
 
 # Fixtures live in fixtures/, outside src/, precisely so that nothing scanning
 # src/ can reach them: the Doctrine attribute driver and the attribute route

@@ -154,16 +154,23 @@ const pageActions = computed(() => {
         </template>
     </AppNoData>
 
-    <div v-else class="space-y-4">
+    <div v-else class="space-y-2 sm:space-y-4">
         <!-- No picker column: the side menu lists the forms, one entry per
              record and one address each. The create button stays - a group
              header in the menu has nowhere to put one. -->
-        <div v-if="pageActions.length" class="flex justify-end">
+        <!-- Pleine largeur sous `sm` : seul geste de la page, il prend la
+             ligne plutôt que de se serrer dans un coin.
+
+             La largeur est posée sur l'enfant rendu et non sur le composant :
+             {@see AppActionSheet} a deux racines - le déclencheur et sa modale
+             - et Vue laisse alors tomber les attributs qu'on lui passe. C'est
+             la même réponse que dans {@see AppListToolbar}. -->
+        <div v-if="pageActions.length" class="flex justify-end *:w-full sm:*:w-auto">
             <AppPageActions :actions="pageActions" />
         </div>
 
         <section v-if="selected" class="space-y-4">
-            <div class="bg-surface border border-line rounded-xl p-5 space-y-3">
+            <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                         <h2 class="text-lg font-semibold text-primary truncate">{{ titleOf(selected) }}</h2>
@@ -180,7 +187,7 @@ const pageActions = computed(() => {
                 </div>
             </div>
 
-            <div class="bg-surface border border-line rounded-xl p-5 space-y-3">
+            <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
                 <div class="flex items-center justify-between gap-3">
                     <h3 class="text-sm font-semibold text-primary">{{ t("backend.forms.fields.title") }}</h3>
                     <AppButton
@@ -224,7 +231,7 @@ const pageActions = computed(() => {
                 </div>
             </div>
 
-            <div class="bg-surface border border-line rounded-xl p-5 space-y-3">
+            <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
                 <div class="flex items-center justify-between gap-3">
                     <h3 class="text-sm font-semibold text-primary">
                         {{ t("backend.forms.submissions.title") }}
@@ -258,7 +265,13 @@ const pageActions = computed(() => {
                 </div>
 
                 <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 pt-1">
-                    <AppButton variant="ghost" size="sm" :disabled="page <= 1" v-on:click="goToPage(page - 1)">
+                    <AppButton
+                        variant="icon"
+                        size="sm"
+                        :disabled="page <= 1"
+                        class="p-1.5 text-muted hover:text-primary"
+                        v-on:click="goToPage(page - 1)"
+                    >
                         <ChevronLeft class="w-4 h-4" :stroke-width="2" />
                     </AppButton>
                     <span class="text-xs text-secondary tabular-nums">{{ page }} / {{ totalPages }}</span>

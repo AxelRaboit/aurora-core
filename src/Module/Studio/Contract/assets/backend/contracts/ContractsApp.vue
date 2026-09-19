@@ -13,6 +13,7 @@ import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import { useListViewMode } from "@/shared/composables/list/useListViewMode.js";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -345,21 +346,13 @@ const pageActions = computed(() => {
                         {{ t("backend.studio.contracts.outdated_version") }}
                     </p>
 
-                    <!-- The same actions as the row, laid out rather than
-                         folded: a card has the room, and sealing keeps the
-                         weight it has, being the one that cannot be undone. -->
-                    <div class="flex flex-wrap gap-2 pt-1 border-t border-line/40">
-                        <AppButton
-                            v-for="action in draftRowActions(contract)"
-                            :key="action.key"
-                            :variant="action.key === 'freeze' ? 'secondary' : 'ghost'"
-                            size="sm"
-                            :href="action.href"
-                            v-on:click="action.onSelect?.()"
-                        >
-                            <component :is="action.icon" v-if="action.icon" class="w-3.5 h-3.5" :stroke-width="2" />
-                            {{ action.title }}
-                        </AppButton>
+                    <!-- Les mêmes gestes que la ligne, écrits plutôt que
+                         repliés : une carte a la place, et sceller garde son
+                         poids - c'est celui qui ne se défait pas - par sa
+                         couleur ambre, que la liste des gestes reprend de la
+                         feuille. -->
+                    <div class="pt-1 border-t border-line/40">
+                        <AppCardActions :actions="draftRowActions(contract)" />
                     </div>
                 </article>
             </div>
@@ -593,18 +586,8 @@ const pageActions = computed(() => {
                         <span v-if="contract.link">{{ contract.link.recipientEmail }}</span>
                     </p>
 
-                    <div class="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-line/40 pt-2">
-                        <AppButton
-                            v-for="action in sealedRowActions(contract)"
-                            :key="action.key"
-                            variant="ghost"
-                            size="sm"
-                            :href="action.href"
-                            v-on:click="action.onSelect?.()"
-                        >
-                            <component :is="action.icon" v-if="action.icon" class="w-3.5 h-3.5" :stroke-width="2" />
-                            {{ action.title }}
-                        </AppButton>
+                    <div class="border-t border-line/40 pt-2">
+                        <AppCardActions :actions="sealedRowActions(contract)" />
                     </div>
                 </article>
             </div>
@@ -645,7 +628,7 @@ const pageActions = computed(() => {
 
                 <article
                     v-else
-                    class="bg-surface border border-line rounded-lg p-6 prose-contract max-h-[65vh] overflow-y-auto"
+                    class="bg-surface border border-line rounded-lg p-4 sm:p-6 prose-contract max-h-[65vh] overflow-y-auto"
                     v-html="previewHtml"
                 />
             </div>

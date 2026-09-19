@@ -11,12 +11,48 @@ shared:
   space_chat:
     title: Conversación
     empty: "Aún no hay mensajes. Aquí se dice todo lo que no cabe en una ficha: el brief del mes, una campaña que se mueve, una pregunta rápida."
-    placeholder: "Escribir un mensaje… (Intro para enviar, Mayús+Intro para salto de línea)"
+    placeholder: Escribir un mensaje…
+    shortcut_hint: "Intro para enviar, Mayús+Intro para salto de línea"
     send: Enviar
     from_client: cliente
     deleted: Mensaje eliminado
     live: en directo
     reconnecting: reconectando…
+    channels:
+      label: Canales
+      new: Nuevo canal
+      new_hint: "Un canal empieza entre ustedes. Podrá abrirlo al cliente después, desde sus ajustes."
+      name_placeholder: Nombre del canal
+      name_example: "p. ej.: El mes que viene"
+      create: Abrir
+      cancel: Cancelar
+      rename: Renombrar
+      delete: Eliminar el canal
+      delete_confirm: "¿Eliminar este canal? Sus mensajes se van con él."
+      internal: interno
+      open_to_client: Abrir al cliente
+      close_to_client: Cerrar al cliente
+      invite: Añadir a alguien
+      notice_internal: "Canal interno: el cliente no lo lee."
+      notice_direct: "Conversación privada: nadie más la lee."
+      participants: "Participantes"
+      everybody: "Todo el mundo, incluido el cliente."
+      audience: "Quién lo lee"
+      audience_open: "El cliente lee este canal."
+      audience_internal: "Este canal queda entre ustedes."
+      hide: "Retirar la conversación"
+      hide_hint: "Desaparece de su lista. No se borra nada, la otra persona sigue viéndola, y al reabrirla recupera todo el historial."
+      nobody_left: "No hay nadie más que añadir."
+      pick_direct: "Hablar con alguien"
+      pick_invite: "Añadir al canal"
+      older: "Cargar los mensajes anteriores"
+      room_settings: "Ajustes de la sala"
+      directs: Mensajes privados
+      new_direct: Nueva conversación
+      invited: Añadido al canal
+      uninvite: Quitar del canal
+      uninvited: Quitado del canal
+      members: 'Nadie | 1 persona | {count} personas'
   attachments:
     title: Archivos
     empty: Ningún archivo por ahora.
@@ -53,6 +89,8 @@ shared:
     uploading: Importación en curso
     upload_failed: La importación ha fallado.
   locale_switcher: Selección de idioma
+  main_menu: Menú principal
+  menu_parent_page: Ver esta página
   errors:
     page_not_found:
       title: Página no encontrada

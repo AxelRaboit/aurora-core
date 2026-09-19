@@ -72,7 +72,7 @@ const zoneOptions = computed(() =>
             <BellPlus class="w-4 h-4" :stroke-width="2" /> {{ t("backend.plannings.reminders.new") }}
         </AppButton>
 
-        <div class="bg-surface border border-line rounded-xl p-4 space-y-2.5">
+        <div class="bg-surface border border-line rounded-xl p-2 space-y-2.5 sm:p-4">
             <div class="flex items-center gap-2">
                 <p class="text-2xs font-semibold uppercase tracking-wider text-muted">
                     {{ t("backend.plannings.calendars") }}
@@ -124,7 +124,7 @@ const zoneOptions = computed(() =>
         <!-- One zone for the screen, not one per calendar: a grid shows several at
              once and a "Tuesday" column cannot be Tuesday in two zones. Kept here
              rather than in the toolbar because it is set once and then forgotten. -->
-        <div class="bg-surface border border-line rounded-xl p-4 space-y-2">
+        <div class="bg-surface border border-line rounded-xl p-2 space-y-2 sm:p-4">
             <p class="text-2xs font-semibold uppercase tracking-wider text-muted">
                 {{ t("backend.plannings.display_zone") }}
             </p>

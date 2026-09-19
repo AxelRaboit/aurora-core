@@ -11,12 +11,48 @@ shared:
   space_chat:
     title: Discussion
     empty: "Aucun message. C'est ici que se dit ce qui ne tient pas sur une fiche : le brief du mois, une campagne qui bouge, une question rapide."
-    placeholder: "Écrire un message… (Entrée pour envoyer, Maj+Entrée pour aller à la ligne)"
+    placeholder: Écrire un message…
+    shortcut_hint: "Entrée pour envoyer, Maj+Entrée pour aller à la ligne"
     send: Envoyer
     from_client: client
     deleted: Message supprimé
     live: en direct
     reconnecting: reconnexion…
+    channels:
+      label: Canaux
+      new: Nouveau canal
+      new_hint: "Un canal s'ouvre entre vous. Vous pourrez l'ouvrir au client ensuite, depuis ses réglages."
+      name_placeholder: Nom du canal
+      name_example: "ex. : Le mois prochain"
+      create: Ouvrir
+      cancel: Annuler
+      rename: Renommer
+      delete: Supprimer le canal
+      delete_confirm: "Supprimer ce canal ? Ses messages partent avec lui."
+      internal: interne
+      open_to_client: Ouvrir au client
+      close_to_client: Fermer au client
+      invite: Ajouter quelqu'un
+      notice_internal: "Canal interne : le client ne le lit pas."
+      notice_direct: "Conversation privée : personne d'autre ne la lit."
+      participants: "Participants"
+      everybody: "Tout le monde, le client compris."
+      audience: "Qui le lit"
+      audience_open: "Le client lit ce canal."
+      audience_internal: "Ce canal reste entre vous."
+      hide: "Retirer la conversation"
+      hide_hint: "Elle disparaît de votre liste. Rien n'est effacé, l'autre la voit toujours, et la rouvrir vous rend tout l'historique."
+      nobody_left: "Il n'y a personne d'autre à ajouter."
+      pick_direct: "Parler à quelqu'un"
+      pick_invite: "Ajouter au canal"
+      older: "Charger les messages précédents"
+      room_settings: "Réglages du salon"
+      directs: Messages privés
+      new_direct: Nouvelle conversation
+      invited: Ajouté au canal
+      uninvite: Retirer du canal
+      uninvited: Retiré du canal
+      members: 'Personne | 1 personne | {count} personnes'
   attachments:
     title: Fichiers
     empty: Aucun fichier pour le moment.
@@ -56,6 +92,8 @@ shared:
     uploading: Import en cours
     upload_failed: L'import a échoué.
   locale_switcher: Choix de la langue
+  main_menu: Menu principal
+  menu_parent_page: Voir cette page
   errors:
     page_not_found:
       title: Page introuvable

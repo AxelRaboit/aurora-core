@@ -1,7 +1,10 @@
 <script setup>
 const props = defineProps({
     color: { type: String, default: "default" },
-    // md = standard p-1.5 padding; compact = fixed w-6 h-6 for dense inline contexts
+    // Une seule taille : trente pixels au doigt, l'ancien serrage à la souris.
+    // Une variante `compact` a existé et n'a jamais été appelée - zéro fois sur
+    // quatre-vingt-dix-sept boutons - donc elle promettait un choix que
+    // personne ne faisait et qu'il aurait fallu maintenir.
     size: { type: String, default: "md" },
     title: { type: String, default: null },
     ariaLabel: { type: String, default: null },
@@ -22,9 +25,21 @@ const colors = {
     "on-light": { text: "text-black/50 hover:text-black/80",  bg: "hover:bg-black/10" },
 };
 
+/**
+ * **Trente pixels sous le pouce, la taille d'avant à la souris.**
+ *
+ * Six pixels de rembourrage autour d'une icône de quatorze font une cible de
+ * vingt-six, ce qui va très bien à un curseur et mal à un doigt : c'est la
+ * mesure qui a fait passer les onglets d'un espace à trente ce matin, et ces
+ * quatre-vingt-dix-sept boutons y échappaient encore.
+ *
+ * Un minimum et non une taille fixe : une icône de seize pixels garde son air
+ * autour d'elle au lieu d'être rognée. Et seulement sous `sm`, parce que
+ * grossir toutes les barres d'outils du back-office pour une précision que la
+ * souris a déjà serait payer un problème que personne n'a.
+ */
 const sizes = {
-    md:      "p-1.5",
-    compact: "w-6 h-6 justify-center",
+    md: "p-1.5 min-h-7.5 min-w-7.5 justify-center sm:min-h-0 sm:min-w-0",
 };
 
 // Always project a label to assistive tech: prefer explicit ariaLabel, fall back to title.

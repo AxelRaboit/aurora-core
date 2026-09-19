@@ -235,7 +235,7 @@ async function sign() {
 </script>
 
 <template>
-    <section class="space-y-5 rounded-lg border border-line bg-surface p-5">
+    <section class="space-y-5 rounded-lg border border-line bg-surface p-3 sm:p-5">
         <header class="space-y-1">
             <h2 class="flex items-center gap-2 font-medium text-primary">
                 <PenLine class="h-4 w-4 shrink-0" :stroke-width="2" />
@@ -316,7 +316,11 @@ async function sign() {
                 <p class="text-sm text-secondary">
                     {{ t("studio.public.sign.code_intro") }}
                 </p>
+                <!-- Pleine largeur sous `sm`, comme « Signer le contrat » plus
+                     bas : c'est l'étape d'avant, sur la page qu'un client ouvre
+                     presque toujours au téléphone. -->
                 <AppButton
+                    class="w-full sm:w-auto"
                     variant="secondary"
                     size="md"
                     :disabled="!canRequestCode"

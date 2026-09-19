@@ -42,6 +42,19 @@ abstract class AbstractSpaceChatMessage implements SpaceChatMessageInterface
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     protected CustomerSpaceInterface $space;
 
+    /**
+     * The room it was said in.
+     *
+     * Kept beside the space rather than instead of it, and that is not a
+     * duplicate worth removing: every query the panel makes is "this room's
+     * last messages", but the counters, the notifier and the deletion path all
+     * ask "this space's", and going through the rooms to answer that would turn
+     * one index into a join on every one of them.
+     */
+    #[ORM\ManyToOne(targetEntity: SpaceChatChannelInterface::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    protected SpaceChatChannelInterface $channel;
+
     #[ORM\Column(type: Types::TEXT)]
     protected string $body;
 
@@ -76,6 +89,18 @@ abstract class AbstractSpaceChatMessage implements SpaceChatMessageInterface
     }
 
     abstract public function getId(): ?int;
+
+    public function getChannel(): SpaceChatChannelInterface
+    {
+        return $this->channel;
+    }
+
+    public function setChannel(SpaceChatChannelInterface $channel): static
+    {
+        $this->channel = $channel;
+
+        return $this;
+    }
 
     public function getSpace(): CustomerSpaceInterface
     {

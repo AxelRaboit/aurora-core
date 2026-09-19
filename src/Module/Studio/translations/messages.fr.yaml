@@ -48,6 +48,16 @@ backend:
                     updated: Note d'espace modifiée
                     pinned: Note d'espace épinglée ou dépinglée
                     deleted: Note d'espace supprimée
+                    imported_from_craft: Note d'espace importée depuis Craft
+                space_chat_channel:
+                    created: Canal de discussion ouvert
+                    renamed: Canal de discussion renommé
+                    updated: Canal de discussion modifié
+                    deleted: Canal de discussion supprimé
+                    opened: Conversation privée ouverte
+                    hidden: Conversation privée retirée
+                    invited: Membre ajouté à un canal
+                    uninvited: Membre retiré d'un canal
                 space_chat_message:
                     posted: Message envoyé dans la discussion d'un espace
                     deleted: Message de discussion supprimé
@@ -661,6 +671,8 @@ backend:
                     color_invalid: La couleur doit être au format hexadécimal, par exemple #6366f1.
         customers:
             title: Clients
+            spaces: Ses espaces
+            spaces_description: Ouvre la liste des espaces de cette société.
             status: Statut
             status_hint: "Un prospect est une société pour laquelle on travaille déjà, sans avoir encore son identité légale. La convertir en client, c'est saisir le SIRET, la forme juridique et le siège."
             statuses:
@@ -886,6 +898,50 @@ backend:
                 unknown: Ce document est introuvable.
                 duplicate: Ce fichier est déjà sur cet espace.
                 needs_account: Il faut être connecté pour ajouter un fichier.
+        craft:
+            # Craft garde le savoir durable, celui qui survit à un projet ;
+            # les notes d'un espace gardent ce qui est attaché à un travail en
+            # cours et meurt avec lui. L'import fait passer de l'un à l'autre,
+            # en copie franche : rien ne revient modifier la note ensuite.
+            settings:
+                what_title: Ce que fait cette connexion
+                what_body: "Elle permet d'importer un document Craft dans les notes d'un espace client. C'est une copie : le document reste chez Craft, et la note ne change plus toute seule ensuite."
+                how_title: Comment l'ouvrir
+                how_step_connection: "Dans Craft, barre latérale, onglet Connexions : « Ajoutez votre première connexion API », puis « API pour les documents sélectionnés »."
+                how_step_select: "Choisissez les documents, puis réglez la connexion en lecture seule et en mode « Clé API ». Publique, l'adresse seule suffit à écrire et à supprimer chez vous."
+                how_step_paste: "Copiez l'adresse et la clé, et collez-les ci-dessous. La clé ne sera plus affichée."
+                how_link: La marche à suivre chez Craft
+                endpoint_label: Adresse de la connexion
+                endpoint_hint: "Celle que Craft affiche à la création de la connexion. En https, sans quoi la clé voyagerait en clair."
+                token_label: Clé API
+                token_hint: "Celle que Craft affiche une fois la connexion passée en mode « Clé API »."
+                token_stored: Une clé est enregistrée. Laissez le champ vide pour la garder.
+                enabled_label: Activer l'import depuis Craft
+                enabled_hint: Le bouton apparaît dans les notes de chaque espace.
+                enabled_blocked: Renseignez une adresse et une clé pour pouvoir activer.
+            import:
+                action: Importer depuis Craft
+                title: Importer une note Craft
+                intro: "Le document est copié dans cet espace. Il reste chez Craft, et la note ne suivra pas ses modifications."
+                empty: Aucun document dans cette connexion.
+                unreachable: "Craft n'a pas répondu."
+                unreachable_hint: "Vérifiez l'adresse et la clé dans les réglages, onglet Craft."
+                empty_hint: "Retournez dans Craft pour ajouter des documents à la connexion."
+                disabled: "L'import depuis Craft n'est pas activé."
+                disabled_hint: "Il s'ouvre dans les réglages, onglet Craft."
+                imported: Note importée.
+                refresh: Mettre à jour depuis Craft
+                refresh_confirm: "Remettre « {title} » sur la version actuelle du document Craft ?"
+                refresh_warning: "Le corps de la note est remplacé. Ce que vous avez modifié ici sera perdu ; la couleur, l'épingle et la visibilité sont conservées."
+                refresh_submit: Mettre à jour
+                refreshed: Note mise à jour.
+                submit: Importer
+            errors:
+                endpoint_https: "L'adresse de la connexion doit commencer par https://."
+                connection_required: Renseignez une adresse et une clé avant d'activer.
+                document_required: Choisissez un document à importer.
+                unreachable: "Craft n'a rien renvoyé pour ce document."
+                not_imported: Cette note ne vient pas de Craft.
         space_notes:
             # Les notes d'un espace : la seule surface qu'un client ne voit pas.
             # Le fil d'une fiche et la discussion sont partagés ; une note est
@@ -935,11 +991,19 @@ backend:
             approved: '%who% a validé « %item% »'
             changes_requested: '%who% demande une reprise sur « %item% »'
         space_chat:
-            # La conversation d'un espace, celle qui ne tient sur aucune fiche.
-            # Ce qui porte sur un contenu précis reste dans les échanges de sa
-            # fiche : on le retrouve à côté de ce dont il parle.
-            notice: Ce que vous écrivez ici est lu par le client.
+            channels:
+                main_name: Général
+                notice_internal: "Ce canal est interne : le client ne le lit pas."
             errors:
+                main_stays_open: "Le canal principal reste ouvert au client : c'est la conversation de l'espace."
+                direct_has_no_audience: Une conversation privée n'a pas de public à régler.
+                channel_not_deletable: Seuls les canaux ouverts ici se suppriment.
+                direct_keeps_both: Une conversation privée garde ses deux personnes.
+                direct_needs_two: Une conversation privée se tient à deux.
+                channel_name_required: Il faut un nom au canal.
+                channel_not_in_space: Ce canal n'appartient pas à cet espace.
+                not_on_the_team: Cette personne n'est pas sur l'équipe de cet espace.
+                channel_closed: Ce canal ne vous est pas ouvert.
                 body_required: Le message ne peut pas être vide.
                 needs_account: Il faut être connecté pour écrire dans une discussion.
                 from_client: Un message du client ne se supprime pas. C'est ce qu'il vous a dit.
@@ -950,6 +1014,7 @@ backend:
             view_content: Contenus
             shape_board: Kanban
             shape_list: Liste
+            calendar_day_empty: Rien de prévu ce jour-là.
             view_calendar: Calendrier
             view_files: Fichiers
             view_chat: Discussion
@@ -1158,6 +1223,7 @@ studio:
         space:
             unavailable_message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez le plan de contenu d'un espace, demandez un nouveau lien à votre interlocuteur.
             timezone_notice: 'Heures en {timezone}'
+            calendar_day_empty: Rien de prévu ce jour-là.
             footer: Cette adresse vous est personnelle, ne la transmettez pas.
             footer_until: 'Cette adresse vous est personnelle et valide jusqu''au {date} : ne la transmettez pas.'
             no_body: Le texte n'est pas encore écrit.

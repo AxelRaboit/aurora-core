@@ -13,6 +13,10 @@ interface SpaceChatMessageInterface
 {
     public function getId(): ?int;
 
+    public function getChannel(): SpaceChatChannelInterface;
+
+    public function setChannel(SpaceChatChannelInterface $channel): static;
+
     public function getSpace(): CustomerSpaceInterface;
 
     public function setSpace(CustomerSpaceInterface $space): static;
