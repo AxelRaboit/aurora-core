@@ -187,6 +187,7 @@ final readonly class DriveClient
             if (!is_string($id)) {
                 continue;
             }
+
             if (!is_string($name)) {
                 continue;
             }

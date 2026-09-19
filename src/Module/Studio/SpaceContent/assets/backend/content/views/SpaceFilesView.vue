@@ -403,10 +403,5 @@ function chooseFile(event) {
                 </AppModalFooter>
             </template>
         </AppModal>
-
-        <!-- Ce qu'un module voisin ajoute au bas de cet onglet - aujourd'hui le
-             dossier Drive d'un espace. Une fente plutôt qu'une dépendance :
-             cette vue n'a pas à connaître Google pour lui faire une place. -->
-        <slot name="after" />
     </div>
 </template>

@@ -4,21 +4,21 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { ExternalLink, FolderOpen, Link2Off, RefreshCw } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
 /**
- * Le dossier Drive d'un espace, dans l'onglet Fichiers.
+ * Le dossier Drive d'un espace, sa propre vue dans la barre.
  *
- * **Une section et non un onglet.** Ce sont des fichiers, ils vont avec les
- * autres fichiers ; en faire un onglet dirait qu'on choisit entre deux
- * endroits, alors qu'on regarde deux origines de la même chose.
+ * **À côté de Fichiers, et non dedans.** La barre sépare déjà par origine -
+ * ce qui est posé sur les fiches, ce qui appartient à l'espace - et un dossier
+ * qui vit chez le client en est une troisième. Rangé en section sous les
+ * fichiers, il fallait faire défiler tout le reste pour l'atteindre.
  *
- * **Chargée à l'ouverture, pas au montage.** Lire un dossier chez Google
- * coûte un aller-retour, et la plupart des espaces n'ont pas de Drive.
+ * **Chargée à l'ouverture, pas au montage.** Lire un dossier chez Google coûte
+ * un aller-retour, et la plupart des espaces n'ont pas de Drive.
  */
 const props = defineProps({
     folderId: { type: String, default: null },
@@ -121,25 +121,33 @@ function weightOf(file) {
 
         <p class="text-xs text-muted">{{ t("backend.studio.drive.space.intro") }}</p>
 
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-end">
-            <div class="min-w-0 flex-1">
-                <AppInput
+        <!-- L'explication sous la rangée entière, et non sous le seul champ :
+             collée au champ, elle poussait le bouton d'une ligne vers le bas,
+             qui s'alignait alors sur elle au lieu de s'aligner sur la saisie. -->
+        <div class="space-y-1">
+            <span class="block text-xs text-secondary">{{ t("backend.studio.drive.space.folder_label") }}</span>
+
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <input
                     v-model="folder"
-                    :label="t('backend.studio.drive.space.folder_label')"
-                    :hint="t('backend.studio.drive.space.folder_hint')"
+                    type="text"
+                    spellcheck="false"
                     placeholder="https://drive.google.com/drive/folders/…"
-                />
+                    class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary"
+                >
+                <AppButton
+                    class="w-full shrink-0 sm:w-auto"
+                    variant="primary"
+                    size="sm"
+                    :loading="saving"
+                    v-on:click="save"
+                >
+                    <component :is="linked && '' === folder.trim() ? Link2Off : FolderOpen" class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t(linked && "" === folder.trim() ? "backend.studio.drive.space.unlink" : "backend.studio.drive.space.link") }}
+                </AppButton>
             </div>
-            <AppButton
-                class="w-full sm:w-auto"
-                variant="primary"
-                size="sm"
-                :loading="saving"
-                v-on:click="save"
-            >
-                <component :is="linked && '' === folder.trim() ? Link2Off : FolderOpen" class="h-3.5 w-3.5" :stroke-width="2" />
-                {{ t(linked && "" === folder.trim() ? "backend.studio.drive.space.unlink" : "backend.studio.drive.space.link") }}
-            </AppButton>
+
+            <span class="block text-xs text-muted">{{ t("backend.studio.drive.space.folder_hint") }}</span>
         </div>
 
         <template v-if="linked && !loading">

@@ -1051,6 +1051,7 @@ backend:
             shape_list: Liste
             calendar_day_empty: Rien de prévu ce jour-là.
             view_calendar: Calendrier
+            view_drive: Drive
             view_files: Fichiers
             view_chat: Discussion
             view_notes: Notes
