@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [0.9.204] - 2026-09-18
+## [0.9.204] - 2026-09-19
 
 ### Modifié
 
@@ -795,6 +795,22 @@ ici est lu par le client » est vrai du canal principal et faux des deux autres
 sortes ; un canal interne et une conversation privée le disent maintenant
 chacun à sa façon. Une phrase fausse sous une zone de saisie fait taire ceux
 qui la croient et délie la langue de ceux qui ne la lisent plus.
+
+### Dans aurora-client
+`make aurora-update`, puis `make migrate` : la 0.9.204 ajoute une colonne aux
+notes d'un espace.
+
+Puis **une fois**, `php bin/console aurora:ged:sizes:refresh`. Le poids
+enregistré d'un document était celui du fichier reçu et non celui du fichier
+rangé, et une source JPEG est ré-encodée en place au dépôt : la bibliothèque
+annonçait des tailles sans rapport avec ce qui est stocké. La commande est
+idempotente et accepte `--dry-run` pour compter d'abord.
+
+Rien d'autre n'est requis. L'import depuis Craft reste éteint tant que personne
+n'ouvre une connexion dans les réglages, et le tiroir de navigation du site
+public arrive avec le thème.
+
+---
 
 ## [0.9.203] - 2026-09-18
 
