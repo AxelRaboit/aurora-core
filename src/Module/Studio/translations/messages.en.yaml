@@ -964,6 +964,11 @@ backend:
                 unlinked: Folder unlinked.
                 empty: "The folder is empty, or it was not shared with the service account."
                 no_size: "—"
+                view_label: How the files are shown
+                path_label: Path inside the folder
+                root: Shared folder
+                items: "1 file | {count} files"
+                open: Open the file
             errors:
                 key_invalid: "That is not a service account key. Check that you copied the whole JSON file."
                 key_required: Paste a service account key before enabling.

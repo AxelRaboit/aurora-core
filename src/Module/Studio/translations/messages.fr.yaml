@@ -973,6 +973,11 @@ backend:
                 unlinked: Dossier débranché.
                 empty: "Le dossier ne contient rien, ou n'a pas été partagé avec le compte de service."
                 no_size: "—"
+                view_label: Affichage des fichiers
+                path_label: Chemin dans le dossier
+                root: Dossier partagé
+                items: "1 fichier | {count} fichiers"
+                open: Ouvrir le fichier
             errors:
                 key_invalid: "Ce n'est pas une clé de compte de service. Vérifiez d'avoir copié le fichier JSON en entier."
                 key_required: Collez une clé de compte de service avant d'activer.

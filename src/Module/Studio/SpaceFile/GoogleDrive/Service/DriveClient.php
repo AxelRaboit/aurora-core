@@ -105,7 +105,7 @@ final readonly class DriveClient
      * parce qu'au-delà ce n'est plus une liste qu'on parcourt des yeux - le
      * dossier partagé était trop large, et c'est dans Drive que ça se règle.
      *
-     * @return list<array{id: string, name: string, path: string, mimeType: string, size: int|null, modifiedAt: string|null}>
+     * @return list<array{id: string, name: string, path: string, mimeType: string, size: int|null, modifiedAt: string|null, thumbnail: string|null}>
      */
     public function files(GoogleServiceAccount $account, string $folderId): array
     {
@@ -151,7 +151,7 @@ final readonly class DriveClient
      *
      * @param list<string> $parentIds
      *
-     * @return list<array{id: string, name: string, mimeType: string, size: int|null, modifiedAt: string|null, parents: list<string>}>
+     * @return list<array{id: string, name: string, mimeType: string, size: int|null, modifiedAt: string|null, parents: list<string>, thumbnail: string|null}>
      */
     private function children(GoogleServiceAccount $account, array $parentIds): array
     {
@@ -163,7 +163,7 @@ final readonly class DriveClient
             'q' => '('.implode(' or ', $clauses).') and trashed = false',
             // `parents` est ce qui permet de savoir de quel dossier du lot
             // chaque ligne vient, donc de reconstruire son chemin.
-            'fields' => 'files(id,name,mimeType,size,modifiedTime,parents)',
+            'fields' => 'files(id,name,mimeType,size,modifiedTime,parents,thumbnailLink)',
             'pageSize' => self::MAX_FILES,
             // Un dossier partagé depuis un Drive partagé n'est pas visible
             // sans cela, et le symptôme est une liste vide sans erreur.
@@ -202,6 +202,15 @@ final readonly class DriveClient
                 'size' => isset($row['size']) ? (int) $row['size'] : null,
                 'modifiedAt' => is_string($row['modifiedTime'] ?? null) ? $row['modifiedTime'] : null,
                 'parents' => array_values(array_filter((array) ($row['parents'] ?? []), is_string(...))),
+                // **Servie par le CDN de Google, sans authentification** -
+                // mesuré : deux cent vingt pixels, moins d'un kilo-octet, et
+                // un `200` sans le moindre en-tête. Elle voyage donc jusqu'au
+                // navigateur au lieu d'être relayée, ce qui épargne un appel
+                // par vignette affichée. La contrepartie est dite à l'endroit
+                // où l'image est posée : le navigateur du client parle à
+                // Google pour elle, ce qui ne conditionne aucun accès mais se
+                // sait. Absente pour ce dont Google ne sait pas faire d'image.
+                'thumbnail' => is_string($row['thumbnailLink'] ?? null) ? $row['thumbnailLink'] : null,
             ];
         }
 

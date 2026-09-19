@@ -252,6 +252,26 @@ final class DriveClientTest extends TestCase
         self::assertSame(34, $files[0]['size']);
     }
 
+    /**
+     * Google sert ses vignettes depuis son CDN, sans authentification :
+     * mesuré à deux cent vingt pixels et moins d'un kilo-octet. Elles
+     * voyagent donc telles quelles, ce qui épargne un appel par vignette.
+     */
+    public function testTheThumbnailTravelsWhenGoogleHasOne(): void
+    {
+        $client = $this->client([$this->token(), $this->listing([
+            ['id' => 'a', 'name' => 'photo.jpg', 'mimeType' => 'image/jpeg', 'parents' => ['dossier-1'], 'thumbnailLink' => 'https://lh3.example/x=s220'],
+            ['id' => 'b', 'name' => 'archive.zip', 'mimeType' => 'application/zip', 'parents' => ['dossier-1']],
+        ])]);
+
+        $files = $client->files($this->account, 'dossier-1');
+        $thumbnails = array_combine(array_column($files, 'name'), array_column($files, 'thumbnail'));
+
+        self::assertSame('https://lh3.example/x=s220', $thumbnails['photo.jpg']);
+        // Rien pour ce dont Google ne sait pas faire d'image.
+        self::assertNull($thumbnails['archive.zip']);
+    }
+
     /** Un document Google n'a pas d'octets tant qu'on ne l'a pas exporté. */
     public function testAFileWithoutASizeIsStillListed(): void
     {
