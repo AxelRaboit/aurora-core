@@ -106,7 +106,7 @@ function onItemClick(entry) {
                             <button
                                 v-if="deletePath"
                                 type="button"
-                                class="opacity-0 group-hover:opacity-100 shrink-0 p-3 text-muted hover:text-rose-500 transition-all"
+                                class="sm:opacity-0 sm:group-hover:opacity-100 shrink-0 p-3 text-muted hover:text-rose-500 transition-all"
                                 :title="t('backend.notifications.delete')"
                                 v-on:click.stop="deleteOne(entry)"
                             >

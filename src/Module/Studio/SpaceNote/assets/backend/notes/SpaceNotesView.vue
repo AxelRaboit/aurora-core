@@ -207,7 +207,7 @@ function tint(note) {
                     <span>·</span>
                     <span>{{ d(new Date(note.updatedAt), "short") }}</span>
 
-                    <span v-if="editable" class="ml-auto flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                    <span v-if="editable" class="ml-auto flex items-center gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                         <AppIconButton
                             :title="t(note.pinned ? 'backend.studio.space_notes.unpin' : 'backend.studio.space_notes.pin')"
                             v-on:click="emit('pin', note)"
@@ -262,7 +262,7 @@ function tint(note) {
                 <span class="hidden shrink-0 text-xs text-muted sm:inline">{{ note.author }}</span>
                 <span class="shrink-0 text-xs text-muted">{{ d(new Date(note.updatedAt), "short") }}</span>
 
-                <span v-if="editable" class="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                <span v-if="editable" class="flex shrink-0 items-center gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                     <AppIconButton
                         :title="t(note.pinned ? 'backend.studio.space_notes.unpin' : 'backend.studio.space_notes.pin')"
                         v-on:click="emit('pin', note)"

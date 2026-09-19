@@ -124,7 +124,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
                  sits between the title and the hover action buttons. -->
             <slot name="extra-cells" :note="node" />
 
-            <div class="opacity-0 group-hover:opacity-100 flex gap-0.5 transition-opacity shrink-0">
+            <div class="sm:opacity-0 sm:group-hover:opacity-100 flex gap-0.5 transition-opacity shrink-0">
                 <AppIconButton
                     size="sm"
                     color="accent"

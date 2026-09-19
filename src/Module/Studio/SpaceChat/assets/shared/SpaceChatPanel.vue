@@ -624,7 +624,7 @@ function onKeydown(event) {
                                     <button
                                         v-if="deletePath && !entry.message.fromClient"
                                         type="button"
-                                        class="ml-auto rounded p-1 text-muted opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
+                                        class="ml-auto rounded p-1 text-muted transition-opacity hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100"
                                         :aria-label="t('shared.common.delete')"
                                         v-on:click="remove(entry.message)"
                                     >

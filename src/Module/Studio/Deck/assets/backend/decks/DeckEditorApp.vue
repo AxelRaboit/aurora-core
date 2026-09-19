@@ -481,7 +481,7 @@ onBeforeUnmount(() => {
 
                         <div
                             v-if="editable"
-                            class="absolute top-1 right-1 flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+                            class="absolute top-1 right-1 flex gap-0.5 transition-opacity focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                         >
                             <!-- Les flèches restent à côté de la poignée : le
                                  glisser demande une souris et une main, elles

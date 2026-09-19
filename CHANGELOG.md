@@ -475,6 +475,24 @@ module Calendrier n'est pas installé.
 
 ### Corrigé
 
+#### Onze blocs de commandes n'existaient qu'au survol
+Un survol n'existe pas au doigt. Ces commandes n'étaient pas seulement
+invisibles sur téléphone : elles restaient cliquables, donc on appuyait à
+l'aveugle sur quelque chose qu'on ne voyait pas. Les actions d'une note, la
+suppression d'un message dans une discussion ou dans le fil d'une fiche, le
+retrait d'une pièce jointe, les commandes d'une diapositive, les lignes de
+l'arborescence des notes et des dossiers, le renvoi d'une notification, les
+images d'une galerie, une couleur du thème.
+
+Elles sont visibles sous `sm` et redeviennent des commandes au survol
+au-dessus : le bureau ne bouge pas. Mesuré sur les deux largeurs - opacité 1 à
+trois cent soixante-quinze pixels, opacité 0 à mille deux cent quatre-vingts.
+
+Restent au survol ce qui n'est pas une commande : la flèche qui glisse sur une
+carte d'article, le voile « changer l'image » d'un champ dont le bouton entier
+est déjà cliquable, et les poignées de déplacement - déplacer à la souris est
+un geste de souris.
+
 #### La médiathèque annonçait des poids qui n'étaient pas ceux des fichiers
 Le poids d'un document est relevé à l'arrivée du fichier. Pour une source
 JPEG, ce nombre cesse d'être vrai une ligne plus tard : la fabrication des

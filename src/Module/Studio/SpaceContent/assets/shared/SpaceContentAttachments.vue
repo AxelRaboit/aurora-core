@@ -162,7 +162,7 @@ function remove(attachment) {
                     type="button"
                     :title="t('shared.attachments.remove')"
                     :aria-label="t('shared.attachments.remove')"
-                    class="absolute right-1 top-1 rounded-md bg-surface-1/90 p-1 text-muted opacity-0 transition-opacity hover:text-danger focus:opacity-100 group-hover:opacity-100"
+                    class="absolute right-1 top-1 rounded-md bg-surface-1/90 p-1 text-muted transition-opacity hover:text-danger focus:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                     v-on:click="remove(attachment)"
                 >
                     <Trash2 class="h-3.5 w-3.5" />
