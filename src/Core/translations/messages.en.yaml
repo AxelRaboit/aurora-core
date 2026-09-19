@@ -58,6 +58,7 @@ shared:
     empty: No file yet.
     add: Add a file
     pick: Choose from GED
+    pick_drive: From the Drive
     drop: Drop a file here
     remove: Remove from the card
     remove_confirm: Remove this file from the card? It stays in GED.

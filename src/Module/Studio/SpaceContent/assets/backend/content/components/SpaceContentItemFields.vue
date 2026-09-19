@@ -31,6 +31,7 @@ const props = defineProps({
     canDiscuss: { type: Boolean, default: false },
     attachments: { type: Array, default: () => [] },
     attachmentLoading: { type: Boolean, default: false },
+    canPickDrive: { type: Boolean, default: false },
     /**
      * A reader who may see the space but not edit it.
      *
@@ -50,6 +51,7 @@ const emit = defineEmits([
     "delete-comment",
     "upload-attachment",
     "pick-attachment",
+    "pick-drive-attachment",
     "remove-attachment",
 ]);
 
@@ -140,8 +142,10 @@ function set(field, value) {
             :can-add="!readonly"
             :can-remove="!readonly"
             :can-pick="!readonly"
+            :can-pick-drive="canPickDrive"
             v-on:upload="emit('upload-attachment', $event)"
             v-on:pick="emit('pick-attachment')"
+            v-on:pick-drive="emit('pick-drive-attachment')"
             v-on:remove="emit('remove-attachment', $event)"
         />
 

@@ -44,6 +44,36 @@ onglet, aurait exécuté son script sur la page d'un espace avec la session de
 celui qui regarde. Ces types redeviennent des fichiers, qu'on ait demandé le
 téléchargement ou non, et `nosniff` accompagne tout le reste.
 
+#### Accrocher un fichier du Drive à une fiche, et le ranger dans la médiathèque
+Un fichier partagé par le client se met maintenant sur une fiche, depuis le
+formulaire de la fiche, par un sélecteur qui montre la même arborescence que
+la vue Drive. Le calendrier suit sans rien faire : il affiche les mêmes
+fiches.
+
+**C'est le seul endroit de cette intégration qui recopie, et c'est voulu.** Le
+reste ne recopie rien, parce qu'un dossier partagé est une étagère vivante et
+que ce qu'on y retire disparaît de l'espace. Une pièce jointe sur une fiche
+est l'inverse : une décision prise à un moment. Le brief qu'on épingle doit
+rester celui dont on a parlé, pas un lien qui se vide le jour où le client
+fait le ménage dans son Drive.
+
+**Et c'est ce qui le rend utilisable partout sans rien inventer.** Une fois
+dans la médiathèque, le fichier est un document comme un autre : les notes
+savent déjà en afficher, les galeries en puiser, les fiches en accrocher. Un
+troisième genre de pièce jointe, qui aurait pointé vers Google, aurait demandé
+à chacun de ces écrans de connaître l'intégration. D'où le bouton « Ranger
+dans la médiathèque » dans l'aperçu d'un fichier du Drive : c'est le passage
+vers tout le reste, et c'est par là qu'une note prend une image du Drive.
+
+L'accrochage tient en deux appels et non un : le premier recopie, le second
+accroche par la route qui accroche déjà n'importe quel document. Une route qui
+aurait fait les deux aurait ajouté un chemin de plus vers une pièce jointe,
+alors que la moitié intéressante est qu'il n'y en ait pas.
+
+Le nom vient de Google, comme pour un téléchargement, et le vrai déposeur est
+monté dans le test pour cette raison : un double aurait rendu le nom qu'on lui
+aurait appris.
+
 #### Deux pages de documentation sur les connexions
 La rubrique Configuration explique maintenant comment brancher Craft et
 comment brancher un dossier Google Drive : ce que chaque connexion fait, ce

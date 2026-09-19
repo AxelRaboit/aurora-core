@@ -7,10 +7,13 @@ namespace Aurora\Module\Studio\SpaceFile\GoogleDrive\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveArchive;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveClient;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveFileServer;
+use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveImporter;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\GoogleServiceAccount;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting\DriveSettings;
 use Doctrine\ORM\EntityManagerInterface;
@@ -53,6 +56,8 @@ final class SpaceDriveController extends AbstractController
         private readonly DriveClient $drive,
         private readonly DriveFileServer $files,
         private readonly DriveArchive $archives,
+        private readonly DriveImporter $importer,
+        private readonly DocumentSerializerInterface $documents,
         private readonly EntityManagerInterface $entityManager,
     ) {}
 
@@ -156,6 +161,33 @@ final class SpaceDriveController extends AbstractController
         $path = $this->archives->zipFor($account, $files);
 
         return $this->file($path, $this->archiveName($space))->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Un fichier du Drive, rangé dans la médiathèque.
+     *
+     * **Le seul endroit de cette intégration qui recopie.** Une pièce jointe
+     * sur une fiche est une décision prise à un moment, pas une étagère
+     * vivante : elle doit rester ce dont on a parlé même après un ménage dans
+     * le Drive du client. Le document rendu est ensuite accroché comme
+     * n'importe quel autre, par les routes qui existent déjà.
+     */
+    #[Route('/{fileId}/import', name: '_import', requirements: ['fileId' => '[A-Za-z0-9_-]+'], methods: [HttpMethodEnum::Post->value], priority: 10)]
+    public function import(CustomerSpace $space, string $fileId): JsonResponse
+    {
+        $account = $this->settings->isEnabled() ? $this->settings->account() : null;
+
+        if (!$account instanceof GoogleServiceAccount || null === $space->getDriveFolderId()) {
+            throw $this->createNotFoundException();
+        }
+
+        $document = $this->importer->import($account, $fileId, $space);
+
+        if (!$document instanceof DocumentInterface) {
+            return $this->jsonFailure('backend.studio.drive.errors.import_failed');
+        }
+
+        return $this->jsonSuccess(['document' => $this->documents->serialize($document)]);
     }
 
     /**
