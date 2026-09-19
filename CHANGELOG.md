@@ -9,6 +9,20 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Un bouton n'est jamais transparent sur téléphone
+Le bouton fantôme se lit à la souris : il attend le survol pour exister, et sa
+place dans une barre dense dit déjà que c'en est un. Au doigt, il n'y a pas de
+survol - et pleine largeur, sans fond, il ressemble à une ligne de texte. On ne
+sait pas qu'on peut appuyer.
+
+Sous `sm`, il porte donc une surface sourde et un filet ; au-dessus, il redevient
+le fantôme qu'il doit être. Deux cent dix-neuf boutons y gagnent d'un coup, dans
+tout le back-office.
+
+Les commandes en icône seule d'une barre gardent leur transparence : leur place
+dit ce qu'elles sont, et trois cadres alignés en haut de l'écran seraient du
+bruit. Elles passent à la variante `icon`, qui existe pour ça.
+
 #### Le même défaut cherché partout où il pouvait vivre
 Un geste principal coincé à côté d'un sélecteur de vue ou d'une feuille
 d'actions. Vingt-cinq lignes de ce genre relues dans le back-office ; trois

@@ -370,7 +370,7 @@ function openSearchFromMobile() {
             <span class="text-primary font-bold text-base tracking-tight">{{ siteName }}</span>
         </a>
         <div class="flex items-center gap-1">
-            <AppButton variant="ghost" size="none" class="p-2" v-on:click="openPalette">
+            <AppButton variant="icon" size="none" class="p-2 text-muted hover:text-primary" v-on:click="openPalette">
                 <Search class="w-5 h-5" :stroke-width="2" />
             </AppButton>
             <!-- The bell belongs here too. On desktop it moved to the page
@@ -393,7 +393,7 @@ function openSearchFromMobile() {
                  desktop: a control that announced what it would do flips under
                  the finger at the moment of tapping. -->
             <AppButton
-                variant="ghost"
+                variant="icon"
                 size="none"
                 class="p-2"
                 :title="mobileOpen ? t('backend.nav.collapse_menu') : t('backend.nav.expand_menu')"
@@ -422,7 +422,7 @@ function openSearchFromMobile() {
                         <span v-if="appVersion" class="text-xs text-muted/50 leading-none">{{ appVersion }}</span>
                     </div>
                 </div>
-                <AppButton variant="ghost" size="none" class="p-1.5" v-on:click="closeMobile">
+                <AppButton variant="icon" size="none" class="p-1.5 text-muted hover:text-primary" v-on:click="closeMobile">
                     <X class="w-5 h-5" :stroke-width="2" />
                 </AppButton>
             </div>
@@ -534,7 +534,7 @@ function openSearchFromMobile() {
                             class="flex-1 bg-transparent border-0 outline-none text-primary placeholder-muted text-sm"
                         >
                         <Loader2 v-if="searchLoading" class="w-4 h-4 text-muted animate-spin" :stroke-width="2" />
-                        <AppButton variant="ghost" size="none" class="p-1" v-on:click="closePalette">
+                        <AppButton variant="icon" size="none" class="p-1 text-muted hover:text-primary" v-on:click="closePalette">
                             <X class="w-4 h-4" :stroke-width="2" />
                         </AppButton>
                     </div>
