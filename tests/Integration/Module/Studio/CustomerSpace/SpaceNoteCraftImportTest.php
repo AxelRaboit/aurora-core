@@ -89,6 +89,7 @@ final class SpaceNoteCraftImportTest extends IntegrationTestCase
 
         self::assertFalse($payload['configured']);
         self::assertSame([], $payload['documents']);
+        self::assertFalse($payload['reachable']);
     }
 
     public function testTheListIsWhatTheConnectionLetsThrough(): void
@@ -106,6 +107,7 @@ final class SpaceNoteCraftImportTest extends IntegrationTestCase
         $payload = $this->payload();
 
         self::assertTrue($payload['configured']);
+        self::assertTrue($payload['reachable']);
         self::assertSame(
             [['id' => 'doc-1', 'title' => 'Atelier'], ['id' => 'doc-2', 'title' => 'Brief septembre']],
             $payload['documents'],

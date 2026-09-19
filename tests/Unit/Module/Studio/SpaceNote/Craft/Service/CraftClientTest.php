@@ -89,7 +89,7 @@ final class CraftClientTest extends TestCase
         $client = $this->client($this->settings('https://connect.example/c/1', 'jeton', enabled: false), []);
 
         self::assertFalse($client->isConfigured());
-        self::assertSame([], $client->documents());
+        self::assertNull($client->documents());
         self::assertNull($client->markdown('abc'));
         self::assertSame([], $this->calls);
     }
@@ -188,21 +188,34 @@ final class CraftClientTest extends TestCase
      * Un écran qui ne propose rien est une déception ; une erreur 500 au
      * milieu d'un espace client en est une autre.
      */
-    public function testAServerErrorBecomesAnEmptyListRatherThanAnException(): void
+    /**
+     * Rien entendu, et non rien à dire : les deux se ressemblent à l'écran et
+     * ne se réparent pas au même endroit.
+     */
+    public function testAServerErrorIsToldApartFromAnEmptyConnection(): void
     {
         $client = $this->client(
             $this->settings('https://connect.example/c/1', 'jeton'),
             [new MockResponse('nope', ['http_code' => 503])],
         );
 
-        self::assertSame([], $client->documents());
+        self::assertNull($client->documents());
+
+        $empty = $this->client(
+            $this->settings('https://connect.example/c/1', 'jeton'),
+            [new MockResponse((string) json_encode(['items' => []]), [
+                'response_headers' => ['content-type' => 'application/json'],
+            ])],
+        );
+
+        self::assertSame([], $empty->documents());
         self::assertNull($this->client(
             $this->settings('https://connect.example/c/1', 'jeton'),
             [new MockResponse('nope', ['http_code' => 503])],
         )->markdown('root-1'));
     }
 
-    public function testAnAnswerThatIsNotJsonBecomesAnEmptyList(): void
+    public function testAnAnswerThatIsNotJsonIsNoAnswerAtAll(): void
     {
         $client = $this->client(
             $this->settings('https://connect.example/c/1', 'jeton'),
@@ -211,6 +224,6 @@ final class CraftClientTest extends TestCase
             ])],
         );
 
-        self::assertSame([], $client->documents());
+        self::assertNull($client->documents());
     }
 }

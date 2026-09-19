@@ -35,6 +35,7 @@ const { request } = useRequest();
 const loading = ref(false);
 const importing = ref(false);
 const configured = ref(true);
+const reachable = ref(true);
 const documents = ref([]);
 const picked = ref(null);
 
@@ -57,6 +58,7 @@ watch(
             });
 
             configured.value = true === data?.configured;
+            reachable.value = false !== data?.reachable;
             documents.value = Array.isArray(data?.documents) ? data.documents : [];
         } finally {
             loading.value = false;
@@ -103,6 +105,13 @@ async function submit() {
                 <div v-if="!configured" class="rounded-lg border border-line bg-surface-2 p-4">
                     <p class="text-sm text-primary">{{ t("backend.studio.craft.import.disabled") }}</p>
                     <p class="mt-1 text-xs text-muted">{{ t("backend.studio.craft.import.disabled_hint") }}</p>
+                </div>
+
+                <!-- Injoignable et vide ne se réparent pas au même endroit :
+                     l'un dans les réglages, l'autre dans Craft. -->
+                <div v-else-if="!reachable" class="rounded-lg border border-line bg-surface-2 p-4">
+                    <p class="text-sm text-primary">{{ t("backend.studio.craft.import.unreachable") }}</p>
+                    <p class="mt-1 text-xs text-muted">{{ t("backend.studio.craft.import.unreachable_hint") }}</p>
                 </div>
 
                 <div v-else-if="!documents.length" class="rounded-lg border border-line bg-surface-2 p-4">

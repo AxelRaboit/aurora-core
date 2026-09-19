@@ -918,6 +918,8 @@ backend:
                 title: Import a Craft note
                 intro: "The document is copied into this space. It stays in Craft, and the note will not follow its changes."
                 empty: No document in this connection.
+                unreachable: "Craft did not answer."
+                unreachable_hint: "Check the address and the key in the settings, Craft tab."
                 empty_hint: "Go back to Craft to add documents to the connection."
                 disabled: "Importing from Craft is not enabled."
                 disabled_hint: "It is switched on in the settings, Craft tab."

@@ -62,14 +62,21 @@ final readonly class CraftClient
      * Triés par titre : Craft les rend dans son ordre à lui, qui n'est pas
      * celui d'une liste qu'on parcourt des yeux.
      *
-     * @return list<array{id: string, title: string}>
+     * **Null quand rien n'est venu, et non une liste vide.** Les deux se
+     * ressemblent à l'écran et ne veulent pas du tout dire la même chose :
+     * une connexion à laquelle on n'a pas encore ajouté de document se
+     * répare dans Craft, une clé fausse se répare dans les réglages. Dire
+     * « aucun document » dans le second cas est un mensonge qui envoie
+     * chercher au mauvais endroit.
+     *
+     * @return list<array{id: string, title: string}>|null
      */
-    public function documents(): array
+    public function documents(): ?array
     {
         $payload = $this->get('/documents');
 
         if (null === $payload) {
-            return [];
+            return null;
         }
 
         // `items`, le nom que donne la spécification publiée par la connexion

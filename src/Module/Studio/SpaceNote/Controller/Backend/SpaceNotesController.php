@@ -97,9 +97,14 @@ class SpaceNotesController extends AbstractController
     #[IsGranted('studio.spaces.edit')]
     public function craftDocuments(CustomerSpace $space): JsonResponse
     {
+        $documents = $this->craft->documents();
+
         return $this->jsonSuccess([
             'configured' => $this->craft->isConfigured(),
-            'documents' => $this->craft->documents(),
+            // Trois états, pas deux : éteinte, injoignable, et ouverte mais
+            // vide. Chacun se répare à un endroit différent.
+            'reachable' => null !== $documents,
+            'documents' => $documents ?? [],
         ]);
     }
 

@@ -563,6 +563,12 @@ une vraie connexion : `GET /documents` répondait 200 sans le moindre en-tête.
 Le mode « Clé API » et la lecture seule sont donc demandés dès la marche à
 suivre, avant même les deux champs.
 
+Et l'écran d'import distingue trois états au lieu de deux : éteinte,
+injoignable, et ouverte mais vide. Les deux derniers se ressemblaient, et ne se
+réparent pas au même endroit - une connexion sans document s'arrange dans
+Craft, une clé fausse dans les réglages. Dire « aucun document » quand on n'a
+rien entendu envoie chercher au mauvais endroit.
+
 #### Un tiroir de navigation sur le site public
 Sept entrées faisaient mille vingt-huit pixels de liens pour une ligne qui en
 offre trois cent cinquante-neuf : la barre du site se repliait sur deux lignes

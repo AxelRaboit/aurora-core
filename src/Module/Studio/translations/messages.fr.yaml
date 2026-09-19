@@ -924,6 +924,8 @@ backend:
                 title: Importer une note Craft
                 intro: "Le document est copié dans cet espace. Il reste chez Craft, et la note ne suivra pas ses modifications."
                 empty: Aucun document dans cette connexion.
+                unreachable: "Craft n'a pas répondu."
+                unreachable_hint: "Vérifiez l'adresse et la clé dans les réglages, onglet Craft."
                 empty_hint: "Retournez dans Craft pour ajouter des documents à la connexion."
                 disabled: "L'import depuis Craft n'est pas activé."
                 disabled_hint: "Il s'ouvre dans les réglages, onglet Craft."
