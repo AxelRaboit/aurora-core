@@ -9,6 +9,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### La page de signature et l'administration, relues au doigt
+Les deux derniers écrans de la conversion. Pour voir le premier, il a fallu
+envoyer un contrat depuis l'interface et relever le lien dans la boîte de test :
+la page tient à trois cent soixante-quinze, « Signer le contrat » prend la
+ligne, et « Recevoir le code » la prend aussi maintenant - c'est l'étape
+d'avant, sur une page qu'un client ouvre presque toujours au téléphone.
+
+Côté administration, les cinq tableaux tiennent chacun dans leur propre boîte
+qui défile, la gouttière est celle de tout le monde, et les sept onglets vivent
+dans le tiroir du menu, qui les donne sur un téléphone.
+
 #### La même gouttière sur chaque écran, vérifiée écran par écran
 Vingt-deux pages du back-office relevées une par une : toutes à huit pixels de
 gouttière, la carte à huit du bord et seize de marge intérieure - la mesure

@@ -316,7 +316,11 @@ async function sign() {
                 <p class="text-sm text-secondary">
                     {{ t("studio.public.sign.code_intro") }}
                 </p>
+                <!-- Pleine largeur sous `sm`, comme « Signer le contrat » plus
+                     bas : c'est l'étape d'avant, sur la page qu'un client ouvre
+                     presque toujours au téléphone. -->
                 <AppButton
+                    class="w-full sm:w-auto"
                     variant="secondary"
                     size="md"
                     :disabled="!canRequestCode"
