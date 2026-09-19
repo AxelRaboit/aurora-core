@@ -942,6 +942,29 @@ backend:
                 document_required: Choisissez un document à importer.
                 unreachable: "Craft n'a rien renvoyé pour ce document."
                 not_imported: Cette note ne vient pas de Craft.
+        drive:
+            # Le compte de service appartient à l'installation ; le dossier
+            # appartient à un client, et c'est lui qui le partage. La portée se
+            # décide donc dans Drive, jamais ici.
+            settings:
+                what_title: Ce que fait cette connexion
+                what_body: "Elle affiche dans un espace les fichiers d'un dossier Drive que le client a partagé. Rien n'est recopié : le fichier est lu chez Google au moment où quelqu'un le regarde, et servi à un client qui n'a pas de compte Google."
+                how_title: Comment l'ouvrir
+                how_step_project: "Dans la console Google Cloud, créez un projet et activez l'API Google Drive."
+                how_step_account: "Créez un compte de service. Ne lui donnez aucun rôle : son accès viendra uniquement des dossiers qu'on partagera avec lui."
+                how_step_key: "Créez-lui une clé JSON, ouvrez le fichier et collez son contenu ci-dessous. Google ne le redonne pas."
+                how_link: Activer l'API Drive dans la console
+                share_title: "L'adresse à partager"
+                share_body: "Dans Drive, le client partage son dossier avec cette adresse, en Lecteur. Ce qui n'est pas partagé reste invisible."
+                key_label: Clé du compte de service
+                key_hint: "Le fichier JSON en entier. Il contient une clé privée : il est chiffré en base et ne sera plus jamais affiché."
+                key_stored: Une clé est enregistrée. Laissez vide pour la garder.
+                enabled_label: Activer la lecture des dossiers Drive
+                enabled_hint: Chaque espace peut alors désigner le dossier que son client a partagé.
+                enabled_blocked: Collez une clé de compte de service pour pouvoir activer.
+            errors:
+                key_invalid: "Ce n'est pas une clé de compte de service. Vérifiez d'avoir copié le fichier JSON en entier."
+                key_required: Collez une clé de compte de service avant d'activer.
         space_notes:
             # Les notes d'un espace : la seule surface qu'un client ne voit pas.
             # Le fil d'une fiche et la discussion sont partagés ; une note est

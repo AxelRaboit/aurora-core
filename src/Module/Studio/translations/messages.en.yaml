@@ -936,6 +936,26 @@ backend:
                 document_required: Pick a document to import.
                 unreachable: "Craft returned nothing for that document."
                 not_imported: This note does not come from Craft.
+        drive:
+            settings:
+                what_title: What this connection does
+                what_body: "It shows, inside a space, the files of a Drive folder the client shared. Nothing is copied: the file is read from Google when somebody looks at it, and served to a client who has no Google account."
+                how_title: How to open it
+                how_step_project: "In the Google Cloud console, create a project and enable the Google Drive API."
+                how_step_account: "Create a service account. Give it no role: its access will come only from the folders shared with it."
+                how_step_key: "Create a JSON key for it, open the file and paste its contents below. Google does not hand it out twice."
+                how_link: Enable the Drive API in the console
+                share_title: The address to share with
+                share_body: "In Drive, the client shares their folder with this address, as a Viewer. What is not shared stays invisible."
+                key_label: Service account key
+                key_hint: "The whole JSON file. It carries a private key: it is encrypted at rest and never shown again."
+                key_stored: A key is saved. Leave empty to keep it.
+                enabled_label: Enable reading Drive folders
+                enabled_hint: Each space can then name the folder its client shared.
+                enabled_blocked: Paste a service account key before enabling.
+            errors:
+                key_invalid: "That is not a service account key. Check that you copied the whole JSON file."
+                key_required: Paste a service account key before enabling.
         space_notes:
             # A space's notes: the one surface a client never sees.
             add: New note
