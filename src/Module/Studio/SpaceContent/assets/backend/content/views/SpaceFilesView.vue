@@ -253,10 +253,14 @@ function chooseFile(event) {
                         {{ file.title }}
                     </p>
 
+                    <!-- `py-1.5 -my-1.5` : seize pixels de haut, c'est la
+                         hauteur d'une ligne de texte et non celle d'une cible.
+                         La zone sensible monte à vingt-huit sans que la carte
+                         bouge d'un pixel. -->
                     <button
                         v-if="file.itemId"
                         type="button"
-                        class="mt-0.5 block max-w-full truncate text-xs text-muted underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
+                        class="mt-0.5 block max-w-full truncate py-1.5 -my-1.5 text-xs text-muted underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
                         v-on:click="open(file.itemId)"
                     >
                         {{ titleOf(file.itemId) }}

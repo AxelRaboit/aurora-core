@@ -339,7 +339,7 @@ const actionsFor = useSpaceCardActions({
                     v-for="entry in VIEWS"
                     :key="entry.key"
                     type="button"
-                    class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors sm:px-2.5"
+                    class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-2 text-sm transition-colors sm:px-2.5 sm:py-1"
                     :class="
                         view === entry.key
                             ? 'bg-surface font-medium text-primary shadow-sm'

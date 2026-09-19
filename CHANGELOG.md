@@ -9,6 +9,24 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Trente pixels sous le pouce dans la barre d'un espace
+Passage mesuré sur soixante-sept écrans et états à trois cent soixante-quinze
+pixels : rien ne déborde, et la gouttière vaut huit partout dans le back-office.
+Trois commandes tombaient sous la taille des autres : les cinq onglets de
+l'espace client, la flèche de retour et « Ajouter un contenu » faisaient
+trente pixels sur vingt-deux, quand la moindre icône d'Aurora en fait
+vingt-huit sur vingt-huit. Une icône de quatorze pixels avec quatre pixels
+d'air au-dessus et en dessous, c'est ce qu'on rate au doigt.
+
+Elles passent à trente sur trente sous `sm`, taille inchangée au-dessus. La
+barre de l'espace y gagne huit pixels de haut, et la discussion tient toujours
+dans l'écran sans faire défiler la page.
+
+La plus petite cible de toute l'application était ailleurs : sous une vignette
+de fichier, le lien vers le contenu auquel elle appartient faisait seize pixels
+de haut, la hauteur de sa ligne de texte. Sa zone sensible monte à vingt-huit
+sans que la carte bouge.
+
 #### Les boutons des formulaires publics prennent la ligne
 Les pages d'authentification l'avaient déjà ; les deux formulaires écrits à la
 main du site ne l'avaient pas. « Publier » sous un commentaire faisait quatre-
