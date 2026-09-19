@@ -9,6 +9,20 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### La même gouttière sur chaque écran, vérifiée écran par écran
+Vingt-deux pages du back-office relevées une par une : toutes à huit pixels de
+gouttière, la carte à huit du bord et seize de marge intérieure - la mesure
+prise sur les espaces clients, qui sert de référence. Les quatre adresses
+restantes du relevé ne sont pas des pages mais des réponses JSON.
+
+Ce qui manquait à l'appel : les **écrans d'entrée**, restés à seize pixels, et
+le bouton d'actions des thèmes comme les boutons d'enregistrement des réglages,
+qui gardaient leur largeur naturelle dans un coin.
+
+Et le graphe des notes mesurait sa hauteur en `vh` : sur un téléphone, cette
+unité compte la barre d'adresse qui n'est pas là, et le graphe sortait de
+l'écran par le bas.
+
 #### D'un client à ses espaces, en une entrée
 Un client existe pour ce qu'on fait avec lui, et ce qu'on fait avec lui vit
 dans ses espaces : depuis la liste des clients, aucun chemin n'y menait, ni sur

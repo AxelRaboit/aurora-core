@@ -176,7 +176,7 @@ const {
                 </div>
             </VueDraggable>
 
-            <div class="pt-2 border-t border-line flex justify-end">
+            <div class="pt-2 border-t border-line flex justify-end *:w-full sm:*:w-auto">
                 <AppButton variant="primary" size="md" :loading="saving" v-on:click="saveAll">
                     <Save class="w-3.5 h-3.5" :stroke-width="2" />
                     {{ t('backend.settings.nav_aliases.save') }}

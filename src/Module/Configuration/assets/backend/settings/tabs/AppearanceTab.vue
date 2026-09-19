@@ -71,7 +71,7 @@ const colorPresets = useColorPickerPresets({ groups: props.groups, updatePath: p
             </div>
         </div>
 
-        <div class="pt-2 border-t border-line flex justify-end">
+        <div class="pt-2 border-t border-line flex justify-end *:w-full sm:*:w-auto">
             <AppButton
                 variant="primary"
                 size="md"

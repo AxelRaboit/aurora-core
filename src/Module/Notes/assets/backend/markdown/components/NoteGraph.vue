@@ -45,7 +45,7 @@ const { loading, empty, onMouseDown, onMouseMove, onMouseUp, onClick } = useNote
         v-on:close="emit('close')"
     >
         <div
-            class="relative w-full bg-surface overflow-hidden h-[calc(100vh-4rem)] md:h-[80vh]"
+            class="relative w-full bg-surface overflow-hidden h-[calc(100dvh-4rem)] md:h-[80vh]"
         >
             <canvas
                 ref="canvasRef"

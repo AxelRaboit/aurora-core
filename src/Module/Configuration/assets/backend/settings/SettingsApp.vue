@@ -238,7 +238,7 @@ const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, go
                         v-on:change="goToSequencePage"
                     />
 
-                    <div class="pt-2 border-t border-line flex justify-end">
+                    <div class="pt-2 border-t border-line flex justify-end *:w-full sm:*:w-auto">
                         <AppButton
                             type="button"
                             variant="primary"

@@ -131,7 +131,7 @@ const pageActions = computed(() => {
              same word, and the second is already in the topbar. What is left is
              the one control this row exists for, so it sits on its own at the
              end. -->
-        <div v-if="pageActions.length" class="flex items-center justify-end">
+        <div v-if="pageActions.length" class="flex items-center justify-end *:w-full sm:*:w-auto">
             <AppPageActions :actions="pageActions" />
         </div>
 
