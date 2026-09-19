@@ -9,6 +9,7 @@ import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer
 import { usePostRowActions } from "./composables/usePostRowActions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
+import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
@@ -496,27 +497,14 @@ const pageActions = computed(() => {
                     <span>{{ formatDateTime(post.updatedAt) }}</span>
                 </p>
 
-                <!-- **Une action par ligne, sur toute la largeur.** Quatre
-                     boutons qui se replient deux par deux laissent une colonne
+                <!-- Une action par ligne, sur toute la largeur : quatre
+                     boutons repliés deux par deux laissaient une colonne
                      ragoteuse au milieu de la carte et des cibles de cent
-                     pixels de large sur les trois cent soixante disponibles.
-                     Empilés, chacun prend la ligne entière, les libellés
-                     s'alignent sur le même bord, et le doigt n'a plus à viser.
-                     Ils ne sont visibles que sur cette carte, c'est-à-dire sur
-                     téléphone : le tableau, lui, garde ses trois points. -->
-                <div class="flex flex-col gap-0.5 border-t border-line/40 pt-2">
-                    <AppButton
-                        v-for="action in actionsFor(post)"
-                        :key="action.key"
-                        class="w-full !justify-start"
-                        variant="ghost"
-                        size="sm"
-                        :href="action.href"
-                        v-on:click="action.onSelect?.()"
-                    >
-                        <component :is="action.icon" v-if="action.icon" class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ action.title }}
-                    </AppButton>
+                     pixels sur les trois cent soixante disponibles. Le dessin
+                     est celui de la feuille d'actions, parce que c'est la même
+                     chose montrée sans être ouverte. -->
+                <div class="border-t border-line/40 pt-2">
+                    <AppCardActions :actions="actionsFor(post)" />
                 </div>
             </article>
 

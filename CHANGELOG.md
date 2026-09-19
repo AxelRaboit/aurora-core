@@ -9,6 +9,28 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Sur une carte, les gestes sont écrits
+Une carte de téléphone est déjà la feuille d'actions ouverte : elle occupe
+toute la ligne, la place de nommer ce qu'on peut faire ne manque pas. Les
+cacher derrière trois points y ajoutait un geste sans économiser un pixel, et
+posait une modale par-dessus la liste qu'on était en train de lire.
+
+`AppCardActions` dessine donc les mêmes lignes que la feuille, sans la modale :
+même ordre, mêmes couleurs, le rouge sur ce qui détruit, une cible de quarante
+pixels de haut sur toute la largeur. Les descriptions, elles, restent à la
+feuille : une phrase sous chaque geste a sa place devant une décision, pas
+répétée sous les neuf cartes d'une liste, où elle doublait la hauteur de la
+page pour redire neuf fois ce qu'on avait lu la première.
+
+Deux gestes se partagent la ligne, trois et plus s'empilent : à deux, chaque
+moitié fait cent soixante-dix pixels, assez pour « Supprimer » et juste ce qu'il
+faut pour que la rangée remplisse la carte au lieu d'étirer deux mots sur trois
+cent quarante. À trois, les colonnes tomberaient à cent dix et
+« Prévisualiser » n'y tiendrait plus.
+
+En place sur les publications, les catégories et les étiquettes de la
+médiathèque.
+
 #### Le back-office entier récupère seize pixels sur téléphone
 La coquille d'administration donnait seize pixels de gouttière de chaque côté
 et trente-deux en haut, sur le seul appareil qui n'en a pas à donner. Huit et

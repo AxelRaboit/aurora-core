@@ -12,6 +12,7 @@ import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppColorPicker from "@/shared/components/form/picker/AppColorPicker.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
+import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { Plus, Pencil, Trash2, Save, X, Tag } from "lucide-vue-next";
@@ -87,8 +88,11 @@ const pageActions = computed(() => {
                         <p v-if="tag.color" class="text-xs text-muted font-mono mt-0.5">{{ tag.color }}</p>
                     </div>
                 </div>
-                <div class="flex justify-end px-3 py-2 border-t border-line/40 bg-surface-2/40">
-                    <AppRowActions :actions="actionsFor(tag)" :label="tag.name ?? tag.label ?? ''" />
+                <!-- Les gestes en toutes lettres plutôt que derrière trois
+                     points : la carte a la largeur de les nommer, et la ligne
+                     qui ne portait que le bouton est rendue au contenu. -->
+                <div class="px-2 pb-2 pt-1 border-t border-line/40 bg-surface-2/40">
+                    <AppCardActions :actions="actionsFor(tag)" />
                 </div>
             </div>
         </div>
