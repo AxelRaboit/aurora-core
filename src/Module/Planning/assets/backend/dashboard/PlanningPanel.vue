@@ -88,7 +88,7 @@ const upcoming = computed(() =>
                 <a
                     v-if="stats.path"
                     :href="stats.path"
-                    class="ml-auto text-xs text-accent-600 hover:underline"
+                    class="-my-1 ml-auto inline-flex min-h-7 items-center rounded px-1 py-1 text-xs text-accent-600 hover:underline"
                 >{{ t("backend.plannings.open_calendar") }}</a>
             </div>
 

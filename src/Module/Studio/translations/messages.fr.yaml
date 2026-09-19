@@ -1,4 +1,12 @@
 backend:
+    stats:
+        studio:
+            spaces: Espaces actifs
+            awaiting_client: En attente du client
+            upcoming: "Parutions sous 7 jours"
+            decks: Présentations
+            by_approval: Où en sont les contenus
+            by_contract_status: Où en sont les contrats
     modules:
         studio: Studio
         studio_backend: Studio

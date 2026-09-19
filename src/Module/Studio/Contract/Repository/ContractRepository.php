@@ -69,6 +69,34 @@ class ContractRepository extends ResolveTargetEntityRepository
      * middle of a request, which reaches the screen as a 500 and tells the
      * reader nothing about what they did.
      */
+    /**
+     * Combien de contrats par état.
+     *
+     * Les neuf états en une requête. Le tableau de bord n'en met en avant
+     * qu'un, celui qui attend une signature, mais la répartition entière est
+     * ce qui permet de le situer : deux contrats en attente sur trois n'est
+     * pas la même nouvelle que deux sur quarante.
+     *
+     * @return array<string, int>
+     */
+    public function countGroupedByStatus(): array
+    {
+        $rows = $this->createQueryBuilder('c')
+            ->select('c.status AS status, COUNT(c.id) AS total')
+            ->groupBy('c.status')
+            ->getQuery()
+            ->getScalarResult();
+
+        $counts = [];
+
+        foreach ($rows as $row) {
+            $status = $row['status'];
+            $counts[$status instanceof ContractStatusEnum ? $status->value : (string) $status] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
     public function countForCustomer(CustomerInterface $customer): int
     {
         return (int) $this->createQueryBuilder('c')

@@ -57,6 +57,37 @@ suppression qu'elle accepte. Le mode « Clé API » est le seul qui referme ça.
 
 ### Modifié
 
+#### Le Studio entre sur le tableau de bord
+L'écran d'arrivée montrait l'éditorial, la médiathèque, le calendrier et les
+comptes. Les espaces clients, les contrats et les présentations, c'est-à-dire
+ce qu'on ouvre tous les jours, n'avaient aucun panneau. Chaque module apporte
+le sien, et celui-là manquait : ça ne se voit pas, un tableau de bord
+incomplet ressemblant à un tableau de bord.
+
+Deux chiffres sont mis en avant plutôt que tous, parce que ce sont les seuls
+sur lesquels on agit en arrivant : ce qui attend une réponse du client, et où
+en sont les contrats. Le reste situe, une carte en attente sur trois n'étant
+pas la même nouvelle qu'une sur quarante.
+
+#### Le panneau Calendrier annonçait zéro partout
+Il fournissait ses chiffres depuis le début sans être inscrit dans la table
+qui décide à qui on les demande. Un panneau absent de cette table s'affiche
+quand même - elle ne masque que ce qu'elle dit faux - mais ses chiffres ne
+sont jamais calculés. Il annonçait donc zéro calendrier et zéro retard, ce qui
+ressemble à une installation vide plutôt qu'à un panneau débranché. Sept
+calendriers et quatre retards après correction.
+
+#### Les chiffres d'une rangée s'alignent
+Chaque panneau redessinait sa tuile, et le détail perdu en route était
+l'alignement : un libellé qui passe sur deux lignes poussait son nombre d'une
+ligne vers le bas, et deux tuiles côte à côte affichaient leurs chiffres à
+deux hauteurs. Une rangée de tuiles est un objet répété, donc une seule tuile
+partagée, où le libellé prend la place qu'il lui faut et le nombre se pose au
+bas de la carte.
+
+Un lien du panneau Calendrier faisait seize pixels de haut. Il ne s'était
+jamais montré : le panneau était vide.
+
 #### Une carte peut porter une date sans paraître dans le calendrier
 Une date et une parution ne sont pas la même chose. Une carte peut porter une
 échéance qui regarde le studio et personne d'autre : une relance à préparer, un

@@ -9,6 +9,8 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -61,6 +63,52 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
             ->getSingleScalarResult();
 
         return null === $highest ? 0 : (int) $highest + 1;
+    }
+
+    /**
+     * Combien de cartes par verdict du client.
+     *
+     * C'est le nombre qui dit ce qui attend quelqu'un : une carte en attente
+     * dort chez le client, une carte à revoir est revenue au studio.
+     *
+     * @return array<string, int>
+     */
+    public function countGroupedByApproval(): array
+    {
+        $rows = $this->createQueryBuilder('i')
+            ->select('i.approval AS approval, COUNT(i.id) AS total')
+            ->groupBy('i.approval')
+            ->getQuery()
+            ->getScalarResult();
+
+        $counts = [];
+
+        foreach ($rows as $row) {
+            $approval = $row['approval'];
+            $counts[$approval instanceof SpaceContentApprovalEnum ? $approval->value : (string) $approval] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Ce qui sort d'ici à une date.
+     *
+     * **Les mêmes deux conditions que le calendrier**, et pas seulement la
+     * date : une carte décochée porte une échéance interne, et la compter ici
+     * annoncerait une parution qui n'en est pas une.
+     */
+    public function countScheduledBetween(DateTimeImmutable $from, DateTimeImmutable $to): int
+    {
+        return (int) $this->createQueryBuilder('i')
+            ->select('COUNT(i.id)')
+            ->where('i.scheduledAt >= :from')
+            ->andWhere('i.scheduledAt < :to')
+            ->andWhere('i.showOnCalendar = true')
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function countForSpace(CustomerSpaceInterface $space): int
