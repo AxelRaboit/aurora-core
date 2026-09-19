@@ -563,6 +563,12 @@ une vraie connexion : `GET /documents` répondait 200 sans le moindre en-tête.
 Le mode « Clé API » et la lecture seule sont donc demandés dès la marche à
 suivre, avant même les deux champs.
 
+Le titre d'un document n'est écrit qu'une fois. Craft enveloppe un document
+dans une page dont la balise de titre porte son nom, et la conversion en
+faisait un titre de section - juste pour une page imbriquée, doublon pour le
+document lui-même, puisque la note le porte déjà. Vu sur le premier import
+réel, pas sur un exemple.
+
 Et l'écran d'import distingue trois états au lieu de deux : éteinte,
 injoignable, et ouverte mais vide. Les deux derniers se ressemblaient, et ne se
 réparent pas au même endroit - une connexion sans document s'arrange dans

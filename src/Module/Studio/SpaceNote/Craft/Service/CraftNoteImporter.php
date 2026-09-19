@@ -16,8 +16,11 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Throwable;
 
+use function array_slice;
 use function is_string;
+use function mb_strtolower;
 use function mb_substr;
+use function mb_trim;
 use function pathinfo;
 use function str_starts_with;
 use function sys_get_temp_dir;
@@ -75,13 +78,45 @@ final readonly class CraftNoteImporter
             return null;
         }
 
-        $blocks = $this->markdown->convert($source);
+        $blocks = $this->withoutRepeatedTitle($this->markdown->convert($source), $title);
         $blocks = $this->withLocalImages($blocks, $space);
 
         $note = $this->notes->create($space, new SpaceNoteInput(title: mb_substr($title, 0, 180), body: $blocks));
         $this->notes->markImportedFromCraft($note, $rootBlockId);
 
         return $note;
+    }
+
+    /**
+     * Le titre du document, écrit une fois et non deux.
+     *
+     * Craft enveloppe un document dans une page dont `<pageTitle>` porte son
+     * titre, et la conversion en fait un titre de section - ce qui est juste
+     * pour une page imbriquée, et redondant pour le document lui-même : la
+     * note le porte déjà comme titre. Vu sur le premier import réel, pas sur
+     * un exemple.
+     *
+     * Comparé après normalisation des espaces et de la casse, et seulement en
+     * première position : un document qui répète son titre plus bas le fait
+     * exprès.
+     *
+     * @param list<array{type: string, data: array<string, mixed>}> $blocks
+     *
+     * @return list<array{type: string, data: array<string, mixed>}>
+     */
+    private function withoutRepeatedTitle(array $blocks, string $title): array
+    {
+        if ([] === $blocks || 'header' !== $blocks[0]['type']) {
+            return $blocks;
+        }
+
+        $heading = mb_strtolower(mb_trim((string) ($blocks[0]['data']['text'] ?? '')));
+
+        if ($heading !== mb_strtolower(mb_trim($title))) {
+            return $blocks;
+        }
+
+        return array_slice($blocks, 1);
     }
 
     /**

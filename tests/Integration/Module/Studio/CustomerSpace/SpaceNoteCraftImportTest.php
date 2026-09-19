@@ -124,7 +124,10 @@ final class SpaceNoteCraftImportTest extends IntegrationTestCase
         $this->client->jsonRequest(
             'POST',
             sprintf('/workspace/%d/notes/craft/import', $space->getId()),
-            ['documentId' => 'doc-2', 'title' => 'Brief septembre'],
+            // Un titre différent de celui du document : le premier titre du
+            // corps n'est donc pas un doublon et doit survivre, ce que le
+            // niveau vérifié plus bas mesure.
+            ['documentId' => 'doc-2', 'title' => 'Le brief de septembre'],
         );
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -135,7 +138,7 @@ final class SpaceNoteCraftImportTest extends IntegrationTestCase
 
         $note = $notes[0];
 
-        self::assertSame('Brief septembre', $note->getTitle());
+        self::assertSame('Le brief de septembre', $note->getTitle());
         // D'où elle vient, gardé pour le studio seul.
         self::assertSame('doc-2', $note->getCraftDocumentId());
 
@@ -151,6 +154,52 @@ final class SpaceNoteCraftImportTest extends IntegrationTestCase
         // Le mur revient avec la réponse, pour que l'écran montre la note sans
         // recharger la page.
         self::assertCount(1, $this->payload()['notes']);
+    }
+
+    /**
+     * Craft enveloppe un document dans une page dont le titre est le sien. La
+     * note le porte déjà : l'écrire une seconde fois en tête du corps est un
+     * doublon, vu sur le premier import réel.
+     */
+    public function testTheDocumentTitleIsNotWrittenTwice(): void
+    {
+        $space = $this->givenSpace();
+        $this->givenCraft(enabled: true, responses: [
+            new MockResponse("<page><pageTitle>This is a test</pageTitle><content>\n\nRandom note\n\n</content></page>"),
+        ]);
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/notes/craft/import', $space->getId()),
+            ['documentId' => 'doc-1', 'title' => 'This is a test'],
+        );
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $note = $this->entityManager->getRepository(SpaceNote::class)->findAll()[0];
+
+        self::assertSame('This is a test', $note->getTitle());
+        self::assertSame(['paragraph'], array_column($note->getBody(), 'type'));
+        self::assertSame('Random note', $note->getBody()[0]['data']['text']);
+    }
+
+    /** Un titre de section qui n'est pas celui du document, lui, reste. */
+    public function testAHeadingThatIsNotTheTitleSurvives(): void
+    {
+        $space = $this->givenSpace();
+        $this->givenCraft(enabled: true, responses: [
+            new MockResponse("## Le contexte\n\nDu texte."),
+        ]);
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/notes/craft/import', $space->getId()),
+            ['documentId' => 'doc-1', 'title' => 'Brief septembre'],
+        );
+
+        $note = $this->entityManager->getRepository(SpaceNote::class)->findAll()[0];
+
+        self::assertSame(['header', 'paragraph'], array_column($note->getBody(), 'type'));
     }
 
     /** Craft muet ne doit pas donner une note vide portant un titre. */
