@@ -1259,6 +1259,7 @@ studio:
             unavailable_message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez le plan de contenu d'un espace, demandez un nouveau lien à votre interlocuteur.
             timezone_notice: 'Heures en {timezone}'
             calendar_day_empty: Rien de prévu ce jour-là.
+            drive_title: Documents partagés
             footer: Cette adresse vous est personnelle, ne la transmettez pas.
             footer_until: 'Cette adresse vous est personnelle et valide jusqu''au {date} : ne la transmettez pas.'
             no_body: Le texte n'est pas encore écrit.
