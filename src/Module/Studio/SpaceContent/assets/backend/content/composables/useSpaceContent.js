@@ -107,10 +107,15 @@ export function useSpaceContent(initial, paths) {
      * The colour is the step's and falls back to the space's: inside one space
      * every card belongs to the same client, so what a reader scans a month for
      * is what still needs approving.
+     *
+     * **Une carte décochée n'est ni ici ni dans le rail.** Elle a une date,
+     * donc elle n'attend pas d'être placée ; elle a juste une échéance qui ne
+     * regarde pas le calendrier. La faire retomber parmi le travail à placer
+     * aurait redemandé chaque jour de la dater.
      */
     const events = computed(() =>
         items.value
-            .filter((item) => item.scheduledAt)
+            .filter((item) => item.scheduledAt && false !== item.showOnCalendar)
             .map((item) => ({
                 id: item.id,
                 title: item.title,

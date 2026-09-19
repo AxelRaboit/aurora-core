@@ -218,7 +218,12 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $scheduledAt = $item->getScheduledAt();
         $space = $item->getSpace();
 
-        if (!$scheduledAt instanceof DateTimeImmutable) {
+        // **Décochée vaut non datée, ici aussi.** Une carte retirée du
+        // calendrier de l'espace mais qui resterait dans l'agenda partagé du
+        // studio ferait mentir la case : « ne pas afficher dans le
+        // calendrier » se lit comme valant pour tous les calendriers, et
+        // c'est le seul endroit où cette règle peut être dite une fois.
+        if (!$scheduledAt instanceof DateTimeImmutable || !$item->appearsOnCalendar()) {
             $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, $id));
 
             return;
@@ -260,7 +265,8 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
             ->setTitle($input->getTitle())
             ->setBody($input->getBody())
             ->setColumn($this->resolveColumn($item->getSpace(), $input->getColumnId()))
-            ->setScheduledAt($this->instantFrom($input->getScheduledAt(), $item->getSpace()));
+            ->setScheduledAt($this->instantFrom($input->getScheduledAt(), $item->getSpace()))
+            ->setShowOnCalendar($input->isShownOnCalendar());
     }
 
     /**

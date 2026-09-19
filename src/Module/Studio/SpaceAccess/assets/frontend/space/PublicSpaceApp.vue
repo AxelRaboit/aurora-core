@@ -105,9 +105,11 @@ const columnColours = computed(
     () => new Map(props.columns.map((column) => [column.id, column.colourSlot])),
 );
 
+// Ce que le client voit dans son mois, et la même règle que le studio : une
+// carte décochée porte une échéance interne, pas une parution.
 const events = computed(() =>
     items.value
-        .filter((item) => item.scheduledAt)
+        .filter((item) => item.scheduledAt && false !== item.showOnCalendar)
         .map((item) => ({
             id: item.id,
             title: item.title,

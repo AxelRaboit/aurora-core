@@ -20,4 +20,6 @@ interface SpaceContentItemInputInterface
      * is where the two meet.
      */
     public function getScheduledAt(): ?string;
+
+    public function isShownOnCalendar(): bool;
 }

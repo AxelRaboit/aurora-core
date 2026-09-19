@@ -1105,6 +1105,8 @@ backend:
             column: Step
             scheduled_at: Publication date
             scheduled_at_hint: 'Optional. An idea with no date lives on the board and joins the calendar when you schedule it.'
+            show_on_calendar: Show on the calendar
+            show_on_calendar_hint: "Unchecked, the card keeps its date and stays on the board, but appears neither on your calendar nor on the client's."
             scheduled_at_placeholder: '22/09/2026 09:00'
             timezone_notice: 'Times are in the space''s zone, {timezone}.'
 

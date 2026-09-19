@@ -12,6 +12,7 @@ import { useI18n } from "vue-i18n";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import SpaceContentThread from "../../../shared/SpaceContentThread.vue";
 import SpaceContentAttachments from "../../../shared/SpaceContentAttachments.vue";
@@ -111,6 +112,18 @@ function set(field, value) {
                 v-on:update:model-value="set('scheduledAt', $event)"
             />
         </div>
+
+        <!-- Sous la date, et seulement quand il y en a une : décocher une
+             carte qui n'a pas de date ne changerait rien, et une case sans
+             effet se lit comme cassée. -->
+        <AppCheckbox
+            v-if="form.scheduledAt"
+            :model-value="false !== form.showOnCalendar"
+            :label="t('backend.studio.space_content.show_on_calendar')"
+            :hint="t('backend.studio.space_content.show_on_calendar_hint')"
+            :disabled="readonly"
+            v-on:update:model-value="set('showOnCalendar', $event)"
+        />
 
         <p class="text-xs text-muted">
             {{ t("backend.studio.space_content.timezone_notice", { timezone }) }}

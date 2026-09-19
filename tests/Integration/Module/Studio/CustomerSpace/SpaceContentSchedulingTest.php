@@ -131,6 +131,75 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
         self::assertNull($this->events->findBySource(self::SOURCE, $item['id']));
     }
 
+    /**
+     * Une échéance de studio, pas une parution.
+     *
+     * La carte garde sa date et reste sur le tableau ; ce qui change est
+     * qu'elle ne s'invite ni dans le mois de l'espace ni dans l'agenda
+     * partagé. C'est ce second point qui se serait oublié : un calendrier sur
+     * deux aurait continué de la montrer, et la case aurait menti.
+     */
+    public function testACardKeptOffTheCalendarIsNeverAnnounced(): void
+    {
+        $space = $this->givenSpace('Espace interne', 2);
+        $item = $this->givenItem($space, 'Relancer le photographe', '2026-11-12T10:00', showOnCalendar: false);
+
+        self::assertFalse($item['showOnCalendar']);
+        // La date est bien gardée : c'est une échéance, pas rien.
+        self::assertNotNull($item['scheduledAt']);
+        self::assertNull($this->events->findBySource(self::SOURCE, $item['id']));
+    }
+
+    /** Recocher la remet dans les deux calendriers, sans retaper la date. */
+    public function testCheckingItBackPutsTheCardOnTheCalendarAgain(): void
+    {
+        $space = $this->givenSpace('Espace repris', 6);
+        $item = $this->givenItem($space, 'À rendre publique', '2026-11-12T10:00', showOnCalendar: false);
+
+        self::assertNull($this->events->findBySource(self::SOURCE, $item['id']));
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $item['id']), [
+            'title' => 'À rendre publique',
+            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'scheduledAt' => '2026-11-12T10:00',
+            'showOnCalendar' => true,
+        ]);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertNotNull($this->events->findBySource(self::SOURCE, $item['id']));
+    }
+
+    /**
+     * Un appel qui ne connaît pas le champ ne fait disparaître personne.
+     *
+     * C'est le défaut qu'un booléen ajouté à une entrée existante produit :
+     * absent du corps, il vaudrait faux, et toutes les cartes enregistrées par
+     * un écran non mis à jour quitteraient le calendrier en silence.
+     */
+    public function testAPayloadWithoutTheFieldLeavesTheCardOnTheCalendar(): void
+    {
+        $space = $this->givenSpace('Espace par défaut', 7);
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
+            'title' => 'Sans le champ',
+            'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'scheduledAt' => '2026-11-12T10:00',
+        ]);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        foreach ($this->payload()['items'] as $item) {
+            if ('Sans le champ' === $item['title']) {
+                self::assertTrue($item['showOnCalendar']);
+                self::assertNotNull($this->events->findBySource(self::SOURCE, $item['id']));
+
+                return;
+            }
+        }
+
+        self::fail('the card was not in the answer');
+    }
+
     public function testDeletingACardTakesItsDateWithIt(): void
     {
         $space = $this->givenSpace('Espace supprimé', 4);
@@ -181,12 +250,13 @@ final class SpaceContentSchedulingTest extends IntegrationTestCase
     }
 
     /** @return array<string, mixed> */
-    private function givenItem(CustomerSpace $space, string $title, ?string $scheduledAt): array
+    private function givenItem(CustomerSpace $space, string $title, ?string $scheduledAt, bool $showOnCalendar = true): array
     {
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
             'columnId' => $this->columns->findForSpace($space)[0]->getId(),
             'scheduledAt' => $scheduledAt,
+            'showOnCalendar' => $showOnCalendar,
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
