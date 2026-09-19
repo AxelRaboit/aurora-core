@@ -206,6 +206,44 @@ class SpaceNotesController extends AbstractController
     }
 
     /**
+     * La note, remise sur la version actuelle de son document Craft.
+     *
+     * **Elle remplace.** L'écran demande confirmation avant, parce que ce qui
+     * a été modifié ici disparaît - une note est une copie, la rafraîchir
+     * refait la copie.
+     *
+     * Les images d'avant restent dans la médiathèque, et la réponse porte la
+     * liste de celles que plus personne n'utilise : sans quoi rafraîchir cinq
+     * fois laisserait cinq exemplaires de chaque image derrière. La même
+     * règle que la suppression d'une note, et le même écran pour en décider.
+     */
+    #[Route('/{noteId}/craft/refresh', name: '_craft_refresh', requirements: ['noteId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.edit')]
+    public function refreshFromCraft(
+        CustomerSpace $space,
+        #[MapEntity(id: 'noteId')]
+        SpaceNote $note,
+    ): JsonResponse {
+        $this->assertOwned($space, $note->getSpace()->getId());
+        $this->assertVisible($note);
+
+        if (null === $note->getCraftDocumentId()) {
+            return $this->jsonFailure('backend.studio.craft.errors.not_imported');
+        }
+
+        $documents = $this->documentsOf($note);
+
+        if (!$this->craftImporter->refresh($note, $space)) {
+            return $this->jsonFailure('backend.studio.craft.errors.unreachable');
+        }
+
+        return $this->jsonSuccess([
+            ...$this->viewBuilder->payload($space),
+            ...$this->orphanedOffer->payload($space, $documents, $this->isGranted('ged.documents.delete')),
+        ]);
+    }
+
+    /**
      * Supprime la note, et rien d'autre.
      *
      * Les images de son corps restent dans la médiathèque : d'autres notes

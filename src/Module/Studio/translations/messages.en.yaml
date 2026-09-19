@@ -924,12 +924,18 @@ backend:
                 disabled: "Importing from Craft is not enabled."
                 disabled_hint: "It is switched on in the settings, Craft tab."
                 imported: Note imported.
+                refresh: Update from Craft
+                refresh_confirm: "Put \"{title}\" back on the current version of the Craft document?"
+                refresh_warning: "The note's body is replaced. What you edited here will be lost; the colour, the pin and the visibility are kept."
+                refresh_submit: Update
+                refreshed: Note updated.
                 submit: Import
             errors:
                 endpoint_https: "The connection address must start with https://."
                 connection_required: Enter an address and a key before enabling.
                 document_required: Pick a document to import.
                 unreachable: "Craft returned nothing for that document."
+                not_imported: This note does not come from Craft.
         space_notes:
             # A space's notes: the one surface a client never sees.
             add: New note

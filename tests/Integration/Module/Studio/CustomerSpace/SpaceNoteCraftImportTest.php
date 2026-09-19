@@ -265,6 +265,76 @@ final class SpaceNoteCraftImportTest extends IntegrationTestCase
         self::assertNotNull($image['data']['file']['documentId']);
     }
 
+    /**
+     * Rafraîchir remet la note sur la version actuelle du document.
+     *
+     * Ce qui appartient à Aurora survit : la couleur, l'épingle et la
+     * visibilité ne sont pas dans le document Craft et n'ont aucune raison
+     * d'être remises à zéro parce qu'un texte a changé ailleurs.
+     */
+    public function testRefreshingPutsTheNoteBackOnTheDocumentAndKeepsWhatIsAurorasOwn(): void
+    {
+        $space = $this->givenSpace();
+        $this->givenCraft(enabled: true, responses: [
+            new MockResponse('La première version.'),
+            new MockResponse('La seconde version.'),
+        ]);
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/notes/craft/import', $space->getId()),
+            ['documentId' => 'doc-9', 'title' => 'Le brief'],
+        );
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $note = $this->entityManager->getRepository(SpaceNote::class)->findAll()[0];
+        $noteId = (int) $note->getId();
+        $note->setPinned(true)->setColourSlot(3);
+        $this->entityManager->flush();
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/notes/%d/craft/refresh', $space->getId(), $noteId),
+        );
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        // Relue, et non rafraîchie : la requête a son propre cycle, et
+        // l'exemplaire gardé ici n'appartient plus au gestionnaire.
+        $this->entityManager->clear();
+        $refreshed = $this->entityManager->getRepository(SpaceNote::class)->find($noteId);
+
+        self::assertNotNull($refreshed);
+        self::assertSame('La seconde version.', $refreshed->getBody()[0]['data']['text']);
+        self::assertTrue($refreshed->isPinned());
+        self::assertSame(3, $refreshed->getColourSlot());
+        // Une seule note : rafraîchir remplace, il n'en naît pas une seconde.
+        self::assertCount(1, $this->entityManager->getRepository(SpaceNote::class)->findAll());
+    }
+
+    /** Une note prise à la main n'a rien à rafraîchir. */
+    public function testANoteThatDoesNotComeFromCraftCannotBeRefreshed(): void
+    {
+        $space = $this->givenSpace();
+        $this->givenCraft(enabled: true, responses: []);
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/notes/create', $space->getId()),
+            ['title' => 'Prise à la main', 'body' => []],
+        );
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $note = $this->entityManager->getRepository(SpaceNote::class)->findAll()[0];
+
+        $this->client->jsonRequest(
+            'POST',
+            sprintf('/workspace/%d/notes/%d/craft/refresh', $space->getId(), $note->getId()),
+        );
+
+        self::assertSame(400, $this->client->getResponse()->getStatusCode());
+    }
+
     /** Craft muet ne doit pas donner une note vide portant un titre. */
     public function testASilentCraftCreatesNothing(): void
     {

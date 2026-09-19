@@ -20,7 +20,7 @@
  */
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
-import { Download, LayoutGrid, List, Lock, Pencil, Pin, PinOff, Plus, StickyNote, Trash2, Users } from "lucide-vue-next";
+import { Download, LayoutGrid, List, Lock, Pencil, Pin, PinOff, Plus, RefreshCw, StickyNote, Trash2, Users } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
@@ -39,7 +39,7 @@ const props = defineProps({
     craftEnabled: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["create", "open", "pin", "delete", "set-view", "set-tab", "import-craft"]);
+const emit = defineEmits(["create", "open", "pin", "delete", "set-view", "set-tab", "import-craft", "refresh-craft"]);
 
 const { t, d } = useI18n();
 
@@ -214,6 +214,15 @@ function tint(note) {
                         >
                             <component :is="note.pinned ? PinOff : Pin" class="h-3.5 w-3.5" :stroke-width="2" />
                         </AppIconButton>
+                        <!-- Seulement sur une note venue de Craft : ailleurs
+                             il n'y a rien à rafraîchir depuis nulle part. -->
+                        <AppIconButton
+                            v-if="note.fromCraft"
+                            :title="t('backend.studio.craft.import.refresh')"
+                            v-on:click="emit('refresh-craft', note)"
+                        >
+                            <RefreshCw class="h-3.5 w-3.5" :stroke-width="2" />
+                        </AppIconButton>
                         <AppIconButton
                             :title="t('shared.common.edit')"
                             v-on:click="emit('open', note)"
@@ -259,6 +268,13 @@ function tint(note) {
                         v-on:click="emit('pin', note)"
                     >
                         <component :is="note.pinned ? PinOff : Pin" class="h-3.5 w-3.5" :stroke-width="2" />
+                    </AppIconButton>
+                    <AppIconButton
+                        v-if="note.fromCraft"
+                        :title="t('backend.studio.craft.import.refresh')"
+                        v-on:click="emit('refresh-craft', note)"
+                    >
+                        <RefreshCw class="h-3.5 w-3.5" :stroke-width="2" />
                     </AppIconButton>
                     <AppIconButton :title="t('shared.common.edit')" v-on:click="emit('open', note)">
                         <Pencil class="h-3.5 w-3.5" :stroke-width="2" />

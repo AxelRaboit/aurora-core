@@ -88,6 +88,48 @@ final readonly class CraftNoteImporter
     }
 
     /**
+     * La note, remise sur la version actuelle du document.
+     *
+     * **Elle remplace, et ne fusionne pas.** Un document Craft et une note
+     * d'Aurora sont deux textes que deux personnes peuvent avoir touchés ;
+     * décider lequel gagne ligne à ligne demanderait d'arbitrer des conflits,
+     * ce que ce chantier a écarté dès le départ. La note est une copie : la
+     * rafraîchir refait la copie, et l'écran le dit avant de le faire.
+     *
+     * **Ce qui appartient à Aurora survit** : la couleur, l'épingle et la
+     * visibilité ne sont pas dans le document Craft et n'ont aucune raison
+     * d'être remises à zéro parce qu'un texte a changé ailleurs.
+     *
+     * Faux quand la note ne vient pas de Craft, ou quand Craft n'a rien rendu.
+     */
+    public function refresh(SpaceNoteInterface $note, CustomerSpaceInterface $space): bool
+    {
+        $documentId = $note->getCraftDocumentId();
+
+        if (null === $documentId) {
+            return false;
+        }
+
+        $source = $this->craft->markdown($documentId);
+
+        if (null === $source) {
+            return false;
+        }
+
+        $blocks = $this->withoutRepeatedTitle($this->markdown->convert($source), $note->getTitle());
+
+        $this->notes->update($note, new SpaceNoteInput(
+            title: $note->getTitle(),
+            body: $this->withLocalImages($blocks, $space),
+            colourSlot: $note->getColourSlot(),
+            pinned: $note->isPinned(),
+            visibility: $note->getVisibility(),
+        ));
+
+        return true;
+    }
+
+    /**
      * Le titre du document, écrit une fois et non deux.
      *
      * Craft enveloppe un document dans une page dont `<pageTitle>` porte son

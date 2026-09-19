@@ -37,6 +37,11 @@ class SpaceNoteSerializer implements SpaceNoteSerializerInterface
             // Le nom durable, pas la relation : un compte supprimé ne doit pas
             // transformer une note en note que personne n'a prise.
             'author' => $note->getAuthorLabel(),
+            // **Un booléen, pas l'identifiant.** L'écran a besoin de savoir
+            // qu'un bouton « mettre à jour » a un sens sur cette note, et rien
+            // de plus ; l'identifiant d'un document Craft ne veut rien dire
+            // pour qui n'a pas Craft, et le client, lui, n'en a pas.
+            'fromCraft' => null !== $note->getCraftDocumentId(),
             'createdAt' => $note->getCreatedAt()->format(DATE_ATOM),
             'updatedAt' => $note->getUpdatedAt()->format(DATE_ATOM),
         ];

@@ -591,6 +591,20 @@ note continuait de pointer vers Craft, et le repli prévu pour un vrai échec
 masquait l'erreur de clé. Un test monte maintenant le déposeur réel plutôt
 qu'un double, puisqu'un double aurait rendu la clé qu'on lui aurait apprise.
 
+**Une note importée sait d'où elle vient, et se remet à jour d'un clic.** Le
+bouton n'apparaît que sur une note venue de Craft, et il remplace : un document
+Craft et une note d'Aurora sont deux textes que deux personnes peuvent avoir
+touchés, et décider lequel gagne ligne à ligne demanderait d'arbitrer des
+conflits - ce que ce chantier a écarté dès le départ. L'écran le dit avant de
+le faire.
+
+Ce qui appartient à Aurora survit : la couleur, l'épingle et la visibilité ne
+sont pas dans le document Craft et n'ont aucune raison d'être remises à zéro
+parce qu'un texte a changé ailleurs. Les images d'avant restent dans la
+médiathèque et celles que plus personne n'utilise sont proposées à la
+corbeille, la même règle que la suppression d'une note : sans elle, rafraîchir
+cinq fois laisserait cinq exemplaires de chaque image derrière.
+
 Rien n'est compressé au passage, et c'est voulu : `ImageVariantGenerator`
 traite déjà tout document déposé. Mesuré sur un import réel, une image de
 1 532 467 octets servie par Craft est stockée à 213 901, avec trois variantes

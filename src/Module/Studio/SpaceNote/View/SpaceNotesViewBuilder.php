@@ -47,6 +47,7 @@ final readonly class SpaceNotesViewBuilder
             'craftEnabled' => $this->craft->isConfigured(),
             'craftDocumentsPath' => $this->urlGenerator->generate('workspace_space_notes_craft', ['id' => $space->getId()]),
             'craftImportPath' => $this->urlGenerator->generate('workspace_space_notes_craft_import', ['id' => $space->getId()]),
+            'craftRefreshPath' => $this->pathTemplates->generate('workspace_space_notes_craft_refresh', ['id' => $space->getId(), 'noteId' => '__id__']),
         ];
     }
 
