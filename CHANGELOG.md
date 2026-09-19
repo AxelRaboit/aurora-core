@@ -9,6 +9,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Le nombre d'événements d'une case pesait quatre fois ses pastilles
+Dans la grille compacte du mois, au-delà de trois événements, les pastilles
+laissent place à un nombre. Il s'affichait en seize pixels à côté de pastilles
+de quatre, plus gros que le numéro du jour : la classe `text-3xs` qu'il portait
+n'existe dans aucun thème, donc le nombre héritait simplement de la taille du
+corps. Dix pixels, et il repasse sous le numéro du jour, qui en fait douze.
+
 #### Se connecter sans faire défiler une page de vente
 Sur téléphone, les huit écrans d'entrée montraient d'abord l'argumentaire - le
 titre, la phrase et les quatre atouts, près de cinq cents pixels - et le champ
