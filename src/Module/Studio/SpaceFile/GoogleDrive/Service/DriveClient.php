@@ -169,6 +169,21 @@ final readonly class DriveClient
     }
 
     /**
+     * Le corps d'un téléchargement, morceau par morceau.
+     *
+     * Posé ici plutôt que chez l'appelant pour qu'il n'ait pas à connaître le
+     * client HTTP : il reçoit un itérable de chaînes et les renvoie.
+     *
+     * @return iterable<string>
+     */
+    public function stream(ResponseInterface $response): iterable
+    {
+        foreach ($this->httpClient->stream($response) as $chunk) {
+            yield $chunk->getContent();
+        }
+    }
+
+    /**
      * @param array<string, mixed> $query
      *
      * @return array<string, mixed>|null
