@@ -1,8 +1,10 @@
 <script setup>
 const props = defineProps({
     color: { type: String, default: "default" },
-    // md = trente pixels au doigt, l'ancien serrage à la souris ; compact =
-    // w-6 h-6 fixe pour les contextes denses.
+    // Une seule taille : trente pixels au doigt, l'ancien serrage à la souris.
+    // Une variante `compact` a existé et n'a jamais été appelée - zéro fois sur
+    // quatre-vingt-dix-sept boutons - donc elle promettait un choix que
+    // personne ne faisait et qu'il aurait fallu maintenir.
     size: { type: String, default: "md" },
     title: { type: String, default: null },
     ariaLabel: { type: String, default: null },
@@ -37,8 +39,7 @@ const colors = {
  * souris a déjà serait payer un problème que personne n'a.
  */
 const sizes = {
-    md:      "p-1.5 min-h-7.5 min-w-7.5 justify-center sm:min-h-0 sm:min-w-0",
-    compact: "w-6 h-6 justify-center",
+    md: "p-1.5 min-h-7.5 min-w-7.5 justify-center sm:min-h-0 sm:min-w-0",
 };
 
 // Always project a label to assistive tech: prefer explicit ariaLabel, fall back to title.

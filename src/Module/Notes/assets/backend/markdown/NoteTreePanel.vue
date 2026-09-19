@@ -188,7 +188,7 @@ onUnmounted(() => {
                 v-for="tag in availableTags"
                 :key="tag"
                 type="button"
-                class="rounded-full border px-2 py-0.5 text-xs transition-colors"
+                class="rounded-full border px-2 py-0.5 text-xs transition-colors min-h-7.5 sm:min-h-0"
                 :class="
                     selectedTags.includes(tag)
                         ? 'border-violet-500 text-violet-300'

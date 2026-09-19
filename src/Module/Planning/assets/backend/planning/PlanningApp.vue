@@ -352,7 +352,7 @@ onUnmounted(() => {
                             v-for="option in viewOptions"
                             :key="option.value"
                             type="button"
-                            class="flex-1 cursor-pointer border-r border-line px-2.5 py-1 text-xs transition-colors last:border-r-0 sm:flex-none"
+                            class="flex-1 cursor-pointer border-r border-line px-2.5 py-1 text-xs transition-colors last:border-r-0 min-h-7.5 sm:min-h-0 sm:flex-none"
                             :class="view === option.value
                                 ? 'bg-accent-600 text-white font-medium'
                                 : 'text-secondary hover:bg-surface-2'"

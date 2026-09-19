@@ -475,6 +475,27 @@ module Calendrier n'est pas installé.
 
 ### Corrigé
 
+#### Plus une seule commande sous vingt-huit pixels
+Après les boutons d'icône, le reste : les cent soixante-quatre en-têtes de
+section du menu latéral - qui ouvrent et ferment une section, donc des
+commandes et non des titres -, les onglets de tri de la médiathèque, le
+sélecteur de vue du calendrier, les étiquettes de l'arborescence des notes, les
+interrupteurs, les pastilles de couleur du menu, et le sélecteur de langue du
+site public.
+
+Les interrupteurs et les pastilles gardent leur taille dessinée et gagnent une
+zone sensible par une marge négative : la cible grandit, le dessin ne bouge pas.
+
+Compté sur quarante-huit écrans à trois cent soixante-quinze pixels : cinq cent
+quarante-six cibles sous vingt-huit pixels au début de la journée, soixante-deux
+à la fin. Ce qui reste n'est plus une commande - des cases à cocher à la taille
+du navigateur, des fils d'Ariane, des liens dans une phrase, et la page
+d'erreur de Symfony.
+
+La taille `compact` d'`AppIconButton` disparaît : zéro appel sur
+quatre-vingt-dix-sept boutons, donc un choix que personne ne faisait et qu'il
+aurait fallu maintenir.
+
 #### Quatre-vingt-dix-sept boutons d'icône passent à trente pixels sur téléphone
 Six pixels de rembourrage autour d'une icône de quatorze font une cible de
 vingt-six : très bien pour un curseur, mal pour un doigt. C'est la mesure qui a
