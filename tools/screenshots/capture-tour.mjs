@@ -57,45 +57,166 @@ const VIEWPORT = { width: 1600, height: 1000 };
  * a panel gets opened or a query typed, because several of these screens only
  * say what they do once something is on them.
  */
+/**
+ * Ouvre une publication de la démonstration.
+ *
+ * Par son adresse et non par un clic dans la liste : une ligne n'est pas un
+ * lien, et son menu d'actions est un popover sans rôle à viser.
+ */
+const DEMO_POST_ID = process.env.TOUR_POST_ID ?? "1";
+
+async function openPost(page) {
+    // `domcontentloaded` et non `load` : l'éditeur garde une connexion ouverte
+    // en dev, donc l'événement `load` n'arrive jamais.
+    await page.goto(`${BASE_URL}/backend/editorial/posts/${DEMO_POST_ID}/edit`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(4_000);
+}
+
+/** L'éditeur d'une publication, sur l'onglet demandé. */
+const postTab = (name) => async (page) => {
+    await openPost(page);
+    await page.getByRole("tab", { name }).first().click().catch(async () => {
+        await page.getByRole("button", { name }).first().click();
+    });
+    await page.waitForTimeout(1_500);
+};
+
+/**
+ * Une capture par carte du tour, nommée comme le document qu'elle remplace.
+ *
+ * **Le nom est le lien avec la production.** Chaque carte de /fr/page/aurora
+ * affiche un document de la médiathèque appelé `tour-<nom>.png` ; une capture
+ * qui porte le même nom se remplace par `aurora:ged:replace`, et la carte n'a
+ * rien à savoir. Tenir une table de correspondance à côté serait une seconde
+ * source de vérité à garder en phase.
+ *
+ * `prepare` tourne après le chargement et avant le déclencheur : c'est là
+ * qu'un panneau s'ouvre ou qu'une requête se tape, parce que plusieurs de ces
+ * écrans ne disent ce qu'ils font qu'une fois quelque chose dessus.
+ */
 const SHOTS = [
-    { name: "contracts", path: "/backend/studio/contracts" },
-    { name: "trames", path: "/backend/studio/contract-templates" },
+    { name: "tour-dashboard", path: "/backend" },
+    {
+        name: "tour-recherche",
+        path: "/backend",
+        async prepare(page) {
+            // Aucun raccourci clavier ne l'ouvre : le bouton est la seule
+            // porte, et il s'annonce, ce qui le rend trouvable ici.
+            await page.getByRole("button", { name: "Rechercher…" }).click();
+
+            const field = page.getByPlaceholder(/Rechercher des contenus/);
+            await field.waitFor({ state: "visible", timeout: 5_000 });
+            await field.fill(SEARCH_QUERY);
+            await page.waitForTimeout(1_500);
+        },
+    },
+
+    { name: "tour-publications", path: "/backend/editorial/posts" },
+    { name: "tour-grille", path: "/backend", prepare: postTab(/^Contenu$/) },
+    { name: "tour-entete", path: "/backend", prepare: postTab(/En-tête/) },
+    { name: "tour-seo", path: "/backend", prepare: postTab(/Moteurs/) },
+    { name: "tour-galerie", path: "/backend", prepare: postTab(/Galerie/) },
+    {
+        name: "tour-traductions",
+        path: "/backend",
+        // L'espagnol plutôt que le français : la carte parle d'une seule mise
+        // en page pour plusieurs langues, et c'est la langue traduite qui le
+        // montre. Le sélecteur de langue est au-dessus des onglets.
+        async prepare(page) {
+            await openPost(page);
+            await page.getByRole("button", { name: "es", exact: true }).first().click();
+            await page.waitForTimeout(2_000);
+            await page.getByRole("tab", { name: /Paramétrage/ }).first().click().catch(() => {});
+            await page.waitForTimeout(1_200);
+        },
+    },
+
+    { name: "tour-types", path: "/backend/editorial/post-types" },
+    { name: "tour-taxonomies", path: "/backend/editorial/taxonomies" },
+    { name: "tour-menus", path: "/backend/editorial/menus" },
+    { name: "tour-commentaires", path: "/backend/editorial/comments" },
+    {
+        name: "tour-formulaire-champs",
+        path: "/backend/editorial/forms",
+        // Les champs d'un formulaire, pas la liste des formulaires : c'est
+        // l'écran où l'on compose, et donc celui dont la carte parle.
+        async prepare(page) {
+            await page.getByRole("link", { name: /Modifier|Éditer/ }).first().click()
+                .catch(async () => {
+                    await page.locator("a[href*='/backend/editorial/forms/']").first().click();
+                });
+            await page.waitForTimeout(3_000);
+        },
+    },
+
+    { name: "tour-mediatheque-grille", path: "/backend/ged/documents" },
+    { name: "tour-notes", path: "/backend/notes/markdown" },
+    { name: "tour-calendrier", path: "/backend/planning/calendar" },
+
+    { name: "tour-contrats", path: "/backend/studio/contracts" },
+    { name: "tour-trames", path: "/backend/studio/contract-templates" },
     { name: "customers", path: "/backend/studio/customers" },
     {
-        name: "contract-document",
-        // The concluded one: the only state that shows the seal, both
-        // signatures and the amendment chain at once. Reached through the row
-        // actions rather than by a hard-coded id, because ids depend on what
-        // the database already held when the fixtures ran.
+        name: "tour-avenant-scelle",
+        // Le contresigné : le seul état qui montre à la fois le sceau, les deux
+        // signatures et la chaîne d'avenants. Atteint par le menu d'une ligne
+        // plutôt que par un identifiant en dur, qui dépend de ce que la base
+        // contenait déjà quand les fixtures ont tourné.
         path: "/backend/studio/contracts",
         async prepare(page) {
-            // The countersigned one by its status rather than its reference:
-            // references depend on what the sequence had already issued.
             const row = page.getByRole("row").filter({ hasText: "Contresigné" }).first();
             await row.getByRole("button", { name: /^Actions pour/ }).click();
             await page.locator("a[href*='/backend/studio/contracts/']").first().click();
             await page.waitForLoadState("networkidle");
         },
     },
-    { name: "audit", path: "/dev/dashboard/audit" },
+
+    /**
+     * Le tableau d'un espace client.
+     *
+     * Par la liste plutôt que par une adresse : les identifiants changent à
+     * chaque rechargement des fixtures, et un parcours qui code un
+     * `/workspace/8` en dur photographie une page d'erreur le lendemain.
+     *
+     * **Nommément, et pas le premier venu.** La démonstration porte plusieurs
+     * espaces dont un vide ; ouvrir le premier de la liste donnait cinq
+     * colonnes qui disent toutes « Rien ici pour le moment », c'est-à-dire
+     * une capture qui réussit et ne montre rien.
+     *
+     * Puis un clic sur Contenus : la vue ouverte est retenue d'une visite à
+     * l'autre, donc l'espace peut s'ouvrir sur Notes selon ce qui a été
+     * regardé avant.
+     */
     {
-        name: "calendar-week",
-        // The week view rather than the month one the card already shows: it
-        // is the view where an event has an hour, and where overlapping
-        // appointments have to be drawn side by side rather than on top of
-        // each other.
+        name: "tour-espaces-clients",
+        path: "/backend/studio/spaces",
+        async prepare(page) {
+            await page.getByRole("link", { name: /Réseaux sociaux/ }).first().click();
+            await page.waitForTimeout(3_500);
+            await page.getByRole("button", { name: "Contenus", exact: true }).first().click();
+            await page.waitForTimeout(1_800);
+        },
+    },
+
+    { name: "tour-utilisateurs", path: "/backend/platform/users" },
+    { name: "tour-audit", path: "/dev/dashboard/audit" },
+    { name: "tour-themes", path: "/backend/configuration/themes" },
+    { name: "tour-reglages", path: "/backend/configuration/settings/general" },
+
+    {
+        name: "tour-calendrier-semaine",
         path: "/backend/planning/calendar",
         async prepare(page) {
             await page.getByRole("button", { name: /^Semaine$/ }).click();
             await page.waitForTimeout(1_000);
 
-            // The grid opens on the current hour, so a capture taken in the
-            // evening shows an empty afternoon while every demo event sits in
-            // the morning. The wheel over the grid is what the component
-            // listens to; setting scrollTop on a guessed element is not.
-            // Wound to the top first, then down by a fixed amount: the grid
-            // opens on the current hour, so scrolling by a delta alone lands
-            // somewhere different depending on when the capture is taken.
+            // La grille s'ouvre sur l'heure courante, donc une capture prise
+            // le soir montre un après-midi vide alors que les événements de
+            // démonstration sont le matin. La molette au-dessus de la grille
+            // est ce que le composant écoute ; fixer `scrollTop` sur un
+            // élément deviné, non. Remontée à fond d'abord, puis descendue
+            // d'un nombre fixe : descendre d'un delta seul atterrirait
+            // ailleurs selon l'heure de la prise.
             await page.mouse.move(1000, 600);
             await page.mouse.wheel(0, -2_000);
             await page.waitForTimeout(300);
@@ -103,19 +224,31 @@ const SHOTS = [
             await page.waitForTimeout(600);
         },
     },
-    {
-        name: "search",
-        path: "/backend",
-        async prepare(page) {
-            // No keyboard shortcut opens it: the button is the only door, and
-            // it announces itself, which is what makes it findable here.
-            await page.getByRole("button", { name: "Rechercher…" }).click();
 
-            const field = page.getByPlaceholder(/Rechercher des contenus/);
-            await field.waitFor({ state: "visible", timeout: 5_000 });
-            await field.fill(SEARCH_QUERY);
-            // The palette answers as you type; give it its round trip rather
-            // than a fixed sleep long enough to be wrong on a slow machine.
+    /**
+     * Le site public, vu sans session.
+     *
+     * Le bandeau d'administration s'affiche au-dessus d'un site quand on le
+     * visite connecté, et il n'a rien à faire sur une image qui montre ce que
+     * voit un visiteur.
+     */
+    { name: "tour-site-public", path: "/fr", anonymous: true },
+
+    /**
+     * Les versions publiées, chez GitHub.
+     *
+     * **La seule capture qui ne vient pas de l'application.** La carte parle
+     * de la façon dont les versions sortent, et c'est la page des releases
+     * qui le montre. Publique, donc prise sans session.
+     */
+    {
+        name: "tour-releases",
+        url: "https://github.com/AxelRaboit/aurora-core/releases",
+        anonymous: true,
+        async prepare(page) {
+            // Le bandeau de cookies et l'invite de connexion couvrent le haut
+            // de la page pour un visiteur non identifié.
+            await page.getByRole("button", { name: /Accept|Reject|Refuser/ }).first().click().catch(() => {});
             await page.waitForTimeout(1_500);
         },
     },
@@ -171,25 +304,65 @@ const page = await context.newPage();
 
 await login(page);
 
+/**
+ * Le contexte sans session, créé seulement si une capture en demande un.
+ *
+ * Deux captures montrent ce que voit quelqu'un qui n'est pas connecté : le
+ * site public, qui porterait sinon le bandeau d'administration, et la page
+ * des versions chez GitHub. Ouvrir ce second navigateur pour les vingt autres
+ * serait du temps perdu à chaque lancement.
+ */
+let anonymous = null;
+
+async function anonymousPage() {
+    if (null === anonymous) {
+        anonymous = await browser.newContext({
+            viewport: VIEWPORT,
+            deviceScaleFactor: 1,
+            locale: "fr-FR",
+            timezoneId: "Europe/Paris",
+            colorScheme: "dark",
+        });
+    }
+
+    return anonymous.newPage();
+}
+
 let failed = 0;
 
 for (const shot of shots) {
     const file = resolve(outDir, `${shot.name}.png`);
+    const address = shot.url ?? `${BASE_URL}${shot.path}`;
+
+    let target = page;
 
     try {
-        await page.goto(`${BASE_URL}${shot.path}`, { waitUntil: "networkidle" });
-        await hideChrome(page);
-
-        if (shot.prepare) {
-            await shot.prepare(page);
-            await hideChrome(page);
+        if (true === shot.anonymous) {
+            target = await anonymousPage();
         }
 
-        await page.screenshot({ path: file });
+        // `networkidle` attend un silence que GitHub n'offre jamais tout à
+        // fait ; pour une adresse externe, le document chargé suffit et le
+        // `prepare` fait le reste de l'attente.
+        await target.goto(address, {
+            waitUntil: undefined === shot.url ? "networkidle" : "domcontentloaded",
+        });
+        await hideChrome(target);
+
+        if (shot.prepare) {
+            await shot.prepare(target);
+            await hideChrome(target);
+        }
+
+        await target.screenshot({ path: file });
         console.log(`+ ${shot.name} -> var/screenshots/${shot.name}.png`);
     } catch (error) {
         failed += 1;
         console.error(`! ${shot.name} : ${error.message.split("\n")[0]}`);
+    } finally {
+        if (target !== page) {
+            await target.close();
+        }
     }
 }
 
