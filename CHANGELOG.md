@@ -9,6 +9,11 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### « Nouvelle note » prend la ligne
+Cent vingt-huit pixels à côté d'une bande d'onglets qui en fait deux cent
+soixante-quatorze : le seul geste de l'écran passait pour un détail de la bande.
+Il prend la ligne entière sur téléphone, les onglets la suivante.
+
 #### Les panneaux de la discussion et les voiles rendent leurs bords
 Suite du relevé, cinquante-neuf endroits relus. Ce qui bouge : les trois
 panneaux d'une discussion - l'en-tête, le fil et la zone d'écriture - où une

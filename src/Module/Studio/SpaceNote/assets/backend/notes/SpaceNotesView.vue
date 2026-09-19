@@ -75,8 +75,18 @@ function tint(note) {
 <template>
     <div class="space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex min-w-0 max-w-full flex-wrap items-center gap-3">
-                <AppButton v-if="editable" variant="primary" size="sm" v-on:click="emit('create')">
+            <div class="flex w-full min-w-0 max-w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+                <!-- Pleine largeur sous `sm` : c'est le geste de l'écran, et
+                     cent vingt-huit pixels à côté d'une bande d'onglets qui en
+                     fait deux cent soixante-quatorze le font passer pour un
+                     détail de la bande. -->
+                <AppButton
+                    v-if="editable"
+                    class="w-full sm:w-auto"
+                    variant="primary"
+                    size="sm"
+                    v-on:click="emit('create')"
+                >
                     <Plus class="h-3.5 w-3.5" :stroke-width="2" />
                     {{ t("backend.studio.space_notes.add") }}
                 </AppButton>
