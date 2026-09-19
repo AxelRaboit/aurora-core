@@ -475,6 +475,24 @@ module Calendrier n'est pas installé.
 
 ### Corrigé
 
+#### La médiathèque annonçait des poids qui n'étaient pas ceux des fichiers
+Le poids d'un document est relevé à l'arrivée du fichier. Pour une source
+JPEG, ce nombre cesse d'être vrai une ligne plus tard : la fabrication des
+variantes ré-encode la source en place à la qualité 85 et lui retire ses
+métadonnées. Trouvé en important une photographie depuis Craft - mille cinq
+cent trente-deux mille quatre cent soixante-sept octets annoncés, deux cent
+treize mille neuf cent un sur le disque, un facteur sept.
+
+Le poids est donc relu après coup, et demandé à l'adaptateur de stockage
+plutôt qu'au disque local : la source peut vivre dans un stockage objet, où
+seul un `stat` répond honnêtement.
+
+Ce qui était déjà enregistré se rattrape avec `aurora:ged:sizes:refresh`,
+idempotente, avec un `--dry-run` qui compte sans écrire. Sur la démonstration
+locale : les huit images de la bibliothèque étaient fausses, deux mégaoctets et
+demi d'écart cumulé. Un document dont le fichier a disparu garde son poids -
+c'est un autre problème, et l'écraser à zéro le cacherait.
+
 #### L'espace débordait sur les écrans étroits
 Trois causes, trouvées en mesurant chaque élément de chaque vue plutôt qu'à
 l'œil, à 250 puis à 375 pixels.
