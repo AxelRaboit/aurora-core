@@ -158,7 +158,13 @@ function weightOf(file) {
                         rel="noopener"
                         class="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-surface-2/60"
                     >
-                        <span class="min-w-0 flex-1 truncate text-sm text-primary">{{ file.name }}</span>
+                        <span class="min-w-0 flex-1 truncate text-sm text-primary">
+                            <!-- Le sous-dossier devant le nom, en gris : une
+                                 liste à plat qui ne dit pas d'où vient chaque
+                                 fichier serait moins lisible que l'arbre
+                                 qu'elle remplace. -->
+                            <span v-if="file.path" class="text-muted">{{ file.path }}/</span>{{ file.name }}
+                        </span>
                         <span class="shrink-0 text-xs tabular-nums text-muted">{{ weightOf(file) }}</span>
                         <span v-if="file.modifiedAt" class="hidden shrink-0 text-xs text-muted sm:inline">
                             {{ formatDateTimeNumeric(file.modifiedAt) }}

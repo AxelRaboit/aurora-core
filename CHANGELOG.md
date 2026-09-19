@@ -34,6 +34,16 @@ La clé est posée une fois pour l'installation ; chaque espace ne désigne
 ensuite que son dossier. Le partage se transmettant aux sous-dossiers, un
 dossier parent partagé une fois suffit pour tous les clients.
 
+**La descente est récursive, et coûte un appel par étage.** Google accepte
+plusieurs parents dans la même requête : une arborescence de trois niveaux
+coûte trois appels quel que soit le nombre de dossiers qu'elle porte, là où
+descendre dossier par dossier en aurait fait un chacun. Le chemin voyage avec
+le fichier - « Contrats/2026 » devant son nom - parce qu'une liste à plat qui
+ne dit pas d'où vient chaque ligne est moins lisible que l'arbre qu'elle
+remplace. Deux bornes : cinq étages, parce qu'un raccourci circulaire dans un
+Drive ferait tourner la descente sans fin, et deux cents fichiers, parce
+qu'au-delà le dossier partagé était trop large.
+
 **Rien n'a été emprunté pour signer.** `google/apiclient` aurait amené des
 centaines de définitions de services dans un dépôt public livré à des clients,
 pour une assertion de trois champs ; `openssl` la signe en trente lignes, et

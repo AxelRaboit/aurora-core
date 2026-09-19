@@ -11,6 +11,13 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 use Throwable;
 
+use function array_chunk;
+use function array_filter;
+use function array_keys;
+use function array_map;
+use function array_values;
+use function count;
+use function implode;
 use function is_array;
 use function is_string;
 use function sprintf;
@@ -58,6 +65,21 @@ final readonly class DriveClient
      */
     private const int MAX_FILES = 200;
 
+    /**
+     * Jusqu'où on descend. Cinq étages couvrent tout rangement raisonnable, et
+     * la borne existe surtout parce qu'un raccourci circulaire dans un Drive
+     * ferait tourner la descente sans fin.
+     */
+    private const int MAX_DEPTH = 5;
+
+    /**
+     * Combien de dossiers tiennent dans une même requête. La clause `q` a une
+     * longueur maximale, et quarante parents y tiennent largement.
+     */
+    private const int PARENTS_PER_QUERY = 40;
+
+    private const string FOLDER_MIME = 'application/vnd.google-apps.folder';
+
     public function __construct(
         private HttpClientInterface $httpClient,
         private CacheInterface $cache,
@@ -65,20 +87,83 @@ final readonly class DriveClient
     ) {}
 
     /**
-     * Les fichiers du dossier, sans les corbeilles ni les sous-dossiers.
+     * Tout ce que le dossier contient, sous-dossiers compris.
      *
-     * Triés par date de modification décroissante : un dossier partagé se lit
-     * par ce qui vient d'y arriver, pas par ordre alphabétique.
+     * **Un appel par étage, et non par dossier.** Google accepte plusieurs
+     * parents dans la même requête : une arborescence de trois niveaux coûte
+     * donc trois appels quel que soit le nombre de dossiers qu'elle porte.
+     * Descendre dossier par dossier aurait fait une requête chacun, et une
+     * page qui attend trente allers-retours n'est plus une page.
      *
-     * @return list<array{id: string, name: string, mimeType: string, size: int|null, modifiedAt: string|null}>
+     * **Le chemin voyage avec le fichier.** Une liste plate de quarante
+     * fichiers sans dire d'où ils viennent serait moins lisible que l'arbre
+     * qu'elle remplace ; `path` porte donc « Contrats/2026 », vide à la
+     * racine, et l'écran s'en sert pour situer.
+     *
+     * Deux bornes. La profondeur, parce qu'un raccourci circulaire dans un
+     * Drive ferait tourner cette descente sans fin. Et le nombre de fichiers,
+     * parce qu'au-delà ce n'est plus une liste qu'on parcourt des yeux - le
+     * dossier partagé était trop large, et c'est dans Drive que ça se règle.
+     *
+     * @return list<array{id: string, name: string, path: string, mimeType: string, size: int|null, modifiedAt: string|null}>
      */
     public function files(GoogleServiceAccount $account, string $folderId): array
     {
+        $files = [];
+        $level = [$folderId => ''];
+        $seen = [$folderId => true];
+
+        for ($depth = 0; $depth < self::MAX_DEPTH && [] !== $level; ++$depth) {
+            $next = [];
+
+            foreach (array_chunk($level, self::PARENTS_PER_QUERY, preserve_keys: true) as $chunk) {
+                foreach ($this->children($account, array_keys($chunk)) as $row) {
+                    $parentPath = $this->parentPathOf($row, $chunk);
+
+                    if (self::FOLDER_MIME === $row['mimeType']) {
+                        // Un raccourci peut ramener un dossier déjà vu, et un
+                        // dossier vu deux fois est une boucle.
+                        if (!isset($seen[$row['id']])) {
+                            $seen[$row['id']] = true;
+                            $next[$row['id']] = '' === $parentPath ? $row['name'] : $parentPath.'/'.$row['name'];
+                        }
+
+                        continue;
+                    }
+
+                    unset($row['parents']);
+                    $files[] = [...$row, 'path' => $parentPath];
+
+                    if (self::MAX_FILES === count($files)) {
+                        return $this->newestFirst($files);
+                    }
+                }
+            }
+
+            $level = $next;
+        }
+
+        return $this->newestFirst($files);
+    }
+
+    /**
+     * Les enfants directs d'un lot de dossiers, en une requête.
+     *
+     * @param list<string> $parentIds
+     *
+     * @return list<array{id: string, name: string, mimeType: string, size: int|null, modifiedAt: string|null, parents: list<string>}>
+     */
+    private function children(GoogleServiceAccount $account, array $parentIds): array
+    {
+        $clauses = array_map(static fn (string $id): string => sprintf("'%s' in parents", $id), $parentIds);
+
         $payload = $this->get($account, self::FILES_URI, [
             // `trashed = false` explicitement : la corbeille d'un Drive reste
             // dans le dossier et ressortirait comme un fichier vivant.
-            'q' => sprintf("'%s' in parents and trashed = false and mimeType != 'application/vnd.google-apps.folder'", $folderId),
-            'fields' => 'files(id,name,mimeType,size,modifiedTime)',
+            'q' => '('.implode(' or ', $clauses).') and trashed = false',
+            // `parents` est ce qui permet de savoir de quel dossier du lot
+            // chaque ligne vient, donc de reconstruire son chemin.
+            'fields' => 'files(id,name,mimeType,size,modifiedTime,parents)',
             'pageSize' => self::MAX_FILES,
             // Un dossier partagé depuis un Drive partagé n'est pas visible
             // sans cela, et le symptôme est une liste vide sans erreur.
@@ -90,7 +175,7 @@ final readonly class DriveClient
             return [];
         }
 
-        $files = [];
+        $rows = [];
 
         foreach ((array) ($payload['files'] ?? []) as $row) {
             if (!is_array($row)) {
@@ -102,12 +187,11 @@ final readonly class DriveClient
             if (!is_string($id)) {
                 continue;
             }
-
             if (!is_string($name)) {
                 continue;
             }
 
-            $files[] = [
+            $rows[] = [
                 'id' => $id,
                 'name' => $name,
                 'mimeType' => is_string($row['mimeType'] ?? null) ? $row['mimeType'] : 'application/octet-stream',
@@ -116,9 +200,44 @@ final readonly class DriveClient
                 // pas exporté.
                 'size' => isset($row['size']) ? (int) $row['size'] : null,
                 'modifiedAt' => is_string($row['modifiedTime'] ?? null) ? $row['modifiedTime'] : null,
+                'parents' => array_values(array_filter((array) ($row['parents'] ?? []), is_string(...))),
             ];
         }
 
+        return $rows;
+    }
+
+    /**
+     * Le chemin du dossier d'où vient cette ligne, parmi ceux du lot.
+     *
+     * Un fichier peut avoir plusieurs parents dans un Drive ; on garde le
+     * premier qui appartient au lot interrogé, parce que c'est celui qui l'a
+     * fait remonter.
+     *
+     * @param array<string, mixed>  $row
+     * @param array<string, string> $chunk
+     */
+    private function parentPathOf(array $row, array $chunk): string
+    {
+        foreach ((array) ($row['parents'] ?? []) as $parent) {
+            if (is_string($parent) && isset($chunk[$parent])) {
+                return $chunk[$parent];
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Un dossier partagé se lit par ce qui vient d'y arriver, pas par ordre
+     * alphabétique.
+     *
+     * @param list<array<string, mixed>> $files
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function newestFirst(array $files): array
+    {
         usort($files, static fn (array $a, array $b): int => ($b['modifiedAt'] ?? '') <=> ($a['modifiedAt'] ?? ''));
 
         return $files;

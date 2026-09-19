@@ -463,7 +463,9 @@ function open(event) {
                         rel="noopener"
                         class="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-surface-2/60"
                     >
-                        <span class="min-w-0 flex-1 truncate text-sm text-primary">{{ file.name }}</span>
+                        <span class="min-w-0 flex-1 truncate text-sm text-primary">
+                            <span v-if="file.path" class="text-muted">{{ file.path }}/</span>{{ file.name }}
+                        </span>
                         <span class="shrink-0 text-xs tabular-nums text-muted">{{ driveWeight(file) }}</span>
                     </a>
                 </li>

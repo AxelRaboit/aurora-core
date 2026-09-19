@@ -71,6 +71,30 @@ final class DriveClientTest extends TestCase
         ]);
     }
 
+    /** @return array<string, mixed> */
+    private function file(string $id, string $name, string $parent): array
+    {
+        return [
+            'id' => $id,
+            'name' => $name,
+            'mimeType' => 'application/pdf',
+            'size' => '10',
+            'modifiedTime' => '2026-09-01T00:00:00Z',
+            'parents' => [$parent],
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function folder(string $id, string $name, string $parent): array
+    {
+        return [
+            'id' => $id,
+            'name' => $name,
+            'mimeType' => 'application/vnd.google-apps.folder',
+            'parents' => [$parent],
+        ];
+    }
+
     /** @param list<array<string, mixed>> $files */
     private function listing(array $files): MockResponse
     {
@@ -104,11 +128,8 @@ final class DriveClientTest extends TestCase
         self::assertStringContainsString('/drive/v3/files', $this->calls[2]['url']);
     }
 
-    /**
-     * La corbeille d'un Drive reste dans le dossier, et un sous-dossier n'est
-     * pas un fichier : les deux ressortiraient comme des pièces jointes.
-     */
-    public function testTheQueryExcludesTheTrashAndTheFolders(): void
+    /** La corbeille reste dans le dossier et ressortirait comme un fichier. */
+    public function testTheQueryExcludesTheTrash(): void
     {
         $client = $this->client([$this->token(), $this->listing([])]);
 
@@ -118,7 +139,87 @@ final class DriveClientTest extends TestCase
 
         self::assertStringContainsString("'dossier-1' in parents", $query['q']);
         self::assertStringContainsString('trashed = false', $query['q']);
-        self::assertStringContainsString('application/vnd.google-apps.folder', $query['q']);
+        // Les dossiers ne sont plus exclus : c'est par eux qu'on descend.
+        self::assertStringNotContainsString('mimeType !=', $query['q']);
+    }
+
+    /**
+     * **Un appel par étage, pas par dossier.** Descendre dossier par dossier
+     * aurait fait une requête chacun ; ce test est la seule chose qui
+     * empêchera quelqu'un de réécrire la boucle de la façon évidente.
+     */
+    public function testAWholeLevelIsAskedInOneCall(): void
+    {
+        $client = $this->client([
+            $this->token(),
+            $this->listing([
+                $this->folder('d-a', 'Contrats', 'racine'),
+                $this->folder('d-b', 'Visuels', 'racine'),
+            ]),
+            $this->listing([
+                $this->file('f-1', 'bail.pdf', 'd-a'),
+                $this->file('f-2', 'logo.png', 'd-b'),
+            ]),
+        ]);
+
+        $files = $client->files($this->account, 'racine');
+
+        // Le jeton, la racine, puis les deux dossiers ensemble : trois appels
+        // et non quatre.
+        self::assertCount(3, $this->calls);
+        self::assertStringContainsString("'d-a' in parents or 'd-b' in parents", $this->calls[2]['options']['query']['q']);
+        self::assertCount(2, $files);
+    }
+
+    /** Une liste plate sans dire d'où vient chaque fichier serait illisible. */
+    public function testEachFileCarriesTheFolderItCameFrom(): void
+    {
+        $client = $this->client([
+            $this->token(),
+            $this->listing([
+                $this->file('f-0', 'a-la-racine.pdf', 'racine'),
+                $this->folder('d-a', 'Contrats', 'racine'),
+            ]),
+            $this->listing([$this->folder('d-b', '2026', 'd-a')]),
+            $this->listing([$this->file('f-1', 'bail.pdf', 'd-b')]),
+        ]);
+
+        $files = $client->files($this->account, 'racine');
+        $paths = array_combine(array_column($files, 'name'), array_column($files, 'path'));
+
+        self::assertSame('', $paths['a-la-racine.pdf']);
+        self::assertSame('Contrats/2026', $paths['bail.pdf']);
+    }
+
+    /** Un raccourci circulaire ferait tourner la descente sans fin. */
+    public function testAFolderThatPointsBackAtItselfDoesNotLoop(): void
+    {
+        $client = $this->client([
+            $this->token(),
+            $this->listing([$this->folder('d-a', 'Boucle', 'racine')]),
+            // Le même dossier, remonté par lui-même.
+            $this->listing([$this->folder('d-a', 'Boucle', 'd-a'), $this->file('f-1', 'seul.pdf', 'd-a')]),
+        ]);
+
+        self::assertCount(1, $client->files($this->account, 'racine'));
+        self::assertCount(3, $this->calls);
+    }
+
+    /** Au-delà, ce n'est plus une liste qu'on parcourt des yeux. */
+    public function testTheDescentStopsAtTheDepthLimit(): void
+    {
+        $responses = [$this->token()];
+
+        // Sept étages pour une borne à cinq.
+        for ($level = 0; $level < 7; ++$level) {
+            $responses[] = $this->listing([$this->folder('d-'.$level, 'N'.$level, 0 === $level ? 'racine' : 'd-'.($level - 1))]);
+        }
+
+        $client = $this->client($responses);
+        $client->files($this->account, 'racine');
+
+        // Le jeton plus cinq étages, pas sept.
+        self::assertCount(6, $this->calls);
     }
 
     /**
