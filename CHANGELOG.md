@@ -9,6 +9,21 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Le planning partagé se lit vraiment sur un téléphone
+Trois choses manquaient sur la page qu'un invité ouvre sans compte :
+
+- **Une case du mois ne répondait pas.** Elle tient trois pastilles et un
+  nombre : on voyait qu'il se passait quelque chose, jamais quoi. Taper un jour
+  ouvre maintenant sa liste, comme côté studio.
+- **L'onglet « Semaine » mentait.** Sous `md`, sept colonnes ne tiennent pas et
+  la vue retombe sur le jour - mais l'onglet restait allumé en montrant un seul
+  jour. Il s'efface là où il est refusé, et revient avec la place, le choix
+  gardé. Même correction sur le planning du studio.
+- **Un rappel offrait sa case à cocher** à quelqu'un qui n'a le droit de rien
+  cocher. Il prend la barre de couleur d'un événement : pour qui lit, c'est
+  quelque chose à vingt heures. Un rappel déjà fait garde sa coche, qui est un
+  fait.
+
 #### Le nombre d'événements d'une case pesait quatre fois ses pastilles
 Dans la grille compacte du mois, au-delà de trois événements, les pastilles
 laissent place à un nombre. Il s'affichait en seize pixels à côté de pastilles

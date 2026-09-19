@@ -118,10 +118,16 @@ const rangeLabel = computed(() => {
 });
 
 const viewOptions = computed(() =>
-    ["day", "week", "month", "agenda"].map((value) => ({
-        value,
-        label: t(`backend.plannings.views.${value}`),
-    })),
+    // La semaine est refusée sous `md`, où elle retombe sur le jour : sept
+    // colonnes ne tiennent pas dans trois cent soixante pixels. L'onglet
+    // restait allumé en montrant un seul jour ; il s'efface là et revient avec
+    // la place, le choix gardé.
+    ["day", "week", "month", "agenda"]
+        .filter((value) => !(narrow.value && "week" === value))
+        .map((value) => ({
+            value,
+            label: t(`backend.plannings.views.${value}`),
+        })),
 );
 
 /**

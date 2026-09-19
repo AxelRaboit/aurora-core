@@ -23,6 +23,16 @@ const props = defineProps({
     events: { type: Array, required: true },
     reminders: { type: Array, default: () => [] },
     canCreate: { type: Boolean, default: false },
+    /**
+     * Whether a reminder can be ticked off here.
+     *
+     * False on a shared link: a guest reads the day. La case à cocher y serait
+     * un geste qui ne part nulle part, et une case vide se lit comme « pas
+     * encore fait, à vous de jouer ». Un rappel non fait y prend donc la barre
+     * de couleur d'un événement - pour qui lit, c'est quelque chose à vingt
+     * heures - et un rappel fait garde sa coche, qui est un fait.
+     */
+    canComplete: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(["open-event", "open-reminder", "toggle-reminder", "add"]);
@@ -71,20 +81,28 @@ function timeOf(at) {
                     <!-- A reminder gets a checkbox, an event a colour bar. The
                          shapes differ because the things do: one is finished by
                          you, the other by time passing. -->
-                    <button
-                        v-if="'reminder' === entry.kind"
-                        type="button"
-                        class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors cursor-pointer"
-                        :class="entry.item.completed ? 'border-transparent' : 'border-secondary'"
+                    <component
+                        :is="canComplete ? 'button' : 'span'"
+                        v-if="'reminder' === entry.kind && (canComplete || entry.item.completed)"
+                        v-bind="canComplete
+                            ? {
+                                type: 'button',
+                                ariaPressed: entry.item.completed,
+                                title: t('backend.plannings.reminders.completed'),
+                            }
+                            : {}"
+                        class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors"
+                        :class="[
+                            entry.item.completed ? 'border-transparent' : 'border-secondary',
+                            canComplete ? 'cursor-pointer' : '',
+                        ]"
                         :style="entry.item.completed
                             ? { backgroundColor: `var(--chart-cat-${entry.item.colourSlot})` }
                             : {}"
-                        :aria-pressed="entry.item.completed"
-                        :title="t('backend.plannings.reminders.completed')"
-                        v-on:click="emit('toggle-reminder', entry.item)"
+                        v-on="canComplete ? { click: () => emit('toggle-reminder', entry.item) } : {}"
                     >
                         <Check v-if="entry.item.completed" class="h-3 w-3 text-white" :stroke-width="3" />
-                    </button>
+                    </component>
                     <span
                         v-else
                         class="mt-1 h-3.5 w-[3px] shrink-0 rounded-sm"
