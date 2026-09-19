@@ -9,6 +9,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### La corbeille rendait trois pixels au nom de ce qu'elle contient
+« Restaurer » et « Supprimer définitivement » font trois cents pixels à eux
+deux ; sur trois cent cinquante-neuf, il en restait **trois** pour le nom de la
+ligne, qui se pliait en colonne d'une lettre par ligne. Le nom prend sa ligne,
+les deux gestes la suivante, moitié-moitié.
+
+Sur le profil, les trois boutons « Enregistrer » et la suppression du compte
+prennent aussi la ligne entière, et les règles du mot de passe passent à une par
+ligne : à deux colonnes, « Une lettre majuscule » tombait dans cent
+quarante-six pixels et repassait à la ligne, ce qui donnait quatre règles sur
+six lignes mal alignées.
+
 #### Partager ou renommer un calendrier, au doigt
 Les deux boutons d'une ligne de calendrier n'apparaissaient qu'au survol. Sur un
 téléphone, où le survol n'existe pas, il n'y avait aucun moyen de partager un

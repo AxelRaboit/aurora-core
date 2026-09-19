@@ -114,7 +114,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                             required
                         />
                         <div class="pt-1">
-                            <AppButton type="submit" :loading="infoLoading"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t('shared.common.save') }}</AppButton>
+                            <AppButton type="submit" class="w-full sm:w-auto" :loading="infoLoading"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t('shared.common.save') }}</AppButton>
                         </div>
                     </form>
                 </div>
@@ -156,7 +156,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                             required
                         />
                         <div class="pt-1">
-                            <AppButton type="submit" :loading="passwordLoading"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t('shared.common.save') }}</AppButton>
+                            <AppButton type="submit" class="w-full sm:w-auto" :loading="passwordLoading"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t('shared.common.save') }}</AppButton>
                         </div>
                     </form>
                 </div>
@@ -206,7 +206,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                             </div>
                         </div>
                         <div class="pt-1">
-                            <AppButton type="submit" :loading="moodLoading"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t('shared.common.save') }}</AppButton>
+                            <AppButton type="submit" class="w-full sm:w-auto" :loading="moodLoading"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t('shared.common.save') }}</AppButton>
                         </div>
                     </form>
                 </div>
@@ -276,7 +276,10 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                 <h2 class="text-lg font-semibold text-rose-400">{{ t('backend.profile.danger.title') }}</h2>
                 <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.danger.description') }}</p>
             </header>
+            <!-- Pleine largeur sous `sm`, comme les autres : c'est un geste,
+                 pas une entrée de liste, et celui-là mérite d'être visé. -->
             <AppButton
+                class="w-full sm:w-auto"
                 variant="danger"
                 size="md"
                 :disabled="deleteLoading || !canDeleteAccount"
