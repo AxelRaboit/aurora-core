@@ -9,6 +9,14 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### L'éditeur de publication faisait défiler la page de côté
+Ses sept onglets - paramétrage, apparence, en-tête, contenu, galerie, SEO,
+traductions - font sept cents pixels. Sans boîte pour les tenir, c'est la page
+entière qui partait de côté sur téléphone, éditeur compris : on écrivait dans
+un champ qu'il fallait ramener du doigt. La bande défile seule maintenant, et
+la page ne bouge plus - mesuré à trois cent soixante-quinze, sur les sept
+onglets.
+
 #### Les cartes et les modales rendent leurs bords sur téléphone
 La gouttière de la page était passée à huit pixels, mais ce qui est dedans
 gardait ses vingt-quatre : sur trois cent soixante-quinze, le texte d'une carte

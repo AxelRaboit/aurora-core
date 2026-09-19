@@ -475,10 +475,17 @@ function termLabel(term) {
 
         <div>
             <section class="space-y-4">
-                <div class="flex gap-1 border-b border-line">
+                <!-- **Une bande qui défile, pas une page qui part de côté.**
+                     Les sept onglets font sept cents pixels : sans cette boîte,
+                     c'est la page entière qui se mettait à défiler
+                     horizontalement sur téléphone, éditeur compris. Bornée à la
+                     largeur disponible, elle défile seule et les onglets
+                     gardent leur taille. -->
+                <div class="flex max-w-full gap-1 overflow-x-auto border-b border-line scrollbar-thin">
                     <AppTab
                         v-for="tab in TABS"
                         :key="tab"
+                        class="shrink-0"
                         variant="underline"
                         :active="isTabActive(tab)"
                         v-on:click="selectTab(tab)"
