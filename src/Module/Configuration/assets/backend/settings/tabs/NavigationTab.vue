@@ -114,10 +114,11 @@ const {
                                 class="flex-1"
                             />
                             <AppButton
-                                variant="ghost"
+                                variant="icon"
                                 size="sm"
                                 :disabled="!sectionAliases[section.id]"
                                 :title="t('backend.settings.nav_aliases.reset_item')"
+                                class="p-1.5 text-muted hover:text-primary"
                                 v-on:click="resetSection(section.id)"
                             >
                                 <X class="w-3.5 h-3.5" :stroke-width="2" />
@@ -161,10 +162,11 @@ const {
                                         class="flex-1"
                                     />
                                     <AppButton
-                                        variant="ghost"
+                                        variant="icon"
                                         size="sm"
                                         :disabled="!itemAliases[item.route ?? item.key]"
                                         :title="t('backend.settings.nav_aliases.reset_item')"
+                                        class="p-1.5 text-muted hover:text-primary"
                                         v-on:click="resetItem(item.route ?? item.key)"
                                     >
                                         <X class="w-3.5 h-3.5" :stroke-width="2" />

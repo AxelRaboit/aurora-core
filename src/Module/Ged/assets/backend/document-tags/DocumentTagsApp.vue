@@ -65,7 +65,7 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <AppListToolbar>
             <AppSearchInput v-model="tagSearch" :placeholder="t('backend.ged.tags.search_placeholder')" />
             <template #actions>

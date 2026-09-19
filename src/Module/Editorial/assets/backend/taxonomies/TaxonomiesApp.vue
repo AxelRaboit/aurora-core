@@ -138,7 +138,7 @@ const pageActions = computed(() => {
         </template>
     </AppNoData>
 
-    <div v-else class="space-y-4">
+    <div v-else class="space-y-2 sm:space-y-4">
         <!-- No picker column: the side menu lists the taxonomies, one entry per
              record and one address each. The create button stays - a group
              header in the menu has nowhere to put one. -->

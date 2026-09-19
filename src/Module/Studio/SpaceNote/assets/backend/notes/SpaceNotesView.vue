@@ -73,7 +73,7 @@ function tint(note) {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex w-full min-w-0 max-w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
                 <!-- Pleine largeur sous `sm` : c'est le geste de l'écran, et

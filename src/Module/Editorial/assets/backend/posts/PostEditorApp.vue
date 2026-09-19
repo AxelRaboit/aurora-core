@@ -406,7 +406,7 @@ function termLabel(term) {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <!-- `flex-wrap` on both halves: the row used to be unbreakable, and a
              post awaiting review put seven items on it. -->
         <div class="flex flex-wrap items-center justify-between gap-3">

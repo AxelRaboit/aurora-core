@@ -98,7 +98,7 @@ function goToToday() {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex items-center gap-1">
                 <button

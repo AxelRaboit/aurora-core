@@ -52,7 +52,7 @@ function badgeColor(value) {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <!-- Stacked on a phone, side by side from `sm`, like every other filter
              row: a control narrower than the screen is a smaller target for no
              reason. -->
@@ -152,7 +152,13 @@ function badgeColor(value) {
         </div>
 
         <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 pt-2">
-            <AppButton variant="ghost" size="sm" :disabled="page <= 1" v-on:click="goToPage(page - 1)">
+            <AppButton
+                variant="icon"
+                size="sm"
+                :disabled="page <= 1"
+                class="p-1.5 text-muted hover:text-primary"
+                v-on:click="goToPage(page - 1)"
+            >
                 <ChevronLeft class="w-4 h-4" :stroke-width="2" />
             </AppButton>
             <span class="text-xs text-secondary tabular-nums">{{ page }} / {{ totalPages }}</span>

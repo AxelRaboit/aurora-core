@@ -179,7 +179,7 @@ const governingLabel = computed(
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <!-- A published version is readable but not writable, and the page says
              so before the reader tries. Hiding the fields instead would leave
              them wondering where the text went. -->

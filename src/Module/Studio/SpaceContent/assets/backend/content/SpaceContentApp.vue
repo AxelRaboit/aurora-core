@@ -311,7 +311,7 @@ const actionsFor = useSpaceCardActions({
     <!-- Une colonne, parce que la discussion veut la hauteur qui reste et que
          `space-y` ne la transmet pas. Les autres écrans gardent leur taille :
          un flex item ne descend pas sous son contenu. -->
-    <div class="flex flex-1 flex-col gap-4">
+    <div class="flex flex-1 flex-col gap-2 sm:gap-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <!-- Segmented rather than a select: five choices are worth showing
                  at once, and the one in use is the answer to "why does this

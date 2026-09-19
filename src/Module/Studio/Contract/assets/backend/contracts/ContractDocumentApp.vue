@@ -294,7 +294,7 @@ const contractActions = computed(() => {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="space-y-1">
                 <h1 class="text-lg font-semibold text-primary">

@@ -9,6 +9,21 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Huit pixels aussi entre les blocs
+La marge autour était à huit, le rythme entre les blocs restait à seize : sur la
+liste des publications, la barre de recherche, le bouton d'actions, le panneau
+de filtres et la liste étaient séparés de seize pixels chacun, et cela
+s'ajoutait aux seize de marge intérieure des cartes - trente-deux de vide entre
+deux contenus. Vingt-six écrans passent à huit sous `sm`, mesuré : les trois
+écarts de la liste des publications font maintenant huit, huit, huit.
+
+Les formulaires gardent leurs seize : entre deux champs, c'est un rythme de
+lecture, pas une gouttière, et les serrer ferait un mur.
+
+Dernier passage sur les boutons : sept commandes en icône seule portaient
+encore la variante fantôme et prenaient donc une surface sur téléphone, pour
+rien. Elles passent à `icon`, dont la transparence est voulue.
+
 #### Un bouton n'est jamais transparent sur téléphone
 Le bouton fantôme se lit à la souris : il attend le survol pour exister, et sa
 place dans une barre dense dit déjà que c'en est un. Au doigt, il n'y a pas de

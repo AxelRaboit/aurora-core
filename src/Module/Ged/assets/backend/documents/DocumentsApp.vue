@@ -325,7 +325,7 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <div ref="container" class="space-y-4">
+    <div ref="container" class="space-y-2 sm:space-y-4">
         <!-- Header: breadcrumb + search + add -->
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface border border-line/60 rounded-xl px-2 py-2 sm:px-4 sm:py-3">
             <nav class="flex items-center gap-1 text-sm text-muted min-w-0 flex-1 flex-wrap">
@@ -419,7 +419,13 @@ const pageActions = computed(() => {
                     <span class="text-sm font-medium text-accent-400">{{ selectedIds.size }} {{ t("shared.common.selected") }}</span>
                     <div class="flex gap-2 ml-auto flex-wrap">
                         <AppPageActions :actions="bulkActions" variant="ghost" size="sm" :busy="bulkRelocating" />
-                        <AppButton size="sm" variant="ghost" :title="t('shared.common.cancel')" v-on:click="clearSelection">
+                        <AppButton
+                            size="sm"
+                            variant="icon"
+                            :title="t('shared.common.cancel')"
+                            class="p-1.5 text-muted hover:text-primary"
+                            v-on:click="clearSelection"
+                        >
                             <X class="w-3.5 h-3.5" :stroke-width="2" />
                         </AppButton>
                     </div>

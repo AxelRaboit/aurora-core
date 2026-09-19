@@ -64,7 +64,7 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <p class="text-sm text-secondary">{{ t('backend.users.intro') }}</p>
         <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
             <AppSearchInput

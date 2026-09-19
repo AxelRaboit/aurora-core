@@ -83,7 +83,7 @@ function isUnresolved(item) {
         :hint="t('backend.menus.empty_hint')"
     />
 
-    <div v-else class="space-y-4">
+    <div v-else class="space-y-2 sm:space-y-4">
         <!-- No picker column: the side menu lists the menus, one entry per
              record and one address each. -->
         <section v-if="selected" class="space-y-4">

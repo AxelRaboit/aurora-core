@@ -41,7 +41,7 @@ function editPath(post) {
 </script>
 
 <template>
-    <div class="relative space-y-4">
+    <div class="relative space-y-2 sm:space-y-4">
         <AppLoader :active="loading" />
 
         <AppListToolbar>
