@@ -75,7 +75,7 @@
                l'argumentaire et la carte deviennent trois éléments de la
                grille, ordonnables séparément ; au-dessus de `lg` la cellule
                redevient un bloc et les `order` n'ont plus d'effet. #}
-            <div class="flex min-h-screen items-center justify-center bg-bg px-2 py-8 sm:px-4 sm:py-12">
+            <div class="flex min-h-screen items-center justify-center bg-bg px-2 py-4 sm:px-4 sm:py-12">
                 <div class="w-full max-w-7xl grid lg:grid-cols-2 gap-8 lg:gap-20 items-center">
                     <div class="contents lg:block">
                         {{ include('@Shared/components/app_logo.html.twig', {
@@ -94,7 +94,7 @@
                 </div>
             </div>
         {% else %}
-            <div class="flex min-h-screen flex-col items-center justify-center bg-bg px-2 py-8 sm:px-4 sm:py-12">
+            <div class="flex min-h-screen flex-col items-center justify-center bg-bg px-2 py-4 sm:px-4 sm:py-12">
                 {{ include('@Shared/components/app_logo.html.twig', {
                     gradientId: 'app-logo-stack',
                     href: path('backend_platform_login'),

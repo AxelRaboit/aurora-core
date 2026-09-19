@@ -9,6 +9,27 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Huit pixels devient la marge par défaut sur téléphone
+Les six coquilles avaient huit pixels sur les côtés et gardaient seize ou
+trente-deux en haut et en bas : deux valeurs pour une même marge, sur l'appareil
+qui a le moins de hauteur. Elles passent à huit dans les deux sens - coquille
+d'administration, espace client, les trois pages publiques et les écrans
+d'entrée.
+
+Les trois panneaux du carnet de notes suivent : trente-deux pixels de largeur
+rendus à la zone où l'on écrit.
+
+La règle qui en sort : **sur téléphone, huit est la marge par défaut, pas
+seize.** Seize ne se garde que là où du texte touche un bord dessiné -
+l'intérieur d'une carte, d'une modale. Une coquille, un panneau, une zone de
+travail n'ont rien à protéger.
+
+Le relevé qui reste à traiter, écrit dans le plan : cent endroits du back-office
+portent encore seize pixels sans variante responsive - quarante-et-une cartes,
+vingt-huit blocs intérieurs, trente-et-un divers. Les cellules de tableau en
+comptent trois cents de plus, hors sujet : le téléphone ne voit jamais un
+tableau, il reçoit des cartes.
+
 #### La page de signature et l'administration, relues au doigt
 Les deux derniers écrans de la conversion. Pour voir le premier, il a fallu
 envoyer un contrat depuis l'interface et relever le lien dans la boîte de test :
