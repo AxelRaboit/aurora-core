@@ -189,9 +189,12 @@ function reactionCount(comment, type) {
                  stays empty and takes no room. -->
             <div v-if="captcha.enabled" ref="captchaBox" class="min-h-0" />
 
+            <!-- Pleine largeur sous `sm` : c'est la seule chose à faire au
+                 bout du formulaire, et un bouton de quatre-vingts pixels collé
+                 au bord gauche se cherche plus qu'il ne s'atteint. -->
             <button
                 type="submit"
-                class="px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-medium disabled:opacity-60"
+                class="w-full sm:w-auto px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-medium disabled:opacity-60"
                 :disabled="sending"
             >
                 {{ t("frontend.editorial.comments.submit") }}

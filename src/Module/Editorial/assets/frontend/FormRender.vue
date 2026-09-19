@@ -156,11 +156,14 @@ function inputType(type) {
              expires while the visitor is still filling in step three. -->
         <div v-if="captcha.enabled && isLastStep" ref="captchaBox" class="min-h-0" />
 
+        <!-- `flex-1` sous `sm`, taille naturelle au-dessus : à une étape il n'y
+             a qu'un bouton et il prend la ligne, à deux ils se la partagent en
+             deux moitiés. La règle suit ce qui est là plutôt qu'un cas fixe. -->
         <div class="flex items-center gap-2">
             <button
                 v-if="steps?.length && stepIndex > 0"
                 type="button"
-                class="px-4 py-2 rounded-lg border border-line text-sm text-secondary"
+                class="flex-1 sm:flex-none px-4 py-2 rounded-lg border border-line text-sm text-secondary"
                 v-on:click="goToStep(stepIndex - 1)"
             >
                 {{ t("frontend.editorial.forms.previous") }}
@@ -169,7 +172,7 @@ function inputType(type) {
             <button
                 v-if="!isLastStep"
                 type="button"
-                class="px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-medium"
+                class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-medium"
                 v-on:click="goToStep(stepIndex + 1)"
             >
                 {{ t("frontend.editorial.forms.next") }}
@@ -178,7 +181,7 @@ function inputType(type) {
             <button
                 v-else
                 type="submit"
-                class="px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-medium disabled:opacity-60"
+                class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-accent-600 text-white text-sm font-medium disabled:opacity-60"
                 :disabled="sending"
             >
                 {{ t("frontend.editorial.forms.submit") }}

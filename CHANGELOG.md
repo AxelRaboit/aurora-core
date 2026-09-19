@@ -9,6 +9,16 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Les boutons des formulaires publics prennent la ligne
+Les pages d'authentification l'avaient déjà ; les deux formulaires écrits à la
+main du site ne l'avaient pas. « Publier » sous un commentaire faisait quatre-
+vingts pixels collés au bord gauche d'un écran de trois cent soixante-quinze, et
+le bouton d'un formulaire de contact autant. Ils prennent les trois cent
+quarante-trois pixels de la ligne sous `sm`.
+
+Le formulaire à étapes suit la même règle que les cartes : seul, le bouton prend
+la ligne ; à deux, « Précédent » et « Envoyer » s'en partagent les moitiés.
+
 #### Huit pixels aussi entre les blocs
 La marge autour était à huit, le rythme entre les blocs restait à seize : sur la
 liste des publications, la barre de recherche, le bouton d'actions, le panneau
