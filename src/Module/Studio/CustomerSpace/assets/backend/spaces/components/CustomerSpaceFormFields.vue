@@ -321,9 +321,10 @@ function removeMember(userId) {
                         v-on:update:model-value="setRole(member.userId, $event)"
                     />
                     <AppButton
-                        variant="ghost"
+                        variant="icon"
                         size="sm"
                         :aria-label="t('backend.studio.spaces.member_remove')"
+                        class="p-1.5 text-muted hover:text-primary"
                         v-on:click="removeMember(member.userId)"
                     >
                         <X class="w-3.5 h-3.5" :stroke-width="2" />

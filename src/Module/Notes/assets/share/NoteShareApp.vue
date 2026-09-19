@@ -40,7 +40,7 @@ function titleOf(node) {
 </script>
 
 <template>
-    <div class="flex flex-col gap-4 md:flex-row md:items-start">
+    <div class="flex flex-col gap-2 sm:gap-4 md:flex-row md:items-start">
         <nav
             v-if="hasTree"
             class="w-full shrink-0 rounded-xl border border-line bg-surface p-2 md:w-64"

@@ -68,7 +68,7 @@ function onItemClick(entry) {
         <Teleport to="body">
             <div
                 v-if="open"
-                class="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4"
+                class="fixed inset-0 z-50 flex items-start justify-center pt-20 px-2 sm:px-4"
             >
                 <div class="absolute inset-0 bg-black/50" v-on:click="toggle" />
                 <div class="relative w-full max-w-2xl bg-surface border border-line rounded-xl shadow-2xl flex flex-col max-h-[70vh]">
@@ -106,7 +106,7 @@ function onItemClick(entry) {
                             <button
                                 v-if="deletePath"
                                 type="button"
-                                class="opacity-0 group-hover:opacity-100 shrink-0 p-3 text-muted hover:text-rose-500 transition-all"
+                                class="sm:opacity-0 sm:group-hover:opacity-100 shrink-0 p-3 text-muted hover:text-rose-500 transition-all"
                                 :title="t('backend.notifications.delete')"
                                 v-on:click.stop="deleteOne(entry)"
                             >

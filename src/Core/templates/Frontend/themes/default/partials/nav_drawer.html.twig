@@ -1,0 +1,49 @@
+{# Le tiroir de navigation du téléphone.
+
+   Sept entrées font mille pixels de liens pour une ligne qui en offre trois
+   cent cinquante-neuf : sous `md` la barre se repliait sur deux lignes et
+   prenait cent trente-sept pixels avant que la page commence, et la première
+   page ajoutée par un client en aurait fait trois. Les entrées passent donc
+   derrière un bouton, et la barre retombe à une rangée.
+
+   `<details>` plutôt qu'une case à cocher ou un bouton : le navigateur donne
+   l'ouverture, la fermeture, le clavier et l'état annoncé aux lecteurs
+   d'écran, et le tiroir fonctionne avant qu'une ligne de JavaScript arrive.
+   `data-dropdown` y ajoute Échap (`shared/utils/detailsDropdown.js`), et le
+   voile est refermé par `shared/utils/navDrawer.js`. Sans l'un ni l'autre, le
+   bouton qui a ouvert le tiroir le referme : il reste au-dessus du voile et
+   montre une croix tant que le panneau est là.
+
+   Le panneau est `fixed`, et c'est pour lui que l'en-tête ne porte plus son
+   flou lui-même : `backdrop-filter` fait de son élément le bloc conteneur de
+   ses descendants fixes, et `inset-y-0` s'arrêtait aux cent trente-sept pixels
+   de la barre au lieu de tenir la hauteur de l'écran. Voir `layout.html.twig`.
+
+   Attend : `primaryMenu`, `accountMenu`. #}
+<details class="group md:hidden" data-dropdown data-nav-drawer>
+    <summary class="relative z-50 flex cursor-pointer list-none select-none items-center rounded-md p-2 text-secondary transition-colors hover:bg-surface-2/60 hover:text-primary [&::-webkit-details-marker]:hidden">
+        <span class="sr-only">{{ 'shared.main_menu'|trans }}</span>
+        {{ include('@Shared/components/icon.html.twig', {name: 'menu', class: 'w-6 h-6 group-open:hidden', size: 24}) }}
+        {{ include('@Shared/components/icon.html.twig', {name: 'x', class: 'w-6 h-6 hidden group-open:block', size: 24}) }}
+    </summary>
+
+    <div data-nav-drawer-veil class="fixed inset-0 z-30 bg-black/40" aria-hidden="true"></div>
+
+    <nav
+        class="fixed inset-y-0 right-0 z-40 flex w-[min(19rem,85vw)] flex-col gap-2 overflow-y-auto border-l border-line bg-bg p-2 pt-16 text-sm"
+        aria-label="{{ 'shared.main_menu'|trans }}"
+    >
+        <div class="flex flex-col gap-0.5">
+            {{ include('Frontend/themes/default/partials/menu_mobile.html.twig', {items: primaryMenu}) }}
+        </div>
+
+        {# Le compte n'est pas une page du site, c'est une porte de service :
+           il se range en bas, derrière un filet, plutôt qu'au milieu des
+           rubriques. #}
+        {% if accountMenu is not empty %}
+            <div class="mt-auto flex flex-col gap-0.5 border-t border-line pt-2">
+                {{ include('Frontend/themes/default/partials/menu_mobile.html.twig', {items: accountMenu}) }}
+            </div>
+        {% endif %}
+    </nav>
+</details>

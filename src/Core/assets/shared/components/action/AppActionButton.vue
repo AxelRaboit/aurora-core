@@ -19,6 +19,19 @@
  *
  * Renders an `<a>` when given `href`, a `<button>` otherwise - some actions are
  * navigations (impersonating a user) and should be openable in a new tab.
+ *
+ * **`align` choisit entre deux conventions, pas entre deux goûts.** À gauche,
+ * c'est un menu : les libellés partent tous du même bord, le regard descend une
+ * colonne et l'icône reste collée à son mot. C'est ce que font Gmail, Slack et
+ * les menus Material, et c'est ce qu'il faut à une feuille d'actions où l'on
+ * cherche un geste parmi d'autres. Au centre, c'est un bouton : la paire icône
+ * + mot se pose au milieu de sa ligne, ce que font les feuilles d'iOS et toutes
+ * les cartes où chaque geste est une destination plutôt qu'une entrée de liste.
+ *
+ * Ce qu'il ne faut pas faire, c'est centrer le texte en laissant l'icône
+ * accrochée au bord : l'écart entre les deux change à chaque libellé, et
+ * l'icône cesse d'appartenir au mot qu'elle illustre. Les deux voyagent
+ * ensemble ou pas du tout.
  */
 import { Loader2 } from "lucide-vue-next";
 
@@ -37,6 +50,8 @@ const props = defineProps({
      * spinner beside it, so the row does not shift while it waits.
      */
     loading: { type: Boolean, default: false },
+    /** `start` pour une liste de gestes, `center` pour une rangée de boutons. */
+    align: { type: String, default: "start" },
 });
 
 const colors = {
@@ -55,15 +70,23 @@ const resolved = colors[props.color] ?? colors.default;
     <component
         :is="href ? 'a' : 'button'"
         v-bind="href ? { href } : { type: 'button', disabled: disabled || loading }"
-        class="w-full flex items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors no-underline disabled:cursor-not-allowed disabled:opacity-50"
-        :class="[resolved.bg, resolved.text]"
+        class="w-full flex gap-3 rounded-lg px-3 py-2.5 transition-colors no-underline disabled:cursor-not-allowed disabled:opacity-50"
+        :class="[
+            resolved.bg,
+            resolved.text,
+            'center' === align ? 'items-center justify-center text-center' : 'items-start text-left',
+        ]"
     >
-        <span v-if="loading || $slots.icon" class="shrink-0 pt-0.5" :class="resolved.icon">
+        <span
+            v-if="loading || $slots.icon"
+            class="shrink-0"
+            :class="['center' === align ? '' : 'pt-0.5', resolved.icon]"
+        >
             <Loader2 v-if="loading" class="w-4 h-4 animate-spin" :stroke-width="2" />
             <slot v-else name="icon" />
         </span>
 
-        <span class="min-w-0 flex-1">
+        <span class="min-w-0" :class="'center' === align ? '' : 'flex-1'">
             <span class="block text-sm" :class="description ? 'font-semibold' : ''">
                 {{ title }}
             </span>

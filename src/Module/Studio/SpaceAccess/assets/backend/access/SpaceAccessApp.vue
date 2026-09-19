@@ -29,7 +29,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
-import { Copy, Link2, Trash2, X } from "lucide-vue-next";
+import { Ban, Copy, Link2, Trash2, X } from "lucide-vue-next";
 
 const { t, d } = useI18n();
 const { can } = usePrivileges();
@@ -154,8 +154,12 @@ function openedLabel(link) {
             <p class="max-w-xl text-sm text-secondary">
                 {{ t("backend.studio.space_access.intro") }}
             </p>
+            <!-- Pleine largeur sur téléphone, comme partout ailleurs dans
+                 l'espace : c'est le seul geste de la page, il n'a pas à se
+                 serrer contre le bord droit. -->
             <AppButton
                 v-if="canShare"
+                class="w-full sm:w-auto"
                 variant="primary"
                 size="sm"
                 v-on:click="openIssue"
@@ -178,17 +182,17 @@ function openedLabel(link) {
             <p class="mt-1 text-xs text-secondary">
                 {{ t("backend.studio.space_access.minted_hint") }}
             </p>
-            <div class="mt-3 flex flex-wrap items-center gap-2">
+            <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 <code
                     class="min-w-0 flex-1 truncate rounded-md border border-line bg-surface px-3 py-2 font-mono text-xs text-primary"
                 >
                     {{ mintedUrl }}
                 </code>
-                <AppButton variant="ghost" size="sm" v-on:click="copy(mintedUrl)">
+                <AppButton class="w-full sm:w-auto" variant="ghost" size="sm" v-on:click="copy(mintedUrl)">
                     <Copy class="h-3.5 w-3.5" :stroke-width="2" />
                     {{ t("shared.common.copy") }}
                 </AppButton>
-                <AppButton variant="ghost" size="sm" v-on:click="mintedUrl = ''">
+                <AppButton class="w-full sm:w-auto" variant="ghost" size="sm" v-on:click="mintedUrl = ''">
                     <X class="h-3.5 w-3.5" :stroke-width="2" />
                     {{ t("shared.common.close") }}
                 </AppButton>
@@ -202,10 +206,16 @@ function openedLabel(link) {
         />
 
         <ul v-else class="divide-y divide-line/40 rounded-xl border border-line/60 bg-surface">
+            <!-- **Empilé sur téléphone.** Le nom, l'adresse, l'état et les
+                 deux gestes tenaient sur une ligne qui repliait chaque mot :
+                 « Camille, g… », « Jamais ouvert · Expire » sur cinq lignes, et
+                 « Révoquer » coincé entre les deux. En colonne, chaque chose a
+                 sa ligne et la largeur qui va avec ; côte à côte dès qu'il y a
+                 la place. -->
             <li
                 v-for="link in links"
                 :key="link.id"
-                class="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3"
+                class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4"
             >
                 <div class="min-w-0 flex-1">
                     <p class="truncate text-sm font-medium text-primary">
@@ -232,7 +242,7 @@ function openedLabel(link) {
                 </div>
 
                 <span
-                    class="shrink-0 rounded-full px-2 py-0.5 text-xs"
+                    class="w-fit shrink-0 rounded-full px-2 py-0.5 text-xs"
                     :class="{
                         'bg-emerald-500/10 text-emerald-500': stateOf(link) === 'active',
                         'bg-surface-2 text-muted': stateOf(link) !== 'active',
@@ -241,24 +251,33 @@ function openedLabel(link) {
                     {{ t(`backend.studio.space_access.states.${stateOf(link)}`) }}
                 </span>
 
-                <div v-if="canShare" class="flex shrink-0 items-center gap-1">
+                <!-- **Deux gestes, une même forme.** L'un était un mot sans
+                 contour, l'autre une corbeille sans mot : côte à côte ils ne
+                 se ressemblaient pas assez pour se lire comme le couple qu'ils
+                 sont, et sur téléphone le second n'offrait qu'une cible de
+                 vingt-six pixels. Chacun porte maintenant son icône, son nom
+                 et son cadre, et ils se partagent la ligne. -->
+                <div v-if="canShare" class="flex w-full shrink-0 items-center gap-2 sm:w-auto">
                     <AppButton
                         v-if="link.usable"
-                        variant="ghost"
+                        class="flex-1 sm:flex-none"
+                        variant="secondary"
                         size="sm"
                         :loading="revoking === link.id"
                         v-on:click="revoke(link)"
                     >
+                        <Ban class="h-3.5 w-3.5" :stroke-width="2" />
                         {{ t("backend.studio.space_access.revoke") }}
                     </AppButton>
-                    <button
-                        type="button"
-                        class="rounded p-1.5 text-muted transition-colors hover:text-red-500"
-                        :aria-label="t('shared.common.delete')"
+                    <AppButton
+                        class="flex-1 sm:flex-none"
+                        variant="danger-outline"
+                        size="sm"
                         v-on:click="confirmDelete(link)"
                     >
                         <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                    </button>
+                        {{ t("shared.common.delete") }}
+                    </AppButton>
                 </div>
             </li>
         </ul>

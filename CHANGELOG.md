@@ -5,6 +5,813 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.204] - 2026-09-19
+
+### Modifié
+
+#### Le calendrier que voit le client prend sa forme de téléphone
+Les quatre calendriers d'Aurora dessinent la même grille. Trois d'entre eux
+passent en index à pastilles sous cinq cent soixante pixels, avec la liste du
+jour choisi en dessous : sept colonnes dans trois cent soixante-quinze pixels
+font des cases de cinquante, la place d'un numéro de jour et pas celle d'un
+titre. Le quatrième, celui que le client ouvre depuis son lien d'accès, ne le
+faisait pas.
+
+Il montrait donc des pastilles d'événement de trente-six pixels sur seize, la
+hauteur d'une ligne de texte. Elles deviennent des lignes de trois cent
+quarante et un sur quarante dans la liste du jour. La page raccourcit de deux
+cent vingt et un pixels au passage, et rien ne change à partir de la largeur
+d'un écran.
+
+Trois commandes de la vue client tombaient aussi sous les vingt-huit pixels
+d'une icône d'Aurora : les trois points d'un salon, le titre qui ouvre la liste
+des canaux, et « Ouvrir » sous un fichier. Passage mesuré depuis un vrai lien
+d'accès, sans compte : plus une seule cible sous vingt-huit pixels, et rien ne
+déborde.
+
+#### Trente pixels sous le pouce dans la barre d'un espace
+Passage mesuré sur soixante-sept écrans et états à trois cent soixante-quinze
+pixels : rien ne déborde, et la gouttière vaut huit partout dans le back-office.
+Trois commandes tombaient sous la taille des autres : les cinq onglets de
+l'espace client, la flèche de retour et « Ajouter un contenu » faisaient
+trente pixels sur vingt-deux, quand la moindre icône d'Aurora en fait
+vingt-huit sur vingt-huit. Une icône de quatorze pixels avec quatre pixels
+d'air au-dessus et en dessous, c'est ce qu'on rate au doigt.
+
+Elles passent à trente sur trente sous `sm`, taille inchangée au-dessus. La
+barre de l'espace y gagne huit pixels de haut, et la discussion tient toujours
+dans l'écran sans faire défiler la page.
+
+La plus petite cible de toute l'application était ailleurs : sous une vignette
+de fichier, le lien vers le contenu auquel elle appartient faisait seize pixels
+de haut, la hauteur de sa ligne de texte. Sa zone sensible monte à vingt-huit
+sans que la carte bouge.
+
+#### Les boutons des formulaires publics prennent la ligne
+Les pages d'authentification l'avaient déjà ; les deux formulaires écrits à la
+main du site ne l'avaient pas. « Publier » sous un commentaire faisait quatre-
+vingts pixels collés au bord gauche d'un écran de trois cent soixante-quinze, et
+le bouton d'un formulaire de contact autant. Ils prennent les trois cent
+quarante-trois pixels de la ligne sous `sm`.
+
+Le formulaire à étapes suit la même règle que les cartes : seul, le bouton prend
+la ligne ; à deux, « Précédent » et « Envoyer » s'en partagent les moitiés.
+
+Les quatre boutons passent au composant commun plutôt qu'à des classes recopiées
+à la main : ils gagnent l'anneau de focus au clavier, le survol, et le sablier
+pendant l'envoi, qui n'existaient sur aucun des deux formulaires publics. Au
+passage, « Précédent » portait un filet et son voisin non : deux pixels d'écart,
+et les deux boutons d'une rangée se décalaient. Ils s'étirent maintenant à la
+même hauteur.
+
+Ce qui reste écrit à la main : les pastilles de réaction sous un commentaire et
+les deux mots soulignés qui répondent ou annulent. Ce ne sont pas des boutons du
+jeu commun, et les y forcer demanderait plus de classes que d'en garder aucune.
+
+#### Huit pixels aussi entre les blocs
+La marge autour était à huit, le rythme entre les blocs restait à seize : sur la
+liste des publications, la barre de recherche, le bouton d'actions, le panneau
+de filtres et la liste étaient séparés de seize pixels chacun, et cela
+s'ajoutait aux seize de marge intérieure des cartes - trente-deux de vide entre
+deux contenus. Vingt-six écrans passent à huit sous `sm`, mesuré : les trois
+écarts de la liste des publications font maintenant huit, huit, huit.
+
+Les formulaires gardent leurs seize : entre deux champs, c'est un rythme de
+lecture, pas une gouttière, et les serrer ferait un mur.
+
+Dernier passage sur les boutons : sept commandes en icône seule portaient
+encore la variante fantôme et prenaient donc une surface sur téléphone, pour
+rien. Elles passent à `icon`, dont la transparence est voulue.
+
+#### Un bouton n'est jamais transparent sur téléphone
+Le bouton fantôme se lit à la souris : il attend le survol pour exister, et sa
+place dans une barre dense dit déjà que c'en est un. Au doigt, il n'y a pas de
+survol - et pleine largeur, sans fond, il ressemble à une ligne de texte. On ne
+sait pas qu'on peut appuyer.
+
+Sous `sm`, il porte donc une surface sourde et un filet ; au-dessus, il redevient
+le fantôme qu'il doit être. Deux cent dix-neuf boutons y gagnent d'un coup, dans
+tout le back-office.
+
+Les commandes en icône seule d'une barre gardent leur transparence : leur place
+dit ce qu'elles sont, et trois cadres alignés en haut de l'écran seraient du
+bruit. Elles passent à la variante `icon`, qui existe pour ça.
+
+#### Le même défaut cherché partout où il pouvait vivre
+Un geste principal coincé à côté d'un sélecteur de vue ou d'une feuille
+d'actions. Vingt-cinq lignes de ce genre relues dans le back-office ; trois
+portaient le défaut :
+
+- **Les fichiers d'un espace** : « Déposer un fichier » tombait à cent
+  dix-sept pixels et « Choisir dans la médiathèque » se repliait sur deux
+  lignes. Les deux prennent la ligne, le sélecteur passe dessous.
+- **Le document d'un contrat** : « Contresigner », le geste de la page, se
+  retrouvait entre un retour et une feuille d'actions. Les trois s'empilent.
+- **La présentation qu'un client ouvre** : « Présenter » prend la ligne, et la
+  page resserre sa gouttière comme les autres pages publiques.
+
+Les vingt-deux autres sont des en-têtes de carte où un titre partage la ligne
+avec une petite action, ou des paires qui tiennent déjà : « Présenter » et
+« Actions » font deux cent trente pixels sur trois cent cinquante-neuf.
+
+#### « Nouvelle note » prend la ligne
+Cent vingt-huit pixels à côté d'une bande d'onglets qui en fait deux cent
+soixante-quatorze : le seul geste de l'écran passait pour un détail de la bande.
+Il prend la ligne entière sur téléphone, les onglets la suivante.
+
+#### Les panneaux de la discussion et les voiles rendent leurs bords
+Suite du relevé, cinquante-neuf endroits relus. Ce qui bouge : les trois
+panneaux d'une discussion - l'en-tête, le fil et la zone d'écriture - où une
+bulle gagne seize pixels de largeur ; la gouttière autour des panneaux flottants
+(recherche, notifications, visionneuse) ; la barre du haut sur téléphone, qui
+s'aligne enfin sur la page qu'elle coiffe ; et l'aperçu d'une grille dans sa
+modale, où seize plus seize faisaient trente-deux.
+
+Ce qui ne bouge pas, et pourquoi : vingt-quatre cellules de tableau, que le
+téléphone ne voit jamais ; les blocs de texte d'une carte, qui sont la marge
+validée à seize ; les entrées de menu et les lignes de liste, où seize pixels ne
+sont pas de l'espace perdu mais la cible que vise le pouce.
+
+#### Huit pixels devient la marge par défaut sur téléphone
+Les six coquilles avaient huit pixels sur les côtés et gardaient seize ou
+trente-deux en haut et en bas : deux valeurs pour une même marge, sur l'appareil
+qui a le moins de hauteur. Elles passent à huit dans les deux sens - coquille
+d'administration, espace client, les trois pages publiques et les écrans
+d'entrée.
+
+Les trois panneaux du carnet de notes suivent : trente-deux pixels de largeur
+rendus à la zone où l'on écrit.
+
+La règle qui en sort : **sur téléphone, huit est la marge par défaut, pas
+seize.** Seize ne se garde que là où du texte touche un bord dessiné -
+l'intérieur d'une carte, d'une modale. Une coquille, un panneau, une zone de
+travail n'ont rien à protéger.
+
+Les quarante-et-une cartes qui portaient encore seize pixels ont été relues une
+par une : huit enveloppaient une liste, une grille ou une barre d'outils et
+n'avaient rien à protéger - la barre de fil d'Ariane de la médiathèque, ses
+barres de sélection, celle de la corbeille, les panneaux de calendriers, la
+grille de contenu, l'éditeur de présentation. Elles passent à huit. Les
+trente-trois autres portent du texte contre un bord dessiné et gardent leurs
+seize, qui sont ceux de la carte validée sur les espaces clients.
+
+La règle ne vaut que sous `sm` : sur un grand écran, seize ou vingt-quatre
+pixels ne coûtent rien et aèrent, donc chaque réduction s'écrit avec sa
+contrepartie `sm:` et le bureau ne bouge pas.
+
+Reste au relevé : vingt-huit blocs intérieurs et trente-et-un divers, suivis
+dans le plan. Les cellules de tableau en comptent trois cents de plus, hors
+sujet : le téléphone ne voit jamais un tableau, il reçoit des cartes.
+
+#### La page de signature et l'administration, relues au doigt
+Les deux derniers écrans de la conversion. Pour voir le premier, il a fallu
+envoyer un contrat depuis l'interface et relever le lien dans la boîte de test :
+la page tient à trois cent soixante-quinze, « Signer le contrat » prend la
+ligne, et « Recevoir le code » la prend aussi maintenant - c'est l'étape
+d'avant, sur une page qu'un client ouvre presque toujours au téléphone.
+
+Côté administration, les cinq tableaux tiennent chacun dans leur propre boîte
+qui défile, la gouttière est celle de tout le monde, et les sept onglets vivent
+dans le tiroir du menu, qui les donne sur un téléphone.
+
+#### La même gouttière sur chaque écran, vérifiée écran par écran
+Vingt-deux pages du back-office relevées une par une : toutes à huit pixels de
+gouttière, la carte à huit du bord et seize de marge intérieure - la mesure
+prise sur les espaces clients, qui sert de référence. Les quatre adresses
+restantes du relevé ne sont pas des pages mais des réponses JSON.
+
+Ce qui manquait à l'appel : les **écrans d'entrée**, restés à seize pixels, et
+le bouton d'actions des thèmes comme les boutons d'enregistrement des réglages,
+qui gardaient leur largeur naturelle dans un coin.
+
+Et le graphe des notes mesurait sa hauteur en `vh` : sur un téléphone, cette
+unité compte la barre d'adresse qui n'est pas là, et le graphe sortait de
+l'écran par le bas.
+
+#### D'un client à ses espaces, en une entrée
+Un client existe pour ce qu'on fait avec lui, et ce qu'on fait avec lui vit
+dans ses espaces : depuis la liste des clients, aucun chemin n'y menait, ni sur
+téléphone ni sur un écran large. Il fallait passer par le menu, ouvrir la liste
+des espaces et retaper le nom. **Ses espaces** le tape pour vous.
+
+Ce qui rend le lien possible : une liste filtrée lit maintenant `?search=` dans
+son adresse au premier rendu. `useUrlSearchSync` écrivait ce paramètre pour
+qu'une liste filtrée se partage, mais personne ne le relisait - le lien arrivait
+sur la liste entière et le mot tapé ne servait qu'à celui qui l'avait tapé.
+Toutes les listes filtrées de l'application deviennent adressables du même coup.
+
+#### Contrats et présentations passent au dessin commun des cartes
+Leurs gestes étaient repliés à leur taille naturelle, deux par ligne, avec une
+colonne ragoteuse au milieu. Ils prennent le dessin décidé pour les autres
+cartes - à deux ils partagent la ligne, à trois et plus ils s'empilent - et
+sceller un contrat garde son ambre, que la liste reprend de la feuille
+d'actions.
+
+#### L'éditeur de publication faisait défiler la page de côté
+Ses sept onglets - paramétrage, apparence, en-tête, contenu, galerie, SEO,
+traductions - font sept cents pixels. Sans boîte pour les tenir, c'est la page
+entière qui partait de côté sur téléphone, éditeur compris : on écrivait dans
+un champ qu'il fallait ramener du doigt. La bande défile seule maintenant, et
+la page ne bouge plus - mesuré à trois cent soixante-quinze, sur les sept
+onglets.
+
+#### Les cartes et les modales rendent leurs bords sur téléphone
+La gouttière de la page était passée à huit pixels, mais ce qui est dedans
+gardait ses vingt-quatre : sur trois cent soixante-quinze, le texte d'une carte
+commençait à trente-trois pixels du bord de l'écran. Trente-quatre cartes
+passent à douze ou seize sous `sm` et retrouvent leur aise à partir de là.
+
+Deux endroits partagés comptent plus que les autres : **toutes les modales** de
+l'application, dont le champ gagne seize pixels, et la carte de connexion.
+
+#### La corbeille rendait trois pixels au nom de ce qu'elle contient
+« Restaurer » et « Supprimer définitivement » font trois cents pixels à eux
+deux ; sur trois cent cinquante-neuf, il en restait **trois** pour le nom de la
+ligne, qui se pliait en colonne d'une lettre par ligne. Le nom prend sa ligne,
+les deux gestes la suivante, moitié-moitié.
+
+Sur le profil, les trois boutons « Enregistrer » et la suppression du compte
+prennent aussi la ligne entière, et les règles du mot de passe passent à une par
+ligne : à deux colonnes, « Une lettre majuscule » tombait dans cent
+quarante-six pixels et repassait à la ligne, ce qui donnait quatre règles sur
+six lignes mal alignées.
+
+#### Partager ou renommer un calendrier, au doigt
+Les deux boutons d'une ligne de calendrier n'apparaissaient qu'au survol. Sur un
+téléphone, où le survol n'existe pas, il n'y avait aucun moyen de partager un
+calendrier ni de le renommer. Sous `md` ils restent affichés, à côté du compte
+plutôt qu'à sa place, et leur cible passe de quatorze à vingt-deux pixels sans
+que la ligne bouge. Au-dessus, le survol reprend la main.
+
+#### Le planning partagé se lit vraiment sur un téléphone
+Trois choses manquaient sur la page qu'un invité ouvre sans compte :
+
+- **Une case du mois ne répondait pas.** Elle tient trois pastilles et un
+  nombre : on voyait qu'il se passait quelque chose, jamais quoi. Taper un jour
+  ouvre maintenant sa liste, comme côté studio.
+- **L'onglet « Semaine » mentait.** Sous `md`, sept colonnes ne tiennent pas et
+  la vue retombe sur le jour - mais l'onglet restait allumé en montrant un seul
+  jour. Il s'efface là où il est refusé, et revient avec la place, le choix
+  gardé. Même correction sur le planning du studio.
+- **Un rappel offrait sa case à cocher** à quelqu'un qui n'a le droit de rien
+  cocher. Il prend la barre de couleur d'un événement : pour qui lit, c'est
+  quelque chose à vingt heures. Un rappel déjà fait garde sa coche, qui est un
+  fait.
+
+#### Le nombre d'événements d'une case pesait quatre fois ses pastilles
+Dans la grille compacte du mois, au-delà de trois événements, les pastilles
+laissent place à un nombre. Il s'affichait en seize pixels à côté de pastilles
+de quatre, plus gros que le numéro du jour : la classe `text-3xs` qu'il portait
+n'existe dans aucun thème, donc le nombre héritait simplement de la taille du
+corps. Dix pixels, et il repasse sous le numéro du jour, qui en fait douze.
+
+#### Se connecter sans faire défiler une page de vente
+Sur téléphone, les huit écrans d'entrée montraient d'abord l'argumentaire - le
+titre, la phrase et les quatre atouts, près de cinq cents pixels - et le champ
+e-mail arrivait après. Quelqu'un qui vient se connecter fait maintenant face au
+formulaire : le logo, la carte, puis l'argumentaire en dessous. À partir de
+`lg`, les deux colonnes reprennent leur place et l'ordre écrit redevient l'ordre
+lu.
+
+Les trois pages publiques - planning partagé, note partagée, espace client -
+resserrent leur gouttière comme le reste, et signent au centre : « Aurora » était
+collé au bord gauche là où la page de connexion le centrait depuis toujours.
+
+#### Éditorial passe au gabarit mobile
+Six écrans relus à trois cent soixante-quinze pixels, et ce qui s'y repliait
+corrigé :
+
+- **Les commentaires** écrivent leurs gestes sous la carte - approuver,
+  indésirable, supprimer - et l'adresse passe sous le nom : les deux sur une
+  ligne donnaient « Best SEO Offer <contact@e… », où le nom perd sa fin et
+  l'adresse n'a jamais commencé. Les trois points restent là où il y a une
+  souris.
+- **Les galeries** empilent leur ligne : le titre tombait à cent trente-deux
+  pixels pour laisser la place à « Aucune photo » et au bouton. Il prend la
+  ligne, ils prennent la suivante.
+- **Taxonomies, types de contenu et formulaires** donnent la ligne entière à
+  leur bouton d'actions. La largeur est posée sur l'enfant rendu et non sur le
+  composant : une feuille d'actions a deux racines, le déclencheur et sa
+  modale, et Vue laisse alors tomber les attributs qu'on lui passe - ce qui
+  explique pourquoi la même classe fonctionnait ailleurs, dans une barre de
+  liste qui visait déjà l'enfant.
+- **« Ajouter un champ »** se réduit à son plus en face du titre de son bloc.
+- **Le tableau de bord** ne fait plus défiler sa bande d'onglets : cinq
+  libellés font quatre cent quarante-neuf pixels pour trois cent cinquante-neuf
+  de bande, sur l'écran d'arrivée. Seul l'onglet ouvert garde son nom, les
+  autres leur icône - deux cent quarante-sept pixels, et plus rien à faire
+  glisser.
+
+Rien à corriger sur les menus, qui tenaient déjà.
+
+#### La médiathèque se laissait regarder, pas manipuler, au doigt
+Les trois gestes d'une vignette - voir, modifier, QR code - vivaient dans un
+voile qui n'apparaît qu'au survol. Sur un téléphone, où le survol n'existe pas,
+modifier un document depuis la médiathèque était **impossible** : la carte
+entière ouvrait l'aperçu, et rien d'autre n'était atteignable. Sous `sm`, un
+bouton visible ouvre donc la feuille des six gestes ; au-dessus, le survol
+reste.
+
+Dans la foulée, deux choses qui mentaient sur cet écran. L'interrupteur
+vignettes / liste disparaît là où le conteneur impose déjà les vignettes. Et le
+bloc de cartes qui attendait « liste **et** étroit » a été retiré : les deux ne
+sont jamais vrais ensemble, il ne s'est donc jamais affiché - soixante-cinq
+lignes qui décrivaient un écran que personne n'a vu.
+
+Les cartes des clients, des espaces et de la médiathèque écrivent maintenant
+leurs gestes comme celles des publications.
+
+#### Sur une carte, les gestes sont écrits
+Une carte de téléphone est déjà la feuille d'actions ouverte : elle occupe
+toute la ligne, la place de nommer ce qu'on peut faire ne manque pas. Les
+cacher derrière trois points y ajoutait un geste sans économiser un pixel, et
+posait une modale par-dessus la liste qu'on était en train de lire.
+
+`AppCardActions` dessine donc les mêmes lignes que la feuille, sans la modale :
+même ordre, mêmes couleurs, le rouge sur ce qui détruit, une cible de quarante
+pixels de haut sur toute la largeur. Les descriptions, elles, restent à la
+feuille : une phrase sous chaque geste a sa place devant une décision, pas
+répétée sous les neuf cartes d'une liste, où elle doublait la hauteur de la
+page pour redire neuf fois ce qu'on avait lu la première.
+
+Sur une carte, chaque rangée centre son libellé et son icône ensemble : à
+pleine largeur c'est un bouton qu'on vise, pas une entrée de liste qu'on
+parcourt. La feuille, elle, garde son bord gauche, parce qu'on y cherche un
+geste parmi d'autres et que ses lignes portent une phrase d'explication. Ce
+qu'on ne fait nulle part : centrer le texte en laissant l'icône accrochée au
+bord, où l'écart entre les deux change à chaque libellé.
+
+Deux gestes se partagent la ligne, trois et plus s'empilent : à deux, chaque
+moitié fait cent soixante-dix pixels, assez pour « Supprimer » et juste ce qu'il
+faut pour que la rangée remplisse la carte au lieu d'étirer deux mots sur trois
+cent quarante. À trois, les colonnes tomberaient à cent dix et
+« Prévisualiser » n'y tiendrait plus.
+
+En place sur les publications, les catégories et les étiquettes de la
+médiathèque.
+
+#### Le back-office entier récupère seize pixels sur téléphone
+La coquille d'administration donnait seize pixels de gouttière de chaque côté
+et trente-deux en haut, sur le seul appareil qui n'en a pas à donner. Huit et
+seize suffisent : les cartes gardent leurs coins arrondis, donc elles se lisent
+toujours comme des blocs posés. C'est la seule marge que les quarante-six
+écrans partagent, donc la seule qui se corrige une fois.
+
+Dans la même veine, la barre de liste partagée met ses actions dans leur propre
+boîte : posées directement dans la grille, deux boutons devenaient deux cellules
+et cassaient la colonne de droite, et chacun gardait sa largeur naturelle,
+collé à gauche d'un vide de deux cent cinquante pixels. Ils prennent la ligne
+sous `sm` et retrouvent leur taille au-dessus, dans les neuf listes qui en
+héritent : Publications, Galeries, Catégories et Étiquettes de la médiathèque,
+Contrats, Modèles, Clients, Espaces, Présentations.
+
+Et sur la fiche d'une publication lue au téléphone, les quatre gestes -
+modifier, prévisualiser, dupliquer, supprimer - prennent chacun leur ligne
+entière au lieu de se replier deux par deux en laissant une colonne ragoteuse
+au milieu de la carte.
+
+#### La discussion tient dans l'écran, sans faire défiler la page
+Sur téléphone, la conversation dépassait de soixante pixels : assez pour que la
+page bouge, pas assez pour que ça serve. Elle prend maintenant **exactement** la
+place laissée par l'en-tête, quelle que soit la hauteur de celui-ci, et c'est le
+fil qui défile en dedans pendant que le champ d'écriture reste sous le pouce.
+
+La coquille ne devine plus : une soustraction en dur - la fenêtre moins huit rem
+et demie - valait pour un en-tête sur une ligne, et sur téléphone il en prend
+deux. L'écran qui veut tenir dedans le demande, et la page lui donne la hauteur
+ferme sans laquelle une colonne flex n'a rien à distribuer. Sur un écran
+vraiment bas, la page redéfile plutôt que de couper le champ d'écriture.
+
+#### Ce qui prenait de la place pour ne rien dire
+- **L'état du direct** est une icône. « reconnexion… » prenait cent trente
+  pixels au nom du salon, qui passait à la ligne pour un mot qu'on lit une fois
+  par heure ; l'antenne barrée et sa couleur disent la même chose, et le mot
+  reste à l'infobulle et au lecteur d'écran.
+- **Le champ d'écriture** dit « Écrire un message… ». Le rappel des raccourcis
+  quittait soixante caractères de la phrase qu'on lit avant d'écrire ; il
+  occupe maintenant le vide à gauche du bouton Envoyer, à partir de `md` et
+  donc sur les écrans qui ont un clavier.
+- **« Ajouter un contenu »** se réduit à son plus en tête de colonne, où le
+  libellé se repliait sur trois lignes en face du nom de la colonne.
+- **Le choix kanban / liste** disparaît là où il est déjà refusé : un conteneur
+  étroit impose la liste, et un interrupteur qui ne change rien à l'écran se lit
+  comme un interrupteur cassé. Ce qui a été choisi est gardé, et le bouton
+  revient avec la place.
+- **La pastille « interne »** ne s'affiche plus sur une conversation privée, où
+  elle répondait à une question que personne ne se pose.
+- **« Ce que vous écrivez ici est lu par le client »** ne s'affiche plus sous la
+  zone de saisie du salon principal. Les deux phrases qui disent l'inverse - un
+  canal interne, une conversation privée - restent : ce sont celles où se
+  tromper coûte quelque chose.
+- **Révoquer et supprimer un lien d'accès** ont la même forme : chacun porte son
+  icône, son nom et son cadre, et ils se partagent la ligne. L'un était un mot
+  sans contour, l'autre une corbeille sans mot, avec vingt-six pixels de cible
+  sur téléphone.
+- **La date d'un contenu** repart du bord gauche de sa carte. Elle était calée
+  sous le titre, donc décalée de la largeur d'une vignette, y compris sur les
+  fiches qui n'en ont pas : la date partait seule vers le milieu.
+
+#### Les gestes se prennent la ligne entière sur téléphone
+Envoyer un message, créer un lien d'accès, ouvrir un canal au client, ajouter
+quelqu'un, supprimer : chacun prend toute la largeur sous `sm`, et retrouve sa
+taille naturelle dès qu'il y a la place. Trois boutons côte à côte dans trois
+cents pixels tenaient chacun sur deux lignes sans offrir de cible franche.
+
+L'accès client s'empile pour la même raison : le nom, l'adresse, l'échéance et
+l'état avaient une ligne à se partager, et « Camille, g… » était tout ce qu'on
+en lisait.
+
+#### Ouvrir un canal, parler à quelqu'un : deux modales
+Le rail dépliait ses formulaires en dessous de lui, dans deux cents pixels de
+large, et sur téléphone dans un tiroir qui couvre déjà la conversation. Le nom
+d'un nouveau canal et le choix d'une personne se demandent maintenant au milieu
+de l'écran, et le tiroir se referme derrière.
+
+#### Un fichier par ligne sur téléphone
+Deux colonnes donnaient des vignettes de cent soixante-treize pixels : une image
+qu'on devine plutôt qu'on ne la reconnaît, alors que c'est tout ce qu'on demande
+à cette vue. Celle qui reste prend la largeur, en quatre tiers plutôt qu'en
+carré pour qu'il en tienne deux et demie par écran, et le nom sous elle cesse
+d'être coupé au troisième mot. Qui veut voir beaucoup de fichiers d'un coup a la
+liste, juste à côté.
+
+#### L'espace respire mieux sur un téléphone
+Seize pixels de gouttière de chaque côté sur trois cent soixante-quinze, c'est
+près d'un dixième de la largeur donné à du vide, sur le seul appareil qui n'en
+a pas à donner. La coquille d'un espace en met **huit** sous `sm` : les cartes
+gardent leurs coins arrondis, donc elles se lisent toujours comme des blocs
+posés, et elles récupèrent seize pixels de contenu au passage.
+
+La règle vaut pour le reste de l'application : sur téléphone, la gouttière se
+réduit, elle ne disparaît pas, et rien ne change au dessin des blocs.
+
+**La liste des contenus met sa date sous le titre** sur téléphone. La date et
+la pastille d'approbation tiennent leur largeur quoi qu'il arrive, donc sur un
+écran étroit c'était le titre qui payait : « Témoignage client » s'affichait
+« Témoignag… ». Descendues sur leur propre ligne, alignées sous le titre et non
+sous la vignette, elles rendent au titre la largeur de la carte : de cent dix
+pixels à deux cent trente-sept. À partir de `sm`, la ligne reste une ligne.
+
+**La barre du haut suit.** « Retour aux espaces » prenait cent soixante-treize
+pixels sur trois cent soixante-quinze, près de la moitié de la barre pour un mot
+que le chevron dit déjà, et le nom de l'espace se retrouvait dans les cent
+soixante-dix qui restaient. Le libellé disparaît sous `sm`, le nom récupère
+trois cent vingt et un pixels et tient en entier, et les deux onglets passent en
+pleine largeur sur leur ligne : deux cibles de doigt plutôt que deux mots serrés
+à gauche d'un vide.
+
+#### Le calendrier d'un espace se lit comme celui d'un téléphone
+Sept colonnes dans 375 pixels font des cases de cinquante : la place d'un
+numéro de jour, pas celle d'un titre. Sous 560 pixels de conteneur, la grille
+devient donc un index à pastilles et les publications passent dans une liste
+sous elle, celle du jour choisi - ce que font Google et Apple, pour la même
+raison arithmétique.
+
+La grille compacte existait déjà, écrite pour le module Calendrier ; elle sert
+ici telle quelle, avec un mode « collé aux bords » en plus. La liste du jour,
+elle, est écrite dans la vue de l'espace plutôt qu'empruntée au calendrier :
+trente lignes valent mieux qu'un couplage qui casserait l'espace le jour où le
+module Calendrier n'est pas installé.
+
+### Corrigé
+
+#### Plus une seule commande sous vingt-huit pixels
+Après les boutons d'icône, le reste : les cent soixante-quatre en-têtes de
+section du menu latéral - qui ouvrent et ferment une section, donc des
+commandes et non des titres -, les onglets de tri de la médiathèque, le
+sélecteur de vue du calendrier, les étiquettes de l'arborescence des notes, les
+interrupteurs, les pastilles de couleur du menu, et le sélecteur de langue du
+site public.
+
+Les interrupteurs et les pastilles gardent leur taille dessinée et gagnent une
+zone sensible par une marge négative : la cible grandit, le dessin ne bouge pas.
+
+Compté sur quarante-huit écrans à trois cent soixante-quinze pixels : cinq cent
+quarante-six cibles sous vingt-huit pixels au début de la journée, soixante-deux
+à la fin. Ce qui reste n'est plus une commande - des cases à cocher à la taille
+du navigateur, des fils d'Ariane, des liens dans une phrase, et la page
+d'erreur de Symfony.
+
+La taille `compact` d'`AppIconButton` disparaît : zéro appel sur
+quatre-vingt-dix-sept boutons, donc un choix que personne ne faisait et qu'il
+aurait fallu maintenir.
+
+#### Quatre-vingt-dix-sept boutons d'icône passent à trente pixels sur téléphone
+Six pixels de rembourrage autour d'une icône de quatorze font une cible de
+vingt-six : très bien pour un curseur, mal pour un doigt. C'est la mesure qui a
+fait passer les onglets d'un espace à trente ; `AppIconButton` y échappait
+encore, et avec lui quatre-vingt-dix-sept boutons dans trente-sept fichiers.
+
+Un minimum et non une taille fixe, pour qu'une icône de seize pixels garde son
+air autour d'elle. Et seulement sous `sm` : grossir toutes les barres d'outils
+du back-office pour une précision que la souris a déjà serait payer un problème
+que personne n'a. Mesuré : trente sur trente à trois cent soixante-quinze
+pixels, vingt-six sur vingt-six à mille deux cent quatre-vingts.
+
+Repasse complète après coup sur quarante-huit écrans, parce qu'un composant
+partagé qui grossit peut faire déborder ailleurs : rien ne déborde.
+
+#### Onze blocs de commandes n'existaient qu'au survol
+Un survol n'existe pas au doigt. Ces commandes n'étaient pas seulement
+invisibles sur téléphone : elles restaient cliquables, donc on appuyait à
+l'aveugle sur quelque chose qu'on ne voyait pas. Les actions d'une note, la
+suppression d'un message dans une discussion ou dans le fil d'une fiche, le
+retrait d'une pièce jointe, les commandes d'une diapositive, les lignes de
+l'arborescence des notes et des dossiers, le renvoi d'une notification, les
+images d'une galerie, une couleur du thème.
+
+Elles sont visibles sous `sm` et redeviennent des commandes au survol
+au-dessus : le bureau ne bouge pas. Mesuré sur les deux largeurs - opacité 1 à
+trois cent soixante-quinze pixels, opacité 0 à mille deux cent quatre-vingts.
+
+Restent au survol ce qui n'est pas une commande : la flèche qui glisse sur une
+carte d'article, le voile « changer l'image » d'un champ dont le bouton entier
+est déjà cliquable, et les poignées de déplacement - déplacer à la souris est
+un geste de souris.
+
+#### La médiathèque annonçait des poids qui n'étaient pas ceux des fichiers
+Le poids d'un document est relevé à l'arrivée du fichier. Pour une source
+JPEG, ce nombre cesse d'être vrai une ligne plus tard : la fabrication des
+variantes ré-encode la source en place à la qualité 85 et lui retire ses
+métadonnées. Trouvé en important une photographie depuis Craft - mille cinq
+cent trente-deux mille quatre cent soixante-sept octets annoncés, deux cent
+treize mille neuf cent un sur le disque, un facteur sept.
+
+Le poids est donc relu après coup, et demandé à l'adaptateur de stockage
+plutôt qu'au disque local : la source peut vivre dans un stockage objet, où
+seul un `stat` répond honnêtement.
+
+Ce qui était déjà enregistré se rattrape avec `aurora:ged:sizes:refresh`,
+idempotente, avec un `--dry-run` qui compte sans écrire. Sur la démonstration
+locale : les huit images de la bibliothèque étaient fausses, deux mégaoctets et
+demi d'écart cumulé. Un document dont le fichier a disparu garde son poids -
+c'est un autre problème, et l'écraser à zéro le cacherait.
+
+#### L'espace débordait sur les écrans étroits
+Trois causes, trouvées en mesurant chaque élément de chaque vue plutôt qu'à
+l'œil, à 250 puis à 375 pixels.
+
+**La barre d'onglets**
+Cinq libellés côte à côte font 520 pixels : sur un écran de 375, la barre
+poussait **toute la page** à défiler de côté, pas seulement elle-même. Seul
+l'onglet ouvert porte désormais son nom sous 640 pixels ; les autres gardent
+leur icône, et leur libellé reste lisible par un lecteur d'écran, où il n'a
+jamais coûté de place. La barre passe de 523 à 245 pixels et la page ne défile
+plus latéralement.
+
+**La ligne de signature d'un message** - le nom, l'heure et la pastille
+« client » - faisait 130 pixels sur une seule ligne : dans une fenêtre de 250,
+la pastille sortait par la droite. Elle se replie maintenant.
+
+**La barre des notes** et **les cartes du mur** poussaient la page de 40
+pixels : un enfant de flex ne descend pas sous la largeur de son contenu tant
+qu'on ne l'y autorise pas, donc `max-w-full` seul n'y changeait rien. Les
+onglets « Partagées / Personnelles » défilent, les cartes suivent leur colonne,
+et un mot trop long se coupe au lieu d'élargir la carte.
+
+Résultat mesuré : plus aucune page plus large que la fenêtre, à 375 comme à
+250, côté back-office comme sur la page que lit le client.
+
+**Le rail des canaux devient un tiroir** sous 768 pixels, au lieu d'une bande
+au-dessus de la conversation : la bande prenait 107 pixels de haut à ce qu'on
+était venu lire, et une liste de salons n'est pas quelque chose qu'on lit, c'est
+quelque chose qu'on ouvre, où l'on choisit, et qui se referme. Le nom du salon
+sert de poignée, le tiroir glisse depuis la gauche, un voile couvre la
+conversation derrière, et choisir un salon referme le tout. La conversation
+passe de 629 à 674 pixels sur un écran de 812.
+
+### Ajouté
+
+#### Importer une note écrite dans Craft
+Craft garde le savoir durable, celui qui survit à un projet ; les notes d'un
+espace gardent ce qui est attaché à un travail en cours et meurt avec lui.
+Restait à faire passer un brief de l'un à l'autre sans le recopier à la main.
+
+Un bouton « Importer depuis Craft » dans les notes d'un espace ouvre la liste
+des documents, on en choisit un, il devient une note que le client lit sans
+compte Craft. **C'est une copie, pas un lien vivant** : rien à synchroniser,
+aucun conflit à arbitrer, et aucune note qui change toute seule sous les yeux
+d'un client. La note se souvient malgré tout du document d'origine, pour le
+studio seul.
+
+Deux appels HTTP, pas un client MCP en PHP. Craft expose bien son serveur MCP
+derrière un OAuth complet, mais il donne aussi, par connexion, une adresse REST
+et un jeton : `GET /documents` pour la liste, `GET /blocks` avec un en-tête
+`Accept: text/markdown` pour le contenu. C'est Craft qui rend le Markdown,
+puisque c'est lui qui connaît ses blocs.
+
+**La connexion ne porte que les documents choisis.** Craft propose les deux, et
+c'est la sélection qui est documentée dans l'écran de réglages : une
+installation vit sur un serveur loué, et un jeton qui y dort ne doit pas ouvrir
+l'intégralité d'un savoir personnel pour qu'un brief atterrisse dans un espace.
+L'intégration est éteinte tant que personne ne l'allume, et le jeton est chiffré
+au repos comme les mots de passe des points de montage.
+
+La conversion suit ce que l'éditeur accepte, et non ce que le Markdown permet :
+ses niveaux de titre sont deux, trois et quatre, donc un `#` de Craft écrit tel
+quel aurait donné un bloc que le back-office refuse d'ouvrir. Les tableaux
+survivent, les cases à cocher gardent leur état, une bascule devient son titre
+suivi de son contenu et un encadré devient une citation - faute d'outil
+équivalent monté dans l'éditeur, et le texte reste dans les deux cas.
+
+Les images sont recopiées dans le dossier de l'espace. Ce n'est pas du confort :
+une image servie depuis un espace Craft privé ne s'afficherait pas chez le
+client.
+
+**Réglé sur la vraie API, pas sur sa documentation.** La connexion publie sa
+propre spécification OpenAPI : la liste arrive sous `items` et non `documents`,
+un document supprimé garde sa ligne avec un `isDeleted` qu'il faut filtrer, et
+la clé voyage en `Authorization: Bearer`. Les balises que Craft ajoute au
+Markdown y sont aussi documentées, et l'écran d'import les traduit plutôt que
+de les laisser ressortir en `&lt;page&gt;` au milieu d'une note : le titre
+d'une page imbriquée devient un titre, un surlignage devient un surlignage, un
+fil de commentaire rend son mot, et les renvois `block://` et `date://`
+gardent leur texte et perdent une adresse qui ne mène nulle part hors de Craft.
+
+Un avertissement, écrit dans l'écran de réglages : une connexion Craft laissée
+en mode « Publique » n'est protégée par rien d'autre que le secret de son
+adresse, et sa spécification déclare dix-neuf opérations d'écriture. Mesuré sur
+une vraie connexion : `GET /documents` répondait 200 sans le moindre en-tête.
+Le mode « Clé API » et la lecture seule sont donc demandés dès la marche à
+suivre, avant même les deux champs.
+
+Deux défauts que seul un vrai document pouvait montrer. Craft indente le corps
+d'un document dans son `<content>`, et deux espaces valent chez lui un niveau
+d'imbrication : une liste à plat arrivait empilée sous sa première entrée. Le
+retrait commun est retiré à l'intérieur du `<content>` seulement, donc
+l'imbrication voulue survit. Et l'adresse publique d'un document se lit sous
+`fileUrl`, pas sous `url` : l'image partait bien dans l'espace pendant que la
+note continuait de pointer vers Craft, et le repli prévu pour un vrai échec
+masquait l'erreur de clé. Un test monte maintenant le déposeur réel plutôt
+qu'un double, puisqu'un double aurait rendu la clé qu'on lui aurait apprise.
+
+**Une note importée sait d'où elle vient, et se remet à jour d'un clic.** Le
+bouton n'apparaît que sur une note venue de Craft, et il remplace : un document
+Craft et une note d'Aurora sont deux textes que deux personnes peuvent avoir
+touchés, et décider lequel gagne ligne à ligne demanderait d'arbitrer des
+conflits - ce que ce chantier a écarté dès le départ. L'écran le dit avant de
+le faire.
+
+Ce qui appartient à Aurora survit : la couleur, l'épingle et la visibilité ne
+sont pas dans le document Craft et n'ont aucune raison d'être remises à zéro
+parce qu'un texte a changé ailleurs. Les images d'avant restent dans la
+médiathèque et celles que plus personne n'utilise sont proposées à la
+corbeille, la même règle que la suppression d'une note : sans elle, rafraîchir
+cinq fois laisserait cinq exemplaires de chaque image derrière.
+
+Rien n'est compressé au passage, et c'est voulu : `ImageVariantGenerator`
+traite déjà tout document déposé. Mesuré sur un import réel, une image de
+1 532 467 octets servie par Craft est stockée à 213 901, avec trois variantes
+WebP par-dessus.
+
+Le titre d'un document n'est écrit qu'une fois. Craft enveloppe un document
+dans une page dont la balise de titre porte son nom, et la conversion en
+faisait un titre de section - juste pour une page imbriquée, doublon pour le
+document lui-même, puisque la note le porte déjà. Vu sur le premier import
+réel, pas sur un exemple.
+
+Et l'écran d'import distingue trois états au lieu de deux : éteinte,
+injoignable, et ouverte mais vide. Les deux derniers se ressemblaient, et ne se
+réparent pas au même endroit - une connexion sans document s'arrange dans
+Craft, une clé fausse dans les réglages. Dire « aucun document » quand on n'a
+rien entendu envoie chercher au mauvais endroit.
+
+#### Un tiroir de navigation sur le site public
+Sept entrées faisaient mille vingt-huit pixels de liens pour une ligne qui en
+offre trois cent cinquante-neuf : la barre du site se repliait sur deux lignes
+et prenait cent trente-sept pixels avant que la page commence, et la première
+page ajoutée par un client en aurait fait trois. Sous `md`, le menu passe
+derrière un bouton et la barre retombe à soixante-treize pixels.
+
+Plus gênant que la hauteur : une entrée qui a des enfants ouvrait son panneau
+au survol, et le survol n'existe pas au doigt. Les sous-entrées d'un menu
+étaient donc inatteignables sur téléphone. Dans le tiroir, elles se déplient
+sur place, et l'entrée qui a elle-même une adresse garde sa page en première
+ligne du repli.
+
+Le tiroir est un `<details>` : le navigateur donne l'ouverture, le clavier et
+l'état annoncé, et tout fonctionne avant qu'une ligne de JavaScript arrive -
+celle-ci n'ajoute que la fermeture au clic sur le voile. La langue reste dans
+la barre, visible, et le compte se range en bas du tiroir, derrière un filet.
+
+Au passage, le flou de l'en-tête déménage sur une couche à lui : `backdrop-filter`
+fait de son élément le bloc conteneur de ses descendants `fixed`, et le panneau
+s'arrêtait à la hauteur de la barre au lieu de tenir l'écran. Le rendu ne bouge
+pas.
+
+#### Des canaux dans la discussion d'un espace
+Un espace n'avait qu'un seul fil, et tout ce qui n'appartenait à aucune fiche y
+tombait : le brief du mois, une campagne qui bouge, la logistique. Le brief
+défilait sous le reste.
+
+La discussion a maintenant des **canaux**. Le studio les ouvre, les renomme et
+les supprime ; le client, lui, n'en crée pas : les canaux servent à ranger le
+travail de l'agence, et un canal ouvert par le client rangerait celui de
+quelqu'un d'autre. Chaque canal porte la liste des gens qui y sont, et un
+réglage décide si le client le lit. **Un canal est fermé au client tant que
+personne ne l'ouvre**, et le canal principal, lui, ne se ferme pas : c'est la
+conversation que l'espace avait avant.
+
+Ce que le client ne lit pas, il ne le voit pas : ni le nom, ni le nombre. Son
+jeton d'abonnement nomme ses canaux un par un, et demander un canal interne par
+son identifiant répond 404 comme pour un inconnu - dire « ce canal existe mais
+pas pour vous » renseigne déjà celui qui a récupéré une adresse.
+
+**La liste est à gauche**, en colonne, comme dans les applications faites pour
+ça : une barre horizontale grandit jusqu'à passer à la ligne dans la
+conversation, et elle met les canaux sur la même ligne que le nom du canal
+ouvert, si bien que rien ne dit laquelle des deux est la liste. Sous 768
+pixels elle repasse au-dessus, faute de gauche disponible.
+
+Un espace naît avec son canal principal, et les conversations existantes y ont
+été versées par la migration.
+
+#### On peut retirer quelqu'un d'un canal
+Le pendant d'« Ajouter quelqu'un », qui manquait : une équipe change, et un
+canal dont la liste ne peut que grossir finit par n'en être plus un. Le geste
+est sur la ligne de la personne, dans les réglages du salon, là où on la
+cherche.
+
+**Rien ne s'efface.** Ce qu'elle a écrit reste dans le canal, avec son nom : un
+message est un fait daté, pas une propriété qu'on emporte en partant. Elle cesse
+de voir le salon et d'y écrire, et la réinviter la remet où elle était.
+
+Deux refus, pour les mêmes raisons qu'ailleurs : une conversation privée garde
+ses deux personnes, et un membre nommé sous un autre salon que le sien répond
+404 plutôt que de se laisser retirer.
+
+#### Supprimer un canal demande confirmation
+C'est le seul geste de ce panneau qui ne se rattrape pas : retirer une
+conversation la garde, retirer quelqu'un garde ce qu'il a écrit, supprimer un
+canal emporte ses messages. Un bouton rouge dans une liste de réglages n'est pas
+une question posée ; la question l'est maintenant, avec le nom du canal en
+titre.
+
+#### Les gestes d'un salon passent par une modale
+Quatre boutons vivaient sous le titre - renommer, ouvrir au client, ajouter
+quelqu'un, supprimer - pour des gestes qu'on fait une fois par mois, et sur
+téléphone ils passaient à la ligne. Ils sont maintenant derrière **trois
+points**, dans une modale qui a la place de dire ce que chacun fait.
+
+La même modale montre **qui est dans le salon**. « 2 personnes » était un
+chiffre sans réponse à la seule question qu'il pose.
+
+Choisir quelqu'un - pour l'ajouter à un canal ou pour lui parler en privé -
+passe aussi par une modale, avec les noms lisibles au milieu de l'écran, au lieu
+d'une liste qui se dépliait dans un rail de deux cents pixels.
+
+#### Retirer une conversation sans rien effacer
+Comme dans Messenger : la conversation quitte **votre** liste, l'autre continue
+de la voir, rien n'est supprimé, et la rouvrir avec la même personne la rend
+entière, historique compris. Le rangement est porté par la personne et non par
+le salon - l'un range, l'autre pas.
+
+#### L'historique d'une discussion arrive par tranches
+Une conversation de deux ans ne se charge plus d'un bloc. La page s'ouvre sur sa
+fenêtre, et remonter en fait venir cinquante de plus, avant que le pouce ait
+fini son geste. **Le repère est un message, jamais un numéro de page** : dans
+une conversation où quelqu'un écrit pendant qu'on remonte, un décalage compté
+depuis le début ferait voir deux fois la même ligne ou en sauterait une.
+
+La position du lecteur est rendue au pixel : on mesure la hauteur avant, on la
+remesure après, et on redonne la différence au défilement. Sans ça, l'écran
+saute au moment précis où l'on cherchait quelque chose.
+
+#### Des conversations privées dans un espace
+La seconde moitié de la discussion. **Deux personnes, et personne d'autre.** Le
+studio en ouvre une avec quelqu'un de l'équipe de l'espace ; le client en ouvre
+une avec quelqu'un du studio, au titre du même droit qui lui permet de répondre
+dans la discussion - il parle à une personne plutôt qu'à l'espace. Le rail les
+range dans leur propre section, sous les canaux : un canal est une pièce où
+l'on entre, une conversation privée est quelqu'un à qui l'on parle.
+
+Sous le capot c'est un salon à deux, comme chez Slack, et c'est volontairement
+invisible : personne ne pense « le salon à deux avec Marie ». Une conversation
+porte le nom de **l'autre**, donc pas le même des deux côtés, et il n'y en a
+jamais qu'une entre deux personnes : redemander rouvre la première.
+
+**L'avertissement sous la zone de saisie suit le salon.** « Ce que vous écrivez
+ici est lu par le client » est vrai du canal principal et faux des deux autres
+sortes ; un canal interne et une conversation privée le disent maintenant
+chacun à sa façon. Une phrase fausse sous une zone de saisie fait taire ceux
+qui la croient et délie la langue de ceux qui ne la lisent plus.
+
+### Dans aurora-client
+`make aurora-update`, puis `make migrate` : la 0.9.204 ajoute une colonne aux
+notes d'un espace.
+
+Puis **une fois**, `php bin/console aurora:ged:sizes:refresh`. Le poids
+enregistré d'un document était celui du fichier reçu et non celui du fichier
+rangé, et une source JPEG est ré-encodée en place au dépôt : la bibliothèque
+annonçait des tailles sans rapport avec ce qui est stocké. La commande est
+idempotente et accepte `--dry-run` pour compter d'abord.
+
+Rien d'autre n'est requis. L'import depuis Craft reste éteint tant que personne
+n'ouvre une connexion dans les réglages, et le tiroir de navigation du site
+public arrive avec le thème.
+
+---
+
 ## [0.9.203] - 2026-09-18
 
 ### Ajouté

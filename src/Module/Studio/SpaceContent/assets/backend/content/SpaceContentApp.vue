@@ -34,7 +34,7 @@
  * hand everything back as events. That is what lets a card edited in one of
  * them be right in the others.
  */
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
@@ -52,6 +52,7 @@ import SpaceContentItemFields from "./components/SpaceContentItemFields.vue";
 import SpaceChatPanel from "../../../../SpaceChat/assets/shared/SpaceChatPanel.vue";
 import SpaceNotesView from "../../../../SpaceNote/assets/backend/notes/SpaceNotesView.vue";
 import SpaceNoteFormModal from "../../../../SpaceNote/assets/backend/notes/SpaceNoteFormModal.vue";
+import SpaceNoteCraftModal from "../../../../SpaceNote/assets/backend/notes/SpaceNoteCraftModal.vue";
 import { useSpaceNotes } from "../../../../SpaceNote/assets/backend/notes/composables/useSpaceNotes.js";
 import { useSpaceOwnFiles } from "../../../../SpaceFile/assets/backend/files/composables/useSpaceOwnFiles.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -70,10 +71,13 @@ import {
     FileText,
     List,
     Pencil,
+    RefreshCw,
     Save,
     Trash2,
     X,
 } from "lucide-vue-next";
+import { toast } from "vue-sonner";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
@@ -104,12 +108,29 @@ const props = defineProps({
     chatPostPath: { type: String, required: true },
     chatReloadPath: { type: String, required: true },
     chatDeletePath: { type: String, required: true },
+    chatChannels: { type: Array, default: () => [] },
+    chatChannelId: { type: [Number, null], default: null },
+    chatTeam: { type: Array, default: () => [] },
+    chatChannelCreatePath: { type: String, default: null },
+    chatChannelRenamePath: { type: String, default: null },
+    chatChannelAudiencePath: { type: String, default: null },
+    chatChannelDeletePath: { type: String, default: null },
+    chatChannelInvitePath: { type: String, default: null },
+    chatChannelUninvitePath: { type: String, default: null },
+    chatDirectPath: { type: String, default: null },
+    chatOlderPath: { type: String, default: null },
+    chatHidePath: { type: String, default: null },
+    chatPeople: { type: Array, default: () => [] },
     notes: { type: Array, default: () => [] },
     noteCreatePath: { type: String, required: true },
     noteUpdatePath: { type: String, required: true },
     noteDeletePath: { type: String, required: true },
     notePinPath: { type: String, required: true },
     noteImagePath: { type: String, required: true },
+    craftEnabled: { type: Boolean, default: false },
+    craftDocumentsPath: { type: String, default: "" },
+    craftImportPath: { type: String, default: "" },
+    craftRefreshPath: { type: String, default: "" },
     spaceFiles: { type: Array, default: () => [] },
     spaceFileUploadPath: { type: String, required: true },
     spaceFileAttachPath: { type: String, required: true },
@@ -137,7 +158,13 @@ const { choice: view } = usePersistedChoice(
     VIEWS.map((entry) => entry.key),
 );
 
-const { shape, storedShape, setShape, container: shapeContainer } = useSpaceContentShape();
+const {
+    shape,
+    storedShape,
+    setShape,
+    container: shapeContainer,
+    overruled: shapeOverruled,
+} = useSpaceContentShape();
 
 const {
     // Named apart from the props of the same name: these are the refs the
@@ -244,6 +271,7 @@ const {
     pendingDelete: pendingNoteDelete,
     confirmDelete: confirmNoteDelete,
     doDelete: deleteNote,
+    apply: applyNotes,
 } = useSpaceNotes(
     props.notes,
     {
@@ -256,6 +284,49 @@ const {
     // composable pour le lire.
     useOrphanedDocumentOffer().offer,
 );
+
+/**
+ * L'import d'un document Craft.
+ *
+ * L'état tient en un booléen : la modale se charge elle-même à l'ouverture et
+ * rend le mur entier à l'arrivée, comme toute écriture de cet écran.
+ */
+const { request } = useRequest();
+const { offer: offerOrphanedDocuments } = useOrphanedDocumentOffer();
+
+const craftOpen = ref(false);
+
+/**
+ * La note qu'on s'apprête à remettre sur sa version Craft.
+ *
+ * Confirmée avant, parce que ce qui a été modifié ici disparaît : une note
+ * importée est une copie, et la rafraîchir refait la copie.
+ */
+const pendingCraftRefresh = ref(null);
+const craftRefreshing = ref(false);
+
+async function refreshFromCraft() {
+    const note = pendingCraftRefresh.value;
+
+    if (!note || craftRefreshing.value) return;
+
+    craftRefreshing.value = true;
+
+    try {
+        const data = await request(props.craftRefreshPath.replace("__id__", note.id));
+
+        if (data) {
+            applyNotes(data);
+            // La même offre que partout : ce que plus personne n'utilise est
+            // proposé, jamais jeté tout seul.
+            offerOrphanedDocuments(data);
+            toast.success(t("backend.studio.craft.import.refreshed"));
+            pendingCraftRefresh.value = null;
+        }
+    } finally {
+        craftRefreshing.value = false;
+    }
+}
 
 /**
  * Les fichiers de l'espace, ceux qui ne sont sur aucune fiche.
@@ -289,13 +360,30 @@ const actionsFor = useSpaceCardActions({
 </script>
 
 <template>
-    <div class="space-y-4">
+    <!-- Une colonne, parce que la discussion veut la hauteur qui reste et que
+         `space-y` ne la transmet pas. Les autres écrans gardent leur taille :
+         un flex item ne descend pas sous son contenu. -->
+    <div class="flex flex-1 flex-col gap-2 sm:gap-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <!-- Segmented rather than a select: five choices are worth showing
                  at once, and the one in use is the answer to "why does this
-                 look different from yesterday". -->
+                 look different from yesterday".
+
+                 **Sur téléphone, seul l'onglet ouvert porte son nom.** Cinq
+                 libellés font 520 pixels de large : la barre poussait la page
+                 à défiler de côté, et c'est toute la page qui partait, pas
+                 seulement les onglets. Les icônes restent, le nom de celui
+                 qu'on regarde aussi - c'est le seul qui réponde à « où
+                 suis-je », les autres répondent « où puis-je aller » et une
+                 icône suffit pour ça. Le libellé est gardé pour les lecteurs
+                 d'écran, où il n'a jamais coûté de place. -->
+            <!-- Une bande qui défile plutôt qu'une bande qui pousse : même
+                 réduits à leurs icônes, cinq onglets ne tiennent plus sous 260
+                 pixels, et ce qui dépassait emportait la page entière avec lui.
+                 `max-w-full` borne le groupe à la largeur disponible ; les
+                 onglets, eux, gardent leur taille et défilent. -->
             <div
-                class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+                class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
                 role="group"
                 :aria-label="t('backend.studio.space_content.view_label')"
             >
@@ -303,25 +391,36 @@ const actionsFor = useSpaceCardActions({
                     v-for="entry in VIEWS"
                     :key="entry.key"
                     type="button"
-                    class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                    class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-2 text-sm transition-colors sm:px-2.5 sm:py-1"
                     :class="
                         view === entry.key
                             ? 'bg-surface font-medium text-primary shadow-sm'
                             : 'text-muted hover:text-primary'
                     "
                     :aria-pressed="view === entry.key"
+                    :title="t(entry.labelKey)"
                     v-on:click="view = entry.key"
                 >
-                    <component :is="entry.icon" class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t(entry.labelKey) }}
+                    <component :is="entry.icon" class="h-3.5 w-3.5 shrink-0" :stroke-width="2" />
+                    <span :class="view === entry.key ? '' : 'sr-only sm:not-sr-only'">
+                        {{ t(entry.labelKey) }}
+                    </span>
                 </button>
             </div>
 
             <div class="flex items-center gap-2">
                 <!-- The shape of one entry, so it sits with the actions rather
                      than inside the switcher: two segmented groups side by side
-                     would read as one control with seven choices. -->
-                <div v-if="view === 'content'" class="flex rounded-lg border border-line/60 p-0.5">
+                     would read as one control with seven choices.
+
+                     Absent quand le conteneur est étroit : là, le kanban est
+                     refusé de toute façon et l'interrupteur ne changeait rien
+                     à l'écran. Un bouton qui ne fait rien se lit comme un
+                     bouton cassé ; celui-ci revient avec la place. -->
+                <div
+                    v-if="view === 'content' && !shapeOverruled"
+                    class="flex rounded-lg border border-line/60 p-0.5"
+                >
                     <AppIconButton
                         size="sm"
                         variant="ghost"
@@ -403,14 +502,23 @@ const actionsFor = useSpaceCardActions({
              chatting on holds no connection open. The cost is that a message
              arriving while somebody is looking at the calendar is not
              announced - that is a notification's job, not a panel's. -->
-        <!-- La hauteur de l'écran moins ce qui est au-dessus : l'en-tête de
-             l'espace, le sélecteur de vues et les marges. La discussion est le
-             seul écran d'un espace qu'on lit de haut en bas sans rien d'autre
-             autour, et une boîte de 32rem au milieu d'un écran vide donnait
-             trois messages visibles sur une conversation qui en compte trente. -->
+        <!-- Toute la place qui reste, mesurée et non calculée : la colonne
+             part du corps de la page, donc l'en-tête peut prendre une ligne ou
+             deux sans que rien ne dépasse. Une boîte de 32rem au milieu d'un
+             écran vide donnait trois messages visibles sur une conversation qui
+             en compte trente, et une soustraction en dur laissait le bas de la
+             page sous le bord de l'écran.
+
+             `data-fills-viewport` est ce qui le demande : la coquille y répond
+             en donnant à la fenêtre une hauteur ferme, sans quoi la colonne
+             n'aurait rien à distribuer (voir le commentaire du gabarit).
+
+             Le plancher reste : sur un écran très bas, mieux vaut une page qui
+             défile qu'un fil de deux lignes. -->
         <div
             v-else-if="view === 'chat'"
-            class="h-[calc(100dvh-8.5rem)] min-h-[24rem]"
+            data-fills-viewport
+            class="flex min-h-[20rem] flex-1 flex-col"
         >
             <SpaceChatPanel
                 fill
@@ -419,7 +527,19 @@ const actionsFor = useSpaceCardActions({
                 :post-path="editable ? chatPostPath : null"
                 :reload-path="chatReloadPath"
                 :delete-path="editable ? chatDeletePath : null"
-                :notice="t('backend.studio.space_chat.notice')"
+                :channels="chatChannels"
+                :channel-id="chatChannelId"
+                :team="chatTeam"
+                :channel-create-path="editable ? chatChannelCreatePath : null"
+                :channel-rename-path="editable ? chatChannelRenamePath : null"
+                :channel-audience-path="editable ? chatChannelAudiencePath : null"
+                :channel-delete-path="editable ? chatChannelDeletePath : null"
+                :channel-invite-path="editable ? chatChannelInvitePath : null"
+                :channel-uninvite-path="editable ? chatChannelUninvitePath : null"
+                :chat-direct-path="editable ? chatDirectPath : null"
+                :older-path="chatOlderPath"
+                :hide-path="editable ? chatHidePath : null"
+                :people="chatPeople"
             />
         </div>
 
@@ -433,12 +553,15 @@ const actionsFor = useSpaceCardActions({
                 :view-mode="notesViewMode"
                 :stored-view-mode="notesStoredViewMode"
                 :editable="editable"
+                :craft-enabled="craftEnabled"
                 v-on:create="openNoteCreate"
                 v-on:open="openNoteEdit"
                 v-on:pin="toggleNotePin"
                 v-on:delete="confirmNoteDelete"
                 v-on:set-view="setNotesViewMode"
                 v-on:set-tab="notesTab = $event"
+                v-on:import-craft="craftOpen = true"
+                v-on:refresh-craft="pendingCraftRefresh = $event"
             />
         </div>
 
@@ -636,6 +759,15 @@ const actionsFor = useSpaceCardActions({
             </template>
         </AppModal>
 
+        <SpaceNoteCraftModal
+            v-if="craftEnabled"
+            :show="craftOpen"
+            :documents-path="craftDocumentsPath"
+            :import-path="craftImportPath"
+            v-on:close="craftOpen = false"
+            v-on:imported="applyNotes"
+        />
+
         <SpaceNoteFormModal
             :show="showNoteForm"
             :model-value="noteForm"
@@ -647,6 +779,34 @@ const actionsFor = useSpaceCardActions({
             v-on:close="showNoteForm = false"
             v-on:submit="submitNote"
         />
+
+        <AppModal
+            :show="!!pendingCraftRefresh"
+            max-width="sm"
+            :closeable="false"
+            :title="t('backend.studio.craft.import.refresh')"
+            :icon="RefreshCw"
+            v-on:close="pendingCraftRefresh = null"
+        >
+            <p class="text-sm text-primary">
+                {{ t("backend.studio.craft.import.refresh_confirm", { title: pendingCraftRefresh?.title ?? "" }) }}
+            </p>
+            <p class="text-sm text-secondary">
+                {{ t("backend.studio.craft.import.refresh_warning") }}
+            </p>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="pendingCraftRefresh = null">
+                        <X class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.cancel") }}
+                    </AppButton>
+                    <AppButton variant="primary" size="md" :loading="craftRefreshing" v-on:click="refreshFromCraft">
+                        <RefreshCw class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("backend.studio.craft.import.refresh_submit") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
 
         <AppModal
             :show="!!pendingNoteDelete"

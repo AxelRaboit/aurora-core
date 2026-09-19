@@ -1,0 +1,63 @@
+{# Le même menu, mis à plat pour le tiroir du téléphone.
+
+   Le panneau au survol de `menu.html.twig` n'existe pas au doigt. Une entrée
+   qui a des enfants y était donc un mot qu'on ne pouvait pas ouvrir, et tout ce
+   qu'elle contient restait hors d'atteinte sur téléphone. Ici elle devient un
+   `<details>` qui se déplie sur place, sans rien attendre de JavaScript, et la
+   branche de la page courante arrive déjà ouverte.
+
+   Une entrée prend sa ligne entière : c'est une cible qu'on vise du pouce, pas
+   un mot dans une phrase. Le fond ne se pose que sur la branche courante, pour
+   que la liste reste une liste et non un empilement de boutons.
+
+   **Une entrée qui a une adresse et des enfants garde les deux.** Le `summary`
+   sert à déplier, il ne peut donc pas mener ailleurs : sa propre page devient
+   la première ligne du repli, sans quoi elle ne serait atteignable que depuis
+   un ordinateur.
+
+   `isActive` (la branche) et `isCurrent` (la page elle-même) arrivent de
+   MenuRenderer et ne sont pas la même chose ; voir `menu.html.twig`. #}
+
+{% macro rowClass(item) %}
+    {%- if item.isActive -%}
+        bg-surface-2 text-primary font-medium
+    {%- else -%}
+        text-secondary hover:bg-surface-2/60 hover:text-primary
+    {%- endif -%}
+{% endmacro %}
+
+{% import _self as drawer %}
+
+{% for item in items %}
+    {% if item.children is empty %}
+        <a
+            href="{{ item.url }}"
+            class="flex items-center rounded-md px-3 py-2.5 transition-colors {{ drawer.rowClass(item) }} {{ item.cssClass }}"
+            {% if item.isCurrent %}aria-current="page"{% endif %}
+            {% if item.openInNewTab %}target="_blank" rel="noopener"{% endif %}
+        >{{ item.label }}</a>
+    {% else %}
+        <details class="group/entry" {% if item.isActive %}open{% endif %}>
+            <summary class="flex cursor-pointer list-none select-none items-center justify-between gap-2 rounded-md px-3 py-2.5 transition-colors [&::-webkit-details-marker]:hidden {{ drawer.rowClass(item) }} {{ item.cssClass }}">
+                <span>{{ item.label }}</span>
+                {{ include('@Shared/components/icon.html.twig', {
+                    name: 'chevron-down',
+                    class: 'w-4 h-4 shrink-0 transition-transform group-open/entry:rotate-180',
+                    size: 16,
+                }) }}
+            </summary>
+
+            <div class="ml-3 flex flex-col border-l border-line pl-2">
+                {% if item.url %}
+                    <a
+                        href="{{ item.url }}"
+                        class="flex items-center rounded-md px-3 py-2.5 text-secondary transition-colors hover:bg-surface-2/60 hover:text-primary"
+                        {% if item.isCurrent %}aria-current="page"{% endif %}
+                        {% if item.openInNewTab %}target="_blank" rel="noopener"{% endif %}
+                    >{{ 'shared.menu_parent_page'|trans }}</a>
+                {% endif %}
+                {{ include('Frontend/themes/default/partials/menu_mobile.html.twig', {items: item.children}) }}
+            </div>
+        </details>
+    {% endif %}
+{% endfor %}

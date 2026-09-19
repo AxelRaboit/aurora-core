@@ -67,6 +67,20 @@ class SpaceNoteManager implements SpaceNoteManagerInterface
         $this->auditLogger->log('studio', 'space_note.updated', 'SpaceNote', $note->getId(), $this->auditPayload($note));
     }
 
+    public function markImportedFromCraft(SpaceNoteInterface $note, string $craftDocumentId): void
+    {
+        $note->setCraftDocumentId($craftDocumentId);
+        $this->entityManager->flush();
+
+        $this->auditLogger->log(
+            'studio',
+            'space_note.imported_from_craft',
+            'SpaceNote',
+            $note->getId(),
+            ['craftDocumentId' => $craftDocumentId],
+        );
+    }
+
     public function togglePinned(SpaceNoteInterface $note): void
     {
         $note->setPinned(!$note->isPinned());

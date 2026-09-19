@@ -24,6 +24,7 @@ import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
+import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
@@ -178,7 +179,7 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
 </script>
 
 <template>
-    <div ref="container" class="space-y-4">
+    <div ref="container" class="space-y-2 sm:space-y-4">
         <AppListToolbar>
             <AppSearchInput
                 v-model="search"
@@ -306,18 +307,12 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                     <span class="tabular-nums">{{ t("backend.studio.decks.slides") }} : {{ deck.slideCount }}</span>
                 </p>
 
-                <div class="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-line/40 pt-2">
-                    <AppButton
-                        v-for="action in actionsFor(deck)"
-                        :key="action.key"
-                        variant="ghost"
-                        size="sm"
-                        :href="action.href"
-                        v-on:click="action.onSelect?.()"
-                    >
-                        <component :is="action.icon" v-if="action.icon" class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ action.title }}
-                    </AppButton>
+                <!-- Le dessin commun des gestes d'une carte : deux se
+                     partagent la ligne, trois et plus s'empilent, chacun avec
+                     sa cible pleine largeur. Repliés à leur taille naturelle,
+                     ils laissaient une colonne ragoteuse au milieu. -->
+                <div class="border-t border-line/40 pt-2">
+                    <AppCardActions :actions="actionsFor(deck)" />
                 </div>
             </article>
         </div>

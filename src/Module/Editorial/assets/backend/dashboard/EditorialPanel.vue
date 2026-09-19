@@ -136,13 +136,13 @@ const byStatus = computed(() =>
             </div>
         </div>
 
-        <div v-if="hasAnyShare(byStatus)" class="bg-surface border border-line rounded-xl p-5 space-y-4">
+        <div v-if="hasAnyShare(byStatus)" class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
             <h3 class="text-sm font-semibold text-primary">{{ t("backend.stats.editorial.by_status") }}</h3>
 
             <AppShareBar :segments="byStatus" />
         </div>
 
-        <div v-if="hasActivity" class="bg-surface border border-line rounded-xl p-5 space-y-4">
+        <div v-if="hasActivity" class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
             <h3 class="text-sm font-semibold text-primary">{{ t("backend.stats.editorial.published_per_month") }}</h3>
 
             <!-- A fixed height, because the canvas has no content to be sized by
@@ -155,7 +155,7 @@ const byStatus = computed(() =>
         <!-- Its own card rather than a second bar in the one above: two
              compositions of two different wholes under one heading would invite
              comparing their widths, which mean nothing to each other. -->
-        <div v-if="hasAnyShare(byCommentStatus)" class="bg-surface border border-line rounded-xl p-5 space-y-4">
+        <div v-if="hasAnyShare(byCommentStatus)" class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
             <h3 class="text-sm font-semibold text-primary">{{ t("backend.stats.editorial.comments_by_status") }}</h3>
 
             <AppShareBar :segments="byCommentStatus" />

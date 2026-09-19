@@ -20,7 +20,7 @@
  */
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
-import { LayoutGrid, List, Lock, Pencil, Pin, PinOff, Plus, StickyNote, Trash2, Users } from "lucide-vue-next";
+import { Download, LayoutGrid, List, Lock, Pencil, Pin, PinOff, Plus, RefreshCw, StickyNote, Trash2, Users } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
@@ -35,9 +35,11 @@ const props = defineProps({
     tab: { type: String, default: "shared" },
     /** Les deux onglets et ce qu'il y a derrière chacun. */
     tabs: { type: Array, default: () => [] },
+    /** L'installation a-t-elle ouvert une connexion Craft. */
+    craftEnabled: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["create", "open", "pin", "delete", "set-view", "set-tab"]);
+const emit = defineEmits(["create", "open", "pin", "delete", "set-view", "set-tab", "import-craft", "refresh-craft"]);
 
 const { t, d } = useI18n();
 
@@ -73,19 +75,46 @@ function tint(note) {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex flex-wrap items-center gap-3">
-                <AppButton v-if="editable" variant="primary" size="sm" v-on:click="emit('create')">
+            <div class="flex w-full min-w-0 max-w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+                <!-- Pleine largeur sous `sm` : c'est le geste de l'écran, et
+                     cent vingt-huit pixels à côté d'une bande d'onglets qui en
+                     fait deux cent soixante-quatorze le font passer pour un
+                     détail de la bande. -->
+                <AppButton
+                    v-if="editable"
+                    class="w-full sm:w-auto"
+                    variant="primary"
+                    size="sm"
+                    v-on:click="emit('create')"
+                >
                     <Plus class="h-3.5 w-3.5" :stroke-width="2" />
                     {{ t("backend.studio.space_notes.add") }}
+                </AppButton>
+
+                <!-- Second, et secondaire : écrire une note est le geste de
+                     l'écran, en importer une est l'exception. Absent tant que
+                     l'installation n'a pas ouvert de connexion Craft. -->
+                <AppButton
+                    v-if="editable && craftEnabled"
+                    class="w-full sm:w-auto"
+                    variant="secondary"
+                    size="sm"
+                    v-on:click="emit('import-craft')"
+                >
+                    <Download class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("backend.studio.craft.import.action") }}
                 </AppButton>
 
                 <!-- Deux onglets, et le compte sur l'étiquette : c'est lui qui
                      rend l'autre visible. Une note écrite pour soi et rangée
                      derrière un onglet que rien n'annonce est une note perdue. -->
+                <!-- Borné à la largeur disponible et défilant : « Partagées 3 »
+                     et « Personnelles 2 » font 274 pixels, et dans une fenêtre
+                     de 250 c'est la page entière qui partait à droite. -->
                 <div
-                    class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+                    class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
                     role="group"
                     :aria-label="t('backend.studio.space_notes.visibility')"
                 >
@@ -93,7 +122,7 @@ function tint(note) {
                         v-for="entry in tabs"
                         :key="entry.key"
                         type="button"
-                        class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                        class="flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
                         :class="
                             tab === entry.key
                                 ? 'bg-surface font-medium text-primary shadow-sm'
@@ -152,7 +181,7 @@ function tint(note) {
             <article
                 v-for="note in rows"
                 :key="note.id"
-                class="group flex flex-col rounded-lg border border-l-[3px] border-line/60 bg-surface-2/40 p-3 transition-colors hover:bg-surface-2/70"
+                class="group flex min-w-0 flex-col rounded-lg border border-l-[3px] border-line/60 bg-surface-2/40 p-3 transition-colors hover:bg-surface-2/70"
                 :style="tint(note)"
             >
                 <header class="flex items-start gap-2">
@@ -161,10 +190,12 @@ function tint(note) {
                         class="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-500"
                         :stroke-width="2"
                     />
-                    <h3 class="flex-1 text-sm font-medium text-primary">{{ note.title }}</h3>
+                    <h3 class="min-w-0 flex-1 break-words text-sm font-medium text-primary">
+                        {{ note.title }}
+                    </h3>
                 </header>
 
-                <p class="mt-2 line-clamp-6 whitespace-pre-line text-sm text-secondary">
+                <p class="mt-2 line-clamp-6 whitespace-pre-line break-words text-sm text-secondary">
                     {{ note.excerpt }}
                 </p>
 
@@ -176,12 +207,21 @@ function tint(note) {
                     <span>·</span>
                     <span>{{ d(new Date(note.updatedAt), "short") }}</span>
 
-                    <span v-if="editable" class="ml-auto flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                    <span v-if="editable" class="ml-auto flex items-center gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                         <AppIconButton
                             :title="t(note.pinned ? 'backend.studio.space_notes.unpin' : 'backend.studio.space_notes.pin')"
                             v-on:click="emit('pin', note)"
                         >
                             <component :is="note.pinned ? PinOff : Pin" class="h-3.5 w-3.5" :stroke-width="2" />
+                        </AppIconButton>
+                        <!-- Seulement sur une note venue de Craft : ailleurs
+                             il n'y a rien à rafraîchir depuis nulle part. -->
+                        <AppIconButton
+                            v-if="note.fromCraft"
+                            :title="t('backend.studio.craft.import.refresh')"
+                            v-on:click="emit('refresh-craft', note)"
+                        >
+                            <RefreshCw class="h-3.5 w-3.5" :stroke-width="2" />
                         </AppIconButton>
                         <AppIconButton
                             :title="t('shared.common.edit')"
@@ -222,12 +262,19 @@ function tint(note) {
                 <span class="hidden shrink-0 text-xs text-muted sm:inline">{{ note.author }}</span>
                 <span class="shrink-0 text-xs text-muted">{{ d(new Date(note.updatedAt), "short") }}</span>
 
-                <span v-if="editable" class="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                <span v-if="editable" class="flex shrink-0 items-center gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                     <AppIconButton
                         :title="t(note.pinned ? 'backend.studio.space_notes.unpin' : 'backend.studio.space_notes.pin')"
                         v-on:click="emit('pin', note)"
                     >
                         <component :is="note.pinned ? PinOff : Pin" class="h-3.5 w-3.5" :stroke-width="2" />
+                    </AppIconButton>
+                    <AppIconButton
+                        v-if="note.fromCraft"
+                        :title="t('backend.studio.craft.import.refresh')"
+                        v-on:click="emit('refresh-craft', note)"
+                    >
+                        <RefreshCw class="h-3.5 w-3.5" :stroke-width="2" />
                     </AppIconButton>
                     <AppIconButton :title="t('shared.common.edit')" v-on:click="emit('open', note)">
                         <Pencil class="h-3.5 w-3.5" :stroke-width="2" />

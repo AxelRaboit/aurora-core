@@ -45,5 +45,9 @@ interface SpaceNoteInterface extends TimestampableInterface
 
     public function isVisibleTo(?CoreUserInterface $reader): bool;
 
+    public function getCraftDocumentId(): ?string;
+
+    public function setCraftDocumentId(?string $craftDocumentId): static;
+
     public function takenBy(CoreUserInterface $author, string $label): static;
 }

@@ -18,7 +18,7 @@ const colorPresets = useColorPickerPresets({ groups: props.groups, updatePath: p
 </script>
 
 <template>
-    <div class="bg-surface border border-line rounded-xl p-6 space-y-6">
+    <div class="bg-surface border border-line rounded-xl p-4 sm:p-6 space-y-6">
         <div>
             <h3 class="text-sm font-semibold text-primary">{{ t('backend.settings.appearance.color_presets.title') }}</h3>
             <p class="text-xs text-muted mt-1">{{ t('backend.settings.appearance.color_presets.help') }}</p>
@@ -33,7 +33,7 @@ const colorPresets = useColorPickerPresets({ groups: props.groups, updatePath: p
                 <AppColorSwatch :model-value="color" size="md" :disabled="true" />
                 <button
                     type="button"
-                    class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-surface border border-line text-muted hover:text-danger hover:border-danger flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow-sm"
+                    class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-surface border border-line text-muted hover:text-danger hover:border-danger flex items-center justify-center transition shadow-sm sm:opacity-0 sm:group-hover:opacity-100"
                     :title="t('backend.settings.appearance.color_presets.remove')"
                     v-on:click="colorPresets.remove(color)"
                 >
@@ -71,7 +71,7 @@ const colorPresets = useColorPickerPresets({ groups: props.groups, updatePath: p
             </div>
         </div>
 
-        <div class="pt-2 border-t border-line flex justify-end">
+        <div class="pt-2 border-t border-line flex justify-end *:w-full sm:*:w-auto">
             <AppButton
                 variant="primary"
                 size="md"

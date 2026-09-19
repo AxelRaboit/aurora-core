@@ -44,21 +44,74 @@
            entry that mounts one has to be here as well as on the pages
            that inherit the admin layout. #}
         {{ vite_entry_script_tags('flash') }}
+
+        {# **Un écran qui veut la fenêtre entière le dit, et la coquille suit.**
+
+           Une colonne flex ne distribue que la place qu'elle connaît : `flex-1`
+           vaut `flex-basis: 0%`, et un pourcentage mesuré contre une hauteur
+           automatique est traité comme « la taille du contenu ». Un
+           `min-height` sur le corps ne suffit donc pas - la page reprenait la
+           hauteur de ce qu'elle contenait, et la discussion dépassait de
+           soixante pixels, ce qui est la pire quantité : assez pour faire
+           défiler, pas assez pour servir.
+
+           L'écran qui veut tenir dedans pose `data-fills-viewport`. La fenêtre
+           devient alors une hauteur ferme, et les maillons de la colonne - le
+           `main`, la div de montage, la racine du composant - acceptent de
+           descendre sous la taille de leur contenu, ce qui laisse le fil
+           défiler en dedans plutôt que la page en dehors.
+
+           Rien n'est masqué : sur un écran vraiment bas, un téléphone couché,
+           la page redéfile comme avant plutôt que de couper le champ
+           d'écriture. #}
+        <style>
+            body:has([data-fills-viewport]) { height: 100dvh; }
+            body:has([data-fills-viewport]) > main,
+            body:has([data-fills-viewport]) > main > *,
+            body:has([data-fills-viewport]) > main > * > * { min-height: 0; }
+        </style>
     </head>
-    <body class="min-h-screen bg-body transition-colors duration-200">
+    {# **Une colonne haute d'un écran, et rien de plus.** La discussion est le seul
+       écran d'un espace qui se lit sans rien autour : elle veut la place qui
+       reste sous l'en-tête, exactement, pour que le fil défile en dedans et que
+       le champ d'écriture reste sous le pouce. Elle l'obtenait par une
+       soustraction - la hauteur de la fenêtre moins huit rem et demie - qui
+       valait pour un en-tête sur une ligne ; sur téléphone il en prend deux, et
+       les soixante pixels de trop faisaient défiler la page entière de presque
+       rien, ce qui est la pire quantité : assez pour bouger, pas assez pour
+       servir.
+
+       La page mesure maintenant au lieu de deviner. Le corps est une colonne
+       d'au moins une fenêtre, `main` prend ce qui reste, et l'écran qui veut
+       tenir dedans le dit avec `flex-1`. Ceux qui sont plus grands que la
+       fenêtre poussent comme avant : un flex item ne descend pas sous la taille
+       de son contenu.
+
+       `dvh` et non `vh` : sur un téléphone, `100vh` compte la barre d'adresse
+       qui n'est pas là, et la page sortirait de l'écran par le bas. #}
+    <body class="flex min-h-dvh flex-col bg-body transition-colors duration-200">
         {# The exit is explicit because the menu is gone. A page that removes
            the way back and offers none is a page people reach for the browser
            button on, which loses whatever they had open. #}
         <header class="sticky top-0 z-20 border-b border-line/60 bg-surface/95 backdrop-blur">
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-2 px-3 py-2 sm:gap-x-4 sm:px-6 sm:py-2.5">
+                {# **Une flèche seule sur téléphone.** Le libellé fait cent
+                   soixante-treize pixels sur trois cent soixante-quinze, soit
+                   près de la moitié de la barre pour un mot que le chevron dit
+                   déjà ; le nom de l'espace, lui, se retrouvait dans cent
+                   soixante-dix. Le texte revient dès qu'il y a la place, et il
+                   reste lisible par un lecteur d'écran dans les deux cas. #}
                 <a
                     href="{{ backPath }}"
-                    class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 -ml-2 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+                    class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-2 -ml-2 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary sm:py-1"
+                    aria-label="{{ 'backend.studio.space_content.back_to_spaces'|trans }}"
                 >
                     <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="m15 18-6-6 6-6"/>
                     </svg>
-                    {{ 'backend.studio.space_content.back_to_spaces'|trans }}
+                    <span class="hidden sm:inline">
+                        {{ 'backend.studio.space_content.back_to_spaces'|trans }}
+                    </span>
                 </a>
 
                 <div class="flex min-w-0 flex-1 items-center gap-2.5">
@@ -83,7 +136,13 @@
                    place somebody sends a colleague to, and a URL that says
                    which one is open is what makes that possible. The back
                    button works for free. #}
-                <nav class="flex shrink-0 items-center gap-1" aria-label="{{ space.name }}">
+                {# Pleine largeur sur téléphone, où elle occupe sa propre ligne
+                   de toute façon : deux cibles de doigt valent mieux que deux
+                   mots serrés à gauche d'un vide. #}
+                <nav
+                    class="flex w-full shrink-0 items-center gap-1 sm:w-auto"
+                    aria-label="{{ space.name }}"
+                >
                     {# Two tabs, not four. The board, the list and the month are
                        three ways of reading the same rows, so they are a
                        selector inside Contenu rather than destinations beside
@@ -95,11 +154,14 @@
                     ] %}
                     {% for tab in tabs %}
                         {% if tab.key == activeTab|default('board') %}
-                            <span class="rounded-md bg-surface-2 px-2.5 py-1 text-sm font-medium text-primary" aria-current="page">
+                            <span class="flex-1 rounded-md bg-surface-2 px-2.5 py-1 text-center text-sm font-medium text-primary sm:flex-none sm:text-left" aria-current="page">
                                 {{ tab.label }}
                             </span>
                         {% else %}
-                            <a href="{{ tab.url }}" class="rounded-md px-2.5 py-1 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary">
+                            <a
+                                href="{{ tab.url }}"
+                                class="flex-1 rounded-md px-2.5 py-1 text-center text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary sm:flex-none sm:text-left"
+                            >
                                 {{ tab.label }}
                             </a>
                         {% endif %}
@@ -108,7 +170,17 @@
             </div>
         </header>
 
-        <main class="px-4 py-4 sm:px-6">
+        {# **Sur téléphone, une gouttière juste assez large pour se voir.**
+           Seize pixels de chaque côté sur trois cent soixante-quinze, c'est
+           près d'un dixième de la largeur donné à du vide, sur le seul appareil
+           qui n'en a pas à donner. Huit suffisent : les cartes gardent leurs
+           coins arrondis, donc elles se lisent comme des blocs posés, et elles
+           récupèrent seize pixels de contenu au passage.
+
+           La règle vaut pour le reste de l'application : la gouttière se réduit
+           sur téléphone, elle ne disparaît pas, et rien ne change au dessin des
+           blocs. #}
+        <main class="flex flex-1 flex-col px-2 py-2 sm:px-6 sm:py-4">
             {% block body %}{% endblock %}
         </main>
     </body>

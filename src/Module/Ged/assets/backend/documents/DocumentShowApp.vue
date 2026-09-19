@@ -140,7 +140,7 @@ function isPdf(mimeType) {
                  the other thing that identifies a document, it is the one people
                  quote to each other, and unlike the title it appears nowhere else
                  on the page. -->
-            <div class="px-6 py-5">
+            <div class="px-4 py-5 sm:px-6">
                 <div class="flex items-start justify-between gap-4">
                     <p v-if="doc.reference" class="font-mono text-sm text-secondary">{{ doc.reference }}</p>
                     <AppBadge :color="DOCUMENT_STATUS_BADGE[doc.status]" class="shrink-0">{{ doc.statusLabel }}</AppBadge>
@@ -149,7 +149,7 @@ function isPdf(mimeType) {
             </div>
 
             <!-- Metadata grid -->
-            <div class="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="px-4 py-4 grid grid-cols-1 sm:grid-cols-2 sm:px-6 gap-4">
                 <div v-if="doc.categoryName">
                     <p class="text-xs text-muted uppercase tracking-wide mb-1">{{ t("backend.ged.documents.category") }}</p>
                     <p class="text-sm text-primary">{{ doc.categoryName }}</p>
@@ -178,7 +178,7 @@ function isPdf(mimeType) {
             </div>
 
             <!-- File -->
-            <div v-if="doc.fileUrl" class="px-6 py-4">
+            <div v-if="doc.fileUrl" class="px-4 py-4 sm:px-6">
                 <p class="text-xs text-muted uppercase tracking-wide mb-3">{{ t("backend.ged.documents.file") }}</p>
                 <template v-if="isImage(doc.fileMime)">
                     <AppImagePreview :src="doc.fileUrl" :alt="doc.fileName" size="lg" />

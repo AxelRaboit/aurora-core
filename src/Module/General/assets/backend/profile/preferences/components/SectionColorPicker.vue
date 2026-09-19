@@ -50,14 +50,14 @@ function clear() {
             v-for="colour in PALETTE"
             :key="colour.name"
             type="button"
-            class="w-6 h-6 rounded ring-offset-2 ring-offset-surface transition-all hover:scale-110 shrink-0"
+            class="w-6 h-6 rounded ring-offset-2 ring-offset-surface transition-all hover:scale-110 shrink-0 box-content py-[0.1875rem] -my-[0.1875rem] px-[0.1875rem] -mx-[0.1875rem] sm:box-border sm:p-0 sm:m-0"
             :class="[colour.swatch, modelValue === colour.name ? 'ring-2 ring-white scale-110' : 'opacity-60 hover:opacity-100']"
             :title="colour.name"
             v-on:click="pick(colour.name)"
         />
         <button
             type="button"
-            class="ml-1 p-1 rounded text-muted hover:text-primary hover:bg-surface-2 transition-colors shrink-0"
+            class="ml-1 p-1 rounded text-muted hover:text-primary hover:bg-surface-2 transition-colors shrink-0 inline-flex min-h-7.5 min-w-7.5 items-center justify-center sm:min-h-0 sm:min-w-0"
             :title="t('backend.profile.sidemenu.color_reset')"
             :disabled="!modelValue"
             :class="{ 'opacity-30 cursor-not-allowed': !modelValue }"

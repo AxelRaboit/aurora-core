@@ -153,9 +153,9 @@ function expiryLabel(link) {
                         v-on:focus="$event.target.select()"
                     >
                     <AppButton
-                        variant="ghost"
+                        variant="icon"
                         size="sm"
-                        class="shrink-0"
+                        class="shrink-0 text-muted hover:text-primary"
                         :title="t('shared.common.copy')"
                         v-on:click="copy(link.url)"
                     >

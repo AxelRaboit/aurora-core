@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Ged;
 
+use Aurora\Core\Storage\StorageManager;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\DocumentCategory\Service\InlineUploadCategoryProvider;
@@ -133,9 +134,34 @@ final class ImageUploadContractTest extends IntegrationTestCase
         self::assertFalse($payload['success']);
     }
 
-    private function uploadedDocument(): object
+    /**
+     * Le poids enregistré est celui du fichier rangé, pas celui reçu.
+     *
+     * Une source JPEG est ré-encodée en place à la qualité 85 et perd ses
+     * métadonnées au moment où ses variantes sont fabriquées. Le nombre relevé
+     * à l'arrivée cesse donc d'être vrai une ligne plus tard, et la
+     * médiathèque affichait un poids sans rapport avec ce qui est stocké -
+     * mesuré sur un import réel : un million et demi d'octets annoncés pour
+     * deux cent mille sur le disque.
+     *
+     * Demandé à l'adaptateur et non au disque local : la source peut vivre
+     * dans un stockage objet, où seul un `stat` répond honnêtement.
+     */
+    public function testTheRecordedSizeIsTheSizeOfWhatWasActuallyStored(): void
     {
-        $id = (int) $this->upload()['document']['id'];
+        $document = $this->uploadedDocument('jpeg');
+
+        $stored = static::getContainer()->get(StorageManager::class)
+            ->forDisk($document->getStorageDisk())
+            ->stat((string) $document->getFilePath());
+
+        self::assertNotNull($stored);
+        self::assertSame($stored->size, $document->getSize());
+    }
+
+    private function uploadedDocument(string $format = 'png'): object
+    {
+        $id = (int) $this->upload($format)['document']['id'];
 
         $document = static::getContainer()->get(DocumentRepository::class)->find($id);
         self::assertNotNull($document);
@@ -144,22 +170,46 @@ final class ImageUploadContractTest extends IntegrationTestCase
     }
 
     /** @return array<string, mixed> */
-    private function upload(): array
+    private function upload(string $format = 'png'): array
     {
-        $path = tempnam(sys_get_temp_dir(), 'aurora-upload').'.png';
+        $extension = 'jpeg' === $format ? 'jpg' : 'png';
+        $path = tempnam(sys_get_temp_dir(), 'aurora-upload').'.'.$extension;
 
-        // A real 1×1 PNG: the uploader reads the dimensions, so a text file
-        // with a .png name would exercise a different path than the one the
-        // picker takes.
-        file_put_contents($path, (string) base64_decode(
-            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
-            true,
-        ));
+        if ('jpeg' === $format) {
+            // Un vrai JPEG, assez grand pour que le ré-encodage change son
+            // poids : un pixel pèse la même chose avant et après, et ne
+            // prouverait rien.
+            $image = imagecreatetruecolor(600, 400);
+            self::assertNotFalse($image);
+
+            for ($x = 0; $x < 600; ++$x) {
+                for ($y = 0; $y < 400; ++$y) {
+                    imagesetpixel($image, $x, $y, imagecolorallocate($image, $x % 256, $y % 256, ($x + $y) % 256));
+                }
+            }
+
+            imagejpeg($image, $path, 100);
+            imagedestroy($image);
+        } else {
+            // A real 1×1 PNG: the uploader reads the dimensions, so a text file
+            // with a .png name would exercise a different path than the one the
+            // picker takes.
+            file_put_contents($path, (string) base64_decode(
+                'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+                true,
+            ));
+        }
 
         $this->client->request(
             'POST',
             '/backend/ged/documents/upload-image',
-            files: ['file' => new UploadedFile($path, 'pixel.png', 'image/png', null, true)],
+            files: ['file' => new UploadedFile(
+                $path,
+                'jpeg' === $format ? 'photo.jpg' : 'pixel.png',
+                'jpeg' === $format ? 'image/jpeg' : 'image/png',
+                null,
+                true,
+            )],
         );
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());

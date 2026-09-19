@@ -261,7 +261,7 @@ onUnmounted(() => {
              ce que le commentaire des deux volets dit déjà pour la largeur. -->
         <section class="flex-1 flex flex-col min-w-0 min-h-0">
             <div v-if="selectedNote" class="flex-1 flex flex-col min-h-0">
-                <header class="p-4 border-b border-line flex flex-col gap-2">
+                <header class="p-2 border-b border-line flex flex-col gap-2 sm:p-4">
                     <!-- Le titre prend la ligne. Partagée avec les six boutons
                          et les deux mentions d'état, elle laissait au nom de la
                          note ce qui restait, c'est-à-dire peu : sur un écran
@@ -395,7 +395,7 @@ onUnmounted(() => {
                     <div
                         v-if="viewMode !== 'preview'"
                         ref="editorPaneRef"
-                        class="p-4 overflow-auto min-w-0"
+                        class="p-2 overflow-auto min-w-0 sm:p-4"
                         :class="viewMode === 'split' && !isMobile ? 'shrink-0 max-w-[70%]' : 'flex-1'"
                         :style="viewMode === 'split' && !isMobile ? { width: `${editorWidth}px` } : {}"
                     >
@@ -421,7 +421,7 @@ onUnmounted(() => {
 
                     <div
                         v-if="viewMode !== 'edit'"
-                        class="flex-1 min-w-0 p-4 overflow-auto"
+                        class="flex-1 min-w-0 p-2 overflow-auto sm:p-4"
                     >
                         <NotePreview
                             :content="form.content"

@@ -151,23 +151,40 @@ function chooseFile(event) {
                 </button>
             </div>
 
-            <div class="flex items-center gap-2">
+            <!-- **Les deux gestes prennent la ligne sur téléphone.** Serrés à
+                 côté du sélecteur de vue, « Déposer un fichier » tombait à cent
+                 dix-sept pixels et « Choisir dans la médiathèque » se repliait
+                 sur deux lignes : les gestes de l'écran avaient l'air de la
+                 garniture du sélecteur. -->
+            <div class="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
                 <!-- Déposer et choisir ne valent que pour les fichiers de
                      l'espace : sur une fiche, c'est la fiche qui les porte, et
                      c'est là qu'on les y met. -->
                 <template v-if="'space' === tab && editable">
                     <input ref="fileInput" type="file" class="hidden" v-on:change="chooseFile">
-                    <AppButton variant="primary" size="sm" :loading="loading" v-on:click="fileInput?.click()">
+                    <AppButton
+                        class="w-full sm:w-auto"
+                        variant="primary"
+                        size="sm"
+                        :loading="loading"
+                        v-on:click="fileInput?.click()"
+                    >
                         <Upload class="h-3.5 w-3.5" :stroke-width="2" />
                         {{ t("backend.studio.space_files.upload") }}
                     </AppButton>
-                    <AppButton variant="ghost" size="sm" :loading="loading" v-on:click="emit('pick')">
+                    <AppButton
+                        class="w-full sm:w-auto"
+                        variant="ghost"
+                        size="sm"
+                        :loading="loading"
+                        v-on:click="emit('pick')"
+                    >
                         <FolderOpen class="h-3.5 w-3.5" :stroke-width="2" />
                         {{ t("backend.studio.space_files.pick") }}
                     </AppButton>
                 </template>
 
-                <div v-if="visible.length > 0" class="flex rounded-lg border border-line/60 p-0.5">
+                <div v-if="visible.length > 0" class="flex self-start rounded-lg border border-line/60 p-0.5 sm:self-auto">
                     <AppIconButton
                         size="sm"
                         variant="ghost"
@@ -196,18 +213,29 @@ function chooseFile(event) {
             :description="t(`backend.studio.space_files.empty_${tab}_hint`)"
         />
 
+        <!-- **Un fichier par ligne sur téléphone.** Deux colonnes sur trois
+             cent soixante-quinze pixels donnaient des vignettes de cent
+             soixante-treize : une image qu'on devine plutôt qu'on ne la
+             reconnaît, ce qui est tout ce qu'on demande à cette vue. Celle qui
+             reste prend la largeur, et le nom sous elle cesse d'être coupé au
+             troisième mot. Qui veut voir beaucoup de fichiers d'un coup a la
+             liste, juste à côté. -->
         <div
             v-else-if="viewMode === 'grid'"
-            class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+            class="grid grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         >
             <article
                 v-for="file in visible"
                 :key="file.id"
                 class="overflow-hidden rounded-lg border border-line/60 bg-surface transition-colors hover:border-accent-400"
             >
+                <!-- Un carré de trois cent soixante pixels mangerait l'écran
+                     pour une seule vignette ; quatre tiers en laissent voir
+                     deux et demie, et le cadrage est de toute façon décidé par
+                     `object-fit: cover`. -->
                 <button
                     type="button"
-                    class="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-surface-2"
+                    class="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-surface-2 sm:aspect-square"
                     :title="t('backend.studio.space_content.files_open')"
                     v-on:click="previewed = file"
                 >
@@ -225,10 +253,14 @@ function chooseFile(event) {
                         {{ file.title }}
                     </p>
 
+                    <!-- `py-1.5 -my-1.5` : seize pixels de haut, c'est la
+                         hauteur d'une ligne de texte et non celle d'une cible.
+                         La zone sensible monte à vingt-huit sans que la carte
+                         bouge d'un pixel. -->
                     <button
                         v-if="file.itemId"
                         type="button"
-                        class="mt-0.5 block max-w-full truncate text-xs text-muted underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
+                        class="mt-0.5 block max-w-full truncate py-1.5 -my-1.5 text-xs text-muted underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
                         v-on:click="open(file.itemId)"
                     >
                         {{ titleOf(file.itemId) }}
@@ -294,7 +326,7 @@ function chooseFile(event) {
 
                 <button
                     type="button"
-                    class="shrink-0 rounded-md border border-line/60 px-2.5 py-1 text-xs text-primary transition-colors hover:bg-surface-2"
+                    class="shrink-0 rounded-md border border-line/60 px-2.5 py-1.5 text-xs text-primary transition-colors hover:bg-surface-2"
                     v-on:click="previewed = file"
                 >
                     {{ t("backend.studio.space_content.files_open") }}

@@ -62,6 +62,7 @@ final readonly class ContentSecurityPolicy
     {
         $script = ["'self'"];
         $connect = ["'self'"];
+        $font = ["'self'", 'data:'];
 
         if (null !== $nonce) {
             $script[] = sprintf("'nonce-%s'", $nonce);
@@ -74,6 +75,13 @@ final readonly class ContentSecurityPolicy
             $script[] = $this->viteDevServer;
             $connect[] = $this->viteDevServer;
             $connect[] = str_replace('http', 'ws', $this->viteDevServer);
+            // Les polices aussi : en développement, Vite sert Poppins depuis
+            // `node_modules`, donc depuis son origine à lui. Sans cette ligne,
+            // soixante-seize refus s'empilent dans la console et la page
+            // s'affiche dans la police du système, ce qui donne à chaque écran
+            // regardé en local une graisse et une chasse que la production
+            // n'aura pas.
+            $font[] = $this->viteDevServer;
         }
 
         // **Behind the same host in production, and not necessarily
@@ -100,7 +108,7 @@ final readonly class ContentSecurityPolicy
             'script-src '.implode(' ', $script),
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: blob: https:",
-            "font-src 'self' data:",
+            'font-src '.implode(' ', $font),
             "media-src 'self' blob:",
             'connect-src '.implode(' ', $connect),
             'frame-src '.implode(' ', ["'self'", ...$this->embedOrigins()]),

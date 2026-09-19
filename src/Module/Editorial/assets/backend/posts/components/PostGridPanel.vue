@@ -233,7 +233,7 @@ function resizeZone(index, columns) {
                 v-for="(zone, index) in zones"
                 v-show="selectedIndex === index"
                 :key="zone.id"
-                class="bg-surface-2/40 border border-accent rounded-lg p-4 space-y-4"
+                class="bg-surface-2/40 border border-accent rounded-lg p-2 space-y-4 sm:p-4"
                 v-on:focusin="selectedIndex = index"
             >
                 <div class="flex items-center gap-2">
@@ -599,7 +599,9 @@ function resizeZone(index, columns) {
                 :icon="Eye"
                 v-on:close="showPreview = false"
             >
-                <div class="relative min-h-40 p-4">
+                <!-- La modale a déjà ses seize pixels : seize de plus ici en feraient
+                     trente-deux sur un téléphone, pour un aperçu qu'on regarde. -->
+                <div class="relative min-h-40 p-2 sm:p-4">
                     <div v-html="previewHtml" />
                     <AppLoader :active="previewLoading" />
                 </div>

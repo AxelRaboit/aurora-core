@@ -66,14 +66,24 @@ function when(item) {
                 <span class="text-xs tabular-nums text-muted">
                     {{ group.cards.length }}
                 </span>
+                <!-- **Le plus seul sur téléphone.** « Ajouter un contenu »
+                     fait cent quarante pixels en face d'un nom de colonne qui
+                     peut en faire autant : les deux se repliaient sur trois
+                     lignes pour un bouton dont le signe dit déjà tout, à
+                     l'endroit où l'on s'y attend. Le libellé revient dès qu'il
+                     y a la place, et reste lisible par un lecteur d'écran
+                     entre-temps. -->
                 <button
                     v-if="editable"
                     type="button"
-                    class="ml-auto flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+                    class="ml-auto flex shrink-0 items-center gap-1 rounded-md px-2 py-2 text-xs text-muted transition-colors hover:bg-surface-2 hover:text-primary sm:py-1"
+                    :title="t('backend.studio.space_content.add_item')"
                     v-on:click="emit('add-item', group.column.id)"
                 >
                     <Plus class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t("backend.studio.space_content.add_item") }}
+                    <span class="sr-only sm:not-sr-only">
+                        {{ t("backend.studio.space_content.add_item") }}
+                    </span>
                 </button>
             </header>
 
@@ -94,7 +104,7 @@ function when(item) {
                          the reader this view exists for. -->
                     <button
                         type="button"
-                        class="flex min-w-0 flex-1 items-center gap-3 text-left"
+                        class="order-1 flex min-w-0 flex-1 items-center gap-3 text-left"
                         v-on:click="emit('open-item', card)"
                     >
                         <img
@@ -114,33 +124,50 @@ function when(item) {
                         </span>
                     </button>
 
-                    <span
-                        v-if="card.approval !== 'pending'"
-                        class="flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-xs"
-                        :class="
-                            card.approval === 'approved'
-                                ? 'bg-emerald-500/10 text-emerald-500'
-                                : 'bg-amber-500/10 text-amber-500'
-                        "
-                    >
-                        <Check
-                            v-if="card.approval === 'approved'"
-                            class="h-3 w-3 shrink-0"
-                            :stroke-width="2"
-                        />
-                        <MessageSquare v-else class="h-3 w-3 shrink-0" :stroke-width="2" />
-                        {{ t(`backend.studio.space_content.approvals.${card.approval}`) }}
-                    </span>
+                    <!-- **Sous le titre sur téléphone, à côté ailleurs.** La date
+                         et la pastille tiennent leur largeur quoi qu'il arrive,
+                         donc sur un écran étroit c'est le titre qui payait : « Le
+                         témoignage de Mme Lefèvre » devenait « Témoignag… ».
+                         Descendues sur leur propre ligne, elles rendent au titre
+                         toute la largeur de la carte.
 
-                    <span
-                        class="flex shrink-0 items-center gap-1 text-xs tabular-nums"
-                        :class="card.scheduledAt ? 'text-secondary' : 'text-muted'"
-                    >
-                        <CalendarClock class="h-3 w-3 shrink-0" :stroke-width="2" />
-                        {{ when(card) }}
-                    </span>
+                         Au bord gauche et non sous le titre : un décalage calé
+                         sur la vignette ne vaut que pour les fiches qui en ont
+                         une, et celles qui n'en ont pas voyaient leur date
+                         partir seule vers le milieu. -->
+                    <div class="order-3 flex w-full items-center gap-3 sm:w-auto">
+                        <span
+                            v-if="card.approval !== 'pending'"
+                            class="flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-xs"
+                            :class="
+                                card.approval === 'approved'
+                                    ? 'bg-emerald-500/10 text-emerald-500'
+                                    : 'bg-amber-500/10 text-amber-500'
+                            "
+                        >
+                            <Check
+                                v-if="card.approval === 'approved'"
+                                class="h-3 w-3 shrink-0"
+                                :stroke-width="2"
+                            />
+                            <MessageSquare v-else class="h-3 w-3 shrink-0" :stroke-width="2" />
+                            {{ t(`backend.studio.space_content.approvals.${card.approval}`) }}
+                        </span>
 
-                    <AppRowActions :actions="actionsFor(card)" :label="card.title ?? ''" />
+                        <span
+                            class="flex shrink-0 items-center gap-1 text-xs tabular-nums"
+                            :class="card.scheduledAt ? 'text-secondary' : 'text-muted'"
+                        >
+                            <CalendarClock class="h-3 w-3 shrink-0" :stroke-width="2" />
+                            {{ when(card) }}
+                        </span>
+                    </div>
+
+                    <AppRowActions
+                        class="order-2 sm:order-4"
+                        :actions="actionsFor(card)"
+                        :label="card.title ?? ''"
+                    />
                 </li>
             </ul>
         </section>

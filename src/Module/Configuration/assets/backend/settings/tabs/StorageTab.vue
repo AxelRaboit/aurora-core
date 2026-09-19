@@ -457,7 +457,7 @@ defineExpose({ save, apply, canSwitchToR2 });
             />
         </section>
 
-        <div class="flex flex-wrap items-center justify-end gap-3">
+        <div class="flex flex-col items-stretch justify-end gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <!-- Far from the save button, and only when there is something to
                  disconnect from. It erases both keys, which nothing else on
                  this screen can do. -->

@@ -57,7 +57,13 @@ const variants = {
     'danger-outline': 'bg-transparent hover:bg-rose-500/10 text-rose-400 border border-line focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-rose-500',
 
     accent: 'bg-accent hover:bg-accent-hover text-white focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-accent',
-    ghost: 'bg-transparent hover:bg-surface-2 text-secondary hover:text-primary',
+    // **Jamais transparent sur téléphone.** Un bouton fantôme se lit à la
+    // souris : il attend le survol pour exister, et sa place dans une barre
+    // dense dit déjà que c'en est un. Au doigt, il n'y a pas de survol, et un
+    // bouton pleine largeur sans fond ressemble à une ligne de texte - on ne
+    // sait pas qu'on peut appuyer. Sous `sm` il porte donc une surface sourde
+    // et un filet ; au-dessus, il redevient le fantôme qu'il doit être.
+    ghost: 'bg-surface-2 border border-line/60 text-secondary hover:bg-surface-2 hover:text-primary sm:border-transparent sm:bg-transparent',
     dashed: 'bg-transparent border-2 border-dashed border-line text-secondary hover:bg-surface-2 hover:text-primary',
     link: 'bg-transparent text-muted hover:text-secondary underline p-0 text-sm',
     'link-accent': 'bg-transparent text-accent hover:underline p-0 text-sm',

@@ -33,7 +33,7 @@ const slides = props.deck.slides ?? [];
 </script>
 
 <template>
-    <div class="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 p-4 sm:p-8">
+    <div class="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-2 py-2 sm:p-8">
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
                 <h1 class="m-0 text-xl font-semibold text-primary">{{ deck.title }}</h1>
@@ -42,7 +42,14 @@ const slides = props.deck.slides ?? [];
                 </p>
             </div>
 
-            <AppButton v-if="slides.length" variant="primary" v-on:click="playing = true">
+            <!-- Le seul geste de la page prend la ligne sur téléphone : c'est
+                 un client qui l'ouvre, souvent sur son écran d'accueil. -->
+            <AppButton
+                v-if="slides.length"
+                class="w-full sm:w-auto"
+                variant="primary"
+                v-on:click="playing = true"
+            >
                 <Play class="h-4 w-4" :stroke-width="2" />
                 {{ t("backend.studio.decks.present") }}
             </AppButton>

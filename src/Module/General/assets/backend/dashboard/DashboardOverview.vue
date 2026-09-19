@@ -45,8 +45,19 @@ const { activeModule, selectModule, visibleModules } = useDashboardModule(enable
                     class="whitespace-nowrap"
                     v-on:click="selectModule(module.id)"
                 >
-                    <component :is="module.icon" class="w-4 h-4" :stroke-width="2" />
-                    {{ module.label() }}
+                    <!-- **Sur téléphone, seul l'onglet ouvert porte son nom.**
+                         Cinq libellés font quatre cent quarante-neuf pixels
+                         pour trois cent cinquante-neuf de bande : elle défilait
+                         de côté sur l'écran d'arrivée, celui qu'on ouvre le
+                         plus souvent. L'icône répond à « où puis-je aller »,
+                         le nom de l'onglet ouvert à « où suis-je » - et c'est
+                         la seule des deux questions qui a besoin de mots. Le
+                         libellé reste lisible par un lecteur d'écran, et
+                         revient en entier dès `sm`. -->
+                    <component :is="module.icon" class="w-4 h-4 shrink-0" :stroke-width="2" />
+                    <span :class="activeModule === module.id ? '' : 'sr-only sm:not-sr-only'">
+                        {{ module.label() }}
+                    </span>
                 </AppTab>
             </div>
 

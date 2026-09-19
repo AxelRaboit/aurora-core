@@ -96,7 +96,7 @@ function formatDate(value) {
             </nav>
 
             <div v-if="active" class="space-y-3">
-                <div class="flex flex-wrap items-center gap-3 bg-rose-500/10 border border-rose-400/30 rounded-xl px-4 py-2.5">
+                <div class="flex flex-wrap items-center gap-3 bg-rose-500/10 border border-rose-400/30 rounded-xl px-2 py-2 sm:px-4 sm:py-2.5">
                     <Trash2 class="w-4 h-4 text-rose-400 shrink-0" :stroke-width="2" />
                     <p class="text-sm text-primary min-w-0">
                         <span v-if="active.count === 0">{{ t("backend.trash.empty_one") }}</span>
@@ -137,10 +137,16 @@ function formatDate(value) {
                 </AppMessage>
 
                 <div v-else class="bg-surface border border-line/60 rounded-xl overflow-hidden shadow-sm divide-y divide-line/40">
+                    <!-- **Empilé sur téléphone.** « Restaurer » et « Supprimer
+                         définitivement » font trois cents pixels à eux deux :
+                         sur trois cent cinquante-neuf, il en restait **trois**
+                         pour le nom, qui se pliait en colonne d'une lettre par
+                         ligne. Le nom prend sa ligne, les deux gestes la
+                         suivante, moitié-moitié. -->
                     <div
                         v-for="item in active.items"
                         :key="item.id"
-                        class="flex flex-wrap items-center gap-3 px-4 py-3"
+                        class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3"
                     >
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-primary truncate">{{ item.label }}</p>
@@ -152,6 +158,7 @@ function formatDate(value) {
                         <div v-if="mayAct(active)" class="flex items-center gap-2">
                             <AppButton
                                 v-if="active.restorePath"
+                                class="flex-1 sm:flex-none"
                                 size="sm"
                                 variant="ghost"
                                 :loading="busyId === item.id"
@@ -161,6 +168,7 @@ function formatDate(value) {
                             </AppButton>
                             <AppButton
                                 v-if="active.forceDeletePath"
+                                class="flex-1 sm:flex-none"
                                 size="sm"
                                 variant="danger"
                                 v-on:click="askForceDelete(active, item)"

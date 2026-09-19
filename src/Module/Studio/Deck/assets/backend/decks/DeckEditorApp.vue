@@ -381,7 +381,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="space-y-2 sm:space-y-4">
         <!-- Présenter, et le reste derrière un bouton : la page a déjà une
              colonne de slides à gauche, elle n'a pas besoin d'une rangée de
              cinq boutons en haut. -->
@@ -481,7 +481,7 @@ onBeforeUnmount(() => {
 
                         <div
                             v-if="editable"
-                            class="absolute top-1 right-1 flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+                            class="absolute top-1 right-1 flex gap-0.5 transition-opacity focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                         >
                             <!-- Les flèches restent à côté de la poignée : le
                                  glisser demande une souris et une main, elles
@@ -567,7 +567,7 @@ onBeforeUnmount(() => {
                         />
                     </div>
 
-                    <div class="mx-auto max-w-3xl space-y-4 rounded-xl border border-line bg-surface p-4">
+                    <div class="mx-auto max-w-3xl space-y-4 rounded-xl border border-line bg-surface p-2 sm:p-4">
                         <div class="flex items-center justify-between gap-3">
                             <AppSelect
                                 :model-value="selected.layout"

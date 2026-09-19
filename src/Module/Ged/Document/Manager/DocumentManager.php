@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Ged\Document\Manager;
 
 use Aurora\Core\Sequence\SequenceGenerator;
+use Aurora\Core\Storage\Adapter\StoredObject;
 use Aurora\Core\Storage\Enum\MimeTypeEnum;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Storage\Service\ImageVariantGenerator;
@@ -552,6 +553,17 @@ class DocumentManager implements DocumentManagerInterface
      * Regenerates the responsive variants (thumbnail/medium/large in WebP)
      * for raster image documents. No-op for non-images, PDFs and missing
      * files. Called after every filePath swap (create / update / crop).
+     *
+     * **And re-reads the size afterwards.** The size on the record is the one
+     * the upload measured, and for a JPEG that number stops being true one
+     * line later: {@see ImageVariantGenerator} re-encodes the source in place
+     * at quality 85 and strips its metadata. Measured on a real import, a
+     * 1,532,467 byte photograph is 213,901 on disk once filed - so the
+     * library was showing a weight seven times the truth, and every quota or
+     * total built on it was wrong by as much.
+     *
+     * Asked of the adapter rather than of the local file: the source may live
+     * in object storage, where the only honest answer comes from a stat.
      */
     protected function regenerateVariantsIfImage(DocumentInterface $document): void
     {
@@ -562,12 +574,20 @@ class DocumentManager implements DocumentManagerInterface
             return;
         }
 
+        $adapter = $this->storageManager->forDisk($document->getStorageDisk());
+
         $variants = $this->variantGenerator->generate(
-            $this->storageManager->forDisk($document->getStorageDisk()),
+            $adapter,
             $filePath,
             (string) $document->getMimeType(),
         );
         $document->setVariants($variants);
+
+        $stored = $adapter->stat($filePath);
+
+        if ($stored instanceof StoredObject && $stored->size > 0) {
+            $document->setSize($stored->size);
+        }
     }
 
     protected function auditCreated(DocumentInterface $document): void

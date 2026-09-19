@@ -114,10 +114,11 @@ const {
                                 class="flex-1"
                             />
                             <AppButton
-                                variant="ghost"
+                                variant="icon"
                                 size="sm"
                                 :disabled="!sectionAliases[section.id]"
                                 :title="t('backend.settings.nav_aliases.reset_item')"
+                                class="p-1.5 text-muted hover:text-primary"
                                 v-on:click="resetSection(section.id)"
                             >
                                 <X class="w-3.5 h-3.5" :stroke-width="2" />
@@ -161,10 +162,11 @@ const {
                                         class="flex-1"
                                     />
                                     <AppButton
-                                        variant="ghost"
+                                        variant="icon"
                                         size="sm"
                                         :disabled="!itemAliases[item.route ?? item.key]"
                                         :title="t('backend.settings.nav_aliases.reset_item')"
+                                        class="p-1.5 text-muted hover:text-primary"
                                         v-on:click="resetItem(item.route ?? item.key)"
                                     >
                                         <X class="w-3.5 h-3.5" :stroke-width="2" />
@@ -176,7 +178,7 @@ const {
                 </div>
             </VueDraggable>
 
-            <div class="pt-2 border-t border-line flex justify-end">
+            <div class="pt-2 border-t border-line flex justify-end *:w-full sm:*:w-auto">
                 <AppButton variant="primary" size="md" :loading="saving" v-on:click="saveAll">
                     <Save class="w-3.5 h-3.5" :stroke-width="2" />
                     {{ t('backend.settings.nav_aliases.save') }}

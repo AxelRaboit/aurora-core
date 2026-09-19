@@ -106,3 +106,12 @@
 }
 .si-label { display: block; min-width: 0; }
 .si-section-header { padding: 0.374rem 0.74rem; }
+
+/* Trente pixels sous le pouce. Ces en-têtes ouvrent et ferment une section du
+   menu - ce sont des commandes, pas des titres - et ils font vingt-huit
+   pixels de haut, ce qu'un doigt rate. La souris garde le serrage : le tiroir
+   déplié d'un écran large tient dix sections, et les espacer toutes pour une
+   précision que le curseur a déjà rallongerait le menu pour rien. */
+@media (max-width: 639px) {
+    .si-section-header { padding-block: 0.5rem; }
+}

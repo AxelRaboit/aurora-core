@@ -141,7 +141,7 @@ function addOn(date) {
 </script>
 
 <template>
-    <div class="bg-surface border border-line rounded-xl overflow-hidden">
+    <div class="overflow-hidden rounded-xl border border-line bg-surface">
         <div class="grid grid-cols-7 border-b border-line">
             <span
                 v-for="day in weekdays"
@@ -206,9 +206,15 @@ function addOn(date) {
                                 :key="dot"
                                 class="h-1 w-1 rounded-full bg-secondary"
                             />
+                            <!-- `text-2xs`, et pas la classe `text-3xs` qui
+                                 était écrite ici : elle n'existe dans aucun
+                                 thème, donc le nombre héritait des seize pixels
+                                 du corps et pesait quatre fois ses pastilles de
+                                 quatre. Dix pixels le remettent sous le numéro
+                                 du jour, qui en fait douze. -->
                             <span
                                 v-if="week.counts[week.cells.indexOf(cell)] > MAX_DOTS"
-                                class="text-3xs text-muted tabular-nums"
+                                class="text-2xs leading-none text-muted tabular-nums"
                             >{{ week.counts[week.cells.indexOf(cell)] }}</span>
                         </span>
                     </template>

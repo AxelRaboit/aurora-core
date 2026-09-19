@@ -14,7 +14,11 @@ use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Message\SpaceActivityDigestMessage;
 use Aurora\Module\Studio\CustomerSpace\MessageHandler\SpaceActivityDigestHandler;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
+use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
+use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -83,7 +87,7 @@ final class SpaceChatTest extends IntegrationTestCase
     {
         $space = $this->givenSpace();
 
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat', $space->getId()), [
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat/%d', $space->getId(), $this->mainChannel($space)), [
             'body' => "Le brief d'octobre est prêt.",
         ]);
 
@@ -99,7 +103,7 @@ final class SpaceChatTest extends IntegrationTestCase
     {
         $space = $this->givenSpace();
 
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat', $space->getId()), ['body' => '   ']);
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat/%d', $space->getId(), $this->mainChannel($space)), ['body' => '   ']);
 
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
         self::assertArrayHasKey('body', $this->payload()['errors']);
@@ -121,10 +125,10 @@ final class SpaceChatTest extends IntegrationTestCase
         $this->client->request('GET', sprintf('/workspace/%d', $space->getId()));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat', $space->getId()), ['body' => 'Sans hub.']);
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat/%d', $space->getId(), $this->mainChannel($space)), ['body' => 'Sans hub.']);
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $this->client->request('GET', sprintf('/workspace/%d/chat/messages', $space->getId()));
+        $this->client->request('GET', sprintf('/workspace/%d/chat/%d/messages', $space->getId(), $this->mainChannel($space)));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertCount(1, $this->payload()['chatMessages']);
@@ -134,7 +138,7 @@ final class SpaceChatTest extends IntegrationTestCase
     {
         [$space, $url] = $this->givenLinkedSpace(canComment: true);
 
-        $this->client->jsonRequest('POST', $url.'/chat', ['body' => 'Une question sur le visuel.']);
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Une question sur le visuel.']);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
@@ -144,7 +148,7 @@ final class SpaceChatTest extends IntegrationTestCase
         self::assertSame('camille@societe.test', $messages[0]['author']);
 
         // And the studio reads the same row, because it is one conversation.
-        $this->client->request('GET', sprintf('/workspace/%d/chat/messages', $space->getId()));
+        $this->client->request('GET', sprintf('/workspace/%d/chat/%d/messages', $space->getId(), $this->mainChannel($space)));
         self::assertCount(1, $this->payload()['chatMessages']);
     }
 
@@ -157,7 +161,7 @@ final class SpaceChatTest extends IntegrationTestCase
     {
         [, $url] = $this->givenLinkedSpace(canComment: false);
 
-        $this->client->jsonRequest('POST', $url.'/chat', ['body' => 'Bonjour ?']);
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Bonjour ?']);
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
     }
@@ -167,9 +171,9 @@ final class SpaceChatTest extends IntegrationTestCase
         [$space, $url] = $this->givenLinkedSpace(canComment: true);
         $this->givenMember($space);
 
-        $this->client->jsonRequest('POST', $url.'/chat', ['body' => 'Premier message.']);
-        $this->client->jsonRequest('POST', $url.'/chat', ['body' => 'Et un deuxième.']);
-        $this->client->jsonRequest('POST', $url.'/chat', ['body' => 'Et un troisième.']);
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Premier message.']);
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Et un deuxième.']);
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Et un troisième.']);
 
         // Three messages, one thing to go and look at. Folding them is what
         // keeps a bell worth reading.
@@ -191,7 +195,7 @@ final class SpaceChatTest extends IntegrationTestCase
         $space = $this->givenSpace();
         $this->givenMember($space);
 
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat', $space->getId()), ['body' => 'À nous-mêmes.']);
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat/%d', $space->getId(), $this->mainChannel($space)), ['body' => 'À nous-mêmes.']);
 
         self::assertCount(0, $this->entityManager->getRepository(Notification::class)
             ->findBy(['recipient' => $this->admin, 'type' => 'studio.space.chat']));
@@ -201,12 +205,12 @@ final class SpaceChatTest extends IntegrationTestCase
     {
         [$space, $url] = $this->givenLinkedSpace(canComment: true);
 
-        $this->client->jsonRequest('POST', $url.'/chat', ['body' => 'Ce contenu ne me va pas.']);
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Ce contenu ne me va pas.']);
         $messageId = $this->payload()['chatMessages'][0]['id'];
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/workspace/%d/chat/%d/delete', $space->getId(), $messageId),
+            sprintf('/workspace/%d/chat/%d/%d/delete', $space->getId(), $this->mainChannel($space), $messageId),
         );
 
         // Refused under the field, not silently ignored: a provider able to
@@ -219,12 +223,12 @@ final class SpaceChatTest extends IntegrationTestCase
     {
         $space = $this->givenSpace();
 
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat', $space->getId()), ['body' => 'Oubliez ça.']);
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat/%d', $space->getId(), $this->mainChannel($space)), ['body' => 'Oubliez ça.']);
         $messageId = $this->payload()['chatMessages'][0]['id'];
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/workspace/%d/chat/%d/delete', $space->getId(), $messageId),
+            sprintf('/workspace/%d/chat/%d/%d/delete', $space->getId(), $this->mainChannel($space), $messageId),
         );
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -242,12 +246,12 @@ final class SpaceChatTest extends IntegrationTestCase
         $mine = $this->givenSpace('Client A', '73282932000074');
         $theirs = $this->givenSpace('Client B', '55203534400028');
 
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat', $theirs->getId()), ['body' => 'Chez eux.']);
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat/%d', $theirs->getId(), $this->mainChannel($theirs)), ['body' => 'Chez eux.']);
         $messageId = $this->payload()['chatMessages'][0]['id'];
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/workspace/%d/chat/%d/delete', $mine->getId(), $messageId),
+            sprintf('/workspace/%d/chat/%d/%d/delete', $mine->getId(), $this->mainChannel($mine), $messageId),
         );
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
@@ -262,7 +266,7 @@ final class SpaceChatTest extends IntegrationTestCase
         [$space, $url] = $this->givenLinkedSpace(canComment: true);
         $this->givenMember($space);
 
-        $this->client->jsonRequest('POST', $url.'/chat', ['body' => 'Une question.']);
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Une question.']);
 
         $this->markEverythingRead();
         $this->runDigest($space);
@@ -275,8 +279,8 @@ final class SpaceChatTest extends IntegrationTestCase
         [$space, $url] = $this->givenLinkedSpace(canComment: true);
         $this->givenMember($space);
 
-        $this->client->jsonRequest('POST', $url.'/chat', ['body' => 'Premier.']);
-        $this->client->jsonRequest('POST', $url.'/chat', ['body' => 'Deuxième.']);
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Premier.']);
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Deuxième.']);
 
         $this->runDigest($space);
 
@@ -296,21 +300,21 @@ final class SpaceChatTest extends IntegrationTestCase
         [$space, $url] = $this->givenLinkedSpace(canComment: true);
         $this->givenMember($space);
 
-        $this->client->jsonRequest('POST', $url.'/chat', ['body' => 'Premier.']);
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Premier.']);
         $this->runDigest($space);
         self::assertCount(1, $this->mailerMessages());
 
         // Something else happens while they are still away. Counted per phase
         // rather than cumulatively: the mailer collector is cleared by each
         // request, so what this reads is "did that round send anything".
-        $this->client->jsonRequest('POST', $url.'/chat', ['body' => 'Toujours là ?']);
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Toujours là ?']);
         $this->runDigest($space);
         self::assertCount(0, $this->mailerMessages());
 
         // They open the space, and the next thing that happens is worth a mail
         // again.
         $this->markEverythingRead();
-        $this->client->jsonRequest('POST', $url.'/chat', ['body' => 'Et une relance.']);
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Et une relance.']);
         $this->runDigest($space);
 
         self::assertCount(1, $this->mailerMessages());
@@ -367,6 +371,44 @@ final class SpaceChatTest extends IntegrationTestCase
         }
 
         return $messages;
+    }
+
+    /**
+     * The room a space was born with.
+     *
+     * Every address the conversation answers on names a room since rooms
+     * exist, and the one every space has is the one these tests write in.
+     */
+    private function mainChannel(CustomerSpace $space): int
+    {
+        $channel = static::getContainer()->get(SpaceChatChannelRepository::class)->findMain(
+            $this->entityManager->getReference(CustomerSpace::class, $space->getId()),
+        );
+
+        self::assertInstanceOf(SpaceChatChannelInterface::class, $channel);
+
+        return (int) $channel->getId();
+    }
+
+    /**
+     * The same room, reached from the client's address.
+     *
+     * The public page names its space by a link rather than by an id, so the
+     * link is resolved the way the controller does before the room is asked
+     * for.
+     */
+    private function mainChannelOfLink(string $url): int
+    {
+        $parts = explode('/', mb_trim(parse_url($url, PHP_URL_PATH) ?? '', '/'));
+        $selector = $parts[count($parts) - 2] ?? '';
+
+        $link = static::getContainer()->get(SpaceAccessLinkRepository::class)->findBySelector($selector);
+        self::assertInstanceOf(SpaceAccessLinkInterface::class, $link);
+
+        $channel = static::getContainer()->get(SpaceChatChannelRepository::class)->findMain($link->getSpace());
+        self::assertInstanceOf(SpaceChatChannelInterface::class, $channel);
+
+        return (int) $channel->getId();
     }
 
     /** @return array<string, mixed> */
