@@ -326,7 +326,7 @@ function chooseFile(event) {
 
                 <button
                     type="button"
-                    class="shrink-0 rounded-md border border-line/60 px-2.5 py-1 text-xs text-primary transition-colors hover:bg-surface-2"
+                    class="shrink-0 rounded-md border border-line/60 px-2.5 py-1.5 text-xs text-primary transition-colors hover:bg-surface-2"
                     v-on:click="previewed = file"
                 >
                     {{ t("backend.studio.space_content.files_open") }}

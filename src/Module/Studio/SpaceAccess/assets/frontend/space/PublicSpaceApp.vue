@@ -30,6 +30,7 @@ import CalendarMonth from "@/shared/components/calendar/CalendarMonth.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppThemeToggle from "@/shared/components/action/AppThemeToggle.vue";
 import { monthGrid } from "@/shared/composables/calendar/monthGrid.js";
+import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 // Same module, another sub-domain: a relative path rather than an alias.
 // The rule that forbids reaching across modules is about modules, and this
@@ -118,6 +119,39 @@ const events = computed(() =>
             // construction instead of by omission.
             readOnly: true,
         })),
+);
+
+/**
+ * Une grille de mois ne tient pas sur un téléphone, et c'est mesurable.
+ *
+ * Sept colonnes dans trois cent soixante-quinze pixels font des cases de
+ * cinquante : les trois autres calendriers d'Aurora passent donc en index à
+ * pastilles sous le seuil, avec la liste du jour en dessous. Celui-ci était le
+ * seul à ne pas le faire, et il montrait au client des pastilles d'événement de
+ * seize pixels de haut - la hauteur d'une ligne de texte, pas celle d'une
+ * cible.
+ */
+const { container, isNarrow } = useNarrowContainer(560);
+
+/** Le jour que la liste montre. Aujourd'hui tant que personne n'en a choisi un. */
+const selectedDay = ref(new Date());
+
+function sameDay(a, b) {
+    return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+    );
+}
+
+const dayItems = computed(() =>
+    events.value
+        .filter((event) => sameDay(new Date(event.startAt), selectedDay.value))
+        .sort((a, b) => new Date(a.startAt) - new Date(b.startAt)),
+);
+
+const dayTitle = computed(() =>
+    d(selectedDay.value, { weekday: "long", day: "numeric", month: "long" }),
 );
 
 const itemsById = computed(
@@ -293,7 +327,48 @@ function open(event) {
             </p>
         </div>
 
-        <CalendarMonth :cells="cells" :events="events" v-on:open-event="open" />
+        <div ref="container" class="space-y-3">
+            <CalendarMonth
+                :cells="cells"
+                :events="events"
+                :compact="isNarrow"
+                :selected="isNarrow ? selectedDay : null"
+                v-on:open-event="open"
+                v-on:select-day="selectedDay = $event"
+            />
+
+            <!-- La grille dit quels jours portent quelque chose ; celle-ci dit
+                 quoi. L'une sans l'autre est illisible sur un téléphone. -->
+            <section v-if="isNarrow" class="rounded-xl border border-line/60 bg-surface">
+                <header class="flex items-baseline gap-2 border-b border-line/40 px-3 py-2">
+                    <h3 class="text-sm font-medium capitalize text-primary">
+                        {{ dayTitle }}
+                    </h3>
+                    <span class="text-xs tabular-nums text-muted">{{ dayItems.length }}</span>
+                </header>
+
+                <p v-if="!dayItems.length" class="px-3 py-3 text-xs text-muted">
+                    {{ t("studio.public.space.calendar_day_empty") }}
+                </p>
+
+                <ul v-else class="divide-y divide-line/40">
+                    <li v-for="event in dayItems" :key="event.id">
+                        <button
+                            type="button"
+                            class="flex w-full items-baseline gap-2 px-3 py-2.5 text-left transition-colors hover:bg-surface-2/60"
+                            v-on:click="open(event)"
+                        >
+                            <span class="shrink-0 text-xs tabular-nums text-muted">
+                                {{ d(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" }) }}
+                            </span>
+                            <span class="min-w-0 flex-1 truncate text-sm text-primary">
+                                {{ event.title }}
+                            </span>
+                        </button>
+                    </li>
+                </ul>
+            </section>
+        </div>
 
         <!-- Under the month rather than beside it, and never a floating
              bubble: this page is read on a phone as often as on a desk, and a
@@ -354,7 +429,7 @@ function open(event) {
                         :href="file.url"
                         target="_blank"
                         rel="noopener"
-                        class="shrink-0 rounded-md border border-line/60 px-2.5 py-1 text-xs text-primary transition-colors hover:bg-surface-2"
+                        class="shrink-0 rounded-md border border-line/60 px-2.5 py-1.5 text-xs text-primary transition-colors hover:bg-surface-2"
                     >
                         {{ t("studio.public.space.files_open") }}
                     </a>

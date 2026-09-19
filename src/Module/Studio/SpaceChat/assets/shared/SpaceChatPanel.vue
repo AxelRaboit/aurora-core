@@ -473,7 +473,7 @@ function onKeydown(event) {
                 <button
                     v-if="hasRail"
                     type="button"
-                    class="flex items-center gap-1.5 text-sm font-medium text-primary md:pointer-events-none"
+                    class="flex items-center gap-1.5 rounded-md py-1.5 -my-1.5 text-sm font-medium text-primary md:pointer-events-none md:py-0 md:my-0"
                     :aria-expanded="railOpen"
                     v-on:click="railOpen = !railOpen"
                 >
@@ -530,7 +530,7 @@ function onKeydown(event) {
                 <button
                     v-if="openChannel"
                     type="button"
-                    class="shrink-0 rounded-md p-1 text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+                    class="shrink-0 rounded-md p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-primary"
                     :class="expectsLive ? '' : 'ml-auto'"
                     :aria-label="t('shared.space_chat.channels.room_settings')"
                     v-on:click="roomModal = true"

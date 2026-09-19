@@ -1174,6 +1174,7 @@ studio:
         space:
             unavailable_message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a space's content plan, ask your contact for a new link.
             timezone_notice: 'Times in {timezone}'
+            calendar_day_empty: Nothing planned that day.
             footer: This address is personal to you, please do not pass it on.
             footer_until: 'This address is personal to you and valid until {date}: please do not pass it on.'
             no_body: The text is not written yet.

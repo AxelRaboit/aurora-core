@@ -9,6 +9,26 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Le calendrier que voit le client prend sa forme de téléphone
+Les quatre calendriers d'Aurora dessinent la même grille. Trois d'entre eux
+passent en index à pastilles sous cinq cent soixante pixels, avec la liste du
+jour choisi en dessous : sept colonnes dans trois cent soixante-quinze pixels
+font des cases de cinquante, la place d'un numéro de jour et pas celle d'un
+titre. Le quatrième, celui que le client ouvre depuis son lien d'accès, ne le
+faisait pas.
+
+Il montrait donc des pastilles d'événement de trente-six pixels sur seize, la
+hauteur d'une ligne de texte. Elles deviennent des lignes de trois cent
+quarante et un sur quarante dans la liste du jour. La page raccourcit de deux
+cent vingt et un pixels au passage, et rien ne change à partir de la largeur
+d'un écran.
+
+Trois commandes de la vue client tombaient aussi sous les vingt-huit pixels
+d'une icône d'Aurora : les trois points d'un salon, le titre qui ouvre la liste
+des canaux, et « Ouvrir » sous un fichier. Passage mesuré depuis un vrai lien
+d'accès, sans compte : plus une seule cible sous vingt-huit pixels, et rien ne
+déborde.
+
 #### Trente pixels sous le pouce dans la barre d'un espace
 Passage mesuré sur soixante-sept écrans et états à trois cent soixante-quinze
 pixels : rien ne déborde, et la gouttière vaut huit partout dans le back-office.
