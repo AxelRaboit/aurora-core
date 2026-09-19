@@ -57,6 +57,32 @@ suppression qu'elle accepte. Le mode « Clé API » est le seul qui referme ça.
 
 ### Modifié
 
+#### Une carte peut porter une date sans paraître dans le calendrier
+Une date et une parution ne sont pas la même chose. Une carte peut porter une
+échéance qui regarde le studio et personne d'autre : une relance à préparer, un
+tournage à caler, un envoi à vérifier. Datées, elles s'invitaient toutes dans
+le mois et noyaient ce que le calendrier existe pour montrer.
+
+Une case sous le champ de date, cochée par défaut. Décochée, la carte garde sa
+date, reste sur le tableau, et disparaît du mois.
+
+**Des deux calendriers, et c'est le second qui se serait oublié.** Une carte
+datée n'alimente pas seulement le mois de son espace : elle est annoncée à
+l'agenda partagé du studio, celui qui rassemble tous les clients. Retirée d'un
+seul des deux, la case aurait menti. La règle est donc dite à l'endroit où
+l'annonce est faite, une fois pour les deux.
+
+Vrai par défaut y compris pour un appel qui ne porte pas le champ. C'est le
+défaut qu'un booléen ajouté à une entrée existante produit : absent du corps,
+il vaudrait faux, et toutes les cartes enregistrées par un écran plus ancien
+auraient quitté le calendrier en silence.
+
+#### La démonstration n'envoie plus deux fois le même lien d'accès
+Chaque `make demo` émettait un nouveau lien pour un destinataire qu'il avait
+déjà. Trois passages listaient Camille trois fois dans l'écran d'accès client,
+ce qui se lit comme un défaut du produit plutôt que comme une fixture jouée
+deux fois.
+
 #### Les captures de la documentation suivent la barre d'un espace
 Vingt-cinq captures dataient d'avant la vue Drive, et montraient une barre à
 cinq onglets là où un lecteur en voit six. Refaites.
