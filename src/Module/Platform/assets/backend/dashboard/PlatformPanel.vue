@@ -9,6 +9,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Users } from "lucide-vue-next";
+import AppStatTile from "@/shared/components/display/AppStatTile.vue";
 import AppShareBar from "@/shared/components/chart/AppShareBar.vue";
 import { hasAnyShare } from "@/shared/utils/data/hasAnyShare.js";
 
@@ -52,13 +53,11 @@ const byRole = computed(() =>
 <template>
     <div class="space-y-6">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div class="bg-surface border border-line rounded-xl p-4">
-                <div class="flex items-center gap-2 text-secondary text-xs uppercase tracking-wide">
-                    <Users class="w-4 h-4 shrink-0" :stroke-width="2" />
-                    {{ t("backend.stats.platform.users") }}
-                </div>
-                <p class="text-2xl font-semibold text-primary mt-2">{{ stats.users ?? 0 }}</p>
-            </div>
+            <AppStatTile
+                :icon="Users"
+                :label="t('backend.stats.platform.users')"
+                :value="stats.users ?? 0"
+            />
         </div>
 
         <div v-if="hasAnyShare(byRole)" class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">

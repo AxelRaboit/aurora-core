@@ -23,7 +23,7 @@
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { FileText, FileSpreadsheet, Film, Music, File, Upload, Trash2 } from "lucide-vue-next";
+import { FileText, FileSpreadsheet, Film, FolderOpen, Music, File, Upload, Trash2 } from "lucide-vue-next";
 
 const props = defineProps({
     attachments: { type: Array, default: () => [] },
@@ -31,12 +31,21 @@ const props = defineProps({
     canRemove: { type: Boolean, default: false },
     /** Only the studio has a GED to pick from; the client's page has none. */
     canPick: { type: Boolean, default: false },
+    /**
+     * Et le dossier Drive, quand l'espace en a branché un.
+     *
+     * Un troisième bouton plutôt qu'une source de plus dans le sélecteur de
+     * la médiathèque : les deux listes ne sont pas au même endroit et ne
+     * répondent pas à la même question. « Ce qu'on a déjà rangé » et « ce que
+     * le client a partagé » sont deux étagères, pas deux filtres.
+     */
+    canPickDrive: { type: Boolean, default: false },
     /** Shown under the drop zone when the two sides differ on what is allowed. */
     notice: { type: String, default: "" },
     loading: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["upload", "remove", "pick"]);
+const emit = defineEmits(["upload", "remove", "pick", "pick-drive"]);
 
 const { t } = useI18n();
 
@@ -202,6 +211,17 @@ function remove(attachment) {
                     v-on:click="emit('pick')"
                 >
                     {{ t("shared.attachments.pick") }}
+                </button>
+
+                <button
+                    v-if="canPickDrive"
+                    type="button"
+                    class="inline-flex items-center gap-1.5 rounded-md border border-line/60 px-2.5 py-1 text-xs text-primary transition-colors hover:bg-surface-2 disabled:opacity-50"
+                    :disabled="loading"
+                    v-on:click="emit('pick-drive')"
+                >
+                    <FolderOpen class="h-3.5 w-3.5" />
+                    {{ t("shared.attachments.pick_drive") }}
                 </button>
             </div>
 

@@ -956,6 +956,140 @@ const FLOWS = {
     await shot("onglet");
   },
 
+  /**
+   * La connexion Craft : l'onglet des réglages, puis le choix d'un document.
+   *
+   * **Les deux écrans montrent des choses réelles, et aucune ne doit partir.**
+   * L'onglet affiche l'adresse de la connexion de la machine, qui est un
+   * secret de la même famille qu'une clé ; la fenêtre d'import liste les
+   * documents du Craft du développeur, c'est-à-dire ses notes personnelles.
+   * L'adresse est vidée côté navigateur, et la liste est remplacée par des
+   * documents de démonstration avant que la fenêtre ne s'ouvre.
+   *
+   * Rien n'est enregistré : la configuration de la machine n'est pas touchée.
+   */
+  "notes-depuis-craft": async () => {
+    await page.goto(`${BASE}/backend/configuration/settings/craft`, { waitUntil: "domcontentloaded" });
+    await wait(2500);
+
+    const endpoint = page.locator('label:has-text("Adresse de la connexion")').locator("xpath=following::input[1]");
+    if (await endpoint.count()) {
+      await endpoint.first().fill("");
+      // Sans cela le champ garde l'anneau de focus, qui se lit comme un
+      // champ en cours de saisie plutôt que comme un champ vide.
+      await endpoint.first().blur();
+    }
+
+    await wait(300);
+    await shot("onglet");
+
+    // La liste des documents, remplacée dans le transport. L'enveloppe de la
+    // vraie réponse est conservée : ce qui est photographié reste l'écran tel
+    // qu'il se dessine, seul son contenu est fictif.
+    await page.route("**/craft", async (route) => {
+      const response = await route.fetch();
+      const payload = await response.json().catch(() => null);
+
+      if (null === payload) {
+        return route.fulfill({ response });
+      }
+
+      payload.documents = [
+        { id: "demo-1", title: "Charte éditoriale", updatedAt: "2026-09-01T09:00:00Z" },
+        { id: "demo-2", title: "Ton de voix et vocabulaire", updatedAt: "2026-08-24T14:30:00Z" },
+        { id: "demo-3", title: "Process de validation", updatedAt: "2026-08-11T08:15:00Z" },
+      ];
+
+      return route.fulfill({ response, body: JSON.stringify(payload) });
+    });
+
+    await openFirstSpace();
+    await selectView("Notes");
+    await wait(1500);
+
+    await page.getByRole("button", { name: "Importer depuis Craft" }).first().click();
+    await wait(2000);
+    await shot("import");
+    await dismissDialog();
+
+    await page.unroute("**/craft");
+  },
+
+  /**
+   * Le dossier Drive : l'onglet des réglages, puis la vue d'un espace.
+   *
+   * **Même précaution, pour les mêmes raisons.** L'onglet affiche l'adresse du
+   * compte de service de la machine, et la vue d'un espace liste les vrais
+   * fichiers du vrai Drive branché dessus, avec leurs vignettes servies par
+   * Google. Publier ces deux écrans tels quels reviendrait à publier le
+   * contenu d'un dossier personnel.
+   *
+   * L'adresse du compte et l'identifiant du dossier sont vidés côté
+   * navigateur, et la liste des fichiers est remplacée par une arborescence
+   * de démonstration.
+   */
+  "dossier-google-drive": async () => {
+    await page.goto(`${BASE}/backend/configuration/settings/drive`, { waitUntil: "domcontentloaded" });
+    await wait(2500);
+
+    // L'adresse du compte n'est pas dans un champ mais dans un bloc de code :
+    // vidée par le DOM, comme elle est affichée.
+    await page.evaluate(() => {
+      for (const node of document.querySelectorAll("code")) {
+        if (node.textContent?.includes("gserviceaccount.com")) {
+          node.textContent = "aurora@votre-projet.iam.gserviceaccount.com";
+        }
+      }
+    });
+
+    await wait(300);
+    await shot("onglet");
+
+    await page.route("**/drive", async (route) => {
+      const response = await route.fetch();
+      const payload = await response.json().catch(() => null);
+
+      if (null === payload) {
+        return route.fulfill({ response });
+      }
+
+      const file = (id, name, path, size) => ({
+        id,
+        name,
+        path,
+        mimeType: "application/pdf",
+        size,
+        modifiedAt: "2026-09-01T10:00:00Z",
+        thumbnail: null,
+      });
+
+      payload.files = [
+        file("demo-1", "Brief de campagne.pdf", "", 184320),
+        file("demo-2", "Charte graphique.pdf", "", 2411724),
+        file("demo-3", "Contrat signé.pdf", "Contrats", 96256),
+        file("demo-4", "Avenant 1.pdf", "Contrats", 41984),
+        file("demo-5", "Photos retenues.pdf", "Visuels", 5242880),
+      ];
+
+      return route.fulfill({ response, body: JSON.stringify(payload) });
+    });
+
+    await openFirstSpace();
+    await selectView("Drive");
+    await wait(2500);
+
+    const folder = page.locator('span:has-text("Dossier partagé")').locator("xpath=following::input[1]");
+    if (await folder.count()) {
+      await folder.first().fill("");
+      await folder.first().blur();
+    }
+
+    await wait(400);
+    await shot("espace");
+
+    await page.unroute("**/drive");
+  },
+
   "onglets-de-reglages": async () => {
     const tabs = [
       ["general", "general"],

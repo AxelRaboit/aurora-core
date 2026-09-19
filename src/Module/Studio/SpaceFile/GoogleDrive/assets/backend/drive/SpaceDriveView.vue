@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { ChevronRight, ExternalLink, FileText, Folder, FolderOpen, LayoutGrid, Link2Off, List, RefreshCw, X } from "lucide-vue-next";
+import { ChevronRight, Download, ExternalLink, FileText, Folder, FolderOpen, LayoutGrid, Library, Link2Off, List, Package, RefreshCw, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -14,6 +14,7 @@ import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
+import { useDriveTree } from "./useDriveTree.js";
 
 /**
  * Le dossier Drive d'un espace, sa propre vue dans la barre.
@@ -31,6 +32,8 @@ const props = defineProps({
     listPath: { type: String, required: true },
     folderPath: { type: String, required: true },
     filePath: { type: String, required: true },
+    archivePath: { type: String, default: "" },
+    importPath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -58,39 +61,13 @@ const previewed = ref(null);
 const linked = computed(() => null !== current.value && "" !== current.value);
 
 /**
- * Le dossier ouvert, « » à la racine.
+ * L'arborescence, reconstruite dans le navigateur à partir des chemins.
  *
- * **L'arborescence se reconstruit ici, pas chez Google.** La descente a déjà
- * ramené chaque fichier avec son chemin ; en refaire un appel par dossier
- * ouvert serait payer deux fois ce qu'on a. Entrer dans un dossier et en
- * ressortir ne coûte donc rien du tout.
+ * Le composable est partagé avec le sélecteur qui accroche un fichier du Drive
+ * à une fiche : deux écrans lisent le même arbre, et une seconde copie de
+ * cette déduction aurait fini par diverger.
  */
-const cwd = ref("");
-
-/** « Contrats/2026 » devient les deux marches qui y mènent. */
-const breadcrumb = computed(() => ("" === cwd.value ? [] : cwd.value.split("/")));
-
-function goTo(depth) {
-    cwd.value = breadcrumb.value.slice(0, depth).join("/");
-}
-
-/** Les sous-dossiers directs du dossier ouvert, déduits des chemins. */
-const folders = computed(() => {
-    const prefix = "" === cwd.value ? "" : cwd.value + "/";
-    const names = new Map();
-
-    for (const file of files.value) {
-        if (file.path === cwd.value || !file.path.startsWith(prefix)) continue;
-
-        const name = file.path.slice(prefix.length).split("/")[0];
-        names.set(name, (names.get(name) ?? 0) + 1);
-    }
-
-    return [...names].map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name));
-});
-
-/** Les fichiers posés directement dans le dossier ouvert. */
-const visible = computed(() => files.value.filter((file) => file.path === cwd.value));
+const { breadcrumb, folders, visible, goTo, open, reset } = useDriveTree(files);
 
 async function load() {
     if (!linked.value) {
@@ -120,7 +97,7 @@ async function save() {
         if (data) {
             current.value = data.folderId ?? null;
             folder.value = current.value ?? "";
-            cwd.value = "";
+            reset();
             toast.success(t(linked.value ? "backend.studio.drive.space.linked" : "backend.studio.drive.space.unlinked"));
             await load();
         }
@@ -131,6 +108,39 @@ async function save() {
 
 function addressOf(file) {
     return props.filePath.replace("__id__", file.id);
+}
+
+/** La même adresse, mais pour emporter le fichier plutôt que le regarder. */
+function downloadOf(file) {
+    return addressOf(file) + "?download=1";
+}
+
+const importing = ref(false);
+
+/**
+ * Range le fichier dans la médiathèque de l'espace.
+ *
+ * **C'est le point de passage vers tout le reste.** Une note affiche des
+ * images de la médiathèque, une fiche y accroche des documents, une galerie y
+ * puise : une fois rangé, le fichier du Drive n'est plus un cas particulier et
+ * chacun de ces écrans le voit sans rien savoir de Google. Brancher le Drive
+ * dans l'éditeur de notes aurait demandé au noyau de connaître une
+ * intégration d'un module, ce que le registre existe pour éviter.
+ */
+async function importToLibrary(file) {
+    if (!file || !props.importPath || importing.value) return;
+
+    importing.value = true;
+
+    try {
+        const data = await request(props.importPath.replace("__fileId__", file.id), {});
+
+        if (data?.document) {
+            toast.success(t("backend.studio.drive.space.imported"));
+        }
+    } finally {
+        importing.value = false;
+    }
 }
 
 /** Google omet la taille de ses propres formats : un document n'a pas d'octets. */
@@ -184,6 +194,20 @@ function weightOf(file) {
                         <List class="h-3.5 w-3.5" :stroke-width="2" />
                     </AppIconButton>
                 </div>
+
+                <!-- Tout le dossier en une fois. Caché tant qu'il n'y a rien
+                     à emporter : un bouton qui produirait une archive vide se
+                     lit comme cassé. -->
+                <AppButton
+                    v-if="files.length && archivePath"
+                    class="shrink-0"
+                    variant="ghost"
+                    size="sm"
+                    :href="archivePath"
+                >
+                    <Package class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("backend.studio.drive.space.archive") }}
+                </AppButton>
 
                 <AppButton
                     class="shrink-0"
@@ -280,7 +304,7 @@ function weightOf(file) {
                         type="button"
                         class="overflow-hidden rounded-lg border border-line/60 bg-surface text-left transition-colors hover:border-accent/50"
                         :title="entry.name"
-                        v-on:click="cwd = cwd ? `${cwd}/${entry.name}` : entry.name"
+                        v-on:click="open(entry.name)"
                     >
                         <span class="flex aspect-[4/3] items-center justify-center bg-surface-2">
                             <Folder class="h-7 w-7 text-muted" :stroke-width="1.5" />
@@ -329,7 +353,7 @@ function weightOf(file) {
                         <button
                             type="button"
                             class="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-surface-2/60"
-                            v-on:click="cwd = cwd ? `${cwd}/${entry.name}` : entry.name"
+                            v-on:click="open(entry.name)"
                         >
                             <Folder class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
                             <span class="min-w-0 flex-1 truncate text-sm text-primary">{{ entry.name }}</span>
@@ -386,6 +410,26 @@ function weightOf(file) {
 
             <template #footer>
                 <AppModalFooter>
+                    <AppButton
+                        v-if="importPath"
+                        class="w-full sm:w-auto"
+                        variant="ghost"
+                        size="md"
+                        :loading="importing"
+                        v-on:click="importToLibrary(previewed)"
+                    >
+                        <Library class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("backend.studio.drive.space.import") }}
+                    </AppButton>
+                    <AppButton
+                        class="w-full sm:w-auto"
+                        variant="ghost"
+                        size="md"
+                        :href="previewed ? downloadOf(previewed) : ''"
+                    >
+                        <Download class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.download") }}
+                    </AppButton>
                     <AppButton
                         class="w-full sm:w-auto"
                         variant="ghost"

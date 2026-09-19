@@ -33,6 +33,12 @@ interface SpaceContentItemInterface
 
     public function setScheduledAt(?DateTimeImmutable $scheduledAt): static;
 
+    public function isShownOnCalendar(): bool;
+
+    public function setShowOnCalendar(bool $showOnCalendar): static;
+
+    public function appearsOnCalendar(): bool;
+
     public function isScheduled(): bool;
 
     public function getPosition(): int;

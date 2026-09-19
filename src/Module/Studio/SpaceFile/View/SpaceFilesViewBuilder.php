@@ -44,6 +44,8 @@ final readonly class SpaceFilesViewBuilder
             'driveListPath' => $this->urlGenerator->generate('workspace_space_drive_list', ['id' => $space->getId()]),
             'driveFolderPath' => $this->urlGenerator->generate('workspace_space_drive_folder', ['id' => $space->getId()]),
             'driveFilePath' => $this->pathTemplates->generate('workspace_space_drive_file', ['id' => $space->getId(), 'fileId' => '__id__']),
+            'driveArchivePath' => $this->urlGenerator->generate('workspace_space_drive_archive', ['id' => $space->getId()]),
+            'driveImportPath' => $this->pathTemplates->generate('workspace_space_drive_import', ['id' => $space->getId(), 'fileId' => '__fileId__']),
         ];
     }
 

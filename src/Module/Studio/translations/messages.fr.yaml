@@ -1,4 +1,12 @@
 backend:
+    stats:
+        studio:
+            spaces: Espaces actifs
+            awaiting_client: En attente du client
+            upcoming: "Parutions sous 7 jours"
+            decks: Présentations
+            by_approval: Où en sont les contenus
+            by_contract_status: Où en sont les contrats
     modules:
         studio: Studio
         studio_backend: Studio
@@ -974,14 +982,24 @@ backend:
                 empty: "Le dossier ne contient rien, ou n'a pas été partagé avec le compte de service."
                 no_size: "—"
                 view_label: Affichage des fichiers
+                archive: Tout télécharger (.zip)
+                import: Ranger dans la médiathèque
+                imported: "Fichier rangé dans la médiathèque. Il est maintenant disponible dans les notes, les fiches et les galeries."
                 path_label: Chemin dans le dossier
                 root: Dossier partagé
                 items: "1 fichier | {count} fichiers"
                 open: Ouvrir le fichier
+            picker:
+                title: Choisir un fichier du Drive
+                intro: "Le fichier est recopié dans la médiathèque de cet espace, puis accroché à la fiche."
+                copy_notice: "Une copie : elle ne suivra plus les modifications du Drive du client, et elle survit à son retrait du partage."
+                submit: Accrocher à la fiche
             errors:
                 key_invalid: "Ce n'est pas une clé de compte de service. Vérifiez d'avoir copié le fichier JSON en entier."
                 key_required: Collez une clé de compte de service avant d'activer.
                 folder_invalid: "Ce n'est pas un dossier Drive. Collez son adresse, ou l'identifiant qui suit /folders/."
+                import_failed: "Ce fichier n'a pas pu être recopié. Les documents Google n'ont pas de fichier à télécharger."
+                archive_too_large: "Le dossier dépasse 500 Mo : téléchargez les fichiers un par un."
         space_notes:
             # Les notes d'un espace : la seule surface qu'un client ne voit pas.
             # Le fil d'une fiche et la discussion sont partagés ; une note est
@@ -1114,6 +1132,8 @@ backend:
             column: Étape
             scheduled_at: Date de publication
             scheduled_at_hint: 'Facultative. Une idée sans date vit sur le tableau et rejoint le calendrier quand vous la programmez.'
+            show_on_calendar: Afficher dans le calendrier
+            show_on_calendar_hint: "Décochée, la carte garde sa date et reste sur le tableau, mais ne paraît ni dans votre calendrier ni dans celui du client."
             scheduled_at_placeholder: '22/09/2026 09:00'
             timezone_notice: 'Les heures sont celles du fuseau de l''espace, {timezone}.'
 
@@ -1266,6 +1286,8 @@ studio:
             timezone_notice: 'Heures en {timezone}'
             calendar_day_empty: Rien de prévu ce jour-là.
             drive_title: Documents partagés
+            drive_download: Télécharger le fichier
+            drive_archive: Tout télécharger (.zip)
             footer: Cette adresse vous est personnelle, ne la transmettez pas.
             footer_until: 'Cette adresse vous est personnelle et valide jusqu''au {date} : ne la transmettez pas.'
             no_body: Le texte n'est pas encore écrit.

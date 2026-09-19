@@ -36,6 +36,14 @@ final readonly class DashboardViewBuilder
         'editorial' => 'modules_editorial_backend',
         'ged' => 'modules_ged_backend',
         'platform' => 'modules_platform_backend',
+        // Planning fournissait ses chiffres depuis le début et n'était pas
+        // listé ici : un panneau absent de cette table s'affiche quand même,
+        // parce que la liste ne masque que ce qu'elle dit faux, mais ses
+        // chiffres ne sont jamais demandés. Le calendrier annonçait donc zéro
+        // calendrier et zéro retard, ce qui ressemble à une installation
+        // vide plutôt qu'à un panneau débranché.
+        'planning' => 'modules_planning_backend',
+        'studio' => 'modules_studio_backend',
     ];
 
     public function __construct(

@@ -42,7 +42,9 @@ import {
     Check,
     ChevronLeft,
     ChevronRight,
+    Download,
     FileText,
+    Package,
     MessageSquare,
 } from "lucide-vue-next";
 
@@ -65,6 +67,7 @@ const props = defineProps({
     /** Le dossier Drive du prestataire, quand il en a branché un. */
     drivePath: { type: String, default: null },
     driveFilePath: { type: String, default: null },
+    driveArchivePath: { type: String, default: null },
     chatMessages: { type: Array, default: () => [] },
     /** Null when no hub is running, and then the panel never connects. */
     chatStreamUrl: { type: String, default: null },
@@ -102,9 +105,11 @@ const columnColours = computed(
     () => new Map(props.columns.map((column) => [column.id, column.colourSlot])),
 );
 
+// Ce que le client voit dans son mois, et la même règle que le studio : une
+// carte décochée porte une échéance interne, pas une parution.
 const events = computed(() =>
     items.value
-        .filter((item) => item.scheduledAt)
+        .filter((item) => item.scheduledAt && false !== item.showOnCalendar)
         .map((item) => ({
             id: item.id,
             title: item.title,
@@ -164,6 +169,16 @@ onMounted(async () => {
 
 function driveAddress(file) {
     return (props.driveFilePath ?? "").replace("__id__", file.id);
+}
+
+/**
+ * La même adresse, mais pour emporter le fichier.
+ *
+ * Le nom n'est pas mis ici : le serveur le redemande à Google, parce qu'un
+ * nom venu du navigateur finirait dans un en-tête de réponse.
+ */
+function driveDownload(file) {
+    return driveAddress(file) + "?download=1";
 }
 
 function driveWeight(file) {
@@ -451,22 +466,51 @@ function open(event) {
              partagé qu'avec le compte de service, donc une adresse Drive
              donnerait à ce lecteur un mur d'authentification. -->
         <section v-if="driveFiles.length" class="space-y-3">
-            <h2 class="text-sm font-medium text-primary">
-                {{ t("studio.public.space.drive_title") }}
-            </h2>
+            <!-- « Je prends tout » est la question que se pose un client à qui
+                 on partage trente visuels. Le titre et le lot sur la même
+                 ligne, parce que c'est l'action de la section entière et non
+                 d'une de ses lignes. -->
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h2 class="text-sm font-medium text-primary">
+                    {{ t("studio.public.space.drive_title") }}
+                </h2>
 
+                <a
+                    v-if="driveArchivePath"
+                    :href="driveArchivePath"
+                    class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-line/60 px-3 py-2 text-xs text-primary transition-colors hover:bg-surface-2 sm:w-auto"
+                >
+                    <Package class="h-3.5 w-3.5 shrink-0" :stroke-width="2" />
+                    {{ t("studio.public.space.drive_archive") }}
+                </a>
+            </div>
+
+            <!-- Ouvrir et télécharger sont deux gestes, donc deux commandes.
+                 Un seul lien obligeait à ouvrir le fichier dans un onglet puis
+                 à le réenregistrer depuis la visionneuse du navigateur, ce qui
+                 pour une vidéo ou un gros PDF veut dire le charger deux fois. -->
             <ul class="divide-y divide-line/60 rounded-lg border border-line/60">
-                <li v-for="file in driveFiles" :key="file.id">
+                <li
+                    v-for="file in driveFiles"
+                    :key="file.id"
+                    class="flex items-center gap-2 px-3 py-2.5"
+                >
                     <a
                         :href="driveAddress(file)"
                         target="_blank"
                         rel="noopener"
-                        class="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-surface-2/60"
+                        class="min-w-0 flex-1 truncate py-1 text-sm text-primary transition-colors hover:text-accent"
                     >
-                        <span class="min-w-0 flex-1 truncate text-sm text-primary">
-                            <span v-if="file.path" class="text-muted">{{ file.path }}/</span>{{ file.name }}
-                        </span>
-                        <span class="shrink-0 text-xs tabular-nums text-muted">{{ driveWeight(file) }}</span>
+                        <span v-if="file.path" class="text-muted">{{ file.path }}/</span>{{ file.name }}
+                    </a>
+                    <span class="shrink-0 text-xs tabular-nums text-muted">{{ driveWeight(file) }}</span>
+                    <a
+                        :href="driveDownload(file)"
+                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line/60 text-primary transition-colors hover:bg-surface-2"
+                        :title="t('studio.public.space.drive_download')"
+                        :aria-label="t('studio.public.space.drive_download')"
+                    >
+                        <Download class="h-3.5 w-3.5" :stroke-width="2" />
                     </a>
                 </li>
             </ul>

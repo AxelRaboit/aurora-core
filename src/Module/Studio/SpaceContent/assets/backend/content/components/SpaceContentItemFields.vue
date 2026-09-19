@@ -12,6 +12,7 @@ import { useI18n } from "vue-i18n";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import SpaceContentThread from "../../../shared/SpaceContentThread.vue";
 import SpaceContentAttachments from "../../../shared/SpaceContentAttachments.vue";
@@ -30,6 +31,7 @@ const props = defineProps({
     canDiscuss: { type: Boolean, default: false },
     attachments: { type: Array, default: () => [] },
     attachmentLoading: { type: Boolean, default: false },
+    canPickDrive: { type: Boolean, default: false },
     /**
      * A reader who may see the space but not edit it.
      *
@@ -49,6 +51,7 @@ const emit = defineEmits([
     "delete-comment",
     "upload-attachment",
     "pick-attachment",
+    "pick-drive-attachment",
     "remove-attachment",
 ]);
 
@@ -112,6 +115,18 @@ function set(field, value) {
             />
         </div>
 
+        <!-- Sous la date, et seulement quand il y en a une : décocher une
+             carte qui n'a pas de date ne changerait rien, et une case sans
+             effet se lit comme cassée. -->
+        <AppCheckbox
+            v-if="form.scheduledAt"
+            :model-value="false !== form.showOnCalendar"
+            :label="t('backend.studio.space_content.show_on_calendar')"
+            :hint="t('backend.studio.space_content.show_on_calendar_hint')"
+            :disabled="readonly"
+            v-on:update:model-value="set('showOnCalendar', $event)"
+        />
+
         <p class="text-xs text-muted">
             {{ t("backend.studio.space_content.timezone_notice", { timezone }) }}
         </p>
@@ -127,8 +142,10 @@ function set(field, value) {
             :can-add="!readonly"
             :can-remove="!readonly"
             :can-pick="!readonly"
+            :can-pick-drive="canPickDrive"
             v-on:upload="emit('upload-attachment', $event)"
             v-on:pick="emit('pick-attachment')"
+            v-on:pick-drive="emit('pick-drive-attachment')"
             v-on:remove="emit('remove-attachment', $event)"
         />
 
