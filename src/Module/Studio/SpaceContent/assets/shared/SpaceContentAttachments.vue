@@ -172,7 +172,7 @@ function remove(attachment) {
 
         <div
             v-if="canAdd"
-            class="rounded-lg border border-dashed px-3 py-4 text-center transition-colors"
+            class="rounded-lg border border-dashed px-3 py-3 text-center transition-colors sm:py-4"
             :class="dragging ? 'border-accent bg-accent/5' : 'border-line/60'"
             v-on:dragover.prevent="dragging = true"
             v-on:dragleave.prevent="dragging = false"

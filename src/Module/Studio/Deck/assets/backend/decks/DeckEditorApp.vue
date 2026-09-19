@@ -567,7 +567,7 @@ onBeforeUnmount(() => {
                         />
                     </div>
 
-                    <div class="mx-auto max-w-3xl space-y-4 rounded-xl border border-line bg-surface p-4">
+                    <div class="mx-auto max-w-3xl space-y-4 rounded-xl border border-line bg-surface p-2 sm:p-4">
                         <div class="flex items-center justify-between gap-3">
                             <AppSelect
                                 :model-value="selected.layout"

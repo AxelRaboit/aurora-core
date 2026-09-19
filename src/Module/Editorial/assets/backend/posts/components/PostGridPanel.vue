@@ -233,7 +233,7 @@ function resizeZone(index, columns) {
                 v-for="(zone, index) in zones"
                 v-show="selectedIndex === index"
                 :key="zone.id"
-                class="bg-surface-2/40 border border-accent rounded-lg p-4 space-y-4"
+                class="bg-surface-2/40 border border-accent rounded-lg p-2 space-y-4 sm:p-4"
                 v-on:focusin="selectedIndex = index"
             >
                 <div class="flex items-center gap-2">

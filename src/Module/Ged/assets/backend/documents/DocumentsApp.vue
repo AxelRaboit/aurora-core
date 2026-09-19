@@ -327,7 +327,7 @@ const pageActions = computed(() => {
 <template>
     <div ref="container" class="space-y-4">
         <!-- Header: breadcrumb + search + add -->
-        <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface border border-line/60 rounded-xl px-4 py-3">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface border border-line/60 rounded-xl px-2 py-2 sm:px-4 sm:py-3">
             <nav class="flex items-center gap-1 text-sm text-muted min-w-0 flex-1 flex-wrap">
                 <template v-if="allDocumentsView">
                     <span class="flex items-center gap-1.5 text-primary shrink-0">
@@ -415,7 +415,7 @@ const pageActions = computed(() => {
                 </div>
 
                 <!-- Selection bar -->
-                <div v-if="selectedIds.size" class="flex flex-wrap items-center gap-2 bg-accent-500/10 border border-accent-400/30 rounded-xl px-4 py-2.5">
+                <div v-if="selectedIds.size" class="flex flex-wrap items-center gap-2 bg-accent-500/10 border border-accent-400/30 rounded-xl px-2 py-2 sm:px-4 sm:py-2.5">
                     <span class="text-sm font-medium text-accent-400">{{ selectedIds.size }} {{ t("shared.common.selected") }}</span>
                     <div class="flex gap-2 ml-auto flex-wrap">
                         <AppPageActions :actions="bulkActions" variant="ghost" size="sm" :busy="bulkRelocating" />

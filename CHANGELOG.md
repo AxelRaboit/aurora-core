@@ -24,11 +24,21 @@ seize.** Seize ne se garde que là où du texte touche un bord dessiné -
 l'intérieur d'une carte, d'une modale. Une coquille, un panneau, une zone de
 travail n'ont rien à protéger.
 
-Le relevé qui reste à traiter, écrit dans le plan : cent endroits du back-office
-portent encore seize pixels sans variante responsive - quarante-et-une cartes,
-vingt-huit blocs intérieurs, trente-et-un divers. Les cellules de tableau en
-comptent trois cents de plus, hors sujet : le téléphone ne voit jamais un
-tableau, il reçoit des cartes.
+Les quarante-et-une cartes qui portaient encore seize pixels ont été relues une
+par une : huit enveloppaient une liste, une grille ou une barre d'outils et
+n'avaient rien à protéger - la barre de fil d'Ariane de la médiathèque, ses
+barres de sélection, celle de la corbeille, les panneaux de calendriers, la
+grille de contenu, l'éditeur de présentation. Elles passent à huit. Les
+trente-trois autres portent du texte contre un bord dessiné et gardent leurs
+seize, qui sont ceux de la carte validée sur les espaces clients.
+
+La règle ne vaut que sous `sm` : sur un grand écran, seize ou vingt-quatre
+pixels ne coûtent rien et aèrent, donc chaque réduction s'écrit avec sa
+contrepartie `sm:` et le bureau ne bouge pas.
+
+Reste au relevé : vingt-huit blocs intérieurs et trente-et-un divers, suivis
+dans le plan. Les cellules de tableau en comptent trois cents de plus, hors
+sujet : le téléphone ne voit jamais un tableau, il reçoit des cartes.
 
 #### La page de signature et l'administration, relues au doigt
 Les deux derniers écrans de la conversion. Pour voir le premier, il a fallu

@@ -96,7 +96,7 @@ function formatDate(value) {
             </nav>
 
             <div v-if="active" class="space-y-3">
-                <div class="flex flex-wrap items-center gap-3 bg-rose-500/10 border border-rose-400/30 rounded-xl px-4 py-2.5">
+                <div class="flex flex-wrap items-center gap-3 bg-rose-500/10 border border-rose-400/30 rounded-xl px-2 py-2 sm:px-4 sm:py-2.5">
                     <Trash2 class="w-4 h-4 text-rose-400 shrink-0" :stroke-width="2" />
                     <p class="text-sm text-primary min-w-0">
                         <span v-if="active.count === 0">{{ t("backend.trash.empty_one") }}</span>
