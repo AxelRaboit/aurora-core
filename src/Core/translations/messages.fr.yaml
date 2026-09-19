@@ -92,6 +92,8 @@ shared:
     uploading: Import en cours
     upload_failed: L'import a échoué.
   locale_switcher: Choix de la langue
+  main_menu: Menu principal
+  menu_parent_page: Voir cette page
   errors:
     page_not_found:
       title: Page introuvable

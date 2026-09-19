@@ -451,6 +451,29 @@ passe de 629 à 674 pixels sur un écran de 812.
 
 ### Ajouté
 
+#### Un tiroir de navigation sur le site public
+Sept entrées faisaient mille vingt-huit pixels de liens pour une ligne qui en
+offre trois cent cinquante-neuf : la barre du site se repliait sur deux lignes
+et prenait cent trente-sept pixels avant que la page commence, et la première
+page ajoutée par un client en aurait fait trois. Sous `md`, le menu passe
+derrière un bouton et la barre retombe à soixante-treize pixels.
+
+Plus gênant que la hauteur : une entrée qui a des enfants ouvrait son panneau
+au survol, et le survol n'existe pas au doigt. Les sous-entrées d'un menu
+étaient donc inatteignables sur téléphone. Dans le tiroir, elles se déplient
+sur place, et l'entrée qui a elle-même une adresse garde sa page en première
+ligne du repli.
+
+Le tiroir est un `<details>` : le navigateur donne l'ouverture, le clavier et
+l'état annoncé, et tout fonctionne avant qu'une ligne de JavaScript arrive -
+celle-ci n'ajoute que la fermeture au clic sur le voile. La langue reste dans
+la barre, visible, et le compte se range en bas du tiroir, derrière un filet.
+
+Au passage, le flou de l'en-tête déménage sur une couche à lui : `backdrop-filter`
+fait de son élément le bloc conteneur de ses descendants `fixed`, et le panneau
+s'arrêtait à la hauteur de la barre au lieu de tenir l'écran. Le rendu ne bouge
+pas.
+
 #### Des canaux dans la discussion d'un espace
 Un espace n'avait qu'un seul fil, et tout ce qui n'appartenait à aucune fiche y
 tombait : le brief du mois, une campagne qui bouge, la logistique. Le brief

@@ -11,6 +11,7 @@ import { createAppI18n } from "@/i18n.js";
 import vendorModules from "virtual:aurora-vendor-modules";
 import "./shared/utils/loader.js";
 import "./shared/utils/detailsDropdown.js";
+import "./shared/utils/navDrawer.js";
 import "./shared/utils/codeHighlight.js";
 import "./shared/utils/codeCopy.js";
 import "./shared/utils/compareSlider.js";

@@ -89,6 +89,8 @@ shared:
     uploading: Importación en curso
     upload_failed: La importación ha fallado.
   locale_switcher: Selección de idioma
+  main_menu: Menú principal
+  menu_parent_page: Ver esta página
   errors:
     page_not_found:
       title: Página no encontrada

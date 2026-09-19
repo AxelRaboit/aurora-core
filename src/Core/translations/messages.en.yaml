@@ -92,6 +92,8 @@ shared:
     uploading: Uploading
     upload_failed: The upload failed.
   locale_switcher: Language
+  main_menu: Main menu
+  menu_parent_page: View this page
   errors:
     page_not_found:
       title: Page not found
