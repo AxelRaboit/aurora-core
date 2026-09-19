@@ -65,7 +65,7 @@ function swatch() {
         <span
             v-if="count"
             class="shrink-0 text-2xs tabular-nums text-muted"
-            :class="canManage ? 'group-hover:hidden' : ''"
+            :class="canManage ? 'md:group-hover:hidden' : ''"
             :title="t('backend.plannings.events_in_range')"
         >
             {{ count }}
@@ -76,10 +76,21 @@ function swatch() {
              Two buttons because they are two jobs. Sharing a calendar is not a
              setting on it - it is handing an address to somebody outside - and it
              was buried in the edit form, where nobody found it. -->
-        <div v-if="canManage" class="hidden shrink-0 items-center gap-1.5 group-hover:flex">
+        <!-- **Au doigt, toujours là ; à la souris, au survol.** Un survol
+             n'existe pas sur un téléphone : cachés derrière lui, partager un
+             calendrier et le renommer y étaient impossibles. Sous `md` les deux
+             boutons restent affichés, avec le compte à côté plutôt qu'à leur
+             place - la ligne a la largeur pour les trois. -->
+        <div
+            v-if="canManage"
+            class="flex shrink-0 items-center gap-1.5 md:hidden md:group-hover:flex"
+        >
+            <!-- `p-1 -m-1` : la cible passe de quatorze à vingt-deux pixels
+                 sans que la ligne bouge d'un cheveu. Une icône de quatorze se
+                 vise à la souris, pas au pouce. -->
             <button
                 type="button"
-                class="cursor-pointer text-muted hover:text-primary"
+                class="-m-1 cursor-pointer p-1 text-muted hover:text-primary"
                 :title="t('backend.plannings.links.label')"
                 v-on:click="emit('share', calendar)"
             >
@@ -87,7 +98,7 @@ function swatch() {
             </button>
             <button
                 type="button"
-                class="cursor-pointer text-muted hover:text-primary"
+                class="-m-1 cursor-pointer p-1 text-muted hover:text-primary"
                 :title="t('backend.plannings.edit_calendar')"
                 v-on:click="emit('edit', calendar)"
             >

@@ -9,6 +9,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Partager ou renommer un calendrier, au doigt
+Les deux boutons d'une ligne de calendrier n'apparaissaient qu'au survol. Sur un
+téléphone, où le survol n'existe pas, il n'y avait aucun moyen de partager un
+calendrier ni de le renommer. Sous `md` ils restent affichés, à côté du compte
+plutôt qu'à sa place, et leur cible passe de quatorze à vingt-deux pixels sans
+que la ligne bouge. Au-dessus, le survol reprend la main.
+
 #### Le planning partagé se lit vraiment sur un téléphone
 Trois choses manquaient sur la page qu'un invité ouvre sans compte :
 
