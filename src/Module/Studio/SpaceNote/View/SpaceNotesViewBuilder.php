@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceNote\View;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\SpaceNote\Craft\Service\CraftClient;
 use Aurora\Module\Studio\SpaceNote\Repository\SpaceNoteRepository;
 use Aurora\Module\Studio\SpaceNote\Serializer\SpaceNoteSerializerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -20,6 +21,7 @@ final readonly class SpaceNotesViewBuilder
         private UrlGeneratorInterface $urlGenerator,
         private PathTemplateGenerator $pathTemplates,
         private Security $security,
+        private CraftClient $craft,
     ) {}
 
     /**
@@ -39,6 +41,12 @@ final readonly class SpaceNotesViewBuilder
             // le fichier se range dans son dossier au lieu d'aller dans le tas
             // générique des images d'édition.
             'noteImagePath' => $this->urlGenerator->generate('workspace_space_notes_image', ['id' => $space->getId()]),
+            // L'import Craft n'existe dans l'écran que si l'installation a
+            // ouvert la connexion. Un bouton qui mène à une liste vide et à
+            // une explication est un bouton qui déçoit chaque fois.
+            'craftEnabled' => $this->craft->isConfigured(),
+            'craftDocumentsPath' => $this->urlGenerator->generate('workspace_space_notes_craft', ['id' => $space->getId()]),
+            'craftImportPath' => $this->urlGenerator->generate('workspace_space_notes_craft_import', ['id' => $space->getId()]),
         ];
     }
 

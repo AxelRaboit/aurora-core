@@ -27,6 +27,8 @@ backend:
       studio_description: "L'identité du prestataire imprimée dans chaque contrat : dénomination, SIRET, coordonnées bancaires."
       navigation_description: Personnalisez les noms des sections et des items du menu latéral.
       pexels: Pexels
+      craft: Craft
+      craft_description: "Importer une note écrite dans Craft : adresse de la connexion, jeton, activation."
       pexels_description: 'Banque de photos gratuites : activation, clé d''API et acceptation des conditions.'
       captcha: Anti-robots
       captcha_description: "Vérification des commentaires et des formulaires : service, clés et activation."

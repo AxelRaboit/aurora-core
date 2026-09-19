@@ -214,6 +214,11 @@ export function useSpaceNotes(initial, paths, offerOrphaned) {
 
     return {
         notes: visibleNotes,
+        // Le mur entier, tel qu'une écriture le renvoie. Exposé pour l'import
+        // Craft, qui crée une note sans passer par le formulaire de cet
+        // écran : sans cela, la note importée n'apparaîtrait qu'au prochain
+        // chargement de la page.
+        apply,
         tab,
         tabs,
         isEmpty,

@@ -20,7 +20,7 @@
  */
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
-import { LayoutGrid, List, Lock, Pencil, Pin, PinOff, Plus, StickyNote, Trash2, Users } from "lucide-vue-next";
+import { Download, LayoutGrid, List, Lock, Pencil, Pin, PinOff, Plus, StickyNote, Trash2, Users } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
@@ -35,9 +35,11 @@ const props = defineProps({
     tab: { type: String, default: "shared" },
     /** Les deux onglets et ce qu'il y a derrière chacun. */
     tabs: { type: Array, default: () => [] },
+    /** L'installation a-t-elle ouvert une connexion Craft. */
+    craftEnabled: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["create", "open", "pin", "delete", "set-view", "set-tab"]);
+const emit = defineEmits(["create", "open", "pin", "delete", "set-view", "set-tab", "import-craft"]);
 
 const { t, d } = useI18n();
 
@@ -89,6 +91,20 @@ function tint(note) {
                 >
                     <Plus class="h-3.5 w-3.5" :stroke-width="2" />
                     {{ t("backend.studio.space_notes.add") }}
+                </AppButton>
+
+                <!-- Second, et secondaire : écrire une note est le geste de
+                     l'écran, en importer une est l'exception. Absent tant que
+                     l'installation n'a pas ouvert de connexion Craft. -->
+                <AppButton
+                    v-if="editable && craftEnabled"
+                    class="w-full sm:w-auto"
+                    variant="secondary"
+                    size="sm"
+                    v-on:click="emit('import-craft')"
+                >
+                    <Download class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("backend.studio.craft.import.action") }}
                 </AppButton>
 
                 <!-- Deux onglets, et le compte sur l'étiquette : c'est lui qui

@@ -48,6 +48,7 @@ backend:
                     updated: Note d'espace modifiée
                     pinned: Note d'espace épinglée ou dépinglée
                     deleted: Note d'espace supprimée
+                    imported_from_craft: Note d'espace importée depuis Craft
                 space_chat_channel:
                     created: Canal de discussion ouvert
                     renamed: Canal de discussion renommé
@@ -897,6 +898,42 @@ backend:
                 unknown: Ce document est introuvable.
                 duplicate: Ce fichier est déjà sur cet espace.
                 needs_account: Il faut être connecté pour ajouter un fichier.
+        craft:
+            # Craft garde le savoir durable, celui qui survit à un projet ;
+            # les notes d'un espace gardent ce qui est attaché à un travail en
+            # cours et meurt avec lui. L'import fait passer de l'un à l'autre,
+            # en copie franche : rien ne revient modifier la note ensuite.
+            settings:
+                what_title: Ce que fait cette connexion
+                what_body: "Elle permet d'importer un document Craft dans les notes d'un espace client. C'est une copie : le document reste chez Craft, et la note ne change plus toute seule ensuite."
+                how_title: Comment l'ouvrir
+                how_step_connection: "Dans Craft, ouvrez l'onglet Connexions et créez une connexion API."
+                how_step_select: "Choisissez les documents que cette connexion laissera lire. Ne donnez pas accès à tout l'espace : le jeton dort sur ce serveur."
+                how_step_paste: "Copiez l'adresse et le jeton que Craft affiche, et collez-les ci-dessous. Ils ne seront plus affichés."
+                how_link: La marche à suivre chez Craft
+                endpoint_label: Adresse de la connexion
+                endpoint_hint: "Celle que Craft affiche à la création de la connexion. En https, sans quoi le jeton voyagerait en clair."
+                token_label: Jeton
+                token_hint: Les identifiants affichés à côté de l'adresse.
+                token_stored: Un jeton est enregistré. Laissez le champ vide pour le garder.
+                enabled_label: Activer l'import depuis Craft
+                enabled_hint: Le bouton apparaît dans les notes de chaque espace.
+                enabled_blocked: Renseignez une adresse et un jeton pour pouvoir activer.
+            import:
+                action: Importer depuis Craft
+                title: Importer une note Craft
+                intro: "Le document est copié dans cet espace. Il reste chez Craft, et la note ne suivra pas ses modifications."
+                empty: Aucun document dans cette connexion.
+                empty_hint: "Retournez dans Craft pour ajouter des documents à la connexion."
+                disabled: "L'import depuis Craft n'est pas activé."
+                disabled_hint: "Il s'ouvre dans les réglages, onglet Craft."
+                imported: Note importée.
+                submit: Importer
+            errors:
+                endpoint_https: "L'adresse de la connexion doit commencer par https://."
+                connection_required: Renseignez une adresse et un jeton avant d'activer.
+                document_required: Choisissez un document à importer.
+                unreachable: "Craft n'a rien renvoyé pour ce document."
         space_notes:
             # Les notes d'un espace : la seule surface qu'un client ne voit pas.
             # Le fil d'une fiche et la discussion sont partagés ; une note est

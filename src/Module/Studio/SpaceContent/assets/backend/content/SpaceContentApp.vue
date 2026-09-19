@@ -34,7 +34,7 @@
  * hand everything back as events. That is what lets a card edited in one of
  * them be right in the others.
  */
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
@@ -52,6 +52,7 @@ import SpaceContentItemFields from "./components/SpaceContentItemFields.vue";
 import SpaceChatPanel from "../../../../SpaceChat/assets/shared/SpaceChatPanel.vue";
 import SpaceNotesView from "../../../../SpaceNote/assets/backend/notes/SpaceNotesView.vue";
 import SpaceNoteFormModal from "../../../../SpaceNote/assets/backend/notes/SpaceNoteFormModal.vue";
+import SpaceNoteCraftModal from "../../../../SpaceNote/assets/backend/notes/SpaceNoteCraftModal.vue";
 import { useSpaceNotes } from "../../../../SpaceNote/assets/backend/notes/composables/useSpaceNotes.js";
 import { useSpaceOwnFiles } from "../../../../SpaceFile/assets/backend/files/composables/useSpaceOwnFiles.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -123,6 +124,9 @@ const props = defineProps({
     noteDeletePath: { type: String, required: true },
     notePinPath: { type: String, required: true },
     noteImagePath: { type: String, required: true },
+    craftEnabled: { type: Boolean, default: false },
+    craftDocumentsPath: { type: String, default: "" },
+    craftImportPath: { type: String, default: "" },
     spaceFiles: { type: Array, default: () => [] },
     spaceFileUploadPath: { type: String, required: true },
     spaceFileAttachPath: { type: String, required: true },
@@ -263,6 +267,7 @@ const {
     pendingDelete: pendingNoteDelete,
     confirmDelete: confirmNoteDelete,
     doDelete: deleteNote,
+    apply: applyNotes,
 } = useSpaceNotes(
     props.notes,
     {
@@ -275,6 +280,14 @@ const {
     // composable pour le lire.
     useOrphanedDocumentOffer().offer,
 );
+
+/**
+ * L'import d'un document Craft.
+ *
+ * L'état tient en un booléen : la modale se charge elle-même à l'ouverture et
+ * rend le mur entier à l'arrivée, comme toute écriture de cet écran.
+ */
+const craftOpen = ref(false);
 
 /**
  * Les fichiers de l'espace, ceux qui ne sont sur aucune fiche.
@@ -501,12 +514,14 @@ const actionsFor = useSpaceCardActions({
                 :view-mode="notesViewMode"
                 :stored-view-mode="notesStoredViewMode"
                 :editable="editable"
+                :craft-enabled="craftEnabled"
                 v-on:create="openNoteCreate"
                 v-on:open="openNoteEdit"
                 v-on:pin="toggleNotePin"
                 v-on:delete="confirmNoteDelete"
                 v-on:set-view="setNotesViewMode"
                 v-on:set-tab="notesTab = $event"
+                v-on:import-craft="craftOpen = true"
             />
         </div>
 
@@ -703,6 +718,15 @@ const actionsFor = useSpaceCardActions({
                 </AppModalFooter>
             </template>
         </AppModal>
+
+        <SpaceNoteCraftModal
+            v-if="craftEnabled"
+            :show="craftOpen"
+            :documents-path="craftDocumentsPath"
+            :import-path="craftImportPath"
+            v-on:close="craftOpen = false"
+            v-on:imported="applyNotes"
+        />
 
         <SpaceNoteFormModal
             :show="showNoteForm"

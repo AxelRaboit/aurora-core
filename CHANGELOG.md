@@ -510,6 +510,42 @@ passe de 629 à 674 pixels sur un écran de 812.
 
 ### Ajouté
 
+#### Importer une note écrite dans Craft
+Craft garde le savoir durable, celui qui survit à un projet ; les notes d'un
+espace gardent ce qui est attaché à un travail en cours et meurt avec lui.
+Restait à faire passer un brief de l'un à l'autre sans le recopier à la main.
+
+Un bouton « Importer depuis Craft » dans les notes d'un espace ouvre la liste
+des documents, on en choisit un, il devient une note que le client lit sans
+compte Craft. **C'est une copie, pas un lien vivant** : rien à synchroniser,
+aucun conflit à arbitrer, et aucune note qui change toute seule sous les yeux
+d'un client. La note se souvient malgré tout du document d'origine, pour le
+studio seul.
+
+Deux appels HTTP, pas un client MCP en PHP. Craft expose bien son serveur MCP
+derrière un OAuth complet, mais il donne aussi, par connexion, une adresse REST
+et un jeton : `GET /documents` pour la liste, `GET /blocks` avec un en-tête
+`Accept: text/markdown` pour le contenu. C'est Craft qui rend le Markdown,
+puisque c'est lui qui connaît ses blocs.
+
+**La connexion ne porte que les documents choisis.** Craft propose les deux, et
+c'est la sélection qui est documentée dans l'écran de réglages : une
+installation vit sur un serveur loué, et un jeton qui y dort ne doit pas ouvrir
+l'intégralité d'un savoir personnel pour qu'un brief atterrisse dans un espace.
+L'intégration est éteinte tant que personne ne l'allume, et le jeton est chiffré
+au repos comme les mots de passe des points de montage.
+
+La conversion suit ce que l'éditeur accepte, et non ce que le Markdown permet :
+ses niveaux de titre sont deux, trois et quatre, donc un `#` de Craft écrit tel
+quel aurait donné un bloc que le back-office refuse d'ouvrir. Les tableaux
+survivent, les cases à cocher gardent leur état, une bascule devient son titre
+suivi de son contenu et un encadré devient une citation - faute d'outil
+équivalent monté dans l'éditeur, et le texte reste dans les deux cas.
+
+Les images sont recopiées dans le dossier de l'espace. Ce n'est pas du confort :
+une image servie depuis un espace Craft privé ne s'afficherait pas chez le
+client.
+
 #### Un tiroir de navigation sur le site public
 Sept entrées faisaient mille vingt-huit pixels de liens pour une ligne qui en
 offre trois cent cinquante-neuf : la barre du site se repliait sur deux lignes

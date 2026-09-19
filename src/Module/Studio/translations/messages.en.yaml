@@ -48,6 +48,7 @@ backend:
                     updated: Space note edited
                     pinned: Space note pinned or unpinned
                     deleted: Space note deleted
+                    imported_from_craft: Space note imported from Craft
                 space_chat_channel:
                     created: Chat channel opened
                     renamed: Chat channel renamed
@@ -895,6 +896,38 @@ backend:
                 unknown: This document cannot be found.
                 duplicate: This file is already on this space.
                 needs_account: You have to be signed in to add a file.
+        craft:
+            settings:
+                what_title: What this connection does
+                what_body: "It imports a Craft document into a client space's notes. It is a copy: the document stays in Craft, and the note does not change on its own afterwards."
+                how_title: How to open it
+                how_step_connection: "In Craft, open the Connections tab and create an API connection."
+                how_step_select: "Pick the documents this connection will let through. Do not give it the whole space: the token sleeps on this server."
+                how_step_paste: "Copy the address and the token Craft shows, and paste them below. They will not be shown again."
+                how_link: Craft's own instructions
+                endpoint_label: Connection address
+                endpoint_hint: "The one Craft shows when the connection is created. Over https, otherwise the token travels in the clear."
+                token_label: Token
+                token_hint: The credentials shown next to the address.
+                token_stored: A token is saved. Leave the field empty to keep it.
+                enabled_label: Enable importing from Craft
+                enabled_hint: The button appears in every space's notes.
+                enabled_blocked: Enter an address and a token before enabling.
+            import:
+                action: Import from Craft
+                title: Import a Craft note
+                intro: "The document is copied into this space. It stays in Craft, and the note will not follow its changes."
+                empty: No document in this connection.
+                empty_hint: "Go back to Craft to add documents to the connection."
+                disabled: "Importing from Craft is not enabled."
+                disabled_hint: "It is switched on in the settings, Craft tab."
+                imported: Note imported.
+                submit: Import
+            errors:
+                endpoint_https: "The connection address must start with https://."
+                connection_required: Enter an address and a token before enabling.
+                document_required: Pick a document to import.
+                unreachable: "Craft returned nothing for that document."
         space_notes:
             # A space's notes: the one surface a client never sees.
             add: New note

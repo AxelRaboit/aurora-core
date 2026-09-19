@@ -100,6 +100,22 @@ abstract class AbstractSpaceNote implements SpaceNoteInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?CoreUserInterface $author = null;
 
+    /**
+     * Le document Craft dont cette note est la copie, quand elle en vient.
+     *
+     * **Gardé, et montré au studio seul.** La note est une copie ponctuelle et
+     * non un miroir : rien ne revient la modifier. Mais sans cet identifiant,
+     * réimporter le même document créerait une seconde note à côté de la
+     * première sans qu'Aurora puisse le savoir, et retrouver la source
+     * demanderait de la chercher au titre.
+     *
+     * Le client ne le voit jamais : il n'a pas de compte Craft, et une adresse
+     * qui ne s'ouvre que chez quelqu'un d'autre n'est pas une information,
+     * c'est une impasse.
+     */
+    #[ORM\Column(length: 64, nullable: true)]
+    protected ?string $craftDocumentId = null;
+
     abstract public function getId(): ?int;
 
     public function getSpace(): CustomerSpaceInterface
@@ -209,6 +225,18 @@ abstract class AbstractSpaceNote implements SpaceNoteInterface
      * The label is passed rather than read off the account, because what a
      * `CoreUserInterface` is called is not part of that contract.
      */
+    public function getCraftDocumentId(): ?string
+    {
+        return $this->craftDocumentId;
+    }
+
+    public function setCraftDocumentId(?string $craftDocumentId): static
+    {
+        $this->craftDocumentId = $craftDocumentId;
+
+        return $this;
+    }
+
     public function takenBy(CoreUserInterface $author, string $label): static
     {
         $this->author = $author;
