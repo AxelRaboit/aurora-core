@@ -23,6 +23,12 @@
  * redire neuf fois ce qu'on a lu la première. Le titre reste, et la phrase
  * attend la feuille.
  *
+ * **Centrés, parce que ce sont des boutons et non des entrées de liste.** Dans
+ * la feuille, on cherche un geste parmi d'autres et les libellés s'alignent sur
+ * un bord commun ; sur une carte, chaque rangée est un geste qu'on vise, et la
+ * paire icône + mot se pose au milieu de sa ligne. L'icône voyage avec son mot,
+ * jamais accrochée au bord pendant que le texte se déplace.
+ *
  * **Deux gestes se partagent la ligne, trois et plus s'empilent.** La règle
  * suit ce que la largeur permet : à deux, chaque moitié fait cent soixante
  * pixels, assez pour « Supprimer » et juste ce qu'il faut pour que la rangée
@@ -62,6 +68,7 @@ function run(action) {
         <AppActionButton
             v-for="action in actions"
             :key="action.key"
+            align="center"
             :title="action.title"
             :color="action.color ?? 'default'"
             :href="action.href"

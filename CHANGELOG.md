@@ -22,6 +22,13 @@ feuille : une phrase sous chaque geste a sa place devant une décision, pas
 répétée sous les neuf cartes d'une liste, où elle doublait la hauteur de la
 page pour redire neuf fois ce qu'on avait lu la première.
 
+Sur une carte, chaque rangée centre son libellé et son icône ensemble : à
+pleine largeur c'est un bouton qu'on vise, pas une entrée de liste qu'on
+parcourt. La feuille, elle, garde son bord gauche, parce qu'on y cherche un
+geste parmi d'autres et que ses lignes portent une phrase d'explication. Ce
+qu'on ne fait nulle part : centrer le texte en laissant l'icône accrochée au
+bord, où l'écart entre les deux change à chaque libellé.
+
 Deux gestes se partagent la ligne, trois et plus s'empilent : à deux, chaque
 moitié fait cent soixante-dix pixels, assez pour « Supprimer » et juste ce qu'il
 faut pour que la rangée remplisse la carte au lieu d'étirer deux mots sur trois
