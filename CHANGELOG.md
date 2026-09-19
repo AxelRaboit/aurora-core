@@ -9,6 +9,15 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Les cartes et les modales rendent leurs bords sur téléphone
+La gouttière de la page était passée à huit pixels, mais ce qui est dedans
+gardait ses vingt-quatre : sur trois cent soixante-quinze, le texte d'une carte
+commençait à trente-trois pixels du bord de l'écran. Trente-quatre cartes
+passent à douze ou seize sous `sm` et retrouvent leur aise à partir de là.
+
+Deux endroits partagés comptent plus que les autres : **toutes les modales** de
+l'application, dont le champ gagne seize pixels, et la carte de connexion.
+
 #### La corbeille rendait trois pixels au nom de ce qu'elle contient
 « Restaurer » et « Supprimer définitivement » font trois cents pixels à eux
 deux ; sur trois cent cinquante-neuf, il en restait **trois** pour le nom de la

@@ -139,7 +139,7 @@ const pageActions = computed(() => {
             <div
                 v-for="theme in themeList"
                 :key="theme.id"
-                class="bg-surface border border-line rounded-xl p-5 flex flex-col gap-4"
+                class="bg-surface border border-line rounded-xl p-3 sm:p-5 flex flex-col gap-4"
                 :class="theme.active ? 'border-accent-500/50 ring-1 ring-accent-500/30' : ''"
             >
                 <div class="flex items-start justify-between gap-2">

@@ -533,7 +533,7 @@ const contractActions = computed(() => {
                  today's code produces rather than what was signed. Cleaned
                  once more on the way into the DOM, see documentHtml. -->
             <article
-                class="bg-surface border border-line rounded-lg p-6 prose-contract"
+                class="bg-surface border border-line rounded-lg p-4 sm:p-6 prose-contract"
                 v-html="documentHtml"
             />
 

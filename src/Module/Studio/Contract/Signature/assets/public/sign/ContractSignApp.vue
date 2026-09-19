@@ -235,7 +235,7 @@ async function sign() {
 </script>
 
 <template>
-    <section class="space-y-5 rounded-lg border border-line bg-surface p-5">
+    <section class="space-y-5 rounded-lg border border-line bg-surface p-3 sm:p-5">
         <header class="space-y-1">
             <h2 class="flex items-center gap-2 font-medium text-primary">
                 <PenLine class="h-4 w-4 shrink-0" :stroke-width="2" />

@@ -488,7 +488,7 @@ function termLabel(term) {
                 </div>
 
                 <div v-show="isTabActive('appearance')" class="space-y-4">
-                    <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                    <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.appearance.surfaces_title") }}</h3>
                         <p class="text-xs text-muted">{{ t("backend.posts.appearance.surfaces_hint") }}</p>
 
@@ -513,7 +513,7 @@ function termLabel(term) {
                      and flicker - the same reason one instance serves every
                      locale. -->
                 <div v-show="isTabActive('header')" class="space-y-4">
-                    <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                    <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.banner.title") }}</h3>
                         <!-- Two halves: the design is one per post, the words
                              are one set per language. Switching the locale tab
@@ -535,7 +535,7 @@ function termLabel(term) {
                          keep are down to one. `supportsBlocks` still names the
                          post types that have a body at all; only what it opens
                          has changed. -->
-                    <div v-if="supportsBlocks" class="bg-surface border border-line rounded-xl p-5 space-y-3">
+                    <div v-if="supportsBlocks" class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.grid.title") }}</h3>
                         <PostGridPanel
                             :post-type-options="postTypeOptions"
@@ -551,7 +551,7 @@ function termLabel(term) {
                         />
                     </div>
 
-                    <div v-if="customFieldDefinitions.length" class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                    <div v-if="customFieldDefinitions.length" class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.custom_fields") }}</h3>
                         <template v-for="field in customFieldDefinitions" :key="field.id">
                             <AppCheckbox
@@ -596,7 +596,7 @@ function termLabel(term) {
                          in-page header carrying a title of its own takes over.
                          They sit at the top of Settings, above the slug they
                          are the source of. -->
-                    <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                    <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
                         <AppInput
                             v-model="current.title"
                             :label="t('backend.posts.field_title')"
@@ -632,7 +632,7 @@ function termLabel(term) {
                         />
                     </div>
 
-                    <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                    <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
                         <AppInput
                             v-model="current.slug"
                             :label="t('backend.posts.field_slug')"
@@ -676,7 +676,7 @@ function termLabel(term) {
                         <AppToggle v-model="form.commentsEnabled" :label="t('backend.posts.comments_enabled')" />
                     </div>
 
-                    <div v-if="supportsThumbnail" class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                    <div v-if="supportsThumbnail" class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.thumbnail") }}</h3>
                         <p class="text-xs text-muted">{{ t("backend.posts.thumbnail_hint") }}</p>
 
@@ -705,7 +705,7 @@ function termLabel(term) {
                         </template>
                     </div>
 
-                    <div v-if="availableTaxonomies.length" class="bg-surface border border-line rounded-xl p-5 space-y-3">
+                    <div v-if="availableTaxonomies.length" class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.terms") }}</h3>
                         <div v-for="taxonomy in availableTaxonomies" :key="taxonomy.id" class="space-y-1">
                             <p class="text-xs uppercase tracking-wide text-muted">
@@ -726,7 +726,7 @@ function termLabel(term) {
                          rather than a preloaded list, because the endpoint
                          only ever answers a query or a set of known ids - it
                          has no "everything" mode to hand a picker up front. -->
-                    <div class="bg-surface border border-line rounded-xl p-5 space-y-3">
+                    <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.related_posts") }}</h3>
                         <p class="text-xs text-muted">{{ t("backend.posts.related_posts_hint") }}</p>
 
@@ -784,7 +784,7 @@ function termLabel(term) {
                 </div>
 
                 <div v-show="isTabActive('seo')" class="space-y-4">
-                    <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+                    <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.seo") }}</h3>
                         <AppInput
                             v-model="current.metaTitle"

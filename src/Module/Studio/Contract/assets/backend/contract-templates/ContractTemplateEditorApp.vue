@@ -428,7 +428,7 @@ const governingLabel = computed(
 
                 <article
                     v-else
-                    class="bg-surface border border-line rounded-lg p-6 prose-contract max-h-[65vh] overflow-y-auto"
+                    class="bg-surface border border-line rounded-lg p-4 sm:p-6 prose-contract max-h-[65vh] overflow-y-auto"
                     v-html="previewHtml"
                 />
             </div>

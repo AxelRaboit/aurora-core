@@ -57,7 +57,7 @@ const byType = computed(() =>
             </div>
         </div>
 
-        <div v-if="hasAnyShare(byType)" class="bg-surface border border-line rounded-xl p-5 space-y-4">
+        <div v-if="hasAnyShare(byType)" class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
             <h3 class="text-sm font-semibold text-primary">{{ t("backend.stats.ged.by_type") }}</h3>
 
             <AppShareBar :segments="byType" />

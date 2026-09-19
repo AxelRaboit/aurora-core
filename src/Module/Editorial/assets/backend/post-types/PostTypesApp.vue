@@ -153,7 +153,7 @@ const pageActions = computed(() => {
 
         <!-- Selected type -->
         <section v-if="selected" class="space-y-4">
-            <div class="bg-surface border border-line rounded-xl p-5 space-y-4">
+            <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                         <h2 class="text-lg font-semibold text-primary truncate">{{ selected.label }}</h2>
@@ -178,7 +178,7 @@ const pageActions = computed(() => {
             </div>
 
             <!-- Custom fields -->
-            <div class="bg-surface border border-line rounded-xl p-5 space-y-3">
+            <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
                 <div class="flex items-center justify-between gap-3">
                     <h3 class="text-sm font-semibold text-primary">{{ t("backend.post_types.fields.title") }}</h3>
                     <!-- Le plus seul sur téléphone : « Ajouter un champ » en

@@ -172,7 +172,10 @@ const wrapperClass = computed(() =>
 );
 
 const contentClass = computed(() => [
-    props.noPadding ? "" : "px-6 space-y-4",
+    // Seize pixels de flanc sur téléphone plutôt que vingt-quatre : une
+    // modale y fait la largeur de l'écran moins la gouttière, et ce qu'elle
+    // contient - un champ, une liste de noms - n'a pas de marge à donner.
+    props.noPadding ? "" : "px-4 space-y-4 sm:px-6",
     props.scrollable ? "overflow-y-auto scrollbar-thin flex-1 py-6" : "py-6",
 ]);
 </script>
@@ -210,7 +213,7 @@ const contentClass = computed(() => [
                     :class="panelClass"
                 >
                     <!-- Header -->
-                    <div v-if="heldTitle" class="shrink-0 flex items-center justify-between gap-4 px-6 pt-6 pb-2">
+                    <div v-if="heldTitle" class="shrink-0 flex items-center justify-between gap-4 px-4 pt-6 pb-2 sm:px-6">
                         <div class="flex items-center gap-2 min-w-0">
                             <component :is="heldIcon" v-if="heldIcon" class="w-4 h-4 shrink-0 text-muted" :stroke-width="2" />
                             <h2 class="text-lg font-semibold text-primary truncate">{{ heldTitle }}</h2>
@@ -235,7 +238,7 @@ const contentClass = computed(() => [
                     </div>
 
                     <!-- Sticky footer -->
-                    <div v-if="$slots.footer" class="shrink-0 px-6 pb-6 pt-3 border-t border-line">
+                    <div v-if="$slots.footer" class="shrink-0 px-4 pb-6 pt-3 border-t border-line sm:px-6">
                         <AppRetainedSlot :live="show">
                             <slot name="footer" />
                         </AppRetainedSlot>
