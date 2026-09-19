@@ -599,7 +599,9 @@ function resizeZone(index, columns) {
                 :icon="Eye"
                 v-on:close="showPreview = false"
             >
-                <div class="relative min-h-40 p-4">
+                <!-- La modale a déjà ses seize pixels : seize de plus ici en feraient
+                     trente-deux sur un téléphone, pour un aperçu qu'on regarde. -->
+                <div class="relative min-h-40 p-2 sm:p-4">
                     <div v-html="previewHtml" />
                     <AppLoader :active="previewLoading" />
                 </div>

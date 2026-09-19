@@ -465,7 +465,7 @@ function onKeydown(event) {
              long pousse la conversation au-delà de la boîte et c'est le rail
              qui se fait écraser. -->
         <div class="flex min-h-0 min-w-0 flex-1 flex-col">
-            <header class="flex items-center gap-2 border-b border-line/60 px-4 py-2.5">
+            <header class="flex items-center gap-2 border-b border-line/60 px-2 py-2.5 sm:px-4">
                 <!-- Sur téléphone le titre est la poignée du tiroir : c'est le
                      nom du salon qu'on touche pour en changer, ce qui économise
                      un bouton et dit où mène le geste. À partir de `md` il
@@ -545,7 +545,7 @@ function onKeydown(event) {
              automatique vaut zéro et le défilement redevient ordinaire. -->
             <div
                 ref="scroller"
-                class="flex flex-1 flex-col overflow-y-auto px-4 py-3"
+                class="flex flex-1 flex-col overflow-y-auto px-2 py-3 sm:px-4"
                 v-on:scroll="onScroll"
             >
                 <!-- Un conteneur pour les entrées, et c'est lui qu'on observe : sa
@@ -640,7 +640,7 @@ function onKeydown(event) {
                 </div>
             </div>
 
-            <div v-if="canPost" class="space-y-2 border-t border-line/60 px-4 py-3">
+            <div v-if="canPost" class="space-y-2 border-t border-line/60 px-2 py-3 sm:px-4">
                 <!-- On the wrapper rather than on the field: `AppTextarea` is a
                  label, a control and a hint under one element, and hanging a
                  key handler on the component would rely on which of them

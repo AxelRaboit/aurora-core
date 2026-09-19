@@ -9,6 +9,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Les panneaux de la discussion et les voiles rendent leurs bords
+Suite du relevé, cinquante-neuf endroits relus. Ce qui bouge : les trois
+panneaux d'une discussion - l'en-tête, le fil et la zone d'écriture - où une
+bulle gagne seize pixels de largeur ; la gouttière autour des panneaux flottants
+(recherche, notifications, visionneuse) ; la barre du haut sur téléphone, qui
+s'aligne enfin sur la page qu'elle coiffe ; et l'aperçu d'une grille dans sa
+modale, où seize plus seize faisaient trente-deux.
+
+Ce qui ne bouge pas, et pourquoi : vingt-quatre cellules de tableau, que le
+téléphone ne voit jamais ; les blocs de texte d'une carte, qui sont la marge
+validée à seize ; les entrées de menu et les lignes de liste, où seize pixels ne
+sont pas de l'espace perdu mais la cible que vise le pouce.
+
 #### Huit pixels devient la marge par défaut sur téléphone
 Les six coquilles avaient huit pixels sur les côtés et gardaient seize ou
 trente-deux en haut et en bas : deux valeurs pour une même marge, sur l'appareil

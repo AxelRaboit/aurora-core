@@ -364,7 +364,7 @@ function openSearchFromMobile() {
         />
     </aside>
 
-    <div class="lg:hidden fixed top-0 inset-x-0 h-14 bg-surface border-b border-line z-30 flex items-center justify-between px-4">
+    <div class="lg:hidden fixed top-0 inset-x-0 h-14 bg-surface border-b border-line z-30 flex items-center justify-between px-2 sm:px-4">
         <a :href="dashboardPath" class="flex items-center gap-2">
             <AppLogo :size="28" />
             <span class="text-primary font-bold text-base tracking-tight">{{ siteName }}</span>
@@ -520,7 +520,7 @@ function openSearchFromMobile() {
             leave-from-class="opacity-100"
             leave-to-class="opacity-0"
         >
-            <div v-if="searchOpen" class="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4" v-on:click.self="closePalette">
+            <div v-if="searchOpen" class="fixed inset-0 z-50 flex items-start justify-center pt-20 px-2 sm:px-4" v-on:click.self="closePalette">
                 <div class="fixed inset-0 bg-black/60" v-on:click="closePalette" />
 
                 <div class="relative w-full max-w-2xl bg-surface border border-line rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[70vh]">
