@@ -496,10 +496,19 @@ const pageActions = computed(() => {
                     <span>{{ formatDateTime(post.updatedAt) }}</span>
                 </p>
 
-                <div class="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-line/40 pt-2">
+                <!-- **Une action par ligne, sur toute la largeur.** Quatre
+                     boutons qui se replient deux par deux laissent une colonne
+                     ragoteuse au milieu de la carte et des cibles de cent
+                     pixels de large sur les trois cent soixante disponibles.
+                     Empilés, chacun prend la ligne entière, les libellés
+                     s'alignent sur le même bord, et le doigt n'a plus à viser.
+                     Ils ne sont visibles que sur cette carte, c'est-à-dire sur
+                     téléphone : le tableau, lui, garde ses trois points. -->
+                <div class="flex flex-col gap-0.5 border-t border-line/40 pt-2">
                     <AppButton
                         v-for="action in actionsFor(post)"
                         :key="action.key"
+                        class="w-full !justify-start"
                         variant="ghost"
                         size="sm"
                         :href="action.href"

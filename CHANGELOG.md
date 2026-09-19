@@ -9,6 +9,26 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Modifié
 
+#### Le back-office entier récupère seize pixels sur téléphone
+La coquille d'administration donnait seize pixels de gouttière de chaque côté
+et trente-deux en haut, sur le seul appareil qui n'en a pas à donner. Huit et
+seize suffisent : les cartes gardent leurs coins arrondis, donc elles se lisent
+toujours comme des blocs posés. C'est la seule marge que les quarante-six
+écrans partagent, donc la seule qui se corrige une fois.
+
+Dans la même veine, la barre de liste partagée met ses actions dans leur propre
+boîte : posées directement dans la grille, deux boutons devenaient deux cellules
+et cassaient la colonne de droite, et chacun gardait sa largeur naturelle,
+collé à gauche d'un vide de deux cent cinquante pixels. Ils prennent la ligne
+sous `sm` et retrouvent leur taille au-dessus, dans les neuf listes qui en
+héritent : Publications, Galeries, Catégories et Étiquettes de la médiathèque,
+Contrats, Modèles, Clients, Espaces, Présentations.
+
+Et sur la fiche d'une publication lue au téléphone, les quatre gestes -
+modifier, prévisualiser, dupliquer, supprimer - prennent chacun leur ligne
+entière au lieu de se replier deux par deux en laissant une colonne ragoteuse
+au milieu de la carte.
+
 #### La discussion tient dans l'écran, sans faire défiler la page
 Sur téléphone, la conversation dépassait de soixante pixels : assez pour que la
 page bouge, pas assez pour que ça serve. Elle prend maintenant **exactement** la
