@@ -11,8 +11,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 #### Brancher un dossier Google Drive sur un espace client
 Le dernier chantier du backlog. Un espace peut désigner un dossier Drive que
-son client a partagé, et les fichiers apparaissent dans son onglet Fichiers -
+son client a partagé, et les fichiers apparaissent dans sa propre vue Drive -
 côté studio, et côté client dans la page qu'il ouvre par son lien d'accès.
+
+**À côté de Fichiers, et non dedans.** La barre d'un espace sépare déjà par
+origine - ce qui est posé sur les fiches, ce qui appartient à l'espace - et un
+dossier qui vit chez le client en est une troisième. Rangé en section sous les
+fichiers, il fallait faire défiler tout le reste pour l'atteindre.
 
 **Rien n'est recopié.** Le fichier reste chez le client : il est lu chez Google
 au moment où quelqu'un le regarde, et servi sous une adresse d'ici. Retirer un
@@ -38,11 +43,25 @@ dossier parent partagé une fois suffit pour tous les clients.
 plusieurs parents dans la même requête : une arborescence de trois niveaux
 coûte trois appels quel que soit le nombre de dossiers qu'elle porte, là où
 descendre dossier par dossier en aurait fait un chacun. Le chemin voyage avec
-le fichier - « Contrats/2026 » devant son nom - parce qu'une liste à plat qui
-ne dit pas d'où vient chaque ligne est moins lisible que l'arbre qu'elle
-remplace. Deux bornes : cinq étages, parce qu'un raccourci circulaire dans un
-Drive ferait tourner la descente sans fin, et deux cents fichiers, parce
-qu'au-delà le dossier partagé était trop large.
+le fichier - « Contrats/2026 » devant son nom. Deux bornes : cinq étages,
+parce qu'un raccourci circulaire dans un Drive ferait tourner la descente sans
+fin, et deux cents fichiers, parce qu'au-delà le dossier partagé était trop
+large.
+
+**L'arbre se reconstruit dans le navigateur, pas chez Google.** La descente
+ayant déjà ramené chaque fichier avec son chemin, les dossiers se déduisent de
+cette liste : un dossier s'ouvre, un fil d'Ariane en remonte, et ni l'un ni
+l'autre ne coûte un appel. Redemander le contenu d'un dossier à chaque fois
+qu'on l'ouvre aurait payé deux fois ce qu'on avait déjà en main.
+
+Les fichiers s'affichent en cartes ou en liste, au choix qui se retient, et en
+liste d'office quand la colonne est trop étroite pour une vignette. Un clic
+ouvre l'aperçu, le même composant que pour les fichiers de l'espace, et il lit
+par l'adresse d'ici : c'est ce qui le rend identique pour le studio et pour un
+client sans compte Google. Les vignettes sont petites - elles servent à
+reconnaître un fichier, pas à le lire - et viennent du CDN de Google, qui les
+sert sans authentification : les relayer aurait coûté un appel par image pour
+moins d'un kilo-octet.
 
 **Rien n'a été emprunté pour signer.** `google/apiclient` aurait amené des
 centaines de définitions de services dans un dépôt public livré à des clients,
