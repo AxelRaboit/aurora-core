@@ -28,6 +28,8 @@ backend:
       navigation_description: Customize sidemenu section and item names.
       pexels: Pexels
       craft: Craft
+      drive: Google Drive
+      drive_description: "Reading a Drive folder a client shared: service account, key, activation."
       craft_description: "Importing a note written in Craft: connection address, token, activation."
       pexels_description: 'Free stock photo library: enabling, API key and acceptance of the terms.'
       captcha: Anti-robot

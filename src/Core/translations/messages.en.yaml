@@ -128,6 +128,7 @@ shared:
     add: Add
     loading: Loading…
     confirm: Confirm
+    refresh: Refresh
     error: An error occurred.
     saved: Saved.
     deleted: Deleted.

@@ -21,7 +21,7 @@
  * what is coming and when. The step travels as a word on the card, which is the
  * part that answers "where is this".
  */
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -62,6 +62,9 @@ const props = defineProps({
     uploadPath: { type: String, default: null },
     /** Les fichiers de l'espace, ceux qui ne sont sur aucune fiche. */
     spaceFiles: { type: Array, default: () => [] },
+    /** Le dossier Drive du prestataire, quand il en a branché un. */
+    drivePath: { type: String, default: null },
+    driveFilePath: { type: String, default: null },
     chatMessages: { type: Array, default: () => [] },
     /** Null when no hub is running, and then the panel never connects. */
     chatStreamUrl: { type: String, default: null },
@@ -132,6 +135,51 @@ const events = computed(() =>
  * cible.
  */
 const { container, isNarrow } = useNarrowContainer(560);
+
+/**
+ * Les fichiers du dossier Drive, s'il y en a un.
+ *
+ * **Chargés après la page, jamais avec.** Lire un dossier chez Google prend
+ * deux dixièmes de seconde et peut échouer ; faire attendre la page pour ça
+ * retarderait ce que le client vient vraiment voir. La section apparaît quand
+ * la réponse arrive, et reste absente si elle ne vient pas.
+ */
+const driveFiles = ref([]);
+
+onMounted(async () => {
+    if (!props.drivePath) return;
+
+    try {
+        const response = await fetch(props.drivePath, { headers: { Accept: "application/json" } });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        driveFiles.value = Array.isArray(data?.files) ? data.files : [];
+    } catch {
+        // Silencieux : un dossier qu'on ne joint pas est une section qui ne
+        // s'affiche pas, pas une erreur sur la page d'un client.
+    }
+});
+
+function driveAddress(file) {
+    return (props.driveFilePath ?? "").replace("__id__", file.id);
+}
+
+function driveWeight(file) {
+    if (null === file.size || undefined === file.size) return "";
+
+    const units = ["o", "ko", "Mo", "Go"];
+    let value = file.size;
+    let unit = 0;
+
+    while (value >= 1024 && unit < units.length - 1) {
+        value /= 1024;
+        ++unit;
+    }
+
+    return `${value.toFixed(0 === unit ? 0 : 1)} ${units[unit]}`;
+}
 
 /** Le jour que la liste montre. Aujourd'hui tant que personne n'en a choisi un. */
 const selectedDay = ref(new Date());
@@ -395,6 +443,35 @@ function open(event) {
              retrouve, pas des nouvelles qu'on lit. Rien n'est affiché quand
              l'espace n'en porte aucun - une section vide sur la page d'un
              client donne l'impression d'un écran inachevé. -->
+        <!-- Le dossier Drive du prestataire. Sous la discussion et au-dessus
+             des fichiers de l'espace : ce sont des documents qu'on retrouve,
+             pas des nouvelles qu'on lit, et ils viennent d'ailleurs.
+
+             Chaque adresse passe par ici et non par Google : le dossier n'est
+             partagé qu'avec le compte de service, donc une adresse Drive
+             donnerait à ce lecteur un mur d'authentification. -->
+        <section v-if="driveFiles.length" class="space-y-3">
+            <h2 class="text-sm font-medium text-primary">
+                {{ t("studio.public.space.drive_title") }}
+            </h2>
+
+            <ul class="divide-y divide-line/60 rounded-lg border border-line/60">
+                <li v-for="file in driveFiles" :key="file.id">
+                    <a
+                        :href="driveAddress(file)"
+                        target="_blank"
+                        rel="noopener"
+                        class="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-surface-2/60"
+                    >
+                        <span class="min-w-0 flex-1 truncate text-sm text-primary">
+                            <span v-if="file.path" class="text-muted">{{ file.path }}/</span>{{ file.name }}
+                        </span>
+                        <span class="shrink-0 text-xs tabular-nums text-muted">{{ driveWeight(file) }}</span>
+                    </a>
+                </li>
+            </ul>
+        </section>
+
         <section v-if="spaceFiles.length" class="space-y-3">
             <h2 class="text-sm font-medium text-primary">
                 {{ t("studio.public.space.files_title") }}

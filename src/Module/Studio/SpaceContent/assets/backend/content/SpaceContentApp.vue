@@ -46,6 +46,7 @@ import SpaceBoardView from "./views/SpaceBoardView.vue";
 import SpaceListView from "./views/SpaceListView.vue";
 import SpaceCalendarView from "./views/SpaceCalendarView.vue";
 import SpaceFilesView from "./views/SpaceFilesView.vue";
+import SpaceDriveView from "../../../../SpaceFile/GoogleDrive/assets/backend/drive/SpaceDriveView.vue";
 import SpaceContentItemFields from "./components/SpaceContentItemFields.vue";
 // Same module, another sub-domain: a relative path rather than an alias,
 // the way the public page already reaches the shared thread.
@@ -70,6 +71,7 @@ import {
     FileStack,
     FileText,
     List,
+    FolderOpen,
     Pencil,
     RefreshCw,
     Save,
@@ -135,12 +137,20 @@ const props = defineProps({
     spaceFileUploadPath: { type: String, required: true },
     spaceFileAttachPath: { type: String, required: true },
     spaceFileRemovePath: { type: String, required: true },
+    driveEnabled: { type: Boolean, default: false },
+    driveFolderId: { type: String, default: null },
+    driveListPath: { type: String, default: "" },
+    driveFolderPath: { type: String, default: "" },
+    driveFilePath: { type: String, default: "" },
 });
 
 const VIEWS = [
     { key: "content", labelKey: "backend.studio.space_content.view_content", icon: FileStack },
     { key: "calendar", labelKey: "backend.studio.space_content.view_calendar", icon: CalendarDays },
     { key: "files", labelKey: "backend.studio.space_content.view_files", icon: Paperclip },
+    // Absente tant que l'installation n'a pas de compte de service : une
+    // entrée qui mène à un écran vide est une entrée qu'on ouvre une fois.
+    { key: "drive", labelKey: "backend.studio.space_content.view_drive", icon: FolderOpen },
     { key: "chat", labelKey: "backend.studio.space_content.view_chat", icon: MessagesSquare },
     { key: "notes", labelKey: "backend.studio.space_content.view_notes", icon: StickyNote },
 ];
@@ -152,6 +162,15 @@ const VIEWS = [
  * and for the next. A per-space key would make them choose again on every
  * space they open, which is the thing this exists to stop.
  */
+/**
+ * Ce que la barre montre vraiment.
+ *
+ * Le Drive n'y est que si l'installation a une clé de compte de service : une
+ * entrée qui mène à un écran vide est une entrée qu'on ouvre une fois et qu'on
+ * n'ouvre plus.
+ */
+const views = computed(() => VIEWS.filter((entry) => "drive" !== entry.key || props.driveEnabled));
+
 const { choice: view } = usePersistedChoice(
     "studio.space_content.view",
     "content",
@@ -388,7 +407,7 @@ const actionsFor = useSpaceCardActions({
                 :aria-label="t('backend.studio.space_content.view_label')"
             >
                 <button
-                    v-for="entry in VIEWS"
+                    v-for="entry in views"
                     :key="entry.key"
                     type="button"
                     class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-2 text-sm transition-colors sm:px-2.5 sm:py-1"
@@ -496,6 +515,18 @@ const actionsFor = useSpaceCardActions({
             v-on:upload="uploadOwnFile"
             v-on:pick="pickOwnFile"
             v-on:remove="removeOwnFile"
+        />
+
+        <!-- Sa propre vue, à côté de Fichiers. La barre sépare déjà par
+             origine - ce qui est sur les fiches, ce qui est à l'espace - et un
+             dossier chez le client en est une troisième. En section sous les
+             fichiers, il fallait faire défiler tout le reste pour l'atteindre. -->
+        <SpaceDriveView
+            v-else-if="view === 'drive' && driveEnabled"
+            :folder-id="driveFolderId"
+            :list-path="driveListPath"
+            :folder-path="driveFolderPath"
+            :file-path="driveFilePath"
         />
 
         <!-- Mounted only while it is the view on screen, so a board nobody is

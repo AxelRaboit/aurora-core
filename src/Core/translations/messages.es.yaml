@@ -125,6 +125,7 @@ shared:
     add: Añadir
     loading: Cargando…
     confirm: Confirmar
+    refresh: Actualizar
     error: Se ha producido un error.
     saved: Guardado.
     deleted: Eliminado.
