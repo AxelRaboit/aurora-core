@@ -235,20 +235,7 @@ backend:
         what_is_stored_body: "The account address, the bucket and the two keys, the latter encrypted. They are never shown back to you: the fields only say that a value exists."
         disconnecting_title: Disconnecting
         disconnecting_body: "The \"Disconnect storage\" button erases both keys, forgets the address and the bucket, cancels the verification and brings new files back onto the server's disk. Documents already sent to the remote storage stay there: bring them back first, or they become unreachable."
-  documentation:
-    enlarge: Enlarge the screenshot
-    rubrics: Sections
-    search_placeholder: Search the documentation…
-    results: '1 page found | {count} pages found'
-    no_result: No page matches.
-    on_this_page: On this page
-    pagination: Previous and next page
-    previous: Previous page
-    next: Next page
-    empty: No documentation page ships with this version.
   nav:
-    documentation: Documentation
-    documentation_description: How to use the back office, screen by screen.
     sections:
       general: General
       platform: Platform
@@ -256,7 +243,6 @@ backend:
       configuration: Configuration
       dev: Administration
       account: Account
-      documentation: Documentation
     go_back: Previous page
     go_forward: Next page
     hard_reload: Reload and clear caches

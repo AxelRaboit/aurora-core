@@ -56,12 +56,16 @@
         </deprecationTrigger>
     </source>
 
-    <coverage>
-        <report>
-            <html outputDirectory="var/coverage" />
-            <text outputFile="php://stdout" showUncoveredFiles="false" />
-        </report>
-    </coverage>
+    <!-- Pas de bloc `coverage` ici, et c'est le sujet : un `report` déclaré
+         dans la configuration est demandé à *chaque* appel de phpunit, donc
+         la couverture était collectée et deux rapports écrits pour lancer un
+         seul fichier de test. Mesuré sur la suite unitaire : 34 s avec, 14 s
+         sans. Elle finissait aussi par épuiser les 512 Mo à l'écriture du
+         rapport HTML, ce qui faisait échouer la porte sur autre chose qu'un
+         test.
+
+         La couverture se demande donc quand on la veut, par `make coverage`,
+         qui allume pcov et nomme ses rapports. -->
 
     <extensions>
     </extensions>

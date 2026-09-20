@@ -169,12 +169,6 @@ services:
         arguments:
             $providers: !tagged_iterator aurora.configuration_tab_provider
 
-    # Le manuel du produit, lu dans les fichiers qui l'accompagnent. Le
-    # dossier est nommé depuis le bundle, pas depuis le projet client.
-    Aurora\Module\Documentation\Service\DocumentationIndex:
-        arguments:
-            $contentDir: '%aurora.documentation.content_dir%'
-
     Aurora\Core\Mail\Service\MailService:
         arguments:
             $mailerFrom: '%app.mailer_from%'
