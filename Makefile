@@ -359,8 +359,13 @@ test-frontend: translation ## Run frontend unit tests (Vitest)
 test-e2e: ## Run end-to-end tests (Playwright)
 	$(PNPM) --dir=$(AURORA) run test:e2e
 
+# Les rapports sont nommés ici et non dans `phpunit.dist.xml` : declares
+# la-bas, ils etaient produits a chaque lancement de la suite, y compris pour
+# un seul fichier de test.
 coverage: db-test ## Generate PHP code coverage report (requires php8.4-pcov)
-	$(PHP_BIN) -d pcov.enabled=1 $(AURORA)/bin/phpunit --coverage
+	$(PHP_BIN) -d pcov.enabled=1 -d memory_limit=-1 $(AURORA)/bin/phpunit \
+		--coverage-html=var/coverage \
+		--coverage-text --only-summary-for-coverage-text
 
 db-test: ## Create and migrate the test database
 	$(CONSOLE) doctrine:database:create --env=test --if-not-exists

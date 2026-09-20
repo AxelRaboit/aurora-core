@@ -40,6 +40,22 @@ Aucune migration, aucun privilège, aucun réglage, aucun lien à réparer : le 
 tenait au reste que par une entrée de menu, une couleur de section et deux
 paramètres.
 
+### Corrigé
+
+#### La couverture de code était calculée à chaque lancement de la suite
+Le bloc `coverage` de `phpunit.dist.xml` déclarait deux rapports. Un rapport
+déclaré dans la configuration est un rapport **demandé à chaque appel**, donc la
+couverture était collectée et deux fichiers écrits pour lancer un seul fichier de
+test.
+
+Mesuré sur la suite unitaire : **trente-quatre secondes avec, quatorze sans**. Le
+rapport HTML finissait aussi par épuiser les cinq cent douze mégaoctets, ce qui
+faisait échouer la porte sur autre chose qu'un test - un échec qui se lit comme une
+régression et n'en est pas une, ce qui est la pire espèce.
+
+La couverture se demande maintenant quand on la veut, par `make coverage`, qui
+allume pcov, lève le plafond mémoire et nomme ses rapports.
+
 ### Dans aurora-client
 `make aurora-update`. Rien d'autre : l'entrée « Documentation » disparaît du menu, et
 son adresse ne répond plus.
