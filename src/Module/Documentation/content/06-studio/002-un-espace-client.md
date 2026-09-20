@@ -50,7 +50,9 @@ Rien n'est interdit à un prospect, pas même un contrat — signer, c'est juste
 
 ## 3. L'équipe
 
-Qui, chez vous, travaille sur cet espace. **Ce n'est pas un droit d'accès** : qui peut ouvrir un espace est décidé par les privilèges du compte, comme partout ailleurs. C'est un nom à donner au client.
+Qui, chez vous, travaille sur cet espace. **C'est aussi qui le voit** : la liste ne montre à chacun que les espaces dont il fait partie, et les autres n'existent pas pour lui, jusqu'à leur adresse. Les comptes d'administration, eux, voient tout.
+
+Deux rôles. Le **membre** écrit, commente, programme. Le **référent** fait tout cela et, en plus, ouvre l'onglet Réglages de l'espace : le dossier Drive partagé, et le mot de passe qui ferme cet onglet. Voir [Les réglages d'un espace](/backend/documentation/les-reglages).
 
 ![Le bloc L'équipe, avec deux personnes](../../images/06-studio/un-espace-client-03-l-equipe.png)
 

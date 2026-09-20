@@ -5,6 +5,121 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.208] - 2026-09-20
+
+### Ajouté
+
+#### Un onglet Réglages, ouvert au référent
+Tout ce qui se décide une fois pour un espace y vit : le dossier Drive que ce
+client a partagé, et le mot de passe qui ferme cet onglet. Des sous-onglets
+dès le premier sujet, parce qu'un écran de réglages grandit toujours, et mal.
+
+**C'est ce qui donne enfin un sens au rôle de responsable.** Il ne disait
+jusqu'ici qu'à qui s'adresser ; il ouvre maintenant une porte que ses
+coéquipiers n'ont pas. Le reste du travail ne bouge pas : un équipier écrit,
+commente et programme comme avant.
+
+Le champ du dossier partagé y déménage. Il vivait au-dessus de la liste des
+fichiers, où n'importe quel équipier le changeait, et où il occupait une place
+sur un écran qu'on vient consulter.
+
+#### Fermer l'onglet Drive par un mot de passe
+Huit caractères au minimum, saisis deux fois, avec l'œil qui dévoile la saisie
+- une faute de frappe ici ferme une porte dont plus personne n'a la clé.
+
+**Il vaut pour tout le monde, y compris le rôle qui court-circuite tous les
+privilèges.** Un mot de passe que le rôle le plus élevé contourne ne protège
+de personne : il décore un écran. Et il ferme aussitôt pour celui qui vient de
+le poser, parce qu'on ferme une porte pour la voir se fermer.
+
+La serrure est vérifiée sur les routes, pas seulement à l'écran : un onglet
+masqué n'a jamais fermé une adresse. Elle est posée sur les arguments de
+contrôleur plutôt que route par route, pour que la prochaine route du Drive
+soit couverte sans qu'on y pense.
+
+**Ouvert pour une session, et par espace.** Se fermer avec le navigateur est
+ce qu'on attend d'une serrure ; en ouvrir un n'ouvre pas les autres.
+
+Le retirer demande de le saisir, sans quoi quiconque atteint cet écran
+l'enlève en un clic. Le prix est qu'un oubli bloque : le secours est une
+commande sur le serveur, ce qui est un vrai niveau d'autorité et pas une case
+à cocher.
+
+#### Redemander le mot de passe à tout le monde
+Un bouton qui referme toutes les sessions ouvertes, la sienne comprise, **sans
+changer le mot de passe**. C'est la réponse au doute ordinaire - un écran
+resté ouvert ailleurs, quelqu'un à qui on a montré l'onglet : ceux qui le
+connaissent le retapent, et il n'y a pas de nouveau mot de passe à
+communiquer.
+
+Une session ne retient plus « ouvert » mais quelle génération elle a ouverte,
+et l'espace en porte une. C'est aussi ce qui fait que **changer le mot de
+passe évince enfin** ceux qui étaient entrés avec l'ancien, ce qu'il ne
+faisait pas.
+
+#### Voir ce qu'un lien d'accès montre, sans répondre à la place du client
+L'aperçu est un vrai lien, et c'est la seule façon qu'il dise vrai : le jeton
+en clair n'existe qu'à la création, donc une page reconstruite avec un jeton
+inventé s'affiche et ne répond à rien - ni dossier Drive, ni fichiers,
+c'est-à-dire justement ce qu'on venait vérifier.
+
+Il recopie les droits pour que l'écran soit le même, et refuse malgré tout
+toute réponse : le refus tient à la nature du lien, pas à ses droits. Il
+expire en quinze minutes, ne figure dans aucune liste, et le précédent est
+supprimé quand on en demande un autre.
+
+#### Deux droits de plus sur un lien, et une étape qu'on garde pour soi
+Un lien d'accès peut voir ou non le dossier Drive. Et une étape du tableau se
+marque **interne** : elle disparaît de la page du client, ses fiches avec
+elle - la moitié qu'on oublie, et celle qui les laisserait dans son
+calendrier, qui les lit par leur date et non par leur étape.
+
+#### Deux pages de documentation
+« Les réglages d'un espace » décrit l'onglet, le mot de passe et ses trois
+boutons. La page « Dossier Google Drive » suit le champ qui a déménagé.
+
+### Modifié
+
+#### Un espace ne se voit plus par défaut
+La liste montrait tous les espaces à qui avait le privilège, et
+l'appartenance à un espace n'accordait rien. Elle décide maintenant : on voit
+les siens, l'administration voit tout. Le contrôle est posé sur les arguments
+de contrôleur plutôt qu'à chaque entrée, pour que le onzième contrôleur ne
+puisse pas l'oublier.
+
+### Corrigé
+
+#### Trois écrans se taisaient en cas de refus
+Le composant de requête rend l'enveloppe d'un 400 sans rien annoncer, et les
+appels des réglages n'en lisaient que le succès. Un mot de passe erroné, un
+mot de passe trop court, une adresse de dossier mal collée ne produisaient
+**rien du tout** à l'écran, ce qui se lit comme un bouton mort.
+
+#### Le poids d'un fichier s'écrivait de trois façons
+Trois formateurs écrits à la main avaient poussé à côté du composable qui
+existait déjà. Ils passent tous par lui, et un poids n'est affiché que
+lorsqu'il y en a un : un dossier Drive n'en a pas, et « 0 o » se serait
+affiché sous chacun.
+
+#### Une route morte contournait le nouveau contrôle
+Le déménagement du champ de dossier avait laissé derrière lui la route qui le
+servait, ouverte à tout équipier. Elle disparaît.
+
+#### La commande de secours n'effaçait qu'à moitié
+Elle retirait le mot de passe à la main plutôt que de le demander à la
+serrure, donc ne tirait pas de nouvelle génération : effacer depuis le serveur
+laissait dedans ceux qui y étaient déjà.
+
+### Dans aurora-client
+`make aurora-update`, puis `make migrate` : la 0.9.208 ajoute une colonne aux
+espaces.
+
+Rien d'autre n'est requis. Aucun onglet Drive n'est fermé tant que personne ne
+pose un mot de passe, et les espaces restent visibles comme avant pour les
+comptes d'administration.
+
+---
+
 ## [0.9.207] - 2026-09-20
 
 ### Corrigé

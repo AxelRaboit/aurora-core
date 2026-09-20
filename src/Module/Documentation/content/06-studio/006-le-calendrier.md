@@ -30,3 +30,5 @@ Cliquer un jour vide ouvre un contenu déjà daté de ce jour-là. Cliquer une c
 Les dates d'un espace remontent automatiquement dans le module Calendrier, sans double saisie. **Un seul calendrier pour tous les espaces**, où chaque client se distingue par sa couleur, et non un calendrier par client qui remplirait la barre latérale de tout le monde.
 
 Ces entrées ne s'y modifient pas : elles sont le reflet de ce que dit l'espace, et la prochaine modification ici les réécrit.
+
+Une fiche dont « afficher dans le calendrier » est décoché n'y remonte pas non plus : les deux calendriers disent la même chose, sans quoi l'un d'eux mentirait.
