@@ -150,12 +150,13 @@ final class SpaceDriveController extends AbstractController
 
         $files = $this->drive->files($account, $folderId);
 
-        if ([] === $files) {
+        // **Un 404 et non un message.** Ce bouton est un lien : le navigateur
+        // navigue vers cette adresse, donc une réponse JSON s'afficherait en
+        // toutes lettres à la place de la page. L'écran connaît le poids du
+        // dossier avant de dessiner le bouton et ne le propose pas dans ce
+        // cas ; une adresse tapée à la main n'a pas à recevoir d'explication.
+        if ([] === $files || $this->archives->weightOf($files) > DriveArchive::MAX_BYTES) {
             throw $this->createNotFoundException();
-        }
-
-        if ($this->archives->weightOf($files) > DriveArchive::MAX_BYTES) {
-            return $this->jsonFailure('backend.studio.drive.errors.archive_too_large');
         }
 
         $path = $this->archives->zipFor($account, $files);

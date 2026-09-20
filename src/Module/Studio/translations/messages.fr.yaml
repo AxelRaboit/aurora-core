@@ -983,6 +983,8 @@ backend:
                 no_size: "—"
                 view_label: Affichage des fichiers
                 archive: Tout télécharger (.zip)
+                archive_weight: "Le dossier pèse {weight}."
+                archive_too_large: "Le dossier pèse {weight} : c'est trop pour une archive en une fois. Téléchargez les fichiers un par un, ou allégez le dossier partagé."
                 import: Ranger dans la médiathèque
                 imported: "Fichier rangé dans la médiathèque. Il est maintenant disponible dans les notes, les fiches et les galeries."
                 path_label: Chemin dans le dossier
@@ -999,7 +1001,6 @@ backend:
                 key_required: Collez une clé de compte de service avant d'activer.
                 folder_invalid: "Ce n'est pas un dossier Drive. Collez son adresse, ou l'identifiant qui suit /folders/."
                 import_failed: "Ce fichier n'a pas pu être recopié. Les documents Google n'ont pas de fichier à télécharger."
-                archive_too_large: "Le dossier dépasse 500 Mo : téléchargez les fichiers un par un."
         space_notes:
             # Les notes d'un espace : la seule surface qu'un client ne voit pas.
             # Le fil d'une fiche et la discussion sont partagés ; une note est

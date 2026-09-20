@@ -974,6 +974,8 @@ backend:
                 no_size: "—"
                 view_label: How the files are shown
                 archive: Download everything (.zip)
+                archive_weight: "The folder weighs {weight}."
+                archive_too_large: "The folder weighs {weight}, which is too much for a single archive. Download the files one by one, or trim the shared folder."
                 import: File in the library
                 imported: "Filed in the library. It is now available in notes, cards and galleries."
                 path_label: Path inside the folder
@@ -990,7 +992,6 @@ backend:
                 key_required: Paste a service account key before enabling.
                 folder_invalid: "That is not a Drive folder. Paste its address, or the identifier that follows /folders/."
                 import_failed: "That file could not be copied. Google documents have no file to download."
-                archive_too_large: "The folder is over 500 MB: download the files one by one."
         space_notes:
             # A space's notes: the one surface a client never sees.
             add: New note

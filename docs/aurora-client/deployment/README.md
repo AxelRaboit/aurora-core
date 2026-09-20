@@ -13,6 +13,7 @@ minimaliste de séquence locale-vers-prod, à reproduire dans votre infra.
 > - [`server_provisioning.md`](server_provisioning.md) - d'une machine nue à l'application servie en HTTPS (PostgreSQL, permissions, vhost, certbot)
 > - [`worker_systemd.md`](worker_systemd.md) - service systemd pour le worker Messenger
 > - [`apache_xsendfile.md`](apache_xsendfile.md) - `mod_xsendfile` pour servir `var/uploads/`
+> - [`web_server_timeouts.md`](web_server_timeouts.md) - les requêtes qui calculent longtemps avant d'écrire, le `504` d'Apache au bout de cinq minutes, et pourquoi Caddy n'a pas le problème
 > - [`github_actions_ci.md`](github_actions_ci.md) - setup du workflow CI GitHub Actions (PAT pour le vendor privé, init DB de test)
 
 ---
@@ -284,6 +285,10 @@ Aurora n'expose pas d'endpoint `/_health` dédié. Patterns acceptables :
 - **OPcache non reset** : nouveaux fichiers PHP non vus par PHP-FPM →
   500 sur des routes qui marchaient avant deploy.
 - **Worker absent** : voir §5.
+- **`504` au bout de cinq minutes exactement** sur une archive ou un export :
+  c'est Apache, pas PHP. Le défaut `Timeout 300` se compte sur l'attente, et
+  `max_execution_time` ne le rattrape pas. Voir
+  [`web_server_timeouts.md`](web_server_timeouts.md).
 
 ---
 

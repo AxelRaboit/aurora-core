@@ -9,12 +9,15 @@ C'est le premier écran après la connexion, et il répond à une seule question
 
 ## Un onglet par module actif
 
-Les compteurs sont regroupés par module, et un module éteint n'a pas d'onglet. Aujourd'hui quatre modules en alimentent un :
+Les compteurs sont regroupés par module, et un module éteint n'a pas d'onglet. Aujourd'hui cinq modules en alimentent un :
 
 - Éditorial : le nombre de publications, celui des types de contenu, celui des taxonomies, et ce qui attend à la corbeille.
 - Médiathèque : les documents, les catégories, les étiquettes et les dossiers.
 - Calendrier : les agendas, les rappels en retard et ce qui arrive, chacun cliquable vers l'événement.
 - Plateforme : les comptes.
+- Studio : les espaces actifs, ce qui attend une réponse du client, les parutions des sept prochains jours et les présentations.
+
+Deux chiffres du Studio sont mis en avant plutôt que tous, parce que ce sont les seuls sur lesquels on agit en arrivant : ce qui dort chez un client, et où en sont les contrats. Les autres situent.
 
 ## Les graphiques
 

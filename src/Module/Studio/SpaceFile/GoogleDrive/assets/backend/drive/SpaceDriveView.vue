@@ -61,6 +61,23 @@ const previewed = ref(null);
 const linked = computed(() => null !== current.value && "" !== current.value);
 
 /**
+ * Ce que pèse le dossier, et si le lot tient.
+ *
+ * **La même borne que le serveur, dite ici avant le clic.** L'archive se
+ * construit en entier avant de partir, donc au-delà d'une certaine taille le
+ * serveur web abandonne avant la fin. Plutôt que de laisser presser un bouton
+ * qui finira en erreur au bout de cinq minutes, l'écran ne le propose pas et
+ * explique ce qu'il faut faire à la place : les fichiers un par un.
+ */
+const ARCHIVE_MAX_BYTES = 150 * 1024 * 1024;
+
+const weight = computed(() =>
+    files.value.reduce((total, file) => total + (file.size ?? 0), 0),
+);
+
+const archivable = computed(() => files.value.length > 0 && weight.value <= ARCHIVE_MAX_BYTES);
+
+/**
  * L'arborescence, reconstruite dans le navigateur à partir des chemins.
  *
  * Le composable est partagé avec le sélecteur qui accroche un fichier du Drive
@@ -199,11 +216,12 @@ function weightOf(file) {
                      à emporter : un bouton qui produirait une archive vide se
                      lit comme cassé. -->
                 <AppButton
-                    v-if="files.length && archivePath"
+                    v-if="archivable && archivePath"
                     class="shrink-0"
                     variant="ghost"
                     size="sm"
                     :href="archivePath"
+                    :title="t('backend.studio.drive.space.archive_weight', { weight: weightOf({ size: weight }) })"
                 >
                     <Package class="h-3.5 w-3.5" :stroke-width="2" />
                     {{ t("backend.studio.drive.space.archive") }}
@@ -223,6 +241,13 @@ function weightOf(file) {
         </header>
 
         <p class="text-xs text-muted">{{ t("backend.studio.drive.space.intro") }}</p>
+
+        <p
+            v-if="linked && !loading && files.length && !archivable"
+            class="rounded-lg border border-line bg-surface-2 px-3 py-2 text-xs text-muted"
+        >
+            {{ t("backend.studio.drive.space.archive_too_large", { weight: weightOf({ size: weight }) }) }}
+        </p>
 
         <!-- L'explication sous la rangée entière, et non sous le seul champ :
              collée au champ, elle poussait le bouton d'une ligne vers le bas,
