@@ -391,7 +391,13 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['title' => 'Capture - Tableau de bord client',            'cat' => 1, 'folder' => 0, 'tags' => [0],        'status' => DocumentStatusEnum::Published, 'desc' => 'Capture d\'écran du tableau de bord, jointe à la documentation de prise en main.', 'file' => 'images/capture-tableau-de-bord.png', 'w' => 1600, 'h' => 1000],
         ];
 
-        $testFilesRoot = dirname(__DIR__, 4).'/test_files';
+        // `2` et non `4`, comme vingt lignes plus haut : quatre niveaux
+        // sortaient du depot pour viser `~/dev/test_files`, qui n'existe pas.
+        // Consequence, quinze documents sur trente-trois n'avaient ni fichier,
+        // ni poids, ni vignette - une mediatheque de demonstration faite de
+        // lignes vides. Le test voisin ne l'a pas vu parce qu'il ne lisait que
+        // l'autre moitie de la liste.
+        $testFilesRoot = dirname(__DIR__, 2).'/test_files';
         $gedMonth = new DateTimeImmutable()->format('Y/m');
         $gedDir = $this->uploadDir.'/ged/'.$gedMonth;
         $this->fs->mkdir($gedDir);
@@ -435,11 +441,19 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 if (file_exists($src)) {
                     $this->fs->copy($src, $destFile, true);
                 } elseif (isset($def['w'])) {
-                    // Same stand-in as the media above, for the same reason:
-                    // `test_files/` is not shipped with the repository, and a
-                    // picture that cannot be drawn leaves the library with a
-                    // row and no tile. A PDF has no such fallback, so it keeps
-                    // its file-less row.
+                    // L'aplat du dessus, et c'est un choix et non un secours :
+                    // ces documents-la n'ont pas de source dans `test_files/`
+                    // parce qu'un aplat dessine vaut mieux qu'une photographie
+                    // commitee, qui aurait un sujet et pèserait.
+                    //
+                    // Le commentaire d'avant disait que `test_files/` n'etait
+                    // pas livre avec le depot. C'etait faux - six fichiers y
+                    // sont suivis - et c'etait le symptome de la racine mal
+                    // resolue vingt lignes plus haut.
+                    //
+                    // Un PDF n'a pas ce repli : sans `w`, une source
+                    // introuvable laisse une ligne sans fichier, et le test
+                    // voisin refuse ce cas.
                     $this->drawPlaceholder($destFile, [
                         'name' => $fileName,
                         'mime' => $mimeType,

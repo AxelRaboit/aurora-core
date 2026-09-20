@@ -40,6 +40,7 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Manager\CustomerSpaceManagerInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\CustomerSpace\Security\DriveLock;
 use Aurora\Module\Studio\Deck\Entity\DeckCategory;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
@@ -147,6 +148,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly SpaceAccessLinkManagerInterface $accessLinks,
         private readonly SpaceAccessLinkRepository $accessLinkRepository,
         private readonly SpaceChatChannelManagerInterface $chatChannels,
+        private readonly DriveLock $driveLock,
     ) {}
 
     public static function getGroups(): array
@@ -309,6 +311,58 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             "Fin de la mission, arrêt à l'échéance annuelle.",
         );
 
+        // 7 a 11. Les cinq etats qui manquaient, un par ligne.
+        //
+        // **Neuf etats existent, la demo en montrait quatre.** Les cinq autres
+        // ne se voyaient donc nulle part : ni a l'ecran quand on apprend le
+        // module, ni sur une capture, ni dans un parcours automatise - c'est
+        // l'absence d'un contrat « envoye mais pas encore ouvert » qui faisait
+        // echouer un flux entier, faute de ligne a cliquer.
+        //
+        // Un enum de statut est une promesse faite au lecteur : chacun de ses
+        // cas doit etre representable, sans quoi personne ne sait de quoi il a
+        // l'air.
+
+        // Scelle mais pas encore envoye : le document est fige, la reference
+        // est frappee, et rien n'est parti. L'etat d'un contrat relu avant
+        // d'appuyer.
+        $sealed = $this->contract($marie, $oneShot, null, 750_00, '+1 month', [
+            'acompte' => '30 %',
+        ]);
+        $this->seal($sealed, ContractStatusEnum::Sealed);
+
+        // Ouvert : le client a cliqué le lien, il n'a pas répondu. C'est
+        // l'information qui change une relance en conversation.
+        $opened = $this->contract($sophie, $monthly, $annex, 540_00, '+3 weeks', [
+            'formule' => 'Suivi',
+            'duree' => '12 mois',
+        ]);
+        $this->seal($opened, ContractStatusEnum::Opened);
+
+        // Signé par le client, en attente de contresignature : la balle est
+        // dans votre camp, et c'est le seul etat qui le dit.
+        $waitingCountersign = $this->contract($jean, $monthly, $annex, 620_00, '+2 weeks', [
+            'formule' => 'Suivi',
+            'duree' => '18 mois',
+        ]);
+        $this->seal($waitingCountersign, ContractStatusEnum::SignedByCustomer);
+        $this->sign($waitingCountersign, ContractSignatureRoleEnum::Customer, $jean, '-3 days');
+
+        // Expire : personne n'a signe a temps. Une date d'effet passee, pour
+        // que la ligne se lise sans avoir a la deduire.
+        $expired = $this->contract($sophie, $oneShot, null, 320_00, '-2 months', [
+            'acompte' => '50 %',
+        ]);
+        $this->seal($expired, ContractStatusEnum::Expired);
+
+        // Revoque : retire avant signature, de votre fait. A ne pas confondre
+        // avec un refus, qui vient du client.
+        $revoked = $this->contract($marie, $monthly, $annex, 410_00, '+1 month', [
+            'formule' => 'Essentiel',
+            'duree' => '12 mois',
+        ]);
+        $this->seal($revoked, ContractStatusEnum::Revoked);
+
         $this->entityManager->flush();
     }
 
@@ -358,6 +412,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // what the screens have to be able to draw.
         $this->seedBoard($social);
         $this->seedCardComments($social, $this->seedChat($social));
+        $this->seedAccessLinks($social);
         $this->seedChannels($social);
         $this->seedNotes($social);
         // Des fichiers qui n'illustrent rien : ce qu'on tend au client sans
@@ -368,12 +423,25 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             'Charte Graphique Aurora - Brand Guidelines',
         ]);
 
-        $this->space(
+        // Le seul espace dont l'onglet Drive est ferme, et le seul qui designe
+        // un dossier partage. Un reglage qu'aucun espace ne porte est un
+        // reglage que personne ne voit : l'ecran des reglages sortait toujours
+        // vide, et l'onglet Drive toujours ouvert.
+        //
+        // Le mot de passe est `demonstration` - un litteral dans un depot
+        // public, comme le mot de passe du compte de developpement, et pour la
+        // meme raison : il n'ouvre rien d'autre qu'une demonstration locale.
+        $locked = $this->space(
             name: 'Atelier Dupont - Refonte du site',
             description: 'Reprise des textes et des photos de chantier, livraison au printemps.',
             customer: $marie,
             members: [$admin => 'lead'],
         );
+
+        if (!$locked->isDriveLocked()) {
+            $locked->setDriveFolderId('1bbo9FyKEudNl7oeyPX-R5uX41_cPZLk3');
+            $this->driveLock->set($locked, 'demonstration');
+        }
 
         $this->space(
             name: 'Martin Documents - Contenus LinkedIn',
@@ -544,6 +612,73 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * ever produces, which is how a demo stops resembling the product. The link
      * is also what the access screen needs to have something to show.
      */
+    /**
+     * Les états qu'un lien d'accès peut prendre, un par ligne.
+     *
+     * **Deux liens identiques n'apprennent rien.** L'écran d'accès client
+     * montrait deux destinataires aux mêmes droits, valides tous les deux :
+     * ni ce qu'un lien révoqué devient, ni qu'un lecteur peut n'avoir que le
+     * droit de lire, ni qu'un droit de dépôt existe, ni qu'on peut ouvrir un
+     * espace sans ouvrir son Drive.
+     *
+     * Un droit qu'on ne voit jamais coché ni décoché est un droit dont
+     * personne ne sait qu'il existe.
+     */
+    private function seedAccessLinks(CustomerSpaceInterface $space): void
+    {
+        // Un lecteur, et rien de plus : l'associé du client, le supérieur, une
+        // agence partenaire. Il regarde, il ne décide pas.
+        $this->accessLink($space, 'lea@atelier-dupont.fr', 'Léa, communication', 90, false, false);
+
+        // Le droit de déposer un fichier, qui est décoché par défaut : le
+        // client envoie ses visuels au lieu de les mettre en pièce jointe d'un
+        // courriel.
+        $this->accessLink($space, 'studio@lumiere-photo.test', 'Studio Lumière, photographe', 60, false, true, canUpload: true);
+
+        // Un lien qui n'a pas le droit de voir le dossier Drive. Le partage
+        // contient parfois des pièces qui ne regardent pas tout le monde.
+        $this->accessLink($space, 'audit@cabinet-verrier.test', 'Cabinet Verrier, audit', 30, false, true, canSeeDrive: false);
+
+        // Révoqué : retiré à la main. La ligne reste, barrée, parce qu'effacer
+        // un accès effacerait aussi qui avait répondu quoi.
+        $this->accessLink($space, 'ancien.stagiaire@atelier-dupont.fr', 'Thomas, stage terminé', 90, false, true)
+            ?->revoke(new DateTimeImmutable('-6 days'));
+
+        // Expiré de lui-même. Un accès qui survit à la mission est un accès que
+        // personne ne pense à fermer, d'où la date de fin obligatoire.
+        $this->accessLink($space, 'salon@expo-artisans.test', "Salon des artisans, édition d'avril", 90, false, true)
+            ?->setExpiresAt(new DateTimeImmutable('-3 days'));
+
+        $this->entityManager->flush();
+    }
+
+    /** Un lien, une seule fois, quel que soit le nombre de rechargements. */
+    private function accessLink(
+        CustomerSpaceInterface $space,
+        string $recipient,
+        string $label,
+        int $validForDays,
+        bool $canApprove,
+        bool $canComment,
+        bool $canUpload = false,
+        bool $canSeeDrive = true,
+    ): ?SpaceAccessLinkInterface {
+        if ($this->existingLinkFor($space, $recipient) instanceof SpaceAccessLinkInterface) {
+            return null;
+        }
+
+        return $this->accessLinks->issue(
+            $space,
+            $recipient,
+            $label,
+            $validForDays,
+            $canApprove,
+            $canComment,
+            $canUpload,
+            $canSeeDrive,
+        );
+    }
+
     private function seedChat(
         CustomerSpaceInterface $space,
         string $recipient = 'camille@atelier-dupont.fr',
