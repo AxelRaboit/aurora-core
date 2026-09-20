@@ -34,6 +34,7 @@ backend:
                     created: Client créé
                     updated: Client mis à jour
                     deleted: Client supprimé
+                    information_updated: Fiche client mise à jour
                 customer_space:
                     created: Espace client créé
                     updated: Espace client modifié
@@ -43,6 +44,12 @@ backend:
                     answered: Contenu validé ou renvoyé par le client
                     updated: Contenu modifié
                     deleted: Contenu supprimé
+                space_resource:
+                    created: Élément épinglé dans un espace
+                    updated: Élément d'espace modifié
+                    shown: Élément d'espace ouvert au client
+                    hidden: Élément d'espace retiré au client
+                    deleted: Élément d'espace supprimé
                 space_access_link:
                     issued: Lien d'accès client créé
                     revoked: Lien d'accès client révoqué
@@ -1106,6 +1113,94 @@ backend:
                 title_required: Le titre est obligatoire.
                 title_too_long: Le titre ne peut pas dépasser 180 caractères.
                 needs_account: Il faut être connecté pour prendre une note.
+        space_information:
+            scope: "Cette fiche appartient au client, pas à ce projet. La modifier ici la modifie dans tous ses espaces, et c'est voulu : un SIRET est celui d'une société."
+            what_the_client_sees: Ce que le client voit
+            saved: Fiche enregistrée.
+            legal_name: Nom de l'entreprise
+            legal_name_placeholder: 'ex. : Atelier Dupont'
+            siret_placeholder: 123 456 789 00012
+            siret_hint: Quatorze chiffres. Les espaces sont ignorés, la clé de contrôle est vérifiée.
+            siren_placeholder: 123 456 789
+            siren_hint: "Neuf chiffres. Ce sont les neuf premiers du SIRET : si les deux sont remplis, ils doivent s'accorder."
+            phone_placeholder: 06 12 34 56 78
+            landline_placeholder: 01 23 45 67 89
+            email_placeholder: contact@societe.test
+            email_hint: "La même adresse que celle des contrats : c'est là que part un lien de signature."
+            postal_address_placeholder: Adresse complète, telle qu'elle apparaîtra au contrat
+            links_hint: "Son site, ses réseaux, ce qu'il publie. Pour les liens de travail - une maquette, un accès - l'onglet Liens est fait pour ça."
+            link_label_placeholder: 'ex. : Site web'
+            link_url_placeholder: https://
+            link_add: Ajouter un lien
+            link_remove: Retirer
+            notes_placeholder: Ce qui n'entre dans aucune case.
+            notes_hint: Le client lit ce champ. Ce qui ne doit pas sortir de l'équipe va dans une note d'espace.
+            errors:
+                legal_name_required: Le nom de l'entreprise est obligatoire.
+                legal_name_too_long: Le nom ne peut pas dépasser 180 caractères.
+                siren_invalid: 'Ce SIREN est invalide : neuf chiffres et une clé de contrôle correcte sont attendus.'
+                siren_mismatch: "Ce SIREN ne correspond pas au SIRET saisi. Les neuf premiers chiffres d'un SIRET sont son SIREN."
+                phone_too_long: Ce numéro ne peut pas dépasser 30 caractères.
+                email_invalid: Cet email n'est pas valide.
+                email_too_long: L'email ne peut pas dépasser 180 caractères.
+                notes_too_long: Ce champ ne peut pas dépasser 5000 caractères.
+                links_too_many: Une fiche ne porte pas plus de 30 liens.
+                link_label_required: Ce lien n'a pas de nom.
+                link_label_too_long: Le nom d'un lien ne peut pas dépasser 120 caractères.
+                link_url_required: Ce lien n'a pas d'adresse.
+                link_url_invalid: "Cette adresse n'est pas valide. Elle doit commencer par http:// ou https://."
+                link_url_too_long: Cette adresse est trop longue.
+        space_resources:
+            intro: "Ce qui vit ailleurs et qu'on cherche à chaque fois : une maquette, un accès, la personne qui valide. Chaque élément se montre ou se cache au client, un par un."
+            add: Ajouter
+            add_confirm: Ajouter
+            edit: Reprendre
+            delete: Supprimer cet élément
+            delete_confirm: 'Supprimer « {label} » ?'
+            empty: Rien n'est encore épinglé sur cet espace.
+            empty_hint: "Un lien Canva, l'accès à l'hébergeur, le nom de la personne qui valide : ce qu'on retrouve ici plutôt que dans ses favoris."
+            group_shown: Ce que le client voit
+            group_hidden: Pour vous seulement
+            show: Montrer au client
+            hide: Retirer au client
+            now_visible: Le client voit cet élément.
+            now_hidden: Le client ne voit plus cet élément.
+            move_up: Monter
+            move_down: Descendre
+            kind: De quoi s'agit-il ?
+            label: Nom
+            label_placeholder_link: 'ex. : Maquette Canva'
+            label_placeholder_text: 'ex. : Où trouver les visuels'
+            label_placeholder_contact: 'ex. : Camille, gérante'
+            url: Adresse
+            email: Email
+            email_placeholder: camille@societe.test
+            phone: Téléphone
+            phone_placeholder: 06 12 34 56 78
+            body_link: Précision
+            body_text: Texte
+            body_contact: Précision
+            body_placeholder_link: 'ex. : ouvrir avec le compte de l''agence'
+            body_placeholder_text: "ex. : tutoiement, phrases courtes, pas de prix en publication"
+            body_placeholder_contact: 'ex. : disponible le lundi et le jeudi'
+            body_hint_link: Facultatif. Ce qu'il faut savoir avant d'ouvrir ce lien.
+            body_hint_text: Ce que vous voulez garder ici.
+            body_hint_contact: Facultatif. Son rôle, ses horaires, ce qu'il faut savoir.
+            visible_to_client: Le client peut voir cet élément
+            visible_hint_on: Toute personne qui détient un lien d'accès à cet espace le verra.
+            visible_hint_off: L'élément reste entre vous. Le client n'en connaît ni le nom ni l'existence.
+            errors:
+                label_required: Le nom est obligatoire.
+                label_too_long: Le nom ne peut pas dépasser 180 caractères.
+                url_required: Un lien a besoin d'une adresse.
+                url_invalid: "Cette adresse n'est pas valide. Elle doit commencer par http:// ou https://."
+                url_too_long: Cette adresse est trop longue.
+                body_required: Un texte a besoin d'un corps.
+                body_too_long: Ce texte ne peut pas dépasser 10000 caractères.
+                email_invalid: Cet email n'est pas valide.
+                email_too_long: L'email ne peut pas dépasser 180 caractères.
+                phone_too_long: Ce numéro ne peut pas dépasser 30 caractères.
+                order_invalid: Cet ordre n'est pas lisible.
         space_notifications:
             # Ce que le studio apprend sans avoir à ouvrir l'espace. Seulement
             # le côté client : le studio sait déjà ce que le studio a fait.
@@ -1144,6 +1239,8 @@ backend:
             view_files: Fichiers
             view_chat: Discussion
             view_notes: Notes
+            view_information: Informations
+            view_resources: Liens
             view_settings: Réglages
             files_empty: Aucun fichier sur cet espace
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
@@ -1367,6 +1464,8 @@ studio:
             tab_calendar: Calendrier
             tab_chat: Discussion
             tab_files: Documents
+            tab_resources: Liens
+            tab_information: Informations
             files_title: Les fichiers de cet espace
             files_open: Ouvrir
             upload_notice: "Images, PDF et vidéos courantes, 25 Mo maximum. Ce que vous envoyez ici est visible par votre prestataire."

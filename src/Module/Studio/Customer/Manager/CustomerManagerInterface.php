@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Customer\Manager;
 
+use Aurora\Module\Studio\Customer\Dto\CustomerInformationInputInterface;
 use Aurora\Module\Studio\Customer\Dto\CustomerInputInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 
@@ -12,6 +13,14 @@ interface CustomerManagerInterface
     public function create(CustomerInputInterface $input): CustomerInterface;
 
     public function update(CustomerInterface $customer, CustomerInputInterface $input): void;
+
+    /**
+     * La fiche du client, telle que son espace la remplit.
+     *
+     * Les colonnes que cet écran ne montre pas ne sont pas touchées : elles
+     * portent l'identité contractuelle, qui se remplit sur la fiche client.
+     */
+    public function updateInformation(CustomerInterface $customer, CustomerInformationInputInterface $input): void;
 
     /**
      * Un prospect devient client.

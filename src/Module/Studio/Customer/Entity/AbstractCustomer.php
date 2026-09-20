@@ -8,6 +8,7 @@ use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Customer\Enum\CustomerStatusEnum;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 use function implode;
@@ -134,8 +135,62 @@ abstract class AbstractCustomer implements CustomerInterface
     #[ORM\Column(length: 180, nullable: true)]
     protected ?string $contractualEmail = null;
 
+    /**
+     * Le portable, et c'est ce que le champ a toujours été.
+     *
+     * Son exemple à l'écran est un numéro mobile depuis le premier jour, et
+     * c'est celui qu'on compose. Le fixe est la colonne d'à côté plutôt qu'un
+     * second sens donné à celle-ci : un seul champ obligeait à choisir lequel
+     * des deux on gardait, et la réponse était toujours « celui-ci ».
+     */
     #[ORM\Column(length: 30, nullable: true)]
     protected ?string $phone = null;
+
+    /** Le fixe, quand il y en a un - un standard, un atelier. */
+    #[ORM\Column(length: 30, nullable: true)]
+    protected ?string $landline = null;
+
+    /**
+     * Les neuf chiffres qui identifient l'entreprise.
+     *
+     * **Ce ne sont pas ceux du SIRET par accident** : un SIRET est ce SIREN
+     * suivi des cinq chiffres de l'établissement. Les deux colonnes existent
+     * quand même, parce qu'une entreprise se connaît souvent par son SIREN
+     * bien avant qu'on sache de quel établissement on parle, et que le déduire
+     * silencieusement d'un SIRET reviendrait à inventer une saisie.
+     *
+     * Quand les deux sont remplis, ils doivent s'accorder, et c'est la saisie
+     * qui le vérifie : deux numéros qui se contredisent sur la même ligne sont
+     * pires qu'un seul.
+     */
+    #[ORM\Column(length: 9, nullable: true)]
+    protected ?string $siren = null;
+
+    /**
+     * Les adresses du client : son site, ses réseaux, ce qu'il publie.
+     *
+     * **Ce ne sont pas les ressources d'un espace.** Celles-là vivent sur
+     * l'espace et se montrent ou se cachent une par une ; celles-ci sont au
+     * client, les suivent d'un projet à l'autre, et disent simplement où on le
+     * trouve. Deux propriétaires, deux durées de vie, deux colonnes.
+     *
+     * Une liste de `{label, url}` plutôt que deux colonnes de plus : leur
+     * nombre n'est pas connu, et rien ne les interroge - elles s'affichent.
+     *
+     * @var list<array{label: string, url: string}>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
+    protected array $links = [];
+
+    /**
+     * Ce qu'on note sur ce client et qui n'entre dans aucune case.
+     *
+     * **Visible par le client**, comme le reste de la fiche, et l'écran le dit
+     * sous le champ. Ce qui ne doit pas l'être a déjà son endroit : une note
+     * d'espace, que le client ne voit jamais.
+     */
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    protected ?string $informationNotes = null;
 
     /**
      * The account this customer signs in with, when they have one.
@@ -336,6 +391,56 @@ abstract class AbstractCustomer implements CustomerInterface
     public function setPhone(?string $phone): static
     {
         $this->phone = $phone;
+
+        return $this;
+    }
+
+    public function getLandline(): ?string
+    {
+        return $this->landline;
+    }
+
+    public function setLandline(?string $landline): static
+    {
+        $this->landline = $landline;
+
+        return $this;
+    }
+
+    public function getSiren(): ?string
+    {
+        return $this->siren;
+    }
+
+    public function setSiren(?string $siren): static
+    {
+        $this->siren = $siren;
+
+        return $this;
+    }
+
+    /** @return list<array{label: string, url: string}> */
+    public function getLinks(): array
+    {
+        return $this->links;
+    }
+
+    /** @param list<array{label: string, url: string}> $links */
+    public function setLinks(array $links): static
+    {
+        $this->links = $links;
+
+        return $this;
+    }
+
+    public function getInformationNotes(): ?string
+    {
+        return $this->informationNotes;
+    }
+
+    public function setInformationNotes(?string $informationNotes): static
+    {
+        $this->informationNotes = $informationNotes;
 
         return $this;
     }

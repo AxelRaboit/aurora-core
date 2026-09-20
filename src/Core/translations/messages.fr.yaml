@@ -8,6 +8,22 @@ shared:
     verdict:
       approved: '{who} a validé'
       changes_requested: '{who} a demandé une reprise'
+  space_information:
+    siret: SIRET
+    siren: SIREN
+    phone: Téléphone portable
+    landline: Téléphone fixe
+    email: Email
+    postal_address: Adresse postale
+    links: Liens
+    notes: Informations diverses
+    empty: Cette fiche est encore vide.
+    empty_hint: "Il n'y a rien d'autre à y lire que le nom de la société."
+  space_resources:
+    kinds:
+      link: Lien
+      text: Texte
+      contact: Contact
   space_chat:
     title: Discussion
     empty: "Aucun message. C'est ici que se dit ce qui ne tient pas sur une fiche : le brief du mois, une campagne qui bouge, une question rapide."

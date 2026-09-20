@@ -75,6 +75,24 @@ interface CustomerInterface extends TimestampableInterface
 
     public function setPhone(?string $phone): static;
 
+    public function getLandline(): ?string;
+
+    public function setLandline(?string $landline): static;
+
+    public function getSiren(): ?string;
+
+    public function setSiren(?string $siren): static;
+
+    /** @return list<array{label: string, url: string}> */
+    public function getLinks(): array;
+
+    /** @param list<array{label: string, url: string}> $links */
+    public function setLinks(array $links): static;
+
+    public function getInformationNotes(): ?string;
+
+    public function setInformationNotes(?string $informationNotes): static;
+
     public function getUser(): ?CoreUserInterface;
 
     public function setUser(?CoreUserInterface $user): static;

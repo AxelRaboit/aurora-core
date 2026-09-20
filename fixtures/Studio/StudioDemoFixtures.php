@@ -64,6 +64,10 @@ use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
 use Aurora\Module\Studio\SpaceNote\Enum\SpaceNoteVisibilityEnum;
+use Aurora\Module\Studio\SpaceResource\Dto\SpaceResourceInput;
+use Aurora\Module\Studio\SpaceResource\Enum\SpaceResourceKindEnum;
+use Aurora\Module\Studio\SpaceResource\Manager\SpaceResourceManagerInterface;
+use Aurora\Module\Studio\SpaceResource\Repository\SpaceResourceRepository;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -72,6 +76,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
 
+use function mb_substr;
 use function sprintf;
 
 /**
@@ -145,6 +150,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly DeckRepository $deckRepository,
         private readonly SettingRepository $settings,
         private readonly EntityManagerInterface $entityManager,
+        private readonly SpaceResourceRepository $spaceResources,
+        private readonly SpaceResourceManagerInterface $spaceResourceManager,
         private readonly SpaceAccessLinkManagerInterface $accessLinks,
         private readonly SpaceAccessLinkRepository $accessLinkRepository,
         private readonly SpaceChatChannelManagerInterface $chatChannels,
@@ -171,8 +178,15 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
 
         $marie = $this->customer(
             legalName: 'Atelier Dupont',
+            landline: '04 74 12 34 56',
+            phone: '06 12 34 56 78',
+            links: [
+                ['label' => 'Site web', 'url' => 'https://atelier-dupont.example.com'],
+                ['label' => 'Instagram', 'url' => 'https://instagram.example.com/atelierdupont'],
+            ],
+            notes: 'Validation le mardi matin. Marie relit tout avant publication, Léa prépare les visuels.',
             legalForm: 'SARL',
-            siret: '11281704039760',
+            siret: '11281704400004',
             office: '4 place du Marché, 38230 Pont-de-Chéruy',
             firstName: 'Marie',
             lastName: 'Dupont',
@@ -184,8 +198,14 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
 
         $jean = $this->customer(
             legalName: 'Martin Documents',
+            landline: '04 78 55 22 10',
+            phone: '06 98 76 54 32',
+            links: [
+                ['label' => 'Site web', 'url' => 'https://martin-documents.example.com'],
+            ],
+            notes: null,
             legalForm: 'SAS',
-            siret: '73245630779356',
+            siret: '73245630600008',
             office: '17 avenue de la Gare, 69100 Villeurbanne',
             firstName: 'Jean',
             lastName: 'Martin',
@@ -197,8 +217,12 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
 
         $sophie = $this->customer(
             legalName: 'Roux Photographie',
+            landline: null,
+            phone: '06 44 21 87 09',
+            links: [],
+            notes: null,
             legalForm: 'Entreprise individuelle',
-            siret: '98700210228712',
+            siret: '98700210200018',
             office: '3 chemin des Vignes, 38200 Vienne',
             firstName: 'Sophie',
             lastName: 'Roux',
@@ -415,6 +439,17 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->seedAccessLinks($social);
         $this->seedChannels($social);
         $this->seedNotes($social);
+        // Un exemplaire de chaque genre, et les deux visibilités : un état
+        // qu'on ne voit jamais est un état dont personne ne sait de quoi il a
+        // l'air, et c'est précisément le cas de « le client ne voit pas
+        // celui-ci », qui n'a rien de visible par construction.
+        $this->seedResources($social, [
+            ['link', 'Maquette Canva', 'https://canva.example.com/atelier-dupont-reseaux', null, true],
+            ['contact', 'Léa, communication', null, 'Prépare les visuels. Disponible le lundi et le jeudi.', true, 'lea@atelier-dupont.example.com', '06 55 44 33 22'],
+            ['text', 'Ton et vocabulaire', null, 'Tutoiement, phrases courtes. On dit « atelier », jamais « entreprise ». Les prix ne sont jamais annoncés en publication.', true],
+            ['link', "Tableau de bord de l'hébergeur", 'https://panel.example.com/atelier-dupont', "Accès par le gestionnaire de mots de passe de l'agence.", false],
+            ['text', 'Facturation', null, 'Mensuelle, le 5. Relance automatique à J+15, relance manuelle à J+30.', false],
+        ]);
         // Des fichiers qui n'illustrent rien : ce qu'on tend au client sans
         // l'épingler à une publication.
         $this->fileOnSpace($social, [
@@ -479,6 +514,10 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
 
         $this->seedProspectBoard($launch);
         $this->seedNotes($launch);
+        $this->seedResources($launch, [
+            ['link', 'Moodboard', 'https://canva.example.com/menuiserie-fabre-moodboard', null, true],
+            ['contact', 'Thomas Fabre', null, 'Gérant. Passe par son fils pour tout ce qui touche au site.', false, 'contact@menuiserie-fabre.example.com', '04 74 98 76 54'],
+        ]);
         $this->seedChat(
             $launch,
             'contact@menuiserie-fabre.fr',
@@ -880,6 +919,40 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             $this->entityManager->createQuery(
                 'UPDATE '.SpaceContentComment::class.' c SET c.createdAt = :at WHERE c.id = :id'
             )->setParameter('at', $at)->setParameter('id', $id)->execute();
+        }
+    }
+
+    /**
+     * Ce qu'un espace épingle : un lien, un texte, un contact.
+     *
+     * Les adresses sont en `example.com` et les personnes sont inventées,
+     * comme partout ailleurs dans la démonstration : rien ici ne doit désigner
+     * une infrastructure ou quelqu'un de réel.
+     *
+     * **Les coordonnées sont écrites, pas dérivées du libellé.** Les déduire
+     * donnait `léa.communication@…` : une adresse que le validateur refuse, et
+     * que la démonstration affichait pourtant comme si on pouvait l'écrire.
+     *
+     * @param list<array{0: string, 1: string, 2: string|null, 3: string|null, 4: bool, 5?: string, 6?: string}> $rows
+     */
+    private function seedResources(CustomerSpaceInterface $space, array $rows): void
+    {
+        if ([] !== $this->spaceResources->findForSpace($space)) {
+            return;
+        }
+
+        foreach ($rows as $row) {
+            [$kind, $label, $url, $body, $visible] = $row;
+
+            $this->spaceResourceManager->create($space, new SpaceResourceInput(
+                kind: SpaceResourceKindEnum::from($kind),
+                label: $label,
+                url: $url,
+                body: $body,
+                email: $row[5] ?? null,
+                phone: $row[6] ?? null,
+                visibleToClient: $visible,
+            ));
         }
     }
 
@@ -1366,8 +1439,25 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         }
     }
 
+    /**
+     * Une société sous contrat, avec la fiche que son espace montre.
+     *
+     * **Le SIREN est les neuf premiers chiffres du SIRET**, parce que c'est ce
+     * qu'il est. La saisie refuse les deux quand ils ne s'accordent pas, donc
+     * une démonstration où ils divergeraient montrerait un état que l'écran
+     * n'accepte pas de produire.
+     *
+     * La fiche est posée après la création : `CustomerInput` porte l'identité
+     * contractuelle, et ces colonnes-là appartiennent à l'autre saisie.
+     *
+     * @param list<array{label: string, url: string}> $links
+     */
     private function customer(
         string $legalName,
+        ?string $landline,
+        string $phone,
+        array $links,
+        ?string $notes,
         string $legalForm,
         string $siret,
         string $office,
@@ -1384,7 +1474,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return $existing;
         }
 
-        return $this->customers->create(new CustomerInput(
+        $customer = $this->customers->create(new CustomerInput(
             legalName: $legalName,
             legalForm: $legalForm,
             shareCapitalCents: $capitalCents,
@@ -1403,6 +1493,17 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             // celles-ci.
             status: CustomerStatusEnum::Client,
         ));
+
+        $customer
+            ->setSiren(mb_substr($siret, 0, 9))
+            ->setPhone($phone)
+            ->setLandline($landline)
+            ->setLinks($links)
+            ->setInformationNotes($notes);
+
+        $this->entityManager->flush();
+
+        return $customer;
     }
 
     /**

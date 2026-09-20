@@ -141,6 +141,67 @@ describe("PublicSpaceApp", () => {
         expect(wrapper.find("[role='group']").exists()).toBe(false);
     });
 
+    it("ne propose pas les liens quand rien n'a été ouvert au client", async () => {
+        const wrapper = monter({ chatChannels: [CHANNEL], resources: [] });
+        await flushPromises();
+
+        // Ce qui n'a pas été ouvert n'arrive pas ici : la liste est vide, donc
+        // l'onglet n'a rien à montrer et n'existe pas.
+        expect(onglets(wrapper).join(" ")).not.toContain("tab_resources");
+    });
+
+    it("propose les liens dès qu'un élément a été ouvert", async () => {
+        const wrapper = monter({
+            chatChannels: [CHANNEL],
+            resources: [
+                {
+                    id: 3,
+                    kind: "link",
+                    label: "Maquette Canva",
+                    url: "https://canva.example.com/x",
+                    body: null,
+                },
+            ],
+        });
+        await flushPromises();
+
+        expect(onglets(wrapper).join(" ")).toContain("tab_resources");
+
+        const liens = wrapper.findAll("[role='group'] button").at(-1);
+        await liens.trigger("click");
+        await flushPromises();
+
+        expect(wrapper.text()).toContain("Maquette Canva");
+    });
+
+    it("ne propose pas la fiche quand elle ne dit rien de plus que le nom", async () => {
+        const wrapper = monter({ chatChannels: [CHANNEL], information: null });
+        await flushPromises();
+
+        expect(onglets(wrapper).join(" ")).not.toContain("tab_information");
+    });
+
+    it("propose la fiche dès qu'elle porte quelque chose", async () => {
+        const wrapper = monter({
+            chatChannels: [CHANNEL],
+            information: {
+                legalName: "Atelier Dupont",
+                siret: "11281704400004",
+                links: [],
+                notes: null,
+            },
+        });
+        await flushPromises();
+
+        expect(onglets(wrapper).join(" ")).toContain("tab_information");
+
+        const fiche = wrapper.findAll("[role='group'] button").at(-1);
+        await fiche.trigger("click");
+        await flushPromises();
+
+        expect(wrapper.text()).toContain("11281704400004");
+    });
+
     it("montre une seule section à la fois", async () => {
         const wrapper = monter({ chatChannels: [CHANNEL], spaceFiles: [FILE] });
         await flushPromises();

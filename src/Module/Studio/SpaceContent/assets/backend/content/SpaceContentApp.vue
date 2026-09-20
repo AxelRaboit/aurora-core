@@ -65,6 +65,8 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 // comme le fait déjà la page publique. La règle qui interdit de traverser les
 // modules parle des modules, et le Drive d'un espace est le même Studio.
 import SpaceSettingsView from "../../../../CustomerSpace/assets/backend/settings/SpaceSettingsView.vue";
+import SpaceInformationView from "../../../../Customer/assets/backend/information/SpaceInformationView.vue";
+import SpaceResourcesView from "../../../../SpaceResource/assets/backend/resources/SpaceResourcesView.vue";
 import SpaceDrivePicker from "../../../../SpaceFile/GoogleDrive/assets/backend/drive/SpaceDrivePicker.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppColourSlotPicker from "@/shared/components/form/picker/AppColourSlotPicker.vue";
@@ -79,6 +81,8 @@ import {
     FileText,
     List,
     FolderOpen,
+    IdCard,
+    Link2,
     Pencil,
     RefreshCw,
     Save,
@@ -155,7 +159,25 @@ const props = defineProps({
     settingsPath: { type: String, default: "" },
     driveUnlockPath: { type: String, default: "" },
     driveLocked: { type: Boolean, default: false },
+    /** La fiche du client, portée par la société et non par ce projet. */
+    information: { type: Object, default: () => ({}) },
+    informationSavePath: { type: String, default: "" },
+    resources: { type: Array, default: () => [] },
+    resourceCreatePath: { type: String, default: "" },
+    resourceUpdatePath: { type: String, default: "" },
+    resourceVisibilityPath: { type: String, default: "" },
+    resourceDeletePath: { type: String, default: "" },
+    resourceReorderPath: { type: String, default: "" },
 });
+
+/**
+ * La fiche telle qu'elle est en base, rafraîchie sans recharger la page.
+ *
+ * La propriété est ce que le serveur a rendu au chargement ; l'onglet la
+ * réécrit en enregistrant, et le récapitulatif doit suivre. Une copie locale
+ * est ce qui permet les deux sans que l'onglet modifie une propriété.
+ */
+const informationNow = ref(props.information);
 
 const VIEWS = [
     { key: "content", labelKey: "backend.studio.space_content.view_content", icon: FileStack },
@@ -166,6 +188,11 @@ const VIEWS = [
     { key: "drive", labelKey: "backend.studio.space_content.view_drive", icon: FolderOpen },
     { key: "chat", labelKey: "backend.studio.space_content.view_chat", icon: MessagesSquare },
     { key: "notes", labelKey: "backend.studio.space_content.view_notes", icon: StickyNote },
+    // La fiche du client, puis ce qu'on épingle autour d'elle : deux sujets
+    // qui ne sont pas des lectures du tableau, à gauche des réglages parce
+    // qu'on les consulte et qu'on ne les règle pas.
+    { key: "information", labelKey: "backend.studio.space_content.view_information", icon: IdCard },
+    { key: "resources", labelKey: "backend.studio.space_content.view_resources", icon: Link2 },
     // En dernier, et seulement pour qui peut configurer : une entrée de barre
     // qui répondrait 404 à la moitié de l'équipe se lit comme une panne.
     { key: "settings", labelKey: "backend.studio.space_content.view_settings", icon: Settings },
@@ -576,6 +603,23 @@ const actionsFor = useSpaceCardActions({
             :import-path="driveImportPath"
             :unlock-path="driveUnlockPath"
             :can-configure="canConfigure"
+        />
+
+        <SpaceInformationView
+            v-else-if="view === 'information'"
+            :information="informationNow"
+            :save-path="informationSavePath"
+            v-on:saved="informationNow = $event"
+        />
+
+        <SpaceResourcesView
+            v-else-if="view === 'resources'"
+            :resources="resources"
+            :resource-create-path="resourceCreatePath"
+            :resource-update-path="resourceUpdatePath"
+            :resource-visibility-path="resourceVisibilityPath"
+            :resource-delete-path="resourceDeletePath"
+            :resource-reorder-path="resourceReorderPath"
         />
 
         <!-- En dernier dans la barre, et seulement pour qui peut configurer.
