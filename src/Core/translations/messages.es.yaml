@@ -8,6 +8,22 @@ shared:
     verdict:
       approved: '{who} ha validado'
       changes_requested: '{who} ha pedido cambios'
+  space_information:
+    siret: SIRET
+    siren: SIREN
+    phone: Teléfono móvil
+    landline: Teléfono fijo
+    email: Correo electrónico
+    postal_address: Dirección postal
+    links: Enlaces
+    notes: Información adicional
+    empty: Esta ficha aún está vacía.
+    empty_hint: No hay nada más que leer aquí que el nombre de la empresa.
+  space_resources:
+    kinds:
+      link: Enlace
+      text: Texto
+      contact: Contacto
   space_chat:
     title: Conversación
     empty: "Aún no hay mensajes. Aquí se dice todo lo que no cabe en una ficha: el brief del mes, una campaña que se mueve, una pregunta rápida."

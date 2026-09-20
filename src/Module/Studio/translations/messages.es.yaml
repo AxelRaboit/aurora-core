@@ -121,6 +121,8 @@ studio:
             tab_calendar: Calendario
             tab_chat: Conversación
             tab_files: Documentos
+            tab_resources: Enlaces
+            tab_information: Información
             files_title: Los archivos de este espacio
             files_open: Abrir
             upload_notice: "Imágenes, PDF y vídeos habituales, 25 MB como máximo. Lo que envíe aquí lo ve su proveedor."

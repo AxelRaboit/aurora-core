@@ -34,6 +34,7 @@ backend:
                     created: Customer created
                     updated: Customer updated
                     deleted: Customer deleted
+                    information_updated: Customer sheet updated
                 customer_space:
                     created: Client space created
                     updated: Client space updated
@@ -43,6 +44,12 @@ backend:
                     answered: Content answered by the client
                     updated: Content updated
                     deleted: Content deleted
+                space_resource:
+                    created: Item pinned in a space
+                    updated: Space item updated
+                    shown: Space item shown to the client
+                    hidden: Space item hidden from the client
+                    deleted: Space item deleted
                 space_access_link:
                     issued: Client access link created
                     revoked: Client access link revoked
@@ -1095,6 +1102,94 @@ backend:
                 title_required: The title is required.
                 title_too_long: The title cannot be longer than 180 characters.
                 needs_account: You have to be signed in to take a note.
+        space_information:
+            scope: "This sheet belongs to the customer, not to this project. Editing it here edits it in every space of theirs, deliberately: a SIRET is a company's."
+            what_the_client_sees: What the client sees
+            saved: Sheet saved.
+            legal_name: Company name
+            legal_name_placeholder: 'e.g. Atelier Dupont'
+            siret_placeholder: 123 456 789 00012
+            siret_hint: Fourteen digits. Spaces are ignored, the check digit is verified.
+            siren_placeholder: 123 456 789
+            siren_hint: "Nine digits. They are the first nine of the SIRET: when both are filled in, they have to agree."
+            phone_placeholder: 06 12 34 56 78
+            landline_placeholder: 01 23 45 67 89
+            email_placeholder: contact@company.test
+            email_hint: "The same address the contracts use: this is where a signing link goes."
+            postal_address_placeholder: Full address, as it will appear on the contract
+            links_hint: "Their site, their socials, what they publish. For working links - a mockup, an access - the Links tab is the place."
+            link_label_placeholder: 'e.g. Website'
+            link_url_placeholder: https://
+            link_add: Add a link
+            link_remove: Remove
+            notes_placeholder: Whatever fits in no other field.
+            notes_hint: The client reads this field. What must stay within the team belongs in a space note.
+            errors:
+                legal_name_required: The company name is required.
+                legal_name_too_long: The name cannot exceed 180 characters.
+                siren_invalid: 'This SIREN is invalid: nine digits and a correct check digit are expected.'
+                siren_mismatch: "This SIREN does not match the SIRET. The first nine digits of a SIRET are its SIREN."
+                phone_too_long: This number cannot exceed 30 characters.
+                email_invalid: This email is not valid.
+                email_too_long: The email cannot exceed 180 characters.
+                notes_too_long: This field cannot exceed 5000 characters.
+                links_too_many: A sheet holds no more than 30 links.
+                link_label_required: This link has no name.
+                link_label_too_long: A link name cannot exceed 120 characters.
+                link_url_required: This link has no address.
+                link_url_invalid: "This address is not valid. It has to start with http:// or https://."
+                link_url_too_long: This address is too long.
+        space_resources:
+            intro: "What lives elsewhere and gets looked for every time: a mockup, an access, the person who signs off. Each item is shown or hidden from the client, one by one."
+            add: Add
+            add_confirm: Add
+            edit: Edit
+            delete: Delete this item
+            delete_confirm: 'Delete "{label}"?'
+            empty: Nothing is pinned on this space yet.
+            empty_hint: "A Canva link, the host's dashboard, the name of the person who signs off: what you find here rather than in your bookmarks."
+            group_shown: What the client sees
+            group_hidden: For you only
+            show: Show to the client
+            hide: Hide from the client
+            now_visible: The client can see this item.
+            now_hidden: The client can no longer see this item.
+            move_up: Move up
+            move_down: Move down
+            kind: What is it?
+            label: Name
+            label_placeholder_link: 'e.g. Canva mockup'
+            label_placeholder_text: 'e.g. Where to find the visuals'
+            label_placeholder_contact: 'e.g. Camille, manager'
+            url: Address
+            email: Email
+            email_placeholder: camille@company.test
+            phone: Phone
+            phone_placeholder: 06 12 34 56 78
+            body_link: Note
+            body_text: Text
+            body_contact: Note
+            body_placeholder_link: "e.g. open with the agency's account"
+            body_placeholder_text: 'e.g. short sentences, no prices in a post'
+            body_placeholder_contact: 'e.g. available on Monday and Thursday'
+            body_hint_link: Optional. What to know before opening this link.
+            body_hint_text: Whatever you want kept here.
+            body_hint_contact: Optional. Their role, their hours, what to know.
+            visible_to_client: The client can see this item
+            visible_hint_on: Anybody holding an access link to this space will see it.
+            visible_hint_off: The item stays between you. The client knows neither its name nor that it exists.
+            errors:
+                label_required: The name is required.
+                label_too_long: The name cannot exceed 180 characters.
+                url_required: A link needs an address.
+                url_invalid: "This address is not valid. It has to start with http:// or https://."
+                url_too_long: This address is too long.
+                body_required: A text needs a body.
+                body_too_long: This text cannot exceed 10000 characters.
+                email_invalid: This email is not valid.
+                email_too_long: The email cannot exceed 180 characters.
+                phone_too_long: This number cannot exceed 30 characters.
+                order_invalid: This order cannot be read.
         space_notifications:
             # What the studio learns without opening the space. The client's
             # side only: the studio already knows what the studio did.
@@ -1133,6 +1228,8 @@ backend:
             view_files: Files
             view_chat: Chat
             view_notes: Notes
+            view_information: Information
+            view_resources: Links
             view_settings: Settings
             files_empty: No file on this space yet
             files_empty_hint: Files put on the content, by you or by the client, appear here newest first.
@@ -1356,6 +1453,8 @@ studio:
             tab_calendar: Calendar
             tab_chat: Conversation
             tab_files: Documents
+            tab_resources: Links
+            tab_information: Information
             files_title: This space's files
             files_open: Open
             upload_notice: "Images, PDF and common videos, 25 MB at most. What you send here is visible to your agency."

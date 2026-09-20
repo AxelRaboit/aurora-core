@@ -40,6 +40,8 @@ class CustomerSerializer implements CustomerSerializerInterface
             'representativeRole' => $customer->getRepresentativeRole(),
             'contractualEmail' => $customer->getContractualEmail(),
             'phone' => $customer->getPhone(),
+            'landline' => $customer->getLandline(),
+            'siren' => $customer->getSiren(),
             'userId' => $user?->getId(),
             // The account's name is here so the list can say who it is rather
             // than showing an id, and nothing more of the account travels: this

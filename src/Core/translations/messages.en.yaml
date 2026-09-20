@@ -8,6 +8,22 @@ shared:
     verdict:
       approved: '{who} approved'
       changes_requested: '{who} asked for changes'
+  space_information:
+    siret: SIRET
+    siren: SIREN
+    phone: Mobile
+    landline: Landline
+    email: Email
+    postal_address: Postal address
+    links: Links
+    notes: Notes
+    empty: This sheet is still empty.
+    empty_hint: There is nothing to read here beyond the company name.
+  space_resources:
+    kinds:
+      link: Link
+      text: Text
+      contact: Contact
   space_chat:
     title: Chat
     empty: "No messages yet. This is where everything that does not belong on one card gets said: the month's brief, a campaign moving, a quick question."

@@ -146,6 +146,8 @@ use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNoteInterface;
+use Aurora\Module\Studio\SpaceResource\Entity\SpaceResource;
+use Aurora\Module\Studio\SpaceResource\Entity\SpaceResourceInterface;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Override;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -261,6 +263,7 @@ class AuroraBundle extends AbstractBundle
                     SpaceChatChannelMemberInterface::class => SpaceChatChannelMember::class,
                     SpaceNoteInterface::class => SpaceNote::class,
                     SpaceFileInterface::class => SpaceFile::class,
+                    SpaceResourceInterface::class => SpaceResource::class,
                     DeckInterface::class => Deck::class,
                     DeckCategoryInterface::class => DeckCategory::class,
                     SlideInterface::class => Slide::class,

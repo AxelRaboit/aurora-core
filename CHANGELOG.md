@@ -5,6 +5,66 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.216] - 2026-09-20
+
+### Ajouté
+
+#### Un espace client porte la fiche de son client
+Un nouvel onglet **Informations**, à gauche des réglages : nom de l'entreprise,
+SIRET, SIREN, portable, fixe, email, adresse postale, liens et un champ libre.
+Le studio voit un formulaire, puis en dessous le récapitulatif ; le client, lui,
+ne voit que le récapitulatif. C'est le même composant des deux côtés, donc ce
+que le studio relit est littéralement ce que son client a sous les yeux.
+
+**La fiche appartient au client, pas au projet.** Deux espaces ouverts pour la
+même société montrent la même fiche et se modifient au même endroit : un SIRET
+est celui d'une entreprise, et une copie par espace se serait contredite dès le
+deuxième projet. L'écran le dit, parce que modifier depuis un projet quelque
+chose qui vaut pour tous doit être annoncé.
+
+**Elle ne touche pas à l'identité contractuelle.** Capital, RCS, TVA et
+représentant ne sont pas sur cet écran et ne sont pas réécrits : c'est une
+saisie à part, sans quoi un enregistrement depuis un projet les aurait effacés
+et le contrat suivant serait parti incomplet.
+
+Le SIREN est vérifié comme le SIRET l'était déjà - neuf chiffres et sa clé - et
+les deux doivent s'accorder quand ils sont tous les deux saisis : un SIRET
+commence par son SIREN, et deux numéros qui se contredisent donnent une fiche
+qui porte deux identités.
+
+Écrire demande le droit sur les clients, pas celui sur les espaces : tenir le
+tableau d'un projet n'autorise pas à renommer la société.
+
+#### Un espace épingle ce qui vit ailleurs
+Un onglet **Liens** : un lien, un texte ou un contact, ajoutés par une modale
+où le genre se choisit d'abord et commande le reste. Une maquette Canva, le
+tableau de bord de l'hébergeur, la personne qui valide chez le client - ce
+qu'on cherchait dans ses favoris à chaque fois.
+
+**Chaque élément se montre ou se cache au client, un par un, et fermé par
+défaut.** C'est la fonctionnalité autant que la liste : on range au même
+endroit ce qui se partage et ce qui ne se partage pas, et c'est une case qui
+décide. L'écran dessine les deux groupes séparément, parce que « ce que le
+client voit » se lit d'un coup d'œil ou ne se lit pas du tout ; chaque
+ouverture et chaque fermeture est journalisée, puisque c'est le geste qui
+publie.
+
+Le filtre est appliqué dans la requête : un élément fermé ne sort pas du
+serveur, ni son libellé ni son adresse. Le cacher dans la page en aurait fait
+une préférence d'affichage.
+
+Il n'y a délibérément pas de genre « identifiants ». Un mot de passe rangé dans
+un espace client est un mot de passe en clair dans une base, dans les
+sauvegardes et à l'écran de qui l'ouvre ; le champ manquant est ce qui empêche
+l'habitude de se prendre. Le lien vers le coffre est, lui, un lien.
+
+### Dans aurora-client
+
+Une migration ajoute quatre colonnes à `core_customers` et crée
+`core_studio_space_resources`. Rien à répercuter à la main.
+
+---
+
 ## [0.9.215] - 2026-09-20
 
 ### Ajouté

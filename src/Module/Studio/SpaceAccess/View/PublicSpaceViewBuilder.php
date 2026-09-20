@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceAccess\View;
 
 use Aurora\Core\Routing\PathTemplateGenerator;
+use Aurora\Module\Studio\Customer\Serializer\CustomerInformationSerializerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
@@ -16,6 +17,8 @@ use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentAttachmentSerialize
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentColumnSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentCommentSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentItemSerializerInterface;
+use Aurora\Module\Studio\SpaceResource\Repository\SpaceResourceRepository;
+use Aurora\Module\Studio\SpaceResource\Serializer\SpaceResourceSerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -41,6 +44,9 @@ final readonly class PublicSpaceViewBuilder
         private SpaceContentCommentSerializerInterface $commentSerializer,
         private SpaceContentAttachmentRepository $attachmentRepository,
         private SpaceContentAttachmentSerializerInterface $attachmentSerializer,
+        private CustomerInformationSerializerInterface $informationSerializer,
+        private SpaceResourceRepository $resources,
+        private SpaceResourceSerializerInterface $resourceSerializer,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
     ) {}
@@ -82,6 +88,23 @@ final readonly class PublicSpaceViewBuilder
             'items' => $this->items($link),
             'comments' => $this->comments($link),
             'attachments' => $this->attachments($link, $token),
+            // La fiche du client, quand elle dit quelque chose.
+            //
+            // **`null` plutôt qu'une fiche vide**, parce que c'est ce que
+            // l'onglet lit pour savoir s'il a lieu d'exister : une société
+            // connaît son propre nom, et un onglet qui ne lui apprendrait que
+            // celui-là est un onglet qu'on ouvre une fois.
+            'information' => $this->informationSerializer->hasContent($space->getCustomer())
+                ? $this->informationSerializer->serialize($space->getCustomer())
+                : null,
+            // Les ressources ouvertes au client, et elles seules. Le filtre est
+            // dans la requête : une ressource fermée ne sort pas du serveur,
+            // parce que la cacher dans la page en aurait fait une préférence
+            // d'affichage et non une décision.
+            'resources' => array_map(
+                $this->resourceSerializer->serializeForGuest(...),
+                $this->resources->findForSpace($space, visibleOnly: true),
+            ),
             'expiresAt' => $link->getExpiresAt(),
             'canApprove' => $link->canApprove(),
             'canComment' => $link->canComment(),
