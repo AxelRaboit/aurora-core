@@ -72,6 +72,13 @@ découvrir une seconde langue. Un onglet sans contenu n'existe pas, et une page 
 un seul onglet n'en dessine aucun. **Mille soixante-sept pixels** au lieu de
 mille sept cent quatre-vingt-un.
 
+#### Des identifiants internes voyageaient jusqu'à la page d'un client
+L'identifiant d'un document dans la médiathèque accompagnait chaque fichier et
+chaque pièce jointe ; il ne sert qu'au studio, qui l'ouvre depuis la fiche. Et
+chaque colonne portait « visible par le client », qui ne pouvait dire que
+« oui » puisque les autres ne partaient déjà plus : un drapeau à une seule
+valeur n'informe personne et fait croire qu'il en a deux.
+
 ### Dans aurora-client
 `make aurora-update`, puis `make migrate` : la 0.9.210 réécrit les noms d'auteur
 des lignes écrites par un invité.

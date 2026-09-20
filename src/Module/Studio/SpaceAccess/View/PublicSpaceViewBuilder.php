@@ -67,8 +67,16 @@ final readonly class PublicSpaceViewBuilder
             // Les étapes que le client voit, et elles seules. Le tableau du
             // studio garde les siennes ; « Relecture juridique » n'a pas à
             // être une nouvelle pour lui.
+            // Sans `visibleToClient` : toutes celles qui arrivent ici le sont,
+            // le champ ne pourrait dire que « oui ». Un drapeau qui n'a qu'une
+            // valeur n'informe personne et fait croire qu'il en a deux.
             'columns' => array_map(
-                $this->columnSerializer->serialize(...),
+                function (SpaceContentColumnInterface $column): array {
+                    $shape = $this->columnSerializer->serialize($column);
+                    unset($shape['visibleToClient']);
+
+                    return $shape;
+                },
                 $this->visibleColumns($space),
             ),
             'items' => $this->items($link),
