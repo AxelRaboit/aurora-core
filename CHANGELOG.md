@@ -5,6 +5,30 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.214] - 2026-09-20
+
+### Corrigé
+
+#### L'identifiant d'un vrai dossier Drive était dans le dépôt
+Relevé d'un écran de réglages pendant une session de travail, il est entré dans
+les fixtures et dans un test, et il y est resté jusqu'à ce qu'un œil le
+remarque - après avoir été poussé, tagué et publié.
+
+**Ce n'est pas une fuite de secret** : un identifiant de dossier n'ouvre rien à
+lui seul, il faut être partagé pour le lire. C'est une trace, et ce dépôt est
+public : elle nomme une infrastructure qui appartient à quelqu'un.
+
+Un identifiant qui se lit le remplace. Google le refusera, et l'écran dira que
+le dossier ne répond pas - un état que la démonstration doit de toute façon
+savoir montrer.
+
+Un test de convention refuse désormais toute suite d'au moins vingt-cinq
+caractères mêlant chiffres, majuscules et minuscules dans `src/`, `fixtures/`,
+`tests/` et `tools/`. Il ne cherche pas « un secret », ce qui serait sans fin :
+il cherche la forme précise qui est déjà passée.
+
+---
+
 ## [0.9.213] - 2026-09-20
 
 ### Ajouté
