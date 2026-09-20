@@ -5,6 +5,38 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.213] - 2026-09-20
+
+### Ajouté
+
+#### Les cartes du tour public se remplacent par une commande
+Refaire les images de `/fr/page/aurora` demandait trois gestes manuels répétés
+vingt-quatre fois : prendre la capture, la copier sur le serveur, appeler
+`aurora:ged:replace` avec le bon identifiant. **Le dernier demandait de
+connaître cet identifiant, et il ne vivait nulle part dans le dépôt.**
+
+Le scénario affirmait que « la carte n'a rien à savoir », parce qu'elle montre
+un document nommé d'après la prise. C'est faux depuis que `aurora:ged:replace`
+existe : elle change le nom stocké à chaque remplacement, donc le nom d'origine
+ne se retrouve plus. La table nom → document ne survivait que dans la mémoire de
+celui qui avait fait l'envoi la fois d'avant.
+
+Elle est maintenant dans `tools/screenshots/tour-cards.json`, relevée depuis la
+production et vérifiée contre trois cartes en ligne. `push-tour.mjs` enchaîne
+les trois gestes, refuse de partir si une capture manque, et nomme les prises
+qu'aucune carte ne montre.
+
+### Corrigé
+
+#### Une prise du tour était restée hors convention
+`customers` avait été oubliée lors du renommage en `tour-*`, elle ne
+correspondait donc à aucune carte et cassait la règle sur laquelle repose tout
+le circuit. Le fichier compte **vingt-huit prises pour vingt-quatre cartes** :
+les quatre orphelines sont désormais nommées comme telles, au lieu d'être un
+écart que trois comptes différents contredisaient.
+
+---
+
 ## [0.9.212] - 2026-09-20
 
 ### Corrigé

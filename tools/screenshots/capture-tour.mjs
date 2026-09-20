@@ -155,7 +155,7 @@ const SHOTS = [
 
     { name: "tour-contrats", path: "/backend/studio/contracts" },
     { name: "tour-trames", path: "/backend/studio/contract-templates" },
-    { name: "customers", path: "/backend/studio/customers" },
+    { name: "tour-clients", path: "/backend/studio/customers" },
     {
         name: "tour-avenant-scelle",
         // Le contresigné : le seul état qui montre à la fois le sceau, les deux
