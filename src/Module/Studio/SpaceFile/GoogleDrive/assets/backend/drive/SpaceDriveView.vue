@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { ChevronRight, Download, ExternalLink, FileText, Folder, FolderOpen, LayoutGrid, Library, Link2Off, List, Lock, LockOpen, Package, RefreshCw, X } from "lucide-vue-next";
+import { ChevronRight, Download, ExternalLink, FileText, Folder, FolderOpen, LayoutGrid, Library, List, Lock, LockOpen, Package, RefreshCw, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -30,12 +30,13 @@ import { useDriveTree } from "./useDriveTree.js";
 const props = defineProps({
     folderId: { type: String, default: null },
     listPath: { type: String, required: true },
-    folderPath: { type: String, required: true },
     filePath: { type: String, required: true },
     archivePath: { type: String, default: "" },
     importPath: { type: String, default: "" },
     /** L'adresse qui ouvre la serrure pour cette session. */
     unlockPath: { type: String, default: "" },
+    /** Vrai pour le référent : lui seul peut aller brancher le dossier. */
+    canConfigure: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();
@@ -54,8 +55,6 @@ const { choice: stored } = usePersistedChoice("studio.space_drive.view", "grid",
 const mode = computed(() => (isNarrow.value ? "list" : stored.value));
 
 const loading = ref(false);
-const saving = ref(false);
-const folder = ref(props.folderId ?? "");
 const current = ref(props.folderId ?? null);
 const files = ref([]);
 const previewed = ref(null);
@@ -136,24 +135,6 @@ async function unlock() {
 }
 
 onMounted(load);
-
-async function save() {
-    saving.value = true;
-
-    try {
-        const data = await request(props.folderPath, { folder: folder.value.trim() });
-
-        if (data) {
-            current.value = data.folderId ?? null;
-            folder.value = current.value ?? "";
-            reset();
-            toast.success(t(linked.value ? "backend.studio.drive.space.linked" : "backend.studio.drive.space.unlinked"));
-            await load();
-        }
-    } finally {
-        saving.value = false;
-    }
-}
 
 function addressOf(file) {
     return props.filePath.replace("__id__", file.id);
@@ -281,34 +262,17 @@ function weightOf(file) {
             {{ t("backend.studio.drive.space.archive_too_large", { weight: weightOf({ size: weight }) }) }}
         </p>
 
-        <!-- L'explication sous la rangée entière, et non sous le seul champ :
-             collée au champ, elle poussait le bouton d'une ligne vers le bas,
-             qui s'alignait alors sur elle au lieu de s'aligner sur la saisie. -->
-        <div v-if="!locked" class="space-y-1">
-            <span class="block text-xs text-secondary">{{ t("backend.studio.drive.space.folder_label") }}</span>
-
-            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <input
-                    v-model="folder"
-                    type="text"
-                    spellcheck="false"
-                    placeholder="https://drive.google.com/drive/folders/…"
-                    class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary"
-                >
-                <AppButton
-                    class="w-full shrink-0 sm:w-auto"
-                    variant="primary"
-                    size="sm"
-                    :loading="saving"
-                    v-on:click="save"
-                >
-                    <component :is="linked && '' === folder.trim() ? Link2Off : FolderOpen" class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t(linked && "" === folder.trim() ? "backend.studio.drive.space.unlink" : "backend.studio.drive.space.link") }}
-                </AppButton>
-            </div>
-
-            <span class="block text-xs text-muted">{{ t("backend.studio.drive.space.folder_hint") }}</span>
-        </div>
+        <!-- Plus de champ de dossier ici : le désigner est une
+             configuration, elle vit dans les Réglages. Ce qui reste est un
+             renvoi pour qui arrive sur un écran vide, et rien pour les
+             autres : un équipier qui n'est pas référent verrait une consigne
+             qu'il ne peut pas suivre. -->
+        <p
+            v-if="!linked && !loading"
+            class="rounded-lg border border-line bg-surface-2 px-3 py-3 text-xs text-muted"
+        >
+            {{ t(canConfigure ? "backend.studio.drive.space.no_folder_referent" : "backend.studio.drive.space.no_folder") }}
+        </p>
 
         <!-- La serrure prend toute la place : tant qu'elle est fermée, il n'y
              a rien d'autre à montrer, et laisser le champ de dossier visible

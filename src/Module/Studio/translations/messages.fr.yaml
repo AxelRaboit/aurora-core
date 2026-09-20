@@ -825,6 +825,13 @@ backend:
                 archived: Archivé
 
             settings:
+                section_drive: Google Drive
+                folder_title: Dossier partagé
+                folder_intro: "Le dossier Drive que ce client a partagé avec l'adresse du compte de service."
+                folder_hint: "Collez l'adresse du dossier, ou videz le champ pour le débrancher."
+                folder_saved: Dossier branché.
+                folder_cleared: Dossier débranché.
+                drive_closes_now: "Enregistrer ferme l'onglet immédiatement, y compris pour vous : il faudra saisir le mot de passe pour l'ouvrir."
                 drive_title: Mot de passe de l'onglet Drive
                 drive_intro: "Ferme l'onglet Drive de cet espace. Il vaut pour tout le monde, vous compris : un mot de passe qu'on contourne ne protège personne."
                 drive_locked: "L'onglet Drive est fermé."
@@ -1006,6 +1013,8 @@ backend:
                 empty: "Le dossier ne contient rien, ou n'a pas été partagé avec le compte de service."
                 no_size: "—"
                 view_label: Affichage des fichiers
+                no_folder: "Aucun dossier Drive n'est branché sur cet espace."
+                no_folder_referent: "Aucun dossier Drive n'est branché sur cet espace. Rendez-vous dans les Réglages pour en désigner un."
                 locked_title: Onglet protégé
                 locked_intro: "Le dossier Drive de cet espace est fermé par un mot de passe. Il s'ouvre pour la durée de cette session."
                 locked_placeholder: Mot de passe

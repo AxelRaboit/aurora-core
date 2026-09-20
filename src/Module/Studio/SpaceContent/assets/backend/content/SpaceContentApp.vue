@@ -292,6 +292,9 @@ const showDrivePicker = ref(false);
 /** Ce que les réglages viennent de décider, sans attendre un rechargement. */
 const driveLockedNow = ref(props.driveLocked);
 
+/** Le dossier tel que les réglages viennent de le poser. */
+const driveFolderNow = ref(props.driveFolderId ?? "");
+
 /**
  * Le fichier choisi entre dans la médiathèque, puis sur la fiche.
  *
@@ -567,13 +570,14 @@ const actionsFor = useSpaceCardActions({
              fichiers, il fallait faire défiler tout le reste pour l'atteindre. -->
         <SpaceDriveView
             v-else-if="view === 'drive' && driveEnabled"
-            :folder-id="driveFolderId"
+            :folder-id="driveFolderNow"
             :list-path="driveListPath"
             :folder-path="driveFolderPath"
             :file-path="driveFilePath"
             :archive-path="driveArchivePath"
             :import-path="driveImportPath"
             :unlock-path="driveUnlockPath"
+            :can-configure="canConfigure"
         />
 
         <!-- En dernier dans la barre, et seulement pour qui peut configurer.
@@ -584,6 +588,7 @@ const actionsFor = useSpaceCardActions({
             v-else-if="view === 'settings' && canConfigure"
             :settings-path="settingsPath"
             v-on:locked-changed="driveLockedNow = $event"
+            v-on:folder-changed="driveFolderNow = $event"
         />
 
         <!-- Mounted only while it is the view on screen, so a board nobody is

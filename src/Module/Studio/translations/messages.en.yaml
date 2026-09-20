@@ -825,6 +825,13 @@ backend:
                 archived: Archived
 
             settings:
+                section_drive: Google Drive
+                folder_title: Shared folder
+                folder_intro: "The Drive folder this client shared with the service account's address."
+                folder_hint: "Paste the folder's address, or empty the field to unlink it."
+                folder_saved: Folder linked.
+                folder_cleared: Folder unlinked.
+                drive_closes_now: "Saving closes the tab straight away, you included: you will have to type the password to open it."
                 drive_title: Drive tab password
                 drive_intro: "Closes this space's Drive tab. It applies to everyone, you included: a password that gets walked past protects nobody."
                 drive_locked: The Drive tab is closed.
@@ -997,6 +1004,8 @@ backend:
                 empty: "The folder is empty, or it was not shared with the service account."
                 no_size: "—"
                 view_label: How the files are shown
+                no_folder: "No Drive folder is linked to this space."
+                no_folder_referent: "No Drive folder is linked to this space. Go to Settings to name one."
                 locked_title: Protected tab
                 locked_intro: "This space's Drive folder is closed behind a password. It opens for the length of this session."
                 locked_placeholder: Password

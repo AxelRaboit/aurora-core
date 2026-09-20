@@ -94,15 +94,24 @@ final readonly class DriveLock
     }
 
     /**
-     * Pose ou remplace le mot de passe.
+     * Pose ou remplace le mot de passe, et referme aussitôt.
      *
-     * L'ouverture de session suit : celui qui vient de le choisir n'a pas à le
-     * ressaisir dans la foulée, et il vient de prouver qu'il le connaît.
+     * **Y compris pour celui qui vient de le choisir**, et c'est un
+     * revirement assumé. Garder sa session ouverte était plus confortable :
+     * il venait de prouver qu'il connaissait le mot de passe, lui redemander
+     * semblait bureaucratique. Sauf qu'on ferme une porte pour la voir se
+     * fermer. Une serrure qu'on pose et qui ne change rien à l'écran ressemble
+     * à un réglage qui n'a pas pris, et le premier réflexe est de douter du
+     * produit.
+     *
+     * La ressaisie coûte cinq secondes et prouve trois choses d'un coup : que
+     * le mot de passe est bien enregistré, qu'il est celui qu'on croit, et
+     * qu'il ferme quelque chose.
      */
     public function set(CustomerSpaceInterface $space, string $password): void
     {
         $space->setDrivePassword($this->hasher()->hash($password));
-        $this->requests->getSession()->set($this->key($space), true);
+        $this->lock($space);
     }
 
     /** Rouvre l'onglet pour de bon. L'appelant a déjà vérifié le mot de passe. */

@@ -19,6 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 use function mb_strlen;
 use function mb_trim;
+use function preg_match;
 
 /**
  * Les réglages d'un espace, ouverts au référent.
@@ -48,6 +49,13 @@ final class SpaceSettingsController extends AbstractController
      */
     private const int MIN_LENGTH = 8;
 
+    /**
+     * Ce que Google accepte comme identifiant, et ce qu'une adresse de dossier
+     * en contient. Vérifié pour que coller l'adresse entière par erreur donne
+     * un refus lisible plutôt qu'une liste vide inexplicable.
+     */
+    private const string FOLDER_ID = '/^[A-Za-z0-9_-]{10,128}$/';
+
     public function __construct(
         private readonly SpaceVisibility $visibility,
         private readonly DriveLock $lock,
@@ -59,6 +67,45 @@ final class SpaceSettingsController extends AbstractController
     public function show(CustomerSpace $space): JsonResponse
     {
         $this->denyUnlessReferent($space);
+
+        return $this->jsonSuccess(['settings' => $this->state($space)]);
+    }
+
+    /**
+     * Le dossier Drive que cet espace regarde.
+     *
+     * **Ici et non sur l'onglet Drive**, où il se trouvait d'abord. Désigner
+     * le dossier d'un client est une configuration : ça se décide une fois,
+     * par celui qui répond de l'espace. Laissé au-dessus de la liste des
+     * fichiers, le champ était modifiable par quiconque ouvrait l'onglet, et
+     * il occupait une place sur un écran qu'on vient consulter.
+     *
+     * L'adresse entière est acceptée et découpée : c'est ce qu'on a sous la
+     * main en sortant de Drive, et exiger l'identifiant nu ferait échouer le
+     * geste le plus naturel.
+     */
+    #[Route('/drive-folder', name: '_drive_folder', methods: [HttpMethodEnum::Post->value])]
+    public function setDriveFolder(CustomerSpace $space, Request $request): JsonResponse
+    {
+        $this->denyUnlessReferent($space);
+
+        $given = mb_trim((string) ($this->decodeJson($request)['folder'] ?? ''));
+
+        if ('' === $given) {
+            $space->setDriveFolderId(null);
+            $this->entityManager->flush();
+
+            return $this->jsonSuccess(['settings' => $this->state($space)]);
+        }
+
+        $folderId = $this->folderIdOf($given);
+
+        if (null === $folderId) {
+            return $this->jsonFailure('backend.studio.drive.errors.folder_invalid');
+        }
+
+        $space->setDriveFolderId($folderId);
+        $this->entityManager->flush();
 
         return $this->jsonSuccess(['settings' => $this->state($space)]);
     }
@@ -152,10 +199,23 @@ final class SpaceSettingsController extends AbstractController
     private function state(CustomerSpace $space): array
     {
         return [
+            'driveFolderId' => $space->getDriveFolderId(),
             'driveLocked' => $space->isDriveLocked(),
             'driveUnlocked' => $this->lock->isUnlocked($space),
             'minPasswordLength' => self::MIN_LENGTH,
         ];
+    }
+
+    /**
+     * L'identifiant, qu'on le donne nu ou dans une adresse.
+     */
+    private function folderIdOf(string $given): ?string
+    {
+        if (1 === preg_match('#/folders/([A-Za-z0-9_-]+)#', $given, $match)) {
+            return $match[1];
+        }
+
+        return 1 === preg_match(self::FOLDER_ID, $given) ? $given : null;
     }
 
     private function denyUnlessReferent(CustomerSpace $space): void
