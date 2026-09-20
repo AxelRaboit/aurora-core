@@ -5,6 +5,63 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.215] - 2026-09-20
+
+### Ajouté
+
+#### Les deux écrans de branchement disent le chemin complet
+Les réglages Drive et Craft annonçaient quoi coller sans dire où aller le
+chercher. Chaque étape porte maintenant son lien direct - créer le projet
+Google, activer l'API Drive, ouvrir les comptes de service - et les trois
+questions qui se posent vraiment sont écrites : ce que la connexion permet,
+ce qu'il reste à faire une fois la clé en place, et quoi regarder quand ça ne
+répond pas.
+
+L'étape qui manquait côté Craft est ajoutée : le mode de partage d'un espace,
+sans lequel la clé est valide et ne lit rien.
+
+#### Un `demo-reset` ne débranche plus rien
+Reconstruire le jeu de démonstration vidait la base, et la configuration y
+vit : la clé du compte de service Google, la connexion Craft. Il fallait
+retourner chercher un fichier JSON que Google ne redonne pas.
+
+`aurora:settings:preserve --dump|--restore`, appelé de part et d'autre du
+`demo-reset`, met les réglages de côté et les repose. La règle n'est pas une
+liste de clés, qui se périmerait au premier réglage ajouté : **un réglage
+repose s'il revient vide**, et il est recréé s'il a disparu - les réglages
+d'une intégration n'existent pas tant que personne ne les a enregistrés. Ce
+que les fixtures réécrivent gagne donc toujours.
+
+Les valeurs transitent telles qu'elles sont stockées, sans passer par le
+service qui les déchiffre, et le fichier de transit est supprimé après
+restitution.
+
+---
+
+## [0.9.214] - 2026-09-20
+
+### Corrigé
+
+#### L'identifiant d'un vrai dossier Drive était dans le dépôt
+Relevé d'un écran de réglages pendant une session de travail, il est entré dans
+les fixtures et dans un test, et il y est resté jusqu'à ce qu'un œil le
+remarque - après avoir été poussé, tagué et publié.
+
+**Ce n'est pas une fuite de secret** : un identifiant de dossier n'ouvre rien à
+lui seul, il faut être partagé pour le lire. C'est une trace, et ce dépôt est
+public : elle nomme une infrastructure qui appartient à quelqu'un.
+
+Un identifiant qui se lit le remplace. Google le refusera, et l'écran dira que
+le dossier ne répond pas - un état que la démonstration doit de toute façon
+savoir montrer.
+
+Un test de convention refuse désormais toute suite d'au moins vingt-cinq
+caractères mêlant chiffres, majuscules et minuscules dans `src/`, `fixtures/`,
+`tests/` et `tools/`. Il ne cherche pas « un secret », ce qui serait sans fin :
+il cherche la forme précise qui est déjà passée.
+
+---
+
 ## [0.9.213] - 2026-09-20
 
 ### Ajouté
