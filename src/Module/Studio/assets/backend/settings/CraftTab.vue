@@ -108,6 +108,7 @@ defineExpose({ save, apply, canEnable });
             <ol class="list-decimal space-y-1 pl-5 text-sm text-secondary">
                 <li>{{ t("backend.studio.craft.settings.how_step_connection") }}</li>
                 <li>{{ t("backend.studio.craft.settings.how_step_select") }}</li>
+                <li>{{ t("backend.studio.craft.settings.how_step_mode") }}</li>
                 <li>{{ t("backend.studio.craft.settings.how_step_paste") }}</li>
             </ol>
             <a
@@ -119,6 +120,25 @@ defineExpose({ save, apply, canEnable });
                 {{ t("backend.studio.craft.settings.how_link") }}
                 <ExternalLink class="w-3.5 h-3.5" :stroke-width="2" />
             </a>
+        </section>
+
+        <!-- Ce que la clé peut faire, dit avant de la demander : une
+             connexion Craft en écriture laisserait modifier et supprimer des
+             documents depuis ici, ce qui n'est jamais ce qu'on veut pour un
+             import. -->
+        <section class="space-y-2">
+            <h3 class="text-sm font-medium text-primary">{{ t("backend.studio.craft.settings.scope_title") }}</h3>
+            <p class="text-sm text-secondary">{{ t("backend.studio.craft.settings.scope_body") }}</p>
+        </section>
+
+        <section class="space-y-2">
+            <h3 class="text-sm font-medium text-primary">{{ t("backend.studio.craft.settings.then_title") }}</h3>
+            <p class="text-sm text-secondary">{{ t("backend.studio.craft.settings.then_body") }}</p>
+        </section>
+
+        <section class="space-y-2">
+            <h3 class="text-sm font-medium text-primary">{{ t("backend.studio.craft.settings.trouble_title") }}</h3>
+            <p class="text-sm text-secondary">{{ t("backend.studio.craft.settings.trouble_body") }}</p>
         </section>
 
         <section class="space-y-3">

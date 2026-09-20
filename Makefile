@@ -268,6 +268,11 @@ demo: ## Load demo fixtures + run all syncs (idempotent, keeps stored files)
 # Celle-ci repart de rien : base, fichiers deposes, sequences. C'est la seule
 # facon d'obtenir deux fois de suite le meme etat.
 demo-reset: stop-dev-worker ## Rebuild the demo from scratch (drops the DB and the stored files)
+	# Les reglages vivent en base : la cle du compte de service Google, la
+	# connexion Craft, le stockage distant. Sans cette mise de cote, chaque
+	# reconstruction de la demo effaçait ce qu'on avait colle a la main une
+	# fois - et Google ne redonne pas un fichier de cle.
+	$(CONSOLE) aurora:settings:preserve --dump
 	$(CONSOLE) doctrine:database:drop --force --if-exists
 	$(CONSOLE) doctrine:database:create --if-not-exists
 	$(CONSOLE) doctrine:migrations:migrate --no-interaction
@@ -277,6 +282,10 @@ demo-reset: stop-dev-worker ## Rebuild the demo from scratch (drops the DB and t
 	$(CONSOLE) aurora:application-parameter
 	$(CONSOLE) aurora:privileges:sync
 	$(CONSOLE) aurora:sequences:resync
+	# Reposes seulement la ou le rechargement a laisse vide : ce que les
+	# fixtures ont ecrit gagne, et un reglage qui pointait une ligne recreee
+	# ne revient pas pointer a cote.
+	$(CONSOLE) aurora:settings:preserve --restore
 	@echo "✅ Demo rebuilt from scratch"
 	@echo "↻  Restart the worker: make start-dev-worker"
 

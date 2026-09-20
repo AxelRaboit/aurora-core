@@ -33,6 +33,21 @@ const { t } = useI18n();
 const { request } = useRequest();
 const { copy } = useClipboard();
 
+/**
+ * Les quatre écrans de la console Google, dans l'ordre où on les traverse.
+ *
+ * **Un lien par étape, et non un seul en bas.** Ils se suivent mal : celui
+ * qu'on cherche n'est jamais celui qu'on a sous les yeux, et le sélecteur de
+ * projet en haut de la console décide silencieusement de ce que la page
+ * affiche. Une liste d'étapes sans leur adresse laisse chercher.
+ */
+const STEPS = [
+    { key: "how_step_project", href: "https://console.cloud.google.com/projectcreate" },
+    { key: "how_step_api", href: "https://console.cloud.google.com/apis/library/drive.googleapis.com" },
+    { key: "how_step_account", href: "https://console.cloud.google.com/iam-admin/serviceaccounts" },
+    { key: "how_step_key", href: null },
+];
+
 const loading = ref(true);
 const saving = ref(false);
 const enabled = ref(false);
@@ -90,22 +105,34 @@ defineExpose({ save, apply, canEnable });
             <p class="text-sm text-secondary">{{ t("backend.studio.drive.settings.what_body") }}</p>
         </section>
 
+        <!-- Chaque étape porte son propre lien, et non un seul en bas.
+             Quatre écrans de la console Google se suivent, et celui qu'on
+             cherche n'est jamais celui qu'on a sous les yeux : un lien unique
+             obligeait à retrouver les trois autres à la main. -->
         <section class="space-y-2">
             <h3 class="text-sm font-medium text-primary">{{ t("backend.studio.drive.settings.how_title") }}</h3>
-            <ol class="list-decimal space-y-1 pl-5 text-sm text-secondary">
-                <li>{{ t("backend.studio.drive.settings.how_step_project") }}</li>
-                <li>{{ t("backend.studio.drive.settings.how_step_account") }}</li>
-                <li>{{ t("backend.studio.drive.settings.how_step_key") }}</li>
+            <ol class="list-decimal space-y-2 pl-5 text-sm text-secondary">
+                <li v-for="step in STEPS" :key="step.key">
+                    {{ t(`backend.studio.drive.settings.${step.key}`) }}
+                    <a
+                        v-if="step.href"
+                        :href="step.href"
+                        target="_blank"
+                        rel="noopener"
+                        class="mt-0.5 inline-flex items-center gap-1 text-accent hover:underline"
+                    >
+                        {{ t(`backend.studio.drive.settings.${step.key}_link`) }}
+                        <ExternalLink class="h-3.5 w-3.5 shrink-0" :stroke-width="2" />
+                    </a>
+                </li>
             </ol>
-            <a
-                href="https://console.cloud.google.com/apis/library/drive.googleapis.com"
-                target="_blank"
-                rel="noopener"
-                class="inline-flex items-center gap-1 text-sm text-accent hover:underline"
-            >
-                {{ t("backend.studio.drive.settings.how_link") }}
-                <ExternalLink class="w-3.5 h-3.5" :stroke-width="2" />
-            </a>
+        </section>
+
+        <!-- Ce que la clé autorise, dit avant de la demander : elle a l'air
+             d'ouvrir un Drive entier, elle n'ouvre que ce qu'on lui partage. -->
+        <section class="space-y-2">
+            <h3 class="text-sm font-medium text-primary">{{ t("backend.studio.drive.settings.scope_title") }}</h3>
+            <p class="text-sm text-secondary">{{ t("backend.studio.drive.settings.scope_body") }}</p>
         </section>
 
         <!-- L'adresse à recopier chez chaque client. Ce n'est pas un secret,
@@ -122,6 +149,19 @@ defineExpose({ save, apply, canEnable });
                     {{ t("shared.common.copy") }}
                 </AppButton>
             </div>
+        </section>
+
+        <!-- L'étape qu'on oublie : la clé ne branche rien toute seule, elle
+             ouvre seulement la possibilité. Le dossier se désigne espace par
+             espace, et c'est là qu'on cherche quand rien ne s'affiche. -->
+        <section class="space-y-2">
+            <h3 class="text-sm font-medium text-primary">{{ t("backend.studio.drive.settings.then_title") }}</h3>
+            <p class="text-sm text-secondary">{{ t("backend.studio.drive.settings.then_body") }}</p>
+        </section>
+
+        <section class="space-y-2">
+            <h3 class="text-sm font-medium text-primary">{{ t("backend.studio.drive.settings.trouble_title") }}</h3>
+            <p class="text-sm text-secondary">{{ t("backend.studio.drive.settings.trouble_body") }}</p>
         </section>
 
         <section class="space-y-3">
