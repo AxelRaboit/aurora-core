@@ -40,7 +40,60 @@ Aucune migration, aucun privilège, aucun réglage, aucun lien à réparer : le 
 tenait au reste que par une entrée de menu, une couleur de section et deux
 paramètres.
 
+### Modifié
+
+#### Le jeu de démonstration devient ce qui explique le produit
+C'est la contrepartie du manuel qui s'en va : **ce qui n'est plus décrit par écrit
+doit être visible à l'écran du premier coup**.
+
+**Les neuf états d'un contrat existent maintenant**, contre quatre. Scellé, Ouvert,
+Signé par le client, Expiré et Révoqué ne se voyaient nulle part : ni en apprenant le
+module, ni sur une capture, ni dans un parcours automatisé - c'est d'ailleurs
+l'absence d'un contrat « envoyé mais pas encore ouvert » qui faisait échouer un
+parcours entier, faute de ligne à cliquer. Un enum de statut est une promesse faite
+au lecteur, et chacun de ses cas doit être représentable.
+
+**Les liens d'accès client montrent chaque droit dans les deux positions**, plus un
+lien révoqué et un lien expiré. L'écran en affichait deux, aux mêmes droits, valides
+tous les deux : il n'apprenait ni ce qu'un lien retiré devient, ni qu'un lecteur peut
+n'avoir que le droit de lire, ni qu'on peut ouvrir un espace sans ouvrir son Drive.
+
+**Un espace porte un dossier Drive et un mot de passe.** Un réglage qu'aucune donnée
+ne porte est un réglage que personne ne voit : l'écran des réglages sortait toujours
+vide et l'onglet Drive toujours ouvert.
+
+#### `make demo-reset`, pour repartir de rien
+`make demo` est idempotent **au point de ne rien rafraîchir** : les fixtures
+retrouvent un document par son titre, un espace par son nom, et les laissent tels
+quels. Comme toutes les dates sont relatives à aujourd'hui, la démonstration se
+décale d'un jour par jour sans qu'aucun rechargement ne la remette d'aplomb.
+
+La nouvelle cible repart de la base vide, des fichiers déposés et des séquences.
+Vérifié : deux passages de suite rendent exactement le même état.
+
 ### Corrigé
+
+#### Quinze documents de démonstration sur trente-trois n'avaient aucun fichier
+Une ligne, et un chiffre. `dirname(__DIR__, 4)` visait `~/dev/test_files`, quatre
+niveaux au-dessus du dépôt, là où la bonne résolution se trouvait vingt lignes plus
+haut dans le même fichier. Aucune source n'était donc trouvée : ni fichier, ni
+poids, ni vignette, une médiathèque de démonstration faite de lignes vides. Les onze
+PDF ont aujourd'hui leur vignette, qu'aucun n'avait.
+
+Le test censé l'attraper ne lisait que **l'autre moitié** de la liste. Il lit
+maintenant les deux, et vérifie surtout que chaque racine construite par la fixture
+existe - la garantie qui manquait, puisqu'une liste de fichiers ne peut rien révéler
+quand ils sont tous introuvables ensemble.
+
+Au passage, le commentaire qui expliquait le repli affirmait que `test_files/` n'est
+pas livré avec le dépôt. C'était faux, six fichiers y sont suivis : le raisonnement
+partait du symptôme.
+
+#### Des tests de bout en bout se connectaient à un compte qui n'existe plus
+`admin@aurora.app` n'est semé par aucune fixture depuis un déménagement. Ils visent
+le compte qui existe. **Ils restent inertes pour autant** : ils appellent `/login` et
+`/admin`, deux adresses qui rendent 404 depuis le renommage d'avril, et rien ne les
+lance - ni la porte, ni la CI.
 
 #### La couverture de code était calculée à chaque lancement de la suite
 Le bloc `coverage` de `phpunit.dist.xml` déclarait deux rapports. Un rapport
@@ -59,6 +112,9 @@ allume pcov, lève le plafond mémoire et nomme ses rapports.
 ### Dans aurora-client
 `make aurora-update`. Rien d'autre : l'entrée « Documentation » disparaît du menu, et
 son adresse ne répond plus.
+
+Le jeu de démonstration ne concerne que le développement local. Pour le remettre à
+neuf : `make demo-reset`, qui vide la base **et les fichiers déposés**.
 
 ---
 

@@ -5,7 +5,7 @@ async function loginAsAdmin(page) {
     await page
         .locator("input[type='email'], input[name*='email']")
         .first()
-        .fill("admin@aurora.app");
+        .fill("dev@aurora.app");
     await page.locator("input[type='password']").first().fill("password");
     await page.locator("button[type='submit']").first().click();
     await page.waitForURL(/\/admin/);

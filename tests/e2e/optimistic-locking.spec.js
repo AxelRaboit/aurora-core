@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 /**
  * End-to-end test for optimistic locking conflict flow.
  *
- * This test is a scaffold - it assumes a seeded admin user (admin@aurora.app / password)
+ * This test is a scaffold - it assumes a seeded admin user (dev@aurora.app / password)
  * and an existing post. Two browser contexts simulate two concurrent admins.
  *
  * Skipped by default; enable with E2E_FULL=1 once fixtures are loaded against the E2E target.
@@ -17,7 +17,7 @@ test.describe("Optimistic locking conflict", () => {
     test("second admin is blocked with a conflict banner and can merge", async ({
         browser,
     }) => {
-        const admin = { email: "admin@aurora.app", password: "password" };
+        const admin = { email: "dev@aurora.app", password: "password" };
 
         const contextA = await browser.newContext();
         const contextB = await browser.newContext();
