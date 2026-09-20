@@ -16,6 +16,8 @@ interface SpaceAccessLinkInputInterface
 
     public function canComment(): bool;
 
+    public function canChat(): bool;
+
     public function canUpload(): bool;
 
     public function canSeeDrive(): bool;

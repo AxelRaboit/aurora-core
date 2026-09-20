@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceChat\Entity;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceAccess\Service\SpaceAccessLinkLabel;
 use Aurora\Module\Studio\SpaceContent\Entity\AbstractSpaceContentComment;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
@@ -167,7 +168,12 @@ abstract class AbstractSpaceChatMessage implements SpaceChatMessageInterface
     {
         $this->authorLink = $link;
         $this->authorUser = null;
-        $this->authorLabel = $link->getRecipientEmail();
+        // **Le libellé du lien, jamais son adresse.** Une adresse en
+        // signature est lue par tous les autres invités du même espace, et un
+        // espace en compte plusieurs. Le libellé est obligatoire depuis
+        // {@see SpaceAccessLinkInput}, le repli ne sert donc qu'aux liens
+        // émis avant cette règle.
+        $this->authorLabel = SpaceAccessLinkLabel::of($link);
         $this->fromClient = true;
 
         return $this;

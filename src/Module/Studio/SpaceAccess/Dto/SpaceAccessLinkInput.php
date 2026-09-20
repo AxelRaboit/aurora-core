@@ -14,6 +14,15 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
         #[Assert\Email(message: 'backend.studio.space_access.errors.email_invalid')]
         #[Assert\Length(max: 180)]
         public readonly string $recipientEmail = '',
+        /**
+         * Comment cette personne s'appelle, et c'est obligatoire.
+         *
+         * **Parce que c'est ce nom qui signe ses messages.** L'adresse le
+         * faisait, et elle est alors lue par tous les autres invités du même
+         * espace. Un libellé facultatif aurait laissé le choix entre nommer
+         * quelqu'un et exposer son adresse, ce qui n'est pas un choix.
+         */
+        #[Assert\NotBlank(message: 'backend.studio.space_access.errors.label_required')]
         #[Assert\Length(max: 120)]
         public readonly ?string $label = null,
         // A ceiling rather than a free number: past a year nobody is choosing a
@@ -26,6 +35,7 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
         // agency - who is shown the plan and does not decide on it.
         public readonly bool $canApprove = true,
         public readonly bool $canComment = true,
+        public readonly bool $canChat = true,
         public readonly bool $canUpload = false,
         public readonly bool $canSeeDrive = true,
     ) {}
@@ -53,6 +63,11 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
     public function canComment(): bool
     {
         return $this->canComment;
+    }
+
+    public function canChat(): bool
+    {
+        return $this->canChat;
     }
 
     public function canUpload(): bool

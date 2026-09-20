@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceContent\Serializer;
 
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceAccess\Service\SpaceAccessLinkLabel;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use DateTimeZone;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -35,9 +37,13 @@ class SpaceContentItemSerializer implements SpaceContentItemSerializerInterface
             'showOnCalendar' => $item->isShownOnCalendar(),
             'approval' => $item->getApproval()->value,
             'approvalAt' => $item->getApprovalAt()?->format(DATE_ATOM),
-            // The address that answered, by the mailbox it was sent to. There
-            // is no account behind a link, so this is the only name there is.
-            'approvalBy' => $item->getApprovalByLink()?->getRecipientEmail(),
+            // Qui a répondu, par le nom que porte son lien. C'était l'adresse,
+            // qui voyage jusque dans la page des autres invités du même
+            // espace : il n'y a pas de compte derrière un lien, mais il y a un
+            // nom, et il est obligatoire depuis qu'on le lit ici.
+            'approvalBy' => $item->getApprovalByLink() instanceof SpaceAccessLinkInterface
+                ? SpaceAccessLinkLabel::of($item->getApprovalByLink())
+                : null,
             'createdAt' => $item->getCreatedAt()->format(DATE_ATOM),
         ];
     }

@@ -47,8 +47,8 @@ export function useSpaceChatChannels(initial, paths) {
         }
     }
 
-    async function create(name) {
-        await send(paths.createPath, { name });
+    async function create({ name, openToClient }) {
+        await send(paths.createPath, { name, openToClient });
     }
 
     async function rename({ channel, name }) {

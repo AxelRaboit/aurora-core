@@ -8,6 +8,7 @@ use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Deck\Service\DeckPicture;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceAccess\Service\SpaceAccessLinkLabel;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -173,7 +174,12 @@ abstract class AbstractSpaceContentAttachment implements SpaceContentAttachmentI
     {
         $this->authorLink = $link;
         $this->authorUser = null;
-        $this->authorLabel = $link->getRecipientEmail();
+        // **Le libellé du lien, jamais son adresse.** Une adresse en
+        // signature est lue par tous les autres invités du même espace, et un
+        // espace en compte plusieurs. Le libellé est obligatoire depuis
+        // {@see SpaceAccessLinkInput}, le repli ne sert donc qu'aux liens
+        // émis avant cette règle.
+        $this->authorLabel = SpaceAccessLinkLabel::of($link);
         $this->fromClient = true;
 
         return $this;

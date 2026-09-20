@@ -151,7 +151,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         self::assertTrue($files[0]['fromClient']);
         // The address the link was sent to: there is no account behind a link,
         // so the mailbox is the only name there is.
-        self::assertSame('camille@societe.test', $files[0]['author']);
+        self::assertSame('Camille, gérante', $files[0]['author']);
     }
 
     /**
@@ -296,6 +296,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         $theirs = $this->givenSpace('Autre client', '39860733300060');
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $theirs->getId()), [
             'recipientEmail' => 'voisin@societe.test',
+            'label' => 'Le voisin',
             'canUpload' => true,
         ]);
         $theirToken = (string) parse_url($this->payload()['url'], PHP_URL_PATH);
@@ -312,6 +313,11 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
     private function asGuest(): KernelBrowser
     {
         $this->client->getCookieJar()->clear();
+        // L'en-tête que le composant de requête du navigateur pose sur
+        // chaque appel, et que les routes publiques exigent : sans lui,
+        // un formulaire hébergé ailleurs pourrait faire poster le
+        // navigateur d'un client vers ces adresses.
+        $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         return $this->client;
     }
@@ -333,6 +339,11 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
     private function upload(string $url, int $itemId, UploadedFile $file): void
     {
         $this->client->getCookieJar()->clear();
+        // L'en-tête que le composant de requête du navigateur pose sur
+        // chaque appel, et que les routes publiques exigent : sans lui,
+        // un formulaire hébergé ailleurs pourrait faire poster le
+        // navigateur d'un client vers ces adresses.
+        $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         $path = (string) parse_url($url, PHP_URL_PATH);
 
@@ -370,6 +381,7 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $space->getId()), [
             'recipientEmail' => 'camille@societe.test',
+            'label' => 'Camille, gérante',
             'canUpload' => $canUpload,
         ]);
 

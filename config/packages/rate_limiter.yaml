@@ -53,3 +53,19 @@ framework:
             policy: sliding_window
             limit: 20
             interval: '1 hour'
+
+        # Le lot du dossier Drive, qui n'avait aucune limite alors que c'est la
+        # route publique la plus chère : elle télécharge chaque fichier chez
+        # Google et construit un zip sur le disque du serveur avant d'envoyer
+        # le premier octet. Mesuré à 1,41 Mo par seconde et 0,64 seconde par
+        # fichier, un lot de cent cinquante mégaoctets occupe le serveur près
+        # de quatre minutes.
+        #
+        # Très bas, et c'est le sujet : « je prends tout » se fait une fois, et
+        # le refaire dix fois de suite n'est pas un geste de client. Séparé des
+        # deux autres pour qu'un lot n'épuise pas le droit d'écrire, ni
+        # l'inverse.
+        space_guest_archive:
+            policy: sliding_window
+            limit: 5
+            interval: '1 hour'

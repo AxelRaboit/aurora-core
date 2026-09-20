@@ -216,6 +216,7 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $space->getId()), [
             'recipientEmail' => 'pas-une-adresse',
+            'label' => 'Un nom valide',
         ]);
 
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
@@ -233,6 +234,11 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
     private function asGuest(): KernelBrowser
     {
         $this->client->getCookieJar()->clear();
+        // L'en-tête que le composant de requête du navigateur pose sur
+        // chaque appel, et que les routes publiques exigent : sans lui,
+        // un formulaire hébergé ailleurs pourrait faire poster le
+        // navigateur d'un client vers ces adresses.
+        $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         return $this->client;
     }
@@ -242,6 +248,7 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
     {
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $space->getId()), [
             'recipientEmail' => $email,
+            'label' => 'Camille, gérante',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());

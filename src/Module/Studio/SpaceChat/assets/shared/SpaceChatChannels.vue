@@ -24,7 +24,7 @@
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { EyeOff, Hash, MessageCircle, Plus } from "lucide-vue-next";
+import { Eye, EyeOff, Hash, MessageCircle, Plus } from "lucide-vue-next";
 
 const props = defineProps({
     channels: { type: Array, default: () => [] },
@@ -119,12 +119,22 @@ const reachable = computed(() => {
 
                 <!-- Dit sur la ligne du canal, pas seulement dans ses réglages :
                      ce qui se tape là ne sort pas de l'agence, et c'est à savoir
-                     avant d'écrire plutôt qu'après. -->
-                <EyeOff
-                    v-if="canArrange && !channel.openToClient"
-                    class="ml-auto h-3 w-3 shrink-0 opacity-60"
+                     avant d'écrire plutôt qu'après.
+
+                     **Les deux états, et non plus un seul.** Seul l'œil barré
+                     était dessiné : un canal ouvert au client se déduisait
+                     d'une absence d'icône, ce qui se confond avec une icône
+                     qu'on n'a pas vue. Une porte ouverte se signale autant
+                     qu'une porte fermée. -->
+                <component
+                    :is="channel.openToClient ? Eye : EyeOff"
+                    v-if="canArrange && !channel.isDirect"
+                    class="ml-auto h-3 w-3 shrink-0"
+                    :class="channel.openToClient ? 'text-emerald-500 opacity-80' : 'opacity-60'"
                     :stroke-width="2"
-                    :aria-label="t('shared.space_chat.channels.internal')"
+                    :aria-label="t(channel.openToClient
+                        ? 'shared.space_chat.channels.client_reads'
+                        : 'shared.space_chat.channels.internal')"
                 />
             </button>
 

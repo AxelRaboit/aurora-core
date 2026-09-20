@@ -899,6 +899,11 @@ backend:
             can_approve: Peut valider
             can_approve_hint: Décoché, le lien montre le plan sans permettre de répondre. Pour un lecteur qui regarde mais ne décide pas.
             read_only: lecture seule
+            can_comment: "Peut commenter les contenus"
+            can_comment_hint: "Le fil d'une fiche : ce qu'on dit à propos d'une publication précise, et qui reste avec elle."
+            can_chat: "Peut écrire dans la discussion"
+            can_chat_hint: "Le fil de la relation, hors de toute fiche. Vous pouvez vouloir l'un sans l'autre : une agence partenaire annote un plan sans parler dans le salon du client."
+            no_chat: "sans la discussion"
             can_upload: Peut envoyer des fichiers
             can_upload_hint: "Décoché par défaut. Coché, le client peut déposer ses propres photos et documents sur les contenus. Images, PDF et vidéos courantes, 25 Mo maximum."
             can_see_drive: Voir le dossier Drive
@@ -1342,6 +1347,10 @@ studio:
             no_body: Le texte n'est pas encore écrit.
             thread_notice: Ce que vous écrivez ici est lu par votre prestataire.
             chat_notice: Ce que vous écrivez ici est lu par votre prestataire.
+            tabs_label: Ce que vous voulez voir
+            tab_calendar: Calendrier
+            tab_chat: Discussion
+            tab_files: Documents
             files_title: Les fichiers de cet espace
             files_open: Ouvrir
             upload_notice: "Images, PDF et vidéos courantes, 25 Mo maximum. Ce que vous envoyez ici est visible par votre prestataire."

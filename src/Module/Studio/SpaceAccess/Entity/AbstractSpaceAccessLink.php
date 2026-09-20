@@ -113,6 +113,24 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     protected bool $canComment = true;
 
     /**
+     * Si ce lien écrit dans la discussion de l'espace.
+     *
+     * **Séparé de « peut commenter », et c'est une correction.** Le même
+     * droit commandait les deux : cocher une case pour autoriser une remarque
+     * sous une publication ouvrait aussi la discussion de l'espace, qui n'est
+     * pas la même conversation. Un commentaire porte sur une fiche et reste
+     * avec elle ; la discussion est le fil de la relation, et on peut vouloir
+     * lire l'un sans écrire dans l'autre - une agence partenaire qui annote
+     * un plan n'a pas à parler dans le salon du client.
+     *
+     * Vrai par défaut, parce que c'est ainsi que les liens se comportaient
+     * quand un seul droit commandait les deux. La migration le recopie depuis
+     * « peut commenter » pour que rien ne change pour un lien déjà dehors.
+     */
+    #[ORM\Column(options: ['default' => true])]
+    protected bool $canChat = true;
+
+    /**
      * Whether the holder may put a file on a card.
      *
      * **False by default, unlike the two above, and that is the whole point.**
@@ -324,6 +342,18 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     public function canComment(): bool
     {
         return $this->canComment;
+    }
+
+    public function canChat(): bool
+    {
+        return $this->canChat;
+    }
+
+    public function setCanChat(bool $canChat): static
+    {
+        $this->canChat = $canChat;
+
+        return $this;
     }
 
     public function canSeeDrive(): bool
