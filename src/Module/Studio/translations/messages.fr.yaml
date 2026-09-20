@@ -958,9 +958,16 @@ backend:
                 what_title: Ce que fait cette connexion
                 what_body: "Elle permet d'importer un document Craft dans les notes d'un espace client. C'est une copie : le document reste chez Craft, et la note ne change plus toute seule ensuite."
                 how_title: Comment l'ouvrir
-                how_step_connection: "Dans Craft, barre latérale, onglet Connexions : « Ajoutez votre première connexion API », puis « API pour les documents sélectionnés »."
-                how_step_select: "Choisissez les documents, puis réglez la connexion en lecture seule et en mode « Clé API ». Publique, l'adresse seule suffit à écrire et à supprimer chez vous."
-                how_step_paste: "Copiez l'adresse et la clé, et collez-les ci-dessous. La clé ne sera plus affichée."
+                how_step_connection: "Dans Craft, barre latérale, onglet Connexions : « Ajoutez votre première connexion API », puis « API pour les documents sélectionnés ». Une connexion sur l'espace entier donnerait accès à tout ce qu'il contient, y compris ce qui n'a rien à faire ici."
+                how_step_select: "Choisissez les documents que les espaces clients pourront importer. Craft n'exposera que ceux-là, et la liste se modifie chez lui à tout moment."
+                how_step_mode: "Réglez la connexion en lecture seule et en mode « Clé API ». En mode public, l'adresse seule suffirait à écrire et à supprimer chez vous."
+                how_step_paste: "Copiez l'adresse et la clé, et collez-les ci-dessous. Craft n'affiche la clé qu'une fois."
+                scope_title: "Ce que cette clé peut faire"
+                scope_body: "Lire les documents que vous avez cochés, et rien d'autre. C'est pour cela que le mode « lecture seule » compte : une connexion en écriture laisserait modifier et supprimer vos documents Craft depuis cette application, alors qu'elle ne fait qu'importer."
+                then_title: "Ensuite, espace par espace"
+                then_body: "Le bouton « Importer depuis Craft » apparaît dans l'onglet Notes de chaque espace client. L'import est une copie franche : le document reste chez Craft, et la note ne suivra pas ses modifications."
+                trouble_title: "Quand la liste est vide ou muette"
+                trouble_body: "Une liste vide veut dire que la connexion n'expose aucun document : retournez dans Craft en ajouter. Une absence de réponse veut dire que l'adresse ou la clé ne conviennent plus, souvent parce que la connexion a été recréée chez Craft, qui frappe alors une nouvelle clé."
                 how_link: La marche à suivre chez Craft
                 endpoint_label: Adresse de la connexion
                 endpoint_hint: "Celle que Craft affiche à la création de la connexion. En https, sans quoi la clé voyagerait en clair."
@@ -1001,10 +1008,19 @@ backend:
                 what_title: Ce que fait cette connexion
                 what_body: "Elle affiche dans un espace les fichiers d'un dossier Drive que le client a partagé. Rien n'est recopié : le fichier est lu chez Google au moment où quelqu'un le regarde, et servi à un client qui n'a pas de compte Google."
                 how_title: Comment l'ouvrir
-                how_step_project: "Dans la console Google Cloud, créez un projet et activez l'API Google Drive."
-                how_step_account: "Créez un compte de service. Ne lui donnez aucun rôle : son accès viendra uniquement des dossiers qu'on partagera avec lui."
-                how_step_key: "Créez-lui une clé JSON, ouvrez le fichier et collez son contenu ci-dessous. Google ne le redonne pas."
-                how_link: Activer l'API Drive dans la console
+                how_step_project: "Créez un projet Google Cloud, nommé distinctement de vos autres projets."
+                how_step_project_link: "Créer un projet"
+                how_step_api: "Activez l'API Google Drive dessus. Vérifiez le sélecteur de projet en haut de la console avant de cliquer."
+                how_step_api_link: "Activer l'API Drive"
+                how_step_account: "Créez un compte de service, sans lui donner aucun rôle : son accès viendra uniquement des dossiers qu'on partagera avec lui, et un rôle de projet ne ferait que lui accorder plus que nécessaire."
+                how_step_account_link: "Créer un compte de service"
+                how_step_key: "Sur sa fiche, onglet Clés, ajoutez une clé au format JSON. Google télécharge le fichier et ne le redonne jamais : ouvrez-le et collez son contenu entier ci-dessous."
+                then_title: "Ensuite, espace par espace"
+                then_body: "Cette clé ouvre la connexion pour toute l'application. Chaque espace client désigne ensuite son propre dossier, dans son onglet Réglages : collez-y l'adresse que Drive affiche dans la barre du navigateur."
+                scope_title: "Ce que cette clé peut faire"
+                scope_body: "Rien d'autre que lire, et rien d'autre que ce qu'on lui partage. Le jeton est demandé pour la portée « lecture seule » : même une requête d'écriture écrite par erreur serait refusée par Google. Retirer le partage referme la porte sans toucher à aucun réglage ici."
+                trouble_title: "Quand rien n'apparaît"
+                trouble_body: "Dans l'ordre : le partage a-t-il été fait avec l'adresse du compte de service et non avec la vôtre ; l'API Drive est-elle activée sur le bon projet ; la case ci-dessous est-elle cochée. Un dossier vide et un dossier non partagé se ressemblent à l'écran, et l'espace nomme les deux causes plutôt que d'en supposer une."
                 share_title: "L'adresse à partager"
                 share_body: "Dans Drive, le client partage son dossier avec cette adresse, en Lecteur. Ce qui n'est pas partagé reste invisible."
                 key_label: Clé du compte de service

@@ -952,9 +952,16 @@ backend:
                 what_title: What this connection does
                 what_body: "It imports a Craft document into a client space's notes. It is a copy: the document stays in Craft, and the note does not change on its own afterwards."
                 how_title: How to open it
-                how_step_connection: "In Craft, sidebar, Connections tab: \"Add Your First API Connection\", then the selected-documents kind."
-                how_step_select: "Pick the documents, then set the connection to read-only and to API key mode. Public, the address alone is enough to write and to delete in your space."
-                how_step_paste: "Copy the address and the key, and paste them below. The key will not be shown again."
+                how_step_connection: "In Craft, sidebar, Connections tab: « Add your first API connection », then « API for selected documents ». A whole-space connection would give access to everything in it, including what has no business here."
+                how_step_select: "Pick the documents client spaces will be able to import. Craft exposes only those, and the list can be changed there at any time."
+                how_step_mode: "Set the connection to read-only and to « API key » mode. In public mode, the address alone would be enough to write and delete on your side."
+                how_step_paste: "Copy the address and the key, and paste them below. Craft shows the key only once."
+                scope_title: "What this key can do"
+                scope_body: "Read the documents you ticked, and nothing else. That is why read-only matters: a write connection would let this application modify and delete your Craft documents, when all it does is import."
+                then_title: "Then, space by space"
+                then_body: "The « Import from Craft » button appears in each client space's Notes tab. The import is a plain copy: the document stays in Craft, and the note will not follow its changes."
+                trouble_title: "When the list is empty or silent"
+                trouble_body: "An empty list means the connection exposes no document: go back to Craft and add some. No answer at all means the address or the key no longer fit, often because the connection was recreated in Craft, which then mints a new key."
                 how_link: Craft's own instructions
                 endpoint_label: Connection address
                 endpoint_hint: "The one Craft shows when the connection is created. Over https, otherwise the key travels in the clear."
@@ -992,10 +999,19 @@ backend:
                 what_title: What this connection does
                 what_body: "It shows, inside a space, the files of a Drive folder the client shared. Nothing is copied: the file is read from Google when somebody looks at it, and served to a client who has no Google account."
                 how_title: How to open it
-                how_step_project: "In the Google Cloud console, create a project and enable the Google Drive API."
-                how_step_account: "Create a service account. Give it no role: its access will come only from the folders shared with it."
-                how_step_key: "Create a JSON key for it, open the file and paste its contents below. Google does not hand it out twice."
-                how_link: Enable the Drive API in the console
+                how_step_project: "Create a Google Cloud project, named distinctly from your others."
+                how_step_project_link: "Create a project"
+                how_step_api: "Enable the Google Drive API on it. Check the project selector at the top of the console before clicking."
+                how_step_api_link: "Enable the Drive API"
+                how_step_account: "Create a service account, and give it no role: its access will come only from the folders shared with it, and a project role would merely grant it more than needed."
+                how_step_account_link: "Create a service account"
+                how_step_key: "On its page, Keys tab, add a key in JSON format. Google downloads the file and never gives it again: open it and paste its whole contents below."
+                then_title: "Then, space by space"
+                then_body: "This key opens the connection for the whole application. Each client space then names its own folder, in its Settings tab: paste the address Drive shows in the browser bar."
+                scope_title: "What this key can do"
+                scope_body: "Nothing but read, and nothing but what is shared with it. The token is requested for the read-only scope: even a write request written by mistake would be refused by Google. Removing the share closes the door without touching any setting here."
+                trouble_title: "When nothing shows up"
+                trouble_body: "In order: was the share made with the service account's address and not yours; is the Drive API enabled on the right project; is the box below ticked. An empty folder and an unshared one look alike on screen, and the space names both causes rather than assuming one."
                 share_title: The address to share with
                 share_body: "In Drive, the client shares their folder with this address, as a Viewer. What is not shared stays invisible."
                 key_label: Service account key
