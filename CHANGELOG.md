@@ -5,6 +5,31 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.212] - 2026-09-20
+
+### Corrigé
+
+#### Il en manquait un, et le test qui l'aurait dit n'existait pas
+La 0.9.211 a déplacé les limiteurs de débit dans le paquet pour qu'un projet
+client n'ait plus à les recopier. Six sur sept : `form_submission`, demandé par
+le contrôleur des formulaires du site public, a été oublié.
+
+Le même symptôme que la veille, à un fichier près - un conteneur qui refuse de
+se construire au premier déploiement. Trouvé en vidant pour de bon la
+configuration d'un projet client, ce qui était le seul moyen de vérifier que le
+correctif en tenait la promesse.
+
+Un test de convention lit maintenant les deux listes : tout argument nommé
+`$…Limiter` dans `src/` doit avoir son entrée dans le paquet. Il nomme celui qui
+manque, ce qu'aucun message d'erreur de conteneur ne fait depuis l'autre bout
+d'un déploiement.
+
+### Dans aurora-client
+`make aurora-update`. Le bloc `framework.rate_limiter` peut maintenant être vidé
+pour de bon.
+
+---
+
 ## [0.9.211] - 2026-09-20
 
 ### Corrigé
