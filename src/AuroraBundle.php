@@ -492,7 +492,12 @@ class AuroraBundle extends AbstractBundle
         ]);
 
         /*
-         * Les limiteurs que les contrôleurs d'aurora-core câblent par leur nom.
+         * Les sept limiteurs que les contrôleurs d'aurora-core câblent par leur
+         * nom.
+         *
+         * La liste se relit par `grep -oE '\$[a-zA-Z]+Limiter' src/` : en
+         * oublier un ne se voit qu'au déploiement d'un projet client, sur le
+         * contrôleur qui le demande.
          *
          * **C'était au client de les répéter, et rien ne le disait** - sinon un
          * conteneur qui refuse de se construire au premier déploiement, sur un
@@ -506,6 +511,8 @@ class AuroraBundle extends AbstractBundle
          */
         $builder->prependExtensionConfig('framework', [
             'rate_limiter' => [
+                // L'envoi d'un formulaire du site public.
+                'form_submission' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
                 // La signature d'un contrat par quelqu'un qui tient un lien.
                 'contract_signature' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
                 'contract_signature_code' => ['policy' => 'sliding_window', 'limit' => 15, 'interval' => '1 hour'],
