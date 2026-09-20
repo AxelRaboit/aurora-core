@@ -133,9 +133,11 @@ final class PreserveSettingsCommand extends Command
             if (!is_array($row)) {
                 continue;
             }
+
             if (!isset($row['setting_key'])) {
                 continue;
             }
+
             $exists = (bool) $this->connection->fetchOne(
                 'SELECT 1 FROM core_settings WHERE setting_key = :key',
                 ['key' => $row['setting_key']],
