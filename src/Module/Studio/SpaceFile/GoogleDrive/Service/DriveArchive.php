@@ -45,11 +45,28 @@ final readonly class DriveArchive
     /**
      * Ce qu'un lot peut peser.
      *
-     * La borne existe pour le disque du serveur, qui reçoit l'archive entière
-     * avant de l'envoyer. Au-delà, le fichier par fichier reste ouvert et ne
-     * coûte rien à personne.
+     * **La borne vient du temps, pas du disque.** L'archive est écrite en
+     * entier avant que le premier octet ne parte : tant qu'elle se construit,
+     * le serveur web attend sans rien recevoir, et il finit par abandonner.
+     * Apache coupe à trois cents secondes.
+     *
+     * Mesuré sur le serveur le 20/09/2026, contre un vrai dossier partagé :
+     * **1,41 Mo par seconde** et **0,64 seconde par fichier**, cette seconde
+     * étant l'aller-retour vers Google, que le fichier pèse trois kilo-octets
+     * ou trois mégaoctets. Deux cents fichiers coûtent donc déjà cent
+     * vingt-sept secondes avant le premier octet transféré.
+     *
+     * Le pire cas admis - deux cents fichiers et cent cinquante mégaoctets -
+     * demande deux cent trente-quatre secondes, ce qui laisse un cinquième de
+     * marge. La borne précédente, cinq cents mégaoctets, ne pouvait pas
+     * aboutir : trois cent cinquante-cinq secondes de transfert à elle seule,
+     * même pour un fichier unique. Elle promettait une archive que le serveur
+     * web coupait.
+     *
+     * Au-delà, le fichier par fichier reste ouvert et ne coûte rien à
+     * personne.
      */
-    public const int MAX_BYTES = 500 * 1024 * 1024;
+    public const int MAX_BYTES = 150 * 1024 * 1024;
 
     public function __construct(
         private DriveClient $drive,
