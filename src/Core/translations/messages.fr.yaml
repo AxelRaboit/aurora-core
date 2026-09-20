@@ -235,20 +235,7 @@ backend:
         what_is_stored_body: "L'adresse du compte, le compartiment et les deux clés, ces dernières chiffrées. Elles ne vous sont jamais réaffichées : les champs indiquent seulement qu'une valeur existe."
         disconnecting_title: Se débrancher
         disconnecting_body: "Le bouton « Débrancher le stockage » efface les deux clés, oublie l'adresse et le compartiment, annule la vérification et ramène les nouveaux fichiers sur le disque du serveur. Les documents déjà déposés sur le stockage distant y restent : rapatriez-les avant, sinon ils deviendront inaccessibles."
-  documentation:
-    enlarge: Agrandir la capture
-    rubrics: Rubriques
-    search_placeholder: Chercher dans la documentation…
-    results: '1 page trouvée | {count} pages trouvées'
-    no_result: Aucune page ne correspond.
-    on_this_page: Sur cette page
-    pagination: Page précédente et page suivante
-    previous: Page précédente
-    next: Page suivante
-    empty: Aucune page de documentation n'est livrée avec cette version.
   nav:
-    documentation: Documentation
-    documentation_description: Comment utiliser le back-office, écran par écran.
     sections:
       general: Général
       platform: Plateforme
@@ -256,7 +243,6 @@ backend:
       configuration: Configuration
       dev: Administration
       account: Compte
-      documentation: Documentation
     go_back: Page précédente
     go_forward: Page suivante
     hard_reload: Recharger en vidant les caches

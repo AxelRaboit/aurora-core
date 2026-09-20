@@ -184,12 +184,6 @@ class AuroraBundle extends AbstractBundle
     {
         $dir = dirname(__DIR__);
 
-        // The manual ships with the package, so its folders are named from
-        // the bundle and not from the project: `%kernel.project_dir%` points
-        // at the client application, where none of this exists.
-        $builder->setParameter('aurora.documentation.content_dir', $dir.'/src/Module/Documentation/content');
-        $builder->setParameter('aurora.documentation.images_dir', $dir.'/src/Module/Documentation/images');
-
         // Only this monorepo's own modules. A module shipped as a separate
         // Composer package registers its Doctrine mapping / Twig / i18n /
         // resolve_target_entities from its own Aurora<Name>Bundle instead.

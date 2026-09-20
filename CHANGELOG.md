@@ -5,6 +5,47 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.209] - 2026-09-20
+
+### Supprimé
+
+#### Le manuel du back-office
+Cent dix pages et deux cent soixante-trois captures, trente-trois mégaoctets dont
+quatre-vingt-dix-sept pour cent d'images, s'en vont avec l'écran qui les servait.
+
+**Il coûtait plus qu'il ne rapportait, et la dernière régénération l'a montré en
+trois temps.** Deux cent deux captures sur deux cent soixante-trois ont changé alors
+que presque aucun écran n'avait bougé - des dates, des pastilles, des données de
+démonstration qui dérivent : un diff que personne ne peut relire. L'une d'elles
+s'était dégradée sans bruit, une image nommée « le bas de l'onglet » montrant le
+haut, parce que les défilements du scénario agissaient sur le menu de gauche et non
+sur la page. Et un parcours ne passait plus du tout, faute d'un contrat au bon
+statut que les parcours précédents avaient consommé.
+
+Trois défauts, trois natures, sur un actif que personne ne relit. Un manuel qu'on
+n'ouvre pas et qui retarde sur le produit apprend surtout à se méfier de lui.
+
+Ce qui le remplace s'écrit **dans** les écrans, avec ce que le produit a déjà : la
+modale d'aide d'un sujet, la ligne d'explication sous un champ, et l'état vide qui
+dit quoi faire. Rien à photographier, rien à tenir en phase, et l'explication est là
+où la question se pose.
+
+Partent avec lui l'outillage de capture (`tools/doc-screenshots/`), les trois
+fichiers de tests du module, son guide de rédaction et la convention qui déclarait
+une fonctionnalité inachevée tant qu'une page ne la décrivait pas. Les captures de
+la page publique de présentation, elles, restent : ce sont d'autres images, et un
+autre outil.
+
+Aucune migration, aucun privilège, aucun réglage, aucun lien à réparer : le module ne
+tenait au reste que par une entrée de menu, une couleur de section et deux
+paramètres.
+
+### Dans aurora-client
+`make aurora-update`. Rien d'autre : l'entrée « Documentation » disparaît du menu, et
+son adresse ne répond plus.
+
+---
+
 ## [0.9.208] - 2026-09-20
 
 ### Ajouté
