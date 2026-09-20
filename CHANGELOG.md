@@ -5,6 +5,31 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.211] - 2026-09-20
+
+### Corrigé
+
+#### Les limiteurs de débit arrivent maintenant avec le paquet
+Les contrôleurs d'aurora-core câblent six limiteurs par leur nom, et c'était au
+projet client de les répéter dans sa propre configuration. **Rien ne le disait**,
+sinon un conteneur qui refuse de se construire au premier déploiement, sur un
+service dont le projet n'a jamais entendu parler.
+
+Constaté en livrant la 0.9.210 : le lot du Drive a reçu son limiteur, et la mise
+à jour du client s'est arrêtée net. Le commentaire du routage messenger, juste
+au-dessus dans le même fichier, notait déjà que les limiteurs avaient cette
+forme ; il aura fallu en ajouter un pour que ça se voie.
+
+Un client qui veut d'autres chiffres redéclare la clé : sa configuration est
+chargée après celle du paquet, donc elle gagne.
+
+### Dans aurora-client
+`make aurora-update`. Le bloc `framework.rate_limiter` de
+`config/packages/rate_limiter.yaml` peut être allégé de tout ce qui ne fait que
+répéter les valeurs d'aurora-core ; le garder ne casse rien.
+
+---
+
 ## [0.9.210] - 2026-09-20
 
 ### Corrigé

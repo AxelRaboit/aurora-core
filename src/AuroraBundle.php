@@ -491,6 +491,41 @@ class AuroraBundle extends AbstractBundle
             ],
         ]);
 
+        /*
+         * Les limiteurs que les contrôleurs d'aurora-core câblent par leur nom.
+         *
+         * **C'était au client de les répéter, et rien ne le disait** - sinon un
+         * conteneur qui refuse de se construire au premier déploiement, sur un
+         * service dont le projet n'a jamais entendu parler. Le commentaire du
+         * routage messenger juste au-dessus notait déjà que les limiteurs ont
+         * cette forme ; il a fallu en ajouter un pour que ça se voie.
+         *
+         * Fournis ici, ils arrivent avec le paquet. Un client qui veut d'autres
+         * chiffres redéclare la clé dans son propre `rate_limiter.yaml` : sa
+         * configuration est chargée après, donc elle gagne.
+         */
+        $builder->prependExtensionConfig('framework', [
+            'rate_limiter' => [
+                // La signature d'un contrat par quelqu'un qui tient un lien.
+                'contract_signature' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
+                'contract_signature_code' => ['policy' => 'sliding_window', 'limit' => 15, 'interval' => '1 hour'],
+                // Le mot de passe d'un lien de présentation.
+                'deck_share_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
+                // Les gestes d'un client sur l'espace qu'un lien lui ouvre :
+                // valider, commenter, écrire. Plus haut que la signature parce
+                // qu'on parcourt un mois et qu'on valide six publications
+                // d'affilée, là où on ne signe qu'une fois.
+                'space_guest_write' => ['policy' => 'sliding_window', 'limit' => 40, 'interval' => '1 hour'],
+                // Le dépôt d'un fichier : il traverse le stockage, la vignette
+                // et, pour une vidéo, la capture d'une image de couverture.
+                'space_guest_upload' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
+                // Le lot du dossier Drive, la route publique la plus chère :
+                // chaque fichier est téléchargé chez Google et le zip est
+                // construit en entier avant le premier octet envoyé.
+                'space_guest_archive' => ['policy' => 'sliding_window', 'limit' => 5, 'interval' => '1 hour'],
+            ],
+        ]);
+
         $coreDirs = array_merge(
             glob($dir.'/src/Core/*/translations', GLOB_ONLYDIR) ?: [],
             glob($dir.'/src/Core/*/*/translations', GLOB_ONLYDIR) ?: [],
