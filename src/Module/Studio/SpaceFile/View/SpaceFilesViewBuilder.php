@@ -6,6 +6,8 @@ namespace Aurora\Module\Studio\SpaceFile\View;
 
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Security\DriveLock;
+use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting\DriveSettings;
@@ -21,6 +23,8 @@ final readonly class SpaceFilesViewBuilder
         private UrlGeneratorInterface $urlGenerator,
         private PathTemplateGenerator $pathTemplates,
         private DriveSettings $drive,
+        private DriveLock $lock,
+        private SpaceVisibility $visibility,
     ) {}
 
     /**
@@ -46,6 +50,14 @@ final readonly class SpaceFilesViewBuilder
             'driveFilePath' => $this->pathTemplates->generate('workspace_space_drive_file', ['id' => $space->getId(), 'fileId' => '__id__']),
             'driveArchivePath' => $this->urlGenerator->generate('workspace_space_drive_archive', ['id' => $space->getId()]),
             'driveImportPath' => $this->pathTemplates->generate('workspace_space_drive_import', ['id' => $space->getId(), 'fileId' => '__fileId__']),
+            'driveUnlockPath' => $this->urlGenerator->generate('workspace_space_settings_drive_unlock', ['id' => $space->getId()]),
+            // La serrure telle qu'elle est pour *cette* session : fermée mais
+            // déjà ouverte ici ne se lit pas comme fermée.
+            'driveLocked' => $this->lock->isClosedFor($space),
+            // Les réglages, et qui peut les ouvrir. Décidé ici plutôt que
+            // deviné dans l'écran : la règle vit dans `SpaceVisibility`.
+            'canConfigure' => $this->visibility->canConfigure($space),
+            'settingsPath' => $this->urlGenerator->generate('workspace_space_settings_show', ['id' => $space->getId()]),
         ];
     }
 

@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { ChevronRight, Download, ExternalLink, FileText, Folder, FolderOpen, LayoutGrid, Library, Link2Off, List, Package, RefreshCw, X } from "lucide-vue-next";
+import { ChevronRight, Download, ExternalLink, FileText, Folder, FolderOpen, LayoutGrid, Library, Link2Off, List, Lock, LockOpen, Package, RefreshCw, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -34,6 +34,8 @@ const props = defineProps({
     filePath: { type: String, required: true },
     archivePath: { type: String, default: "" },
     importPath: { type: String, default: "" },
+    /** L'adresse qui ouvre la serrure pour cette session. */
+    unlockPath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -86,6 +88,17 @@ const archivable = computed(() => files.value.length > 0 && weight.value <= ARCH
  */
 const { breadcrumb, folders, visible, goTo, open, reset } = useDriveTree(files);
 
+/**
+ * Fermé par un mot de passe, et pas encore ouvert dans cette session.
+ *
+ * Le serveur le dit dans la liste plutôt que de répondre 404 : un refus sec
+ * serait indiscernable d'un espace sans Drive, et l'écran afficherait « aucun
+ * dossier » à quelqu'un qui n'a qu'un mot de passe à saisir.
+ */
+const locked = ref(false);
+const password = ref("");
+const unlocking = ref(false);
+
 async function load() {
     if (!linked.value) {
         files.value = [];
@@ -97,9 +110,28 @@ async function load() {
 
     try {
         const data = await request(props.listPath, null, { method: HttpMethod.Get, noGuard: true });
+        locked.value = true === data?.locked;
         files.value = Array.isArray(data?.files) ? data.files : [];
     } finally {
         loading.value = false;
+    }
+}
+
+async function unlock() {
+    if (!password.value || unlocking.value) return;
+
+    unlocking.value = true;
+
+    try {
+        const data = await request(props.unlockPath, { password: password.value });
+
+        if (data?.unlocked) {
+            password.value = "";
+            locked.value = false;
+            await load();
+        }
+    } finally {
+        unlocking.value = false;
     }
 }
 
@@ -187,7 +219,7 @@ function weightOf(file) {
                 {{ t("backend.studio.drive.space.title") }}
             </h3>
 
-            <div v-if="linked" class="flex items-center gap-2">
+            <div v-if="linked && !locked" class="flex items-center gap-2">
                 <!-- Caché là où un conteneur étroit impose déjà la liste : un
                      interrupteur qui ne change rien se lit comme cassé. -->
                 <div
@@ -240,7 +272,7 @@ function weightOf(file) {
             </div>
         </header>
 
-        <p class="text-xs text-muted">{{ t("backend.studio.drive.space.intro") }}</p>
+        <p v-if="!locked" class="text-xs text-muted">{{ t("backend.studio.drive.space.intro") }}</p>
 
         <p
             v-if="linked && !loading && files.length && !archivable"
@@ -252,7 +284,7 @@ function weightOf(file) {
         <!-- L'explication sous la rangée entière, et non sous le seul champ :
              collée au champ, elle poussait le bouton d'une ligne vers le bas,
              qui s'alignait alors sur elle au lieu de s'aligner sur la saisie. -->
-        <div class="space-y-1">
+        <div v-if="!locked" class="space-y-1">
             <span class="block text-xs text-secondary">{{ t("backend.studio.drive.space.folder_label") }}</span>
 
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -278,7 +310,42 @@ function weightOf(file) {
             <span class="block text-xs text-muted">{{ t("backend.studio.drive.space.folder_hint") }}</span>
         </div>
 
-        <template v-if="linked && !loading">
+        <!-- La serrure prend toute la place : tant qu'elle est fermée, il n'y
+             a rien d'autre à montrer, et laisser le champ de dossier visible
+             donnerait à croire qu'on peut le changer pour contourner. -->
+        <section
+            v-if="locked"
+            class="space-y-3 rounded-lg border border-line bg-surface-2 px-3 py-4 sm:px-4"
+        >
+            <h3 class="flex items-center gap-2 text-sm font-medium text-primary">
+                <Lock class="h-4 w-4 shrink-0" :stroke-width="2" />
+                {{ t("backend.studio.drive.space.locked_title") }}
+            </h3>
+            <p class="text-xs text-muted">{{ t("backend.studio.drive.space.locked_intro") }}</p>
+
+            <form class="flex flex-col gap-2 sm:flex-row sm:items-center" v-on:submit.prevent="unlock">
+                <input
+                    v-model="password"
+                    type="password"
+                    autocomplete="off"
+                    :placeholder="t('backend.studio.drive.space.locked_placeholder')"
+                    class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary"
+                >
+                <AppButton
+                    class="w-full shrink-0 sm:w-auto"
+                    variant="primary"
+                    size="sm"
+                    type="submit"
+                    :loading="unlocking"
+                    :disabled="!password"
+                >
+                    <LockOpen class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("backend.studio.drive.space.unlock") }}
+                </AppButton>
+            </form>
+        </section>
+
+        <template v-if="linked && !loading && !locked">
             <p v-if="!files.length" class="rounded-lg border border-line bg-surface-2 px-3 py-3 text-xs text-muted">
                 {{ t("backend.studio.drive.space.empty") }}
             </p>

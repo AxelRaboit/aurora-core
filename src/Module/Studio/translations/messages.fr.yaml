@@ -824,6 +824,26 @@ backend:
                 active: Actif
                 archived: Archivé
 
+            settings:
+                drive_title: Mot de passe de l'onglet Drive
+                drive_intro: "Ferme l'onglet Drive de cet espace. Il vaut pour tout le monde, vous compris : un mot de passe qu'on contourne ne protège personne."
+                drive_locked: "L'onglet Drive est fermé."
+                drive_open: "L'onglet Drive est ouvert."
+                current_password: Mot de passe actuel
+                new_password: Nouveau mot de passe
+                password: Mot de passe
+                password_hint: "{count} caractères au minimum."
+                drive_set: Fermer l'onglet
+                drive_change: Changer le mot de passe
+                drive_clear: Rouvrir l'onglet
+                drive_saved: Mot de passe enregistré.
+                drive_cleared: Onglet Drive rouvert.
+                drive_recovery: "Le retirer demande de le saisir. Oublié, il ne s'efface que depuis le serveur, par une commande en console."
+                current_placeholder: Celui en cours
+                new_placeholder: Huit caractères ou plus
+                errors:
+                    wrong_password: Mot de passe incorrect.
+                    password_too_short: Mot de passe trop court.
             roles:
                 lead: Référent
                 member: Membre
@@ -982,6 +1002,10 @@ backend:
                 empty: "Le dossier ne contient rien, ou n'a pas été partagé avec le compte de service."
                 no_size: "—"
                 view_label: Affichage des fichiers
+                locked_title: Onglet protégé
+                locked_intro: "Le dossier Drive de cet espace est fermé par un mot de passe. Il s'ouvre pour la durée de cette session."
+                locked_placeholder: Mot de passe
+                unlock: Ouvrir
                 archive: Tout télécharger (.zip)
                 archive_weight: "Le dossier pèse {weight}."
                 archive_too_large: "Le dossier pèse {weight} : c'est trop pour une archive en une fois. Téléchargez les fichiers un par un, ou allégez le dossier partagé."
@@ -1079,6 +1103,7 @@ backend:
             view_files: Fichiers
             view_chat: Discussion
             view_notes: Notes
+            view_settings: Réglages
             files_empty: Aucun fichier sur cet espace
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
             files_unknown_card: Contenu supprimé
