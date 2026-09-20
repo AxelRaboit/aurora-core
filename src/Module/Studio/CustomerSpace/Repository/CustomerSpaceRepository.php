@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\CustomerSpace\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
@@ -47,6 +48,78 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
             ->addOrderBy('s.name', Order::Ascending->value)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Les espaces qu'une personne voit.
+     *
+     * **Être membre décide enfin de quelque chose.** L'écran fait composer une
+     * équipe, ce qui se lit comme une attribution ; jusqu'ici ça n'en était
+     * pas une, et quiconque pouvait voir un espace les voyait tous. Un
+     * équipier ne voit plus que les siens.
+     *
+     * `$seesAll` plutôt qu'un rôle lu ici : le dépôt n'a pas à connaître la
+     * sécurité, et l'appelant sait déjà si la personne court-circuite les
+     * privilèges. C'est aussi ce qui garde la méthode testable sans jeton.
+     *
+     * @return list<CustomerSpaceInterface>
+     */
+    public function findVisibleTo(CoreUserInterface $user, bool $seesAll): array
+    {
+        if ($seesAll) {
+            return $this->findAllOrdered();
+        }
+
+        // Les identifiants d'abord, la liste ensuite : filtrer sur la jointure
+        // qui ramène les membres ne rendrait que les membres retenus par le
+        // filtre, donc une équipe amputée d'elle-même sur chaque carte.
+        $ids = $this->createQueryBuilder('s')
+            ->select('s.id')
+            ->join('s.members', 'm')
+            ->where('m.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        if ([] === $ids) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('s')
+            ->addSelect('c', 'm', 'u')
+            ->join('s.customer', 'c')
+            ->leftJoin('s.members', 'm')
+            ->leftJoin('m.user', 'u')
+            ->where('s.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->orderBy('s.status', Order::Ascending->value)
+            ->addOrderBy('s.name', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Cette personne voit-elle cet espace ?
+     *
+     * Posée à part de la liste parce que l'écran d'un espace se demande la
+     * même chose pour une seule ligne, et qu'y répondre en chargeant les
+     * autres serait payer la liste pour une question fermée.
+     */
+    public function isVisibleTo(CustomerSpaceInterface $space, CoreUserInterface $user, bool $seesAll): bool
+    {
+        if ($seesAll) {
+            return true;
+        }
+
+        return 0 < (int) $this->createQueryBuilder('s')
+            ->select('COUNT(s.id)')
+            ->join('s.members', 'm')
+            ->where('s = :space')
+            ->andWhere('m.user = :user')
+            ->setParameter('space', $space)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     /**

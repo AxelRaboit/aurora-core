@@ -14,7 +14,7 @@ use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
-use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\CustomerSpace\Serializer\CustomerSpaceSerializerInterface;
 use DateTimeZone;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -22,13 +22,13 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 final readonly class CustomerSpacesViewBuilder
 {
     public function __construct(
-        private CustomerSpaceRepository $spaceRepository,
         private CustomerSpaceSerializerInterface $spaceSerializer,
         private CustomerRepository $customerRepository,
         private UserRepository $userRepository,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
         private StorageUsageProbe $storageUsage,
+        private SpaceVisibility $visibility,
     ) {}
 
     /**
@@ -67,9 +67,11 @@ final readonly class CustomerSpacesViewBuilder
     /** @return list<array<string, mixed>> */
     public function spaces(): array
     {
+        // Les siens, ou tous pour un administrateur : la règle vit dans
+        // `SpaceVisibility`, pas ici, parce que trois écrans se la posent.
         return array_map(
             $this->spaceSerializer->serialize(...),
-            $this->spaceRepository->findAllOrdered(),
+            $this->visibility->visibleSpaces(),
         );
     }
 

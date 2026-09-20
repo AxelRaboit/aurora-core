@@ -44,6 +44,12 @@ interface CustomerSpaceInterface
 
     public function setDriveFolderId(?string $driveFolderId): static;
 
+    public function getDrivePassword(): ?string;
+
+    public function setDrivePassword(?string $drivePassword): static;
+
+    public function isDriveLocked(): bool;
+
     public function setTimezone(string $timezone): static;
 
     /** @return Collection<int, CustomerSpaceMemberInterface> */

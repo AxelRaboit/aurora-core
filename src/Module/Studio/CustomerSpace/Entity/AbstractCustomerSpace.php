@@ -136,6 +136,19 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     #[ORM\Column(length: 128, nullable: true)]
     protected ?string $driveFolderId = null;
 
+    /**
+     * Le mot de passe qui ferme l'onglet Drive, haché.
+     *
+     * **Haché et non chiffré**, contrairement à la clé du compte de service :
+     * une clé doit être relue pour signer, un mot de passe n'a jamais besoin
+     * d'être relu, seulement comparé. Personne ne peut donc le retrouver, pas
+     * même depuis la base, et c'est la propriété qu'on veut.
+     *
+     * Nul par défaut : l'onglet est ouvert tant que personne ne le ferme.
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    protected ?string $drivePassword = null;
+
     /** @var Collection<int, CustomerSpaceMemberInterface> */
     #[ORM\OneToMany(targetEntity: CustomerSpaceMemberInterface::class, mappedBy: 'space', cascade: ['persist', 'remove'], orphanRemoval: true)]
     protected Collection $members;
@@ -240,6 +253,24 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     public function getDriveFolderId(): ?string
     {
         return $this->driveFolderId;
+    }
+
+    public function getDrivePassword(): ?string
+    {
+        return $this->drivePassword;
+    }
+
+    public function setDrivePassword(?string $drivePassword): static
+    {
+        $this->drivePassword = $drivePassword;
+
+        return $this;
+    }
+
+    /** L'onglet Drive est-il fermé par un mot de passe ? */
+    public function isDriveLocked(): bool
+    {
+        return null !== $this->drivePassword && '' !== $this->drivePassword;
     }
 
     public function setDriveFolderId(?string $driveFolderId): static

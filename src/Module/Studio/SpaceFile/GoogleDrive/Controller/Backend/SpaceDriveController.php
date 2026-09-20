@@ -10,6 +10,7 @@ use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Security\DriveLock;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveArchive;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveClient;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveFileServer;
@@ -58,6 +59,7 @@ final class SpaceDriveController extends AbstractController
         private readonly DriveArchive $archives,
         private readonly DriveImporter $importer,
         private readonly DocumentSerializerInterface $documents,
+        private readonly DriveLock $lock,
         private readonly EntityManagerInterface $entityManager,
     ) {}
 
@@ -106,6 +108,20 @@ final class SpaceDriveController extends AbstractController
     {
         $account = $this->settings->isEnabled() ? $this->settings->account() : null;
         $folderId = $space->getDriveFolderId();
+
+        // **La serrure se vérifie ici et pas seulement à l'écran.** Un onglet
+        // masqué n'a jamais fermé une adresse : sans cette ligne, la liste
+        // complète du dossier partirait à qui appelle la route directement,
+        // et le mot de passe ne protégerait qu'un bouton.
+        if ($this->lock->isClosedFor($space)) {
+            return $this->jsonSuccess([
+                'configured' => true,
+                'folderId' => $folderId,
+                'reachable' => false,
+                'locked' => true,
+                'files' => [],
+            ]);
+        }
 
         if (!$account instanceof GoogleServiceAccount || null === $folderId) {
             return $this->jsonSuccess([
