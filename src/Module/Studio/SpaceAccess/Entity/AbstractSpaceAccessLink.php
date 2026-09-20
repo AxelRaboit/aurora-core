@@ -131,6 +131,23 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     protected bool $canUpload = false;
 
     /**
+     * Si ce lien montre le dossier Drive.
+     *
+     * **L'asymétrie que ce droit corrige.** Déposer un fichier se coupait
+     * déjà ; emporter tout le dossier partagé du client, non. Pour le client
+     * lui-même c'est sans conséquence, c'est son dossier. Pour un second
+     * lecteur, un collègue ou une agence partenaire, c'était l'intégralité de
+     * ce que son client a partagé, téléchargeable en un zip, sans aucun
+     * réglage pour le retenir.
+     *
+     * Vrai par défaut, comme les liens existants se comportent aujourd'hui :
+     * un droit ajouté qui vaudrait faux ferait disparaître le dossier de tous
+     * les liens déjà dehors sans que personne l'ait demandé.
+     */
+    #[ORM\Column(options: ['default' => true])]
+    protected bool $canSeeDrive = true;
+
+    /**
      * The first open, kept apart from the last.
      *
      * Two columns because they answer different questions: the first says
@@ -265,6 +282,18 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
     public function canComment(): bool
     {
         return $this->canComment;
+    }
+
+    public function canSeeDrive(): bool
+    {
+        return $this->canSeeDrive;
+    }
+
+    public function setCanSeeDrive(bool $canSeeDrive): static
+    {
+        $this->canSeeDrive = $canSeeDrive;
+
+        return $this;
     }
 
     public function canUpload(): bool

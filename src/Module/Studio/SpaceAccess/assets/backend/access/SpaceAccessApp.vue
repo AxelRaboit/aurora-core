@@ -44,6 +44,8 @@ const props = defineProps({
     issuePath: { type: String, required: true },
     revokePath: { type: String, required: true },
     deletePath: { type: String, required: true },
+    /** Non nul quand l'espace a un dossier Drive branché. */
+    driveFolderId: { type: String, default: null },
 });
 
 const canShare = computed(() => can("studio.spaces.share"));
@@ -64,6 +66,7 @@ const issueForm = ref({
     // from an address with no account behind it, so it is granted per link
     // rather than assumed.
     canUpload: false,
+    canSeeDrive: true,
 });
 
 /** The one and only moment the address exists in readable form. */
@@ -98,6 +101,7 @@ function openIssue() {
         validForDays: props.defaultValidDays,
         canApprove: true,
         canUpload: false,
+        canSeeDrive: true,
     };
     clearIssue();
     showIssue.value = true;
@@ -238,6 +242,12 @@ function openedLabel(link) {
                         <template v-if="link.canUpload">
                             · {{ t("backend.studio.space_access.may_upload") }}
                         </template>
+                        <!-- Dit seulement quand c'est retiré : la liste
+                             nomme ce qui sort de l'ordinaire, pas ce qui est
+                             le cas pour tous les liens. -->
+                        <template v-if="false === link.canSeeDrive">
+                            · {{ t("backend.studio.space_access.no_drive") }}
+                        </template>
                     </p>
                 </div>
 
@@ -333,6 +343,16 @@ function openedLabel(link) {
                     :label="t('backend.studio.space_access.can_upload')"
                     :hint="t('backend.studio.space_access.can_upload_hint')"
                     v-on:update:model-value="issueForm.canUpload = $event"
+                />
+
+                <!-- Offerte seulement quand l'espace a un dossier branché :
+                     une case qui ne gouverne rien se lit comme cassée. -->
+                <AppCheckbox
+                    v-if="driveFolderId"
+                    :model-value="false !== issueForm.canSeeDrive"
+                    :label="t('backend.studio.space_access.can_see_drive')"
+                    :hint="t('backend.studio.space_access.can_see_drive_hint')"
+                    v-on:update:model-value="issueForm.canSeeDrive = $event"
                 />
             </form>
             <template #footer>

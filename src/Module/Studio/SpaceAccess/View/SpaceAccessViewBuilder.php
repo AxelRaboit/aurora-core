@@ -38,6 +38,8 @@ final readonly class SpaceAccessViewBuilder
             'issuePath' => $this->urlGenerator->generate('workspace_space_access_issue', ['id' => $space->getId()]),
             'revokePath' => $this->pathTemplates->generate('workspace_space_access_revoke', ['id' => $space->getId(), 'linkId' => '__id__']),
             'deletePath' => $this->pathTemplates->generate('workspace_space_access_delete', ['id' => $space->getId(), 'linkId' => '__id__']),
+            // La case du Drive ne s'offre que si l'espace en a un.
+            'driveFolderId' => $space->getDriveFolderId(),
         ];
     }
 
@@ -82,6 +84,7 @@ final readonly class SpaceAccessViewBuilder
             'canApprove' => $link->canApprove(),
             'canComment' => $link->canComment(),
             'canUpload' => $link->canUpload(),
+            'canSeeDrive' => $link->canSeeDrive(),
         ];
     }
 

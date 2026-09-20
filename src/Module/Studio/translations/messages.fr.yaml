@@ -886,6 +886,9 @@ backend:
             read_only: lecture seule
             can_upload: Peut envoyer des fichiers
             can_upload_hint: "Décoché par défaut. Coché, le client peut déposer ses propres photos et documents sur les contenus. Images, PDF et vidéos courantes, 25 Mo maximum."
+            can_see_drive: Voir le dossier Drive
+            can_see_drive_hint: "Décochée, cette personne ne voit ni le dossier partagé ni son téléchargement. Utile pour un second lecteur à qui le dossier du client ne s'adresse pas."
+            no_drive: sans le Drive
             may_upload: peut envoyer des fichiers
 
             never_opened: Jamais ouvert

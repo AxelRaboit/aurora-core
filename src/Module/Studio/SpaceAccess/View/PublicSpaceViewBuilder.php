@@ -105,20 +105,20 @@ final readonly class PublicSpaceViewBuilder
             // Le dossier Drive, s'il y en a un. Les adresses sont posées même
             // quand le dossier est vide : l'écran décide de se montrer sur ce
             // que la liste rend, et non sur ce que le serveur suppose.
-            'drivePath' => null === $link->getSpace()->getDriveFolderId()
+            'drivePath' => !$link->canSeeDrive() || null === $link->getSpace()->getDriveFolderId()
                 ? null
                 : $this->urlGenerator->generate('public_space_drive', [
                     'selector' => $link->getSelector(),
                     'token' => $token,
                 ]),
-            'driveFilePath' => null === $link->getSpace()->getDriveFolderId()
+            'driveFilePath' => !$link->canSeeDrive() || null === $link->getSpace()->getDriveFolderId()
                 ? null
                 : $this->pathTemplates->generate('public_space_drive_file', [
                     'selector' => $link->getSelector(),
                     'token' => $token,
                     'fileId' => '__id__',
                 ]),
-            'driveArchivePath' => null === $link->getSpace()->getDriveFolderId()
+            'driveArchivePath' => !$link->canSeeDrive() || null === $link->getSpace()->getDriveFolderId()
                 ? null
                 : $this->urlGenerator->generate('public_space_drive_archive', [
                     'selector' => $link->getSelector(),

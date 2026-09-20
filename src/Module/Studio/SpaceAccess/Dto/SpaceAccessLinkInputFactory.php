@@ -30,6 +30,8 @@ class SpaceAccessLinkInputFactory implements SpaceAccessLinkInputFactoryInterfac
             // that writes bytes to our storage is not one a missing field
             // grants.
             canUpload: (bool) ($data['canUpload'] ?? false),
+            // Absent vaut vrai : seul un faux explicite retire le dossier.
+            canSeeDrive: false !== ($data['canSeeDrive'] ?? true),
         );
     }
 }

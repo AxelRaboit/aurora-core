@@ -886,6 +886,9 @@ backend:
             read_only: read-only
             can_upload: May send files
             can_upload_hint: "Off by default. Checked, the client can drop their own photos and documents onto the content. Images, PDF and common videos, 25 MB at most."
+            can_see_drive: See the Drive folder
+            can_see_drive_hint: "Unchecked, this person sees neither the shared folder nor its download. Useful for a second reader the client's folder is not meant for."
+            no_drive: without the Drive
             may_upload: may send files
 
             never_opened: Never opened

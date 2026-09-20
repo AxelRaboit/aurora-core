@@ -75,6 +75,7 @@ class SpaceAccessController extends AbstractController
             $input->canApprove(),
             $input->canComment(),
             $input->canUpload(),
+            $input->canSeeDrive(),
         );
 
         return $this->jsonSuccess($this->viewBuilder->issuedPayload($space, $link));

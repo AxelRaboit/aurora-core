@@ -21,6 +21,7 @@ interface SpaceAccessLinkManagerInterface
         bool $canApprove,
         bool $canComment,
         bool $canUpload = false,
+        bool $canSeeDrive = true,
     ): SpaceAccessLinkInterface;
 
     public function revoke(SpaceAccessLinkInterface $link): void;

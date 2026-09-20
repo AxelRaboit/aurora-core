@@ -606,7 +606,10 @@ final class PublicSpaceController extends AbstractController
     {
         $link = $this->links->resolveUsable($selector, $token);
 
-        if (!$link instanceof SpaceAccessLinkInterface) {
+        // **Le même refus qu'un lien inconnu**, et la même raison que pour les
+        // écritures : dire « vous pouvez lire mais pas ceci » apprend à celui
+        // qui tient une adresse fuitée ce qu'il tient.
+        if (!$link instanceof SpaceAccessLinkInterface || !$link->canSeeDrive()) {
             throw $this->createNotFoundException();
         }
 
@@ -640,7 +643,10 @@ final class PublicSpaceController extends AbstractController
     {
         $link = $this->links->resolveUsable($selector, $token);
 
-        if (!$link instanceof SpaceAccessLinkInterface) {
+        // **Le même refus qu'un lien inconnu**, et la même raison que pour les
+        // écritures : dire « vous pouvez lire mais pas ceci » apprend à celui
+        // qui tient une adresse fuitée ce qu'il tient.
+        if (!$link instanceof SpaceAccessLinkInterface || !$link->canSeeDrive()) {
             throw $this->createNotFoundException();
         }
 
@@ -691,7 +697,10 @@ final class PublicSpaceController extends AbstractController
     {
         $link = $this->links->resolveUsable($selector, $token);
 
-        if (!$link instanceof SpaceAccessLinkInterface) {
+        // **Le même refus qu'un lien inconnu**, et la même raison que pour les
+        // écritures : dire « vous pouvez lire mais pas ceci » apprend à celui
+        // qui tient une adresse fuitée ce qu'il tient.
+        if (!$link instanceof SpaceAccessLinkInterface || !$link->canSeeDrive()) {
             throw $this->createNotFoundException();
         }
 
