@@ -38,6 +38,9 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         protected readonly SpaceAccessLinkRepository $links,
     ) {}
 
+    /** Ce que dure un aperçu. Assez pour regarder, trop peu pour oublier. */
+    protected const int PREVIEW_MINUTES = 15;
+
     public function issue(
         CustomerSpaceInterface $space,
         string $recipientEmail,
@@ -67,6 +70,54 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
 
         $this->auditIssued($link);
 
+        return $link;
+    }
+
+    /**
+     * Un aperçu de ce lien, ouvert pour quelques minutes.
+     *
+     * **Un vrai lien, parce qu'un faux ne montrerait rien.** Le jeton en clair
+     * n'existe qu'à la création ; une page fabriquée avec un jeton inventé
+     * s'affiche et ne répond à rien, donc ni le dossier Drive ni les fichiers
+     * n'y apparaissent - c'est-à-dire précisément ce qu'on venait vérifier.
+     *
+     * Il recopie les droits pour que l'écran soit le même, **et n'écrit
+     * rien** : ce refus-là ne tient pas aux droits mais à sa nature, et vit
+     * dans le contrôleur public. Sans cette règle, un clic distrait sur
+     * « Validé » enregistrerait une réponse au nom du client.
+     *
+     * Un seul à la fois par lien : le précédent est supprimé, ce qui évite
+     * qu'une adresse encore valide traîne après qu'on a changé les droits
+     * qu'elle était censée montrer.
+     */
+    public function preview(SpaceAccessLinkInterface $source): SpaceAccessLinkInterface
+    {
+        $existing = $this->links->findPreviewOf($source);
+
+        if ($existing instanceof SpaceAccessLinkInterface) {
+            $this->entityManager->remove($existing);
+            $this->entityManager->flush();
+        }
+
+        $link = $this->createLink();
+        $link->mint();
+        $link
+            ->setSpace($source->getSpace())
+            ->setRecipientEmail($source->getRecipientEmail())
+            ->setLabel($source->getLabel())
+            ->setCanApprove($source->canApprove())
+            ->setCanComment($source->canComment())
+            ->setCanUpload($source->canUpload())
+            ->setCanSeeDrive($source->canSeeDrive())
+            ->setPreviewOf($source)
+            // Quelques minutes : le temps de regarder, pas celui d'oublier.
+            ->setExpiresAt(new DateTimeImmutable(sprintf('+%d minutes', static::PREVIEW_MINUTES)));
+
+        $this->entityManager->persist($link);
+        $this->entityManager->flush();
+
+        // Pas d'audit « lien émis » : personne n'a reçu d'adresse, et une
+        // ligne par coup d'œil noierait celles qui comptent.
         return $link;
     }
 

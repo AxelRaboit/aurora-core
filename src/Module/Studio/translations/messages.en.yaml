@@ -864,6 +864,7 @@ backend:
             intro: A link opens this space read-only, with no account. It is personal, it expires, and it can be revoked.
             issue: Create a link
             issued: Link created.
+            preview: Preview
             revoke: Revoke
             revoked: Link revoked.
             deleted: Link deleted.
@@ -1307,6 +1308,7 @@ studio:
             calendar_day_empty: Nothing planned that day.
             drive_title: Shared documents
             drive_download: Download the file
+            preview_notice: "Preview: this is what the holder of this link sees. Nothing you click here reaches them, and this address expires in a few minutes."
             drive_archive: Download everything (.zip)
             footer: This address is personal to you, please do not pass it on.
             footer_until: 'This address is personal to you and valid until {date}: please do not pass it on.'

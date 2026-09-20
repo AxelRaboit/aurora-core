@@ -24,6 +24,14 @@ interface SpaceAccessLinkManagerInterface
         bool $canSeeDrive = true,
     ): SpaceAccessLinkInterface;
 
+    /**
+     * Un aperçu de ce lien, valable quelques minutes et incapable d'écrire.
+     *
+     * Le jeton en clair du lien rendu est lisible une seule fois, comme pour
+     * tout lien fraîchement émis.
+     */
+    public function preview(SpaceAccessLinkInterface $source): SpaceAccessLinkInterface;
+
     public function revoke(SpaceAccessLinkInterface $link): void;
 
     public function delete(SpaceAccessLinkInterface $link): void;

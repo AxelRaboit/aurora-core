@@ -176,7 +176,13 @@ final class PublicSpaceController extends AbstractController
 
         $link = $this->links->resolveUsable($selector, $token);
 
-        if (!$link instanceof SpaceAccessLinkInterface || !$link->canApprove()) {
+        // **`isPreview()` avant le droit, et sur les six écritures.** Un
+        // aperçu recopie les droits du lien qu'il montre pour que l'écran soit
+        // le même ; il ne doit pas pour autant pouvoir répondre. Sans cette
+        // ligne, un clic distrait sur « Validé » enregistrerait une réponse au
+        // nom du client, et rien dans l'espace ne dirait qu'elle vient d'un
+        // aperçu.
+        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canApprove()) {
             throw $this->createNotFoundException();
         }
 
@@ -231,7 +237,7 @@ final class PublicSpaceController extends AbstractController
 
         $link = $this->links->resolveUsable($selector, $token);
 
-        if (!$link instanceof SpaceAccessLinkInterface || !$link->canComment()) {
+        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canComment()) {
             throw $this->createNotFoundException();
         }
 
@@ -290,7 +296,7 @@ final class PublicSpaceController extends AbstractController
 
         $link = $this->links->resolveUsable($selector, $token);
 
-        if (!$link instanceof SpaceAccessLinkInterface || !$link->canUpload()) {
+        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canUpload()) {
             throw $this->createNotFoundException();
         }
 
@@ -391,7 +397,7 @@ final class PublicSpaceController extends AbstractController
     {
         $link = $this->links->resolveUsable($selector, $token);
 
-        if (!$link instanceof SpaceAccessLinkInterface || !$link->canComment()) {
+        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canComment()) {
             throw $this->createNotFoundException();
         }
 
@@ -437,7 +443,7 @@ final class PublicSpaceController extends AbstractController
 
         $link = $this->links->resolveUsable($selector, $token);
 
-        if (!$link instanceof SpaceAccessLinkInterface || !$link->canComment()) {
+        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canComment()) {
             throw $this->createNotFoundException();
         }
 
@@ -525,7 +531,7 @@ final class PublicSpaceController extends AbstractController
 
         $link = $this->links->resolveUsable($selector, $token);
 
-        if (!$link instanceof SpaceAccessLinkInterface || !$link->canComment()) {
+        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canComment()) {
             throw $this->createNotFoundException();
         }
 

@@ -40,6 +40,7 @@ final readonly class SpaceAccessViewBuilder
             'deletePath' => $this->pathTemplates->generate('workspace_space_access_delete', ['id' => $space->getId(), 'linkId' => '__id__']),
             // La case du Drive ne s'offre que si l'espace en a un.
             'driveFolderId' => $space->getDriveFolderId(),
+            'previewPath' => $this->pathTemplates->generate('workspace_space_access_preview', ['id' => $space->getId(), 'linkId' => '__id__']),
         ];
     }
 

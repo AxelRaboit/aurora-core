@@ -864,6 +864,7 @@ backend:
             intro: Un lien ouvre cet espace en lecture seule, sans compte. Il est personnel, il expire, et il se révoque.
             issue: Créer un lien
             issued: Lien créé.
+            preview: Aperçu
             revoke: Révoquer
             revoked: Lien révoqué.
             deleted: Lien supprimé.
@@ -1316,6 +1317,7 @@ studio:
             unavailable_message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez le plan de contenu d'un espace, demandez un nouveau lien à votre interlocuteur.
             timezone_notice: 'Heures en {timezone}'
             calendar_day_empty: Rien de prévu ce jour-là.
+            preview_notice: "Aperçu : voici ce que voit le destinataire de ce lien. Rien de ce que vous cliquez ici ne lui est envoyé, et cette adresse expire dans quelques minutes."
             drive_title: Documents partagés
             drive_download: Télécharger le fichier
             drive_archive: Tout télécharger (.zip)

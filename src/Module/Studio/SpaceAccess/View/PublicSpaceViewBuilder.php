@@ -78,6 +78,9 @@ final readonly class PublicSpaceViewBuilder
             'canApprove' => $link->canApprove(),
             'canComment' => $link->canComment(),
             'canUpload' => $link->canUpload(),
+            // La page le dit en haut : ce qu'on regarde n'est pas ce que le
+            // client a reçu, et rien de ce qu'on y clique ne part.
+            'preview' => $link->isPreview(),
             // The one address this page may post to, and only when it may.
             // A reader who cannot answer is handed no endpoint at all rather
             // than a button that would be refused.

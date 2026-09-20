@@ -172,6 +172,25 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
      */
     protected ?string $plainToken = null;
 
+    /**
+     * Le lien dont celui-ci est l'aperçu, ou null pour un vrai lien.
+     *
+     * **Un aperçu est un vrai lien, et c'est la seule façon qu'il dise vrai.**
+     * Le jeton en clair n'existe qu'à l'instant où un lien est créé ; il n'est
+     * pas relisible ensuite, c'est ce qui protège le client. Fabriquer les
+     * adresses de la page à partir d'un jeton inventé donne une page qui
+     * s'affiche et dont rien ne répond : ni le dossier Drive, ni les fichiers.
+     * Un aperçu doit donc être émis pour de bon, avec ses propres octets.
+     *
+     * Ce qui le distingue tient dans cette colonne, et elle décide de trois
+     * choses : il n'apparaît pas dans la liste des liens, il ne vit que
+     * quelques minutes, et **il n'écrit rien**, quels que soient les droits
+     * qu'il recopie.
+     */
+    #[ORM\ManyToOne(targetEntity: SpaceAccessLinkInterface::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    protected ?SpaceAccessLinkInterface $previewOf = null;
+
     public function __construct()
     {
         $this->createdAt = new DateTimeImmutable();
@@ -192,6 +211,29 @@ abstract class AbstractSpaceAccessLink implements SpaceAccessLinkInterface
         $this->hashedToken = self::hashToken($this->plainToken);
 
         return $this->plainToken;
+    }
+
+    public function getPreviewOf(): ?SpaceAccessLinkInterface
+    {
+        return $this->previewOf;
+    }
+
+    public function setPreviewOf(?SpaceAccessLinkInterface $previewOf): static
+    {
+        $this->previewOf = $previewOf;
+
+        return $this;
+    }
+
+    /**
+     * Est-ce un aperçu ?
+     *
+     * Posée ici parce que trois endroits la posent : la liste qui l'exclut,
+     * les écritures qui le refusent, et la page qui l'annonce.
+     */
+    public function isPreview(): bool
+    {
+        return $this->previewOf instanceof SpaceAccessLinkInterface;
     }
 
     public static function hashToken(string $token): string
