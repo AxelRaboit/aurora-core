@@ -38,6 +38,24 @@ propose plus au-delà de la borne, et dit ce qu'il faut faire à la place.
 L'adresse, elle, rend un 404 - une adresse tapée à la main n'a pas à recevoir
 d'explication.
 
+### Ajouté
+
+#### Une page de déploiement sur les délais du serveur web
+`docs/aurora-client/deployment/web_server_timeouts.md` : ce qui se coupe au
+bout de cinq minutes chez Apache et pourquoi `max_execution_time` ne rattrape
+rien, l'équivalent nginx, et le fait que **Caddy n'a pas le problème** - son
+`read_timeout` FastCGI et ses délais de serveur sont illimités par défaut,
+seul `dial_timeout` vaut trois secondes.
+
+La page dit aussi comment vérifier que le réglage gouverne vraiment, parce que
+sa présence dans un fichier ne le prouve pas : suivant la façon dont la
+distribution déclare le connecteur FastCGI, le délai peut venir d'ailleurs.
+
+### Modifié
+
+#### La page du tableau de bord annonçait quatre modules
+Il y en a cinq depuis que le Studio a le sien. Capture refaite.
+
 ---
 
 ## [0.9.206] - 2026-09-19
