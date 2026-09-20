@@ -228,6 +228,50 @@ php bin/console doctrine:migrations:diff
 
 ---
 
+## 5ter. Le jeu de démonstration
+
+Depuis le retrait du manuel du back-office (0.9.209), **ce qui n'est plus
+documenté par écrit doit être visible à l'écran du premier coup**. Le jeu de
+démonstration n'est donc plus un décor : c'est la seule chose qui montre ce que
+le produit sait faire, aux prospects comme à soi-même.
+
+**Une fonctionnalité n'est pas finie tant que la démo ne la montre pas.** Chaque
+entité nouvelle ajoute ses lignes dans la `*DemoFixtures` de son module, et tout
+enum de statut a **un exemplaire par cas**. Un état qu'on ne voit jamais est un
+état dont personne ne sait de quoi il a l'air : la démo a longtemps produit
+quatre statuts de contrat sur neuf, et c'est l'absence de l'un d'eux qui faisait
+échouer un parcours entier.
+
+**Neutre mais plausible.** Personnes et entreprises inventées, jamais de donnée
+réelle, jamais de logo qui appartient à quelqu'un. Adresses en `.test` ou
+`example.com`. Les SIRET passent le contrôle de Luhn, parce que le validateur
+est réel, et n'appartiennent à personne. Les titres et libellés sont en français
+court et crédible : ce sont eux qu'on lit sur un écran de démonstration. Le
+lorem est réservé aux corps longs que personne ne lit.
+
+**Les images sont des aplats de couleur, jamais des photographies.** Une image
+qui a un sujet raconte autre chose que le produit - on regarde le chat, pas la
+médiathèque. `GedDemoFixtures::drawPlaceholder()` en dessine un dont la teinte
+dérive du nom de fichier, donc stable d'une machine à l'autre.
+
+**Toutes les dates sont relatives à aujourd'hui.** Une date écrite en dur donne
+un calendrier vide six mois plus tard, et une démonstration vide est pire que
+pas de démonstration.
+
+```bash
+make demo         # ajoute ce qui manque, ne touche à rien d'existant
+make demo-reset   # repart de rien : base, fichiers déposés, séquences
+```
+
+`make demo` est idempotent **au point de ne rien rafraîchir** : les fixtures
+retrouvent un document par son titre, un espace par son nom, et les laissent
+tels quels. Comme les dates sont relatives, la démo se décale d'un jour par jour
+sans qu'aucun rechargement ne la remette d'aplomb. `make demo-reset` est le
+geste à faire avant toute campagne de captures, et il doit donner **deux fois de
+suite exactement le même état**.
+
+---
+
 ## 5bis. Storage des fichiers
 
 **Ne jamais lire `app.upload_dir`.** Tout ce qu'Aurora écrit passe par

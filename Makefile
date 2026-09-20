@@ -255,6 +255,31 @@ demo: ## Load demo fixtures + run all syncs (idempotent, keeps stored files)
 	$(CONSOLE) aurora:privileges:sync
 	@echo "✅ Demo data loaded"
 
+# Le geste a faire avant toute campagne de captures, et quand la demo a
+# vieilli.
+#
+# **`make demo` ne rafraichit pas, par construction.** Ses fixtures sont
+# idempotentes : elles retrouvent un document par son titre, un espace par son
+# nom, et le laissent tel quel. Planning va plus loin et n'ensemence rien des
+# qu'un calendrier existe, parce qu'un ensemencement partiel serait pire que
+# rien. Comme toutes les dates sont relatives a aujourd'hui, la demo se decale
+# d'un jour par jour et aucun rechargement ne la remet d'aplomb.
+#
+# Celle-ci repart de rien : base, fichiers deposes, sequences. C'est la seule
+# facon d'obtenir deux fois de suite le meme etat.
+demo-reset: stop-dev-worker ## Rebuild the demo from scratch (drops the DB and the stored files)
+	$(CONSOLE) doctrine:database:drop --force --if-exists
+	$(CONSOLE) doctrine:database:create --if-not-exists
+	$(CONSOLE) doctrine:migrations:migrate --no-interaction
+	$(CONSOLE) aurora:install
+	@$(MAKE) --no-print-directory purge-uploads
+	$(CONSOLE) doctrine:fixtures:load --group=demo --no-interaction --append
+	$(CONSOLE) aurora:application-parameter
+	$(CONSOLE) aurora:privileges:sync
+	$(CONSOLE) aurora:sequences:resync
+	@echo "✅ Demo rebuilt from scratch"
+	@echo "↻  Restart the worker: make start-dev-worker"
+
 fixtures-load: ## Load fixtures without dropping DB
 	$(CONSOLE) aurora:install
 	$(CONSOLE) doctrine:fixtures:load --no-interaction --append
@@ -359,8 +384,13 @@ test-frontend: translation ## Run frontend unit tests (Vitest)
 test-e2e: ## Run end-to-end tests (Playwright)
 	$(PNPM) --dir=$(AURORA) run test:e2e
 
+# Les rapports sont nommés ici et non dans `phpunit.dist.xml` : declares
+# la-bas, ils etaient produits a chaque lancement de la suite, y compris pour
+# un seul fichier de test.
 coverage: db-test ## Generate PHP code coverage report (requires php8.4-pcov)
-	$(PHP_BIN) -d pcov.enabled=1 $(AURORA)/bin/phpunit --coverage
+	$(PHP_BIN) -d pcov.enabled=1 -d memory_limit=-1 $(AURORA)/bin/phpunit \
+		--coverage-html=var/coverage \
+		--coverage-text --only-summary-for-coverage-text
 
 db-test: ## Create and migrate the test database
 	$(CONSOLE) doctrine:database:create --env=test --if-not-exists

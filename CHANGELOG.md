@@ -5,6 +5,127 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.209] - 2026-09-20
+
+### Supprimé
+
+#### Le manuel du back-office
+Cent dix pages et deux cent soixante-trois captures, trente-trois mégaoctets dont
+quatre-vingt-dix-sept pour cent d'images, s'en vont avec l'écran qui les servait.
+
+**Il coûtait plus qu'il ne rapportait, et la dernière régénération l'a montré en
+trois temps.** Deux cent deux captures sur deux cent soixante-trois ont changé alors
+que presque aucun écran n'avait bougé - des dates, des pastilles, des données de
+démonstration qui dérivent : un diff que personne ne peut relire. L'une d'elles
+s'était dégradée sans bruit, une image nommée « le bas de l'onglet » montrant le
+haut, parce que les défilements du scénario agissaient sur le menu de gauche et non
+sur la page. Et un parcours ne passait plus du tout, faute d'un contrat au bon
+statut que les parcours précédents avaient consommé.
+
+Trois défauts, trois natures, sur un actif que personne ne relit. Un manuel qu'on
+n'ouvre pas et qui retarde sur le produit apprend surtout à se méfier de lui.
+
+Ce qui le remplace s'écrit **dans** les écrans, avec ce que le produit a déjà : la
+modale d'aide d'un sujet, la ligne d'explication sous un champ, et l'état vide qui
+dit quoi faire. Rien à photographier, rien à tenir en phase, et l'explication est là
+où la question se pose.
+
+Partent avec lui l'outillage de capture (`tools/doc-screenshots/`), les trois
+fichiers de tests du module, son guide de rédaction et la convention qui déclarait
+une fonctionnalité inachevée tant qu'une page ne la décrivait pas. Les captures de
+la page publique de présentation, elles, restent : ce sont d'autres images, et un
+autre outil.
+
+Aucune migration, aucun privilège, aucun réglage, aucun lien à réparer : le module ne
+tenait au reste que par une entrée de menu, une couleur de section et deux
+paramètres.
+
+### Modifié
+
+#### Le jeu de démonstration devient ce qui explique le produit
+C'est la contrepartie du manuel qui s'en va : **ce qui n'est plus décrit par écrit
+doit être visible à l'écran du premier coup**.
+
+**Les neuf états d'un contrat existent maintenant**, contre quatre. Scellé, Ouvert,
+Signé par le client, Expiré et Révoqué ne se voyaient nulle part : ni en apprenant le
+module, ni sur une capture, ni dans un parcours automatisé - c'est d'ailleurs
+l'absence d'un contrat « envoyé mais pas encore ouvert » qui faisait échouer un
+parcours entier, faute de ligne à cliquer. Un enum de statut est une promesse faite
+au lecteur, et chacun de ses cas doit être représentable.
+
+**Les liens d'accès client montrent chaque droit dans les deux positions**, plus un
+lien révoqué et un lien expiré. L'écran en affichait deux, aux mêmes droits, valides
+tous les deux : il n'apprenait ni ce qu'un lien retiré devient, ni qu'un lecteur peut
+n'avoir que le droit de lire, ni qu'on peut ouvrir un espace sans ouvrir son Drive.
+
+**Un espace porte un dossier Drive et un mot de passe.** Un réglage qu'aucune donnée
+ne porte est un réglage que personne ne voit : l'écran des réglages sortait toujours
+vide et l'onglet Drive toujours ouvert.
+
+#### `make demo-reset`, pour repartir de rien
+`make demo` est idempotent **au point de ne rien rafraîchir** : les fixtures
+retrouvent un document par son titre, un espace par son nom, et les laissent tels
+quels. Comme toutes les dates sont relatives à aujourd'hui, la démonstration se
+décale d'un jour par jour sans qu'aucun rechargement ne la remette d'aplomb.
+
+La nouvelle cible repart de la base vide, des fichiers déposés et des séquences.
+Vérifié : deux passages de suite rendent exactement le même état.
+
+### Corrigé
+
+#### Quinze documents de démonstration sur trente-trois n'avaient aucun fichier
+Une ligne, et un chiffre. `dirname(__DIR__, 4)` visait `~/dev/test_files`, quatre
+niveaux au-dessus du dépôt, là où la bonne résolution se trouvait vingt lignes plus
+haut dans le même fichier. Aucune source n'était donc trouvée : ni fichier, ni
+poids, ni vignette, une médiathèque de démonstration faite de lignes vides. Les onze
+PDF ont aujourd'hui leur vignette, qu'aucun n'avait.
+
+Le test censé l'attraper ne lisait que **l'autre moitié** de la liste. Il lit
+maintenant les deux, et vérifie surtout que chaque racine construite par la fixture
+existe - la garantie qui manquait, puisqu'une liste de fichiers ne peut rien révéler
+quand ils sont tous introuvables ensemble.
+
+Au passage, le commentaire qui expliquait le repli affirmait que `test_files/` n'est
+pas livré avec le dépôt. C'était faux, six fichiers y sont suivis : le raisonnement
+partait du symptôme.
+
+#### Sept tests de bout en bout sur huit étaient morts
+Ils se connectaient à `admin@aurora.app`, qu'aucune fixture ne sème, puis visitaient
+`/login` et `/admin/*` - **sept adresses qui rendent 404 depuis le renommage
+d'avril**, dont `/admin/crm/contacts`, un module qui n'existe plus du tout. Rien ne
+les lançait, ni la porte ni la CI, donc rien ne l'avait jamais dit.
+
+Lancés pour en avoir le cœur net : **dix-sept échecs, quatre succès**, et les quatre
+sont tous dans le même fichier, celui qui teste le site public. Les sept autres
+partent. `make test-e2e` passe maintenant, en six secondes au lieu d'une minute
+d'attentes à vide.
+
+Un test qui ne tourne jamais ne protège de rien, et un test qui échouerait s'il
+tournait apprend à ignorer les échecs.
+
+#### La couverture de code était calculée à chaque lancement de la suite
+Le bloc `coverage` de `phpunit.dist.xml` déclarait deux rapports. Un rapport
+déclaré dans la configuration est un rapport **demandé à chaque appel**, donc la
+couverture était collectée et deux fichiers écrits pour lancer un seul fichier de
+test.
+
+Mesuré sur la suite unitaire : **trente-quatre secondes avec, quatorze sans**. Le
+rapport HTML finissait aussi par épuiser les cinq cent douze mégaoctets, ce qui
+faisait échouer la porte sur autre chose qu'un test - un échec qui se lit comme une
+régression et n'en est pas une, ce qui est la pire espèce.
+
+La couverture se demande maintenant quand on la veut, par `make coverage`, qui
+allume pcov, lève le plafond mémoire et nomme ses rapports.
+
+### Dans aurora-client
+`make aurora-update`. Rien d'autre : l'entrée « Documentation » disparaît du menu, et
+son adresse ne répond plus.
+
+Le jeu de démonstration ne concerne que le développement local. Pour le remettre à
+neuf : `make demo-reset`, qui vide la base **et les fichiers déposés**.
+
+---
+
 ## [0.9.208] - 2026-09-20
 
 ### Ajouté

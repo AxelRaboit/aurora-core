@@ -149,7 +149,7 @@ Login admin via les fixtures :
 
 | Champ | Valeur |
 |---|---|
-| Email | `marie.dupont@aurora.app` (ou autre admin selon les fixtures du projet - chercher `ROLE_ADMIN` ou `ROLE_DEV` en DB) |
+| Email | `dev@aurora.app` (le compte que `AppFixtures` sème toujours ; les autres dépendent des fixtures de démonstration du projet) |
 | Mot de passe | `password` (convention fixtures aurora) |
 
 ```bash
