@@ -17,7 +17,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-use function mb_strlen;
 use function mb_trim;
 use function preg_match;
 
@@ -39,15 +38,6 @@ final class SpaceSettingsController extends AbstractController
 {
     use JsonRequestTrait;
     use JsonResponseTrait;
-
-    /**
-     * Ce qu'un mot de passe doit peser au minimum.
-     *
-     * Huit, le même plancher que partout ailleurs. Plus haut ici serait plus
-     * sévère pour une porte intérieure que pour la porte d'entrée, ce qui ne
-     * se justifie pas.
-     */
-    private const int MIN_LENGTH = 8;
 
     /**
      * Ce que Google accepte comme identifiant, et ce qu'une adresse de dossier
@@ -130,7 +120,7 @@ final class SpaceSettingsController extends AbstractController
             return $this->jsonFailure('backend.studio.spaces.settings.errors.wrong_password');
         }
 
-        if (mb_strlen($password) < self::MIN_LENGTH) {
+        if (!$this->lock->isAcceptable($password)) {
             return $this->jsonFailure('backend.studio.spaces.settings.errors.password_too_short');
         }
 
@@ -234,7 +224,7 @@ final class SpaceSettingsController extends AbstractController
             'driveFolderId' => $space->getDriveFolderId(),
             'driveLocked' => $space->isDriveLocked(),
             'driveUnlocked' => $this->lock->isUnlocked($space),
-            'minPasswordLength' => self::MIN_LENGTH,
+            'minPasswordLength' => DriveLock::MIN_LENGTH,
         ];
     }
 

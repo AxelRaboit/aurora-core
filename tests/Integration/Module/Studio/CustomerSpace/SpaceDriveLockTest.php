@@ -14,8 +14,11 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Tester\CommandTester;
 
 use function json_decode;
 use function sprintf;
@@ -236,6 +239,47 @@ final class SpaceDriveLockTest extends IntegrationTestCase
         $this->post($space, '/drive-revoke', []);
 
         self::assertSame(400, $this->client->getResponse()->getStatusCode());
+    }
+
+    /**
+     * Le secours, quand le mot de passe est perdu.
+     *
+     * **La seule porte de sortie d'un oubli**, et celle qu'on n'essaie
+     * jamais : quand on en a besoin, un client attend, et découvrir à ce
+     * moment-là qu'elle ne marche pas ne laisse plus aucune issue. Elle
+     * referme aussi les sessions en cours, sans quoi effacer un mot de passe
+     * depuis le serveur laisserait dedans ceux qui y étaient.
+     */
+    public function testTheRescueCommandReopensTheTabAndClosesTheSessions(): void
+    {
+        $space = $this->givenSpace();
+        $this->post($space, '/drive-password', ['password' => self::PASSWORD]);
+        $this->post($space, '/drive-unlock', ['password' => self::PASSWORD]);
+        self::assertTrue($this->driveOpen($space));
+
+        $generation = $this->reload($space)->getDriveLockGeneration();
+
+        $command = new CommandTester(
+            (new Application(static::$kernel))->find('aurora:space:drive-password:clear')
+        );
+        $command->execute(['space' => (string) $space->getId()]);
+
+        self::assertSame(Command::SUCCESS, $command->getStatusCode());
+
+        $fresh = $this->reload($space);
+        self::assertFalse($fresh->isDriveLocked());
+        self::assertNotSame($generation, $fresh->getDriveLockGeneration(), 'la génération n\'a pas bougé');
+    }
+
+    /** Sur un espace qui n\'existe pas, elle le dit plutôt que de ne rien faire. */
+    public function testTheRescueCommandFailsOnAnUnknownSpace(): void
+    {
+        $command = new CommandTester(
+            (new Application(static::$kernel))->find('aurora:space:drive-password:clear')
+        );
+        $command->execute(['space' => '999999']);
+
+        self::assertSame(Command::FAILURE, $command->getStatusCode());
     }
 
     /**

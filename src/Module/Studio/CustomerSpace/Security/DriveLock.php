@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\CustomerSpace\Security;
 
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 use function bin2hex;
+use function mb_strlen;
 use function random_bytes;
 use function sprintf;
 
@@ -43,6 +46,19 @@ final readonly class DriveLock
 {
     private const string SESSION_PREFIX = 'studio.drive.unlocked.';
 
+    /**
+     * Ce qu'un mot de passe doit peser au minimum.
+     *
+     * **Ici et non dans le contrôleur qui le lisait.** La serrure est ce qui
+     * sait ce qu'est un mot de passe d'espace ; l'écran ne fait que le
+     * demander. Le jour où un second appelant en pose un, il n'aura pas à
+     * retrouver le chiffre pour être d'accord.
+     *
+     * Huit, le même plancher que partout ailleurs : plus sévère pour une
+     * porte intérieure que pour la porte d'entrée ne se justifierait pas.
+     */
+    public const int MIN_LENGTH = 8;
+
     public function __construct(
         private RequestStack $requests,
         private PasswordHasherFactoryInterface $hashers,
@@ -67,7 +83,7 @@ final readonly class DriveLock
             return false;
         }
 
-        return $generation === $this->requests->getSession()->get($this->key($space));
+        return $generation === $this->session()?->get($this->key($space));
     }
 
     /**
@@ -90,7 +106,7 @@ final readonly class DriveLock
             $space->setDriveLockGeneration(bin2hex(random_bytes(8)));
         }
 
-        $this->requests->getSession()->set($this->key($space), $space->getDriveLockGeneration());
+        $this->session()?->set($this->key($space), $space->getDriveLockGeneration());
 
         return true;
     }
@@ -98,7 +114,13 @@ final readonly class DriveLock
     /** Referme dans cette session, sans toucher au mot de passe. */
     public function lock(CustomerSpaceInterface $space): void
     {
-        $this->requests->getSession()->remove($this->key($space));
+        $this->session()?->remove($this->key($space));
+    }
+
+    /** Assez long pour être posé. */
+    public function isAcceptable(string $password): bool
+    {
+        return mb_strlen($password) >= self::MIN_LENGTH;
     }
 
     public function matches(CustomerSpaceInterface $space, string $password): bool
@@ -168,6 +190,21 @@ final readonly class DriveLock
     private function hasher(): PasswordHasherInterface
     {
         return $this->hashers->getPasswordHasher(PasswordAuthenticatedUserInterface::class);
+    }
+
+    /**
+     * La session, s'il y en a une.
+     *
+     * **Nulle en console**, et c'est ce qui permet à la commande de secours
+     * d'appeler `clear()` comme l'écran plutôt que de rouvrir la porte à sa
+     * façon. Deux manières d'effacer un mot de passe finissent toujours par
+     * diverger, et c'est la moins souvent exécutée qui a tort.
+     */
+    private function session(): ?SessionInterface
+    {
+        $request = $this->requests->getCurrentRequest();
+
+        return $request instanceof Request && $request->hasSession() ? $request->getSession() : null;
     }
 
     private function key(CustomerSpaceInterface $space): string

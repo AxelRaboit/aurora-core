@@ -6,6 +6,7 @@ namespace Aurora\Module\Studio\CustomerSpace\Command;
 
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\CustomerSpace\Security\DriveLock;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -39,6 +40,7 @@ final class ClearDrivePasswordCommand extends Command
 {
     public function __construct(
         private readonly CustomerSpaceRepository $spaces,
+        private readonly DriveLock $lock,
         private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
@@ -70,7 +72,9 @@ final class ClearDrivePasswordCommand extends Command
             return Command::SUCCESS;
         }
 
-        $space->setDrivePassword(null);
+        // La serrure et non `setDrivePassword(null)` : elle tire aussi une
+        // nouvelle génération, et c'est elle qui sait ce qu'effacer veut dire.
+        $this->lock->clear($space);
         $this->entityManager->flush();
 
         $io->success(sprintf('L\'onglet Drive de « %s » est rouvert.', $space->getName()));
