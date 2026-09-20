@@ -145,7 +145,7 @@ final class SpaceChatTest extends IntegrationTestCase
         $messages = $this->payload()['chatMessages'];
         self::assertCount(1, $messages);
         self::assertTrue($messages[0]['fromClient']);
-        self::assertSame('camille@societe.test', $messages[0]['author']);
+        self::assertSame('Camille, gérante', $messages[0]['author']);
 
         // And the studio reads the same row, because it is one conversation.
         $this->client->request('GET', sprintf('/workspace/%d/chat/%d/messages', $space->getId(), $this->mainChannel($space)));
@@ -181,7 +181,7 @@ final class SpaceChatTest extends IntegrationTestCase
             ->findBy(['recipient' => $this->admin, 'type' => 'studio.space.chat']);
 
         self::assertCount(1, $notifications);
-        self::assertSame('camille@societe.test vous a écrit', $notifications[0]->getTitle());
+        self::assertSame('Camille, gérante vous a écrit', $notifications[0]->getTitle());
         self::assertSame($space->getName(), $notifications[0]->getBody());
     }
 
@@ -443,6 +443,7 @@ final class SpaceChatTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $space->getId()), [
             'recipientEmail' => 'camille@societe.test',
+            'label' => 'Camille, gérante',
             'canComment' => $canComment,
         ]);
 

@@ -96,14 +96,28 @@ class SpaceChatChannelRepository extends ResolveTargetEntityRepository
      */
     public function findForLink(CustomerSpaceInterface $space, SpaceAccessLinkInterface $link): array
     {
+        // **Les canaux ouverts au client, et rien d'autre.**
+        //
+        // La seconde branche rendait aussi les conversations privées dont ce
+        // lien était membre. Elle est partie avec la route qui les ouvrait :
+        // une personne sans compte n'a pas de conversation privée, et le
+        // droit qui l'autorisait - « peut commenter » - en disait tout autre
+        // chose.
+        //
+        // La garde vit ici plutôt que dans le contrôleur parce qu'elle vaut
+        // aussi pour les conversations ouvertes avant ce changement : elles
+        // restent en base, lisibles du salarié, et ne remontent plus jamais
+        // vers un lien.
+        //
+        // `$link` reste dans la signature : l'appelant dit de quel lien il
+        // parle, et la prochaine règle qui dépendra de lui n'aura pas à
+        // retraverser tous les appels.
         return $this->createQueryBuilder('c')
-            ->leftJoin('c.members', 'm')
             ->where('c.space = :space')
-            ->andWhere('(c.openToClient = true AND c.kind != :direct) OR (m.link = :link AND m.hiddenAt IS NULL)')
+            ->andWhere('c.openToClient = true')
+            ->andWhere('c.kind != :direct')
             ->setParameter('space', $space)
             ->setParameter('direct', SpaceChatChannelKindEnum::Direct)
-            ->setParameter('link', $link)
-            ->groupBy('c.id')
             ->orderBy('c.position', Order::Ascending->value)
             ->addOrderBy('c.id', Order::Ascending->value)
             ->getQuery()

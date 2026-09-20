@@ -216,6 +216,7 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $space->getId()), [
             'recipientEmail' => 'pas-une-adresse',
+            'label' => 'Un nom valide',
         ]);
 
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
@@ -242,6 +243,7 @@ final class SpaceAccessLinkTest extends IntegrationTestCase
     {
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $space->getId()), [
             'recipientEmail' => $email,
+            'label' => 'Camille, gérante',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());

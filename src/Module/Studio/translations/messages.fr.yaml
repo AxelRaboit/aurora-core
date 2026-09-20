@@ -1342,6 +1342,10 @@ studio:
             no_body: Le texte n'est pas encore écrit.
             thread_notice: Ce que vous écrivez ici est lu par votre prestataire.
             chat_notice: Ce que vous écrivez ici est lu par votre prestataire.
+            tabs_label: Ce que vous voulez voir
+            tab_calendar: Calendrier
+            tab_chat: Discussion
+            tab_files: Documents
             files_title: Les fichiers de cet espace
             files_open: Ouvrir
             upload_notice: "Images, PDF et vidéos courantes, 25 Mo maximum. Ce que vous envoyez ici est visible par votre prestataire."

@@ -1331,6 +1331,10 @@ studio:
             no_body: The text is not written yet.
             thread_notice: What you write here is read by your agency.
             chat_notice: What you write here is read by your agency.
+            tabs_label: What you want to see
+            tab_calendar: Calendar
+            tab_chat: Conversation
+            tab_files: Documents
             files_title: This space's files
             files_open: Open
             upload_notice: "Images, PDF and common videos, 25 MB at most. What you send here is visible to your agency."

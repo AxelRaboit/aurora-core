@@ -21,7 +21,10 @@ shared:
     channels:
       label: Channels
       new: New channel
-      new_hint: "A channel starts between you. You can open it to the client later, from its settings."
+      new_hint: "A channel has a name and an audience. Both can be changed later from its settings."
+      new_open_to_client: Open this channel to the client
+      new_open_to_client_hint: "Anyone holding an access link to this space will read this channel."
+      new_internal_hint: "The channel stays between you. The client does not see it, and knows neither its name nor that it exists."
       name_placeholder: Channel name
       name_example: "e.g. Next month"
       create: Open
@@ -30,6 +33,7 @@ shared:
       delete: Delete channel
       delete_confirm: "Delete this channel? Its messages go with it."
       internal: internal
+      client_reads: read by the client
       open_to_client: Open to the client
       close_to_client: Close to the client
       invite: Add somebody

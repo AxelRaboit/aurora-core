@@ -11,15 +11,22 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+use function base64_decode;
+use function bin2hex;
+use function file_put_contents;
 use function json_decode;
+use function random_bytes;
 use function sprintf;
+use function sys_get_temp_dir;
 
 /**
  * Ce qu'un lien d'accès ne montre pas.
@@ -69,7 +76,7 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        foreach ([SpaceContentItem::class, SpaceContentColumn::class, SpaceAccessLink::class, CustomerSpace::class, Customer::class] as $class) {
+        foreach ([SpaceContentAttachment::class, SpaceContentItem::class, SpaceContentColumn::class, SpaceAccessLink::class, CustomerSpace::class, Customer::class] as $class) {
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', $class))->execute();
         }
 
@@ -112,6 +119,74 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         self::assertStringContainsString('Ce que le client voit', $after);
         self::assertStringNotContainsString('Relecture juridique interne', $after);
         self::assertStringNotContainsString($internal->getName(), $after);
+    }
+
+    /**
+     * Une étape interne emporte aussi son fil et ses fichiers.
+     *
+     * **C'est la moitié qui manquait, et la plus grave.** Les fiches
+     * traversaient le tamis des colonnes visibles ; les commentaires et les
+     * pièces jointes non. Le fil d'une étape marquée interne et ses fichiers
+     * partaient donc dans la source de la page du client, avec leurs adresses
+     * de téléchargement - invisibles à l'usage, puisque l'écran ne connaissait
+     * pas la fiche, et entiers pour qui lit le HTML.
+     *
+     * Le test ferme les deux moitiés : ce que la page porte, et ce que
+     * l'adresse rend. Filtrer la charge sans fermer la route n'aurait fait que
+     * cacher le lien, et un identifiant de pièce jointe est un petit entier.
+     */
+    public function testAnInternalStepTakesItsThreadAndItsFilesOutOfTheClientPage(): void
+    {
+        $space = $this->givenSpace();
+        $columns = $this->columns->findForSpace($space);
+        $internal = $columns[1];
+
+        $this->givenItem($space, $internal, 'Relecture juridique interne');
+        $item = $this->entityManager->getRepository(SpaceContentItem::class)
+            ->findOneBy(['title' => 'Relecture juridique interne']);
+        self::assertInstanceOf(SpaceContentItem::class, $item);
+
+        // Un fil et un fichier sur cette fiche, posés par le studio.
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/comments', $space->getId(), $item->getId()), [
+            'body' => 'Attention au nom du dirigeant dans le paragraphe deux.',
+        ]);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->client->request(
+            'POST',
+            sprintf('/workspace/%d/content/%d/attachments/upload', $space->getId(), $item->getId()),
+            [],
+            ['file' => $this->aJpeg('note-interne.jpg')],
+        );
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $attachment = $this->entityManager->getRepository(SpaceContentAttachment::class)
+            ->findOneBy(['item' => $item]);
+        self::assertInstanceOf(SpaceContentAttachment::class, $attachment);
+
+        $link = $this->givenLink($space);
+
+        // L'étape passe en interne.
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/%d/update', $space->getId(), $internal->getId()), [
+            'name' => $internal->getName(),
+            'visibleToClient' => false,
+        ]);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $page = $this->clientPage($link);
+
+        self::assertStringNotContainsString('Attention au nom du dirigeant', $page, 'le fil est dans la page');
+        self::assertStringNotContainsString('note-interne.jpg', $page, 'le fichier est dans la page');
+
+        // Et l'adresse, que la page ne montre plus, ne rend plus rien.
+        $this->client->request('GET', sprintf(
+            '/spaces/%s/%s/attachments/%d/file',
+            $link->getSelector(),
+            (string) $link->getPlainToken(),
+            $attachment->getId(),
+        ));
+
+        self::assertSame(404, $this->client->getResponse()->getStatusCode(), "l'adresse du fichier répond encore");
     }
 
     /**
@@ -192,6 +267,20 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         self::assertInstanceOf(CustomerSpace::class, $fresh);
 
         return $this->links->issue($fresh, $email, 'Le client', 30, true, true);
+    }
+
+    /** Le plus petit fichier que le renifleur appelle un JPEG. */
+    private function aJpeg(string $name): UploadedFile
+    {
+        $path = sys_get_temp_dir().'/'.bin2hex(random_bytes(4)).'-'.$name;
+        file_put_contents($path, (string) base64_decode(
+            '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a'
+            .'HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAA'
+            .'AAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AKp//2Q==',
+            true,
+        ));
+
+        return new UploadedFile($path, $name, 'image/jpeg', null, true);
     }
 
     private function givenSpace(): CustomerSpace

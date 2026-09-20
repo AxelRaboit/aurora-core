@@ -514,6 +514,7 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $space->getId()), [
             'recipientEmail' => 'camille@societe.test',
+            'label' => 'Camille, gérante',
             'canComment' => true,
         ]);
 

@@ -141,9 +141,15 @@ final readonly class PublicSpaceViewBuilder
      */
     public function comments(SpaceAccessLinkInterface $link): array
     {
+        $space = $link->getSpace();
+        $visible = $this->visibleItemIds($space);
         $byItem = [];
 
-        foreach ($this->commentRepository->findForSpaceByItem($link->getSpace()) as $itemId => $comments) {
+        foreach ($this->commentRepository->findForSpaceByItem($space) as $itemId => $comments) {
+            if (!isset($visible[(int) $itemId])) {
+                continue;
+            }
+
             $byItem[$itemId] = array_map($this->commentSerializer->serialize(...), $comments);
         }
 
@@ -161,9 +167,15 @@ final readonly class PublicSpaceViewBuilder
      */
     public function attachments(SpaceAccessLinkInterface $link, string $token): array
     {
+        $space = $link->getSpace();
+        $visible = $this->visibleItemIds($space);
         $byItem = [];
 
-        foreach ($this->attachmentRepository->findForSpaceByItem($link->getSpace()) as $itemId => $attachments) {
+        foreach ($this->attachmentRepository->findForSpaceByItem($space) as $itemId => $attachments) {
+            if (!isset($visible[(int) $itemId])) {
+                continue;
+            }
+
             $byItem[$itemId] = array_map(
                 // Addresses that go through the link rather than through GED's
                 // public catch-all, so that revoking an access revokes the
@@ -205,17 +217,47 @@ final readonly class PublicSpaceViewBuilder
         // colonne invisible dans le calendrier du client, qui les lit par
         // leur date et non par leur étape. C'est exactement l'écart qui aurait
         // rendu le réglage rassurant et inutile.
-        $visible = [];
+        $visible = $this->visibleItemIds($space);
+        $items = [];
+
+        foreach ($this->items->findForSpace($space) as $item) {
+            if (isset($visible[(int) $item->getId()])) {
+                $items[] = $this->itemSerializer->serialize($item);
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Les fiches qu'un client a le droit de voir, indexées par identifiant.
+     *
+     * **Le même tamis pour les trois listes, et c'est tout le sujet.** Les
+     * fiches le traversaient, les fils et les pièces jointes non : le fil
+     * d'une étape marquée interne et ses fichiers partaient dans la page du
+     * client, avec leurs adresses de téléchargement. L'écran n'en montrait
+     * rien parce qu'il ne connaissait pas la fiche, ce qui est la pire forme
+     * de fuite : invisible à l'usage, entière dans la source.
+     *
+     * Calculé une fois et partagé, plutôt que trois fois : le tableau d'un
+     * espace tient dans une poignée de colonnes, et le dépôt sert déjà les
+     * mêmes lignes au studio.
+     *
+     * @return array<int, true>
+     */
+    private function visibleItemIds(CustomerSpaceInterface $space): array
+    {
+        $columns = [];
 
         foreach ($this->visibleColumns($space) as $column) {
-            $visible[(int) $column->getId()] = true;
+            $columns[(int) $column->getId()] = true;
         }
 
         $items = [];
 
         foreach ($this->items->findForSpace($space) as $item) {
-            if (isset($visible[(int) $item->getColumn()->getId()])) {
-                $items[] = $this->itemSerializer->serialize($item);
+            if (isset($columns[(int) $item->getColumn()->getId()])) {
+                $items[(int) $item->getId()] = true;
             }
         }
 

@@ -5,6 +5,82 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.210] - 2026-09-20
+
+### Corrigé
+
+#### Une étape interne laissait passer son fil et ses fichiers
+Les fiches d'une colonne marquée interne étaient retirées de la page du client.
+Leurs **commentaires et leurs pièces jointes, non** : les deux listes partaient
+entières, et la route qui sert les octets ne vérifiait que l'appartenance à
+l'espace.
+
+L'écran n'en montrait rien, puisqu'il ne connaissait pas la fiche. C'est la pire
+forme de fuite : invisible à l'usage, entière dans la source, et l'identifiant
+d'une pièce jointe est un petit entier.
+
+Les trois listes traversent maintenant le même tamis, calculé une fois, et
+l'adresse d'un fichier de colonne interne rend 404. Mesuré avant d'alarmer : la
+production ne contient aucun espace client, donc rien n'a jamais fuité.
+
+### Modifié
+
+#### Un invité n'est plus signé par son adresse
+Ses messages, ses commentaires, ses fichiers et ses validations portaient son
+**adresse email**. Sur un espace qui compte plusieurs liens, chaque invité lisait
+donc les adresses des autres, sans l'avoir demandé ni pouvoir l'empêcher.
+
+Le lien portait pourtant déjà un libellé humain, qui ne servait nulle part. Il
+devient **obligatoire** à l'émission, et c'est lui qui signe. Une migration
+réécrit les lignes déjà posées ; pour un lien émis avant la règle, le nom se
+dérive de la partie gauche de l'adresse. Le studio, lui, continue de voir à qui
+il parle.
+
+#### Pas de compte, pas de conversation privée
+Un invité pouvait en ouvrir une avec n'importe quel membre de l'équipe, et
+recevait pour cela **l'annuaire nominatif de l'espace** avec les identifiants
+internes des comptes. Le droit qui l'autorisait était « peut commenter » :
+cocher une case pour permettre une remarque sous une publication ouvrait en
+réalité une messagerie vers les collaborateurs et livrait leurs noms.
+
+Ce qu'un client a à dire passe par un canal, que le studio ouvre quand il le
+décide. La garde vit dans le dépôt et non dans la route, donc elle vaut aussi
+pour les conversations ouvertes avant ce changement. Le studio garde les
+siennes entre collaborateurs.
+
+Deux routes publiques disparaissent avec, dont la seule écriture d'invité qui
+n'avait pas de limite de débit.
+
+#### L'audience d'un canal se décide en le créant
+Elle se réglait après coup. Le raisonnement tenait - décider une fois qu'il y a
+quelque chose dedans - mais il laissait la question sans réponse au moment où on
+se la pose, c'est-à-dire en nommant la pièce : « Le mois prochain » et « Entre
+nous » ne se nomment pas pareil selon qui les lit.
+
+La case reste décochée par défaut. Et la ligne d'un canal dessine désormais
+**les deux états** : un canal ouvert au client se déduisait d'une absence
+d'icône, ce qui se confond avec une icône qu'on n'a pas vue.
+
+#### La page d'un client se lit par onglets
+Calendrier, discussion et documents s'empilaient sur près de deux mille pixels :
+lire un message demandait de dépasser un mois entier, et retrouver un fichier de
+dépasser les deux. Sur téléphone, la page était un couloir.
+
+Trois onglets, du même vocabulaire que l'espace côté studio - c'est la même
+matière, et un client qui verrait son prestataire travailler ne devrait pas
+découvrir une seconde langue. Un onglet sans contenu n'existe pas, et une page à
+un seul onglet n'en dessine aucun. **Mille soixante-sept pixels** au lieu de
+mille sept cent quatre-vingt-un.
+
+### Dans aurora-client
+`make aurora-update`, puis `make migrate` : la 0.9.210 réécrit les noms d'auteur
+des lignes écrites par un invité.
+
+Le **libellé d'un lien d'accès devient obligatoire**. Les liens déjà émis
+continuent de fonctionner ; seule l'émission d'un nouveau lien réclame un nom.
+
+---
+
 ## [0.9.209] - 2026-09-20
 
 ### Supprimé

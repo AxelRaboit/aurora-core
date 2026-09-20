@@ -102,7 +102,9 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         self::assertCount(1, $thread);
         self::assertSame('Parfait.', $thread[0]->getBody());
         self::assertTrue($thread[0]->isFromClient());
-        self::assertSame('camille@societe.test', $thread[0]->getAuthorLabel());
+        // Le nom du lien, jamais son adresse : c'est ce que lisent les autres
+        // invités du même espace.
+        self::assertSame('Camille, gérante', $thread[0]->getAuthorLabel());
         // Who answered, by the address the link was sent to: there is no
         // account behind this.
         self::assertSame('camille@societe.test', $stored->getApprovalByLink()->getRecipientEmail());
@@ -305,6 +307,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $space->getId()), [
             'recipientEmail' => 'camille@societe.test',
+            'label' => 'Camille, gérante',
             'canApprove' => $canApprove,
         ]);
 

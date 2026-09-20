@@ -134,15 +134,15 @@ final readonly class SpaceChatViewBuilder
             'chatChannelId' => $open?->getId(),
             'chatMessages' => $open instanceof SpaceChatChannelInterface ? $this->messages($open) : [],
             'chatStreamUrl' => $this->hub->subscribeUrl($rooms),
-            // Le client ouvre une conversation privée s'il peut écrire : c'est
-            // le même droit, exercé avec une personne plutôt qu'avec l'espace.
-            'chatDirectPath' => $link->canComment()
-                ? $this->urlGenerator->generate('public_space_chat_direct', [
-                    'selector' => $link->getSelector(),
-                    'token' => $token,
-                ])
-                : null,
-            'chatPeople' => $link->canComment() ? $this->team($space) : [],
+            // **Ni chemin de conversation privée, ni annuaire.** Les deux
+            // sont partis ensemble : l'un ouvrait une messagerie vers les
+            // salariés à qui cochait « peut commenter », l'autre livrait
+            // leurs noms et les identifiants de leurs comptes à toute page
+            // publique. Une liste nominative de qui travaille chez vous n'a
+            // rien à faire dans la source d'une page dont l'adresse se
+            // transfère.
+            'chatDirectPath' => null,
+            'chatPeople' => [],
             'chatPostPath' => $link->canComment()
                 ? $this->pathTemplates->generate('public_space_chat_post', [
                     'selector' => $link->getSelector(),
@@ -161,13 +161,9 @@ final readonly class SpaceChatViewBuilder
                 'channelId' => '__channel__',
                 'beforeId' => '__before__',
             ]),
-            'chatHidePath' => $link->canComment()
-                ? $this->pathTemplates->generate('public_space_chat_hide', [
-                    'selector' => $link->getSelector(),
-                    'token' => $token,
-                    'channelId' => '__channel__',
-                ])
-                : null,
+            // Ranger un canal n'a de sens que pour une conversation privée,
+            // et un lien n'en voit plus.
+            'chatHidePath' => null,
         ];
     }
 

@@ -21,8 +21,9 @@
  * what is coming and when. The step travels as a word on the card, which is the
  * part that answers "where is this".
  */
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { CalendarDays, MessagesSquare, Paperclip } from "lucide-vue-next";
 import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -170,6 +171,54 @@ onMounted(async () => {
         // Silencieux : un dossier qu'on ne joint pas est une section qui ne
         // s'affiche pas, pas une erreur sur la page d'un client.
     }
+});
+
+/**
+ * Les trois choses qu'un client vient faire ici, et une seule à la fois.
+ *
+ * **La page les empilait, sur près de deux mille pixels.** Le calendrier, la
+ * discussion et les documents se suivaient, donc lire un message demandait de
+ * dépasser un mois entier, et retrouver un fichier de dépasser les deux. Sur
+ * téléphone la page devenait un couloir.
+ *
+ * Le même idiome qu'un espace côté studio, délibérément : c'est la même
+ * matière, et un client qui verrait son prestataire travailler ne devrait pas
+ * découvrir un second vocabulaire.
+ *
+ * Un onglet qui n'a rien à montrer n'existe pas : pas de discussion sans canal
+ * lisible, pas de documents sans fichier. Une page à un seul onglet n'en
+ * dessine aucun - un sélecteur à un choix est un ornement.
+ */
+const VIEWS = [
+    { key: "calendar", labelKey: "studio.public.space.tab_calendar", icon: CalendarDays },
+    { key: "chat", labelKey: "studio.public.space.tab_chat", icon: MessagesSquare },
+    { key: "files", labelKey: "studio.public.space.tab_files", icon: Paperclip },
+];
+
+const hasChat = computed(() => props.chatChannels.length > 0);
+const hasFiles = computed(() => props.spaceFiles.length > 0 || driveFiles.value.length > 0);
+
+const views = computed(() => VIEWS.filter((entry) => {
+    if ("chat" === entry.key) return hasChat.value;
+    if ("files" === entry.key) return hasFiles.value;
+
+    return true;
+}));
+
+const view = ref("calendar");
+
+/**
+ * Le calendrier se remesure en revenant dessus.
+ *
+ * `useNarrowContainer` observe un élément ; caché puis remonté, il repart
+ * d'une largeur nulle et la grille se croit sur téléphone. Un battement de
+ * cycle suffit à lui redonner sa taille.
+ */
+watch(view, async (now) => {
+    if ("calendar" !== now) return;
+
+    await nextTick();
+    window.dispatchEvent(new Event("resize"));
 });
 
 function driveAddress(file) {
@@ -364,82 +413,116 @@ function open(event) {
             {{ space.description }}
         </p>
 
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-1">
-                <button
-                    type="button"
-                    class="rounded-md p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-primary"
-                    :aria-label="t('shared.common.previous')"
-                    v-on:click="goToMonth(-1)"
-                >
-                    <ChevronLeft class="h-4 w-4" :stroke-width="2" />
-                </button>
-                <button
-                    type="button"
-                    class="rounded-md p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-primary"
-                    :aria-label="t('shared.common.next')"
-                    v-on:click="goToMonth(1)"
-                >
-                    <ChevronRight class="h-4 w-4" :stroke-width="2" />
-                </button>
-                <h2 class="ml-2 text-sm font-medium capitalize text-primary">
-                    {{ monthTitle }}
-                </h2>
-            </div>
-            <p class="text-xs text-muted">
-                {{ t("studio.public.space.timezone_notice", { timezone: space.timezone }) }}
-            </p>
+        <!-- Dessinée à partir du second onglet : un sélecteur à un choix
+             n'aide personne à choisir. La bande défile plutôt que de pousser
+             la page, et hors onglet actif le libellé reste au lecteur d'écran
+             sur téléphone - l'icône suffit à reconnaître une pièce où l'on est
+             déjà allé. -->
+        <div
+            v-if="views.length > 1"
+            class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+            role="group"
+            :aria-label="t('studio.public.space.tabs_label')"
+        >
+            <button
+                v-for="entry in views"
+                :key="entry.key"
+                type="button"
+                class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-2 text-sm transition-colors sm:px-2.5 sm:py-1"
+                :class="
+                    view === entry.key
+                        ? 'bg-surface font-medium text-primary shadow-sm'
+                        : 'text-muted hover:text-primary'
+                "
+                :aria-pressed="view === entry.key"
+                :title="t(entry.labelKey)"
+                v-on:click="view = entry.key"
+            >
+                <component :is="entry.icon" class="h-3.5 w-3.5 shrink-0" :stroke-width="2" />
+                <span :class="view === entry.key ? '' : 'sr-only sm:not-sr-only'">
+                    {{ t(entry.labelKey) }}
+                </span>
+            </button>
         </div>
 
-        <div ref="container" class="space-y-3">
-            <CalendarMonth
-                :cells="cells"
-                :events="events"
-                :compact="isNarrow"
-                :selected="isNarrow ? selectedDay : null"
-                v-on:open-event="open"
-                v-on:select-day="selectedDay = $event"
-            />
-
-            <!-- La grille dit quels jours portent quelque chose ; celle-ci dit
-                 quoi. L'une sans l'autre est illisible sur un téléphone. -->
-            <section v-if="isNarrow" class="rounded-xl border border-line/60 bg-surface">
-                <header class="flex items-baseline gap-2 border-b border-line/40 px-3 py-2">
-                    <h3 class="text-sm font-medium capitalize text-primary">
-                        {{ dayTitle }}
-                    </h3>
-                    <span class="text-xs tabular-nums text-muted">{{ dayItems.length }}</span>
-                </header>
-
-                <p v-if="!dayItems.length" class="px-3 py-3 text-xs text-muted">
-                    {{ t("studio.public.space.calendar_day_empty") }}
+        <template v-if="'calendar' === view">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-1">
+                    <button
+                        type="button"
+                        class="rounded-md p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+                        :aria-label="t('shared.common.previous')"
+                        v-on:click="goToMonth(-1)"
+                    >
+                        <ChevronLeft class="h-4 w-4" :stroke-width="2" />
+                    </button>
+                    <button
+                        type="button"
+                        class="rounded-md p-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-primary"
+                        :aria-label="t('shared.common.next')"
+                        v-on:click="goToMonth(1)"
+                    >
+                        <ChevronRight class="h-4 w-4" :stroke-width="2" />
+                    </button>
+                    <h2 class="ml-2 text-sm font-medium capitalize text-primary">
+                        {{ monthTitle }}
+                    </h2>
+                </div>
+                <p class="text-xs text-muted">
+                    {{ t("studio.public.space.timezone_notice", { timezone: space.timezone }) }}
                 </p>
+            </div>
 
-                <ul v-else class="divide-y divide-line/40">
-                    <li v-for="event in dayItems" :key="event.id">
-                        <button
-                            type="button"
-                            class="flex w-full items-baseline gap-2 px-3 py-2.5 text-left transition-colors hover:bg-surface-2/60"
-                            v-on:click="open(event)"
-                        >
-                            <span class="shrink-0 text-xs tabular-nums text-muted">
-                                {{ d(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" }) }}
-                            </span>
-                            <span class="min-w-0 flex-1 truncate text-sm text-primary">
-                                {{ event.title }}
-                            </span>
-                        </button>
-                    </li>
-                </ul>
-            </section>
-        </div>
+            <div ref="container" class="space-y-3">
+                <CalendarMonth
+                    :cells="cells"
+                    :events="events"
+                    :compact="isNarrow"
+                    :selected="isNarrow ? selectedDay : null"
+                    v-on:open-event="open"
+                    v-on:select-day="selectedDay = $event"
+                />
 
-        <!-- Under the month rather than beside it, and never a floating
-             bubble: this page is read on a phone as often as on a desk, and a
-             widget pinned over a calendar covers the thing the client came
-             for. The conversation is the second reason they open the page, so
-             it sits second. -->
+                <!-- La grille dit quels jours portent quelque chose ; celle-ci dit
+                 quoi. L'une sans l'autre est illisible sur un téléphone. -->
+                <section v-if="isNarrow" class="rounded-xl border border-line/60 bg-surface">
+                    <header class="flex items-baseline gap-2 border-b border-line/40 px-3 py-2">
+                        <h3 class="text-sm font-medium capitalize text-primary">
+                            {{ dayTitle }}
+                        </h3>
+                        <span class="text-xs tabular-nums text-muted">{{ dayItems.length }}</span>
+                    </header>
+
+                    <p v-if="!dayItems.length" class="px-3 py-3 text-xs text-muted">
+                        {{ t("studio.public.space.calendar_day_empty") }}
+                    </p>
+
+                    <ul v-else class="divide-y divide-line/40">
+                        <li v-for="event in dayItems" :key="event.id">
+                            <button
+                                type="button"
+                                class="flex w-full items-baseline gap-2 px-3 py-2.5 text-left transition-colors hover:bg-surface-2/60"
+                                v-on:click="open(event)"
+                            >
+                                <span class="shrink-0 text-xs tabular-nums text-muted">
+                                    {{ d(new Date(event.startAt), { hour: "2-digit", minute: "2-digit" }) }}
+                                </span>
+                                <span class="min-w-0 flex-1 truncate text-sm text-primary">
+                                    {{ event.title }}
+                                </span>
+                            </button>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+        </template>
+
+        <!-- Dans son onglet plutôt que sous le mois, et jamais en bulle
+             flottante : cette page se lit autant sur un téléphone que sur un
+             bureau, et un widget épinglé par-dessus un calendrier couvre ce
+             pour quoi le client est venu. -->
         <SpaceChatPanel
+            v-if="'chat' === view"
             :messages="chatMessages"
             :stream-url="chatStreamUrl"
             :post-path="chatPostPath"
@@ -466,98 +549,100 @@ function open(event) {
              Chaque adresse passe par ici et non par Google : le dossier n'est
              partagé qu'avec le compte de service, donc une adresse Drive
              donnerait à ce lecteur un mur d'authentification. -->
-        <section v-if="driveFiles.length" class="space-y-3">
-            <!-- « Je prends tout » est la question que se pose un client à qui
+        <template v-if="'files' === view">
+            <section v-if="driveFiles.length" class="space-y-3">
+                <!-- « Je prends tout » est la question que se pose un client à qui
                  on partage trente visuels. Le titre et le lot sur la même
                  ligne, parce que c'est l'action de la section entière et non
                  d'une de ses lignes. -->
-            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <h2 class="text-sm font-medium text-primary">
-                    {{ t("studio.public.space.drive_title") }}
-                </h2>
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <h2 class="text-sm font-medium text-primary">
+                        {{ t("studio.public.space.drive_title") }}
+                    </h2>
 
-                <a
-                    v-if="driveArchivePath"
-                    :href="driveArchivePath"
-                    class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-line/60 px-3 py-2 text-xs text-primary transition-colors hover:bg-surface-2 sm:w-auto"
-                >
-                    <Package class="h-3.5 w-3.5 shrink-0" :stroke-width="2" />
-                    {{ t("studio.public.space.drive_archive") }}
-                </a>
-            </div>
+                    <a
+                        v-if="driveArchivePath"
+                        :href="driveArchivePath"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-line/60 px-3 py-2 text-xs text-primary transition-colors hover:bg-surface-2 sm:w-auto"
+                    >
+                        <Package class="h-3.5 w-3.5 shrink-0" :stroke-width="2" />
+                        {{ t("studio.public.space.drive_archive") }}
+                    </a>
+                </div>
 
-            <!-- Ouvrir et télécharger sont deux gestes, donc deux commandes.
+                <!-- Ouvrir et télécharger sont deux gestes, donc deux commandes.
                  Un seul lien obligeait à ouvrir le fichier dans un onglet puis
                  à le réenregistrer depuis la visionneuse du navigateur, ce qui
                  pour une vidéo ou un gros PDF veut dire le charger deux fois. -->
-            <ul class="divide-y divide-line/60 rounded-lg border border-line/60">
-                <li
-                    v-for="file in driveFiles"
-                    :key="file.id"
-                    class="flex items-center gap-2 px-3 py-2.5"
-                >
-                    <a
-                        :href="driveAddress(file)"
-                        target="_blank"
-                        rel="noopener"
-                        class="min-w-0 flex-1 truncate py-1 text-sm text-primary transition-colors hover:text-accent"
+                <ul class="divide-y divide-line/60 rounded-lg border border-line/60">
+                    <li
+                        v-for="file in driveFiles"
+                        :key="file.id"
+                        class="flex items-center gap-2 px-3 py-2.5"
                     >
-                        <span v-if="file.path" class="text-muted">{{ file.path }}/</span>{{ file.name }}
-                    </a>
-                    <span v-if="file.size" class="shrink-0 text-xs tabular-nums text-muted">{{ formatSize(file.size) }}</span>
-                    <a
-                        :href="driveDownload(file)"
-                        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line/60 text-primary transition-colors hover:bg-surface-2"
-                        :title="t('studio.public.space.drive_download')"
-                        :aria-label="t('studio.public.space.drive_download')"
-                    >
-                        <Download class="h-3.5 w-3.5" :stroke-width="2" />
-                    </a>
-                </li>
-            </ul>
-        </section>
+                        <a
+                            :href="driveAddress(file)"
+                            target="_blank"
+                            rel="noopener"
+                            class="min-w-0 flex-1 truncate py-1 text-sm text-primary transition-colors hover:text-accent"
+                        >
+                            <span v-if="file.path" class="text-muted">{{ file.path }}/</span>{{ file.name }}
+                        </a>
+                        <span v-if="file.size" class="shrink-0 text-xs tabular-nums text-muted">{{ formatSize(file.size) }}</span>
+                        <a
+                            :href="driveDownload(file)"
+                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line/60 text-primary transition-colors hover:bg-surface-2"
+                            :title="t('studio.public.space.drive_download')"
+                            :aria-label="t('studio.public.space.drive_download')"
+                        >
+                            <Download class="h-3.5 w-3.5" :stroke-width="2" />
+                        </a>
+                    </li>
+                </ul>
+            </section>
 
-        <section v-if="spaceFiles.length" class="space-y-3">
-            <h2 class="text-sm font-medium text-primary">
-                {{ t("studio.public.space.files_title") }}
-            </h2>
+            <section v-if="spaceFiles.length" class="space-y-3">
+                <h2 class="text-sm font-medium text-primary">
+                    {{ t("studio.public.space.files_title") }}
+                </h2>
 
-            <ul class="divide-y divide-line/60 rounded-lg border border-line/60">
-                <li
-                    v-for="file in spaceFiles"
-                    :key="file.id"
-                    class="flex items-center gap-3 px-3 py-2.5"
-                >
-                    <img
-                        v-if="file.preview"
-                        :src="file.preview"
-                        :alt="file.title"
-                        class="h-10 w-10 shrink-0 rounded object-cover"
-                        loading="lazy"
+                <ul class="divide-y divide-line/60 rounded-lg border border-line/60">
+                    <li
+                        v-for="file in spaceFiles"
+                        :key="file.id"
+                        class="flex items-center gap-3 px-3 py-2.5"
                     >
-                    <span
-                        v-else
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-surface-2 text-muted"
-                    >
-                        <FileText class="h-4 w-4" :stroke-width="2" />
-                    </span>
+                        <img
+                            v-if="file.preview"
+                            :src="file.preview"
+                            :alt="file.title"
+                            class="h-10 w-10 shrink-0 rounded object-cover"
+                            loading="lazy"
+                        >
+                        <span
+                            v-else
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-surface-2 text-muted"
+                        >
+                            <FileText class="h-4 w-4" :stroke-width="2" />
+                        </span>
 
-                    <div class="min-w-0 flex-1">
-                        <p class="truncate text-sm text-primary">{{ file.title }}</p>
-                        <p class="text-xs text-muted">{{ d(new Date(file.createdAt), "short") }}</p>
-                    </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm text-primary">{{ file.title }}</p>
+                            <p class="text-xs text-muted">{{ d(new Date(file.createdAt), "short") }}</p>
+                        </div>
 
-                    <a
-                        :href="file.url"
-                        target="_blank"
-                        rel="noopener"
-                        class="shrink-0 rounded-md border border-line/60 px-2.5 py-1.5 text-xs text-primary transition-colors hover:bg-surface-2"
-                    >
-                        {{ t("studio.public.space.files_open") }}
-                    </a>
-                </li>
-            </ul>
-        </section>
+                        <a
+                            :href="file.url"
+                            target="_blank"
+                            rel="noopener"
+                            class="shrink-0 rounded-md border border-line/60 px-2.5 py-1.5 text-xs text-primary transition-colors hover:bg-surface-2"
+                        >
+                            {{ t("studio.public.space.files_open") }}
+                        </a>
+                    </li>
+                </ul>
+            </section>
+        </template>
 
         <!-- One sentence, not two stacked lines. The expiry and the "do not
              forward" were separate paragraphs saying one thing between them:
