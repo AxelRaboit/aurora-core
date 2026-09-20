@@ -845,12 +845,19 @@ backend:
                 drive_clear: Rouvrir l'onglet
                 drive_saved: Mot de passe enregistré.
                 drive_cleared: Onglet Drive rouvert.
+                drive_revoke: Redemander le mot de passe
+                drive_revoked: "Le mot de passe sera redemandé à tout le monde."
+                drive_revoke_hint: "Referme l'onglet pour toutes les sessions ouvertes, la vôtre comprise, sans changer le mot de passe."
                 drive_recovery: "Le retirer demande de le saisir. Oublié, il ne s'efface que depuis le serveur, par une commande en console."
                 current_placeholder: Celui en cours
                 new_placeholder: Huit caractères ou plus
+                confirm_password: Confirmer le mot de passe
+                confirm_placeholder: Le même, une seconde fois
                 errors:
                     wrong_password: Mot de passe incorrect.
                     password_too_short: Mot de passe trop court.
+                    password_mismatch: Les mots de passe ne correspondent pas.
+                    not_locked: "L'onglet Drive n'est pas fermé."
             roles:
                 lead: Référent
                 member: Membre

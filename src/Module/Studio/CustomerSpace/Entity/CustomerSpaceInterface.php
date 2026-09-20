@@ -50,6 +50,10 @@ interface CustomerSpaceInterface
 
     public function isDriveLocked(): bool;
 
+    public function getDriveLockGeneration(): ?string;
+
+    public function setDriveLockGeneration(?string $driveLockGeneration): static;
+
     public function setTimezone(string $timezone): static;
 
     /** @return Collection<int, CustomerSpaceMemberInterface> */

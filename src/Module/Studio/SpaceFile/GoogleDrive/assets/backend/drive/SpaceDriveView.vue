@@ -1,10 +1,12 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { toast } from "vue-sonner";
 import { ChevronRight, Download, ExternalLink, FileText, Folder, FolderOpen, LayoutGrid, Library, List, Lock, LockOpen, Package, RefreshCw, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppFilePreview from "@/shared/components/display/AppFilePreview.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -40,6 +42,9 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
+// Le formateur partagé : trois copies locales disaient la même chose,
+// et une seule connaissait les unités des autres langues.
+const { formatSize } = useFileSize();
 const { request } = useRequest();
 const { formatDateTimeNumeric } = useDateFormat();
 
@@ -124,11 +129,17 @@ async function unlock() {
     try {
         const data = await request(props.unlockPath, { password: password.value });
 
-        if (data?.unlocked) {
-            password.value = "";
-            locked.value = false;
-            await load();
+        // Le refus annoncé : sans cela, un mot de passe erroné ne produit rien
+        // du tout et le bouton passe pour mort.
+        if (!data?.unlocked) {
+            toast.error(t(data?.error ?? "shared.common.error"));
+
+            return;
         }
+
+        password.value = "";
+        locked.value = false;
+        await load();
     } finally {
         unlocking.value = false;
     }
@@ -173,21 +184,6 @@ async function importToLibrary(file) {
     }
 }
 
-/** Google omet la taille de ses propres formats : un document n'a pas d'octets. */
-function weightOf(file) {
-    if (null === file.size || undefined === file.size) return "";
-
-    const units = ["o", "ko", "Mo", "Go"];
-    let value = file.size;
-    let unit = 0;
-
-    while (value >= 1024 && unit < units.length - 1) {
-        value /= 1024;
-        ++unit;
-    }
-
-    return `${value.toFixed(0 === unit ? 0 : 1)} ${units[unit]}`;
-}
 </script>
 
 <template>
@@ -234,7 +230,7 @@ function weightOf(file) {
                     variant="ghost"
                     size="sm"
                     :href="archivePath"
-                    :title="t('backend.studio.drive.space.archive_weight', { weight: weightOf({ size: weight }) })"
+                    :title="t('backend.studio.drive.space.archive_weight', { weight: formatSize(weight) })"
                 >
                     <Package class="h-3.5 w-3.5" :stroke-width="2" />
                     {{ t("backend.studio.drive.space.archive") }}
@@ -259,7 +255,7 @@ function weightOf(file) {
             v-if="linked && !loading && files.length && !archivable"
             class="rounded-lg border border-line bg-surface-2 px-3 py-2 text-xs text-muted"
         >
-            {{ t("backend.studio.drive.space.archive_too_large", { weight: weightOf({ size: weight }) }) }}
+            {{ t("backend.studio.drive.space.archive_too_large", { weight: formatSize(weight) }) }}
         </p>
 
         <!-- Plus de champ de dossier ici : le désigner est une
@@ -288,13 +284,17 @@ function weightOf(file) {
             <p class="text-xs text-muted">{{ t("backend.studio.drive.space.locked_intro") }}</p>
 
             <form class="flex flex-col gap-2 sm:flex-row sm:items-center" v-on:submit.prevent="unlock">
-                <input
-                    v-model="password"
+                <!-- `AppInput` et non un champ brut : l'œil qui dévoile la
+                     saisie compte d'autant plus ici, où se tromper ne dit rien
+                     de plus précis que « mot de passe incorrect ». -->
+                <AppInput
+                    class="min-w-0 flex-1"
+                    :model-value="password"
                     type="password"
-                    autocomplete="off"
+                    toggleable
                     :placeholder="t('backend.studio.drive.space.locked_placeholder')"
-                    class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary"
-                >
+                    v-on:update:model-value="password = $event"
+                />
                 <AppButton
                     class="w-full shrink-0 sm:w-auto"
                     variant="primary"
@@ -399,7 +399,7 @@ function weightOf(file) {
 
                         <div class="space-y-0.5 px-2 py-1.5">
                             <p class="truncate text-xs text-primary" :title="file.name">{{ file.name }}</p>
-                            <p class="text-2xs tabular-nums text-muted">{{ weightOf(file) }}</p>
+                            <p v-if="file.size" class="text-2xs tabular-nums text-muted">{{ formatSize(file.size) }}</p>
                         </div>
                     </article>
                 </div>
@@ -427,7 +427,7 @@ function weightOf(file) {
                         >
                             <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
                             <span class="min-w-0 flex-1 truncate text-sm text-primary">{{ file.name }}</span>
-                            <span class="shrink-0 text-xs tabular-nums text-muted">{{ weightOf(file) }}</span>
+                            <span v-if="file.size" class="shrink-0 text-xs tabular-nums text-muted">{{ formatSize(file.size) }}</span>
                             <span v-if="file.modifiedAt" class="hidden shrink-0 text-xs text-muted sm:inline">
                                 {{ formatDateTimeNumeric(file.modifiedAt) }}
                             </span>
@@ -457,7 +457,7 @@ function weightOf(file) {
             <p v-if="previewed" class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
                 <span v-if="previewed.path">{{ previewed.path }}</span>
                 <span v-if="previewed.path" aria-hidden="true">·</span>
-                <span v-if="weightOf(previewed)">{{ weightOf(previewed) }}</span>
+                <span v-if="previewed.size">{{ formatSize(previewed.size) }}</span>
                 <template v-if="previewed.modifiedAt">
                     <span aria-hidden="true">·</span>
                     <span>{{ formatDateTimeNumeric(previewed.modifiedAt) }}</span>

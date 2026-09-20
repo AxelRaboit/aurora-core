@@ -10,6 +10,8 @@ use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 use Symfony\Component\PasswordHasher\PasswordHasherInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
+use function bin2hex;
+use function random_bytes;
 use function sprintf;
 
 /**
@@ -30,6 +32,12 @@ use function sprintf;
  * navigateur est ce qu'on attend d'une serrure ; un cookie qui durerait des
  * semaines rendrait la saisie initiale décorative. Et par espace : en ouvrir
  * un n'ouvre pas les autres.
+ *
+ * **Et refermable pour tout le monde d'un coup.** Une session ne retient pas
+ * « ouvert » mais la génération qu'elle a ouverte ; l'espace en porte une, et
+ * en tirer une nouvelle périme toutes les sessions à la fois. C'est ce qui
+ * permet de tout refermer sans changer le mot de passe, et ce qui fait qu'en
+ * changer un referme vraiment.
  */
 final readonly class DriveLock
 {
@@ -53,9 +61,13 @@ final readonly class DriveLock
 
     public function isUnlocked(CustomerSpaceInterface $space): bool
     {
-        $session = $this->requests->getSession();
+        $generation = $space->getDriveLockGeneration();
 
-        return true === $session->get($this->key($space), false);
+        if (null === $generation) {
+            return false;
+        }
+
+        return $generation === $this->requests->getSession()->get($this->key($space));
     }
 
     /**
@@ -71,7 +83,14 @@ final readonly class DriveLock
             return false;
         }
 
-        $this->requests->getSession()->set($this->key($space), true);
+        // Une génération au besoin : les espaces déjà fermés avant que
+        // celle-ci existe n'en portent aucune, et sans cet amorçage la bonne
+        // saisie n'ouvrirait jamais rien. L'appelant enregistre.
+        if (null === $space->getDriveLockGeneration()) {
+            $space->setDriveLockGeneration(bin2hex(random_bytes(8)));
+        }
+
+        $this->requests->getSession()->set($this->key($space), $space->getDriveLockGeneration());
 
         return true;
     }
@@ -111,6 +130,24 @@ final readonly class DriveLock
     public function set(CustomerSpaceInterface $space, string $password): void
     {
         $space->setDrivePassword($this->hasher()->hash($password));
+        $this->revoke($space);
+    }
+
+    /**
+     * Referme partout, sans toucher au mot de passe.
+     *
+     * **Le geste qu'on veut avoir sous la main sans rien avoir à changer.**
+     * Un écran resté ouvert sur un poste qu'on ne contrôle plus, quelqu'un à
+     * qui on a montré l'onglet, un doute : il faut pouvoir redemander la
+     * saisie à tout le monde sans imposer un nouveau mot de passe à ceux qui
+     * le connaissent déjà.
+     *
+     * Celui qui appuie est refermé comme les autres : ne pas l'être ferait
+     * douter que le bouton ait agi, et il connaît le mot de passe.
+     */
+    public function revoke(CustomerSpaceInterface $space): void
+    {
+        $space->setDriveLockGeneration(bin2hex(random_bytes(8)));
         $this->lock($space);
     }
 
@@ -118,7 +155,7 @@ final readonly class DriveLock
     public function clear(CustomerSpaceInterface $space): void
     {
         $space->setDrivePassword(null);
-        $this->lock($space);
+        $this->revoke($space);
     }
 
     /**

@@ -13,8 +13,9 @@
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { FolderOpen, KeyRound, Lock, LockOpen, Save } from "lucide-vue-next";
+import { FolderOpen, KeyRound, Lock, LockOpen, RotateCcw, Save } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
@@ -37,6 +38,16 @@ const folder = ref("");
 
 const current = ref("");
 const next = ref("");
+const confirm = ref("");
+
+/**
+ * Les deux saisies diffèrent.
+ *
+ * Signalée dès la frappe et pas au refus du serveur : le serveur ne voit
+ * qu'un mot de passe, c'est ici qu'on sait qu'il devait y en avoir deux
+ * identiques.
+ */
+const mismatch = computed(() => "" !== confirm.value && confirm.value !== next.value);
 
 /**
  * Un onglet par sujet. Le Drive est le seul aujourd'hui ; la barre n'est
@@ -56,6 +67,7 @@ function apply(settings) {
     folder.value = settings.driveFolderId ?? "";
     current.value = "";
     next.value = "";
+    confirm.value = "";
 
     // Les deux choses que la barre doit savoir sans rechargement : que la vue
     // Drive demande le mot de passe, et qu'un dossier existe.
@@ -75,56 +87,68 @@ onMounted(async () => {
     }
 });
 
-async function saveFolder() {
+/**
+ * Un envoi, sa réponse, et le refus dit à voix haute.
+ *
+ * **Le refus est la moitié qui manquait.** `request` rend l'enveloppe d'un
+ * 400 sans rien annoncer ; les trois appels n'en lisaient que le succès. Un
+ * mot de passe erroné, trop court ou un dossier mal collé ne produisaient
+ * alors rien du tout à l'écran, ce qui se lit comme un bouton mort.
+ */
+async function submit(suffix, payload) {
     saving.value = true;
 
     try {
-        const data = await request(`${props.settingsPath}/drive-folder`, { folder: folder.value.trim() });
+        const data = await request(`${props.settingsPath}${suffix}`, payload);
 
-        if (data?.settings) {
-            apply(data.settings);
-            toast.success(t(data.settings.driveFolderId
-                ? "backend.studio.spaces.settings.folder_saved"
-                : "backend.studio.spaces.settings.folder_cleared"));
+        if (!data?.success) {
+            toast.error(t(data?.error ?? "shared.common.error"));
+
+            return null;
         }
+
+        apply(data.settings);
+
+        return data.settings;
     } finally {
         saving.value = false;
     }
+}
+
+async function saveFolder() {
+    const settings = await submit("/drive-folder", { folder: folder.value.trim() });
+
+    if (!settings) return;
+
+    toast.success(t(settings.driveFolderId
+        ? "backend.studio.spaces.settings.folder_saved"
+        : "backend.studio.spaces.settings.folder_cleared"));
 }
 
 async function savePassword() {
-    saving.value = true;
+    const settings = await submit("/drive-password", {
+        password: next.value,
+        currentPassword: current.value,
+    });
 
-    try {
-        const data = await request(`${props.settingsPath}/drive-password`, {
-            password: next.value,
-            currentPassword: current.value,
-        });
+    if (settings) toast.success(t("backend.studio.spaces.settings.drive_saved"));
+}
 
-        if (data?.settings) {
-            apply(data.settings);
-            toast.success(t("backend.studio.spaces.settings.drive_saved"));
-        }
-    } finally {
-        saving.value = false;
-    }
+/**
+ * Redemander le mot de passe à tout le monde.
+ *
+ * Aucune saisie, contrairement au retrait : ce geste ne donne accès à rien.
+ */
+async function revokeSessions() {
+    const settings = await submit("/drive-revoke", {});
+
+    if (settings) toast.success(t("backend.studio.spaces.settings.drive_revoked"));
 }
 
 async function clearPassword() {
-    saving.value = true;
+    const settings = await submit("/drive-password/clear", { currentPassword: current.value });
 
-    try {
-        const data = await request(`${props.settingsPath}/drive-password/clear`, {
-            currentPassword: current.value,
-        });
-
-        if (data?.settings) {
-            apply(data.settings);
-            toast.success(t("backend.studio.spaces.settings.drive_cleared"));
-        }
-    } finally {
-        saving.value = false;
-    }
+    if (settings) toast.success(t("backend.studio.spaces.settings.drive_cleared"));
 }
 </script>
 
@@ -167,13 +191,13 @@ async function clearPassword() {
                 </header>
 
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <input
-                        v-model="folder"
+                    <AppInput
+                        class="min-w-0 flex-1"
+                        :model-value="folder"
                         type="text"
-                        spellcheck="false"
                         placeholder="https://drive.google.com/drive/folders/…"
-                        class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary"
-                    >
+                        v-on:update:model-value="folder = $event"
+                    />
                     <AppButton
                         class="w-full shrink-0 sm:w-auto"
                         variant="primary"
@@ -206,34 +230,61 @@ async function clearPassword() {
                 <!-- L'ancien mot de passe n'est demandé que s'il y en a un. Un
                      champ vide obligatoire sur une porte ouverte n'aurait rien
                      à vérifier. -->
-                <label v-if="locked" class="block space-y-1">
-                    <span class="text-xs text-secondary">{{ t("backend.studio.spaces.settings.current_password") }}</span>
-                    <input
-                        v-model="current"
-                        type="password"
-                        autocomplete="off"
-                        :placeholder="t('backend.studio.spaces.settings.current_placeholder')"
-                        class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary"
-                    >
-                </label>
+                <!-- `AppInput` et non un champ brut : il porte déjà
+                     l'étiquette, l'aide, l'erreur et l'œil qui dévoile la
+                     saisie. Trois champs écrits à la main les auraient perdus
+                     tous les quatre. -->
+                <AppInput
+                    v-if="locked"
+                    :model-value="current"
+                    type="password"
+                    toggleable
+                    :label="t('backend.studio.spaces.settings.current_password')"
+                    :placeholder="t('backend.studio.spaces.settings.current_placeholder')"
+                    v-on:update:model-value="current = $event"
+                />
 
-                <label class="block space-y-1">
-                    <span class="text-xs text-secondary">
-                        {{ t(locked ? "backend.studio.spaces.settings.new_password" : "backend.studio.spaces.settings.password") }}
-                    </span>
-                    <input
-                        v-model="next"
-                        type="password"
-                        autocomplete="new-password"
-                        :placeholder="t('backend.studio.spaces.settings.new_placeholder')"
-                        class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary"
-                    >
-                    <span class="block text-xs text-muted">
-                        {{ t("backend.studio.spaces.settings.password_hint", { count: minLength }) }}
-                    </span>
-                </label>
+                <AppInput
+                    :model-value="next"
+                    type="password"
+                    toggleable
+                    :label="t(locked ? 'backend.studio.spaces.settings.new_password' : 'backend.studio.spaces.settings.password')"
+                    :placeholder="t('backend.studio.spaces.settings.new_placeholder')"
+                    :hint="t('backend.studio.spaces.settings.password_hint', { count: minLength })"
+                    v-on:update:model-value="next = $event"
+                />
+
+                <!-- La confirmation, parce qu'un mot de passe qu'on ne relit
+                     pas se tape de travers une fois sur dix, et qu'ici la
+                     faute de frappe ferme une porte dont personne n'a la
+                     clé. -->
+                <AppInput
+                    :model-value="confirm"
+                    type="password"
+                    toggleable
+                    :label="t('backend.studio.spaces.settings.confirm_password')"
+                    :placeholder="t('backend.studio.spaces.settings.confirm_placeholder')"
+                    :error="mismatch ? t('backend.studio.spaces.settings.errors.password_mismatch') : ''"
+                    v-on:update:model-value="confirm = $event"
+                />
 
                 <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                    <!-- Refermer partout, sans rien changer : le geste qu'on
+                         cherche quand un écran est resté ouvert ailleurs, et
+                         qu'on n'a aucune envie de choisir un nouveau mot de
+                         passe pour ça. -->
+                    <AppButton
+                        v-if="locked"
+                        class="w-full sm:w-auto"
+                        variant="ghost"
+                        size="md"
+                        :loading="saving"
+                        v-on:click="revokeSessions"
+                    >
+                        <RotateCcw class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("backend.studio.spaces.settings.drive_revoke") }}
+                    </AppButton>
+
                     <AppButton
                         v-if="locked"
                         class="w-full sm:w-auto"
@@ -251,7 +302,7 @@ async function clearPassword() {
                         variant="primary"
                         size="md"
                         :loading="saving"
-                        :disabled="!next"
+                        :disabled="!next || mismatch"
                         v-on:click="savePassword"
                     >
                         <Save class="h-3.5 w-3.5" :stroke-width="2" />
@@ -261,6 +312,7 @@ async function clearPassword() {
 
                 <!-- Les deux conséquences qu'on découvrirait sinon trop tard. -->
                 <p class="text-xs text-muted">{{ t("backend.studio.spaces.settings.drive_closes_now") }}</p>
+                <p v-if="locked" class="text-xs text-muted">{{ t("backend.studio.spaces.settings.drive_revoke_hint") }}</p>
                 <p class="text-xs text-muted">{{ t("backend.studio.spaces.settings.drive_recovery") }}</p>
             </section>
         </template>

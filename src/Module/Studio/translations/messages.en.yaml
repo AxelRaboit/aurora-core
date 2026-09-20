@@ -845,12 +845,19 @@ backend:
                 drive_clear: Reopen the tab
                 drive_saved: Password saved.
                 drive_cleared: Drive tab reopened.
+                drive_revoke: Ask for the password again
+                drive_revoked: "Everyone will be asked for the password again."
+                drive_revoke_hint: "Closes the tab for every open session, yours included, without changing the password."
                 drive_recovery: "Removing it requires typing it. Forgotten, it can only be cleared from the server, with a console command."
                 current_placeholder: The current one
                 new_placeholder: Eight characters or more
+                confirm_password: Confirm the password
+                confirm_placeholder: The same one, a second time
                 errors:
                     wrong_password: Wrong password.
                     password_too_short: Password too short.
+                    password_mismatch: Passwords do not match.
+                    not_locked: "The Drive tab is not closed."
             roles:
                 lead: Lead
                 member: Member

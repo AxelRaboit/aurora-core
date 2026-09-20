@@ -170,6 +170,33 @@ final class SpaceSettingsController extends AbstractController
     }
 
     /**
+     * Redemande le mot de passe à tout le monde.
+     *
+     * **Sans changer le mot de passe**, ce qui est tout l'intérêt : ceux qui
+     * le connaissent le retapent, et on n'a pas à leur en communiquer un
+     * nouveau. C'est la réponse au doute ordinaire, un écran resté ouvert
+     * ailleurs, plutôt qu'à un mot de passe éventé, qui demande de le changer.
+     *
+     * Rien à saisir pour l'appuyer : le geste ne donne accès à rien, il en
+     * retire. Refuser un bouton qui ne fait que refermer serait sévère pour
+     * rien.
+     */
+    #[Route('/drive-revoke', name: '_drive_revoke', methods: [HttpMethodEnum::Post->value])]
+    public function revokeDriveSessions(CustomerSpace $space): JsonResponse
+    {
+        $this->denyUnlessReferent($space);
+
+        if (!$space->isDriveLocked()) {
+            return $this->jsonFailure('backend.studio.spaces.settings.errors.not_locked');
+        }
+
+        $this->lock->revoke($space);
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess(['settings' => $this->state($space)]);
+    }
+
+    /**
      * Ouvre l'onglet Drive pour cette session.
      *
      * Sur les réglages et non sur le Drive, parce que c'est ici qu'on sait ce
@@ -191,6 +218,11 @@ final class SpaceSettingsController extends AbstractController
         if (!$this->lock->unlock($space, $password)) {
             return $this->jsonFailure('backend.studio.spaces.settings.errors.wrong_password');
         }
+
+        // La première ouverture d'un espace fermé avant la génération lui en
+        // donne une : sans cet enregistrement, la session retiendrait une
+        // valeur que l'espace ne porte pas.
+        $this->entityManager->flush();
 
         return $this->jsonSuccess(['unlocked' => true]);
     }
