@@ -35,6 +35,7 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
         // agency - who is shown the plan and does not decide on it.
         public readonly bool $canApprove = true,
         public readonly bool $canComment = true,
+        public readonly bool $canChat = true,
         public readonly bool $canUpload = false,
         public readonly bool $canSeeDrive = true,
     ) {}
@@ -62,6 +63,11 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
     public function canComment(): bool
     {
         return $this->canComment;
+    }
+
+    public function canChat(): bool
+    {
+        return $this->canChat;
     }
 
     public function canUpload(): bool

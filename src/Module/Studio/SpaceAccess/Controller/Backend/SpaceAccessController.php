@@ -106,6 +106,7 @@ class SpaceAccessController extends AbstractController
             $input->getValidForDays(),
             $input->canApprove(),
             $input->canComment(),
+            $input->canChat(),
             $input->canUpload(),
             $input->canSeeDrive(),
         );

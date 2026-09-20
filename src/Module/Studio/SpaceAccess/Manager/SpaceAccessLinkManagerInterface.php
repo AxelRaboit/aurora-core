@@ -20,6 +20,7 @@ interface SpaceAccessLinkManagerInterface
         int $validForDays,
         bool $canApprove,
         bool $canComment,
+        bool $canChat = true,
         bool $canUpload = false,
         bool $canSeeDrive = true,
     ): SpaceAccessLinkInterface;

@@ -1,0 +1,156 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { mount, flushPromises } from "@vue/test-utils";
+import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
+// jsdom ne fournit pas `matchMedia`, et la bascule de thème de l'en-tête la
+// demande **au chargement du module**, pas au montage. `vi.hoisted` place donc
+// le remplaçant au-dessus des imports, que le moteur remonte de toute façon :
+// posé plus bas, il arriverait après le composant qui s'en sert.
+vi.hoisted(() => {
+    window.matchMedia = (query) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addEventListener() {},
+        removeEventListener() {},
+        addListener() {},
+        removeListener() {},
+        dispatchEvent() {},
+    });
+});
+
+import PublicSpaceApp from "./PublicSpaceApp.vue";
+
+const i18n = createTestI18n();
+
+/**
+ * La page qu'un client ouvre par son lien, et ses onglets.
+ *
+ * **Elle n'avait aucun test de montage.** Elle empilait tout, donc il n'y
+ * avait rien à choisir ni rien qui pouvait disparaître ; depuis qu'elle se lit
+ * par onglets, trois règles sont devenues cassables en silence : l'onglet
+ * d'arrivée, l'onglet qui n'existe pas faute de contenu, et la barre qui ne se
+ * dessine pas quand il n'y a qu'un choix.
+ *
+ * Ce sont trois règles dont le défaut ne lève aucune erreur : une page qui
+ * s'ouvre sur la discussion au lieu du calendrier, ou qui propose un onglet
+ * vide, a l'air de marcher.
+ */
+const SPACE = {
+    name: "Atelier Dupont - Réseaux sociaux",
+    description: "Deux publications par semaine.",
+    customerName: "Atelier Dupont",
+    colourSlot: 1,
+    timezone: "Europe/Paris",
+};
+
+const CHANNEL = {
+    id: 1,
+    name: "Général",
+    kind: "main",
+    isMain: true,
+    isDirect: false,
+    openToClient: true,
+    members: [],
+};
+
+const FILE = {
+    id: 7,
+    title: "Charte graphique",
+    originalName: "charte.pdf",
+    mimeType: "application/pdf",
+    size: 12_000,
+    author: "Camille, gérante",
+    fromClient: false,
+    createdAt: "2026-09-18T09:00:00+00:00",
+    url: "/spaces/a/b/files/7/file",
+    preview: null,
+};
+
+function monter(props = {}) {
+    return mount(PublicSpaceApp, {
+        global: { plugins: [i18n], stubs: { teleport: true } },
+        props: {
+            space: SPACE,
+            columns: [],
+            items: [],
+            comments: {},
+            attachments: {},
+            spaceFiles: [],
+            chatChannels: [],
+            chatMessages: [],
+            chatReloadPath: "/spaces/a/b/chat/__channel__/messages",
+            ...props,
+        },
+    });
+}
+
+/** Les onglets que la barre propose, dans l'ordre. */
+function onglets(wrapper) {
+    return wrapper
+        .findAll("[role='group'] button")
+        .map((b) => b.attributes("title"));
+}
+
+describe("PublicSpaceApp", () => {
+    beforeEach(() => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn(() => Promise.resolve({ ok: false })),
+        );
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it("arrive sur le calendrier", async () => {
+        const wrapper = monter({ chatChannels: [CHANNEL], spaceFiles: [FILE] });
+        await flushPromises();
+
+        // Le premier bouton porte l'état actif : c'est le calendrier qu'on
+        // vient voir, la discussion est la deuxième raison d'ouvrir la page.
+        const boutons = wrapper.findAll("[role='group'] button");
+        expect(boutons[0].attributes("aria-pressed")).toBe("true");
+        expect(onglets(wrapper)[0]).toContain("tab_calendar");
+    });
+
+    it("ne propose pas la discussion quand aucun canal n'est lisible", async () => {
+        const wrapper = monter({ spaceFiles: [FILE] });
+        await flushPromises();
+
+        // Deux onglets, donc la barre existe, mais pas celui-là : un onglet
+        // vide se lit comme un écran inachevé.
+        expect(onglets(wrapper)).toHaveLength(2);
+        expect(onglets(wrapper).join(" ")).not.toContain("tab_chat");
+    });
+
+    it("ne propose pas les documents quand l'espace n'en a aucun", async () => {
+        const wrapper = monter({ chatChannels: [CHANNEL] });
+        await flushPromises();
+
+        expect(onglets(wrapper)).toHaveLength(2);
+        expect(onglets(wrapper).join(" ")).not.toContain("tab_files");
+    });
+
+    it("ne dessine aucune barre quand il n'y a qu'un onglet", async () => {
+        const wrapper = monter();
+        await flushPromises();
+
+        // Un sélecteur à un choix est un ornement, et il occuperait une ligne
+        // sur un téléphone pour ne rien proposer.
+        expect(wrapper.find("[role='group']").exists()).toBe(false);
+    });
+
+    it("montre une seule section à la fois", async () => {
+        const wrapper = monter({ chatChannels: [CHANNEL], spaceFiles: [FILE] });
+        await flushPromises();
+
+        expect(wrapper.text()).not.toContain("Charte graphique");
+
+        const documents = wrapper.findAll("[role='group'] button").at(-1);
+        await documents.trigger("click");
+        await flushPromises();
+
+        expect(wrapper.text()).toContain("Charte graphique");
+    });
+});

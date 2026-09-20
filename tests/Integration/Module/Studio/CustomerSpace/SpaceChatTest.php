@@ -19,6 +19,7 @@ use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
+use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -40,6 +41,8 @@ use function sprintf;
  */
 final class SpaceChatTest extends IntegrationTestCase
 {
+    use ResetsRateLimiters;
+
     private KernelBrowser $client;
 
     private EntityManagerInterface $entityManager;
@@ -62,6 +65,16 @@ final class SpaceChatTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
+        // Le compteur du limiteur survit au processus : une classe qui écrit
+        // comme un invité dépense un budget horaire partagé, et vire au
+        // rouge au troisième lancement de l'heure - par un 429 sur une
+        // route que le test ne voulait pas éprouver.
+        $this->resetRateLimiter('space_guest_write');
+
+        // Le navigateur pose cet en-tête sur chaque appel, et les routes
+        // publiques l'exigent : ce qui les protège est un secret dans
+        // l'adresse, et une adresse se transfère.
+        $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
     }
 
     protected function tearDown(): void
@@ -157,13 +170,31 @@ final class SpaceChatTest extends IntegrationTestCase
      * nothing: the same 404 a stranger gets, so a leaked address does not
      * reveal what it holds.
      */
-    public function testALinkThatMayNotCommentIsRefused(): void
+    /** Sans le droit d'écrire ici, le même refus qu'un inconnu. */
+    public function testALinkThatMayNotChatIsRefused(): void
     {
-        [, $url] = $this->givenLinkedSpace(canComment: false);
+        [, $url] = $this->givenLinkedSpace(canComment: true, canChat: false);
 
         $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Bonjour ?']);
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
+    }
+
+    /**
+     * Commenter une fiche et parler dans la discussion sont deux droits.
+     *
+     * **C'est tout le sujet de la séparation.** Un seul droit commandait les
+     * deux : cocher une case pour autoriser une remarque sous une publication
+     * ouvrait aussi le fil de la relation. Une agence partenaire peut annoter
+     * un plan sans parler dans le salon du client, et l'inverse existe aussi.
+     */
+    public function testALinkMayChatWithoutBeingAbleToComment(): void
+    {
+        [, $url] = $this->givenLinkedSpace(canComment: false, canChat: true);
+
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Bonjour ?']);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
 
     public function testTheStudioIsToldOnceWhateverTheNumberOfMessages(): void
@@ -437,7 +468,8 @@ final class SpaceChatTest extends IntegrationTestCase
     }
 
     /** @return array{0: CustomerSpace, 1: string} */
-    private function givenLinkedSpace(bool $canComment): array
+    /** @param bool|null $canChat null = le même que `canComment`, comme avant la séparation. */
+    private function givenLinkedSpace(bool $canComment, ?bool $canChat = null): array
     {
         $space = $this->givenSpace();
 
@@ -445,6 +477,7 @@ final class SpaceChatTest extends IntegrationTestCase
             'recipientEmail' => 'camille@societe.test',
             'label' => 'Camille, gérante',
             'canComment' => $canComment,
+            'canChat' => $canChat ?? $canComment,
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());

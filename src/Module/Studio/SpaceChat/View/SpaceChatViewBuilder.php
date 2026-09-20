@@ -143,7 +143,9 @@ final readonly class SpaceChatViewBuilder
             // transfère.
             'chatDirectPath' => null,
             'chatPeople' => [],
-            'chatPostPath' => $link->canComment()
+            // Le droit d'écrire ici est `canChat`, distinct de celui de
+            // commenter une fiche : ce sont deux conversations.
+            'chatPostPath' => $link->canChat()
                 ? $this->pathTemplates->generate('public_space_chat_post', [
                     'selector' => $link->getSelector(),
                     'token' => $token,

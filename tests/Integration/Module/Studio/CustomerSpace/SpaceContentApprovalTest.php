@@ -16,6 +16,7 @@ use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentCommentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
+use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -35,6 +36,8 @@ use function str_repeat;
  */
 final class SpaceContentApprovalTest extends IntegrationTestCase
 {
+    use ResetsRateLimiters;
+
     private KernelBrowser $client;
 
     private EntityManagerInterface $entityManager;
@@ -61,6 +64,12 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
+        // Le compteur du limiteur survit au processus : une classe qui écrit
+        // comme un invité dépense un budget horaire partagé, et vire au
+        // rouge au troisième lancement de l'heure - par un 429 sur une
+        // route que le test ne voulait pas éprouver.
+        $this->resetRateLimiter('space_guest_write');
+
         $this->links = $container->get(SpaceAccessLinkRepository::class);
         $this->columns = $container->get(SpaceContentColumnRepository::class);
         $this->items = $container->get(SpaceContentItemRepository::class);
@@ -297,6 +306,11 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
     private function asGuest(): KernelBrowser
     {
         $this->client->getCookieJar()->clear();
+        // L'en-tête que le composant de requête du navigateur pose sur
+        // chaque appel, et que les routes publiques exigent : sans lui,
+        // un formulaire hébergé ailleurs pourrait faire poster le
+        // navigateur d'un client vers ces adresses.
+        $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         return $this->client;
     }

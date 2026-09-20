@@ -313,6 +313,11 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
     private function asGuest(): KernelBrowser
     {
         $this->client->getCookieJar()->clear();
+        // L'en-tête que le composant de requête du navigateur pose sur
+        // chaque appel, et que les routes publiques exigent : sans lui,
+        // un formulaire hébergé ailleurs pourrait faire poster le
+        // navigateur d'un client vers ces adresses.
+        $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         return $this->client;
     }
@@ -334,6 +339,11 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
     private function upload(string $url, int $itemId, UploadedFile $file): void
     {
         $this->client->getCookieJar()->clear();
+        // L'en-tête que le composant de requête du navigateur pose sur
+        // chaque appel, et que les routes publiques exigent : sans lui,
+        // un formulaire hébergé ailleurs pourrait faire poster le
+        // navigateur d'un client vers ces adresses.
+        $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
 
         $path = (string) parse_url($url, PHP_URL_PATH);
 

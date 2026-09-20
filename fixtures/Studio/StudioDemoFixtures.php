@@ -667,15 +667,18 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return null;
         }
 
+        // Nommés plutôt que positionnels : la signature porte six droits, et
+        // en insérer un au milieu décalerait silencieusement tous les autres.
         return $this->accessLinks->issue(
             $space,
             $recipient,
             $label,
             $validForDays,
-            $canApprove,
-            $canComment,
-            $canUpload,
-            $canSeeDrive,
+            canApprove: $canApprove,
+            canComment: $canComment,
+            canChat: $canComment,
+            canUpload: $canUpload,
+            canSeeDrive: $canSeeDrive,
         );
     }
 

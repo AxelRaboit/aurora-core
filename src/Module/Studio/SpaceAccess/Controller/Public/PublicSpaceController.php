@@ -88,6 +88,7 @@ final class PublicSpaceController extends AbstractController
         // a poster frame for a video - and forty of those an hour from one
         // address is not the same offer as forty clicks.
         private readonly RateLimiterFactoryInterface $spaceGuestUploadLimiter,
+        private readonly RateLimiterFactoryInterface $spaceGuestArchiveLimiter,
         private readonly SpaceContentAttachmentRepository $attachmentRepository,
         private readonly UploadPolicyProvider $uploadPolicies,
         private readonly StoredFileResponder $responder,
@@ -170,6 +171,8 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
         }
 
+        $this->assertFromThisPage($request);
+
         $link = $this->links->resolveUsable($selector, $token);
 
         // **`isPreview()` avant le droit, et sur les six écritures.** Un
@@ -231,6 +234,8 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
         }
 
+        $this->assertFromThisPage($request);
+
         $link = $this->links->resolveUsable($selector, $token);
 
         if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canComment()) {
@@ -289,6 +294,8 @@ final class PublicSpaceController extends AbstractController
         if (!$this->spaceGuestUploadLimiter->create($request->getClientIp())->consume()->isAccepted()) {
             return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
         }
+
+        $this->assertFromThisPage($request);
 
         $link = $this->links->resolveUsable($selector, $token);
 
@@ -454,9 +461,14 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
         }
 
+        $this->assertFromThisPage($request);
+
         $link = $this->links->resolveUsable($selector, $token);
 
-        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canComment()) {
+        // `canChat` et non `canComment` : commenter une fiche et parler dans
+        // la discussion de l'espace sont deux conversations, et un seul droit
+        // les commandait toutes les deux.
+        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canChat()) {
             throw $this->createNotFoundException();
         }
 
@@ -570,8 +582,17 @@ final class PublicSpaceController extends AbstractController
         methods: [HttpMethodEnum::Get->value],
         priority: 10,
     )]
-    public function driveArchive(string $selector, string $token): Response
+    public function driveArchive(string $selector, string $token, Request $request): Response
     {
+        // **La route publique la plus chère, et la seule qui n'avait pas de
+        // limite.** Elle télécharge chaque fichier chez Google et construit un
+        // zip avant d'envoyer le premier octet : un lot de cent cinquante
+        // mégaoctets occupe le serveur près de quatre minutes. « Je prends
+        // tout » se fait une fois.
+        if (!$this->spaceGuestArchiveLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            throw $this->createNotFoundException();
+        }
+
         $link = $this->links->resolveUsable($selector, $token);
 
         // **Le même refus qu'un lien inconnu**, et la même raison que pour les
@@ -711,6 +732,34 @@ final class PublicSpaceController extends AbstractController
         // Servi par le service commun : local déchargé par le serveur
         // web, distant diffusé par morceaux, privé une heure.
         return $this->responder->respond($this->keyOf($attachment->getDocument(), $variant));
+    }
+
+    /**
+     * L'écriture vient bien de la page, et non d'un autre site.
+     *
+     * **Ce qui protège cette page est un secret dans son adresse**, et une
+     * adresse se transfère, se colle dans un message, finit dans un
+     * presse-papier. Qui la connaît peut, depuis n'importe quel site, faire
+     * poster le navigateur d'un client vers ces routes : un formulaire
+     * inter-site part sans demander la permission, du moment que son type de
+     * contenu est ordinaire. Le dépôt de fichier, en `multipart`, est
+     * exactement ce cas ; les routes JSON, elles, sont déjà retenues par le
+     * contrôle préalable que le navigateur impose à un type de contenu qui
+     * n'est pas ordinaire.
+     *
+     * L'en-tête maison referme le trou restant, et ne coûte rien : un
+     * formulaire ne peut pas le poser, et un `fetch` qui le pose déclenche ce
+     * même contrôle préalable. Toutes les écritures passent par le même
+     * composant côté navigateur, qui l'envoie déjà.
+     *
+     * Le 404 des autres refus, pour la même raison : ne rien apprendre à qui
+     * tâtonne.
+     */
+    private function assertFromThisPage(Request $request): void
+    {
+        if (!$request->isXmlHttpRequest()) {
+            throw $this->createNotFoundException();
+        }
     }
 
     /**

@@ -15,6 +15,7 @@ use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
+use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -43,6 +44,8 @@ use function sys_get_temp_dir;
  */
 final class SpaceClientVisibilityTest extends IntegrationTestCase
 {
+    use ResetsRateLimiters;
+
     private KernelBrowser $client;
 
     private EntityManagerInterface $entityManager;
@@ -70,6 +73,17 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
+        // Le compteur du limiteur survit au processus : une classe qui écrit
+        // comme un invité dépense un budget horaire partagé, et vire au
+        // rouge au troisième lancement de l'heure - par un 429 sur une
+        // route que le test ne voulait pas éprouver.
+        $this->resetRateLimiter('space_guest_write');
+
+        // Le navigateur pose cet en-tête sur chaque appel, et les routes
+        // publiques l'exigent : ce qui les protège est un secret dans
+        // l'adresse, et une adresse se transfère.
+        $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
+
         $this->columns = $container->get(SpaceContentColumnRepository::class);
         $this->links = $container->get(SpaceAccessLinkManagerInterface::class);
     }
@@ -202,7 +216,15 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         $space->setDriveFolderId('un-dossier-partage');
         $this->entityManager->flush();
 
-        $refused = $this->links->issue($space, 'sans-drive@example.test', 'Second lecteur', 30, true, true, false, false);
+        $refused = $this->links->issue(
+            $space,
+            'sans-drive@example.test',
+            'Second lecteur',
+            30,
+            canApprove: true,
+            canComment: true,
+            canSeeDrive: false,
+        );
 
         foreach (['', '/archive', '/un-fichier'] as $suffix) {
             $this->client->request('GET', sprintf(
@@ -227,7 +249,15 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         $space->setDriveFolderId('un-dossier-partage');
         $this->entityManager->flush();
 
-        $allowed = $this->links->issue($space, 'avec-drive@example.test', 'Le client', 30, true, true, false, true);
+        $allowed = $this->links->issue(
+            $space,
+            'avec-drive@example.test',
+            'Le client',
+            30,
+            canApprove: true,
+            canComment: true,
+            canSeeDrive: true,
+        );
 
         $this->client->request('GET', sprintf(
             '/spaces/%s/%s/drive',

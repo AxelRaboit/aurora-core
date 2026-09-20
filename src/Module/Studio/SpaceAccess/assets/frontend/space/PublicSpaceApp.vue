@@ -575,28 +575,35 @@ function open(event) {
                  à le réenregistrer depuis la visionneuse du navigateur, ce qui
                  pour une vidéo ou un gros PDF veut dire le charger deux fois. -->
                 <ul class="divide-y divide-line/60 rounded-lg border border-line/60">
+                    <!-- Le nom seul sur sa ligne quand la place manque : un
+                         chemin de dossier suivi d'un nom de fichier dépasse
+                         trois cent soixante-quinze pixels bien avant d'avoir
+                         dit quoi que ce soit d'utile. -->
                     <li
                         v-for="file in driveFiles"
                         :key="file.id"
-                        class="flex items-center gap-2 px-3 py-2.5"
+                        class="flex flex-col gap-1.5 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-2"
                     >
                         <a
                             :href="driveAddress(file)"
                             target="_blank"
                             rel="noopener"
-                            class="min-w-0 flex-1 truncate py-1 text-sm text-primary transition-colors hover:text-accent"
+                            class="min-w-0 flex-1 break-words py-1 text-sm text-primary transition-colors hover:text-accent sm:truncate"
                         >
                             <span v-if="file.path" class="text-muted">{{ file.path }}/</span>{{ file.name }}
                         </a>
-                        <span v-if="file.size" class="shrink-0 text-xs tabular-nums text-muted">{{ formatSize(file.size) }}</span>
-                        <a
-                            :href="driveDownload(file)"
-                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line/60 text-primary transition-colors hover:bg-surface-2"
-                            :title="t('studio.public.space.drive_download')"
-                            :aria-label="t('studio.public.space.drive_download')"
-                        >
-                            <Download class="h-3.5 w-3.5" :stroke-width="2" />
-                        </a>
+
+                        <div class="flex items-center justify-between gap-2 sm:contents">
+                            <span v-if="file.size" class="shrink-0 text-xs tabular-nums text-muted">{{ formatSize(file.size) }}</span>
+                            <a
+                                :href="driveDownload(file)"
+                                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line/60 text-primary transition-colors hover:bg-surface-2"
+                                :title="t('studio.public.space.drive_download')"
+                                :aria-label="t('studio.public.space.drive_download')"
+                            >
+                                <Download class="h-3.5 w-3.5" :stroke-width="2" />
+                            </a>
+                        </div>
                     </li>
                 </ul>
             </section>
@@ -607,35 +614,41 @@ function open(event) {
                 </h2>
 
                 <ul class="divide-y divide-line/60 rounded-lg border border-line/60">
+                    <!-- En colonne sur téléphone, en ligne au-delà. Trois
+                         choses sur une ligne de trois cent soixante-quinze
+                         pixels tronquent toujours la même : le nom du fichier,
+                         qui est la seule qu'on lit. -->
                     <li
                         v-for="file in spaceFiles"
                         :key="file.id"
-                        class="flex items-center gap-3 px-3 py-2.5"
+                        class="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-3"
                     >
-                        <img
-                            v-if="file.preview"
-                            :src="file.preview"
-                            :alt="file.title"
-                            class="h-10 w-10 shrink-0 rounded object-cover"
-                            loading="lazy"
-                        >
-                        <span
-                            v-else
-                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-surface-2 text-muted"
-                        >
-                            <FileText class="h-4 w-4" :stroke-width="2" />
-                        </span>
+                        <div class="flex min-w-0 items-center gap-3 sm:contents">
+                            <img
+                                v-if="file.preview"
+                                :src="file.preview"
+                                :alt="file.title"
+                                class="h-10 w-10 shrink-0 rounded object-cover"
+                                loading="lazy"
+                            >
+                            <span
+                                v-else
+                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-surface-2 text-muted"
+                            >
+                                <FileText class="h-4 w-4" :stroke-width="2" />
+                            </span>
 
-                        <div class="min-w-0 flex-1">
-                            <p class="truncate text-sm text-primary">{{ file.title }}</p>
-                            <p class="text-xs text-muted">{{ d(new Date(file.createdAt), "short") }}</p>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm text-primary sm:truncate">{{ file.title }}</p>
+                                <p class="text-xs text-muted">{{ d(new Date(file.createdAt), "short") }}</p>
+                            </div>
                         </div>
 
                         <a
                             :href="file.url"
                             target="_blank"
                             rel="noopener"
-                            class="shrink-0 rounded-md border border-line/60 px-2.5 py-1.5 text-xs text-primary transition-colors hover:bg-surface-2"
+                            class="block w-full shrink-0 rounded-md border border-line/60 px-2.5 py-2 text-center text-xs text-primary transition-colors hover:bg-surface-2 sm:w-auto sm:py-1.5"
                         >
                             {{ t("studio.public.space.files_open") }}
                         </a>

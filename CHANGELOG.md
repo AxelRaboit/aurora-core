@@ -79,6 +79,52 @@ chaque colonne portait « visible par le client », qui ne pouvait dire que
 « oui » puisque les autres ne partaient déjà plus : un drapeau à une seule
 valeur n'informe personne et fait croire qu'il en a deux.
 
+#### Écrire dans la discussion devient un droit à part
+Un seul droit commandait deux conversations : commenter une fiche, et parler
+dans le salon de l'espace. Cocher une case pour autoriser une remarque sous une
+publication ouvrait donc aussi le fil de la relation, qui ne se donne pas au
+même monde - une agence partenaire annote un plan sans avoir à parler dans le
+salon du client.
+
+La colonne est recopiée depuis « peut commenter » : un lien déjà émis se
+comporte exactement comme avant. Et le formulaire d'émission propose enfin les
+deux cases, qu'il n'offrait ni l'une ni l'autre.
+
+#### Le lot du Drive n'avait aucune limite de débit
+C'est pourtant la route publique la plus chère : elle télécharge chaque fichier
+chez Google et construit un zip avant d'envoyer le premier octet. Cinq par heure
+et par adresse, séparément des autres gestes pour qu'un lot n'épuise pas le
+droit d'écrire.
+
+#### Une écriture d'invité pouvait être déclenchée depuis n'importe quel site
+Ce qui protège ces routes est un secret dans l'adresse, et une adresse se
+transfère. Un formulaire hébergé ailleurs pouvait donc faire poster le
+navigateur d'un client vers elles, du moment que son type de contenu est
+ordinaire - le dépôt de fichier, en `multipart`, est exactement ce cas. Les
+routes JSON étaient déjà retenues par le contrôle préalable du navigateur.
+
+Les quatre écritures exigent maintenant l'en-tête que le composant de requête
+pose déjà : un formulaire ne peut pas le poser, et un `fetch` qui le pose
+déclenche ce même contrôle préalable.
+
+### Ajouté
+
+#### La page d'un client a enfin des tests
+Elle n'en avait aucun. Cinq désormais, sur les règles que les onglets ont
+rendues cassables en silence : l'onglet d'arrivée, celui qui n'existe pas faute
+de contenu, la barre qui ne se dessine pas pour un seul choix, et le fait qu'une
+seule section s'affiche.
+
+Quatre classes de tests écrivant comme un invité ont aussi reçu la remise à zéro
+de leur limiteur. Leur compteur survit au processus : elles viraient au rouge au
+troisième lancement de l'heure, par un 429 sur une route qu'elles ne voulaient
+pas éprouver.
+
+#### Les listes de fichiers tiennent sur un téléphone
+Nom, poids et bouton sur une ligne de trois cent soixante-quinze pixels
+tronquaient toujours la même chose : le nom du fichier, la seule qu'on lit. Ils
+passent en colonne sous `sm`, et le bouton prend toute la largeur.
+
 ### Dans aurora-client
 `make aurora-update`, puis `make migrate` : la 0.9.210 réécrit les noms d'auteur
 des lignes écrites par un invité.

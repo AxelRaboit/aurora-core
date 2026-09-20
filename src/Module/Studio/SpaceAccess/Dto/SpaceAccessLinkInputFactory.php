@@ -29,6 +29,7 @@ class SpaceAccessLinkInputFactory implements SpaceAccessLinkInputFactoryInterfac
             // False when the form says nothing, unlike the two above: a right
             // that writes bytes to our storage is not one a missing field
             // grants.
+            canChat: (bool) ($data['canChat'] ?? true),
             canUpload: (bool) ($data['canUpload'] ?? false),
             // Absent vaut vrai : seul un faux explicite retire le dossier.
             canSeeDrive: false !== ($data['canSeeDrive'] ?? true),

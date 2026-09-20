@@ -14,6 +14,22 @@ use Symfony\Component\Filesystem\Filesystem;
 
 abstract class IntegrationTestCase extends WebTestCase
 {
+    /**
+     * L'en-tête que le navigateur pose sur chaque écriture d'invité.
+     *
+     * **Les routes publiques l'exigent**, parce que ce qui les protège est un
+     * secret dans l'adresse, et qu'une adresse se transfère : sans cet
+     * en-tête, un formulaire hébergé n'importe où pourrait faire poster le
+     * navigateur d'un client vers ces routes. Le composant de requête côté
+     * navigateur l'envoie sur tous les appels ; un test qui simule cette page
+     * doit donc l'envoyer aussi.
+     *
+     * Le garde lui-même est vérifié par un test dédié, qui appelle sans.
+     *
+     * @var array<string, string>
+     */
+    protected const array FROM_THE_PAGE = ['HTTP_X-Requested-With' => 'XMLHttpRequest'];
+
     public static function setUpBeforeClass(): void
     {
         parent::setUpBeforeClass();

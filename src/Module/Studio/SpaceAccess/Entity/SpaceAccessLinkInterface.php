@@ -53,6 +53,10 @@ interface SpaceAccessLinkInterface
 
     public function isPreview(): bool;
 
+    public function canChat(): bool;
+
+    public function setCanChat(bool $canChat): static;
+
     public function canSeeDrive(): bool;
 
     public function setCanSeeDrive(bool $canSeeDrive): static;

@@ -899,6 +899,11 @@ backend:
             can_approve: May approve
             can_approve_hint: Unchecked, the link shows the plan without letting anybody answer. For a reader who looks but does not decide.
             read_only: read-only
+            can_comment: "May comment on content"
+            can_comment_hint: "A card's thread: what is said about one particular post, and stays with it."
+            can_chat: "May write in the conversation"
+            can_chat_hint: "The thread of the relationship, outside any card. You may want one without the other: a partner agency annotates a plan without speaking in the client's room."
+            no_chat: "no conversation"
             can_upload: May send files
             can_upload_hint: "Off by default. Checked, the client can drop their own photos and documents onto the content. Images, PDF and common videos, 25 MB at most."
             can_see_drive: See the Drive folder

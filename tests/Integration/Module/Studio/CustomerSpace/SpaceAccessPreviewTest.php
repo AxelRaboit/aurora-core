@@ -11,6 +11,7 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
+use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -35,6 +36,8 @@ use function sprintf;
  */
 final class SpaceAccessPreviewTest extends IntegrationTestCase
 {
+    use ResetsRateLimiters;
+
     private KernelBrowser $client;
 
     private EntityManagerInterface $entityManager;
@@ -54,6 +57,17 @@ final class SpaceAccessPreviewTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
+        // Le compteur du limiteur survit au processus : une classe qui écrit
+        // comme un invité dépense un budget horaire partagé, et vire au
+        // rouge au troisième lancement de l'heure - par un 429 sur une
+        // route que le test ne voulait pas éprouver.
+        $this->resetRateLimiter('space_guest_write');
+
+        // Le navigateur pose cet en-tête sur chaque appel, et les routes
+        // publiques l'exigent : ce qui les protège est un secret dans
+        // l'adresse, et une adresse se transfère.
+        $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
+
         $this->links = $container->get(SpaceAccessLinkManagerInterface::class);
     }
 

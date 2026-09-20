@@ -51,6 +51,10 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
 
         $this->client->loginUser($admin, 'admin');
         $this->entityManager = $container->get(EntityManagerInterface::class);
+        // Le navigateur pose cet en-tête sur chaque appel, et les routes
+        // publiques l'exigent : ce qui les protège est un secret dans
+        // l'adresse, et une adresse se transfère.
+        $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
     }
 
     protected function tearDown(): void

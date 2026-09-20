@@ -64,7 +64,9 @@ const issueForm = ref({
     label: "",
     validForDays: props.defaultValidDays,
     canApprove: true,
-    // Off, unlike the one above: sending a file writes bytes to our storage
+    canComment: true,
+    canChat: true,
+    // Off, unlike the ones above: sending a file writes bytes to our storage
     // from an address with no account behind it, so it is granted per link
     // rather than assumed.
     canUpload: false,
@@ -102,6 +104,8 @@ function openIssue() {
         label: "",
         validForDays: props.defaultValidDays,
         canApprove: true,
+        canComment: true,
+        canChat: true,
         canUpload: false,
         canSeeDrive: true,
     };
@@ -250,6 +254,9 @@ function openedLabel(link) {
                         <template v-if="false === link.canSeeDrive">
                             · {{ t("backend.studio.space_access.no_drive") }}
                         </template>
+                        <template v-if="false === link.canChat">
+                            · {{ t("backend.studio.space_access.no_chat") }}
+                        </template>
                     </p>
                 </div>
 
@@ -355,6 +362,22 @@ function openedLabel(link) {
                     :label="t('backend.studio.space_access.can_approve')"
                     :hint="t('backend.studio.space_access.can_approve_hint')"
                     v-on:update:model-value="issueForm.canApprove = $event"
+                />
+                <!-- Deux conversations, deux cases. Un seul droit les
+                     commandait : autoriser une remarque sous une publication
+                     ouvrait aussi le fil de la relation, qui n'est pas la
+                     même chose et ne se donne pas au même monde. -->
+                <AppCheckbox
+                    :model-value="issueForm.canComment"
+                    :label="t('backend.studio.space_access.can_comment')"
+                    :hint="t('backend.studio.space_access.can_comment_hint')"
+                    v-on:update:model-value="issueForm.canComment = $event"
+                />
+                <AppCheckbox
+                    :model-value="issueForm.canChat"
+                    :label="t('backend.studio.space_access.can_chat')"
+                    :hint="t('backend.studio.space_access.can_chat_hint')"
+                    v-on:update:model-value="issueForm.canChat = $event"
                 />
                 <AppCheckbox
                     :model-value="issueForm.canUpload"
