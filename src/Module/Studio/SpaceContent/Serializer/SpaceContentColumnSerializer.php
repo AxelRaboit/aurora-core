@@ -18,6 +18,7 @@ class SpaceContentColumnSerializer implements SpaceContentColumnSerializerInterf
             'name' => $column->getName(),
             'position' => $column->getPosition(),
             'colourSlot' => $column->getColourSlot(),
+            'visibleToClient' => $column->isVisibleToClient(),
         ];
     }
 }

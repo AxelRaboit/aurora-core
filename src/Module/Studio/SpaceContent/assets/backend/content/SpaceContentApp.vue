@@ -66,6 +66,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 // modules parle des modules, et le Drive d'un espace est le même Studio.
 import SpaceSettingsView from "../../../../CustomerSpace/assets/backend/settings/SpaceSettingsView.vue";
 import SpaceDrivePicker from "../../../../SpaceFile/GoogleDrive/assets/backend/drive/SpaceDrivePicker.vue";
+import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppColourSlotPicker from "@/shared/components/form/picker/AppColourSlotPicker.vue";
 import {
     CalendarDays,
@@ -765,6 +766,18 @@ const actionsFor = useSpaceCardActions({
                     :hint="t('backend.studio.space_content.column_colour_hint')"
                     :error="columnErrors.colourSlot"
                     v-on:update:model-value="columnForm = { ...columnForm, colourSlot: $event }"
+                />
+
+                <!-- Sur l'étape et non sur la fiche : un tableau dit déjà
+                     « ce qui est à ce stade », donc « ce stade ne regarde pas
+                     le client » se pose dessus. Marquer carte par carte
+                     obligerait à y repenser à chaque création, et la première
+                     oubliée annulerait la protection. -->
+                <AppCheckbox
+                    :model-value="false !== columnForm.visibleToClient"
+                    :label="t('backend.studio.space_content.column_visible')"
+                    :hint="t('backend.studio.space_content.column_visible_hint')"
+                    v-on:update:model-value="columnForm = { ...columnForm, visibleToClient: $event }"
                 />
             </form>
             <template #footer>

@@ -1159,6 +1159,8 @@ backend:
             column_name_placeholder: 'To review, Live…'
             column_colour: Colour
             column_colour_hint: Optional. It marks the step on the board, and colours its content on the calendar.
+            column_visible: Visible to the client
+            column_visible_hint: "Unchecked, this step and its content do not appear in the space the client opens through their link. They stay on your board."
             column_created: Step added.
             column_updated: Step renamed.
             column_deleted: Step deleted.

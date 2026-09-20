@@ -1170,6 +1170,8 @@ backend:
             column_name_placeholder: 'À relire, En ligne…'
             column_colour: Couleur
             column_colour_hint: Facultative. Elle distingue l'étape sur le tableau, et colore ses contenus au calendrier.
+            column_visible: Visible par le client
+            column_visible_hint: "Décochée, cette étape et ses contenus n'apparaissent pas dans l'espace que le client ouvre par son lien. Ils restent sur votre tableau."
             column_created: Étape ajoutée.
             column_updated: Étape renommée.
             column_deleted: Étape supprimée.

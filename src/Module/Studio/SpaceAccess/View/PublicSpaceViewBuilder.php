@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceAccess\View;
 
 use Aurora\Core\Routing\PathTemplateGenerator;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentCommentRepository;
@@ -62,9 +64,12 @@ final readonly class PublicSpaceViewBuilder
                 'colourSlot' => $space->getColourSlot(),
                 'timezone' => $space->getTimezone(),
             ],
+            // Les étapes que le client voit, et elles seules. Le tableau du
+            // studio garde les siennes ; « Relecture juridique » n'a pas à
+            // être une nouvelle pour lui.
             'columns' => array_map(
                 $this->columnSerializer->serialize(...),
-                $this->columns->findForSpace($space),
+                $this->visibleColumns($space),
             ),
             'items' => $this->items($link),
             'comments' => $this->comments($link),
@@ -190,9 +195,43 @@ final readonly class PublicSpaceViewBuilder
     /** @return list<array<string, mixed>> */
     public function items(SpaceAccessLinkInterface $link): array
     {
-        return array_map(
-            $this->itemSerializer->serialize(...),
-            $this->items->findForSpace($link->getSpace()),
-        );
+        $space = $link->getSpace();
+
+        // **Les deux filtres, et pas seulement celui des colonnes.** Retirer
+        // une étape sans retirer ses fiches laisserait les cartes d'une
+        // colonne invisible dans le calendrier du client, qui les lit par
+        // leur date et non par leur étape. C'est exactement l'écart qui aurait
+        // rendu le réglage rassurant et inutile.
+        $visible = [];
+
+        foreach ($this->visibleColumns($space) as $column) {
+            $visible[(int) $column->getId()] = true;
+        }
+
+        $items = [];
+
+        foreach ($this->items->findForSpace($space) as $item) {
+            if (isset($visible[(int) $item->getColumn()->getId()])) {
+                $items[] = $this->itemSerializer->serialize($item);
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Les colonnes ouvertes au client.
+     *
+     * Filtrées ici plutôt que par une requête dédiée : le tableau d'un espace
+     * en compte une poignée, et le dépôt sert déjà les mêmes lignes au studio.
+     *
+     * @return list<SpaceContentColumnInterface>
+     */
+    private function visibleColumns(CustomerSpaceInterface $space): array
+    {
+        return array_values(array_filter(
+            $this->columns->findForSpace($space),
+            static fn (SpaceContentColumnInterface $column): bool => $column->isVisibleToClient(),
+        ));
     }
 }
