@@ -23,7 +23,7 @@
  */
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { CalendarDays, MessagesSquare, Paperclip } from "lucide-vue-next";
+import { CalendarDays, IdCard, Link2, MessagesSquare, Paperclip } from "lucide-vue-next";
 import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -40,6 +40,8 @@ import AppButton from "@/shared/components/action/AppButton.vue";
 import SpaceContentThread from "../../../../SpaceContent/assets/shared/SpaceContentThread.vue";
 import SpaceContentAttachments from "../../../../SpaceContent/assets/shared/SpaceContentAttachments.vue";
 import SpaceChatPanel from "../../../../SpaceChat/assets/shared/SpaceChatPanel.vue";
+import CustomerInformationCard from "../../../../Customer/assets/shared/CustomerInformationCard.vue";
+import SpaceResourceItem from "../../../../SpaceResource/assets/shared/SpaceResourceItem.vue";
 import {
     Check,
     ChevronLeft,
@@ -85,6 +87,15 @@ const props = defineProps({
     chatHidePath: { type: String, default: null },
     chatPeople: { type: Array, default: () => [] },
     chatChannelId: { type: [Number, null], default: null },
+    /**
+     * La fiche du prestataire sur ce client, ou `null`.
+     *
+     * `null` quand elle ne dit rien de plus que le nom, que le client connaît
+     * déjà : l'onglet n'existe alors pas, comme la discussion sans canal.
+     */
+    information: { type: Object, default: null },
+    /** Ce que le studio a ouvert au client, et rien d'autre. */
+    resources: { type: Array, default: () => [] },
 });
 
 const { t, d } = useI18n();
@@ -193,14 +204,23 @@ const VIEWS = [
     { key: "calendar", labelKey: "studio.public.space.tab_calendar", icon: CalendarDays },
     { key: "chat", labelKey: "studio.public.space.tab_chat", icon: MessagesSquare },
     { key: "files", labelKey: "studio.public.space.tab_files", icon: Paperclip },
+    // Ce que le prestataire a épinglé pour ce client, puis la fiche qu'il
+    // tient sur lui. En dernier parce qu'on les consulte de temps en temps :
+    // ce qu'on vient voir est le calendrier.
+    { key: "resources", labelKey: "studio.public.space.tab_resources", icon: Link2 },
+    { key: "information", labelKey: "studio.public.space.tab_information", icon: IdCard },
 ];
 
 const hasChat = computed(() => props.chatChannels.length > 0);
 const hasFiles = computed(() => props.spaceFiles.length > 0 || driveFiles.value.length > 0);
+const hasResources = computed(() => props.resources.length > 0);
+const hasInformation = computed(() => null !== props.information);
 
 const views = computed(() => VIEWS.filter((entry) => {
     if ("chat" === entry.key) return hasChat.value;
     if ("files" === entry.key) return hasFiles.value;
+    if ("resources" === entry.key) return hasResources.value;
+    if ("information" === entry.key) return hasInformation.value;
 
     return true;
 }));
@@ -656,6 +676,29 @@ function open(event) {
                 </ul>
             </section>
         </template>
+
+        <!-- Ce que le prestataire a épinglé pour ce client : une maquette, un
+             accès, la personne à qui écrire. Ce qui n'a pas été ouvert n'est
+             pas ici - ce n'est pas caché à l'affichage, ce n'est jamais sorti
+             du serveur. -->
+        <section v-if="'resources' === view" class="space-y-3">
+            <ul class="space-y-2">
+                <li
+                    v-for="resource in resources"
+                    :key="resource.id"
+                    class="rounded-xl border border-line/60 bg-surface p-3"
+                >
+                    <SpaceResourceItem :resource="resource" />
+                </li>
+            </ul>
+        </section>
+
+        <!-- La fiche que le prestataire tient sur vous. Montrée au client
+             parce que c'est de lui qu'elle parle : un SIRET mal recopié se
+             voit par celui qui le connaît, et pas autrement. -->
+        <section v-if="'information' === view" class="rounded-xl border border-line/60 bg-surface p-4">
+            <CustomerInformationCard :information="information" />
+        </section>
 
         <!-- One sentence, not two stacked lines. The expiry and the "do not
              forward" were separate paragraphs saying one thing between them:
