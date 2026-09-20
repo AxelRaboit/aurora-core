@@ -56,6 +56,38 @@ class SpaceAccessController extends AbstractController
      * Nothing stores it, so nothing can show it again: the screen has to make
      * the reader copy it now, and says so.
      */
+    /**
+     * Ouvre la page du client, telle que ce lien la rend.
+     *
+     * **Un vrai lien temporaire, et non une page fabriquée.** Le jeton en clair
+     * n'existe qu'à la création ; reconstruire la page avec un jeton inventé
+     * donne un écran qui s'affiche et dont rien ne répond, donc ni dossier
+     * Drive ni fichiers - c'est-à-dire tout ce qu'on venait vérifier. L'aperçu
+     * émet donc un lien pour de bon, valable quelques minutes, invisible dans
+     * la liste, et incapable d'écrire quoi qu'il autorise.
+     *
+     * Une redirection plutôt qu'un rendu : la page du client est servie par sa
+     * propre route, avec son cookie de discussion et ses en-têtes. La rendre
+     * une seconde fois ici serait une seconde façon de la produire, et les
+     * deux finiraient par ne plus dire la même chose.
+     */
+    #[Route('/{linkId}/preview', name: '_preview', requirements: ['linkId' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    #[IsGranted('studio.spaces.share')]
+    public function preview(
+        CustomerSpace $space,
+        #[MapEntity(id: 'linkId')]
+        SpaceAccessLink $link,
+    ): Response {
+        $this->assertOwned($space, $link);
+
+        $preview = $this->links->preview($link);
+
+        return $this->redirectToRoute('public_space_show', [
+            'selector' => $preview->getSelector(),
+            'token' => $preview->getPlainToken(),
+        ]);
+    }
+
     #[Route('/issue', name: '_issue', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.share')]
     public function issue(CustomerSpace $space, Request $request): JsonResponse
@@ -75,6 +107,7 @@ class SpaceAccessController extends AbstractController
             $input->canApprove(),
             $input->canComment(),
             $input->canUpload(),
+            $input->canSeeDrive(),
         );
 
         return $this->jsonSuccess($this->viewBuilder->issuedPayload($space, $link));

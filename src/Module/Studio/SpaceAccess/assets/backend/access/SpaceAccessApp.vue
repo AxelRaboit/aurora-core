@@ -29,7 +29,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
-import { Ban, Copy, Link2, Trash2, X } from "lucide-vue-next";
+import { Ban, Copy, Eye, Link2, Trash2, X } from "lucide-vue-next";
 
 const { t, d } = useI18n();
 const { can } = usePrivileges();
@@ -44,6 +44,10 @@ const props = defineProps({
     issuePath: { type: String, required: true },
     revokePath: { type: String, required: true },
     deletePath: { type: String, required: true },
+    /** Non nul quand l'espace a un dossier Drive branché. */
+    driveFolderId: { type: String, default: null },
+    /** Gabarit d'adresse de l'aperçu, `__id__` remplacé par le lien. */
+    previewPath: { type: String, default: "" },
 });
 
 const canShare = computed(() => can("studio.spaces.share"));
@@ -64,6 +68,7 @@ const issueForm = ref({
     // from an address with no account behind it, so it is granted per link
     // rather than assumed.
     canUpload: false,
+    canSeeDrive: true,
 });
 
 /** The one and only moment the address exists in readable form. */
@@ -98,6 +103,7 @@ function openIssue() {
         validForDays: props.defaultValidDays,
         canApprove: true,
         canUpload: false,
+        canSeeDrive: true,
     };
     clearIssue();
     showIssue.value = true;
@@ -238,6 +244,12 @@ function openedLabel(link) {
                         <template v-if="link.canUpload">
                             · {{ t("backend.studio.space_access.may_upload") }}
                         </template>
+                        <!-- Dit seulement quand c'est retiré : la liste
+                             nomme ce qui sort de l'ordinaire, pas ce qui est
+                             le cas pour tous les liens. -->
+                        <template v-if="false === link.canSeeDrive">
+                            · {{ t("backend.studio.space_access.no_drive") }}
+                        </template>
                     </p>
                 </div>
 
@@ -258,6 +270,22 @@ function openedLabel(link) {
                  vingt-six pixels. Chacun porte maintenant son icône, son nom
                  et son cadre, et ils se partagent la ligne. -->
                 <div v-if="canShare" class="flex w-full shrink-0 items-center gap-2 sm:w-auto">
+                    <!-- Voir avant d'envoyer, et après avoir changé un
+                         réglage. Sans lui, la seule façon de savoir ce qu'un
+                         lien montre est de l'ouvrir dans une fenêtre privée,
+                         et un réglage qu'on ne peut pas vérifier d'un coup
+                         d'œil cesse d'être utilisé. -->
+                    <AppButton
+                        v-if="previewPath && link.usable"
+                        class="flex-1 sm:flex-none"
+                        variant="ghost"
+                        size="sm"
+                        :href="buildPath(previewPath, { id: link.id })"
+                        target="_blank"
+                    >
+                        <Eye class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("backend.studio.space_access.preview") }}
+                    </AppButton>
                     <AppButton
                         v-if="link.usable"
                         class="flex-1 sm:flex-none"
@@ -333,6 +361,16 @@ function openedLabel(link) {
                     :label="t('backend.studio.space_access.can_upload')"
                     :hint="t('backend.studio.space_access.can_upload_hint')"
                     v-on:update:model-value="issueForm.canUpload = $event"
+                />
+
+                <!-- Offerte seulement quand l'espace a un dossier branché :
+                     une case qui ne gouverne rien se lit comme cassée. -->
+                <AppCheckbox
+                    v-if="driveFolderId"
+                    :model-value="false !== issueForm.canSeeDrive"
+                    :label="t('backend.studio.space_access.can_see_drive')"
+                    :hint="t('backend.studio.space_access.can_see_drive_hint')"
+                    v-on:update:model-value="issueForm.canSeeDrive = $event"
                 />
             </form>
             <template #footer>

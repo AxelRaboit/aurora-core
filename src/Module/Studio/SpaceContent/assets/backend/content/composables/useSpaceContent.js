@@ -218,7 +218,11 @@ export function useSpaceContent(initial, paths) {
 
     const showColumnForm = ref(false);
     const editingColumn = ref(null);
-    const columnForm = ref({ name: "", colourSlot: null });
+    const columnForm = ref({
+        name: "",
+        colourSlot: null,
+        visibleToClient: true,
+    });
 
     const {
         errors: columnErrors,
@@ -256,7 +260,11 @@ export function useSpaceContent(initial, paths) {
 
     function openColumnCreate() {
         editingColumn.value = null;
-        columnForm.value = { name: "", colourSlot: null };
+        columnForm.value = {
+            name: "",
+            colourSlot: null,
+            visibleToClient: true,
+        };
         clearColumnErrors();
         showColumnForm.value = true;
     }
@@ -266,6 +274,7 @@ export function useSpaceContent(initial, paths) {
         columnForm.value = {
             name: column.name,
             colourSlot: column.colourSlot ?? null,
+            visibleToClient: false !== column.visibleToClient,
         };
         clearColumnErrors();
         showColumnForm.value = true;

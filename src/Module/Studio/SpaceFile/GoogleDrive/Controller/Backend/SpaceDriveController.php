@@ -10,13 +10,13 @@ use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Security\DriveLock;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveArchive;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveClient;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveFileServer;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveImporter;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\GoogleServiceAccount;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting\DriveSettings;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +26,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 use function date;
 use function mb_trim;
-use function preg_match;
 use function preg_replace;
 use function sprintf;
 
@@ -44,13 +43,6 @@ final class SpaceDriveController extends AbstractController
     use JsonRequestTrait;
     use JsonResponseTrait;
 
-    /**
-     * Ce que Google accepte comme identifiant, et ce qu'une adresse de dossier
-     * en contient. Vérifié pour que coller l'adresse entière par erreur donne
-     * un refus lisible plutôt qu'une liste vide inexplicable.
-     */
-    private const string FOLDER_ID = '/^[A-Za-z0-9_-]{10,128}$/';
-
     public function __construct(
         private readonly DriveSettings $settings,
         private readonly DriveClient $drive,
@@ -58,39 +50,8 @@ final class SpaceDriveController extends AbstractController
         private readonly DriveArchive $archives,
         private readonly DriveImporter $importer,
         private readonly DocumentSerializerInterface $documents,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly DriveLock $lock,
     ) {}
-
-    /**
-     * Le dossier que cet espace regarde.
-     *
-     * L'adresse entière est acceptée et découpée : c'est ce qu'on a sous la
-     * main quand on vient de l'ouvrir dans Drive, et exiger l'identifiant nu
-     * ferait échouer le geste le plus naturel.
-     */
-    #[Route('/folder', name: '_folder', methods: [HttpMethodEnum::Post->value])]
-    public function setFolder(CustomerSpace $space, Request $request): JsonResponse
-    {
-        $given = mb_trim((string) ($this->decodeJson($request)['folder'] ?? ''));
-
-        if ('' === $given) {
-            $space->setDriveFolderId(null);
-            $this->entityManager->flush();
-
-            return $this->jsonSuccess(['folderId' => null]);
-        }
-
-        $folderId = $this->folderIdOf($given);
-
-        if (null === $folderId) {
-            return $this->jsonFailure('backend.studio.drive.errors.folder_invalid');
-        }
-
-        $space->setDriveFolderId($folderId);
-        $this->entityManager->flush();
-
-        return $this->jsonSuccess(['folderId' => $folderId]);
-    }
 
     /**
      * Les fichiers du dossier.
@@ -106,6 +67,20 @@ final class SpaceDriveController extends AbstractController
     {
         $account = $this->settings->isEnabled() ? $this->settings->account() : null;
         $folderId = $space->getDriveFolderId();
+
+        // **La serrure se vérifie ici et pas seulement à l'écran.** Un onglet
+        // masqué n'a jamais fermé une adresse : sans cette ligne, la liste
+        // complète du dossier partirait à qui appelle la route directement,
+        // et le mot de passe ne protégerait qu'un bouton.
+        if ($this->lock->isClosedFor($space)) {
+            return $this->jsonSuccess([
+                'configured' => true,
+                'folderId' => $folderId,
+                'reachable' => false,
+                'locked' => true,
+                'files' => [],
+            ]);
+        }
 
         if (!$account instanceof GoogleServiceAccount || null === $folderId) {
             return $this->jsonSuccess([
@@ -234,17 +209,5 @@ final class SpaceDriveController extends AbstractController
         $name = (string) preg_replace('#[^\w\-]+#u', '-', $space->getName());
 
         return sprintf('%s-%s.zip', mb_trim($name, '-') ?: 'drive', date('Y-m-d'));
-    }
-
-    /**
-     * L'identifiant, qu'on lui donne nu ou dans une adresse.
-     */
-    private function folderIdOf(string $given): ?string
-    {
-        if (1 === preg_match('#/folders/([A-Za-z0-9_-]+)#', $given, $match)) {
-            return $match[1];
-        }
-
-        return 1 === preg_match(self::FOLDER_ID, $given) ? $given : null;
     }
 }

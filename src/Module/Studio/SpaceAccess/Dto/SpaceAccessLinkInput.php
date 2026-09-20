@@ -27,6 +27,7 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
         public readonly bool $canApprove = true,
         public readonly bool $canComment = true,
         public readonly bool $canUpload = false,
+        public readonly bool $canSeeDrive = true,
     ) {}
 
     public function getRecipientEmail(): string
@@ -57,5 +58,10 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
     public function canUpload(): bool
     {
         return $this->canUpload;
+    }
+
+    public function canSeeDrive(): bool
+    {
+        return $this->canSeeDrive;
     }
 }

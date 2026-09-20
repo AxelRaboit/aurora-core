@@ -54,10 +54,24 @@ class SpaceAccessLinkRepository extends ResolveTargetEntityRepository
     {
         return $this->createQueryBuilder('l')
             ->where('l.space = :space')
+            // Les aperçus vivent quelques minutes et appartiennent à un autre
+            // lien : les lister ferait croire à des destinataires en trop.
+            ->andWhere('l.previewOf IS NULL')
             ->setParameter('space', $space)
             ->orderBy('l.createdAt', Order::Descending->value)
             ->addOrderBy('l.id', Order::Descending->value)
             ->getQuery()
             ->getResult();
+    }
+
+    /** L'aperçu en cours d'un lien, s'il y en a un. */
+    public function findPreviewOf(SpaceAccessLinkInterface $link): ?SpaceAccessLinkInterface
+    {
+        return $this->createQueryBuilder('l')
+            ->where('l.previewOf = :link')
+            ->setParameter('link', $link)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

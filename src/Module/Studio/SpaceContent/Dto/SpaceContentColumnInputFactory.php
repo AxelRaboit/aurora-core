@@ -22,6 +22,7 @@ class SpaceContentColumnInputFactory implements SpaceContentColumnInputFactoryIn
             // An empty string is what a cleared swatch sends, and it means "no
             // colour" rather than "slot zero".
             colourSlot: is_numeric($slot) ? (int) $slot : null,
+            visibleToClient: false !== ($data['visibleToClient'] ?? true),
         );
     }
 }

@@ -47,6 +47,16 @@ interface SpaceAccessLinkInterface
 
     public function setCanComment(bool $canComment): static;
 
+    public function getPreviewOf(): ?self;
+
+    public function setPreviewOf(?self $previewOf): static;
+
+    public function isPreview(): bool;
+
+    public function canSeeDrive(): bool;
+
+    public function setCanSeeDrive(bool $canSeeDrive): static;
+
     public function canUpload(): bool;
 
     public function setCanUpload(bool $canUpload): static;

@@ -824,6 +824,40 @@ backend:
                 active: Active
                 archived: Archived
 
+            settings:
+                section_drive: Google Drive
+                folder_title: Shared folder
+                folder_intro: "The Drive folder this client shared with the service account's address."
+                folder_hint: "Paste the folder's address, or empty the field to unlink it."
+                folder_saved: Folder linked.
+                folder_cleared: Folder unlinked.
+                drive_closes_now: "Saving closes the tab straight away, you included: you will have to type the password to open it."
+                drive_title: Drive tab password
+                drive_intro: "Closes this space's Drive tab. It applies to everyone, you included: a password that gets walked past protects nobody."
+                drive_locked: The Drive tab is closed.
+                drive_open: The Drive tab is open.
+                current_password: Current password
+                new_password: New password
+                password: Password
+                password_hint: "{count} characters minimum."
+                drive_set: Close the tab
+                drive_change: Change the password
+                drive_clear: Reopen the tab
+                drive_saved: Password saved.
+                drive_cleared: Drive tab reopened.
+                drive_revoke: Ask for the password again
+                drive_revoked: "Everyone will be asked for the password again."
+                drive_revoke_hint: "Closes the tab for every open session, yours included, without changing the password."
+                drive_recovery: "Removing it requires typing it. Forgotten, it can only be cleared from the server, with a console command."
+                current_placeholder: The current one
+                new_placeholder: Eight characters or more
+                confirm_password: Confirm the password
+                confirm_placeholder: The same one, a second time
+                errors:
+                    wrong_password: Wrong password.
+                    password_too_short: Password too short.
+                    password_mismatch: Passwords do not match.
+                    not_locked: "The Drive tab is not closed."
             roles:
                 lead: Lead
                 member: Member
@@ -844,6 +878,7 @@ backend:
             intro: A link opens this space read-only, with no account. It is personal, it expires, and it can be revoked.
             issue: Create a link
             issued: Link created.
+            preview: Preview
             revoke: Revoke
             revoked: Link revoked.
             deleted: Link deleted.
@@ -866,6 +901,9 @@ backend:
             read_only: read-only
             can_upload: May send files
             can_upload_hint: "Off by default. Checked, the client can drop their own photos and documents onto the content. Images, PDF and common videos, 25 MB at most."
+            can_see_drive: See the Drive folder
+            can_see_drive_hint: "Unchecked, this person sees neither the shared folder nor its download. Useful for a second reader the client's folder is not meant for."
+            no_drive: without the Drive
             may_upload: may send files
 
             never_opened: Never opened
@@ -973,6 +1011,12 @@ backend:
                 empty: "The folder is empty, or it was not shared with the service account."
                 no_size: "—"
                 view_label: How the files are shown
+                no_folder: "No Drive folder is linked to this space."
+                no_folder_referent: "No Drive folder is linked to this space. Go to Settings to name one."
+                locked_title: Protected tab
+                locked_intro: "This space's Drive folder is closed behind a password. It opens for the length of this session."
+                locked_placeholder: Password
+                unlock: Open
                 archive: Download everything (.zip)
                 archive_weight: "The folder weighs {weight}."
                 archive_too_large: "The folder weighs {weight}, which is too much for a single archive. Download the files one by one, or trim the shared folder."
@@ -1068,6 +1112,7 @@ backend:
             view_files: Files
             view_chat: Chat
             view_notes: Notes
+            view_settings: Settings
             files_empty: No file on this space yet
             files_empty_hint: Files put on the content, by you or by the client, appear here newest first.
             files_unknown_card: Deleted content
@@ -1134,6 +1179,8 @@ backend:
             column_name_placeholder: 'To review, Live…'
             column_colour: Colour
             column_colour_hint: Optional. It marks the step on the board, and colours its content on the calendar.
+            column_visible: Visible to the client
+            column_visible_hint: "Unchecked, this step and its content do not appear in the space the client opens through their link. They stay on your board."
             column_created: Step added.
             column_updated: Step renamed.
             column_deleted: Step deleted.
@@ -1277,6 +1324,7 @@ studio:
             calendar_day_empty: Nothing planned that day.
             drive_title: Shared documents
             drive_download: Download the file
+            preview_notice: "Preview: this is what the holder of this link sees. Nothing you click here reaches them, and this address expires in a few minutes."
             drive_archive: Download everything (.zip)
             footer: This address is personal to you, please do not pass it on.
             footer_until: 'This address is personal to you and valid until {date}: please do not pass it on.'

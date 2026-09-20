@@ -1,10 +1,12 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { toast } from "vue-sonner";
-import { ChevronRight, Download, ExternalLink, FileText, Folder, FolderOpen, LayoutGrid, Library, Link2Off, List, Package, RefreshCw, X } from "lucide-vue-next";
+import { ChevronRight, Download, ExternalLink, FileText, Folder, FolderOpen, LayoutGrid, Library, List, Lock, LockOpen, Package, RefreshCw, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppFilePreview from "@/shared/components/display/AppFilePreview.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -30,13 +32,19 @@ import { useDriveTree } from "./useDriveTree.js";
 const props = defineProps({
     folderId: { type: String, default: null },
     listPath: { type: String, required: true },
-    folderPath: { type: String, required: true },
     filePath: { type: String, required: true },
     archivePath: { type: String, default: "" },
     importPath: { type: String, default: "" },
+    /** L'adresse qui ouvre la serrure pour cette session. */
+    unlockPath: { type: String, default: "" },
+    /** Vrai pour le référent : lui seul peut aller brancher le dossier. */
+    canConfigure: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();
+// Le formateur partagé : trois copies locales disaient la même chose,
+// et une seule connaissait les unités des autres langues.
+const { formatSize } = useFileSize();
 const { request } = useRequest();
 const { formatDateTimeNumeric } = useDateFormat();
 
@@ -52,8 +60,6 @@ const { choice: stored } = usePersistedChoice("studio.space_drive.view", "grid",
 const mode = computed(() => (isNarrow.value ? "list" : stored.value));
 
 const loading = ref(false);
-const saving = ref(false);
-const folder = ref(props.folderId ?? "");
 const current = ref(props.folderId ?? null);
 const files = ref([]);
 const previewed = ref(null);
@@ -86,6 +92,17 @@ const archivable = computed(() => files.value.length > 0 && weight.value <= ARCH
  */
 const { breadcrumb, folders, visible, goTo, open, reset } = useDriveTree(files);
 
+/**
+ * Fermé par un mot de passe, et pas encore ouvert dans cette session.
+ *
+ * Le serveur le dit dans la liste plutôt que de répondre 404 : un refus sec
+ * serait indiscernable d'un espace sans Drive, et l'écran afficherait « aucun
+ * dossier » à quelqu'un qui n'a qu'un mot de passe à saisir.
+ */
+const locked = ref(false);
+const password = ref("");
+const unlocking = ref(false);
+
 async function load() {
     if (!linked.value) {
         files.value = [];
@@ -97,31 +114,38 @@ async function load() {
 
     try {
         const data = await request(props.listPath, null, { method: HttpMethod.Get, noGuard: true });
+        locked.value = true === data?.locked;
         files.value = Array.isArray(data?.files) ? data.files : [];
     } finally {
         loading.value = false;
     }
 }
 
-onMounted(load);
+async function unlock() {
+    if (!password.value || unlocking.value) return;
 
-async function save() {
-    saving.value = true;
+    unlocking.value = true;
 
     try {
-        const data = await request(props.folderPath, { folder: folder.value.trim() });
+        const data = await request(props.unlockPath, { password: password.value });
 
-        if (data) {
-            current.value = data.folderId ?? null;
-            folder.value = current.value ?? "";
-            reset();
-            toast.success(t(linked.value ? "backend.studio.drive.space.linked" : "backend.studio.drive.space.unlinked"));
-            await load();
+        // Le refus annoncé : sans cela, un mot de passe erroné ne produit rien
+        // du tout et le bouton passe pour mort.
+        if (!data?.unlocked) {
+            toast.error(t(data?.error ?? "shared.common.error"));
+
+            return;
         }
+
+        password.value = "";
+        locked.value = false;
+        await load();
     } finally {
-        saving.value = false;
+        unlocking.value = false;
     }
 }
+
+onMounted(load);
 
 function addressOf(file) {
     return props.filePath.replace("__id__", file.id);
@@ -160,21 +184,6 @@ async function importToLibrary(file) {
     }
 }
 
-/** Google omet la taille de ses propres formats : un document n'a pas d'octets. */
-function weightOf(file) {
-    if (null === file.size || undefined === file.size) return "";
-
-    const units = ["o", "ko", "Mo", "Go"];
-    let value = file.size;
-    let unit = 0;
-
-    while (value >= 1024 && unit < units.length - 1) {
-        value /= 1024;
-        ++unit;
-    }
-
-    return `${value.toFixed(0 === unit ? 0 : 1)} ${units[unit]}`;
-}
 </script>
 
 <template>
@@ -187,7 +196,7 @@ function weightOf(file) {
                 {{ t("backend.studio.drive.space.title") }}
             </h3>
 
-            <div v-if="linked" class="flex items-center gap-2">
+            <div v-if="linked && !locked" class="flex items-center gap-2">
                 <!-- Caché là où un conteneur étroit impose déjà la liste : un
                      interrupteur qui ne change rien se lit comme cassé. -->
                 <div
@@ -221,7 +230,7 @@ function weightOf(file) {
                     variant="ghost"
                     size="sm"
                     :href="archivePath"
-                    :title="t('backend.studio.drive.space.archive_weight', { weight: weightOf({ size: weight }) })"
+                    :title="t('backend.studio.drive.space.archive_weight', { weight: formatSize(weight) })"
                 >
                     <Package class="h-3.5 w-3.5" :stroke-width="2" />
                     {{ t("backend.studio.drive.space.archive") }}
@@ -240,45 +249,67 @@ function weightOf(file) {
             </div>
         </header>
 
-        <p class="text-xs text-muted">{{ t("backend.studio.drive.space.intro") }}</p>
+        <p v-if="!locked" class="text-xs text-muted">{{ t("backend.studio.drive.space.intro") }}</p>
 
         <p
             v-if="linked && !loading && files.length && !archivable"
             class="rounded-lg border border-line bg-surface-2 px-3 py-2 text-xs text-muted"
         >
-            {{ t("backend.studio.drive.space.archive_too_large", { weight: weightOf({ size: weight }) }) }}
+            {{ t("backend.studio.drive.space.archive_too_large", { weight: formatSize(weight) }) }}
         </p>
 
-        <!-- L'explication sous la rangée entière, et non sous le seul champ :
-             collée au champ, elle poussait le bouton d'une ligne vers le bas,
-             qui s'alignait alors sur elle au lieu de s'aligner sur la saisie. -->
-        <div class="space-y-1">
-            <span class="block text-xs text-secondary">{{ t("backend.studio.drive.space.folder_label") }}</span>
+        <!-- Plus de champ de dossier ici : le désigner est une
+             configuration, elle vit dans les Réglages. Ce qui reste est un
+             renvoi pour qui arrive sur un écran vide, et rien pour les
+             autres : un équipier qui n'est pas référent verrait une consigne
+             qu'il ne peut pas suivre. -->
+        <p
+            v-if="!linked && !loading"
+            class="rounded-lg border border-line bg-surface-2 px-3 py-3 text-xs text-muted"
+        >
+            {{ t(canConfigure ? "backend.studio.drive.space.no_folder_referent" : "backend.studio.drive.space.no_folder") }}
+        </p>
 
-            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <input
-                    v-model="folder"
-                    type="text"
-                    spellcheck="false"
-                    placeholder="https://drive.google.com/drive/folders/…"
-                    class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary"
-                >
+        <!-- La serrure prend toute la place : tant qu'elle est fermée, il n'y
+             a rien d'autre à montrer, et laisser le champ de dossier visible
+             donnerait à croire qu'on peut le changer pour contourner. -->
+        <section
+            v-if="locked"
+            class="space-y-3 rounded-lg border border-line bg-surface-2 px-3 py-4 sm:px-4"
+        >
+            <h3 class="flex items-center gap-2 text-sm font-medium text-primary">
+                <Lock class="h-4 w-4 shrink-0" :stroke-width="2" />
+                {{ t("backend.studio.drive.space.locked_title") }}
+            </h3>
+            <p class="text-xs text-muted">{{ t("backend.studio.drive.space.locked_intro") }}</p>
+
+            <form class="flex flex-col gap-2 sm:flex-row sm:items-center" v-on:submit.prevent="unlock">
+                <!-- `AppInput` et non un champ brut : l'œil qui dévoile la
+                     saisie compte d'autant plus ici, où se tromper ne dit rien
+                     de plus précis que « mot de passe incorrect ». -->
+                <AppInput
+                    class="min-w-0 flex-1"
+                    :model-value="password"
+                    type="password"
+                    toggleable
+                    :placeholder="t('backend.studio.drive.space.locked_placeholder')"
+                    v-on:update:model-value="password = $event"
+                />
                 <AppButton
                     class="w-full shrink-0 sm:w-auto"
                     variant="primary"
                     size="sm"
-                    :loading="saving"
-                    v-on:click="save"
+                    type="submit"
+                    :loading="unlocking"
+                    :disabled="!password"
                 >
-                    <component :is="linked && '' === folder.trim() ? Link2Off : FolderOpen" class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t(linked && "" === folder.trim() ? "backend.studio.drive.space.unlink" : "backend.studio.drive.space.link") }}
+                    <LockOpen class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("backend.studio.drive.space.unlock") }}
                 </AppButton>
-            </div>
+            </form>
+        </section>
 
-            <span class="block text-xs text-muted">{{ t("backend.studio.drive.space.folder_hint") }}</span>
-        </div>
-
-        <template v-if="linked && !loading">
+        <template v-if="linked && !loading && !locked">
             <p v-if="!files.length" class="rounded-lg border border-line bg-surface-2 px-3 py-3 text-xs text-muted">
                 {{ t("backend.studio.drive.space.empty") }}
             </p>
@@ -368,7 +399,7 @@ function weightOf(file) {
 
                         <div class="space-y-0.5 px-2 py-1.5">
                             <p class="truncate text-xs text-primary" :title="file.name">{{ file.name }}</p>
-                            <p class="text-2xs tabular-nums text-muted">{{ weightOf(file) }}</p>
+                            <p v-if="file.size" class="text-2xs tabular-nums text-muted">{{ formatSize(file.size) }}</p>
                         </div>
                     </article>
                 </div>
@@ -396,7 +427,7 @@ function weightOf(file) {
                         >
                             <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
                             <span class="min-w-0 flex-1 truncate text-sm text-primary">{{ file.name }}</span>
-                            <span class="shrink-0 text-xs tabular-nums text-muted">{{ weightOf(file) }}</span>
+                            <span v-if="file.size" class="shrink-0 text-xs tabular-nums text-muted">{{ formatSize(file.size) }}</span>
                             <span v-if="file.modifiedAt" class="hidden shrink-0 text-xs text-muted sm:inline">
                                 {{ formatDateTimeNumeric(file.modifiedAt) }}
                             </span>
@@ -426,7 +457,7 @@ function weightOf(file) {
             <p v-if="previewed" class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
                 <span v-if="previewed.path">{{ previewed.path }}</span>
                 <span v-if="previewed.path" aria-hidden="true">·</span>
-                <span v-if="weightOf(previewed)">{{ weightOf(previewed) }}</span>
+                <span v-if="previewed.size">{{ formatSize(previewed.size) }}</span>
                 <template v-if="previewed.modifiedAt">
                     <span aria-hidden="true">·</span>
                     <span>{{ formatDateTimeNumeric(previewed.modifiedAt) }}</span>

@@ -59,6 +59,7 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
             ->setSpace($space)
             ->setName($input->getName())
             ->setColourSlot($input->getColourSlot())
+            ->setVisibleToClient($input->isVisibleToClient())
             ->setPosition($this->columnRepository->nextPosition($space));
 
         $this->entityManager->persist($column);
@@ -73,7 +74,8 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
     {
         $column
             ->setName($input->getName())
-            ->setColourSlot($input->getColourSlot());
+            ->setColourSlot($input->getColourSlot())
+            ->setVisibleToClient($input->isVisibleToClient());
         $this->entityManager->flush();
 
         $this->auditUpdated($column);
@@ -193,6 +195,7 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
         return [
             'name' => $column->getName(),
             'colourSlot' => $column->getColourSlot(),
+            'visibleToClient' => $column->isVisibleToClient(),
             'spaceId' => $column->getSpace()->getId(),
             'spaceName' => $column->getSpace()->getName(),
         ];
