@@ -32,7 +32,8 @@ use function sprintf;
  */
 final class SpaceDriveFolderTest extends IntegrationTestCase
 {
-    private const string FOLDER = '1bbo9FyKEudNl7oeyPX-R5uX41_cPZLk3';
+    /** Manifestement faux : ce dépôt est public, et un identifiant réel y nommerait une vraie infrastructure. */
+    private const string FOLDER = 'dossier-de-demonstration-aurora';
 
     private KernelBrowser $client;
 
