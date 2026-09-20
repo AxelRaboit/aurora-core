@@ -23,6 +23,7 @@
  */
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
@@ -87,6 +88,7 @@ const props = defineProps({
 
 const { t, d } = useI18n();
 const { request } = useRequest();
+const { formatSize } = useFileSize();
 
 // The rows are replaced by what the server sends back after an answer, so the
 // page never has to work out what its own write did.
@@ -182,21 +184,6 @@ function driveAddress(file) {
  */
 function driveDownload(file) {
     return driveAddress(file) + "?download=1";
-}
-
-function driveWeight(file) {
-    if (null === file.size || undefined === file.size) return "";
-
-    const units = ["o", "ko", "Mo", "Go"];
-    let value = file.size;
-    let unit = 0;
-
-    while (value >= 1024 && unit < units.length - 1) {
-        value /= 1024;
-        ++unit;
-    }
-
-    return `${value.toFixed(0 === unit ? 0 : 1)} ${units[unit]}`;
 }
 
 /** Le jour que la liste montre. Aujourd'hui tant que personne n'en a choisi un. */
@@ -517,7 +504,7 @@ function open(event) {
                     >
                         <span v-if="file.path" class="text-muted">{{ file.path }}/</span>{{ file.name }}
                     </a>
-                    <span class="shrink-0 text-xs tabular-nums text-muted">{{ driveWeight(file) }}</span>
+                    <span v-if="file.size" class="shrink-0 text-xs tabular-nums text-muted">{{ formatSize(file.size) }}</span>
                     <a
                         :href="driveDownload(file)"
                         class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line/60 text-primary transition-colors hover:bg-surface-2"

@@ -147,7 +147,6 @@ const props = defineProps({
     driveEnabled: { type: Boolean, default: false },
     driveFolderId: { type: String, default: null },
     driveListPath: { type: String, default: "" },
-    driveFolderPath: { type: String, default: "" },
     driveFilePath: { type: String, default: "" },
     driveArchivePath: { type: String, default: "" },
     driveImportPath: { type: String, default: "" },
@@ -572,7 +571,6 @@ const actionsFor = useSpaceCardActions({
             v-else-if="view === 'drive' && driveEnabled"
             :folder-id="driveFolderNow"
             :list-path="driveListPath"
-            :folder-path="driveFolderPath"
             :file-path="driveFilePath"
             :archive-path="driveArchivePath"
             :import-path="driveImportPath"
