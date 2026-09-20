@@ -48,6 +48,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
         int $validForDays,
         bool $canApprove,
         bool $canComment,
+        bool $canChat = true,
         bool $canUpload = false,
         bool $canSeeDrive = true,
     ): SpaceAccessLinkInterface {
@@ -61,6 +62,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
             ->setLabel($label)
             ->setCanApprove($canApprove)
             ->setCanComment($canComment)
+            ->setCanChat($canChat)
             ->setCanUpload($canUpload)
             ->setCanSeeDrive($canSeeDrive)
             ->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', $days)));

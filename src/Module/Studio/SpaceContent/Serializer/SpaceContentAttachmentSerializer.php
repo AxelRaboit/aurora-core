@@ -73,7 +73,15 @@ class SpaceContentAttachmentSerializer implements SpaceContentAttachmentSerializ
             'attachmentId' => $attachment->getId(),
         ];
 
-        return $this->shape($attachment) + [
+        // **Sans `documentId`.** C'est l'identifiant du document dans la
+        // médiathèque, et il ne sert qu'au studio, qui l'ouvre depuis la
+        // fiche. Un invité n'a rien à en faire, et un identifiant interne dans
+        // une page dont l'adresse se transfère n'apprend rien d'utile à qui la
+        // lit de bonne foi.
+        $shape = $this->shape($attachment);
+        unset($shape['documentId']);
+
+        return $shape + [
             'url' => $this->urlGenerator->generate('public_space_attachment_file', $parameters + ['variant' => 'file']),
             'preview' => $this->isImage($attachment->getDocument())
                 ? $this->urlGenerator->generate('public_space_attachment_file', $parameters + ['variant' => 'preview'])

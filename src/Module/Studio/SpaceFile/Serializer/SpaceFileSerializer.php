@@ -56,7 +56,13 @@ class SpaceFileSerializer implements SpaceFileSerializerInterface
             'fileId' => $file->getId(),
         ];
 
-        return $this->shape($file) + [
+        // Sans `documentId` : l'identifiant du document dans la médiathèque
+        // n'est utile qu'au studio, et n'a rien à faire dans la page d'un
+        // client.
+        $shape = $this->shape($file);
+        unset($shape['documentId']);
+
+        return $shape + [
             'url' => $this->urlGenerator->generate('public_space_file_file', $parameters + ['variant' => 'file']),
             'preview' => $this->isImage($file->getDocument())
                 ? $this->urlGenerator->generate('public_space_file_file', $parameters + ['variant' => 'preview'])

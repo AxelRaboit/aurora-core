@@ -15,13 +15,10 @@ use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Core\Support\Str;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
-use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\View\PublicSpaceViewBuilder;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
-use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatMessageManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
@@ -91,12 +88,12 @@ final class PublicSpaceController extends AbstractController
         // a poster frame for a video - and forty of those an hour from one
         // address is not the same offer as forty clicks.
         private readonly RateLimiterFactoryInterface $spaceGuestUploadLimiter,
+        private readonly RateLimiterFactoryInterface $spaceGuestArchiveLimiter,
         private readonly SpaceContentAttachmentRepository $attachmentRepository,
         private readonly UploadPolicyProvider $uploadPolicies,
         private readonly StoredFileResponder $responder,
         private readonly SpaceChatMessageManagerInterface $chat,
         private readonly SpaceChatChannelRepository $chatChannels,
-        private readonly SpaceChatChannelManagerInterface $chatChannelManager,
         private readonly SpaceChatViewBuilder $chatViewBuilder,
         private readonly SpaceChatHub $chatHub,
         private readonly DriveSettings $driveSettings,
@@ -174,6 +171,8 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
         }
 
+        $this->assertFromThisPage($request);
+
         $link = $this->links->resolveUsable($selector, $token);
 
         // **`isPreview()` avant le droit, et sur les six écritures.** Un
@@ -235,6 +234,8 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
         }
 
+        $this->assertFromThisPage($request);
+
         $link = $this->links->resolveUsable($selector, $token);
 
         if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canComment()) {
@@ -293,6 +294,8 @@ final class PublicSpaceController extends AbstractController
         if (!$this->spaceGuestUploadLimiter->create($request->getClientIp())->consume()->isAccepted()) {
             return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
         }
+
+        $this->assertFromThisPage($request);
 
         $link = $this->links->resolveUsable($selector, $token);
 
@@ -386,104 +389,33 @@ final class PublicSpaceController extends AbstractController
         );
     }
 
-    /** Le client range une conversation privée, sans que rien ne s'efface. */
-    #[Route(
-        '/{selector}/{token}/chat/{channelId}/hide',
-        name: '_chat_hide',
-        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}', 'channelId' => '\d+'],
-        methods: [HttpMethodEnum::Post->value],
-    )]
-    public function chatHide(string $selector, string $token, int $channelId): JsonResponse
-    {
-        $link = $this->links->resolveUsable($selector, $token);
-
-        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canComment()) {
-            throw $this->createNotFoundException();
-        }
-
-        $channel = $this->readableChannel($link, $channelId);
-
-        try {
-            $this->chatChannelManager->hideDirect($channel, null, $link);
-        } catch (FieldException) {
-            throw $this->createNotFoundException();
-        }
-
-        return $this->jsonSuccess($this->chatViewBuilder->channelsPayload(
-            $this->chatChannels->findForLink($link->getSpace(), $link),
-            null,
-            $link,
-        ));
-    }
+    /**
+     * `chatHide` est partie avec les conversations privées.
+     *
+     * Elle ne savait ranger qu'un canal direct, et un lien n'en voit plus
+     * aucun : elle répondait donc 404 à tout coup. C'était par ailleurs la
+     * seule écriture d'invité sans limite de débit, ce qui se remarque quand
+     * on la retire plutôt que quand on la garde.
+     */
 
     /**
-     * The client opens a private conversation with somebody of the space.
+     * Il n'y a plus de conversation privée sans compte.
      *
-     * **The same right as writing**, exercised with a person rather than with
-     * the space: a client who may answer their agency may ask one of them
-     * something without the whole team reading it. A link that may not comment
-     * gets the 404 a stranger gets, for the reason the other writes give.
+     * **Une route est partie d'ici, et c'est une décision de fond.** Un
+     * invité pouvait ouvrir une conversation avec n'importe quel membre de
+     * l'équipe, et recevait pour cela l'annuaire nominatif de l'espace. Le
+     * droit qui l'autorisait était « peut commenter » : cocher une case pour
+     * permettre une remarque sous une publication ouvrait en réalité une
+     * messagerie vers les salariés et donnait leurs noms.
      *
-     * Only an account on the other side. The client talks to the studio, not to
-     * another address of their own company: two links on one space are two
-     * copies of the same door, and a conversation between two doors belongs to
-     * nobody.
+     * Ce qu'un client a à dire passe donc par un canal, que le studio ouvre
+     * quand il le décide. Le studio garde ses conversations privées entre
+     * collaborateurs : seul le côté invité est fermé.
+     *
+     * La garde qui compte n'est pas cette absence mais
+     * {@see SpaceChatChannelRepository::findForLink()}, qui ne rend plus aucun
+     * canal direct à un lien - y compris ceux ouverts avant ce changement.
      */
-    #[Route(
-        '/{selector}/{token}/chat/direct',
-        name: '_chat_direct',
-        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
-        methods: [HttpMethodEnum::Post->value],
-    )]
-    public function chatDirect(string $selector, string $token, Request $request): JsonResponse
-    {
-        if (!$this->spaceGuestWriteLimiter->create($request->getClientIp())->consume()->isAccepted()) {
-            return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
-        }
-
-        $link = $this->links->resolveUsable($selector, $token);
-
-        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canComment()) {
-            throw $this->createNotFoundException();
-        }
-
-        $space = $link->getSpace();
-        $userId = (int) ($this->decodeJson($request)['userId'] ?? 0);
-        $member = $userId > 0 ? $this->spaceMemberOf($space, $userId) : null;
-
-        if (!$member instanceof CoreUserInterface) {
-            throw $this->createNotFoundException();
-        }
-
-        try {
-            $channel = $this->chatChannelManager->openDirect($space, null, $link, $member, null);
-        } catch (FieldException) {
-            throw $this->createNotFoundException();
-        }
-
-        $this->links->markOpened($link);
-
-        return $this->jsonSuccess([
-            ...$this->chatViewBuilder->channelsPayload(
-                $this->chatChannels->findForLink($space, $link),
-                null,
-                $link,
-            ),
-            'chatChannelId' => $channel->getId(),
-        ]);
-    }
-
-    /** Somebody of this space's own team, or nothing. */
-    private function spaceMemberOf(CustomerSpaceInterface $space, int $userId): ?CoreUserInterface
-    {
-        foreach ($space->getMembers() as $member) {
-            if ($member->getUser()->getId() === $userId) {
-                return $member->getUser();
-            }
-        }
-
-        return null;
-    }
 
     /**
      * The room behind an id, or a 404.
@@ -529,9 +461,14 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
         }
 
+        $this->assertFromThisPage($request);
+
         $link = $this->links->resolveUsable($selector, $token);
 
-        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canComment()) {
+        // `canChat` et non `canComment` : commenter une fiche et parler dans
+        // la discussion de l'espace sont deux conversations, et un seul droit
+        // les commandait toutes les deux.
+        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canChat()) {
             throw $this->createNotFoundException();
         }
 
@@ -645,8 +582,17 @@ final class PublicSpaceController extends AbstractController
         methods: [HttpMethodEnum::Get->value],
         priority: 10,
     )]
-    public function driveArchive(string $selector, string $token): Response
+    public function driveArchive(string $selector, string $token, Request $request): Response
     {
+        // **La route publique la plus chère, et la seule qui n'avait pas de
+        // limite.** Elle télécharge chaque fichier chez Google et construit un
+        // zip avant d'envoyer le premier octet : un lot de cent cinquante
+        // mégaoctets occupe le serveur près de quatre minutes. « Je prends
+        // tout » se fait une fois.
+        if (!$this->spaceGuestArchiveLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            throw $this->createNotFoundException();
+        }
+
         $link = $this->links->resolveUsable($selector, $token);
 
         // **Le même refus qu'un lien inconnu**, et la même raison que pour les
@@ -775,9 +721,45 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
+        // **Et sa colonne doit être ouverte au client.** Retirer ces fichiers
+        // de la page sans fermer leur adresse n'aurait fait que cacher le
+        // lien : l'identifiant est un petit entier, et une étape marquée
+        // interne l'est pour de bon ou ne l'est pas.
+        if (!$attachment->getItem()->getColumn()->isVisibleToClient()) {
+            throw $this->createNotFoundException();
+        }
+
         // Servi par le service commun : local déchargé par le serveur
         // web, distant diffusé par morceaux, privé une heure.
         return $this->responder->respond($this->keyOf($attachment->getDocument(), $variant));
+    }
+
+    /**
+     * L'écriture vient bien de la page, et non d'un autre site.
+     *
+     * **Ce qui protège cette page est un secret dans son adresse**, et une
+     * adresse se transfère, se colle dans un message, finit dans un
+     * presse-papier. Qui la connaît peut, depuis n'importe quel site, faire
+     * poster le navigateur d'un client vers ces routes : un formulaire
+     * inter-site part sans demander la permission, du moment que son type de
+     * contenu est ordinaire. Le dépôt de fichier, en `multipart`, est
+     * exactement ce cas ; les routes JSON, elles, sont déjà retenues par le
+     * contrôle préalable que le navigateur impose à un type de contenu qui
+     * n'est pas ordinaire.
+     *
+     * L'en-tête maison referme le trou restant, et ne coûte rien : un
+     * formulaire ne peut pas le poser, et un `fetch` qui le pose déclenche ce
+     * même contrôle préalable. Toutes les écritures passent par le même
+     * composant côté navigateur, qui l'envoie déjà.
+     *
+     * Le 404 des autres refus, pour la même raison : ne rien apprendre à qui
+     * tâtonne.
+     */
+    private function assertFromThisPage(Request $request): void
+    {
+        if (!$request->isXmlHttpRequest()) {
+            throw $this->createNotFoundException();
+        }
     }
 
     /**

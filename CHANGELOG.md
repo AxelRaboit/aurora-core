@@ -5,6 +5,135 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.210] - 2026-09-20
+
+### Corrigé
+
+#### Une étape interne laissait passer son fil et ses fichiers
+Les fiches d'une colonne marquée interne étaient retirées de la page du client.
+Leurs **commentaires et leurs pièces jointes, non** : les deux listes partaient
+entières, et la route qui sert les octets ne vérifiait que l'appartenance à
+l'espace.
+
+L'écran n'en montrait rien, puisqu'il ne connaissait pas la fiche. C'est la pire
+forme de fuite : invisible à l'usage, entière dans la source, et l'identifiant
+d'une pièce jointe est un petit entier.
+
+Les trois listes traversent maintenant le même tamis, calculé une fois, et
+l'adresse d'un fichier de colonne interne rend 404. Mesuré avant d'alarmer : la
+production ne contient aucun espace client, donc rien n'a jamais fuité.
+
+### Modifié
+
+#### Un invité n'est plus signé par son adresse
+Ses messages, ses commentaires, ses fichiers et ses validations portaient son
+**adresse email**. Sur un espace qui compte plusieurs liens, chaque invité lisait
+donc les adresses des autres, sans l'avoir demandé ni pouvoir l'empêcher.
+
+Le lien portait pourtant déjà un libellé humain, qui ne servait nulle part. Il
+devient **obligatoire** à l'émission, et c'est lui qui signe. Une migration
+réécrit les lignes déjà posées ; pour un lien émis avant la règle, le nom se
+dérive de la partie gauche de l'adresse. Le studio, lui, continue de voir à qui
+il parle.
+
+#### Pas de compte, pas de conversation privée
+Un invité pouvait en ouvrir une avec n'importe quel membre de l'équipe, et
+recevait pour cela **l'annuaire nominatif de l'espace** avec les identifiants
+internes des comptes. Le droit qui l'autorisait était « peut commenter » :
+cocher une case pour permettre une remarque sous une publication ouvrait en
+réalité une messagerie vers les collaborateurs et livrait leurs noms.
+
+Ce qu'un client a à dire passe par un canal, que le studio ouvre quand il le
+décide. La garde vit dans le dépôt et non dans la route, donc elle vaut aussi
+pour les conversations ouvertes avant ce changement. Le studio garde les
+siennes entre collaborateurs.
+
+Deux routes publiques disparaissent avec, dont la seule écriture d'invité qui
+n'avait pas de limite de débit.
+
+#### L'audience d'un canal se décide en le créant
+Elle se réglait après coup. Le raisonnement tenait - décider une fois qu'il y a
+quelque chose dedans - mais il laissait la question sans réponse au moment où on
+se la pose, c'est-à-dire en nommant la pièce : « Le mois prochain » et « Entre
+nous » ne se nomment pas pareil selon qui les lit.
+
+La case reste décochée par défaut. Et la ligne d'un canal dessine désormais
+**les deux états** : un canal ouvert au client se déduisait d'une absence
+d'icône, ce qui se confond avec une icône qu'on n'a pas vue.
+
+#### La page d'un client se lit par onglets
+Calendrier, discussion et documents s'empilaient sur près de deux mille pixels :
+lire un message demandait de dépasser un mois entier, et retrouver un fichier de
+dépasser les deux. Sur téléphone, la page était un couloir.
+
+Trois onglets, du même vocabulaire que l'espace côté studio - c'est la même
+matière, et un client qui verrait son prestataire travailler ne devrait pas
+découvrir une seconde langue. Un onglet sans contenu n'existe pas, et une page à
+un seul onglet n'en dessine aucun. **Mille soixante-sept pixels** au lieu de
+mille sept cent quatre-vingt-un.
+
+#### Des identifiants internes voyageaient jusqu'à la page d'un client
+L'identifiant d'un document dans la médiathèque accompagnait chaque fichier et
+chaque pièce jointe ; il ne sert qu'au studio, qui l'ouvre depuis la fiche. Et
+chaque colonne portait « visible par le client », qui ne pouvait dire que
+« oui » puisque les autres ne partaient déjà plus : un drapeau à une seule
+valeur n'informe personne et fait croire qu'il en a deux.
+
+#### Écrire dans la discussion devient un droit à part
+Un seul droit commandait deux conversations : commenter une fiche, et parler
+dans le salon de l'espace. Cocher une case pour autoriser une remarque sous une
+publication ouvrait donc aussi le fil de la relation, qui ne se donne pas au
+même monde - une agence partenaire annote un plan sans avoir à parler dans le
+salon du client.
+
+La colonne est recopiée depuis « peut commenter » : un lien déjà émis se
+comporte exactement comme avant. Et le formulaire d'émission propose enfin les
+deux cases, qu'il n'offrait ni l'une ni l'autre.
+
+#### Le lot du Drive n'avait aucune limite de débit
+C'est pourtant la route publique la plus chère : elle télécharge chaque fichier
+chez Google et construit un zip avant d'envoyer le premier octet. Cinq par heure
+et par adresse, séparément des autres gestes pour qu'un lot n'épuise pas le
+droit d'écrire.
+
+#### Une écriture d'invité pouvait être déclenchée depuis n'importe quel site
+Ce qui protège ces routes est un secret dans l'adresse, et une adresse se
+transfère. Un formulaire hébergé ailleurs pouvait donc faire poster le
+navigateur d'un client vers elles, du moment que son type de contenu est
+ordinaire - le dépôt de fichier, en `multipart`, est exactement ce cas. Les
+routes JSON étaient déjà retenues par le contrôle préalable du navigateur.
+
+Les quatre écritures exigent maintenant l'en-tête que le composant de requête
+pose déjà : un formulaire ne peut pas le poser, et un `fetch` qui le pose
+déclenche ce même contrôle préalable.
+
+### Ajouté
+
+#### La page d'un client a enfin des tests
+Elle n'en avait aucun. Cinq désormais, sur les règles que les onglets ont
+rendues cassables en silence : l'onglet d'arrivée, celui qui n'existe pas faute
+de contenu, la barre qui ne se dessine pas pour un seul choix, et le fait qu'une
+seule section s'affiche.
+
+Quatre classes de tests écrivant comme un invité ont aussi reçu la remise à zéro
+de leur limiteur. Leur compteur survit au processus : elles viraient au rouge au
+troisième lancement de l'heure, par un 429 sur une route qu'elles ne voulaient
+pas éprouver.
+
+#### Les listes de fichiers tiennent sur un téléphone
+Nom, poids et bouton sur une ligne de trois cent soixante-quinze pixels
+tronquaient toujours la même chose : le nom du fichier, la seule qu'on lit. Ils
+passent en colonne sous `sm`, et le bouton prend toute la largeur.
+
+### Dans aurora-client
+`make aurora-update`, puis `make migrate` : la 0.9.210 réécrit les noms d'auteur
+des lignes écrites par un invité.
+
+Le **libellé d'un lien d'accès devient obligatoire**. Les liens déjà émis
+continuent de fonctionner ; seule l'émission d'un nouveau lien réclame un nom.
+
+---
+
 ## [0.9.209] - 2026-09-20
 
 ### Supprimé

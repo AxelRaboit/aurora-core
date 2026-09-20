@@ -19,6 +19,7 @@ use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
+use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -40,6 +41,8 @@ use function sprintf;
  */
 final class SpaceChatTest extends IntegrationTestCase
 {
+    use ResetsRateLimiters;
+
     private KernelBrowser $client;
 
     private EntityManagerInterface $entityManager;
@@ -62,6 +65,16 @@ final class SpaceChatTest extends IntegrationTestCase
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
+        // Le compteur du limiteur survit au processus : une classe qui écrit
+        // comme un invité dépense un budget horaire partagé, et vire au
+        // rouge au troisième lancement de l'heure - par un 429 sur une
+        // route que le test ne voulait pas éprouver.
+        $this->resetRateLimiter('space_guest_write');
+
+        // Le navigateur pose cet en-tête sur chaque appel, et les routes
+        // publiques l'exigent : ce qui les protège est un secret dans
+        // l'adresse, et une adresse se transfère.
+        $this->client->setServerParameter('HTTP_X-Requested-With', 'XMLHttpRequest');
     }
 
     protected function tearDown(): void
@@ -145,7 +158,7 @@ final class SpaceChatTest extends IntegrationTestCase
         $messages = $this->payload()['chatMessages'];
         self::assertCount(1, $messages);
         self::assertTrue($messages[0]['fromClient']);
-        self::assertSame('camille@societe.test', $messages[0]['author']);
+        self::assertSame('Camille, gérante', $messages[0]['author']);
 
         // And the studio reads the same row, because it is one conversation.
         $this->client->request('GET', sprintf('/workspace/%d/chat/%d/messages', $space->getId(), $this->mainChannel($space)));
@@ -157,13 +170,31 @@ final class SpaceChatTest extends IntegrationTestCase
      * nothing: the same 404 a stranger gets, so a leaked address does not
      * reveal what it holds.
      */
-    public function testALinkThatMayNotCommentIsRefused(): void
+    /** Sans le droit d'écrire ici, le même refus qu'un inconnu. */
+    public function testALinkThatMayNotChatIsRefused(): void
     {
-        [, $url] = $this->givenLinkedSpace(canComment: false);
+        [, $url] = $this->givenLinkedSpace(canComment: true, canChat: false);
 
         $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Bonjour ?']);
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
+    }
+
+    /**
+     * Commenter une fiche et parler dans la discussion sont deux droits.
+     *
+     * **C'est tout le sujet de la séparation.** Un seul droit commandait les
+     * deux : cocher une case pour autoriser une remarque sous une publication
+     * ouvrait aussi le fil de la relation. Une agence partenaire peut annoter
+     * un plan sans parler dans le salon du client, et l'inverse existe aussi.
+     */
+    public function testALinkMayChatWithoutBeingAbleToComment(): void
+    {
+        [, $url] = $this->givenLinkedSpace(canComment: false, canChat: true);
+
+        $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Bonjour ?']);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
 
     public function testTheStudioIsToldOnceWhateverTheNumberOfMessages(): void
@@ -181,7 +212,7 @@ final class SpaceChatTest extends IntegrationTestCase
             ->findBy(['recipient' => $this->admin, 'type' => 'studio.space.chat']);
 
         self::assertCount(1, $notifications);
-        self::assertSame('camille@societe.test vous a écrit', $notifications[0]->getTitle());
+        self::assertSame('Camille, gérante vous a écrit', $notifications[0]->getTitle());
         self::assertSame($space->getName(), $notifications[0]->getBody());
     }
 
@@ -437,13 +468,16 @@ final class SpaceChatTest extends IntegrationTestCase
     }
 
     /** @return array{0: CustomerSpace, 1: string} */
-    private function givenLinkedSpace(bool $canComment): array
+    /** @param bool|null $canChat null = le même que `canComment`, comme avant la séparation. */
+    private function givenLinkedSpace(bool $canComment, ?bool $canChat = null): array
     {
         $space = $this->givenSpace();
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/access/issue', $space->getId()), [
             'recipientEmail' => 'camille@societe.test',
+            'label' => 'Camille, gérante',
             'canComment' => $canComment,
+            'canChat' => $canChat ?? $canComment,
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());

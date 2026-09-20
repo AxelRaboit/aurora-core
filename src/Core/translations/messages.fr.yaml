@@ -21,7 +21,10 @@ shared:
     channels:
       label: Canaux
       new: Nouveau canal
-      new_hint: "Un canal s'ouvre entre vous. Vous pourrez l'ouvrir au client ensuite, depuis ses réglages."
+      new_hint: "Un canal porte un nom et une audience. Les deux se changent ensuite depuis ses réglages."
+      new_open_to_client: Ouvrir ce canal au client
+      new_open_to_client_hint: "Toute personne qui détient un lien d'accès à cet espace lira ce canal."
+      new_internal_hint: "Le canal reste entre vous. Le client ne le voit pas, et n'en connaît ni le nom ni l'existence."
       name_placeholder: Nom du canal
       name_example: "ex. : Le mois prochain"
       create: Ouvrir
@@ -30,6 +33,7 @@ shared:
       delete: Supprimer le canal
       delete_confirm: "Supprimer ce canal ? Ses messages partent avec lui."
       internal: interne
+      client_reads: lu par le client
       open_to_client: Ouvrir au client
       close_to_client: Fermer au client
       invite: Ajouter quelqu'un
