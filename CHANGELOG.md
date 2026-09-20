@@ -5,6 +5,59 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.207] - 2026-09-20
+
+### Corrigé
+
+#### Le lot du Drive promettait une archive que le serveur coupait
+La borne était posée pour le disque : cinq cents mégaoctets. Elle aurait dû
+l'être pour le temps.
+
+L'archive est écrite en entier avant que le premier octet ne parte, donc tant
+qu'elle se construit le serveur web attend sans rien recevoir, et il finit par
+abandonner. Apache coupe à trois cents secondes.
+
+Mesuré sur le serveur contre un vrai dossier partagé : **1,41 Mo par seconde**
+et **0,64 seconde par fichier**, cette seconde étant l'aller-retour vers
+Google, que le fichier pèse trois kilo-octets ou trois mégaoctets. Deux cents
+fichiers coûtent donc cent vingt-sept secondes avant le premier octet
+transféré. Cinq cents mégaoctets demandaient trois cent cinquante-cinq
+secondes de transfert à eux seuls : la borne annonçait un lot qui ne pouvait
+pas aboutir, et l'attente se terminait par une erreur au bout de cinq minutes.
+
+La borne passe à **cent cinquante mégaoctets**. Le pire cas admis, deux cents
+fichiers et cent cinquante mégaoctets, demande deux cent trente-quatre
+secondes, ce qui laisse un cinquième de marge.
+
+#### Un refus s'affichait en JSON à la place de la page
+Le bouton du lot est un lien, donc le navigateur navigue vers son adresse. Le
+refus répondait en JSON, qui s'affichait alors en toutes lettres.
+
+L'écran connaît le poids du dossier avant de dessiner le bouton : il ne le
+propose plus au-delà de la borne, et dit ce qu'il faut faire à la place.
+L'adresse, elle, rend un 404 - une adresse tapée à la main n'a pas à recevoir
+d'explication.
+
+### Ajouté
+
+#### Une page de déploiement sur les délais du serveur web
+`docs/aurora-client/deployment/web_server_timeouts.md` : ce qui se coupe au
+bout de cinq minutes chez Apache et pourquoi `max_execution_time` ne rattrape
+rien, l'équivalent nginx, et le fait que **Caddy n'a pas le problème** - son
+`read_timeout` FastCGI et ses délais de serveur sont illimités par défaut,
+seul `dial_timeout` vaut trois secondes.
+
+La page dit aussi comment vérifier que le réglage gouverne vraiment, parce que
+sa présence dans un fichier ne le prouve pas : suivant la façon dont la
+distribution déclare le connecteur FastCGI, le délai peut venir d'ailleurs.
+
+### Modifié
+
+#### La page du tableau de bord annonçait quatre modules
+Il y en a cinq depuis que le Studio a le sien. Capture refaite.
+
+---
+
 ## [0.9.206] - 2026-09-19
 
 ### Ajouté
