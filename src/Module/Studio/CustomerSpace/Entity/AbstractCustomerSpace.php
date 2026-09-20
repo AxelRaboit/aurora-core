@@ -136,6 +136,35 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     #[ORM\Column(length: 128, nullable: true)]
     protected ?string $driveFolderId = null;
 
+    /**
+     * Le mot de passe qui ferme l'onglet Drive, haché.
+     *
+     * **Haché et non chiffré**, contrairement à la clé du compte de service :
+     * une clé doit être relue pour signer, un mot de passe n'a jamais besoin
+     * d'être relu, seulement comparé. Personne ne peut donc le retrouver, pas
+     * même depuis la base, et c'est la propriété qu'on veut.
+     *
+     * Nul par défaut : l'onglet est ouvert tant que personne ne le ferme.
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    protected ?string $drivePassword = null;
+
+    /**
+     * La génération en cours des sessions ouvertes sur le Drive.
+     *
+     * **Ce qui permet de tout refermer sans changer le mot de passe.** Une
+     * session qui a saisi le bon mot de passe retient cette valeur ; elle
+     * reste ouverte tant que l'espace montre la même. En tirer une nouvelle
+     * referme donc toutes les sessions d'un coup, celle qui appuie comprise,
+     * sans que personne ait à changer quoi que ce soit.
+     *
+     * Elle change aussi quand le mot de passe change ou disparaît : sans
+     * cela, celui qui avait ouvert avec l'ancien resterait dedans, et
+     * remplacer un mot de passe compromis n'aurait servi à rien.
+     */
+    #[ORM\Column(length: 32, nullable: true)]
+    protected ?string $driveLockGeneration = null;
+
     /** @var Collection<int, CustomerSpaceMemberInterface> */
     #[ORM\OneToMany(targetEntity: CustomerSpaceMemberInterface::class, mappedBy: 'space', cascade: ['persist', 'remove'], orphanRemoval: true)]
     protected Collection $members;
@@ -240,6 +269,36 @@ abstract class AbstractCustomerSpace implements CustomerSpaceInterface
     public function getDriveFolderId(): ?string
     {
         return $this->driveFolderId;
+    }
+
+    public function getDrivePassword(): ?string
+    {
+        return $this->drivePassword;
+    }
+
+    public function getDriveLockGeneration(): ?string
+    {
+        return $this->driveLockGeneration;
+    }
+
+    public function setDriveLockGeneration(?string $driveLockGeneration): static
+    {
+        $this->driveLockGeneration = $driveLockGeneration;
+
+        return $this;
+    }
+
+    public function setDrivePassword(?string $drivePassword): static
+    {
+        $this->drivePassword = $drivePassword;
+
+        return $this;
+    }
+
+    /** L'onglet Drive est-il fermé par un mot de passe ? */
+    public function isDriveLocked(): bool
+    {
+        return null !== $this->drivePassword && '' !== $this->drivePassword;
     }
 
     public function setDriveFolderId(?string $driveFolderId): static

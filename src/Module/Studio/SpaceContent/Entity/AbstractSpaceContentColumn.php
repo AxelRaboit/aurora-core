@@ -63,6 +63,26 @@ abstract class AbstractSpaceContentColumn implements SpaceContentColumnInterface
     #[ORM\Column(nullable: true)]
     protected ?int $colourSlot = null;
 
+    /**
+     * Si le client voit cette étape.
+     *
+     * **La colonne est la bonne granularité, pas la fiche.** Un tableau dit
+     * déjà « ce qui est à ce stade » ; « ce stade ne regarde pas le client »
+     * se pose donc naturellement dessus. Marquer fiche par fiche obligerait à
+     * y repenser à chaque carte créée, ce que personne ne fait, et la première
+     * oubliée annulerait la protection.
+     *
+     * Le modèle existe déjà sur les canaux de discussion, qui portent le même
+     * interrupteur avec le même défaut : c'est ce qui rend celui-ci lisible
+     * sans explication.
+     *
+     * Vrai par défaut. Fermé d'office aurait fait disparaître le contenu des
+     * espaces existants le jour de la mise à jour, ce qu'aucun client
+     * n'aurait compris.
+     */
+    #[ORM\Column(options: ['default' => true])]
+    protected bool $visibleToClient = true;
+
     abstract public function getId(): ?int;
 
     public function getSpace(): CustomerSpaceInterface
@@ -97,6 +117,18 @@ abstract class AbstractSpaceContentColumn implements SpaceContentColumnInterface
     public function setPosition(int $position): static
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function isVisibleToClient(): bool
+    {
+        return $this->visibleToClient;
+    }
+
+    public function setVisibleToClient(bool $visibleToClient): static
+    {
+        $this->visibleToClient = $visibleToClient;
 
         return $this;
     }

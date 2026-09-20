@@ -10,4 +10,6 @@ interface SpaceContentColumnInputInterface
 
     /** Null means the step wears no colour, which is a choice and not an absence. */
     public function getColourSlot(): ?int;
+
+    public function isVisibleToClient(): bool;
 }

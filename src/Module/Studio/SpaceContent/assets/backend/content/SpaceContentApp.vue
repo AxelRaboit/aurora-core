@@ -64,12 +64,15 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 // Même module, autre sous-domaine : un chemin relatif plutôt qu'un alias,
 // comme le fait déjà la page publique. La règle qui interdit de traverser les
 // modules parle des modules, et le Drive d'un espace est le même Studio.
+import SpaceSettingsView from "../../../../CustomerSpace/assets/backend/settings/SpaceSettingsView.vue";
 import SpaceDrivePicker from "../../../../SpaceFile/GoogleDrive/assets/backend/drive/SpaceDrivePicker.vue";
+import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppColourSlotPicker from "@/shared/components/form/picker/AppColourSlotPicker.vue";
 import {
     CalendarDays,
     MessagesSquare,
     StickyNote,
+    Settings,
     Paperclip,
     Columns3,
     FileStack,
@@ -144,10 +147,14 @@ const props = defineProps({
     driveEnabled: { type: Boolean, default: false },
     driveFolderId: { type: String, default: null },
     driveListPath: { type: String, default: "" },
-    driveFolderPath: { type: String, default: "" },
     driveFilePath: { type: String, default: "" },
     driveArchivePath: { type: String, default: "" },
     driveImportPath: { type: String, default: "" },
+    /** Vrai pour le référent de l'espace, l'administrateur et le développeur. */
+    canConfigure: { type: Boolean, default: false },
+    settingsPath: { type: String, default: "" },
+    driveUnlockPath: { type: String, default: "" },
+    driveLocked: { type: Boolean, default: false },
 });
 
 const VIEWS = [
@@ -159,6 +166,9 @@ const VIEWS = [
     { key: "drive", labelKey: "backend.studio.space_content.view_drive", icon: FolderOpen },
     { key: "chat", labelKey: "backend.studio.space_content.view_chat", icon: MessagesSquare },
     { key: "notes", labelKey: "backend.studio.space_content.view_notes", icon: StickyNote },
+    // En dernier, et seulement pour qui peut configurer : une entrée de barre
+    // qui répondrait 404 à la moitié de l'équipe se lit comme une panne.
+    { key: "settings", labelKey: "backend.studio.space_content.view_settings", icon: Settings },
 ];
 
 /**
@@ -175,7 +185,14 @@ const VIEWS = [
  * entrée qui mène à un écran vide est une entrée qu'on ouvre une fois et qu'on
  * n'ouvre plus.
  */
-const views = computed(() => VIEWS.filter((entry) => "drive" !== entry.key || props.driveEnabled));
+const views = computed(() =>
+    VIEWS.filter((entry) => {
+        if ("drive" === entry.key) return props.driveEnabled;
+        if ("settings" === entry.key) return props.canConfigure;
+
+        return true;
+    }),
+);
 
 const { choice: view } = usePersistedChoice(
     "studio.space_content.view",
@@ -270,6 +287,12 @@ const {
 );
 
 const showDrivePicker = ref(false);
+
+/** Ce que les réglages viennent de décider, sans attendre un rechargement. */
+const driveLockedNow = ref(props.driveLocked);
+
+/** Le dossier tel que les réglages viennent de le poser. */
+const driveFolderNow = ref(props.driveFolderId ?? "");
 
 /**
  * Le fichier choisi entre dans la médiathèque, puis sur la fiche.
@@ -546,12 +569,24 @@ const actionsFor = useSpaceCardActions({
              fichiers, il fallait faire défiler tout le reste pour l'atteindre. -->
         <SpaceDriveView
             v-else-if="view === 'drive' && driveEnabled"
-            :folder-id="driveFolderId"
+            :folder-id="driveFolderNow"
             :list-path="driveListPath"
-            :folder-path="driveFolderPath"
             :file-path="driveFilePath"
             :archive-path="driveArchivePath"
             :import-path="driveImportPath"
+            :unlock-path="driveUnlockPath"
+            :can-configure="canConfigure"
+        />
+
+        <!-- En dernier dans la barre, et seulement pour qui peut configurer.
+             La serrure remonte d'ici vers la vue Drive : c'est le même écran
+             qui la pose et celui qui la subit, et ils doivent s'accorder sans
+             rechargement. -->
+        <SpaceSettingsView
+            v-else-if="view === 'settings' && canConfigure"
+            :settings-path="settingsPath"
+            v-on:locked-changed="driveLockedNow = $event"
+            v-on:folder-changed="driveFolderNow = $event"
         />
 
         <!-- Mounted only while it is the view on screen, so a board nobody is
@@ -734,6 +769,18 @@ const actionsFor = useSpaceCardActions({
                     :hint="t('backend.studio.space_content.column_colour_hint')"
                     :error="columnErrors.colourSlot"
                     v-on:update:model-value="columnForm = { ...columnForm, colourSlot: $event }"
+                />
+
+                <!-- Sur l'étape et non sur la fiche : un tableau dit déjà
+                     « ce qui est à ce stade », donc « ce stade ne regarde pas
+                     le client » se pose dessus. Marquer carte par carte
+                     obligerait à y repenser à chaque création, et la première
+                     oubliée annulerait la protection. -->
+                <AppCheckbox
+                    :model-value="false !== columnForm.visibleToClient"
+                    :label="t('backend.studio.space_content.column_visible')"
+                    :hint="t('backend.studio.space_content.column_visible_hint')"
+                    v-on:update:model-value="columnForm = { ...columnForm, visibleToClient: $event }"
                 />
             </form>
             <template #footer>

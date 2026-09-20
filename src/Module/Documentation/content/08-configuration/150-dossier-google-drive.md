@@ -37,11 +37,13 @@ Le client ouvre son dossier dans Drive, partage avec cette adresse, en **Lecteur
 
 ## Désigner le dossier d'un espace
 
-Dans un espace client, vue **Drive**, collez l'adresse du dossier telle que Drive l'affiche dans la barre du navigateur. L'identifiant nu est accepté aussi, mais rien n'oblige à aller le chercher : l'écran découpe l'adresse.
+Ce qui précède se fait une fois. Le dossier, lui, se désigne espace par espace, dans l'onglet **Réglages** de l'espace client : collez l'adresse du dossier telle que Drive l'affiche dans la barre du navigateur. L'identifiant nu est accepté aussi, mais rien n'oblige à aller le chercher : l'écran découpe l'adresse.
 
-![La vue Drive d'un espace client](../../images/08-configuration/dossier-google-drive-02-espace.png)
+![Le dossier partagé, dans les réglages de l'espace](../../images/08-configuration/dossier-google-drive-02-espace.png)
 
 Vider le champ débranche le dossier. Cela ne supprime rien chez le client, et ne touche pas au partage.
+
+**C'est une configuration, donc elle appartient au référent** de l'espace. Elle a vécu au-dessus de la liste des fichiers, où n'importe quel équipier la changeait, et où elle occupait une place sur un écran qu'on vient consulter. Le reste de l'onglet Réglages est décrit dans [Les réglages d'un espace](/backend/documentation/les-reglages).
 
 ## Ce que l'écran montre
 
@@ -55,9 +57,15 @@ Deux bornes existent. La descente s'arrête à **cinq niveaux**, parce qu'un rac
 
 Les mêmes fichiers, dans la page qu'il ouvre par son lien d'accès, avec le téléchargement à côté de chaque ligne.
 
+**Voir le dossier est un droit du lien**, au même titre que commenter ou déposer un fichier : il se coche à l'émission, et un lien qui ne l'a pas ne reçoit rien du Drive, pas même par une adresse devinée.
+
 Les fichiers passent par le même contrôle que la page elle-même : **révoquer un lien d'accès referme le dossier** à l'instant où il referme la page. Aucune adresse Drive n'est donnée au client, et aucun intermédiaire ne garde les fichiers en cache.
 
 Un fichier qu'un navigateur exécuterait comme un document, un HTML ou un SVG, est toujours téléchargé plutôt qu'affiché : servi dans un onglet, son script tournerait sous le domaine de l'application avec la session de celui qui regarde.
+
+## Fermer l'onglet à clé
+
+L'onglet Drive d'un espace peut être fermé par un mot de passe, qui vaut pour toute l'équipe et pour le rôle le plus élevé. Il se pose dans les réglages de l'espace, et il est décrit avec eux : [Les réglages d'un espace](/backend/documentation/les-reglages).
 
 ## Lecture seule, et dite à Google
 

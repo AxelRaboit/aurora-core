@@ -31,6 +31,8 @@ Un client dont les publications passent par un avocat a une étape que personne 
 
 La **couleur** est facultative, et « aucune » est une vraie réponse : un tableau où chaque étape est colorée est un tableau où la couleur ne veut plus rien dire. Elle sert surtout au calendrier, où une carte porte la couleur de son étape.
 
+**Une étape peut être gardée pour vous.** Décochez « visible par le client » et elle disparaît de la page qu'il ouvre par son lien, **avec ses fiches** : une relecture juridique, un brouillon qui n'est pas présentable. Ses fiches quittent aussi son calendrier, qui les lit par leur date et non par leur étape.
+
 ## Un contenu
 
 « Ajouter un contenu », en bas d'une étape, ouvre la fenêtre déjà rangée dans cette étape.
@@ -41,6 +43,7 @@ La **couleur** est facultative, et « aucune » est une vraie réponse : un tabl
 - Le **texte** est le contenu tel qu'il partira.
 - La **date de publication** est **facultative**. C'est le point important : une idée sans date vit sur le tableau et rejoint le calendrier le jour où vous la programmez.
 - Les heures sont celles du fuseau de l'espace, rappelé sous le champ.
+- **Afficher dans le calendrier** est coché par défaut. Décoché, la fiche garde sa date et son étape mais ne s'affiche plus dans le calendrier de l'espace ni dans celui de l'équipe : une date de travail n'est pas une date de publication.
 
 ## Déplacer
 

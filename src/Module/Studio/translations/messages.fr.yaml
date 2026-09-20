@@ -824,6 +824,40 @@ backend:
                 active: Actif
                 archived: Archivé
 
+            settings:
+                section_drive: Google Drive
+                folder_title: Dossier partagé
+                folder_intro: "Le dossier Drive que ce client a partagé avec l'adresse du compte de service."
+                folder_hint: "Collez l'adresse du dossier, ou videz le champ pour le débrancher."
+                folder_saved: Dossier branché.
+                folder_cleared: Dossier débranché.
+                drive_closes_now: "Enregistrer ferme l'onglet immédiatement, y compris pour vous : il faudra saisir le mot de passe pour l'ouvrir."
+                drive_title: Mot de passe de l'onglet Drive
+                drive_intro: "Ferme l'onglet Drive de cet espace. Il vaut pour tout le monde, vous compris : un mot de passe qu'on contourne ne protège personne."
+                drive_locked: "L'onglet Drive est fermé."
+                drive_open: "L'onglet Drive est ouvert."
+                current_password: Mot de passe actuel
+                new_password: Nouveau mot de passe
+                password: Mot de passe
+                password_hint: "{count} caractères au minimum."
+                drive_set: Fermer l'onglet
+                drive_change: Changer le mot de passe
+                drive_clear: Rouvrir l'onglet
+                drive_saved: Mot de passe enregistré.
+                drive_cleared: Onglet Drive rouvert.
+                drive_revoke: Redemander le mot de passe
+                drive_revoked: "Le mot de passe sera redemandé à tout le monde."
+                drive_revoke_hint: "Referme l'onglet pour toutes les sessions ouvertes, la vôtre comprise, sans changer le mot de passe."
+                drive_recovery: "Le retirer demande de le saisir. Oublié, il ne s'efface que depuis le serveur, par une commande en console."
+                current_placeholder: Celui en cours
+                new_placeholder: Huit caractères ou plus
+                confirm_password: Confirmer le mot de passe
+                confirm_placeholder: Le même, une seconde fois
+                errors:
+                    wrong_password: Mot de passe incorrect.
+                    password_too_short: Mot de passe trop court.
+                    password_mismatch: Les mots de passe ne correspondent pas.
+                    not_locked: "L'onglet Drive n'est pas fermé."
             roles:
                 lead: Référent
                 member: Membre
@@ -844,6 +878,7 @@ backend:
             intro: Un lien ouvre cet espace en lecture seule, sans compte. Il est personnel, il expire, et il se révoque.
             issue: Créer un lien
             issued: Lien créé.
+            preview: Aperçu
             revoke: Révoquer
             revoked: Lien révoqué.
             deleted: Lien supprimé.
@@ -866,6 +901,9 @@ backend:
             read_only: lecture seule
             can_upload: Peut envoyer des fichiers
             can_upload_hint: "Décoché par défaut. Coché, le client peut déposer ses propres photos et documents sur les contenus. Images, PDF et vidéos courantes, 25 Mo maximum."
+            can_see_drive: Voir le dossier Drive
+            can_see_drive_hint: "Décochée, cette personne ne voit ni le dossier partagé ni son téléchargement. Utile pour un second lecteur à qui le dossier du client ne s'adresse pas."
+            no_drive: sans le Drive
             may_upload: peut envoyer des fichiers
 
             never_opened: Jamais ouvert
@@ -982,6 +1020,12 @@ backend:
                 empty: "Le dossier ne contient rien, ou n'a pas été partagé avec le compte de service."
                 no_size: "—"
                 view_label: Affichage des fichiers
+                no_folder: "Aucun dossier Drive n'est branché sur cet espace."
+                no_folder_referent: "Aucun dossier Drive n'est branché sur cet espace. Rendez-vous dans les Réglages pour en désigner un."
+                locked_title: Onglet protégé
+                locked_intro: "Le dossier Drive de cet espace est fermé par un mot de passe. Il s'ouvre pour la durée de cette session."
+                locked_placeholder: Mot de passe
+                unlock: Ouvrir
                 archive: Tout télécharger (.zip)
                 archive_weight: "Le dossier pèse {weight}."
                 archive_too_large: "Le dossier pèse {weight} : c'est trop pour une archive en une fois. Téléchargez les fichiers un par un, ou allégez le dossier partagé."
@@ -1079,6 +1123,7 @@ backend:
             view_files: Fichiers
             view_chat: Discussion
             view_notes: Notes
+            view_settings: Réglages
             files_empty: Aucun fichier sur cet espace
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
             files_unknown_card: Contenu supprimé
@@ -1145,6 +1190,8 @@ backend:
             column_name_placeholder: 'À relire, En ligne…'
             column_colour: Couleur
             column_colour_hint: Facultative. Elle distingue l'étape sur le tableau, et colore ses contenus au calendrier.
+            column_visible: Visible par le client
+            column_visible_hint: "Décochée, cette étape et ses contenus n'apparaissent pas dans l'espace que le client ouvre par son lien. Ils restent sur votre tableau."
             column_created: Étape ajoutée.
             column_updated: Étape renommée.
             column_deleted: Étape supprimée.
@@ -1286,6 +1333,7 @@ studio:
             unavailable_message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez le plan de contenu d'un espace, demandez un nouveau lien à votre interlocuteur.
             timezone_notice: 'Heures en {timezone}'
             calendar_day_empty: Rien de prévu ce jour-là.
+            preview_notice: "Aperçu : voici ce que voit le destinataire de ce lien. Rien de ce que vous cliquez ici ne lui est envoyé, et cette adresse expire dans quelques minutes."
             drive_title: Documents partagés
             drive_download: Télécharger le fichier
             drive_archive: Tout télécharger (.zip)

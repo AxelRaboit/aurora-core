@@ -324,6 +324,12 @@ class CoreDemoFixtures extends Fixture implements DependentFixtureInterface, Fix
                     'ged.documents.view', 'ged.documents.create', 'ged.documents.edit', 'ged.documents.delete',
                     'ged.categories.view', 'ged.categories.create', 'ged.categories.edit', 'ged.categories.delete',
                     'ged.tags.manage', 'ged.folders.manage',
+                    // Les espaces clients, pour que la démonstration porte le
+                    // cas que le modèle existe pour montrer : un équipier qui
+                    // a le droit de travailler dans un espace, et qui ne voit
+                    // que ceux dont il est membre. Sans lui, la liste
+                    // paraîtrait toujours complète à qui la regarde.
+                    'studio.spaces.view', 'studio.spaces.edit', 'studio.spaces.share',
                 ],
                 'mood' => 'Gestionnaire documentaire',
             ],

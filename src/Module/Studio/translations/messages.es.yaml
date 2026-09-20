@@ -108,6 +108,7 @@ studio:
             unavailable_message: La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba el plan de contenidos de un espacio, pida un nuevo enlace a su contacto.
             timezone_notice: 'Horas en {timezone}'
             calendar_day_empty: Nada previsto ese día.
+            preview_notice: "Vista previa: esto es lo que ve quien tiene este enlace. Nada de lo que pulse aquí le llega, y esta dirección caduca en unos minutos."
             drive_title: Documentos compartidos
             drive_download: Descargar el archivo
             drive_archive: Descargar todo (.zip)

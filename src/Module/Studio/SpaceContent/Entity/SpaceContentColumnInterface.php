@@ -22,6 +22,10 @@ interface SpaceContentColumnInterface
 
     public function setPosition(int $position): static;
 
+    public function isVisibleToClient(): bool;
+
+    public function setVisibleToClient(bool $visibleToClient): static;
+
     public function getColourSlot(): ?int;
 
     public function setColourSlot(?int $colourSlot): static;

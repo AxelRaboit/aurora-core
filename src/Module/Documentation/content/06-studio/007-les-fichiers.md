@@ -7,15 +7,18 @@ Un fichier ne se dépose pas sur un espace, il se dépose **sur un contenu**. C'
 
 ## 1. Ajouter un fichier
 
-Ouvrez une fiche. Sous le texte, une zone de dépôt accepte trois gestes :
+Ouvrez une fiche. Sous le texte, une zone de dépôt accepte quatre gestes :
 
 - **Glisser un fichier** sur la zone de dépôt.
 - **Ajouter un fichier**, pour choisir sur votre disque.
 - **Choisir dans la GED**, pour un document qui y est déjà.
+- **Choisir un fichier du Drive**, quand l'espace regarde un dossier partagé par le client.
 
 ![La fiche d'un contenu, avec ses fichiers et la zone de dépôt](../../images/06-studio/les-fichiers-01-la-fiche-et-ses-fichiers.png)
 
 Les deux premiers déposent un nouveau fichier. Le troisième n'en déplace aucun : il pose une référence vers un document existant, qui reste où il est et peut servir à plusieurs endroits.
+
+Le quatrième **recopie**, et c'est le seul endroit de l'intégration Drive qui le fasse. Le reste ne recopie rien, parce qu'un dossier partagé est une étagère vivante : ce que le client en retire disparaît de l'espace. Une pièce jointe sur une fiche est l'inverse, une décision prise à un moment : le brief qu'on épingle doit rester celui dont on a parlé, pas un lien qui se vide le jour d'un ménage. Le fichier rejoint la médiathèque de l'espace et s'accroche comme n'importe quel autre.
 
 ![La zone de dépôt et ses deux boutons](../../images/06-studio/les-fichiers-02-la-zone-de-depot.png)
 

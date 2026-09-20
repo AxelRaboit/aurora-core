@@ -13,6 +13,7 @@
  */
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { ChevronRight, FileText, Folder, FolderOpen } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -32,6 +33,9 @@ const props = defineProps({
 const emit = defineEmits(["close", "choose"]);
 
 const { t } = useI18n();
+// Le formateur partagé : trois copies locales disaient la même chose,
+// et une seule connaissait les unités des autres langues.
+const { formatSize } = useFileSize();
 const { request } = useRequest();
 
 const loading = ref(false);
@@ -60,21 +64,6 @@ watch(
     },
 );
 
-/** Google omet la taille de ses propres formats : un document n'a pas d'octets. */
-function weightOf(file) {
-    if (null === file.size || undefined === file.size) return "";
-
-    const units = ["o", "ko", "Mo", "Go"];
-    let value = file.size;
-    let unit = 0;
-
-    while (value >= 1024 && unit < units.length - 1) {
-        value /= 1024;
-        ++unit;
-    }
-
-    return `${value.toFixed(0 === unit ? 0 : 1)} ${units[unit]}`;
-}
 </script>
 
 <template>
@@ -144,7 +133,7 @@ function weightOf(file) {
                     >
                         <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
                         <span class="min-w-0 flex-1 truncate text-sm text-primary">{{ file.name }}</span>
-                        <span class="shrink-0 text-xs tabular-nums text-muted">{{ weightOf(file) }}</span>
+                        <span v-if="file.size" class="shrink-0 text-xs tabular-nums text-muted">{{ formatSize(file.size) }}</span>
                     </button>
                 </li>
             </ul>

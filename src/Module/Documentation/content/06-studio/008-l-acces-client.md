@@ -15,6 +15,7 @@ Onglet « Accès client », puis « Créer un lien ».
 - L'**intitulé** est facultatif, utile quand un même client a plusieurs liens.
 - La **validité** est de 90 jours par défaut, un an au maximum. Un accès qui survit à la mission est un accès que personne ne pense à fermer.
 - **Peut commenter** et **peut valider** sont cochés par défaut. Décochez-les pour un lecteur qui regarde sans décider : une agence partenaire, le supérieur du client, un prospect.
+- **Peut déposer un fichier** et **peut voir le dossier Drive** sont des droits comme les autres. Un lien qui n'a pas le second ne reçoit rien du Drive, pas même par une adresse devinée.
 
 ![La fenêtre de création d'un lien](../../images/06-studio/l-acces-client-02-la-fenetre.png)
 
@@ -31,6 +32,10 @@ Si vous la perdez, révoquez le lien et créez-en un autre.
 Son mois, ses publications aux jours prévus, et le texte de chacune en cliquant. Pas de menu, pas de compte, rien à installer.
 
 ![La page que voit le client](../../images/06-studio/l-acces-client-04-la-page-client.png)
+
+Une étape du tableau marquée **interne** n'y figure pas, et ses fiches non plus : elles disparaîtraient sinon de la colonne mais resteraient dans son calendrier, qui les lit par leur date.
+
+**L'aperçu ouvre cette page pour de vrai.** Le bouton d'aperçu émet un vrai lien, de quinze minutes, qui recopie les droits de celui que vous regardez - c'est la seule façon qu'il montre le dossier Drive et les fichiers, qu'une page reconstruite avec un faux jeton laisserait vides. Il ne peut pas répondre à la place du client : le refus tient à sa nature, pas à ses droits.
 
 ## 4. Ce qu'il vous répond
 
