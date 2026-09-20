@@ -439,7 +439,13 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         );
 
         if (!$locked->isDriveLocked()) {
-            $locked->setDriveFolderId('1bbo9FyKEudNl7oeyPX-R5uX41_cPZLk3');
+            // **Un identifiant manifestement faux**, et c'est le sujet : celui
+            // d'un vrai dossier Drive a séjourné ici, et ce dépôt est public.
+            // Un identifiant de dossier n'ouvre rien à lui seul, mais il nomme
+            // une infrastructure réelle, ce qui n'a pas sa place dans une
+            // démonstration. Google le refusera, l'écran dira que le dossier
+            // ne répond pas, et c'est un état que la démo doit savoir montrer.
+            $locked->setDriveFolderId('dossier-de-demonstration-aurora');
             $this->driveLock->set($locked, 'demonstration');
         }
 
