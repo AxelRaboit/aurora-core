@@ -89,11 +89,19 @@ Au passage, le commentaire qui expliquait le repli affirmait que `test_files/` n
 pas livré avec le dépôt. C'était faux, six fichiers y sont suivis : le raisonnement
 partait du symptôme.
 
-#### Des tests de bout en bout se connectaient à un compte qui n'existe plus
-`admin@aurora.app` n'est semé par aucune fixture depuis un déménagement. Ils visent
-le compte qui existe. **Ils restent inertes pour autant** : ils appellent `/login` et
-`/admin`, deux adresses qui rendent 404 depuis le renommage d'avril, et rien ne les
-lance - ni la porte, ni la CI.
+#### Sept tests de bout en bout sur huit étaient morts
+Ils se connectaient à `admin@aurora.app`, qu'aucune fixture ne sème, puis visitaient
+`/login` et `/admin/*` - **sept adresses qui rendent 404 depuis le renommage
+d'avril**, dont `/admin/crm/contacts`, un module qui n'existe plus du tout. Rien ne
+les lançait, ni la porte ni la CI, donc rien ne l'avait jamais dit.
+
+Lancés pour en avoir le cœur net : **dix-sept échecs, quatre succès**, et les quatre
+sont tous dans le même fichier, celui qui teste le site public. Les sept autres
+partent. `make test-e2e` passe maintenant, en six secondes au lieu d'une minute
+d'attentes à vide.
+
+Un test qui ne tourne jamais ne protège de rien, et un test qui échouerait s'il
+tournait apprend à ignorer les échecs.
 
 #### La couverture de code était calculée à chaque lancement de la suite
 Le bloc `coverage` de `phpunit.dist.xml` déclarait deux rapports. Un rapport
