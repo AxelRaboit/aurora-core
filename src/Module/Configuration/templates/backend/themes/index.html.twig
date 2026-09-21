@@ -14,6 +14,7 @@
 {% block body %}
 <div {{ vue_component('configuration/backend/themes/ThemesApp', {
     themes: themes,
+    fonts: fonts,
     activatePath: path_template('backend_configuration_themes_activate', {id: '__id__'}),
     updatePath: path_template('backend_configuration_themes_update', {id: '__id__'}),
     deletePath: path_template('backend_configuration_themes_delete', {id: '__id__'}),

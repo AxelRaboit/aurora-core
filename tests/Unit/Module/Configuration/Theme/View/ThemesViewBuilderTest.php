@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Tests\Unit\Module\Configuration\Theme\View;
 
 use Aurora\Module\Configuration\Theme\Entity\Theme;
+use Aurora\Module\Configuration\Theme\Enum\ThemeFontEnum;
 use Aurora\Module\Configuration\Theme\Repository\ThemeRepository;
 use Aurora\Module\Configuration\Theme\Serializer\ThemeSerializerInterface;
 use Aurora\Module\Configuration\Theme\View\ThemesViewBuilder;
@@ -26,6 +27,16 @@ final class ThemesViewBuilderTest extends TestCase
         self::assertCount(3, $view['themes']);
     }
 
+    public function testIndexViewCarriesTheFontChoices(): void
+    {
+        $repository = $this->createStub(ThemeRepository::class);
+        $repository->method('findAll')->willReturn([]);
+
+        $view = (new ThemesViewBuilder($repository, $this->createStub(ThemeSerializerInterface::class)))->indexView();
+
+        self::assertSame(ThemeFontEnum::choices(), $view['fonts']);
+    }
+
     public function testIndexViewWithEmptyRepository(): void
     {
         $repository = $this->createStub(ThemeRepository::class);
@@ -35,6 +46,6 @@ final class ThemesViewBuilderTest extends TestCase
 
         $view = (new ThemesViewBuilder($repository, $serializer))->indexView();
 
-        self::assertSame(['themes' => []], $view);
+        self::assertSame([], $view['themes']);
     }
 }
