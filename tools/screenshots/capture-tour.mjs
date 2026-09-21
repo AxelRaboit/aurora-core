@@ -82,6 +82,31 @@ const postTab = (name) => async (page) => {
 };
 
 /**
+ * Un espace de la démonstration, sur la vue demandée.
+ *
+ * Par la liste et nommément, pour la raison que `tour-espaces-clients`
+ * explique : les identifiants changent à chaque rechargement des fixtures, et
+ * la démonstration porte des espaces vides qui photographient une page qui
+ * réussit sans rien montrer.
+ *
+ * La vue ouverte est retenue d'une visite à l'autre, donc chaque prise
+ * reclique la sienne au lieu de compter sur ce qui était affiché avant.
+ */
+const spaceView = (view) => async (page) => {
+    await openSpace(page);
+    await page.getByRole("button", { name: view, exact: true }).first().click();
+    await page.waitForTimeout(2_000);
+};
+
+async function openSpace(page) {
+    await page.getByRole("link", { name: /Réseaux sociaux/ }).first().click();
+    await page.waitForTimeout(3_500);
+}
+
+/** Les espaces, d'où toutes les prises d'un espace partent. */
+const SPACES = "/backend/studio/spaces";
+
+/**
  * Une capture par carte du tour, nommée comme le document qu'elle remplace.
  *
  * **Le nom est le lien avec la production.** Chaque carte de /fr/page/aurora
@@ -150,6 +175,27 @@ const SHOTS = [
     },
 
     { name: "tour-mediatheque-grille", path: "/backend/ged/documents" },
+    /**
+     * La fiche d'un document : ses métadonnées et son historique de versions.
+     *
+     * La seconde image de la carte médiathèque. Elle illustrait déjà la page
+     * et ne se refaisait pas : elle datait d'une semaine de plus que toutes
+     * les autres.
+     */
+    {
+        name: "tour-mediatheque-document",
+        path: "/backend/ged/documents",
+        async prepare(page) {
+            // Cherché plutôt que cliqué dans la liste : la médiathèque de
+            // démonstration tient sur deux pages, et celui-ci n'est pas
+            // toujours sur la première. C'est celui-là qu'on veut, parce
+            // qu'il porte trois versions et que la carte en parle.
+            await page.getByPlaceholder(/Rechercher un document/).fill("Visuel de campagne");
+            await page.waitForTimeout(2_000);
+            await page.getByText("Visuel de campagne", { exact: false }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
     { name: "tour-notes", path: "/backend/notes/markdown" },
     { name: "tour-calendrier", path: "/backend/planning/calendar" },
 
@@ -187,14 +233,88 @@ const SHOTS = [
      * l'autre, donc l'espace peut s'ouvrir sur Notes selon ce qui a été
      * regardé avant.
      */
+    { name: "tour-espaces-clients", path: SPACES, prepare: spaceView("Contenus") },
+
+    /**
+     * Les autres vues du même espace.
+     *
+     * **Elles illustrent déjà la carte, et n'étaient pas reproductibles.**
+     * Prises à la main une fois, elles ont vieilli sans que rien ne le dise :
+     * celle du côté client montrait encore une page qui empilait tout et un
+     * invité signé de son adresse e-mail, deux versions après que l'une et
+     * l'autre aient disparu. C'est exactement ce que ce fichier existe pour
+     * éviter.
+     */
+    { name: "espace-calendrier", path: SPACES, prepare: spaceView("Calendrier") },
+    { name: "espace-fichiers", path: SPACES, prepare: spaceView("Fichiers") },
+    { name: "espace-discussion", path: SPACES, prepare: spaceView("Discussion") },
+    { name: "espace-notes", path: SPACES, prepare: spaceView("Notes") },
+    { name: "espace-informations", path: SPACES, prepare: spaceView("Informations") },
+    { name: "espace-liens", path: SPACES, prepare: spaceView("Liens") },
+
+    /** Une fiche ouverte : le titre, la date, ses fichiers et son fil. */
     {
-        name: "tour-espaces-clients",
-        path: "/backend/studio/spaces",
+        name: "espace-une-fiche",
+        path: SPACES,
         async prepare(page) {
-            await page.getByRole("link", { name: /Réseaux sociaux/ }).first().click();
-            await page.waitForTimeout(3_500);
+            await openSpace(page);
             await page.getByRole("button", { name: "Contenus", exact: true }).first().click();
             await page.waitForTimeout(1_800);
+            await page.getByText("Portrait de l'équipe", { exact: true }).first().click();
+            await page.waitForTimeout(1_800);
+        },
+    },
+
+    /**
+     * Un espace ouvert pour un prospect.
+     *
+     * L'onglet a son propre compteur, et c'est ce que la capture montre : on
+     * travaille avec quelqu'un avant qu'il signe.
+     */
+    {
+        name: "espaces-prospects",
+        path: SPACES,
+        async prepare(page) {
+            await page.getByRole("button", { name: /^Prospects/ }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+
+    /**
+     * La page que le client ouvre, par une vraie adresse.
+     *
+     * **Un lien émis ici même, et non l'aperçu du studio.** L'aperçu porte un
+     * bandeau qui prévient que ce n'est pas ce que le client a reçu : vrai
+     * dans l'application, trompeur sur une carte qui promet de montrer ce que
+     * le client voit. Le lien se crée donc comme le studio le crée, et
+     * l'adresse se lit là où l'écran l'affiche une fois - c'est la seule fois
+     * où elle existe en clair.
+     */
+    {
+        name: "espace-cote-client",
+        path: SPACES,
+        async prepare(page) {
+            await openSpace(page);
+
+            const espace = new URL(page.url());
+            await page.goto(`${espace.origin}${espace.pathname}/access`, { waitUntil: "networkidle" });
+            await page.waitForTimeout(1_500);
+
+            await page.getByRole("button", { name: "Créer un lien" }).first().click();
+            await page.waitForTimeout(1_000);
+
+            // Par l'exemple du champ et non par son libellé : les champs de
+            // cette modale n'ont pas d'identifiant, donc rien ne relie le
+            // `<label>` à son `<input>` pour un outil qui lit la page.
+            await page.getByPlaceholder("camille@societe.fr").fill("camille@atelier-dupont.example.com");
+            await page.getByPlaceholder(/^Camille, /).fill("Camille, gérante");
+
+            await page.getByRole("button", { name: "Créer un lien" }).last().click();
+            await page.waitForTimeout(2_500);
+
+            const adresse = (await page.locator("code").first().innerText()).trim();
+            await page.goto(adresse, { waitUntil: "networkidle" });
+            await page.waitForTimeout(2_500);
         },
     },
 
