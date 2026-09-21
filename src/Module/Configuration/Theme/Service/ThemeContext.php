@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Configuration\Theme\Service;
 
 use Aurora\Module\Configuration\Theme\Entity\ThemeInterface;
+use Aurora\Module\Configuration\Theme\Enum\ThemeFontEnum;
 use Aurora\Module\Configuration\Theme\Repository\ThemeRepository;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
@@ -111,6 +112,39 @@ final class ThemeContext
             'full' => 'max-w-none',
             default => 'max-w-3xl mx-auto',
         };
+    }
+
+    /**
+     * La famille choisie par le thème actif.
+     *
+     * Rangée dans le thème plutôt que dans un réglage global, pour la même
+     * raison que la largeur de contenu : changer de thème doit emporter sa
+     * typographie, pas hériter de celle du précédent.
+     */
+    public function font(): ThemeFontEnum
+    {
+        return ThemeFontEnum::fromConfig($this->activeTheme()?->getConfig()['font_family'] ?? null);
+    }
+
+    /**
+     * La règle qui compose l'application dans la police du thème, posée dans le
+     * `<head>` par `primary_color_style.html.twig`.
+     *
+     * Elle redéfinit `--th-font-sans`, dont `--font-sans` n'est qu'un renvoi :
+     * `body` s'en sert directement et l'utilitaire `font-sans` en recopie le
+     * `var(...)`, donc toute la page suit. Un thème resté sur Poppins n'émet
+     * rien : le défaut vit déjà dans `theme.css`, et une règle qui répète un
+     * défaut est une seconde copie à tenir à jour.
+     */
+    public function fontFamilyCss(): string
+    {
+        $font = $this->font();
+
+        if (ThemeFontEnum::default() === $font) {
+            return '';
+        }
+
+        return ':root{--th-font-sans: '.$font->stack().';}';
     }
 
     public function primaryColor(): string

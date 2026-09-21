@@ -5,6 +5,39 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.219] - 2026-09-21
+
+### Ajouté
+
+#### Un thème choisit sa police d'écriture
+L'écran de thème gagne un sélecteur, sous la largeur de contenu : cinq
+familles, une géométrique, une neutre d'interface, une grotesque, une arrondie
+et une à empattements. Le choix couvre tout, back-office et site public, parce
+qu'une application composée dans deux typographies ne ressemble plus à une
+application.
+
+**La police appartient au thème, pas aux réglages.** Comme la largeur de
+contenu et la couleur principale : changer de thème emporte sa typographie
+plutôt que d'hériter de celle du précédent, ce qui est le seul sens qui rende
+un thème essayable.
+
+**Cinq, et pas un champ où taper un nom.** La CSP du produit n'autorise les
+polices que depuis le site lui-même, donc une famille qui n'est pas embarquée
+n'arrive jamais : elle serait résolue par le système du visiteur, ou pas du
+tout. Les cinq sont auto-hébergées, et un `@font-face` que personne n'utilise
+n'est jamais téléchargé - proposer le choix ne pèse donc rien sur les pages des
+sites qui n'en changent pas.
+
+Le sélecteur montre la famille sélectionnée en situation, composée dans la
+police proposée, et non dans une liste de noms qui se ressemblent tous.
+
+### Dans aurora-client
+
+Rien à répercuter : pas de migration, le choix vit dans la configuration JSON
+du thème. Un projet qui n'y touche pas reste composé comme avant.
+
+---
+
 ## [0.9.218] - 2026-09-21
 
 ### Corrigé
