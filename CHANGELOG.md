@@ -22,8 +22,10 @@ pire qu'un envoi qui n'a pas lieu : on croit la page à jour.**
 
 Le scénario prend désormais les dix écrans qui manquaient - les autres vues
 d'un espace, une fiche ouverte, les prospects, la page du client, la fiche
-d'un document - et la table les porte toutes. Deux captures s'ajoutent pour
-les onglets Informations et Liens.
+d'un document - et la table porte les trente-huit, sans plus aucune entrée
+sans carte. Trois images ont reçu leur emplacement au passage : la liste des
+clients, que le texte de sa carte nommait en premier sans jamais la montrer,
+et les deux onglets Informations et Liens.
 
 La page du client est prise par un lien émis pour l'occasion plutôt que par
 l'aperçu du studio : l'aperçu porte un bandeau qui prévient que ce n'est pas
