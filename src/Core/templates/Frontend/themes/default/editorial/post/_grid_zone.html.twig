@@ -86,10 +86,16 @@
                 >
             {% endset %}
             {% if enlargeable %}
+                {# A column when it fills, and not only a flex item: the button
+                   takes the height flex gives it, but a block child inside
+                   keeps its own proportions and runs straight out of the
+                   bottom - over the caption and into the row below. The
+                   picture's `flex-1` needs a flex parent to resolve against,
+                   and without the button that parent is the figure. #}
                 <button
                     type="button"
                     data-grid-image-open="{{ zone.lightboxIndex }}"
-                    class="block w-full cursor-zoom-in appearance-none border-0 bg-transparent p-0 text-left{{ fills ? ' lg:min-h-0 lg:flex-1' : '' }}"
+                    class="block w-full cursor-zoom-in appearance-none border-0 bg-transparent p-0 text-left{{ fills ? ' lg:flex lg:flex-col lg:min-h-0 lg:flex-1' : '' }}"
                     aria-label="{{ 'frontend.gallery.enlarge'|trans }}"
                 >{{ picture }}</button>
             {% else %}

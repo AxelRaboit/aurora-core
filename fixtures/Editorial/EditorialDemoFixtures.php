@@ -613,9 +613,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                     ['id' => 'under', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => GridNormalizer::RATIO_FILL, 'mediaId' => $stacked->getId()],
                 ],
             ],
-            // Two thirds and one third: a player next to the article it is
-            // about.
-            ['id' => 'film', 'type' => GridNormalizer::ZONE_VIDEO, 'span' => ['base' => 48, 'md' => null, 'lg' => 32]],
+            // A third of the row, alone on it: a card is a card at any width,
+            // and stretching it across the page to fill the space would say
+            // the grid cannot do anything else.
             ['id' => 'linked', 'type' => GridNormalizer::ZONE_POST, 'span' => ['base' => 48, 'md' => null, 'lg' => 16], 'postId' => $linked->getId()],
             ['id' => 'outro', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48]],
         ];
@@ -708,12 +708,6 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             'es' => ['alt' => 'Un escritorio de demostración', 'caption' => 'La segunda mitad de la pila.'],
         ];
 
-        $filmCaptions = [
-            'fr' => 'Une vidéo, par langue.',
-            'en' => 'A video, per language.',
-            'es' => 'Un vídeo, por idioma.',
-        ];
-
         foreach (LocaleEnum::values() as $locale) {
             $translation = $welcome->translate($locale);
 
@@ -727,13 +721,6 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                     'picture' => $captions[$locale],
                     'beside' => ['blocks' => $content[$locale]['beside']],
                     'under' => $stackedCaptions[$locale],
-                    // Big Buck Bunny - Blender's open movie, which is here
-                    // because a demo address that refuses to embed looks like
-                    // a broken feature rather than a placeholder.
-                    'film' => [
-                        'url' => 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
-                        'caption' => $filmCaptions[$locale],
-                    ],
                     'outro' => ['blocks' => $content[$locale]['outro']],
                 ],
             ], $welcome->getGridLayout()));
