@@ -5,6 +5,34 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.218] - 2026-09-21
+
+### Corrigé
+
+#### Une image qui remplit sa zone débordait sur la ligne suivante
+Une image réglée sur `fill` prend la hauteur de la zone qui la porte et se
+recadre dedans. Quand cette image est aussi cliquable, la loupe l'enveloppe
+d'un bouton, et ce bouton restait un bloc : il prenait bien la hauteur que la
+grille lui donnait, mais l'image à l'intérieur gardait ses propres proportions
+et sortait par le bas. Sur la page de démonstration elle dépassait de 79
+pixels, passait par dessus sa propre légende et entrait dans la ligne suivante.
+
+Le `flex-1` porté par l'image ne servait à rien, faute de parent flex : le
+bouton s'interposait entre elle et la figure. **Une image cliquable et une
+image simple ne se posaient donc pas de la même façon, alors que rien dans les
+réglages ne le laissait deviner.** Le bouton devient une colonne quand la zone
+est en `fill`. Mesuré sur la même page : l'image passe de 760 à 653 pixels, la
+hauteur exacte de son bouton, et plus rien ne sort de la zone.
+
+### Modifié
+
+#### La page de démonstration n'a plus de vidéo
+La zone vidéo de la page « Bienvenue » pointait vers Big Buck Bunny sur
+YouTube. Elle est retirée, avec ses légendes dans les trois langues. La carte
+qui l'accompagnait garde son tiers de largeur et reste seule sur sa ligne.
+
+---
+
 ## [0.9.217] - 2026-09-21
 
 ### Corrigé
