@@ -1,3 +1,13 @@
-{# Defines the --color-accent-* scale from the active theme's primary colour. #}
+{# Les réglages du thème actif qui se posent en CSS au chargement de la page. #}
 {# Inject in <head> so utility classes like bg-accent-600 / text-accent-400 pick it up app-wide. #}
+{# Le fichier garde son nom d'origine : il est inclus par une douzaine de gabarits
+   ici et par les projets qui consomment Aurora, et le renommer les casserait
+   en silence. C'est le point d'injection du thème, la couleur n'en est qu'une
+   partie. #}
 <style>{{ themeContext.primaryColorCss()|raw }}</style>
+{# La police du thème. Rien n'est émis tant qu'il est resté sur Poppins, qui est
+   déjà le défaut de `theme.css`. #}
+{% set fontCss = themeContext.fontFamilyCss() %}
+{% if fontCss %}
+    <style>{{ fontCss|raw }}</style>
+{% endif %}

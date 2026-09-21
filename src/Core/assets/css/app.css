@@ -1,9 +1,46 @@
+/*
+ * Les familles qu'un theme peut choisir, declarees cote PHP par ThemeFontEnum.
+ *
+ * Toutes sont importees, une seule sert : un `@font-face` que rien ne reference
+ * n'est jamais telecharge, donc le cout d'une famille de plus est celui de ses
+ * declarations CSS, pas celui de ses fichiers. C'est ce qui rend le choix
+ * possible sans peser sur les pages des sites qui n'en changent pas.
+ *
+ * Auto-heberge et pas Google Fonts : la CSP pose `font-src 'self' data:`, une
+ * balise vers fonts.gstatic.com serait refusee et la page sortirait dans la
+ * police du systeme. Ajouter une famille a l'enum veut donc dire ajouter son
+ * paquet @fontsource et ses six graisses ici.
+ */
 @import "@fontsource/poppins/400.css";
 @import "@fontsource/poppins/400-italic.css";
 @import "@fontsource/poppins/500.css";
 @import "@fontsource/poppins/500-italic.css";
 @import "@fontsource/poppins/600.css";
 @import "@fontsource/poppins/700.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/400-italic.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/500-italic.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
+@import "@fontsource/work-sans/400.css";
+@import "@fontsource/work-sans/400-italic.css";
+@import "@fontsource/work-sans/500.css";
+@import "@fontsource/work-sans/500-italic.css";
+@import "@fontsource/work-sans/600.css";
+@import "@fontsource/work-sans/700.css";
+@import "@fontsource/nunito/400.css";
+@import "@fontsource/nunito/400-italic.css";
+@import "@fontsource/nunito/500.css";
+@import "@fontsource/nunito/500-italic.css";
+@import "@fontsource/nunito/600.css";
+@import "@fontsource/nunito/700.css";
+@import "@fontsource/lora/400.css";
+@import "@fontsource/lora/400-italic.css";
+@import "@fontsource/lora/500.css";
+@import "@fontsource/lora/500-italic.css";
+@import "@fontsource/lora/600.css";
+@import "@fontsource/lora/700.css";
 @import "tailwindcss";
 
 /* The content-width classes are chosen in PHP (ThemeContext::contentWidthClass),

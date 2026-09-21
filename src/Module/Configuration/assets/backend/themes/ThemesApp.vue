@@ -26,6 +26,13 @@ const { can } = usePrivileges();
 
 const props = defineProps({
     themes: { type: Array, default: () => [] },
+    /**
+     * Les familles qu'un thème peut choisir, telles que ThemeFontEnum::choices()
+     * les décrit : valeur stockée, nom affiché, clé de description et pile CSS.
+     * La pile vient du serveur pour que l'aperçu se compose exactement dans ce
+     * que la page servira, sans seconde liste tenue ici.
+     */
+    fonts: { type: Array, default: () => [] },
     activatePath: { type: String, default: "" },
     updatePath: { type: String, default: "" },
     createPath: { type: String, default: "" },
@@ -42,7 +49,10 @@ const props = defineProps({
 const { themeList, accentColor } = useThemesList(props.themes);
 const { activateTheme } = useThemesActivate(themeList, props.activatePath);
 const { createModal, createForm, openCreate, submitCreate } = useThemesCreate(themeList, props.createPath, { extraFields: props.extraFields });
-const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, footerText, headerLogoMediaId, headerCustomText, headerMode, primaryColor, surfaceColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
+const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, fontFamily, footerText, headerLogoMediaId, headerCustomText, headerMode, primaryColor, surfaceColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
+
+const fontOptions = computed(() => props.fonts.map((font) => ({ value: font.value, label: font.label })));
+const selectedFont = computed(() => props.fonts.find((font) => font.value === fontFamily.value) ?? null);
 const { deletingTheme, confirmDelete } = useThemesDelete(themeList, props.deletePath);
 
 /**
@@ -354,6 +364,22 @@ const pageActions = computed(() => {
                             { value: 'full', label: t('backend.themes.content_width_full') },
                         ]"
                     />
+                    <!-- La police de toute l'application. ThemeContext::fontFamilyCss()
+                         la pose sur --th-font-sans dans le <head>, donc le
+                         back-office et le site public suivent le même choix.
+                         L'aperçu se compose dans la pile renvoyée par le
+                         serveur : les cinq familles sont déjà chargées ici. -->
+                    <div v-if="section.key === 'general' && fontOptions.length" class="space-y-2">
+                        <AppSelect
+                            v-model="fontFamily"
+                            :label="t('backend.themes.font_family')"
+                            :options="fontOptions"
+                        />
+                        <p v-if="selectedFont" class="text-xs text-muted">{{ t(selectedFont.descriptionKey) }}</p>
+                        <p v-if="selectedFont" class="text-base text-primary" :style="{ fontFamily: selectedFont.stack }">
+                            {{ t('backend.themes.font_preview') }}
+                        </p>
+                    </div>
                 </div>
             </form>
             <template #footer>

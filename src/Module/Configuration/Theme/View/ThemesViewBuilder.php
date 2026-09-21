@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Configuration\Theme\View;
 
+use Aurora\Module\Configuration\Theme\Enum\ThemeFontEnum;
 use Aurora\Module\Configuration\Theme\Repository\ThemeRepository;
 use Aurora\Module\Configuration\Theme\Serializer\ThemeSerializerInterface;
 
@@ -25,6 +26,11 @@ final readonly class ThemesViewBuilder
     {
         return [
             'themes' => array_map($this->themeSerializer->serialize(...), $this->themeRepository->findAll()),
+            // Les familles proposées viennent de l'enum et pas d'une liste
+            // recopiée dans le JavaScript : leurs piles CSS servent aussi à
+            // composer l'aperçu du sélecteur, et deux copies d'une pile
+            // divergent dès que personne ne les compare.
+            'fonts' => ThemeFontEnum::choices(),
         ];
     }
 }

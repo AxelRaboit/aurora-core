@@ -46,6 +46,14 @@ backend:
     content_width_narrow: Étroite (colonne de lecture)
     content_width_wide: Large
     content_width_full: Pleine largeur
+    font_family: Police d'écriture
+    font_preview: Portez ce vieux whisky au juge blond qui fume.
+    fonts:
+      poppins: Géométrique, aux formes régulières. Le réglage par défaut.
+      inter: Neutre, dessinée pour les écrans. Se fait oublier.
+      work-sans: Grotesque, un peu plus large et plus chaleureuse qu'Inter.
+      nunito: Arrondie. Le ton le moins institutionnel de la liste.
+      lora: À empattements. Fait lire la page comme un texte plutôt qu'un écran.
     slug_label: Slug
     header_media_hint: Trouvez l'ID dans Médias → ouvrez un média → champ ID.
     header_text_placeholder: Mon site

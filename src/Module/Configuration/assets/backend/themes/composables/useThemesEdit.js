@@ -27,6 +27,11 @@ const DEFAULTS = {
 // moment nothing compares them.
 const DEFAULT_PRIMARY_COLOR = "#10b981";
 
+// Miroir de ThemeFontEnum::default(). La liste des familles, elle, arrive du
+// serveur : c'est la seule valeur de l'enum que le formulaire a besoin de
+// connaitre avant d'avoir recu quoi que ce soit.
+const DEFAULT_FONT_FAMILY = "poppins";
+
 /**
  * @typedef {Object} ExtraField
  * @property {*} default - Initial/reset value.
@@ -125,6 +130,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     const headerCustomText = ref("");
     const headerMode = ref("default");
     const contentWidth = ref("narrow");
+    const fontFamily = ref(DEFAULT_FONT_FAMILY);
     const primaryColor = ref(DEFAULT_PRIMARY_COLOR);
 
     // Couleurs de surface du frontend public. Vides par defaut, et c'est le
@@ -149,6 +155,8 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         // spelling out every default.
         if (contentWidth.value !== "narrow")
             result["content_width"] = contentWidth.value;
+        if (fontFamily.value !== DEFAULT_FONT_FAMILY)
+            result["font_family"] = fontFamily.value;
         if (headerMode.value === "image" && headerLogoMediaId.value.trim()) {
             result["header_logo_media_id"] = headerLogoMediaId.value.trim();
         }
@@ -185,6 +193,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         }
         footerText.value = theme.config?.["footer_text"] ?? "";
         contentWidth.value = theme.config?.["content_width"] ?? "narrow";
+        fontFamily.value = theme.config?.["font_family"] ?? DEFAULT_FONT_FAMILY;
         headerLogoMediaId.value = theme.config?.["header_logo_media_id"] ?? "";
         headerCustomText.value = theme.config?.["header_custom_text"] ?? "";
         headerMode.value = theme.config?.["header_logo_media_id"]
@@ -233,6 +242,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
 
     return {
         contentWidth,
+        fontFamily,
         CSS_SECTIONS,
         DEFAULTS,
         editModal,

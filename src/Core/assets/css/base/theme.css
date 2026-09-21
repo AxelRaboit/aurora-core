@@ -1,5 +1,10 @@
 @theme inline {
-    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+    /* Forwarded from :root, pour la meme raison que la palette d'accent plus
+       bas : `@theme inline` recopie la valeur litterale dans chaque endroit qui
+       s'en sert, donc redefinir --font-sans au runtime ne changerait rien. En
+       passant par --th-font-sans, ce qui est recopie est le `var(...)`, et la
+       regle posee en tete de page par ThemeContext::fontFamilyCss() prend. */
+    --font-sans: var(--th-font-sans);
 
     --text-2xs: 0.625rem;
     --text-2xs--line-height: 0.875rem;
@@ -68,6 +73,10 @@
 }
 
 :root {
+    /* Mirroir de ThemeFontEnum::Poppins->stack(). Un theme sans police choisie
+       n'emet aucune regle, donc c'est cette valeur qui sert. */
+    --th-font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+
     --th-bg:        rgb(249 250 251);
     --th-surface:   rgb(255 255 255);
     --th-surface-2: rgb(243 244 246);
