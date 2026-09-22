@@ -2,45 +2,29 @@ import { ref, watchEffect } from "vue";
 import { buildTree as buildHierarchicalTree } from "@/shared/composables/tree/useHierarchicalTree.js";
 
 /**
- * Build a hierarchical tree from a flat list of notes (sorted by position).
- * Each node looks like { id, parentId, title, ..., children: [...] }.
+ * Build a hierarchical tree of folders from the flat list.
  *
- * Exposes a *writable* `tree` ref so VueDraggable can mutate the children
- * arrays directly. A watcher rebuilds the tree whenever any input ref
- * changes - that way `refreshList()` from the server still wins over
- * any local DnD mutation.
+ * It used to build a tree of notes, because a note with children stood in for
+ * a folder. Folders are their own objects now, so the tree holds places and
+ * the library holds what is in them: nine hundred notes were never an
+ * arborescence anybody could read, and they are not in this one.
  *
- * Filtering rules:
- *   - `queryRef` (free-text search) matches when the node's title, any
- *     of its tags, OR its server-resolved content match the query
- *     substring (case-insensitive). The content-match comes from
- *     `contentMatchIdsRef`, a Set populated by a debounced call to the
- *     `/search` backend endpoint (so we don't need to ship every
- *     decrypted note's body to the browser).
- *   - `selectedTagsRef` (pill filter) keeps only nodes carrying any
- *     selected tag (OR semantics).
- * Ancestors of matching nodes are preserved so the leaves stay attached
- * to the tree.
+ * Exposes a writable `tree` ref, rebuilt by a watcher whenever the inputs
+ * change, so a refreshed list from the server still wins over any local
+ * mutation.
  *
- * Each kept node carries a `matched` flag for styling.
+ * Filtering: `queryRef` keeps the folders whose name matches the query
+ * (case-insensitive substring). Ancestors of a match are preserved so the
+ * matched folder stays attached to the tree, and each kept node carries a
+ * `matched` flag for styling.
  */
-export function useNoteTree(
-    notesRef,
-    queryRef = null,
-    selectedTagsRef = null,
-    contentMatchIdsRef = null,
-) {
+export function useNoteTree(foldersRef, queryRef = null) {
     const tree = ref([]);
 
     watchEffect(() => {
         const query = (queryRef?.value ?? "").trim().toLowerCase();
-        const tags = selectedTagsRef?.value ?? [];
-        const contentIds = contentMatchIdsRef?.value ?? null;
-        const fullTree = buildHierarchicalTree(notesRef.value).map(decorate);
-        const hasFilter = query !== "" || tags.length > 0;
-        tree.value = hasFilter
-            ? filterTree(fullTree, query, tags, contentIds)
-            : fullTree;
+        const fullTree = buildHierarchicalTree(foldersRef.value).map(decorate);
+        tree.value = "" === query ? fullTree : filterTree(fullTree, query);
     });
 
     /** Annotate every node with `matched: true` for consistent template logic. */
@@ -52,41 +36,24 @@ export function useNoteTree(
         };
     }
 
-    /**
-     * Free-text query match: title substring, any tag substring, OR
-     * an id present in `contentIds` (resolved server-side). Returns
-     * true for an empty query so the tag-pill filter can run alone.
-     */
-    function matchesQuery(node, query, contentIds) {
-        if (query === "") return true;
-        const title = (node.title ?? "").toLowerCase();
-        if (title.includes(query)) return true;
-        const nodeTags = node.tags ?? [];
-        if (nodeTags.some((t) => String(t).toLowerCase().includes(query))) {
-            return true;
-        }
-        if (contentIds && contentIds.has(node.id)) return true;
-        return false;
+    function matchesQuery(node, query) {
+        return String(node.name ?? "")
+            .toLowerCase()
+            .includes(query);
     }
 
-    /** Tag-pill filter (different from the free-text query). OR semantics. */
-    function matchesTags(node, tags) {
-        if (tags.length === 0) return true;
-        const noteTags = node.tags ?? [];
-        return tags.some((tag) => noteTags.includes(tag));
-    }
-
-    function filterTree(nodes, query, tags, contentIds) {
+    function filterTree(nodes, query) {
         const kept = [];
+
         for (const node of nodes) {
-            const children = filterTree(node.children, query, tags, contentIds);
-            const selfMatch =
-                matchesQuery(node, query, contentIds) &&
-                matchesTags(node, tags);
+            const children = filterTree(node.children, query);
+            const selfMatch = matchesQuery(node, query);
+
             if (selfMatch || children.length > 0) {
                 kept.push({ ...node, matched: selfMatch, children });
             }
         }
+
         return kept;
     }
 

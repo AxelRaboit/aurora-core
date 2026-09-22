@@ -140,9 +140,9 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         cancelAutoSave();
     }
 
-    async function createNote(parentId = null) {
+    async function createNote(folderId = null) {
         const { ok, reported, payload } = await api.create({
-            parentId,
+            folderId,
             title: "",
             content: "",
         });
@@ -170,7 +170,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
 
         saving.value = true;
         const noteId = selectedNote.value.id;
-        const parentId = selectedNote.value.parentId;
+        const folderId = selectedNote.value.folderId ?? null;
         const snapshot = {
             title: form.value.title,
             content: form.value.content,
@@ -180,7 +180,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
 
         try {
             const { ok } = await api.update(noteId, {
-                parentId,
+                folderId,
                 ...snapshot,
             });
             if (!ok) return false;

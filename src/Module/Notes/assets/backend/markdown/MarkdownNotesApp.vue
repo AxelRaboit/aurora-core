@@ -3,6 +3,8 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import { useMarkdownNotesPage } from '@notes/backend/markdown/composables/useMarkdownNotesPage.js';
+import { useNoteFoldersApi } from '@notes/backend/markdown/composables/useNoteFoldersApi.js';
+import NoteLibrary from '@notes/backend/markdown/components/NoteLibrary.vue';
 import NotePreview from '@notes/backend/markdown/components/NotePreview.vue';
 import NoteSidePanel from '@notes/backend/markdown/components/NoteSidePanel.vue';
 import NoteTagManagerModal from '@notes/backend/markdown/components/NoteTagManagerModal.vue';
@@ -14,19 +16,30 @@ import AppIconButton from '@shared/components/action/AppIconButton.vue';
 import AppInput from '@shared/components/form/input/AppInput.vue';
 import AppSearchInput from '@shared/components/form/input/AppSearchInput.vue';
 import AppTagsInput from '@shared/components/form/select/AppTagsInput.vue';
-import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import AppModal from '@shared/components/overlay/AppModal.vue';
 import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
 import { onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { Plus, Trash2, FileDown, FileText, PanelRightOpen, PanelRightClose, X, Settings2, Network, Share2} from 'lucide-vue-next';
+import { Trash2, FileDown, PanelRightOpen, PanelRightClose, X, Network, Share2 } from 'lucide-vue-next';
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 
 const { formatDateTimeNumeric } = useDateFormat();
 
 const props = defineProps({
     notes: { type: Array, default: () => [] },
+    /** Every folder of the reader, flat, serialized with its counts. */
+    folders: { type: Array, default: () => [] },
+    /** The folder the address names, null on the root listing or on a note. */
+    folderId: { type: Number, default: null },
+    /** The chain the server resolved for that folder, root first. */
+    breadcrumb: { type: Array, default: () => [] },
+    /** Les routes des dossiers, en un objet plutôt qu'en sept props. */
+    folderPaths: { type: Object, required: true },
+    /** L'adresse de la bibliothèque, c'est-à-dire du carnet à sa racine. */
+    libraryPath: { type: String, required: true },
+    browsePath: { type: String, default: '' },
+    maxDepth: { type: Number, default: 8 },
     listPath: { type: String, required: true },
     showPath: { type: String, required: true },
     createPath: { type: String, required: true },
@@ -86,28 +99,10 @@ const {
     onWikiLinkClick,
     onCheckboxToggle,
     onImageResize,
-    tree,
-    treeQuery,
-    availableTags,
-    selectedTags,
-    toggleTag,
-    clearTags,
     onTagsChanged,
     sidePanelOpen,
     graphOpen,
     tagManagerOpen,
-    dragEnabled,
-    draggingId,
-    dragOverId,
-    rootDragOver,
-    onDragStart,
-    onDragEnd,
-    onDragOverNote,
-    onDragLeaveNote,
-    onDragOverRoot,
-    onDragLeaveRoot,
-    onDropOnNote,
-    onDropOnRoot,
     viewMode,
     viewModeOptions,
     lastSavedRelative,
@@ -124,6 +119,83 @@ const {
 // sharing is opened from the toolbar and closed by the modal, and nothing in
 // the page composable reads it.
 const shareModalOpen = ref(false);
+
+/**
+ * Les dossiers, et le va-et-vient entre la bibliothèque et l'éditeur.
+ *
+ * Une seule page monte les deux : ouvrir une note depuis la bibliothèque
+ * écrit son adresse et charge son texte, sans recharger le document. Le
+ * retour arrière du navigateur rend la bibliothèque, parce que l'adresse
+ * qu'on quitte est une vraie adresse et pas un état interne.
+ */
+const foldersApi = useNoteFoldersApi(props.folderPaths);
+const folders = ref([...props.folders]);
+
+/**
+ * La bibliothèque, quand elle est là.
+ *
+ * Le panneau du menu parle à cette application, montée sur toutes les pages
+ * du module ; la bibliothèque n'est montée que lorsque aucune note n'est
+ * ouverte. Quand elle manque, une demande du panneau devient une navigation,
+ * ce qui est la réponse honnête : on quitte l'éditeur pour aller voir.
+ */
+const libraryRef = ref(null);
+
+function folderUrlFor(id) {
+    return props.folderPaths.show.replace('__id__', String(id));
+}
+
+function goToFolder(id) {
+    window.location.assign(null === id || undefined === id ? props.libraryPath : folderUrlFor(id));
+}
+
+async function refreshFolders() {
+    const { ok, payload } = await foldersApi.list();
+    if (ok) folders.value = payload.folders ?? [];
+}
+
+function noteUrlFor(id) {
+    return props.showPath.replace('__id__', String(id));
+}
+
+async function openNote(id) {
+    try {
+        window.history.pushState({ noteId: id }, '', noteUrlFor(id));
+    } catch {
+        // Cadre bac à sable : la note s'ouvre quand même, seule l'adresse
+        // ne suit pas.
+    }
+
+    await selectNote(id);
+}
+
+function onHistoryPop() {
+    // La bibliothèque a son propre écouteur pour le dossier ; celui-ci ne
+    // tranche qu'entre « une note » et « la liste ».
+    const match = /\/markdown\/(\d+)(?:$|[?#])/.exec(window.location.pathname);
+
+    if (match) {
+        void selectNote(Number(match[1]));
+
+        return;
+    }
+
+    selectedId.value = null;
+}
+
+async function onLibraryChanged() {
+    await Promise.all([refreshFolders(), refreshList()]);
+}
+
+function backToLibrary() {
+    try {
+        window.history.pushState({ folderId: null }, '', props.libraryPath);
+    } catch {
+        // Idem : le retour se fait, l'adresse ne suit pas.
+    }
+
+    selectedId.value = null;
+}
 
 /**
  * The panel's half of the contract.
@@ -170,8 +242,8 @@ async function onImportFiles(event) {
     const form = new FormData();
     files.forEach((file) => form.append("files[]", file));
 
-    // Sous la note ouverte quand il y en a une : on importe là où on regarde.
-    if (selectedId.value) form.append("parentId", String(selectedId.value));
+    // Dans le dossier ouvert quand il y en a un : on importe là où on regarde.
+    if (props.folderId) form.append("folderId", String(props.folderId));
 
     const { ok, payload } = await api.import(form);
 
@@ -186,16 +258,22 @@ async function onImportFiles(event) {
 }
 
 const PANEL_INTENTS = {
-    select: (id) => selectNote(id),
+    select: (id) => openNote(id),
     export: () => exportAll(),
     import: () => askForFiles(),
-    create: (parentId) => createNote(parentId ?? null),
+    create: (folderId) => createNote(folderId ?? null),
     delete: (note) => requestDelete(note),
-    'drag-start': (note, event) => onDragStart(note, event),
-    'drag-end': () => onDragEnd(),
-    'drag-over': (note, event) => onDragOverNote(note, event),
-    'drag-leave': (note, event) => onDragLeaveNote(note, event),
-    drop: (note, event) => onDropOnNote(note, event),
+    'open-folder': (id) => (libraryRef.value ? libraryRef.value.openFolder(id) : goToFolder(id)),
+    'create-folder': (parentId) =>
+        libraryRef.value
+            ? libraryRef.value.askForFolderName(null, parentId ?? null)
+            : goToFolder(parentId ?? null),
+    'delete-folder': (folder) =>
+        libraryRef.value ? libraryRef.value.askToDelete(folder) : goToFolder(folder?.id ?? null),
+    // Le glisser du panneau : la cible est une ligne de dossier, et ce qui
+    // est déplacé voyage dans le presse-papier de l'événement, donc la
+    // bibliothèque sait quoi en faire sans qu'on le lui répète.
+    drop: (folder, event) => libraryRef.value?.dropInto(Number(folder.id), event),
 };
 
 const stopListening = [];
@@ -203,7 +281,9 @@ const stopListening = [];
 function announce() {
     tellPanels('notes:changed', {
         notes: notes.value,
+        folders: folders.value,
         selectedId: selectedId.value,
+        folderId: props.folderId,
     });
 }
 
@@ -218,7 +298,11 @@ onMounted(() => {
     // this list existed; saying it once on mount settles which of the two wins.
     announce();
     stopListening.push(watch(notes, announce, { deep: true }));
+    stopListening.push(watch(folders, announce, { deep: true }));
     stopListening.push(watch(selectedId, announce));
+
+    window.addEventListener('popstate', onHistoryPop);
+    stopListening.push(() => window.removeEventListener('popstate', onHistoryPop));
 });
 
 onUnmounted(() => {
@@ -262,6 +346,17 @@ onUnmounted(() => {
         <section class="flex-1 flex flex-col min-w-0 min-h-0">
             <div v-if="selectedNote" class="flex-1 flex flex-col min-h-0">
                 <header class="p-2 border-b border-line flex flex-col gap-2 sm:p-4">
+                    <!-- Le chemin de retour. Une note ouverte depuis la
+                         bibliothèque doit pouvoir y revenir sans le bouton
+                         précédent du navigateur, qui n'est pas une commande
+                         de l'application. -->
+                    <button
+                        type="button"
+                        class="self-start text-xs text-muted hover:text-primary transition-colors"
+                        v-on:click="backToLibrary"
+                    >
+                        ← {{ t('notes.markdown.library.title') }}
+                    </button>
                     <!-- Le titre prend la ligne. Partagée avec les six boutons
                          et les deux mentions d'état, elle laissait au nom de la
                          note ce qui restait, c'est-à-dire peu : sur un écran
@@ -434,18 +529,23 @@ onUnmounted(() => {
                 </div>
             </div>
 
-            <div v-else class="flex-1 flex flex-col">
-                <header class="p-3 border-b border-line flex items-center gap-2 md:hidden">
-                    <h2 class="text-sm font-semibold text-primary">{{ t('notes.markdown.title') }}</h2>
-                </header>
-                <div class="flex-1 flex items-center justify-center text-muted text-sm">
-                    <AppNoData
-                        :title="t('notes.markdown.no_selection.title')"
-                        :description="t('notes.markdown.no_selection.description')"
-                        :icon="FileText"
-                    />
-                </div>
-            </div>
+            <!-- Pas de note ouverte : la bibliothèque. C'était un écran vide
+                 qui disait « choisissez une note » sans montrer lesquelles. -->
+            <NoteLibrary
+                v-else
+                ref="libraryRef"
+                :folders="folders"
+                :notes="notes"
+                :folders-api="foldersApi"
+                :notes-api="api"
+                :initial-folder-id="folderId"
+                :breadcrumb="breadcrumb"
+                :root-url="libraryPath"
+                :note-url-for="noteUrlFor"
+                v-on:open-note="openNote"
+                v-on:create-note="createNote"
+                v-on:changed="onLibraryChanged"
+            />
         </section>
 
         <NoteGraph

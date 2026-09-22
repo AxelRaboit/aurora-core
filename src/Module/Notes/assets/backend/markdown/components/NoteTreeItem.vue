@@ -1,6 +1,14 @@
 <script setup>
+/**
+ * Une ligne de l'arborescence, c'est-à-dire un dossier.
+ *
+ * Elle portait une note, du temps où une note qui avait des enfants tenait
+ * lieu de dossier. Les dossiers existent maintenant : l'arbre range, la
+ * bibliothèque montre ce qui est rangé, et une ligne d'ici est une adresse
+ * de dossier.
+ */
 import { ref, computed } from 'vue';
-import { ChevronRight, ChevronDown, Folder, FileText, Plus, Trash2 } from 'lucide-vue-next';
+import { ChevronRight, ChevronDown, Folder, FolderOpen, Plus, Trash2 } from 'lucide-vue-next';
 import AppIconButton from '@shared/components/action/AppIconButton.vue';
 
 const props = defineProps({
@@ -13,19 +21,19 @@ const props = defineProps({
     /**
      * Turns the row into a real link.
      *
-     * A note is a page, so a row in the side menu has to be middle-clickable
-     * and sendable - the whole reason its address exists. The click handler
-     * still runs and still wins: `select` swaps the note in place, and the
-     * navigation is cancelled, so the href is what the browser offers rather
-     * than what normally happens. Left empty the row stays a plain div, which
-     * is what it was.
+     * A folder is a page, so a row in the side menu has to be
+     * middle-clickable and sendable - the whole reason its address exists.
+     * The click handler still runs and still wins: `select` swaps the
+     * listing in place, and the navigation is cancelled, so the href is what
+     * the browser offers rather than what normally happens. Left empty the
+     * row stays a plain div, which is what it was.
      */
     hrefFor: { type: Function, default: null },
 });
 
 const emit = defineEmits([
     'select',
-    'create-child',
+    'create-note',
     'delete',
     'drag-start',
     'drag-end',
@@ -66,7 +74,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
              navigation - so pressing "new child note" followed the href and
              reloaded the page instead. -->
         <div
-            :data-note-row="node.id"
+            :data-folder-row="node.id"
             class="group flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors min-w-0 text-sm"
             :class="[
                 isDragOver
@@ -109,34 +117,41 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
                 v-on:click="onRowClick"
             >
                 <component
-                    :is="hasChildren ? Folder : FileText"
+                    :is="hasChildren && expanded ? FolderOpen : Folder"
                     class="w-4 h-4 shrink-0"
                     :class="isSelected || isDragOver ? 'text-accent-400' : 'text-muted'"
                     :stroke-width="2"
                 />
 
                 <span class="flex-1 truncate min-w-0">
-                    {{ node.title || $t('notes.markdown.untitled') }}
+                    {{ node.name || $t('notes.markdown.folders.untitled') }}
+                </span>
+
+                <!-- Ce que le dossier contient, dit une fois : la
+                     bibliothèque le répète sur la carte, et ici c'est ce qui
+                     permet de choisir sans ouvrir. -->
+                <span v-if="node.noteCount" class="shrink-0 text-xs text-muted tabular-nums">
+                    {{ node.noteCount }}
                 </span>
             </component>
 
             <!-- Per-row extension point. Wrapped so a client decorator
                  sits between the title and the hover action buttons. -->
-            <slot name="extra-cells" :note="node" />
+            <slot name="extra-cells" :folder="node" />
 
             <div class="sm:opacity-0 sm:group-hover:opacity-100 flex gap-0.5 transition-opacity shrink-0">
                 <AppIconButton
                     size="sm"
                     color="accent"
-                    :title="$t('notes.markdown.create_child')"
-                    v-on:click.stop="emit('create-child', node.id)"
+                    :title="$t('notes.markdown.create_in_folder')"
+                    v-on:click.stop="emit('create-note', node.id)"
                 >
                     <Plus class="w-3.5 h-3.5" :stroke-width="2" />
                 </AppIconButton>
                 <AppIconButton
                     size="sm"
                     color="rose"
-                    :title="$t('notes.markdown.delete')"
+                    :title="$t('notes.markdown.folders.delete')"
                     v-on:click.stop="emit('delete', node)"
                 >
                     <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
@@ -156,7 +171,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
                 :depth="depth + 1"
                 :href-for="hrefFor"
                 v-on:select="(id) => emit('select', id)"
-                v-on:create-child="(id) => emit('create-child', id)"
+                v-on:create-note="(id) => emit('create-note', id)"
                 v-on:delete="(n) => emit('delete', n)"
                 v-on:drag-start="(n, e) => emit('drag-start', n, e)"
                 v-on:drag-end="(e) => emit('drag-end', e)"

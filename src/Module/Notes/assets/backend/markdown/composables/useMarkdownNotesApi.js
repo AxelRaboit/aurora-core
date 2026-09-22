@@ -48,9 +48,9 @@ export function useMarkdownNotesApi(props) {
             call(HttpMethod.Post, resolvePath(props.updatePath, id), payload),
         remove: (id) =>
             call(HttpMethod.Post, resolvePath(props.deletePath, id), {}),
-        move: (id, parentId) =>
+        move: (id, folderId) =>
             call(HttpMethod.Post, resolvePath(props.movePath, id), {
-                parentId,
+                folderId,
             }),
         reorder: (ids) => call(HttpMethod.Post, props.reorderPath, { ids }),
         backlinks: (id) =>
@@ -89,9 +89,9 @@ export function useMarkdownNotesApi(props) {
         /**
          * Des fichiers Markdown, ou un zip, remis en notes.
          *
-         * Le `FormData` est construit par l'appelant : c'est lui qui sait s'il
-         * y a un parent, et le composer ici demanderait de lui passer les deux
-         * moitiés séparément pour les recoller aussitôt.
+         * Le `FormData` est construit par l'appelant : c'est lui qui sait
+         * dans quel dossier on importe, et le composer ici demanderait de lui
+         * passer les deux moitiés séparément pour les recoller aussitôt.
          */
         import: async (formData) => {
             const payload = await request(props.importPath, null, {

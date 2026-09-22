@@ -30,6 +30,12 @@ backend:
           created: Note créée
           updated: Note mise à jour
           deleted: Note supprimée définitivement
+        folder:
+          created: Dossier créé
+          updated: Dossier mis à jour
+          trashed: Dossier mis à la corbeille
+          restored: Dossier restauré
+          deleted: Dossier supprimé définitivement
         share_link:
           created: Lien de partage créé
           revoked: Lien de partage révoqué
@@ -98,7 +104,7 @@ notes:
       move_root: Tous les documents
       moved: Élément déplacé
       open: Ouvrir le dossier
-      contents: '{folders} dossier · {notes} note|{folders} dossiers · {notes} notes'
+      contents: '{folders} dossiers · {notes} notes'
       tree_empty: Aucun dossier pour l'instant.
       errors:
         move_refused: 'Déplacement refusé : un dossier ne peut pas être rangé dans lui-même, ni au-delà de {max} niveaux.'
@@ -137,7 +143,7 @@ notes:
       empty_root:
         title: Aucun document
         description: Créez votre première note, ou un dossier pour ranger.
-      count: '{count} élément|{count} éléments'
+      count: '{count} éléments'
     image:
       upload_failed: Impossible d'envoyer l'image.
     title: Notes Markdown

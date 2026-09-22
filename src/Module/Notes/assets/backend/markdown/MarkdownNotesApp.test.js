@@ -4,15 +4,27 @@ import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 import { askPage, onPageNotice } from "@/shared/nav/modulePanelBridge.js";
 
 window.__isAdmin__ = true;
-window.matchMedia = vi.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-}));
+
+/**
+ * Reposé avant chaque cas, et pas une fois pour toutes.
+ *
+ * `vi.restoreAllMocks()` rend à un `vi.fn()` son implémentation vide : posé
+ * au chargement du module, `matchMedia` cessait de répondre dès le deuxième
+ * cas, et la page se montait alors sans savoir si elle est sur un téléphone.
+ */
+function installMatchMedia() {
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+        matches: false,
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+    }));
+}
+
+installMatchMedia();
 
 const MarkdownNotesApp = (await import("./MarkdownNotesApp.vue")).default;
 
@@ -41,7 +53,19 @@ const PATHS = [
     "imageUploadPath",
 ].reduce((all, name) => ({ ...all, [name]: `/notes/${name}` }), {});
 
-const NOTES = [{ id: 1, title: "Journal", parentId: null, tags: [] }];
+PATHS.libraryPath = "/notes/library";
+PATHS.folderPaths = {
+    list: "/notes/folders",
+    create: "/notes/folders/create",
+    update: "/notes/folders/__id__/update",
+    move: "/notes/folders/__id__/move",
+    delete: "/notes/folders/__id__/delete",
+    reorder: "/notes/folders/reorder",
+    show: "/notes/folders/__id__",
+};
+
+const NOTES = [{ id: 1, title: "Journal", folderId: null, tags: [] }];
+const FOLDERS = [{ id: 7, name: "Clients", parentId: null }];
 
 const mounted = [];
 
@@ -56,12 +80,14 @@ function render(props = {}) {
 }
 
 beforeEach(() => {
+    installMatchMedia();
     global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         status: 200,
         json: async () => ({
             success: true,
             notes: NOTES,
+            folders: FOLDERS,
             note: NOTES[0],
             tags: [],
         }),
@@ -155,11 +181,10 @@ describe("what the page tells the panel", () => {
             ["select", [note.id]],
             ["create", [null]],
             ["delete", [note]],
-            ["drag-start", [note, event]],
-            ["drag-end", []],
-            ["drag-over", [note, event]],
-            ["drag-leave", [note, event]],
-            ["drop", [note, event]],
+            ["open-folder", [7]],
+            ["create-folder", [null]],
+            ["delete-folder", [FOLDERS[0]]],
+            ["drop", [FOLDERS[0], event]],
         ]) {
             expect(askPage(`notes:${intent}`, { args })).toBe(true);
         }
@@ -209,8 +234,16 @@ describe("deleting a note the panel asked to delete", () => {
  * was nothing to photograph.
  */
 describe("the way into the graph", () => {
+    // Le graphe est une commande de l'éditeur : sans note ouverte, la page
+    // montre la bibliothèque, qui n'a pas de bouton pour lui.
     it("opens the graph when its button is pressed", async () => {
-        const wrapper = render();
+        const wrapper = render({ activeId: 1 });
+        await flushPromises();
+
+        // La note s'ouvre par le pont, comme le ferait le panneau : c'est le
+        // même chemin que celui d'un lecteur, et il ne dépend pas de l'ordre
+        // dans lequel les cas de ce fichier se suivent.
+        askPage("notes:select", { args: [1] });
         await flushPromises();
 
         const graph = wrapper.findComponent({ name: "NoteGraph" });

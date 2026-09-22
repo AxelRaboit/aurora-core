@@ -30,6 +30,12 @@ backend:
           created: Note created
           updated: Note updated
           deleted: Note permanently deleted
+        folder:
+          created: Folder created
+          updated: Folder updated
+          trashed: Folder moved to the trash
+          restored: Folder restored
+          deleted: Folder permanently deleted
         share_link:
           created: Share link created
           revoked: Share link revoked
@@ -98,7 +104,7 @@ notes:
       move_root: All documents
       moved: Item moved
       open: Open the folder
-      contents: '{folders} folder · {notes} note|{folders} folders · {notes} notes'
+      contents: '{folders} folders · {notes} notes'
       tree_empty: No folder yet.
       errors:
         move_refused: 'Move refused: a folder cannot be filed inside itself, nor deeper than {max} levels.'
@@ -137,7 +143,7 @@ notes:
       empty_root:
         title: No document yet
         description: Create your first note, or a folder to file things in.
-      count: '{count} item|{count} items'
+      count: '{count} items'
     image:
       upload_failed: The image could not be uploaded.
     title: Markdown notes

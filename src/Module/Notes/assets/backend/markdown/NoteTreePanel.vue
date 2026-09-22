@@ -1,83 +1,156 @@
 <script setup>
 /**
- * The notes, in the side menu.
+ * Le rangement, dans le menu latéral.
  *
- * This was a 280 px aside inside the notes page - the widest of the six the
- * module system set out to move, and the one `ModuleNavView::$panelComponent`
- * was invented for: nine hundred notes cannot be nine hundred menu entries, and
- * a tree with a search field and a tag filter is not a list of links.
+ * C'était l'arborescence des notes, du temps où une note qui avait des
+ * enfants tenait lieu de dossier : neuf cents notes n'ont jamais été une
+ * arborescence lisible. Le panneau ne porte plus que **des dossiers**, avec
+ * « Tous les documents » en tête, et ce qu'il y a dedans se regarde dans la
+ * bibliothèque, qui est faite pour ça.
  *
- * **Rows are real addresses.** A note is a page now
- * (`/backend/notes/markdown/42`), so it can be sent to somebody, and
- * middle-click behaves. On a plain click the panel asks the page first through
- * `modulePanelBridge`: the editor is mounted, so it takes the click and swaps
- * the note in place, exactly as the aside's own handler used to. Nobody
- * listening means the reader is elsewhere in the module, and the link
- * navigates.
+ * **Les lignes sont de vraies adresses.** Un dossier est une page
+ * (`/backend/notes/markdown/folder/42`), donc il s'envoie et le clic du
+ * milieu se comporte. Au clic simple le panneau demande d'abord à la page,
+ * par `modulePanelBridge` : la bibliothèque est montée, elle prend le clic et
+ * change de dossier sur place. Personne à l'écoute veut dire que le lecteur
+ * est ailleurs dans le module, et le lien navigue.
  *
- * What it deliberately leaves behind: the graph button and the tag manager,
- * which open dialogs belonging to the page, and the mobile drawer - the menu
- * has its own, and two drawers is two gestures to learn.
+ * **La recherche, elle, reste globale.** C'est le seul endroit d'où l'on
+ * cherche une note dans tout le carnet : la bibliothèque filtre le dossier
+ * ouvert, ce qui est ce qu'on attend d'un explorateur, et pas ce qu'on
+ * attend d'un champ de recherche. Les notes trouvées s'affichent sous les
+ * dossiers, à plat, avec leur dossier en légende.
  */
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Download, Plus, Upload, X } from "lucide-vue-next";
+import { Download, FileText, FolderPlus, Plus, Upload } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
+import { useDebounce } from "@/shared/composables/useDebounce.js";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { askPage, onPageNotice } from "@/shared/nav/modulePanelBridge.js";
 import { useModulePanelData } from "@/shared/nav/useModulePanelData.js";
 import { useNoteTree } from "./composables/useNoteTree.js";
-import { useNoteTagFilter } from "./composables/useNoteTagFilter.js";
 import NoteTreeItem from "./components/NoteTreeItem.vue";
 
-const LIST_ENDPOINT = "/backend/notes/markdown/list";
+const FOLDERS_ENDPOINT = "/backend/notes/markdown/folders";
+const NOTES_ENDPOINT = "/backend/notes/markdown/list";
+const SEARCH_ENDPOINT = "/backend/notes/markdown/search";
+const LIBRARY_URL = "/backend/notes/markdown";
 
 const { t } = useI18n();
 
-/**
- * The rows are `NoteTreeItem`, the component the aside used, and every one of
- * its events is handed straight to the page.
- *
- * Rebuilding the row here was the mistake in the first pass: it lost the
- * create-child button, the delete button and the whole drag-and-drop, silently,
- * because a hand-written `v-for` only has what you remember to give it. The
- * page still owns the note API - it always exists while this panel is on
- * screen, Notes having exactly one destination - so there is nothing to
- * duplicate and nothing to keep in agreement.
- */
 const {
-    data: fetched,
+    data: fetchedFolders,
     loading,
     failed,
-} = useModulePanelData(LIST_ENDPOINT, { key: "notes" });
+} = useModulePanelData(FOLDERS_ENDPOINT, { key: "folders" });
+
+const { data: fetchedNotes } = useModulePanelData(NOTES_ENDPOINT, {
+    key: "notes",
+});
 
 /**
- * The page's list wins over our own fetch as soon as it speaks.
+ * Ce que la page annonce l'emporte sur ce que le panneau a cherché.
  *
- * We fetch on arrival because the panel may render before the editor is
- * mounted; from then on the editor announces every change, which is what makes
- * a note created in the editor appear here without a reload. Without it the
- * tree showed whatever was true when the page loaded, for as long as the reader
- * stayed on it.
+ * On charge à l'arrivée parce que le panneau peut être rendu avant que la
+ * page soit montée ; ensuite la page annonce chaque changement, ce qui fait
+ * apparaître ici un dossier créé là-bas sans recharger.
  */
-const announced = ref(null);
-const notes = computed(() => announced.value ?? fetched.value);
+const announcedFolders = ref(null);
+const announcedNotes = ref(null);
+
+const folders = computed(() => announcedFolders.value ?? fetchedFolders.value);
+const notes = computed(() => announcedNotes.value ?? fetchedNotes.value);
+
 const selectedId = ref(null);
-
 const treeQuery = ref("");
-const { availableTags, selectedTags, toggleTag, clearTags } =
-    useNoteTagFilter(notes);
-const { tree } = useNoteTree(notes, treeQuery, selectedTags);
 
-const isEmpty = computed(() => 0 === notes.value.length);
+const { tree } = useNoteTree(folders, treeQuery);
+
+const isEmpty = computed(() => 0 === folders.value.length);
+
+const searching = computed(() => "" !== treeQuery.value.trim());
 
 /**
- * Our own copy of what is being dragged, so the rows can highlight.
+ * Le texte des notes, cherché côté serveur.
  *
- * The page keeps the same state - it has to, the drop handler reads it - but
- * mirroring it here costs one assignment per event we are forwarding anyway,
- * where reading it back would mean an announcement on every `dragover`.
+ * Les corps ne sont pas dans le navigateur, et ils sont chiffrés en base :
+ * c'est l'endpoint `/search` qui déchiffre les notes de la personne et rend
+ * les identifiants qui correspondent. Sans lui, chercher « facture » ne
+ * trouverait que les notes qui ont ce mot dans leur titre, ce qui est
+ * rarement là où on l'a écrit.
+ */
+const { request } = useRequest();
+const contentMatchIds = ref(new Set());
+
+const runContentSearch = useDebounce(async (query) => {
+    const payload = await request(
+        `${SEARCH_ENDPOINT}?q=${encodeURIComponent(query)}`,
+        null,
+        { method: HttpMethod.Get, noGuard: true },
+    );
+
+    contentMatchIds.value = new Set(
+        (payload?.ids ?? []).map((id) => Number(id)),
+    );
+}, 300);
+
+watch(treeQuery, (value) => {
+    const trimmed = value.trim();
+
+    if ("" === trimmed) {
+        contentMatchIds.value = new Set();
+
+        return;
+    }
+
+    runContentSearch(trimmed);
+});
+
+/** Les notes qui correspondent, dans tout le carnet, titre et étiquettes. */
+const matchingNotes = computed(() => {
+    if (!searching.value) return [];
+
+    const needle = treeQuery.value.trim().toLowerCase();
+
+    return notes.value
+        .filter((note) => {
+            const title = String(note.title ?? "").toLowerCase();
+            if (title.includes(needle)) return true;
+
+            if (contentMatchIds.value.has(Number(note.id))) return true;
+
+            return (note.tags ?? []).some((tag) =>
+                String(tag).toLowerCase().includes(needle),
+            );
+        })
+        .slice(0, 50);
+});
+
+const foldersById = computed(() => {
+    const map = new Map();
+    for (const folder of folders.value) map.set(Number(folder.id), folder);
+
+    return map;
+});
+
+function folderNameOf(note) {
+    const folder = note.folderId
+        ? foldersById.value.get(Number(note.folderId))
+        : null;
+
+    return folder?.name || t("notes.markdown.library.title");
+}
+
+/**
+ * Notre propre copie de ce qui est glissé, pour que les lignes s'allument.
+ *
+ * La page tient le même état - il le faut, c'est elle qui écrit - mais le
+ * refléter ici coûte une affectation par événement qu'on transmet déjà, là
+ * où le relire demanderait une annonce à chaque `dragover`.
  */
 const draggingId = ref(null);
 const dragOverId = ref(null);
@@ -88,12 +161,12 @@ function forward(name, ...args) {
 
 function onSelect(id) {
     selectedId.value = id;
-    forward("select", id);
+    forward("open-folder", id);
 }
 
-function onDragStart(note, event) {
-    draggingId.value = note.id;
-    forward("drag-start", note, event);
+function onDragStart(folder, event) {
+    draggingId.value = folder.id;
+    forward("drag-start", folder, event);
 }
 
 function onDragEnd() {
@@ -102,32 +175,42 @@ function onDragEnd() {
     forward("drag-end");
 }
 
-function onDragOver(note, event) {
-    if (note.id !== draggingId.value) dragOverId.value = note.id;
-    forward("drag-over", note, event);
+function onDragOver(folder, event) {
+    if (folder.id !== draggingId.value) dragOverId.value = folder.id;
+    forward("drag-over", folder, event);
 }
 
-function onDragLeave(note, event) {
-    if (dragOverId.value === note.id) dragOverId.value = null;
-    forward("drag-leave", note, event);
+function onDragLeave(folder, event) {
+    if (dragOverId.value === folder.id) dragOverId.value = null;
+    forward("drag-leave", folder, event);
 }
 
-function onDrop(note, event) {
+function onDrop(folder, event) {
     dragOverId.value = null;
     draggingId.value = null;
-    forward("drop", note, event);
+    forward("drop", folder, event);
 }
 
-/** A note is a page: the row offers its address for every gesture but a plain click. */
-const hrefFor = (note) => `/backend/notes/markdown/${note.id}`;
+/** Un dossier est une page : la ligne offre son adresse pour tout le reste. */
+const hrefFor = (folder) => `${LIBRARY_URL}/folder/${folder.id}`;
+
+const noteHrefFor = (note) => `${LIBRARY_URL}/${note.id}`;
+
+function onNoteClick(note, event) {
+    event.preventDefault();
+    forward("select", note.id);
+}
 
 const stopListening = [];
 
 onMounted(() => {
     stopListening.push(
         onPageNotice("notes:changed", (detail) => {
-            if (Array.isArray(detail?.notes)) announced.value = detail.notes;
-            if ("selectedId" in (detail ?? {})) selectedId.value = detail.selectedId;
+            if (Array.isArray(detail?.notes)) announcedNotes.value = detail.notes;
+            if (Array.isArray(detail?.folders)) {
+                announcedFolders.value = detail.folders;
+            }
+            if ("folderId" in (detail ?? {})) selectedId.value = detail.folderId;
         }),
     );
 });
@@ -144,8 +227,9 @@ onUnmounted(() => {
         :failed="failed"
     >
         <template #action>
-            <!-- Emporter et rendre, à côté de « nouvelle note » : ce sont des
-                 gestes sur le carnet entier, pas sur une note. -->
+            <!-- Emporter et rendre, à côté de « nouveau dossier » et
+                 « nouvelle note » : ce sont des gestes sur le carnet entier,
+                 pas sur une note. -->
             <AppIconButton
                 size="sm"
                 variant="ghost"
@@ -165,17 +249,23 @@ onUnmounted(() => {
             <AppIconButton
                 size="sm"
                 variant="ghost"
+                :title="t('notes.markdown.folders.create')"
+                v-on:click="forward('create-folder', selectedId)"
+            >
+                <FolderPlus class="h-3.5 w-3.5" :stroke-width="2" />
+            </AppIconButton>
+            <AppIconButton
+                size="sm"
+                variant="ghost"
                 :title="t('notes.markdown.create_root')"
-                v-on:click="forward('create', null)"
+                v-on:click="forward('create', selectedId)"
             >
                 <Plus class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
         </template>
 
         <!-- Pas de retrait horizontal : les lignes de l'arborescence portent
-             le leur à l'intérieur et occupent toute la largeur du panneau. Le
-             champ, lui, était rentré de douze pixels de chaque côté, donc plus
-             étroit que ce qu'il sert à filtrer. -->
+             le leur à l'intérieur et occupent toute la largeur du panneau. -->
         <div class="pb-1">
             <AppSearchInput
                 v-model="treeQuery"
@@ -183,34 +273,21 @@ onUnmounted(() => {
             />
         </div>
 
-        <div v-if="availableTags.length" class="flex flex-wrap gap-1 px-3 pb-1">
-            <button
-                v-for="tag in availableTags"
-                :key="tag"
-                type="button"
-                class="rounded-full border px-2 py-0.5 text-xs transition-colors min-h-7.5 sm:min-h-0"
-                :class="
-                    selectedTags.includes(tag)
-                        ? 'border-violet-500 text-violet-300'
-                        : 'border-line text-muted hover:text-primary'
-                "
-                v-on:click="toggleTag(tag)"
-            >
-                {{ tag }}
-            </button>
-            <AppIconButton
-                v-if="selectedTags.length"
-                size="sm"
-                variant="ghost"
-                :title="t('notes.markdown.tags.clear')"
-                v-on:click="clearTags"
-            >
-                <X class="h-3 w-3" :stroke-width="2" />
-            </AppIconButton>
-        </div>
+        <!-- La racine est une ligne comme les autres : c'est là qu'on
+             retombe, et une arborescence sans son sommet oblige à deviner
+             comment y revenir. -->
+        <a
+            :href="LIBRARY_URL"
+            class="group mb-0.5 flex min-w-0 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm no-underline transition-colors"
+            :class="null === selectedId ? 'border-accent-600/30 bg-accent-600/15 text-accent-400' : 'text-primary hover:bg-surface-2'"
+            v-on:click.prevent="onSelect(null)"
+        >
+            <FileText class="h-4 w-4 shrink-0" :stroke-width="2" />
+            <span class="flex-1 truncate">{{ t('notes.markdown.library.title') }}</span>
+        </a>
 
-        <p v-if="isEmpty" class="px-3 py-1 text-xs text-muted">
-            {{ t("notes.markdown.tree_empty") }}
+        <p v-if="isEmpty && !searching" class="px-3 py-1 text-xs text-muted">
+            {{ t("notes.markdown.folders.tree_empty") }}
         </p>
 
         <NoteTreeItem
@@ -223,13 +300,35 @@ onUnmounted(() => {
             :drag-over-id="dragOverId"
             :href-for="hrefFor"
             v-on:select="onSelect"
-            v-on:create-child="(id) => forward('create', id)"
-            v-on:delete="(note) => forward('delete', note)"
+            v-on:create-note="(id) => forward('create', id)"
+            v-on:delete="(folder) => forward('delete-folder', folder)"
             v-on:drag-start="onDragStart"
             v-on:drag-end="onDragEnd"
             v-on:drag-over="onDragOver"
             v-on:drag-leave="onDragLeave"
             v-on:drop="onDrop"
         />
+
+        <!-- Les notes trouvées, à plat : une recherche ne répond pas par une
+             arborescence, elle répond par une liste. -->
+        <div v-if="searching" class="mt-2 border-t border-line pt-2">
+            <p v-if="!matchingNotes.length" class="px-3 py-1 text-xs text-muted">
+                {{ t("notes.markdown.search_no_results") }}
+            </p>
+
+            <a
+                v-for="note in matchingNotes"
+                :key="note.id"
+                :href="noteHrefFor(note)"
+                class="flex min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm no-underline text-primary transition-colors hover:bg-surface-2"
+                v-on:click="onNoteClick(note, $event)"
+            >
+                <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
+                <span class="min-w-0 flex-1 truncate">
+                    {{ note.title || t('notes.markdown.untitled') }}
+                </span>
+                <span class="shrink-0 truncate text-xs text-muted">{{ folderNameOf(note) }}</span>
+            </a>
+        </div>
     </AppModulePanel>
 </template>

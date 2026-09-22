@@ -14,8 +14,15 @@
 {% block body %}
 <div {{ vue_component('notes/backend/markdown/MarkdownNotesApp', {
     notes: notes,
+    folders: folders,
+    folderId: folderId,
+    breadcrumb: breadcrumb,
+    folderPaths: folderPaths,
+    maxDepth: maxDepth,
     activeId: activeId,
     listPath: listPath,
+    libraryPath: libraryPath,
+    browsePath: browsePath,
     showPath: showPath,
     createPath: createPath,
     updatePath: updatePath,
