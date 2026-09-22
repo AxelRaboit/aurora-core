@@ -12,6 +12,8 @@
  * draw through that one component, but a second reader of these lines is one
  * layout away.
  */
+import { ICON_NAMES } from "./icons.js";
+
 export const CELL_SEPARATOR = "|";
 
 /**
@@ -47,9 +49,24 @@ export function headed(line) {
  * badge and no description.
  */
 export function decorated(line) {
-    const [head, body = "", badge = "", icon = ""] = cells(line);
+    const [head, ...rest] = cells(line);
+    const [body = "", badge = "", ...tail] = rest;
 
-    return { head, body, badge, icon };
+    // Une quatrieme cellule qui n'est pas le nom d'une icone est du texte que
+    // quelqu'un a tape, et elle retourne dans le corps plutot que de
+    // disparaitre. C'est la meme regle que l'import de documents suit : un
+    // module qui perd silencieusement un mot est pire qu'un module qui n'a pas
+    // la fonctionnalite.
+    const known = tail.length > 0 && ICON_NAMES.includes(tail[0]);
+    const icon = known ? tail[0] : "";
+    const extra = known ? tail.slice(1) : tail;
+
+    return {
+        head,
+        body: [body, ...extra].filter(Boolean).join(` ${CELL_SEPARATOR} `),
+        badge,
+        icon,
+    };
 }
 
 /**

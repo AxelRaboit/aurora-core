@@ -17,25 +17,8 @@
  * properties to set.
  */
 import { computed } from "vue";
-import {
-    ArrowRight,
-    Award,
-    Ban,
-    Check,
-    Clock,
-    Euro,
-    Eye,
-    Flag,
-    Lightbulb,
-    Lock,
-    Rocket,
-    Settings,
-    TrendingUp,
-    TriangleAlert,
-    Users,
-    Zap,
-} from "lucide-vue-next";
 import { cells, decorated, headed, measured } from "../cells.js";
+import { iconFor } from "../icons.js";
 import { useSlideFit } from "../composables/useSlideFit.js";
 import { emphasis } from "../emphasis.js";
 import SlideChart from "./SlideChart.vue";
@@ -107,38 +90,6 @@ const shape = computed(() => {
     return ["soft", "round", "arch", "circle"].includes(asked) ? asked : "soft";
 });
 
-/**
- * The sixteen icons a slide may name, and not the whole of Lucide.
- *
- * **Declared like everything else in this module.** The library holds well
- * over a thousand, and importing by name at render would mean shipping all of
- * them to every reader of a public share link for the two a deck actually
- * uses. Sixteen cover what a deck argues about: time, money, people, risk,
- * speed, a rule, a goal.
- *
- * A name nothing matches draws nothing, which is the same answer the frame
- * gives to a layout value it has no rule for.
- */
-const ICONS = {
-    check: Check,
-    arrow: ArrowRight,
-    clock: Clock,
-    euro: Euro,
-    users: Users,
-    warning: TriangleAlert,
-    ban: Ban,
-    lock: Lock,
-    eye: Eye,
-    rocket: Rocket,
-    zap: Zap,
-    trend: TrendingUp,
-    idea: Lightbulb,
-    award: Award,
-    flag: Flag,
-    settings: Settings,
-};
-
-const iconFor = (name) => ICONS[name] ?? null;
 
 /** Whether the line at this rank is out yet. Everything is, unless told. */
 const isOut = (at) => props.revealed === null || at < props.revealed;

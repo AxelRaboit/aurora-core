@@ -61,6 +61,18 @@ describe("decorated", () => {
         });
     });
 
+    it("never drops a cell it does not understand", () => {
+        // Une ligne ecrite avant que la quatrieme cellule veuille dire icone.
+        expect(
+            decorated("Cadrage | deux semaines | a confirmer | avec Claire"),
+        ).toEqual({
+            head: "Cadrage",
+            body: "deux semaines | avec Claire",
+            badge: "a confirmer",
+            icon: "",
+        });
+    });
+
     it("keeps an empty cell, so a badge can come without a description", () => {
         expect(decorated("Cadrage | | Phase 1")).toEqual({
             head: "Cadrage",
