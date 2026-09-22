@@ -47,7 +47,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
+use function ctype_digit;
 use function date;
+use function is_array;
+use function is_int;
+use function is_string;
 
 /**
  * A client's own view of their space, opened by a secret address.
@@ -213,6 +217,76 @@ final class PublicSpaceController extends AbstractController
         $this->links->markOpened($link);
 
         return $this->jsonSuccess($this->viewBuilder->threadPayload($link, $token));
+    }
+
+    /**
+     * Valider plusieurs cartes d'un geste.
+     *
+     * **La validation en lot existe, la demande de modification non.** Approuver
+     * dix contenus d'un coup dit une seule chose, dix fois ; demander une
+     * modification sans dire laquelle n'apprend rien au studio et l'oblige à
+     * rappeler le client pour comprendre. Une demande de modification reste donc
+     * attachée à une carte et à son commentaire, sur la route au singulier.
+     *
+     * Le même limiteur que la réponse unitaire, et une seule consommation pour
+     * l'appel : c'est un geste de l'utilisateur, pas dix, et le facturer dix
+     * fois fermerait la porte à celui qui range sa semaine.
+     *
+     * Les cartes d'un autre espace sont ignorées en silence plutôt que
+     * refusées : la boucle ne s'arrête pas sur une, et un identifiant fabriqué
+     * n'apprend rien de plus qu'un 404.
+     */
+    #[Route(
+        '/{selector}/{token}/content/approve',
+        name: '_approve_many',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function approveMany(string $selector, string $token, Request $request): JsonResponse
+    {
+        if (!$this->spaceGuestWriteLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return $this->jsonFailure('studio.public.space.errors.too_many_requests', HttpStatusEnum::TooManyRequests->value);
+        }
+
+        $this->assertFromThisPage($request);
+
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof SpaceAccessLinkInterface || $link->isPreview() || !$link->canApprove()) {
+            throw $this->createNotFoundException();
+        }
+
+        $payload = $this->decodeJson($request);
+        $ids = is_array($payload['ids'] ?? null) ? $payload['ids'] : [];
+
+        if ([] === $ids) {
+            return $this->jsonInvalidInput(['ids' => 'studio.public.space.errors.nothing_selected']);
+        }
+
+        $approved = 0;
+
+        foreach ($ids as $id) {
+            if (!is_int($id) && (!is_string($id) || !ctype_digit($id))) {
+                continue;
+            }
+
+            $item = $this->itemRepository->find((int) $id);
+
+            if (!$item instanceof SpaceContentItemInterface) {
+                continue;
+            }
+
+            try {
+                $this->items->answer($item, $link, SpaceContentApprovalEnum::Approved);
+                ++$approved;
+            } catch (FieldException) {
+                continue;
+            }
+        }
+
+        $this->links->markOpened($link);
+
+        return $this->jsonSuccess(['approved' => $approved] + $this->viewBuilder->threadPayload($link, $token));
     }
 
     /**

@@ -103,6 +103,24 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
     #[ORM\Column(options: ['default' => true])]
     protected bool $showOnCalendar = true;
 
+    /**
+     * La date avant laquelle le client doit avoir répondu.
+     *
+     * **Ce n'est pas la date de parution.** Une publication prévue le 30 ne se
+     * valide pas le 30 : il faut le temps de produire, de monter, parfois de
+     * reprendre. `scheduledAt` dit quand ça sort, celle-ci dit quand il faut
+     * avoir tranché, et confondre les deux fait découvrir la veille qu'il
+     * manquait une réponse.
+     *
+     * Nullable, et c'est le cas courant : la plupart des cartes n'ont pas
+     * d'échéance de relecture, et un champ obligatoire forcerait à inventer une
+     * date à chaque fois. Une date dépassée est une information, jamais une
+     * sanction : rien ne se bloque ni ne se déprogramme tout seul, pour la même
+     * raison qui fait de l'approbation un avis et pas un automate.
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $reviewBy = null;
+
     /** Order inside its column. Rewritten by a move, never read across columns. */
     #[ORM\Column(options: ['default' => 0])]
     protected int $position = 0;
@@ -198,6 +216,31 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
         $this->scheduledAt = $scheduledAt;
 
         return $this;
+    }
+
+    public function getReviewBy(): ?DateTimeImmutable
+    {
+        return $this->reviewBy;
+    }
+
+    public function setReviewBy(?DateTimeImmutable $reviewBy): static
+    {
+        $this->reviewBy = $reviewBy;
+
+        return $this;
+    }
+
+    /**
+     * L'échéance de relecture est passée et personne n'a répondu.
+     *
+     * Les deux conditions ensemble : une carte déjà validée n'est en retard de
+     * rien, et une carte sans échéance n'a rien à dépasser.
+     */
+    public function isLateForReview(DateTimeImmutable $now): bool
+    {
+        return $this->reviewBy instanceof DateTimeImmutable
+            && $this->reviewBy < $now
+            && !$this->approval->isAnswered();
     }
 
     public function isScheduled(): bool

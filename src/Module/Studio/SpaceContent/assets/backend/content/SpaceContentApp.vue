@@ -42,6 +42,7 @@ import { useSpaceCardActions } from "./composables/useSpaceCardActions.js";
 import { useSpaceContent } from "./composables/useSpaceContent.js";
 import { useSpaceContentShape } from "./composables/useSpaceContentShape.js";
 import { useOrphanedDocumentOffer } from "./composables/useOrphanedDocumentOffer.js";
+import { useSpaceReviewInvite } from "./composables/useSpaceReviewInvite.js";
 import SpaceBoardView from "./views/SpaceBoardView.vue";
 import SpaceListView from "./views/SpaceListView.vue";
 import SpaceCalendarView from "./views/SpaceCalendarView.vue";
@@ -86,6 +87,7 @@ import {
     Pencil,
     RefreshCw,
     Save,
+    Send,
     Trash2,
     X,
 } from "lucide-vue-next";
@@ -115,6 +117,12 @@ const props = defineProps({
     columnUpdatePath: { type: String, required: true },
     columnDeletePath: { type: String, required: true },
     columnReorderPath: { type: String, required: true },
+    /** Où demander au client d'aller relire ce qui attend son avis. */
+    reviewPath: { type: String, required: true },
+    /** Combien de cartes datées et visibles du client attendent sa réponse. */
+    awaitingApproval: { type: Number, default: 0 },
+    /** Combien d'entre elles ont dépassé leur échéance de relecture. */
+    lateForReview: { type: Number, default: 0 },
     chatMessages: { type: Array, default: () => [] },
     /** Null when no hub is running, and then the panel never connects. */
     chatStreamUrl: { type: String, default: null },
@@ -385,6 +393,11 @@ const {
  */
 const { request } = useRequest();
 const { offer: offerOrphanedDocuments } = useOrphanedDocumentOffer();
+const {
+    confirming: confirmingReview,
+    sending: sendingReview,
+    send: sendReview,
+} = useSpaceReviewInvite(props.reviewPath);
 
 const craftOpen = ref(false);
 
@@ -501,6 +514,31 @@ const actionsFor = useSpaceCardActions({
             </div>
 
             <div class="flex items-center gap-2">
+                <!-- Le studio sait, lui, quand son lot est prêt : rien ne part
+                     tant qu'il ne le demande pas. Absent quand rien n'attend,
+                     parce qu'une invitation à relire zéro publication est ce
+                     qui apprend à ignorer les suivantes. -->
+                <AppButton
+                    v-if="awaitingApproval > 0 && can('studio.spaces.share')"
+                    variant="ghost"
+                    size="sm"
+                    :title="t('backend.studio.space_content.review.hint')"
+                    v-on:click="confirmingReview = true"
+                >
+                    <Send class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("backend.studio.space_content.review.action", { count: awaitingApproval }) }}
+                    <!-- Le retard à côté du nombre, parce que « trois en
+                         attente » et « trois en attente dont deux en retard »
+                         ne décrivent pas la même journée. -->
+                    <span
+                        v-if="lateForReview > 0"
+                        class="rounded-full bg-warning-soft px-1.5 py-0.5 text-2xs font-medium text-warning"
+                        :title="t('backend.studio.space_content.review.late_hint')"
+                    >
+                        {{ t("backend.studio.space_content.review.late", { count: lateForReview }) }}
+                    </span>
+                </AppButton>
+
                 <!-- The shape of one entry, so it sits with the actions rather
                      than inside the switcher: two segmented groups side by side
                      would read as one control with seven choices.
@@ -711,6 +749,35 @@ const actionsFor = useSpaceCardActions({
             v-on:add-on="addOn"
             v-on:open-item="openItemEdit"
         />
+
+        <!-- Une confirmation parce que l'envoi ne fait pas que poster un
+             courriel : il remplace l'adresse de chaque destinataire et révoque
+             la précédente. Le texte le dit, sans quoi le studio découvrirait la
+             conséquence par un client qui n'arrive plus à ouvrir son favori. -->
+        <AppModal
+            :show="confirmingReview"
+            max-width="sm"
+            :title="t('backend.studio.space_content.review.confirm_title')"
+            :icon="Send"
+            v-on:close="confirmingReview = false"
+        >
+            <p class="text-sm text-secondary">
+                {{ t("backend.studio.space_content.review.confirm_body", { count: awaitingApproval }) }}
+            </p>
+
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="confirmingReview = false">
+                        <X class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.cancel") }}
+                    </AppButton>
+                    <AppButton variant="primary" size="md" :loading="sendingReview" v-on:click="sendReview">
+                        <Send class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("backend.studio.space_content.review.confirm_send") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
 
         <AppModal
             :show="showItemForm"

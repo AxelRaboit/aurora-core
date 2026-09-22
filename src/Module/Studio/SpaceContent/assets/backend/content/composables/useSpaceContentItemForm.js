@@ -22,7 +22,14 @@ import { required } from "@/shared/utils/validation/validators.js";
 function emptyForm(columnId = "", scheduledAt = "") {
     // Cochée d'office : le cas courant est qu'une carte datée paraisse, et
     // l'inverse obligerait à cocher chaque nouvelle carte.
-    return { title: "", body: "", columnId, scheduledAt, showOnCalendar: true };
+    return {
+        title: "",
+        body: "",
+        columnId,
+        scheduledAt,
+        reviewBy: "",
+        showOnCalendar: true,
+    };
 }
 
 function formFrom(item) {
@@ -33,6 +40,8 @@ function formFrom(item) {
         // The wall clock the server already expressed in the space's zone, so
         // the field never converts and can never convert it wrong.
         scheduledAt: item.scheduledAtLocal ?? "",
+        // Même forme et même raison que la parution ci-dessus.
+        reviewBy: item.reviewByLocal ?? "",
         showOnCalendar: false !== item.showOnCalendar,
     };
 }

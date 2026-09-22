@@ -266,6 +266,7 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
             ->setBody($input->getBody())
             ->setColumn($this->resolveColumn($item->getSpace(), $input->getColumnId()))
             ->setScheduledAt($this->instantFrom($input->getScheduledAt(), $item->getSpace()))
+            ->setReviewBy($this->instantFrom($input->getReviewBy(), $item->getSpace()))
             ->setShowOnCalendar($input->isShownOnCalendar());
     }
 

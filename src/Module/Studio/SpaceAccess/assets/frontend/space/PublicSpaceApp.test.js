@@ -202,6 +202,73 @@ describe("PublicSpaceApp", () => {
         expect(wrapper.text()).toContain("11281704400004");
     });
 
+    /**
+     * Ce qui attend une réponse doit se voir sans ouvrir une seule carte, et
+     * le compteur est aussi le filtre : un client qui revient veut sa liste de
+     * tâches, pas son mois.
+     */
+    it("annonce ce qui attend une réponse, et seulement à qui peut répondre", async () => {
+        const items = [
+            {
+                id: 1,
+                title: "Sans réponse",
+                columnId: 1,
+                scheduledAt: "2026-09-24T09:00:00+00:00",
+                approval: "pending",
+            },
+            {
+                id: 2,
+                title: "Validée",
+                columnId: 1,
+                scheduledAt: "2026-09-25T09:00:00+00:00",
+                approval: "approved",
+            },
+        ];
+
+        const lecteur = monter({ items });
+        await flushPromises();
+        // Un lien en lecture seule ne peut rien valider : lui annoncer ce qui
+        // l'attend serait lui montrer une porte fermée.
+        expect(lecteur.text()).not.toContain("awaiting_you");
+
+        const wrapper = monter({ items, canApprove: true });
+        await flushPromises();
+        expect(wrapper.text()).toContain("awaiting_you");
+    });
+
+    it("ne garde que ce qui attend quand le filtre est enclenché", async () => {
+        const items = [
+            {
+                id: 1,
+                title: "Sans réponse",
+                columnId: 1,
+                scheduledAt: "2026-09-24T09:00:00+00:00",
+                approval: "pending",
+            },
+            {
+                id: 2,
+                title: "Validée",
+                columnId: 1,
+                scheduledAt: "2026-09-25T09:00:00+00:00",
+                approval: "approved",
+            },
+        ];
+
+        const wrapper = monter({ items, canApprove: true });
+        await flushPromises();
+
+        const filtre = wrapper
+            .findAll("button")
+            .find((b) => b.text().includes("awaiting_you"));
+        expect(filtre.attributes("aria-pressed")).toBe("false");
+
+        await filtre.trigger("click");
+        expect(filtre.attributes("aria-pressed")).toBe("true");
+        // La carte déjà validée sort de la grille : c'est la même liste qui
+        // alimente le mois et celle du jour.
+        expect(wrapper.text()).not.toContain("Validée");
+    });
+
     it("montre une seule section à la fois", async () => {
         const wrapper = monter({ chatChannels: [CHANNEL], spaceFiles: [FILE] });
         await flushPromises();

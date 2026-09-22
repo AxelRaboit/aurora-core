@@ -21,5 +21,7 @@ interface SpaceContentItemInputInterface
      */
     public function getScheduledAt(): ?string;
 
+    public function getReviewBy(): ?string;
+
     public function isShownOnCalendar(): bool;
 }
