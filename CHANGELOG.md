@@ -5,6 +5,78 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.221] - 2026-09-22
+
+### Ajouté
+
+#### Le module Deck sait enfin faire de jolies slides
+Un deck se dessinait sur un fond plat, centrait tout verticalement et n'offrait
+qu'une seule forme d'image. Ce qui manquait n'était pas la liberté de poser les
+choses où on veut, c'était le vocabulaire. Le cadre reste en 16:9 avec ses
+formes déclarées, il n'y a toujours ni canevas libre ni boîte posée à la main,
+et le texte continue d'être mesuré pour tenir.
+
+**Le fond.** Cinq dégradés, dont un qui finit sur une seconde teinte plutôt que
+dans le vide. Trois motifs posés sous l'image, donc invisibles sur une slide à
+photo. Un voile qui descend d'un seul côté au lieu de ternir toute la
+photographie, quatre traitements d'image (flou, noir et blanc, duotone, grain),
+un vignettage, et une slide qui peut se poser sur l'une des trois couleurs du
+deck.
+
+**La composition.** Position verticale, alignement, largeur de la colonne de
+texte, marges du cadre, aplat de couleur contre un bord, filet de cadre, image
+qui sort de la marge pour toucher le bord.
+
+**La typographie.** `==un mot==` le peint dans la couleur d'accent, ce qui est
+le geste le plus courant de la mise en page de deck et n'existait pas. Casse
+des titres, échelle par slide, cinq formes de puces, chiffre de section en
+filigrane.
+
+**Sept gabarits de plus.** Comparaison, chiffres en grille, sommaire numéroté,
+citation avec portrait, grille de logos, mosaïque d'images, slide de fin. Les
+deux derniers ont demandé de savoir poser plusieurs images sur une slide, ce
+que le module ne savait pas faire.
+
+**Quatre looks nommés.** Scène, Atelier, Dossier, Galerie appliquent un thème et
+ses réglages d'un coup. Au lieu de huit questions posées à quelqu'un qui n'est
+pas graphiste, une seule. Tout reste modifiable ensuite.
+
+**Trois thèmes de plus**, Terre, Craie et Deux tons, qui arrivent déjà composés
+avec leur lavis. Les cinq anciens n'en portent aucun, exprès : un thème qui se
+mettrait à porter un dégradé repeindrait tous les decks déjà dessinés avec.
+
+#### Le panneau dit quand un deck a cessé d'être lisible
+À force d'empiler des lavis, des aplats et des inversions, il devenait facile
+d'écrire un texte que personne ne lira sans s'en apercevoir sur un portable.
+Le panneau calcule le rapport entre l'encre et le fond et le classe en trois
+bandes, selon les seuils d'accessibilité. Il ne refuse rien et ne corrige rien.
+À côté, les teintes dominantes du logo sont proposées comme accent.
+
+#### Un deck s'imprime dans ses couleurs
+Le fond ne sortait que si le lecteur avait coché « imprimer les arrière-plans »
+dans son navigateur, donc personne ne savait à quoi ressemblerait un PDF, son
+auteur le premier. Un deck qui arrive gris sur blanc est un livrable cassé.
+
+#### Les lignes d'une liste peuvent arriver une à une
+Au plein écran, une pression fait apparaître la ligne suivante avant de passer
+à la slide d'après. Reculer retire la dernière ligne avant de retirer la slide.
+Avec, une transition propre à une slide et un travelling très lent sur une
+photo de fond.
+
+### Corrigé
+
+#### Un deck ne se dessinait pas pareil sur Mac et sur Windows
+Trois des quatre paires de polices partaient d'une pile système, qui ne donne
+pas la même fonte selon la machine : le même deck coupait ses lignes ailleurs
+pour son auteur et pour le client qui ouvre le lien de partage. Les paires
+nomment maintenant des familles servies par l'application elle-même.
+
+### Note technique
+
+Aucune migration : tout est stocké dans le JSON de contenu des slides et dans
+le style du deck, et un deck qui ne porte aucune des nouvelles clés se dessine
+exactement comme avant.
+
 ## [0.9.220] - 2026-09-22
 
 ### Ajouté
