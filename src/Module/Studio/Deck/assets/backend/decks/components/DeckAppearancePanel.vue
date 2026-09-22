@@ -32,6 +32,8 @@ const props = defineProps({
     gradients: { type: Array, default: () => [] },
     patterns: { type: Array, default: () => [] },
     margins: { type: Array, default: () => [] },
+    titleCases: { type: Array, default: () => [] },
+    bulletShapes: { type: Array, default: () => [] },
     logoPlacements: { type: Array, default: () => [] },
     transitions: { type: Array, default: () => [] },
     /** The first slide of the deck, or null for a deck with none yet. */
@@ -98,6 +100,20 @@ const gradientOptions = computed(() =>
     props.gradients.map((gradient) => ({
         value: gradient.value,
         label: t(gradient.labelKey),
+    })),
+);
+
+const titleCaseOptions = computed(() =>
+    props.titleCases.map((value) => ({
+        value,
+        label: t(`backend.studio.decks.title_cases.${value}`),
+    })),
+);
+
+const bulletOptions = computed(() =>
+    props.bulletShapes.map((value) => ({
+        value,
+        label: t(`backend.studio.decks.bullet_shapes.${value}`),
     })),
 );
 
@@ -235,6 +251,20 @@ const placementOptions = computed(() =>
                         :label="t('backend.studio.decks.gradient_label')"
                         :hint="t('backend.studio.decks.gradient_hint')"
                         v-on:update:model-value="(value) => write('gradient', value)"
+                    />
+
+                    <AppSelect
+                        :model-value="overrides.titleCase ?? 'normal'"
+                        :options="titleCaseOptions"
+                        :label="t('backend.studio.decks.title_case_label')"
+                        v-on:update:model-value="(value) => write('titleCase', value)"
+                    />
+
+                    <AppSelect
+                        :model-value="overrides.bullets ?? 'disc'"
+                        :options="bulletOptions"
+                        :label="t('backend.studio.decks.bullets_label')"
+                        v-on:update:model-value="(value) => write('bullets', value)"
                     />
 
                     <AppSelect

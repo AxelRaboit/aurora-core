@@ -604,6 +604,17 @@ backend:
                 none: Aucun
                 line: Filet d'accent
                 shadow: Ombre douce
+            title_case_label: Casse des titres
+            title_cases:
+                normal: Normale
+                upper: Capitales
+            bullets_label: Forme des puces
+            bullet_shapes:
+                disc: Point
+                dash: Tiret
+                arrow: Flèche
+                number: Numéro
+                check: Coche
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:
@@ -712,6 +723,7 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                ghost: Chiffre en filigrane
                 bgTreatment: Traitement de la photo
                 bgVeil: Voile
                 vignette: Vignettage

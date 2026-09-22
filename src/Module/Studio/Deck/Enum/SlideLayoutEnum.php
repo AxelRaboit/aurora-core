@@ -125,7 +125,7 @@ enum SlideLayoutEnum: string
             self::Image => ['mediaId', 'mediaFit', 'mediaFocus', 'mediaShape', 'mediaFrame', 'caption', 'captionOver'],
             self::Split => ['title', 'left', 'right'],
             self::Quote => ['quote', 'attribution'],
-            self::Section => ['title'],
+            self::Section => ['title', 'ghost'],
             self::Stat => ['value', 'label'],
             self::ImageText => ['title', 'text', 'mediaId', 'mediaFit', 'mediaFocus', 'mediaShape', 'mediaFrame', 'side'],
             self::Cards => ['title', 'items'],

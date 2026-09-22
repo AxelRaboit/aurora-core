@@ -41,6 +41,12 @@ final readonly class DeckStyleNormalizer
     /** @var list<string> */
     public const array MARGINS = ['tight', 'normal', 'wide'];
 
+    /** @var list<string> */
+    public const array TITLE_CASES = ['normal', 'upper'];
+
+    /** @var list<string> */
+    public const array BULLETS = ['disc', 'dash', 'arrow', 'number', 'check'];
+
     /** A footer is a line, not a paragraph: it sits in 2.4% of a slide's width. */
     private const int FOOTER_MAX = 120;
 
@@ -91,6 +97,14 @@ final readonly class DeckStyleNormalizer
         // keeping apart from "I never opened the panel".
         if (is_string($style['margins'] ?? null) && in_array($style['margins'], self::MARGINS, true)) {
             $clean['margins'] = $style['margins'];
+        }
+
+        if (is_string($style['titleCase'] ?? null) && in_array($style['titleCase'], self::TITLE_CASES, true)) {
+            $clean['titleCase'] = $style['titleCase'];
+        }
+
+        if (is_string($style['bullets'] ?? null) && in_array($style['bullets'], self::BULLETS, true)) {
+            $clean['bullets'] = $style['bullets'];
         }
 
         // Only the true, like `slideNumbers`.

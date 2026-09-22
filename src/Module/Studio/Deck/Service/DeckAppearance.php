@@ -76,6 +76,12 @@ final readonly class DeckAppearance
                 ? $style['margins']
                 : 'normal',
             'hairline' => true === ($style['hairline'] ?? false),
+            'titleCase' => is_string($style['titleCase'] ?? null) && in_array($style['titleCase'], DeckStyleNormalizer::TITLE_CASES, true)
+                ? $style['titleCase']
+                : 'normal',
+            'bullets' => is_string($style['bullets'] ?? null) && in_array($style['bullets'], DeckStyleNormalizer::BULLETS, true)
+                ? $style['bullets']
+                : 'disc',
             'fontPair' => $fontPair->value,
             'headingFont' => $fontPair->heading(),
             'bodyFont' => $fontPair->body(),

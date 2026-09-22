@@ -84,6 +84,8 @@ const props = defineProps({
     gradients: { type: Array, default: () => [] },
     patterns: { type: Array, default: () => [] },
     margins: { type: Array, default: () => [] },
+    titleCases: { type: Array, default: () => [] },
+    bulletShapes: { type: Array, default: () => [] },
     transitions: { type: Array, default: () => [] },
     appearancePath: { type: String, required: true },
 });
@@ -997,6 +999,8 @@ onBeforeUnmount(() => {
             :gradients="gradients"
             :patterns="patterns"
             :margins="margins"
+            :title-cases="titleCases"
+            :bullet-shapes="bulletShapes"
             :transitions="transitions"
             :sample="slides[0] ?? null"
             :theme="theme"

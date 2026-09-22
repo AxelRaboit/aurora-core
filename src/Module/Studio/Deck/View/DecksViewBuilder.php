@@ -91,6 +91,8 @@ final readonly class DecksViewBuilder
             'gradients' => $this->gradientOptions(),
             'patterns' => $this->patternOptions(),
             'margins' => DeckStyleNormalizer::MARGINS,
+            'titleCases' => DeckStyleNormalizer::TITLE_CASES,
+            'bulletShapes' => DeckStyleNormalizer::BULLETS,
             'transitions' => $this->transitionOptions(),
             'appearancePath' => $this->urlGenerator->generate('backend_studio_deck_appearance', ['id' => $deck->getId()]),
             'backPath' => $this->urlGenerator->generate('backend_studio_decks'),

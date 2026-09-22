@@ -84,6 +84,18 @@ final class DeckStyleWhitelistTest extends TestCase
         self::assertSame([], $normalizer->normalize(['hairline' => 'on']));
     }
 
+    public function testTheTitleCaseAndTheBulletShapeAreDeckWide(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        self::assertSame(
+            ['titleCase' => 'upper', 'bullets' => 'arrow'],
+            $normalizer->normalize(['titleCase' => 'upper', 'bullets' => 'arrow']),
+        );
+
+        self::assertSame([], $normalizer->normalize(['titleCase' => 'small-caps', 'bullets' => 'star']));
+    }
+
     public function testAnUnsetColourIsNotWritten(): void
     {
         $clean = (new DeckStyleNormalizer())->normalize(['background' => null, 'ink' => '']);

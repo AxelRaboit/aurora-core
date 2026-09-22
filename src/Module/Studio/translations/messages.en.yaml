@@ -604,6 +604,17 @@ backend:
                 none: None
                 line: Accent rule
                 shadow: Soft shadow
+            title_case_label: Title case
+            title_cases:
+                normal: Normal
+                upper: Capitals
+            bullets_label: Bullet shape
+            bullet_shapes:
+                disc: Dot
+                dash: Dash
+                arrow: Arrow
+                number: Number
+                check: Check
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:
@@ -712,6 +723,7 @@ backend:
                 steps: Steps
                 rows: Rows
                 kicker: Kicker
+                ghost: Watermark figure
                 bgTreatment: Photo treatment
                 bgVeil: Veil
                 vignette: Vignette

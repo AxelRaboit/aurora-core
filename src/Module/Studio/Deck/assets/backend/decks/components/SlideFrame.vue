@@ -98,6 +98,19 @@ const pattern = computed(() => props.appearance?.pattern ?? "none");
 const margins = computed(() => props.appearance?.margins ?? "normal");
 const hairline = computed(() => props.appearance?.hairline === true);
 
+/** How titles are cased, and what a bullet looks like. Both deck-wide. */
+const titleCase = computed(() => props.appearance?.titleCase ?? "normal");
+const bullets = computed(() => props.appearance?.bullets ?? "disc");
+
+/**
+ * The very large, very pale figure behind a section title.
+ *
+ * Typed rather than counted. The frame knows its index in the deck, not its
+ * rank among the sections, and a figure that renumbered itself every time a
+ * slide moved would be a decoration nobody could rely on.
+ */
+const ghost = computed(() => (props.compact ? "" : (props.slide.content.ghost ?? "")));
+
 /**
  * Where the content sits, how it is aligned, how wide it runs.
  *
@@ -212,6 +225,8 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
             :data-pattern="pattern"
             :data-shape="shape"
             :data-margins="margins"
+            :data-title-case="titleCase"
+            :data-bullets="bullets"
             :data-media-frame="mediaFrame"
             v-bind="composition"
             :style="[skin, media]"
@@ -248,6 +263,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 </template>
 
                 <template v-else-if="slide.layout === 'section'">
+                    <span v-if="ghost" class="sf-ghost" aria-hidden="true">{{ ghost }}</span>
                     <p class="sf-section" v-html="emphasis(slide.content.title)" />
                 </template>
 
@@ -693,7 +709,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 
 .sf-title { margin: 0; font-family: var(--slide-heading); font-size: calc(8cqw * var(--fit)); font-weight: 600; line-height: 1.1; }
 .sf-subtitle { margin: 0; font-size: calc(4cqw * var(--fit)); opacity: 0.7; }
-.sf-section { margin: 0; font-family: var(--slide-heading); font-size: calc(7cqw * var(--fit)); font-weight: 600; text-align: center; }
+.sf-section { position: relative; margin: 0; font-family: var(--slide-heading); font-size: calc(7cqw * var(--fit)); font-weight: 600; text-align: center; }
 .sf-heading { margin: 0; font-family: var(--slide-heading); font-size: calc(6cqw * var(--fit)); font-weight: 600; }
 /* `list-style` rétabli explicitement : la réinitialisation de Tailwind retire
    les marqueurs de toutes les listes, et une liste à puces sans puces se lit
@@ -782,6 +798,36 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
  * une couleur de plus ferait une deuxième chose à lire.
  */
 .slide-frame :deep(strong) { font-weight: 700; }
+
+/* La casse des titres, décidée pour tout le deck. Les trois sélecteurs et pas
+   un seul : ce sont trois classes différentes selon le gabarit, et un titre
+   en capitales sur la couverture seulement ne serait pas une décision de deck. */
+.slide-frame[data-title-case="upper"] :is(.sf-title, .sf-heading, .sf-section) {
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* La forme de la puce. La couleur, elle, est déjà celle de l'accent. */
+.slide-frame[data-bullets="dash"] .sf-list { list-style-type: "–  "; }
+.slide-frame[data-bullets="arrow"] .sf-list { list-style-type: "→  "; }
+.slide-frame[data-bullets="check"] .sf-list { list-style-type: "✓  "; }
+.slide-frame[data-bullets="number"] .sf-list { list-style: decimal outside; }
+
+/* Le chiffre de section, derrière le titre et hors du calcul de place : posé
+   dans le flux, il pousserait le titre et ferait rétrécir le texte par
+   `useSlideFit` pour laisser de la place à une décoration. */
+.sf-ghost {
+    position: absolute;
+    right: 0;
+    bottom: -4cqw;
+    font-family: var(--slide-heading);
+    font-size: 42cqw;
+    font-weight: 700;
+    line-height: 0.8;
+    letter-spacing: -0.06em;
+    color: color-mix(in srgb, var(--slide-accent) 22%, transparent);
+    pointer-events: none;
+}
 
 /* Le mot en accent. Pas de fond, contrairement à ce que `mark` fait par
    défaut dans un navigateur : sur une slide, un surlignage jaune serait la
