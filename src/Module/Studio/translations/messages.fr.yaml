@@ -639,6 +639,10 @@ backend:
                 atelier: Il argumente. Clair et chaud, hachuré.
                 dossier: Il se lit. Calme, quadrillé, marges larges.
                 gallery: Les photos portent tout. Presque noir, marges serrées.
+            accent_from_logo: Teintes du logo
+            contrast_good: "Contraste {ratio} sur 21. Lisible partout."
+            contrast_large: "Contraste {ratio} sur 21. Lisible au mur, juste sur un document imprimé."
+            contrast_poor: "Contraste {ratio} sur 21. Le texte sera difficile à lire."
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:

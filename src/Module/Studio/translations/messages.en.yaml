@@ -639,6 +639,10 @@ backend:
                 atelier: It argues. Light and warm, hatched.
                 dossier: It is read. Quiet, squared, wide margins.
                 gallery: The pictures carry it. Near black, tight margins.
+            accent_from_logo: Tones from the logo
+            contrast_good: "Contrast {ratio} out of 21. Readable anywhere."
+            contrast_large: "Contrast {ratio} out of 21. Fine on a wall, tight on a printed document."
+            contrast_poor: "Contrast {ratio} out of 21. The text will be hard to read."
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:

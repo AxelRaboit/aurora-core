@@ -12,11 +12,12 @@
  * made-up sample would show the theme on words nobody wrote, which is exactly
  * how a theme gets chosen for a deck it does not suit.
  */
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Check, Palette, RotateCcw, X } from "lucide-vue-next";
 import SlideFrame from "./SlideFrame.vue";
 import SlideColorField from "./SlideColorField.vue";
+import { readability, tonesFrom } from "../colour.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
@@ -74,6 +75,47 @@ const emit = defineEmits([
 ]);
 
 const write = (key, value) => emit("write", key, value);
+
+/**
+ * Ce que dit le rapport entre l'encre et le fond, sans jamais l'interdire.
+ *
+ * Le contrepoids de tous les réglages que ce panneau a fini par porter : un
+ * lavis, un aplat et une inversion sont chacun raisonnables, et ensemble ils
+ * rendent facile d'écrire un texte que personne ne lira, sans s'en apercevoir
+ * sur un portable dans une pièce éclairée. Le panneau le dit, il ne refuse pas :
+ * un deck est le document de quelqu'un.
+ */
+const contrastNote = computed(() => readability(props.preview.ink, props.preview.background));
+
+/**
+ * Les teintes du logo, proposées comme accent.
+ *
+ * Choisir une couleur d'accent à l'aveugle donne des decks qui jurent. Ici, la
+ * proposition vient de la marque elle-même. Une liste vide est une réponse
+ * normale : un logo en noir et blanc n'a pas d'accent à offrir.
+ */
+const tones = ref([]);
+
+watch(
+    () => props.logo.url,
+    (url) => {
+        tones.value = [];
+
+        if (!url) return;
+
+        const image = new Image();
+
+        image.crossOrigin = "anonymous";
+        image.addEventListener("load", () => {
+            tones.value = tonesFrom(image);
+        });
+        image.addEventListener("error", () => {
+            tones.value = [];
+        });
+        image.src = url;
+    },
+    { immediate: true },
+);
 
 const { t } = useI18n();
 
@@ -280,6 +322,34 @@ const placementOptions = computed(() =>
                         :inherited="inherited.accent"
                         v-on:update:model-value="(value) => write('accent', value)"
                     />
+
+                    <!-- Proposées et non appliquées : la marque donne l'idée,
+                         la décision reste au lecteur. -->
+                    <div v-if="tones.length" class="flex flex-col gap-1.5">
+                        <span class="text-xs text-muted">
+                            {{ t("backend.studio.decks.accent_from_logo") }}
+                        </span>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button
+                                v-for="tone in tones"
+                                :key="tone"
+                                type="button"
+                                class="h-6 w-6 rounded-full border border-line transition-transform hover:scale-110"
+                                :style="{ background: tone }"
+                                :title="tone"
+                                :aria-label="tone"
+                                v-on:click="write('accent', tone)"
+                            />
+                        </div>
+                    </div>
+
+                    <p
+                        v-if="contrastNote"
+                        class="m-0 text-xs"
+                        :class="contrastNote.level === 'poor' ? 'text-amber-400' : 'text-muted'"
+                    >
+                        {{ t(`backend.studio.decks.contrast_${contrastNote.level}`, { ratio: contrastNote.ratio }) }}
+                    </p>
 
                     <AppSelect
                         :model-value="overrides.gradient ?? ''"
