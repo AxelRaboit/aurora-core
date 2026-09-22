@@ -38,6 +38,25 @@ final class SlideContentWhitelistTest extends TestCase
         );
     }
 
+    public function testTheInversionIsStoredOnlyWhenItIsTrue(): void
+    {
+        $manager = $this->manager();
+
+        $on = (new Slide())->setLayout(SlideLayoutEnum::Section);
+        $manager->writeContent($on, ['title' => 'Deuxième partie', 'inverted' => true]);
+        self::assertSame(['title' => 'Deuxième partie', 'inverted' => true], $on->getContent());
+
+        // A checkbox posting "on", or a false, both mean the usual way round,
+        // which the absence of the key already spells.
+        $off = (new Slide())->setLayout(SlideLayoutEnum::Section);
+        $manager->writeContent($off, ['title' => 'Deuxième partie', 'inverted' => 'on']);
+        self::assertSame(['title' => 'Deuxième partie'], $off->getContent());
+
+        $plain = (new Slide())->setLayout(SlideLayoutEnum::Section);
+        $manager->writeContent($plain, ['title' => 'Deuxième partie', 'inverted' => false]);
+        self::assertSame(['title' => 'Deuxième partie'], $plain->getContent());
+    }
+
     /** A picture is an id, and a string there would fail to resolve at render. */
     public function testItRefusesAMediaIdThatIsNotAnInteger(): void
     {
@@ -46,6 +65,23 @@ final class SlideContentWhitelistTest extends TestCase
         $this->manager()->writeContent($slide, ['mediaId' => '42', 'caption' => 'La façade']);
 
         self::assertSame(['caption' => 'La façade'], $slide->getContent());
+    }
+
+    /**
+     * The shape lands on a class the frame matches on, so an unknown one draws
+     * nothing at all rather than drawing the wrong thing.
+     */
+    public function testItRefusesAShapeTheFrameCannotDraw(): void
+    {
+        $manager = $this->manager();
+
+        $known = (new Slide())->setLayout(SlideLayoutEnum::Image);
+        $manager->writeContent($known, ['mediaId' => 7, 'mediaShape' => 'arch']);
+        self::assertSame(['mediaId' => 7, 'mediaShape' => 'arch'], $known->getContent());
+
+        $unknown = (new Slide())->setLayout(SlideLayoutEnum::Image);
+        $manager->writeContent($unknown, ['mediaId' => 7, 'mediaShape' => 'hexagon']);
+        self::assertSame(['mediaId' => 7], $unknown->getContent());
     }
 
     public function testItKeepsBulletsAsAListOfStrings(): void

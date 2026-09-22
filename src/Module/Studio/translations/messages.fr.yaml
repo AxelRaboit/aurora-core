@@ -555,6 +555,21 @@ backend:
             colour_inherited: Du thème
             colour_reset: Revenir au thème
             colour_reset_all: Tout revenir au thème
+            gradient_label: Dégradé
+            gradient_hint: Un lavis de la couleur d'accent sur le fond, le même sur toutes les slides.
+            gradients:
+                none: Aucun
+                top: Depuis le haut
+                bottom: Depuis le bas
+                corner: En diagonale
+                halo: Halo central
+            pattern_label: Motif
+            pattern_hint: Une texture sur le fond, cachée sur les slides à photo.
+            patterns:
+                none: Aucun
+                dots: Pointillés
+                grid: Quadrillage
+                diagonals: Hachures
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:
@@ -575,6 +590,7 @@ backend:
             slide_numbers: Numéroter les slides
             slide_numbers_hint: La couverture n'est jamais numérotée.
             common_slots: Fond et sur-titre
+            inverted_hint: Le fond et le texte échangent leurs couleurs. Une slide sombre au milieu d'un deck clair, sans changer de thème.
             kicker_placeholder: Audit, partie 2, Notre proposition…
             backdrop_hint: Une photo derrière le texte, sur n'importe quel gabarit.
             backdrop_dim: Voile
@@ -607,6 +623,10 @@ backend:
             timer_reset: Remettre à zéro
             media_fit_contain: Entière, sans rognage
             media_fit_cover: Remplir le cadre
+            media_shape_soft: Coins légers
+            media_shape_round: Coins arrondis
+            media_shape_arch: Arche
+            media_shape_circle: Cercle
             media_focus_hint: Cliquez sur ce qui doit rester visible quand l'image est rognée.
             import: Importer un document
             import_submit: Créer les slides
@@ -646,6 +666,7 @@ backend:
             usage_detail: Présentation
             slots:
                 mediaFit: Cadrage de l'image
+                mediaShape: Forme de l'image
                 mediaFocus: Point de visée
                 chartType: Type de graphique
                 series: Données
@@ -657,6 +678,7 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                inverted: Slide inversée
                 bgMediaId: Image de fond
                 title: Titre
                 subtitle: Sous-titre

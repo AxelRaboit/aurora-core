@@ -38,6 +38,32 @@ final class DeckStyleWhitelistTest extends TestCase
         self::assertSame(['accent' => '#ff8800', 'fontPair' => 'serif'], $clean);
     }
 
+    public function testAGradientIsKeptOnlyWhenItDrawsSomething(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        self::assertSame(['gradient' => 'halo'], $normalizer->normalize(['gradient' => 'halo']));
+        self::assertSame([], $normalizer->normalize(['gradient' => 'none']), 'the flat ground is the absence of the key');
+        self::assertSame([], $normalizer->normalize(['gradient' => 'rainbow']));
+    }
+
+    public function testAPatternIsKeptOnlyWhenItDrawsSomething(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        self::assertSame(['pattern' => 'grid'], $normalizer->normalize(['pattern' => 'grid']));
+        self::assertSame([], $normalizer->normalize(['pattern' => 'none']), 'the bare ground is the absence of the key');
+        self::assertSame([], $normalizer->normalize(['pattern' => 'tartan']));
+    }
+
+    /** The wash and the texture are two answers to a bare ground, not one. */
+    public function testAGradientAndAPatternLiveTogether(): void
+    {
+        $clean = (new DeckStyleNormalizer())->normalize(['gradient' => 'top', 'pattern' => 'dots']);
+
+        self::assertSame(['gradient' => 'top', 'pattern' => 'dots'], $clean);
+    }
+
     public function testAnUnsetColourIsNotWritten(): void
     {
         $clean = (new DeckStyleNormalizer())->normalize(['background' => null, 'ink' => '']);

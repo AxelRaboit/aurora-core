@@ -35,19 +35,64 @@ const props = defineProps({
     index: { type: Number, default: 0 },
 });
 
+/**
+ * The slide drawn the other way round: its ground is the deck's ink.
+ *
+ * **Two properties swapped, and not a sixth theme.** A dark section slide in
+ * the middle of a light deck is the cheapest thing a deck can do to stop
+ * reading as one long page, and it only holds if it is the deck's OWN two
+ * colours that trade places - a slide painted with a colour of its own would
+ * drift the day the deck's palette is overridden.
+ *
+ * The accent does not move. It is the one tone that already sits at a
+ * deliberate distance from both, and swapping it too would leave the wash and
+ * the rules on an inverted slide looking like another deck's.
+ *
+ * A frame drawn outside a deck has no two colours to trade, so it stays as it
+ * is rather than inventing a pair.
+ */
+const inverted = computed(() => props.slide.content.inverted === true);
+
+/**
+ * The picture's outline, as a name the stylesheet matches on.
+ *
+ * **No full-bleed case**, although it is the first one anybody asks for: a
+ * picture that reaches all four edges of the frame with the text over it is
+ * what `bgMediaId` already draws, on every layout, with a veil to keep the
+ * words readable. A second way to spell it would be two features that look the
+ * same until one of them gets the veil and the other does not.
+ */
+const shape = computed(() => {
+    const asked = props.slide.content.mediaShape;
+
+    return ["soft", "round", "arch", "circle"].includes(asked) ? asked : "soft";
+});
+
 const skin = computed(() => {
     const look = props.appearance;
 
     if (!look) return {};
 
     return {
-        "--slide-bg": look.background,
-        "--slide-ink": look.ink,
+        "--slide-bg": inverted.value ? look.ink : look.background,
+        "--slide-ink": inverted.value ? look.background : look.ink,
         "--slide-accent": look.accent,
         "--slide-heading": look.headingFont,
         "--slide-body": look.bodyFont,
     };
 });
+
+/**
+ * The wash over the ground, as a name the stylesheet matches on.
+ *
+ * A name rather than a computed `background-image`: where the accent starts
+ * and how far it reaches is a drawing decision, and drawing decisions in this
+ * component live in its stylesheet with the rest of the `color-mix` work.
+ */
+const gradient = computed(() => props.appearance?.gradient ?? "none");
+
+/** The texture on the ground, which a picture on the ground simply covers. */
+const pattern = computed(() => props.appearance?.pattern ?? "none");
 
 /**
  * The logo shows on the cover when it was asked for on the cover.
@@ -116,8 +161,13 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
         <div
             class="slide-frame"
             :class="[compact ? 'is-compact' : '', hasFooter ? 'has-footer' : '']"
+            :data-gradient="gradient"
+            :data-pattern="pattern"
+            :data-shape="shape"
             :style="[skin, media]"
         >
+            <span v-if="pattern !== 'none'" class="sf-pattern" aria-hidden="true" />
+
             <div v-if="background" class="sf-backdrop" aria-hidden="true">
                 <img class="sf-backdrop-file" :src="background.url" alt="">
                 <span
@@ -125,6 +175,8 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                     :style="{ opacity: background.dim }"
                 />
             </div>
+
+            <span v-if="gradient !== 'none'" class="sf-wash" aria-hidden="true" />
 
             <div ref="stage" class="slide-stage" :style="{ '--fit': fit }">
                 <p v-if="kicker" class="sf-kicker">{{ kicker }}</p>
@@ -360,6 +412,96 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
    bande de couleur sur le côté d'un décor se voit plus que le coin qu'il perd. */
 .sf-backdrop-file { width: 100%; height: 100%; object-fit: cover; }
 .sf-backdrop-veil { position: absolute; inset: 0; background: var(--slide-bg); }
+
+/* Sous le décor : un motif est une texture du fond, et une slide dont le fond
+   est une photo n'en montre pas. Les tailles sont en `cqw` comme le reste, pour
+   que le grain d'une vignette soit celui du mur. */
+.sf-pattern { position: absolute; inset: 0; pointer-events: none; }
+
+.slide-frame[data-pattern="dots"] .sf-pattern {
+    background-image: radial-gradient(
+        color-mix(in srgb, var(--slide-accent) 30%, transparent) 0.45cqw,
+        transparent 0.45cqw
+    );
+    background-size: 3.5cqw 3.5cqw;
+}
+
+.slide-frame[data-pattern="grid"] .sf-pattern {
+    background-image:
+        linear-gradient(to right, color-mix(in srgb, var(--slide-accent) 18%, transparent) 0.12cqw, transparent 0.12cqw),
+        linear-gradient(to bottom, color-mix(in srgb, var(--slide-accent) 18%, transparent) 0.12cqw, transparent 0.12cqw);
+    background-size: 5cqw 5cqw;
+}
+
+.slide-frame[data-pattern="diagonals"] .sf-pattern {
+    background-image: repeating-linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--slide-accent) 16%, transparent) 0 0.35cqw,
+        transparent 0.35cqw 2.6cqw
+    );
+}
+
+/* La forme de l'image, posée sur le conteneur et non sur le fichier : c'est
+   lui qui porte le rognage et le fond de remplacement, et une image absente
+   doit garder la forme que la slide a choisie. */
+.slide-frame[data-shape="round"] :is(.sf-image, .sf-beside-media) { border-radius: 3cqw; }
+
+/* Le rayon du haut en pourcentage, celui du bas en unité fixe : une arche dont
+   les pieds s'arrondissent avec la largeur n'est plus une arche, c'est une
+   gélule. */
+.slide-frame[data-shape="arch"] :is(.sf-image, .sf-beside-media) {
+    border-radius: 50% 50% 0.25rem 0.25rem / 30% 30% 0.25rem 0.25rem;
+}
+
+/* Le cercle ne peut pas se contenter d'un rayon : la boîte est plus large que
+   haute et en ferait une ellipse. Elle est donc ramenée au carré, centrée sur
+   la largeur qu'elle laisse. */
+.slide-frame[data-shape="circle"] :is(.sf-image, .sf-beside-media) {
+    align-self: center;
+    justify-self: center;
+    width: auto;
+    max-width: 100%;
+    aspect-ratio: 1;
+    border-radius: 9999px;
+}
+
+/* Au-dessus du décor et sous le contenu : le lavis teinte aussi la photo, sans
+   quoi une slide à fond image perdrait le dégradé que porte tout le deck.
+   L'accent est mélangé à du transparent plutôt qu'au fond, pour que la même
+   déclaration tienne sur une couleur plate comme sur une image. */
+.sf-wash { position: absolute; inset: 0; pointer-events: none; }
+
+.slide-frame[data-gradient="top"] .sf-wash {
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--slide-accent) 42%, transparent),
+        transparent 64%
+    );
+}
+
+.slide-frame[data-gradient="bottom"] .sf-wash {
+    background: linear-gradient(
+        0deg,
+        color-mix(in srgb, var(--slide-accent) 42%, transparent),
+        transparent 64%
+    );
+}
+
+.slide-frame[data-gradient="corner"] .sf-wash {
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--slide-accent) 38%, transparent),
+        transparent 58%
+    );
+}
+
+.slide-frame[data-gradient="halo"] .sf-wash {
+    background: radial-gradient(
+        80% 95% at 50% 42%,
+        color-mix(in srgb, var(--slide-accent) 34%, transparent),
+        transparent 72%
+    );
+}
 
 .sf-kicker {
     margin: 0;

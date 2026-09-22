@@ -6,7 +6,9 @@ namespace Aurora\Module\Studio\Deck\Service;
 
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckGradientEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckPatternEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
 
 use function is_int;
@@ -45,6 +47,14 @@ final readonly class DeckAppearance
             ? DeckLogoPlacementEnum::tryFrom($style['logoPlacement']) ?? DeckLogoPlacementEnum::None
             : DeckLogoPlacementEnum::None;
 
+        $gradient = is_string($style['gradient'] ?? null)
+            ? DeckGradientEnum::tryFrom($style['gradient']) ?? DeckGradientEnum::None
+            : DeckGradientEnum::None;
+
+        $pattern = is_string($style['pattern'] ?? null)
+            ? DeckPatternEnum::tryFrom($style['pattern']) ?? DeckPatternEnum::None
+            : DeckPatternEnum::None;
+
         $logo = $this->pictures->byId(is_int($style['logoMediaId'] ?? null) ? $style['logoMediaId'] : null);
 
         // A placement without a picture is not a placement. The two are set in
@@ -59,6 +69,8 @@ final readonly class DeckAppearance
             'background' => is_string($style['background'] ?? null) ? $style['background'] : $palette['background'],
             'ink' => is_string($style['ink'] ?? null) ? $style['ink'] : $palette['ink'],
             'accent' => is_string($style['accent'] ?? null) ? $style['accent'] : $palette['accent'],
+            'gradient' => $gradient->value,
+            'pattern' => $pattern->value,
             'fontPair' => $fontPair->value,
             'headingFont' => $fontPair->heading(),
             'bodyFont' => $fontPair->body(),

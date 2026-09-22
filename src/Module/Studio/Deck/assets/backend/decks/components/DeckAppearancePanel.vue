@@ -29,6 +29,8 @@ const props = defineProps({
     show: { type: Boolean, default: false },
     themes: { type: Array, default: () => [] },
     fontPairs: { type: Array, default: () => [] },
+    gradients: { type: Array, default: () => [] },
+    patterns: { type: Array, default: () => [] },
     logoPlacements: { type: Array, default: () => [] },
     transitions: { type: Array, default: () => [] },
     /** The first slide of the deck, or null for a deck with none yet. */
@@ -90,6 +92,20 @@ const fontOptions = computed(() => [
         label: t(pair.labelKey),
     })),
 ]);
+
+const gradientOptions = computed(() =>
+    props.gradients.map((gradient) => ({
+        value: gradient.value,
+        label: t(gradient.labelKey),
+    })),
+);
+
+const patternOptions = computed(() =>
+    props.patterns.map((pattern) => ({
+        value: pattern.value,
+        label: t(pattern.labelKey),
+    })),
+);
 
 const transitionOptions = computed(() =>
     props.transitions.map((transition) => ({
@@ -203,6 +219,22 @@ const placementOptions = computed(() =>
                         :label="t('backend.studio.decks.colour_accent')"
                         :inherited="inherited.accent"
                         v-on:update:model-value="(value) => write('accent', value)"
+                    />
+
+                    <AppSelect
+                        :model-value="overrides.gradient ?? 'none'"
+                        :options="gradientOptions"
+                        :label="t('backend.studio.decks.gradient_label')"
+                        :hint="t('backend.studio.decks.gradient_hint')"
+                        v-on:update:model-value="(value) => write('gradient', value)"
+                    />
+
+                    <AppSelect
+                        :model-value="overrides.pattern ?? 'none'"
+                        :options="patternOptions"
+                        :label="t('backend.studio.decks.pattern_label')"
+                        :hint="t('backend.studio.decks.pattern_hint')"
+                        v-on:update:model-value="(value) => write('pattern', value)"
                     />
 
                     <AppSelect

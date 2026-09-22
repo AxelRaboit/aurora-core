@@ -43,6 +43,10 @@ export function useDeckAppearance(props) {
         background: null,
         ink: null,
         accent: null,
+        // "none" and not null, like `logoPlacement`: the flat ground is a
+        // value somebody can pick, not the absence of a choice.
+        gradient: "none",
+        pattern: "none",
         fontPair: null,
         logoMediaId: null,
         logoPlacement: "none",
@@ -189,6 +193,10 @@ export function useDeckAppearance(props) {
             background: style.background ?? base?.palette.background,
             ink: style.ink ?? base?.palette.ink,
             accent: style.accent ?? base?.palette.accent,
+            // Both default to the flat ground rather than to the theme: they
+            // are the deck's own, and no theme carries one.
+            gradient: style.gradient ?? "none",
+            pattern: style.pattern ?? "none",
             headingFont: faces.heading,
             bodyFont: faces.body,
             logoUrl: logo.value.url,

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deck\Service;
 
 use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckGradientEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckPatternEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
 
 use function array_key_exists;
@@ -65,6 +67,27 @@ final readonly class DeckStyleNormalizer
         // never looked at this" the same row.
         if (is_string($style['transition'] ?? null) && DeckTransitionEnum::tryFrom($style['transition']) instanceof DeckTransitionEnum) {
             $clean['transition'] = $style['transition'];
+        }
+
+        // Stored only when it draws something, on the same reasoning as
+        // `logoPlacement`: the absence of the key already spells the flat
+        // ground, and a stored `none` would be a second way to say it.
+        $gradient = is_string($style['gradient'] ?? null)
+            ? DeckGradientEnum::tryFrom($style['gradient'])
+            : null;
+
+        if ($gradient instanceof DeckGradientEnum && DeckGradientEnum::None !== $gradient) {
+            $clean['gradient'] = $gradient->value;
+        }
+
+        // Same shape as the gradient, and for the same reason: the bare
+        // ground is the absence of the key.
+        $pattern = is_string($style['pattern'] ?? null)
+            ? DeckPatternEnum::tryFrom($style['pattern'])
+            : null;
+
+        if ($pattern instanceof DeckPatternEnum && DeckPatternEnum::None !== $pattern) {
+            $clean['pattern'] = $pattern->value;
         }
 
         // A zero or a negative id is not a document, it is a picker that was

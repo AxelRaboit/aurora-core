@@ -555,6 +555,21 @@ backend:
             colour_inherited: From the theme
             colour_reset: Back to the theme
             colour_reset_all: All back to the theme
+            gradient_label: Gradient
+            gradient_hint: A wash of the accent colour over the ground, the same on every slide.
+            gradients:
+                none: None
+                top: From the top
+                bottom: From the bottom
+                corner: Diagonal
+                halo: Centre halo
+            pattern_label: Pattern
+            pattern_hint: A texture on the ground, hidden on slides that carry a photo.
+            patterns:
+                none: None
+                dots: Dots
+                grid: Grid
+                diagonals: Hatching
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:
@@ -575,6 +590,7 @@ backend:
             slide_numbers: Number the slides
             slide_numbers_hint: The cover is never numbered.
             common_slots: Backdrop and kicker
+            inverted_hint: The ground and the text swap colours. One dark slide inside a light deck, without changing theme.
             kicker_placeholder: Audit, Part two, Our proposal…
             backdrop_hint: A photograph behind the text, on any layout.
             backdrop_dim: Veil
@@ -607,6 +623,10 @@ backend:
             timer_reset: Reset
             media_fit_contain: Whole, never cropped
             media_fit_cover: Fill the frame
+            media_shape_soft: Soft corners
+            media_shape_round: Rounded
+            media_shape_arch: Arch
+            media_shape_circle: Circle
             media_focus_hint: Click what has to stay visible when the picture is cropped.
             import: Import a document
             import_submit: Make the slides
@@ -646,6 +666,7 @@ backend:
             usage_detail: Deck
             slots:
                 mediaFit: How the picture fills
+                mediaShape: Image shape
                 mediaFocus: Focal point
                 chartType: Chart type
                 series: Data
@@ -657,6 +678,7 @@ backend:
                 steps: Steps
                 rows: Rows
                 kicker: Kicker
+                inverted: Inverted slide
                 bgMediaId: Background picture
                 title: Title
                 subtitle: Subtitle

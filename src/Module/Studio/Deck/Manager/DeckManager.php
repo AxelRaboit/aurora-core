@@ -138,6 +138,29 @@ class DeckManager
                 continue;
             }
 
+            // The shape lands on a class the frame matches on, so an unknown
+            // one draws nothing rather than drawing wrong. Declared beside
+            // `mediaFit` and not as an enum for the same reason it is: four
+            // values a select offers, with no behaviour of their own.
+            if ('mediaShape' === $slot) {
+                if (in_array($value, ['soft', 'round', 'arch', 'circle'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // Only the true is stored, on the same reasoning as `slideNumbers`
+            // in the style: the absence already says "drawn the usual way round",
+            // and a stored false would be a second way to spell it.
+            if ('inverted' === $slot) {
+                if (true === $value) {
+                    $clean[$slot] = true;
+                }
+
+                continue;
+            }
+
             // Clamped rather than refused: the control is a slider bounded at
             // both ends, so an out-of-range value is a payload edited by hand,
             // and a veil at 300% is a slide that is only a veil.

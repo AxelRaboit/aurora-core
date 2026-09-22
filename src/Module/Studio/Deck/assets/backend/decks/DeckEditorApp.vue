@@ -32,6 +32,7 @@ import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppRange from "@/shared/components/form/toggle/AppRange.vue";
+import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppFocalPointField from "@/shared/components/form/file/AppFocalPointField.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
@@ -80,6 +81,8 @@ const props = defineProps({
     themes: { type: Array, default: () => [] },
     fontPairs: { type: Array, default: () => [] },
     logoPlacements: { type: Array, default: () => [] },
+    gradients: { type: Array, default: () => [] },
+    patterns: { type: Array, default: () => [] },
     transitions: { type: Array, default: () => [] },
     appearancePath: { type: String, required: true },
 });
@@ -278,6 +281,13 @@ function writePicture(value) {
 const fitOptions = computed(() => [
     { value: "contain", label: t("backend.studio.decks.media_fit_contain") },
     { value: "cover", label: t("backend.studio.decks.media_fit_cover") },
+]);
+
+const shapeOptions = computed(() => [
+    { value: "soft", label: t("backend.studio.decks.media_shape_soft") },
+    { value: "round", label: t("backend.studio.decks.media_shape_round") },
+    { value: "arch", label: t("backend.studio.decks.media_shape_arch") },
+    { value: "circle", label: t("backend.studio.decks.media_shape_circle") },
 ]);
 
 const focus = () => {
@@ -604,6 +614,14 @@ onBeforeUnmount(() => {
                                 :disabled="!editable"
                                 v-on:update:model-value="(value) => writeSlot('mediaFit', value)"
                             />
+                            <AppSelect
+                                v-else-if="slot === 'mediaShape'"
+                                :model-value="selected.content.mediaShape ?? 'soft'"
+                                :options="shapeOptions"
+                                :label="labelFor(slot)"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('mediaShape', value)"
+                            />
                             <!-- Viser ne se fait qu'une fois l'image choisie :
                                  un cadre de visée vide n'a rien à montrer et
                                  rien à recevoir. -->
@@ -674,6 +692,15 @@ onBeforeUnmount(() => {
                                 :placeholder="t('backend.studio.decks.kicker_placeholder')"
                                 :disabled="!editable"
                                 v-on:update:model-value="(value) => writeSlot('kicker', value)"
+                            />
+
+                            <AppToggle
+                                v-if="commonSlots.includes('inverted')"
+                                :model-value="selected.content.inverted === true"
+                                :label="labelFor('inverted')"
+                                :hint="t('backend.studio.decks.inverted_hint')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('inverted', value)"
                             />
 
                             <AppImagePickerField
@@ -884,6 +911,8 @@ onBeforeUnmount(() => {
             :themes="themes"
             :font-pairs="fontPairs"
             :logo-placements="logoPlacements"
+            :gradients="gradients"
+            :patterns="patterns"
             :transitions="transitions"
             :sample="slides[0] ?? null"
             :theme="theme"

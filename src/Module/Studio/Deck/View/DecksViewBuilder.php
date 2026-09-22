@@ -9,7 +9,9 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckGradientEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckPatternEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
@@ -85,6 +87,8 @@ final readonly class DecksViewBuilder
             'themes' => $this->themeOptions(),
             'fontPairs' => $this->fontPairOptions(),
             'logoPlacements' => $this->logoPlacementOptions(),
+            'gradients' => $this->gradientOptions(),
+            'patterns' => $this->patternOptions(),
             'transitions' => $this->transitionOptions(),
             'appearancePath' => $this->urlGenerator->generate('backend_studio_deck_appearance', ['id' => $deck->getId()]),
             'backPath' => $this->urlGenerator->generate('backend_studio_decks'),
@@ -256,6 +260,30 @@ final readonly class DecksViewBuilder
                 'body' => $pair->body(),
             ],
             DeckFontPairEnum::cases(),
+        );
+    }
+
+    /** @return list<array{value: string, labelKey: string}> */
+    private function gradientOptions(): array
+    {
+        return array_map(
+            static fn (DeckGradientEnum $gradient): array => [
+                'value' => $gradient->value,
+                'labelKey' => $gradient->labelKey(),
+            ],
+            DeckGradientEnum::cases(),
+        );
+    }
+
+    /** @return list<array{value: string, labelKey: string}> */
+    private function patternOptions(): array
+    {
+        return array_map(
+            static fn (DeckPatternEnum $pattern): array => [
+                'value' => $pattern->value,
+                'labelKey' => $pattern->labelKey(),
+            ],
+            DeckPatternEnum::cases(),
         );
     }
 
