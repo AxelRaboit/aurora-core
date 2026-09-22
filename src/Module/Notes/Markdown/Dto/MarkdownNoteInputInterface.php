@@ -6,7 +6,7 @@ namespace Aurora\Module\Notes\Markdown\Dto;
 
 interface MarkdownNoteInputInterface
 {
-    public function getParentId(): ?int;
+    public function getFolderId(): ?int;
 
     public function getTitle(): ?string;
 

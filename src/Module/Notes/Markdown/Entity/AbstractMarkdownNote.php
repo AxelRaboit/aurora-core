@@ -6,6 +6,7 @@ namespace Aurora\Module\Notes\Markdown\Entity;
 
 use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
 use Aurora\Core\Timestampable\TimestampableTrait;
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
@@ -31,9 +32,16 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     protected CoreUserInterface $user;
 
-    #[ORM\ManyToOne(targetEntity: MarkdownNoteInterface::class, inversedBy: 'children')]
+    /**
+     * The folder this note is filed in, null at the root.
+     *
+     * It used to be another note: a note with children stood in for a folder,
+     * which is the ambiguity the folder entity exists to remove. A note is a
+     * leaf now, and nothing is filed inside it.
+     */
+    #[ORM\ManyToOne(targetEntity: NoteFolderInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    protected ?MarkdownNoteInterface $parent = null;
+    protected ?NoteFolderInterface $folder = null;
 
     #[ORM\Column(type: EncryptedTextType::NAME, nullable: true)]
     protected ?string $title = null;
@@ -53,14 +61,14 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     protected ?DateTimeImmutable $deletedAt = null;
 
     /**
-     * The note whose deletion took this one down with it.
+     * The folder whose deletion took this note down with it.
      *
-     * Null when it was trashed on its own. Restoring a note brings back the
-     * sub-notes that carry its id, and only those, so a page deleted by hand
-     * last week stays where its author left it.
+     * Null when the note was trashed on its own. Restoring a folder brings
+     * back the notes that carry its id, and only those, so a page deleted by
+     * hand last week stays where its author left it.
      */
     #[ORM\Column(nullable: true)]
-    protected ?int $trashedWithNoteId = null;
+    protected ?int $trashedWithFolderId = null;
 
     public function getUser(): CoreUserInterface
     {
@@ -74,14 +82,14 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
         return $this;
     }
 
-    public function getParent(): ?MarkdownNoteInterface
+    public function getFolder(): ?NoteFolderInterface
     {
-        return $this->parent;
+        return $this->folder;
     }
 
-    public function setParent(?MarkdownNoteInterface $parent): static
+    public function setFolder(?NoteFolderInterface $folder): static
     {
-        $this->parent = $parent;
+        $this->folder = $folder;
 
         return $this;
     }
@@ -151,14 +159,14 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
         return $this->deletedAt instanceof DateTimeImmutable;
     }
 
-    public function getTrashedWithNoteId(): ?int
+    public function getTrashedWithFolderId(): ?int
     {
-        return $this->trashedWithNoteId;
+        return $this->trashedWithFolderId;
     }
 
-    public function setTrashedWithNoteId(?int $trashedWithNoteId): static
+    public function setTrashedWithFolderId(?int $trashedWithFolderId): static
     {
-        $this->trashedWithNoteId = $trashedWithNoteId;
+        $this->trashedWithFolderId = $trashedWithFolderId;
 
         return $this;
     }

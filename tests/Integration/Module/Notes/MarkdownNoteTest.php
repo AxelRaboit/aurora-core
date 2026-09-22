@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Notes;
 
+use Aurora\Module\Notes\Folder\Entity\NoteFolder;
+use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
@@ -141,74 +143,117 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * Deleting a parent lifts its children to the root, it does not delete them.
+     * Deleting a folder takes the notes inside it to the trash.
      *
-     * The column says `ON DELETE SET NULL`; this is the test that says why that
-     * was the right choice. Losing a page because you deleted the folder above
-     * it is not a trade anybody offered.
+     * The branch leaves whole and comes back whole, and a note keeps the
+     * folder it was filed in throughout: that link is what a restore puts
+     * back. Losing a page because you deleted the folder above it is not a
+     * trade anybody offered, which is why the column says `ON DELETE SET
+     * NULL` and why the deletion is a trashing rather than a delete.
      */
-    /**
-     * Deleting a parent takes its children to the trash with it.
-     *
-     * They used to be lifted to the root, which lost the filing for good. The
-     * branch now leaves whole and comes back whole, and the child keeps its
-     * parent link throughout - that link is what a restore puts back.
-     */
-    public function testDeletingAParentTakesItsChildrenToTheTrash(): void
+    public function testDeletingAFolderTakesItsNotesToTheTrash(): void
     {
-        $parent = $this->note($this->owner, 'Parent');
-        $child = $this->note($this->owner, 'Enfant', $parent);
-        $childId = (int) $child->getId();
-        $parentId = (int) $parent->getId();
+        $folder = $this->folder($this->owner, 'Clients');
+        $note = $this->note($this->owner, 'Enfant', $folder);
+        $noteId = (int) $note->getId();
+        $folderId = (int) $folder->getId();
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_delete', [], ['id' => $parentId]);
+        $this->post('backend_notes_markdown_folders_delete', [], ['id' => $folderId]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
-        $trashedChild = $this->entityManager->find(MarkdownNote::class, $childId);
-        self::assertInstanceOf(MarkdownNoteInterface::class, $trashedChild);
-        self::assertTrue($trashedChild->isTrashed(), 'The child should have followed its parent.');
-        self::assertSame($parentId, $trashedChild->getTrashedWithNoteId());
-        self::assertNotNull($trashedChild->getParent(), 'The filing has to survive for the restore to mean anything.');
+        $trashed = $this->entityManager->find(MarkdownNote::class, $noteId);
+        self::assertInstanceOf(MarkdownNoteInterface::class, $trashed);
+        self::assertTrue($trashed->isTrashed(), 'The note should have followed its folder.');
+        self::assertSame($folderId, $trashed->getTrashedWithFolderId());
+        self::assertNotNull($trashed->getFolder(), 'The filing has to survive for the restore to mean anything.');
     }
 
-    public function testRestoringAParentBringsItsChildrenBack(): void
+    public function testRestoringAFolderBringsItsNotesBack(): void
     {
-        $parent = $this->note($this->owner, 'Parent');
-        $child = $this->note($this->owner, 'Enfant', $parent);
-        $childId = (int) $child->getId();
-        $parentId = (int) $parent->getId();
+        $folder = $this->folder($this->owner, 'Clients');
+        $note = $this->note($this->owner, 'Enfant', $folder);
+        $noteId = (int) $note->getId();
+        $folderId = (int) $folder->getId();
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_delete', [], ['id' => $parentId]);
-        $this->post('backend_notes_markdown_restore', [], ['id' => $parentId]);
+        $this->post('backend_notes_markdown_folders_delete', [], ['id' => $folderId]);
+        $this->post('backend_notes_markdown_folders_restore', [], ['id' => $folderId]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
-        $restored = $this->entityManager->find(MarkdownNote::class, $childId);
+        $restored = $this->entityManager->find(MarkdownNote::class, $noteId);
         self::assertInstanceOf(MarkdownNoteInterface::class, $restored);
         self::assertFalse($restored->isTrashed());
-        self::assertNull($restored->getTrashedWithNoteId());
+        self::assertNull($restored->getTrashedWithFolderId());
     }
 
-    public function testANoteTrashedOnItsOwnStaysThereWhenItsParentComesBack(): void
+    public function testANoteTrashedOnItsOwnStaysThereWhenItsFolderComesBack(): void
     {
-        $parent = $this->note($this->owner, 'Parent');
-        $child = $this->note($this->owner, 'Enfant', $parent);
-        $childId = (int) $child->getId();
-        $parentId = (int) $parent->getId();
+        $folder = $this->folder($this->owner, 'Clients');
+        $note = $this->note($this->owner, 'Enfant', $folder);
+        $noteId = (int) $note->getId();
+        $folderId = (int) $folder->getId();
 
         $this->client->loginUser($this->owner, 'admin');
-        // The child goes first, by hand: that is a decision of its own.
-        $this->post('backend_notes_markdown_delete', [], ['id' => $childId]);
-        $this->post('backend_notes_markdown_delete', [], ['id' => $parentId]);
-        $this->post('backend_notes_markdown_restore', [], ['id' => $parentId]);
+        // The note goes first, by hand: that is a decision of its own.
+        $this->post('backend_notes_markdown_delete', [], ['id' => $noteId]);
+        $this->post('backend_notes_markdown_folders_delete', [], ['id' => $folderId]);
+        $this->post('backend_notes_markdown_folders_restore', [], ['id' => $folderId]);
 
         $this->entityManager->clear();
-        $stillTrashed = $this->entityManager->find(MarkdownNote::class, $childId);
+        $stillTrashed = $this->entityManager->find(MarkdownNote::class, $noteId);
         self::assertInstanceOf(MarkdownNoteInterface::class, $stillTrashed);
         self::assertTrue($stillTrashed->isTrashed(), 'A note deleted on purpose must not be resurrected by a branch restore.');
+    }
+
+    /**
+     * A folder cannot be filed inside its own branch.
+     *
+     * The move is refused rather than applied: a cycle takes both branches
+     * off every screen that builds a tree from the flat list, and no
+     * interface can reach them afterwards to undo it.
+     */
+    public function testAFolderCannotBeMovedIntoItself(): void
+    {
+        $parent = $this->folder($this->owner, 'Parent');
+        $child = $this->folder($this->owner, 'Enfant', $parent);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post(
+            'backend_notes_markdown_folders_move',
+            ['parentId' => $child->getId()],
+            ['id' => $parent->getId()],
+        );
+
+        self::assertResponseStatusCodeSame(400);
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(NoteFolder::class, $parent->getId());
+        self::assertInstanceOf(NoteFolder::class, $fresh);
+        self::assertNull($fresh->getParent(), 'The refused move must leave the tree untouched.');
+    }
+
+    /** Somebody else's folder is neither listed nor reachable. */
+    public function testSomebodyElsesFolderIsNotListed(): void
+    {
+        $folder = $this->folder($this->owner, 'Privé');
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_folders_list'));
+        self::assertResponseIsSuccessful();
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        $ids = array_map(static fn (array $row): int => (int) $row['id'], $body['folders']);
+
+        self::assertNotContains((int) $folder->getId(), $ids);
+
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'backend_notes_markdown_folder',
+            ['id' => $folder->getId()],
+        ));
+        self::assertResponseStatusCodeSame(404);
     }
 
     /** Title and body are ciphertext in the database, and readable through the ORM. */
@@ -231,20 +276,33 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame($secret, $fresh->getContent());
     }
 
-    private function note(User $user, string $title, ?MarkdownNote $parent = null, string $content = ''): MarkdownNote
+    private function note(User $user, string $title, ?NoteFolder $folder = null, string $content = ''): MarkdownNote
     {
         $note = new MarkdownNote();
         $note->setUser($user);
         $note->setTitle($title);
         $note->setContent($content);
-        if (null !== $parent) {
-            $note->setParent($parent);
+        if (null !== $folder) {
+            $note->setFolder($folder);
         }
         $this->entityManager->persist($note);
         $this->entityManager->flush();
         $this->created[] = [MarkdownNote::class, (int) $note->getId()];
 
         return $note;
+    }
+
+    private function folder(User $user, string $name, ?NoteFolder $parent = null): NoteFolder
+    {
+        $folder = new NoteFolder();
+        $folder->setUser($user);
+        $folder->setName($name);
+        $folder->setParent($parent);
+        $this->entityManager->persist($folder);
+        $this->entityManager->flush();
+        $this->created[] = [NoteFolder::class, (int) $folder->getId()];
+
+        return $folder;
     }
 
     /** @return list<int> */
@@ -273,18 +331,14 @@ final class MarkdownNoteTest extends IntegrationTestCase
     {
         $this->client->loginUser($this->owner, 'admin');
 
-        $parent = $this->post('backend_notes_markdown_create', [
-            'title' => 'Clients',
-            'content' => 'La porte du carnet.',
-            'tags' => ['index'],
-        ]);
-        $parentId = $parent['note']['id'];
-        $this->created[] = [MarkdownNote::class, (int) $parentId];
+        $folder = $this->post('backend_notes_markdown_folders_create', ['name' => 'Clients']);
+        $folderId = $folder['folder']['id'];
+        $this->created[] = [NoteFolder::class, (int) $folderId];
 
         $child = $this->post('backend_notes_markdown_create', [
             'title' => 'Studio Lumen',
             'content' => 'Photo, en cours.',
-            'parentId' => $parentId,
+            'folderId' => $folderId,
         ]);
         $this->created[] = [MarkdownNote::class, (int) $child['note']['id']];
 
@@ -303,15 +357,15 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $archive = new ZipArchive();
         self::assertTrue($archive->open($path));
 
-        // L'arborescence est dans les chemins : une note fille est un fichier
-        // dans le dossier du nom de sa mère.
+        // L'arborescence est dans les chemins : une note rangée est un
+        // fichier dans le répertoire du nom de son dossier.
         $entries = [];
         for ($i = 0; $i < $archive->numFiles; ++$i) {
             $entries[] = (string) $archive->getNameIndex($i);
         }
         $archive->close();
 
-        self::assertContains('Clients.md', $entries);
+        self::assertContains('Clients/', $entries, 'le dossier est déclaré, même vide');
         self::assertContains('Clients/Studio Lumen.md', $entries);
 
         $this->client->request(
@@ -324,18 +378,23 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $body = json_decode((string) $this->client->getResponse()->getContent(), true);
 
-        // Deux notes, pas trois : le dossier traversé compte pour la note
-        // qu'il est, une seule fois.
+        // Un dossier et une note : le répertoire traversé compte pour le
+        // dossier qu'il est, une seule fois.
         self::assertSame(2, $body['created']);
 
-        $titles = [];
         foreach ($this->notes() as $note) {
-            $titles[] = $note->getTitle();
             $this->created[] = [MarkdownNote::class, (int) $note->getId()];
         }
 
-        // Rien n'est écrasé : les originales et les importées cohabitent.
-        self::assertSame(2, count(array_filter($titles, static fn (?string $title): bool => 'Clients' === $title)));
+        foreach ($this->folders() as $one) {
+            $this->created[] = [NoteFolder::class, (int) $one->getId()];
+        }
+
+        // Rien n'est écrasé : l'original et l'importé cohabitent.
+        self::assertSame(
+            2,
+            count(array_filter($this->folders(), static fn (NoteFolder $one): bool => 'Clients' === $one->getName())),
+        );
 
         $imported = null;
         foreach ($this->notes() as $note) {
@@ -344,8 +403,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
             }
         }
 
-        self::assertInstanceOf(MarkdownNoteInterface::class, $imported, 'la note fille est revenue');
-        self::assertSame('Clients', $imported->getParent()?->getTitle(), 'et sous sa mère');
+        self::assertInstanceOf(MarkdownNoteInterface::class, $imported, 'la note est revenue');
+        self::assertSame('Clients', $imported->getFolder()?->getName(), 'et dans son dossier');
     }
 
     /** Les étiquettes voyagent en préambule, et reviennent comme étiquettes. */
@@ -393,6 +452,16 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame(['photo', 'méthode'], $imported->getTags());
         // Le préambule n'est pas resté dans le texte.
         self::assertSame('Du texte.', mb_trim((string) $imported->getContent()));
+    }
+
+    /** @return list<NoteFolder> */
+    private function folders(): array
+    {
+        $this->entityManager->clear();
+
+        return static::getContainer()
+            ->get(NoteFolderRepository::class)
+            ->findAllForUser($this->owner);
     }
 
     /** @return list<MarkdownNoteInterface> */

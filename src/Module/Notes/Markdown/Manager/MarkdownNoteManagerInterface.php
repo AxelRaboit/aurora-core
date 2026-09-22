@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Notes\Markdown\Manager;
 
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -15,29 +16,27 @@ interface MarkdownNoteManagerInterface
 
     public function update(MarkdownNoteInterface $note, MarkdownNoteInputInterface $input): void;
 
-    /** Moves a note to the trash, with everything under it. */
+    /** Moves a note to the trash. */
     public function delete(MarkdownNoteInterface $note): void;
 
-    /** Brings a note back, with the sub-notes that fell with it. */
+    /** Brings a note back, at the root when its folder is still deleted. */
     public function restore(MarkdownNoteInterface $note): void;
 
-    /** Deletes a note for good, its sub-notes and images with it. */
+    /** Deletes a note for good, its images with it. */
     public function forceDelete(MarkdownNoteInterface $note): void;
 
     /** Destroys what has been in the trash since before `$cutoff`. */
     public function purgeTrashedBefore(DateTimeImmutable $cutoff): int;
 
-    public function move(MarkdownNoteInterface $note, ?MarkdownNoteInterface $parent): void;
+    /** Files a note in a folder, or at the root with null. */
+    public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder): void;
 
     /**
-     * Reorder a whole sub-tree of notes in one shot. Each entry carries
-     * the desired `parentId` and `position` for a given note id. Used by
-     * the drag-drop UI which flattens the visible tree client-side.
+     * Files and ranks a set of notes in one shot. Each entry carries the
+     * folder the note belongs in and its rank there. Used by the library
+     * when notes are dragged about.
      *
-     * Detects cycles atomically on the intended state and throws
-     * \InvalidArgumentException if any are found.
-     *
-     * @param list<array{id: int, parentId: ?int, position: int}> $entries
+     * @param list<array{id: int, folderId: ?int, position: int}> $entries
      */
     public function reorder(CoreUserInterface $user, array $entries): void;
 

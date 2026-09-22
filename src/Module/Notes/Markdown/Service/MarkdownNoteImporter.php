@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Notes\Markdown\Service;
 
+use Aurora\Module\Notes\Folder\Dto\NoteFolderInput;
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Folder\Manager\NoteFolderManagerInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInput;
-use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -31,32 +33,40 @@ use function str_starts_with;
  * mêmes étiquettes : c'est la seule preuve qu'une exportation est autre chose
  * qu'un tas de fichiers.
  *
+ * **Un répertoire est un dossier, un `.md` est une note.** Il n'y a plus de
+ * cas particulier à rattraper : le format de l'archive dit lequel des deux
+ * est lequel, là où l'ancienne convention faisait d'un même nom un fichier et
+ * un répertoire pour une seule note.
+ *
  * **Rien n'est écrasé.** Une note du même nom existe déjà ? Une seconde est
- * créée à côté. Fusionner demanderait de décider ce qui gagne, sur un écran où
- * personne n'a rien demandé de tel ; ajouter est le seul geste qui ne perd
+ * créée à côté. Fusionner demanderait de décider ce qui gagne, sur un écran
+ * où personne n'a rien demandé de tel ; ajouter est le seul geste qui ne perd
  * rien, et la corbeille rattrape le doublon.
  *
- * Tout passe par le gestionnaire, jamais par l'entité : une note importée est
- * une note comme une autre, avec son journal et ses positions.
+ * Tout passe par les gestionnaires, jamais par les entités : une note
+ * importée est une note comme une autre, avec son journal et ses positions.
  */
 final readonly class MarkdownNoteImporter
 {
-    public function __construct(private MarkdownNoteManagerInterface $notes) {}
+    public function __construct(
+        private MarkdownNoteManagerInterface $notes,
+        private NoteFolderManagerInterface $folders,
+    ) {}
 
     /**
-     * Importe un fichier, `.md` ou `.zip`, sous le parent donné.
+     * Importe un fichier, `.md` ou `.zip`, dans le dossier donné.
      *
-     * @return int le nombre de notes créées
+     * @return int le nombre de notes et de dossiers créés
      */
-    public function import(CoreUserInterface $user, UploadedFile $file, ?MarkdownNoteInterface $parent): int
+    public function import(CoreUserInterface $user, UploadedFile $file, ?NoteFolderInterface $folder): int
     {
         $name = $file->getClientOriginalName();
 
         if (str_ends_with(mb_strtolower($name), '.zip')) {
-            return $this->importZip($user, $file, $parent);
+            return $this->importZip($user, $file, $folder);
         }
 
-        $this->createNote($user, $parent, $this->titleOf($name), (string) file_get_contents($file->getPathname()));
+        $this->createNote($user, $folder, $this->titleOf($name), (string) file_get_contents($file->getPathname()));
 
         return 1;
     }
@@ -64,17 +74,13 @@ final readonly class MarkdownNoteImporter
     /**
      * Un zip, dossier par dossier.
      *
-     * **Un chemin désigne une note, pas deux.** L'export d'une note qui a des
-     * enfants écrit `Clients.md` pour elle et `Clients/` pour eux : ce sont
-     * deux entrées de l'archive et une seule note. Elles sont donc rangées
-     * sous la même clé, et la première rencontrée crée la note que la seconde
-     * complète - sinon un aller-retour rendait deux « Clients », l'une avec le
-     * texte et l'autre vide avec les enfants.
-     *
-     * L'ordre des entrées n'est pas garanti par le format, d'où les deux sens :
-     * le fichier peut arriver avant ou après son dossier.
+     * Les répertoires de l'archive sont créés au fil des chemins rencontrés,
+     * une fois chacun : un dossier traversé par dix fichiers est un dossier,
+     * pas dix. L'ordre des entrées n'étant pas garanti par le format, un
+     * répertoire déclaré vide et un répertoire déduit d'un chemin aboutissent
+     * au même dossier.
      */
-    private function importZip(CoreUserInterface $user, UploadedFile $file, ?MarkdownNoteInterface $parent): int
+    private function importZip(CoreUserInterface $user, UploadedFile $file, ?NoteFolderInterface $folder): int
     {
         $zip = new ZipArchive();
 
@@ -82,58 +88,53 @@ final readonly class MarkdownNoteImporter
             return 0;
         }
 
-        /** @var array<string, MarkdownNoteInterface> $byPath */
+        /** @var array<string, NoteFolderInterface> $byPath */
         $byPath = [];
         $created = 0;
 
         for ($i = 0; $i < $zip->numFiles; ++$i) {
             $entry = (string) $zip->getNameIndex($i);
-            // Ce que les archiveurs ajoutent et que personne n'a écrit.
-            if (str_ends_with($entry, '/')) {
-                continue;
-            }
 
             if (str_starts_with($entry, '__MACOSX/')) {
                 continue;
             }
 
-            if (!str_ends_with(mb_strtolower($entry), '.md')) {
+            $isDirectory = str_ends_with($entry, '/');
+
+            if (!$isDirectory && !str_ends_with(mb_strtolower($entry), '.md')) {
                 continue;
             }
 
             $segments = array_values(array_filter(explode('/', $entry), static fn (string $part): bool => '' !== $part));
-            $fileName = (string) array_pop($segments);
 
-            $under = $parent;
+            if ([] === $segments) {
+                continue;
+            }
+
+            $fileName = $isDirectory ? null : (string) array_pop($segments);
+
+            $under = $folder;
             $path = '';
 
             foreach ($segments as $segment) {
                 $path .= '/'.$segment;
 
-                // Comptée à la création seulement : un dossier traversé par
-                // dix fichiers est une note, pas dix. Le nombre annoncé à la
-                // fin doit être celui qu'on retrouve dans l'arborescence.
                 if (!isset($byPath[$path])) {
-                    $byPath[$path] = $this->createNote($user, $under, $segment, '');
+                    $byPath[$path] = $this->folders->create($user, new NoteFolderInput(
+                        name: $segment,
+                        parentId: $under?->getId(),
+                    ));
                     ++$created;
                 }
 
                 $under = $byPath[$path];
             }
 
-            $title = $this->titleOf($fileName);
-            $filePath = $path.'/'.$title;
-            $raw = (string) $zip->getFromIndex($i);
-
-            // Le dossier du même nom est déjà passé : c'est la même note, on
-            // lui donne son texte plutôt que d'en créer une seconde à côté.
-            if (isset($byPath[$filePath])) {
-                $this->fill($byPath[$filePath], $title, $raw);
-
+            if (null === $fileName) {
                 continue;
             }
 
-            $byPath[$filePath] = $this->createNote($user, $under, $title, $raw);
+            $this->createNote($user, $under, $this->titleOf($fileName), (string) $zip->getFromIndex($i));
             ++$created;
         }
 
@@ -142,29 +143,16 @@ final readonly class MarkdownNoteImporter
         return $created;
     }
 
-    /** Le texte d'une note déjà créée comme dossier. */
-    private function fill(MarkdownNoteInterface $note, string $title, string $raw): void
-    {
-        [$tags, $content] = $this->split($raw);
-
-        $this->notes->update($note, new MarkdownNoteInput(
-            parentId: $note->getParent()?->getId(),
-            title: $title,
-            content: $content,
-            tags: $tags,
-        ));
-    }
-
     private function createNote(
         CoreUserInterface $user,
-        ?MarkdownNoteInterface $parent,
+        ?NoteFolderInterface $folder,
         string $title,
         string $raw,
-    ): MarkdownNoteInterface {
+    ): void {
         [$tags, $content] = $this->split($raw);
 
-        return $this->notes->create($user, new MarkdownNoteInput(
-            parentId: $parent?->getId(),
+        $this->notes->create($user, new MarkdownNoteInput(
+            folderId: $folder?->getId(),
             title: $title,
             content: $content,
             tags: $tags,

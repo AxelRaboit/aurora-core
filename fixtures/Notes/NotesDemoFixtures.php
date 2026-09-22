@@ -6,6 +6,7 @@ namespace Aurora\Fixtures\Notes;
 
 use Aurora\Fixtures\Core\AppFixtures;
 use Aurora\Fixtures\Core\CoreDemoFixtures;
+use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteShareLinkRepository;
@@ -34,7 +35,7 @@ use function assert;
  *  - une note citée par deux autres, pour la liste « ce qui pointe ici » ;
  *  - un titre mentionné sans crochets, pour les mentions non liées ;
  *  - des étiquettes, pour le filtre et la recherche ;
- *  - une note fille, pour l'arborescence.
+ *  - un dossier avec des notes dedans, pour la bibliothèque.
  *
  * Dev/test only, groupe `demo`.
  */
@@ -85,6 +86,27 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             $existing[(string) $note->getTitle()] = $note;
         }
 
+        $folderRepository = $manager->getRepository(NoteFolder::class);
+
+        $existingFolders = [];
+        foreach ($folderRepository->findBy(['user' => $owner]) as $folder) {
+            $existingFolders[(string) $folder->getName()] = $folder;
+        }
+
+        $folders = [];
+        $folderPosition = 0;
+
+        foreach ($this->folders() as $key => $name) {
+            $folder = $existingFolders[$name] ?? new NoteFolder();
+            $folder
+                ->setUser($owner)
+                ->setName($name)
+                ->setPosition($folderPosition++);
+
+            $manager->persist($folder);
+            $folders[$key] = $folder;
+        }
+
         $notes = [];
         $position = 0;
 
@@ -96,36 +118,29 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 ->setTitle($definition['title'])
                 ->setContent($definition['content'])
                 ->setTags($definition['tags'])
-                ->setPosition($position++);
+                ->setPosition($position++)
+                ->setFolder(isset($definition['folder']) ? $folders[$definition['folder']] : null);
 
             $manager->persist($note);
             $notes[$key] = $note;
         }
 
-        // Les parents après coup : une note fille désigne une note qui doit
-        // déjà exister, et l'ordre de la liste ci-dessus est celui de
-        // lecture, pas celui des dépendances.
-        foreach ($this->notes() as $key => $definition) {
-            if (isset($definition['parent'])) {
-                $notes[$key]->setParent($notes[$definition['parent']]);
-            }
-        }
-
         $manager->flush();
 
-        $this->shareBranch($notes['clients'] ?? null);
+        $this->shareLinkFor($notes['clients'] ?? null);
     }
 
     /**
-     * Une branche partagée, pour que l'écran des partages ait quelque chose.
+     * Une note partagée, pour que l'écran des partages ait quelque chose.
      *
      * Il s'ouvrait toujours sur une liste vide, si bien que la fonctionnalité
      * la plus visible du module - une note lisible sans compte - ne se voyait
-     * nulle part. La branche des clients avec ses filles, parce que c'est le
-     * cas que l'option « inclure les sous-notes » existe pour : partager une
-     * note d'index seule donne au destinataire un sommaire et rien dessous.
+     * nulle part. La note d'index avec ses liens suivis, parce que c'est le
+     * cas que l'option « inclure les notes liées » existe pour : partager un
+     * sommaire seul donne au destinataire une liste de titres et rien
+     * derrière.
      */
-    private function shareBranch(?MarkdownNote $note): void
+    private function shareLinkFor(?MarkdownNote $note): void
     {
         // Rejoué à chaque `make demo` sinon : la note est retrouvée, le lien
         // non, et l'écran se remplirait d'un partage de plus par exécution.
@@ -135,8 +150,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
         $this->shareLinks->create(
             $note,
-            includeDescendants: true,
-            includeLinked: false,
+            includeLinked: true,
             recipientEmail: 'camille@studio-lumen.fr',
             label: 'Carnet clients - lecture seule',
             expiresAt: new DateTimeImmutable('+30 days'),
@@ -144,7 +158,17 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * @return array<string, array{title: string, content: string, tags: list<string>, parent?: string}>
+     * Les dossiers de la démo, par clé.
+     *
+     * @return array<string, string>
+     */
+    private function folders(): array
+    {
+        return ['clients' => 'Clients'];
+    }
+
+    /**
+     * @return array<string, array{title: string, content: string, tags: list<string>, folder?: string}>
      */
     private function notes(): array
     {
@@ -167,7 +191,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             'lumen' => [
                 'title' => 'Studio Lumen',
                 'tags' => ['client', 'photo'],
-                'parent' => 'clients',
+                'folder' => 'clients',
                 'content' => <<<'MD'
                     # Studio Lumen
 
@@ -184,7 +208,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             'verrier' => [
                 'title' => 'Cabinet Verrier',
                 'tags' => ['client', 'web'],
-                'parent' => 'clients',
+                'folder' => 'clients',
                 'content' => <<<'MD'
                     # Cabinet Verrier
 

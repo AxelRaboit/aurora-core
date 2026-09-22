@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Markdown\Manager;
 
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
@@ -13,7 +15,6 @@ use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 #[AsAlias(MarkdownNoteManagerInterface::class)]
@@ -25,6 +26,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly MarkdownNoteRepository $noteRepository,
+        protected readonly NoteFolderRepository $folderRepository,
         protected readonly AuditLogger $auditLogger,
         protected readonly MarkdownNoteImageService $imageService,
     ) {}
@@ -37,7 +39,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $this->applyInput($note, $input);
 
         if (null === $input->getPosition()) {
-            $maxPosition = $this->noteRepository->findMaxPositionForUserAndParent($user, $input->getParentId());
+            $maxPosition = $this->noteRepository->findMaxPositionForUserAndFolder($user, $input->getFolderId());
             $note->setPosition(null === $maxPosition ? 0 : $maxPosition + 1);
         }
 
@@ -69,7 +71,10 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
     }
 
     /**
-     * Moves a note to the trash, with everything under it.
+     * Moves a note to the trash.
+     *
+     * One note, nothing else: a note has no sub-notes any more, and a folder
+     * deleted with its contents is the folder manager's business.
      *
      * The images stay where they are. Cleaning them up here would empty the
      * note of its illustrations while promising it can come back, and a
@@ -82,18 +87,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             return;
         }
 
-        $now = new DateTimeImmutable();
-        $noteId = (int) $note->getId();
-
-        $note->setDeletedAt($now)->setTrashedWithNoteId(null);
-
-        foreach ($this->descendantsOf($note) as $descendant) {
-            if ($descendant->isTrashed()) {
-                continue;
-            }
-
-            $descendant->setDeletedAt($now)->setTrashedWithNoteId($noteId);
-        }
+        $note->setDeletedAt(new DateTimeImmutable())->setTrashedWithFolderId(null);
 
         $this->entityManager->flush();
 
@@ -101,9 +95,9 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
     }
 
     /**
-     * Brings a note back, with the sub-notes that fell with it.
+     * Brings a note back.
      *
-     * A note restored under a parent that is still in the trash would be
+     * A note restored into a folder that is still in the trash would be
      * unreachable, so it comes back at the root instead.
      */
     public function restore(MarkdownNoteInterface $note): void
@@ -112,32 +106,22 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             return;
         }
 
-        $parent = $note->getParent();
-        if ($parent instanceof MarkdownNoteInterface && $parent->isTrashed()) {
-            $note->setParent(null);
+        $folder = $note->getFolder();
+        if ($folder instanceof NoteFolderInterface && $folder->isTrashed()) {
+            $note->setFolder(null);
         }
 
-        $note->setDeletedAt(null)->setTrashedWithNoteId(null);
-
-        foreach ($this->noteRepository->findTrashedWith((int) $note->getId()) as $descendant) {
-            $descendant->setDeletedAt(null)->setTrashedWithNoteId(null);
-        }
+        $note->setDeletedAt(null)->setTrashedWithFolderId(null);
 
         $this->entityManager->flush();
 
         $this->auditRestored($note);
     }
 
-    /**
-     * Deletes a note for good, images included.
-     *
-     * What fell with it goes too: unlike a GED folder, whose documents have a
-     * life of their own at the root, a sub-note without its parent is an
-     * orphan nobody asked for.
-     */
+    /** Deletes a note for good, images included. */
     public function forceDelete(MarkdownNoteInterface $note): void
     {
-        $this->destroy([$note, ...$this->noteRepository->findTrashedWith((int) $note->getId())]);
+        $this->destroy([$note]);
     }
 
     public function purgeTrashedBefore(DateTimeImmutable $cutoff): int
@@ -167,88 +151,52 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         return count($notes);
     }
 
-    /**
-     * Every note below this one, at any depth.
-     *
-     * @return list<MarkdownNoteInterface>
-     */
-    protected function descendantsOf(MarkdownNoteInterface $note): array
+    public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder): void
     {
-        $found = [];
-        $queue = [$note];
-
-        while ([] !== $queue) {
-            $current = array_shift($queue);
-            foreach ($this->noteRepository->findLivingChildrenOf((int) $current->getId()) as $child) {
-                $found[] = $child;
-                $queue[] = $child;
-            }
-        }
-
-        return $found;
-    }
-
-    public function move(MarkdownNoteInterface $note, ?MarkdownNoteInterface $parent): void
-    {
-        $note->setParent($parent);
+        $note->setFolder($folder);
         $this->entityManager->flush();
+
+        $this->auditUpdated($note);
     }
 
+    /**
+     * Files and ranks a set of notes in one shot.
+     *
+     * No cycle to guard against any more: a note holds nothing, so the worst
+     * a bad payload can do is put a note in a folder that is not its
+     * author's, which the folder lookup refuses by scoping on the user.
+     */
     public function reorder(CoreUserInterface $user, array $entries): void
     {
         if ([] === $entries) {
             return;
         }
 
-        $ids = array_map(static fn (array $entry): int => $entry['id'], $entries);
-        $notes = $this->noteRepository->findBy(['id' => $ids, 'user' => $user]);
+        $ids = array_map(static fn (array $entry): int => (int) $entry['id'], $entries);
 
         $byId = [];
-        foreach ($notes as $note) {
-            $byId[$note->getId()] = $note;
+        foreach ($this->noteRepository->findBy(['id' => $ids, 'user' => $user]) as $note) {
+            $byId[(int) $note->getId()] = $note;
         }
 
-        // Build the intended parent map first so we can detect cycles before
-        // mutating any entity (otherwise partial state could mask a cycle).
-        $parentMap = [];
+        $folders = [];
         foreach ($entries as $entry) {
-            $id = (int) $entry['id'];
-            if (!isset($byId[$id])) {
+            $folderId = $entry['folderId'] ?? null;
+            if (null === $folderId || isset($folders[(int) $folderId])) {
                 continue;
             }
 
-            $parentId = $entry['parentId'] ?? null;
-            $parentMap[$id] = null === $parentId ? null : (int) $parentId;
-        }
-
-        foreach ($parentMap as $id => $initialParentId) {
-            $visited = [$id => true];
-            $current = $initialParentId;
-            while (null !== $current) {
-                if (isset($visited[$current])) {
-                    throw new InvalidArgumentException(sprintf('Reorder would create a cycle at note %d.', $id));
-                }
-
-                $visited[$current] = true;
-                $current = $parentMap[$current] ?? null;
-            }
-        }
-
-        // Detach parents first to side-step transient cycles while we're
-        // reshuffling - mirrors the TaxonomyManager pattern.
-        foreach (array_keys($parentMap) as $id) {
-            $byId[$id]->setParent(null);
+            $folders[(int) $folderId] = $this->folderRepository->findOneByUserAndId($user, (int) $folderId);
         }
 
         foreach ($entries as $entry) {
-            $id = (int) $entry['id'];
-            $note = $byId[$id] ?? null;
+            $note = $byId[(int) $entry['id']] ?? null;
             if (null === $note) {
                 continue;
             }
 
-            $parentId = $parentMap[$id] ?? null;
-            $note->setParent(null !== $parentId ? ($byId[$parentId] ?? null) : null);
+            $folderId = $entry['folderId'] ?? null;
+            $note->setFolder(null === $folderId ? null : ($folders[(int) $folderId] ?? null));
             $note->setPosition((int) $entry['position']);
         }
 
@@ -640,6 +588,9 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
     /**
      * Hook: hydrate the note from the DTO. Clients override to add custom
      * fields, e.g. parent::applyInput($note, $input); $note->setExtra(...).
+     *
+     * A folder id that belongs to somebody else resolves to null rather than
+     * to their folder: the lookup is scoped to the note's author.
      */
     protected function applyInput(MarkdownNoteInterface $note, MarkdownNoteInputInterface $input): void
     {
@@ -651,12 +602,12 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             $note->setPosition($input->getPosition());
         }
 
-        if (null !== $input->getParentId()) {
-            $parent = $this->noteRepository->findOneByUserAndId($note->getUser(), $input->getParentId());
-            $note->setParent($parent);
-        } else {
-            $note->setParent(null);
-        }
+        $folderId = $input->getFolderId();
+        $note->setFolder(
+            null === $folderId
+                ? null
+                : $this->folderRepository->findOneByUserAndId($note->getUser(), $folderId),
+        );
     }
 
     protected function auditCreated(MarkdownNoteInterface $note): void
@@ -696,7 +647,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         return [
             'title' => $note->getTitle(),
             'tags' => $note->getTags(),
-            'parentId' => $note->getParent()?->getId(),
+            'folderId' => $note->getFolder()?->getId(),
             'position' => $note->getPosition(),
         ];
     }

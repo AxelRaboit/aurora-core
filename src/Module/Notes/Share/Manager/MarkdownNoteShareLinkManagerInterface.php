@@ -12,7 +12,6 @@ interface MarkdownNoteShareLinkManagerInterface
 {
     public function create(
         MarkdownNoteInterface $note,
-        bool $includeDescendants,
         bool $includeLinked,
         ?string $recipientEmail = null,
         string $label = '',

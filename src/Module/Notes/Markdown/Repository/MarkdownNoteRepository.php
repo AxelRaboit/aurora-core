@@ -22,14 +22,15 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
 
     /**
      * Flat list of all notes for a user, without content (loaded on demand).
-     * Front rebuilds the tree from parent_id + position.
+     * The library groups them by folder; the browser sorts them, the title
+     * being encrypted and therefore beyond the reach of an ORDER BY.
      *
      * @return list<MarkdownNoteInterface>
      */
     public function findFlatListForUser(CoreUserInterface $user): array
     {
         return $this->createQueryBuilder('n')
-            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'IDENTITY(n.parent) AS parentId')
+            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'IDENTITY(n.folder) AS folderId')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NULL')
             ->setParameter('user', $user)
@@ -112,8 +113,8 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     /**
      * The user's trashed notes, most recently deleted first.
      *
-     * Only those trashed on their own: a sub-note that fell with its parent is
-     * part of the branch that parent restores, not an entry of its own.
+     * Only those trashed on their own: a note that fell with its folder is
+     * part of the branch that folder restores, not an entry of its own.
      *
      * @return list<MarkdownNoteInterface>
      */
@@ -122,32 +123,72 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('n')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NOT NULL')
-            ->andWhere('n.trashedWithNoteId IS NULL')
+            ->andWhere('n.trashedWithFolderId IS NULL')
             ->setParameter('user', $user)
             ->orderBy('n.deletedAt', Order::Descending->value)
             ->getQuery()
             ->getResult();
     }
 
-    /** @return list<MarkdownNoteInterface> */
-    public function findTrashedWith(int $noteId): array
+    /**
+     * The notes that fell with this folder.
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function findTrashedWithFolder(int $folderId): array
     {
         return $this->createQueryBuilder('n')
-            ->where('n.trashedWithNoteId = :id')
-            ->setParameter('id', $noteId)
+            ->where('n.trashedWithFolderId = :id')
+            ->setParameter('id', $folderId)
             ->getQuery()
             ->getResult();
     }
 
-    /** @return list<MarkdownNoteInterface> */
-    public function findLivingChildrenOf(int $noteId): array
+    /**
+     * The living notes filed in any of these folders.
+     *
+     * Takes a list rather than one id because the caller that needs it is
+     * trashing a branch, and one query for the branch beats one per folder.
+     *
+     * @param list<int> $folderIds
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function findLivingInFolders(array $folderIds): array
     {
+        if ([] === $folderIds) {
+            return [];
+        }
+
         return $this->createQueryBuilder('n')
-            ->where('n.parent = :id')
+            ->where('IDENTITY(n.folder) IN (:ids)')
             ->andWhere('n.deletedAt IS NULL')
-            ->setParameter('id', $noteId)
+            ->setParameter('ids', $folderIds)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * The living notes filed directly in this folder, root when null.
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function findLivingInFolder(CoreUserInterface $user, ?int $folderId): array
+    {
+        $qb = $this->createQueryBuilder('n')
+            ->where('n.user = :user')
+            ->andWhere('n.deletedAt IS NULL')
+            ->setParameter('user', $user)
+            ->orderBy('n.position', Order::Ascending->value);
+
+        if (null === $folderId) {
+            $qb->andWhere('n.folder IS NULL');
+        } else {
+            $qb->andWhere('IDENTITY(n.folder) = :folderId')
+                ->setParameter('folderId', $folderId);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     public function countTrashedForUser(CoreUserInterface $user): int
@@ -156,7 +197,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->select('COUNT(n.id)')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NOT NULL')
-            ->andWhere('n.trashedWithNoteId IS NULL')
+            ->andWhere('n.trashedWithFolderId IS NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
@@ -176,7 +217,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->select('MIN(n.deletedAt)')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NOT NULL')
-            ->andWhere('n.trashedWithNoteId IS NULL')
+            ->andWhere('n.trashedWithFolderId IS NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
@@ -195,18 +236,18 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
-    public function findMaxPositionForUserAndParent(CoreUserInterface $user, ?int $parentId): ?int
+    public function findMaxPositionForUserAndFolder(CoreUserInterface $user, ?int $folderId): ?int
     {
         $qb = $this->createQueryBuilder('n')
             ->select('MAX(n.position)')
             ->where('n.user = :user')
             ->setParameter('user', $user);
 
-        if (null === $parentId) {
-            $qb->andWhere('n.parent IS NULL');
+        if (null === $folderId) {
+            $qb->andWhere('n.folder IS NULL');
         } else {
-            $qb->andWhere('IDENTITY(n.parent) = :parentId')
-                ->setParameter('parentId', $parentId);
+            $qb->andWhere('IDENTITY(n.folder) = :folderId')
+                ->setParameter('folderId', $folderId);
         }
 
         $result = $qb->getQuery()->getSingleScalarResult();

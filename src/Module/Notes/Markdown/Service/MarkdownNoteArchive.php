@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Notes\Markdown\Service;
 
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -25,14 +27,18 @@ use function sprintf;
  * vaut que si elle est complète : les étiquettes voyagent donc en tête de
  * fichier, dans le préambule que les mêmes outils connaissent.
  *
- * **Une note qui a des enfants devient un fichier et un dossier**, du même
- * nom, comme le fait Obsidian : le contenu de la note reste lisible, et ses
- * enfants sont rangés à côté. L'autre convention, un dossier avec un
- * `index.md` dedans, renomme la note en passant.
+ * **Un dossier est un dossier, une note est un fichier.** L'ancienne
+ * convention, celle d'Obsidian, écrivait une note qui avait des enfants en
+ * deux entrées du même nom, un `.md` et un répertoire, faute de savoir dire
+ * autrement qu'un objet était les deux à la fois. Les dossiers existent
+ * maintenant, et l'archive dit simplement ce qu'elle contient.
  */
 final readonly class MarkdownNoteArchive
 {
-    public function __construct(private MarkdownNoteRepository $notes) {}
+    public function __construct(
+        private MarkdownNoteRepository $notes,
+        private NoteFolderRepository $folders,
+    ) {}
 
     /**
      * Le carnet entier dans un zip, écrit dans un fichier temporaire.
@@ -54,20 +60,27 @@ final readonly class MarkdownNoteArchive
         }
 
         $notes = $this->notes->findAllWithContentForUser($user);
-        $children = [];
 
+        /** @var array<int, list<MarkdownNoteInterface>> $notesByFolder */
+        $notesByFolder = [];
         foreach ($notes as $note) {
-            $children[$note->getParent()?->getId() ?? 0][] = $note;
+            $notesByFolder[$note->getFolder()?->getId() ?? 0][] = $note;
+        }
+
+        /** @var array<int, list<NoteFolderInterface>> $foldersByParent */
+        $foldersByParent = [];
+        foreach ($this->folders->findAllForUser($user) as $folder) {
+            $foldersByParent[$folder->getParent()?->getId() ?? 0][] = $folder;
         }
 
         // Un carnet vide donnerait un zip sans entrée, que certains outils
         // refusent d'ouvrir. Une ligne suffit à le rendre valide et à dire
         // pourquoi il est vide.
-        if ([] === $notes) {
+        if ([] === $notes && [] === $foldersByParent) {
             $zip->addFromString('notes.md', "# Aucune note\n");
         }
 
-        $this->addBranch($zip, $children, 0, '');
+        $this->addBranch($zip, $notesByFolder, $foldersByParent, 0, '');
 
         $zip->close();
 
@@ -83,34 +96,58 @@ final readonly class MarkdownNoteArchive
     /** Le nom de fichier d'une note, sans le dossier ni l'extension. */
     public function nameOf(MarkdownNoteInterface $note): string
     {
-        $title = mb_trim((string) $note->getTitle());
-
-        if ('' === $title) {
-            $title = sprintf('note-%d', $note->getId());
-        }
-
-        // Ce qu'un système de fichiers refuse, plus les caractères qui font
-        // d'un nom un chemin. Le reste des accents et des espaces est gardé :
-        // c'est le titre que la personne a écrit.
-        return (string) preg_replace('#[/\\\\:*?"<>|\x00-\x1F]+#', '-', $title);
+        return $this->safeName((string) $note->getTitle(), sprintf('note-%d', $note->getId()));
     }
 
     /**
-     * @param array<int, list<MarkdownNoteInterface>> $children
+     * @param array<int, list<MarkdownNoteInterface>> $notesByFolder
+     * @param array<int, list<NoteFolderInterface>>   $foldersByParent
      */
-    private function addBranch(ZipArchive $zip, array $children, int $parentId, string $prefix): void
-    {
-        $seen = [];
+    private function addBranch(
+        ZipArchive $zip,
+        array $notesByFolder,
+        array $foldersByParent,
+        int $folderId,
+        string $prefix,
+    ): void {
+        $seenFiles = [];
 
-        foreach ($children[$parentId] ?? [] as $note) {
-            $name = $this->uniqueName($this->nameOf($note), $seen);
-
+        foreach ($notesByFolder[$folderId] ?? [] as $note) {
+            $name = $this->uniqueName($this->nameOf($note), $seenFiles);
             $zip->addFromString($prefix.$name.'.md', $this->body($note));
-
-            if ([] !== ($children[$note->getId()] ?? [])) {
-                $this->addBranch($zip, $children, (int) $note->getId(), $prefix.$name.'/');
-            }
         }
+
+        $seenFolders = [];
+
+        foreach ($foldersByParent[$folderId] ?? [] as $folder) {
+            $name = $this->uniqueName(
+                $this->safeName((string) $folder->getName(), sprintf('dossier-%d', $folder->getId())),
+                $seenFolders,
+            );
+
+            // Un dossier vide disparaîtrait de l'archive, puisque rien n'y
+            // écrit de fichier. Déclaré explicitement, il survit à
+            // l'aller-retour comme le reste du rangement.
+            $zip->addEmptyDir($prefix.$name);
+
+            $this->addBranch($zip, $notesByFolder, $foldersByParent, (int) $folder->getId(), $prefix.$name.'/');
+        }
+    }
+
+    /**
+     * Ce qu'un système de fichiers refuse, plus les caractères qui font d'un
+     * nom un chemin. Le reste des accents et des espaces est gardé : c'est le
+     * titre que la personne a écrit.
+     */
+    private function safeName(string $raw, string $fallback): string
+    {
+        $name = mb_trim($raw);
+
+        if ('' === $name) {
+            $name = $fallback;
+        }
+
+        return (string) preg_replace('#[/\\\\:*?"<>|\x00-\x1F]+#', '-', $name);
     }
 
     /**

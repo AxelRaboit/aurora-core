@@ -28,8 +28,8 @@ class MarkdownNoteReorderInputFactory implements MarkdownNoteReorderInputFactory
 
             $entries[] = [
                 'id' => (int) $entry['id'],
-                'parentId' => isset($entry['parentId']) && '' !== $entry['parentId']
-                    ? (int) $entry['parentId']
+                'folderId' => isset($entry['folderId']) && '' !== $entry['folderId']
+                    ? (int) $entry['folderId']
                     : null,
                 'position' => (int) ($entry['position'] ?? 0),
             ];

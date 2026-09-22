@@ -161,13 +161,12 @@ final class NoteShareController extends AbstractController
                 'id' => '__id__',
             ]),
             'noteCount' => count($scope),
-            // The tree is handed to the page so a shared branch can be navigated,
-            // and it carries titles and ids only - never the bodies of notes the
-            // reader has not opened.
+            // The list is handed to the page so a share carrying several
+            // notes can be navigated, and it carries titles and ids only -
+            // never the bodies of notes the reader has not opened.
             'tree' => array_map(static fn (MarkdownNoteInterface $n): array => [
                 'id' => (int) $n->getId(),
                 'title' => $n->getTitle(),
-                'parentId' => $n->getParent()?->getId(),
             ], $scope),
             'titleIndex' => $this->scope->titleIndex($link),
         ];

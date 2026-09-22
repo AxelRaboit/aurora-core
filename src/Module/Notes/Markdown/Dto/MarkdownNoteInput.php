@@ -12,7 +12,7 @@ class MarkdownNoteInput implements MarkdownNoteInputInterface
      * @param list<string> $tags
      */
     public function __construct(
-        public readonly ?int $parentId = null,
+        public readonly ?int $folderId = null,
         public readonly ?string $title = null,
         public readonly ?string $content = null,
         #[Assert\All([new Assert\Type('string'), new Assert\Length(max: 64)])]
@@ -21,9 +21,9 @@ class MarkdownNoteInput implements MarkdownNoteInputInterface
         public readonly ?int $position = null,
     ) {}
 
-    public function getParentId(): ?int
+    public function getFolderId(): ?int
     {
-        return $this->parentId;
+        return $this->folderId;
     }
 
     public function getTitle(): ?string

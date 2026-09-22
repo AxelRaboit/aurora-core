@@ -45,8 +45,6 @@ notes:
       page_heading: Shared note
       read_only: Read only
       tree_label: Notes in this share
-      include_descendants: Include the sub-notes
-      include_descendants_hint: The notes filed under this one, in the tree.
       include_linked: Include the linked notes
       include_linked_hint: Notes named by a [[…]] link, and the ones they name in turn.
       also_shared: '{count} other note will be shared:|{count} other notes will be shared:'
@@ -80,10 +78,66 @@ notes:
         subject: '%title% has been shared with you'
         title: A note has been shared with you
         intro: '%name% shared the note "%title%" with you.'
-        includes_descendants: Other notes connected to this one are included.
         open: Open the note
         expires: 'This link expires on %date%.'
         read_only: You can read this note, not edit it.
+    folders:
+      title: Folders
+      trash_label: Note folders
+      root: All documents
+      create: New folder
+      created: Folder created
+      rename: Rename
+      renamed: Folder renamed
+      name_placeholder: Folder name…
+      untitled: Untitled folder
+      delete: Delete the folder
+      confirm_delete: 'Send "{name}" to the trash, with what it holds?'
+      deleted: Folder moved to the trash
+      move_to: Move to…
+      move_root: All documents
+      moved: Item moved
+      open: Open the folder
+      contents: '{folders} folder · {notes} note|{folders} folders · {notes} notes'
+      tree_empty: No folder yet.
+      errors:
+        move_refused: 'Move refused: a folder cannot be filed inside itself, nor deeper than {max} levels.'
+        bad_payload: Invalid payload.
+        create_failed: Could not create the folder.
+        rename_failed: Could not rename the folder.
+        delete_failed: Could not delete the folder.
+        move_failed: Could not move the item.
+        load_failed: Could not load the folder.
+    library:
+      title: All documents
+      new_note: New note
+      new_folder: New folder
+      search_placeholder: Search the notes…
+      view:
+        label: View
+        mosaic: Mosaic
+        cards: Cards
+        list: List
+      sort:
+        label: Sort
+        name: Name
+        created: Created
+        updated: Updated
+        manual: Manual order
+        asc: Ascending
+        desc: Descending
+      columns:
+        name: Name
+        tags: Tags
+        updated: Updated
+        location: Location
+      empty:
+        title: This folder is empty
+        description: Create a note or a folder, or drag one in here.
+      empty_root:
+        title: No document yet
+        description: Create your first note, or a folder to file things in.
+      count: '{count} item|{count} items'
     image:
       upload_failed: The image could not be uploaded.
     title: Markdown notes
@@ -91,10 +145,10 @@ notes:
     delete: Delete
     cancel: Cancel
     saved: Note saved
-    delete_warning: This action cannot be undone. Child notes will be detached from this parent.
+    delete_warning: The note goes to the trash. You can restore it from there.
     untitled: Untitled
     title_placeholder: Note title…
-    search_placeholder: Search the tree…
+    search_placeholder: Search the notes…
     search_no_results: No results
     search_no_results_description: 'No note matches "{query}".'
     resize_handle: Drag to resize
@@ -110,7 +164,7 @@ notes:
       errors:
         required: Choose at least one file.
     tree_empty: No note yet.
-    create_child: Add a child note
+    create_in_folder: New note in this folder
     confirm_delete: 'Permanently delete "{title}"?'
     confirm_discard_changes: You have unsaved changes. Discard them?
     wiki_link_not_found: 'No note matches "{title}".'
@@ -142,7 +196,7 @@ notes:
       filter_label: Filter by tag
       clear: Clear all
       no_results: No notes for these tags
-      no_results_description: No note in the tree carries the selected tags.
+      no_results_description: No note carries the selected tags.
       errors:
         empty: Tag is required.
         sources_empty: Select at least one tag to merge.
@@ -194,11 +248,10 @@ notes:
       description: Click + to create your first note.
     no_selection:
       title: Select a note
-      description: Pick a note from the tree, or create a new one.
+      description: Pick a note from the library, or create a new one.
     errors:
       load_failed: Could not load the note.
       create_failed: Could not create the note.
       save_failed: Could not save the note.
       delete_failed: Could not delete the note.
       reorder_failed: Could not reorder the notes.
-      reorder_cycle: Cannot move a note under one of its own descendants.

@@ -88,11 +88,7 @@ final class MarkdownNoteSharesController extends AbstractController
         }
 
         return $this->jsonSuccess([
-            'notes' => $this->scope->preview(
-                $note,
-                $request->query->getBoolean('descendants'),
-                $request->query->getBoolean('linked'),
-            ),
+            'notes' => $this->scope->preview($note, $request->query->getBoolean('linked')),
         ]);
     }
 
@@ -103,7 +99,6 @@ final class MarkdownNoteSharesController extends AbstractController
 
         $input = new NoteShareInput();
         $input->noteId = isset($payload['noteId']) ? (int) $payload['noteId'] : null;
-        $input->includeDescendants = (bool) ($payload['includeDescendants'] ?? false);
         $input->includeLinked = (bool) ($payload['includeLinked'] ?? false);
         $input->label = mb_trim((string) ($payload['label'] ?? ''));
 
@@ -136,7 +131,6 @@ final class MarkdownNoteSharesController extends AbstractController
 
         $link = $this->shareLinks->create(
             $note,
-            $input->includeDescendants,
             $input->includeLinked,
             $input->recipientEmail,
             $input->label,

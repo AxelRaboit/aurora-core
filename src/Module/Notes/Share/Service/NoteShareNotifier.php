@@ -46,7 +46,6 @@ final readonly class NoteShareNotifier
             [
                 'noteTitle' => $title,
                 'sharerName' => $sharerName,
-                'includesDescendants' => $link->includesDescendants(),
                 'expiresAt' => $link->getExpiresAt(),
                 'url' => $this->urlGenerator->generate(
                     'notes_share',

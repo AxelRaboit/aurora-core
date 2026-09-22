@@ -45,8 +45,6 @@ notes:
       page_heading: Note partagée
       read_only: Lecture seule
       tree_label: Notes de ce partage
-      include_descendants: Inclure les sous-notes
-      include_descendants_hint: Les notes rangées sous celle-ci, dans l'arborescence.
       include_linked: Inclure les notes liées
       include_linked_hint: Les notes citées par un lien [[…]], et celles qu'elles citent à leur tour.
       also_shared: '{count} autre note sera partagée :|{count} autres notes seront partagées :'
@@ -80,10 +78,66 @@ notes:
         subject: '%title% a été partagée avec vous'
         title: Une note a été partagée avec vous
         intro: '%name% vous a partagé la note « %title% ».'
-        includes_descendants: D'autres notes liées à celle-ci sont incluses.
         open: Ouvrir la note
         expires: 'Ce lien expire le %date%.'
         read_only: Vous pouvez lire cette note, pas la modifier.
+    folders:
+      title: Dossiers
+      trash_label: Dossiers de notes
+      root: Tous les documents
+      create: Nouveau dossier
+      created: Dossier créé
+      rename: Renommer
+      renamed: Dossier renommé
+      name_placeholder: Nom du dossier…
+      untitled: Dossier sans titre
+      delete: Supprimer le dossier
+      confirm_delete: "Mettre « {name} » à la corbeille, avec ce qu'il contient ?"
+      deleted: Dossier mis à la corbeille
+      move_to: Déplacer vers…
+      move_root: Tous les documents
+      moved: Élément déplacé
+      open: Ouvrir le dossier
+      contents: '{folders} dossier · {notes} note|{folders} dossiers · {notes} notes'
+      tree_empty: Aucun dossier pour l'instant.
+      errors:
+        move_refused: 'Déplacement refusé : un dossier ne peut pas être rangé dans lui-même, ni au-delà de {max} niveaux.'
+        bad_payload: Données invalides.
+        create_failed: Impossible de créer le dossier.
+        rename_failed: Impossible de renommer le dossier.
+        delete_failed: Impossible de supprimer le dossier.
+        move_failed: Impossible de déplacer l'élément.
+        load_failed: Impossible de charger le dossier.
+    library:
+      title: Tous les documents
+      new_note: Nouvelle note
+      new_folder: Nouveau dossier
+      search_placeholder: Rechercher une note…
+      view:
+        label: Affichage
+        mosaic: Mosaïque
+        cards: Cartes
+        list: Liste
+      sort:
+        label: Trier
+        name: Nom
+        created: Création
+        updated: Modification
+        manual: Ordre manuel
+        asc: Ordre croissant
+        desc: Ordre décroissant
+      columns:
+        name: Nom
+        tags: Étiquettes
+        updated: Modifiée le
+        location: Emplacement
+      empty:
+        title: Ce dossier est vide
+        description: Créez une note ou un dossier, ou glissez-en un ici.
+      empty_root:
+        title: Aucun document
+        description: Créez votre première note, ou un dossier pour ranger.
+      count: '{count} élément|{count} éléments'
     image:
       upload_failed: Impossible d'envoyer l'image.
     title: Notes Markdown
@@ -91,10 +145,10 @@ notes:
     delete: Supprimer
     cancel: Annuler
     saved: Note enregistrée
-    delete_warning: Cette action est irréversible. Les sous-notes seront détachées de leur parent.
+    delete_warning: La note part à la corbeille. Vous pourrez la restaurer depuis la corbeille.
     untitled: Sans titre
     title_placeholder: Titre de la note…
-    search_placeholder: Rechercher dans l'arbo…
+    search_placeholder: Rechercher une note…
     search_no_results: Aucun résultat
     search_no_results_description: 'Aucune note ne correspond à « {query} ».'
     resize_handle: Glisser pour redimensionner
@@ -110,7 +164,7 @@ notes:
       errors:
         required: Choisissez au moins un fichier.
     tree_empty: Aucune note pour l'instant.
-    create_child: Ajouter une sous-note
+    create_in_folder: Nouvelle note dans ce dossier
     confirm_delete: 'Supprimer définitivement « {title} » ?'
 
     confirm_discard_changes: Vous avez des modifications non enregistrées. Les abandonner ?
@@ -143,7 +197,7 @@ notes:
       filter_label: Filtrer par tag
       clear: Tout effacer
       no_results: Aucune note pour ces tags
-      no_results_description: Aucune note de l'arbo ne porte les tags sélectionnés.
+      no_results_description: Aucune note ne porte les tags sélectionnés.
       errors:
         empty: Le tag est requis.
         sources_empty: Sélectionnez au moins un tag à fusionner.
@@ -199,11 +253,10 @@ notes:
       description: Cliquez sur + pour créer votre première note.
     no_selection:
       title: Sélectionnez une note
-      description: Choisissez une note dans l'arborescence ou créez-en une nouvelle.
+      description: Choisissez une note dans la bibliothèque, ou créez-en une nouvelle.
     errors:
       load_failed: Impossible de charger la note.
       create_failed: Impossible de créer la note.
       save_failed: Impossible d'enregistrer la note.
       delete_failed: Impossible de supprimer la note.
       reorder_failed: Impossible de réordonner les notes.
-      reorder_cycle: Impossible de déplacer une note sous l'une de ses sous-notes.
