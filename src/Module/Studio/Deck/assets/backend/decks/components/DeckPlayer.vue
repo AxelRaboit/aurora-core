@@ -25,6 +25,7 @@ import { useI18n } from "vue-i18n";
 import { ChevronLeft, ChevronRight, Grid2x2, Radio, X } from "lucide-vue-next";
 import SlideFrame from "./SlideFrame.vue";
 import { useDeckStage } from "../composables/useDeckStage.js";
+import { revealableIn } from "../reveals.js";
 
 const props = defineProps({
     slides: { type: Array, default: () => [] },
@@ -68,17 +69,7 @@ const shown = ref(0);
  * Zero for every slide that did not ask for it, which is every slide written
  * before today, so nothing about the arrows changes for them.
  */
-const REVEAL_SLOTS = ["bullets", "items", "steps", "figures", "lines"];
-
-const revealable = computed(() => {
-    const content = props.slides[at.value]?.content;
-
-    if (content?.reveal !== true) return 0;
-
-    const slot = REVEAL_SLOTS.find((name) => Array.isArray(content[name]));
-
-    return slot ? content[slot].length : 0;
-});
+const revealable = computed(() => revealableIn(props.slides[at.value]));
 
 const isFirst = computed(() => at.value === 0 && shown.value === 0);
 const isLast = computed(() => at.value >= props.slides.length - 1 && shown.value >= revealable.value);
@@ -91,11 +82,11 @@ const isLast = computed(() => at.value >= props.slides.length - 1 && shown.value
  */
 const link = useDeckStage(props.channel);
 
-link.onMove((index) => {
+link.onMove((index, revealed) => {
     if (index < 0 || index >= props.slides.length) return;
 
     at.value = index;
-    shown.value = 0;
+    shown.value = revealed;
 });
 
 /**
@@ -147,25 +138,15 @@ function step(by) {
     // Coming back into a slide that reveals, everything it had is already out:
     // walking backwards through a deck should not make the reader press
     // through every line again in reverse.
-    shown.value = by < 0 ? revealableAt(next) : 0;
-    link.announce(next);
-}
-
-function revealableAt(index) {
-    const content = props.slides[index]?.content;
-
-    if (content?.reveal !== true) return 0;
-
-    const slot = REVEAL_SLOTS.find((name) => Array.isArray(content[name]));
-
-    return slot ? content[slot].length : 0;
+    shown.value = by < 0 ? revealableIn(props.slides[next]) : 0;
+    link.announce(next, shown.value);
 }
 
 function jumpTo(index) {
     direction.value = index > at.value ? 1 : -1;
     at.value = index;
     shown.value = 0;
-    link.announce(index);
+    link.announce(index, 0);
     overview.value = false;
 }
 
@@ -293,7 +274,7 @@ onMounted(() => {
 
     // Says which slide is up, so a presenter window opened mid-talk lands on it
     // rather than on the first.
-    link.announce(at.value);
+    link.announce(at.value, shown.value);
 });
 
 onBeforeUnmount(() => {
