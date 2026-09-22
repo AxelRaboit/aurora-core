@@ -108,6 +108,15 @@ studio:
             unavailable_message: La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba el plan de contenidos de un espacio, pida un nuevo enlace a su contacto.
             timezone_notice: 'Horas en {timezone}'
             calendar_day_empty: Nada previsto ese día.
+            awaiting_you: '{count} a la espera de su opinión'
+            nothing_awaiting: Ha respondido a todo lo que estaba pendiente.
+            select_all: Seleccionar todo
+            approve_selected: 'Validar la selección ({count})'
+            approved_many: '{count} publicación(es) validada(s).'
+            review_by: 'revisar antes del {date}'
+            approval:
+                approved: Validado
+                changes_requested: Cambios solicitados
             preview_notice: "Vista previa: esto es lo que ve quien tiene este enlace. Nada de lo que pulse aquí le llega, y esta dirección caduca en unos minutos."
             drive_title: Documentos compartidos
             drive_download: Descargar el archivo
@@ -134,6 +143,7 @@ studio:
             already_changes_requested: 'Pidió una revisión el {date}.'
             errors:
                 approval_invalid: Respuesta no reconocida.
+                nothing_selected: Seleccione al menos una publicación.
                 comment_required: El mensaje no puede estar vacío.
                 too_many_requests: Demasiadas respuestas seguidas. Vuelva a intentarlo en unos minutos.
                 upload_required: Elija un archivo para enviar.
@@ -168,6 +178,12 @@ studio:
             authenticated: 'Firmado desde una cuenta autenticada del back-office'
             notice: 'Esta huella identifica el texto firmado. Cualquier modificación del documento produciría una huella diferente.'
     email:
+        space_review:
+            subject: 'Se espera su opinión sobre {space}'
+            body: '{count} publicación(es) esperan su opinión en el espacio {space}. Puede validarlas o solicitar cambios, y comentar cada una.'
+            cta: Abrir mi espacio
+            replaces: 'Esta dirección sustituye a la anterior, que ya no funciona. Es personal, no la transmita.'
+            expires: 'Sigue siendo válida hasta el {date}.'
         space_activity:
             subject: 'Novedades en {space}'
             body: 'Su cliente ha hecho algo en el espacio {space}:'

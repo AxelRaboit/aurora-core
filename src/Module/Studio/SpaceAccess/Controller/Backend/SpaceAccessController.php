@@ -12,6 +12,7 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceAccess\Dto\SpaceAccessLinkInputFactoryInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
+use Aurora\Module\Studio\SpaceAccess\Service\SpaceReviewInviter;
 use Aurora\Module\Studio\SpaceAccess\View\SpaceAccessViewBuilder;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -41,7 +42,27 @@ class SpaceAccessController extends AbstractController
         protected readonly SpaceAccessLinkInputFactoryInterface $inputFactory,
         protected readonly SpaceAccessViewBuilder $viewBuilder,
         protected readonly PayloadValidator $payloadValidator,
+        protected readonly SpaceReviewInviter $reviewInviter,
     ) {}
+
+    /**
+     * Demande au client d'aller relire ce qui attend son avis.
+     *
+     * Sous `studio.spaces.share` et pas `view` : l'action émet des adresses et
+     * en révoque, donc elle relève du droit de partager un espace et pas de
+     * celui de le regarder.
+     *
+     * La réponse porte les deux nombres plutôt qu'un simple succès : « envoyé »
+     * ne dit pas si quelqu'un l'a reçu. Un espace sans lien capable de répondre
+     * renvoie zéro destinataire, et l'écran le dit au lieu d'annoncer un envoi
+     * qui n'a eu lieu pour personne.
+     */
+    #[Route('/review', name: '_review', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.spaces.share')]
+    public function review(CustomerSpace $space): JsonResponse
+    {
+        return $this->jsonSuccess($this->reviewInviter->invite($space));
+    }
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(CustomerSpace $space): Response

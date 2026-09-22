@@ -111,6 +111,56 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * Ce qui attend encore une réponse du client, dans un espace.
+     *
+     * **Les mêmes deux conditions que le calendrier**, pour la raison que
+     * `countScheduledBetween` donne : une carte sans date ou décochée n'est pas
+     * sous les yeux du client, donc annoncer qu'elle l'attend serait lui
+     * demander de répondre à quelque chose qu'il ne voit pas.
+     *
+     * `Pending` veut dire que personne n'a rien dit, ce qui n'est pas un refus :
+     * c'est exactement la population qu'une invitation à relire concerne.
+     */
+    public function countAwaitingApproval(CustomerSpaceInterface $space): int
+    {
+        return (int) $this->createQueryBuilder('i')
+            ->select('COUNT(i.id)')
+            ->where('i.space = :space')
+            ->andWhere('i.scheduledAt IS NOT NULL')
+            ->andWhere('i.showOnCalendar = true')
+            ->andWhere('i.approval = :pending')
+            ->setParameter('space', $space)
+            ->setParameter('pending', SpaceContentApprovalEnum::Pending)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Ce dont l'échéance de relecture est passée sans réponse.
+     *
+     * Un sous-ensemble de {@see countAwaitingApproval()} : c'est la même
+     * population, réduite à ce qui a une échéance et l'a dépassée. Le studio a
+     * besoin des deux, parce que « trois en attente » et « trois en attente
+     * dont deux en retard » n'appellent pas la même journée.
+     */
+    public function countLateForReview(CustomerSpaceInterface $space, DateTimeImmutable $now): int
+    {
+        return (int) $this->createQueryBuilder('i')
+            ->select('COUNT(i.id)')
+            ->where('i.space = :space')
+            ->andWhere('i.scheduledAt IS NOT NULL')
+            ->andWhere('i.showOnCalendar = true')
+            ->andWhere('i.approval = :pending')
+            ->andWhere('i.reviewBy IS NOT NULL')
+            ->andWhere('i.reviewBy < :now')
+            ->setParameter('space', $space)
+            ->setParameter('pending', SpaceContentApprovalEnum::Pending)
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function countForSpace(CustomerSpaceInterface $space): int
     {
         return (int) $this->createQueryBuilder('i')

@@ -39,6 +39,12 @@ interface SpaceContentItemInterface
 
     public function appearsOnCalendar(): bool;
 
+    public function getReviewBy(): ?DateTimeImmutable;
+
+    public function setReviewBy(?DateTimeImmutable $reviewBy): static;
+
+    public function isLateForReview(DateTimeImmutable $now): bool;
+
     public function isScheduled(): bool;
 
     public function getPosition(): int;

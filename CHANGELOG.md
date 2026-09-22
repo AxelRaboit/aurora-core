@@ -5,6 +5,54 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.220] - 2026-09-22
+
+### Ajouté
+
+#### Un client est prévenu de ce qui attend son avis, et répond en lot
+L'espace client savait déjà montrer un calendrier, recueillir une validation et
+porter un fil de commentaires. Ce qui manquait n'était pas la mécanique, c'était
+tout ce qui fait qu'on s'en sert.
+
+**Le studio invite à relire, à la main.** Un bouton sur le tableau, qui annonce
+combien de publications attendent, et qui prévient par courriel tous les
+destinataires pouvant valider. À la main et pas automatiquement : celui qui sait
+quand un lot est prêt est celui qui l'a préparé, et un envoi déclenché à chaque
+carte devenue visible remplirait la boîte du client pendant que le lot se
+construit encore. Rien ne part s'il n'y a rien à relire.
+
+Le courriel porte une adresse neuve et révoque la précédente, parce que le jeton
+d'un lien n'existe en clair qu'à sa création : seul son condensé est stocké,
+pour qu'une base volée n'ouvre pas le plan de contenu d'un client. Le client a
+donc toujours exactement une adresse valide, la dernière reçue. Et le courriel
+part **avant** la révocation : un serveur de messagerie muet laisserait sinon
+quelqu'un dehors, sans adresse et sans le message qui la remplaçait.
+
+**Le client voit ce qui l'attend sans ouvrir une carte.** Un compteur en tête du
+calendrier, qui sert aussi de filtre et réduit le mois à ce qui demande une
+réponse. Le calendrier lui-même n'a pas changé : il est partagé par toute
+l'application, et ses pastilles portent déjà la couleur de leur étape. Un second
+code couleur par-dessus ne se serait pas lu.
+
+**Il répond en lot.** Cases à cocher et « Valider la sélection » sur cette
+liste. L'accord se donne en lot, la demande de modification non : dix
+approbations disent une seule chose dix fois, tandis que dix reprises sans un
+mot n'apprennent rien au studio et l'obligent à rappeler pour comprendre.
+
+**Une date de réponse, distincte de la date de parution.** Une publication
+prévue le 30 ne se valide pas le 30 : il faut le temps de produire et parfois de
+reprendre. Le champ est facultatif, il s'affiche chez le client, et le tableau
+annonce combien de cartes ont dépassé leur échéance. Rien ne se bloque ni ne se
+déprogramme pour autant : une date passée est une information, comme
+l'approbation est un avis et non un automate.
+
+### Dans aurora-client
+
+Une migration ajoute la colonne `review_by` à
+`core_studio_space_content_items`. Rien à répercuter à la main.
+
+---
+
 ## [0.9.219] - 2026-09-21
 
 ### Ajouté

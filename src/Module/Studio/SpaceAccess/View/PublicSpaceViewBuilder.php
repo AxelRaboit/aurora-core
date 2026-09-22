@@ -122,6 +122,15 @@ final readonly class PublicSpaceViewBuilder
                     'itemId' => '__id__',
                 ])
                 : null,
+            // La validation en lot, jamais la demande de modification : dix
+            // approbations disent une seule chose dix fois, dix demandes de
+            // reprise sans un mot n'apprennent rien au studio.
+            'approveManyPath' => $link->canApprove()
+                ? $this->urlGenerator->generate('public_space_approve_many', [
+                    'selector' => $link->getSelector(),
+                    'token' => $token,
+                ])
+                : null,
             'commentPath' => $link->canComment()
                 ? $this->pathTemplates->generate('public_space_comment', [
                     'selector' => $link->getSelector(),

@@ -63,6 +63,8 @@ const props = defineProps({
     comments: { type: Object, default: () => ({}) },
     /** Null when this link may only read, so there is nothing to post to. */
     answerPath: { type: String, default: null },
+    /** L'accord en lot. Null pour les mêmes raisons que `answerPath`. */
+    approveManyPath: { type: String, default: null },
     commentPath: { type: String, default: null },
     canUpload: { type: Boolean, default: false },
     /** Vrai quand le studio se regarde lui-même, et non le client. */
@@ -143,7 +145,39 @@ const events = computed(() =>
             // the absence of a listener is what makes the page read-only by
             // construction instead of by omission.
             readOnly: true,
+            // L'état de la réponse voyage avec l'événement. La grille l'ignore,
+            // le compteur, le filtre et la liste du jour s'en servent.
+            approval: item.approval ?? "pending",
         })),
+);
+
+/**
+ * Ce qui attend encore une réponse de ce client.
+ *
+ * `pending` veut dire que personne n'a rien dit, ce qui n'est pas un refus :
+ * c'est exactement la population qu'un client vient chercher en revenant.
+ */
+const pendingEvents = computed(() =>
+    events.value.filter((event) => "pending" === event.approval),
+);
+
+/**
+ * Le mois réduit à ce qui attend, quand le client le demande.
+ *
+ * Un filtre plutôt qu'une pastille sur la grille : le mois est un composant
+ * partagé par toute l'application, et l'événement y porte déjà une couleur,
+ * celle de son étape. Un second code couleur sur la même pastille ne se lit
+ * pas. Retirer ce qui ne l'attend pas dit la même chose sans rien repeindre.
+ */
+const reviewOnly = ref(false);
+
+const visibleEvents = computed(() =>
+    reviewOnly.value ? pendingEvents.value : events.value,
+);
+
+/** Le bouton reste tant qu'il est enclenché, sinon il disparaîtrait sous le doigt. */
+const showsReviewFilter = computed(
+    () => props.canApprove && (pendingEvents.value.length > 0 || reviewOnly.value),
 );
 
 /**
@@ -267,7 +301,7 @@ function sameDay(a, b) {
 }
 
 const dayItems = computed(() =>
-    events.value
+    visibleEvents.value
         .filter((event) => sameDay(new Date(event.startAt), selectedDay.value))
         .sort((a, b) => new Date(a.startAt) - new Date(b.startAt)),
 );
@@ -398,6 +432,70 @@ async function answer(approval) {
 function open(event) {
     openItem.value = itemsById.value.get(event.id) ?? null;
 }
+
+/**
+ * Valider plusieurs cartes d'un geste.
+ *
+ * **En lot pour l'accord, jamais pour la reprise.** Approuver dix contenus d'un
+ * coup dit une seule chose, dix fois. Demander une modification sans dire
+ * laquelle n'apprend rien au studio et l'oblige à rappeler pour comprendre :
+ * elle reste attachée à une carte et à son commentaire.
+ */
+const selectedIds = ref([]);
+
+function toggleSelection(id) {
+    selectedIds.value = selectedIds.value.includes(id)
+        ? selectedIds.value.filter((entry) => entry !== id)
+        : [...selectedIds.value, id];
+}
+
+const allSelected = computed(
+    () =>
+        pendingEvents.value.length > 0 &&
+        selectedIds.value.length === pendingEvents.value.length,
+);
+
+function toggleAll() {
+    selectedIds.value = allSelected.value
+        ? []
+        : pendingEvents.value.map((event) => event.id);
+}
+
+const approvingMany = ref(false);
+
+async function approveSelected() {
+    if (!props.approveManyPath || approvingMany.value) return;
+    if (0 === selectedIds.value.length) return;
+
+    approvingMany.value = true;
+    try {
+        const data = await request(props.approveManyPath, {
+            ids: selectedIds.value,
+        });
+
+        if (!data?.success) return;
+
+        if (Array.isArray(data.items)) items.value = data.items;
+        if (data.comments) comments.value = data.comments;
+        toast.success(
+            t("studio.public.space.approved_many", { count: data.approved }),
+        );
+        selectedIds.value = [];
+    } finally {
+        approvingMany.value = false;
+    }
+}
+
+/** L'échéance de relecture d'une carte, telle qu'elle se lit. */
+function reviewByLabel(event) {
+    const item = itemsById.value.get(event.id);
+
+    return item?.reviewBy ? d(new Date(item.reviewBy), "long") : "";
+}
+
+function isLate(event) {
+    return true === itemsById.value.get(event.id)?.lateForReview;
+}
 </script>
 
 <template>
@@ -488,24 +586,117 @@ function open(event) {
                         {{ monthTitle }}
                     </h2>
                 </div>
-                <p class="text-xs text-muted">
-                    {{ t("studio.public.space.timezone_notice", { timezone: space.timezone }) }}
-                </p>
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- La première chose à lire en arrivant : ce qui attend une
+                         réponse. Il fait aussi filtre, parce qu'un client qui
+                         revient veut sa liste de tâches et pas son mois. -->
+                    <button
+                        v-if="showsReviewFilter"
+                        type="button"
+                        class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors"
+                        :class="reviewOnly
+                            ? 'border-accent-500 bg-accent-500 text-white'
+                            : 'border-line text-secondary hover:border-accent hover:text-primary'"
+                        :aria-pressed="reviewOnly"
+                        v-on:click="reviewOnly = !reviewOnly"
+                    >
+                        <MessageSquare class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("studio.public.space.awaiting_you", { count: pendingEvents.length }) }}
+                    </button>
+                    <p class="text-xs text-muted">
+                        {{ t("studio.public.space.timezone_notice", { timezone: space.timezone }) }}
+                    </p>
+                </div>
             </div>
 
             <div ref="container" class="space-y-3">
+                <p
+                    v-if="reviewOnly && !pendingEvents.length"
+                    class="rounded-xl border border-line/60 bg-surface px-3 py-3 text-xs text-muted"
+                >
+                    {{ t("studio.public.space.nothing_awaiting") }}
+                </p>
+
                 <CalendarMonth
                     :cells="cells"
-                    :events="events"
+                    :events="visibleEvents"
                     :compact="isNarrow"
                     :selected="isNarrow ? selectedDay : null"
                     v-on:open-event="open"
                     v-on:select-day="selectedDay = $event"
                 />
 
+                <!-- La liste de relecture : ce que le filtre promet, à savoir
+                     une liste de tâches et pas un mois. Elle remplace la liste
+                     du jour tant qu'il est enclenché, sur téléphone comme sur
+                     un écran large, parce que ce qu'on vient faire ici est
+                     répondre et non naviguer entre les jours. -->
+                <section
+                    v-if="reviewOnly && pendingEvents.length"
+                    class="rounded-xl border border-line/60 bg-surface"
+                >
+                    <header class="flex flex-wrap items-center justify-between gap-2 border-b border-line/40 px-3 py-2">
+                        <label class="flex items-center gap-2 text-sm text-primary">
+                            <input
+                                type="checkbox"
+                                class="h-4 w-4 rounded border-line accent-accent-500"
+                                :checked="allSelected"
+                                v-on:change="toggleAll"
+                            >
+                            {{ t("studio.public.space.select_all") }}
+                        </label>
+
+                        <button
+                            v-if="approveManyPath"
+                            type="button"
+                            class="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-accent-600 disabled:opacity-50"
+                            :disabled="!selectedIds.length || approvingMany"
+                            v-on:click="approveSelected"
+                        >
+                            <Check class="mr-1 inline h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("studio.public.space.approve_selected", { count: selectedIds.length }) }}
+                        </button>
+                    </header>
+
+                    <ul class="divide-y divide-line/40">
+                        <li
+                            v-for="event in pendingEvents"
+                            :key="event.id"
+                            class="flex items-start gap-2 px-3 py-2.5"
+                        >
+                            <input
+                                type="checkbox"
+                                class="mt-1 h-4 w-4 shrink-0 rounded border-line accent-accent-500"
+                                :checked="selectedIds.includes(event.id)"
+                                :aria-label="event.title"
+                                v-on:change="toggleSelection(event.id)"
+                            >
+                            <button
+                                type="button"
+                                class="min-w-0 flex-1 text-left"
+                                v-on:click="open(event)"
+                            >
+                                <span class="block truncate text-sm text-primary">{{ event.title }}</span>
+                                <span class="mt-0.5 flex flex-wrap items-center gap-2 text-2xs text-muted">
+                                    <span>{{ d(new Date(event.startAt), "long") }}</span>
+                                    <!-- L'échéance de relecture, quand il y en
+                                         a une. En retard se dit, mais ne
+                                         bloque rien : c'est une information. -->
+                                    <span
+                                        v-if="reviewByLabel(event)"
+                                        :class="isLate(event) ? 'rounded-full bg-warning-soft px-1.5 py-0.5 font-medium text-warning' : ''"
+                                    >
+                                        {{ t("studio.public.space.review_by", { date: reviewByLabel(event) }) }}
+                                    </span>
+                                </span>
+                            </button>
+                        </li>
+                    </ul>
+                </section>
+
                 <!-- La grille dit quels jours portent quelque chose ; celle-ci dit
                  quoi. L'une sans l'autre est illisible sur un téléphone. -->
-                <section v-if="isNarrow" class="rounded-xl border border-line/60 bg-surface">
+                <section v-if="isNarrow && !reviewOnly" class="rounded-xl border border-line/60 bg-surface">
                     <header class="flex items-baseline gap-2 border-b border-line/40 px-3 py-2">
                         <h3 class="text-sm font-medium capitalize text-primary">
                             {{ dayTitle }}
@@ -529,6 +720,19 @@ function open(event) {
                                 </span>
                                 <span class="min-w-0 flex-1 truncate text-sm text-primary">
                                     {{ event.title }}
+                                </span>
+                                <!-- Ce que ce client a déjà dit sur cette carte.
+                                     Rien pour « sans réponse » : c'est le cas
+                                     ordinaire, et une pastille sur chaque ligne
+                                     ne distinguerait plus rien. -->
+                                <span
+                                    v-if="canApprove && 'pending' !== event.approval"
+                                    class="shrink-0 rounded-full px-1.5 py-0.5 text-2xs font-medium"
+                                    :class="'approved' === event.approval
+                                        ? 'bg-success-soft text-success'
+                                        : 'bg-warning-soft text-warning'"
+                                >
+                                    {{ t(`studio.public.space.approval.${event.approval}`) }}
                                 </span>
                             </button>
                         </li>

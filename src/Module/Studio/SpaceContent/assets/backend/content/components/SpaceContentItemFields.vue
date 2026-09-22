@@ -113,6 +113,22 @@ function set(field, value) {
                 :disabled="readonly"
                 v-on:update:model-value="set('scheduledAt', $event)"
             />
+
+            <!-- Une date de parution ne dit pas quand il faut avoir tranché.
+                 Celle-ci n'apparaît qu'une fois la parution posée : demander
+                 une relecture pour quelque chose qui ne sort pas encore n'a
+                 personne à qui la demander. -->
+            <AppDatePicker
+                v-if="form.scheduledAt"
+                :model-value="form.reviewBy"
+                enable-time
+                :label="t('backend.studio.space_content.review_by')"
+                :placeholder="t('backend.studio.space_content.scheduled_at_placeholder')"
+                :hint="t('backend.studio.space_content.review_by_hint')"
+                :error="errors.reviewBy"
+                :disabled="readonly"
+                v-on:update:model-value="set('reviewBy', $event)"
+            />
         </div>
 
         <!-- Sous la date, et seulement quand il y en a une : décocher une

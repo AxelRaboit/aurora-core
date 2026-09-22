@@ -1,0 +1,16 @@
+{# L'invitation à relire un plan de contenu, envoyée à la main par le studio.
+
+   Le lien est neuf : le jeton d'un lien n'existe en clair qu'à sa création, donc
+   on ne peut pas renvoyer l'adresse d'un lien déjà émis. Le précédent vient
+   d'être révoqué, et le message le dit plutôt que de laisser quelqu'un se
+   demander pourquoi son ancien favori ne répond plus.
+
+   Le nombre en attente est dans le corps et dans le sujet : c'est ce qui décide
+   si on ouvre maintenant ou ce soir. #}
+<p>{{ 'studio.email.space_review.body'|trans({'{space}': space.name, '{count}': awaiting}) }}</p>
+
+<p><a href="{{ url }}">{{ 'studio.email.space_review.cta'|trans }}</a></p>
+
+<p>{{ 'studio.email.space_review.replaces'|trans }}</p>
+
+<p>{{ 'studio.email.space_review.expires'|trans({'{date}': expiresAt|date('d/m/Y')}) }}</p>

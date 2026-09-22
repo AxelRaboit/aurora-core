@@ -1285,6 +1285,19 @@ backend:
             column: Step
             scheduled_at: Publication date
             scheduled_at_hint: 'Optional. An idea with no date lives on the board and joins the calendar when you schedule it.'
+            review_by: Answer needed before
+            review_by_hint: 'Optional. The date you need the client answer by to hold the publication date. Nothing is blocked at the deadline: it just shows.'
+            review:
+                action: 'Send for review ({count})'
+                hint: 'Tells the client by email what is waiting for them, and sends them a fresh address.'
+                confirm_title: Send for review?
+                confirm_body: '{count} piece(s) of content are waiting for an answer. Every recipient who can approve will get an email with a fresh address, and their previous one will stop working.'
+                confirm_send: Send
+                sent: 'Sent to {count} recipient(s).'
+                nothing_awaiting: Nothing is waiting for an answer right now.
+                nobody_to_write_to: 'No link on this space can answer. Issue an access with the right to approve from the Access tab.'
+                late: '{count} late'
+                late_hint: 'These have passed the date you needed an answer by. Nothing is blocked because of it.'
             show_on_calendar: Show on the calendar
             show_on_calendar_hint: "Unchecked, the card keeps its date and stays on the board, but appears neither on your calendar nor on the client's."
             scheduled_at_placeholder: '22/09/2026 09:00'
@@ -1317,6 +1330,7 @@ backend:
                 title_too_long: The title cannot be longer than 255 characters.
                 column_required: Choose a step of this space.
                 scheduled_at_invalid: That date is not valid.
+                review_by_invalid: The review date is invalid.
                 column_name_required: The step name is required.
                 column_name_too_long: The name cannot be longer than 100 characters.
                 column_not_empty: 'This step holds {count} items. Move them before deleting it.'
@@ -1440,6 +1454,15 @@ studio:
             unavailable_message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a space's content plan, ask your contact for a new link.
             timezone_notice: 'Times in {timezone}'
             calendar_day_empty: Nothing planned that day.
+            awaiting_you: '{count} awaiting your answer'
+            nothing_awaiting: You have answered everything that was waiting.
+            select_all: Select all
+            approve_selected: 'Approve selection ({count})'
+            approved_many: '{count} piece(s) of content approved.'
+            review_by: 'to review before {date}'
+            approval:
+                approved: Approved
+                changes_requested: Changes requested
             drive_title: Shared documents
             drive_download: Download the file
             preview_notice: "Preview: this is what the holder of this link sees. Nothing you click here reaches them, and this address expires in a few minutes."
@@ -1466,6 +1489,7 @@ studio:
             already_changes_requested: 'You asked for changes on {date}.'
             errors:
                 approval_invalid: Answer not recognised.
+                nothing_selected: Select at least one piece of content.
                 comment_required: The message cannot be empty.
                 too_many_requests: Too many answers in a row. Try again in a few minutes.
                 upload_required: Choose a file to send.
@@ -1500,6 +1524,12 @@ studio:
             authenticated: 'Signed from an authenticated back office account'
             notice: 'This hash identifies the signed wording. Any change to the document would produce a different one.'
     email:
+        space_review:
+            subject: 'Your answer is needed on {space}'
+            body: '{count} piece(s) of content are waiting for your answer in the {space} space. You can approve them or ask for changes, and comment on each one.'
+            cta: Open my space
+            replaces: 'This address replaces the previous one, which no longer works. It is personal, please do not pass it on.'
+            expires: 'It stays valid until {date}.'
         space_activity:
             subject: 'Something new in {space}'
             body: 'Your client did something in the {space} space:'

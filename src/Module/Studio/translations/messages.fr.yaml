@@ -1296,6 +1296,19 @@ backend:
             column: Étape
             scheduled_at: Date de publication
             scheduled_at_hint: 'Facultative. Une idée sans date vit sur le tableau et rejoint le calendrier quand vous la programmez.'
+            review_by: Réponse attendue avant le
+            review_by_hint: "Facultatif. La date à laquelle il vous faut l'avis du client pour tenir la parution. Rien ne se bloque à l'échéance : elle s'affiche, c'est tout."
+            review:
+                action: 'Envoyer à relire ({count})'
+                hint: "Prévient le client par courriel de ce qui attend son avis, et lui envoie une adresse neuve."
+                confirm_title: Envoyer à relire ?
+                confirm_body: "{count} publication(s) attendent une réponse. Chaque destinataire pouvant valider recevra un courriel avec une adresse neuve, et son adresse précédente cessera de fonctionner."
+                confirm_send: Envoyer
+                sent: 'Envoyé à {count} destinataire(s).'
+                nothing_awaiting: Rien n'attend de réponse pour le moment.
+                nobody_to_write_to: "Aucun lien de cet espace ne peut répondre. Émettez un accès avec le droit de valider depuis l'onglet Accès."
+                late: '{count} en retard'
+                late_hint: "Ces publications ont dépassé la date à laquelle vous attendiez une réponse. Rien n'est bloqué pour autant."
             show_on_calendar: Afficher dans le calendrier
             show_on_calendar_hint: "Décochée, la carte garde sa date et reste sur le tableau, mais ne paraît ni dans votre calendrier ni dans celui du client."
             scheduled_at_placeholder: '22/09/2026 09:00'
@@ -1328,6 +1341,7 @@ backend:
                 title_too_long: Le titre ne peut pas dépasser 255 caractères.
                 column_required: Choisissez une étape de cet espace.
                 scheduled_at_invalid: Cette date n'est pas valide.
+                review_by_invalid: La date de relecture est invalide.
                 column_name_required: Le nom de l'étape est obligatoire.
                 column_name_too_long: Le nom ne peut pas dépasser 100 caractères.
                 column_not_empty: 'Cette étape contient {count} contenu(s). Déplacez-les avant de la supprimer.'
@@ -1451,6 +1465,15 @@ studio:
             unavailable_message: L'adresse que vous avez ouverte n'existe pas, a expiré, ou a été révoquée. Si vous attendiez le plan de contenu d'un espace, demandez un nouveau lien à votre interlocuteur.
             timezone_notice: 'Heures en {timezone}'
             calendar_day_empty: Rien de prévu ce jour-là.
+            awaiting_you: '{count} en attente de votre avis'
+            nothing_awaiting: Vous avez répondu sur tout ce qui était en attente.
+            select_all: Tout sélectionner
+            approve_selected: 'Valider la sélection ({count})'
+            approved_many: '{count} publication(s) validée(s).'
+            review_by: 'à relire avant le {date}'
+            approval:
+                approved: Validé
+                changes_requested: Modification demandée
             preview_notice: "Aperçu : voici ce que voit le destinataire de ce lien. Rien de ce que vous cliquez ici ne lui est envoyé, et cette adresse expire dans quelques minutes."
             drive_title: Documents partagés
             drive_download: Télécharger le fichier
@@ -1477,6 +1500,7 @@ studio:
             already_changes_requested: 'Vous avez demandé une reprise le {date}.'
             errors:
                 approval_invalid: Réponse non reconnue.
+                nothing_selected: Sélectionnez au moins une publication.
                 comment_required: Le message ne peut pas être vide.
                 too_many_requests: Trop de réponses envoyées coup sur coup. Réessayez dans quelques minutes.
                 upload_required: Choisissez un fichier à envoyer.
@@ -1511,6 +1535,12 @@ studio:
             authenticated: 'Signé depuis un compte authentifié du back-office'
             notice: 'Cette empreinte identifie le texte signé. Toute modification du document produirait une empreinte différente.'
     email:
+        space_review:
+            subject: 'Votre avis est attendu sur {space}'
+            body: "{count} publication(s) attendent votre avis dans l'espace {space}. Vous pouvez les valider ou demander une modification, et commenter chacune d'elles."
+            cta: Ouvrir mon espace
+            replaces: "Cette adresse remplace la précédente, qui ne fonctionne plus. Elle est personnelle, ne la transmettez pas."
+            expires: 'Elle reste valable jusqu''au {date}.'
         space_activity:
             subject: 'Du nouveau dans {space}'
             body: "Votre client a fait quelque chose dans l'espace {space} :"
