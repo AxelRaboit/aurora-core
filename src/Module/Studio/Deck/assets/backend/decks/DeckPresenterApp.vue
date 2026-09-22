@@ -101,11 +101,14 @@ onBeforeUnmount(() => {
                     {{ t("backend.studio.decks.presenter_now") }}
                     <span class="presenter-count">{{ at + 1 }} / {{ slides.length }}</span>
                 </p>
+                <!-- La slide en cours est regardee, celle d'apres est une
+                     vignette de preparation : le mouvement n'a rien a y faire. -->
                 <SlideFrame
                     v-if="current"
                     :slide="current"
                     :appearance="deck.appearance"
                     :index="at + 1"
+                    live
                 />
             </div>
 

@@ -20,7 +20,7 @@
  * through a `BroadcastChannel`: either window drives, so a presenter reading
  * their notes can step from there and a clicker still steps from here.
  */
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { ChevronLeft, ChevronRight, Grid2x2, Radio, X } from "lucide-vue-next";
 import SlideFrame from "./SlideFrame.vue";
@@ -48,6 +48,16 @@ const isFirst = computed(() => at.value === 0);
 const isLast = computed(() => at.value >= props.slides.length - 1);
 
 /**
+ * How many of them are showing.
+ *
+ * **Set by whoever moves the slide, never by watching it.** A watcher on the
+ * index looked simpler and was wrong: it runs after the code that changed the
+ * index, so it undid the one case it was there to serve, and stepping back
+ * into a slide came in with nothing out instead of everything.
+ */
+const shown = ref(0);
+
+/**
  * Named `link` and not `stage`: the template ref above is the element that goes
  * full screen, and two bindings by that name would have the overlay opening in
  * a channel object.
@@ -55,7 +65,10 @@ const isLast = computed(() => at.value >= props.slides.length - 1);
 const link = useDeckStage(props.channel);
 
 link.onMove((index) => {
-    if (index >= 0 && index < props.slides.length) at.value = index;
+    if (index < 0 || index >= props.slides.length) return;
+
+    at.value = index;
+    shown.value = 0;
 });
 
 /**
@@ -98,12 +111,6 @@ const revealable = computed(() => {
     return slot ? content[slot].length : 0;
 });
 
-/** How many of them are showing. Reset whenever the slide itself changes. */
-const shown = ref(0);
-
-watch(at, () => {
-    shown.value = 0;
-});
 
 /**
  * One press, one thing: the next line if there is one, else the next slide.
@@ -152,6 +159,7 @@ function revealableAt(index) {
 function jumpTo(index) {
     direction.value = index > at.value ? 1 : -1;
     at.value = index;
+    shown.value = 0;
     link.announce(index);
     overview.value = false;
 }
