@@ -648,6 +648,8 @@ backend:
                 items: "Une carte par ligne. Titre | description"
                 steps: "Une étape par ligne. Nom | précision"
                 rows: "Une ligne du tableau par ligne, cellules séparées par |. La première est l'en-tête."
+                figures: "Un chiffre par ligne. Valeur | ce qu'il compte"
+                lines: Une ligne par ligne. Adresse, téléphone, site.
             emphasis_hint: "Dans le texte d'une slide : **gras**, *italique*, `code`, ==mot en accent==."
             chart_types:
                 bar: Barres
@@ -723,6 +725,10 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                leftTitle: Titre de gauche
+                rightTitle: Titre de droite
+                figures: Les chiffres
+                lines: Les lignes
                 ghost: Chiffre en filigrane
                 bgTreatment: Traitement de la photo
                 bgVeil: Voile
@@ -756,6 +762,9 @@ backend:
                 split: Deux colonnes
                 quote: Citation
                 section: Intercalaire
+                compare: Comparaison
+                figures: Chiffres
+                end: Fin
             categories:
                 errors:
                     name_required: Le nom est obligatoire.

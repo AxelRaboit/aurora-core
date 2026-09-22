@@ -56,6 +56,15 @@ enum SlideLayoutEnum: string
     /** Figures, drawn. Bars, a line or a doughnut, in the deck's accent. */
     case Chart = 'chart';
 
+    /** Two columns that answer each other. Before and after, us and them. */
+    case Compare = 'compare';
+
+    /** Three or four figures side by side. The results slide. */
+    case Figures = 'figures';
+
+    /** Thank you, and how to reach whoever presented. The last slide. */
+    case End = 'end';
+
     /**
      * The slots that hold a list of lines rather than one string.
      *
@@ -69,7 +78,7 @@ enum SlideLayoutEnum: string
      */
     public static function listSlots(): array
     {
-        return ['bullets', 'items', 'steps', 'rows', 'series'];
+        return ['bullets', 'items', 'steps', 'rows', 'series', 'figures', 'lines'];
     }
 
     /**
@@ -132,6 +141,9 @@ enum SlideLayoutEnum: string
             self::Timeline => ['title', 'steps'],
             self::Table => ['title', 'rows'],
             self::Chart => ['title', 'chartType', 'series'],
+            self::Compare => ['title', 'leftTitle', 'left', 'rightTitle', 'right'],
+            self::Figures => ['title', 'figures'],
+            self::End => ['title', 'lines'],
         };
     }
 

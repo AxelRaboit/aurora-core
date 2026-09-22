@@ -311,6 +311,37 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                     </div>
                 </template>
 
+                <template v-else-if="slide.layout === 'compare'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
+                    <div class="sf-compare">
+                        <div class="sf-compare-side">
+                            <span v-if="slide.content.leftTitle" class="sf-compare-head" v-html="emphasis(slide.content.leftTitle)" />
+                            <p v-if="!compact" v-html="emphasis(slide.content.left)" />
+                        </div>
+                        <div class="sf-compare-side is-second">
+                            <span v-if="slide.content.rightTitle" class="sf-compare-head" v-html="emphasis(slide.content.rightTitle)" />
+                            <p v-if="!compact" v-html="emphasis(slide.content.right)" />
+                        </div>
+                    </div>
+                </template>
+
+                <template v-else-if="slide.layout === 'figures'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
+                    <div class="sf-figures" :style="{ '--figures': Math.min((slide.content.figures ?? []).length || 1, 4) }">
+                        <div v-for="(figure, at) in (slide.content.figures ?? []).slice(0, 4)" :key="at" class="sf-figure">
+                            <span class="sf-figure-value">{{ headed(figure).head }}</span>
+                            <span v-if="!compact && headed(figure).body" class="sf-figure-label" v-html="emphasis(headed(figure).body)" />
+                        </div>
+                    </div>
+                </template>
+
+                <template v-else-if="slide.layout === 'end'">
+                    <p class="sf-title" v-html="emphasis(slide.content.title)" />
+                    <div v-if="!compact" class="sf-end-lines">
+                        <span v-for="(line, at) in slide.content.lines ?? []" :key="at" v-html="emphasis(line)" />
+                    </div>
+                </template>
+
                 <template v-else-if="slide.layout === 'cards'">
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <div class="sf-cards" :style="{ '--cards': Math.min((slide.content.items ?? []).length || 1, 4) }">
@@ -798,6 +829,41 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
  * une couleur de plus ferait une deuxième chose à lire.
  */
 .slide-frame :deep(strong) { font-weight: 700; }
+
+/* Deux colonnes qui se répondent. Le filet entre elles dit l'opposition que
+   le gabarit `split` laissait deviner. */
+.sf-compare { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 5cqw; align-items: start; }
+.sf-compare-side { display: flex; flex-direction: column; gap: 1.6cqw; min-width: 0; }
+.sf-compare-side.is-second { border-left: 0.25cqw solid color-mix(in srgb, currentColor 22%, transparent); padding-left: 5cqw; }
+.sf-compare-side p { margin: 0; font-size: calc(3.4cqw * var(--fit)); line-height: 1.45; }
+
+.sf-compare-head {
+    font-family: var(--slide-heading);
+    font-size: calc(2.9cqw * var(--fit));
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--slide-accent);
+}
+
+/* Les chiffres, côte à côte. La valeur porte l'accent et la légende reste en
+   encre : l'inverse ferait lire la légende avant le chiffre. */
+.sf-figures { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(var(--figures, 3), 1fr); gap: 4cqw; align-items: center; }
+.sf-figure { display: flex; flex-direction: column; gap: 1cqw; min-width: 0; }
+
+.sf-figure-value {
+    font-family: var(--slide-heading);
+    font-size: calc(9cqw * var(--fit));
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--slide-accent);
+}
+
+.sf-figure-label { font-size: calc(2.9cqw * var(--fit)); line-height: 1.35; opacity: 0.78; }
+
+/* La dernière slide. Les lignes de contact sous le mot, serrées, sans puce. */
+.sf-end-lines { display: flex; flex-direction: column; gap: 0.8cqw; font-size: calc(3.2cqw * var(--fit)); opacity: 0.8; }
 
 /* La casse des titres, décidée pour tout le deck. Les trois sélecteurs et pas
    un seul : ce sont trois classes différentes selon le gabarit, et un titre

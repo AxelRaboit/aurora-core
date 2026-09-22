@@ -161,6 +161,45 @@ final class SlideContentWhitelistTest extends TestCase
         self::assertSame(['quote' => 'Rien'], $quote->getContent());
     }
 
+    /**
+     * The three layouts added tonight go through the same door as the twelve
+     * before them: their slots, and the list slots declared as such so a
+     * textarea's lines are stored as lines rather than as one string.
+     */
+    public function testTheNewLayoutsDeclareTheirOwnSlots(): void
+    {
+        $manager = $this->manager();
+
+        $compare = (new Slide())->setLayout(SlideLayoutEnum::Compare);
+        $manager->writeContent($compare, [
+            'title' => 'Avant, après',
+            'leftTitle' => 'Avant',
+            'left' => 'Quatre outils.',
+            'rightTitle' => 'Après',
+            'right' => 'Un seul endroit.',
+            'bullets' => ['un slot que ce gabarit ne porte pas'],
+        ]);
+
+        self::assertSame(
+            [
+                'title' => 'Avant, après',
+                'leftTitle' => 'Avant',
+                'left' => 'Quatre outils.',
+                'rightTitle' => 'Après',
+                'right' => 'Un seul endroit.',
+            ],
+            $compare->getContent(),
+        );
+
+        $figures = (new Slide())->setLayout(SlideLayoutEnum::Figures);
+        $manager->writeContent($figures, ['figures' => ['-38% | de temps de saisie', 12, '4 | outils remplacés']]);
+        self::assertSame(['figures' => ['-38% | de temps de saisie', '4 | outils remplacés']], $figures->getContent());
+
+        $end = (new Slide())->setLayout(SlideLayoutEnum::End);
+        $manager->writeContent($end, ['title' => 'Merci', 'lines' => ['contact@exemple.fr']]);
+        self::assertSame(['title' => 'Merci', 'lines' => ['contact@exemple.fr']], $end->getContent());
+    }
+
     public function testItKeepsBulletsAsAListOfStrings(): void
     {
         $slide = (new Slide())->setLayout(SlideLayoutEnum::Bullets);
