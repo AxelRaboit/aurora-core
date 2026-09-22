@@ -11,6 +11,7 @@ use Aurora\Module\Studio\Deck\Enum\DeckPatternEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
 
 use function array_key_exists;
+use function in_array;
 use function is_bool;
 use function is_int;
 use function is_string;
@@ -36,6 +37,9 @@ final readonly class DeckStyleNormalizer
 {
     /** The three colours a deck may override, in the order the form shows them. */
     public const array COLOURS = ['background', 'ink', 'accent'];
+
+    /** @var list<string> */
+    public const array MARGINS = ['tight', 'normal', 'wide'];
 
     /** A footer is a line, not a paragraph: it sits in 2.4% of a slide's width. */
     private const int FOOTER_MAX = 120;
@@ -78,6 +82,20 @@ final readonly class DeckStyleNormalizer
 
         if ($gradient instanceof DeckGradientEnum && DeckGradientEnum::None !== $gradient) {
             $clean['gradient'] = $gradient->value;
+        }
+
+        // Three widths of margin, the middle one being what every deck had
+        // before. Stored even when it is the middle one: unlike the wash, a
+        // margin is not an effect somebody added, it is a choice about the
+        // frame, and "I looked at this and kept the usual one" is worth
+        // keeping apart from "I never opened the panel".
+        if (is_string($style['margins'] ?? null) && in_array($style['margins'], self::MARGINS, true)) {
+            $clean['margins'] = $style['margins'];
+        }
+
+        // Only the true, like `slideNumbers`.
+        if (array_key_exists('hairline', $style) && is_bool($style['hairline']) && $style['hairline']) {
+            $clean['hairline'] = true;
         }
 
         // Same shape as the gradient, and for the same reason: the bare

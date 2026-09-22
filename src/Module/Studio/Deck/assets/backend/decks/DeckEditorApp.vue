@@ -83,6 +83,7 @@ const props = defineProps({
     logoPlacements: { type: Array, default: () => [] },
     gradients: { type: Array, default: () => [] },
     patterns: { type: Array, default: () => [] },
+    margins: { type: Array, default: () => [] },
     transitions: { type: Array, default: () => [] },
     appearancePath: { type: String, required: true },
 });
@@ -282,6 +283,19 @@ const fitOptions = computed(() => [
     { value: "contain", label: t("backend.studio.decks.media_fit_contain") },
     { value: "cover", label: t("backend.studio.decks.media_fit_cover") },
 ]);
+
+/** Les trois listes de composition, avec leur valeur d'aujourd'hui en tête. */
+const compositionOptions = (slot, values) =>
+    computed(() =>
+        values.map((value) => ({
+            value,
+            label: t(`backend.studio.decks.${slot}s.${value}`),
+        })),
+    );
+
+const anchorOptions = compositionOptions("anchor", ["center", "top", "bottom"]);
+const alignOptions = compositionOptions("align", ["left", "center", "right"]);
+const measureOptions = compositionOptions("measure", ["full", "two_thirds", "half"]);
 
 const shapeOptions = computed(() => [
     { value: "soft", label: t("backend.studio.decks.media_shape_soft") },
@@ -694,6 +708,30 @@ onBeforeUnmount(() => {
                                 v-on:update:model-value="(value) => writeSlot('kicker', value)"
                             />
 
+                            <div v-if="commonSlots.includes('anchor')" class="grid gap-3 sm:grid-cols-3">
+                                <AppSelect
+                                    :model-value="selected.content.anchor ?? 'center'"
+                                    :options="anchorOptions"
+                                    :label="labelFor('anchor')"
+                                    :disabled="!editable"
+                                    v-on:update:model-value="(value) => writeSlot('anchor', value)"
+                                />
+                                <AppSelect
+                                    :model-value="selected.content.align ?? 'left'"
+                                    :options="alignOptions"
+                                    :label="labelFor('align')"
+                                    :disabled="!editable"
+                                    v-on:update:model-value="(value) => writeSlot('align', value)"
+                                />
+                                <AppSelect
+                                    :model-value="selected.content.measure ?? 'full'"
+                                    :options="measureOptions"
+                                    :label="labelFor('measure')"
+                                    :disabled="!editable"
+                                    v-on:update:model-value="(value) => writeSlot('measure', value)"
+                                />
+                            </div>
+
                             <AppToggle
                                 v-if="commonSlots.includes('inverted')"
                                 :model-value="selected.content.inverted === true"
@@ -913,6 +951,7 @@ onBeforeUnmount(() => {
             :logo-placements="logoPlacements"
             :gradients="gradients"
             :patterns="patterns"
+            :margins="margins"
             :transitions="transitions"
             :sample="slides[0] ?? null"
             :theme="theme"

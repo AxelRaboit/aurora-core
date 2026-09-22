@@ -31,6 +31,7 @@ const props = defineProps({
     fontPairs: { type: Array, default: () => [] },
     gradients: { type: Array, default: () => [] },
     patterns: { type: Array, default: () => [] },
+    margins: { type: Array, default: () => [] },
     logoPlacements: { type: Array, default: () => [] },
     transitions: { type: Array, default: () => [] },
     /** The first slide of the deck, or null for a deck with none yet. */
@@ -97,6 +98,13 @@ const gradientOptions = computed(() =>
     props.gradients.map((gradient) => ({
         value: gradient.value,
         label: t(gradient.labelKey),
+    })),
+);
+
+const marginOptions = computed(() =>
+    props.margins.map((margin) => ({
+        value: margin,
+        label: t(`backend.studio.decks.margins.${margin}`),
     })),
 );
 
@@ -227,6 +235,20 @@ const placementOptions = computed(() =>
                         :label="t('backend.studio.decks.gradient_label')"
                         :hint="t('backend.studio.decks.gradient_hint')"
                         v-on:update:model-value="(value) => write('gradient', value)"
+                    />
+
+                    <AppSelect
+                        :model-value="overrides.margins ?? 'normal'"
+                        :options="marginOptions"
+                        :label="t('backend.studio.decks.margins_label')"
+                        v-on:update:model-value="(value) => write('margins', value)"
+                    />
+
+                    <AppToggle
+                        :model-value="overrides.hairline === true"
+                        :label="t('backend.studio.decks.hairline')"
+                        :hint="t('backend.studio.decks.hairline_hint')"
+                        v-on:update:model-value="(value) => write('hairline', value)"
                     />
 
                     <AppSelect

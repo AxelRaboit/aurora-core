@@ -11,6 +11,7 @@ use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckPatternEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
 
+use function in_array;
 use function is_int;
 use function is_string;
 
@@ -71,6 +72,10 @@ final readonly class DeckAppearance
             'accent' => is_string($style['accent'] ?? null) ? $style['accent'] : $palette['accent'],
             'gradient' => $gradient->value,
             'pattern' => $pattern->value,
+            'margins' => is_string($style['margins'] ?? null) && in_array($style['margins'], DeckStyleNormalizer::MARGINS, true)
+                ? $style['margins']
+                : 'normal',
+            'hairline' => true === ($style['hairline'] ?? false),
             'fontPair' => $fontPair->value,
             'headingFont' => $fontPair->heading(),
             'bodyFont' => $fontPair->body(),

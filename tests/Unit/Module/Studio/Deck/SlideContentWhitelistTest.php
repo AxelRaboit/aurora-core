@@ -84,6 +84,40 @@ final class SlideContentWhitelistTest extends TestCase
         self::assertSame(['mediaId' => 7], $unknown->getContent());
     }
 
+    /**
+     * The three composition slots share one shape: a short declared list, and
+     * nothing else stored. A value the stylesheet has no rule for would be an
+     * attribute on the frame that changes nothing, which reads as a choice
+     * being ignored.
+     */
+    public function testTheCompositionSlotsTakeOnlyDeclaredValues(): void
+    {
+        $manager = $this->manager();
+
+        $kept = (new Slide())->setLayout(SlideLayoutEnum::Title);
+        $manager->writeContent($kept, [
+            'title' => 'Trois axes',
+            'anchor' => 'bottom',
+            'align' => 'center',
+            'measure' => 'two_thirds',
+        ]);
+
+        self::assertSame(
+            ['title' => 'Trois axes', 'anchor' => 'bottom', 'align' => 'center', 'measure' => 'two_thirds'],
+            $kept->getContent(),
+        );
+
+        $dropped = (new Slide())->setLayout(SlideLayoutEnum::Title);
+        $manager->writeContent($dropped, [
+            'title' => 'Trois axes',
+            'anchor' => 'middle',
+            'align' => 'justify',
+            'measure' => '66%',
+        ]);
+
+        self::assertSame(['title' => 'Trois axes'], $dropped->getContent());
+    }
+
     public function testItKeepsBulletsAsAListOfStrings(): void
     {
         $slide = (new Slide())->setLayout(SlideLayoutEnum::Bullets);

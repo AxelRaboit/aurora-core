@@ -570,6 +570,25 @@ backend:
                 dots: Pointillés
                 grid: Quadrillage
                 diagonals: Hachures
+            margins_label: Marges du cadre
+            margins:
+                tight: Serrées
+                normal: Normales
+                wide: Larges
+            hairline: Filet de cadre
+            hairline_hint: Un liseré fin dans la couleur d'accent, en retrait des bords.
+            anchors:
+                center: Centrée
+                top: En haut
+                bottom: En bas
+            aligns:
+                left: À gauche
+                center: Centré
+                right: À droite
+            measures:
+                full: Pleine largeur
+                two_thirds: Deux tiers
+                half: Moitié
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:
@@ -603,7 +622,7 @@ backend:
                 items: "Une carte par ligne. Titre | description"
                 steps: "Une étape par ligne. Nom | précision"
                 rows: "Une ligne du tableau par ligne, cellules séparées par |. La première est l'en-tête."
-            emphasis_hint: "Dans le texte d'une slide : **gras**, *italique*, `code`."
+            emphasis_hint: "Dans le texte d'une slide : **gras**, *italique*, `code`, ==mot en accent==."
             chart_types:
                 bar: Barres
                 line: Courbe
@@ -678,6 +697,9 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                anchor: Position verticale
+                align: Alignement
+                measure: Largeur du texte
                 inverted: Slide inversée
                 bgMediaId: Image de fond
                 title: Titre

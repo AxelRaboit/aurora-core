@@ -570,6 +570,25 @@ backend:
                 dots: Dots
                 grid: Grid
                 diagonals: Hatching
+            margins_label: Frame margins
+            margins:
+                tight: Tight
+                normal: Normal
+                wide: Wide
+            hairline: Frame hairline
+            hairline_hint: A thin rule in the accent colour, set in from the edges.
+            anchors:
+                center: Centred
+                top: Top
+                bottom: Bottom
+            aligns:
+                left: Left
+                center: Centre
+                right: Right
+            measures:
+                full: Full width
+                two_thirds: Two thirds
+                half: Half
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:
@@ -603,7 +622,7 @@ backend:
                 items: "One card per line. Heading | description"
                 steps: "One step per line. Name | detail"
                 rows: "One row per line, cells separated by |. The first row is the header."
-            emphasis_hint: "In a slide's text: **bold**, *italic*, `code`."
+            emphasis_hint: "In a slide's text: **bold**, *italic*, `code`, ==accented word==."
             chart_types:
                 bar: Bars
                 line: Line
@@ -678,6 +697,9 @@ backend:
                 steps: Steps
                 rows: Rows
                 kicker: Kicker
+                anchor: Vertical position
+                align: Alignment
+                measure: Text width
                 inverted: Inverted slide
                 bgMediaId: Background picture
                 title: Title

@@ -19,6 +19,7 @@ use Aurora\Module\Studio\Deck\Repository\DeckCategoryRepository;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deck\Serializer\DeckSerializer;
 use Aurora\Module\Studio\Deck\Service\DeckPictures;
+use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
 use Aurora\Module\Studio\StudioContext;
@@ -89,6 +90,7 @@ final readonly class DecksViewBuilder
             'logoPlacements' => $this->logoPlacementOptions(),
             'gradients' => $this->gradientOptions(),
             'patterns' => $this->patternOptions(),
+            'margins' => DeckStyleNormalizer::MARGINS,
             'transitions' => $this->transitionOptions(),
             'appearancePath' => $this->urlGenerator->generate('backend_studio_deck_appearance', ['id' => $deck->getId()]),
             'backPath' => $this->urlGenerator->generate('backend_studio_decks'),

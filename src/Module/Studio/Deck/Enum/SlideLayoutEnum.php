@@ -105,7 +105,7 @@ enum SlideLayoutEnum: string
      */
     public static function commonSlots(): array
     {
-        return ['kicker', 'bgMediaId', 'bgDim', 'inverted'];
+        return ['kicker', 'bgMediaId', 'bgDim', 'inverted', 'anchor', 'align', 'measure'];
     }
 
     /**

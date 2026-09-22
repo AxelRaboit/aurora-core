@@ -94,6 +94,29 @@ const gradient = computed(() => props.appearance?.gradient ?? "none");
 /** The texture on the ground, which a picture on the ground simply covers. */
 const pattern = computed(() => props.appearance?.pattern ?? "none");
 
+/** The frame's own margin, and the hairline drawn inside it. */
+const margins = computed(() => props.appearance?.margins ?? "normal");
+const hairline = computed(() => props.appearance?.hairline === true);
+
+/**
+ * Where the content sits, how it is aligned, how wide it runs.
+ *
+ * **Undefined rather than a default when nothing was chosen**, so the
+ * attribute is absent and the layout's own rule keeps applying. The section
+ * layout centres its title in the stylesheet; emitting `align="left"` on every
+ * slide that never expressed a preference would quietly restyle every section
+ * slide ever written.
+ */
+const composition = computed(() => {
+    const content = props.slide.content;
+
+    return {
+        "data-anchor": ["top", "center", "bottom"].includes(content.anchor) ? content.anchor : undefined,
+        "data-align": ["left", "center", "right"].includes(content.align) ? content.align : undefined,
+        "data-measure": ["full", "two_thirds", "half"].includes(content.measure) ? content.measure : undefined,
+    };
+});
+
 /**
  * The logo shows on the cover when it was asked for on the cover.
  *
@@ -164,6 +187,8 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
             :data-gradient="gradient"
             :data-pattern="pattern"
             :data-shape="shape"
+            :data-margins="margins"
+            v-bind="composition"
             :style="[skin, media]"
         >
             <span v-if="pattern !== 'none'" class="sf-pattern" aria-hidden="true" />
@@ -177,6 +202,8 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
             </div>
 
             <span v-if="gradient !== 'none'" class="sf-wash" aria-hidden="true" />
+
+            <span v-if="hairline" class="sf-hairline" aria-hidden="true" />
 
             <div ref="stage" class="slide-stage" :style="{ '--fit': fit }">
                 <p v-if="kicker" class="sf-kicker">{{ kicker }}</p>
@@ -413,6 +440,44 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 .sf-backdrop-file { width: 100%; height: 100%; object-fit: cover; }
 .sf-backdrop-veil { position: absolute; inset: 0; background: var(--slide-bg); }
 
+/* La marge du cadre. `normal` n'a pas de règle : c'est la valeur que porte
+   `.slide-frame` lui-même, donc un deck qui n'a jamais ouvert le panneau
+   dessine exactement comme avant. */
+.slide-frame[data-margins="tight"] { padding: 3cqw; }
+.slide-frame[data-margins="wide"] { padding: 11cqw; }
+
+/* Au-dessus de tout, y compris du contenu : un filet posé sous le texte
+   passerait derrière une image de fond et ne se verrait plus. */
+.sf-hairline {
+    position: absolute;
+    inset: 3cqw;
+    z-index: 5;
+    border: 0.25cqw solid color-mix(in srgb, var(--slide-accent) 55%, transparent);
+    border-radius: 0.2cqw;
+    pointer-events: none;
+}
+
+/* L'ancrage, l'alignement et la largeur. Aucune règle pour les valeurs qui
+   étaient déjà celles du module : l'attribut n'est même pas émis. */
+.slide-frame[data-anchor="top"] .slide-stage { justify-content: safe flex-start; }
+.slide-frame[data-anchor="bottom"] .slide-stage { justify-content: safe flex-end; }
+
+.slide-frame[data-align="left"] .slide-stage { text-align: left; align-items: flex-start; }
+.slide-frame[data-align="center"] .slide-stage { text-align: center; align-items: center; }
+.slide-frame[data-align="right"] .slide-stage { text-align: right; align-items: flex-end; }
+
+/* L'alignement explicite l'emporte sur le centrage que le gabarit section
+   porte en dur, sinon le choix serait ignoré sur le seul gabarit où il se
+   remarque le plus. */
+.slide-frame[data-align="left"] .sf-section { text-align: left; }
+.slide-frame[data-align="right"] .sf-section { text-align: right; }
+
+/* La largeur suit l'alignement : une colonne étroite alignée à droite se cale
+   à droite, elle ne reste pas centrée avec un trou d'un côté. */
+.slide-frame[data-measure="two_thirds"] .slide-stage > * { max-width: 66%; }
+.slide-frame[data-measure="half"] .slide-stage > * { max-width: 50%; }
+.slide-frame[data-align="center"][data-measure] .slide-stage > * { margin-inline: auto; }
+
 /* Sous le décor : un motif est une texture du fond, et une slide dont le fond
    est une photo n'en montre pas. Les tailles sont en `cqw` comme le reste, pour
    que le grain d'une vignette soit celui du mur. */
@@ -604,6 +669,14 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
  * une couleur de plus ferait une deuxième chose à lire.
  */
 .slide-frame :deep(strong) { font-weight: 700; }
+
+/* Le mot en accent. Pas de fond, contrairement à ce que `mark` fait par
+   défaut dans un navigateur : sur une slide, un surlignage jaune serait la
+   seule couleur du deck que personne n'a choisie. */
+.slide-frame :deep(mark) {
+    background: none;
+    color: var(--slide-accent);
+}
 .sf-title :deep(strong),
 .sf-section :deep(strong),
 .sf-heading :deep(strong) { color: var(--slide-accent); }

@@ -47,6 +47,8 @@ export function useDeckAppearance(props) {
         // value somebody can pick, not the absence of a choice.
         gradient: "none",
         pattern: "none",
+        margins: "normal",
+        hairline: false,
         fontPair: null,
         logoMediaId: null,
         logoPlacement: "none",
@@ -197,6 +199,8 @@ export function useDeckAppearance(props) {
             // are the deck's own, and no theme carries one.
             gradient: style.gradient ?? "none",
             pattern: style.pattern ?? "none",
+            margins: style.margins ?? "normal",
+            hairline: style.hairline === true,
             headingFont: faces.heading,
             bodyFont: faces.body,
             logoUrl: logo.value.url,

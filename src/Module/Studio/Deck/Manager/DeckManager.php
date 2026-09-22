@@ -150,6 +150,34 @@ class DeckManager
                 continue;
             }
 
+            // Where the content sits in the frame, how it is aligned and how
+            // wide it is allowed to run. Three short declared lists rather than
+            // three enums, for the same reason `mediaFit` is one: values a
+            // select offers, with no behaviour of their own.
+            if ('anchor' === $slot) {
+                if (in_array($value, ['top', 'center', 'bottom'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            if ('align' === $slot) {
+                if (in_array($value, ['left', 'center', 'right'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            if ('measure' === $slot) {
+                if (in_array($value, ['full', 'two_thirds', 'half'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
             // Only the true is stored, on the same reasoning as `slideNumbers`
             // in the style: the absence already says "drawn the usual way round",
             // and a stored false would be a second way to spell it.

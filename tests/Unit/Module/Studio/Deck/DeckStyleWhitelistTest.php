@@ -64,6 +64,26 @@ final class DeckStyleWhitelistTest extends TestCase
         self::assertSame(['gradient' => 'top', 'pattern' => 'dots'], $clean);
     }
 
+    public function testTheMarginIsStoredEvenWhenItIsTheUsualOne(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        // Unlike a wash, a margin is not an effect somebody added: keeping the
+        // usual one is a decision worth telling apart from never having looked.
+        self::assertSame(['margins' => 'normal'], $normalizer->normalize(['margins' => 'normal']));
+        self::assertSame(['margins' => 'wide'], $normalizer->normalize(['margins' => 'wide']));
+        self::assertSame([], $normalizer->normalize(['margins' => 'none']));
+    }
+
+    public function testTheHairlineIsStoredOnlyWhenItIsOn(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        self::assertSame(['hairline' => true], $normalizer->normalize(['hairline' => true]));
+        self::assertSame([], $normalizer->normalize(['hairline' => false]));
+        self::assertSame([], $normalizer->normalize(['hairline' => 'on']));
+    }
+
     public function testAnUnsetColourIsNotWritten(): void
     {
         $clean = (new DeckStyleNormalizer())->normalize(['background' => null, 'ink' => '']);
