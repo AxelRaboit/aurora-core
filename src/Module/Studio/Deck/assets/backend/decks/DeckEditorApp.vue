@@ -32,6 +32,7 @@ import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppRange from "@/shared/components/form/toggle/AppRange.vue";
+import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppFocalPointField from "@/shared/components/form/file/AppFocalPointField.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
@@ -80,6 +81,12 @@ const props = defineProps({
     themes: { type: Array, default: () => [] },
     fontPairs: { type: Array, default: () => [] },
     logoPlacements: { type: Array, default: () => [] },
+    looks: { type: Array, default: () => [] },
+    gradients: { type: Array, default: () => [] },
+    patterns: { type: Array, default: () => [] },
+    margins: { type: Array, default: () => [] },
+    titleCases: { type: Array, default: () => [] },
+    bulletShapes: { type: Array, default: () => [] },
     transitions: { type: Array, default: () => [] },
     appearancePath: { type: String, required: true },
 });
@@ -135,6 +142,7 @@ const {
     carriesOverrides,
     preview,
     resetColours,
+    applyLook,
     write: writeStyle,
     writeLogo,
     save: saveAppearance,
@@ -278,6 +286,82 @@ function writePicture(value) {
 const fitOptions = computed(() => [
     { value: "contain", label: t("backend.studio.decks.media_fit_contain") },
     { value: "cover", label: t("backend.studio.decks.media_fit_cover") },
+]);
+
+/**
+ * Les cases du sélecteur multiple : celles qui portent une image, plus une vide.
+ *
+ * Le composant de choix d'image existe et sait en prendre une. Plutôt que d'en
+ * écrire un second qui en prendrait plusieurs, on le répète : une case par
+ * image déjà choisie, et une de plus pour la suivante. Le rang d'une case est
+ * sa place dans l'arrangement, donc vider la deuxième resserre les autres
+ * plutôt que de laisser un trou.
+ */
+const pictureRows = computed(() => {
+    const ids = selected.value?.content?.mediaIds ?? [];
+    const urls = selected.value?.content?.mediaPictures ?? [];
+
+    return [
+        ...ids.map((id, at) => ({ at, id, url: urls[at]?.url ?? null })),
+        { at: ids.length, id: null, url: null },
+    ].slice(0, 8);
+});
+
+function writePictureAt(at, value) {
+    const ids = [...(selected.value?.content?.mediaIds ?? [])];
+    const drawn = [...(selected.value?.content?.mediaPictures ?? [])];
+
+    if (value?.id) {
+        ids[at] = value.id;
+        drawn[at] = { url: value.url ?? null, alt: "", focus: "50% 50%" };
+    } else {
+        ids.splice(at, 1);
+        drawn.splice(at, 1);
+    }
+
+    const kept = ids.filter((id) => typeof id === "number" && id > 0);
+
+    writeSlot("mediaIds", kept);
+
+    // L'adresse est ecrite a cote de l'identifiant, comme le font deja les deux
+    // autres champs d'image de cet ecran : la slide n'est relue du serveur que
+    // lorsqu'on la quitte, et sans ca la case choisie redevenait vide et
+    // l'apercu restait blanc jusqu'a ce qu'on aille voir ailleurs.
+    writeSlot("mediaPictures", drawn.slice(0, kept.length));
+}
+
+/** Les trois listes de composition, avec leur valeur d'aujourd'hui en tête. */
+const compositionOptions = (slot, values) =>
+    computed(() =>
+        values.map((value) => ({
+            value,
+            label: t(`backend.studio.decks.${slot}s.${value}`),
+        })),
+    );
+
+const anchorOptions = compositionOptions("anchor", ["center", "top", "bottom"]);
+const alignOptions = compositionOptions("align", ["left", "center", "right"]);
+const measureOptions = compositionOptions("measure", ["full", "two_thirds", "half"]);
+
+const treatmentOptions = compositionOptions("bg_treatment", ["none", "blur", "mono", "duotone", "grain"]);
+const veilOptions = compositionOptions("bg_veil", ["flat", "bottom", "top"]);
+const frameOptions = compositionOptions("media_frame", ["none", "line", "shadow"]);
+const bandOptions = compositionOptions("band", ["none", "left", "bottom", "edge"]);
+const titleScaleOptions = compositionOptions("title_scale", ["normal", "quiet", "loud"]);
+const groundOptions = compositionOptions("ground", ["normal", "inverted", "accent"]);
+const slideTransitionOptions = computed(() => [
+    { value: "", label: t("backend.studio.decks.transition_from_deck") },
+    ...["none", "fade", "slide"].map((value) => ({
+        value,
+        label: t(`backend.studio.decks.transitions.${value}`),
+    })),
+]);
+
+const shapeOptions = computed(() => [
+    { value: "soft", label: t("backend.studio.decks.media_shape_soft") },
+    { value: "round", label: t("backend.studio.decks.media_shape_round") },
+    { value: "arch", label: t("backend.studio.decks.media_shape_arch") },
+    { value: "circle", label: t("backend.studio.decks.media_shape_circle") },
 ]);
 
 const focus = () => {
@@ -604,6 +688,55 @@ onBeforeUnmount(() => {
                                 :disabled="!editable"
                                 v-on:update:model-value="(value) => writeSlot('mediaFit', value)"
                             />
+                            <div v-else-if="slot === 'mediaIds'" class="flex flex-col gap-2">
+                                <span class="text-xs uppercase tracking-wide text-muted">
+                                    {{ labelFor(slot) }}
+                                </span>
+                                <div class="grid gap-2 sm:grid-cols-2">
+                                    <AppImagePickerField
+                                        v-for="row in pictureRows"
+                                        :key="row.at"
+                                        :model-value="row.id ? { id: row.id, url: row.url } : null"
+                                        :label="t('backend.studio.decks.picture_rank', { rank: row.at + 1 })"
+                                        :size="90"
+                                        v-on:update:model-value="(value) => writePictureAt(row.at, value)"
+                                    />
+                                </div>
+                                <p class="m-0 text-xs text-muted">
+                                    {{ t("backend.studio.decks.media_ids_hint") }}
+                                </p>
+                            </div>
+                            <AppSelect
+                                v-else-if="slot === 'mediaFrame'"
+                                :model-value="selected.content.mediaFrame ?? 'none'"
+                                :options="frameOptions"
+                                :label="labelFor(slot)"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('mediaFrame', value)"
+                            />
+                            <AppToggle
+                                v-else-if="slot === 'mediaBleed'"
+                                :model-value="selected.content.mediaBleed === true"
+                                :label="labelFor(slot)"
+                                :hint="t('backend.studio.decks.media_bleed_hint')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('mediaBleed', value)"
+                            />
+                            <AppToggle
+                                v-else-if="slot === 'captionOver'"
+                                :model-value="selected.content.captionOver === true"
+                                :label="labelFor(slot)"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('captionOver', value)"
+                            />
+                            <AppSelect
+                                v-else-if="slot === 'mediaShape'"
+                                :model-value="selected.content.mediaShape ?? 'soft'"
+                                :options="shapeOptions"
+                                :label="labelFor(slot)"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('mediaShape', value)"
+                            />
                             <!-- Viser ne se fait qu'une fois l'image choisie :
                                  un cadre de visée vide n'a rien à montrer et
                                  rien à recevoir. -->
@@ -676,6 +809,54 @@ onBeforeUnmount(() => {
                                 v-on:update:model-value="(value) => writeSlot('kicker', value)"
                             />
 
+                            <div v-if="commonSlots.includes('anchor')" class="grid gap-3 sm:grid-cols-3">
+                                <AppSelect
+                                    :model-value="selected.content.anchor ?? 'center'"
+                                    :options="anchorOptions"
+                                    :label="labelFor('anchor')"
+                                    :disabled="!editable"
+                                    v-on:update:model-value="(value) => writeSlot('anchor', value)"
+                                />
+                                <AppSelect
+                                    :model-value="selected.content.align ?? 'left'"
+                                    :options="alignOptions"
+                                    :label="labelFor('align')"
+                                    :disabled="!editable"
+                                    v-on:update:model-value="(value) => writeSlot('align', value)"
+                                />
+                                <AppSelect
+                                    :model-value="selected.content.titleScale ?? 'normal'"
+                                    :options="titleScaleOptions"
+                                    :label="labelFor('titleScale')"
+                                    :disabled="!editable"
+                                    v-on:update:model-value="(value) => writeSlot('titleScale', value)"
+                                />
+                                <AppSelect
+                                    :model-value="selected.content.band ?? 'none'"
+                                    :options="bandOptions"
+                                    :label="labelFor('band')"
+                                    :disabled="!editable"
+                                    v-on:update:model-value="(value) => writeSlot('band', value)"
+                                />
+                                <AppSelect
+                                    :model-value="selected.content.measure ?? 'full'"
+                                    :options="measureOptions"
+                                    :label="labelFor('measure')"
+                                    :disabled="!editable"
+                                    v-on:update:model-value="(value) => writeSlot('measure', value)"
+                                />
+                            </div>
+
+                            <AppSelect
+                                v-if="commonSlots.includes('ground')"
+                                :model-value="selected.content.ground ?? 'normal'"
+                                :options="groundOptions"
+                                :label="labelFor('ground')"
+                                :hint="t('backend.studio.decks.ground_hint')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('ground', value)"
+                            />
+
                             <AppImagePickerField
                                 v-if="commonSlots.includes('bgMediaId')"
                                 :model-value="backdrop()"
@@ -705,11 +886,69 @@ onBeforeUnmount(() => {
                                 <p class="m-0 text-xs text-muted">
                                     {{ t("backend.studio.decks.backdrop_dim_hint") }}
                                 </p>
+
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <AppSelect
+                                        :model-value="selected.content.bgTreatment ?? 'none'"
+                                        :options="treatmentOptions"
+                                        :label="labelFor('bgTreatment')"
+                                        :disabled="!editable"
+                                        v-on:update:model-value="(value) => writeSlot('bgTreatment', value)"
+                                    />
+                                    <AppSelect
+                                        :model-value="selected.content.bgVeil ?? 'flat'"
+                                        :options="veilOptions"
+                                        :label="labelFor('bgVeil')"
+                                        :disabled="!editable"
+                                        v-on:update:model-value="(value) => writeSlot('bgVeil', value)"
+                                    />
+                                </div>
                             </div>
+
+                            <AppSelect
+                                v-if="commonSlots.includes('transition')"
+                                :model-value="selected.content.transition ?? ''"
+                                :options="slideTransitionOptions"
+                                :label="labelFor('transition')"
+                                :hint="t('backend.studio.decks.slide_transition_hint')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('transition', value || null)"
+                            />
+
+                            <AppToggle
+                                v-if="commonSlots.includes('reveal')"
+                                :model-value="selected.content.reveal === true"
+                                :label="labelFor('reveal')"
+                                :hint="t('backend.studio.decks.reveal_hint')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('reveal', value)"
+                            />
+
+                            <AppToggle
+                                v-if="commonSlots.includes('drift') && selected.content.bgMediaUrl"
+                                :model-value="selected.content.drift === true"
+                                :label="labelFor('drift')"
+                                :hint="t('backend.studio.decks.drift_hint')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('drift', value)"
+                            />
+
+                            <AppToggle
+                                v-if="commonSlots.includes('vignette')"
+                                :model-value="selected.content.vignette === true"
+                                :label="labelFor('vignette')"
+                                :hint="t('backend.studio.decks.vignette_hint')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('vignette', value)"
+                            />
                         </div>
 
                         <p class="m-0 text-xs text-muted">
                             {{ t("backend.studio.decks.emphasis_hint") }}
+                        </p>
+
+                        <p class="m-0 text-xs text-muted">
+                            {{ t("backend.studio.decks.icons_hint") }}
                         </p>
 
                         <AppTextarea
@@ -884,6 +1123,12 @@ onBeforeUnmount(() => {
             :themes="themes"
             :font-pairs="fontPairs"
             :logo-placements="logoPlacements"
+            :looks="looks"
+            :gradients="gradients"
+            :patterns="patterns"
+            :margins="margins"
+            :title-cases="titleCases"
+            :bullet-shapes="bulletShapes"
             :transitions="transitions"
             :sample="slides[0] ?? null"
             :theme="theme"
@@ -900,6 +1145,7 @@ onBeforeUnmount(() => {
             v-on:update:theme="(value) => (theme = value)"
             v-on:update:logo="writeLogo"
             v-on:reset-colours="resetColours"
+            v-on:apply-look="applyLook"
         />
     </div>
 </template>

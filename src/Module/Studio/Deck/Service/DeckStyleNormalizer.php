@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deck\Service;
 
 use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckGradientEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckPatternEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
 
 use function array_key_exists;
+use function in_array;
 use function is_bool;
 use function is_int;
 use function is_string;
@@ -34,6 +37,15 @@ final readonly class DeckStyleNormalizer
 {
     /** The three colours a deck may override, in the order the form shows them. */
     public const array COLOURS = ['background', 'ink', 'accent'];
+
+    /** @var list<string> */
+    public const array MARGINS = ['tight', 'normal', 'wide'];
+
+    /** @var list<string> */
+    public const array TITLE_CASES = ['normal', 'upper'];
+
+    /** @var list<string> */
+    public const array BULLETS = ['disc', 'dash', 'arrow', 'number', 'check'];
 
     /** A footer is a line, not a paragraph: it sits in 2.4% of a slide's width. */
     private const int FOOTER_MAX = 120;
@@ -65,6 +77,54 @@ final readonly class DeckStyleNormalizer
         // never looked at this" the same row.
         if (is_string($style['transition'] ?? null) && DeckTransitionEnum::tryFrom($style['transition']) instanceof DeckTransitionEnum) {
             $clean['transition'] = $style['transition'];
+        }
+
+        // `none` is stored like any other value, and deliberately so. It
+        // stopped being the same thing as the absence of the key the day a
+        // theme could carry a wash of its own: absent now means "whatever my
+        // theme proposes", and `none` means "flat, whatever my theme
+        // proposes". A deck needs to be able to say the second one.
+        $gradient = is_string($style['gradient'] ?? null)
+            ? DeckGradientEnum::tryFrom($style['gradient'])
+            : null;
+
+        if ($gradient instanceof DeckGradientEnum) {
+            $clean['gradient'] = $gradient->value;
+        }
+
+        // Three widths of margin, the middle one being what every deck had
+        // before. Stored even when it is the middle one: unlike the wash, a
+        // margin is not an effect somebody added, it is a choice about the
+        // frame, and "I looked at this and kept the usual one" is worth
+        // keeping apart from "I never opened the panel".
+        if (is_string($style['margins'] ?? null) && in_array($style['margins'], self::MARGINS, true)) {
+            $clean['margins'] = $style['margins'];
+        }
+
+        if (is_string($style['titleCase'] ?? null) && in_array($style['titleCase'], self::TITLE_CASES, true)) {
+            $clean['titleCase'] = $style['titleCase'];
+        }
+
+        if (is_string($style['bullets'] ?? null) && in_array($style['bullets'], self::BULLETS, true)) {
+            $clean['bullets'] = $style['bullets'];
+        }
+
+        if (array_key_exists('rules', $style) && is_bool($style['rules']) && $style['rules']) {
+            $clean['rules'] = true;
+        }
+
+        // Only the true, like `slideNumbers`.
+        if (array_key_exists('hairline', $style) && is_bool($style['hairline']) && $style['hairline']) {
+            $clean['hairline'] = true;
+        }
+
+        // Same shape as the gradient, and for the same reason.
+        $pattern = is_string($style['pattern'] ?? null)
+            ? DeckPatternEnum::tryFrom($style['pattern'])
+            : null;
+
+        if ($pattern instanceof DeckPatternEnum) {
+            $clean['pattern'] = $pattern->value;
         }
 
         // A zero or a negative id is not a document, it is a picker that was

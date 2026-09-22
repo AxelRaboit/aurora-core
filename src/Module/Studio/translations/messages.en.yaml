@@ -548,6 +548,9 @@ backend:
                 paper: Paper
                 bold: Bold
                 midnight: Midnight
+                clay: Clay
+                chalk: Chalk
+                duo: Two tones
             colours: Colours
             colour_background: Background
             colour_ink: Text
@@ -555,6 +558,107 @@ backend:
             colour_inherited: From the theme
             colour_reset: Back to the theme
             colour_reset_all: All back to the theme
+            gradient_label: Gradient
+            gradient_hint: A wash of the accent colour over the ground, the same on every slide.
+            gradients:
+                none: None
+                top: From the top
+                bottom: From the bottom
+                corner: Diagonal
+                halo: Centre halo
+                duo: Accent into ink
+            pattern_label: Pattern
+            pattern_hint: A texture on the ground, hidden on slides that carry a photo.
+            patterns:
+                none: None
+                dots: Dots
+                grid: Grid
+                diagonals: Hatching
+            margins_label: Frame margins
+            margins:
+                tight: Tight
+                normal: Normal
+                wide: Wide
+            hairline: Frame hairline
+            hairline_hint: A thin rule in the accent colour, set in from the edges.
+            anchors:
+                center: Centred
+                top: Top
+                bottom: Bottom
+            aligns:
+                left: Left
+                center: Centre
+                right: Right
+            measures:
+                full: Full width
+                two_thirds: Two thirds
+                half: Half
+            vignette_hint: Darkens the corners a little and brings the eye back to the middle.
+            bg_treatments:
+                none: None
+                blur: Blur
+                mono: Black and white
+                duotone: Duotone in the accent
+                grain: Grain
+            bg_veils:
+                flat: Even
+                bottom: From the bottom
+                top: From the top
+            media_frames:
+                none: None
+                line: Accent rule
+                shadow: Soft shadow
+            title_case_label: Title case
+            title_cases:
+                normal: Normal
+                upper: Capitals
+            bullets_label: Bullet shape
+            bullet_shapes:
+                disc: Dot
+                dash: Dash
+                arrow: Arrow
+                number: Number
+                check: Check
+            media_bleed_hint: The picture leaves the margin and touches the edge of the frame.
+            rules: Separating rules
+            rules_hint: A line between the two columns and under the kicker.
+            bands:
+                none: None
+                left: Band on the left
+                bottom: Band at the bottom
+                edge: Thin edge
+            wash_from_theme: The theme's
+            looks_label: Start from a look
+            looks_hint: Applies a theme and its settings at once. Everything stays editable afterwards.
+            looks:
+                scene: Stage
+                atelier: Workshop
+                dossier: File
+                gallery: Gallery
+            look_descriptions:
+                scene: Shown in a room. Dark, titles in capitals.
+                atelier: It argues. Light and warm, hatched.
+                dossier: It is read. Quiet, squared, wide margins.
+                gallery: The pictures carry it. Near black, tight margins.
+            accent_from_logo: Tones from the logo
+            contrast_good: "Contrast {ratio} out of 21. Readable anywhere."
+            contrast_large: "Contrast {ratio} out of 21. Fine on a wall, tight on a printed document."
+            contrast_poor: "Contrast {ratio} out of 21. The text will be hard to read."
+            transition_from_deck: The deck's
+            slide_transition_hint: Applies to this slide only, and only in full screen.
+            drift_hint: A very slow travel across the photo while the slide is up. Full screen only.
+            title_scales:
+                normal: Normal
+                quiet: Quiet
+                loud: Loud
+            media_ids_hint: The order is the arrangement. Eight at most; emptying one closes the gap.
+            ground_hint: The slide stands on one of the deck's three colours. The text follows, the accent does not move.
+            grounds:
+                normal: The background
+                inverted: The ink
+                accent: The accent
+            reveal_hint: In full screen, each press brings in the next line before moving to the following slide.
+            picture_rank: "Picture {rank}"
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:
@@ -562,6 +666,8 @@ backend:
                 serif: Serif
                 editorial: Serif headings, sans text
                 technical: Monospaced headings, sans text
+                report: Sans titles, serif text
+                soft: Rounded
             signature: Signature
             logo: Logo
             logo_hint: Drawn small, in a corner of the slide.
@@ -584,10 +690,13 @@ backend:
             line_placeholders:
                 series: "One value per line. Label | figure"
                 bullets: One bullet per line.
-                items: "One card per line. Heading | description"
-                steps: "One step per line. Name | detail"
+                items: "One card per line. Title | description | badge | icon"
+                steps: "One step per line. Name | detail | badge | icon"
                 rows: "One row per line, cells separated by |. The first row is the header."
-            emphasis_hint: "In a slide's text: **bold**, *italic*, `code`."
+                figures: "One figure per line. Value | what it counts | share in %"
+                lines: One line per line. Address, phone, site.
+            emphasis_hint: "In a slide's text: **bold**, *italic*, `code`, ==accented word==."
+            icons_hint: "Icons available: check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings."
             chart_types:
                 bar: Bars
                 line: Line
@@ -607,6 +716,10 @@ backend:
             timer_reset: Reset
             media_fit_contain: Whole, never cropped
             media_fit_cover: Fill the frame
+            media_shape_soft: Soft corners
+            media_shape_round: Rounded
+            media_shape_arch: Arch
+            media_shape_circle: Circle
             media_focus_hint: Click what has to stay visible when the picture is cropped.
             import: Import a document
             import_submit: Make the slides
@@ -646,6 +759,7 @@ backend:
             usage_detail: Deck
             slots:
                 mediaFit: How the picture fills
+                mediaShape: Image shape
                 mediaFocus: Focal point
                 chartType: Chart type
                 series: Data
@@ -657,6 +771,29 @@ backend:
                 steps: Steps
                 rows: Rows
                 kicker: Kicker
+                reveal: Lines one at a time
+                ground: Slide ground
+                mediaIds: The pictures
+                titleScale: Title scale
+                transition: Transition into this slide
+                drift: Travel across the photo
+                role: Role
+                current: Current line
+                band: Colour band
+                mediaBleed: Picture to the edge
+                leftTitle: Left heading
+                rightTitle: Right heading
+                figures: The figures
+                lines: The lines
+                ghost: Watermark figure
+                bgTreatment: Photo treatment
+                bgVeil: Veil
+                vignette: Vignette
+                mediaFrame: Picture frame
+                captionOver: Caption on the picture
+                anchor: Vertical position
+                align: Alignment
+                measure: Text width
                 bgMediaId: Background picture
                 title: Title
                 subtitle: Subtitle
@@ -680,6 +817,13 @@ backend:
                 split: Two columns
                 quote: Quote
                 section: Section divider
+                compare: Comparison
+                figures: Figures
+                end: Closing
+                agenda: Agenda
+                portrait: Quote and portrait
+                logos: Logo grid
+                mosaic: Picture mosaic
             categories:
                 errors:
                     name_required: The name is required.

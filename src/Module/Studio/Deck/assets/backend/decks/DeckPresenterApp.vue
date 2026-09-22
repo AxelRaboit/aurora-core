@@ -19,6 +19,7 @@ import { useI18n } from "vue-i18n";
 import { ChevronLeft, ChevronRight, Pause, Play, RotateCcw } from "lucide-vue-next";
 import SlideFrame from "./components/SlideFrame.vue";
 import { useDeckStage } from "./composables/useDeckStage.js";
+import { revealableIn } from "./reveals.js";
 
 const props = defineProps({
     deck: { type: Object, required: true },
@@ -27,15 +28,52 @@ const props = defineProps({
 const { t } = useI18n();
 
 const slides = props.deck.slides ?? [];
-const { at, linked, announce } = useDeckStage(props.deck.id);
+const { at, linked, announce, onMove } = useDeckStage(props.deck.id);
 
 const current = computed(() => slides[at.value] ?? null);
 const next = computed(() => slides[at.value + 1] ?? null);
 
+/**
+ * Combien de lignes sont sorties, ici comme sur le mur.
+ *
+ * **Le presentateur pilote, donc il compte aussi.** Cette fenetre n'affichait
+ * qu'un index : une pression passait a la slide suivante et les lignes
+ * arrivaient toutes ensemble sur le mur, alors que la personne qui parle
+ * croyait les faire entrer une par une. Le compte se fait des deux cotes, avec
+ * la meme fonction, et voyage dans le message pour que les deux fenetres ne
+ * puissent pas diverger.
+ */
+const shown = ref(0);
+const revealable = computed(() => revealableIn(current.value));
+
+onMove((index, revealed) => {
+    shown.value = revealed;
+});
+
 function step(by) {
+    if (by > 0 && shown.value < revealable.value) {
+        announce(at.value, shown.value + 1);
+        shown.value += 1;
+
+        return;
+    }
+
+    if (by < 0 && shown.value > 0) {
+        announce(at.value, shown.value - 1);
+        shown.value -= 1;
+
+        return;
+    }
+
     const to = at.value + by;
 
-    if (to >= 0 && to < slides.length) announce(to);
+    if (to < 0 || to >= slides.length) return;
+
+    // Revenir en arriere retrouve la slide entierement sortie, comme dans le
+    // lecteur : reculer dans un deck ne doit pas obliger a repasser ligne a
+    // ligne dans l'autre sens.
+    shown.value = by < 0 ? revealableIn(slides[to]) : 0;
+    announce(to, shown.value);
 }
 
 function onKey(event) {
@@ -101,11 +139,15 @@ onBeforeUnmount(() => {
                     {{ t("backend.studio.decks.presenter_now") }}
                     <span class="presenter-count">{{ at + 1 }} / {{ slides.length }}</span>
                 </p>
+                <!-- La slide en cours est regardee, celle d'apres est une
+                     vignette de preparation : le mouvement n'a rien a y faire. -->
                 <SlideFrame
                     v-if="current"
                     :slide="current"
                     :appearance="deck.appearance"
                     :index="at + 1"
+                    :revealed="revealable > 0 ? shown : null"
+                    live
                 />
             </div>
 

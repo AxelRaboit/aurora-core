@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fade, figure, ramp } from "./colour.js";
+import { fade, figure, ramp, contrast, readability } from "./colour.js";
 
 describe("fade", () => {
     it("turns a slide colour into something a canvas can use", () => {
@@ -47,5 +47,28 @@ describe("figure", () => {
     it("answers zero for what is not a number at all", () => {
         expect(figure("beaucoup")).toBe(0);
         expect(figure(null)).toBe(0);
+    });
+});
+
+describe("contrast", () => {
+    it("puts black on white at the top of the scale", () => {
+        expect(contrast("#000000", "#ffffff")).toBeCloseTo(21, 1);
+    });
+
+    it("puts a colour against itself at the bottom", () => {
+        expect(contrast("#1a6a5a", "#1a6a5a")).toBeCloseTo(1, 5);
+    });
+
+    it("says nothing rather than guessing when a value is not a colour", () => {
+        expect(contrast("var(--slide-ink)", "#ffffff")).toBeNull();
+    });
+});
+
+describe("readability", () => {
+    it("bands the answer where the guidelines band it", () => {
+        expect(readability("#1a1c20", "#faf8f4").level).toBe("good");
+        expect(readability("#767676", "#ffffff").level).toBe("good");
+        expect(readability("#949494", "#ffffff").level).toBe("large");
+        expect(readability("#c9c9c9", "#ffffff").level).toBe("poor");
     });
 });

@@ -10,6 +10,7 @@ use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 
 use function array_unique;
 use function array_values;
+use function is_array;
 use function is_int;
 use function sprintf;
 
@@ -45,6 +46,20 @@ final readonly class DeckPictures
 
                 if (is_int($id)) {
                     $ids[] = $id;
+                }
+            }
+
+            // The layouts that carry several. Left out of `SLIDE_SLOTS`
+            // because that list holds slots whose value is one id, and a
+            // picture missing from here is a picture the library reports as
+            // used by nobody while a slide is drawing it.
+            $several = $slide->getContent()['mediaIds'] ?? null;
+
+            if (is_array($several)) {
+                foreach ($several as $id) {
+                    if (is_int($id)) {
+                        $ids[] = $id;
+                    }
                 }
             }
         }

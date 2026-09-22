@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 
 use function array_key_exists;
+use function ctype_digit;
 use function in_array;
 use function is_array;
 use function is_int;
@@ -132,6 +133,157 @@ class DeckManager
 
             if ('mediaFit' === $slot) {
                 if (in_array($value, ['contain', 'cover'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // The shape lands on a class the frame matches on, so an unknown
+            // one draws nothing rather than drawing wrong. Declared beside
+            // `mediaFit` and not as an enum for the same reason it is: four
+            // values a select offers, with no behaviour of their own.
+            if ('mediaShape' === $slot) {
+                if (in_array($value, ['soft', 'round', 'arch', 'circle'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // What is done to the picture behind the words, and how the veil
+            // that keeps them readable is laid over it.
+            if ('bgTreatment' === $slot) {
+                if (in_array($value, ['none', 'blur', 'mono', 'duotone', 'grain'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            if ('bgVeil' === $slot) {
+                if (in_array($value, ['flat', 'bottom', 'top'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            if ('mediaFrame' === $slot) {
+                if (in_array($value, ['none', 'line', 'shadow'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // Which line of an agenda is the one being opened. One-based, so
+            // a zero is the value an empty number field posts rather than a
+            // line, and anything past the list simply lights nothing.
+            // Accepte le nombre ecrit comme une chaine, parce que c'est la
+            // seule forme sous laquelle il arrive : le formulaire rend un champ
+            // texte pour ce slot, et un `is_int` strict jetait donc toujours la
+            // valeur, sans que rien ne le dise.
+            if ('current' === $slot) {
+                $rank = is_int($value) ? $value : (is_string($value) && ctype_digit($value) ? (int) $value : 0);
+
+                if ($rank > 0) {
+                    $clean[$slot] = $rank;
+                }
+
+                continue;
+            }
+
+            // Several pictures on one slide. Positive integers, in the order
+            // they were picked, because position is the arrangement: a
+            // mosaic's first picture is the large one. Capped at eight, which
+            // is more marks than a grid can show at a legible size anyway.
+            if ('mediaIds' === $slot) {
+                if (is_array($value)) {
+                    $ids = array_values(array_filter(
+                        $value,
+                        static fn (mixed $one): bool => is_int($one) && $one > 0,
+                    ));
+
+                    $clean[$slot] = array_slice($ids, 0, 8);
+                }
+
+                continue;
+            }
+
+            if ('titleScale' === $slot) {
+                if (in_array($value, ['quiet', 'normal', 'loud'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // A slide may cut where the deck fades. The rhythm before a
+            // section slide is something only that slide knows.
+            if ('transition' === $slot) {
+                if (in_array($value, ['none', 'fade', 'slide'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // A solid shape of accent, and where it sits against the frame.
+            if ('band' === $slot) {
+                if (in_array($value, ['none', 'left', 'bottom', 'edge'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // Three switches, and only their true is kept.
+            if (in_array($slot, ['vignette', 'captionOver', 'mediaBleed', 'drift', 'reveal'], true)) {
+                if (true === $value) {
+                    $clean[$slot] = true;
+                }
+
+                continue;
+            }
+
+            // Where the content sits in the frame, how it is aligned and how
+            // wide it is allowed to run. Three short declared lists rather than
+            // three enums, for the same reason `mediaFit` is one: values a
+            // select offers, with no behaviour of their own.
+            if ('anchor' === $slot) {
+                if (in_array($value, ['top', 'center', 'bottom'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            if ('align' === $slot) {
+                if (in_array($value, ['left', 'center', 'right'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            if ('measure' === $slot) {
+                if (in_array($value, ['full', 'two_thirds', 'half'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // Which of the deck's own three colours the slide stands on.
+            //
+            // One slot rather than a boolean and a colour: "inverted" and
+            // "ground: ink" were the same slide drawn twice, and the accent
+            // ground had nowhere to live. Three values taken from the palette
+            // and never a free colour, so a slide cannot step outside the
+            // deck's.
+            if ('ground' === $slot) {
+                if (in_array($value, ['normal', 'inverted', 'accent'], true)) {
                     $clean[$slot] = $value;
                 }
 
