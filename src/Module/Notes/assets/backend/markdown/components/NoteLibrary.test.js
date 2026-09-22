@@ -103,12 +103,35 @@ afterEach(() => {
 
 describe("the library", () => {
     it("shows the root: its folders and the notes filed nowhere", () => {
-        const text = render().text();
+        const cards = render()
+            .findAll("article")
+            .map((one) => one.text());
 
-        expect(text).toContain("Clients");
-        expect(text).toContain("À la racine");
-        // Ce qui est rangé dans un dossier n'est pas à la racine.
-        expect(text).not.toContain("Devis");
+        expect(cards.some((text) => text.includes("Clients"))).toBe(true);
+        expect(cards.some((text) => text.includes("À la racine"))).toBe(true);
+        // Ce qui est rangé dans un dossier n'est pas à la racine. La rangée
+        // des récentes, elle, traverse le carnet : c'est son travail.
+        expect(cards.some((text) => text.includes("Devis"))).toBe(false);
+    });
+
+    /**
+     * « Où en étais-je » est la question qu'on pose en arrivant, et la
+     * rangée des récentes y répond sans faire chercher dans quel dossier la
+     * note avait été rangée.
+     */
+    it("opens on the notes most recently changed, wherever they are filed", () => {
+        const wrapper = render();
+
+        const recent = wrapper.find("section");
+
+        expect(recent.exists()).toBe(true);
+        expect(recent.text()).toContain("Devis");
+    });
+
+    it("keeps the recent row out of a folder, where it would answer nothing", () => {
+        expect(render({ initialFolderId: 1 }).find("section").exists()).toBe(
+            false,
+        );
     });
 
     it("shows what a folder holds when the address names one", () => {

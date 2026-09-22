@@ -117,6 +117,7 @@ notes:
     library:
       title: All documents
       new_note: New note
+      recent: Recently changed
       new_folder: New folder
       search_placeholder: Search the notes…
       view:

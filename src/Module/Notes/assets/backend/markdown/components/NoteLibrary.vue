@@ -16,7 +16,7 @@
  * au clavier et au doigt, parce qu'un glisser-déposer n'existe pas sur un
  * téléphone.
  */
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import {
@@ -45,6 +45,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
+import AppLoadMore from "@/shared/components/nav/AppLoadMore.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useNoteLibrary } from "@notes/backend/markdown/composables/useNoteLibrary.js";
@@ -129,6 +130,47 @@ const shownNotes = computed(() =>
 const nothingShown = computed(
     () => 0 === shownFolders.value.length && 0 === shownNotes.value.length,
 );
+
+/**
+ * Ce qui est dessiné d'un coup, et ce qui attend.
+ *
+ * Le carnet entier est déjà dans la page - le tri se fait ici, faute de
+ * pouvoir trier des colonnes chiffrées en SQL - mais dessiner mille cartes
+ * d'un coup fige l'écran pour rien : on n'en lit jamais mille. Le reste
+ * arrive à la demande, et le compteur repart dès qu'on change de dossier ou
+ * qu'on tape autre chose.
+ */
+const PAGE = 60;
+const shown = ref(PAGE);
+
+watch([currentFolderId, query, sort, direction], () => {
+    shown.value = PAGE;
+});
+
+const pagedFolders = computed(() => shownFolders.value.slice(0, shown.value));
+
+const pagedNotes = computed(() =>
+    shownNotes.value.slice(0, Math.max(0, shown.value - pagedFolders.value.length)),
+);
+
+const hasMore = computed(
+    () => shownFolders.value.length + shownNotes.value.length > shown.value,
+);
+
+/**
+ * Les dernières notes touchées, en tête du carnet.
+ *
+ * Craft ouvre sur elles, et c'est la question posée neuf fois sur dix en
+ * arrivant : « où en étais-je ». Seulement à la racine, et seulement sans
+ * recherche : dans un dossier, ce qu'on cherche est le contenu du dossier.
+ */
+const recent = computed(() => {
+    if (null !== currentFolderId.value || "" !== query.value.trim()) return [];
+
+    return [...props.notes]
+        .sort((a, b) => Date.parse(b.updatedAt ?? 0) - Date.parse(a.updatedAt ?? 0))
+        .slice(0, 4);
+});
 
 const viewOptions = computed(() => [
     { value: "mosaic", icon: LayoutGrid, label: t("notes.markdown.library.view.mosaic") },
@@ -587,109 +629,45 @@ defineExpose({
                 :icon="FileText"
             />
 
-            <!-- Mosaïque et cartes partagent la grille et ne diffèrent que par
-                 la hauteur des tuiles : une seule colonne sur téléphone, c'est
-                 la règle de la maison depuis le 14/09. -->
-            <div
-                v-else-if="'list' !== view"
-                class="grid grid-cols-1 gap-3"
-                :class="'mosaic' === view ? 'sm:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-3 xl:grid-cols-4'"
-            >
-                <article
-                    v-for="folder in shownFolders"
-                    :key="`folder-${folder.id}`"
-                    class="group flex flex-col rounded-lg border bg-surface transition-colors"
-                    :class="[
-                        `folder:${folder.id}` === dragOverId ? 'border-accent-500 bg-accent-500/10' : 'border-line hover:border-accent-500/50',
-                        'mosaic' === view ? 'p-4' : 'p-3',
-                    ]"
-                    draggable="true"
-                    v-on:dragstart="onDragStart('folder', folder, $event)"
-                    v-on:dragend="onDragEnd"
-                    v-on:dragover="onDragOverFolder(folder, $event)"
-                    v-on:dragleave="onDragLeaveFolder(folder, $event)"
-                    v-on:drop="onDropOn(Number(folder.id), $event)"
-                >
-                    <div class="flex items-start gap-2">
-                        <button
-                            type="button"
-                            class="flex min-w-0 flex-1 items-center gap-2 text-left"
-                            v-on:click="openFolder(folder.id)"
-                        >
-                            <Folder class="w-5 h-5 shrink-0 text-accent-500" :stroke-width="2" />
-                            <span class="truncate font-medium text-primary">{{ folderLabel(folder) }}</span>
-                        </button>
+            <!-- Tout le reste tient dans une seule branche : un `v-else`
+                 doit suivre son `v-if` immédiatement, et la rangée des
+                 récentes s'était glissée entre les deux. -->
+            <template v-else>
+                <section v-if="recent.length" class="mb-5">
+                    <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                        {{ t('notes.markdown.library.recent') }}
+                    </h3>
 
-                        <AppRowActions :actions="folderActions(folder)" :label="folderLabel(folder)" />
-                    </div>
-
-                    <p class="mt-2 text-xs text-muted">
-                        {{ t('notes.markdown.folders.contents', { folders: folder.folderCount ?? 0, notes: folder.noteCount ?? 0 }) }}
-                    </p>
-                </article>
-
-                <article
-                    v-for="note in shownNotes"
-                    :key="`note-${note.id}`"
-                    class="group flex flex-col rounded-lg border border-line bg-surface transition-colors hover:border-accent-500/50"
-                    :class="'mosaic' === view ? 'p-4 min-h-[8rem]' : 'p-3'"
-                    draggable="true"
-                    v-on:dragstart="onDragStart('note', note, $event)"
-                    v-on:dragend="onDragEnd"
-                >
-                    <div class="flex items-start gap-2">
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
                         <a
+                            v-for="note in recent"
+                            :key="`recent-${note.id}`"
                             :href="noteUrlFor(note.id)"
-                            class="flex min-w-0 flex-1 items-center gap-2"
+                            class="flex min-w-0 items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm no-underline transition-colors hover:border-accent-500/50"
                             v-on:click.prevent="emit('open-note', note.id)"
                         >
-                            <FileText class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
-                            <span class="truncate font-medium text-primary">{{ noteLabel(note) }}</span>
+                            <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
+                            <span class="truncate text-primary">{{ noteLabel(note) }}</span>
                         </a>
-
-                        <AppRowActions :actions="noteActions(note)" :label="noteLabel(note)" />
                     </div>
+                </section>
 
-                    <!-- Les premières lignes, en mosaïque seulement : c'est
-                         ce qui distingue cette vue des cartes, et ce qui
-                         permet de reconnaître une note dont le titre ne dit
-                         rien. -->
-                    <p
-                        v-if="'mosaic' === view && note.excerpt"
-                        class="mt-2 line-clamp-3 text-sm text-muted"
+                <!-- Mosaïque et cartes partagent la grille et ne diffèrent que par
+                 la hauteur des tuiles : une seule colonne sur téléphone, c'est
+                 la règle de la maison depuis le 14/09. -->
+                <div v-if="'list' !== view">
+                    <div
+                        class="grid grid-cols-1 gap-3"
+                        :class="'mosaic' === view ? 'sm:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-3 xl:grid-cols-4'"
                     >
-                        {{ note.excerpt }}
-                    </p>
-
-                    <div v-if="note.tags?.length" class="mt-2 flex flex-wrap gap-1">
-                        <AppBadge v-for="tag in note.tags" :key="tag" color="gray" size="xs">
-                            {{ tag }}
-                        </AppBadge>
-                    </div>
-
-                    <p class="mt-auto pt-2 text-xs text-muted">{{ updatedLabel(note) }}</p>
-                </article>
-            </div>
-
-            <!-- La liste : un tableau sur écran large, des lignes empilées en
-                 dessous. Le tableau défile dans son propre conteneur pour que
-                 la page ne parte jamais de côté. -->
-            <div v-else class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="text-left text-xs uppercase tracking-wide text-muted">
-                        <tr>
-                            <th scope="col" class="px-2 py-2 font-medium">{{ t('notes.markdown.library.columns.name') }}</th>
-                            <th scope="col" class="hidden px-2 py-2 font-medium sm:table-cell">{{ t('notes.markdown.library.columns.tags') }}</th>
-                            <th scope="col" class="hidden px-2 py-2 font-medium sm:table-cell">{{ t('notes.markdown.library.columns.updated') }}</th>
-                            <th scope="col" class="px-2 py-2" />
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="folder in shownFolders"
-                            :key="`row-folder-${folder.id}`"
-                            class="border-t border-line transition-colors"
-                            :class="`folder:${folder.id}` === dragOverId ? 'bg-accent-500/10' : ''"
+                        <article
+                            v-for="folder in pagedFolders"
+                            :key="`folder-${folder.id}`"
+                            class="group flex flex-col rounded-lg border bg-surface transition-colors"
+                            :class="[
+                                `folder:${folder.id}` === dragOverId ? 'border-accent-500 bg-accent-500/10' : 'border-line hover:border-accent-500/50',
+                                'mosaic' === view ? 'p-4' : 'p-3',
+                            ]"
                             draggable="true"
                             v-on:dragstart="onDragStart('folder', folder, $event)"
                             v-on:dragend="onDragEnd"
@@ -697,54 +675,157 @@ defineExpose({
                             v-on:dragleave="onDragLeaveFolder(folder, $event)"
                             v-on:drop="onDropOn(Number(folder.id), $event)"
                         >
-                            <td class="px-2 py-2">
-                                <button type="button" class="flex items-center gap-2 text-left" v-on:click="openFolder(folder.id)">
-                                    <Folder class="w-4 h-4 shrink-0 text-accent-500" :stroke-width="2" />
+                            <div class="flex items-start gap-2">
+                                <button
+                                    type="button"
+                                    class="flex min-w-0 flex-1 items-center gap-2 text-left"
+                                    v-on:click="openFolder(folder.id)"
+                                >
+                                    <Folder class="w-5 h-5 shrink-0 text-accent-500" :stroke-width="2" />
                                     <span class="truncate font-medium text-primary">{{ folderLabel(folder) }}</span>
                                 </button>
-                            </td>
-                            <td class="hidden px-2 py-2 text-muted sm:table-cell">
-                                {{ t('notes.markdown.library.count', { count: (folder.noteCount ?? 0) + (folder.folderCount ?? 0) }) }}
-                            </td>
-                            <td class="hidden px-2 py-2 text-muted sm:table-cell">{{ updatedLabel(folder) }}</td>
-                            <td class="px-2 py-2">
-                                <AppRowActions :actions="folderActions(folder)" :label="folderLabel(folder)" />
-                            </td>
-                        </tr>
 
-                        <tr
-                            v-for="note in shownNotes"
-                            :key="`row-note-${note.id}`"
-                            class="border-t border-line"
+                                <AppRowActions :actions="folderActions(folder)" :label="folderLabel(folder)" />
+                            </div>
+
+                            <p class="mt-2 text-xs text-muted">
+                                {{ t('notes.markdown.folders.contents', { folders: folder.folderCount ?? 0, notes: folder.noteCount ?? 0 }) }}
+                            </p>
+                        </article>
+
+                        <article
+                            v-for="note in pagedNotes"
+                            :key="`note-${note.id}`"
+                            class="group flex flex-col rounded-lg border border-line bg-surface transition-colors hover:border-accent-500/50"
+                            :class="'mosaic' === view ? 'p-4 min-h-[8rem]' : 'p-3'"
                             draggable="true"
                             v-on:dragstart="onDragStart('note', note, $event)"
                             v-on:dragend="onDragEnd"
                         >
-                            <td class="px-2 py-2">
+                            <div class="flex items-start gap-2">
                                 <a
                                     :href="noteUrlFor(note.id)"
-                                    class="flex items-center gap-2"
+                                    class="flex min-w-0 flex-1 items-center gap-2"
                                     v-on:click.prevent="emit('open-note', note.id)"
                                 >
-                                    <FileText class="w-4 h-4 shrink-0 text-muted" :stroke-width="2" />
+                                    <FileText class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
                                     <span class="truncate font-medium text-primary">{{ noteLabel(note) }}</span>
                                 </a>
-                            </td>
-                            <td class="hidden px-2 py-2 sm:table-cell">
-                                <div class="flex flex-wrap gap-1">
-                                    <AppBadge v-for="tag in note.tags ?? []" :key="tag" color="gray" size="xs">
-                                        {{ tag }}
-                                    </AppBadge>
-                                </div>
-                            </td>
-                            <td class="hidden px-2 py-2 text-muted sm:table-cell">{{ updatedLabel(note) }}</td>
-                            <td class="px-2 py-2">
+
                                 <AppRowActions :actions="noteActions(note)" :label="noteLabel(note)" />
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+
+                            <!-- Les premières lignes, en mosaïque seulement : c'est
+                         ce qui distingue cette vue des cartes, et ce qui
+                         permet de reconnaître une note dont le titre ne dit
+                         rien. -->
+                            <p
+                                v-if="'mosaic' === view && note.excerpt"
+                                class="mt-2 line-clamp-3 text-sm text-muted"
+                            >
+                                {{ note.excerpt }}
+                            </p>
+
+                            <div v-if="note.tags?.length" class="mt-2 flex flex-wrap gap-1">
+                                <AppBadge v-for="tag in note.tags" :key="tag" color="gray" size="xs">
+                                    {{ tag }}
+                                </AppBadge>
+                            </div>
+
+                            <p class="mt-auto pt-2 text-xs text-muted">{{ updatedLabel(note) }}</p>
+                        </article>
+                    </div>
+
+                    <AppLoadMore
+                        v-if="hasMore"
+                        class="mt-3"
+                        :has-more="hasMore"
+                        v-on:load="shown += PAGE"
+                    />
+                </div>
+
+                <!-- La liste : un tableau sur écran large, des lignes empilées en
+                 dessous. Le tableau défile dans son propre conteneur pour que
+                 la page ne parte jamais de côté. -->
+                <div v-else class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="text-left text-xs uppercase tracking-wide text-muted">
+                            <tr>
+                                <th scope="col" class="px-2 py-2 font-medium">{{ t('notes.markdown.library.columns.name') }}</th>
+                                <th scope="col" class="hidden px-2 py-2 font-medium sm:table-cell">{{ t('notes.markdown.library.columns.tags') }}</th>
+                                <th scope="col" class="hidden px-2 py-2 font-medium sm:table-cell">{{ t('notes.markdown.library.columns.updated') }}</th>
+                                <th scope="col" class="px-2 py-2" />
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr
+                                v-for="folder in pagedFolders"
+                                :key="`row-folder-${folder.id}`"
+                                class="border-t border-line transition-colors"
+                                :class="`folder:${folder.id}` === dragOverId ? 'bg-accent-500/10' : ''"
+                                draggable="true"
+                                v-on:dragstart="onDragStart('folder', folder, $event)"
+                                v-on:dragend="onDragEnd"
+                                v-on:dragover="onDragOverFolder(folder, $event)"
+                                v-on:dragleave="onDragLeaveFolder(folder, $event)"
+                                v-on:drop="onDropOn(Number(folder.id), $event)"
+                            >
+                                <td class="px-2 py-2">
+                                    <button type="button" class="flex items-center gap-2 text-left" v-on:click="openFolder(folder.id)">
+                                        <Folder class="w-4 h-4 shrink-0 text-accent-500" :stroke-width="2" />
+                                        <span class="truncate font-medium text-primary">{{ folderLabel(folder) }}</span>
+                                    </button>
+                                </td>
+                                <td class="hidden px-2 py-2 text-muted sm:table-cell">
+                                    {{ t('notes.markdown.library.count', { count: (folder.noteCount ?? 0) + (folder.folderCount ?? 0) }) }}
+                                </td>
+                                <td class="hidden px-2 py-2 text-muted sm:table-cell">{{ updatedLabel(folder) }}</td>
+                                <td class="px-2 py-2">
+                                    <AppRowActions :actions="folderActions(folder)" :label="folderLabel(folder)" />
+                                </td>
+                            </tr>
+
+                            <tr
+                                v-for="note in pagedNotes"
+                                :key="`row-note-${note.id}`"
+                                class="border-t border-line"
+                                draggable="true"
+                                v-on:dragstart="onDragStart('note', note, $event)"
+                                v-on:dragend="onDragEnd"
+                            >
+                                <td class="px-2 py-2">
+                                    <a
+                                        :href="noteUrlFor(note.id)"
+                                        class="flex items-center gap-2"
+                                        v-on:click.prevent="emit('open-note', note.id)"
+                                    >
+                                        <FileText class="w-4 h-4 shrink-0 text-muted" :stroke-width="2" />
+                                        <span class="truncate font-medium text-primary">{{ noteLabel(note) }}</span>
+                                    </a>
+                                </td>
+                                <td class="hidden px-2 py-2 sm:table-cell">
+                                    <div class="flex flex-wrap gap-1">
+                                        <AppBadge v-for="tag in note.tags ?? []" :key="tag" color="gray" size="xs">
+                                            {{ tag }}
+                                        </AppBadge>
+                                    </div>
+                                </td>
+                                <td class="hidden px-2 py-2 text-muted sm:table-cell">{{ updatedLabel(note) }}</td>
+                                <td class="px-2 py-2">
+                                    <AppRowActions :actions="noteActions(note)" :label="noteLabel(note)" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <AppLoadMore
+                        v-if="hasMore"
+                        class="mt-3"
+                        :has-more="hasMore"
+                        v-on:load="shown += PAGE"
+                    />
+                </div>
+            </template>
         </div>
 
         <AppModal
