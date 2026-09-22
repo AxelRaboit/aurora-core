@@ -9,7 +9,10 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckGradientEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckLookEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckPatternEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
@@ -17,6 +20,7 @@ use Aurora\Module\Studio\Deck\Repository\DeckCategoryRepository;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deck\Serializer\DeckSerializer;
 use Aurora\Module\Studio\Deck\Service\DeckPictures;
+use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
 use Aurora\Module\Studio\StudioContext;
@@ -85,6 +89,12 @@ final readonly class DecksViewBuilder
             'themes' => $this->themeOptions(),
             'fontPairs' => $this->fontPairOptions(),
             'logoPlacements' => $this->logoPlacementOptions(),
+            'looks' => $this->lookOptions(),
+            'gradients' => $this->gradientOptions(),
+            'patterns' => $this->patternOptions(),
+            'margins' => DeckStyleNormalizer::MARGINS,
+            'titleCases' => DeckStyleNormalizer::TITLE_CASES,
+            'bulletShapes' => DeckStyleNormalizer::BULLETS,
             'transitions' => $this->transitionOptions(),
             'appearancePath' => $this->urlGenerator->generate('backend_studio_deck_appearance', ['id' => $deck->getId()]),
             'backPath' => $this->urlGenerator->generate('backend_studio_decks'),
@@ -230,7 +240,7 @@ final readonly class DecksViewBuilder
      * panel previews a theme before it is saved, and without the theme's own
      * pair it would preview the new colours in the *previous* theme's faces.
      *
-     * @return list<array{value: string, labelKey: string, palette: array{background: string, ink: string, accent: string}, fontPair: string}>
+     * @return list<array{value: string, labelKey: string, palette: array{background: string, ink: string, accent: string}, fontPair: string, gradient: string, pattern: string}>
      */
     private function themeOptions(): array
     {
@@ -240,6 +250,8 @@ final readonly class DecksViewBuilder
                 'labelKey' => $theme->labelKey(),
                 'palette' => $theme->palette(),
                 'fontPair' => $theme->fonts()->value,
+                'gradient' => $theme->gradient()->value,
+                'pattern' => $theme->pattern()->value,
             ],
             DeckThemeEnum::cases(),
         );
@@ -256,6 +268,54 @@ final readonly class DecksViewBuilder
                 'body' => $pair->body(),
             ],
             DeckFontPairEnum::cases(),
+        );
+    }
+
+    /** @return list<array{value: string, labelKey: string}> */
+    private function gradientOptions(): array
+    {
+        return array_map(
+            static fn (DeckGradientEnum $gradient): array => [
+                'value' => $gradient->value,
+                'labelKey' => $gradient->labelKey(),
+            ],
+            DeckGradientEnum::cases(),
+        );
+    }
+
+    /**
+     * The looks, each carrying everything it writes.
+     *
+     * The whole combination travels with the option, the way a theme's palette
+     * already does: the panel has to preview a look before anybody commits to
+     * it, and a preview that needed a round trip would make trying four looks
+     * four saves.
+     *
+     * @return list<array{value: string, labelKey: string, descriptionKey: string, theme: string, style: array<string, bool|string>}>
+     */
+    private function lookOptions(): array
+    {
+        return array_map(
+            static fn (DeckLookEnum $look): array => [
+                'value' => $look->value,
+                'labelKey' => $look->labelKey(),
+                'descriptionKey' => $look->descriptionKey(),
+                'theme' => $look->theme()->value,
+                'style' => $look->style(),
+            ],
+            DeckLookEnum::cases(),
+        );
+    }
+
+    /** @return list<array{value: string, labelKey: string}> */
+    private function patternOptions(): array
+    {
+        return array_map(
+            static fn (DeckPatternEnum $pattern): array => [
+                'value' => $pattern->value,
+                'labelKey' => $pattern->labelKey(),
+            ],
+            DeckPatternEnum::cases(),
         );
     }
 

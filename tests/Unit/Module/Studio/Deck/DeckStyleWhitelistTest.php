@@ -38,6 +38,78 @@ final class DeckStyleWhitelistTest extends TestCase
         self::assertSame(['accent' => '#ff8800', 'fontPair' => 'serif'], $clean);
     }
 
+    /**
+     * `none` is a choice and not an absence, since a theme can carry a wash:
+     * the missing key means "whatever my theme proposes", and a deck has to be
+     * able to say "flat, whatever my theme proposes" instead.
+     */
+    public function testTheFlatGroundIsAChoiceAndNotAnAbsence(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        self::assertSame(['gradient' => 'halo'], $normalizer->normalize(['gradient' => 'halo']));
+        self::assertSame(['gradient' => 'none'], $normalizer->normalize(['gradient' => 'none']));
+        self::assertSame([], $normalizer->normalize(['gradient' => 'rainbow']));
+        self::assertSame([], $normalizer->normalize([]), 'nothing chosen leaves the theme in charge');
+    }
+
+    public function testTheBareGroundIsAChoiceToo(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        self::assertSame(['pattern' => 'grid'], $normalizer->normalize(['pattern' => 'grid']));
+        self::assertSame(['pattern' => 'none'], $normalizer->normalize(['pattern' => 'none']));
+        self::assertSame([], $normalizer->normalize(['pattern' => 'tartan']));
+    }
+
+    /** The wash and the texture are two answers to a bare ground, not one. */
+    public function testAGradientAndAPatternLiveTogether(): void
+    {
+        $clean = (new DeckStyleNormalizer())->normalize(['gradient' => 'top', 'pattern' => 'dots']);
+
+        self::assertSame(['gradient' => 'top', 'pattern' => 'dots'], $clean);
+    }
+
+    public function testTheMarginIsStoredEvenWhenItIsTheUsualOne(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        // Unlike a wash, a margin is not an effect somebody added: keeping the
+        // usual one is a decision worth telling apart from never having looked.
+        self::assertSame(['margins' => 'normal'], $normalizer->normalize(['margins' => 'normal']));
+        self::assertSame(['margins' => 'wide'], $normalizer->normalize(['margins' => 'wide']));
+        self::assertSame([], $normalizer->normalize(['margins' => 'none']));
+    }
+
+    public function testTheHairlineIsStoredOnlyWhenItIsOn(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        self::assertSame(['hairline' => true], $normalizer->normalize(['hairline' => true]));
+        self::assertSame([], $normalizer->normalize(['hairline' => false]));
+        self::assertSame([], $normalizer->normalize(['hairline' => 'on']));
+    }
+
+    public function testTheTitleCaseAndTheBulletShapeAreDeckWide(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        self::assertSame(
+            ['titleCase' => 'upper', 'bullets' => 'arrow'],
+            $normalizer->normalize(['titleCase' => 'upper', 'bullets' => 'arrow']),
+        );
+
+        self::assertSame([], $normalizer->normalize(['titleCase' => 'small-caps', 'bullets' => 'star']));
+    }
+
+    public function testTheSeparatingRulesAreStoredOnlyWhenTheyAreOn(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        self::assertSame(['rules' => true], $normalizer->normalize(['rules' => true]));
+        self::assertSame([], $normalizer->normalize(['rules' => false]));
+    }
+
     public function testAnUnsetColourIsNotWritten(): void
     {
         $clean = (new DeckStyleNormalizer())->normalize(['background' => null, 'ink' => '']);

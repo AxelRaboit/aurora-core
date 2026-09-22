@@ -17,7 +17,8 @@
  * properties to set.
  */
 import { computed } from "vue";
-import { cells, headed } from "../cells.js";
+import { cells, decorated, headed, measured } from "../cells.js";
+import { iconFor } from "../icons.js";
 import { useSlideFit } from "../composables/useSlideFit.js";
 import { emphasis } from "../emphasis.js";
 import SlideChart from "./SlideChart.vue";
@@ -33,7 +34,65 @@ const props = defineProps({
     appearance: { type: Object, default: null },
     /** 1-based, for the slide number in the footer. */
     index: { type: Number, default: 0 },
+    /**
+     * Drawn where it is watched rather than read: the player and the presenter.
+     * Movement belongs to the act of presenting, exactly as the transition does.
+     */
+    live: { type: Boolean, default: false },
+    /**
+     * How many lines of this slide's list are out, or null for all of them.
+     *
+     * The hidden ones are drawn and made invisible rather than left out: the
+     * frame measures its own type and shrinks it to fit, so a list that grew a
+     * line at a time would resize every word on the slide at every press.
+     */
+    revealed: { type: Number, default: null },
 });
+
+/**
+ * Which of the deck's three colours this slide stands on.
+ *
+ * **One setting and not two.** The first version of this was a boolean called
+ * `inverted`, and a per-slide ground taken from the palette would have been a
+ * second way to spell the same slide: ground-is-the-ink IS the inversion. One
+ * slot with three values says it once, and makes room for the third ground the
+ * boolean had nowhere to put.
+ *
+ * **Always the deck's own colours**, never a colour of its own: a slide painted
+ * with a value of its own would drift the day the deck's palette is
+ * overridden.
+ *
+ * The accent does not move when the ground does. It is the one tone that sits
+ * at a deliberate distance from both others, and moving it too would leave the
+ * wash and the rules on such a slide looking like another deck's.
+ *
+ * A frame drawn outside a deck has no palette to stand on, so it stays as it
+ * is rather than inventing one.
+ */
+const ground = computed(() =>
+    ["inverted", "accent"].includes(props.slide.content.ground)
+        ? props.slide.content.ground
+        : "normal",
+);
+
+/**
+ * The picture's outline, as a name the stylesheet matches on.
+ *
+ * **No full-bleed case**, although it is the first one anybody asks for: a
+ * picture that reaches all four edges of the frame with the text over it is
+ * what `bgMediaId` already draws, on every layout, with a veil to keep the
+ * words readable. A second way to spell it would be two features that look the
+ * same until one of them gets the veil and the other does not.
+ */
+const shape = computed(() => {
+    const asked = props.slide.content.mediaShape;
+
+    return ["soft", "round", "arch", "circle"].includes(asked) ? asked : "soft";
+});
+
+
+/** Whether the line at this rank is out yet. Everything is, unless told. */
+const isOut = (at) => props.revealed === null || at < props.revealed;
 
 const skin = computed(() => {
     const look = props.appearance;
@@ -41,11 +100,69 @@ const skin = computed(() => {
     if (!look) return {};
 
     return {
-        "--slide-bg": look.background,
-        "--slide-ink": look.ink,
-        "--slide-accent": look.accent,
+        // The accent ground borrows the deck's background for its text: it is
+        // the one tone guaranteed to sit at a distance from the accent, since
+        // the palette was picked so the ink reads on it.
+        "--slide-bg": { inverted: look.ink, accent: look.accent }[ground.value] ?? look.background,
+        "--slide-ink": "normal" === ground.value ? look.ink : look.background,
+        // And on that ground the accent has to move, which it does nowhere
+        // else. Everything this module draws as furniture - the band, the
+        // frame's hairline, the bullets, the rules, an accented word - is
+        // painted in the accent, and on a ground that IS the accent all of it
+        // simply vanishes. The deck's ink takes the role there: dark furniture
+        // on the accent, under the pale text, still three colours and still
+        // the deck's own.
+        "--slide-accent": "accent" === ground.value ? look.ink : look.accent,
         "--slide-heading": look.headingFont,
         "--slide-body": look.bodyFont,
+    };
+});
+
+/**
+ * The wash over the ground, as a name the stylesheet matches on.
+ *
+ * A name rather than a computed `background-image`: where the accent starts
+ * and how far it reaches is a drawing decision, and drawing decisions in this
+ * component live in its stylesheet with the rest of the `color-mix` work.
+ */
+const gradient = computed(() => props.appearance?.gradient ?? "none");
+
+/** The texture on the ground, which a picture on the ground simply covers. */
+const pattern = computed(() => props.appearance?.pattern ?? "none");
+
+/** The frame's own margin, and the hairline drawn inside it. */
+const margins = computed(() => props.appearance?.margins ?? "normal");
+const hairline = computed(() => props.appearance?.hairline === true);
+
+/** How titles are cased, and what a bullet looks like. Both deck-wide. */
+const titleCase = computed(() => props.appearance?.titleCase ?? "normal");
+const bullets = computed(() => props.appearance?.bullets ?? "disc");
+
+/**
+ * The very large, very pale figure behind a section title.
+ *
+ * Typed rather than counted. The frame knows its index in the deck, not its
+ * rank among the sections, and a figure that renumbered itself every time a
+ * slide moved would be a decoration nobody could rely on.
+ */
+const ghost = computed(() => (props.compact ? "" : (props.slide.content.ghost ?? "")));
+
+/**
+ * Where the content sits, how it is aligned, how wide it runs.
+ *
+ * **Undefined rather than a default when nothing was chosen**, so the
+ * attribute is absent and the layout's own rule keeps applying. The section
+ * layout centres its title in the stylesheet; emitting `align="left"` on every
+ * slide that never expressed a preference would quietly restyle every section
+ * slide ever written.
+ */
+const composition = computed(() => {
+    const content = props.slide.content;
+
+    return {
+        "data-anchor": ["top", "center", "bottom"].includes(content.anchor) ? content.anchor : undefined,
+        "data-align": ["left", "center", "right"].includes(content.align) ? content.align : undefined,
+        "data-measure": ["full", "two_thirds", "half"].includes(content.measure) ? content.measure : undefined,
     };
 });
 
@@ -81,12 +198,79 @@ const hasFooter = computed(() => showsLogo.value || !!footerText.value || showsN
  * the ground keeps the slide recognisably the deck's.
  */
 const background = computed(() => {
-    const url = props.slide.content.bgMediaUrl;
+    const content = props.slide.content;
+    const url = content.bgMediaUrl;
 
     if (!url) return null;
 
-    return { url, dim: Math.min(Math.max(props.slide.content.bgDim ?? 40, 0), 90) / 100 };
+    const treatment = ["blur", "mono", "duotone", "grain"].includes(content.bgTreatment)
+        ? content.bgTreatment
+        : "none";
+
+    return {
+        url,
+        dim: Math.min(Math.max(content.bgDim ?? 40, 0), 90) / 100,
+        treatment,
+        // The tint and the grain are a layer of their own, between the picture
+        // and the veil: a filter cannot add a colour, and a `::after` on the
+        // backdrop would paint over the veil instead of under it.
+        film: "duotone" === treatment || "grain" === treatment,
+        veil: ["flat", "bottom", "top"].includes(content.bgVeil) ? content.bgVeil : "flat",
+    };
 });
+
+/**
+ * The very slow travel across a background picture.
+ *
+ * **Only where a slide is watched.** The print page and the share link draw
+ * the same component, and a picture that drifts under somebody reading a PDF
+ * is a picture that will be photographed mid-move. The player says so by
+ * passing `live`; everywhere else the class is simply never added.
+ *
+ * The direction comes from the focal point already stored on the slide: a
+ * picture whose subject is on the left is worth travelling towards the left.
+ */
+const drifts = computed(() => props.live && props.slide.content.drift === true);
+
+/**
+ * How loud the title is on this slide, before the fit shrinks anything.
+ *
+ * **A multiplier on the starting point and not a size.** Every size in the
+ * frame is `Xcqw * var(--fit)`, and `useSlideFit` lowers `--fit` until the
+ * words stop falling out. A scale that set a size outright would be a value
+ * fighting that measurement; one that multiplies the start is simply a taller
+ * starting point for the same ladder to come down.
+ */
+const titleScale = computed(
+    () => ({ quiet: 0.72, loud: 1.35 })[props.slide.content.titleScale] ?? 1,
+);
+
+/** The corners, darkened. Works on a flat ground as well as on a picture. */
+const vignette = computed(() => props.slide.content.vignette === true);
+
+/**
+ * A solid shape of accent against one edge of the frame.
+ *
+ * **Decided per slide and not per deck**, unlike the wash and the texture: the
+ * band is opaque and takes a third of the frame, so on every slide of a deck
+ * it stops being furniture and becomes the layout. On a cover and a section
+ * slide it is exactly what makes them read as composed.
+ */
+const band = computed(() =>
+    ["left", "bottom", "edge"].includes(props.slide.content.band)
+        ? props.slide.content.band
+        : "none",
+);
+
+/** The hairlines a deck draws between its columns and under its kickers. */
+const rules = computed(() => props.appearance?.rules === true);
+
+/** What the picture of a picture layout is wrapped in. */
+const mediaFrame = computed(() =>
+    ["line", "shadow"].includes(props.slide.content.mediaFrame)
+        ? props.slide.content.mediaFrame
+        : "none",
+);
 
 /** The line above the title. Empty on a thumbnail, where it would be one pixel. */
 const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker ?? "")));
@@ -116,15 +300,43 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
         <div
             class="slide-frame"
             :class="[compact ? 'is-compact' : '', hasFooter ? 'has-footer' : '']"
-            :style="[skin, media]"
+            :data-gradient="gradient"
+            :data-pattern="pattern"
+            :data-shape="shape"
+            :data-margins="margins"
+            :data-title-case="titleCase"
+            :data-bullets="bullets"
+            :data-media-frame="mediaFrame"
+            :data-band="band"
+            :data-rules="rules ? 'on' : 'off'"
+            :data-bleed="slide.content.mediaBleed === true ? 'on' : 'off'"
+            v-bind="composition"
+            :style="[skin, media, { '--title-scale': titleScale }]"
         >
-            <div v-if="background" class="sf-backdrop" aria-hidden="true">
-                <img class="sf-backdrop-file" :src="background.url" alt="">
+            <span v-if="pattern !== 'none'" class="sf-pattern" aria-hidden="true" />
+
+            <div
+                v-if="background"
+                class="sf-backdrop"
+                :data-treatment="background.treatment"
+                :data-veil="background.veil"
+                aria-hidden="true"
+            >
+                <img class="sf-backdrop-file" :class="drifts ? 'is-drifting' : ''" :src="background.url" alt="">
+                <span v-if="background.film" class="sf-backdrop-film" />
                 <span
                     class="sf-backdrop-veil"
                     :style="{ opacity: background.dim }"
                 />
             </div>
+
+            <span v-if="vignette" class="sf-vignette" aria-hidden="true" />
+
+            <span v-if="gradient !== 'none'" class="sf-wash" aria-hidden="true" />
+
+            <span v-if="hairline" class="sf-hairline" aria-hidden="true" />
+
+            <span v-if="band !== 'none'" class="sf-band" aria-hidden="true" />
 
             <div ref="stage" class="slide-stage" :style="{ '--fit': fit }">
                 <p v-if="kicker" class="sf-kicker">{{ kicker }}</p>
@@ -135,13 +347,19 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 </template>
 
                 <template v-else-if="slide.layout === 'section'">
+                    <span v-if="ghost" class="sf-ghost" aria-hidden="true">{{ ghost }}</span>
                     <p class="sf-section" v-html="emphasis(slide.content.title)" />
                 </template>
 
                 <template v-else-if="slide.layout === 'bullets'">
                     <p class="sf-heading" v-html="emphasis(slide.content.title)" />
                     <ul v-if="!compact" class="sf-list">
-                        <li v-for="(bullet, at) in slide.content.bullets ?? []" :key="at" v-html="emphasis(bullet)" />
+                        <li
+                            v-for="(bullet, at) in slide.content.bullets ?? []"
+                            :key="at"
+                            :class="isOut(at) ? '' : 'is-held'"
+                            v-html="emphasis(bullet)"
+                        />
                     </ul>
                     <div v-else class="sf-lines">
                         <span v-for="(bullet, at) in (slide.content.bullets ?? []).slice(0, 4)" :key="at" />
@@ -182,12 +400,111 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                     </div>
                 </template>
 
+                <template v-else-if="slide.layout === 'compare'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
+                    <div class="sf-compare">
+                        <div class="sf-compare-side">
+                            <span v-if="slide.content.leftTitle" class="sf-compare-head" v-html="emphasis(slide.content.leftTitle)" />
+                            <p v-if="!compact" v-html="emphasis(slide.content.left)" />
+                        </div>
+                        <div class="sf-compare-side is-second">
+                            <span v-if="slide.content.rightTitle" class="sf-compare-head" v-html="emphasis(slide.content.rightTitle)" />
+                            <p v-if="!compact" v-html="emphasis(slide.content.right)" />
+                        </div>
+                    </div>
+                </template>
+
+                <template v-else-if="slide.layout === 'figures'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
+                    <div class="sf-figures" :style="{ '--figures': Math.min((slide.content.figures ?? []).length || 1, 4) }">
+                        <div v-for="(figure, at) in (slide.content.figures ?? []).slice(0, 4)" :key="at" class="sf-figure" :class="isOut(at) ? '' : 'is-held'">
+                            <span class="sf-figure-value">{{ measured(figure).value }}</span>
+                            <span v-if="measured(figure).share !== null" class="sf-gauge">
+                                <i :style="{ width: measured(figure).share + '%' }" />
+                            </span>
+                            <span v-if="!compact && measured(figure).label" class="sf-figure-label" v-html="emphasis(measured(figure).label)" />
+                        </div>
+                    </div>
+                </template>
+
+                <template v-else-if="slide.layout === 'logos'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
+                    <div class="sf-logos" :style="{ '--logos': Math.min((slide.content.mediaPictures ?? []).length || 1, 4) }">
+                        <span v-for="(picture, at) in slide.content.mediaPictures ?? []" :key="at" class="sf-logos-cell">
+                            <img v-if="picture" :src="picture.url" :alt="picture.alt">
+                        </span>
+                    </div>
+                </template>
+
+                <template v-else-if="slide.layout === 'mosaic'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
+                    <div class="sf-mosaic" :data-count="Math.min((slide.content.mediaPictures ?? []).length, 8)">
+                        <span v-for="(picture, at) in slide.content.mediaPictures ?? []" :key="at" class="sf-mosaic-cell">
+                            <img v-if="picture" :src="picture.url" :alt="picture.alt" :style="{ objectPosition: picture.focus }">
+                        </span>
+                    </div>
+                </template>
+
+                <template v-else-if="slide.layout === 'agenda'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
+                    <ol class="sf-agenda">
+                        <li
+                            v-for="(step, at) in slide.content.steps ?? []"
+                            :key="at"
+                            :class="[at + 1 === slide.content.current ? 'is-current' : '', isOut(at) ? '' : 'is-held']"
+                        >
+                            <span class="sf-agenda-rank">{{ String(at + 1).padStart(2, "0") }}</span>
+                            <span v-html="emphasis(headed(step).head)" />
+                        </li>
+                    </ol>
+                </template>
+
+                <template v-else-if="slide.layout === 'portrait'">
+                    <div class="sf-portrait">
+                        <div class="sf-portrait-face">
+                            <img
+                                v-if="slide.content.mediaUrl"
+                                class="sf-image-file"
+                                :src="slide.content.mediaUrl"
+                                :alt="slide.content.mediaAlt ?? ''"
+                            >
+                            <span v-else class="sf-image-mark" />
+                        </div>
+                        <div class="sf-portrait-words">
+                            <p class="sf-portrait-quote" v-html="emphasis(slide.content.quote)" />
+                            <p v-if="!compact && slide.content.attribution" class="sf-portrait-who">
+                                <span v-html="emphasis(slide.content.attribution)" />
+                                <span v-if="slide.content.role" class="sf-portrait-role" v-html="emphasis(slide.content.role)" />
+                            </p>
+                        </div>
+                    </div>
+                </template>
+
+                <template v-else-if="slide.layout === 'end'">
+                    <p class="sf-title" v-html="emphasis(slide.content.title)" />
+                    <div v-if="!compact" class="sf-end-lines">
+                        <span
+                            v-for="(line, at) in slide.content.lines ?? []"
+                            :key="at"
+                            :class="isOut(at) ? '' : 'is-held'"
+                            v-html="emphasis(line)"
+                        />
+                    </div>
+                </template>
+
                 <template v-else-if="slide.layout === 'cards'">
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <div class="sf-cards" :style="{ '--cards': Math.min((slide.content.items ?? []).length || 1, 4) }">
-                        <div v-for="(item, at) in slide.content.items ?? []" :key="at" class="sf-card">
-                            <span class="sf-card-head" v-html="emphasis(headed(item).head)" />
-                            <span v-if="!compact && headed(item).body" class="sf-card-body" v-html="emphasis(headed(item).body)" />
+                        <div v-for="(item, at) in slide.content.items ?? []" :key="at" class="sf-card" :class="isOut(at) ? '' : 'is-held'">
+                            <component
+                                :is="iconFor(decorated(item).icon)"
+                                v-if="!compact && iconFor(decorated(item).icon)"
+                                class="sf-icon"
+                                :stroke-width="2"
+                            />
+                            <span v-if="decorated(item).badge" class="sf-badge">{{ decorated(item).badge }}</span>
+                            <span class="sf-card-head" v-html="emphasis(decorated(item).head)" />
+                            <span v-if="!compact && decorated(item).body" class="sf-card-body" v-html="emphasis(decorated(item).body)" />
                         </div>
                     </div>
                 </template>
@@ -195,10 +512,17 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 <template v-else-if="slide.layout === 'timeline'">
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <ol class="sf-steps">
-                        <li v-for="(step, at) in slide.content.steps ?? []" :key="at" class="sf-step">
-                            <span class="sf-step-mark" />
-                            <span class="sf-step-head" v-html="emphasis(headed(step).head)" />
-                            <span v-if="!compact && headed(step).body" class="sf-step-body" v-html="emphasis(headed(step).body)" />
+                        <li v-for="(step, at) in slide.content.steps ?? []" :key="at" class="sf-step" :class="isOut(at) ? '' : 'is-held'">
+                            <component
+                                :is="iconFor(decorated(step).icon)"
+                                v-if="!compact && iconFor(decorated(step).icon)"
+                                class="sf-step-icon"
+                                :stroke-width="2"
+                            />
+                            <span v-else class="sf-step-mark" />
+                            <span class="sf-step-head" v-html="emphasis(decorated(step).head)" />
+                            <span v-if="decorated(step).badge" class="sf-badge">{{ decorated(step).badge }}</span>
+                            <span v-if="!compact && decorated(step).body" class="sf-step-body" v-html="emphasis(decorated(step).body)" />
                         </li>
                     </ol>
                 </template>
@@ -253,8 +577,17 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                             :alt="slide.content.mediaAlt ?? ''"
                         >
                         <span v-else class="sf-image-mark" />
+                        <p
+                            v-if="!compact && slide.content.caption && slide.content.captionOver === true"
+                            class="sf-caption sf-caption-over"
+                            v-html="emphasis(slide.content.caption)"
+                        />
                     </div>
-                    <p v-if="!compact && slide.content.caption" class="sf-caption" v-html="emphasis(slide.content.caption)" />
+                    <p
+                        v-if="!compact && slide.content.caption && slide.content.captionOver !== true"
+                        class="sf-caption"
+                        v-html="emphasis(slide.content.caption)"
+                    />
                 </template>
             </div>
 
@@ -314,11 +647,13 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     --slide-heading: inherit;
     --slide-body: inherit;
 
+    --frame-pad: 6cqw;
+
     position: absolute;
     inset: 0;
     display: flex;
     flex-direction: column;
-    padding: 6cqw;
+    padding: var(--frame-pad);
     background: var(--slide-bg);
     color: var(--slide-ink);
     font-family: var(--slide-body);
@@ -361,6 +696,284 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 .sf-backdrop-file { width: 100%; height: 100%; object-fit: cover; }
 .sf-backdrop-veil { position: absolute; inset: 0; background: var(--slide-bg); }
 
+/* Le travelling. Vingt secondes pour un pour cent de déplacement : à l'oeil
+   ce n'est pas un mouvement, c'est une image qui respire. Coupé net quand la
+   personne a demandé moins d'animation. */
+@keyframes sf-drift {
+    from { transform: scale(1.06) translate3d(-0.6%, -0.4%, 0); }
+    to { transform: scale(1.12) translate3d(0.6%, 0.4%, 0); }
+}
+
+.sf-backdrop-file.is-drifting {
+    animation: sf-drift 24s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sf-backdrop-file.is-drifting { animation: none; }
+}
+
+/* Une ligne pas encore sortie garde sa place et ne se voit pas. `visibility`
+   et non `display` : le cadre mesure son propre texte et le réduit pour qu'il
+   tienne, donc une liste qui grandirait ligne à ligne redimensionnerait tous
+   les mots de la slide à chaque pression. */
+.is-held { visibility: hidden; }
+.sf-agenda li.is-held,
+.sf-end-lines > .is-held { visibility: hidden; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .sf-list > li,
+    .sf-card,
+    .sf-step,
+    .sf-figure { transition: opacity 180ms ease; }
+
+    .is-held { opacity: 0; }
+}
+
+/* Le papier ne bouge pas. La classe n'est déjà posée que par le lecteur, mais
+   une feuille imprimée qui attraperait une image en plein travelling est une
+   erreur que personne ne verrait avant de recevoir le PDF. */
+@media print {
+    .sf-backdrop-file.is-drifting { animation: none; }
+
+    /* Le deck s'imprime dans ses couleurs, point.
+     *
+     * Sans cette ligne, le fond ne sort que si le lecteur a coché « imprimer
+     * les arrière-plans », donc le rendu dépend d'une case dans le navigateur
+     * de quelqu'un d'autre : personne ne sait ce qu'il va obtenir, l'auteur le
+     * premier. Un PDF de deck est un fichier qu'on envoie, pas une feuille
+     * qu'on imprime, et un deck qui arrive gris sur blanc est un livrable
+     * cassé. Celui qui veut économiser son encre a « niveaux de gris » dans sa
+     * propre boîte de dialogue, qu'il connaît déjà. */
+    .slide-frame {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+}
+
+/* Le traitement de la photo. Le flou est agrandi d'un poil : une image floutée
+   dans son cadre laisse voir ses bords nets, ce qui est pire que pas de flou. */
+.sf-backdrop[data-treatment="blur"] .sf-backdrop-file { filter: blur(1.2cqw); transform: scale(1.06); }
+.sf-backdrop[data-treatment="mono"] .sf-backdrop-file { filter: grayscale(1) contrast(1.06); }
+.sf-backdrop[data-treatment="duotone"] .sf-backdrop-file { filter: grayscale(1) contrast(1.1); }
+
+/* La couche qui ajoute ce qu'un filtre ne sait pas faire : une couleur, ou du
+   bruit. Entre la photo et le voile, pour que baisser le voile dévoile aussi
+   la teinte plutôt que de la laisser flotter au-dessus. */
+.sf-backdrop-film { position: absolute; inset: 0; }
+
+.sf-backdrop[data-treatment="duotone"] .sf-backdrop-film {
+    background: var(--slide-accent);
+    mix-blend-mode: color;
+    opacity: 0.85;
+}
+
+.sf-backdrop[data-treatment="grain"] .sf-backdrop-film {
+    background-image: repeating-radial-gradient(
+        circle at 0 0,
+        rgb(255 255 255 / 16%) 0 0.18cqw,
+        transparent 0.18cqw 0.55cqw
+    );
+    mix-blend-mode: overlay;
+}
+
+/* Le voile dirigé. Pour rendre le texte lisible, le voile plat doit ternir
+   toute la photo ; celui-ci ne descend que du côté où il y a des mots, et
+   l'opacité posée en ligne le multiplie comme elle multipliait l'aplat. */
+.sf-backdrop[data-veil="bottom"] .sf-backdrop-veil {
+    background: linear-gradient(0deg, var(--slide-bg) 6%, color-mix(in srgb, var(--slide-bg) 58%, transparent) 46%, transparent 82%);
+}
+
+.sf-backdrop[data-veil="top"] .sf-backdrop-veil {
+    background: linear-gradient(180deg, var(--slide-bg) 6%, color-mix(in srgb, var(--slide-bg) 58%, transparent) 46%, transparent 82%);
+}
+
+/* Le vignettage ramène l'oeil au centre. Au-dessus du décor et sous le lavis,
+   comme une correction de la photo et non comme une couleur du deck. */
+.sf-vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    /* Vers l'encre du deck et pas vers le noir, et discret.
+       Un vignettage noir sur un thème clair ne fait pas un coin sombre, il
+       fait une slide grise : c'est déjà la raison pour laquelle le voile du
+       décor teinte vers le fond plutôt que vers le noir, et je l'avais
+       oubliée en écrivant celui-ci. */
+    background: radial-gradient(
+        82% 92% at 50% 50%,
+        transparent 58%,
+        color-mix(in srgb, var(--slide-ink) 26%, transparent) 100%
+    );
+}
+
+/* Le contenant de l'image, dans les deux gabarits qui en portent un. */
+.slide-frame[data-media-frame="line"] :is(.sf-image, .sf-beside-media) {
+    border: 0.6cqw solid var(--slide-accent);
+}
+
+.slide-frame[data-media-frame="shadow"] :is(.sf-image, .sf-beside-media) {
+    box-shadow: 0 2cqw 4.5cqw rgb(0 0 0 / 30%);
+}
+
+/* La légende posée dans le coin de l'image plutôt que sous elle : la photo
+   reprend les deux lignes qu'elle lui prenait. Son propre voile, parce qu'une
+   légende ne choisit pas ce qu'il y a derrière elle. */
+.sf-caption-over {
+    position: absolute;
+    left: 2cqw;
+    bottom: 2cqw;
+    max-width: calc(100% - 4cqw);
+    padding: 1cqw 1.8cqw;
+    border-radius: 0.6cqw;
+    color: #fff;
+    background: rgb(0 0 0 / 45%);
+    opacity: 1;
+}
+
+/* La marge du cadre. `normal` n'a pas de règle : c'est la valeur que porte
+   `.slide-frame` lui-même, donc un deck qui n'a jamais ouvert le panneau
+   dessine exactement comme avant. */
+.slide-frame[data-margins="tight"] { --frame-pad: 3cqw; }
+.slide-frame[data-margins="wide"] { --frame-pad: 11cqw; }
+
+/* Au-dessus de tout, y compris du contenu : un filet posé sous le texte
+   passerait derrière une image de fond et ne se verrait plus. */
+.sf-hairline {
+    position: absolute;
+    inset: 3cqw;
+    z-index: 5;
+    border: 0.25cqw solid color-mix(in srgb, var(--slide-accent) 55%, transparent);
+    border-radius: 0.2cqw;
+    pointer-events: none;
+}
+
+/* L'ancrage, l'alignement et la largeur. Aucune règle pour les valeurs qui
+   étaient déjà celles du module : l'attribut n'est même pas émis. */
+.slide-frame[data-anchor="top"] .slide-stage { justify-content: safe flex-start; }
+.slide-frame[data-anchor="bottom"] .slide-stage { justify-content: safe flex-end; }
+
+/* L'alignement ne touche que le texte, et jamais la largeur des boites.
+   Un `align-items` autre que `stretch` fait dimensionner chaque enfant sur son
+   contenu : une image, dont le fichier est en position absolue, ne mesure alors
+   rien du tout et disparait de la slide. Le texte s'aligne donc par
+   `text-align`, et seuls les blocs qui ne portent que du texte se resserrent. */
+.slide-frame[data-align="left"] .slide-stage { text-align: left; }
+.slide-frame[data-align="center"] .slide-stage { text-align: center; }
+.slide-frame[data-align="right"] .slide-stage { text-align: right; }
+
+.slide-frame[data-align="center"] .slide-stage > :is(p, ul, ol) { align-self: center; }
+.slide-frame[data-align="right"] .slide-stage > :is(p, ul, ol) { align-self: flex-end; }
+
+/* L'alignement explicite l'emporte sur le centrage que le gabarit section
+   porte en dur, sinon le choix serait ignoré sur le seul gabarit où il se
+   remarque le plus. */
+.slide-frame[data-align="left"] .sf-section { text-align: left; }
+.slide-frame[data-align="right"] .sf-section { text-align: right; }
+
+/* La largeur suit l'alignement : une colonne étroite alignée à droite se cale
+   à droite, elle ne reste pas centrée avec un trou d'un côté. */
+.slide-frame[data-measure="two_thirds"] .slide-stage > * { max-width: 66%; }
+.slide-frame[data-measure="half"] .slide-stage > * { max-width: 50%; }
+.slide-frame[data-align="center"][data-measure] .slide-stage > * { margin-inline: auto; }
+
+/* Sous le décor : un motif est une texture du fond, et une slide dont le fond
+   est une photo n'en montre pas. Les tailles sont en `cqw` comme le reste, pour
+   que le grain d'une vignette soit celui du mur. */
+.sf-pattern { position: absolute; inset: 0; pointer-events: none; }
+
+.slide-frame[data-pattern="dots"] .sf-pattern {
+    background-image: radial-gradient(
+        color-mix(in srgb, var(--slide-accent) 30%, transparent) 0.45cqw,
+        transparent 0.45cqw
+    );
+    background-size: 3.5cqw 3.5cqw;
+}
+
+.slide-frame[data-pattern="grid"] .sf-pattern {
+    background-image:
+        linear-gradient(to right, color-mix(in srgb, var(--slide-accent) 18%, transparent) 0.12cqw, transparent 0.12cqw),
+        linear-gradient(to bottom, color-mix(in srgb, var(--slide-accent) 18%, transparent) 0.12cqw, transparent 0.12cqw);
+    background-size: 5cqw 5cqw;
+}
+
+.slide-frame[data-pattern="diagonals"] .sf-pattern {
+    background-image: repeating-linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--slide-accent) 16%, transparent) 0 0.35cqw,
+        transparent 0.35cqw 2.6cqw
+    );
+}
+
+/* La forme de l'image, posée sur le conteneur et non sur le fichier : c'est
+   lui qui porte le rognage et le fond de remplacement, et une image absente
+   doit garder la forme que la slide a choisie. */
+.slide-frame[data-shape="round"] :is(.sf-image, .sf-beside-media) { border-radius: 3cqw; }
+
+/* Le rayon du haut en pourcentage, celui du bas en unité fixe : une arche dont
+   les pieds s'arrondissent avec la largeur n'est plus une arche, c'est une
+   gélule. */
+.slide-frame[data-shape="arch"] :is(.sf-image, .sf-beside-media) {
+    border-radius: 50% 50% 0.25rem 0.25rem / 30% 30% 0.25rem 0.25rem;
+}
+
+/* Le cercle ne peut pas se contenter d'un rayon : la boîte est plus large que
+   haute et en ferait une ellipse. Elle est donc ramenée au carré, centrée sur
+   la largeur qu'elle laisse. */
+.slide-frame[data-shape="circle"] :is(.sf-image, .sf-beside-media) {
+    align-self: center;
+    justify-self: center;
+    width: auto;
+    max-width: 100%;
+    aspect-ratio: 1;
+    border-radius: 9999px;
+}
+
+/* Au-dessus du décor et sous le contenu : le lavis teinte aussi la photo, sans
+   quoi une slide à fond image perdrait le dégradé que porte tout le deck.
+   L'accent est mélangé à du transparent plutôt qu'au fond, pour que la même
+   déclaration tienne sur une couleur plate comme sur une image. */
+.sf-wash { position: absolute; inset: 0; pointer-events: none; }
+
+.slide-frame[data-gradient="top"] .sf-wash {
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--slide-accent) 42%, transparent),
+        transparent 64%
+    );
+}
+
+.slide-frame[data-gradient="bottom"] .sf-wash {
+    background: linear-gradient(
+        0deg,
+        color-mix(in srgb, var(--slide-accent) 42%, transparent),
+        transparent 64%
+    );
+}
+
+.slide-frame[data-gradient="corner"] .sf-wash {
+    background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--slide-accent) 38%, transparent),
+        transparent 58%
+    );
+}
+
+.slide-frame[data-gradient="duo"] .sf-wash {
+    background: linear-gradient(
+        140deg,
+        color-mix(in srgb, var(--slide-accent) 52%, transparent),
+        color-mix(in srgb, var(--slide-ink) 26%, transparent) 78%
+    );
+}
+
+.slide-frame[data-gradient="halo"] .sf-wash {
+    background: radial-gradient(
+        80% 95% at 50% 42%,
+        color-mix(in srgb, var(--slide-accent) 34%, transparent),
+        transparent 72%
+    );
+}
+
 .sf-kicker {
     margin: 0;
     font-family: var(--slide-heading);
@@ -371,10 +984,10 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     color: var(--slide-accent);
 }
 
-.sf-title { margin: 0; font-family: var(--slide-heading); font-size: calc(8cqw * var(--fit)); font-weight: 600; line-height: 1.1; }
+.sf-title { margin: 0; font-family: var(--slide-heading); font-size: calc(8cqw * var(--fit) * var(--title-scale, 1)); font-weight: 600; line-height: 1.1; }
 .sf-subtitle { margin: 0; font-size: calc(4cqw * var(--fit)); opacity: 0.7; }
-.sf-section { margin: 0; font-family: var(--slide-heading); font-size: calc(7cqw * var(--fit)); font-weight: 600; text-align: center; }
-.sf-heading { margin: 0; font-family: var(--slide-heading); font-size: calc(6cqw * var(--fit)); font-weight: 600; }
+.sf-section { position: relative; margin: 0; font-family: var(--slide-heading); font-size: calc(7cqw * var(--fit) * var(--title-scale, 1)); font-weight: 600; text-align: center; }
+.sf-heading { margin: 0; font-family: var(--slide-heading); font-size: calc(6cqw * var(--fit) * var(--title-scale, 1)); font-weight: 600; }
 /* `list-style` rétabli explicitement : la réinitialisation de Tailwind retire
    les marqueurs de toutes les listes, et une liste à puces sans puces se lit
    comme un paragraphe coupé. */
@@ -389,7 +1002,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 
 /* Un titre au-dessus d'un contenu dense : plus petit que celui d'une slide à
    puces, sans quoi il prend le tiers de la hauteur qui reste au tableau. */
-.sf-heading-small { font-size: calc(4.8cqw * var(--fit)); }
+.sf-heading-small { font-size: calc(4.8cqw * var(--fit) * var(--title-scale, 1)); }
 
 .sf-stat {
     margin: 0;
@@ -462,6 +1075,187 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
  * une couleur de plus ferait une deuxième chose à lire.
  */
 .slide-frame :deep(strong) { font-weight: 700; }
+
+/* L'étiquette, et l'icône. Toutes deux dans l'accent, toutes deux discrètes :
+   elles ponctuent une carte, elles ne la remplacent pas. */
+.sf-badge {
+    align-self: flex-start;
+    font-size: calc(2.2cqw * var(--fit));
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.7cqw 1.6cqw;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--slide-accent) 22%, transparent);
+    color: var(--slide-accent);
+}
+
+.sf-icon { width: 6cqw; height: 6cqw; color: var(--slide-accent); }
+.sf-step-icon { width: 4cqw; height: 4cqw; color: var(--slide-accent); flex: 0 0 auto; }
+
+/* La jauge : la part qu'un chiffre représente, dessinée sous lui. */
+.sf-gauge { display: block; height: 1.4cqw; border-radius: 9999px; background: color-mix(in srgb, currentColor 14%, transparent); overflow: hidden; }
+.sf-gauge > i { display: block; height: 100%; background: var(--slide-accent); }
+
+/* Les marques, ramenées à une même hauteur optique plutôt qu'à une même
+   largeur : c'est la hauteur qu'un oeil compare, et `contain` garde chacune
+   entière dans sa case. */
+.sf-logos { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(var(--logos, 4), 1fr); gap: 4cqw; align-items: center; justify-items: center; }
+/* `sf-logos-cell` et pas `sf-logo` : le pied de page porte deja une classe de
+   ce nom pour la marque du deck, et les deux regles se marchaient dessus. */
+.sf-logos-cell { display: block; width: 100%; height: 8cqw; }
+.sf-logos-cell img { width: 100%; height: 100%; object-fit: contain; }
+
+/* La mosaïque. Les arrangements sont déclarés comme les gabarits le sont : à
+   deux images une colonne chacune, à trois une grande et deux petites, au-delà
+   une grille régulière. Le point de visée de chaque document est respecté,
+   sans quoi un recadrage couperait les visages. */
+.sf-mosaic { flex: 1; min-height: 0; display: grid; gap: 1.5cqw; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; }
+.sf-mosaic[data-count="1"] { grid-template-columns: 1fr; }
+.sf-mosaic[data-count="3"] { grid-template-columns: 1.4fr 1fr; }
+.sf-mosaic[data-count="3"] .sf-mosaic-cell:first-child { grid-row: span 2; }
+.sf-mosaic[data-count="5"],
+.sf-mosaic[data-count="6"] { grid-template-columns: repeat(3, 1fr); }
+.sf-mosaic[data-count="7"],
+.sf-mosaic[data-count="8"] { grid-template-columns: repeat(4, 1fr); }
+.sf-mosaic-cell { position: relative; overflow: hidden; border-radius: 0.25rem; background: color-mix(in srgb, currentColor 10%, transparent); }
+.sf-mosaic-cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* Le sommaire. Le rang en chasse fixe et en accent, la ligne courante seule à
+   pleine encre : c'est le contraste qui dit où on en est, pas une puce. */
+.sf-agenda { flex: 1; min-height: 0; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; justify-content: center; gap: 1.8cqw; }
+.sf-agenda li { display: flex; align-items: baseline; gap: 3cqw; font-size: calc(4.2cqw * var(--fit)); opacity: 0.45; }
+.sf-agenda li.is-current { opacity: 1; font-weight: 600; }
+.sf-agenda-rank { font-family: var(--slide-body); font-size: calc(2.8cqw * var(--fit)); font-variant-numeric: tabular-nums; color: var(--slide-accent); }
+
+/* Le témoignage. Le visage rond et petit : une citation reste une citation, la
+   photo l'accompagne au lieu de la disputer. */
+.sf-portrait { flex: 1; min-height: 0; display: flex; align-items: center; gap: 5cqw; }
+/* Toujours recadre, jamais mis en boite aux lettres : un portrait rond dont
+   l'image est contenue laisse deux bandes de fond dans le cercle, ce que
+   personne ne choisit. Le gabarit ne propose donc pas de cadrage, il en a un. */
+.sf-portrait-face { flex: 0 0 auto; position: relative; width: 22cqw; aspect-ratio: 1; border-radius: 9999px; overflow: hidden; background: color-mix(in srgb, currentColor 10%, transparent); }
+.sf-portrait-face .sf-image-file { object-fit: cover; }
+.sf-portrait-words { min-width: 0; display: flex; flex-direction: column; gap: 2cqw; }
+.sf-portrait-quote { margin: 0; font-family: var(--slide-heading); font-size: calc(4.6cqw * var(--fit)); line-height: 1.3; font-style: italic; }
+.sf-portrait-who { margin: 0; display: flex; flex-direction: column; font-size: calc(2.8cqw * var(--fit)); }
+.sf-portrait-role { opacity: 0.7; }
+
+/* L'aplat. Sous le contenu et sous le décor du deck, mais au-dessus du fond :
+   c'est une forme posée sur la slide, pas une teinte du sol. */
+.sf-band { position: absolute; background: var(--slide-accent); pointer-events: none; }
+
+/* En unites de conteneur des deux cotes : la bande se mesurait sur le cadre et
+   le decalage du texte sur la scene, qui est deja rognee de ses marges, donc le
+   texte ne se calait jamais la ou la bande finissait. */
+.slide-frame[data-band="left"] .sf-band { inset: 0 auto 0 0; width: 32cqw; }
+.slide-frame[data-band="bottom"] .sf-band { inset: auto 0 0 0; height: 18cqh; }
+.slide-frame[data-band="edge"] .sf-band { inset: 0 auto 0 0; width: 2.5cqw; }
+
+/* Le contenu se pousse pour ne pas passer dessous. Le fin bord n'a pas besoin
+   de plus que la marge que le cadre garde déjà. */
+.slide-frame[data-band="left"] .slide-stage { padding-left: calc(32cqw - var(--frame-pad) + 4cqw); }
+.slide-frame[data-band="bottom"] .slide-stage { padding-bottom: calc(18cqh - var(--frame-pad) + 3cqw); }
+
+/* Le débord : l'image sort de la marge du cadre du côté où elle est posée, et
+   va toucher le bord. La marge est lue plutôt que recopiée, sans quoi un deck
+   à marges larges laisserait une bande de fond entre l'image et le bord. */
+.slide-frame[data-bleed="on"] .sf-beside-media {
+    margin-left: calc(var(--frame-pad) * -1);
+    border-radius: 0;
+}
+
+.slide-frame[data-bleed="on"] .sf-beside.is-right .sf-beside-media {
+    margin-left: 0;
+    margin-right: calc(var(--frame-pad) * -1);
+}
+
+/* Les filets du deck : entre les deux colonnes, et sous le sur-titre. */
+.slide-frame[data-rules="on"] .sf-columns > :last-child {
+    border-left: 0.2cqw solid color-mix(in srgb, currentColor 22%, transparent);
+    padding-left: 4cqw;
+}
+
+.slide-frame[data-rules="on"] .sf-kicker {
+    padding-bottom: 1.4cqw;
+    border-bottom: 0.2cqw solid color-mix(in srgb, var(--slide-accent) 45%, transparent);
+}
+
+/* Deux colonnes qui se répondent. Le filet entre elles dit l'opposition que
+   le gabarit `split` laissait deviner. */
+/* `align-items: start` aligne les deux en-tetes entre elles, `align-content`
+   centre le bloc dans la hauteur qui reste : sans le second, une comparaison
+   de deux phrases courtes se colle en haut d'un cadre aux trois quarts vide. */
+.sf-compare { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: min-content; align-content: center; gap: 5cqw; align-items: start; }
+.sf-compare-side { display: flex; flex-direction: column; gap: 1.6cqw; min-width: 0; }
+.sf-compare-side.is-second { border-left: 0.25cqw solid color-mix(in srgb, currentColor 22%, transparent); padding-left: 5cqw; }
+.sf-compare-side p { margin: 0; font-size: calc(3.4cqw * var(--fit)); line-height: 1.45; }
+
+.sf-compare-head {
+    font-family: var(--slide-heading);
+    font-size: calc(2.9cqw * var(--fit));
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--slide-accent);
+}
+
+/* Les chiffres, côte à côte. La valeur porte l'accent et la légende reste en
+   encre : l'inverse ferait lire la légende avant le chiffre. */
+.sf-figures { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(var(--figures, 3), 1fr); gap: 4cqw; align-items: center; }
+.sf-figure { display: flex; flex-direction: column; gap: 1cqw; min-width: 0; }
+
+.sf-figure-value {
+    font-family: var(--slide-heading);
+    font-size: calc(9cqw * var(--fit));
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--slide-accent);
+}
+
+.sf-figure-label { font-size: calc(2.9cqw * var(--fit)); line-height: 1.35; opacity: 0.78; }
+
+/* La dernière slide. Les lignes de contact sous le mot, serrées, sans puce. */
+.sf-end-lines { display: flex; flex-direction: column; gap: 0.8cqw; font-size: calc(3.2cqw * var(--fit)); opacity: 0.8; }
+
+/* La casse des titres, décidée pour tout le deck. Les trois sélecteurs et pas
+   un seul : ce sont trois classes différentes selon le gabarit, et un titre
+   en capitales sur la couverture seulement ne serait pas une décision de deck. */
+.slide-frame[data-title-case="upper"] :is(.sf-title, .sf-heading, .sf-section) {
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* La forme de la puce. La couleur, elle, est déjà celle de l'accent. */
+.slide-frame[data-bullets="dash"] .sf-list { list-style-type: "–  "; }
+.slide-frame[data-bullets="arrow"] .sf-list { list-style-type: "→  "; }
+.slide-frame[data-bullets="check"] .sf-list { list-style-type: "✓  "; }
+.slide-frame[data-bullets="number"] .sf-list { list-style: decimal outside; }
+
+/* Le chiffre de section, derrière le titre et hors du calcul de place : posé
+   dans le flux, il pousserait le titre et ferait rétrécir le texte par
+   `useSlideFit` pour laisser de la place à une décoration. */
+.sf-ghost {
+    position: absolute;
+    right: 0;
+    bottom: -4cqw;
+    font-family: var(--slide-heading);
+    font-size: 42cqw;
+    font-weight: 700;
+    line-height: 0.8;
+    letter-spacing: -0.06em;
+    color: color-mix(in srgb, var(--slide-accent) 22%, transparent);
+    pointer-events: none;
+}
+
+/* Le mot en accent. Pas de fond, contrairement à ce que `mark` fait par
+   défaut dans un navigateur : sur une slide, un surlignage jaune serait la
+   seule couleur du deck que personne n'a choisie. */
+.slide-frame :deep(mark) {
+    background: none;
+    color: var(--slide-accent);
+}
 .sf-title :deep(strong),
 .sf-section :deep(strong),
 .sf-heading :deep(strong) { color: var(--slide-accent); }

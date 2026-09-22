@@ -548,6 +548,9 @@ backend:
                 paper: Papier
                 bold: Affirmé
                 midnight: Minuit
+                clay: Terre
+                chalk: Craie
+                duo: Deux tons
             colours: Couleurs
             colour_background: Fond
             colour_ink: Texte
@@ -555,6 +558,107 @@ backend:
             colour_inherited: Du thème
             colour_reset: Revenir au thème
             colour_reset_all: Tout revenir au thème
+            gradient_label: Dégradé
+            gradient_hint: Un lavis de la couleur d'accent sur le fond, le même sur toutes les slides.
+            gradients:
+                none: Aucun
+                top: Depuis le haut
+                bottom: Depuis le bas
+                corner: En diagonale
+                halo: Halo central
+                duo: Accent vers encre
+            pattern_label: Motif
+            pattern_hint: Une texture sur le fond, cachée sur les slides à photo.
+            patterns:
+                none: Aucun
+                dots: Pointillés
+                grid: Quadrillage
+                diagonals: Hachures
+            margins_label: Marges du cadre
+            margins:
+                tight: Serrées
+                normal: Normales
+                wide: Larges
+            hairline: Filet de cadre
+            hairline_hint: Un liseré fin dans la couleur d'accent, en retrait des bords.
+            anchors:
+                center: Centrée
+                top: En haut
+                bottom: En bas
+            aligns:
+                left: À gauche
+                center: Centré
+                right: À droite
+            measures:
+                full: Pleine largeur
+                two_thirds: Deux tiers
+                half: Moitié
+            vignette_hint: Assombrit légèrement les angles et ramène l'oeil au centre.
+            bg_treatments:
+                none: Aucun
+                blur: Flou
+                mono: Noir et blanc
+                duotone: Duotone à l'accent
+                grain: Grain
+            bg_veils:
+                flat: Uniforme
+                bottom: Depuis le bas
+                top: Depuis le haut
+            media_frames:
+                none: Aucun
+                line: Filet d'accent
+                shadow: Ombre douce
+            title_case_label: Casse des titres
+            title_cases:
+                normal: Normale
+                upper: Capitales
+            bullets_label: Forme des puces
+            bullet_shapes:
+                disc: Point
+                dash: Tiret
+                arrow: Flèche
+                number: Numéro
+                check: Coche
+            media_bleed_hint: L'image sort de la marge et touche le bord du cadre.
+            rules: Filets de séparation
+            rules_hint: Une ligne entre les deux colonnes et sous le sur-titre.
+            bands:
+                none: Aucun
+                left: Bande à gauche
+                bottom: Bandeau en bas
+                edge: Bord fin
+            wash_from_theme: Celui du thème
+            looks_label: Partir d'un look
+            looks_hint: Applique un thème et ses réglages d'un coup. Tout reste modifiable ensuite.
+            looks:
+                scene: Scène
+                atelier: Atelier
+                dossier: Dossier
+                gallery: Galerie
+            look_descriptions:
+                scene: Montré dans une salle. Sombre, titres en capitales.
+                atelier: Il argumente. Clair et chaud, hachuré.
+                dossier: Il se lit. Calme, quadrillé, marges larges.
+                gallery: Les photos portent tout. Presque noir, marges serrées.
+            accent_from_logo: Teintes du logo
+            contrast_good: "Contraste {ratio} sur 21. Lisible partout."
+            contrast_large: "Contraste {ratio} sur 21. Lisible au mur, juste sur un document imprimé."
+            contrast_poor: "Contraste {ratio} sur 21. Le texte sera difficile à lire."
+            transition_from_deck: Celle du deck
+            slide_transition_hint: Ne vaut que pour cette slide, et seulement au plein écran.
+            drift_hint: Un déplacement très lent de la photo pendant que la slide est à l'écran. Plein écran seulement.
+            title_scales:
+                normal: Normale
+                quiet: Discrète
+                loud: Affichée
+            media_ids_hint: L'ordre est l'arrangement. Huit au maximum ; vider une case resserre les autres.
+            ground_hint: La slide se pose sur une des trois couleurs du deck. Le texte suit, l'accent ne bouge pas.
+            grounds:
+                normal: Le fond
+                inverted: L'encre
+                accent: L'accent
+            reveal_hint: Au plein écran, chaque pression fait apparaître la ligne suivante avant de passer à la slide d'après.
+            picture_rank: "Image {rank}"
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:
@@ -562,6 +666,8 @@ backend:
                 serif: Avec empattements
                 editorial: Titres serif, texte sans
                 technical: Titres chasse fixe, texte sans
+                report: Titres sans, texte serif
+                soft: Arrondie
             signature: Signature
             logo: Logo
             logo_hint: Affiché en petit, dans un coin de la slide.
@@ -584,10 +690,13 @@ backend:
             line_placeholders:
                 series: "Une donnée par ligne. Étiquette | valeur"
                 bullets: Une puce par ligne.
-                items: "Une carte par ligne. Titre | description"
-                steps: "Une étape par ligne. Nom | précision"
+                items: "Une carte par ligne. Titre | description | étiquette | icône"
+                steps: "Une étape par ligne. Nom | précision | étiquette | icône"
                 rows: "Une ligne du tableau par ligne, cellules séparées par |. La première est l'en-tête."
-            emphasis_hint: "Dans le texte d'une slide : **gras**, *italique*, `code`."
+                figures: "Un chiffre par ligne. Valeur | ce qu'il compte | part en %"
+                lines: Une ligne par ligne. Adresse, téléphone, site.
+            emphasis_hint: "Dans le texte d'une slide : **gras**, *italique*, `code`, ==mot en accent==."
+            icons_hint: "Icônes possibles : check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings."
             chart_types:
                 bar: Barres
                 line: Courbe
@@ -607,6 +716,10 @@ backend:
             timer_reset: Remettre à zéro
             media_fit_contain: Entière, sans rognage
             media_fit_cover: Remplir le cadre
+            media_shape_soft: Coins légers
+            media_shape_round: Coins arrondis
+            media_shape_arch: Arche
+            media_shape_circle: Cercle
             media_focus_hint: Cliquez sur ce qui doit rester visible quand l'image est rognée.
             import: Importer un document
             import_submit: Créer les slides
@@ -646,6 +759,7 @@ backend:
             usage_detail: Présentation
             slots:
                 mediaFit: Cadrage de l'image
+                mediaShape: Forme de l'image
                 mediaFocus: Point de visée
                 chartType: Type de graphique
                 series: Données
@@ -657,6 +771,29 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                reveal: Lignes une à une
+                ground: Sol de la slide
+                mediaIds: Les images
+                titleScale: Échelle du titre
+                transition: Transition vers cette slide
+                drift: Travelling sur la photo
+                role: Fonction
+                current: Ligne en cours
+                band: Aplat de couleur
+                mediaBleed: Image jusqu'au bord
+                leftTitle: Titre de gauche
+                rightTitle: Titre de droite
+                figures: Les chiffres
+                lines: Les lignes
+                ghost: Chiffre en filigrane
+                bgTreatment: Traitement de la photo
+                bgVeil: Voile
+                vignette: Vignettage
+                mediaFrame: Contenant de l'image
+                captionOver: Légende sur l'image
+                anchor: Position verticale
+                align: Alignement
+                measure: Largeur du texte
                 bgMediaId: Image de fond
                 title: Titre
                 subtitle: Sous-titre
@@ -680,6 +817,13 @@ backend:
                 split: Deux colonnes
                 quote: Citation
                 section: Intercalaire
+                compare: Comparaison
+                figures: Chiffres
+                end: Fin
+                agenda: Sommaire
+                portrait: Citation et portrait
+                logos: Grille de logos
+                mosaic: Mosaïque d'images
             categories:
                 errors:
                     name_required: Le nom est obligatoire.

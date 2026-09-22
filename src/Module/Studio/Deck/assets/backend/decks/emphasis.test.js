@@ -16,6 +16,21 @@ describe("emphasis", () => {
         );
     });
 
+    it("paints one word in the accent", () => {
+        expect(emphasis("Trois ==axes==")).toBe("Trois <mark>axes</mark>");
+    });
+
+    it("lets the accented word carry the other marks", () => {
+        expect(emphasis("Trois ==**axes**==")).toBe(
+            "Trois <mark><strong>axes</strong></mark>",
+        );
+    });
+
+    it("leaves a lone or empty pair of equals alone", () => {
+        expect(emphasis("a == b")).toBe("a == b");
+        expect(emphasis("====")).toBe("====");
+    });
+
     it("never produces a block element", () => {
         expect(emphasis("# Un titre")).toBe("# Un titre");
         expect(emphasis("- une puce")).toBe("- une puce");

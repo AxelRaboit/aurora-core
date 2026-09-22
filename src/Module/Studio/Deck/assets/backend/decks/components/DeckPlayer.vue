@@ -25,6 +25,7 @@ import { useI18n } from "vue-i18n";
 import { ChevronLeft, ChevronRight, Grid2x2, Radio, X } from "lucide-vue-next";
 import SlideFrame from "./SlideFrame.vue";
 import { useDeckStage } from "../composables/useDeckStage.js";
+import { revealableIn } from "../reveals.js";
 
 const props = defineProps({
     slides: { type: Array, default: () => [] },
@@ -44,8 +45,35 @@ const stage = ref(null);
 const { t } = useI18n();
 
 const current = computed(() => props.slides[at.value] ?? null);
-const isFirst = computed(() => at.value === 0);
-const isLast = computed(() => at.value >= props.slides.length - 1);
+/* Une slide qui retient encore des lignes n'est pas au bout de sa course, meme
+   quand elle est la derniere du deck : sans ca, les fleches a l'ecran restent
+   grisees et les apparitions ne sont atteignables qu'au clavier. */
+/**
+ * How many of them are showing.
+ *
+ * **Set by whoever moves the slide, never by watching it.** A watcher on the
+ * index looked simpler and was wrong: it runs after the code that changed the
+ * index, so it undid the one case it was there to serve, and stepping back
+ * into a slide came in with nothing out instead of everything.
+ */
+const shown = ref(0);
+
+/**
+ * How many lines the slide on screen can bring in one at a time.
+ *
+ * **Counted from the content, never measured from the page.** The lines are in
+ * a list slot, so their number is known before anything is drawn; asking the
+ * DOM would tie the way a deck is driven to the way it happens to be laid out
+ * that day, and would answer differently on a thumbnail.
+ *
+ * Zero for every slide that did not ask for it, which is every slide written
+ * before today, so nothing about the arrows changes for them.
+ */
+const revealable = computed(() => revealableIn(props.slides[at.value]));
+
+const isFirst = computed(() => at.value === 0 && shown.value === 0);
+const isLast = computed(() => at.value >= props.slides.length - 1 && shown.value >= revealable.value);
+
 
 /**
  * Named `link` and not `stage`: the template ref above is the element that goes
@@ -54,8 +82,11 @@ const isLast = computed(() => at.value >= props.slides.length - 1);
  */
 const link = useDeckStage(props.channel);
 
-link.onMove((index) => {
-    if (index >= 0 && index < props.slides.length) at.value = index;
+link.onMove((index, revealed) => {
+    if (index < 0 || index >= props.slides.length) return;
+
+    at.value = index;
+    shown.value = revealed;
 });
 
 /**
@@ -75,27 +106,62 @@ const overview = ref(false);
  */
 const direction = ref(1);
 
-/** Clamped rather than wrapping: the end of a deck is the end of it. */
+
+
+/**
+ * One press, one thing: the next line if there is one, else the next slide.
+ *
+ * Clamped rather than wrapping, because the end of a deck is the end of it.
+ * Going back takes the last line away before it takes the slide away, so a
+ * press backwards always undoes exactly the press forwards that preceded it.
+ */
 function step(by) {
+    if (by > 0 && shown.value < revealable.value) {
+        shown.value += 1;
+
+        return;
+    }
+
+    if (by < 0 && shown.value > 0) {
+        shown.value -= 1;
+
+        return;
+    }
+
     const next = at.value + by;
 
     if (next < 0 || next >= props.slides.length) return;
 
     direction.value = by > 0 ? 1 : -1;
     at.value = next;
-    link.announce(next);
+
+    // Coming back into a slide that reveals, everything it had is already out:
+    // walking backwards through a deck should not make the reader press
+    // through every line again in reverse.
+    shown.value = by < 0 ? revealableIn(props.slides[next]) : 0;
+    link.announce(next, shown.value);
 }
 
 function jumpTo(index) {
     direction.value = index > at.value ? 1 : -1;
     at.value = index;
-    link.announce(index);
+    shown.value = 0;
+    link.announce(index, 0);
     overview.value = false;
 }
 
-/** The name of the Vue transition, or nothing at all for the cut. */
+/**
+ * The name of the Vue transition, or nothing at all for the cut.
+ *
+ * The slide being entered decides before the deck does. A hard cut into a
+ * section slide and a fade everywhere else is a rhythm only that slide knows,
+ * and a deck-wide setting cannot express it.
+ */
 const transition = computed(() => {
-    const kind = props.appearance?.transition ?? "fade";
+    const own = props.slides[at.value]?.content?.transition;
+    const kind = ["none", "fade", "slide"].includes(own)
+        ? own
+        : (props.appearance?.transition ?? "fade");
 
     if (kind === "none") return "";
 
@@ -208,7 +274,7 @@ onMounted(() => {
 
     // Says which slide is up, so a presenter window opened mid-talk lands on it
     // rather than on the first.
-    link.announce(at.value);
+    link.announce(at.value, shown.value);
 });
 
 onBeforeUnmount(() => {
@@ -239,6 +305,8 @@ onBeforeUnmount(() => {
                     :key="at"
                     :slide="current"
                     :appearance="appearance"
+                    :revealed="revealable > 0 ? shown : null"
+                    live
                     :index="at + 1"
                 />
             </Transition>

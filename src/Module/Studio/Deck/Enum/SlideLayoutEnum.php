@@ -56,6 +56,27 @@ enum SlideLayoutEnum: string
     /** Figures, drawn. Bars, a line or a doughnut, in the deck's accent. */
     case Chart = 'chart';
 
+    /** Two columns that answer each other. Before and after, us and them. */
+    case Compare = 'compare';
+
+    /** Three or four figures side by side. The results slide. */
+    case Figures = 'figures';
+
+    /** Thank you, and how to reach whoever presented. The last slide. */
+    case End = 'end';
+
+    /** The parts of the deck, numbered, with the one being opened lit. */
+    case Agenda = 'agenda';
+
+    /** What a client said, and their face. The testimonial. */
+    case Portrait = 'portrait';
+
+    /** The clients' marks, on a grid, brought to one optical height. */
+    case Logos = 'logos';
+
+    /** Two to eight photographs in a declared arrangement. */
+    case Mosaic = 'mosaic';
+
     /**
      * The slots that hold a list of lines rather than one string.
      *
@@ -69,7 +90,7 @@ enum SlideLayoutEnum: string
      */
     public static function listSlots(): array
     {
-        return ['bullets', 'items', 'steps', 'rows', 'series'];
+        return ['bullets', 'items', 'steps', 'rows', 'series', 'figures', 'lines'];
     }
 
     /**
@@ -105,7 +126,7 @@ enum SlideLayoutEnum: string
      */
     public static function commonSlots(): array
     {
-        return ['kicker', 'bgMediaId', 'bgDim'];
+        return ['kicker', 'bgMediaId', 'bgDim', 'bgTreatment', 'bgVeil', 'vignette', 'ground', 'anchor', 'align', 'measure', 'band', 'transition', 'drift', 'titleScale', 'reveal'];
     }
 
     /**
@@ -122,16 +143,23 @@ enum SlideLayoutEnum: string
         return match ($this) {
             self::Title => ['title', 'subtitle'],
             self::Bullets => ['title', 'bullets'],
-            self::Image => ['mediaId', 'mediaFit', 'mediaFocus', 'caption'],
+            self::Image => ['mediaId', 'mediaFit', 'mediaFocus', 'mediaShape', 'mediaFrame', 'caption', 'captionOver'],
             self::Split => ['title', 'left', 'right'],
             self::Quote => ['quote', 'attribution'],
-            self::Section => ['title'],
+            self::Section => ['title', 'ghost'],
             self::Stat => ['value', 'label'],
-            self::ImageText => ['title', 'text', 'mediaId', 'mediaFit', 'mediaFocus', 'side'],
+            self::ImageText => ['title', 'text', 'mediaId', 'mediaFit', 'mediaFocus', 'mediaShape', 'mediaFrame', 'mediaBleed', 'side'],
             self::Cards => ['title', 'items'],
             self::Timeline => ['title', 'steps'],
             self::Table => ['title', 'rows'],
             self::Chart => ['title', 'chartType', 'series'],
+            self::Compare => ['title', 'leftTitle', 'left', 'rightTitle', 'right'],
+            self::Figures => ['title', 'figures'],
+            self::End => ['title', 'lines'],
+            self::Agenda => ['title', 'steps', 'current'],
+            self::Portrait => ['quote', 'attribution', 'role', 'mediaId', 'mediaFocus'],
+            self::Logos => ['title', 'mediaIds'],
+            self::Mosaic => ['title', 'mediaIds'],
         };
     }
 

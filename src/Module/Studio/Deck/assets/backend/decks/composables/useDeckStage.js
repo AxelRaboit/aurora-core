@@ -9,9 +9,12 @@ import { onBeforeUnmount, ref } from "vue";
  * one that happens to be the parent leaves the other deaf. A channel is a room
  * both windows walk into, so either can be closed and reopened mid-talk.
  *
- * The message is the index and nothing else. Sending the slide would mean two
- * copies of the deck that can disagree, and the second window already fetched
- * the deck from the server when it opened.
+ * The message is the index and how many of the slide's lines are out, and
+ * nothing else. Sending the slide would mean two copies of the deck that can
+ * disagree, and the second window already fetched the deck from the server when
+ * it opened; sending only the index was worse, because the window that presses
+ * the key is not always the window that projects, and the lines then arrived
+ * all at once on the wall while the presenter thought they were stepping.
  *
  * Nothing crosses a browser here: `BroadcastChannel` is same-origin and
  * in-process, so the notes never leave the machine they are read on.
@@ -35,14 +38,17 @@ export function useDeckStage(name) {
 
             linked.value = true;
             at.value = message.at;
-            handlers.move?.(message.at);
+            handlers.move?.(
+                message.at,
+                Number.isInteger(message.shown) ? message.shown : 0,
+            );
         };
     }
 
     /** Say where we are. Called on every step, and once on arrival. */
-    function announce(index) {
+    function announce(index, shown = 0) {
         at.value = index;
-        channel.value?.postMessage({ at: index });
+        channel.value?.postMessage({ at: index, shown });
     }
 
     function onMove(handler) {
