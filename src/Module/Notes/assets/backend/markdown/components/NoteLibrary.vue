@@ -71,6 +71,8 @@ const props = defineProps({
     noteUrlFor: { type: Function, required: true },
     /** Builds the address that downloads one note as Markdown. */
     noteExportUrlFor: { type: Function, default: () => "" },
+    /** Ce que le serveur accepte comme profondeur, pour le dire au refus. */
+    maxDepth: { type: Number, default: 8 },
 });
 
 const emit = defineEmits(["open-note", "create-note", "changed"]);
@@ -232,17 +234,21 @@ async function submitName() {
 
     if (!ok) {
         if (!reported) {
-            toast.error(
-                t(null === id
-                    ? "notes.markdown.folders.errors.create_failed"
-                    : "notes.markdown.folders.errors.rename_failed"),
-            );
+            const failed = null === id
+                ? "notes.markdown.folders.errors.create_failed"
+                : "notes.markdown.folders.errors.rename_failed";
+
+            toast.error(t(failed));
         }
 
         return;
     }
 
-    toast.success(t(null === id ? "notes.markdown.folders.created" : "notes.markdown.folders.renamed"));
+    const done = null === id
+        ? "notes.markdown.folders.created"
+        : "notes.markdown.folders.renamed";
+
+    toast.success(t(done));
     nameModal.value = null;
     emit("changed");
 }
@@ -276,21 +282,28 @@ async function confirmDelete() {
             : await props.notesApi.remove(item.id);
     deleting.value = false;
 
+    const isFolder = "folder" === kind;
+
     if (!ok) {
         if (!reported) {
-            toast.error(
-                t("folder" === kind
-                    ? "notes.markdown.folders.errors.delete_failed"
-                    : "notes.markdown.errors.delete_failed"),
-            );
+            // La clé se choisit avant l'appel : `t()` est lu par un test qui
+            // relève les clés du fichier, et une ternaire dans ses
+            // parenthèses lui fait relever « folder ».
+            const failed = isFolder
+                ? "notes.markdown.folders.errors.delete_failed"
+                : "notes.markdown.errors.delete_failed";
+
+            toast.error(t(failed));
         }
 
         return;
     }
 
-    toast.success(
-        t("folder" === kind ? "notes.markdown.folders.deleted" : "notes.markdown.saved"),
-    );
+    const done = isFolder
+        ? "notes.markdown.folders.deleted"
+        : "notes.markdown.saved";
+
+    toast.success(t(done));
     pendingDelete.value = null;
     emit("changed");
 }
@@ -374,11 +387,12 @@ async function applyMove(kind, id, targetFolderId) {
 
     if (!ok) {
         if (!reported) {
-            toast.error(
+            const failed =
                 "refused" === payload?.error
-                    ? t("notes.markdown.folders.errors.move_refused", { max: 8 })
-                    : t("notes.markdown.folders.errors.move_failed"),
-            );
+                    ? "notes.markdown.folders.errors.move_refused"
+                    : "notes.markdown.folders.errors.move_failed";
+
+            toast.error(t(failed, { max: maxDepth }));
         }
 
         return;

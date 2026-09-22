@@ -547,6 +547,7 @@ onUnmounted(() => {
                 :root-url="libraryPath"
                 :note-url-for="noteUrlFor"
                 :note-export-url-for="noteExportUrlFor"
+                :max-depth="maxDepth"
                 v-on:open-note="openNote"
                 v-on:create-note="createNote"
                 v-on:changed="onLibraryChanged"
