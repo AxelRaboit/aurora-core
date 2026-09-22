@@ -157,6 +157,16 @@ final class Version20260922210000 extends AbstractMigration
      * Les dossiers redeviennent des notes-dossiers : celui qui vient d'une
      * note y retourne, et celui créé après la migration donne une note
      * nouvelle, sinon ses notes remonteraient à la racine.
+     *
+     * **L'aller-retour n'est pas l'identité, et ne peut pas l'être.** Un
+     * dossier vide redevient une note sans enfant, que le `up()` ne saura
+     * plus distinguer d'une note ordinaire : sur un carnet de 81 dossiers
+     * dont 12 vides, un down suivi d'un up rend 69 dossiers et 12 notes de
+     * plus. Rien n'est perdu - le nom du dossier vit dans la note - mais le
+     * rangement vide, lui, ne revient pas. Mesuré le 22/09/2026 ; c'est le
+     * prix d'un `down()` sur une refonte de forme, et la raison pour
+     * laquelle il sert à revenir en arrière tout de suite, pas des semaines
+     * plus tard.
      */
     public function down(Schema $schema): void
     {
