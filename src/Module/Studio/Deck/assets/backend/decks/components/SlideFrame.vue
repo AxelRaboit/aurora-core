@@ -154,7 +154,14 @@ const skin = computed(() => {
         // the palette was picked so the ink reads on it.
         "--slide-bg": { inverted: look.ink, accent: look.accent }[ground.value] ?? look.background,
         "--slide-ink": "normal" === ground.value ? look.ink : look.background,
-        "--slide-accent": look.accent,
+        // And on that ground the accent has to move, which it does nowhere
+        // else. Everything this module draws as furniture - the band, the
+        // frame's hairline, the bullets, the rules, an accented word - is
+        // painted in the accent, and on a ground that IS the accent all of it
+        // simply vanishes. The deck's ink takes the role there: dark furniture
+        // on the accent, under the pale text, still three colours and still
+        // the deck's own.
+        "--slide-accent": "accent" === ground.value ? look.ink : look.accent,
         "--slide-heading": look.headingFont,
         "--slide-body": look.bodyFont,
     };
@@ -829,7 +836,16 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: radial-gradient(78% 88% at 50% 50%, transparent 46%, rgb(0 0 0 / 42%) 100%);
+    /* Vers l'encre du deck et pas vers le noir, et discret.
+       Un vignettage noir sur un thème clair ne fait pas un coin sombre, il
+       fait une slide grise : c'est déjà la raison pour laquelle le voile du
+       décor teinte vers le fond plutôt que vers le noir, et je l'avais
+       oubliée en écrivant celui-ci. */
+    background: radial-gradient(
+        82% 92% at 50% 50%,
+        transparent 58%,
+        color-mix(in srgb, var(--slide-ink) 26%, transparent) 100%
+    );
 }
 
 /* Le contenant de l'image, dans les deux gabarits qui en portent un. */
