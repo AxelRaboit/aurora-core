@@ -93,9 +93,18 @@ function jumpTo(index) {
     overview.value = false;
 }
 
-/** The name of the Vue transition, or nothing at all for the cut. */
+/**
+ * The name of the Vue transition, or nothing at all for the cut.
+ *
+ * The slide being entered decides before the deck does. A hard cut into a
+ * section slide and a fade everywhere else is a rhythm only that slide knows,
+ * and a deck-wide setting cannot express it.
+ */
 const transition = computed(() => {
-    const kind = props.appearance?.transition ?? "fade";
+    const own = props.slides[at.value]?.content?.transition;
+    const kind = ["none", "fade", "slide"].includes(own)
+        ? own
+        : (props.appearance?.transition ?? "fade");
 
     if (kind === "none") return "";
 
@@ -239,6 +248,7 @@ onBeforeUnmount(() => {
                     :key="at"
                     :slide="current"
                     :appearance="appearance"
+                    live
                     :index="at + 1"
                 />
             </Transition>

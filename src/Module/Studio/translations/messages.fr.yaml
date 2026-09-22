@@ -643,6 +643,9 @@ backend:
             contrast_good: "Contraste {ratio} sur 21. Lisible partout."
             contrast_large: "Contraste {ratio} sur 21. Lisible au mur, juste sur un document imprimé."
             contrast_poor: "Contraste {ratio} sur 21. Le texte sera difficile à lire."
+            transition_from_deck: Celle du deck
+            slide_transition_hint: Ne vaut que pour cette slide, et seulement au plein écran.
+            drift_hint: Un déplacement très lent de la photo pendant que la slide est à l'écran. Plein écran seulement.
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:
@@ -754,6 +757,8 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                transition: Transition vers cette slide
+                drift: Travelling sur la photo
                 role: Fonction
                 current: Ligne en cours
                 band: Aplat de couleur

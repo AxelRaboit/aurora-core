@@ -305,6 +305,13 @@ const treatmentOptions = compositionOptions("bg_treatment", ["none", "blur", "mo
 const veilOptions = compositionOptions("bg_veil", ["flat", "bottom", "top"]);
 const frameOptions = compositionOptions("media_frame", ["none", "line", "shadow"]);
 const bandOptions = compositionOptions("band", ["none", "left", "bottom", "edge"]);
+const slideTransitionOptions = computed(() => [
+    { value: "", label: t("backend.studio.decks.transition_from_deck") },
+    ...["none", "fade", "slide"].map((value) => ({
+        value,
+        label: t(`backend.studio.decks.transitions.${value}`),
+    })),
+]);
 
 const shapeOptions = computed(() => [
     { value: "soft", label: t("backend.studio.decks.media_shape_soft") },
@@ -827,6 +834,25 @@ onBeforeUnmount(() => {
                                     />
                                 </div>
                             </div>
+
+                            <AppSelect
+                                v-if="commonSlots.includes('transition')"
+                                :model-value="selected.content.transition ?? ''"
+                                :options="slideTransitionOptions"
+                                :label="labelFor('transition')"
+                                :hint="t('backend.studio.decks.slide_transition_hint')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('transition', value || null)"
+                            />
+
+                            <AppToggle
+                                v-if="commonSlots.includes('drift') && selected.content.bgMediaUrl"
+                                :model-value="selected.content.drift === true"
+                                :label="labelFor('drift')"
+                                :hint="t('backend.studio.decks.drift_hint')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('drift', value)"
+                            />
 
                             <AppToggle
                                 v-if="commonSlots.includes('vignette')"

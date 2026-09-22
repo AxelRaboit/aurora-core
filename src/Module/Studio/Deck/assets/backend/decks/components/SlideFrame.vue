@@ -51,6 +51,11 @@ const props = defineProps({
     appearance: { type: Object, default: null },
     /** 1-based, for the slide number in the footer. */
     index: { type: Number, default: 0 },
+    /**
+     * Drawn where it is watched rather than read: the player and the presenter.
+     * Movement belongs to the act of presenting, exactly as the transition does.
+     */
+    live: { type: Boolean, default: false },
 });
 
 /**
@@ -234,6 +239,19 @@ const background = computed(() => {
     };
 });
 
+/**
+ * The very slow travel across a background picture.
+ *
+ * **Only where a slide is watched.** The print page and the share link draw
+ * the same component, and a picture that drifts under somebody reading a PDF
+ * is a picture that will be photographed mid-move. The player says so by
+ * passing `live`; everywhere else the class is simply never added.
+ *
+ * The direction comes from the focal point already stored on the slide: a
+ * picture whose subject is on the left is worth travelling towards the left.
+ */
+const drifts = computed(() => props.live && props.slide.content.drift === true);
+
 /** The corners, darkened. Works on a flat ground as well as on a picture. */
 const vignette = computed(() => props.slide.content.vignette === true);
 
@@ -311,7 +329,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 :data-veil="background.veil"
                 aria-hidden="true"
             >
-                <img class="sf-backdrop-file" :src="background.url" alt="">
+                <img class="sf-backdrop-file" :class="drifts ? 'is-drifting' : ''" :src="background.url" alt="">
                 <span v-if="background.film" class="sf-backdrop-film" />
                 <span
                     class="sf-backdrop-veil"
@@ -656,6 +674,23 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
    bande de couleur sur le côté d'un décor se voit plus que le coin qu'il perd. */
 .sf-backdrop-file { width: 100%; height: 100%; object-fit: cover; }
 .sf-backdrop-veil { position: absolute; inset: 0; background: var(--slide-bg); }
+
+/* Le travelling. Vingt secondes pour un pour cent de déplacement : à l'oeil
+   ce n'est pas un mouvement, c'est une image qui respire. Coupé net quand la
+   personne a demandé moins d'animation. */
+@keyframes sf-drift {
+    from { transform: scale(1.06) translate3d(-0.6%, -0.4%, 0); }
+    to { transform: scale(1.12) translate3d(0.6%, 0.4%, 0); }
+}
+
+.sf-backdrop-file.is-drifting {
+    animation: sf-drift 24s ease-in-out infinite alternate;
+    will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sf-backdrop-file.is-drifting { animation: none; }
+}
 
 /* Le traitement de la photo. Le flou est agrandi d'un poil : une image floutée
    dans son cadre laisse voir ses bords nets, ce qui est pire que pas de flou. */

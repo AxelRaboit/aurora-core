@@ -257,6 +257,22 @@ final class SlideContentWhitelistTest extends TestCase
         );
     }
 
+    public function testASlideMayOverrideTheDecksTransitionAndDriftItsPicture(): void
+    {
+        $manager = $this->manager();
+
+        $slide = (new Slide())->setLayout(SlideLayoutEnum::Section);
+        $manager->writeContent($slide, ['title' => 'Deuxième partie', 'transition' => 'none', 'drift' => true]);
+        self::assertSame(
+            ['title' => 'Deuxième partie', 'transition' => 'none', 'drift' => true],
+            $slide->getContent(),
+        );
+
+        $wrong = (new Slide())->setLayout(SlideLayoutEnum::Section);
+        $manager->writeContent($wrong, ['title' => 'Deuxième partie', 'transition' => 'wipe', 'drift' => 'yes']);
+        self::assertSame(['title' => 'Deuxième partie'], $wrong->getContent());
+    }
+
     public function testItKeepsBulletsAsAListOfStrings(): void
     {
         $slide = (new Slide())->setLayout(SlideLayoutEnum::Bullets);

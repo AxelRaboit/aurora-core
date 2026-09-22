@@ -187,6 +187,16 @@ class DeckManager
                 continue;
             }
 
+            // A slide may cut where the deck fades. The rhythm before a
+            // section slide is something only that slide knows.
+            if ('transition' === $slot) {
+                if (in_array($value, ['none', 'fade', 'slide'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
             // A solid shape of accent, and where it sits against the frame.
             if ('band' === $slot) {
                 if (in_array($value, ['none', 'left', 'bottom', 'edge'], true)) {
@@ -197,7 +207,7 @@ class DeckManager
             }
 
             // Three switches, and only their true is kept.
-            if (in_array($slot, ['vignette', 'captionOver', 'mediaBleed'], true)) {
+            if (in_array($slot, ['vignette', 'captionOver', 'mediaBleed', 'drift'], true)) {
                 if (true === $value) {
                     $clean[$slot] = true;
                 }

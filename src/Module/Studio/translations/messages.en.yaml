@@ -643,6 +643,9 @@ backend:
             contrast_good: "Contrast {ratio} out of 21. Readable anywhere."
             contrast_large: "Contrast {ratio} out of 21. Fine on a wall, tight on a printed document."
             contrast_poor: "Contrast {ratio} out of 21. The text will be hard to read."
+            transition_from_deck: The deck's
+            slide_transition_hint: Applies to this slide only, and only in full screen.
+            drift_hint: A very slow travel across the photo while the slide is up. Full screen only.
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:
@@ -754,6 +757,8 @@ backend:
                 steps: Steps
                 rows: Rows
                 kicker: Kicker
+                transition: Transition into this slide
+                drift: Travel across the photo
                 role: Role
                 current: Current line
                 band: Colour band
