@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Controller;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Storage\ActiveStorageDiskProviderInterface;
+use Aurora\Core\Storage\Enum\StorageDiskEnum;
+use Aurora\Core\Storage\StorageManager;
+use Aurora\Core\Storage\StoredFileLocator;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Filesystem\Filesystem;
@@ -114,6 +118,82 @@ final class UploadsServeControllerTest extends IntegrationTestCase
             $session->getUsageIndex(),
             'something reads the session on every request, which is what downgrades the cache header',
         );
+    }
+
+    /**
+     * An object streamed back from a remote backend says what it is.
+     *
+     * `StreamedResponse` carries no type of its own, so this branch answered
+     * `text/html` for everything it served. Raster images survived it - a
+     * browser sniffs an `<img>` out of a wrong type - and SVG never does,
+     * being markup rather than bytes, so a pictogram stored in a bucket drew
+     * nothing at all while the photograph beside it drew fine. The local
+     * branch never had the bug, which is why it went unseen: it is
+     * `BinaryFileResponse` that fills the type there, in `prepare()`.
+     */
+    public function testARemoteObjectIsServedUnderItsOwnType(): void
+    {
+        $path = 'tests-fixtures/pictogram.svg';
+        $this->serveFromRemote($path, '<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+
+        $headers = $this->client->getResponse()->headers;
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertSame('image/svg+xml', $headers->get('Content-Type'));
+
+        // Declared and to be believed: the sniffing that rescued the images is
+        // the same sniffing that turns a file stored under a harmless type
+        // into a document.
+        self::assertSame('nosniff', $headers->get('X-Content-Type-Options'));
+
+        // And the wall the local branch already puts up. A stored SVG opened
+        // in a tab is script on this origin, running as whoever opened it.
+        // Browsers ignore this on a subresource, so the pictogram in a page
+        // still draws; what it stops is navigating to the address.
+        self::assertSame('attachment', $headers->get('Content-Disposition'));
+    }
+
+    /** A photograph from the same backend keeps its own type, and no wall. */
+    public function testARemotePhotographIsNotTurnedIntoADownload(): void
+    {
+        $this->serveFromRemote('tests-fixtures/photo.jpg', 'not really a jpeg');
+
+        $headers = $this->client->getResponse()->headers;
+
+        self::assertSame('image/jpeg', $headers->get('Content-Type'));
+        self::assertFalse($headers->has('Content-Disposition'));
+    }
+
+    /**
+     * Serve `$path` as if it lived on a backend that is not a filesystem.
+     *
+     * The locator asks the local disk first and only then the others, so a
+     * fake that holds the key is enough to reach the streaming branch. It is
+     * deliberately not `LocalPathAware`: that interface is what the controller
+     * branches on, and a fake that implemented it would take the other path
+     * and prove nothing.
+     */
+    private function serveFromRemote(string $path, string $contents): void
+    {
+        $container = static::getContainer();
+        $storageManager = $container->get(StorageManager::class);
+        $activeDiskProvider = $container->get(ActiveStorageDiskProviderInterface::class);
+
+        $remote = new RemoteOnlyAdapter($contents);
+
+        $container->set(StoredFileLocator::class, new StoredFileLocator(
+            new StorageManager(
+                [$storageManager->forDisk(StorageDiskEnum::Local), $remote],
+                $activeDiskProvider,
+            ),
+        ));
+
+        ob_start();
+        $this->client->request(
+            HttpMethodEnum::Get->value,
+            $this->urlGenerator->generate('uploads_serve', ['path' => $path]),
+        );
+        ob_end_clean();
     }
 
     public function testReturns404OnMissingPath(): void
