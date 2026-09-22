@@ -842,6 +842,10 @@ onBeforeUnmount(() => {
                             {{ t("backend.studio.decks.emphasis_hint") }}
                         </p>
 
+                        <p class="m-0 text-xs text-muted">
+                            {{ t("backend.studio.decks.icons_hint") }}
+                        </p>
+
                         <AppTextarea
                             :model-value="selected.speakerNotes ?? ''"
                             :label="t('backend.studio.decks.speaker_notes')"

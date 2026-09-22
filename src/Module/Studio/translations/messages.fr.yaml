@@ -669,12 +669,13 @@ backend:
             line_placeholders:
                 series: "Une donnée par ligne. Étiquette | valeur"
                 bullets: Une puce par ligne.
-                items: "Une carte par ligne. Titre | description"
-                steps: "Une étape par ligne. Nom | précision"
+                items: "Une carte par ligne. Titre | description | étiquette | icône"
+                steps: "Une étape par ligne. Nom | précision | étiquette | icône"
                 rows: "Une ligne du tableau par ligne, cellules séparées par |. La première est l'en-tête."
-                figures: "Un chiffre par ligne. Valeur | ce qu'il compte"
+                figures: "Un chiffre par ligne. Valeur | ce qu'il compte | part en %"
                 lines: Une ligne par ligne. Adresse, téléphone, site.
             emphasis_hint: "Dans le texte d'une slide : **gras**, *italique*, `code`, ==mot en accent==."
+            icons_hint: "Icônes possibles : check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings."
             chart_types:
                 bar: Barres
                 line: Courbe

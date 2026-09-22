@@ -669,12 +669,13 @@ backend:
             line_placeholders:
                 series: "One value per line. Label | figure"
                 bullets: One bullet per line.
-                items: "One card per line. Heading | description"
-                steps: "One step per line. Name | detail"
+                items: "One card per line. Title | description | badge | icon"
+                steps: "One step per line. Name | detail | badge | icon"
                 rows: "One row per line, cells separated by |. The first row is the header."
-                figures: "One figure per line. Value | what it counts"
+                figures: "One figure per line. Value | what it counts | share in %"
                 lines: One line per line. Address, phone, site.
             emphasis_hint: "In a slide's text: **bold**, *italic*, `code`, ==accented word==."
+            icons_hint: "Icons available: check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings."
             chart_types:
                 bar: Bars
                 line: Line

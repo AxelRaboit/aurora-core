@@ -17,7 +17,25 @@
  * properties to set.
  */
 import { computed } from "vue";
-import { cells, headed } from "../cells.js";
+import {
+    ArrowRight,
+    Award,
+    Ban,
+    Check,
+    Clock,
+    Euro,
+    Eye,
+    Flag,
+    Lightbulb,
+    Lock,
+    Rocket,
+    Settings,
+    TrendingUp,
+    TriangleAlert,
+    Users,
+    Zap,
+} from "lucide-vue-next";
+import { cells, decorated, headed, measured } from "../cells.js";
 import { useSlideFit } from "../composables/useSlideFit.js";
 import { emphasis } from "../emphasis.js";
 import SlideChart from "./SlideChart.vue";
@@ -67,6 +85,39 @@ const shape = computed(() => {
 
     return ["soft", "round", "arch", "circle"].includes(asked) ? asked : "soft";
 });
+
+/**
+ * The sixteen icons a slide may name, and not the whole of Lucide.
+ *
+ * **Declared like everything else in this module.** The library holds well
+ * over a thousand, and importing by name at render would mean shipping all of
+ * them to every reader of a public share link for the two a deck actually
+ * uses. Sixteen cover what a deck argues about: time, money, people, risk,
+ * speed, a rule, a goal.
+ *
+ * A name nothing matches draws nothing, which is the same answer the frame
+ * gives to a layout value it has no rule for.
+ */
+const ICONS = {
+    check: Check,
+    arrow: ArrowRight,
+    clock: Clock,
+    euro: Euro,
+    users: Users,
+    warning: TriangleAlert,
+    ban: Ban,
+    lock: Lock,
+    eye: Eye,
+    rocket: Rocket,
+    zap: Zap,
+    trend: TrendingUp,
+    idea: Lightbulb,
+    award: Award,
+    flag: Flag,
+    settings: Settings,
+};
+
+const iconFor = (name) => ICONS[name] ?? null;
 
 const skin = computed(() => {
     const look = props.appearance;
@@ -351,8 +402,11 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <div class="sf-figures" :style="{ '--figures': Math.min((slide.content.figures ?? []).length || 1, 4) }">
                         <div v-for="(figure, at) in (slide.content.figures ?? []).slice(0, 4)" :key="at" class="sf-figure">
-                            <span class="sf-figure-value">{{ headed(figure).head }}</span>
-                            <span v-if="!compact && headed(figure).body" class="sf-figure-label" v-html="emphasis(headed(figure).body)" />
+                            <span class="sf-figure-value">{{ measured(figure).value }}</span>
+                            <span v-if="measured(figure).share !== null" class="sf-gauge">
+                                <i :style="{ width: measured(figure).share + '%' }" />
+                            </span>
+                            <span v-if="!compact && measured(figure).label" class="sf-figure-label" v-html="emphasis(measured(figure).label)" />
                         </div>
                     </div>
                 </template>
@@ -403,8 +457,15 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <div class="sf-cards" :style="{ '--cards': Math.min((slide.content.items ?? []).length || 1, 4) }">
                         <div v-for="(item, at) in slide.content.items ?? []" :key="at" class="sf-card">
-                            <span class="sf-card-head" v-html="emphasis(headed(item).head)" />
-                            <span v-if="!compact && headed(item).body" class="sf-card-body" v-html="emphasis(headed(item).body)" />
+                            <component
+                                :is="iconFor(decorated(item).icon)"
+                                v-if="!compact && iconFor(decorated(item).icon)"
+                                class="sf-icon"
+                                :stroke-width="2"
+                            />
+                            <span v-if="decorated(item).badge" class="sf-badge">{{ decorated(item).badge }}</span>
+                            <span class="sf-card-head" v-html="emphasis(decorated(item).head)" />
+                            <span v-if="!compact && decorated(item).body" class="sf-card-body" v-html="emphasis(decorated(item).body)" />
                         </div>
                     </div>
                 </template>
@@ -413,9 +474,16 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <ol class="sf-steps">
                         <li v-for="(step, at) in slide.content.steps ?? []" :key="at" class="sf-step">
-                            <span class="sf-step-mark" />
-                            <span class="sf-step-head" v-html="emphasis(headed(step).head)" />
-                            <span v-if="!compact && headed(step).body" class="sf-step-body" v-html="emphasis(headed(step).body)" />
+                            <component
+                                :is="iconFor(decorated(step).icon)"
+                                v-if="!compact && iconFor(decorated(step).icon)"
+                                class="sf-step-icon"
+                                :stroke-width="2"
+                            />
+                            <span v-else class="sf-step-mark" />
+                            <span class="sf-step-head" v-html="emphasis(decorated(step).head)" />
+                            <span v-if="decorated(step).badge" class="sf-badge">{{ decorated(step).badge }}</span>
+                            <span v-if="!compact && decorated(step).body" class="sf-step-body" v-html="emphasis(decorated(step).body)" />
                         </li>
                     </ol>
                 </template>
@@ -888,6 +956,27 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
  * une couleur de plus ferait une deuxième chose à lire.
  */
 .slide-frame :deep(strong) { font-weight: 700; }
+
+/* L'étiquette, et l'icône. Toutes deux dans l'accent, toutes deux discrètes :
+   elles ponctuent une carte, elles ne la remplacent pas. */
+.sf-badge {
+    align-self: flex-start;
+    font-size: calc(2.2cqw * var(--fit));
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.7cqw 1.6cqw;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--slide-accent) 22%, transparent);
+    color: var(--slide-accent);
+}
+
+.sf-icon { width: 6cqw; height: 6cqw; color: var(--slide-accent); }
+.sf-step-icon { width: 4cqw; height: 4cqw; color: var(--slide-accent); flex: 0 0 auto; }
+
+/* La jauge : la part qu'un chiffre représente, dessinée sous lui. */
+.sf-gauge { display: block; height: 1.4cqw; border-radius: 9999px; background: color-mix(in srgb, currentColor 14%, transparent); overflow: hidden; }
+.sf-gauge > i { display: block; height: 100%; background: var(--slide-accent); }
 
 /* Le sommaire. Le rang en chasse fixe et en accent, la ligne courante seule à
    pleine encre : c'est le contraste qui dit où on en est, pas une puce. */
