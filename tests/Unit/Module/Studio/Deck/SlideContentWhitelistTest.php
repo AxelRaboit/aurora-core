@@ -222,6 +222,41 @@ final class SlideContentWhitelistTest extends TestCase
         self::assertSame(['quote' => 'Rien'], $quote->getContent());
     }
 
+    public function testTheAgendaMarksOneLineAndThePortraitCarriesARole(): void
+    {
+        $manager = $this->manager();
+
+        $agenda = (new Slide())->setLayout(SlideLayoutEnum::Agenda);
+        $manager->writeContent($agenda, [
+            'title' => 'Au programme',
+            'steps' => ['Le constat', 'La proposition'],
+            'current' => 2,
+        ]);
+
+        self::assertSame(
+            ['title' => 'Au programme', 'steps' => ['Le constat', 'La proposition'], 'current' => 2],
+            $agenda->getContent(),
+        );
+
+        // One-based, so a zero is what an emptied number field posts.
+        $none = (new Slide())->setLayout(SlideLayoutEnum::Agenda);
+        $manager->writeContent($none, ['title' => 'Au programme', 'current' => 0]);
+        self::assertSame(['title' => 'Au programme'], $none->getContent());
+
+        $portrait = (new Slide())->setLayout(SlideLayoutEnum::Portrait);
+        $manager->writeContent($portrait, [
+            'quote' => 'On a arrêté de chercher.',
+            'attribution' => 'Claire M.',
+            'role' => 'Directrice de projet',
+            'mediaId' => 9,
+        ]);
+
+        self::assertSame(
+            ['quote' => 'On a arrêté de chercher.', 'attribution' => 'Claire M.', 'role' => 'Directrice de projet', 'mediaId' => 9],
+            $portrait->getContent(),
+        );
+    }
+
     public function testItKeepsBulletsAsAListOfStrings(): void
     {
         $slide = (new Slide())->setLayout(SlideLayoutEnum::Bullets);

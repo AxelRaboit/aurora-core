@@ -176,6 +176,17 @@ class DeckManager
                 continue;
             }
 
+            // Which line of an agenda is the one being opened. One-based, so
+            // a zero is the value an empty number field posts rather than a
+            // line, and anything past the list simply lights nothing.
+            if ('current' === $slot) {
+                if (is_int($value) && $value > 0) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
             // A solid shape of accent, and where it sits against the frame.
             if ('band' === $slot) {
                 if (in_array($value, ['none', 'left', 'bottom', 'edge'], true)) {

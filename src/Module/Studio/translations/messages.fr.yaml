@@ -749,6 +749,8 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                role: Fonction
+                current: Ligne en cours
                 band: Aplat de couleur
                 mediaBleed: Image jusqu'au bord
                 leftTitle: Titre de gauche
@@ -791,6 +793,8 @@ backend:
                 compare: Comparaison
                 figures: Chiffres
                 end: Fin
+                agenda: Sommaire
+                portrait: Citation et portrait
             categories:
                 errors:
                     name_required: Le nom est obligatoire.

@@ -65,6 +65,12 @@ enum SlideLayoutEnum: string
     /** Thank you, and how to reach whoever presented. The last slide. */
     case End = 'end';
 
+    /** The parts of the deck, numbered, with the one being opened lit. */
+    case Agenda = 'agenda';
+
+    /** What a client said, and their face. The testimonial. */
+    case Portrait = 'portrait';
+
     /**
      * The slots that hold a list of lines rather than one string.
      *
@@ -144,6 +150,8 @@ enum SlideLayoutEnum: string
             self::Compare => ['title', 'leftTitle', 'left', 'rightTitle', 'right'],
             self::Figures => ['title', 'figures'],
             self::End => ['title', 'lines'],
+            self::Agenda => ['title', 'steps', 'current'],
+            self::Portrait => ['quote', 'attribution', 'role', 'mediaId', 'mediaFocus'],
         };
     }
 

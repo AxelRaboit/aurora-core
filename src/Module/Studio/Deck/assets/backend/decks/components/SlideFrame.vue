@@ -357,6 +357,41 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                     </div>
                 </template>
 
+                <template v-else-if="slide.layout === 'agenda'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
+                    <ol class="sf-agenda">
+                        <li
+                            v-for="(step, at) in slide.content.steps ?? []"
+                            :key="at"
+                            :class="at + 1 === slide.content.current ? 'is-current' : ''"
+                        >
+                            <span class="sf-agenda-rank">{{ String(at + 1).padStart(2, "0") }}</span>
+                            <span v-html="emphasis(headed(step).head)" />
+                        </li>
+                    </ol>
+                </template>
+
+                <template v-else-if="slide.layout === 'portrait'">
+                    <div class="sf-portrait">
+                        <div class="sf-portrait-face">
+                            <img
+                                v-if="slide.content.mediaUrl"
+                                class="sf-image-file"
+                                :src="slide.content.mediaUrl"
+                                :alt="slide.content.mediaAlt ?? ''"
+                            >
+                            <span v-else class="sf-image-mark" />
+                        </div>
+                        <div class="sf-portrait-words">
+                            <p class="sf-portrait-quote" v-html="emphasis(slide.content.quote)" />
+                            <p v-if="!compact && slide.content.attribution" class="sf-portrait-who">
+                                <span v-html="emphasis(slide.content.attribution)" />
+                                <span v-if="slide.content.role" class="sf-portrait-role" v-html="emphasis(slide.content.role)" />
+                            </p>
+                        </div>
+                    </div>
+                </template>
+
                 <template v-else-if="slide.layout === 'end'">
                     <p class="sf-title" v-html="emphasis(slide.content.title)" />
                     <div v-if="!compact" class="sf-end-lines">
@@ -853,6 +888,22 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
  * une couleur de plus ferait une deuxième chose à lire.
  */
 .slide-frame :deep(strong) { font-weight: 700; }
+
+/* Le sommaire. Le rang en chasse fixe et en accent, la ligne courante seule à
+   pleine encre : c'est le contraste qui dit où on en est, pas une puce. */
+.sf-agenda { flex: 1; min-height: 0; margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; justify-content: center; gap: 1.8cqw; }
+.sf-agenda li { display: flex; align-items: baseline; gap: 3cqw; font-size: calc(4.2cqw * var(--fit)); opacity: 0.45; }
+.sf-agenda li.is-current { opacity: 1; font-weight: 600; }
+.sf-agenda-rank { font-family: var(--slide-body); font-size: calc(2.8cqw * var(--fit)); font-variant-numeric: tabular-nums; color: var(--slide-accent); }
+
+/* Le témoignage. Le visage rond et petit : une citation reste une citation, la
+   photo l'accompagne au lieu de la disputer. */
+.sf-portrait { flex: 1; min-height: 0; display: flex; align-items: center; gap: 5cqw; }
+.sf-portrait-face { flex: 0 0 auto; position: relative; width: 22cqw; aspect-ratio: 1; border-radius: 9999px; overflow: hidden; background: color-mix(in srgb, currentColor 10%, transparent); }
+.sf-portrait-words { min-width: 0; display: flex; flex-direction: column; gap: 2cqw; }
+.sf-portrait-quote { margin: 0; font-family: var(--slide-heading); font-size: calc(4.6cqw * var(--fit)); line-height: 1.3; font-style: italic; }
+.sf-portrait-who { margin: 0; display: flex; flex-direction: column; font-size: calc(2.8cqw * var(--fit)); }
+.sf-portrait-role { opacity: 0.7; }
 
 /* L'aplat. Sous le contenu et sous le décor du deck, mais au-dessus du fond :
    c'est une forme posée sur la slide, pas une teinte du sol. */

@@ -749,6 +749,8 @@ backend:
                 steps: Steps
                 rows: Rows
                 kicker: Kicker
+                role: Role
+                current: Current line
                 band: Colour band
                 mediaBleed: Picture to the edge
                 leftTitle: Left heading
@@ -791,6 +793,8 @@ backend:
                 compare: Comparison
                 figures: Figures
                 end: Closing
+                agenda: Agenda
+                portrait: Quote and portrait
             categories:
                 errors:
                     name_required: The name is required.
