@@ -256,6 +256,85 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
+    /**
+     * Le carnet a une page à lui, et elle ne renvoie plus ailleurs.
+     *
+     * L'adresse redirigeait vers la première note, faute d'écran à montrer :
+     * ouvrir le module tombait sur un texte au lieu de montrer ce qu'il y a.
+     */
+    public function testTheLibraryIsAPageOfItsOwn(): void
+    {
+        $this->folder($this->owner, 'Clients');
+        $this->note($this->owner, 'Une note');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown'));
+
+        self::assertResponseIsSuccessful();
+    }
+
+    /** Un dossier est une adresse, avec son fil d'Ariane résolu côté serveur. */
+    public function testAFolderHasItsOwnAddress(): void
+    {
+        $parent = $this->folder($this->owner, 'Clients');
+        $child = $this->folder($this->owner, 'Studio Lumen', $parent);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'backend_notes_markdown_folder',
+            ['id' => $child->getId()],
+        ));
+
+        self::assertResponseIsSuccessful();
+        // Le fil d'Ariane part de la racine : sans lui, un rechargement
+        // afficherait la racine le temps que le navigateur recalcule.
+        self::assertStringContainsString('Studio Lumen', (string) $this->client->getResponse()->getContent());
+        self::assertStringContainsString('Clients', (string) $this->client->getResponse()->getContent());
+    }
+
+    /** Ce qu'un dossier contient, en une requête. */
+    public function testBrowseAnswersWithTheFolderContents(): void
+    {
+        $folder = $this->folder($this->owner, 'Clients');
+        $inside = $this->folder($this->owner, 'Studio Lumen', $folder);
+        $note = $this->note($this->owner, 'Devis', $folder);
+        $elsewhere = $this->note($this->owner, 'Ailleurs');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request(
+            'GET',
+            $this->urlGenerator->generate('backend_notes_markdown_browse').'?folder='.$folder->getId(),
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+        self::assertSame([$inside->getId()], array_map(static fn (array $row): int => (int) $row['id'], $body['folders']));
+        self::assertSame([$note->getId()], array_map(static fn (array $row): int => (int) $row['id'], $body['notes']));
+        self::assertNotContains($elsewhere->getId(), array_map(static fn (array $row): int => (int) $row['id'], $body['notes']));
+    }
+
+    /** Une note rangée porte son dossier dans la liste, pas un parent. */
+    public function testTheFlatListCarriesTheFolder(): void
+    {
+        $folder = $this->folder($this->owner, 'Clients');
+        $note = $this->note($this->owner, 'Devis', $folder);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+        $row = current(array_filter(
+            $body['notes'],
+            static fn (array $one): bool => (int) $one['id'] === $note->getId(),
+        ));
+
+        self::assertIsArray($row);
+        self::assertSame($folder->getId(), (int) $row['folderId']);
+    }
+
     /** Title and body are ciphertext in the database, and readable through the ORM. */
     public function testTheBodyIsEncryptedAtRest(): void
     {
