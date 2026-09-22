@@ -5,6 +5,20 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.221] - 2026-09-22
+
+### Modifié
+
+#### L'icône d'une carte d'offre se lit à côté du nom
+Une carte d'offre pouvait déjà porter un pictogramme, dessiné au-dessus de son
+nom. Sur une carte qui ne contient qu'un nom et une ligne ou deux, cette ligne
+supplémentaire poussait les mots vers le bas sans rien apporter : l'icône et le
+nom disent la même chose et gagnent à être lus d'un seul coup d'oeil.
+
+Les deux sont maintenant sur une même rangée, l'image d'abord. Un nom long passe
+à la ligne à côté de l'icône plutôt que de la comprimer. Une carte sans image
+n'est pas touchée.
+
 ## [0.9.220] - 2026-09-22
 
 ### Ajouté

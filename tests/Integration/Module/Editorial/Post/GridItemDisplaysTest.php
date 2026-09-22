@@ -84,10 +84,10 @@ final class GridItemDisplaysTest extends IntegrationTestCase
     }
 
     /**
-     * An offer with a pictogram draws it. The picture has always been on the
-     * entry - the editor offers one for every item - and this was the one
-     * costume that ignored it, so a card could be given an icon and show
-     * nothing.
+     * An offer with a pictogram draws it, beside the name it belongs to. The
+     * picture has always been on the entry - the editor offers one for every
+     * item - and this was the one costume that ignored it, so a card could be
+     * given an icon and show nothing.
      */
     public function testAnOfferDrawsThePictureItWasGiven(): void
     {
@@ -101,7 +101,9 @@ final class GridItemDisplaysTest extends IntegrationTestCase
 
         self::assertStringContainsString('object-contain', $html);
         self::assertStringContainsString('picto.png', $html);
-        // Above the name it belongs to, which is where an icon is read.
+        // Beside the name, not over it: both sit on one row, the picture
+        // first because that is the order the pair is read in.
+        self::assertStringContainsString('flex items-center gap-3', $html);
         self::assertLessThan(
             (int) mb_strpos($html, 'Stratégie de contenu'),
             (int) mb_strpos($html, 'picto.png'),
