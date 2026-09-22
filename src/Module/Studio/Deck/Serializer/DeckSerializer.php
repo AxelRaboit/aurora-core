@@ -12,9 +12,7 @@ use Aurora\Module\Studio\Deck\Service\DeckAppearance;
 use Aurora\Module\Studio\Deck\Service\DeckPicture;
 use Aurora\Module\Studio\Deck\Service\DeckPictures;
 
-use function array_filter;
 use function array_map;
-use function array_values;
 use function count;
 use function is_array;
 use function is_int;
@@ -128,7 +126,12 @@ class DeckSerializer
         // arrangement is the order somebody picked, so the frame must be able
         // to draw the first one first without looking anything up.
         if (is_array($content['mediaIds'] ?? null)) {
-            $content['mediaPictures'] = array_values(array_filter(array_map(
+            // Alignee sur `mediaIds` position par position, trous compris.
+            // Compactee, elle decalait tout ce qui suit une image supprimee de
+            // la mediatheque : le formulaire montrait la vignette suivante sous
+            // l'identifiant precedent, et remplacer une case en modifiait une
+            // autre.
+            $content['mediaPictures'] = array_map(
                 function (mixed $id) use ($pictures): ?array {
                     if (!is_int($id)) {
                         return null;
@@ -147,7 +150,7 @@ class DeckSerializer
                     ];
                 },
                 $content['mediaIds'],
-            )));
+            );
         }
 
         $backgroundId = $content['bgMediaId'] ?? null;

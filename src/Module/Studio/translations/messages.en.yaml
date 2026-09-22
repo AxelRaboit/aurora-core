@@ -658,6 +658,7 @@ backend:
                 inverted: The ink
                 accent: The accent
             reveal_hint: In full screen, each press brings in the next line before moving to the following slide.
+            picture_rank: "Picture {rank}"
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:

@@ -17,6 +17,52 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
  * by dragging through a hundred of them, and a request per hue would be a
  * hundred writes for one decision.
  */
+/**
+ * Ce qu'un style envoie au serveur, derive de sa forme et non d'une liste.
+ *
+ * **La liste ecrite a la main est exactement ce qui a casse.** Sept reglages
+ * ont ete ajoutes a la forme du style, a l'ecriture, a l'apercu et aux looks,
+ * la normalisation serveur les acceptait tous, et la fonction qui composait
+ * l'envoi ne les nommait pas : ils partaient dans le vide a chaque
+ * enregistrement, sans erreur, et comme le serveur remplace le style entier ils
+ * effacaient meme ce qui avait ete stocke avant. Un huitieme reglage aurait
+ * repete la panne.
+ *
+ * `shape` est la forme du style. Une cle qui y entre voyage desormais toute
+ * seule. Ne partent pas les valeurs qui veulent dire « je n'ai rien choisi » :
+ * `null` laisse le theme decider, `false` est l'absence d'un interrupteur, la
+ * chaine vide celle d'un texte.
+ *
+ * Fonction pure et exportee pour une seule raison : celle-ci se teste, la
+ * version enfermee dans le composable ne se testait pas, et c'est pour ca que
+ * la panne a tenu treize commits.
+ */
+export function stylePayload(style, shape) {
+    const written = {};
+
+    for (const key of Object.keys(shape)) {
+        const raw = style[key];
+        const value = typeof raw === "string" ? raw.trim() : raw;
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === false ||
+            value === ""
+        ) {
+            continue;
+        }
+
+        written[key] = value;
+    }
+
+    // Un placement sans logo ne place rien : les deux se posent ensemble dans
+    // le panneau et se rangent ensemble ici.
+    if (!written.logoMediaId) delete written.logoPlacement;
+
+    return written;
+}
+
 export function useDeckAppearance(props) {
     const { t } = useI18n();
     const { request } = useRequest();
@@ -143,27 +189,7 @@ export function useDeckAppearance(props) {
 
     /** The payload: nothing that was left alone, so the theme keeps reaching it. */
     function payload() {
-        const written = {};
-
-        for (const key of ["background", "ink", "accent", "fontPair"]) {
-            if (style[key]) written[key] = style[key];
-        }
-
-        if (style.logoMediaId) {
-            written.logoMediaId = style.logoMediaId;
-            written.logoPlacement = style.logoPlacement;
-        }
-
-        if (style.footerText?.trim())
-            written.footerText = style.footerText.trim();
-        if (style.slideNumbers) written.slideNumbers = true;
-
-        // Written even when it is the default, unlike the colours: `fade` is
-        // what a deck does when nobody chose, and storing nothing for it would
-        // make "I picked fade" and "I never looked at this" the same row.
-        if (style.transition) written.transition = style.transition;
-
-        return written;
+        return stylePayload(style, BLANK);
     }
 
     async function save() {

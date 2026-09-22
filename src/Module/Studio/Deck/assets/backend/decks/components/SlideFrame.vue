@@ -430,8 +430,8 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 <template v-else-if="slide.layout === 'logos'">
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <div class="sf-logos" :style="{ '--logos': Math.min((slide.content.mediaPictures ?? []).length || 1, 4) }">
-                        <span v-for="(picture, at) in slide.content.mediaPictures ?? []" :key="at" class="sf-logo">
-                            <img :src="picture.url" :alt="picture.alt">
+                        <span v-for="(picture, at) in slide.content.mediaPictures ?? []" :key="at" class="sf-logos-cell">
+                            <img v-if="picture" :src="picture.url" :alt="picture.alt">
                         </span>
                     </div>
                 </template>
@@ -440,7 +440,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <div class="sf-mosaic" :data-count="Math.min((slide.content.mediaPictures ?? []).length, 8)">
                         <span v-for="(picture, at) in slide.content.mediaPictures ?? []" :key="at" class="sf-mosaic-cell">
-                            <img :src="picture.url" :alt="picture.alt" :style="{ objectPosition: picture.focus }">
+                            <img v-if="picture" :src="picture.url" :alt="picture.alt" :style="{ objectPosition: picture.focus }">
                         </span>
                     </div>
                 </template>
@@ -451,7 +451,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                         <li
                             v-for="(step, at) in slide.content.steps ?? []"
                             :key="at"
-                            :class="at + 1 === slide.content.current ? 'is-current' : ''"
+                            :class="[at + 1 === slide.content.current ? 'is-current' : '', isOut(at) ? '' : 'is-held']"
                         >
                             <span class="sf-agenda-rank">{{ String(at + 1).padStart(2, "0") }}</span>
                             <span v-html="emphasis(headed(step).head)" />
@@ -483,7 +483,12 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 <template v-else-if="slide.layout === 'end'">
                     <p class="sf-title" v-html="emphasis(slide.content.title)" />
                     <div v-if="!compact" class="sf-end-lines">
-                        <span v-for="(line, at) in slide.content.lines ?? []" :key="at" v-html="emphasis(line)" />
+                        <span
+                            v-for="(line, at) in slide.content.lines ?? []"
+                            :key="at"
+                            :class="isOut(at) ? '' : 'is-held'"
+                            v-html="emphasis(line)"
+                        />
                     </div>
                 </template>
 
@@ -713,6 +718,8 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
    tienne, donc une liste qui grandirait ligne à ligne redimensionnerait tous
    les mots de la slide à chaque pression. */
 .is-held { visibility: hidden; }
+.sf-agenda li.is-held,
+.sf-end-lines > .is-held { visibility: hidden; }
 
 @media (prefers-reduced-motion: no-preference) {
     .sf-list > li,
@@ -845,9 +852,17 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 .slide-frame[data-anchor="top"] .slide-stage { justify-content: safe flex-start; }
 .slide-frame[data-anchor="bottom"] .slide-stage { justify-content: safe flex-end; }
 
-.slide-frame[data-align="left"] .slide-stage { text-align: left; align-items: flex-start; }
-.slide-frame[data-align="center"] .slide-stage { text-align: center; align-items: center; }
-.slide-frame[data-align="right"] .slide-stage { text-align: right; align-items: flex-end; }
+/* L'alignement ne touche que le texte, et jamais la largeur des boites.
+   Un `align-items` autre que `stretch` fait dimensionner chaque enfant sur son
+   contenu : une image, dont le fichier est en position absolue, ne mesure alors
+   rien du tout et disparait de la slide. Le texte s'aligne donc par
+   `text-align`, et seuls les blocs qui ne portent que du texte se resserrent. */
+.slide-frame[data-align="left"] .slide-stage { text-align: left; }
+.slide-frame[data-align="center"] .slide-stage { text-align: center; }
+.slide-frame[data-align="right"] .slide-stage { text-align: right; }
+
+.slide-frame[data-align="center"] .slide-stage > :is(p, ul, ol) { align-self: center; }
+.slide-frame[data-align="right"] .slide-stage > :is(p, ul, ol) { align-self: flex-end; }
 
 /* L'alignement explicite l'emporte sur le centrage que le gabarit section
    porte en dur, sinon le choix serait ignoré sur le seul gabarit où il se
@@ -987,7 +1002,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 
 /* Un titre au-dessus d'un contenu dense : plus petit que celui d'une slide à
    puces, sans quoi il prend le tiers de la hauteur qui reste au tableau. */
-.sf-heading-small { font-size: calc(4.8cqw * var(--fit)); }
+.sf-heading-small { font-size: calc(4.8cqw * var(--fit) * var(--title-scale, 1)); }
 
 .sf-stat {
     margin: 0;
@@ -1086,8 +1101,10 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
    largeur : c'est la hauteur qu'un oeil compare, et `contain` garde chacune
    entière dans sa case. */
 .sf-logos { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(var(--logos, 4), 1fr); gap: 4cqw; align-items: center; justify-items: center; }
-.sf-logo { display: block; width: 100%; height: 8cqw; }
-.sf-logo img { width: 100%; height: 100%; object-fit: contain; }
+/* `sf-logos-cell` et pas `sf-logo` : le pied de page porte deja une classe de
+   ce nom pour la marque du deck, et les deux regles se marchaient dessus. */
+.sf-logos-cell { display: block; width: 100%; height: 8cqw; }
+.sf-logos-cell img { width: 100%; height: 100%; object-fit: contain; }
 
 /* La mosaïque. Les arrangements sont déclarés comme les gabarits le sont : à
    deux images une colonne chacune, à trois une grande et deux petites, au-delà
@@ -1114,7 +1131,11 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 /* Le témoignage. Le visage rond et petit : une citation reste une citation, la
    photo l'accompagne au lieu de la disputer. */
 .sf-portrait { flex: 1; min-height: 0; display: flex; align-items: center; gap: 5cqw; }
+/* Toujours recadre, jamais mis en boite aux lettres : un portrait rond dont
+   l'image est contenue laisse deux bandes de fond dans le cercle, ce que
+   personne ne choisit. Le gabarit ne propose donc pas de cadrage, il en a un. */
 .sf-portrait-face { flex: 0 0 auto; position: relative; width: 22cqw; aspect-ratio: 1; border-radius: 9999px; overflow: hidden; background: color-mix(in srgb, currentColor 10%, transparent); }
+.sf-portrait-face .sf-image-file { object-fit: cover; }
 .sf-portrait-words { min-width: 0; display: flex; flex-direction: column; gap: 2cqw; }
 .sf-portrait-quote { margin: 0; font-family: var(--slide-heading); font-size: calc(4.6cqw * var(--fit)); line-height: 1.3; font-style: italic; }
 .sf-portrait-who { margin: 0; display: flex; flex-direction: column; font-size: calc(2.8cqw * var(--fit)); }
@@ -1124,14 +1145,17 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
    c'est une forme posée sur la slide, pas une teinte du sol. */
 .sf-band { position: absolute; background: var(--slide-accent); pointer-events: none; }
 
-.slide-frame[data-band="left"] .sf-band { inset: 0 auto 0 0; width: 32%; }
-.slide-frame[data-band="bottom"] .sf-band { inset: auto 0 0 0; height: 22%; }
+/* En unites de conteneur des deux cotes : la bande se mesurait sur le cadre et
+   le decalage du texte sur la scene, qui est deja rognee de ses marges, donc le
+   texte ne se calait jamais la ou la bande finissait. */
+.slide-frame[data-band="left"] .sf-band { inset: 0 auto 0 0; width: 32cqw; }
+.slide-frame[data-band="bottom"] .sf-band { inset: auto 0 0 0; height: 18cqh; }
 .slide-frame[data-band="edge"] .sf-band { inset: 0 auto 0 0; width: 2.5cqw; }
 
 /* Le contenu se pousse pour ne pas passer dessous. Le fin bord n'a pas besoin
    de plus que la marge que le cadre garde déjà. */
-.slide-frame[data-band="left"] .slide-stage { padding-left: calc(32% - var(--frame-pad) + 4cqw); }
-.slide-frame[data-band="bottom"] .slide-stage { padding-bottom: calc(22% - var(--frame-pad) + 3cqw); }
+.slide-frame[data-band="left"] .slide-stage { padding-left: calc(32cqw - var(--frame-pad) + 4cqw); }
+.slide-frame[data-band="bottom"] .slide-stage { padding-bottom: calc(18cqh - var(--frame-pad) + 3cqw); }
 
 /* Le débord : l'image sort de la marge du cadre du côté où elle est posée, et
    va toucher le bord. La marge est lue plutôt que recopiée, sans quoi un deck

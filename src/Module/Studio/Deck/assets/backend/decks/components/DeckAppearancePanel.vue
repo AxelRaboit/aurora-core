@@ -85,7 +85,23 @@ const write = (key, value) => emit("write", key, value);
  * sur un portable dans une pièce éclairée. Le panneau le dit, il ne refuse pas :
  * un deck est le document de quelqu'un.
  */
-const contrastNote = computed(() => readability(props.preview.ink, props.preview.background));
+const contrastNote = computed(() => {
+    // Les trois sols qu'une slide peut prendre, et pas seulement le cas
+    // ordinaire : une slide posee sur l'accent porte le fond du deck comme
+    // encre, une slide inversee echange les deux. Ne mesurer que la paire
+    // ordinaire annoncait « lisible partout » pour un deck dont les slides de
+    // section etaient illisibles.
+    const pairs = [
+        readability(props.preview.ink, props.preview.background),
+        readability(props.preview.background, props.preview.ink),
+        readability(props.preview.background, props.preview.accent),
+    ].filter(Boolean);
+
+    if (pairs.length === 0) return null;
+
+    // La pire des trois : c'est elle qui decide si le deck est lisible.
+    return pairs.reduce((worst, one) => (one.ratio < worst.ratio ? one : worst));
+});
 
 /**
  * Les teintes du logo, proposées comme accent.

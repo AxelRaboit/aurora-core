@@ -44,9 +44,9 @@ const stage = ref(null);
 const { t } = useI18n();
 
 const current = computed(() => props.slides[at.value] ?? null);
-const isFirst = computed(() => at.value === 0);
-const isLast = computed(() => at.value >= props.slides.length - 1);
-
+/* Une slide qui retient encore des lignes n'est pas au bout de sa course, meme
+   quand elle est la derniere du deck : sans ca, les fleches a l'ecran restent
+   grisees et les apparitions ne sont atteignables qu'au clavier. */
 /**
  * How many of them are showing.
  *
@@ -56,6 +56,33 @@ const isLast = computed(() => at.value >= props.slides.length - 1);
  * into a slide came in with nothing out instead of everything.
  */
 const shown = ref(0);
+
+/**
+ * How many lines the slide on screen can bring in one at a time.
+ *
+ * **Counted from the content, never measured from the page.** The lines are in
+ * a list slot, so their number is known before anything is drawn; asking the
+ * DOM would tie the way a deck is driven to the way it happens to be laid out
+ * that day, and would answer differently on a thumbnail.
+ *
+ * Zero for every slide that did not ask for it, which is every slide written
+ * before today, so nothing about the arrows changes for them.
+ */
+const REVEAL_SLOTS = ["bullets", "items", "steps", "figures", "lines"];
+
+const revealable = computed(() => {
+    const content = props.slides[at.value]?.content;
+
+    if (content?.reveal !== true) return 0;
+
+    const slot = REVEAL_SLOTS.find((name) => Array.isArray(content[name]));
+
+    return slot ? content[slot].length : 0;
+});
+
+const isFirst = computed(() => at.value === 0 && shown.value === 0);
+const isLast = computed(() => at.value >= props.slides.length - 1 && shown.value >= revealable.value);
+
 
 /**
  * Named `link` and not `stage`: the template ref above is the element that goes
@@ -88,28 +115,6 @@ const overview = ref(false);
  */
 const direction = ref(1);
 
-/**
- * How many lines the slide on screen can bring in one at a time.
- *
- * **Counted from the content, never measured from the page.** The lines are in
- * a list slot, so their number is known before anything is drawn; asking the
- * DOM would tie the way a deck is driven to the way it happens to be laid out
- * that day, and would answer differently on a thumbnail.
- *
- * Zero for every slide that did not ask for it, which is every slide written
- * before today, so nothing about the arrows changes for them.
- */
-const REVEAL_SLOTS = ["bullets", "items", "steps", "figures", "lines"];
-
-const revealable = computed(() => {
-    const content = props.slides[at.value]?.content;
-
-    if (content?.reveal !== true) return 0;
-
-    const slot = REVEAL_SLOTS.find((name) => Array.isArray(content[name]));
-
-    return slot ? content[slot].length : 0;
-});
 
 
 /**

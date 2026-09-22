@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 
 use function array_key_exists;
+use function ctype_digit;
 use function in_array;
 use function is_array;
 use function is_int;
@@ -179,9 +180,15 @@ class DeckManager
             // Which line of an agenda is the one being opened. One-based, so
             // a zero is the value an empty number field posts rather than a
             // line, and anything past the list simply lights nothing.
+            // Accepte le nombre ecrit comme une chaine, parce que c'est la
+            // seule forme sous laquelle il arrive : le formulaire rend un champ
+            // texte pour ce slot, et un `is_int` strict jetait donc toujours la
+            // valeur, sans que rien ne le dise.
             if ('current' === $slot) {
-                if (is_int($value) && $value > 0) {
-                    $clean[$slot] = $value;
+                $rank = is_int($value) ? $value : (is_string($value) && ctype_digit($value) ? (int) $value : 0);
+
+                if ($rank > 0) {
+                    $clean[$slot] = $rank;
                 }
 
                 continue;

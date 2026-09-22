@@ -658,6 +658,7 @@ backend:
                 inverted: L'encre
                 accent: L'accent
             reveal_hint: Au plein écran, chaque pression fait apparaître la ligne suivante avant de passer à la slide d'après.
+            picture_rank: "Image {rank}"
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:

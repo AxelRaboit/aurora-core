@@ -309,17 +309,25 @@ const pictureRows = computed(() => {
 
 function writePictureAt(at, value) {
     const ids = [...(selected.value?.content?.mediaIds ?? [])];
+    const drawn = [...(selected.value?.content?.mediaPictures ?? [])];
 
     if (value?.id) {
         ids[at] = value.id;
+        drawn[at] = { url: value.url ?? null, alt: "", focus: "50% 50%" };
     } else {
         ids.splice(at, 1);
+        drawn.splice(at, 1);
     }
 
-    writeSlot(
-        "mediaIds",
-        ids.filter((id) => typeof id === "number" && id > 0),
-    );
+    const kept = ids.filter((id) => typeof id === "number" && id > 0);
+
+    writeSlot("mediaIds", kept);
+
+    // L'adresse est ecrite a cote de l'identifiant, comme le font deja les deux
+    // autres champs d'image de cet ecran : la slide n'est relue du serveur que
+    // lorsqu'on la quitte, et sans ca la case choisie redevenait vide et
+    // l'apercu restait blanc jusqu'a ce qu'on aille voir ailleurs.
+    writeSlot("mediaPictures", drawn.slice(0, kept.length));
 }
 
 /** Les trois listes de composition, avec leur valeur d'aujourd'hui en tête. */
@@ -689,6 +697,7 @@ onBeforeUnmount(() => {
                                         v-for="row in pictureRows"
                                         :key="row.at"
                                         :model-value="row.id ? { id: row.id, url: row.url } : null"
+                                        :label="t('backend.studio.decks.picture_rank', { rank: row.at + 1 })"
                                         :size="90"
                                         v-on:update:model-value="(value) => writePictureAt(row.at, value)"
                                     />

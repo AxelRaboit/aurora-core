@@ -239,10 +239,20 @@ final class SlideContentWhitelistTest extends TestCase
             $agenda->getContent(),
         );
 
+        // Le formulaire rend un champ texte pour ce slot, donc le rang
+        // arrive en chaine : un `is_int` strict le jetait toujours.
+        $typed = (new Slide())->setLayout(SlideLayoutEnum::Agenda);
+        $manager->writeContent($typed, ['title' => 'Au programme', 'current' => '3']);
+        self::assertSame(['title' => 'Au programme', 'current' => 3], $typed->getContent());
+
         // One-based, so a zero is what an emptied number field posts.
         $none = (new Slide())->setLayout(SlideLayoutEnum::Agenda);
         $manager->writeContent($none, ['title' => 'Au programme', 'current' => 0]);
         self::assertSame(['title' => 'Au programme'], $none->getContent());
+
+        $words = (new Slide())->setLayout(SlideLayoutEnum::Agenda);
+        $manager->writeContent($words, ['title' => 'Au programme', 'current' => 'deux']);
+        self::assertSame(['title' => 'Au programme'], $words->getContent());
 
         $portrait = (new Slide())->setLayout(SlideLayoutEnum::Portrait);
         $manager->writeContent($portrait, [
