@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceContent\Serializer;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Service\SpaceAccessLinkLabel;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
+use DateTimeImmutable;
 use DateTimeZone;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
@@ -34,6 +35,16 @@ class SpaceContentItemSerializer implements SpaceContentItemSerializerInterface
             'scheduledAtLocal' => $scheduledAt
                 ?->setTimezone(new DateTimeZone($item->getSpace()->getTimezone()))
                 ->format('Y-m-d\TH:i'),
+            // L'échéance de relecture, dans les deux mêmes formes et pour les
+            // mêmes raisons que la date de parution juste au-dessus.
+            'reviewBy' => $item->getReviewBy()?->format(DATE_ATOM),
+            'reviewByLocal' => $item->getReviewBy()
+                ?->setTimezone(new DateTimeZone($item->getSpace()->getTimezone()))
+                ->format('Y-m-d\TH:i'),
+            // Calculé ici plutôt que dans le navigateur : « en retard » dépend
+            // de l'heure du serveur, et une horloge de poste mal réglée ferait
+            // apparaître ou disparaître le retard sans que rien n'ait bougé.
+            'lateForReview' => $item->isLateForReview(new DateTimeImmutable()),
             'showOnCalendar' => $item->isShownOnCalendar(),
             'approval' => $item->getApproval()->value,
             'approvalAt' => $item->getApprovalAt()?->format(DATE_ATOM),

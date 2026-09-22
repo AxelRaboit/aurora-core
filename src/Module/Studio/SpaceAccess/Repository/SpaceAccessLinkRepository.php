@@ -8,6 +8,7 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -58,6 +59,31 @@ class SpaceAccessLinkRepository extends ResolveTargetEntityRepository
             // lien : les lister ferait croire à des destinataires en trop.
             ->andWhere('l.previewOf IS NULL')
             ->setParameter('space', $space)
+            ->orderBy('l.createdAt', Order::Descending->value)
+            ->addOrderBy('l.id', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Les liens d'un espace qui peuvent encore répondre, aujourd'hui.
+     *
+     * Ni révoqués, ni expirés, ni aperçus, et porteurs du droit de valider :
+     * c'est la liste des gens à qui une invitation à relire veut parler. Un
+     * lien en lecture seule en recevrait une qu'il ne pourrait pas honorer.
+     *
+     * @return list<SpaceAccessLinkInterface>
+     */
+    public function findApproversForSpace(CustomerSpaceInterface $space, DateTimeImmutable $now): array
+    {
+        return $this->createQueryBuilder('l')
+            ->where('l.space = :space')
+            ->andWhere('l.previewOf IS NULL')
+            ->andWhere('l.revokedAt IS NULL')
+            ->andWhere('l.expiresAt > :now')
+            ->andWhere('l.canApprove = true')
+            ->setParameter('space', $space)
+            ->setParameter('now', $now)
             ->orderBy('l.createdAt', Order::Descending->value)
             ->addOrderBy('l.id', Order::Descending->value)
             ->getQuery()

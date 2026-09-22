@@ -26,6 +26,11 @@ class SpaceContentItemInput implements SpaceContentItemInputInterface
             message: 'backend.studio.space_content.errors.scheduled_at_invalid',
         )]
         public readonly ?string $scheduledAt = null,
+        #[Assert\Regex(
+            pattern: '/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2})?$/',
+            message: 'backend.studio.space_content.errors.review_by_invalid',
+        )]
+        public readonly ?string $reviewBy = null,
         // Vrai par défaut : un formulaire ancien, ou un appel qui ne connaît
         // pas ce champ, garde le comportement d'avant plutôt que de faire
         // disparaître la carte du calendrier sans que personne l'ait demandé.
@@ -50,6 +55,11 @@ class SpaceContentItemInput implements SpaceContentItemInputInterface
     public function getScheduledAt(): ?string
     {
         return $this->scheduledAt;
+    }
+
+    public function getReviewBy(): ?string
+    {
+        return $this->reviewBy;
     }
 
     public function isShownOnCalendar(): bool

@@ -15,6 +15,7 @@ use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentAttachmentSerialize
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentColumnSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentCommentSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentItemSerializerInterface;
+use DateTimeImmutable;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final readonly class SpaceBoardViewBuilder
@@ -55,6 +56,15 @@ final readonly class SpaceBoardViewBuilder
             'backPath' => $this->urlGenerator->generate('backend_studio_spaces'),
             'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
             'accessPath' => $this->urlGenerator->generate('workspace_space_access', ['id' => $space->getId()]),
+            // L'invitation à relire vit sur le tableau parce que c'est là que
+            // le studio se trouve quand son lot est prêt, même si la route
+            // appartient aux accès : ce qu'elle fait, c'est émettre des liens.
+            'reviewPath' => $this->urlGenerator->generate('workspace_space_access_review', ['id' => $space->getId()]),
+            'awaitingApproval' => $this->itemRepository->countAwaitingApproval($space),
+            // Combien, et depuis combien de temps c'est dû : « trois en
+            // attente » et « trois en attente dont deux en retard » ne
+            // décrivent pas la même journée.
+            'lateForReview' => $this->itemRepository->countLateForReview($space, new DateTimeImmutable()),
             'itemCreatePath' => $this->urlGenerator->generate('workspace_space_content_item_create', ['id' => $space->getId()]),
             'itemUpdatePath' => $this->pathTemplates->generate('workspace_space_content_item_update', ['id' => $space->getId(), 'itemId' => '__id__']),
             'itemDeletePath' => $this->pathTemplates->generate('workspace_space_content_item_delete', ['id' => $space->getId(), 'itemId' => '__id__']),
