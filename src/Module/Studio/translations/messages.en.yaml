@@ -615,6 +615,14 @@ backend:
                 arrow: Arrow
                 number: Number
                 check: Check
+            media_bleed_hint: The picture leaves the margin and touches the edge of the frame.
+            rules: Separating rules
+            rules_hint: A line between the two columns and under the kicker.
+            bands:
+                none: None
+                left: Band on the left
+                bottom: Band at the bottom
+                edge: Thin edge
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:
@@ -725,6 +733,8 @@ backend:
                 steps: Steps
                 rows: Rows
                 kicker: Kicker
+                band: Colour band
+                mediaBleed: Picture to the edge
                 leftTitle: Left heading
                 rightTitle: Right heading
                 figures: The figures

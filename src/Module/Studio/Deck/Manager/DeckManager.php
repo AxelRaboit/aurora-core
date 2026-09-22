@@ -176,8 +176,17 @@ class DeckManager
                 continue;
             }
 
-            // Two switches, and only their true is kept.
-            if (in_array($slot, ['vignette', 'captionOver'], true)) {
+            // A solid shape of accent, and where it sits against the frame.
+            if ('band' === $slot) {
+                if (in_array($value, ['none', 'left', 'bottom', 'edge'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // Three switches, and only their true is kept.
+            if (in_array($slot, ['vignette', 'captionOver', 'mediaBleed'], true)) {
                 if (true === $value) {
                     $clean[$slot] = true;
                 }

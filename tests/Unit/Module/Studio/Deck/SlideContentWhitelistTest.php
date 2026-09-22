@@ -200,6 +200,28 @@ final class SlideContentWhitelistTest extends TestCase
         self::assertSame(['title' => 'Merci', 'lines' => ['contact@exemple.fr']], $end->getContent());
     }
 
+    public function testTheBandAndTheBleedTakeOnlyWhatTheFrameDraws(): void
+    {
+        $manager = $this->manager();
+
+        $slide = (new Slide())->setLayout(SlideLayoutEnum::Section);
+        $manager->writeContent($slide, ['title' => 'Deuxième partie', 'band' => 'left']);
+        self::assertSame(['title' => 'Deuxième partie', 'band' => 'left'], $slide->getContent());
+
+        $wrong = (new Slide())->setLayout(SlideLayoutEnum::Section);
+        $manager->writeContent($wrong, ['title' => 'Deuxième partie', 'band' => 'right']);
+        self::assertSame(['title' => 'Deuxième partie'], $wrong->getContent());
+
+        // The bleed belongs to the layout that sets a picture beside text.
+        $beside = (new Slide())->setLayout(SlideLayoutEnum::ImageText);
+        $manager->writeContent($beside, ['mediaId' => 4, 'mediaBleed' => true]);
+        self::assertSame(['mediaId' => 4, 'mediaBleed' => true], $beside->getContent());
+
+        $quote = (new Slide())->setLayout(SlideLayoutEnum::Quote);
+        $manager->writeContent($quote, ['quote' => 'Rien', 'mediaBleed' => true]);
+        self::assertSame(['quote' => 'Rien'], $quote->getContent());
+    }
+
     public function testItKeepsBulletsAsAListOfStrings(): void
     {
         $slide = (new Slide())->setLayout(SlideLayoutEnum::Bullets);

@@ -186,6 +186,23 @@ const background = computed(() => {
 /** The corners, darkened. Works on a flat ground as well as on a picture. */
 const vignette = computed(() => props.slide.content.vignette === true);
 
+/**
+ * A solid shape of accent against one edge of the frame.
+ *
+ * **Decided per slide and not per deck**, unlike the wash and the texture: the
+ * band is opaque and takes a third of the frame, so on every slide of a deck
+ * it stops being furniture and becomes the layout. On a cover and a section
+ * slide it is exactly what makes them read as composed.
+ */
+const band = computed(() =>
+    ["left", "bottom", "edge"].includes(props.slide.content.band)
+        ? props.slide.content.band
+        : "none",
+);
+
+/** The hairlines a deck draws between its columns and under its kickers. */
+const rules = computed(() => props.appearance?.rules === true);
+
 /** What the picture of a picture layout is wrapped in. */
 const mediaFrame = computed(() =>
     ["line", "shadow"].includes(props.slide.content.mediaFrame)
@@ -228,6 +245,9 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
             :data-title-case="titleCase"
             :data-bullets="bullets"
             :data-media-frame="mediaFrame"
+            :data-band="band"
+            :data-rules="rules ? 'on' : 'off'"
+            :data-bleed="slide.content.mediaBleed === true ? 'on' : 'off'"
             v-bind="composition"
             :style="[skin, media]"
         >
@@ -253,6 +273,8 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
             <span v-if="gradient !== 'none'" class="sf-wash" aria-hidden="true" />
 
             <span v-if="hairline" class="sf-hairline" aria-hidden="true" />
+
+            <span v-if="band !== 'none'" class="sf-band" aria-hidden="true" />
 
             <div ref="stage" class="slide-stage" :style="{ '--fit': fit }">
                 <p v-if="kicker" class="sf-kicker">{{ kicker }}</p>
@@ -483,11 +505,13 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     --slide-heading: inherit;
     --slide-body: inherit;
 
+    --frame-pad: 6cqw;
+
     position: absolute;
     inset: 0;
     display: flex;
     flex-direction: column;
-    padding: 6cqw;
+    padding: var(--frame-pad);
     background: var(--slide-bg);
     color: var(--slide-ink);
     font-family: var(--slide-body);
@@ -603,8 +627,8 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 /* La marge du cadre. `normal` n'a pas de règle : c'est la valeur que porte
    `.slide-frame` lui-même, donc un deck qui n'a jamais ouvert le panneau
    dessine exactement comme avant. */
-.slide-frame[data-margins="tight"] { padding: 3cqw; }
-.slide-frame[data-margins="wide"] { padding: 11cqw; }
+.slide-frame[data-margins="tight"] { --frame-pad: 3cqw; }
+.slide-frame[data-margins="wide"] { --frame-pad: 11cqw; }
 
 /* Au-dessus de tout, y compris du contenu : un filet posé sous le texte
    passerait derrière une image de fond et ne se verrait plus. */
@@ -829,6 +853,43 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
  * une couleur de plus ferait une deuxième chose à lire.
  */
 .slide-frame :deep(strong) { font-weight: 700; }
+
+/* L'aplat. Sous le contenu et sous le décor du deck, mais au-dessus du fond :
+   c'est une forme posée sur la slide, pas une teinte du sol. */
+.sf-band { position: absolute; background: var(--slide-accent); pointer-events: none; }
+
+.slide-frame[data-band="left"] .sf-band { inset: 0 auto 0 0; width: 32%; }
+.slide-frame[data-band="bottom"] .sf-band { inset: auto 0 0 0; height: 22%; }
+.slide-frame[data-band="edge"] .sf-band { inset: 0 auto 0 0; width: 2.5cqw; }
+
+/* Le contenu se pousse pour ne pas passer dessous. Le fin bord n'a pas besoin
+   de plus que la marge que le cadre garde déjà. */
+.slide-frame[data-band="left"] .slide-stage { padding-left: calc(32% - var(--frame-pad) + 4cqw); }
+.slide-frame[data-band="bottom"] .slide-stage { padding-bottom: calc(22% - var(--frame-pad) + 3cqw); }
+
+/* Le débord : l'image sort de la marge du cadre du côté où elle est posée, et
+   va toucher le bord. La marge est lue plutôt que recopiée, sans quoi un deck
+   à marges larges laisserait une bande de fond entre l'image et le bord. */
+.slide-frame[data-bleed="on"] .sf-beside-media {
+    margin-left: calc(var(--frame-pad) * -1);
+    border-radius: 0;
+}
+
+.slide-frame[data-bleed="on"] .sf-beside.is-right .sf-beside-media {
+    margin-left: 0;
+    margin-right: calc(var(--frame-pad) * -1);
+}
+
+/* Les filets du deck : entre les deux colonnes, et sous le sur-titre. */
+.slide-frame[data-rules="on"] .sf-columns > :last-child {
+    border-left: 0.2cqw solid color-mix(in srgb, currentColor 22%, transparent);
+    padding-left: 4cqw;
+}
+
+.slide-frame[data-rules="on"] .sf-kicker {
+    padding-bottom: 1.4cqw;
+    border-bottom: 0.2cqw solid color-mix(in srgb, var(--slide-accent) 45%, transparent);
+}
 
 /* Deux colonnes qui se répondent. Le filet entre elles dit l'opposition que
    le gabarit `split` laissait deviner. */

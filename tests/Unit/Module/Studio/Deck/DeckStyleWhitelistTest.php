@@ -96,6 +96,14 @@ final class DeckStyleWhitelistTest extends TestCase
         self::assertSame([], $normalizer->normalize(['titleCase' => 'small-caps', 'bullets' => 'star']));
     }
 
+    public function testTheSeparatingRulesAreStoredOnlyWhenTheyAreOn(): void
+    {
+        $normalizer = new DeckStyleNormalizer();
+
+        self::assertSame(['rules' => true], $normalizer->normalize(['rules' => true]));
+        self::assertSame([], $normalizer->normalize(['rules' => false]));
+    }
+
     public function testAnUnsetColourIsNotWritten(): void
     {
         $clean = (new DeckStyleNormalizer())->normalize(['background' => null, 'ink' => '']);

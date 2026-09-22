@@ -114,7 +114,7 @@ enum SlideLayoutEnum: string
      */
     public static function commonSlots(): array
     {
-        return ['kicker', 'bgMediaId', 'bgDim', 'bgTreatment', 'bgVeil', 'vignette', 'inverted', 'anchor', 'align', 'measure'];
+        return ['kicker', 'bgMediaId', 'bgDim', 'bgTreatment', 'bgVeil', 'vignette', 'inverted', 'anchor', 'align', 'measure', 'band'];
     }
 
     /**
@@ -136,7 +136,7 @@ enum SlideLayoutEnum: string
             self::Quote => ['quote', 'attribution'],
             self::Section => ['title', 'ghost'],
             self::Stat => ['value', 'label'],
-            self::ImageText => ['title', 'text', 'mediaId', 'mediaFit', 'mediaFocus', 'mediaShape', 'mediaFrame', 'side'],
+            self::ImageText => ['title', 'text', 'mediaId', 'mediaFit', 'mediaFocus', 'mediaShape', 'mediaFrame', 'mediaBleed', 'side'],
             self::Cards => ['title', 'items'],
             self::Timeline => ['title', 'steps'],
             self::Table => ['title', 'rows'],

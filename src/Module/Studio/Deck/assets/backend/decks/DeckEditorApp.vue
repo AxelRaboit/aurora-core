@@ -302,6 +302,7 @@ const measureOptions = compositionOptions("measure", ["full", "two_thirds", "hal
 const treatmentOptions = compositionOptions("bg_treatment", ["none", "blur", "mono", "duotone", "grain"]);
 const veilOptions = compositionOptions("bg_veil", ["flat", "bottom", "top"]);
 const frameOptions = compositionOptions("media_frame", ["none", "line", "shadow"]);
+const bandOptions = compositionOptions("band", ["none", "left", "bottom", "edge"]);
 
 const shapeOptions = computed(() => [
     { value: "soft", label: t("backend.studio.decks.media_shape_soft") },
@@ -643,6 +644,14 @@ onBeforeUnmount(() => {
                                 v-on:update:model-value="(value) => writeSlot('mediaFrame', value)"
                             />
                             <AppToggle
+                                v-else-if="slot === 'mediaBleed'"
+                                :model-value="selected.content.mediaBleed === true"
+                                :label="labelFor(slot)"
+                                :hint="t('backend.studio.decks.media_bleed_hint')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('mediaBleed', value)"
+                            />
+                            <AppToggle
                                 v-else-if="slot === 'captionOver'"
                                 :model-value="selected.content.captionOver === true"
                                 :label="labelFor(slot)"
@@ -743,6 +752,13 @@ onBeforeUnmount(() => {
                                     :label="labelFor('align')"
                                     :disabled="!editable"
                                     v-on:update:model-value="(value) => writeSlot('align', value)"
+                                />
+                                <AppSelect
+                                    :model-value="selected.content.band ?? 'none'"
+                                    :options="bandOptions"
+                                    :label="labelFor('band')"
+                                    :disabled="!editable"
+                                    v-on:update:model-value="(value) => writeSlot('band', value)"
                                 />
                                 <AppSelect
                                     :model-value="selected.content.measure ?? 'full'"

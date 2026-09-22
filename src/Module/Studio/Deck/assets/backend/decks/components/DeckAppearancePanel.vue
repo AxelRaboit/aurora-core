@@ -275,6 +275,13 @@ const placementOptions = computed(() =>
                     />
 
                     <AppToggle
+                        :model-value="overrides.rules === true"
+                        :label="t('backend.studio.decks.rules')"
+                        :hint="t('backend.studio.decks.rules_hint')"
+                        v-on:update:model-value="(value) => write('rules', value)"
+                    />
+
+                    <AppToggle
                         :model-value="overrides.hairline === true"
                         :label="t('backend.studio.decks.hairline')"
                         :hint="t('backend.studio.decks.hairline_hint')"

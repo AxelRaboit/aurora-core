@@ -107,6 +107,10 @@ final readonly class DeckStyleNormalizer
             $clean['bullets'] = $style['bullets'];
         }
 
+        if (array_key_exists('rules', $style) && is_bool($style['rules']) && $style['rules']) {
+            $clean['rules'] = true;
+        }
+
         // Only the true, like `slideNumbers`.
         if (array_key_exists('hairline', $style) && is_bool($style['hairline']) && $style['hairline']) {
             $clean['hairline'] = true;

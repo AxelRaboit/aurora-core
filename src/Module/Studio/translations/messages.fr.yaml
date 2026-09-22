@@ -615,6 +615,14 @@ backend:
                 arrow: Flèche
                 number: Numéro
                 check: Coche
+            media_bleed_hint: L'image sort de la marge et touche le bord du cadre.
+            rules: Filets de séparation
+            rules_hint: Une ligne entre les deux colonnes et sous le sur-titre.
+            bands:
+                none: Aucun
+                left: Bande à gauche
+                bottom: Bandeau en bas
+                edge: Bord fin
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:
@@ -725,6 +733,8 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                band: Aplat de couleur
+                mediaBleed: Image jusqu'au bord
                 leftTitle: Titre de gauche
                 rightTitle: Titre de droite
                 figures: Les chiffres

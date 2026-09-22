@@ -76,6 +76,7 @@ final readonly class DeckAppearance
                 ? $style['margins']
                 : 'normal',
             'hairline' => true === ($style['hairline'] ?? false),
+            'rules' => true === ($style['rules'] ?? false),
             'titleCase' => is_string($style['titleCase'] ?? null) && in_array($style['titleCase'], DeckStyleNormalizer::TITLE_CASES, true)
                 ? $style['titleCase']
                 : 'normal',
